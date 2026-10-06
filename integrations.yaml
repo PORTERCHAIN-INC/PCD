@@ -27,13 +27,11 @@ integrations:
     status: implemented
     note: Dev SMTP — not Mailhog
 
-  fleetbase:
-    status: external
-    env_template: env/fleetbase.env.example
-    ports:
-      api: 8000
+  dispatch:
+    status: implemented
+    note: PorterChain day plan — OR-Tools in dispatch_engine, Valhalla road cost, Redis GPS
     code:
-      - apps/api/src/porterchain_api/fleetbase_engine/
+      - apps/api/src/porterchain_api/dispatch_engine/
 
   google_maps:
     status: implemented

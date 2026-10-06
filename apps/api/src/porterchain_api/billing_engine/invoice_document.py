@@ -54,9 +54,26 @@ def _delivery_description(order: Order | None) -> str:
 
 def ensure_invoice_line(db: Session, invoice: Invoice, order: Order | None) -> InvoiceLine:
     description = _delivery_description(order)
-    existing = db.query(InvoiceLine).filter(InvoiceLine.invoice_id == invoice.id).first()
+    extras = (
+        db.query(InvoiceLine)
+        .filter(
+            InvoiceLine.invoice_id == invoice.id,
+            InvoiceLine.description.like("Additional %"),
+        )
+        .all()
+    )
+    extra_cents = sum(int(line.amount_cents or 0) for line in extras)
+    base_cents = int(order.amount_cents or 0) if order else max(0, int(invoice.amount_cents or 0) - extra_cents)
+    existing = (
+        db.query(InvoiceLine)
+        .filter(
+            InvoiceLine.invoice_id == invoice.id,
+            ~InvoiceLine.description.like("Additional %"),
+        )
+        .first()
+    )
     if existing:
-        existing.amount_cents = int(invoice.amount_cents or 0)
+        existing.amount_cents = base_cents
         existing.tax_cents = int(invoice.tax_cents or 0)
         if order and not existing.order_id:
             existing.order_id = order.id
@@ -67,7 +84,7 @@ def ensure_invoice_line(db: Session, invoice: Invoice, order: Order | None) -> I
         invoice_id=invoice.id,
         order_id=order.id if order else invoice.order_id,
         description=_delivery_description(order),
-        amount_cents=int(invoice.amount_cents or 0),
+        amount_cents=base_cents,
         tax_cents=int(invoice.tax_cents or 0),
     )
     db.add(line)

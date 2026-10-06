@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { ArrowLeft, Copy, CreditCard, ExternalLink, RefreshCw, Timer, XCircle } from "lucide-react";
 import { formatCents } from "@porterchain/ui/utils";
@@ -8,7 +9,7 @@ import { QuoteLines } from "@porterchain/ui/quote-lines";
 import { cn } from "@porterchain/ui/utils";
 import { PAYMENT_STATUS_STYLES, STATE_STYLES, type BookingDraftDetail } from "@/lib/booking-drafts";
 import { relativeTime } from "@/lib/crmFormat";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 
 type Tab =
@@ -66,7 +67,7 @@ export default function BookingDraftDetailView({
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   }

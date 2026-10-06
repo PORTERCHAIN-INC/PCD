@@ -1,16 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { AlertTriangle, BarChart3, RefreshCw } from "lucide-react";
+import { AlertTriangle, BarChart3, ClipboardList, RefreshCw } from "lucide-react";
 import { formatCents } from "@porterchain/ui/utils";
 import { DateRangeField } from "@porterchain/ui/date-fields";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import BookingDraftsGrid from "@/components/booking-drafts/BookingDraftsGrid";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
+import { SavedPresetsControl } from "@/components/crm/SavedPresetsControl";
 import { bookingDraftsApi, DRAFT_STATES, type DraftFilters } from "@/lib/booking-drafts";
 import AdminPage from "@/components/layout/AdminPage";
+import OpsPageHero from "@/components/layout/OpsPageHero";
 
 const FILTERS_KEY = "porterchain.booking-drafts.saved-filters";
 
@@ -72,42 +75,27 @@ export default function BookingDraftsListClient() {
     [selected, getApiToken, qc]
   );
 
-  function saveFilters() {
-    const name = prompt("Filter preset name");
-    if (!name) return;
-    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}") as Record<
-      string,
-      DraftFilters
-    >;
-    saved[name] = filters;
-    localStorage.setItem(FILTERS_KEY, JSON.stringify(saved));
-  }
-
-  function loadFilters() {
-    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}") as Record<
-      string,
-      DraftFilters
-    >;
-    const names = Object.keys(saved);
-    if (!names.length) return alert("No saved filters");
-    const name = prompt(`Load filter:\n${names.join("\n")}`);
-    if (name && saved[name]) setFilters(saved[name]);
-  }
-
   return (
     <AdminPage>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Booking Drafts</h1>
-          <p className="text-sm text-muted">
-            Recover abandoned checkouts — survives refresh, auth, and device changes
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => void refetch()}>
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
-      </div>
+      <OpsPageHero
+        icon={ClipboardList}
+        title="Booking Drafts"
+        description="Recover abandoned checkouts — drafts survive refresh, auth, and device changes."
+        actions={
+          <>
+            <SavedPresetsControl
+              storageKey={FILTERS_KEY}
+              value={filters}
+              onLoad={setFilters}
+              label="Filter presets"
+            />
+            <Button variant="outline" onClick={() => void refetch()}>
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </>
+        }
+      />
 
       {analytics && (
         <div className="space-y-2">
@@ -240,12 +228,6 @@ export default function BookingDraftsListClient() {
             />
             Expired
           </label>
-          <Button variant="outline" onClick={saveFilters}>
-            Save filters
-          </Button>
-          <Button variant="outline" onClick={loadFilters}>
-            Load filters
-          </Button>
         </div>
 
         {selected.length > 0 && (
@@ -265,7 +247,7 @@ export default function BookingDraftsListClient() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Spinner />
+            <PageSkeleton rows={3} />
           </div>
         ) : (
           <BookingDraftsGrid rows={rows} selected={selected} onSelect={setSelected} />

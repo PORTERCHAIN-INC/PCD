@@ -127,7 +127,7 @@ export function OpsCommandPalette({
               </div>
             )}
           {q.trim().length > 0 &&
-            ["pricing", "vehicles", "booking", "users", "fleetbase", "settings"].some(
+            ["pricing", "vehicles", "booking", "users", "dispatch", "settings"].some(
               (k) => k.includes(q.trim().toLowerCase()) || q.trim().toLowerCase().includes(k)
             ) && (
               <div className="mb-2">
@@ -140,7 +140,7 @@ export function OpsCommandPalette({
                     ["vehicles", "Vehicle classes"],
                     ["booking", "Booking / SLA"],
                     ["users", "Users"],
-                    ["fleetbase", "Fleetbase"],
+                    ["dispatch", "Dispatch"],
                   ] as const
                 )
                   .filter(

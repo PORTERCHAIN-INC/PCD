@@ -7,7 +7,6 @@ import type { DriverJobsList, DriverJobsOptimizeResult } from "@/lib/jobs";
 import { formatLastUpdated } from "@/lib/workspace";
 import { optimizeEngineNote } from "@/lib/telemetryLabels";
 
-const POLL_MS = 12_000;
 const OPTIMIZE_POLL_MS = 1_000;
 const OPTIMIZE_POLL_MAX = 45;
 
@@ -64,10 +63,7 @@ export function useDriverJobs() {
       const jobs = await driverApi.jobs();
       return { jobs, at: new Date() };
     },
-    refetchInterval: () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-      return POLL_MS;
-    },
+    refetchInterval: false,
   });
 
   const historyQuery = useQuery({
@@ -77,10 +73,7 @@ export function useDriverJobs() {
       const hist = await driverApi.jobsHistory();
       return hist.history;
     },
-    refetchInterval: () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-      return POLL_MS * 2;
-    },
+    refetchInterval: false,
   });
 
   const refresh = useCallback(async () => {

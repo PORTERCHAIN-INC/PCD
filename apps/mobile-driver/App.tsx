@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { colors } from "@porterchain/mobile-theme";
 import {
@@ -64,10 +64,23 @@ const SupportScreen = lazy(() =>
 function LazyFallback() {
   return (
     <Screen>
-      <ActivityIndicator color={colors.secondary} />
+      <View style={lazyStyles.list} accessibilityRole="progressbar" accessibilityLabel="Loading">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <View key={i} style={lazyStyles.row} />
+        ))}
+      </View>
     </Screen>
   );
 }
+
+const lazyStyles = StyleSheet.create({
+  list: { gap: 10, paddingTop: 8 },
+  row: {
+    height: 72,
+    borderRadius: 16,
+    backgroundColor: colors.primary + "0D",
+  },
+});
 
 // Universal / App Link: /auth/driver-invite · /jobs/{id}
 // Background location task must register before App mounts (see index.ts).

@@ -1,7 +1,7 @@
-"""OR-Tools VRP assign-batch — Phase 2 scaffold (§4.2.1).
+"""Batch assign recommendation — Phase 2 scaffold (§4.2.1).
 
-FROZEN (Phase 5): do not grow this into a real VRP. Fleetbase VROOM (+ optional
-cuOpt shadow) owns assignment. This stub stays recommendation-only round-robin.
+FROZEN: do not grow this into a real VRP. Day-plan sequencing lives in
+``dispatch_engine.sequencer``. This stub stays recommendation-only round-robin.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ def recommend_batch_assignment(
         "solver": _SOLVER_FROZEN,
         "human_override_required": True,
         "note": (
-            "Frozen stub — use Fleetbase VROOM for real assignment. "
+            "Frozen stub — use Optimize / day plan for stop order. "
             "Scoring suggestions are also not commit SoT."
         ),
     }

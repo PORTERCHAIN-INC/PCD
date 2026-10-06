@@ -15,9 +15,12 @@ import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { isGoogleMapsConfigured } from "@/lib/maps";
 import { useApiData } from "@/hooks/useApiData";
 import { ops, type LiveMapOrder } from "@/lib/operations";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { titleCase } from "@/lib/crmFormat";
 import { gpsAgeLabel, gpsSourceLabel, isStaleGps } from "@/lib/telemetryLabels";
+import { PageSkeleton } from "@porterchain/ui/loading";
+
+const LIVE_GPS = new Set(["last_known", "mirror"]);
 
 const GTA_CENTER = { lat: 43.6532, lng: -79.3832 };
 
@@ -104,21 +107,25 @@ function LiveMapInner({
 
   if (loading && !data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-12">
-        <Spinner label="Loading live map…" />
+      <div className="flex min-h-0 flex-1 flex-col gap-2 py-2">
+        <p className="sr-only" role="status">
+          Loading live map
+        </p>
+        <PageSkeleton rows={2} />
+        <div className="min-h-[22rem] flex-1 rounded-xl border border-primary/10 bg-primary/[0.03]" />
       </div>
     );
   }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
-      {data && !["fleetbase", "fleetbase_mirror", "last_known"].includes(data.drivers_source) && (
+      {data && !LIVE_GPS.has(data.drivers_source) && (
         <p className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-800">
-          Driver GPS offline — showing order stops from PorterChain mirror.
+          Driver GPS offline — showing order stops only.
         </p>
       )}
       <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-        {data && ["fleetbase", "fleetbase_mirror", "last_known"].includes(data.drivers_source) && (
+        {data && LIVE_GPS.has(data.drivers_source) && (
           <span className="text-muted">{gpsSourceLabel(data.drivers_source)}</span>
         )}
         <label className="flex items-center gap-1.5 text-muted">
@@ -141,9 +148,9 @@ function LiveMapInner({
             onChange={(e) => setShowZones(e.target.checked)}
           />
           Zones
-          {data?.zones_source && !["fleetbase", "fleetbase_mirror"].includes(data.zones_source) && (
-            <span className="text-amber-700">(none)</span>
-          )}
+          {data?.zones_source &&
+            !LIVE_GPS.has(data.zones_source) &&
+            data.zones_source !== "miss" && <span className="text-amber-700">(none)</span>}
         </label>
         <span className="ml-auto text-muted">
           {orders.length} orders · {drivers.length} drivers
@@ -201,15 +208,7 @@ function LiveMapInner({
           {drivers.map((d) => {
             const stale = isStaleGps(d.recorded_at);
             const age = gpsAgeLabel(d.recorded_at);
-            const src =
-              d.gps_source === "last_known"
-                ? "ingest"
-                : d.gps_source === "mirror" || d.gps_source === "fleetbase_mirror"
-                  ? "mirror"
-                  : null;
-            const title = [d.name, d.online ? null : "offline", age, src]
-              .filter(Boolean)
-              .join(" · ");
+            const title = [d.name, d.online ? null : "offline", age].filter(Boolean).join(" · ");
             return (
               <AdvancedMarker key={d.id} position={{ lat: d.lat, lng: d.lng }} title={title}>
                 <div
@@ -328,7 +327,7 @@ export function LiveMapPanel({
         {!embedded && (
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <Truck className="h-3.5 w-3.5" />
-            Driver GPS + zones via Fleetbase adapter · density is H3 weight, not live heat.
+            Driver GPS and zones. Density is a nearby-driver weight, not live heat.
           </p>
         )}
         <LiveMapInner tick={tick} onOpenOrder={onOpenOrder} embedded={embedded} />
@@ -348,7 +347,7 @@ export function LiveMapPanel({
     <SectionCard
       title="Live map"
       icon={<Truck className="h-4 w-4 text-secondary" />}
-      action={<span className="text-xs text-muted">Fleetbase GPS</span>}
+      action={<span className="text-xs text-muted">Driver GPS</span>}
       className="flex h-full min-h-0 flex-col"
     >
       {body}

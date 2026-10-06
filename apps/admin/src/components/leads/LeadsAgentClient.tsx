@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import AdminPage from "@/components/layout/AdminPage";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { leadsApi, type AgentActivityRow } from "@/lib/leads";
 
 type LaneKey = "inbox" | "welcomed" | "needs_enrich" | "awaiting_welcome" | "blocked" | "recent";
@@ -209,7 +210,7 @@ export default function LeadsAgentClient() {
       </div>
 
       {isLoading ? (
-        <Spinner label="Loading agent activity…" />
+        <PageSkeleton rows={4} />
       ) : error ? (
         <p className="text-sm text-red-700">Failed to load agent activity.</p>
       ) : data ? (
@@ -422,7 +423,9 @@ export default function LeadsAgentClient() {
                       Next best action
                     </p>
                     {nbaLoading ? (
-                      <p className="mt-1 text-sm text-muted">Loading…</p>
+                      <p className="mt-1 text-sm text-muted" role="status">
+                        Updating next action…
+                      </p>
                     ) : (
                       <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-[11px] leading-relaxed text-primary">
                         {JSON.stringify(

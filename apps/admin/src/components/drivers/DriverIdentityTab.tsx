@@ -156,7 +156,6 @@ export function IdentityTab({
             label="Tax / SIN on file"
             value={raw.sin ? "Provided" : raw.tax_id ? "Provided" : null}
           />
-          <Detail label="Fleetbase driver id" value={d.fleetbase_driver_id} />
         </dl>
       )}
     </SectionCard>

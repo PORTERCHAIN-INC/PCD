@@ -75,14 +75,6 @@ export function DetailsTab({ detail }: { detail: OrderDetail }) {
           ["Internal", detail.internal_reference ?? "—"],
         ] as [string, ReactNode][])),
     ["Cost centre", detail.cost_centre ?? "—"],
-    [
-      "Fleetbase ID",
-      detail.fleetbase_order_id ? (
-        <span className="font-mono text-xs">{detail.fleetbase_order_id}</span>
-      ) : (
-        "Not synced"
-      ),
-    ],
   ];
   return (
     <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -140,7 +132,7 @@ export function PodTab({ detail }: { detail: OrderDetail }) {
     return (
       <EmptyState
         title="No proof of delivery yet"
-        hint="Capture in the driver app / Fleetbase — Admin is read-only."
+        hint="Capture in the driver app. Admin is read-only."
       />
     );
   }
@@ -148,16 +140,14 @@ export function PodTab({ detail }: { detail: OrderDetail }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
-          Live from Fleetbase
-        </p>
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted">Proof on file</p>
         <PodDownloadAll orderId={detail.order_id} getApiToken={getApiToken} />
       </div>
       <div className="flex flex-wrap gap-3">
         {photos.map((p, i) =>
           typeof p.url === "string" ? (
             <figure key={String(p.id ?? i)} className="space-y-1">
-              {/* eslint-disable-next-line @next/next/no-img-element -- Fleetbase proof URL */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- proof file URL */}
               <img
                 src={p.url}
                 alt="Delivery photo"
@@ -181,7 +171,7 @@ export function PodTab({ detail }: { detail: OrderDetail }) {
                 : null;
           return src ? (
             <figure key={String(s.id ?? `sig-${i}`)} className="space-y-1">
-              {/* eslint-disable-next-line @next/next/no-img-element -- Fleetbase signature */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- signature file URL */}
               <img
                 src={src}
                 alt="Recipient signature"

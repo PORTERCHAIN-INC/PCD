@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
 from porterchain_api.merchant_models import Merchant, MerchantBookingTemplate, MerchantUser, StandingOrder

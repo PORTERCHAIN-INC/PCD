@@ -11,8 +11,7 @@ from porterchain_api.routers.driver._deps import (
     get_db,
     get_driver_context,
     router,
-    svc,
-)
+    svc)
 
 
 @router.get("/vehicle")
@@ -34,8 +33,7 @@ def list_documents(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
 def upload_document(
     body: DocumentUploadRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     try:
         with db_transaction(db):
             doc = svc.platform.documents.upload_document(
@@ -43,8 +41,7 @@ def upload_document(
                 ctx.driver,
                 doc_type=body.doc_type,
                 file_url=body.file_url,
-                metadata=body.metadata,
-            )
+                metadata=body.metadata)
         return doc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -54,8 +51,7 @@ def upload_document(
 def upload_vehicle_photo(
     body: DocumentUploadRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     with db_transaction(db):
         photo = svc.platform.documents.upload_vehicle_photo(
             db, ctx.driver, file_url=body.file_url, metadata=body.metadata
@@ -72,8 +68,7 @@ def training(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
 def complete_training(
     module_id: str,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     with db_transaction(db):
         result = svc.platform.training.complete_module(db, ctx.driver, module_id)
     return result

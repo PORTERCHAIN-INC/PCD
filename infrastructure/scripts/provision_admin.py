@@ -24,7 +24,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(API_ROOT / "src"))
 sys.path.insert(0, str(REPO_ROOT / "shared" / "python"))
 sys.path.insert(0, str(REPO_ROOT / "services" / "python"))
-sys.path.insert(0, str(REPO_ROOT / "services" / "fleetbase-adapter"))
 sys.path.insert(0, str(REPO_ROOT / "services" / "event-bus"))
 sys.path.insert(0, str(REPO_ROOT / "services" / "pricing-engine"))
 sys.path.insert(0, str(REPO_ROOT / "services" / "driver-platform"))

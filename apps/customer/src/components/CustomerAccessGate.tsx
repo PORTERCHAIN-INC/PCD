@@ -66,7 +66,7 @@ function CustomerAccessGateWithClerk({ children }: Props) {
 
   const effectivelySignedIn = !!isSignedIn || !!impToken;
 
-  const { checking, denied, errorDetail } = usePortalSessionGate({
+  const { denied, errorDetail } = usePortalSessionGate({
     portal: "customer",
     apiUrl: publicEnv.porterchainApiUrl,
     isLoaded,
@@ -78,15 +78,6 @@ function CustomerAccessGateWithClerk({ children }: Props) {
     onSignedOut,
     onNeedOnboarding,
   });
-
-  if (!isLoaded || (checking && !onPendingPath && !impToken)) {
-    return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3" role="status">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" />
-        <p className="text-sm text-muted">Loading session…</p>
-      </div>
-    );
-  }
 
   if ((denied || errorDetail) && !impToken) {
     const loginUrl = platformLoginUrl(publicEnv.websiteUrl);

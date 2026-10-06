@@ -12,8 +12,10 @@ import {
 } from "@/lib/booking";
 import { formatDate } from "@/lib/utils";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
+import { PageSkeleton } from "@porterchain/ui/loading";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 const RULES = [
   { id: "daily", label: "Every day" },
@@ -44,48 +46,42 @@ function localToIso(local: string): string {
 
 export default function StandingOrdersClient() {
   const { getApiToken, orgId } = useMerchantAuth();
-  const [rows, setRows] = useState<StandingOrder[]>([]);
-  const [templates, setTemplates] = useState<BookingTemplate[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [templateId, setTemplateId] = useState("");
   const [rule, setRule] = useState<(typeof RULES)[number]["id"]>("weekly");
   const [firstRun, setFirstRun] = useState(defaultFirstRun);
 
-  const reload = useCallback(async () => {
-    const token = await getApiToken();
-    const [schedules, saved] = await Promise.all([
-      listStandingOrders(token, orgId),
-      listBookingTemplates(token, orgId),
-    ]);
-    setRows(schedules);
-    setTemplates(saved);
-    setTemplateId((current) => current || saved[0]?.id || "");
-    setError(null);
-  }, [getApiToken, orgId]);
+  const query = useQuery({
+    queryKey: ["merchant-standing-orders", orgId ?? null],
+    queryFn: async () => {
+      const token = await getApiToken();
+      const [schedules, saved] = await Promise.all([
+        listStandingOrders(token, orgId),
+        listBookingTemplates(token, orgId),
+      ]);
+      return { schedules, saved };
+    },
+  });
+  const rows: StandingOrder[] = query.data?.schedules ?? [];
+  const templates: BookingTemplate[] = query.data?.saved ?? [];
+  const error =
+    actionError ||
+    (query.error instanceof Error ? query.error.message : query.error ? String(query.error) : null);
 
   useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        await reload();
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load schedules");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [reload]);
+    setTemplateId((current) => current || templates[0]?.id || "");
+  }, [templates]);
 
   async function onCreate(event: FormEvent) {
     event.preventDefault();
     if (!templateId) {
-      setError("Save a booking from Single first, then schedule it here.");
+      setActionError("Save a booking from Single first, then schedule it here.");
       return;
     }
     setBusy(true);
-    setError(null);
+    setActionError(null);
     try {
       const token = await getApiToken();
       await createStandingOrder(
@@ -97,9 +93,9 @@ export default function StandingOrdersClient() {
         },
         orgId
       );
-      await reload();
+      await qc.invalidateQueries({ queryKey: ["merchant-standing-orders", orgId ?? null] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create this schedule");
+      setActionError(err instanceof Error ? err.message : "Could not create this schedule");
     } finally {
       setBusy(false);
     }
@@ -108,13 +104,13 @@ export default function StandingOrdersClient() {
   async function onTurnOff(id: string) {
     if (!window.confirm("Turn this schedule off? Existing bookings stay as they are.")) return;
     setBusy(true);
-    setError(null);
+    setActionError(null);
     try {
       const token = await getApiToken();
       await turnOffStandingOrder(token, id, orgId);
-      await reload();
+      await qc.invalidateQueries({ queryKey: ["merchant-standing-orders", orgId ?? null] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not turn off this schedule");
+      setActionError(err instanceof Error ? err.message : "Could not turn off this schedule");
     } finally {
       setBusy(false);
     }
@@ -130,7 +126,9 @@ export default function StandingOrdersClient() {
             running this app creates the order — this page only starts or stops the schedule.
           </p>
         </div>
-        {templates.length === 0 ? (
+        {query.isLoading && !query.data ? (
+          <PageSkeleton rows={3} />
+        ) : templates.length === 0 ? (
           <p className="rounded-xl border border-primary/10 bg-gray-bg/60 px-4 py-3 text-sm text-muted">
             No saved bookings yet. Open the Single tab, fill a delivery, save it, then come back
             here.

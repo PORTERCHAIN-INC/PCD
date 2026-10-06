@@ -24,7 +24,7 @@ def _env_bool(value: str | bool | None) -> bool:
 @dataclass(frozen=True)
 class Phase2Flags:
     crm: bool = False
-    # RETIRED — Route Center removed (Fleetbase/VROOM); always False in as_dict.
+    # RETIRED — Route Center / VROOM removed; always False in as_dict.
     route_center: bool = False
     ai_dispatch: bool = False
     analytics: bool = False

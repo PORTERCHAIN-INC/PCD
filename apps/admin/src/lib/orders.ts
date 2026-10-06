@@ -308,6 +308,7 @@ export const ordersApi = {
       actions: Array<{ id: string; label: string }>;
       parcels: Array<Record<string, unknown>>;
       parcel_statuses: string[];
+      extra_stops?: Array<Record<string, unknown>>;
     }>(`${B}/${id}/driver-ops`, token),
   runDriverOp: (token: string, id: string, action: string) =>
     adminFetch<{ ok: boolean; order_id: string; state: string; action: string }>(
@@ -315,11 +316,44 @@ export const ordersApi = {
       token,
       { method: "POST", body: JSON.stringify({ action }) }
     ),
-  setParcelStatus: (token: string, id: string, parcelId: string, status: string) =>
+  setParcelStatus: (
+    token: string,
+    id: string,
+    parcelId: string,
+    status: string,
+    trackingSuffix?: string
+  ) =>
     adminFetch<{ ok: boolean; parcel_id: string; status: string }>(
       `${B}/${id}/parcels/${parcelId}/status`,
       token,
-      { method: "POST", body: JSON.stringify({ status }) }
+      {
+        method: "POST",
+        body: JSON.stringify({ status, tracking_suffix: trackingSuffix || null }),
+      }
+    ),
+  addProof: (token: string, id: string, fileUrl: string) =>
+    adminFetch<{ ok: boolean }>(`${B}/${id}/proof`, token, {
+      method: "POST",
+      body: JSON.stringify({ file_url: fileUrl }),
+    }),
+  addExtraStop: (
+    token: string,
+    id: string,
+    body: { kind: string; formatted: string; amount_cents: number }
+  ) =>
+    adminFetch<{ ok: boolean; checkout_url: string; leg: string }>(
+      `${B}/${id}/extra-stops`,
+      token,
+      { method: "POST", body: JSON.stringify(body) }
+    ),
+  resendExtraStop: (token: string, id: string, leg: string) =>
+    adminFetch<{ ok: boolean; checkout_url: string }>(
+      `${B}/${id}/extra-stops/${leg}/resend`,
+      token,
+      {
+        method: "POST",
+        body: "{}",
+      }
     ),
   amendParcels: (
     token: string,
@@ -492,8 +526,8 @@ export function formatState(s: string) {
 }
 
 const ORDER_SOURCE_LABELS: Record<string, string> = {
-  WEBSITE: "Website",
-  MERCHANT: "Merchant portal",
+  WEBSITE: "Customer",
+  MERCHANT: "Merchant",
   API: "API",
   CSV: "CSV",
   ADMIN: "Admin",

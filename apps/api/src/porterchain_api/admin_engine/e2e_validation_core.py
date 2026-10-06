@@ -122,17 +122,17 @@ class E2EValidationCoreMixin:
                     }
                 )
 
-        if settings.fleetbase_dispatch_bridge and not settings.fleetbase_api_key:
+        if settings.fleetbase_dispatch_bridge:
             fixes.append(
                 {
-                    "fix": "fleetbase_api_key_missing",
-                    "action": "Set FLEETBASE_API_KEY for outbound sync — adapter will queue retries",
+                    "fix": "fleetbase_dispatch_bridge_on",
+                    "action": "Set FLEETBASE_DISPATCH_BRIDGE=false — Fleetbase adapter is retired",
                     "applied": "documented",
                 }
             )
 
         try:
-            from porterchain_api.fleetbase_engine import ErrorQueue
+            from porterchain_api.platform.retired_sync import ErrorQueue
 
             dead = ErrorQueue.list_dead(db, limit=5)
             requeued = 0
@@ -142,8 +142,8 @@ class E2EValidationCoreMixin:
             if requeued:
                 fixes.append(
                     {
-                        "fix": "fleetbase_retry_requeue",
-                        "action": f"Re-queued {requeued} dead Fleetbase sync job(s)",
+                        "fix": "retired_sync_retry_requeue",
+                        "action": f"Re-queued {requeued} dead retired-sync job(s)",
                         "applied": "yes",
                     }
                 )
@@ -237,7 +237,6 @@ class E2EValidationCoreMixin:
             return 0
         for table in (
             "billing_ledger_entries",
-            "fleetbase_sync_jobs",
             "claims",
             "order_events",
             "payments",
@@ -267,8 +266,9 @@ class E2EValidationCoreMixin:
     def _failure_layer(self, scenario: str) -> str:
         mapping = {
             "stripe_webhook_failure": "billing_engine",
-            "fleetbase_offline": "fleetbase_adapter",
-            "fleetbase_adapter_failure": "fleetbase_adapter",
+            "fleetbase_offline": "dispatch_engine",
+            "fleetbase_adapter_failure": "dispatch_engine",
+            "day_plan_offline": "dispatch_engine",
             "google_maps_failure": "integrations",
             "authentication_failed": "auth",
             "notification_failure": "notification_engine",

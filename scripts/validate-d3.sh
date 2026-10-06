@@ -8,5 +8,5 @@ else
   PY="${PYTHON:-python3}"
 fi
 cd "$ROOT/apps/api"
-PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform \
+PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform \
   "$PY" scripts/verify_d3_matrix.py "$@"

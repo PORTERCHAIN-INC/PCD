@@ -8,8 +8,6 @@ from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_models import Driver
 from porterchain_api.crm_models import CrmLead
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.fleetbase_models import FleetbaseSyncJob
-
 
 def test_provision_pending_from_lead_is_idempotent(db, admin_ctx):
     lead = CrmLead(
@@ -29,9 +27,3 @@ def test_provision_pending_from_lead_is_idempotent(db, admin_ctx):
     assert first.status == DriverStatus.PENDING.value
     assert first.crm_lead_id == lead.id
     assert db.query(Driver).filter(Driver.crm_lead_id == lead.id).count() == 1
-    jobs = (
-        db.query(FleetbaseSyncJob)
-        .filter(FleetbaseSyncJob.idempotency_key == f"driver_profile:{first.id}")
-        .count()
-    )
-    assert jobs == 0

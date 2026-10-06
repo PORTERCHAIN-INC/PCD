@@ -69,5 +69,5 @@ class E2EValidationSystemMixin:
                 (c for c in health["components"] if c["id"] == "notification_engine"),
                 {},
             ),
-            "fleetbase_sync_probe": self._diagnostics.fleetbase_sync_monitor(db),
+            "day_plan_probe": self._diagnostics.day_plan_monitor(db),
         }

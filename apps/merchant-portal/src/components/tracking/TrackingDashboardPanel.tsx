@@ -13,7 +13,7 @@ export function TrackingDashboardPanel({ dashboard }: { dashboard: TrackingDashb
       <div className="rounded-2xl border border-primary/10 bg-white p-8 text-center">
         <p className="font-medium text-primary">No active deliveries</p>
         <p className="mt-1 text-sm text-muted">
-          In-transit shipments will appear here with driver positions from Fleetbase (polled).
+          In-transit shipments will appear here with the driver pin while the job is moving.
         </p>
       </div>
     );

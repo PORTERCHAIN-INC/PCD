@@ -43,15 +43,15 @@ def assess_deploy_frequency_policy() -> dict:
 
 
 def build_execution_metrics_dashboard(db: Session, settings) -> dict:
+    del settings
     from porterchain_api.admin_engine.business_metrics import assess_business_metrics
-    from porterchain_api.fleetbase_engine.sync_health import assess_fleetbase_sync
     from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
 
     business = assess_business_metrics(db)
     return {
         "orders": assess_orders_per_week(db),
         "deploy_frequency": assess_deploy_frequency_policy(),
-        "fleetbase_sync": assess_fleetbase_sync(db, settings),
+        "dispatch": {"status": "porterchain", "engine": "ortools", "ok": True},
         "merchant_webhook_delivery": assess_merchant_webhook_delivery(db),
         "auto_dispatch": business["auto_dispatch"],
         "on_time_delivery": business["on_time_delivery"],

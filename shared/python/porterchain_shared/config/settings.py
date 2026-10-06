@@ -33,16 +33,16 @@ class PlatformSettings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_mock: bool = True
 
-    # Fleetbase — internal logistics engine only
-    fleetbase_api_url: str = "http://localhost:8000"
+    # Retired Fleetbase bridge keys (nullable until later drop — keep off)
+    fleetbase_api_url: str = ""
     fleetbase_api_key: str = ""
     fleetbase_dispatch_bridge: bool = False
     fleetbase_default_company_uuid: str = ""
     fleetbase_webhook_secret: str = ""
     fleetbase_console_url: str = ""
-    fleetbase_sso_enabled: bool = True
+    fleetbase_sso_enabled: bool = False
 
-    # SSO — Porterchain JWT for Fleetbase trust
+    # Staff SSO JWT (PorterChain portals)
     sso_jwt_secret: str = ""
     sso_token_ttl_seconds: int = 300
 
@@ -149,6 +149,11 @@ class PlatformSettings(BaseSettings):
     smtp_from_name: str = Field(
         default="Porterchain",
         validation_alias=AliasChoices("smtp_from_name", "MAIL_FROM_NAME"),
+    )
+    # Comma-separated. When set, staff email (including push fallback) goes only to these addresses.
+    ops_watch_emails: str = Field(
+        default="",
+        validation_alias=AliasChoices("ops_watch_emails", "OPS_WATCH_EMAILS"),
     )
     # auto | smtp | https — auto uses HTTPS for ZeptoMail in non-local envs (DO blocks SMTP).
     mail_transport: str = Field(

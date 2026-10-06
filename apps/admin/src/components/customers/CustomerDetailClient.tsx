@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Activity as ActivityIcon,
   ArrowLeft,
@@ -36,9 +36,10 @@ import {
   CustomerAddOrderModal,
   CustomerOrderCreatedBanner,
 } from "@/components/customers/CustomerAddOrderModal";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, titleCase } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
+import { PageSkeleton, TableSkeleton } from "@porterchain/ui/loading";
 
 /** Mirrors API MODULE_PERMISSIONS["customers"]. */
 const CUSTOMERS_WRITE_ROLES = new Set([
@@ -61,8 +62,7 @@ const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: 
   { id: "tasks", label: "Tasks", icon: ClipboardList },
 ];
 
-export default function CustomerDetailClient() {
-  const { id } = useParams<{ id: string }>();
+export default function CustomerDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const { getApiToken } = useAdminAuth();
   const { profile } = useAdminProfile();
@@ -110,7 +110,7 @@ export default function CustomerDetailClient() {
     }
   }
 
-  if (loading && !data) return <Spinner label="Loading customer…" />;
+  if (loading && !data) return <PageSkeleton rows={5} />;
   if (error || !data) {
     return <EmptyState title="Customer not found" hint={error || "Unknown customer"} />;
   }
@@ -372,7 +372,7 @@ function OrdersTab({
         </Button>
       </div>
       {loading && !orders ? (
-        <Spinner label="Loading orders…" />
+        <TableSkeleton rows={5} />
       ) : error ? (
         <EmptyState title="Could not load orders" hint={error} />
       ) : !orders?.length ? (
@@ -413,7 +413,7 @@ function CareTab({ id }: { id: string }) {
     key: `customer-care-${id}`,
   });
 
-  if (loading && !data) return <Spinner label="Loading care…" />;
+  if (loading && !data) return <PageSkeleton rows={3} />;
   if (error || !data)
     return <EmptyState title="Could not load care" hint={error || "Unknown error"} />;
 
@@ -523,7 +523,7 @@ function BillingTab({ id, stripeCustomerId }: { id: string; stripeCustomerId?: s
 
       <SectionCard title="Invoices">
         {invLoading && !invoices ? (
-          <Spinner label="Loading invoices…" />
+          <TableSkeleton rows={4} />
         ) : invError ? (
           <p className="p-5 text-sm text-red-600">{invError}</p>
         ) : !invoices?.length ? (
@@ -560,7 +560,7 @@ function BillingTab({ id, stripeCustomerId }: { id: string; stripeCustomerId?: s
 
       <SectionCard title="Payments">
         {payLoading && !payments ? (
-          <Spinner label="Loading payments…" />
+          <TableSkeleton rows={4} />
         ) : payError ? (
           <p className="p-5 text-sm text-red-600">{payError}</p>
         ) : !payments?.length ? (

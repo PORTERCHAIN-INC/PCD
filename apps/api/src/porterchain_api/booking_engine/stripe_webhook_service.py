@@ -132,6 +132,12 @@ class StripeWebhookService:
         meta = handle_checkout_completed(settings, session)
         if not meta:
             return
+        if meta.get("kind") == "additional_stop":
+            from porterchain_driver.field_admin import merge_additional_payment
+
+            if meta.get("payment_id"):
+                merge_additional_payment(db, meta["payment_id"])
+            return
         if meta.get("invoice_id"):
             self._handle_invoice_checkout_completed(db, session, meta)
             return

@@ -872,7 +872,7 @@
   "liveMap": {
     "label": "Suivi d'envoi",
     "title": "Statut, chauffeur et ETA sur chaque course",
-    "subtitle": "Après dispatch, le GPS Fleetbase et un ETA routier s'affichent quand le routage est disponible. La carte ci-dessous est une illustration, pas un fourgon en direct.",
+    "subtitle": "Après le dispatch, le GPS du chauffeur et un ETA routier s'affichent quand le routage est disponible. La carte ci-dessous est une illustration, pas un fourgon en direct.",
     "liveTracking": "Exemple de suivi",
     "inTransit": "En transit",
     "eta": "ETA d'exemple",

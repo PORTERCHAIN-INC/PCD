@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 
@@ -24,9 +25,13 @@ function withQuery(base: string, searchParams: Record<string, string | string[] 
   return qs ? `${base}?${qs}` : base;
 }
 
-/** Legacy `/quote` — money-loop surface; capacity quote path is Clerk sign-up. */
-export default async function QuoteRedirectPage({ params, searchParams }: Props) {
-  const { locale } = await params;
+async function QuoteRedirect({
+  locale,
+  searchParams,
+}: {
+  locale: string;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const query = await searchParams;
   const loc = (
     routing.locales.includes(locale as Locale) ? locale : routing.defaultLocale
@@ -38,4 +43,15 @@ export default async function QuoteRedirectPage({ params, searchParams }: Props)
     ...query,
   };
   redirect(withQuery(base, merged));
+  return null;
+}
+
+/** Legacy `/quote` — money-loop surface; capacity quote path is Clerk sign-up. */
+export default async function QuoteRedirectPage({ params, searchParams }: Props) {
+  const { locale } = await params;
+  return (
+    <Suspense fallback={null}>
+      <QuoteRedirect locale={locale} searchParams={searchParams} />
+    </Suspense>
+  );
 }

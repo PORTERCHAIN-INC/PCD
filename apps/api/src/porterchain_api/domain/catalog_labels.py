@@ -243,8 +243,8 @@ def invite_status_label(status: str | None) -> str:
 
 
 ORDER_SOURCE_LABELS: dict[str, str] = {
-    "WEBSITE": "Website",
-    "MERCHANT": "Merchant portal",
+    "WEBSITE": "Customer",
+    "MERCHANT": "Merchant",
     "API": "API",
     "CSV": "CSV",
     "ADMIN": "Admin",

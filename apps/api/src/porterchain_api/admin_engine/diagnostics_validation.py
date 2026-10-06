@@ -22,7 +22,6 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
 )
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order
-from porterchain_api.services.fleetbase_integration import get_fleetbase_integration
 from porterchain_shared.config.settings import get_platform_settings
 from porterchain_shared.queue.publisher import queue_depths
 from porterchain_shared.redis_health import ping_redis
@@ -93,49 +92,14 @@ class DiagnosticsValidationMixin:
                     or probe.get("warnings", [])
                     or [f"Valhalla probe OK ({host or 'configured'})"]
                 )
-            elif test_id == "vroom":  # fleetbase-first:ok — Fleetbase TSP probe
-                probe = self._probe_vroom(settings, live=True)  # fleetbase-first:ok
+            elif test_id in ("dispatch", "vroom", "fleetbase", "fleetbase_adapter", "fleetbase_console"):
+                probe = self._probe_day_plan(settings, live=True)
                 status = probe["status"]
                 details = probe.get("details", {}) or {}
                 logs = (
                     probe.get("errors", [])
                     or probe.get("warnings", [])
-                    or (
-                        [details.get("note") or "VROOM skipped (Fleetbase bridge/adapter off)"]  # fleetbase-first:ok
-                        if details.get("skipped")
-                        else ["VROOM reached via Fleetbase orchestrator"]  # fleetbase-first:ok
-                    )
-                )
-            elif test_id == "fleetbase":
-                probe = self._probe_fleetbase(settings, live=True)
-                status = probe["status"]
-                logs = (
-                    probe.get("errors", [])
-                    or probe.get("warnings", [])
-                    or (
-                        [(probe.get("details") or {}).get("note") or "Fleetbase skipped (local)"]
-                        if (probe.get("details") or {}).get("skipped")
-                        else ["Fleetbase API reachable"]
-                    )
-                )
-            elif test_id == "fleetbase_adapter":
-                probe = self._probe_fleetbase_adapter(settings, live=True)
-                status = probe["status"]
-                note = (probe.get("details") or {}).get("note")
-                logs = [
-                    "Adapter factory OK",
-                    *(probe.get("warnings", []) or ([note] if note else [])),
-                ]
-            elif test_id == "fleetbase_console":
-                probe = self._probe_fleetbase_console(settings)
-                status = probe["status"]
-                logs = (
-                    probe.get("warnings", [])
-                    or (
-                        [(probe.get("details") or {}).get("note") or "Console skipped (local)"]
-                        if (probe.get("details") or {}).get("skipped")
-                        else ["Fleetbase console reachable"]
-                    )
+                    or [details.get("note") or "Day plan is OR-Tools"]
                 )
             elif test_id == "email_smtp":
                 probe = self._probe_email(get_platform_settings(), settings)
@@ -300,8 +264,7 @@ class DiagnosticsValidationMixin:
             {"id": "application_services", "label": "Application Services", "url": None},
             {"id": "engines", "label": "Pricing / Billing / Notification / Orders / CRM / Finance / Claims / Support", "url": None},
             {"id": "event_bus", "label": "Internal Event Bus", "url": None},
-            {"id": "fleetbase_adapter", "label": "Fleetbase Adapter Layer", "url": None},
-            {"id": "fleetbase", "label": "Fleetbase Core", "url": settings.fleetbase_api_url},
+            {"id": "dispatch", "label": "Dispatch (day plan)", "url": None},
             {"id": "driver_mobile", "label": "Driver Mobile", "url": settings.driver_portal_url},
         ]
 
@@ -328,15 +291,6 @@ class DiagnosticsValidationMixin:
             if i < len(chain) - 1:
                 entry["downstream"] = chain[i + 1]["label"]
             connections.append(entry)
-
-        if not settings.fleetbase_dispatch_bridge:
-            violations.append(
-                {"type": "configuration", "message": "Fleetbase dispatch bridge disabled — logistics chain incomplete"}
-            )
-
-        adapter_ok = get_fleetbase_integration(settings).is_enabled
-        if settings.fleetbase_dispatch_bridge and not adapter_ok:
-            violations.append({"type": "adapter", "message": "Fleetbase adapter not configured despite bridge enabled"})
 
         try:
             routes = _openapi_paths()
@@ -367,12 +321,12 @@ class DiagnosticsValidationMixin:
             "architecture_violations": violations,
             "duplicate_logic_risks": [
                 "Client website pricing is estimate-only — server validates before payment (masterrule §11)",
-                "All Fleetbase HTTP must flow through fleetbase_engine + adapter (masterrule §8)",
+                "Day plan is OR-Tools in dispatch_engine; Valhalla is the only road cost",
             ],
             "adr_checklist": [
-                {"id": "ADR-001", "label": "Fleetbase is execution engine only", "status": "healthy"},
+                {"id": "ADR-001", "label": "PorterChain owns dispatch and GPS", "status": "healthy"},
                 {"id": "ADR-002", "label": "Porterchain owns business logic", "status": "healthy"},
-                {"id": "ADR-003", "label": "Fleetbase Adapter mandatory", "status": "healthy" if settings.fleetbase_dispatch_bridge else "warning"},
+                {"id": "ADR-003", "label": "OR-Tools day plan (no VROOM client)", "status": "healthy"},
                 {"id": "ADR-004", "label": "Booking Draft server-persisted", "status": "healthy"},
                 {"id": "ADR-005", "label": "Event Bus mandatory", "status": "healthy"},
                 {"id": "ADR-006", "label": "Stripe webhook payment signal", "status": "healthy" if settings.stripe_webhook_secret or settings.stripe_mock else "warning"},

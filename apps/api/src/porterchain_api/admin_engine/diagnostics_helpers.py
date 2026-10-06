@@ -20,7 +20,8 @@ EVENT_PUBLISHERS: dict[str, str] = {
     "payment.succeeded": "billing_engine",
     "order.created": "booking_engine",
     "order.dispatch_ready": "orders_engine",
-    "fleetbase.order_created": "fleetbase_engine",
+    "order.driver_assigned": "admin_engine",
+    "order.tracking_updated": "booking_engine",
     "notification.queued": "notification_engine",
     "claim.opened": "admin_engine",
     "support.ticket_created": "admin_engine",
@@ -28,9 +29,9 @@ EVENT_PUBLISHERS: dict[str, str] = {
 
 EVENT_CONSUMERS: dict[str, list[str]] = {
     "payment.succeeded": ["booking_engine", "notification_engine", "billing_engine"],
-    "booking.confirmed": ["notification_engine", "fleetbase_engine"],
-    "order.dispatch_ready": ["fleetbase_engine", "notification_engine"],
-    "fleetbase.status_updated": ["fleetbase_engine", "notification_engine"],
+    "booking.confirmed": ["notification_engine"],
+    "order.dispatch_ready": ["notification_engine", "dispatch_engine"],
+    "order.tracking_updated": ["notification_engine"],
 }
 
 def _now_iso() -> str:

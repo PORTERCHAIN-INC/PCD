@@ -94,12 +94,9 @@ class ServiceRegistry:
     def health(self) -> dict[str, str]:
         import os
 
-        bridge_on = os.getenv("FLEETBASE_DISPATCH_BRIDGE", "true").lower() not in ("0", "false", "no")
-        has_key = bool(os.getenv("FLEETBASE_API_KEY", "").strip())
-        fleetbase_status = "configured" if bridge_on and has_key else "disabled"
         return {
             "gateway": "ok",
-            "fleetbase": fleetbase_status,
+            "dispatch": "porterchain",
             "stripe": "configured" if self.stripe.is_configured else "mock",
             "maps": self.maps.engine,
             # Notifications: porterchain_api.notification_engine (domain events).

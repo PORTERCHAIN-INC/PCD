@@ -20,6 +20,18 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
+def _any_coords(orders: list[Any]) -> bool:
+    for order in orders:
+        for addr in (getattr(order, "pickup", None), getattr(order, "dropoff", None)):
+            if not isinstance(addr, dict):
+                continue
+            lat = addr.get("lat") or addr.get("latitude")
+            lng = addr.get("lng") or addr.get("lon") or addr.get("longitude")
+            if lat is not None and lng is not None:
+                return True
+    return False
+
 _COMPLETED_STATES = frozenset(
     {
         "DELIVERED",
@@ -127,76 +139,39 @@ class JobsService:
         insert_order_id: str | None = None,
         preview: bool = False,
     ) -> dict[str, Any]:
-        """Enqueue Fleetbase sequencing for this driver's live jobs. Never TSP locally.
-
-        When ``insert_order_id`` is set (mid-day insert / Phase 1b), that order is
-        included in the pool but omitted from ``prior_assignments`` so VROOM can
-        place it while locking already-on-vehicle work.
-
-        ``preview=True`` (driver Request stop order) defers sequence apply until
-        Accept. Assign/accept/reopt keep ``preview=False`` (auto-apply on ready).
-        """
-        from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
-        from porterchain_api.admin_models import Vehicle
-        from porterchain_api.fleetbase_engine.public_ids import is_consumable_public_id
+        """Queue this driver's van. The worker searches. Accept only draws the stored order."""
+        from porterchain_api.dispatch_engine.day_plan import payload_from_orders, queue_one_van
 
         orders = [o for o in self._today_orders(db, driver.id) if str(o.state) not in _COMPLETED_STATES]
-        synced = [
-            o for o in orders if is_consumable_public_id(getattr(o, "fleetbase_order_id", None))
-        ]
-        if not synced:
+        if not orders or not _any_coords(orders):
             raise ValueError("no_synced_jobs")
 
-        vehicles = (
-            db.query(Vehicle)
-            .filter(
-                Vehicle.driver_id == driver.id,
-                Vehicle.is_active.is_(True),
-                Vehicle.fleetbase_vehicle_id.isnot(None),
+        vehicle_class = None
+        try:
+            from porterchain_api.admin_models import Vehicle
+
+            vehicles = (
+                db.query(Vehicle)
+                .filter(Vehicle.driver_id == driver.id, Vehicle.is_active.is_(True))
+                .all()
             )
-            .all()
-        )
-        vehicle_ids = [
-            v.fleetbase_vehicle_id
-            for v in vehicles
-            if is_consumable_public_id(v.fleetbase_vehicle_id)
-        ]
-        driver_ids = (
-            [driver.fleetbase_driver_id]
-            if is_consumable_public_id(getattr(driver, "fleetbase_driver_id", None))
-            else []
-        )
-        if not vehicle_ids:
-            raise ValueError("no_synced_vehicles")
+            for vehicle in vehicles:
+                kind = getattr(vehicle, "vehicle_class", None)
+                if kind:
+                    vehicle_class = str(kind)
+                    break
+        except Exception:  # noqa: BLE001
+            vehicle_class = None
 
-        primary_vehicle = vehicle_ids[0]
-        insert_id = str(insert_order_id) if insert_order_id else None
-        prior_assignments = [
-            {
-                "order_id": o.fleetbase_order_id,
-                "vehicle_id": primary_vehicle,
-                "driver_id": driver_ids[0] if driver_ids else None,
-            }
-            for o in synced
-            if insert_id is None or str(o.id) != insert_id
-        ]
-
-        rec = OrchestratorOpsService().enqueue_run(
-            db,
-            order_ids=[o.id for o in synced],
-            mode="optimize_routes",
-            engine="vroom",
-            vehicle_ids=vehicle_ids,
-            driver_ids=driver_ids or None,
-            shape="vehicle",
-            prior_assignments=prior_assignments or None,
-            pc_driver_id=driver.id,
-            apply_on_ready=not preview,
+        rec = queue_one_van(
+            payload_from_orders(
+                orders,
+                vehicle_class=vehicle_class,
+                driver_id=str(driver.id),
+                insert_order_id=insert_order_id,
+                apply_on_ready=not preview,
+            )
         )
-        if rec.get("error") == "no_synced_orders":
-            raise ValueError("no_synced_jobs")
-        if rec.get("error") == "no_synced_vehicles":
-            raise ValueError("no_synced_vehicles")
         jobs = self.list_jobs(db, driver)
         out = self.plan_from_run(rec, jobs, driver_id=driver.id)
         out["preview"] = bool(preview)
@@ -234,10 +209,17 @@ class JobsService:
                     before_km = None
         applied = False
         if apply and (rec.get("status") or "") == "ready":
+            if rec.get("engine") == "porterchain":
+                from porterchain_api.dispatch_engine.day_plan import accept_line
+
+                accept_line(
+                    [tuple(point) for point in (rec.get("line_points") or [])],
+                    vehicle_class=rec.get("vehicle_class"),
+                )
             apply_run_to_driver(driver.id, rec, expected_version=expected_version)
             applied = True
             try:
-                from porterchain_api.fleetbase_engine.optimize_events import emit_applied
+                from porterchain_api.dispatch_engine.optimize_events import emit_applied
 
                 emit_applied(
                     run_id,
@@ -343,7 +325,7 @@ class JobsService:
                 )
         run_id = rec.get("run_id") or ""
         metrics = dict(rec.get("metrics") or {})
-        metrics.setdefault("engine", rec.get("engine") or "fleetbase")
+        metrics.setdefault("engine", rec.get("engine") or "porterchain")
         # Baseline from prior applied plan so driver UI can show fuel/km delta.
         route_metrics = jobs.get("route_metrics") if isinstance(jobs, dict) else None
         if isinstance(route_metrics, dict) and route_metrics.get("distance_km") is not None:

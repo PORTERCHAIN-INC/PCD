@@ -20,7 +20,7 @@ RIPWIRE CLI           → thin routers, Stripe/Clerk adapters
 
 One sensor per session. `.cursor/mcp.json` holds **CodeGraph only** — never Graphify MCP or Ripwire MCP. Grep/Read only after the sensor named the file.
 
-Stack, charter, and Fleetbase-first rules live in `.cursor/rules/`. PorterChain↔Fleetbase permanent bond SSOT: [docs/FLEETBASE_PERMANENT_BOND.md](docs/FLEETBASE_PERMANENT_BOND.md).
+Stack, charter, and dispatch rules live in `.cursor/rules/`. Dispatch ownership SSOT: [ARCHITECTURE.md](ARCHITECTURE.md) and [.cursor/rules/fleetbase-first-policy.mdc](.cursor/rules/fleetbase-first-policy.mdc) (PorterChain owns execution; Valhalla road cost; no Fleetbase adapter).
 
 ## Local before production
 

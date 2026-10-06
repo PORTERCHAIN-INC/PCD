@@ -1,52 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
-import type { DriverJobDetail } from "@/lib/jobs";
 import { formatLastUpdated } from "@/lib/workspace";
 
 const POLL_MS = 10_000;
 
 export function useJobDetail(orderId: string) {
-  const [job, setJob] = useState<DriverJobDetail | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const mounted = useRef(true);
-
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["driver-job", orderId],
+    queryFn: () => driverApi.job(orderId),
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return POLL_MS;
+    },
+  });
   const refresh = useCallback(async () => {
-    try {
-      const detail = await driverApi.job(orderId);
-      if (mounted.current) {
-        setJob(detail);
-        setLastUpdated(new Date());
-        setError("");
-      }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "job_not_found");
-    } finally {
-      if (mounted.current) setLoading(false);
-    }
-  }, [orderId]);
-
-  useEffect(() => {
-    mounted.current = true;
-    refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh();
-    }, POLL_MS);
-    return () => {
-      mounted.current = false;
-      window.clearInterval(interval);
-    };
-  }, [refresh]);
+    await qc.invalidateQueries({ queryKey: ["driver-job", orderId] });
+  }, [orderId, qc]);
+  const lastUpdated = query.dataUpdatedAt ? new Date(query.dataUpdatedAt) : null;
 
   return {
-    job,
-    error,
-    loading,
+    job: query.data ?? null,
+    error: query.error instanceof Error ? query.error.message : query.error ? "job_not_found" : "",
+    loading: query.isLoading && !query.data,
     lastUpdated,
-    lastUpdatedLabel: lastUpdated ? formatLastUpdated(lastUpdated) : null,
+    lastUpdatedLabel: query.data && lastUpdated ? formatLastUpdated(lastUpdated) : null,
     refresh,
   };
 }

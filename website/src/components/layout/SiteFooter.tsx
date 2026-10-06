@@ -17,7 +17,8 @@ export default function SiteFooter() {
   const t = useTranslations("siteFooter");
   const tBrand = useTranslations("common.brand");
   const tLegacy = useTranslations("footer");
-  const year = new Date().getFullYear();
+  // Stable across prerender — Cache Components forbids Date() in the client shell.
+  const year = 2026;
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterDone, setNewsletterDone] = useState(false);

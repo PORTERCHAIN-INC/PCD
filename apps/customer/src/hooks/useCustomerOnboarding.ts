@@ -1,26 +1,52 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCustomerOnboarding, type PortalOnboardingStatus } from "@/lib/onboarding";
 
+const KEY = ["customer-onboarding"] as const;
+
 export function useCustomerOnboarding(pollMs = 30_000) {
-  const [data, setData] = useState<PortalOnboardingStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const qc = useQueryClient();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const enabled = Boolean(isLoaded && isSignedIn);
 
-  const refresh = useCallback(async (token: string) => {
-    setError("");
-    try {
-      const status = await fetchCustomerOnboarding(token);
-      setData(status);
-      return status;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "onboarding_fetch_failed");
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const query = useQuery({
+    queryKey: KEY,
+    enabled,
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      return fetchCustomerOnboarding(token);
+    },
+    refetchInterval: (q) => {
+      if (!pollMs || !enabled) return false;
+      const data = q.state.data as PortalOnboardingStatus | undefined;
+      if (data?.ready) return false;
+      return pollMs;
+    },
+  });
 
-  return { data, loading, error, refresh, setLoading };
+  const refresh = useCallback(
+    async (token?: string | null) => {
+      const result = await qc.fetchQuery({
+        queryKey: KEY,
+        queryFn: async () => {
+          const t = token ?? (await getToken());
+          if (!t) throw new Error("Not authenticated");
+          return fetchCustomerOnboarding(t);
+        },
+      });
+      return result;
+    },
+    [getToken, qc]
+  );
+
+  return {
+    data: query.data ?? null,
+    loading: query.isLoading || query.isFetching,
+    error: query.error instanceof Error ? query.error.message : "",
+    refresh,
+  };
 }

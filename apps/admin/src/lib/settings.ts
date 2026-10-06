@@ -208,7 +208,7 @@ export const CONFIG_SECTION_IDS = [
 ] as const;
 
 export const INTEGRATION_SECTION_IDS = [
-  "fleetbase",
+  "dispatch",
   "stripe",
   "google_maps",
   "firebase",

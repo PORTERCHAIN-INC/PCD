@@ -191,7 +191,7 @@ export default function BillingClient() {
           : null);
 
   if (error && !overview) return <p className="text-red-600">{error}</p>;
-  if (!overview) return <p className="text-muted">{loading ? "Loading billing…" : "Loading…"}</p>;
+  if (!overview) return <PageSkeleton rows={5} />;
 
   return (
     <div className="space-y-6">
@@ -278,9 +278,7 @@ export default function BillingClient() {
         />
       )}
       {tab === "statement" && statement && <StatementTab statement={statement} />}
-      {tab === "statement" && !statement && statementQuery.isLoading && (
-        <p className="text-sm text-muted">Loading statement…</p>
-      )}
+      {tab === "statement" && !statement && statementQuery.isLoading && <PageSkeleton rows={3} />}
       {tab === "payments" && (
         <PaymentsTab payments={payments} stripeEnabled={overview.stripe_enabled} />
       )}

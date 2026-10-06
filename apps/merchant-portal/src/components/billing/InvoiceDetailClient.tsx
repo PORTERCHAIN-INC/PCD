@@ -2,39 +2,36 @@
 
 import Button from "@/components/ui/Button";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { billingApi, STATUS_STYLES, type InvoiceDetail } from "@/lib/billing";
+import { billingApi, STATUS_STYLES } from "@/lib/billing";
 import { invoiceStatusLabel } from "@/lib/catalog";
 import { formatCents, formatDate } from "@/lib/utils";
+import { PageSkeleton } from "@porterchain/ui/loading";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
-export default function InvoiceDetailClient() {
-  const { invoice_id } = useParams<{ invoice_id: string }>();
+export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
+  const invoice_id = invoiceId;
   const { getApiToken, orgId, isLoaded, isSignedIn, session } = useMerchantAuth();
-  const [detail, setDetail] = useState<InvoiceDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
   const [paying, setPaying] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!isSignedIn || !orgId || !invoice_id) return;
-    setError(null);
-    try {
-      const token = await getApiToken();
-      const data = await billingApi.invoiceDetail(token, invoice_id, orgId);
-      setDetail(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Invoice not found");
-      setDetail(null);
-    }
-  }, [getApiToken, invoice_id, isSignedIn, orgId]);
+  const enabled = Boolean(isLoaded && isSignedIn && orgId && invoice_id);
+  const {
+    data: detail,
+    error: queryError,
+    isLoading,
+  } = useQuery({
+    queryKey: ["merchant-invoice", orgId ?? null, invoice_id],
+    enabled,
+    staleTime: 60_000,
+    queryFn: async () => billingApi.invoiceDetail(await getApiToken(), invoice_id, orgId),
+  });
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !orgId) return;
-    void load();
-  }, [isLoaded, isSignedIn, orgId, load]);
+  const error =
+    queryError instanceof Error ? queryError.message : queryError ? "Invoice not found" : null;
 
   async function payNow() {
     if (!detail?.payable) return;
@@ -49,7 +46,9 @@ export default function InvoiceDetailClient() {
       }
       if (result.paid) {
         setNotice("Invoice paid.");
-        await load();
+        await qc.invalidateQueries({
+          queryKey: ["merchant-invoice", orgId ?? null, invoice_id],
+        });
       }
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Could not start payment");
@@ -77,14 +76,12 @@ export default function InvoiceDetailClient() {
     }
   }
 
-  if (!isLoaded) return <p className="text-muted">Loading…</p>;
-  if (!isSignedIn) return <p className="text-muted">Please sign in.</p>;
-  if (!orgId) return <p className="text-muted">Loading company…</p>;
+  if (isLoaded && !isSignedIn) return <p className="text-muted">Please sign in.</p>;
   if (error && !detail) return <p className="text-red-600">{error}</p>;
-  if (!detail) return <p className="text-muted">Loading invoice…</p>;
+  if (!detail && (isLoading || !isLoaded || !orgId)) return <PageSkeleton rows={5} />;
+  if (!detail) return null;
 
   const statusClass = STATUS_STYLES[detail.status] ?? "bg-primary/10 text-primary";
-
   const currency = detail.currency.toUpperCase();
 
   return (

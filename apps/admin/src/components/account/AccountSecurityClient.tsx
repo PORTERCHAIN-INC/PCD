@@ -1,20 +1,18 @@
 "use client";
 
 import AdminPage from "@/components/layout/AdminPage";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { KeyRound, MonitorSmartphone, Shield, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { adminFetch } from "@/lib/api";
 import { clearStaffSession } from "@/lib/staff-session";
 import { publicEnv } from "@/lib/env";
 import { createPasskey, credentialToJson, passkeysSupported } from "@/lib/staff-webauthn";
-import {
-  fetchStaffSecurityStatus,
-  notifyStaffPasskeyChanged,
-  type StaffSecurityEvent,
-} from "@/lib/staff-security";
+import { fetchStaffSecurityStatus, notifyStaffPasskeyChanged } from "@/lib/staff-security";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 type StaffSessionRow = {
   session_id: string;
@@ -47,29 +45,36 @@ function fmtTs(epoch: number | string | null | undefined): string {
 export default function AccountSecurityClient() {
   const router = useRouter();
   const { getApiToken, authReady } = useAdminAuth();
-  const [sessions, setSessions] = useState<StaffSessionRow[]>([]);
-  const [passkeys, setPasskeys] = useState<PasskeyRow[]>([]);
-  const [events, setEvents] = useState<StaffSecurityEvent[]>([]);
+  const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
-    const token = await getApiToken();
-    const [s, p, status] = await Promise.all([
-      adminFetch<{ sessions: StaffSessionRow[] }>("/v1/auth/staff/sessions", token),
-      adminFetch<{ passkeys: PasskeyRow[] }>("/v1/auth/staff/passkeys", token),
-      fetchStaffSecurityStatus(token),
-    ]);
-    setSessions(s.sessions || []);
-    setPasskeys(p.passkeys || []);
-    setEvents(status.events || []);
-  }, [getApiToken]);
+  const query = useQuery({
+    queryKey: ["staff-security"],
+    enabled: authReady,
+    queryFn: async () => {
+      const token = await getApiToken();
+      const [s, p, status] = await Promise.all([
+        adminFetch<{ sessions: StaffSessionRow[] }>("/v1/auth/staff/sessions", token),
+        adminFetch<{ passkeys: PasskeyRow[] }>("/v1/auth/staff/passkeys", token),
+        fetchStaffSecurityStatus(token),
+      ]);
+      return {
+        sessions: s.sessions || [],
+        passkeys: p.passkeys || [],
+        events: status.events || [],
+      };
+    },
+  });
 
-  useEffect(() => {
-    if (!authReady) return;
-    void reload().catch((e) => setError(e instanceof Error ? e.message : "load_failed"));
-  }, [authReady, reload]);
+  const sessions = query.data?.sessions ?? [];
+  const passkeys = query.data?.passkeys ?? [];
+  const events = query.data?.events ?? [];
+
+  const reload = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["staff-security"] });
+  }, [qc]);
 
   async function revokeSession(sessionId: string, isCurrent: boolean) {
     setBusy(true);
@@ -163,6 +168,14 @@ export default function AccountSecurityClient() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (authReady && query.isLoading && !query.data) {
+    return (
+      <AdminPage className="space-y-8 p-0 sm:p-2">
+        <PageSkeleton rows={4} />
+      </AdminPage>
+    );
   }
 
   return (

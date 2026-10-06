@@ -15,8 +15,10 @@ import {
   type WebhookRecord,
 } from "@/lib/integrations";
 import { formatDate } from "@/lib/utils";
+import { PageSkeleton } from "@porterchain/ui/loading";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 type Tab = "overview" | "keys" | "webhooks" | "logs" | "usage" | "sandbox" | "docs";
 
@@ -37,23 +39,16 @@ function parseIntegrationsTab(value: string | null): Tab {
 
 export default function IntegrationsClient() {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
+  const qc = useQueryClient();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>(() => parseIntegrationsTab(searchParams.get("tab")));
-  const [overview, setOverview] = useState<IntegrationsOverview | null>(null);
-  const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
-  const [webhooks, setWebhooks] = useState<WebhookRecord[]>([]);
-  const [logs, setLogs] = useState<WebhookDelivery[]>([]);
-  const [docs, setDocs] = useState<ApiDoc | null>(null);
-  const [events, setEvents] = useState<EventCatalogItem[]>([]);
-  const [limits, setLimits] = useState<RateLimitRow[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const keyOrg = orgId ?? null;
+  const ready = Boolean(isLoaded && isSignedIn && orgId);
 
-  const load = useCallback(async () => {
-    if (!isSignedIn || !orgId) return;
-    setLoading(true);
-    setError(null);
-    try {
+  const query = useQuery({
+    queryKey: ["merchant-integrations", keyOrg],
+    enabled: ready,
+    queryFn: async () => {
       const token = await getApiToken();
       const [ov, keyRows, hookRows, logRows, doc, ev, rateData] = await Promise.all([
         integrationsApi.overview(token, orgId),
@@ -64,33 +59,35 @@ export default function IntegrationsClient() {
         integrationsApi.events(token, orgId),
         integrationsApi.rateLimits(token, orgId),
       ]);
-      setOverview(ov);
-      setKeys(keyRows);
-      setWebhooks(hookRows);
-      setLogs(logRows);
-      setDocs(doc);
-      setEvents(ev.events);
-      setLimits(rateData.limits);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load integrations");
-    } finally {
-      setLoading(false);
-    }
-  }, [getApiToken, orgId, isSignedIn]);
+      return {
+        overview: ov,
+        keys: keyRows,
+        webhooks: hookRows,
+        logs: logRows,
+        docs: doc,
+        events: ev.events,
+        limits: rateData.limits,
+      };
+    },
+  });
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !orgId) return;
-    void load();
-  }, [isLoaded, isSignedIn, orgId, load]);
+  const overview = query.data?.overview ?? null;
+  const keys = query.data?.keys ?? [];
+  const webhooks = query.data?.webhooks ?? [];
+  const logs = query.data?.logs ?? [];
+  const docs = query.data?.docs ?? null;
+  const events = query.data?.events ?? [];
+  const limits = query.data?.limits ?? [];
+  const loading = query.isLoading && !query.data;
+  const error = query.error instanceof Error ? query.error.message : null;
 
-  if (!isLoaded) {
-    return <p className="text-muted">Loading integrations…</p>;
+  const load = () => qc.invalidateQueries({ queryKey: ["merchant-integrations", keyOrg] });
+
+  if (!isLoaded || !orgId) {
+    return <PageSkeleton rows={4} />;
   }
   if (!isSignedIn) {
     return <p className="text-muted">Please sign in.</p>;
-  }
-  if (!orgId) {
-    return <p className="text-muted">Loading company…</p>;
   }
 
   return (
@@ -117,7 +114,7 @@ export default function IntegrationsClient() {
         </div>
       ) : null}
 
-      {loading && !overview ? <p className="text-muted">Loading API keys and webhooks…</p> : null}
+      {loading && !overview ? <PageSkeleton rows={4} /> : null}
 
       {overview ? (
         <>
@@ -732,7 +729,7 @@ function SandboxTab({
       <section className="rounded-2xl border border-amber-200 bg-amber-50/40 p-6">
         <h2 className="font-semibold text-primary">Purge test orders</h2>
         <p className="mt-2 text-sm text-muted">
-          Cancels undispatched sandbox orders for this company (no Fleetbase id). Type{" "}
+          Cancels undispatched sandbox orders for this company. Type{" "}
           <code className="rounded bg-white px-1">PURGE TEST</code> to confirm.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">

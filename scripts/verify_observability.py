@@ -15,7 +15,8 @@ OBSERVABILITY = ROOT / "apps/api/src/porterchain_api/platform/observability.py"
 METRICS = ROOT / "apps/api/src/porterchain_api/platform/metrics.py"
 MAIN = ROOT / "apps/api/src/porterchain_api/main.py"
 ERRORS = ROOT / "apps/api/src/porterchain_api/platform/errors.py"
-SYNC_HEALTH = ROOT / "apps/api/src/porterchain_api/fleetbase_engine/sync_health.py"
+DAY_PLAN = ROOT / "apps/api/src/porterchain_api/dispatch_engine/day_plan.py"
+SEQUENCER = ROOT / "apps/api/src/porterchain_api/dispatch_engine/sequencer.py"
 WEBHOOK_HEALTH = ROOT / "apps/api/src/porterchain_api/merchant_engine/webhook_delivery_health.py"
 IDOR_TEST = ROOT / "apps/api/tests/test_idor.py"
 ROUTERS = ROOT / "apps/api/src/porterchain_api/routers"
@@ -46,7 +47,6 @@ def main() -> int:
         ("metrics", METRICS),
         ("main", MAIN),
         ("errors", ERRORS),
-        ("sync_health", SYNC_HEALTH),
         ("webhook_health", WEBHOOK_HEALTH),
         ("idor test", IDOR_TEST),
     ):
@@ -73,9 +73,15 @@ def main() -> int:
     if "prometheus" not in metrics.lower() or "porterchain_" not in metrics:
         failures.append("B.3 metrics missing Prometheus exposition")
 
-    sync = SYNC_HEALTH.read_text(encoding="utf-8")
-    if "build_fleetbase_sync_alerts" not in sync:
-        failures.append("B.6 fleetbase sync alerts missing")
+    if not DAY_PLAN.is_file() or not SEQUENCER.is_file():
+        failures.append("B.6 day-plan scorecard modules missing (day_plan/sequencer)")
+    else:
+        plan = DAY_PLAN.read_text(encoding="utf-8")
+        seq = SEQUENCER.read_text(encoding="utf-8")
+        if "unassigned" not in plan or "metrics" not in plan:
+            failures.append("B.6 day_plan missing unassigned/metrics scorecard")
+        if "ortools" not in seq and "pywrapcp" not in seq:
+            failures.append("B.6 sequencer must use OR-Tools for day-plan scorecard")
 
     webhook = WEBHOOK_HEALTH.read_text(encoding="utf-8")
     if "build_merchant_webhook_delivery_alerts" not in webhook:
@@ -122,14 +128,16 @@ def main() -> int:
     if slo_script.is_file():
         proc = subprocess.run([sys.executable, str(slo_script)], cwd=ROOT, capture_output=True, text=True)
         if proc.returncode != 0:
-            failures.append("B.6 verify_fleetbase_sync_slo failed")
+            failures.append("B.6 day-plan scorecard guard (verify_fleetbase_sync_slo) failed")
+            if proc.stdout:
+                failures.append(proc.stdout.strip()[:400])
 
     print("Observability guard (Appendix B.1–B.3, B.5–B.9, B.11–B.12)")
     if failures:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  OK — correlation IDs, Prometheus, queue depth, latency SLO, security headers, IDOR tests")
+    print("  OK — correlation IDs, Prometheus, queue depth, day-plan scorecard, security headers, IDOR tests")
     return 0
 
 

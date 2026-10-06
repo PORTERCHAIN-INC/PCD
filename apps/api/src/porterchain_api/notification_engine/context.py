@@ -63,6 +63,44 @@ def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:
     }
     if order.tracking_number:
         out["customer_deep_link"] = f"/track/{order.tracking_number}"
+        try:
+            from porterchain_api.config import get_settings
+            from porterchain_api.merchant_engine.tracking_views import public_track_url
+
+            track = public_track_url(
+                get_settings(),
+                order.tracking_number,
+                is_sandbox=bool(getattr(order, "is_sandbox", False)),
+            )
+            if track:
+                out["public_track_url"] = track
+        except Exception:  # noqa: BLE001 — notice still sends without a button
+            pass
+
+    meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+    consignee = meta.get("consignee") if isinstance(meta.get("consignee"), dict) else {}
+    receiver = consignee.get("email") if isinstance(consignee, dict) else None
+    if isinstance(receiver, str) and "@" in receiver:
+        out["receiver_email"] = receiver.strip()
+    stop_emails: list[str] = []
+    pickup_email: str | None = None
+    stops = meta.get("stops") if isinstance(meta.get("stops"), list) else []
+    for stop in stops:
+        if not isinstance(stop, dict):
+            continue
+        contact = stop.get("contact_email")
+        kind = str(stop.get("type") or stop.get("stop_type") or "").lower()
+        if isinstance(contact, str) and "@" in contact:
+            cleaned = contact.strip()
+            stop_emails.append(cleaned)
+            if kind == "pickup" and pickup_email is None:
+                pickup_email = cleaned
+    if isinstance(receiver, str) and "@" in receiver:
+        stop_emails.insert(0, receiver.strip())
+    if stop_emails:
+        out["receiver_emails"] = stop_emails
+    if pickup_email:
+        out["pickup_email"] = pickup_email
 
     if order.customer_id:
         customer = db.get(Customer, order.customer_id)

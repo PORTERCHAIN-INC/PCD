@@ -1,9 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { cn } from "./utils";
 
 function Shimmer({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-xl bg-primary/5", className)} />;
+  return (
+    <div
+      className={cn("animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none", className)}
+    />
+  );
+}
+
+/** Route fallback: the shimmer is hidden from assistive tech; one live region announces the wait. */
+export function RouteLoading({
+  label = "Loading page",
+  children,
+}: {
+  label?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-4">
+      <p className="sr-only" role="status">
+        {label}
+      </p>
+      {children}
+    </div>
+  );
 }
 
 export function Spinner({ label = "Loading…", className }: { label?: string; className?: string }) {

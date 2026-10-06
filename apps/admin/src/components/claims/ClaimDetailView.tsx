@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { ArrowLeft, Shield, Sparkles } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { formatCents } from "@porterchain/ui/utils";
 import { formatClaimType, PRIORITY_STYLES, STATUS_STYLES, type ClaimDetail } from "@/lib/claims";
 import { relativeTime } from "@/lib/crmFormat";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 
 type Tab =
@@ -63,7 +64,7 @@ export default function ClaimDetailView({
   if (loading)
     return (
       <div className="flex justify-center py-20">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   if (!detail) return <p className="py-12 text-center text-muted">Claim not found</p>;

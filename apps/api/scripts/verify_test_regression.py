@@ -19,7 +19,6 @@ _PYTHONPATH = os.pathsep.join(
         str(ROOT / "src"),
         str(REPO / "shared/python"),
         str(REPO / "services/python"),
-        str(REPO / "services/fleetbase-adapter"),
         str(REPO / "services/pricing-engine"),
         str(REPO / "services/event-bus"),
         str(REPO / "services/driver-platform"),

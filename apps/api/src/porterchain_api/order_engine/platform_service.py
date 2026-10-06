@@ -1,7 +1,7 @@
 """Order platform service — Application Service (masterrule §3).
 
-Porterchain owns the order lifecycle mirror. Fleetbase execution data is reached
-only via TrackingService → FleetbaseIntegrationBridge, never from UI.
+PorterChain owns the order lifecycle. Tracking and GPS come from PorterChain
+services (Redis last_known + day plan), never from a vendor console or UI HTTP.
 """
 
 from __future__ import annotations

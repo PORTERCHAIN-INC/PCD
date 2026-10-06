@@ -114,7 +114,9 @@ export function SignInScreen({ handshake, probing, onContinue }: Props) {
     <Screen testID="mobile-sign-in">
       <Text style={styles.kicker}>Porterchain</Text>
       <Text style={styles.title}>Driver</Text>
-      <Text style={styles.lede}>Assigned work. Push when it changes. GPS stays in Fleetbase.</Text>
+      <Text style={styles.lede}>
+        Assigned work. Push when it changes. GPS stays with PorterChain dispatch.
+      </Text>
       <StatusRail handshake={handshake} />
       {/* Mount handshake probes /me without a session — ignore auth-down until signed in. */}
       {handshake.error && (session.signedIn || canDev || handshake.api === "down") ? (

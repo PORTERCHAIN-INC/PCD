@@ -1,10 +1,11 @@
-"""Database ownership boundaries — Porterchain vs Fleetbase."""
+"""Database ownership boundaries — PorterChain owns dispatch, GPS, and proof."""
 
 from enum import StrEnum
 
 
 class DataOwnership(StrEnum):
     PORTERCHAIN = "porterchain"
+    # Kept for older imports. Empty FLEETBASE_OWNED below.
     FLEETBASE = "fleetbase"
 
 
@@ -25,13 +26,6 @@ PORTERCHAIN_OWNED: frozenset[str] = frozenset(
         "leads",
         "abandoned_checkouts",
         "domain_events",
-    }
-)
-
-# Dispatch SoR: Fleetbase vehicles. PC ORM `vehicles` is a class/plate mirror
-# (Capacity Catalog ids). Quotes + vehicle_types stay PorterChain-owned.
-FLEETBASE_OWNED: frozenset[str] = frozenset(
-    {
         "vehicles",
         "drivers",
         "orders",
@@ -43,3 +37,6 @@ FLEETBASE_OWNED: frozenset[str] = frozenset(
         "proof_of_delivery",
     }
 )
+
+# Kept so older imports still load. Dispatch, GPS, and proof are PorterChain.
+FLEETBASE_OWNED: frozenset[str] = frozenset()

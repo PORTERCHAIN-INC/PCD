@@ -16,7 +16,7 @@ from porterchain_api.admin_models import AdminUser
 from porterchain_api.authz.client import AuthzClient, Relationship, reset_authz_client
 from porterchain_api.authz.tuples import PLATFORM_ID
 from porterchain_api.domain.admin_states import AdminRole
-from porterchain_api.fleetbase_engine.optimize_events import assert_driver_scoped
+from porterchain_api.dispatch_engine.optimize_events import assert_driver_scoped
 from porterchain_api.routers import operations as ops_router
 from porterchain_api.schemas_admin import OptimizeCommitBody, OptimizeRunBody
 from porterchain_driver.jobs import JobsService

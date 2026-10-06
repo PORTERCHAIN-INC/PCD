@@ -21,7 +21,6 @@ from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.admin_engine import events as E
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
 from porterchain_api.config import Settings
 
 
@@ -29,9 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 class AdminDriverService(DriverAccountOps):
-    def __init__(self) -> None:
-        self._fleetbase = BookingSyncService()
-
     def list_drivers(self, db: Session, *, status: str | None = None, limit: int = 50) -> list[Driver]:
         q = db.query(Driver)
         if status:
@@ -107,13 +103,6 @@ class AdminDriverService(DriverAccountOps):
             actor_type="admin",
             actor_id=ctx.user.id,
         )
-        if body.auto_approve and settings:
-            db.flush()
-            for vehicle in db.query(Vehicle).filter(
-                Vehicle.driver_id == driver.id, Vehicle.is_active.is_(True)
-            ):
-                self._fleetbase.push_vehicle(db, settings, vehicle, commit=False)
-            self._fleetbase.push_driver(db, settings, driver, commit=False)
         db.commit()
         db.refresh(driver)
 
@@ -187,11 +176,6 @@ class AdminDriverService(DriverAccountOps):
             actor_type="admin",
             actor_id=ctx.user.id,
         )
-        if settings:
-            for vehicle in driver.vehicles:
-                if vehicle.is_active:
-                    self._fleetbase.push_vehicle(db, settings, vehicle, commit=False)
-            self._fleetbase.push_driver(db, settings, driver, commit=False)
         db.commit()
         db.refresh(driver)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
@@ -216,7 +200,7 @@ class AdminDriverService(DriverAccountOps):
     def suspend_driver(
         self, db: Session, ctx: AdminContext, driver_id: str, settings: Settings | None = None
     ) -> tuple[Driver, str | None]:
-        """Suspend locally. Returns (driver, fleetbase_sync_warning)."""
+        """Suspend locally. Returns (driver, unused_warning) for call-site compat."""
         driver = self._get_or_raise(db, driver_id)
         driver.status = DriverStatus.SUSPENDED.value
         driver.is_online = False
@@ -231,30 +215,10 @@ class AdminDriverService(DriverAccountOps):
         )
         db.commit()
         db.refresh(driver)
-        # Phase 3.3: enqueue Fleetbase offline — drain owns HTTP.
-        fleetbase_sync_warning: str | None = None
-        if settings and driver.fleetbase_driver_id and getattr(settings, "fleetbase_dispatch_bridge", False):
-            try:
-                from porterchain_api.fleetbase_engine.retry_queue import RetryQueue
-
-                RetryQueue.enqueue(
-                    db,
-                    direction="outbound",
-                    kind="driver_online",
-                    idempotency_key=f"driver_online:{driver.id}",
-                    payload={
-                        "fleetbase_driver_id": driver.fleetbase_driver_id,
-                        "driver_id": driver.id,
-                        "online": False,
-                    },
-                )
-            except Exception as exc:
-                fleetbase_sync_warning = "fleetbase_offline_enqueue_failed"
-                logger.warning("fleetbase offline enqueue failed for driver %s: %s", driver_id, exc)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
-        return driver, fleetbase_sync_warning
+        return driver, None
 
     def deactivate_driver(
         self, db: Session, ctx: AdminContext, driver_id: str, settings: Settings | None = None
@@ -291,29 +255,10 @@ class AdminDriverService(DriverAccountOps):
         )
         db.commit()
         db.refresh(driver)
-        fleetbase_sync_warning: str | None = None
-        if settings and driver.fleetbase_driver_id and getattr(settings, "fleetbase_dispatch_bridge", False):
-            try:
-                from porterchain_api.fleetbase_engine.retry_queue import RetryQueue
-
-                RetryQueue.enqueue(
-                    db,
-                    direction="outbound",
-                    kind="driver_online",
-                    idempotency_key=f"driver_online:{driver.id}",
-                    payload={
-                        "fleetbase_driver_id": driver.fleetbase_driver_id,
-                        "driver_id": driver.id,
-                        "online": False,
-                    },
-                )
-            except Exception as exc:
-                fleetbase_sync_warning = "fleetbase_offline_enqueue_failed"
-                logger.warning("fleetbase offline enqueue failed on reject %s: %s", driver_id, exc)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
-        return driver, fleetbase_sync_warning
+        return driver, None
 
     def rehire_driver(
         self, db: Session, ctx: AdminContext, driver_id: str

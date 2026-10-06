@@ -304,7 +304,7 @@ export default function DashboardGraphics({
   return (
     <motion.section
       className="space-y-3"
-      initial="hidden"
+      initial={false}
       animate="show"
       variants={{
         hidden: {},

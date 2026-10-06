@@ -1,7 +1,11 @@
-# System integrations + Fleetbase — development test cases
+# System integrations — development test cases
+
+> **Cutover (2026-10):** Fleetbase adapter, bond handshake, and VROOM client are **removed**.
+> Dispatch is PorterChain OR-Tools + Valhalla. Historical Fleetbase rows / seeds below are
+> retired; SSOT is [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 **Status:** living catalog for local/CI development (not prod Doppler validation).  
-**Mapped:** 2026-09-17 via Graphify (`query` / `god-nodes` / adapter subgraph) + `ARCHITECTURE.md` + `FLEETBASE_MODULES.md` + `diagnostics_catalog.TEST_CATALOG`.  
+**Mapped:** 2026-09-17 via Graphify (`query` / `god-nodes` / adapter subgraph) + `ARCHITECTURE.md` + `diagnostics_catalog.TEST_CATALOG`.  
 **Entry SSOT:** [DEVELOPMENT_TEST_CASES.md](DEVELOPMENT_TEST_CASES.md). Heatmap sibling: [DEV_TEST_CASES_FULL_STACK.md](DEV_TEST_CASES_FULL_STACK.md).  
 **Companion:** [CUSTOMER_PERSONA_DEV_TEST_CASES.md](CUSTOMER_PERSONA_DEV_TEST_CASES.md) (retail customer + Admin Customers).  
 **Maps / Firebase / Push deep slice (Graphify → CodeGraph → Ripwire):** [MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md](MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md).  

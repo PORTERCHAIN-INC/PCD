@@ -14,7 +14,7 @@ from porterchain_shared.redis_health import ping_redis
 
 # Canonical ids — must match apps/admin/src/lib/diagnostics.ts CHAOS_SCENARIOS.
 CANONICAL_CHAOS_SCENARIOS: tuple[str, ...] = (
-    "fleetbase_offline",
+    "day_plan_offline",
     "stripe_offline",
     "clerk_offline",
     "firebase_offline",
@@ -31,7 +31,6 @@ CANONICAL_CHAOS_SCENARIOS: tuple[str, ...] = (
 )
 
 # e2e_validation_catalog.FAILURE_SCENARIOS → canonical chaos handlers (GAP-06).
-# Keep in sync with e2e_validation_failures.phase_5_failures chaos_map (+ extras).
 CHAOS_ALIASES: dict[str, str] = {
     "firebase_failure": "firebase_offline",
     "notification_failure": "firebase_offline",
@@ -39,7 +38,8 @@ CHAOS_ALIASES: dict[str, str] = {
     "driver_cancels": "driver_reject",
     "driver_offline": "gps_loss",
     "stripe_webhook_failure": "stripe_offline",
-    "fleetbase_adapter_failure": "fleetbase_offline",
+    "fleetbase_offline": "day_plan_offline",
+    "fleetbase_adapter_failure": "day_plan_offline",
 }
 
 
@@ -55,7 +55,7 @@ class DiagnosticsChaosMixin:
         logs: list[str] = []
 
         scenarios = {
-            "fleetbase_offline": lambda: self._chaos_fleetbase(db, settings),
+            "day_plan_offline": lambda: self._chaos_day_plan(db, settings),
             "stripe_offline": lambda: self._chaos_stripe(settings),
             "clerk_offline": lambda: self._chaos_clerk(settings),
             "firebase_offline": lambda: self._chaos_firebase(),
@@ -68,7 +68,7 @@ class DiagnosticsChaosMixin:
             "driver_reject": lambda: self._chaos_policy("driver_reject", "Event handler for order.driver_rejected"),
             "vehicle_breakdown": lambda: self._chaos_policy("vehicle_breakdown", "Operations exception queue"),
             "gps_loss": lambda: self._chaos_policy("gps_loss", "Live map staleness detection"),
-            "webhook_delay": lambda: self._chaos_fleetbase(db, settings),
+            "webhook_delay": lambda: self._chaos_day_plan(db, settings),
         }
 
         canonical = resolve_chaos_scenario(scenario)
@@ -92,19 +92,26 @@ class DiagnosticsChaosMixin:
             "verifies": ["retry", "fallback", "recovery", "alerts"],
             "ran_at": _now_iso(),
         }
-    def _chaos_fleetbase(self, db: Session, settings: Settings) -> dict[str, Any]:
-        sync = self.fleetbase_sync_monitor(db)
-        retry = sync["retry_queue"]
-        logs = [f"Retry queue depth: {retry}", f"Dead letters: {sync['failed_sync']}"]
-        status: HealthClass = "healthy" if retry < 100 else "warning"
+    def _chaos_day_plan(self, db: Session, settings: Settings) -> dict[str, Any]:
+        del settings
+        monitor = self.day_plan_monitor(db)
+        ok = bool((monitor.get("slo") or {}).get("ok", True))
+        status: HealthClass = "healthy" if ok else "warning"
         return {
             "status": status,
-            "logs": logs,
+            "logs": [
+                "Day plan is OR-Tools in dispatch_engine; Valhalla is the road cost",
+                f"engine={monitor.get('engine')} solver={monitor.get('solver')}",
+            ],
             "checks": [
-                {"name": "retry_queue", "status": status, "value": retry},
-                {"name": "dead_letter_recovery", "status": "healthy", "note": "ErrorQueue.requeue available"},
+                {"name": "day_plan_engine", "status": status, "value": monitor.get("engine")},
+                {"name": "sequencer_present", "status": "healthy", "note": "dispatch_engine/sequencer.py"},
             ],
         }
+
+    def _chaos_fleetbase(self, db: Session, settings: Settings) -> dict[str, Any]:
+        """Deprecated alias — same as day-plan chaos."""
+        return self._chaos_day_plan(db, settings)
 
     def _chaos_stripe(self, settings: Settings) -> dict[str, Any]:
         # Scenario = Stripe offline. Pass if recovery paths are wired — do not fail

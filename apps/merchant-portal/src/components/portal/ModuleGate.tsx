@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { forbiddenModuleMessage } from "@/lib/catalog";
 import { requiredNavModule } from "@/lib/merchant-nav";
@@ -12,7 +13,7 @@ export default function ModuleGate({ children }: { children: ReactNode }) {
   const moduleKey = requiredNavModule(pathname);
 
   if (!isLoaded) {
-    return <p className="p-6 text-sm text-muted">Loading…</p>;
+    return <PageSkeleton rows={4} />;
   }
   if (!moduleKey || modules.includes(moduleKey)) {
     return <>{children}</>;

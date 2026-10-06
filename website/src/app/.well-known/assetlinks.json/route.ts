@@ -1,7 +1,5 @@
 import { buildAndroidAssetLinks, parseFingerprintList } from "@/lib/mobile-deep-links";
 
-export const dynamic = "force-static";
-
 const PLACEHOLDER =
   "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00";
 

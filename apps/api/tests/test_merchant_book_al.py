@@ -11,7 +11,7 @@ import pytest
 
 from porterchain_api.admin_engine.scheduled_batches_service import _pickup_window
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import (
     MerchantBookingService,

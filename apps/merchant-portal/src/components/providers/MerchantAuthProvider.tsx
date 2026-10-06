@@ -15,6 +15,8 @@ import { readImpersonationBearer } from "@porterchain/auth";
 import { isClerkConfigured, useClerkDevApiBypass } from "@/lib/env";
 import { getMerchantSession, type MerchantSession } from "@/lib/api";
 
+import { writeMerchantIdCookie } from "@/lib/merchant-cookie";
+
 const MERCHANT_ID_KEY = "pc_merchant_id";
 
 export type MerchantAuthState = {
@@ -73,8 +75,14 @@ async function loadMerchantSession(
   }
 }
 
-function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
-  const [orgId, setOrgIdState] = useState<string | undefined>(undefined);
+function DevMerchantAuthProvider({
+  children,
+  initialOrgId,
+}: {
+  children: ReactNode;
+  initialOrgId?: string;
+}) {
+  const [orgId, setOrgIdState] = useState<string | undefined>(initialOrgId);
   const [session, setSession] = useState<MerchantSession | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
 
@@ -84,6 +92,7 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
     const s = await loadMerchantSession("dev", requested, fromStorage);
     setSession(s);
     setOrgIdState(s.merchant_id);
+    writeMerchantIdCookie(s.merchant_id);
     try {
       localStorage.setItem(MERCHANT_ID_KEY, s.merchant_id);
     } catch {
@@ -94,6 +103,7 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
   const setOrgId = useCallback(
     (merchantId: string) => {
       setOrgIdState(merchantId);
+      writeMerchantIdCookie(merchantId);
       try {
         localStorage.setItem(MERCHANT_ID_KEY, merchantId);
       } catch {
@@ -135,10 +145,16 @@ function DevMerchantAuthProvider({ children }: { children: ReactNode }) {
   return <MerchantAuthContext.Provider value={value}>{children}</MerchantAuthContext.Provider>;
 }
 
-function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
+function ClerkMerchantAuthProvider({
+  children,
+  initialOrgId,
+}: {
+  children: ReactNode;
+  initialOrgId?: string;
+}) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const devApiBypass = useClerkDevApiBypass();
-  const [orgId, setOrgIdState] = useState<string | undefined>(undefined);
+  const [orgId, setOrgIdState] = useState<string | undefined>(initialOrgId);
   const [session, setSession] = useState<MerchantSession | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   // Sync init so AccessGate / getApiToken see the audited bearer before the first paint.
@@ -168,6 +184,7 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
       const s = await loadMerchantSession(token, requested, fromStorage);
       setSession(s);
       setOrgIdState(s.merchant_id);
+      writeMerchantIdCookie(s.merchant_id);
       try {
         localStorage.setItem(MERCHANT_ID_KEY, s.merchant_id);
       } catch {
@@ -180,6 +197,7 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
   const setOrgId = useCallback(
     (merchantId: string) => {
       setOrgIdState(merchantId);
+      writeMerchantIdCookie(merchantId);
       try {
         localStorage.setItem(MERCHANT_ID_KEY, merchantId);
       } catch {
@@ -239,11 +257,21 @@ function ClerkMerchantAuthProvider({ children }: { children: ReactNode }) {
   return <MerchantAuthContext.Provider value={value}>{children}</MerchantAuthContext.Provider>;
 }
 
-export function MerchantAuthProvider({ children }: { children: ReactNode }) {
+export function MerchantAuthProvider({
+  children,
+  initialOrgId,
+}: {
+  children: ReactNode;
+  initialOrgId?: string;
+}) {
   if (useClerkDevApiBypass() || !isClerkConfigured()) {
-    return <DevMerchantAuthProvider>{children}</DevMerchantAuthProvider>;
+    return (
+      <DevMerchantAuthProvider initialOrgId={initialOrgId}>{children}</DevMerchantAuthProvider>
+    );
   }
-  return <ClerkMerchantAuthProvider>{children}</ClerkMerchantAuthProvider>;
+  return (
+    <ClerkMerchantAuthProvider initialOrgId={initialOrgId}>{children}</ClerkMerchantAuthProvider>
+  );
 }
 
 export function useMerchantAuth(): MerchantAuthState {

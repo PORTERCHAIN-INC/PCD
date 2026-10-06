@@ -16,6 +16,7 @@ export function ogImageResponse(opts: {
   tone?: OgTone;
 }) {
   const tone = TONES[opts.tone ?? "navy"];
+  const brand = opts.eyebrow ? `PorterChain · ${opts.eyebrow}` : "PorterChain";
   return new ImageResponse(
     <div
       style={{
@@ -29,14 +30,38 @@ export function ogImageResponse(opts: {
         color: "#f8fafc",
       }}
     >
-      <div style={{ fontSize: 28, fontWeight: 600, color: tone.accent, marginBottom: 12 }}>
-        PorterChain
-        {opts.eyebrow ? ` · ${opts.eyebrow}` : ""}
+      <div
+        style={{
+          display: "flex",
+          fontSize: 28,
+          fontWeight: 600,
+          color: tone.accent,
+          marginBottom: 12,
+        }}
+      >
+        {brand}
       </div>
-      <div style={{ fontSize: 52, fontWeight: 700, maxWidth: 980, lineHeight: 1.15 }}>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 52,
+          fontWeight: 700,
+          maxWidth: 980,
+          lineHeight: 1.15,
+        }}
+      >
         {opts.title}
       </div>
-      <div style={{ fontSize: 24, marginTop: 20, opacity: 0.88, maxWidth: 920, lineHeight: 1.35 }}>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 24,
+          marginTop: 20,
+          opacity: 0.88,
+          maxWidth: 920,
+          lineHeight: 1.35,
+        }}
+      >
         {opts.subtitle}
       </div>
     </div>,

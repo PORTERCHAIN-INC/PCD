@@ -160,7 +160,7 @@ def test_upsert_merges_orphan_by_email() -> None:
     assert orphan.phone == "+14165550100"
 
 
-def test_approve_driver_pushes_fleetbase_when_settings_present() -> None:
+def test_approve_driver_does_not_push_fleetbase() -> None:
     from porterchain_api.admin_engine.driver_service import AdminDriverService
     from porterchain_api.domain.admin_states import DriverStatus
 
@@ -175,7 +175,6 @@ def test_approve_driver_pushes_fleetbase_when_settings_present() -> None:
     svc = AdminDriverService()
     svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
     svc._audit = MagicMock()  # type: ignore[method-assign]
-    svc._fleetbase = MagicMock()
     settings = MagicMock()
     ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
 
@@ -187,10 +186,10 @@ def test_approve_driver_pushes_fleetbase_when_settings_present() -> None:
         out, _warning = svc.approve_driver(db, ctx, "d1", settings)
 
     assert out.status == DriverStatus.APPROVED.value
-    svc._fleetbase.push_driver.assert_called_once_with(db, settings, driver, commit=False)
+    assert not hasattr(svc, "_fleetbase") or not getattr(svc, "_fleetbase", None)
 
 
-def test_approve_driver_skips_fleetbase_without_settings() -> None:
+def test_approve_driver_works_without_settings() -> None:
     from porterchain_api.admin_engine.driver_service import AdminDriverService
     from porterchain_api.domain.admin_states import DriverStatus
 
@@ -205,7 +204,6 @@ def test_approve_driver_skips_fleetbase_without_settings() -> None:
     svc = AdminDriverService()
     svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
     svc._audit = MagicMock()  # type: ignore[method-assign]
-    svc._fleetbase = MagicMock()
     ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
 
     with patch(
@@ -213,6 +211,6 @@ def test_approve_driver_skips_fleetbase_without_settings() -> None:
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",
     ):
-        svc.approve_driver(db, ctx, "d1", None)
+        out, _warning = svc.approve_driver(db, ctx, "d1", None)
 
-    svc._fleetbase.push_driver.assert_not_called()
+    assert out.status == DriverStatus.APPROVED.value

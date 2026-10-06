@@ -51,8 +51,7 @@ export function OnboardingScreen({ onReady, onSkipDev, allowSkip }: Props) {
     <Screen testID="mobile-onboarding">
       <Text style={styles.title}>Get road-ready</Text>
       <Text style={styles.lede}>
-        Finish compliance before going on duty. Uploads go to Porterchain — Fleetbase stays
-        logistics-only.
+        Finish compliance before going on duty. Uploads stay in Porterchain.
       </Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <ScrollView

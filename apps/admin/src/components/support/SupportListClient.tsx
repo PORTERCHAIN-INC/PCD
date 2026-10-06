@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, RefreshCw, X } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import SupportGrid from "@/components/support/SupportGrid";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 import {
   TICKET_CATEGORIES,
@@ -366,7 +367,7 @@ export default function SupportListClient() {
 
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Spinner />
+              <PageSkeleton rows={3} />
             </div>
           ) : (
             <SupportGrid rows={rows} selected={selected} onSelect={setSelected} />

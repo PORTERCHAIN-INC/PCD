@@ -4,7 +4,7 @@
 
 1. **Dispatcher** Clerk seat can preview (`routing_source` ∈ valhalla|osrm|haversine) and sandbox-confirm.
 2. **Viewer** Clerk seat soft-forbids `/book` (ModuleGate) and gets API 403 on preview.
-3. **FleetbaseSyncJob** after _live_ (non-sandbox) confirm is asserted in pytest `MP-BOOK-004`.
+3. Day-plan / optimize enqueue after _live_ (non-sandbox) confirm is asserted in pytest `MP-BOOK-004`.
 
 ## One-time setup
 

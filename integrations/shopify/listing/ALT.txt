@@ -1,0 +1,24 @@
+Upload these PNGs at 1600×900. Feature media is separate from the screenshot gallery.
+
+porterchain-shopify-demo.mp4
+Silent, 4 minutes 10 seconds, 1920×1080. Upload to YouTube (unlisted is fine) and paste that link. Shopify does not open Google Drive or Vimeo.
+
+Feature media (header of the listing)
+porterchain-shopify-feature.mp4 — silent, 1 minute 58 seconds, 1600×900. Under the 3 minute limit.
+feature-thumbnail.png — 1600×900 PNG for the video thumbnail. Same frame as the buyer checkout.
+Alt: Buyer checkout with PorterChain Same Day selected.
+
+feature.png
+Alt: Checkout shipping step with PorterChain Same Day selected for a Toronto postal code.
+
+01-connected.png
+Alt: Merchant portal showing a connected Shopify store, the pickup address, and checkout ready.
+
+02-orders.png
+Alt: Orders list of deliveries booked from a Shopify store, with state and route.
+
+03-checkout.png
+Alt: Store checkout where the buyer selects PorterChain Same Day. The rate is quoted from pickup, postal code, and weight.
+
+04-order.png
+Alt: One Shopify order in the merchant portal, with pickup, delivery postal code, and source.

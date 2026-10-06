@@ -12,7 +12,7 @@ ENGINE_SMOKE = (
     ("driver_engine.api_service", "DriverApiService"),
     ("booking_engine.stripe_webhook_service", "StripeWebhookService"),
     ("notification_engine.engine", "NotificationEngine"),
-    ("fleetbase_engine.integration_bridge", "FleetbaseIntegrationBridge"),
+    ("dispatch_engine.sequencer", "solve_day"),
     ("order_engine.platform_service", "OrderPlatformService"),
     ("pricing_engine.repository", "SqlAlchemyPricingRepository"),
     ("collaboration_engine.crm_service", "CrmSalesService"),

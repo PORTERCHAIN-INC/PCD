@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   type ColumnDef,
@@ -36,8 +36,9 @@ import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers, healthTone, type DriverRow } from "@/lib/drivers";
 import { Dropdown, FilterChip, ProvincePills } from "@/components/crm/filters";
-import { Badge, Button, EmptyState, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState } from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@/lib/crmFormat";
+import { TableSkeleton } from "@porterchain/ui/loading";
 import AdminPage from "@/components/layout/AdminPage";
 import dynamic from "next/dynamic";
 
@@ -94,6 +95,7 @@ export default function DriversListClient() {
   const { data: stats } = useApiData((t) => drivers.stats(t), [version], { key: "drivers-stats" });
 
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [docsOnly, setDocsOnly] = useState(false);
   const [status, setStatus] = useState("");
   const [vehicleType, setVehicleType] = useState("");
@@ -156,7 +158,7 @@ export default function DriversListClient() {
 
   const rows = useMemo(() => {
     let r = Array.isArray(data) ? [...data] : [];
-    const q = search.toLowerCase();
+    const q = deferredSearch.toLowerCase();
     if (q)
       r = r.filter((d) =>
         `${d.full_name} ${d.email} ${d.phone ?? ""} ${d.city ?? ""}`.toLowerCase().includes(q)
@@ -178,7 +180,19 @@ export default function DriversListClient() {
     else if (sortBy === "orders") r.sort((a, b) => b.orders_today - a.orders_today);
     else if (sortBy === "name") r.sort((a, b) => a.full_name.localeCompare(b.full_name));
     return r;
-  }, [data, search, docsOnly, status, vehicleType, province, city, bg, rating, health, sortBy]);
+  }, [
+    data,
+    deferredSearch,
+    docsOnly,
+    status,
+    vehicleType,
+    province,
+    city,
+    bg,
+    rating,
+    health,
+    sortBy,
+  ]);
 
   const activeFilters =
     [status, vehicleType, province, city, bg, rating, health].filter(Boolean).length +
@@ -255,7 +269,6 @@ export default function DriversListClient() {
               {titleCase(String(row.original.status))}
             </Badge>
             {row.original.medical_transport_certified && <Badge tone="sky">Medical</Badge>}
-            {row.original.fleetbase_driver_id && <Badge tone="green">FB</Badge>}
           </div>
         ),
       },
@@ -688,7 +701,7 @@ export default function DriversListClient() {
         )}
 
         {!data || !Array.isArray(data) ? (
-          <Spinner label="Loading drivers…" />
+          <TableSkeleton rows={8} />
         ) : rows.length === 0 ? (
           <EmptyState
             title="No drivers match these filters"

@@ -21,6 +21,51 @@ def test_asap_parcel_not_breached_immediately():
     assert order_sla_status(order, (now + timedelta(minutes=5)).replace(tzinfo=None)) == "ok"
 
 
+def test_publish_due_emits_breach_once():
+    from datetime import UTC, datetime, timedelta
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from porterchain_api.booking_engine import order_sla
+
+    created = datetime(2026, 7, 14, 12, 0, tzinfo=UTC)
+    order = SimpleNamespace(
+        id="ord-sla-1",
+        state="IN_TRANSIT",
+        order_type="INSTANT",
+        order_number="ORD-1",
+        tracking_number="TRK-1",
+        customer_id="cust-1",
+        merchant_id="merch-1",
+        scheduled_at=created,
+        created_at=created,
+        sla_deadline_at=(created + timedelta(hours=4)).replace(tzinfo=None),
+        compliance_metadata={},
+        is_sandbox=False,
+    )
+    db = MagicMock()
+    db.query.return_value.filter.return_value.limit.return_value.all.return_value = [order]
+    emitted: list[str] = []
+
+    def _emit(*_args, **kwargs):
+        emitted.append(kwargs["event_type"])
+
+    order_sla.emit_event = _emit  # type: ignore[attr-defined]
+    # publish imports emit_event inside the function
+    import porterchain_api.booking_engine._core as core
+
+    original = core.emit_event
+    core.emit_event = _emit  # type: ignore[assignment]
+    try:
+        first = order_sla.publish_due_delivery_notices(db, limit=5)
+        second = order_sla.publish_due_delivery_notices(db, limit=5)
+    finally:
+        core.emit_event = original
+    assert first["breached"] == 1
+    assert second["breached"] == 0
+    assert emitted == ["sla.breached"]
+
+
 def test_asap_breaches_after_instant_window():
     created = datetime(2026, 7, 14, 12, 0, tzinfo=UTC)
     order = SimpleNamespace(

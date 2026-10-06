@@ -70,7 +70,7 @@ export default function CustomerLiveTrack({ order, live, refreshing, onRefresh }
   const route = liveData?.optimized_route;
   const mapLine = pickMapPolyline(liveData, inTransit);
 
-  const hasFleetbasePin = Boolean(driverLocation);
+  const hasDriverPin = Boolean(driverLocation);
   const hasOsrm = Boolean(eta?.source === "osrm" || eta?.polyline);
   const hasValhalla = Boolean(route?.polyline);
   const lastUpdated = formatStamp(liveData?.last_updated) ?? (refreshing ? "Updating…" : null);
@@ -140,9 +140,9 @@ export default function CustomerLiveTrack({ order, live, refreshing, onRefresh }
 
       <div className="flex flex-wrap gap-2">
         <SourceChip
-          active={hasFleetbasePin}
+          active={hasDriverPin}
           label="Driver GPS"
-          detail={hasFleetbasePin ? "Fleetbase GPS (polled)" : "Waiting for driver GPS"}
+          detail={hasDriverPin ? "Driver GPS (polled)" : "Waiting for driver GPS"}
         />
         <SourceChip
           active={hasOsrm}
@@ -259,9 +259,9 @@ export default function CustomerLiveTrack({ order, live, refreshing, onRefresh }
       </section>
 
       <p className="text-xs leading-relaxed text-muted">
-        Map shows pickup and drop-off pins, the planned corridor when available, and a Fleetbase
-        driver pin once dispatched. Road ETA is OSRM when a live route exists. Refreshes every 10s
-        (HTTP poll — not a map WebSocket).
+        Map shows pickup and drop-off pins, the planned corridor when available, and the driver pin
+        once the van is moving. Road ETA uses the road engine when a live route exists. Refreshes
+        every 10s (HTTP poll — not a map WebSocket).
       </p>
     </div>
   );
@@ -279,7 +279,7 @@ function SourceChip({ active, label, detail }: { active: boolean; label: string;
         {label}
         {active
           ? label === "Driver GPS"
-            ? " · Fleetbase"
+            ? " · live"
             : label === "ETA"
               ? " · OSRM"
               : " · Valhalla"

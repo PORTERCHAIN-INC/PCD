@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   flexRender,
@@ -28,16 +28,45 @@ type Props = {
   remindingId?: string | null;
 };
 
-export default function FinanceInvoicesGrid({
+/**
+ * Outer shell: TanStack Table can queue controlled-state syncs during its first
+ * construction. Defer the table until after mount so React 19 does not warn
+ * about updates on a component that has not finished mounting (especially under
+ * dynamic() + Suspense on the Finance overview).
+ */
+export default function FinanceInvoicesGrid(props: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div
+        className={cn(
+          "rounded-xl border border-primary/10 bg-gray-bg/40",
+          props.dense ? "h-40" : "h-56"
+        )}
+        aria-hidden
+      />
+    );
+  }
+
+  return <FinanceInvoicesGridTable {...props} />;
+}
+
+function FinanceInvoicesGridTable({
   rows,
   dense = false,
   hideToolbar = false,
   onRemind,
   remindingId,
 }: Props) {
+  const allowResize = !dense && !hideToolbar;
   const [grouping, setGrouping] = useState<GroupingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const deferredFilter = useDeferredValue(globalFilter);
 
   const columns = useMemo<ColumnDef<InvoiceRow>[]>(
     () => [
@@ -163,16 +192,19 @@ export default function FinanceInvoicesGrid({
   const table = useReactTable({
     data: rows,
     columns,
-    state: { grouping, columnSizing, globalFilter },
+    state: allowResize
+      ? { grouping, columnSizing, globalFilter: deferredFilter }
+      : { grouping, globalFilter: deferredFilter },
     onGroupingChange: setGrouping,
-    onColumnSizingChange: setColumnSizing,
+    onColumnSizingChange: allowResize ? setColumnSizing : undefined,
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
     columnResizeMode: "onChange",
-    enableColumnResizing: true,
+    enableColumnResizing: allowResize,
+    autoResetPageIndex: false,
   });
 
   if (!rows.length) {
@@ -222,7 +254,7 @@ export default function FinanceInvoicesGrid({
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getCanResize() ? (
+                    {allowResize && header.column.getCanResize() ? (
                       <div
                         onMouseDown={header.getResizeHandler()}
                         onTouchStart={header.getResizeHandler()}

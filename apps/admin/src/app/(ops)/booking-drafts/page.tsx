@@ -1,13 +1,19 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import BookingDraftsListClient from "@/components/booking-drafts/BookingDraftsListClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+export default async function BookingDraftsPage() {
+  const client = new QueryClient();
+  const [rows, analytics] = await Promise.all([
+    adminServerFetch<unknown>("/v1/admin/booking-drafts"),
+    adminServerFetch<unknown>("/v1/admin/booking-drafts/analytics"),
+  ]);
+  if (rows) client.setQueryData(["booking-drafts", "{}"], rows);
+  if (analytics) client.setQueryData(["booking-drafts-analytics"], analytics);
 
-const BookingDraftsListClient = dynamic(
-  () => import("@/components/booking-drafts/BookingDraftsListClient"),
-  { loading: () => <Spinner label="Loading drafts…" /> }
-);
-
-export default function BookingDraftsPage() {
-  return <BookingDraftsListClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <BookingDraftsListClient />
+    </HydrationBoundary>
+  );
 }

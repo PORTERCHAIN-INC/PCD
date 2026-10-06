@@ -1,8 +1,8 @@
 """Shift & utilization snapshot for Control Tower staffing.
 
-Online/availability prefers the Redis Fleetbase ops mirror (worker-refreshed).
-Shift duration / break minutes come from Porterchain `driver_shifts` (driver
-portal SSOT). Active load is the PC order mirror — never invent GPS math.
+Online/availability comes from PorterChain duty (`Driver.is_online` / open
+shift). Shift duration / break minutes come from `driver_shifts`. Active load
+is the PC order book — never invent GPS math.
 """
 
 from __future__ import annotations
@@ -16,7 +16,6 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver
 from porterchain_api.driver_models import DriverShift
-from porterchain_api.fleetbase_engine import ops_mirror
 from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import IN_FLIGHT, WAITING
 
@@ -97,24 +96,14 @@ class UtilizationService:
             if s.status in {"active", "on_break", "break"} or s.ended_at is None:
                 active_shift_by_driver[s.driver_id] = s
 
-        online_by_fb = ops_mirror.online_map_from_mirror()
-        online_source = (
-            ops_mirror.SOURCE_MIRROR if online_by_fb else "porterchain_mirror"
-        )
+        online_source = "porterchain_duty"
 
         rows: list[dict[str, Any]] = []
         for d in drivers:
-            fb_online = (
-                online_by_fb.get(d.fleetbase_driver_id)
-                if d.fleetbase_driver_id
-                else None
-            )
-            online = (
-                fb_online
-                if fb_online is not None
-                else bool(d.is_online) or d.availability == "online"
-            )
             shift = active_shift_by_driver.get(d.id)
+            online = bool(d.is_online) or d.availability == "online" or bool(
+                shift and shift.ended_at is None
+            )
             load = int(loads.get(d.id, 0))
             on_break = bool(
                 shift

@@ -19,9 +19,9 @@
         "UIBackgroundModes": ["remote-notification", "location"],
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserNotificationsUsageDescription": "Porterchain notifies you when a job is assigned or a stop changes.",
-        "NSLocationWhenInUseUsageDescription": "While you are on duty, Porterchain sends your location to Fleetbase so dispatch can see the van.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
-        "NSLocationAlwaysUsageDescription": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
+        "NSLocationWhenInUseUsageDescription": "While you are on duty, PorterChain sends your location to PorterChain dispatch so the van can be seen on the map.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "PorterChain needs background location while you are on duty so PorterChain dispatch can see the van with the screen locked.",
+        "NSLocationAlwaysUsageDescription": "PorterChain needs background location while you are on duty so PorterChain dispatch can see the van with the screen locked.",
         "NSCameraUsageDescription": "Camera is used to capture proof of delivery photos and scan package barcodes.",
         "NSPhotoLibraryUsageDescription": "Photo library access is used when attaching proof of delivery images.",
         "NSFaceIDUsageDescription": "Porterchain uses Face ID to unlock your saved driver session on this device."
@@ -119,8 +119,8 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "While you are on duty, Porterchain sends your location to Fleetbase so dispatch can see the van.",
-          "locationAlwaysAndWhenInUsePermission": "Porterchain needs background location while you are on duty so dispatch can see the van with the screen locked.",
+          "locationWhenInUsePermission": "While you are on duty, PorterChain sends your location to PorterChain dispatch so the van can be seen on the map.",
+          "locationAlwaysAndWhenInUsePermission": "PorterChain needs background location while you are on duty so PorterChain dispatch can see the van with the screen locked.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true

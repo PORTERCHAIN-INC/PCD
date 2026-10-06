@@ -23,11 +23,6 @@ def register_default_handlers() -> None:
     registry = get_handler_registry()
 
     registry.subscribe(DomainEventType.ORDER_DISPATCH_READY, _handle_order_dispatch_ready)
-    registry.subscribe(DomainEventType.DRIVER_ASSIGNED, _handle_driver_assigned)
-    registry.subscribe(DomainEventType.ORDER_CANCELLED, _handle_order_cancelled)
-    registry.subscribe(DomainEventType.CLAIM_OPENED, _handle_claim_opened)
-    registry.subscribe("order.return_to_sender", _handle_order_return_to_sender)
-    registry.subscribe("order.damaged", _handle_order_damaged)
     registry.subscribe(DomainEventType.PAYMENT_SUCCEEDED, _handle_payment_succeeded)
     registry.subscribe(DomainEventType.PROOF_COMPLETED, _handle_pod_completed_invoice)
     registry.subscribe(DomainEventType.WEBHOOK_RECEIVED, _handle_webhook_received)
@@ -48,11 +43,9 @@ def register_default_handlers() -> None:
 
 
 def _handle_order_dispatch_ready(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_order_from_event
     from porterchain_shared.queue.names import QueueName
     from porterchain_shared.queue.publisher import get_queue_publisher
 
-    sync_order_from_event(envelope)
     # Precompute ranked driver suggestions (Valhalla matrix + filters) for the queue UI.
     order_id = envelope.get("aggregate_id")
     if order_id:
@@ -60,36 +53,6 @@ def _handle_order_dispatch_ready(envelope: dict[str, Any]) -> None:
             QueueName.DISPATCH,
             {"action": "score_suggestions", "order_id": order_id},
         )
-
-
-def _handle_driver_assigned(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_driver_assignment_from_event
-
-    sync_driver_assignment_from_event(envelope)
-
-
-def _handle_order_cancelled(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_cancellation_from_event
-
-    sync_cancellation_from_event(envelope)
-
-
-def _handle_claim_opened(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_claim_from_event
-
-    sync_claim_from_event(envelope)
-
-
-def _handle_order_return_to_sender(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_return_from_event
-
-    sync_return_from_event(envelope)
-
-
-def _handle_order_damaged(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import sync_damage_from_event
-
-    sync_damage_from_event(envelope)
 
 
 def _handle_payment_succeeded(envelope: dict[str, Any]) -> None:
@@ -117,10 +80,6 @@ def _handle_pod_completed_invoice(envelope: dict[str, Any]) -> None:
 
 
 def _handle_webhook_received(envelope: dict[str, Any]) -> None:
-    from porterchain_api.booking_engine.fleetbase_sync_handler import apply_fleetbase_webhook_from_event
-
-    apply_fleetbase_webhook_from_event(envelope)
-
     from porterchain_shared.queue.names import QueueName
     from porterchain_shared.queue.publisher import get_queue_publisher
 

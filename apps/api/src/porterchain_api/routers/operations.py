@@ -1,9 +1,4 @@
-"""Operations Control Tower API — /v1/admin/operations/*
-
-Reads the Porterchain order mirror, exceptions, claims, SLA and activity.
-Driver assignment / dispatch execution is bridged to Fleetbase through the
-existing /v1/admin/dispatch endpoints + adapter (never called directly here).
-"""
+"""Operations Control Tower API — /v1/admin/operations/* (mirror, SLA, dispatch)."""
 
 from __future__ import annotations
 
@@ -199,7 +194,7 @@ def manifest_detail(manifest_id: str, ctx: Ctx, db: Session = Depends(get_db)) -
 
 @router.get("/optimize/pool")
 def optimize_pool(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Synced orders eligible for Fleetbase orchestrator run."""
+    """Orders eligible for the PorterChain day-plan preview."""
     return _invoke(ctx, "dispatch_read", _orch.pool, db)
 
 
@@ -210,7 +205,7 @@ def optimize_engines(ctx: Ctx) -> dict:
 
 @router.post("/optimize/run")
 def optimize_run(body: OptimizeRunBody, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Queue a Fleetbase orchestrator preview. Does not wait on the solver."""
+    """Queue a PorterChain day-plan preview. Does not wait on the solver."""
     return _invoke(
         ctx,
         "dispatch",
@@ -223,6 +218,7 @@ def optimize_run(body: OptimizeRunBody, ctx: Ctx, db: Session = Depends(get_db))
         merchant_id=body.merchant_id,
         vehicle_ids=body.vehicle_ids,
         driver_ids=body.driver_ids,
+        pc_driver_id=getattr(body, "pc_driver_id", None),
         offset=body.offset,
     )
 
@@ -238,7 +234,7 @@ def optimize_run_status(run_id: str, ctx: Ctx) -> dict:
 
 @router.post("/optimize/commit")
 def optimize_commit(body: OptimizeCommitBody, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Commit plan → Fleetbase manifests (ManifestController create path)."""
+    """Accept the stored day plan into sequence_store."""
     from porterchain_driver.sequence_store import SequenceConflictError
 
     try:

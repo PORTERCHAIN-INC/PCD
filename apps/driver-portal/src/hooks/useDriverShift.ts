@@ -1,72 +1,59 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
 import type { DriverShiftSnapshot } from "@/lib/shift";
 
 const POLL_MS = 10_000;
 
 export function useDriverShift() {
-  const [data, setData] = useState<DriverShiftSnapshot | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const qc = useQueryClient();
   const [actionPending, setActionPending] = useState<string | null>(null);
-  const mounted = useRef(true);
+  const [actionError, setActionError] = useState("");
+  const query = useQuery({
+    queryKey: ["driver-shift"],
+    queryFn: () => driverApi.shift(),
+    refetchInterval: (current) => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+      return current.state.data?.shift_active ? POLL_MS : false;
+    },
+  });
+  const refresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["driver-shift"] });
+  }, [qc]);
 
-  const refresh = useCallback(async (silent = false) => {
-    if (!silent) setRefreshing(true);
-    try {
-      const snap = await driverApi.shift();
-      if (mounted.current) {
-        setData(snap);
-        setError("");
+  const runAction = useCallback(
+    async (id: string, fn: () => Promise<DriverShiftSnapshot>) => {
+      setActionPending(id);
+      try {
+        const snap = await fn();
+        qc.setQueryData(["driver-shift"], snap);
+        return snap;
+      } catch (e) {
+        setActionError(e instanceof Error ? e.message : `${id}_failed`);
+        throw e instanceof Error ? e : new Error(`${id}_failed`);
+      } finally {
+        setActionPending(null);
       }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "shift_refresh_failed");
-    } finally {
-      if (mounted.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, []);
+    },
+    [qc]
+  );
 
-  useEffect(() => {
-    mounted.current = true;
-    refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh(true);
-    }, POLL_MS);
-    return () => {
-      mounted.current = false;
-      window.clearInterval(interval);
-    };
-  }, [refresh]);
-
-  const runAction = useCallback(async (id: string, fn: () => Promise<DriverShiftSnapshot>) => {
-    setActionPending(id);
-    try {
-      const snap = await fn();
-      if (mounted.current) {
-        setData(snap);
-        setError("");
-      }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : `${id}_failed`);
-      throw e;
-    } finally {
-      if (mounted.current) setActionPending(null);
-    }
-  }, []);
-
+  const data = query.data ?? null;
   return {
     data,
-    error,
-    loading,
-    refreshing,
+    error:
+      actionError ||
+      (query.error instanceof Error
+        ? query.error.message
+        : query.error
+          ? "shift_refresh_failed"
+          : ""),
+    loading: query.isLoading && !data,
+    refreshing: query.isFetching && Boolean(data),
     actionPending,
-    refresh: () => refresh(true),
+    refresh,
     startShift: (routeId?: string, pretrip?: Record<string, boolean>) =>
       runAction("start", () => driverApi.shiftStart(routeId, pretrip)),
     endShift: () => runAction("end", () => driverApi.shiftEnd()),

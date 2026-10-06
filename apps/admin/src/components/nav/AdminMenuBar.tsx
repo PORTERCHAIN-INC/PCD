@@ -28,7 +28,6 @@ function NavLinkItem({
   return (
     <Link
       href={href}
-      prefetch={false}
       onClick={onNavigate}
       role="menuitem"
       className={cn(

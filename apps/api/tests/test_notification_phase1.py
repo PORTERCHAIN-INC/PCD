@@ -57,9 +57,14 @@ def test_driver_assigned_specs_include_customer_when_hydrated() -> None:
 def test_fleetbase_status_specs_need_customer_id() -> None:
     thin = _specs_for_event(DomainEventType.FLEETBASE_STATUS_UPDATED, {"status": "IN_TRANSIT"})
     assert thin == []
-    rich = _specs_for_event(
+    covered = _specs_for_event(
         DomainEventType.FLEETBASE_STATUS_UPDATED,
         {"customer_id": "c1", "status": "IN_TRANSIT", "to_state": "IN_TRANSIT"},
+    )
+    assert covered == []
+    rich = _specs_for_event(
+        DomainEventType.FLEETBASE_STATUS_UPDATED,
+        {"customer_id": "c1", "status": "AT_WAREHOUSE", "to_state": "AT_WAREHOUSE"},
     )
     assert any(s["channel"] == "push" and s["recipient_type"] == "customer" for s in rich)
 

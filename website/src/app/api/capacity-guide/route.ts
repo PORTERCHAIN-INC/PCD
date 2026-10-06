@@ -27,7 +27,6 @@ import {
   upsertGuideLead,
 } from "@/lib/home/guide-api";
 
-export const runtime = "nodejs";
 export const maxDuration = 60;
 
 async function routeIntentHint(lastUserText: string): Promise<string | null> {

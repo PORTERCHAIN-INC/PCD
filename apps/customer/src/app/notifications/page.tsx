@@ -1,12 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import NotificationsClient from "@/components/notifications/NotificationsClient";
+import { customerServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
+export default async function CustomerNotificationsPage() {
+  const client = new QueryClient();
+  const inbox = await customerServerFetch<unknown>("/v1/notifications/inbox?limit=100");
+  if (inbox) client.setQueryData(["customer-notification-inbox"], inbox);
 
-const NotificationsClient = dynamic(
-  () => import("@/components/notifications/NotificationsClient"),
-  { loading: () => <p className="p-8 text-sm text-muted">Loading…</p> }
-);
-
-export default function CustomerNotificationsPage() {
-  return <NotificationsClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <NotificationsClient />
+    </HydrationBoundary>
+  );
 }

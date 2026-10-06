@@ -1,8 +1,8 @@
-"""Merchant scheduled pickups → planning batches + Fleetbase committed manifests.
+"""Merchant scheduled pickups → planning batches + day plans.
 
-Planning layer (Porterchain): group open scheduled orders by merchant + date.
-Execution layer (Fleetbase): list committed manifests via adapter ManifestController
-wrap. Creating manifests remains orchestrator commit (P1-3) — not rebuilt here.
+Planning layer: group open scheduled orders by merchant + date.
+Execution layer: accepted sequences in ``sequence_store`` (one van).
+Creating a plan remains Optimize Accept — not rebuilt here.
 """
 
 from __future__ import annotations
@@ -14,11 +14,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.config import get_settings
 from porterchain_api.domain.states import OrderType
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.booking_models import Order
-from porterchain_api.services.fleetbase_integration import get_fleetbase_integration
 
 logger = logging.getLogger(__name__)
 
@@ -167,40 +165,37 @@ class ScheduledBatchesService:
         scheduled_date: str | None = None,
         status: str | None = None,
     ) -> dict[str, Any]:
-        del db  # reserved for future PC↔Fleetbase id join
-        settings = get_settings()
-        adapter = get_fleetbase_integration(settings)
+        """The day's PorterChain pickup batches. A person still assigns the van."""
+        del status
         day = scheduled_date or datetime.now(UTC).date().isoformat()
-        if not adapter.is_enabled:
-            return {
-                "date": day,
-                "source": "disabled",
-                "manifest_count": 0,
-                "manifests": [],
-                "note": "Fleetbase dispatch bridge disabled",
-            }
         try:
-            manifests = adapter.list_manifests(scheduled_date=day, status=status)
-            source = "fleetbase" if manifests else "fleetbase_empty"
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("manifest list failed: %s", exc)
-            manifests = []
-            source = "error"
+            target = datetime.fromisoformat(day).date()
+        except ValueError:
+            target = datetime.now(UTC).date()
+        batches = self.list_batches(db, day=target)
+        manifests = [
+            {
+                "id": batch.get("merchant_id"),
+                "public_id": batch.get("merchant_name") or "Unassigned",
+                "status": "scheduled",
+                "scheduled_date": batches.get("date"),
+                "stop_count": batch.get("order_count"),
+                "driver_name": None,
+                "vehicle_name": None,
+            }
+            for batch in batches.get("batches") or []
+        ]
         return {
-            "date": day,
-            "source": source,
+            "date": batches.get("date") or day,
+            "source": "porterchain",
             "manifest_count": len(manifests),
             "manifests": manifests,
-            "note": (
-                "Committed vehicle manifests from Fleetbase ManifestController. "
-                "Empty when none committed yet or /int/v1 session auth unavailable."
-            ),
+            "note": "PorterChain scheduled pickups. Assign a van, then Optimize orders that van.",
         }
 
     def get_manifest(self, db: Session, manifest_id: str) -> dict[str, Any] | None:
-        del db
-        settings = get_settings()
-        adapter = get_fleetbase_integration(settings)
-        if not adapter.is_enabled:
-            return None
-        return adapter.get_manifest(manifest_id)
+        listed = self.list_manifests(db)
+        for row in listed.get("manifests") or []:
+            if str(row.get("id") or "") == manifest_id:
+                return row
+        return None

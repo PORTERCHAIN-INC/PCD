@@ -57,7 +57,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "merchant", "label": "Merchant", "group": "partners"},
     {"id": "driver", "label": "Driver", "group": "partners"},
     {"id": "customer", "label": "Customer", "group": "partners"},
-    {"id": "fleetbase", "label": "Fleetbase", "group": "connections"},
+    {"id": "dispatch", "label": "Dispatch", "group": "connections"},
     {"id": "stripe", "label": "Stripe", "group": "connections"},
     {"id": "google_maps", "label": "Google Maps", "group": "connections"},
     {"id": "firebase", "label": "Firebase", "group": "connections"},
@@ -1047,8 +1047,6 @@ class AdminSettingsService:
         if settings.app_env != "local":
             if not settings.stripe_secret and not settings.stripe_mock:
                 issues.append("Stripe secret key missing in non-local environment")
-            if settings.fleetbase_dispatch_bridge and not settings.fleetbase_api_key:
-                issues.append("Fleetbase API key required when dispatch bridge is enabled")
             if not platform.google_maps_api_key:
                 warnings.append("Google Maps Places key not configured (tiles/autocomplete)")
             if not platform.firebase_project_id:

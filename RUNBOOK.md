@@ -16,33 +16,30 @@ Test the change on this Mac, then build the touched web images locally (`pnpm --
 | Symptom                           | Check (real)                                                                                               |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | API down                          | `:8001` health · Postgres `DATABASE_URL` · Redis                                                           |
-| Orders accept, no dispatch motion | `FleetbaseSyncJob` due/dead via `RetryQueue`/`ErrorQueue` · `apps/worker` running · Fleetbase via adapter  |
-| Stale live map / route            | GET path · `fleetbase_ops_timeout=2s` · `CircuitBreaker` state                                             |
+| Orders accept, no dispatch motion | `apps/worker` running · Optimize preview/accept · day-plan scorecard on Control Tower / diagnostics        |
+| Stale live map / route            | Redis `last_known` · driver on duty · Valhalla `:8002`                                                     |
 | Bad quotes / distances            | Valhalla `:8002` · production `OSRM_HOST` stays empty · look for source `haversine` in distance resolution |
 | Auth failures                     | Clerk portal keys · Staff IdP (admin) · SpiceDB · ensure bypass only when `APP_ENV=local`                  |
 | Webhook issues                    | Stripe/Shopify signature verify · idempotency · handler logs                                               |
 | Event lag                         | Redis stream `porterchain:events` / DLQ `porterchain:events:dlq`                                           |
 
-Manual Fleetbase drain exists via operations sync process endpoint (`limit=1`) in addition to worker loop.
+### Dispatch (PorterChain day plan)
 
-### Fleetbase dispatch bridge (`FLEETBASE_DISPATCH_BRIDGE`)
-
-- **Off (default):** commercial API still books; logistics sync/enqueue stays idle — use for local without Fleetbase or when deliberately freezing dispatch.
-- **On:** set `FLEETBASE_DISPATCH_BRIDGE=true` plus API key / webhook secret; `apps/worker` must run so `process_dispatch` + `BookingSyncService` drain `FleetbaseSyncJob` (`kind=order`).
-- **Manual path:** Admin operations → process sync retry (`limit=1`) or `pnpm fleetbase:replay` when the worker is behind; never open Fleetbase HTTP from portals.
-- Bond / handshake: `pnpm fleetbase:bond` · boundary: [`docs/architecture/FLEETBASE_BOUNDARY.md`](./docs/architecture/FLEETBASE_BOUNDARY.md).
+- Assign and Optimize live in PorterChain. OR-Tools in `dispatch_engine` orders one van’s stops; Valhalla is the road cost; Redis `last_known` is the pin.
+- Worker must run so optimize jobs and event consumers drain. There is no vendor console or VROOM client.
+- Boundary: [`.cursor/rules/fleetbase-first-policy.mdc`](./.cursor/rules/fleetbase-first-policy.mdc) · architecture: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ---
 
 ## SPOF map
 
-| SPOF      | If down             | Action                                                              |
-| --------- | ------------------- | ------------------------------------------------------------------- |
-| Postgres  | Writes fail         | Fail closed; restore per deploy runbooks                            |
-| Redis     | EventBus/cache hurt | Restore Redis; commercial rows still in Postgres; redrive consumers |
-| Worker    | Sync + events stall | Restart worker; inspect job age                                     |
-| Fleetbase | Logistics lag       | Commercial API can stay up; communicate dispatch delay              |
-| SpiceDB   | Deny authz          | Restore; do not add Check allow-cache                               |
+| SPOF     | If down             | Action                                                              |
+| -------- | ------------------- | ------------------------------------------------------------------- |
+| Postgres | Writes fail         | Fail closed; restore per deploy runbooks                            |
+| Redis    | EventBus/cache hurt | Restore Redis; commercial rows still in Postgres; redrive consumers |
+| Worker   | Optimize + events   | Restart worker; inspect job age                                     |
+| Valhalla | Day plan / ETA lag  | Keep current stop list; communicate dispatch delay                  |
+| SpiceDB  | Deny authz          | Restore; do not add Check allow-cache                               |
 
 ---
 
@@ -62,13 +59,13 @@ Manual Fleetbase drain exists via operations sync process endpoint (`limit=1`) i
 Git push from a laptop uses the deploy key in [`docs/GITHUB_SSH_KEYS.md`](./docs/GITHUB_SSH_KEYS.md) — not Actions sync jobs.
 
 - Prod Postgres image currently **16.10** (dev **18**) — plan migrations before assuming PG18 in prod
-- Rollback: deploy README § Rolling deploy / rollback
+- Rollback: deploy README § Rolling deploy / rollback. After a full deploy, schema rollback is `CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh` on the droplet (pre-migrate dump + image pin). Image pin alone leaves a migrated schema in place.
 
 ---
 
 ## Related
 
-[`docs/architecture/FAILURE_POSTURE.md`](./docs/architecture/FAILURE_POSTURE.md) · [`EVENT_BUS.md`](./EVENT_BUS.md) · [`docs/architecture/FLEETBASE_BOUNDARY.md`](./docs/architecture/FLEETBASE_BOUNDARY.md)
+[`docs/architecture/FAILURE_POSTURE.md`](./docs/architecture/FAILURE_POSTURE.md) · [`EVENT_BUS.md`](./EVENT_BUS.md) · [`ARCHITECTURE.md`](./ARCHITECTURE.md)
 
 ### Queue backpressure
 
@@ -89,11 +86,11 @@ GET /v1/admin/operations/queues
 
 | Surface           | Replay                                                                   |
 | ----------------- | ------------------------------------------------------------------------ |
-| Fleetbase sync    | `pnpm fleetbase:replay`                                                  |
+| Day-plan optimize | Admin Optimize → preview / accept (or re-run after a failed worker job)  |
 | Notifications     | `POST /v1/admin/notifications/retry/{notification_id}`                   |
 | Merchant webhooks | `POST /v1/merchant/integrations/webhooks/deliveries/{delivery_id}/retry` |
 | Event bus         | Redis stream `porterchain:events:dlq`                                    |
 
-### G2 — Fleetbase sync SLO
+### G2 — Day-plan scorecard
 
-Target: **≥98%** of due commercial sync jobs succeed within the RetryQueue window (`FLEETBASE_SYNC_SLO_TARGET_PCT`). Below-SLO fires `build_fleetbase_sync_alerts` on Control Tower / diagnostics and can fail `/health/ready` when `meets_slo` is false. Replay stuck jobs with `pnpm fleetbase:replay` or admin `process_sync_retry`.
+Target: Optimize runs finish with an explainable scorecard (assigned, unassigned with reason, meters/seconds). Diagnostics and Control Tower surface day-plan failures, not a vendor sync SLO. Guard: `python3 scripts/verify_fleetbase_sync_slo.py` (day-plan modules + no retired sync health).

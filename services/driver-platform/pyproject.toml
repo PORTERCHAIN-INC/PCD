@@ -1,7 +1,7 @@
 [project]
 name = "porterchain-driver"
 version = "0.1.0"
-description = "Porterchain Driver Platform — reusable driver services extending Fleetbase"
+description = "PorterChain Driver Platform — duty, GPS, jobs, proof, and day-plan execute"
 requires-python = ">=3.12"
 dependencies = []
 

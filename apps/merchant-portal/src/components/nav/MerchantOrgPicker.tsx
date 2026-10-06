@@ -2,6 +2,7 @@
 
 import { useOrganizationList } from "@clerk/nextjs";
 import { Building2 } from "lucide-react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -16,7 +17,7 @@ export default function MerchantOrgPicker({ className, onSelected }: Props) {
   });
 
   if (!isLoaded) {
-    return <p className="text-sm text-muted">Loading organizations…</p>;
+    return <PageSkeleton rows={2} />;
   }
 
   const memberships = userMemberships.data ?? [];

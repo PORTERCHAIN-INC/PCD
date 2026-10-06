@@ -5,7 +5,7 @@ import { Download } from "lucide-react";
 import { downloadOrderFile, podArtifactPath, podBundlePath } from "@/lib/orders";
 
 /**
- * POD media is Fleetbase-hosted, so a browser cannot save it from the gallery:
+ * Proof files are on PorterChain. The browser saves them through the API.
  * the HTML `download` attribute is ignored cross-origin and the link just opens
  * the image. These buttons ask the API for the bytes instead (BR).
  */

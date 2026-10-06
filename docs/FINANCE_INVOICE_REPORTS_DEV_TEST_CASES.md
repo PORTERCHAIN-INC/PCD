@@ -1,9 +1,14 @@
 # Finance · Invoice · Reports · Management — development test cases
 
+> **Cutover (2026-10):** Fleetbase adapter and VROOM client are **removed**. POD → invoice
+> stays PorterChain (`order.pod_completed` → `billing_engine`). Dispatch/GPS/day plan live in
+> `dispatch_engine` + Redis. Ignore historical `FB-*` / FleetbaseClient rows below unless
+> rewritten; SSOT is [ARCHITECTURE.md](../ARCHITECTURE.md).
+
 **Status:** living catalog for local/CI development (not prod Doppler validation).  
 **Mapped:** 2026-09-17 via Graphify (`query` / `explain` / `path` / `god-nodes`) → CodeGraph CLI `explore` → Ripwire (`--for` / `--callers` / `--expand` / `--impact`).  
-**Architecture SSOT:** [ARCHITECTURE.md](../ARCHITECTURE.md) — `billing_engine` owns ledger/COD policy; Stripe SDK only in `porterchain_services/stripe/sdk.py`; Fleetbase owns execution (POD → invoice trigger), PorterChain owns commercial money.  
-**Charter:** Protect **money integrity**, **one AR total**, **tenant isolation**, and **Fleetbase-first execution** — never rebuild dispatch/POD/TSP inside finance.
+**Architecture SSOT:** [ARCHITECTURE.md](../ARCHITECTURE.md) — `billing_engine` owns ledger/COD policy; Stripe SDK only in `porterchain_services/stripe/sdk.py`; PorterChain owns execution (POD → invoice trigger) and commercial money.  
+**Charter:** Protect **money integrity**, **one AR total**, **tenant isolation** — never rebuild dispatch/POD/TSP inside finance.
 
 ### Sensor trail (this pass)
 

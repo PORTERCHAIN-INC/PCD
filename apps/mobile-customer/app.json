@@ -13,7 +13,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.porterchain.customer",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["remote-notification"],

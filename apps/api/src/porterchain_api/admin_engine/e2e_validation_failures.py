@@ -19,8 +19,9 @@ class E2EValidationFailuresMixin:
     def phase_5_failures(self, db: Session, settings: Settings) -> dict[str, Any]:
         results: list[dict[str, Any]] = []
         chaos_map = {
-            "fleetbase_offline": "fleetbase_offline",
-            "fleetbase_adapter_failure": "fleetbase_offline",
+            "day_plan_offline": "day_plan_offline",
+            "fleetbase_offline": "day_plan_offline",
+            "fleetbase_adapter_failure": "day_plan_offline",
             "stripe_offline": "stripe_offline",
             "clerk_offline": "clerk_offline",
             "firebase_failure": "firebase_offline",

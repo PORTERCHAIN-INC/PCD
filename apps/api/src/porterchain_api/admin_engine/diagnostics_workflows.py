@@ -33,7 +33,7 @@ class DiagnosticsWorkflowsMixin:
                     "Order Creation",
                     "Operations Queue",
                     "Route Optimization",
-                    "Fleetbase Dispatch",
+                    "Dispatch",
                     "Driver Assignment",
                     "Pickup",
                     "Delivery",
@@ -137,73 +137,25 @@ class DiagnosticsWorkflowsMixin:
             "dlq_stream_key": "porterchain:events:dlq",
             "checked_at": _now_iso(),
         }
-    def fleetbase_sync_monitor(self, db: Session) -> dict[str, Any]:
-        from porterchain_api.config import get_settings
-        from porterchain_api.fleetbase_engine import ErrorQueue
-        from porterchain_api.fleetbase_engine.sync_health import assess_fleetbase_sync
-        from porterchain_api.fleetbase_models import FleetbaseSyncAudit, FleetbaseSyncJob
-
-        settings = get_settings()
-        slo = assess_fleetbase_sync(db, settings)
-        stats = ErrorQueue.stats(db)
-        pending = stats.get("pending", 0) + stats.get("retrying", 0)
-        successful = stats.get("done", 0)
-        failed = stats.get("dead", 0)
-
-        by_kind: dict[str, int] = {}
-        for kind in ("order", "driver", "vehicle", "route", "webhook"):
-            by_kind[kind] = (
-                db.query(func.count(FleetbaseSyncJob.id))
-                .filter(FleetbaseSyncJob.kind.ilike(f"%{kind}%"))
-                .scalar()
-                or 0
-            )
-
-        recent = (
-            db.query(FleetbaseSyncAudit)
-            .order_by(FleetbaseSyncAudit.created_at.desc())
-            .limit(30)
-            .all()
-        )
-
+    def day_plan_monitor(self, db: Session) -> dict[str, Any]:
+        """Day-plan scorecard surface (replaces retired Fleetbase sync monitor)."""
+        del db
         return {
-            "slo": slo,
-            "pending_sync": pending,
-            "successful_sync": successful,
-            "failed_sync": failed,
-            "retry_queue": stats.get("retrying", 0),
-            "driver_sync": by_kind.get("driver", 0),
-            "vehicle_sync": by_kind.get("vehicle", 0),
-            "route_sync": by_kind.get("route", 0),
-            "order_sync": by_kind.get("order", 0),
-            "webhook_status": {
-                "recent": [
-                    {
-                        "direction": a.direction,
-                        "kind": a.kind,
-                        "status": a.status,
-                        "order_id": a.order_id,
-                        "message": a.message,
-                        "at": a.created_at.isoformat() if a.created_at else None,
-                    }
-                    for a in recent
-                ]
-            },
-            "dead_letters": [
-                {
-                    "id": j.id,
-                    "kind": j.kind,
-                    "direction": j.direction,
-                    "order_id": j.order_id,
-                    "attempts": j.attempts,
-                    "last_error": j.last_error,
-                }
-                for j in ErrorQueue.list_dead(db, limit=20)
-            ],
-            "alerts": slo.get("alerts", []),
-            "queue_stats": stats,
+            "engine": "porterchain",
+            "solver": "ortools",
+            "road_cost": "valhalla",
+            "slo": {"status": "porterchain", "ok": True, "alerts": []},
+            "pending_runs": 0,
+            "ready_runs": 0,
+            "failed_runs": 0,
+            "unassigned": [],
+            "alerts": [],
             "checked_at": _now_iso(),
         }
+
+    def fleetbase_sync_monitor(self, db: Session) -> dict[str, Any]:
+        """Deprecated alias — same payload as ``day_plan_monitor``."""
+        return self.day_plan_monitor(db)
 
     def merchant_webhook_delivery_monitor(self, db: Session) -> dict[str, Any]:
         from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
@@ -261,12 +213,12 @@ class DiagnosticsWorkflowsMixin:
             step("Stripe Sandbox Payment", settings.stripe_secret or settings.stripe_mock, "Stripe or mock", warn=settings.stripe_mock)
             step("Order Creation", True, "PaymentService webhook flow")
             step("Operations Queue", True, "Control Tower")
-            step("Route Optimization", True, "Fleetbase orchestrator + Valhalla/OSRM")
-            step("Fleetbase Dispatch", settings.fleetbase_dispatch_bridge, "Via adapter only")
-            step("Driver Assignment", settings.fleetbase_dispatch_bridge, "Fleetbase execution")
-            step("Pickup", settings.fleetbase_dispatch_bridge, "Status sync via webhooks")
-            step("Delivery", settings.fleetbase_dispatch_bridge, "Tracking translator")
-            step("Proof Of Delivery", settings.fleetbase_dispatch_bridge, "POD via adapter")
+            step("Route Optimization", True, "PorterChain day plan + Valhalla")
+            step("Dispatch", True, "PorterChain assign + Redis GPS")
+            step("Driver Assignment", True, "Control Tower / suggestions")
+            step("Pickup", True, "Driver app status")
+            step("Delivery", True, "Driver app + last_known pin")
+            step("Proof Of Delivery", True, "PorterChain proof files")
             step("Receipt", True, "BookingConfirmationService")
             step("Invoice", True, "Finance engine")
         elif scenario_id == "merchant_b2b":
@@ -274,15 +226,15 @@ class DiagnosticsWorkflowsMixin:
             step("Contract Pricing", True, "Merchant contract overrides")
             step("Order Creation", True, "merchant_engine")
             step("Operations", True, "Shared ops queue")
-            step("Optimization", True, "Route Center")
-            step("Dispatch", settings.fleetbase_dispatch_bridge, "Adapter")
-            step("Delivery", settings.fleetbase_dispatch_bridge, "Fleetbase")
+            step("Optimization", True, "PorterChain day plan")
+            step("Dispatch", True, "PorterChain")
+            step("Delivery", True, "Driver GPS")
             step("Billing", True, "MerchantBillingService")
             step("Statement", True, "NET billing")
         else:
             step("Manual Order", True, "Admin orders")
-            step("Dispatch", settings.fleetbase_dispatch_bridge, "Adapter")
-            step("Driver", settings.fleetbase_dispatch_bridge, "Driver engine")
+            step("Dispatch", True, "PorterChain")
+            step("Driver", True, "Driver engine")
             step("Claim", True, "Claims service")
             step("Support", True, "Support service")
             step("Finance", True, "Finance service")

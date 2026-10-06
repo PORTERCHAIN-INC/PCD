@@ -12,7 +12,6 @@
         "apps/api/**",
         "services/pricing-engine/**",
         "services/driver-platform/**",
-        "services/fleetbase-adapter/**",
         "services/event-bus/**",
         "services/python/**",
         "shared/python/**"

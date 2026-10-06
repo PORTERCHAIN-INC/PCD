@@ -50,7 +50,6 @@ def _load_all_models() -> None:
         booking_draft_models,
         crm_models,
         driver_models,
-        fleetbase_models,
         identity_models,
         invitation_models,
         merchant_models,

@@ -13,7 +13,8 @@ if TYPE_CHECKING:
 
 
 class ProofOfDeliveryService:
-    def generate_otp(self, db: Session, driver: Any, order_id: str) -> str:
+    def generate_otp(self, db: Session, driver: Any, order_id: str,
+    ) -> str:
         from porterchain_api.booking_models import Order
 
         order = db.query(Order).filter(Order.id == order_id).first()
@@ -34,7 +35,8 @@ class ProofOfDeliveryService:
         db.flush()
         return otp
 
-    def verify_otp(self, db: Session, order_id: str, otp: str) -> bool:
+    def verify_otp(self, db: Session, order_id: str, otp: str,
+    ) -> bool:
         from porterchain_api.driver_models import DriverStopMeta
 
         meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order_id).first()
@@ -52,19 +54,10 @@ class ProofOfDeliveryService:
         stop_id: str,
         *,
         file_url: str,
-        fleetbase_bridge: Any = None,
     ) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
-        synced = False
-        if fleetbase_bridge and order.fleetbase_order_id:
-            synced = fleetbase_bridge.upload_pod_photo(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=order.fleetbase_order_id,
-                file_url=file_url,
-            )
         self._record_pod(db, order.id, driver.id, "photo", file_url)
-        return PodCaptureResult(success=True, proof_type="photo", proof_id=order.id, fleetbase_synced=synced)
+        return PodCaptureResult(success=True, proof_type="photo", proof_id=order.id)
 
     def capture_signature(
         self,
@@ -73,19 +66,10 @@ class ProofOfDeliveryService:
         stop_id: str,
         *,
         signature_data: str,
-        fleetbase_bridge: Any = None,
     ) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
-        synced = False
-        if fleetbase_bridge and order.fleetbase_order_id:
-            synced = fleetbase_bridge.upload_pod_signature(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=order.fleetbase_order_id,
-                signature_data=signature_data,
-            )
         self._record_pod(db, order.id, driver.id, "signature", signature_data[:200])
-        return PodCaptureResult(success=True, proof_type="signature", proof_id=order.id, fleetbase_synced=synced)
+        return PodCaptureResult(success=True, proof_type="signature", proof_id=order.id)
 
     def capture_barcode(
         self,
@@ -94,19 +78,10 @@ class ProofOfDeliveryService:
         stop_id: str,
         *,
         barcode: str,
-        fleetbase_bridge: Any = None,
     ) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
-        synced = False
-        if fleetbase_bridge and order.fleetbase_order_id:
-            synced = fleetbase_bridge.upload_pod_barcode(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=order.fleetbase_order_id,
-                barcode=barcode,
-            )
         self._record_pod(db, order.id, driver.id, "barcode", barcode)
-        return PodCaptureResult(success=True, proof_type="barcode", proof_id=order.id, fleetbase_synced=synced)
+        return PodCaptureResult(success=True, proof_type="barcode", proof_id=order.id)
 
     def complete_pod(
         self,
@@ -114,9 +89,7 @@ class ProofOfDeliveryService:
         driver: Any,
         stop_id: str,
         *,
-        otp: str | None = None,
-        fleetbase_bridge: Any = None,
-    ) -> PodCaptureResult:
+        otp: str | None = None) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
         from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
 
@@ -127,17 +100,13 @@ class ProofOfDeliveryService:
                 success=False,
                 proof_type="otp",
                 proof_id=None,
-                fleetbase_synced=False,
-                message="otp_required",
-            )
+                message="otp_required")
         if code and not self.verify_otp(db, order.id, code):
             return PodCaptureResult(
                 success=False,
                 proof_type="otp",
                 proof_id=None,
-                fleetbase_synced=False,
-                message="invalid_otp",
-            )
+                message="invalid_otp")
         from porterchain_api.domain.states import OrderState
         from porterchain_api.booking_engine.order_transitions import transition_order_state
         from porterchain_shared.events.catalog import DomainEventType
@@ -154,16 +123,13 @@ class ProofOfDeliveryService:
                         event_type=DomainEventType.PARCEL_DELIVERED,
                         actor_type="driver",
                         actor_id=driver.id,
-                        payload=payload,
-                    )
+                        payload=payload)
                 except ValueError as exc:
                     return PodCaptureResult(
                         success=False,
                         proof_type="complete",
                         proof_id=order.id,
-                        fleetbase_synced=False,
-                        message=str(exc),
-                    )
+                        message=str(exc))
             try:
                 transition_order_state(
                     db,
@@ -172,33 +138,21 @@ class ProofOfDeliveryService:
                     event_type=DomainEventType.PROOF_COMPLETED,
                     actor_type="driver",
                     actor_id=driver.id,
-                    payload=payload,
-                )
+                    payload=payload)
             except ValueError as exc:
                 return PodCaptureResult(
                     success=False,
                     proof_type="complete",
                     proof_id=order.id,
-                    fleetbase_synced=False,
-                    message=str(exc),
-                )
-        synced = False
-        if fleetbase_bridge and order.fleetbase_order_id:
-            synced = fleetbase_bridge.sync_order_state(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=order.fleetbase_order_id,
-                order_state=OrderState.POD_COMPLETED.value,
-            )
+                    message=str(exc))
         return PodCaptureResult(
             success=True,
             proof_type="complete",
             proof_id=order.id,
-            fleetbase_synced=synced,
-            message="pod_completed",
-        )
+            message="pod_completed")
 
-    def _record_pod(self, db: Session, order_id: str, driver_id: str, proof_type: str, value: str) -> None:
+    def _record_pod(self, db: Session, order_id: str, driver_id: str, proof_type: str, value: str,
+    ) -> None:
         from porterchain_api.driver_models import DriverStopMeta
 
         meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order_id).first()

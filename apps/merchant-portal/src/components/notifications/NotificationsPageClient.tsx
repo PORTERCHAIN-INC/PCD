@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
@@ -9,7 +10,9 @@ import { notificationsApi } from "@/lib/notifications";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
-const INBOX_KEY = (orgId: string | undefined) => ["merchant-notification-inbox", orgId] as const;
+/** Same key as layout + bell so the shell badge hydrates this page. */
+const INBOX_KEY = (orgId: string | undefined) =>
+  ["merchant-notification-inbox", orgId ?? null] as const;
 
 export default function NotificationsPageClient() {
   const { getApiToken, orgId, isLoaded, isSignedIn, modules } = useMerchantAuth();
@@ -40,8 +43,8 @@ export default function NotificationsPageClient() {
     await qc.invalidateQueries({ queryKey: INBOX_KEY(orgId) });
   }
 
-  if (!isLoaded) return <p className="text-muted">Loading…</p>;
-  if (!isSignedIn) return <p className="text-muted">Please sign in.</p>;
+  if (loading && !data) return <PageSkeleton rows={4} />;
+  if (isLoaded && !isSignedIn) return <p className="text-muted">Please sign in.</p>;
 
   return (
     <div className="space-y-6">
@@ -83,7 +86,7 @@ export default function NotificationsPageClient() {
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {loading && items.length === 0 ? (
-        <p className="text-muted">Loading…</p>
+        <PageSkeleton rows={4} />
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-primary/10 bg-white px-6 py-16 text-center">
           <p className="font-medium text-primary">No notifications yet</p>

@@ -18,11 +18,12 @@ import { AccountScreen } from "./src/screens/AccountScreen";
 import { ActivityScreen } from "./src/screens/ActivityScreen";
 import { AlertsScreen } from "./src/screens/AlertsScreen";
 import { BookScreen } from "./src/screens/BookScreen";
-import { HomeScreen } from "./src/screens/HomeScreen";
+import { HomeScreen, peekCachedDashboard } from "./src/screens/HomeScreen";
 import { AccessDeniedScreen, OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
 import { TrackScreen } from "./src/screens/TrackScreen";
 import { clearSession } from "./src/session";
+import { AppErrorBoundary } from "./src/ui/AppErrorBoundary";
 import { Screen } from "./src/ui/Screen";
 import { Tabs, type TabId } from "./src/ui/Tabs";
 
@@ -133,7 +134,9 @@ function Root() {
     return <TrackScreen initialTracking={tracking} onBack={() => setShowTrack(false)} />;
   }
 
-  if (!session.ready) {
+  const hasCachedHome = peekCachedDashboard() != null;
+
+  if (!session.ready && !hasCachedHome && !session.signedIn) {
     return (
       <Screen>
         <ActivityIndicator color={colors.secondary} />
@@ -155,6 +158,25 @@ function Root() {
           setShowTrack(true);
         }}
       />
+    );
+  }
+
+  // Re-entry with a cached Home list: keep the shell while onboarding/session checks finish.
+  if (phase === "checking" && hasCachedHome) {
+    return (
+      <>
+        <HomeScreen
+          onBook={(orderId) => {
+            setRebookOrderId(orderId);
+            setTab("book");
+          }}
+          onTrack={(number) => {
+            setTracking(number);
+            setShowTrack(true);
+          }}
+        />
+        <Tabs current={tab} onChange={setTab} />
+      </>
     );
   }
 
@@ -237,10 +259,12 @@ function Root() {
 
 export default function App() {
   return (
-    <SessionGate>
-      <Root />
-      <StatusBar style="dark" />
-    </SessionGate>
+    <AppErrorBoundary>
+      <SessionGate>
+        <Root />
+        <StatusBar style="dark" />
+      </SessionGate>
+    </AppErrorBoundary>
   );
 }
 

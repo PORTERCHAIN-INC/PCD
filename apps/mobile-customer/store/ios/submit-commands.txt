@@ -9,14 +9,14 @@ Apple Team: 4XWFT5A8C3
 Workspace: apps/mobile-customer/ios/PorterchainCustomer.xcworkspace
 Scheme: PorterchainCustomer
 
-IPA already exported (1.0.0 build 5, SDK iphoneos27.0):
+IPA already exported (1.0.0 build 6, SDK iphoneos27.0):
 
   apps/mobile-customer/build/export/PorterchainCustomer.ipa
 
-Uploaded 23 Sep 2026 with altool key VMAB8YF54D.
-Delivery UUID: 29552644-0cf1-4c3b-8807-738e4f121313
-ASC app: PCDC (6787763001). Do not create a second App Store app.
-Wait until the build finishes processing, then install build 5.
+Uploaded 2 Oct 2026 with altool key VMAB8YF54D.
+Delivery UUID: f910e434-10a1-4b59-b3d9-1edba8eb71f4
+ASC app: Porterchain Customer (6787763001), version 1.0. Do not create a second App Store app.
+Build 6 adds the pay-step consent pages (terms, privacy, dangerous goods). Select it on version 1.0 after processing. Build 5 remains the build Apple reviewed.
 Build 4 (delivery 8d3af8ec-d779-43d0-b64a-9e2cb6465bb8) can still pay a quote after the vehicle or parcels change.
 Build 2 (delivery 6a789c6c-6223-429a-a7fc-15f4c0f27676) does not include the book-delivery form.
 

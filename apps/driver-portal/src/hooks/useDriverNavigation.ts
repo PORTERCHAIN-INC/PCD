@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
 import { enqueueGpsPing } from "@/lib/offline-client";
 import type { DriverNavigationSession } from "@/lib/navigation";
@@ -9,43 +10,26 @@ const POLL_MS = 10_000;
 const LOCATION_POST_MS = 25_000;
 
 export function useDriverNavigation(orderId?: string | null) {
-  const [session, setSession] = useState<DriverNavigationSession | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
   const [deviceLocation, setDeviceLocation] = useState<{ lat: number; lng: number } | null>(null);
   const lastPost = useRef(0);
-  const mounted = useRef(true);
 
-  const refresh = useCallback(async () => {
-    try {
-      const data = await driverApi.navigationSession(orderId ?? undefined);
-      if (mounted.current) {
-        setSession(data);
-        setError("");
-      }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "navigation_failed");
-    } finally {
-      if (mounted.current) setLoading(false);
-    }
-  }, [orderId]);
+  const query = useQuery({
+    queryKey: ["driver-navigation", orderId ?? null],
+    queryFn: () => driverApi.navigationSession(orderId ?? undefined),
+    refetchInterval: () =>
+      typeof document !== "undefined" && document.visibilityState === "hidden" ? false : POLL_MS,
+  });
+
+  const refresh = useEffectEvent(() => {
+    void qc.invalidateQueries({ queryKey: ["driver-navigation", orderId ?? null] });
+  });
 
   useEffect(() => {
-    mounted.current = true;
-    refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh();
-    }, POLL_MS);
-    const onSequence = () => {
-      void refresh();
-    };
+    const onSequence = () => refresh();
     window.addEventListener("pc:sequence-applied", onSequence);
-    return () => {
-      mounted.current = false;
-      window.clearInterval(interval);
-      window.removeEventListener("pc:sequence-applied", onSequence);
-    };
-  }, [refresh]);
+    return () => window.removeEventListener("pc:sequence-applied", onSequence);
+  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -77,5 +61,11 @@ export function useDriverNavigation(orderId?: string | null) {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  return { session, error, loading, deviceLocation, refresh };
+  return {
+    session: query.data ?? null,
+    error: query.error instanceof Error ? query.error.message : "",
+    loading: query.isLoading && !query.data,
+    deviceLocation,
+    refresh: () => refresh(),
+  };
 }

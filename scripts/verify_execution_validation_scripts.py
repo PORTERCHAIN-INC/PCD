@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""§5.2 — validate:e2e + docker:fleetbase:verify wired for dev layer."""
+"""§5.2 — validate:e2e + day-plan guards wired for the dev layer."""
 
 from __future__ import annotations
 
@@ -10,16 +10,20 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "package.json"
 NIGHTLY = ROOT / ".github/workflows/nightly-e2e.yml"
 E2E_SCRIPT = ROOT / "apps/api/scripts/run_e2e_validation.py"
-FLEETBASE_VERIFY = ROOT / "infrastructure/docker/scripts/fleetbase-verify.sh"
+DAY_PLAN_SLO = ROOT / "scripts/verify_fleetbase_sync_slo.py"
+SEQUENCER = ROOT / "apps/api/src/porterchain_api/dispatch_engine/sequencer.py"
 
 
 def main() -> int:
     failures: list[str] = []
     pkg = PACKAGE.read_text(encoding="utf-8", errors="ignore") if PACKAGE.is_file() else ""
 
-    for script in ("validate:e2e", "validate:d3:e2e", "docker:fleetbase:verify"):
+    for script in ("validate:e2e", "validate:d3:e2e", "validate:architecture"):
         if script not in pkg:
             failures.append(f"§5.2 package.json missing {script}")
+
+    if "docker:fleetbase:verify" in pkg:
+        failures.append("§5.2 package.json still wires docker:fleetbase:verify — use day-plan guards")
 
     if not NIGHTLY.is_file():
         failures.append("§5.2 missing nightly-e2e.yml")
@@ -29,15 +33,17 @@ def main() -> int:
     if not E2E_SCRIPT.is_file():
         failures.append("§5.2 missing run_e2e_validation.py")
 
-    if not FLEETBASE_VERIFY.is_file():
-        failures.append("§5.2 missing fleetbase-verify.sh")
+    if not DAY_PLAN_SLO.is_file():
+        failures.append("§5.2 missing day-plan scorecard guard (verify_fleetbase_sync_slo.py)")
+    if not SEQUENCER.is_file():
+        failures.append("§5.2 missing dispatch_engine/sequencer.py")
 
     if failures:
         print("Execution validation scripts guard failed:")
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("Execution validation scripts guard passed (§5.2 — validate:e2e + fleetbase:verify).")
+    print("Execution validation scripts guard passed (§5.2 — validate:e2e + day-plan).")
     return 0
 
 

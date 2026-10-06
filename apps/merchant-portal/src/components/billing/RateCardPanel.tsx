@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { billingApi } from "@/lib/billing";
 import { pricingModelLabel, type MerchantRateCard } from "@/lib/rate-card";
 import { formatCents } from "@/lib/utils";
@@ -12,19 +13,11 @@ export function RateCardPanel({
   getToken: () => Promise<string>;
   orgId?: string;
 }) {
-  const [card, setCard] = useState<MerchantRateCard | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        const token = await getToken();
-        setCard(await billingApi.rateCard(token, orgId));
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not load rates");
-      }
-    })();
-  }, [getToken, orgId]);
+  const { data: card, error: queryError } = useQuery({
+    queryKey: ["merchant-rate-card", orgId ?? null],
+    queryFn: async () => billingApi.rateCard(await getToken(), orgId),
+  });
+  const error = queryError instanceof Error ? queryError.message : null;
 
   const isFsa = card?.pricing_model === "fsa";
 
@@ -32,7 +25,7 @@ export function RateCardPanel({
     <section className="rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Your rates</h2>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      {!card && !error && <p className="mt-4 text-sm text-muted">Loading rates…</p>}
+      {!card && !error && <PageSkeleton rows={3} />}
       {card && (
         <div className="mt-4 space-y-4 text-sm">
           <p>

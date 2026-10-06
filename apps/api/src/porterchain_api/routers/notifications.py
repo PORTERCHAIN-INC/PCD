@@ -13,7 +13,7 @@ from porterchain_api.notification_engine.device_service import DeviceService, In
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.preference_service import PreferenceService
 from porterchain_api.notification_engine.principal import NotificationUser, get_notification_user
-from porterchain_api.notification_engine.realtime import realtime_hub
+from porterchain_api.notification_engine.realtime import realtime_hub, touch_online
 from porterchain_api.notification_engine.user_settings import UserSettingsService
 from porterchain_api.schemas_notifications import (
     DeviceRegisterRequest,
@@ -44,6 +44,7 @@ def _inbox_payload(
     unread_only: bool = False,
     archived: bool = False,
     limit: int = 50,
+    exclude_templates: set[str] | None = None,
 ) -> dict:
     payload = _engine.inbox_payload(
         db,
@@ -52,6 +53,7 @@ def _inbox_payload(
         unread_only=unread_only,
         archived=archived,
         limit=limit,
+        exclude_templates=exclude_templates,
     )
     if user.user_role == "merchant":
         payload["merchant_id"] = user.user_id
@@ -104,8 +106,19 @@ def inbox(
     unread_only: bool = False,
     archived: bool = False,
     limit: int = Query(50, le=200),
+    exclude: str = Query(""),
 ):
-    return _inbox_payload(db, user, unread_only=unread_only, archived=archived, limit=limit)
+    if user.user_role == "admin":
+        touch_online("admin", user.user_id)
+    hidden = {part.strip() for part in exclude.split(",") if part.strip()}
+    return _inbox_payload(
+        db,
+        user,
+        unread_only=unread_only,
+        archived=archived,
+        limit=limit,
+        exclude_templates=hidden,
+    )
 
 
 @router.get("/inbox/history")
@@ -251,6 +264,8 @@ async def notifications_ws(
         while True:
             msg = await websocket.receive_text()
             if msg == "ping":
+                if user.user_role == "admin":
+                    touch_online("admin", user.user_id)
                 await websocket.send_json({"type": "pong"})
     except WebSocketDisconnect:
         await realtime_hub.disconnect(user.user_role, user.user_id, websocket)

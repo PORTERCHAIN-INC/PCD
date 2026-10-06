@@ -81,7 +81,7 @@ def test_privacy_export_includes_payments_and_tickets() -> None:
     assert out["profile"]["stripe_customer_id"] == "cus_x"
 
 
-def test_attach_vehicle_pushes_fleetbase() -> None:
+def test_attach_vehicle_stays_on_porterchain() -> None:
     from porterchain_api.admin_engine.driver_service import AdminDriverService
 
     svc = AdminDriverService()
@@ -91,7 +91,6 @@ def test_attach_vehicle_pushes_fleetbase() -> None:
     settings = SimpleNamespace()
     svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
     svc._audit = MagicMock()  # type: ignore[method-assign]
-    svc._fleetbase.push_vehicle = MagicMock(return_value="fb-v1")
     db.query.return_value.filter.return_value.first.return_value = None
 
     vehicle = svc.attach_vehicle(
@@ -104,4 +103,4 @@ def test_attach_vehicle_pushes_fleetbase() -> None:
     )
     assert vehicle.plate_number == "ABC123"
     assert vehicle.is_active is True
-    svc._fleetbase.push_vehicle.assert_called_once()
+    assert not hasattr(svc, "_fleetbase")

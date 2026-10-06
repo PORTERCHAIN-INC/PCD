@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { customerPortalBookUrl } from "@/data/portal-links";
@@ -25,9 +26,22 @@ function withQuery(base: string, searchParams: Record<string, string | string[] 
   return qs ? `${base}?${qs}` : base;
 }
 
+async function BookSuccessRedirect({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  redirect(withQuery(`${customerPortalBookUrl}/success`, query));
+  return null;
+}
+
 /** Legacy `/book/success` — confirmation lives on customer portal; forward quote_id. */
 export default async function BookSuccessRedirectPage({ params, searchParams }: Props) {
   await params;
-  const query = await searchParams;
-  redirect(withQuery(`${customerPortalBookUrl}/success`, query));
+  return (
+    <Suspense fallback={null}>
+      <BookSuccessRedirect searchParams={searchParams} />
+    </Suspense>
+  );
 }

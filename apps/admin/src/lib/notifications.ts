@@ -154,11 +154,14 @@ export const notificationsApi = {
   },
   retry: (t: string, id: string) =>
     adminFetch<{ ok: boolean }>(`${B}/retry/${id}`, t, { method: "POST" }),
-  inbox: (t: string, limit = 100) =>
-    adminFetch<{ unread_count: number; items: InboxNotification[] }>(
-      `/v1/notifications/inbox?limit=${limit}`,
+  inbox: (t: string, limit = 100, exclude = "") => {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (exclude) q.set("exclude", exclude);
+    return adminFetch<{ unread_count: number; items: InboxNotification[] }>(
+      `/v1/notifications/inbox?${q.toString()}`,
       t
-    ),
+    );
+  },
   markRead: (t: string, id: string) =>
     adminFetch<{ ok: boolean }>(`/v1/notifications/inbox/${id}/read`, t, { method: "POST" }),
   markAllRead: (t: string) =>

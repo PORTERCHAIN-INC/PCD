@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # Closed set — NIM may only recommend these. Never auto_apply.
 ALLOWED_ACTIONS: frozenset[str] = frozenset(
     {
-        "review_fleetbase_console",
+        "review_day_plan",
         "check_sla_queue",
         "reassign_candidate",
         "contact_merchant",
@@ -22,7 +22,7 @@ ALLOWED_ACTIONS: frozenset[str] = frozenset(
         "verify_pod_exception",
         "review_ops_notes",
         "hold_for_capacity",
-        "retry_fleetbase_sync",
+        "retry_day_plan",
         # Phase 5 — optimize / FSA explain (still auto_apply=false)
         "run_optimize_preview",
         "compare_cuopt_shadow",
@@ -35,9 +35,9 @@ ALLOWED_ACTIONS: frozenset[str] = frozenset(
 _SYSTEM_PLAYBOOK = """You are PorterChain's ops copilot for a Transportation Capacity Network.
 Rules (non-negotiable):
 1. Return ONLY JSON: {"suggestions":[{"action":string,"rationale":string,"priority":"p0"|"p1"|"p2","confidence":0.0-1.0,"auto_apply":false}]}
-2. action MUST be one of: review_fleetbase_console, check_sla_queue, reassign_candidate, contact_merchant, escalate_ops_lead, verify_pod_exception, review_ops_notes, hold_for_capacity, retry_fleetbase_sync, run_optimize_preview, compare_cuopt_shadow, reoptimize_after_pickup, explain_fsa_coverage, hold_for_out_of_tile
-3. Never invent live GPS, driver locations, payments, Stripe state, or Fleetbase mutations. Never invent routes — only recommend Fleetbase optimize / Valhalla explain.
-4. Prefer Fleetbase console verification before any reassign suggestion.
+2. action MUST be one of: review_day_plan, check_sla_queue, reassign_candidate, contact_merchant, escalate_ops_lead, verify_pod_exception, review_ops_notes, hold_for_capacity, retry_day_plan, run_optimize_preview, compare_cuopt_shadow, reoptimize_after_pickup, explain_fsa_coverage, hold_for_out_of_tile
+3. Never invent live GPS, driver locations, payments, or Stripe state. Never invent routes — only recommend Optimize / Valhalla explain.
+4. Prefer the live map and day plan before any reassign suggestion.
 5. auto_apply is ALWAYS false. Max 4 suggestions, highest priority first.
 6. Be specific to the given context; no generic filler."""
 
@@ -143,10 +143,10 @@ def _stub_suggestions(context: str, *, nim_status: dict[str, Any]) -> dict[str, 
     return {
         "suggestions": [
             {
-                "action": "review_fleetbase_console",
+                "action": "review_day_plan",
                 "rationale": (
-                    "Verify active drivers near the exception zone in the Fleetbase "
-                    "live map before reassign."
+                    "Verify on-duty drivers near the exception zone on the live map "
+                    "and the accepted day plan before reassign."
                 ),
                 "priority": "p1",
                 "confidence": 0.55,
@@ -216,14 +216,17 @@ def _normalize_action(raw: str) -> str | None:
     if slug in ALLOWED_ACTIONS:
         return slug
     aliases = {
-        "check_fleetbase": "review_fleetbase_console",
-        "open_fleetbase": "review_fleetbase_console",
+        "review_fleetbase_console": "review_day_plan",
+        "check_fleetbase": "review_day_plan",
+        "open_fleetbase": "review_day_plan",
+        "review_day_plan": "review_day_plan",
         "reassign": "reassign_candidate",
         "reassign_driver": "reassign_candidate",
         "call_merchant": "contact_merchant",
         "escalate": "escalate_ops_lead",
         "pod": "verify_pod_exception",
-        "sync_retry": "retry_fleetbase_sync",
+        "sync_retry": "retry_day_plan",
+        "retry_fleetbase_sync": "retry_day_plan",
     }
     mapped = aliases.get(slug)
     return mapped if mapped in ALLOWED_ACTIONS else None

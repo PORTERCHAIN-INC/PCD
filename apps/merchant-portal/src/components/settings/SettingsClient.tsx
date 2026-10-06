@@ -84,14 +84,14 @@ export default function SettingsClient() {
   const enabled = Boolean(isLoaded && isSignedIn);
 
   const overviewQuery = useQuery({
-    queryKey: ["merchant-settings-overview", orgId],
+    queryKey: ["merchant-settings-overview", orgId ?? null],
     enabled,
     staleTime: 30_000,
     queryFn: async () => settingsApi.overview(await getApiToken(), orgId),
   });
 
   const recipientsQuery = useQuery({
-    queryKey: ["merchant-settings-recipients", orgId],
+    queryKey: ["merchant-settings-recipients", orgId ?? null],
     enabled: enabled && tab === "recipients",
     staleTime: 30_000,
     queryFn: async () => settingsApi.recipients(await getApiToken(), orgId),
@@ -108,8 +108,8 @@ export default function SettingsClient() {
 
   const load = useCallback(async () => {
     await Promise.all([
-      qc.invalidateQueries({ queryKey: ["merchant-settings-overview", orgId] }),
-      qc.invalidateQueries({ queryKey: ["merchant-settings-recipients", orgId] }),
+      qc.invalidateQueries({ queryKey: ["merchant-settings-overview", orgId ?? null] }),
+      qc.invalidateQueries({ queryKey: ["merchant-settings-recipients", orgId ?? null] }),
     ]);
   }, [qc, orgId]);
 

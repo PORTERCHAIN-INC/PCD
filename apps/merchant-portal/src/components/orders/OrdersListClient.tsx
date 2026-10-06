@@ -16,8 +16,9 @@ import {
 } from "@/lib/orders";
 import { formatCents } from "@/lib/utils";
 import { hasMerchantModule } from "@/lib/merchant-nav";
+import { TableSkeleton } from "@porterchain/ui/loading";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useDeferredValue, useState } from "react";
 
 export default function OrdersListClient() {
   const { getApiToken, orgId, isLoaded, isSignedIn, modules } = useMerchantAuth();
@@ -31,25 +32,27 @@ export default function OrdersListClient() {
   const [bulkFailures, setBulkFailures] = useState<BulkActionResult[]>([]);
 
   const enabled = Boolean(isLoaded && isSignedIn && orgId);
+  const deferredSearch = useDeferredValue(filters.search);
+  const listFilters = { ...filters, search: deferredSearch };
 
   const listQuery = useQuery({
-    queryKey: ["merchant-orders", orgId, filters, offset],
+    queryKey: ["merchant-orders", orgId ?? null, listFilters, offset],
     enabled,
     queryFn: async () => {
       const token = await getApiToken();
-      return ordersApi.list(token, orgId, { ...filters, limit: ORDER_PAGE_SIZE, offset });
+      return ordersApi.list(token, orgId, { ...listFilters, limit: ORDER_PAGE_SIZE, offset });
     },
   });
 
   const dashQuery = useQuery({
-    queryKey: ["merchant-orders-dashboard", orgId],
+    queryKey: ["merchant-orders-dashboard", orgId ?? null],
     enabled,
     staleTime: 120_000,
     queryFn: async () => ordersApi.dashboard(await getApiToken(), orgId),
   });
 
   const refreshLists = useCallback(() => {
-    void qc.invalidateQueries({ queryKey: ["merchant-orders", orgId] });
+    void qc.invalidateQueries({ queryKey: ["merchant-orders", orgId ?? null] });
   }, [orgId, qc]);
 
   useMerchantRealtime(enabled, orgId, getApiToken, refreshLists);
@@ -90,7 +93,7 @@ export default function OrdersListClient() {
     }
     setSelected([]);
     refreshLists();
-    void qc.invalidateQueries({ queryKey: ["merchant-orders-dashboard", orgId] });
+    void qc.invalidateQueries({ queryKey: ["merchant-orders-dashboard", orgId ?? null] });
   }
 
   async function downloadPrint(kind: "preview" | "list" | "labels" | "manifest") {
@@ -251,8 +254,10 @@ export default function OrdersListClient() {
             )}
           </div>
         )}
-        {loading ? (
-          <p className="mt-6 text-center text-sm text-muted">Loading orders…</p>
+        {loading && rows.length === 0 ? (
+          <div className="mt-6">
+            <TableSkeleton rows={6} />
+          </div>
         ) : (
           <div className="mt-4">
             <OrdersTable rows={rows} selected={selected} onSelect={setSelected} />

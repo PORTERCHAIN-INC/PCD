@@ -14,30 +14,26 @@ from porterchain_api.routers.driver._deps import (
     get_driver_context,
     get_settings,
     router,
-    svc,
-)
+    svc)
 
 
 @router.get("/me", response_model=DriverProfileResponse)
 def driver_me(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     from porterchain_api.driver_engine.wallet_ledger import wallet_balance_cents
 
     # Alias import — local `driver_profile` route below must not shadow the mapper.
     return map_driver_profile(
         ctx.driver,
-        wallet_cents=wallet_balance_cents(db, ctx.driver.id, cached_cents=ctx.driver.wallet_balance_cents),
-    )
+        wallet_cents=wallet_balance_cents(db, ctx.driver.id, cached_cents=ctx.driver.wallet_balance_cents))
 
 
 @router.get("/onboarding", response_model=DriverOnboardingResponse)
 def driver_onboarding(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     """Onboarding checklist — portal blocks until ready. Expiry revokes flags first."""
     from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
@@ -48,8 +44,7 @@ def driver_onboarding(
 @router.get("/profile")
 def driver_profile(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
     changed = DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)

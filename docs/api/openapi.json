@@ -58048,7 +58048,7 @@
           "driver"
         ],
         "summary": "Navigation Session",
-        "description": "Full navigation session \u2014 Fleetbase GPS, OSRM ETA, Valhalla route.",
+        "description": "Full navigation session \u2014 Driver GPS, OSRM ETA, Valhalla route.",
         "operationId": "navigation_session_driver_api_v1_navigation_session_get",
         "security": [
           {

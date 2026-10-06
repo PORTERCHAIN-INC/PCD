@@ -15,7 +15,7 @@ REQUIRED_YAML_KEYS = (
     "porterchain_api",
     "postgres",
     "redis",
-    "fleetbase",
+    "dispatch",
     "google_maps",
     "valhalla",
     "osrm",

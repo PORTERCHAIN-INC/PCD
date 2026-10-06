@@ -6,6 +6,7 @@ import { Check, Shield } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
 import { settingsApi, type RoleCatalogEntry } from "@/lib/settings";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { SettingsCard, SettingsPageHeader } from "../ui/SettingsPrimitives";
 
 export function RolesPanel() {
@@ -40,7 +41,7 @@ export function RolesPanel() {
         title="Staff role → module catalog"
         description="Read-only matrix from MODULE_PERMISSIONS. Change access by updating a staff member’s role on the Users tab — not by editing this grid."
       >
-        {isLoading && <p className="text-sm text-muted">Loading catalog…</p>}
+        {isLoading && <PageSkeleton rows={3} />}
         {!isLoading && roles.length === 0 && (
           <p className="text-sm text-muted">Role catalog unavailable.</p>
         )}

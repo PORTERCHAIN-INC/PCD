@@ -78,7 +78,7 @@ def test_parse_suggestions_allowlist_and_sort() -> None:
       ]
     }"""
     rows = _parse_suggestions(raw)
-    assert rows[0]["action"] == "review_fleetbase_console"
+    assert rows[0]["action"] == "review_day_plan"
     assert rows[0]["priority"] == "p0"
     assert any(r["action"] == "reassign_candidate" for r in rows)
     assert all(r["action"] != "hack_stripe" for r in rows)

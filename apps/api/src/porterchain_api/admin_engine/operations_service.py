@@ -55,14 +55,14 @@ class AdminOperationsService:
         order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
         db.commit()
         db.refresh(order)
-        from porterchain_api.fleetbase_engine.optimize_run_store import fleet_optimize_open
+        from porterchain_api.dispatch_engine.optimize_run_store import fleet_optimize_open
 
         if not fleet_optimize_open():
             self._enqueue_driver_book_optimize(db, driver_id, insert_order_id=order.id)
         return order
 
     @staticmethod
-    def _enqueue_driver_book_optimize(  # fleetbase-first:ok — enqueue only; Fleetbase orchestrator sequences
+    def _enqueue_driver_book_optimize(  # enqueue only — PorterChain day plan sequences
         db: Session,
         driver_id: str,
         *,
@@ -149,20 +149,12 @@ class AdminOperationsService:
         return order
 
     def process_sync_retry(self, db: Session, *, limit: int = 1) -> dict:
-        from porterchain_api.config import get_settings
-        from porterchain_api.fleetbase_engine import BookingSyncService
-
-        return BookingSyncService().process_retry_queue(
-            db, get_settings(), limit=limit, exclude_kinds=["tracking"]
-        )
+        del db, limit
+        return {"processed": 0, "failed": 0, "skipped": 0}
 
     def requeue_sync_job(self, db: Session, job_id: str) -> dict:
-        from porterchain_api.fleetbase_engine import ErrorQueue
-
-        job = ErrorQueue.requeue(db, job_id)
-        if not job:
-            raise LookupError("job_not_found")
-        return {"ok": True, "id": job.id, "status": job.status}
+        del db, job_id
+        raise LookupError("job_not_found")
 
     @staticmethod
     def queue_depths_snapshot() -> dict:

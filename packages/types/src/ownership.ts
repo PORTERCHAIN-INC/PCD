@@ -13,15 +13,9 @@ export const PORTERCHAIN_OWNED = [
   "notifications",
   "analytics",
   "reports",
-] as const;
-
-/**
- * Fleetbase owns dispatch fleet assets (live GPS, POD, console vehicles).
- * PorterChain `vehicles` table is a commercial/admin *mirror* — class ids
- * must be Capacity Catalog snake ids (`vehicle_types` / customer_goods).
- * Capacity catalog, quotes (booked class), and preferred_vehicles are PC-owned.
- */
-export const FLEETBASE_OWNED = [
+  "leads",
+  "abandoned_checkouts",
+  "domain_events",
   "vehicles",
   "drivers",
   "orders",
@@ -32,3 +26,6 @@ export const FLEETBASE_OWNED = [
   "tracking",
   "proof_of_delivery",
 ] as const;
+
+/** Empty. Dispatch, GPS, and proof belong to PorterChain. */
+export const FLEETBASE_OWNED = [] as const;

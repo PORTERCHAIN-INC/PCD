@@ -1,12 +1,16 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import CommunicationsClient from "@/components/communications/CommunicationsClient";
+import type { DriverCommunicationsSnapshot } from "@/lib/communications";
+import { driverServerGet } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
+export default async function CommunicationsPage() {
+  const client = new QueryClient();
+  const snap = await driverServerGet<DriverCommunicationsSnapshot>("/v1/communications");
+  if (snap) client.setQueryData(["driver-communications"], snap);
 
-const CommunicationsClient = dynamic(
-  () => import("@/components/communications/CommunicationsClient"),
-  { loading: () => <p className="p-4 text-sm text-[var(--muted)]">Loading…</p> }
-);
-
-export default function CommunicationsPage() {
-  return <CommunicationsClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <CommunicationsClient />
+    </HydrationBoundary>
+  );
 }

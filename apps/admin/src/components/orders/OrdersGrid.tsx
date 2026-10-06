@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import {
   flexRender,
@@ -24,7 +25,7 @@ import {
   STATE_STYLES,
   type OrderRow,
 } from "@/lib/orders";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 
 const COLS_KEY = "porterchain.orders.columns";
 
@@ -35,26 +36,86 @@ type Props = {
   loading?: boolean;
 };
 
-export default function OrdersGrid({ rows, selected, onSelect, loading }: Props) {
+function selectionKey(ids: string[]): string {
+  return ids.slice().sort().join("\0");
+}
+
+/**
+ * TanStack Table can queue row-selection sync during first construction.
+ * Defer the table until after mount so React 19 does not warn that OrdersPage
+ * updated before it committed (same pattern as FinanceInvoicesGrid).
+ */
+export default function OrdersGrid(props: Props) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  if (!ready) {
+    return (
+      <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
+        <div className="flex justify-center py-12">
+          <PageSkeleton rows={3} />
+        </div>
+      </div>
+    );
+  }
+
+  return <OrdersGridTable {...props} />;
+}
+
+function OrdersGridTable({ rows, selected, onSelect, loading }: Props) {
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const mounted = useRef(false);
 
   const [grouping, setGrouping] = useState<GroupingState>([]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      return JSON.parse(localStorage.getItem(COLS_KEY) || "{}") as VisibilityState;
-    } catch {
-      return {};
-    }
-  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
-
-  const rowSelection = useMemo(
-    () => Object.fromEntries(selected.map((id) => [id, true])),
-    [selected]
+  const deferredFilter = useDeferredValue(globalFilter);
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(selected.map((id) => [id, true]))
   );
+  const lastEmittedKey = useRef(selectionKey(selected));
+
+  useEffect(() => {
+    mounted.current = true;
+    try {
+      const raw = localStorage.getItem(COLS_KEY);
+      if (raw) setColumnVisibility(JSON.parse(raw) as VisibilityState);
+    } catch {
+      /* saved columns are optional */
+    }
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  // Parent cleared or replaced selection (filters / page change).
+  useEffect(() => {
+    const key = selectionKey(selected);
+    if (key === lastEmittedKey.current) return;
+    lastEmittedKey.current = key;
+    setRowSelection(Object.fromEntries(selected.map((id) => [id, true])));
+  }, [selected]);
+
+  // Push local checkbox changes to the parent after this grid has mounted.
+  useEffect(() => {
+    if (!mounted.current) return;
+    const ids = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+    const key = selectionKey(ids);
+    if (key === lastEmittedKey.current) return;
+    lastEmittedKey.current = key;
+    onSelectRef.current(ids);
+  }, [rowSelection]);
+
+  const applyRowSelection = (
+    updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)
+  ) => {
+    if (!mounted.current) return;
+    setRowSelection(updater);
+  };
 
   const columns = useMemo<ColumnDef<OrderRow>[]>(
     () => [
@@ -269,14 +330,14 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
   const table = useReactTable({
     data: rows,
     columns,
-    state: { grouping, columnSizing, columnVisibility, globalFilter, rowSelection },
+    state: { grouping, columnSizing, columnVisibility, globalFilter: deferredFilter, rowSelection },
     enableRowSelection: true,
+    // Parent clears selection on filter/page change. Auto-reset runs during render
+    // and would call setState before this grid has mounted.
+    // TanStack Table supports this; some pin typings omit it.
+    ...({ autoResetRowSelection: false } as object),
     getRowId: (row) => row.order_id,
-    onRowSelectionChange: (updater) => {
-      const next = typeof updater === "function" ? updater(rowSelection) : updater;
-      const ids = Object.keys(next).filter((id) => next[id]);
-      queueMicrotask(() => onSelectRef.current(ids));
-    },
+    onRowSelectionChange: applyRowSelection,
     onGroupingChange: setGrouping,
     onColumnSizingChange: setColumnSizing,
     onColumnVisibilityChange: (updater) => {
@@ -327,7 +388,7 @@ export default function OrdersGrid({ rows, selected, onSelect, loading }: Props)
       <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
         {loading ? (
           <div className="flex justify-center py-12">
-            <Spinner />
+            <PageSkeleton rows={3} />
           </div>
         ) : (
           <table

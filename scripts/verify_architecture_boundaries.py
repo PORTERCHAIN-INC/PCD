@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""§3.1.2–3.1.4 — architecture boundary guards (Fleetbase, Stripe, UI API)."""
+"""§3.1.2–3.1.4 — architecture boundary guards (no vendor dispatch HTTP, Stripe, UI API)."""
 
 from __future__ import annotations
 
@@ -26,18 +26,11 @@ UI_API_LIB = (
     ROOT / "website/src/lib/api.ts",
 )
 
-# Python may reference Fleetbase URL for diagnostics/config — not outbound business HTTP.
+# Config may still hold retired FLEETBASE_* field names until a later migration.
 _FLEETBASE_URL_ALLOWLIST: frozenset[str] = frozenset(
     {
         "config.py",
-        "admin_engine/diagnostics_probes.py",
-        "admin_engine/diagnostics_fleetbase_probes.py",
-        "admin_engine/diagnostics_validation.py",
         "admin_engine/diagnostics_health.py",
-        "admin_engine/e2e_validation_core.py",
-        "admin_engine/settings_service.py",
-        "fleetbase_engine/sync_health.py",
-        "services/fleetbase_integration.py",
         "auth/sso_service.py",
     }
 )

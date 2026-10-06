@@ -168,8 +168,8 @@ class DiagnosticsHealthMixin:
             )
         )
 
-        adapter_probe = self._probe_fleetbase_adapter(settings)
-        components.append(_component("fleetbase_adapter", "Fleetbase Adapter", **adapter_probe))
+        day_plan_probe = self._probe_day_plan(settings)
+        components.append(_component("dispatch", "Dispatch (day plan)", **day_plan_probe))
 
         maps_probe = self._probe_google_maps(platform, app_env=settings.app_env)
         components.append(_component("google_maps", "Google Maps", **maps_probe))
@@ -199,11 +199,8 @@ class DiagnosticsHealthMixin:
         components.append(_component("readiness_probe", "API Readiness", **ready_probe))
 
         http_probe_jobs = [
-            ("fleetbase", "Fleetbase", lambda: self._probe_fleetbase(settings)),
             ("valhalla", "Valhalla", lambda: self._probe_valhalla(platform)),
-            ("vroom", "VROOM (Fleetbase)", lambda: self._probe_vroom(settings)),  # fleetbase-first:ok
             ("clerk", "Clerk", lambda: self._probe_clerk(settings, platform)),
-            ("fleetbase_console", "Fleetbase Console", lambda: self._probe_fleetbase_console(settings)),
             ("mailpit", "Mailpit (Dev Email)", lambda: self._probe_mailpit(settings)),
             ("metrics_endpoint", "Prometheus Metrics", lambda: self._probe_metrics(settings)),
         ]
@@ -259,13 +256,9 @@ class DiagnosticsHealthMixin:
         checks = [
             {
                 "id": "adr003_adapter",
-                "label": "Fleetbase Adapter mandatory (ADR-003)",
+                "label": "Dispatch day plan (OR-Tools)",
                 "status": "healthy",
-                "note": (
-                    "Dispatch bridge enabled"
-                    if settings.fleetbase_dispatch_bridge
-                    else "Bridge deferred — Fleetbase host not on this droplet"
-                ),
+                "note": "PorterChain owns GPS, day plan, and tracking",
             },
             {
                 "id": "adr006_stripe_webhook",
@@ -281,7 +274,7 @@ class DiagnosticsHealthMixin:
             },
             {
                 "id": "layered_ui",
-                "label": "No direct Fleetbase from UI (§3)",
+                "label": "No vendor dispatch HTTP from UI (§3)",
                 "status": self._scan_frontend_violations()["status"],
                 "note": "Static scan of portal fetch patterns",
             },

@@ -48,7 +48,8 @@ def test_shopify_snapshot_absent_for_portal_book() -> None:
         compliance_metadata={},
     )
     assert shopify_snapshot(order) is None
-    assert order_source_label("MERCHANT") == "Merchant portal"
+    assert order_source_label("MERCHANT") == "Merchant"
+    assert order_source_label("WEBSITE") == "Customer"
 
 
 def test_ops_timeline_invoice_is_english_dollars() -> None:

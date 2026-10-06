@@ -13,8 +13,7 @@ from porterchain_api.routers.driver._deps import router
 from porterchain_api.schemas_driver import (
     DriverDevListItem,
     DriverDevLoginRequest,
-    DriverDevLoginResponse,
-)
+    DriverDevLoginResponse)
 
 _auth = DriverAuthService()
 
@@ -23,8 +22,7 @@ _auth = DriverAuthService()
 def driver_dev_login(
     body: DriverDevLoginRequest,
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> DriverDevLoginResponse:
+    settings: Settings = Depends(get_settings)) -> DriverDevLoginResponse:
     """Email → approved driver id. Only when CLERK_DEV_BYPASS is enabled (local)."""
     if not allow_auth_dev_bypass(settings):
         raise HTTPException(status_code=404, detail="not_found")
@@ -38,8 +36,7 @@ def driver_dev_login(
 def driver_dev_list(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    limit: int = Query(50, ge=1, le=100),
-) -> list[DriverDevListItem]:
+    limit: int = Query(50, ge=1, le=100)) -> list[DriverDevListItem]:
     """List approved drivers for the local email picker."""
     if not allow_auth_dev_bypass(settings):
         raise HTTPException(status_code=404, detail="not_found")

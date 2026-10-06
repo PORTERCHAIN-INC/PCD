@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Building2,
@@ -36,58 +36,61 @@ import {
 import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
-import { Badge, Button, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, dateTime } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
+import { PageSkeleton } from "@porterchain/ui/loading";
+
+const tabFallback = () => <PageSkeleton rows={3} />;
 
 const MerchantContactsPanel = dynamic(
   () => import("@/components/merchants/MerchantContactsPanel"),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const MerchantLocationsPanel = dynamic(
   () => import("@/components/merchants/MerchantLocationsPanel"),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const MerchantPricingPanel = dynamic(() => import("@/components/merchants/MerchantPricingPanel"), {
-  loading: () => <Spinner />,
+  loading: tabFallback,
 });
 const MerchantPrivacyCard = dynamic(() => import("@/components/merchants/MerchantPrivacyCard"), {
-  loading: () => <Spinner />,
+  loading: tabFallback,
 });
 const MerchantStandingOrdersCard = dynamic(
   () => import("@/components/merchants/MerchantStandingOrdersCard"),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const MerchantTeamPanel = dynamic(() => import("@/components/merchants/MerchantTeamPanel"), {
-  loading: () => <Spinner />,
+  loading: tabFallback,
 });
 const MerchantIntegrationsTab = dynamic(
   () => import("@/components/merchants/MerchantIntegrationsTab"),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const OrdersTab = dynamic(
   () => import("@/components/merchants/MerchantOrdersTab").then((m) => m.OrdersTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const StatementTab = dynamic(
   () => import("@/components/merchants/MerchantMoneyTabs").then((m) => m.StatementTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const InvoicesTab = dynamic(
   () => import("@/components/merchants/MerchantMoneyTabs").then((m) => m.InvoicesTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const CreditNotesTab = dynamic(
   () => import("@/components/merchants/MerchantMoneyTabs").then((m) => m.CreditNotesTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const ContractsTab = dynamic(
   () => import("@/components/merchants/MerchantMoneyTabs").then((m) => m.ContractsTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const SettingsTab = dynamic(
   () => import("@/components/merchants/MerchantSettingsTab").then((m) => m.SettingsTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 
 const STATUS_TONE: Record<string, string> = {
@@ -157,11 +160,9 @@ function parseMerchantTab(raw: string | null): {
   return { tab: "overview", people: "team", money: "invoices", activity: "timeline" };
 }
 
-export default function MerchantDetailClient() {
-  const params = useParams<{ id: string }>();
+export default function MerchantDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const id = params.id;
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<TabId>(() => parseMerchantTab(searchParams.get("tab")).tab);
@@ -259,7 +260,7 @@ export default function MerchantDetailClient() {
   }
 
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!m) return <Spinner label="Loading merchant…" />;
+  if (!m) return <PageSkeleton rows={5} />;
 
   return (
     <AdminPage>
@@ -898,7 +899,7 @@ function AnalyticsTab({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.analytics(t, id), [id], {
     key: `merchant-analytics-${id}`,
   });
-  if (!data) return <Spinner />;
+  if (!data) return <PageSkeleton rows={3} />;
   const months = data.revenue_by_month ?? [];
   const destinations = data.top_destinations ?? [];
   const maxRev = Math.max(1, ...months.map((r) => r.revenue_cents));

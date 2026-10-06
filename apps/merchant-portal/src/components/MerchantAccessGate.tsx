@@ -4,7 +4,6 @@ import { useCallback, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
-import { Spinner } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { merchantProfileFromSession } from "@/lib/merchant-access";
 import { fetchMerchantOnboarding, isPendingMerchantPath } from "@/lib/onboarding";
@@ -154,7 +153,7 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
   // Wait for merchant session so ACTIVE users skip the duplicate session-context call.
   const gateReady = clerkLoaded && merchantAuthLoaded;
 
-  const { checking, denied, errorDetail } = usePortalSessionGate({
+  const { denied, errorDetail } = usePortalSessionGate({
     portal: "merchant",
     apiUrl: publicEnv.porterchainApiUrl,
     isLoaded: gateReady,
@@ -167,10 +166,6 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
     onSignedOut,
     onNeedOnboarding,
   });
-
-  if (!gateReady || checking) {
-    return <Spinner label={impToken ? "Loading impersonation…" : "Loading session…"} />;
-  }
 
   if ((denied || errorDetail) && !impToken) {
     const loginUrl = platformLoginUrl(publicEnv.websiteUrl);

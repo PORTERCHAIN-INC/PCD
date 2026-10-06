@@ -23,7 +23,7 @@ from porterchain_api.admin_engine.live_map_service import (
 from porterchain_api.admin_models import Driver
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.domain.states import OrderState
-from porterchain_api.fleetbase_engine import ops_mirror
+from porterchain_api.dispatch_engine import ops_mirror
 from porterchain_api.booking_models import Order
 from porterchain_services.maps.service import MapsService
 
@@ -127,131 +127,120 @@ class TestStopExtraction:
 
 
 class TestSnapshot:
-    def test_driver_positions_matched_to_pc_drivers(self, db: Session):
-        fb_id = f"fb-live-map-{uuid4()}"
+    def test_on_duty_driver_without_fleetbase_id(self, db: Session):
+        from porterchain_api.driver_engine.last_known import LastKnown
+        from porterchain_api.driver_models import DriverShift
+
         driver = Driver(
             id=str(uuid4()),
             status="APPROVED",
             email=f"{uuid4()}@test.dev",
             full_name="Ada Driver",
-            fleetbase_driver_id=fb_id,
+            fleetbase_driver_id=None,
             is_online=True,
+        )
+        shift = DriverShift(
+            id=str(uuid4()),
+            driver_id=driver.id,
+            status="active",
+            started_at=datetime.now(UTC),
         )
         order = _order(assigned_driver_id=driver.id)
-        db.add_all([driver, order])
-        db.commit()
-        try:
-            payload = [{"id": fb_id, "online": True, "location": {"lat": 43.65, "lng": -79.38}}]
-            with (
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.read_drivers",
-                    return_value=(payload, ops_mirror.SOURCE_MIRROR),
-                ),
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.driver_by_fleetbase_id",
-                    return_value=payload[0],
-                ),
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.read_zones",
-                    return_value=([], ops_mirror.SOURCE_MISS),
-                ),
-                patch(
-                    "porterchain_api.driver_engine.last_known.read_last_known",
-                    return_value=None,
-                ),
-            ):
-                snap = LiveMapService().snapshot(db)
-
-            assert snap["drivers_source"] == ops_mirror.SOURCE_MIRROR
-            match = [d for d in snap["drivers"] if d["fleetbase_driver_id"] == fb_id]
-            assert match and match[0]["name"] == "Ada Driver"
-            assert match[0]["online"] is True
-
-            tracked = [o for o in snap["orders"] if o["id"] == order.id]
-            assert tracked, "fixture order missing from snapshot (ACTIVE_LIMIT / scheduled_at)"
-            assert tracked[0]["driver"] == "Ada Driver"
-            assert len(tracked[0]["stops"]) == 2
-        finally:
-            _cleanup(db, order, driver)
-
-    def test_adapter_down_returns_orders_only(self, db: Session):
-        order = _order()
-        db.add(order)
-        db.commit()
-        try:
-            with (
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.read_drivers",
-                    return_value=([], ops_mirror.SOURCE_UNAVAILABLE),
-                ),
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.driver_by_fleetbase_id",
-                    return_value=None,
-                ),
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.read_zones",
-                    return_value=([], ops_mirror.SOURCE_UNAVAILABLE),
-                ),
-                patch(
-                    "porterchain_api.driver_engine.last_known.read_last_known",
-                    return_value=None,
-                ),
-            ):
-                snap = LiveMapService().snapshot(db)
-            assert snap["drivers"] == []
-            assert snap["drivers_source"] == "unavailable"
-            assert any(o["id"] == order.id for o in snap["orders"])
-        finally:
-            _cleanup(db, order)
-
-    def test_last_known_keeps_pins_when_roster_missing(self, db: Session):
-        from porterchain_api.driver_engine.last_known import LastKnown
-
-        fb_id = f"fb-live-map-{uuid4()}"
-        driver = Driver(
-            id=str(uuid4()),
-            status="APPROVED",
-            email=f"{uuid4()}@test.dev",
-            full_name="Last Known",
-            fleetbase_driver_id=fb_id,
-            is_online=True,
-        )
-        db.add(driver)
+        db.add_all([driver, shift, order])
         db.commit()
         known = LastKnown(
             driver_id=driver.id,
             lat=43.65,
             lng=-79.38,
             recorded_at=datetime.now(UTC),
-            fleetbase_driver_id=fb_id,
         )
         try:
             with (
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.read_drivers",
-                    return_value=([], ops_mirror.SOURCE_MISS),
-                ),
-                patch(
-                    "porterchain_api.admin_engine.live_map_service.ops_mirror.driver_by_fleetbase_id",
-                    return_value=None,
-                ),
                 patch(
                     "porterchain_api.admin_engine.live_map_service.ops_mirror.read_zones",
                     return_value=([], ops_mirror.SOURCE_MISS),
                 ),
                 patch(
-                    "porterchain_api.driver_engine.last_known.read_last_known",
+                    "porterchain_api.dispatch_engine.gps_board.read_last_known",
                     return_value=known,
                 ),
             ):
                 snap = LiveMapService().snapshot(db)
-            assert snap["drivers_source"] == ops_mirror.SOURCE_LAST_KNOWN
-            match = [d for d in snap["drivers"] if d["fleetbase_driver_id"] == fb_id]
+
+            assert snap["drivers_source"] == "last_known"
+            match = [d for d in snap["drivers"] if d["id"] == driver.id]
+            assert match and match[0]["name"] == "Ada Driver"
+            assert match[0]["online"] is True
+            assert match[0]["fleetbase_driver_id"] == ""
+
+            tracked = [o for o in snap["orders"] if o["id"] == order.id]
+            assert tracked, "fixture order missing from snapshot (ACTIVE_LIMIT / scheduled_at)"
+            assert tracked[0]["driver"] == "Ada Driver"
+            assert len(tracked[0]["stops"]) == 2
+        finally:
+            _cleanup(db, order, shift, driver)
+
+    def test_no_shift_returns_orders_only(self, db: Session):
+        order = _order()
+        db.add(order)
+        db.commit()
+        try:
+            with patch(
+                "porterchain_api.admin_engine.live_map_service.ops_mirror.read_zones",
+                return_value=([], ops_mirror.SOURCE_UNAVAILABLE),
+            ):
+                snap = LiveMapService().snapshot(db)
+            assert snap["drivers"] == []
+            assert snap["drivers_source"] == "miss"
+            assert any(o["id"] == order.id for o in snap["orders"])
+        finally:
+            _cleanup(db, order)
+
+    def test_last_known_pin_for_on_duty_driver(self, db: Session):
+        from porterchain_api.driver_engine.last_known import LastKnown
+        from porterchain_api.driver_models import DriverShift
+
+        driver = Driver(
+            id=str(uuid4()),
+            status="APPROVED",
+            email=f"{uuid4()}@test.dev",
+            full_name="Last Known",
+            fleetbase_driver_id=None,
+            is_online=True,
+        )
+        shift = DriverShift(
+            id=str(uuid4()),
+            driver_id=driver.id,
+            status="active",
+            started_at=datetime.now(UTC),
+        )
+        db.add_all([driver, shift])
+        db.commit()
+        known = LastKnown(
+            driver_id=driver.id,
+            lat=43.65,
+            lng=-79.38,
+            recorded_at=datetime.now(UTC),
+        )
+        try:
+            with (
+                patch(
+                    "porterchain_api.admin_engine.live_map_service.ops_mirror.read_zones",
+                    return_value=([], ops_mirror.SOURCE_MISS),
+                ),
+                patch(
+                    "porterchain_api.dispatch_engine.gps_board.read_last_known",
+                    return_value=known,
+                ),
+            ):
+                snap = LiveMapService().snapshot(db)
+            assert snap["drivers_source"] == "last_known"
+            match = [d for d in snap["drivers"] if d["id"] == driver.id]
             assert match and match[0]["lat"] == 43.65
             assert match[0]["gps_source"] == "last_known"
             assert match[0]["recorded_at"]
         finally:
-            _cleanup(db, driver)
+            _cleanup(db, shift, driver)
 
 
 class TestRouteGeometry:

@@ -24,7 +24,7 @@ FIELD_SEARCH: list[dict[str, str]] = [
     {"q": "mfa passkey staff idp", "section": "authentication", "label": "Staff IdP (passkeys)"},
     {"q": "merchant approval auto activate", "section": "merchant", "label": "Merchant approval"},
     {"q": "alert budget staff push sla", "section": "channels", "label": "Staff push alert budget"},
-    {"q": "fleetbase sso", "section": "fleetbase", "label": "Fleetbase SSO"},
+    {"q": "dispatch day plan valhalla", "section": "dispatch", "label": "Dispatch"},
     {"q": "stripe payments", "section": "stripe", "label": "Stripe"},
     {"q": "places google maps", "section": "google_maps", "label": "Google Places / tiles"},
 ]
@@ -232,12 +232,12 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
         ],
     },
     {
-        "id": "fleetbase",
+        "id": "dispatch",
         "storage_key": None,
         "effect": "status",
-        "readers": ["fleetbase-adapter", "SSO"],
+        "readers": ["dispatch_engine", "Valhalla", "Redis last_known"],
         "ui_editable": False,
-        "summary": "Execution via adapter — open console with staff SSO.",
+        "summary": "PorterChain GPS, day plan (OR-Tools), and tracking.",
     },
     {
         "id": "stripe",
@@ -290,11 +290,11 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
         "storage_key": "settings_automation",
         "effect": "wired",
         "readers": [
-            "fleetbase_engine.retry_queue.RetryQueue.enqueue",
-            "fleetbase_engine.retry_queue.RetryQueue.mark_failed",
+            "dispatch_engine.optimize_run_store",
+            "worker processors.dispatch",
         ],
         "ui_editable": True,
-        "summary": "Sync retry max attempts and first backoff delay apply to Fleetbase RetryQueue jobs.",
+        "summary": "Retry max attempts and first backoff apply to day-plan and dispatch worker jobs.",
         "fields": [
             {"key": "queue_retry_max", "effect": "wired"},
             {"key": "dispatch_retry_seconds", "effect": "wired"},

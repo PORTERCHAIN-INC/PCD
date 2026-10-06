@@ -128,30 +128,27 @@ def test_consignee_email_from_recipient_and_direct(db) -> None:
     assert "receiver email" in consignee_error_message("consignee_email_required").lower()
 
 
-def test_book_emails_consignee(db, settings) -> None:
+def test_book_stores_consignee_for_the_booked_notice(db, settings) -> None:
+    from porterchain_api.booking_models import DomainEvent
     from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 
-    sent: list[str] = []
-
-    def _send(_db, _settings, order, email, **_k):
-        sent.append(email)
-        return {"sent": True, "email": email, "public_track_url": "https://example.test/track/x"}
-
-    with (
-        patch(
-            "porterchain_api.merchant_engine.booking_service.transition_to_dispatch_ready",
-            side_effect=lambda db, order, **_k: order,
-        ),
-        patch(
-            "porterchain_api.merchant_engine.consignee_notify.send_consignee_tracking_safe",
-            side_effect=_send,
-        ),
+    with patch(
+        "porterchain_api.merchant_engine.booking_service.transition_to_dispatch_ready",
+        side_effect=lambda db, order, **_k: order,
     ):
         order = MerchantBookingService().create_shipment(
             db, settings, _ctx(db), _body(consignee_email="recv@shop.example")
         )
-    assert sent == ["recv@shop.example"]
     assert (order.compliance_metadata or {}).get("consignee", {}).get("email") == "recv@shop.example"
+    event = (
+        db.query(DomainEvent)
+        .filter(
+            DomainEvent.aggregate_id == order.id,
+            DomainEvent.event_type == "merchant.booking_created",
+        )
+        .one()
+    )
+    assert event.payload.get("receiver_email") == "recv@shop.example"
 
 
 def test_display_state_on_order_row(db) -> None:

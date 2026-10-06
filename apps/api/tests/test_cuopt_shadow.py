@@ -125,5 +125,5 @@ def test_shadow_compares_when_matrix_and_cuopt_ok() -> None:
 
     assert out["status"] == "ok"
     assert out["winner"] == "cuopt"
-    assert out["commit_sot"] == "fleetbase_vroom"
+    assert out["commit_sot"] == "porterchain_ortools"
     assert out["cuopt_distance_km"] == 4.0

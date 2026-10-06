@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
-from porterchain_api.fleetbase_engine.webhook_ingress_service import WebhookIngressService
+from porterchain_api.platform.retired_sync import WebhookIngressService
 
 
 def _settings(**overrides) -> Settings:
@@ -61,9 +61,9 @@ def test_accept_valid_signature_emits_webhook_received(db: Session) -> None:
     sig = _sign(raw, secret)
 
     with patch(
-        "porterchain_api.fleetbase_engine.webhook_ingress_service.emit_event"
+        "porterchain_api.platform.retired_sync.emit_event"
     ) as emit, patch(
-        "porterchain_api.fleetbase_engine.webhook_ingress_service.get_fleetbase_integration"
+        "porterchain_api.platform.retired_sync.get_fleetbase_integration"
     ) as get_int:
         integration = MagicMock()
         integration.webhooks.verify.return_value = True

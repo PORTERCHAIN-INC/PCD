@@ -18,16 +18,15 @@ export function formatSuggestionEta(
 export function gpsSourceLabel(source: string | null | undefined): string {
   switch (source) {
     case "last_known":
-      return "GPS: last-known (ingest)";
-    case "fleetbase_mirror":
-    case "fleetbase":
-      return "GPS: Fleetbase mirror";
+    case "mirror":
+      return "Driver GPS";
     case "mirror_miss":
-      return "GPS: mirror miss";
+    case "miss":
+      return "No driver GPS yet";
     case "unavailable":
-      return "GPS unavailable";
+      return "Driver GPS unavailable";
     default:
-      return source ? `GPS: ${source.replace(/_/g, " ")}` : "GPS: unknown";
+      return source ? `Driver GPS (${source.replace(/_/g, " ")})` : "Driver GPS";
   }
 }
 

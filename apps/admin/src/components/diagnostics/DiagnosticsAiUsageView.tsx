@@ -2,7 +2,8 @@
 
 import { RefreshCw, Sparkles } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { SettingsCard, SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import { useApiData } from "@/hooks/useApiData";
 import { diagnosticsApi } from "@/lib/diagnostics";
@@ -20,7 +21,7 @@ export function DiagnosticsAiUsageView({ embedded = false }: { embedded?: boolea
       {!embedded ? (
         <SettingsPageHeader
           title="AI usage"
-          description="NVIDIA NIM / LLM metering — read-only language assist. Never on pay, Valhalla, or Fleetbase write paths."
+          description="NVIDIA NIM / LLM metering — read-only language assist. Never on pay or Valhalla."
           actions={
             <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
               <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
@@ -41,7 +42,7 @@ export function DiagnosticsAiUsageView({ embedded = false }: { embedded?: boolea
         </div>
       )}
 
-      {loading && !data ? <Spinner label="Loading AI usage…" /> : null}
+      {loading && !data ? <PageSkeleton rows={3} /> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       {data ? (

@@ -61,7 +61,7 @@ def test_chat_completion_success_with_retry(monkeypatch) -> None:
             body = {
                 "suggestions": [
                     {
-                        "action": "review_fleetbase_console",
+                        "action": "review_day_plan",
                         "rationale": "Confirm driver near pickup",
                         "priority": "p0",
                         "confidence": 0.91,
@@ -87,7 +87,7 @@ def test_chat_completion_success_with_retry(monkeypatch) -> None:
     assert calls["n"] == 2
     assert out["prompt_tokens"] == 12
     assert out["completion_tokens"] == 34
-    assert "review_fleetbase_console" in out["content"]
+    assert "review_day_plan" in out["content"]
 
 
 def test_suggest_via_nim_records_ok(db, monkeypatch) -> None:

@@ -86,7 +86,11 @@ class InvoiceService:
     def ensure_invoice(self, db: Session, order: Order, *, receipt_url: str | None = None) -> Invoice:
         payment = (
             db.query(Payment)
-            .filter(Payment.order_id == order.id, Payment.status == PaymentStatus.SUCCEEDED.value)
+            .filter(
+                Payment.order_id == order.id,
+                Payment.status == PaymentStatus.SUCCEEDED.value,
+                Payment.payment_reference.is_distinct_from("additional_stop"),
+            )
             .order_by(Payment.created_at.desc())
             .first()
         )
@@ -101,6 +105,7 @@ class InvoiceService:
             from porterchain_api.billing_engine.invoice_document import attach_invoice_document
 
             attach_invoice_document(db, existing, order, payment)
+            self._fold_paid_addons(db, order)
             return existing
 
         from porterchain_api.admin_engine.platform_settings import (
@@ -148,7 +153,25 @@ class InvoiceService:
                 "payment_reference": payment.payment_reference if payment else None,
             },
         )
+        self._fold_paid_addons(db, order)
         return invoice
+
+    def _fold_paid_addons(self, db: Session, order: Order) -> None:
+        from porterchain_api.domain.states import PaymentStatus
+        from porterchain_driver.field_admin import merge_additional_payment
+
+        rows = (
+            db.query(Payment)
+            .filter(
+                Payment.order_id == order.id,
+                Payment.payment_reference == "additional_stop",
+                Payment.status == PaymentStatus.SUCCEEDED.value,
+                Payment.invoice_id.is_(None),
+            )
+            .all()
+        )
+        for row in rows:
+            merge_additional_payment(db, row.id)
 
     def _invoice_event_payload(self, db: Session, order: Order, invoice: Invoice) -> dict[str, Any]:
         payment = (
@@ -169,9 +192,12 @@ class InvoiceService:
         from porterchain_api.merchant_engine.lookups import get_merchant
 
         merchant = get_merchant(db, order.merchant_id)
+        from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
+
+        billing_email = primary_billing_email(merchant) if merchant else None
         links = _receipt_links(invoice, payment)
-        # Prefer customer email for retail; merchant billing email for B2B.
-        email = (customer.email if customer else None) or (merchant.email if merchant else None)
+        # Retail uses the customer. B2B uses the accounts-payable contact, same as reminders.
+        email = (customer.email if customer else None) or billing_email
         from porterchain_api.config import get_settings
 
         settings = get_settings()
@@ -187,7 +213,7 @@ class InvoiceService:
             "merchant_id": order.merchant_id,
             "merchant_name": (merchant.company_name if merchant else None)
             or platform_company_name(db),
-            "merchant_email": (merchant.email if merchant else None),
+            "merchant_email": billing_email,
             "support_email": platform_support_email(db),
             "email": email,
             "amount_cents": invoice.amount_cents,
@@ -334,14 +360,17 @@ class InvoiceService:
         if not invoice:
             raise ValueError("invoice_not_found")
         payload = self._invoice_event_payload(db, order, invoice)
+        from uuid import uuid4
+
+        resend_key = f"{order.id}:resend:{uuid4().hex[:8]}"
         emit_event(
             db,
             event_type=E.RECEIPT_GENERATED,
             aggregate_type="invoice",
             aggregate_id=invoice.id,
-            correlation_id=order.id,
+            correlation_id=resend_key,
             payload=payload,
-            publish=True,
+            publish=False,
         )
         # Synchronous delivery path (Mailpit / SMTP) — do not wait on Redis worker.
         try:
@@ -352,7 +381,7 @@ class InvoiceService:
                     "event_type": E.RECEIPT_GENERATED,
                     "aggregate_type": "invoice",
                     "aggregate_id": invoice.id,
-                    "correlation_id": order.id,
+                    "correlation_id": resend_key,
                     "payload": payload,
                 }
             )

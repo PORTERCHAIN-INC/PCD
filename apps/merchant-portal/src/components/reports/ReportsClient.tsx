@@ -7,7 +7,7 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { reportsApi, type ReportsOverview } from "@/lib/reports";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 
 type Tab = "executive" | "delivery" | "invoices" | "claims" | "saved";
 
@@ -56,6 +56,7 @@ export default function ReportsClient() {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("executive");
+  const deferredTab = useDeferredValue(tab);
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -70,7 +71,7 @@ export default function ReportsClient() {
 
   const savedQuery = useQuery({
     queryKey: ["merchant-reports-saved", orgId],
-    enabled: enabled && tab === "saved",
+    enabled: enabled && deferredTab === "saved",
     staleTime: 30_000,
     queryFn: async () => reportsApi.saved(await getApiToken(), orgId),
   });
@@ -181,17 +182,17 @@ export default function ReportsClient() {
         ))}
       </nav>
 
-      {tab === "executive" && <ExecutiveTab data={data.executive} />}
-      {tab === "delivery" && (
+      {deferredTab === "executive" && <ExecutiveTab data={data.executive} />}
+      {deferredTab === "delivery" && (
         <DeliverySection
           delivery={data.delivery_performance}
           orderVolume={data.order_volume}
           destinations={data.top_destinations.destinations}
         />
       )}
-      {tab === "invoices" && <InvoicesTab data={data.invoice_reports} />}
-      {tab === "claims" && <ClaimsTab data={data.claims_summary} />}
-      {tab === "saved" && (
+      {deferredTab === "invoices" && <InvoicesTab data={data.invoice_reports} />}
+      {deferredTab === "claims" && <ClaimsTab data={data.claims_summary} />}
+      {deferredTab === "saved" && (
         <SavedTab
           saved={saved}
           onOpen={(reportType) => setTab(parseReportTab(reportType))}

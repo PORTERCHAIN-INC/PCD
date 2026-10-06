@@ -241,8 +241,8 @@ export function forbiddenModuleMessage(module: string | null | undefined): strin
 }
 
 const ORDER_SOURCE_LABELS: Record<string, string> = {
-  WEBSITE: "Website",
-  MERCHANT: "Merchant portal",
+  WEBSITE: "Customer",
+  MERCHANT: "Merchant",
   API: "API",
   CSV: "CSV",
   ADMIN: "Admin",

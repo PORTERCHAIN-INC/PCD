@@ -39,12 +39,7 @@ def build_integration_health(
             mock_mode=settings.stripe_mock,
             configured=bool(settings.stripe_secret),
         ),
-        "fleetbase": _entry(
-            str(checks.get("fleetbase", "unknown")),
-            bridge_enabled=settings.fleetbase_dispatch_bridge,
-            configured=bool(settings.fleetbase_api_key),
-            api_url=settings.fleetbase_api_url,
-        ),
+        "dispatch": _entry(str(checks.get("dispatch", "porterchain"))),
         "google_maps": _entry(
             "configured" if platform.google_maps_api_key else "unconfigured",
             role="places_and_tiles_only",
@@ -83,18 +78,18 @@ def build_integration_health(
         "nvidia_cuopt": _entry(
             "shadow" if bool(settings.phase2_flags.get("cuopt_shadow")) else "disabled",
             phase2_cuopt_shadow=bool(settings.phase2_flags.get("cuopt_shadow")),
-            commit_sot="fleetbase_vroom",  # fleetbase-first:ok — label: Fleetbase SoT
-            note="Shadow A/B only — never commits routes; Fleetbase orchestrator remains SoT",
+            commit_sot="porterchain_ortools",
+            note="Shadow A/B only — never commits routes; day plan is OR-Tools",
         ),
         "routing": {
             "primary": "valhalla",
             "fallback": "osrm",
-            "optimize_sot": "fleetbase_vroom",  # fleetbase-first:ok — label: Fleetbase SoT
-            "merchant_route_import": "nearest_neighbor_labeled",
+            "optimize_sot": "porterchain_ortools",
+            "merchant_route_import": "day_plan",
             "degrade_labels": {
                 "valhalla_down": "osrm_fallback",
-                "fleetbase_bridge_off": "optimize_unavailable",
-                "cuopt_shadow_error": "vroom_only",
+                "day_plan_unavailable": "optimize_unavailable",
+                "cuopt_shadow_error": "ortools_only",
             },
         },
     }

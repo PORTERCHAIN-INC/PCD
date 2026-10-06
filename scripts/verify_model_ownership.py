@@ -39,7 +39,6 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
 _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
     {
         "auth/staff_session.py",  # StaffWebAuthnCredential — Staff IdP owns
-        "fleetbase_engine/booking_sync_service.py",  # Driver/Vehicle mirror on sync
         "merchant_engine/billing_service.py",  # MerchantContract read+flush path
         "notification_engine/delivery_service.py",  # AdminUser resolve on deliver
     }
@@ -96,13 +95,6 @@ _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
         "owner_prefix": "driver_engine",
         "legacy_writers": _LEGACY_DRIVER_MODEL_WRITERS,
         "section": "§3.2.4",
-        "mutation_re": _DB_STRUCTURAL_MUTATION,
-    },
-    {
-        "model_module": "fleetbase_models",
-        "owner_prefix": "fleetbase_engine",
-        "legacy_writers": frozenset(),
-        "section": "§3.2.5",
         "mutation_re": _DB_STRUCTURAL_MUTATION,
     },
     {
@@ -207,7 +199,6 @@ def main() -> int:
         f"(§3.2.2 merchant: {len(_LEGACY_MERCHANT_MODEL_WRITERS)} legacy; "
         f"§3.2.3 admin: {len(_LEGACY_ADMIN_MODEL_WRITERS)} legacy; "
         f"§3.2.4 driver: {len(_LEGACY_DRIVER_MODEL_WRITERS)} legacy; "
-        "§3.2.5 fleetbase: 0 legacy; "
         f"§3.2.6 crm: {len(_LEGACY_CRM_MODEL_WRITERS)} legacy; "
         f"§3.2.7 identity/user via user_sync_service ({len(_LEGACY_IDENTITY_MODEL_WRITERS)} legacy); "
         "§3.2.8 website content: 0 legacy."

@@ -1,12 +1,18 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import CustomerDetailClient from "@/components/customers/CustomerDetailClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+type Props = { params: Promise<{ id: string }> };
 
-const CustomerDetailClient = dynamic(() => import("@/components/customers/CustomerDetailClient"), {
-  loading: () => <Spinner label="Loading customer…" />,
-});
+export default async function CustomerDetailPage({ params }: Props) {
+  const { id } = await params;
+  const client = new QueryClient();
+  const detail = await adminServerFetch<unknown>(`/v1/admin/customers/${id}`);
+  if (detail) client.setQueryData(["admin", `customer-${id}-0`, id, 0], detail);
 
-export default function CustomerDetailPage() {
-  return <CustomerDetailClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <CustomerDetailClient id={id} />
+    </HydrationBoundary>
+  );
 }

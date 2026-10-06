@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Modal, Spinner } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
+import { Button, Modal } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { api } from "@/lib/api";
 import { ops, type SuggestedDriver } from "@/lib/operations";
@@ -155,7 +156,7 @@ export function AssignDriverModal({
           <p className="text-xs font-medium text-amber-700">Unranked — ETAs not ready</p>
         )}
         {loading ? (
-          <Spinner label="Ranking drivers…" />
+          <PageSkeleton rows={2} />
         ) : drivers.length === 0 ? (
           <p className="text-sm text-muted">No assignable drivers found.</p>
         ) : (

@@ -30,7 +30,8 @@ class DriverAccountOps:
         capacity_kg: float | None = None,
         settings: Settings | None = None,
     ) -> Vehicle:
-        """D-29: attach vehicle + push Fleetbase when bridge on."""
+        """Attach a PorterChain vehicle. Approved drivers are assignable immediately."""
+        del settings
         driver = self._get_or_raise(db, driver_id)
         plate = plate_number.strip()
         if not plate:
@@ -55,8 +56,6 @@ class DriverAccountOps:
         )
         db.commit()
         db.refresh(vehicle)
-        if settings:
-            self._fleetbase.push_vehicle(db, settings, vehicle)
         return vehicle
 
     def deactivate_vehicle(
@@ -68,7 +67,8 @@ class DriverAccountOps:
         *,
         settings: Settings | None = None,
     ) -> Vehicle:
-        """D-29: detach locally and sync inactive state to Fleetbase."""
+        """Detach locally. Day plan reads the PorterChain vehicle row."""
+        del settings
         self._get_or_raise(db, driver_id)
         vehicle = (
             db.query(Vehicle)
@@ -88,8 +88,6 @@ class DriverAccountOps:
         )
         db.commit()
         db.refresh(vehicle)
-        if settings:
-            self._fleetbase.push_vehicle(db, settings, vehicle)
         return vehicle
 
     def decide_document(
@@ -220,11 +218,6 @@ class DriverAccountOps:
         )
         db.commit()
         db.refresh(vehicle)
-        if settings:
-            try:
-                self._fleetbase.push_vehicle(db, settings, vehicle)
-            except Exception as exc:
-                logger.warning("fleetbase vehicle push failed for %s: %s", vehicle_id, exc)
         return vehicle
 
     def _reject_duplicate_plate(self, db: Session, plate: str, *, exclude_id: str | None = None) -> None:

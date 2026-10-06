@@ -134,7 +134,7 @@ def remind_invoice(
         actor_type=actor_type,
         actor_id=actor_id,
         payload=payload,
-        publish=True,
+        publish=False,
     )
     try:
         from porterchain_api.notification_engine.event_router import handle_domain_event

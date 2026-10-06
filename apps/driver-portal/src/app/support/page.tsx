@@ -1,16 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import DriverSupportClient from "@/components/support/DriverSupportClient";
+import { driverServerGet } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
+export default async function SupportPage() {
+  const client = new QueryClient();
+  const hub = await driverServerGet<unknown>("/v1/support/hub");
+  if (hub) client.setQueryData(["driver-support-hub"], hub);
 
-const DriverSupportClient = dynamic(() => import("@/components/support/DriverSupportClient"), {
-  loading: () => (
-    <div className="animate-pulse space-y-4 p-4">
-      <div className="h-10 w-48 rounded-xl bg-white" />
-      <div className="h-32 rounded-2xl bg-white" />
-    </div>
-  ),
-});
-
-export default function SupportPage() {
-  return <DriverSupportClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <DriverSupportClient />
+    </HydrationBoundary>
+  );
 }

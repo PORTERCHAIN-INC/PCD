@@ -36,8 +36,7 @@ class AssignmentMixin:
         return [self._order_card(o, merchants, drivers, now, instant_sla_hours=hours) for o in rows]
 
     def assignable_drivers(self, db: Session) -> list[dict]:
-        # Compliance gate only (PC-owned). Prefer ops-mirror online; fall back
-        # to Driver.is_online (worker-patched, never request-path Fleetbase HTTP).
+        # Compliance gate only. Online = PorterChain duty / Driver.is_online.
         rows = (
             db.query(Driver)
             .filter(Driver.status == "APPROVED")
@@ -51,16 +50,9 @@ class AssignmentMixin:
             .group_by(Order.assigned_driver_id)
             .all()
         )
-        from porterchain_api.fleetbase_engine import ops_mirror
-
-        online_by_fb = ops_mirror.online_map_from_mirror()
-
         out: list[dict] = []
         for d in rows:
-            if d.fleetbase_driver_id and d.fleetbase_driver_id in online_by_fb:
-                is_online = online_by_fb[d.fleetbase_driver_id]
-            else:
-                is_online = bool(d.is_online) or d.availability == "online"
+            is_online = bool(d.is_online) or d.availability == "online"
             out.append(
                 {
                     "id": d.id,

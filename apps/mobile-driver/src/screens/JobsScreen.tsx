@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View, StyleSheet } from "react-native";
 import { colors, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
@@ -29,6 +30,41 @@ type Props = {
 
 const POLL_MS = 2500;
 const POLL_MAX = 24;
+const JOBS_CACHE_KEY = "pc.driver.jobs.cache";
+
+type JobsCache = {
+  jobs: DriverJobSummary[];
+  history: DriverJobSummary[];
+  current: DriverJobSummary | null;
+};
+
+let cachedJobs: JobsCache | null = null;
+let hydrateCachePromise: Promise<void> | null = null;
+
+function persistJobsCache(next: JobsCache) {
+  cachedJobs = next;
+  void AsyncStorage.setItem(JOBS_CACHE_KEY, JSON.stringify(next)).catch(() => {
+    /* ignore quota / private mode */
+  });
+}
+
+function hydrateJobsCache(): Promise<void> {
+  if (cachedJobs) return Promise.resolve();
+  if (hydrateCachePromise) return hydrateCachePromise;
+  hydrateCachePromise = AsyncStorage.getItem(JOBS_CACHE_KEY)
+    .then((raw) => {
+      if (!raw || cachedJobs) return;
+      const parsed = JSON.parse(raw) as JobsCache;
+      if (Array.isArray(parsed?.jobs) && Array.isArray(parsed?.history)) {
+        cachedJobs = parsed;
+      }
+    })
+    .catch(() => {
+      /* ignore corrupt cache */
+    })
+    .then(() => undefined);
+  return hydrateCachePromise;
+}
 
 function deltaNote(result: OptimizeResult, applied: boolean): string {
   const m = (result.metrics || {}) as Record<string, unknown>;
@@ -75,9 +111,11 @@ function groupHistoryByDay(
 }
 
 export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceApplied }: Props) {
-  const [jobs, setJobs] = useState<DriverJobSummary[]>([]);
-  const [history, setHistory] = useState<DriverJobSummary[]>([]);
-  const [current, setCurrent] = useState<DriverJobSummary | null>(null);
+  const [jobs, setJobs] = useState<DriverJobSummary[]>(() => cachedJobs?.jobs ?? []);
+  const [history, setHistory] = useState<DriverJobSummary[]>(() => cachedJobs?.history ?? []);
+  const [current, setCurrent] = useState<DriverJobSummary | null>(
+    () => cachedJobs?.current ?? null
+  );
   const [error, setError] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -97,28 +135,50 @@ export function JobsScreen({ currentOrderId, onOpenWork, onOpenJob, onSequenceAp
     setError(null);
     setHistoryError(null);
     const [jobsResult, histResult] = await Promise.allSettled([fetchJobs(), fetchJobsHistory()]);
+    const prev = cachedJobs;
+    let nextJobs = prev?.jobs ?? [];
+    let nextCurrent = prev?.current ?? null;
+    let nextHistory = prev?.history ?? [];
     if (jobsResult.status === "fulfilled") {
       const data = jobsResult.value;
-      setCurrent(data.current ?? null);
+      nextCurrent = data.current ?? null;
+      setCurrent(nextCurrent);
       const rest = [...(data.upcoming ?? []), ...(data.completed ?? [])];
       const seen = new Set(rest.map((job) => job.order_id));
       if (data.current && !seen.has(data.current.order_id)) rest.unshift(data.current);
-      setJobs(data.jobs?.length ? data.jobs : rest);
+      nextJobs = data.jobs?.length ? data.jobs : rest;
+      setJobs(nextJobs);
     } else {
       const reason = jobsResult.reason;
       setError(reason instanceof Error ? reason.message : "jobs_failed");
     }
     if (histResult.status === "fulfilled") {
-      setHistory(histResult.value.history ?? []);
+      nextHistory = histResult.value.history ?? [];
+      setHistory(nextHistory);
     } else {
       const reason = histResult.reason;
       setHistoryError(reason instanceof Error ? reason.message : "history_failed");
     }
+    if (jobsResult.status === "fulfilled" || histResult.status === "fulfilled") {
+      persistJobsCache({ jobs: nextJobs, history: nextHistory, current: nextCurrent });
+    }
   }, []);
 
   useEffect(() => {
-    void load();
-    return () => clearPoll();
+    let cancelled = false;
+    void hydrateJobsCache().then(() => {
+      if (cancelled) return;
+      if (cachedJobs) {
+        setJobs(cachedJobs.jobs);
+        setHistory(cachedJobs.history);
+        setCurrent(cachedJobs.current);
+      }
+      void load();
+    });
+    return () => {
+      cancelled = true;
+      clearPoll();
+    };
   }, [load]);
 
   const todayIds = useMemo(() => new Set(jobs.map((job) => job.order_id)), [jobs]);

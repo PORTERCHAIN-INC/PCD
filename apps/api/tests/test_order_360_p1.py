@@ -1,7 +1,7 @@
 """Order 360 P1 helpers — document URL hygiene, POD normalize, label PDF."""
 
 from porterchain_api.booking_engine.invoice_service import public_document_url
-from porterchain_api.fleetbase_engine.pod_normalize import normalize_pod
+from porterchain_api.reporting.pod_normalize import normalize_pod
 from porterchain_api.reporting.order_documents import build_label_pdf, build_manifest_pdf
 
 

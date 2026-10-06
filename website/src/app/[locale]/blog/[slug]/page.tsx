@@ -18,6 +18,7 @@ import {
 import { isBlogCategory, type BlogCategory } from "@/data/blog-categories";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { buildBlogInternalLinks } from "@/lib/seo/blog-seo";
+import { ensureStaticParams } from "@/lib/seo/ensure-static-params";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
 import HeroPhoto from "@/components/ui/HeroPhoto";
 import { resolveBlogCover } from "@/lib/blog";
@@ -33,7 +34,7 @@ export async function generateStaticParams() {
       params.push({ locale, slug });
     }
   }
-  return params;
+  return ensureStaticParams(params, { locale: routing.locales[0]!, slug: "__build__" });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

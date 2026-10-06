@@ -79,6 +79,8 @@ function clerkErrorMessage(clerk: ReturnType<typeof useClerk>): string | null {
   return first?.longMessage?.trim() || first?.message?.trim() || null;
 }
 
+const CLERK_CLIENT_JWT_KEY = "__clerk_client_jwt";
+
 function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: () => void }) {
   const { getToken, isLoaded, isSignedIn, signOut } = useAuth();
   const clerk = useClerk();
@@ -88,6 +90,7 @@ function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: 
   // (e.g. native_api_disabled). Treat error/degraded as settled so Sign-in can render.
   const settled = isLoaded || status === "error" || status === "degraded";
   const [timedOut, setTimedOut] = useState(false);
+  const [storedSession, setStoredSession] = useState(false);
   const bootError =
     status === "error"
       ? (clerkErr ??
@@ -98,12 +101,22 @@ function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: 
   const view = useMemo(
     () => ({
       ready: settled || timedOut,
-      signedIn: Boolean(isSignedIn),
+      signedIn: Boolean(isSignedIn) || (!settled && storedSession),
       bootError,
     }),
-    [bootError, isSignedIn, settled, timedOut]
+    [bootError, isSignedIn, settled, storedSession, timedOut]
   );
   const detail = `env=${appEnv} loaded=${String(isLoaded)} status=${status}`;
+
+  useEffect(() => {
+    let cancelled = false;
+    void tokenCache?.getToken(CLERK_CLIENT_JWT_KEY).then((token) => {
+      if (!cancelled) setStoredSession(Boolean(token));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (settled) {
@@ -117,7 +130,7 @@ function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: 
   useLayoutEffect(() => {
     setSessionSnapshot({
       ready: settled || timedOut,
-      signedIn: Boolean(isSignedIn),
+      signedIn: Boolean(isSignedIn) || (!settled && storedSession),
       getToken: async () => {
         if (!isLoaded) return allowDevAuth() ? "dev" : null;
         const token = (await getToken()) ?? null;
@@ -128,7 +141,12 @@ function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: 
         if (isLoaded) await signOut();
       },
     });
-  }, [getToken, isLoaded, isSignedIn, settled, signOut, timedOut]);
+  }, [getToken, isLoaded, isSignedIn, settled, signOut, storedSession, timedOut]);
+
+  // Stored session: paint Sign-in / last shell while Clerk settles. Boot only on cold start.
+  if (!settled && !timedOut && storedSession) {
+    return <SessionContext.Provider value={view}>{children}</SessionContext.Provider>;
+  }
 
   if (!settled && !timedOut) {
     return <Boot timedOut={false} detail={detail} />;

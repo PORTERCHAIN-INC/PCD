@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Calculator, ExternalLink } from "lucide-react";
 import { formatCents } from "@porterchain/ui/utils";
-import { Button, Input, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Button, Input, SectionCard } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
+
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants } from "@/lib/merchants";
@@ -215,7 +217,7 @@ export default function PricingCenterClient() {
             {busy ? "Simulating…" : "Simulate quote"}
           </Button>
           {error && <p className="text-sm text-red-700">{error}</p>}
-          {busy && !result && <Spinner label="Calculating…" />}
+          {busy && !result && <PageSkeleton rows={2} />}
           {result && (
             <div className="rounded-xl border border-primary/10 bg-gray-bg/40 p-4">
               <p className="text-sm font-semibold text-primary">{result.what_won}</p>

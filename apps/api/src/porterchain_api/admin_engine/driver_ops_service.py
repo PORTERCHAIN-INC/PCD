@@ -42,6 +42,7 @@ def driver_actions_for(state: str, *, has_driver: bool) -> list[dict[str, str]]:
         items.append(("arrive_delivery", "Arrive at delivery"))
     if current in {"PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"}:
         items.append(("complete_delivery", "Complete delivery"))
+        items.append(("complete_delivery_without_proof", "Finish without proof"))
     return [{"id": action_id, "label": label} for action_id, label in items]
 
 
@@ -49,14 +50,23 @@ class AdminDriverOpsService:
     def snapshot(self, db: Session, ctx: AdminContext, order_id: str) -> dict[str, Any]:
         self._require_super_admin(ctx)
         order = self._order(db, order_id)
-        return {
+        payload = {
             "order_id": order.id,
             "state": order.state,
             "driver_assigned": bool(order.assigned_driver_id),
             "actions": driver_actions_for(order.state, has_driver=bool(order.assigned_driver_id)),
             "parcels": parcel_rows(db, order),
             "parcel_statuses": list(PARCEL_STATUSES),
+            "extra_stops": list((order.compliance_metadata or {}).get("admin_extra_stops") or [])
+            if isinstance(order.compliance_metadata, dict)
+            else [],
         }
+        from porterchain_api.admin_engine.audit import commit_admin_write
+
+        # package_rows may insert Package rows. get_db does not commit, so those
+        # ids would vanish and the next status change would be parcel_not_found.
+        commit_admin_write(db)
+        return payload
 
     def run(
         self,
@@ -94,10 +104,13 @@ class AdminDriverOpsService:
         order_id: str,
         parcel_id: str,
         status: str,
+        tracking_suffix: str | None = None,
     ) -> dict[str, Any]:
         self._require_super_admin(ctx)
         order = self._order(db, order_id)
-        parcel, previous = set_parcel_status(db, order, parcel_id, status)
+        parcel, previous = set_parcel_status(
+            db, order, parcel_id, status, tracking_suffix=tracking_suffix
+        )
         commit_admin_audit(
             db,
             ctx,
@@ -113,6 +126,74 @@ class AdminDriverOpsService:
             "status": parcel.status,
             "previous_status": previous,
         }
+
+    def add_proof(
+        self, db: Session, settings: Settings, ctx: AdminContext, order_id: str, file_url: str
+    ) -> dict[str, Any]:
+        self._require_super_admin(ctx)
+        order = self._order(db, order_id)
+        driver = self._driver(db, order)
+        from porterchain_driver.field_admin import record_proof_url
+
+        record_proof_url(db, settings, driver, order, file_url)
+        commit_admin_audit(
+            db,
+            ctx,
+            action="ops.admin.proof_photo",
+            resource_type="order",
+            resource_id=order.id,
+            payload={"file_url": file_url[:500]},
+        )
+        return {"ok": True, "order_id": order.id}
+
+    def add_extra_stop(
+        self,
+        db: Session,
+        settings: Settings,
+        ctx: AdminContext,
+        order_id: str,
+        *,
+        kind: str,
+        formatted: str,
+        amount_cents: int,
+    ) -> dict[str, Any]:
+        self._require_super_admin(ctx)
+        order = self._order(db, order_id)
+        state = (order.state or "").upper()
+        if state not in _ROUTE_STATES:
+            raise ValueError("Extra stops can be added only while the order is still on the road.")
+        from porterchain_driver.field_admin import add_extra_stop as create_stop
+
+        result = create_stop(
+            db, settings, order, kind=kind, formatted=formatted, amount_cents=amount_cents
+        )
+        commit_admin_audit(
+            db,
+            ctx,
+            action="ops.admin.extra_stop",
+            resource_type="order",
+            resource_id=order.id,
+            payload=result,
+        )
+        return {"ok": True, **result}
+
+    def resend_extra_stop(
+        self, db: Session, ctx: AdminContext, order_id: str, leg: str
+    ) -> dict[str, Any]:
+        self._require_super_admin(ctx)
+        order = self._order(db, order_id)
+        from porterchain_driver.field_admin import resend_extra_stop_link
+
+        result = resend_extra_stop_link(db, order, leg)
+        commit_admin_audit(
+            db,
+            ctx,
+            action="ops.admin.resend_stop_link",
+            resource_type="order",
+            resource_id=order.id,
+            payload=result,
+        )
+        return {"ok": True, **result}
 
     @staticmethod
     def _require_super_admin(ctx: AdminContext) -> None:

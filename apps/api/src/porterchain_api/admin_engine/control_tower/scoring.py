@@ -1,10 +1,9 @@
 """Assignment scoring — capability/skills/window filters + Valhalla matrix.
 
 Used by the worker `score_suggestions` job only. Request GET never calls this.
-Live online/position comes from the Redis ops mirror (not adapter HTTP).
+Live online/position comes from Driver duty + Redis last_known.
 
-Phase 5: suggestions are recommendation-only — never commit SoT. Fleetbase
-orchestrator (+ manifest commit) owns assignment. Do not treat scores as routes.
+Suggestions are recommendation-only — a person still assigns the van.
 """
 
 from __future__ import annotations
@@ -20,7 +19,6 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.dispatch_suggestions_service import (
     CANDIDATE_CAP,
     _coords,
-    _driver_location,
     _driver_online,
     score_candidate,
 )
@@ -192,7 +190,7 @@ def write_suggestions_cache(order_id: str, payload: dict[str, Any]) -> None:
 
 def enqueue_score_job(order_id: str) -> None:
     try:
-        from porterchain_api.fleetbase_engine.routing_jobs import enqueue_routing_job
+        from porterchain_api.dispatch_engine.routing_jobs import enqueue_routing_job
 
         enqueue_routing_job({"action": "score_suggestions", "order_id": order_id})
     except Exception as exc:  # noqa: BLE001
@@ -256,36 +254,22 @@ def compute_ranked_suggestions(
         else:
             eligible.append(d)
 
-    from porterchain_api.fleetbase_engine import ops_mirror
     from porterchain_api.driver_engine.last_known import read_last_known
     from porterchain_api.spatial.h3_index import cell as h3_cell
     from porterchain_api.spatial.h3_index import pick_nearby
 
-    del adapter  # leftover GET inverted — worker compute reads ops_mirror / last-known only
-    online_by_fb = ops_mirror.online_map_from_mirror()
+    del adapter  # leftover GET inverted — last_known + duty only
 
     def base_key(d: Driver) -> tuple[int, int, float]:
-        if d.fleetbase_driver_id and d.fleetbase_driver_id in online_by_fb:
-            online = online_by_fb[d.fleetbase_driver_id]
-        else:
-            online = bool(d.is_online) or d.availability == "online"
+        online = bool(d.is_online) or d.availability == "online"
         return (0 if online else 1, loads.get(d.id, 0), -(d.rating or 0.0))
 
     positions: dict[str, tuple[float, float, str | None]] = {}
-    live_payloads: dict[str, Any] = {}
     locations: dict[str, tuple[float, float]] = {}
     for d in eligible:
-        if d.fleetbase_driver_id:
-            live = ops_mirror.driver_by_fleetbase_id(d.fleetbase_driver_id)
-            if live:
-                live_payloads[d.id] = live
         known = read_last_known(d.id)
         if known:
             positions[d.id] = (known.lat, known.lng, known.h3 or h3_cell(known.lat, known.lng))
-        else:
-            loc = _driver_location(live_payloads.get(d.id))
-            if loc:
-                positions[d.id] = (loc[0], loc[1], h3_cell(loc[0], loc[1]))
         if d.id in positions:
             lat, lng, _h3 = positions[d.id]
             locations[d.id] = (lat, lng)
@@ -346,8 +330,7 @@ def compute_ranked_suggestions(
         capability = (
             None if not required_class or not classes else vehicle_classes_match(required_class, classes)
         )
-        live = live_payloads.get(d.id)
-        online = _driver_online(live, d)
+        online = _driver_online(None, d)
         eta_min, deadhead_km, source = eta_by_driver.get(d.id, (None, None, "no_position"))
         win_pen, win_reason = window_penalty(eta_minutes=eta_min, window_end=win_end, now=now)
 

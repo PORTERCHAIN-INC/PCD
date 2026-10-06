@@ -1,4 +1,4 @@
-"""SSO — Porterchain JWT for Fleetbase trust (Clerk or staff IdP)."""
+"""SSO — Porterchain JWT for portal sessions (Fleetbase console SSO retired)."""
 
 from __future__ import annotations
 
@@ -9,17 +9,11 @@ from datetime import UTC, datetime, timedelta
 from jose import jwt
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.staff_lookups import get_admin_user
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.current_principal import CurrentPrincipal
-from porterchain_api.auth.fleetbase_roles import (
-    can_access_fleetbase_console,
-    fleetbase_permissions_for_admin,
-)
 from porterchain_api.auth.identity_links import (
     require_porterchain_user_id,
-    stamp_fleetbase_user_uuid,
     upsert_sso_link,
 )
 from porterchain_api.auth.persona_bundle import load_persona_bundle
@@ -131,15 +125,6 @@ class SsoService:
     ):
         pc_id = require_porterchain_user_id(db, subject, porterchain_user_id)
 
-        fleetbase_perms: list[str] | None = None
-        fleetbase_roles: list[str] | None = None
-        if principal.user_type in (UserType.ADMIN, UserType.DISPATCHER, UserType.SUPPORT):
-            admin = get_admin_user(db, principal.user_id)
-            if admin:
-                admin_role = parse_admin_role(admin.role)
-                fleetbase_perms = fleetbase_permissions_for_admin(admin_role)
-                fleetbase_roles = [admin.role]
-
         return upsert_sso_link(
             db,
             subject=subject,
@@ -149,8 +134,8 @@ class SsoService:
             platform_org_id=principal.org_id,
             provider=provider,
             issuer=issuer,
-            fleetbase_permissions=fleetbase_perms,
-            fleetbase_roles=fleetbase_roles,
+            fleetbase_permissions=None,
+            fleetbase_roles=None,
         )
 
     def exchange_fleetbase_session_for_principal(
@@ -159,81 +144,9 @@ class SsoService:
         settings: Settings,
         current: CurrentPrincipal,
     ) -> dict:
-        """Issue Porterchain SSO JWT from staff IdP or Clerk session context."""
-        if not settings.fleetbase_sso_enabled:
-            raise ValueError("fleetbase_sso_disabled")
-        principal = self.auth_principal_from_current(db, current)
-        if not principal:
-            raise PermissionError("fleetbase_console_forbidden")
-        if principal.user_type not in (UserType.ADMIN, UserType.DISPATCHER, UserType.SUPPORT):
-            raise PermissionError("fleetbase_console_forbidden")
-
-        admin = get_admin_user(db, principal.user_id)
-        if admin:
-            admin_role = parse_admin_role(admin.role)
-            if not can_access_fleetbase_console(admin_role):
-                raise PermissionError("fleetbase_console_forbidden")
-
-        subject = (
-            current.auth_subject
-            or (admin.clerk_user_id if admin else None)
-            or f"staff:{principal.user_id}"
-        )
-        link = self._upsert_identity_link(
-            db,
-            subject=subject,
-            email=current.email or principal.email,
-            principal=principal,
-            provider=current.auth_provider or "staff_idp",
-            issuer=current.auth_issuer,
-            porterchain_user_id=current.user_id,
-        )
-        sso_token = self.issue_sso_token(
-            settings, principal, audience=SSO_AUDIENCE_FLEETBASE, subject=subject
-        )
-
-        fleetbase_session: dict | None = None
-        try:
-            from porterchain_fleetbase_adapter.auth import FleetbaseSsoClient
-            from porterchain_fleetbase_adapter.config import FleetbaseSettings
-
-            fb = FleetbaseSsoClient(
-                FleetbaseSettings(
-                    api_url=settings.fleetbase_api_url,
-                    api_key=settings.fleetbase_api_key,
-                    company_uuid=settings.fleetbase_default_company_uuid,
-                    dispatch_bridge=settings.fleetbase_dispatch_bridge,
-                    webhook_secret=settings.fleetbase_webhook_secret,
-                ),
-                sso_jwt_secret=settings.sso_jwt_secret or settings.jwt_secret,
-            )
-            fleetbase_session = fb.exchange_sso_token(
-                sso_token,
-                email=current.email or principal.email,
-                clerk_user_id=subject,
-                fleetbase_permissions=link.fleetbase_permissions or [],
-                fleetbase_roles=link.fleetbase_roles or [],
-            )
-            if fleetbase_session and fleetbase_session.get("fleetbase_user_uuid"):
-                stamp_fleetbase_user_uuid(link, fleetbase_session["fleetbase_user_uuid"])
-                if admin and fleetbase_session.get("fleetbase_user_uuid"):
-                    admin.fleetbase_user_uuid = fleetbase_session["fleetbase_user_uuid"]
-                db.commit()
-        except Exception as exc:
-            logger.warning("Fleetbase SSO exchange unavailable: %s", exc)
-
-        console_base = (settings.fleetbase_console_url or "").strip().rstrip("/")
-        console_url = f"{console_base}/porterchain/sso?token={sso_token}" if console_base else ""
-
-        return {
-            "sso_token": sso_token,
-            "expires_in": settings.sso_token_ttl_seconds,
-            "console_url": console_url,
-            "fleetbase_user_uuid": link.fleetbase_user_uuid,
-            "fleetbase_session": fleetbase_session,
-            "permissions": sorted(p.value for p in principal.permissions()),
-            "roles": sorted(r.value for r in principal.roles),
-        }
+        """Retired — Fleetbase console SSO is gone. Always refuse."""
+        del db, settings, current
+        raise ValueError("fleetbase_sso_disabled")
 
     def session_payload(self, principal: AuthPrincipal) -> dict:
         return {

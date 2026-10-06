@@ -146,7 +146,7 @@ export const E2E_REPORT_FILES = [
   "FAILURE_SCENARIOS_REPORT.md",
   "EVENT_BUS_REPORT.md",
   "NOTIFICATION_REPORT.md",
-  "FLEETBASE_SYNC_REPORT.md",
+  "DAY_PLAN_REPORT.md",
   "DATA_CONSISTENCY_REPORT.md",
   "API_TRACE_REPORT.md",
   "PRODUCTION_READINESS_REPORT.md",
@@ -203,8 +203,7 @@ export const diagnosticsApi = {
     return adminFetch<Record<string, unknown>>(`${B}/events${q}`, token);
   },
 
-  fleetbaseSync: (token: string) =>
-    adminFetch<Record<string, unknown>>(`${B}/fleetbase-sync`, token),
+  dayPlan: (token: string) => adminFetch<Record<string, unknown>>(`${B}/day-plan`, token),
 
   aiUsage: (token: string, limit = 40) =>
     adminFetch<AiUsageDashboard>(`${B}/ai-usage?limit=${limit}`, token),
@@ -244,7 +243,7 @@ export const diagnosticsApi = {
 };
 
 export const CHAOS_SCENARIOS = [
-  "fleetbase_offline",
+  "day_plan_offline",
   "stripe_offline",
   "clerk_offline",
   "firebase_offline",

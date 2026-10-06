@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -25,7 +26,7 @@ import {
 } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import ReportChart, { lineChartOption, sparklineOption } from "@/components/reports/ReportChart";
 import { ops } from "@/lib/operations";
 import {
@@ -51,12 +52,19 @@ const fadeUp = {
 export default function DashboardClient() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const enabled = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
   const [layoutOpen, setLayoutOpen] = useState(false);
-  const [widgets, setWidgets] = useState<Record<WidgetId, boolean>>(() => loadWidgetLayout());
+  const [widgets, setWidgets] = useState<Record<WidgetId, boolean>>(
+    () =>
+      Object.fromEntries(
+        DASHBOARD_WIDGETS.map((widget) => [widget.id, widget.defaultVisible])
+      ) as Record<WidgetId, boolean>
+  );
 
   useEffect(() => {
+    setWidgets(loadWidgetLayout());
+    setNow(new Date());
     const t = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(t);
   }, []);
@@ -72,7 +80,6 @@ export default function DashboardClient() {
     queryKey: ["dashboard-center"],
     enabled,
     queryFn: async () => dashboardApi.center(await getApiToken()),
-    refetchInterval: 120_000,
     retry: 1,
   });
 
@@ -80,7 +87,6 @@ export default function DashboardClient() {
     queryKey: ["dashboard-ops-stats"],
     enabled: enabled && widgets.operations,
     queryFn: async () => ops.stats(await getApiToken()),
-    refetchInterval: 20_000,
   });
 
   const { data: searchHits = [] } = useQuery({
@@ -114,10 +120,10 @@ export default function DashboardClient() {
     else void document.exitFullscreen();
   }
 
-  if (!enabled || (isLoading && !center)) {
+  if (!center && (!enabled || isLoading)) {
     return (
       <div className="flex justify-center py-24">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   }
@@ -140,7 +146,7 @@ export default function DashboardClient() {
 
   return (
     <AdminPage>
-      <motion.div initial="hidden" animate="show" variants={fadeUp} transition={{ duration: 0.25 }}>
+      <motion.div initial={false} animate="show" variants={fadeUp}>
         <CommandHeader
           center={center}
           now={now}
@@ -266,7 +272,7 @@ function CommandHeader({
   updatedAt,
 }: {
   center: DashboardCenter;
-  now: Date;
+  now: Date | null;
   search: string;
   searchHits: Array<{ type: string; id: string; label: string; subtitle?: string; href?: string }>;
   onSearch: (v: string) => void;
@@ -286,15 +292,17 @@ function CommandHeader({
           <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              {now.toLocaleDateString(undefined, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
+              {now
+                ? now.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : ""}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              {now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+              {now ? now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : ""}
             </span>
             <span>{center.meta.company}</span>
             <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs font-medium uppercase text-secondary">
@@ -443,7 +451,7 @@ function KpiGrid({ center }: { center: DashboardCenter }) {
   return (
     <motion.div
       className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6"
-      initial="hidden"
+      initial={false}
       animate="show"
       variants={{
         hidden: {},
@@ -691,9 +699,7 @@ function DriversPanel({ center }: { center: DashboardCenter }) {
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Row label="Active assignments" value={Number(d.active_assignments ?? 0)} />
       </div>
-      <p className="mt-2 text-xs text-muted">
-        Live online/GPS state mirrors from Fleetbase via the permanent bond.
-      </p>
+      <p className="mt-2 text-xs text-muted">Live GPS is the driver pin PorterChain stores.</p>
       <Link href="/drivers" className="mt-2 inline-block text-sm text-secondary hover:underline">
         Drivers →
       </Link>
@@ -776,8 +782,8 @@ function RightSidebar({ center }: { center: DashboardCenter }) {
       </Panel>
       <Panel title="Notifications" icon={<Bell className="h-4 w-4" />}>
         <p className="text-sm text-muted">
-          Notifications poll the API (WebSocket when connected). Live map GPS is not a browser
-          WebSocket — it polls Fleetbase through the adapter. Open Operations for the dispatch feed.
+          Notifications poll the API (WebSocket when connected). Live map GPS is not a browser Open
+          Operations for the dispatch feed.
         </p>
         <Link
           href="/operations"

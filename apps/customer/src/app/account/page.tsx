@@ -1,11 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import AccountClient from "@/components/account/AccountClient";
+import { customerServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
+export default async function AccountPage() {
+  const client = new QueryClient();
+  const tickets = await customerServerFetch<unknown>("/v1/customers/me/support");
+  if (tickets) client.setQueryData(["customer-support-tickets"], tickets);
 
-const AccountClient = dynamic(() => import("@/components/account/AccountClient"), {
-  loading: () => <p className="p-8 text-sm text-muted">Loading account…</p>,
-});
-
-export default function AccountPage() {
-  return <AccountClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <AccountClient />
+    </HydrationBoundary>
+  );
 }

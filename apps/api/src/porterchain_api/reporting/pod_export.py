@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import unquote, urlparse
 
-from porterchain_api.fleetbase_engine.pod_normalize import proof_slug
+from porterchain_api.reporting.pod_normalize import proof_slug
 
 #: A phone camera shot is a few MB. Anything past this is not a POD photo, and
 #: we will not hold it in memory to find out. Prefer Settings documents max when

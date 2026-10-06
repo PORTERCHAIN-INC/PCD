@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +9,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { hasPermission, useOptionalSessionContext } from "@porterchain/auth";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import {
   LEAD_DECISION_STATUSES,
   LEAD_PRIORITIES,
@@ -199,7 +200,7 @@ export function LeadDetailView({ id }: { id: string }) {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   }
@@ -770,7 +771,7 @@ export function LeadDetailView({ id }: { id: string }) {
           <div className="flex items-center justify-between gap-2">
             <p className="text-muted">
               {assistLoading
-                ? "Loading…"
+                ? "Updating…"
                 : `Source: ${assist?.source ?? "—"} · writes require confirm`}
             </p>
             <Button variant="outline" onClick={() => void refetchAssist()}>

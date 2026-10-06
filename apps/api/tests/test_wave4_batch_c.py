@@ -31,7 +31,7 @@ def test_merge_to_customer_missing_session_still_emits() -> None:
     db.commit.assert_called()
 
 
-def test_suspend_driver_enqueues_fleetbase_offline() -> None:
+def test_suspend_driver_stays_on_porterchain() -> None:
     from porterchain_api.admin_engine.driver_service import AdminDriverService
     from porterchain_api.domain.admin_states import DriverStatus
 
@@ -53,13 +53,11 @@ def test_suspend_driver_enqueues_fleetbase_offline() -> None:
 
     with (
         patch("porterchain_api.admin_engine.driver_service.emit_event"),
-        patch("porterchain_api.fleetbase_engine.retry_queue.RetryQueue.enqueue") as enq,
+        patch("porterchain_api.platform.retired_sync.RetryQueue.enqueue") as enq,
         patch("porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"),
     ):
         out, warning = svc.suspend_driver(db, ctx, "d1", settings)
 
     assert out.status == DriverStatus.SUSPENDED.value
     assert warning is None
-    enq.assert_called_once()
-    assert enq.call_args.kwargs["kind"] == "driver_online"
-    assert enq.call_args.kwargs["payload"]["online"] is False
+    enq.assert_not_called()

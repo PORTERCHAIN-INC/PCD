@@ -88,21 +88,10 @@ class UserSyncService:
             db.commit()
             return
 
-        fleetbase_perms: list[str] | None = None
-        fleetbase_roles: list[str] | None = None
-        if principal.user_type in (UserType.ADMIN, UserType.DISPATCHER, UserType.SUPPORT):
-            admin = get_admin_user(db, principal.user_id)
-            if admin:
-                from porterchain_api.auth.fleetbase_roles import fleetbase_permissions_for_admin
-
-                admin_role = parse_admin_role(admin.role)
-                fleetbase_perms = fleetbase_permissions_for_admin(admin_role)
-                fleetbase_roles = [admin.role]
-
         link.user_type = principal.user_type.value
         link.platform_org_id = principal.org_id
-        link.fleetbase_permissions = fleetbase_perms
-        link.fleetbase_roles = fleetbase_roles
+        link.fleetbase_permissions = None
+        link.fleetbase_roles = None
         link.last_synced_at = datetime.now(UTC)
         db.commit()
 
@@ -341,17 +330,6 @@ class UserSyncService:
             db.flush()
 
         link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == claims.clerk_user_id).first()
-        fleetbase_perms: list[str] | None = None
-        fleetbase_roles: list[str] | None = None
-
-        if principal.user_type in (UserType.ADMIN, UserType.DISPATCHER, UserType.SUPPORT):
-            admin = get_admin_user(db, principal.user_id)
-            if admin:
-                from porterchain_api.auth.fleetbase_roles import fleetbase_permissions_for_admin
-
-                admin_role = parse_admin_role(admin.role)
-                fleetbase_perms = fleetbase_permissions_for_admin(admin_role)
-                fleetbase_roles = [admin.role]
 
         if not link:
             link = IdentityLink(
@@ -360,8 +338,8 @@ class UserSyncService:
                 user_type=principal.user_type.value,
                 platform_user_id=user.id,
                 platform_org_id=principal.org_id,
-                fleetbase_permissions=fleetbase_perms,
-                fleetbase_roles=fleetbase_roles,
+                fleetbase_permissions=None,
+                fleetbase_roles=None,
                 provider="clerk",
                 issuer=claims.issuer,
                 subject=claims.clerk_user_id,
@@ -375,8 +353,8 @@ class UserSyncService:
             link.user_type = principal.user_type.value
             link.platform_user_id = user.id
             link.platform_org_id = principal.org_id
-            link.fleetbase_permissions = fleetbase_perms
-            link.fleetbase_roles = fleetbase_roles
+            link.fleetbase_permissions = None
+            link.fleetbase_roles = None
             link.last_synced_at = datetime.now(UTC)
             if claims.issuer:
                 link.issuer = claims.issuer

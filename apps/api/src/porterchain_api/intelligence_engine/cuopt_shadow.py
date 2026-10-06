@@ -1,7 +1,7 @@
-"""cuOpt shadow A/B vs Fleetbase VROOM — never mutates commit SoT.
+"""cuOpt shadow A/B vs PorterChain OR-Tools — never mutates commit SoT.
 
 Builds a Valhalla cost matrix for pool stop coords, calls NVIDIA cuOpt Catalog,
-compares estimated totals to VROOM metrics. Gated by ``phase2_cuopt_shadow``.
+compares estimated totals to the day-plan scorecard. Gated by ``phase2_cuopt_shadow``.
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ def run_cuopt_shadow(
         return {
             "status": "unavailable",
             "reason": reason,
-            "fallback": "vroom_only",
+            "fallback": "ortools_only",
             **cuopt_status(),
         }
 
@@ -117,22 +117,23 @@ def run_cuopt_shadow(
         if delta_km > 0.05:
             winner = "cuopt"
         elif delta_km < -0.05:
-            winner = "vroom"
+            winner = "ortools"
 
     report = {
         "status": "ok" if parsed.get("ok") else "partial",
         "location_count": len(points),
         "vehicle_count": max(1, int(vehicle_count or 1)),
-        "vroom_distance_km": vroom_km,
+        "ortools_distance_km": vroom_km,
+        "vroom_distance_km": vroom_km,  # alias for one release
         "cuopt_distance_km": cuopt_km,
-        "delta_km_vroom_minus_cuopt": delta_km,
+        "delta_km_ortools_minus_cuopt": delta_km,
         "winner": winner,
         "cuopt_latency_ms": parsed.get("latency_ms"),
         "cuopt_vehicle_count_used": parsed.get("vehicle_count_used"),
-        "commit_sot": "fleetbase_vroom",
+        "commit_sot": "porterchain_ortools",
         "note": (
-            "Shadow A/B only. Human may inspect; commit remains Fleetbase VROOM "
-            "until promote flag after measured GTA wins."
+            "Shadow A/B only. Human may inspect; day plan commit stays OR-Tools "
+            "until a promote flag after measured GTA wins."
         ),
     }
     try:

@@ -17,7 +17,6 @@ RUN apt-get update \
 # (paths are relative to apps/api), so copy them alongside the API source.
 COPY shared/python ./shared/python
 COPY services/python ./services/python
-COPY services/fleetbase-adapter ./services/fleetbase-adapter
 COPY services/pricing-engine ./services/pricing-engine
 COPY services/event-bus ./services/event-bus
 COPY services/driver-platform ./services/driver-platform
@@ -35,7 +34,7 @@ RUN pip install "setuptools>=78.1.1" \
     && rm -rf /usr/local/lib/python3.14/ensurepip \
     && find /usr/local/lib -path '*/pip/_vendor/bom.cdx.json' -delete
 
-ENV PYTHONPATH=/app/apps/api/src:/app/apps/worker:/app/shared/python:/app/services/python:/app/services/fleetbase-adapter:/app/services/pricing-engine:/app/services/event-bus:/app/services/driver-platform \
+ENV PYTHONPATH=/app/apps/api/src:/app/apps/worker:/app/shared/python:/app/services/python:/app/services/pricing-engine:/app/services/event-bus:/app/services/driver-platform \
     DATABASE_URL=sqlite:////data/porterchain.db \
     APP_ENV=production \
     APP_DEBUG=false

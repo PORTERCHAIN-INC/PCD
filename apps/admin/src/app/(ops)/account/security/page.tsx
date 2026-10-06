@@ -1,12 +1,6 @@
-"use client";
+import AccountSecurityClient from "@/components/account/AccountSecurityClient";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
-
-const AccountSecurityClient = dynamic(() => import("@/components/account/AccountSecurityClient"), {
-  loading: () => <Spinner label="Loading security…" />,
-});
-
+/** Account security is session-bound; no shared list to prefetch. */
 export default function AccountSecurityPage() {
   return <AccountSecurityClient />;
 }

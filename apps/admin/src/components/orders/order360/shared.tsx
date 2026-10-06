@@ -137,7 +137,7 @@ export function RouteTimeline({ detail }: { detail: OrderDetail }) {
         <p className="text-sm font-semibold text-primary">
           Route · {stops.length} stop{stops.length === 1 ? "" : "s"}
         </p>
-        <span className="text-[11px] text-muted">Per-stop status syncs from Fleetbase</span>
+        <span className="text-[11px] text-muted">Per-stop status is the PorterChain order</span>
       </div>
       <div className="px-4 py-4">
         {stops.map((s, i) => (
@@ -225,7 +225,7 @@ export function nextActionFor(detail: OrderDetail): NextAction {
     return {
       key: "assign",
       label: "Assign driver",
-      hint: "PC-owned · syncs via permanent bond",
+      hint: "Assign this order on the PorterChain board",
       kind: "assign",
     };
   }
@@ -233,7 +233,7 @@ export function nextActionFor(detail: OrderDetail): NextAction {
     return {
       key: "operations",
       label: "Watch on Operations",
-      hint: "Accept → pickup → deliver mirrors via Fleetbase bond",
+      hint: "Accept, pickup, and deliver stay on the PorterChain order",
       kind: "operations",
     };
   }
@@ -250,7 +250,7 @@ export function nextActionFor(detail: OrderDetail): NextAction {
     return {
       key: "operations",
       label: "Open Operations",
-      hint: "Live progress mirrors via permanent bond",
+      hint: "Live progress stays on the PorterChain order",
       kind: "operations",
     };
   }

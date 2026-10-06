@@ -5,7 +5,7 @@ Closes what we can without a physical device:
   - Firebase credentials configured
   - Push send flags on
   - /communications reports fcm_configured
-  - POST /location accepts a ping (Fleetbase bridge may no-op)
+  - POST /location accepts a ping (writes Redis last_known)
 
 Still requires one human device for: real FCM token register + locked-screen GPS.
 

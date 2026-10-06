@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import {
   Activity,
   AlertTriangle,
@@ -23,7 +24,7 @@ import {
   TestResultRow,
   ValidationProgressBar,
 } from "@/components/diagnostics/DiagnosticsPrimitives";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
@@ -48,7 +49,7 @@ type Tab =
   | "modules"
   | "workflows"
   | "events"
-  | "fleetbase"
+  | "dispatch"
   | "chaos"
   | "observability"
   | "reports";
@@ -60,7 +61,7 @@ const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: st
   { id: "modules", label: "Modules", icon: Layers },
   { id: "workflows", label: "Workflows", icon: Activity },
   { id: "events", label: "Event bus", icon: Radio },
-  { id: "fleetbase", label: "Fleetbase sync", icon: Truck },
+  { id: "dispatch", label: "Day plan", icon: Truck },
   { id: "chaos", label: "Chaos", icon: AlertTriangle },
   { id: "observability", label: "Observability", icon: Server },
   { id: "reports", label: "Reports", icon: FileText },
@@ -110,8 +111,8 @@ export function DiagnosticsTestCenter({
       tab === "events" ? diagnosticsApi.events(t, eventFilter || undefined) : Promise.resolve(null),
     [tab, eventFilter]
   );
-  const { data: fleetbase } = useApiData(
-    (t) => (tab === "fleetbase" ? diagnosticsApi.fleetbaseSync(t) : Promise.resolve(null)),
+  const { data: dayPlan } = useApiData(
+    (t) => (tab === "dispatch" ? diagnosticsApi.dayPlan(t) : Promise.resolve(null)),
     [tab]
   );
   const { data: observability } = useApiData(
@@ -368,7 +369,7 @@ export function DiagnosticsTestCenter({
 
       {tab === "architecture" && (
         <SectionCard title="Architecture validation" icon={<GitBranch className="h-4 w-4" />}>
-          {archLoading && <Spinner />}
+          {archLoading && <PageSkeleton rows={3} />}
           {architecture && (
             <div className="space-y-6">
               <p className="text-sm font-medium">
@@ -473,7 +474,7 @@ export function DiagnosticsTestCenter({
               Clear
             </Button>
           </div>
-          {eventsLoading && <Spinner />}
+          {eventsLoading && <PageSkeleton rows={3} />}
           {events && (
             <>
               <div className="overflow-x-auto">
@@ -515,18 +516,18 @@ export function DiagnosticsTestCenter({
         </SectionCard>
       )}
 
-      {tab === "fleetbase" && fleetbase && (
-        <SectionCard title="Fleetbase sync monitor" icon={<Truck className="h-4 w-4" />}>
+      {tab === "dispatch" && dayPlan && (
+        <SectionCard title="Day plan" icon={<Truck className="h-4 w-4" />}>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat label="Pending" value={fleetbase.pending_sync} />
-            <Stat label="Successful" value={fleetbase.successful_sync} />
-            <Stat label="Failed" value={fleetbase.failed_sync} />
-            <Stat label="Retry queue" value={fleetbase.retry_queue} />
+            <Stat label="Pending" value={dayPlan.pending_sync} />
+            <Stat label="Successful" value={dayPlan.successful_sync} />
+            <Stat label="Failed" value={dayPlan.failed_sync} />
+            <Stat label="Retry queue" value={dayPlan.retry_queue} />
           </div>
-          {(fleetbase.dead_letters as unknown[])?.length > 0 && (
+          {(dayPlan.dead_letters as unknown[])?.length > 0 && (
             <div className="mt-4 rounded-xl border border-red-200 bg-red-50/50 p-3 text-sm">
               <p className="font-medium text-red-800">
-                {String((fleetbase.dead_letters as unknown[]).length)} dead letter job(s)
+                {String((dayPlan.dead_letters as unknown[]).length)} dead letter job(s)
               </p>
             </div>
           )}

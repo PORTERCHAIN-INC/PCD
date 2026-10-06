@@ -2,13 +2,16 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { Bell } from "lucide-react";
+import { startTransition, useDeferredValue, useOptimistic } from "react";
 import CustomerShell from "@/components/CustomerShell";
 import CustomerMotion from "@/components/motion/CustomerMotion";
 import { isClerkConfigured } from "@/lib/env";
-import { notificationsApi } from "@/lib/notifications";
+import { notificationsApi, type InboxNotification } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 
+/** Same key as layout + bell so the shell badge hydrates this page. */
 const INBOX_KEY = ["customer-notification-inbox"] as const;
 
 export default function NotificationsClient() {
@@ -42,8 +45,16 @@ function CustomerNotificationsWithClerk() {
     },
   });
 
-  const items = data?.items ?? [];
-  const unread = data?.unread_count ?? 0;
+  const baseItems = data?.items ?? [];
+  const [items, markOptimistic] = useOptimistic(
+    baseItems,
+    (current: InboxNotification[], id: string | "all") => {
+      if (id === "all") return current.map((n) => ({ ...n, is_read: true }));
+      return current.map((n) => (n.id === id ? { ...n, is_read: true } : n));
+    }
+  );
+  const unread = items.filter((n) => !n.is_read).length;
+  const deferredItems = useDeferredValue(items);
   const error =
     queryError instanceof Error ? queryError.message : queryError ? "Failed to load" : null;
 
@@ -66,12 +77,15 @@ function CustomerNotificationsWithClerk() {
             <button
               type="button"
               onClick={() =>
-                void (async () => {
-                  const token = await getToken();
-                  if (!token) return;
-                  await notificationsApi.markAllRead(token);
-                  await refresh();
-                })()
+                startTransition(() => {
+                  markOptimistic("all");
+                  void (async () => {
+                    const token = await getToken();
+                    if (!token) return;
+                    await notificationsApi.markAllRead(token);
+                    await refresh();
+                  })();
+                })
               }
               className="rounded-xl border border-primary/10 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
             >
@@ -80,15 +94,15 @@ function CustomerNotificationsWithClerk() {
           ) : null}
         </div>
 
-        {!isLoaded ? (
-          <p className="text-muted">Loading…</p>
-        ) : !isSignedIn ? (
+        {!data && !isLoaded ? (
+          <PageSkeleton rows={4} />
+        ) : isLoaded && !isSignedIn ? (
           <p className="text-muted">Please sign in to view notifications.</p>
         ) : error ? (
           <p className="text-sm text-red-600">{error}</p>
         ) : loading && items.length === 0 ? (
-          <p className="text-muted">Loading…</p>
-        ) : items.length === 0 ? (
+          <PageSkeleton rows={4} />
+        ) : deferredItems.length === 0 ? (
           <div className="rounded-2xl border border-primary/10 bg-white px-6 py-8 text-center">
             <CustomerMotion name="inbox" size={140} />
             <p className="text-sm font-semibold text-primary">No alerts yet</p>
@@ -96,19 +110,22 @@ function CustomerNotificationsWithClerk() {
           </div>
         ) : (
           <ul className="divide-y divide-primary/5 overflow-hidden rounded-2xl border border-primary/10 bg-white">
-            {items.map((n) => (
+            {deferredItems.map((n) => (
               <li key={n.id}>
                 <button
                   type="button"
                   onClick={() =>
-                    void (async () => {
-                      if (!n.is_read) {
-                        const token = await getToken();
-                        if (token) await notificationsApi.markRead(token, n.id);
-                        await refresh();
-                      }
-                      if (n.deep_link) window.location.href = n.deep_link;
-                    })()
+                    startTransition(() => {
+                      if (!n.is_read) markOptimistic(n.id);
+                      void (async () => {
+                        if (!n.is_read) {
+                          const token = await getToken();
+                          if (token) await notificationsApi.markRead(token, n.id);
+                          await refresh();
+                        }
+                        if (n.deep_link) window.location.href = n.deep_link;
+                      })();
+                    })
                   }
                   className={cn(
                     "flex w-full flex-col gap-1 px-5 py-4 text-left transition hover:bg-gray-bg/80",

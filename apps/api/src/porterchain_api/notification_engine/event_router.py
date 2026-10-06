@@ -12,6 +12,8 @@ from porterchain_api.notification_engine.context import (
     merge_notification_context,
 )
 from porterchain_api.notification_engine.engine import get_notification_engine
+from porterchain_api.notification_engine.preference_service import drop_muted_merchant_specs
+from porterchain_api.notification_engine.route_table import specs_for_parcel
 from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
 from porterchain_shared.events.catalog import DomainEventType
 
@@ -87,6 +89,9 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
 
     def add_staff(template: str, channel: str, topic: str, *, category: str | None = None, pri: str | None = None) -> None:
         add(template, channel, "admin", staff_sentinel(topic), category=category, pri=pri)  # type: ignore[arg-type]
+
+    if specs_for_parcel(event_type, payload, add):
+        return specs
 
     email = payload.get("email") or payload.get("contact_email")
     customer_id = payload.get("customer_id")
@@ -166,7 +171,9 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("order_cancelled", "push", "driver", driver_id)
         if merchant_id:
             add("order_cancelled", "in_app", "merchant", merchant_id)
-            add("order_cancelled", "email", "merchant", merchant_id)
+            merchant_email = payload.get("merchant_email")
+            if merchant_email:
+                add("order_cancelled", "email", "merchant", merchant_id, address=merchant_email)
         add_staff("order_cancelled", "in_app", "ops")
 
     elif event_type == DomainEventType.DRIVER_ACCEPTED:
@@ -413,6 +420,7 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
         specs = _specs_for_event(event_type, payload)
         if not specs:
             return
+        specs = drop_muted_merchant_specs(db, specs)
         specs = expand_staff_specs(db, specs)
         if not specs:
             return
@@ -450,6 +458,10 @@ def register_notification_handlers() -> None:
         DomainEventType.PAYMENT_FAILED,
         DomainEventType.ORDER_CREATED,
         DomainEventType.ORDER_BOOKED,
+        "merchant.booking_created",
+        "order.stop_completed",
+        "order.failed",
+        DomainEventType.CHECKOUT_ABANDONED,
         DomainEventType.DRIVER_ASSIGNED,
         DomainEventType.ORDER_CANCELLED,
         DomainEventType.DRIVER_ACCEPTED,

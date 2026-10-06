@@ -103,7 +103,7 @@ Sign in: tap “Sign in with Porterchain”, then use the User name / Password i
 
 After sign-in you should land on Work. Check Jobs, Money, Docs, and More — none require a live route. Work shows the assigned stop when a job is on the board; otherwise wallet and duty controls still appear.
 
-Background location (5.1.4): precise location is sent only while the driver is On duty so dispatch (Fleetbase) can see the van with the screen locked. Off duty stops the on-duty ping. Not used for ads or tracking.
+Background location (5.1.4): precise location is sent only while the driver is On duty so PorterChain dispatch can see the van with the screen locked. Off duty stops the on-duty ping. Not used for ads or tracking.
 
 Camera: proof of delivery photos and package QR / Code 128 scans for this order. Microphone is not used.
 

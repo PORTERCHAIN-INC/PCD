@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { RotateCcw, Save } from "lucide-react";
-import { Button, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Button, SectionCard } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import MerchantPricingFields from "@/components/merchants/MerchantPricingFields";
 import MerchantGtaMatrixFields from "@/components/merchants/MerchantGtaMatrixFields";
 import RateCardPreview from "@/components/merchants/RateCardPreview";
@@ -66,7 +67,7 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
     if (data) setDraft(stripDetail(data));
   }, [data]);
 
-  if (loading || !draft) return <Spinner label="Loading pricing…" />;
+  if (loading || !draft) return <PageSkeleton rows={4} />;
   if (error) return <p className="py-8 text-center text-sm text-red-700">{error}</p>;
 
   const dirty = data ? JSON.stringify(draft) !== JSON.stringify(stripDetail(data)) : false;

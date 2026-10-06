@@ -75,6 +75,17 @@ def _admin_ids_with_active_push(db: Session, user_ids: list[str]) -> set[str]:
     return {str(r[0]) for r in rows if r[0]}
 
 
+def ops_watch_emails() -> set[str]:
+    """Staff email goes only to this list. Empty means no staff email fan-out."""
+    try:
+        from porterchain_shared.config.settings import get_platform_settings
+
+        raw = getattr(get_platform_settings(), "ops_watch_emails", "") or ""
+    except Exception:  # noqa: BLE001
+        return set()
+    return {part.strip().lower() for part in str(raw).split(",") if "@" in part}
+
+
 def expand_staff_specs(db: Session, specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Replace `__staff:{topic}__` recipient_ids with real AdminUser rows.
 
@@ -125,6 +136,9 @@ def expand_staff_specs(db: Session, specs: list[dict[str, Any]]) -> list[dict[st
             if channel == "email":
                 if not user.email:
                     continue
+                watch = ops_watch_emails()
+                if not watch or user.email.strip().lower() not in watch:
+                    continue
                 expanded["recipient_address"] = user.email
                 out.append(expanded)
                 continue
@@ -135,6 +149,9 @@ def expand_staff_specs(db: Session, specs: list[dict[str, Any]]) -> list[dict[st
                     continue
                 # No device: fail closed via email for ops risk only.
                 if priority in ("critical", "high") and user.email:
+                    watch = ops_watch_emails()
+                    if not watch or user.email.strip().lower() not in watch:
+                        continue
                     email_spec = {
                         **expanded,
                         "channel": "email",

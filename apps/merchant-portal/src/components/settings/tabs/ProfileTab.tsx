@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useOptimistic, useState } from "react";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import Button from "@/components/ui/Button";
 import { publicEnv } from "@/lib/env";
@@ -22,6 +22,7 @@ export function ProfileTab({
 }) {
   const [form, setForm] = useState(profile);
   const [saved, setSaved] = useState(false);
+  const [optimisticSaved, setOptimisticSaved] = useOptimistic(saved);
   const [billing, setBilling] = useState<BookingAddress>(() => ({
     formatted: String(profile.billing_address?.formatted ?? ""),
     postal:
@@ -51,36 +52,41 @@ export function ProfileTab({
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = await getToken();
-    const patch: Parameters<typeof settingsApi.updateProfile>[1] = {
-      company_name: form.company_name,
-      email: form.email || undefined,
-      phone: form.phone || undefined,
-      website: form.website || undefined,
-      industry: form.industry || undefined,
-    };
-    if ((form.legal_name || "") !== (profile.legal_name || "")) {
-      patch.legal_name = form.legal_name || "";
+    startTransition(() => setOptimisticSaved(true));
+    try {
+      const token = await getToken();
+      const patch: Parameters<typeof settingsApi.updateProfile>[1] = {
+        company_name: form.company_name,
+        email: form.email || undefined,
+        phone: form.phone || undefined,
+        website: form.website || undefined,
+        industry: form.industry || undefined,
+      };
+      if ((form.legal_name || "") !== (profile.legal_name || "")) {
+        patch.legal_name = form.legal_name || "";
+      }
+      await settingsApi.updateProfile(
+        token,
+        {
+          ...patch,
+          billing_address: billing.formatted
+            ? {
+                formatted: billing.formatted,
+                postal: billing.postal,
+                place_id: billing.placeId,
+                lat: billing.lat,
+                lng: billing.lng,
+              }
+            : undefined,
+        },
+        orgId
+      );
+      setSaved(true);
+      await onRefresh();
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      setSaved(false);
     }
-    await settingsApi.updateProfile(
-      token,
-      {
-        ...patch,
-        billing_address: billing.formatted
-          ? {
-              formatted: billing.formatted,
-              postal: billing.postal,
-              place_id: billing.placeId,
-              lat: billing.lat,
-              lng: billing.lng,
-            }
-          : undefined,
-      },
-      orgId
-    );
-    setSaved(true);
-    await onRefresh();
-    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -149,7 +155,7 @@ export function ProfileTab({
           </p>
         )}
         <Button type="submit">Save profile</Button>
-        {saved && <p className="text-sm text-green-700">Saved</p>}
+        {(optimisticSaved || saved) && <p className="text-sm text-green-700">Saved</p>}
       </form>
       <CompanyAuditCard getToken={getToken} orgId={orgId} />
       <p className="text-sm text-muted">

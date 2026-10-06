@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Gauge, Play, Upload } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
@@ -39,9 +39,9 @@ export function OptimizePanel({
   const engineOptions = (() => {
     const raw = enginesPayload?.engines ?? [];
     const ids = raw.map((e) => String(e.id || e.name || "").trim()).filter(Boolean);
-    return ids.length ? ids : ["vroom", "greedy", "capacity"];
+    return ids.length ? ids : ["porterchain"];
   })();
-  const [engine, setEngine] = useState("vroom");
+  const [engine, setEngine] = useState("porterchain");
   useEffect(() => {
     if (engineOptions.length && !engineOptions.includes(engine)) {
       setEngine(engineOptions[0]);
@@ -59,52 +59,51 @@ export function OptimizePanel({
   const [runId, setRunId] = useState<string | null>(null);
   const polls = useRef(0);
 
-  useEffect(() => {
-    if (!runId) return;
-    let cancelled = false;
-    polls.current = 0;
-
-    async function tickStatus() {
-      polls.current += 1;
-      try {
-        const token = await getApiToken();
-        const result = await ops.optimizeRunStatus(token, runId!);
-        if (cancelled) return;
-        setPlan(result);
-        if (result.status === "ready" || result.status === "error") {
-          setRunBusy(false);
-          setRunId(null);
-          if (result.status === "error") {
-            setError(result.error || result.message || "Preview failed");
-          }
-          return;
-        }
-      } catch (e) {
-        if (cancelled) return;
-        const msg = e instanceof Error ? e.message : "";
-        if (msg.includes("optimize_run_not_found") && polls.current < POLL_MAX) {
-          return;
-        }
-        setError(msg || "Could not read preview status");
+  const tickStatus = useEffectEvent(async (cancelled: { current: boolean }) => {
+    polls.current += 1;
+    try {
+      const token = await getApiToken();
+      const result = await ops.optimizeRunStatus(token, runId!);
+      if (cancelled.current) return;
+      setPlan(result);
+      if (result.status === "ready" || result.status === "error") {
         setRunBusy(false);
         setRunId(null);
+        if (result.status === "error") {
+          setError(result.error || result.message || "Preview failed");
+        }
         return;
       }
-      if (polls.current >= POLL_MAX) {
-        if (cancelled) return;
-        setError("Preview timed out. Try again.");
-        setRunBusy(false);
-        setRunId(null);
+    } catch (e) {
+      if (cancelled.current) return;
+      const msg = e instanceof Error ? e.message : "";
+      if (msg.includes("optimize_run_not_found") && polls.current < POLL_MAX) {
+        return;
       }
+      setError(msg || "Could not read preview status");
+      setRunBusy(false);
+      setRunId(null);
+      return;
     }
+    if (polls.current >= POLL_MAX) {
+      if (cancelled.current) return;
+      setError("Preview timed out. Try again.");
+      setRunBusy(false);
+      setRunId(null);
+    }
+  });
 
-    void tickStatus();
-    const id = window.setInterval(() => void tickStatus(), POLL_MS);
+  useEffect(() => {
+    if (!runId) return;
+    const cancelled = { current: false };
+    polls.current = 0;
+    void tickStatus(cancelled);
+    const id = window.setInterval(() => void tickStatus(cancelled), POLL_MS);
     return () => {
-      cancelled = true;
+      cancelled.current = true;
       window.clearInterval(id);
     };
-  }, [runId, getApiToken]);
+  }, [runId]);
 
   async function run() {
     setRunBusy(true);
@@ -174,18 +173,18 @@ export function OptimizePanel({
   const pending = plan?.status === "pending" || Boolean(runId);
   const ready = plan?.status === "ready" && Boolean(plan.assignments?.length);
   const readyEmpty = plan?.status === "ready" && !plan.assignments?.length;
-  const engineLabel = engine === "vroom" ? "Fleetbase VROOM" : "Fleetbase greedy";
+  const engineLabel = engine === "insertion" ? "Quick insert" : "PorterChain";
   const emptyHint = readyEmpty
     ? plan?.message ||
-      "Fleetbase returned no assignments. Sync cargo vans, mark drivers online, and retry."
-    : "Run preview against the synced pool. Orders need a live Fleetbase id (not fb-123).";
+      "No stops could be ordered. Check the van, the coordinates, and the time window, then retry."
+    : "Preview orders one assigned van. Pickup stays before dropoff.";
 
   return (
     <div className="space-y-4">
       <SectionCard
         title={
           <span className="flex items-center gap-2">
-            <Gauge className="h-4 w-4 text-secondary" /> Optimize (Fleetbase Orchestrator)
+            <Gauge className="h-4 w-4 text-secondary" /> Optimize
           </span>
         }
         action={
@@ -194,7 +193,7 @@ export function OptimizePanel({
               value={shape}
               onChange={(e) => setShape(e.target.value as "fleet" | "merchant" | "vehicle")}
               className="rounded-lg border border-primary/15 px-2 py-1 text-xs"
-              title="Fleetbase input shaping only"
+              title="Which orders to include"
             >
               <option value="fleet">Fleet-wide</option>
               <option value="merchant">Merchant-wise</option>
@@ -247,10 +246,10 @@ export function OptimizePanel({
             >
               {engineOptions.map((id) => (
                 <option key={id} value={id}>
-                  {id === "vroom"
-                    ? "VROOM"
-                    : id === "greedy"
-                      ? "Greedy"
+                  {id === "porterchain" || id === "ortools" || id === "vroom"
+                    ? "PorterChain"
+                    : id === "insertion" || id === "greedy"
+                      ? "Quick insert"
                       : id === "capacity"
                         ? "Capacity"
                         : id}
@@ -302,8 +301,8 @@ export function OptimizePanel({
       >
         <div className="space-y-4 p-4">
           <p className="text-xs text-muted">
-            Preview shapes Fleetbase inputs only (fleet / merchant / vehicle). Engines stay on
-            Fleetbase (VROOM default). Commit creates vehicle manifests — no PorterChain pathing.
+            Preview orders one assigned van with Valhalla drive times. Accept stores that stop
+            order. It does not search again.
           </p>
           {pending && (
             <p className="rounded-xl border border-primary/15 bg-gray-bg/40 px-3 py-2 text-sm text-primary">
@@ -324,8 +323,8 @@ export function OptimizePanel({
               <p className="text-xs text-primary">
                 Pool: {pool?.eligible_count ?? pool?.order_count ?? 0} eligible. This preview packs
                 20 starting at {pageOffset}.
-                {(pool?.excluded?.missing_fleetbase_id ?? 0) > 0
-                  ? ` · ${pool?.excluded?.missing_fleetbase_id} without Fleetbase id`
+                {(pool?.excluded?.missing_coords ?? 0) > 0
+                  ? ` · ${pool?.excluded?.missing_coords} without coordinates`
                   : ""}
                 {(pool?.excluded?.sandbox ?? 0) > 0 ? ` · ${pool?.excluded?.sandbox} sandbox` : ""}
                 {(pool?.excluded?.shopify_ingress_paused ?? 0) > 0
@@ -391,20 +390,21 @@ export function OptimizePanel({
             <p className="rounded-xl border border-primary/10 bg-gray-bg/40 px-3 py-2 text-xs text-primary">
               cuOpt shadow: {m.cuopt_shadow.status}
               {m.cuopt_shadow.winner ? ` · winner ${m.cuopt_shadow.winner}` : ""}
-              {m.cuopt_shadow.vroom_distance_km != null && m.cuopt_shadow.cuopt_distance_km != null
-                ? ` · VROOM ${m.cuopt_shadow.vroom_distance_km} km vs cuOpt ${m.cuopt_shadow.cuopt_distance_km} km`
+              {(m.cuopt_shadow.ortools_distance_km ?? m.cuopt_shadow.vroom_distance_km) != null &&
+              m.cuopt_shadow.cuopt_distance_km != null
+                ? ` · OR-Tools ${m.cuopt_shadow.ortools_distance_km ?? m.cuopt_shadow.vroom_distance_km} km vs cuOpt ${m.cuopt_shadow.cuopt_distance_km} km`
                 : ""}
               {m.cuopt_shadow.reason ? ` · ${m.cuopt_shadow.reason}` : ""}
-              {" · commit stays Fleetbase VROOM"}
+              {" · accept stores the stop order"}
             </p>
           )}
 
           {pending ? (
-            <Spinner label="Building plan from Fleetbase…" />
+            <Spinner label="Building the day plan…" />
           ) : !plan ? (
             <EmptyState
               title="No plan yet"
-              hint="Run preview against the synced pool. Orders need a live Fleetbase id."
+              hint="Run preview against the synced pool. Assign a van, then preview its stops."
             />
           ) : !plan.assignments?.length ? (
             <EmptyState title={readyEmpty ? "No assignments" : "No plan yet"} hint={emptyHint} />
@@ -453,7 +453,7 @@ export function OptimizePanel({
 
           {!!plan?.unassigned_details?.length && ready && (
             <div className="space-y-1">
-              <span className="text-xs text-muted">Unassigned (Fleetbase reasons):</span>
+              <span className="text-xs text-muted">Left off the plan:</span>
               <div className="flex flex-wrap gap-1">
                 {plan.unassigned_details.map((row) => (
                   <Badge

@@ -194,22 +194,11 @@ class CurrentPrincipal:
         return "unprovisioned"
 
     def me_payload(self, db) -> dict:
-        from porterchain_api.admin_engine.rbac import parse_admin_role
-        from porterchain_api.admin_engine.staff_lookups import get_admin_user
-        from porterchain_api.auth.fleetbase_roles import can_access_fleetbase_console
         from porterchain_api.auth.modules_catalog import modules_for_permissions
         from porterchain_api.auth.user_sync_service import UserSyncService
 
         sc = self.session_context()
         fleetbase_eligible = False
-        admin_id = self.legacy_profile_ids.get("admin_user_id")
-        if admin_id and self.has_any_permission(
-            UnifiedPermission.PLATFORM_ADMIN_ACCESS,
-            UnifiedPermission.SYSTEM_ALL,
-        ):
-            admin = get_admin_user(db, admin_id)
-            if admin:
-                fleetbase_eligible = can_access_fleetbase_console(parse_admin_role(admin.role))
 
         org_id = next(iter(sorted(self.organization_ids)), None)
         pc_user = UserSyncService().get_by_clerk_id(db, self.auth_subject or "")

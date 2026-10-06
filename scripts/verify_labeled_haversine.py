@@ -24,7 +24,7 @@ CHECKS: tuple[tuple[Path, tuple[str, ...], tuple[str, ...]], ...] = (
     ),
     (
         ROOT / "services/driver-platform/porterchain_driver/route_optimizer.py",
-        ("Fleetbase orchestrator",),
+        ("queue_one_van", "porterchain"),
         ("_two_opt", "_solve_pd_vrp", '"engine": "haversine"', "_StopNode"),
     ),
     (

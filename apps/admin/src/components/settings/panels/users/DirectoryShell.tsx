@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import {
   settingsApi,
   type PlatformUser,
@@ -253,7 +254,7 @@ export function DirectoryShell({
           onClear={() => setFilters(EMPTY_FILTERS)}
         />
         {isLoading ? (
-          <Spinner />
+          <PageSkeleton rows={3} />
         ) : (
           <>
             <p className="mb-3 text-xs text-muted">

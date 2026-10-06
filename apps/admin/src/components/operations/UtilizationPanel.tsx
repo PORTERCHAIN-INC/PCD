@@ -2,8 +2,9 @@
 
 import { useApiData } from "@/hooks/useApiData";
 import { ops, type UtilizationDriver } from "@/lib/operations";
-import { Badge, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { titleCase } from "@/lib/crmFormat";
+import { PageSkeleton, TableSkeleton } from "@porterchain/ui/loading";
 
 const STATUS_TONE: Record<string, "green" | "amber" | "sky" | "slate" | "red" | "blue"> = {
   idle: "amber",
@@ -45,7 +46,14 @@ export function UtilizationPanel({ tick }: { tick: number }) {
     key: "ops-utilization",
   });
 
-  if (loading && !data) return <Spinner label="Loading utilization…" />;
+  if (loading && !data) {
+    return (
+      <div className="space-y-3">
+        <PageSkeleton rows={2} />
+        <TableSkeleton rows={5} />
+      </div>
+    );
+  }
   if (!data) return <EmptyState title="Utilization unavailable" />;
 
   const s = data.summary;
@@ -74,7 +82,7 @@ export function UtilizationPanel({ tick }: { tick: number }) {
       </div>
 
       <p className="text-xs text-muted">
-        Online source: {data.online_source === "fleetbase" ? "Fleetbase (adapter)" : "PC mirror"}.
+        Online source: {data.online_source === "porterchain" ? "PorterChain" : "Last pin"}.
         Utilization % is a load-based estimate (not GPS idle-time) for staffing glance.
         {s.avg_load_per_online > 0 && ` · Avg load/online: ${s.avg_load_per_online}`}
       </p>

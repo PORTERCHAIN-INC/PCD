@@ -5,14 +5,46 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from uuid import uuid4
 from typing import Any
+from uuid import uuid4
 
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
 CHANNEL = "porterchain:notifications:realtime"
+_ONLINE_TTL_SECONDS = 180
+
+
+def touch_online(role: str, user_id: str, *, seconds: int = _ONLINE_TTL_SECONDS) -> None:
+    """Remember that this person has the app open. Used to skip staff email."""
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        get_redis_client().setex(
+            f"porterchain:notifications:online:{role}:{user_id}",
+            seconds,
+            "1",
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("presence touch failed", exc_info=True)
+
+
+def anyone_online(role: str) -> bool:
+    """True when at least one session for this role has the app open.
+
+    If presence cannot be read, treat the app as occupied so mail is not sent.
+    """
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        client = get_redis_client()
+        match = f"porterchain:notifications:online:{role}:*"
+        for _ in client.scan_iter(match=match, count=20):
+            return True
+        return False
+    except Exception:  # noqa: BLE001
+        return True
 
 
 class RealtimeHub:
@@ -73,6 +105,7 @@ class RealtimeHub:
         key = self._key(user_role, user_id)
         async with self._lock:
             self._connections.setdefault(key, set()).add(ws)
+        touch_online(user_role, user_id)
 
     async def disconnect(self, user_role: str, user_id: str, ws: WebSocket) -> None:
         key = self._key(user_role, user_id)

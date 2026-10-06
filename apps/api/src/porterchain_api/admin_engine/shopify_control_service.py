@@ -305,12 +305,12 @@ def replay_ingress_dlq(
     return {"ok": True, "replayed": True, "dlq_id": row.id, "result": result}
 
 
-def release_shopify_order_to_fleetbase(
+def release_shopify_order_to_dispatch(
     db: Session,
     ctx: AdminContext,
     order_id: str,
 ) -> dict[str, Any]:
-    """BOOKED Shopify hold → DISPATCH_READY (Fleetbase sync follows)."""
+    """BOOKED Shopify hold → DISPATCH_READY."""
     from porterchain_api.admin_engine.merchant_org import write_staff_audit
 
     order = db.query(Order).filter(Order.id == order_id).first()
@@ -319,7 +319,7 @@ def release_shopify_order_to_fleetbase(
     if order.order_source != OrderSource.SHOPIFY.value:
         raise ValueError("not_shopify_order")
     if bool(getattr(order, "is_sandbox", False)):
-        raise ValueError("sandbox_order_no_fleetbase")
+        raise ValueError("sandbox_order_not_releasable")
     if order.state != OrderState.BOOKED.value:
         raise ValueError(f"order_not_held:{order.state}")
 

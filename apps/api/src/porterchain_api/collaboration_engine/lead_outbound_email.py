@@ -42,30 +42,30 @@ def enqueue_lead_template_email(
     base = (website_url or "https://porterchain.com").rstrip("/")
     try:
         from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
-        from porterchain_shared.queue.names import QueueName
-        from porterchain_shared.queue.publisher import get_queue_publisher
+        from porterchain_api.notification_engine.engine import get_notification_engine
 
         unsub = ""
         secret = (jwt_secret or "").strip()
         if secret:
             token = make_unsubscribe_token(lead_id=lead.id, secret=secret)
             unsub = f"{base}/unsubscribe?token={token}"
-        get_queue_publisher().enqueue(
-            QueueName.EMAILS,
-            {
-                "channel": "email",
-                "template": template,
-                "recipient": email,
-                "recipient_type": "lead",
-                "recipient_id": lead.id,
-                "context": {
-                    "company_name": lead.company_name,
-                    "contact_name": lead.primary_contact_name or "",
-                    "quote_url": f"{base}/sign-up?intent=quote&utm_source=outbound&utm_medium=email",
-                    "unsubscribe_url": unsub,
-                    "lead_id": lead.id,
-                },
+        get_notification_engine().dispatch(
+            db,
+            event_type="lead.outbound",
+            template_key=template,
+            channel="email",
+            recipient_type="lead",
+            recipient_id=lead.id,
+            recipient_address=email,
+            context={
+                "company_name": lead.company_name,
+                "contact_name": lead.primary_contact_name or "",
+                "quote_url": f"{base}/sign-up?intent=quote&utm_source=outbound&utm_medium=email",
+                "unsubscribe_url": unsub,
+                "lead_id": lead.id,
             },
+            correlation_id=lead.id,
+            category="crm",
         )
     except Exception as exc:
         raise RuntimeError("enqueue_failed") from exc

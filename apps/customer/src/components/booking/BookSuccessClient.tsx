@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerMotion from "@/components/motion/CustomerMotion";
 import { syncBookingCheckout, type BookingConfirmation } from "@/lib/booking";
 
@@ -133,7 +134,9 @@ export default function BookSuccessClient() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-lg py-16 text-center text-sm text-slate-600">Loading…</div>
+        <div className="mx-auto max-w-lg py-10">
+          <PageSkeleton rows={3} />
+        </div>
       }
     >
       <SuccessContent />

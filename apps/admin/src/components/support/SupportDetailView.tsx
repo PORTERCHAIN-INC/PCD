@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
@@ -12,7 +13,7 @@ import {
   type TicketDetail,
 } from "@/lib/support";
 import { relativeTime } from "@/lib/crmFormat";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 
 type Tab =
@@ -80,7 +81,7 @@ export default function SupportDetailView({
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   }

@@ -189,7 +189,7 @@ def test_hs_fcm_001_register_push_invalid_token_400() -> None:
         assert exc.value.detail == "fcm_token_invalid"
 
 
-# ── HS-FB — Fleetbase SSO fail-closed ────────────────────────────────────────
+# ── HS-FB — Fleetbase SSO retired (always refuse) ────────────────────────────
 
 
 def test_hs_fb_004_sso_disabled_raises() -> None:
@@ -201,95 +201,10 @@ def test_hs_fb_004_sso_disabled_raises() -> None:
         )
 
 
-def test_hs_fb_002_sso_forbidden_without_admin_principal() -> None:
-    db = MagicMock()
-    with patch.object(SsoService, "auth_principal_from_current", return_value=None):
-        with pytest.raises(PermissionError, match="fleetbase_console_forbidden"):
-            SsoService().exchange_fleetbase_session_for_principal(
-                db,
-                _settings(fleetbase_sso_enabled=True),
-                _current(),
-            )
-
-
-def test_hs_fb_002_sso_forbidden_for_read_only_admin() -> None:
-    """READ_ONLY is not in FLEETBASE_CONSOLE_ROLES."""
-    from porterchain_shared.auth.principal import AuthPrincipal
-    from porterchain_shared.auth.roles import PlatformRole
-    from porterchain_shared.types.user_types import UserType
-
-    admin = MagicMock()
-    admin.id = "admin-1"
-    admin.role = AdminRole.READ_ONLY.value
-    admin.is_active = True
-    admin.email = "ro@porterchain.com"
-    admin.clerk_user_id = None
-
-    principal = AuthPrincipal(
-        user_id="admin-1",
-        user_type=UserType.ADMIN,
-        roles=frozenset({PlatformRole.OPERATIONS}),
-        org_id=None,
-        email="ro@porterchain.com",
-        session_id="sid",
-    )
-    db = MagicMock()
-    with (
-        patch.object(SsoService, "auth_principal_from_current", return_value=principal),
-        patch(
-            "porterchain_api.auth.sso_service.get_admin_user",
-            return_value=admin,
-        ),
-    ):
-        with pytest.raises(PermissionError, match="fleetbase_console_forbidden"):
-            SsoService().exchange_fleetbase_session_for_principal(
-                db,
-                _settings(fleetbase_sso_enabled=True),
-                _current(),
-            )
-
-
-def test_hs_fb_003_sso_issues_token_when_fleetbase_exchange_down() -> None:
-    """Bridge down must not block SSO JWT mint — fail soft on Fleetbase HTTP only."""
-    from porterchain_shared.auth.principal import AuthPrincipal
-    from porterchain_shared.auth.roles import PlatformRole
-    from porterchain_shared.types.user_types import UserType
-
-    admin = MagicMock()
-    admin.id = "admin-1"
-    admin.role = AdminRole.ADMIN.value
-    admin.is_active = True
-    admin.email = "ops@porterchain.com"
-    admin.clerk_user_id = None
-    admin.fleetbase_user_uuid = None
-
-    principal = AuthPrincipal(
-        user_id="admin-1",
-        user_type=UserType.ADMIN,
-        roles=frozenset({PlatformRole.ADMIN}),
-        org_id=None,
-        email="ops@porterchain.com",
-        session_id="sid",
-    )
-    link = MagicMock()
-    link.fleetbase_permissions = []
-    link.fleetbase_roles = []
-    link.fleetbase_user_uuid = None
-
-    db = MagicMock()
-    settings = _settings(fleetbase_sso_enabled=True)
-
-    with (
-        patch.object(SsoService, "auth_principal_from_current", return_value=principal),
-        patch("porterchain_api.auth.sso_service.get_admin_user", return_value=admin),
-        patch.object(SsoService, "_upsert_identity_link", return_value=link),
-        patch(
-            "porterchain_fleetbase_adapter.auth.FleetbaseSsoClient.exchange_sso_token",
-            side_effect=RuntimeError("bridge_down"),
-        ),
-    ):
-        out = SsoService().exchange_fleetbase_session_for_principal(db, settings, _current())
-
-    assert out["sso_token"]
-    assert out["console_url"] == ""
-    assert out["fleetbase_session"] is None
+def test_hs_fb_sso_retired_even_when_flag_true() -> None:
+    with pytest.raises(ValueError, match="fleetbase_sso_disabled"):
+        SsoService().exchange_fleetbase_session_for_principal(
+            MagicMock(),
+            _settings(fleetbase_sso_enabled=True),
+            _current(),
+        )

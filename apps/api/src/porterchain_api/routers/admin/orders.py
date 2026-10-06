@@ -331,9 +331,9 @@ def order_shopify_release(
     db: Session = Depends(get_db),
 ) -> dict:
     """Release a held Shopify BOOKED order to Fleetbase (DISPATCH_READY)."""
-    from porterchain_api.admin_engine.shopify_control_service import release_shopify_order_to_fleetbase
+    from porterchain_api.admin_engine.shopify_control_service import release_shopify_order_to_dispatch
 
-    return _invoke(ctx, "orders_write", release_shopify_order_to_fleetbase, db, ctx, order_id)
+    return _invoke(ctx, "orders_write", release_shopify_order_to_dispatch, db, ctx, order_id)
 
 
 @router.post("/orders/{order_id}/shopify/repush-fulfillment")

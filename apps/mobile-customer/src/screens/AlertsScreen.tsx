@@ -7,14 +7,17 @@ import { screenFromDeepLink } from "../linking";
 import { EmptyState } from "../ui/Motion";
 import { Screen } from "../ui/Screen";
 
+let cachedInbox: { items: InboxItem[]; unread_count: number } | null = null;
+
 export function AlertsScreen({ onTrack }: { onTrack: (tracking: string) => void }) {
-  const [items, setItems] = useState<InboxItem[]>([]);
-  const [unread, setUnread] = useState(0);
+  const [items, setItems] = useState<InboxItem[]>(() => cachedInbox?.items ?? []);
+  const [unread, setUnread] = useState(() => cachedInbox?.unread_count ?? 0);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     void fetchInbox()
       .then((inbox) => {
+        cachedInbox = { items: inbox.items, unread_count: inbox.unread_count };
         setItems(inbox.items);
         setUnread(inbox.unread_count);
         setError(null);

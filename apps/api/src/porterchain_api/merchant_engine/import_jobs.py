@@ -96,7 +96,7 @@ def apply_optimize_job(db: Session, job_id: str) -> None:
     cfg["route_explanation"] = (
         explain_stops(reordered)
         + f" Drop order updated (nearest-neighbor, source={optimize_source})."
-        + " Not Fleetbase VROOM — merchant route-import UX only."
+        + " Merchant route-import UX only (not the fleet day plan)."
     )
     job.job_config = cfg
     job.preview = reordered

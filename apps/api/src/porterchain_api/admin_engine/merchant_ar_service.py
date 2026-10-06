@@ -368,6 +368,10 @@ class MerchantArService:
         )
         db.add(entry)
 
+        from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
+        from porterchain_api.merchant_engine.lookups import get_merchant
+
+        billed = get_merchant(db, invoice.merchant_id or order.merchant_id)
         emit_event(
             db,
             event_type=MerchantEvents.MERCHANT_PAYMENT_RECEIVED,
@@ -381,6 +385,8 @@ class MerchantArService:
                 "payment_id": pay.id,
                 "amount_cents": settle_cents,
                 "method": method_n,
+                "merchant_id": invoice.merchant_id or order.merchant_id,
+                "merchant_email": primary_billing_email(billed) if billed else None,
             },
         )
         log_admin_audit(

@@ -15,7 +15,9 @@ export {
 
 const ReportChartInner = dynamic(() => import("@/components/charts/ReportChartInner"), {
   ssr: false,
-  loading: () => null,
+  loading: () => (
+    <div className="h-full w-full animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none" />
+  ),
 });
 
 type Props = {

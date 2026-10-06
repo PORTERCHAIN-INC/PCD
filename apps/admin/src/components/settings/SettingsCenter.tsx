@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useOptimistic, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Download, RefreshCw, Search, Settings2, Upload } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import AdminPage from "@/components/layout/AdminPage";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import {
   CONFIG_SECTION_IDS,
   ENV_OWNED_SECTION_IDS,
@@ -20,11 +20,12 @@ import { SECTION_ALIASES, SECTION_DESCRIPTIONS, SECTION_ICONS } from "@/lib/sett
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import SettingsSidebar from "./SettingsSidebar";
 import { MasterruleCallout } from "./ui/SettingsPrimitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
 
 const panelFallback = () => (
-  <div className="flex justify-center py-16">
-    <Spinner />
+  <div className="py-6">
+    <PageSkeleton rows={4} />
   </div>
 );
 
@@ -106,6 +107,18 @@ export default function SettingsCenter() {
     retry: 1,
   });
 
+  const [optimisticCenter, applyOptimisticConfig] = useOptimistic(
+    center,
+    (current, update: { key: string; value: unknown }) => {
+      if (!current) return current;
+      return {
+        ...current,
+        config: { ...current.config, [update.key]: update.value },
+      };
+    }
+  );
+  const paintCenter = optimisticCenter ?? center;
+
   const { data: searchHits = [] } = useQuery({
     queryKey: ["settings-search", search],
     enabled: enabled && search.length >= 2,
@@ -152,19 +165,29 @@ export default function SettingsCenter() {
   }, [dirty]);
 
   const activeSection = useMemo(
-    () => center?.sections.find((s) => s.id === tab),
-    [center?.sections, tab]
+    () => paintCenter?.sections.find((s) => s.id === tab),
+    [paintCenter?.sections, tab]
   );
 
   const bindingEffect = useMemo(() => {
-    const b = center?.bindings?.bindings.find((x) => x.id === tab);
+    const b = paintCenter?.bindings?.bindings.find((x) => x.id === tab);
     return b?.effect ?? "status";
-  }, [center?.bindings, tab]);
+  }, [paintCenter?.bindings, tab]);
 
   const saveConfig = useCallback(
     async (key: string, value: unknown, reason: string) => {
       setSaving(true);
       setToast(null);
+      const previous = qc.getQueryData<SettingsCenterData>(["settings-center"]);
+      startTransition(() => {
+        applyOptimisticConfig({ key, value });
+      });
+      if (previous) {
+        qc.setQueryData<SettingsCenterData>(["settings-center"], {
+          ...previous,
+          config: { ...previous.config, [key]: value },
+        });
+      }
       try {
         const token = await getApiToken();
         await withStaffStepUp(token, () => settingsApi.updateConfig(token, key, value, reason));
@@ -172,13 +195,14 @@ export default function SettingsCenter() {
         setDirty(false);
         setToast("Saved");
       } catch (e) {
+        if (previous) qc.setQueryData(["settings-center"], previous);
         setToast(e instanceof Error ? e.message : "Save failed");
         throw e;
       } finally {
         setSaving(false);
       }
     },
-    [getApiToken, qc]
+    [applyOptimisticConfig, getApiToken, qc]
   );
 
   async function handleExport() {
@@ -186,10 +210,10 @@ export default function SettingsCenter() {
     exportSettingsJson(data);
   }
 
-  if (!enabled) {
+  if (!center && !enabled) {
     return (
-      <div className="flex justify-center py-20">
-        <Spinner />
+      <div className="py-6">
+        <PageSkeleton rows={4} />
       </div>
     );
   }
@@ -210,15 +234,15 @@ export default function SettingsCenter() {
 
   if (isLoading && !center) {
     return (
-      <div className="flex justify-center py-20">
-        <Spinner label="Loading settings center…" />
+      <div className="py-6">
+        <PageSkeleton rows={6} />
       </div>
     );
   }
 
-  const dash = center?.dashboard;
-  const config = center?.config ?? {};
-  const validation = center?.validation;
+  const dash = paintCenter?.dashboard;
+  const config = paintCenter?.config ?? {};
+  const validation = paintCenter?.validation;
   const ActiveIcon = SECTION_ICONS[tab] ?? Settings2;
 
   return (
@@ -297,7 +321,7 @@ export default function SettingsCenter() {
           }}
           onFocus={() => setSearchActive(true)}
           onBlur={() => window.setTimeout(() => setSearchActive(false), 150)}
-          placeholder="Search settings — SLA, downtown, vehicles, Fleetbase…"
+          placeholder="Search settings — SLA, downtown, vehicles, dispatch…"
           className="w-full rounded-xl border border-primary/10 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
         />
         {searchActive && search.length >= 2 && (
@@ -333,8 +357,12 @@ export default function SettingsCenter() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="sticky top-4 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-primary/10 bg-white p-3 shadow-sm">
-            {center?.sections && (
-              <SettingsSidebar sections={center.sections} activeId={tab} onSelect={selectTab} />
+            {paintCenter?.sections && (
+              <SettingsSidebar
+                sections={paintCenter.sections}
+                activeId={tab}
+                onSelect={selectTab}
+              />
             )}
           </div>
         </aside>
@@ -345,7 +373,7 @@ export default function SettingsCenter() {
             onChange={(e) => selectTab(e.target.value)}
             className="mb-4 min-h-11 w-full rounded-xl border border-primary/10 bg-white px-3 py-2.5 text-sm lg:hidden"
           >
-            {center?.sections.map((s) => (
+            {paintCenter?.sections.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.label}
               </option>
@@ -363,7 +391,7 @@ export default function SettingsCenter() {
           >
             <SectionRouter
               tab={tab}
-              center={center}
+              center={paintCenter}
               dash={dash}
               config={config}
               saving={saving}

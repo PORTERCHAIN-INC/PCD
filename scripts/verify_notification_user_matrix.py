@@ -26,7 +26,6 @@ for p in (
     ROOT / "services" / "event-bus",
     ROOT / "services" / "driver-platform",
     ROOT / "services" / "pricing-engine",
-    ROOT / "services" / "fleetbase-adapter",
     ROOT / "services" / "python",
 ):
     sys.path.insert(0, str(p))

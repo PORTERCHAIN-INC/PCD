@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { AlertTriangle, RefreshCw, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
@@ -10,7 +11,7 @@ import {
   MasterruleCompliancePanel,
   ProgressRing,
 } from "@/components/diagnostics/DiagnosticsPrimitives";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import { SettingsCard, SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import { useApiData } from "@/hooks/useApiData";
 import {
@@ -30,6 +31,7 @@ export function DiagnosticsHealthView({
 } = {}) {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [category, setCategory] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
@@ -39,15 +41,19 @@ export function DiagnosticsHealthView({
     { key: "health-dashboard", staleTime: 120_000 }
   );
 
+  const tickHealth = useEffectEvent(() => {
+    void refetch();
+  });
+
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(() => void refetch(), 60_000);
+    const id = setInterval(() => tickHealth(), 60_000);
     return () => clearInterval(id);
-  }, [autoRefresh, refetch]);
+  }, [autoRefresh]);
 
   const filtered = useMemo(
-    () => (data ? filterComponents(data.components, query, category, statusFilter) : []),
-    [data, query, category, statusFilter]
+    () => (data ? filterComponents(data.components, deferredQuery, category, statusFilter) : []),
+    [data, deferredQuery, category, statusFilter]
   );
 
   const issues = data?.components.filter((c) => c.status !== "healthy") ?? [];
@@ -104,7 +110,7 @@ export function DiagnosticsHealthView({
 
       {loading && !data && (
         <div className="flex justify-center py-16">
-          <Spinner />
+          <PageSkeleton rows={3} />
         </div>
       )}
       {error && (

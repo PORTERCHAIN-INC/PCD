@@ -3,7 +3,7 @@
 POST https://optimize.api.nvidia.com/v1/nvidia/cuopt
 action=cuOpt_OptimizedRouting with Valhalla cost matrices.
 
-Fails soft on RPM / auth / transport — callers must keep Fleetbase VROOM.
+Fails soft on RPM / auth / transport — callers keep the OR-Tools day plan.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ def cuopt_status() -> dict[str, Any]:
         "configured": cuopt_configured(),
         "circuit_open": open_circuit,
         "url": _cuopt_url(),
-        "note": "Shadow only — Fleetbase VROOM remains commit SoT.",
+        "note": "Shadow only — PorterChain OR-Tools remains commit SoT.",
     }
 
 

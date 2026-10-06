@@ -59,7 +59,7 @@ function DriverAccessGateWithClerk({ children }: Props) {
 
   const fetchOnboarding = useCallback(async () => fetchDriverOnboarding(), []);
 
-  const { checking, errorDetail } = usePortalSessionGate({
+  const { errorDetail } = usePortalSessionGate({
     portal: "driver",
     apiUrl: publicEnv.porterchainApiUrl,
     isLoaded,
@@ -76,15 +76,6 @@ function DriverAccessGateWithClerk({ children }: Props) {
   // Local email-picker session: middleware + BFF enforce cookie; skip Clerk gate.
   if (isLoaded && !isSignedIn && isDevEmailLogin()) {
     return <>{children}</>;
-  }
-
-  if (!isLoaded || (checking && !onPendingPath)) {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-gray-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-secondary border-t-transparent" />
-        <p className="text-sm text-muted">Loading session…</p>
-      </div>
-    );
   }
 
   if (errorDetail) {

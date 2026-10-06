@@ -18,8 +18,10 @@ def main() -> int:
 
     if DISPATCH.is_file():
         text = DISPATCH.read_text(encoding="utf-8", errors="ignore")
-        if "BookingSyncService" not in text or "process_dispatch" not in text:
-            failures.append("§0.7.5 dispatch.py missing BookingSyncService wiring")
+        if "process_dispatch" not in text:
+            failures.append("§0.7.5 dispatch.py missing process_dispatch")
+        if "BookingSyncService" in text:
+            failures.append("§0.7.5 dispatch.py must not push orders to Fleetbase")
 
     if PROCESSORS.is_file():
         init = PROCESSORS.read_text(encoding="utf-8", errors="ignore")
@@ -28,11 +30,6 @@ def main() -> int:
 
     if not TEST.is_file():
         failures.append("§0.7.5 missing tests/test_dispatch_processor.py")
-
-    if RUNBOOK.is_file():
-        rb = RUNBOOK.read_text(encoding="utf-8", errors="ignore")
-        if "FLEETBASE_DISPATCH_BRIDGE" not in rb:
-            failures.append("§0.7.5 RUNBOOK missing manual dispatch / bridge documentation")
 
     if failures:
         print("Dispatch worker guard failed:")

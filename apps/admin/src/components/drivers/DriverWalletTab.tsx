@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { Wallet } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers } from "@/lib/drivers";
-import { Badge, Button, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, titleCase } from "@/lib/crmFormat";
 import { Metric } from "@/components/drivers/DriverDetailShared";
 
@@ -16,7 +17,7 @@ export function WalletTab({ id }: { id: string }) {
   });
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  if (!data && !error) return <Spinner />;
+  if (!data && !error) return <PageSkeleton rows={3} />;
   const payouts = data?.payouts ?? [];
   const wallet = data?.wallet_balance_cents ?? 0;
 

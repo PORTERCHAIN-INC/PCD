@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Clock, MapPin, Navigation, Radio, Route } from "lucide-react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import DriverShell from "@/components/DriverShell";
 import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { DriverNavigationMap } from "@/components/navigation/DriverNavigationMap";
@@ -14,7 +15,13 @@ import { formatDistance, formatEta } from "@/lib/navigation";
 
 export default function NavigationClient() {
   return (
-    <Suspense fallback={<p className="p-6 text-[var(--muted)]">Loading navigation…</p>}>
+    <Suspense
+      fallback={
+        <div className="p-6">
+          <PageSkeleton rows={3} />
+        </div>
+      }
+    >
       <WithGoogleMaps>
         <NavigationPageContent />
       </WithGoogleMaps>
@@ -72,7 +79,11 @@ function NavigationPageContent() {
         </p>
       )}
 
-      {loading && !session && <p className="mt-6 text-[var(--muted)]">Loading navigation…</p>}
+      {loading && !session && (
+        <div className="mt-6">
+          <PageSkeleton rows={3} />
+        </div>
+      )}
       {error && <p className="mt-4 text-red-600">{error}</p>}
 
       {session?.idle && (

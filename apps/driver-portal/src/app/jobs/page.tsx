@@ -1,12 +1,16 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import JobsListClient from "@/components/jobs/JobsListClient";
+import { loadDriverJobs, loadDriverJobsHistory } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { PageSkeleton } from "@porterchain/ui/loading";
+export default async function JobsPage() {
+  const client = new QueryClient();
+  const [jobs, history] = await Promise.all([loadDriverJobs(), loadDriverJobsHistory()]);
+  if (jobs) client.setQueryData(["driver-jobs"], jobs);
+  if (history) client.setQueryData(["driver-jobs-history"], history);
 
-const JobsListClient = dynamic(() => import("@/components/jobs/JobsListClient"), {
-  loading: () => <PageSkeleton rows={5} />,
-});
-
-export default function JobsPage() {
-  return <JobsListClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <JobsListClient />
+    </HydrationBoundary>
+  );
 }

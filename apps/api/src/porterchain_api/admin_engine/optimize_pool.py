@@ -1,8 +1,7 @@
-"""Optimize pool view — eligible Fleetbase ids plus why other stops are out."""
+"""Optimize pool view — eligible PorterChain orders plus why other stops are out."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -18,16 +17,15 @@ OPTIMIZE_STATES = frozenset(
 SCAN_CAP = 400
 
 
-def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbase orchestrator; no local solver
+def build_optimize_pool(
     db: Session,
     *,
     limit: int,
     offset: int,
     vehicle_ids: list[str],
     driver_ids: list[str],
-    is_live_id: Callable[[str | None], bool],
 ) -> dict[str, Any]:
-    """Return one page of solver-eligible orders and counts for the rest."""
+    """Return one page of day-plan-eligible orders and counts for the rest."""
     paused_merchants = {
         row[0]
         for row in db.query(ShopifyShop.merchant_id).filter(ShopifyShop.ingress_paused.is_(True)).all()
@@ -39,9 +37,9 @@ def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbas
         .limit(SCAN_CAP)
         .all()
     )
-    missing_fleetbase = 0
     sandbox = 0
     paused = 0
+    no_coords = 0
     eligible: list[Order] = []
     for order in candidates:
         if order.order_source == OrderSource.SHOPIFY.value and order.merchant_id in paused_merchants:
@@ -50,8 +48,8 @@ def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbas
         if order_is_sandbox(order):
             sandbox += 1
             continue
-        if not is_live_id(order.fleetbase_order_id):
-            missing_fleetbase += 1
+        if not _has_coords(order):
+            no_coords += 1
             continue
         eligible.append(order)
 
@@ -68,9 +66,9 @@ def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbas
         "preview_cap": limit,
         "offset": start,
         "remaining_after_page": max(0, len(eligible) - start - len(page)),
-        "placeholder_skipped": missing_fleetbase,
+        "placeholder_skipped": 0,
         "excluded": {
-            "missing_fleetbase_id": missing_fleetbase,
+            "missing_coords": no_coords,
             "sandbox": sandbox,
             "shopify_ingress_paused": paused,
         },
@@ -87,6 +85,7 @@ def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbas
                 "state": order.state,
                 "order_source": order.order_source,
                 "fleetbase_order_id": order.fleetbase_order_id,
+                "assigned_driver_id": getattr(order, "assigned_driver_id", None),
                 "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
                 "merchant_id": order.merchant_id,
                 "weight_kg": float(order.weight_kg) if order.weight_kg is not None else None,
@@ -94,3 +93,14 @@ def build_optimize_pool(  # fleetbase-first:ok — eligibility page for Fleetbas
             for order in page
         ],
     }
+
+
+def _has_coords(order: Order) -> bool:
+    for addr in (order.pickup, order.dropoff):
+        if not isinstance(addr, dict):
+            continue
+        lat = addr.get("lat") if addr.get("lat") is not None else addr.get("latitude")
+        lng = addr.get("lng") if addr.get("lng") is not None else addr.get("lon") or addr.get("longitude")
+        if lat is not None and lng is not None:
+            return True
+    return False

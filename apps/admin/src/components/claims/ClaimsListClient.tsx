@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, RefreshCw, X } from "lucide-react";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import ClaimsGrid from "@/components/claims/ClaimsGrid";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import { CLAIM_STATUSES, CLAIM_TYPES, claimsApi, type ClaimFilters } from "@/lib/claims";
 import AdminPage from "@/components/layout/AdminPage";
 
@@ -17,7 +18,9 @@ export default function ClaimsListClient() {
   const qc = useQueryClient();
   const [filters, setFilters] = useState<ClaimFilters>({});
   const [selected, setSelected] = useState<string[]>([]);
-  const filterKey = JSON.stringify(filters);
+  const deferredSearch = useDeferredValue(filters.search);
+  const listFilters = { ...filters, search: deferredSearch };
+  const filterKey = JSON.stringify(listFilters);
 
   useEffect(() => {
     const customerId = searchParams.get("customer_id");
@@ -39,7 +42,7 @@ export default function ClaimsListClient() {
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () => {
       const token = await getApiToken();
-      return claimsApi.list(token, filters);
+      return claimsApi.list(token, listFilters);
     },
   });
 
@@ -206,9 +209,9 @@ export default function ClaimsListClient() {
           </div>
         )}
 
-        {isLoading ? (
+        {isLoading && rows.length === 0 ? (
           <div className="flex justify-center py-12">
-            <Spinner />
+            <PageSkeleton rows={3} />
           </div>
         ) : (
           <ClaimsGrid rows={rows} selected={selected} onSelect={setSelected} />

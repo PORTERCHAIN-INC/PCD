@@ -96,8 +96,8 @@ export function ExceptionReasonModal({
               {" — "}
             </>
           ) : null}
-          Exceptions are PorterChain commercial actions. Execution (accept → deliver) stays in
-          Fleetbase / the driver app.
+          Exceptions are PorterChain commercial actions. Execution (accept → deliver) stays in the
+          driver app.
         </p>
         {allowColumnChange ? (
           <div>

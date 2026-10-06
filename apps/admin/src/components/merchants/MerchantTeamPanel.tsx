@@ -7,16 +7,9 @@ import { useApiData } from "@/hooks/useApiData";
 import { merchants, type MerchantDetail } from "@/lib/merchants";
 import { inviteStatusLabel, seatStatusLabel } from "@/lib/catalog";
 import { titleCase } from "@/lib/crmFormat";
-import {
-  Badge,
-  Button,
-  Field,
-  Input,
-  SectionCard,
-  Select,
-  Spinner,
-} from "@/components/crm/primitives";
+import { Badge, Button, Field, Input, SectionCard, Select } from "@/components/crm/primitives";
 import { MERCHANT_SEAT_ROLES } from "@/lib/settings";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 const INVITE_TONE: Record<string, "green" | "amber" | "red" | "slate"> = {
   accepted: "green",
@@ -129,7 +122,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
   }
 
   if (!onboarding?.steps) {
-    return <Spinner label="Loading onboarding…" />;
+    return <PageSkeleton rows={3} />;
   }
 
   const steps = onboarding.steps;

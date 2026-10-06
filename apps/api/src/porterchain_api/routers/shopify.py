@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.shopify_session import (

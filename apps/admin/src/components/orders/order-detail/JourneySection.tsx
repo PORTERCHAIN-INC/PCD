@@ -56,7 +56,7 @@ export function TrackingTab({
           <Row label="GPS" value={JSON.stringify(live.driver_location)} mono />
         ) : (
           <p className="text-sm text-muted">
-            Live GPS syncs via Fleetbase when order is in flight.
+            Live GPS is the driver pin while the order is moving.
           </p>
         )}
       </div>

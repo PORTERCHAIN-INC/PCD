@@ -272,7 +272,7 @@ export type ScheduledBatchesResponse = {
   batches: ScheduledBatch[];
 };
 
-export type FleetbaseManifest = {
+export type DayManifest = {
   id?: string | null;
   public_id?: string | null;
   status?: string | null;
@@ -294,7 +294,7 @@ export type ManifestsResponse = {
   date: string;
   source: string;
   manifest_count: number;
-  manifests: FleetbaseManifest[];
+  manifests: DayManifest[];
   note?: string;
 };
 
@@ -331,9 +331,10 @@ export type OptimizeMetrics = {
   cuopt_shadow?: {
     status?: string;
     winner?: string;
+    ortools_distance_km?: number | null;
     vroom_distance_km?: number | null;
     cuopt_distance_km?: number | null;
-    delta_km_vroom_minus_cuopt?: number | null;
+    delta_km_ortools_minus_cuopt?: number | null;
     reason?: string;
     note?: string;
     commit_sot?: string;
@@ -369,7 +370,7 @@ export type OptimizePool = {
   offset?: number;
   remaining_after_page?: number;
   excluded?: {
-    missing_fleetbase_id?: number;
+    missing_coords?: number;
     sandbox?: number;
     shopify_ingress_paused?: number;
   };

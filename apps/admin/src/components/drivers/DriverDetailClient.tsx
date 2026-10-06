@@ -3,7 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Activity as ActivityIcon,
   AlertTriangle,
@@ -33,49 +33,52 @@ import { drivers, type DriverDetail } from "@/lib/drivers";
 import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
-import { Badge, Button, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, titleCase, dateTime } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
+import { PageSkeleton } from "@porterchain/ui/loading";
+
+const tabFallback = () => <PageSkeleton rows={3} />;
 
 const DocumentsTab = dynamic(
   () => import("@/components/drivers/DriverDocumentsTab").then((m) => m.DocumentsTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const VehiclesTab = dynamic(
   () => import("@/components/drivers/DriverVehiclesTab").then((m) => m.VehiclesTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const IdentityTab = dynamic(
   () => import("@/components/drivers/DriverIdentityTab").then((m) => m.IdentityTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const OrdersTab = dynamic(
   () => import("@/components/drivers/DriverOrdersTab").then((m) => m.OrdersTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const PerformanceTab = dynamic(
   () => import("@/components/drivers/DriverPerformanceTab").then((m) => m.PerformanceTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const WalletTab = dynamic(
   () => import("@/components/drivers/DriverWalletTab").then((m) => m.WalletTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const IncidentsTab = dynamic(
   () => import("@/components/drivers/DriverIncidentsTab").then((m) => m.IncidentsTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const TimelineTab = dynamic(
   () => import("@/components/drivers/DriverTimelineTab").then((m) => m.TimelineTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const AnalyticsTab = dynamic(
   () => import("@/components/drivers/DriverAnalyticsTab").then((m) => m.AnalyticsTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const SettingsTab = dynamic(
   () => import("@/components/drivers/DriverSettingsTab").then((m) => m.SettingsTab),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 
 const STATUS_TONE: Record<string, string> = {
@@ -147,11 +150,9 @@ const PRIMARY_TAB_IDS = new Set<TabId>(["overview", "identity", "documents", "ve
 const PRIMARY_TABS = TABS.filter((t) => PRIMARY_TAB_IDS.has(t.id));
 const MORE_TABS = TABS.filter((t) => !PRIMARY_TAB_IDS.has(t.id));
 
-export default function DriverDetailClient() {
-  const params = useParams<{ id: string }>();
+export default function DriverDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const id = params.id;
   const { getApiToken } = useAdminAuth();
   const { profile } = useAdminProfile();
   const canWrite = !READ_ONLY_ROLES.has((profile?.role || "").toLowerCase());
@@ -182,23 +183,13 @@ export default function DriverDetailClient() {
       if (action === "approve") {
         await drivers.approve(token, id);
       } else if (action === "reject") {
-        const res = await drivers.reject(token, id, rejectReason.trim());
+        await drivers.reject(token, id, rejectReason.trim());
         setRejectOpen(false);
         setRejectReason("");
-        if (res.fleetbase_sync_warning) {
-          setActionError(
-            "Driver rejected in PorterChain, but Fleetbase offline sync failed — verify they are not still assignable in Execution."
-          );
-        }
       } else if (action === "rehire") {
         await drivers.rehire(token, id);
       } else {
-        const res = await drivers.deactivate(token, id);
-        if (res.fleetbase_sync_warning) {
-          setActionError(
-            "Driver deactivated in PorterChain, but Fleetbase offline sync failed — verify they are not still assignable in Execution."
-          );
-        }
+        await drivers.deactivate(token, id);
       }
       refresh();
     } catch (e) {
@@ -209,7 +200,7 @@ export default function DriverDetailClient() {
   }
 
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!d) return <Spinner label="Loading driver…" />;
+  if (!d) return <PageSkeleton rows={5} />;
 
   return (
     <AdminPage>
@@ -240,11 +231,6 @@ export default function DriverDetailClient() {
                 <h1 className="text-xl font-bold text-primary">{d.full_name}</h1>
                 <Badge tone={STATUS_TONE[d.status] ?? "slate"}>{titleCase(d.status)}</Badge>
                 {d.medical_transport_certified && <Badge tone="sky">Medical certified</Badge>}
-                {d.fleetbase_driver_id ? (
-                  <Badge tone="green">Fleetbase linked</Badge>
-                ) : (
-                  <Badge tone="amber">Not linked to execution</Badge>
-                )}
                 {d.clerk_linked === false && <Badge tone="amber">Sign-in not connected</Badge>}
                 {d.rating != null && (
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
@@ -338,12 +324,6 @@ export default function DriverDetailClient() {
         {(d.assign_blockers?.length ?? 0) > 0 && (
           <p className="mt-3 text-sm text-amber-800">
             Dispatch will not assign this driver. {d.assign_blockers?.join(" ")}
-          </p>
-        )}
-        {!d.fleetbase_driver_id && (
-          <p className="mt-2 text-sm text-muted">
-            Not linked to execution — assigned jobs will not show on Orders until Fleetbase has this
-            driver.
           </p>
         )}
         {actionError && (

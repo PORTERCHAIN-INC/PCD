@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
@@ -39,15 +40,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const DEPT_ICONS = [TrendingUp, Headphones, Building2, Truck, Code2];
 
-export default async function ContactPage({ params, searchParams }: Props) {
-  const { locale } = await params;
+async function QuoteIntentRedirect({
+  locale,
+  searchParams,
+}: {
+  locale: string;
+  searchParams: Promise<{ intent?: string; from?: string }>;
+}) {
   const { intent, from } = await searchParams;
-  setRequestLocale(locale);
-
   if (intent === "quote") {
     const fromParam = from?.trim() || "contact";
     redirect(`/${locale as Locale}/sign-up?intent=quote&from=${encodeURIComponent(fromParam)}`);
   }
+  return null;
+}
+
+export default async function ContactPage({ params, searchParams }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
 
   const t = await getTranslations("corporate.contact");
   const tInfo = await getTranslations("corporate.contact.info");
@@ -80,6 +90,9 @@ export default async function ContactPage({ params, searchParams }: Props) {
 
   return (
     <CorporateShell>
+      <Suspense fallback={null}>
+        <QuoteIntentRedirect locale={locale} searchParams={searchParams} />
+      </Suspense>
       <JsonLd data={buildLocalBusinessSchema()} />
       <ContactHero badge={t("hero.badge")} title={t("hero.title")} subtitle={t("hero.subtitle")} />
 

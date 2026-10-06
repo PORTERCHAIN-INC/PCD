@@ -16,9 +16,7 @@ class E2EValidationReportsMixin:
         auto_fixes: list[dict[str, str]],
     ) -> dict[str, str]:
         summary = self._summarize(phases)
-        fleetbase = phases.get("phase_1_system_layer", {}).get("fleetbase_sync_probe", {})
-        if not fleetbase:
-            fleetbase = {}
+        day_plan = phases.get("phase_1_system_layer", {}).get("day_plan_probe", {}) or {}
 
         return {
             "SYSTEM_VALIDATION_REPORT.md": self._md_system(phases.get("phase_1_system_layer", {}), summary, auto_fixes),
@@ -27,7 +25,7 @@ class E2EValidationReportsMixin:
             "FAILURE_SCENARIOS_REPORT.md": self._md_failures(phases.get("phase_5_failures", {})),
             "EVENT_BUS_REPORT.md": self._md_events(phases.get("phase_6_event_bus", {})),
             "NOTIFICATION_REPORT.md": self._md_notifications(phases.get("phase_7_notifications", {})),
-            "FLEETBASE_SYNC_REPORT.md": self._md_fleetbase(fleetbase),
+            "DAY_PLAN_REPORT.md": self._md_day_plan(day_plan),
             "DATA_CONSISTENCY_REPORT.md": self._md_consistency(phases.get("phase_8_consistency", {})),
             "API_TRACE_REPORT.md": self._md_trace(phases.get("phase_9_observability", {})),
             "PRODUCTION_READINESS_REPORT.md": self._md_readiness(summary, phases, settings, auto_fixes),
@@ -106,12 +104,14 @@ class E2EValidationReportsMixin:
             lines.append(f"- **{a['audience']}**: {a['status']} (total={a['total']}, failed={a['failed']})")
         return "\n".join(lines)
 
-    def _md_fleetbase(self, fb: dict) -> str:
-        lines = self._md_header("Fleetbase Sync Report")
-        lines.append(f"- Pending sync: {fb.get('pending_sync', 0)}")
-        lines.append(f"- Successful: {fb.get('successful_sync', 0)}")
-        lines.append(f"- Failed: {fb.get('failed_sync', 0)}")
-        lines.append(f"- Retry queue: {fb.get('retry_queue', 0)}")
+    def _md_day_plan(self, plan: dict) -> str:
+        lines = self._md_header("Day Plan Report")
+        lines.append(f"- Engine: {plan.get('engine', 'porterchain')}")
+        lines.append(f"- Solver: {plan.get('solver', 'ortools')}")
+        lines.append(f"- Road cost: {plan.get('road_cost', 'valhalla')}")
+        lines.append(f"- Pending runs: {plan.get('pending_runs', 0)}")
+        lines.append(f"- Ready runs: {plan.get('ready_runs', 0)}")
+        lines.append(f"- Failed runs: {plan.get('failed_runs', 0)}")
         return "\n".join(lines)
 
     def _md_consistency(self, phase: dict) -> str:
@@ -159,7 +159,8 @@ class E2EValidationReportsMixin:
         lines.append("")
         lines.append("## Masterrule compliance")
         lines.append("- Architecture topology: locked (§1)")
-        lines.append(f"- Fleetbase adapter: {'enabled' if settings.fleetbase_dispatch_bridge else 'disabled'}")
+        lines.append(f"- Dispatch engine: {settings.dispatch_engine or 'porterchain'} (OR-Tools day plan)")
+        lines.append(f"- Fleetbase bridge: {'ON (retire — set false)' if settings.fleetbase_dispatch_bridge else 'off'}")
         lines.append(f"- Stripe webhook signal: {'mock' if settings.stripe_mock else 'live'}")
         lines.append("")
         lines.append(

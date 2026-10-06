@@ -3,6 +3,7 @@
 import ShopifyConnectCard from "@/components/integrations/ShopifyConnectCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { publicEnv } from "@/lib/env";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -26,7 +27,7 @@ export default function ShopifyAppClient() {
     : null;
 
   if (!isLoaded) {
-    return <p className="text-muted">Loading…</p>;
+    return <PageSkeleton rows={3} />;
   }
 
   // After OAuth grant — show app UI immediately (App Store requirement 2.3.3).

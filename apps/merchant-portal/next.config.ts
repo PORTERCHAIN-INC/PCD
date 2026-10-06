@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/ui", "@porterchain/config"],
+  reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },

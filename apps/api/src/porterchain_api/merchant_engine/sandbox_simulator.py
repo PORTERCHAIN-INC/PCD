@@ -1,4 +1,4 @@
-"""Sandbox lifecycle simulator — advance test orders without Fleetbase.
+"""Sandbox lifecycle simulator — advance test orders without live dispatch.
 
 Partners certify webhook handlers against signed order.* fixtures. Never rebuilds
 dispatch/GPS; only transitions PorterChain Order state and fans out to sandbox webhooks.

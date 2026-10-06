@@ -1,9 +1,13 @@
-# Shopify ↔ Merchant ↔ Fleetbase ↔ PorterChain — development test cases
+# Shopify ↔ Merchant ↔ PorterChain — development test cases
+
+> **Cutover (2026-10):** Fleetbase adapter, sync tables, and VROOM client are **removed**.
+> Shopify → PorterChain Order → day plan / assign. Historical `FB-*` / `fleetbase_engine`
+> rows below are retired; SSOT is [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 **Status:** living catalog for local/CI development (not prod Doppler / Partners sandbox E2E).  
 **Mapped:** 2026-09-17 via Graphify → CodeGraph CLI `explore` → Ripwire (`--for` / `--expand` / `--callers` / `--impact`).  
 **Architecture SSOT:** [ARCHITECTURE.md](../ARCHITECTURE.md) · charter: capacity network, not a courier SKU.  
-**Adjacent matrices:** [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md) (portal-wide) · [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md) (carrier distance ≠ VROOM) · intentional skips: [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md) § Shopify Quote≡Book.
+**Adjacent matrices:** [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md) (portal-wide) · [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md) (carrier distance ≠ day-plan solve) · intentional skips: [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md) § Shopify Quote≡Book.
 
 ### Sensor trail (this pass)
 

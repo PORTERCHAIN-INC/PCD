@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { startTransition, useOptimistic, useRef, useState, type ReactNode } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -23,16 +23,18 @@ import {
   type QueueOrder,
   type SuggestedDriver,
 } from "@/lib/operations";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { titleCase } from "@/lib/crmFormat";
 import { formatSuggestionEta } from "@/lib/telemetryLabels";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 const DESK_PANE =
   "flex min-h-[28rem] max-h-[min(70vh,40rem)] flex-col xl:min-h-[32rem] xl:max-h-[min(72vh,44rem)]";
 
 function SlaBadge({ sla }: { sla: string }) {
   const tone = sla === "breached" ? "red" : sla === "at_risk" ? "amber" : "green";
-  return <Badge tone={tone}>{titleCase(sla)}</Badge>;
+  const label = sla === "breached" ? "Breached" : sla === "at_risk" ? "At risk" : "On time";
+  return <Badge tone={tone}>{label}</Badge>;
 }
 
 type RankedSuggestions = { drivers: SuggestedDriver[]; source?: string };
@@ -64,6 +66,12 @@ function QueueRow({
     o.stop_phase === "delivery_only"
       ? !o.has_dropoff_coords
       : !o.has_pickup_coords || !o.has_dropoff_coords;
+  const accent =
+    o.sla === "breached"
+      ? "border-l-red-500"
+      : o.sla === "at_risk"
+        ? "border-l-amber-400"
+        : "border-l-transparent";
 
   return (
     <div
@@ -71,7 +79,8 @@ function QueueRow({
       {...listeners}
       {...attributes}
       className={cn(
-        "touch-none px-4 py-3",
+        "touch-none border-l-4 px-4 py-3",
+        accent,
         isDragging ? "opacity-30" : "cursor-grab active:cursor-grabbing"
       )}
     >
@@ -226,26 +235,33 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const orders = data ?? [];
+  const [optimisticOrders, markAssigned] = useOptimistic(
+    orders,
+    (current: QueueOrder[], orderId: string) => current.filter((order) => order.id !== orderId)
+  );
   const drivers = driversList ?? [];
   const onlineCount = drivers.filter((d) => d.is_online).length;
 
-  async function assign(orderId: string, driverId: string) {
-    setBusy(orderId);
+  function assign(orderId: string, driverId: string) {
     setActionError(null);
-    try {
-      const token = await getApiToken();
-      await api.assignDriver(token, orderId, driverId);
-      setSuggestions((prev) => {
-        const next = { ...prev };
-        delete next[orderId];
-        return next;
-      });
-      onAssigned();
-    } catch (e) {
-      setActionError(e instanceof Error ? e.message : "Assign failed");
-    } finally {
-      setBusy(null);
-    }
+    startTransition(async () => {
+      markAssigned(orderId);
+      setBusy(orderId);
+      try {
+        const token = await getApiToken();
+        await api.assignDriver(token, orderId, driverId);
+        setSuggestions((prev) => {
+          const next = { ...prev };
+          delete next[orderId];
+          return next;
+        });
+        onAssigned();
+      } catch (e) {
+        setActionError(e instanceof Error ? e.message : "Assign failed");
+      } finally {
+        setBusy(null);
+      }
+    });
   }
 
   async function loadSuggestions(orderId: string) {
@@ -288,15 +304,17 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
 
   if (loading && !data) {
     return (
-      <SectionCard title="Dispatch queue" className={DESK_PANE}>
-        <Spinner label="Loading dispatch queue…" />
+      <SectionCard title="Waiting to assign" className={DESK_PANE}>
+        <div className="px-3 py-3">
+          <PageSkeleton rows={4} />
+        </div>
       </SectionCard>
     );
   }
 
   if (error) {
     return (
-      <SectionCard title="Dispatch queue" className={DESK_PANE}>
+      <SectionCard title="Waiting to assign" className={DESK_PANE}>
         <div className="space-y-3 px-5 py-6 text-center">
           <p className="text-sm text-red-600">Could not load dispatch queue: {error}</p>
           <Button variant="outline" onClick={() => void refetch()} disabled={isFetching}>
@@ -309,7 +327,7 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
 
   const queuePane = (
     <SectionCard
-      title={`Dispatch queue (${orders.length})`}
+      title={`Waiting to assign (${optimisticOrders.length})`}
       action={
         <span className="text-xs text-muted">
           {driversLoading ? "…" : `${onlineCount} online · ${drivers.length} approved`}
@@ -318,11 +336,11 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
       className={DESK_PANE}
     >
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {orders.length === 0 ? (
+        {optimisticOrders.length === 0 ? (
           <EmptyState title="Queue is clear" hint="No unassigned orders awaiting dispatch." />
         ) : (
           <div className="divide-y divide-primary/5">
-            {orders.map((o: QueueOrder) => (
+            {optimisticOrders.map((o: QueueOrder) => (
               <QueueRow
                 key={o.id}
                 o={o}
@@ -350,7 +368,7 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
     >
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3">
         {driversLoading && drivers.length === 0 ? (
-          <Spinner label="Loading drivers…" />
+          <PageSkeleton rows={3} />
         ) : drivers.length === 0 ? (
           <EmptyState title="No approved drivers" hint="Approve drivers to dispatch work." />
         ) : (
@@ -388,6 +406,9 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-3">
+        <p className="sr-only" role="status">
+          {busy ? "Assigning driver" : actionError ? actionError : ""}
+        </p>
         {actionError && (
           <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
             {actionError}
@@ -404,8 +425,7 @@ export function DispatchQueuePanel({ tick, onAssigned, onOpenOrder, mapSlot }: P
 
         <p className="px-1 text-xs text-muted">
           Drag an order onto a driver, or use Suggest for ETA/load-ranked matches. Live map
-          positions come from Fleetbase via the adapter. Batch optimize lives under Tools →
-          Optimize.
+          positions are the driver pin. Batch optimize lives under Tools → Optimize.
         </p>
       </div>
 

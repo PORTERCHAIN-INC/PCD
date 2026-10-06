@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { drivers, type DriverDetail } from "@/lib/drivers";
 import { AddDriverDocumentForm } from "@/components/drivers/AddDriverDocumentForm";
-import { Badge, Button, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
 
 export function DocumentsTab({
@@ -27,7 +28,7 @@ export function DocumentsTab({
   const { data, error } = useApiData((t) => drivers.documents(t, id), [id, docVersion], {
     key: `driver-documents-${id}`,
   });
-  if (!data && !error) return <Spinner />;
+  if (!data && !error) return <PageSkeleton rows={3} />;
   const v = data?.verification ?? {
     license_verified: driver.license_verified,
     insurance_verified: driver.insurance_verified,

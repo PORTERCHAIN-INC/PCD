@@ -1,4 +1,4 @@
-"""Staff lead notices stay on the Lead Agent inbox. Do not email them."""
+"""Lead notices stay in Lead Agent unless the watch list is mailed while the admin app is empty."""
 
 from __future__ import annotations
 

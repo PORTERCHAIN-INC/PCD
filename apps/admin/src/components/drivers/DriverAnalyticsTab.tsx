@@ -1,15 +1,16 @@
 "use client";
 
 import { useApiData } from "@/hooks/useApiData";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { drivers } from "@/lib/drivers";
-import { SectionCard, Spinner } from "@/components/crm/primitives";
+import { SectionCard } from "@/components/crm/primitives";
 import { money } from "@/lib/crmFormat";
 
 export function AnalyticsTab({ id }: { id: string }) {
   const { data } = useApiData((t) => drivers.analytics(t, id), [id], {
     key: `driver-analytics-${id}`,
   });
-  if (!data) return <Spinner />;
+  if (!data) return <PageSkeleton rows={3} />;
   const max = Math.max(1, ...data.by_month.map((r) => r.orders));
   return (
     <SectionCard title="Orders & revenue by month">

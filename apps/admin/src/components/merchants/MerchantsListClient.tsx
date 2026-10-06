@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   type ColumnDef,
@@ -45,17 +45,10 @@ import {
   type MerchantRow,
 } from "@/lib/merchants";
 import { Dropdown, FilterChip, ProvincePills } from "@/components/crm/filters";
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Field,
-  Input,
-  Modal,
-  Spinner,
-} from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, Field, Input, Modal } from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
+import { TableSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
 
 const MerchantPricingFields = dynamic(
@@ -105,6 +98,7 @@ export default function MerchantsListClient() {
   const [version, setVersion] = useState(0);
   // M-27: push status / terms / search to the API (avoid silent truncation at limit=500).
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [status, setStatus] = useState("");
   const [terms, setTerms] = useState("");
   const { data, error } = useApiData(
@@ -113,9 +107,9 @@ export default function MerchantsListClient() {
         limit: "500",
         status: status || undefined,
         payment_terms: terms || undefined,
-        search: search.trim() || undefined,
+        search: deferredSearch.trim() || undefined,
       }),
-    [version, status, terms, search],
+    [version, status, terms, deferredSearch],
     { key: "merchants-list" }
   );
   const { data: statsData } = useApiData((t) => merchants.stats(t), [version], {
@@ -978,7 +972,7 @@ export default function MerchantsListClient() {
         )}
 
         {!data || !Array.isArray(data) ? (
-          <Spinner label="Loading merchants…" />
+          <TableSkeleton rows={8} />
         ) : rows.length === 0 ? (
           <EmptyState
             title="No merchants match these filters"

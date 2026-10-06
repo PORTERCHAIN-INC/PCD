@@ -44,7 +44,7 @@ def test_control_tower_extended(db, admin_ctx, dispatch_order, driver) -> None:
     assert isinstance(tower.live_activity(db), list)
     assert isinstance(tower.ai_ops(db), dict)
 
-    with pytest.raises(ValueError, match="execution_moves_run_in_fleetbase"):
+    with pytest.raises(ValueError, match="execution_moves_run_in_driver_app"):
         tower.move_board_order(db, admin_ctx, dispatch_order.id, "assigned")
 
     with pytest.raises(ValueError, match="exception_reason_required"):

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PorterChain feature media</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1600px;
+        height: 900px;
+        overflow: hidden;
+        background: #0a1628;
+        color: #fff;
+        font-family: Calibri, "Segoe UI", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .scene {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1600px;
+        height: 900px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 96px;
+        opacity: 0;
+        background: #0a1628;
+      }
+      .scene.on {
+        opacity: 1;
+      }
+      .word {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 28px;
+        font-weight: 650;
+      }
+      .word img {
+        height: 36px;
+      }
+      h1 {
+        margin: 22px 0 0;
+        font-size: 58px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+        max-width: 620px;
+      }
+      .card {
+        width: 560px;
+        background: #fff;
+        color: #0a1628;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      }
+      .kicker {
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+      }
+      .card h2 {
+        margin: 8px 0 0;
+        font-size: 26px;
+      }
+      .opt {
+        margin-top: 18px;
+        border: 1px solid #d4d4d4;
+        border-radius: 14px;
+        padding: 18px 16px;
+        display: grid;
+        grid-template-columns: 22px 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+      .opt.on {
+        border-color: #0a1628;
+        box-shadow: inset 0 0 0 1px #0a1628;
+        background: #f8fafc;
+      }
+      .opt strong {
+        font-size: 18px;
+      }
+      .opt p {
+        margin: 4px 0 0;
+        color: #64748b;
+        font-size: 15px;
+      }
+      .price {
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .radio {
+        width: 18px;
+        height: 18px;
+        border-radius: 99px;
+        border: 2px solid #a3a3a3;
+        display: grid;
+        place-items: center;
+      }
+      .opt.on .radio {
+        border-color: #0a1628;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: transparent;
+      }
+      .opt.on .dot {
+        background: #0a1628;
+      }
+      .result p {
+        margin: 10px 0 0;
+        font-size: 20px;
+      }
+      .result .muted {
+        color: #64748b;
+        font-size: 16px;
+      }
+      .badge {
+        display: inline-flex;
+        margin-top: 16px;
+        background: #ccfbf1;
+        color: #115e59;
+        border-radius: 99px;
+        padding: 6px 12px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .cursor {
+        position: absolute;
+        z-index: 5;
+        width: 28px;
+        height: 28px;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        transition: transform 0.5s ease;
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+      }
+    </style>
+  </head>
+  <body>
+    <section class="scene on" id="buyer">
+      <div>
+        <div class="word">
+          <img src="../../../website/public/brand/porterchain-mark-white.png" alt="" /> porterchain
+        </div>
+        <h1>Same-day at checkout.</h1>
+      </div>
+      <div class="card">
+        <div class="kicker">Shipping</div>
+        <h2>Choose a method</h2>
+        <div class="opt" id="rate">
+          <div class="radio"><i class="dot"></i></div>
+          <div>
+            <strong>PorterChain Same Day</strong>
+            <p>Same-day local capacity</p>
+          </div>
+          <div class="price">$18.40</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" id="merchant">
+      <div>
+        <div class="word">
+          <img src="../../../website/public/brand/porterchain-mark-white.png" alt="" /> porterchain
+        </div>
+        <h1>The order is booked.</h1>
+      </div>
+      <div class="card result">
+        <div class="kicker">From checkout</div>
+        <h2>PC-18420</h2>
+        <p>M6K → M5V</p>
+        <p class="muted">Shopify #10421</p>
+        <div class="badge">In transit</div>
+      </div>
+    </section>
+
+    <section class="scene" id="end">
+      <div>
+        <div class="word">
+          <img src="../../../website/public/brand/porterchain-mark-white.png" alt="" /> porterchain
+        </div>
+        <h1>Checkout can use PorterChain.</h1>
+      </div>
+      <div class="card">
+        <div class="kicker">Shipping</div>
+        <h2>PorterChain Same Day</h2>
+        <div class="opt on">
+          <div class="radio"><i class="dot"></i></div>
+          <div>
+            <strong>PorterChain Same Day</strong>
+            <p>Same-day local capacity</p>
+          </div>
+          <div class="price">$18.40</div>
+        </div>
+      </div>
+    </section>
+
+    <svg class="cursor" id="cursor" viewBox="0 0 24 24" hidden>
+      <path fill="#0a1628" stroke="#fff" stroke-width="1.2" d="M4 2l16 12-7 1.5L10 22z" />
+    </svg>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const rate = document.getElementById("rate");
+      const cursor = document.getElementById("cursor");
+      function show(id) {
+        for (const el of document.querySelectorAll(".scene"))
+          el.classList.toggle("on", el.id === id);
+      }
+      function place(el) {
+        const r = el.getBoundingClientRect();
+        cursor.hidden = false;
+        cursor.style.transform = `translate(${r.left + 36}px, ${r.top + 28}px)`;
+      }
+      if (params.get("still") === "thumb") {
+        show("buyer");
+        rate.classList.add("on");
+        cursor.hidden = true;
+      } else {
+        const cues = [
+          [
+            0,
+            () => {
+              show("buyer");
+              rate.classList.remove("on");
+              cursor.hidden = true;
+            },
+          ],
+          [8000, () => place(rate)],
+          [10500, () => rate.classList.add("on")],
+          [
+            42000,
+            () => {
+              show("merchant");
+              cursor.hidden = true;
+            },
+          ],
+          [72000, () => show("end")],
+        ];
+        const endMs = 88000;
+        let start = 0,
+          next = 0;
+        function frame(now) {
+          if (!start) start = now;
+          const t = now - start;
+          while (next < cues.length && cues[next][0] <= t) {
+            cues[next][1]();
+            next++;
+          }
+          if (t < endMs) requestAnimationFrame(frame);
+          else window.demoDone = true;
+        }
+        requestAnimationFrame(frame);
+      }
+    </script>
+  </body>
+</html>

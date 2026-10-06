@@ -73,7 +73,6 @@ class ShiftService:
         db: Session,
         driver: Any,
         *,
-        fleetbase_bridge: Any = None,
         route_id: str | None = None,
         pretrip: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
@@ -103,23 +102,15 @@ class ShiftService:
 
         driver.is_online = True
         driver.availability = "idle"
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.toggle_driver_online(
-                db,
-                driver_id=driver.id,
-                fleetbase_driver_id=driver.fleetbase_driver_id,
-                online=True,
-            )
-
-        if route and rid and fleetbase_bridge:
-            StopsService().start_route(db, driver, rid, fleetbase_bridge=fleetbase_bridge)
+        if route and rid:
+            StopsService().start_route(db, driver, rid)
 
         self._log(db, driver.id, shift.id, "shift_started", {"route_id": rid, "vehicle_id": shift.vehicle_id})
         self._emit(db, driver, "driver.shift_started", {"shift_id": shift.id})
         db.flush()
         return self.snapshot(db, driver)
 
-    def end_shift(self, db: Session, driver: Any, *, fleetbase_bridge: Any = None) -> dict[str, Any]:
+    def end_shift(self, db: Session, driver: Any) -> dict[str, Any]:
         shift = self._active_shift(db, driver.id)
         if not shift:
             raise LookupError("no_active_shift")
@@ -136,20 +127,13 @@ class ShiftService:
 
         driver.is_online = False
         driver.availability = "offline"
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.toggle_driver_online(
-                db,
-                driver_id=driver.id,
-                fleetbase_driver_id=driver.fleetbase_driver_id,
-                online=False,
-            )
 
         self._log(db, driver.id, shift.id, "shift_ended", {"mileage_km": mileage})
         self._emit(db, driver, "driver.shift_ended", {"shift_id": shift.id, "mileage_km": mileage})
         db.flush()
         return self.snapshot(db, driver)
 
-    def start_break(self, db: Session, driver: Any, *, fleetbase_bridge: Any = None) -> dict[str, Any]:
+    def start_break(self, db: Session, driver: Any) -> dict[str, Any]:
         shift = self._active_shift(db, driver.id)
         if not shift:
             raise LookupError("no_active_shift")
@@ -159,20 +143,13 @@ class ShiftService:
         shift.status = "on_break"
         shift.break_started_at = datetime.now(UTC)
         driver.availability = "on_break"
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.toggle_driver_online(
-                db,
-                driver_id=driver.id,
-                fleetbase_driver_id=driver.fleetbase_driver_id,
-                online=False,
-            )
 
         self._log(db, driver.id, shift.id, "break_started", {})
         self._emit(db, driver, "driver.break_started", {"shift_id": shift.id})
         db.flush()
         return self.snapshot(db, driver)
 
-    def resume_shift(self, db: Session, driver: Any, *, fleetbase_bridge: Any = None) -> dict[str, Any]:
+    def resume_shift(self, db: Session, driver: Any) -> dict[str, Any]:
         shift = self._active_shift(db, driver.id)
         if not shift:
             raise LookupError("no_active_shift")
@@ -187,13 +164,6 @@ class ShiftService:
         shift.status = "active"
         driver.is_online = True
         driver.availability = "idle"
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.toggle_driver_online(
-                db,
-                driver_id=driver.id,
-                fleetbase_driver_id=driver.fleetbase_driver_id,
-                online=True,
-            )
 
         self._log(db, driver.id, shift.id, "break_resumed", {})
         self._emit(db, driver, "driver.break_resumed", {"shift_id": shift.id})
@@ -205,8 +175,6 @@ class ShiftService:
         db: Session,
         driver: Any,
         mode: str,
-        *,
-        fleetbase_bridge: Any = None,
     ) -> dict[str, Any]:
         self._require_approved(driver)
         mode = mode.lower()
@@ -221,13 +189,6 @@ class ShiftService:
             driver.availability = "available"
 
         online_fb = mode in ("online", "busy", "idle", "available")
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.toggle_driver_online(
-                db,
-                driver_id=driver.id,
-                fleetbase_driver_id=driver.fleetbase_driver_id,
-                online=online_fb,
-            )
 
         shift = self._active_shift(db, driver.id)
         self._log(

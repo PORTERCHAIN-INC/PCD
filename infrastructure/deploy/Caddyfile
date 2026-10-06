@@ -4,8 +4,8 @@
 #   api.porterchain.com
 #   admin.porterchain.com, merchant.porterchain.com
 #   driver.porterchain.com, customer.porterchain.com
-#   fleetbase.porterchain.com (Fleetbase Laravel API)
-#   console.porterchain.com (Fleetbase dispatcher console)
+#   fleetbase.porterchain.com (retired — 404 until DNS removed)
+#   console.porterchain.com (retired — 404 until DNS removed)
 {
 	email admin@porterchain.com
 	# Prefer TCP HTTP/1.1+2 only. HTTP/3 (UDP/443) can hang some client networks
@@ -54,56 +54,15 @@ customer.porterchain.com {
 	reverse_proxy customer:3004
 }
 
-# Fleetbase Laravel API (dispatch OS). Public DNS is optional; PorterChain API
-# talks to this stack over Docker DNS. Container names are the official
-# installer names (fleetbase-*-1).
+# These names stay so a request does not fall through to the marketing site.
 fleetbase.porterchain.com {
 	import common
-	handle /socketcluster* {
-		reverse_proxy fleetbase-socket-1:8000
-	}
-	handle {
-		reverse_proxy fleetbase-httpd-1:80
-	}
+	respond "Not found" 404
 }
 
-# Dispatch console (Ember) + same-origin Fleetbase API / SocketCluster.
-# SSO landing is PorterChain-owned (stock console image has no /porterchain/sso).
 console.porterchain.com {
 	import common
-
-	handle /porterchain/sso* {
-		root * /etc/caddy/porterchain-sso
-		rewrite * /sso.html
-		header {
-			Cache-Control "no-store"
-			Content-Type "text/html; charset=utf-8"
-		}
-		file_server
-	}
-
-	@gate path /auth* /onboard* /install* /join*
-	handle @gate {
-		root * /etc/caddy/porterchain-sso
-		rewrite * /gate.html
-		header {
-			Cache-Control "no-store"
-			Content-Type "text/html; charset=utf-8"
-		}
-		file_server
-	}
-
-	handle /int/* {
-		reverse_proxy fleetbase-httpd-1:80
-	}
-
-	handle /socketcluster* {
-		reverse_proxy fleetbase-socket-1:8000
-	}
-
-	handle {
-		reverse_proxy fleetbase-console-1:4200
-	}
+	respond "Not found" 404
 }
 
 # Public marketing site + same-origin API paths for the website.

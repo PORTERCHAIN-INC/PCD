@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Briefcase, History, Route } from "lucide-react";
 import { CardListSkeleton } from "@porterchain/ui/loading";
@@ -34,6 +34,7 @@ export default function JobsListClient() {
     undoOptimize,
   } = useDriverJobs();
   const [tab, setTab] = useState<Tab>("today");
+  const deferredTab = useDeferredValue(tab);
   const [assignPending, setAssignPending] = useState<string | null>(null);
 
   const handleAccept = async (orderId: string) => {
@@ -130,8 +131,8 @@ export default function JobsListClient() {
                 Request stop order
               </p>
               <p className="mt-1 text-xs text-[var(--muted)]">
-                Asks Fleetbase for a preview sequence. Accept to apply — Keep current leaves your
-                route unchanged. Not a local shortest-path solver.
+                Asks PorterChain for a stop order. Accept to apply it. Keep current leaves your
+                route unchanged.
               </p>
               {optimizeMessage && (
                 <p
@@ -238,17 +239,17 @@ export default function JobsListClient() {
           </div>
 
           <section className="mt-6">
-            {tab === "earlier" ? (
+            {deferredTab === "earlier" ? (
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
                 <History className="h-4 w-4" /> Earlier routes
               </h2>
             ) : null}
 
-            {tab === "earlier" && historyError ? (
+            {deferredTab === "earlier" && historyError ? (
               <p className="mb-3 text-sm text-red-600">{historyError}</p>
             ) : null}
 
-            {tab === "today" && restToday.length === 0 && !data.current ? (
+            {deferredTab === "today" && restToday.length === 0 && !data.current ? (
               <EmptyState
                 title="No jobs on this shift yet"
                 hint="Refresh when new routes are dispatched."
@@ -256,7 +257,7 @@ export default function JobsListClient() {
               />
             ) : null}
 
-            {tab === "today" && restToday.length > 0 ? (
+            {deferredTab === "today" && restToday.length > 0 ? (
               <ul className="space-y-3">
                 {restToday.map((job) => (
                   <li key={job.order_id}>
@@ -266,7 +267,7 @@ export default function JobsListClient() {
               </ul>
             ) : null}
 
-            {tab === "earlier" && earlier.length === 0 && !historyError ? (
+            {deferredTab === "earlier" && earlier.length === 0 && !historyError ? (
               <EmptyState
                 title="No earlier jobs"
                 hint="Completed work from prior days shows up here."
@@ -274,7 +275,7 @@ export default function JobsListClient() {
               />
             ) : null}
 
-            {tab === "earlier" && earlierGroups.length > 0 ? (
+            {deferredTab === "earlier" && earlierGroups.length > 0 ? (
               <div className="space-y-6">
                 {earlierGroups.map((group) => (
                   <div key={group.key}>

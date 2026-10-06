@@ -31,11 +31,9 @@ from porterchain_driver.wallet import WalletService
 
 
 class DriverPlatform:
-    """
-    Porterchain Driver Platform — extends Fleetbase, does not replace it.
+    """PorterChain driver services — duty, GPS, jobs, proof, and day-plan execute.
 
-    All driver-facing capabilities are exposed through reusable services.
-    API layer (`driver_engine`) delegates here; Fleetbase adapter handles logistics sync.
+    API ``driver_engine`` routers stay thin and delegate here.
     """
 
     def __init__(self) -> None:

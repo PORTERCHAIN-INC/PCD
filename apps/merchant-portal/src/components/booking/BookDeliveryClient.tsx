@@ -1074,7 +1074,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   </div>
                   <p className="mt-2 text-xs text-muted">
                     {bookAsSandbox
-                      ? "Creates a sandbox order only. No public track link and no Fleetbase dispatch."
+                      ? "Creates a sandbox order only. No public track link. It is not released to dispatch."
                       : "Confirms a live shipment on the network."}
                   </p>
                 </fieldset>

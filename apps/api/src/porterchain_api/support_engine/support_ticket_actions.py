@@ -58,6 +58,13 @@ class SupportTicketActionsMixin:
                 aggregate_id=ticket.id,
                 actor_type="admin",
                 actor_id=ctx.user.id,
+                payload={
+                    "customer_id": ticket.customer_id,
+                    "merchant_id": ticket.merchant_id,
+                    "order_id": ticket.order_id,
+                    "ticket_number": ticket.id,
+                    "status": status,
+                },
             )
         db.commit()
         db.refresh(ticket)
@@ -148,6 +155,21 @@ class SupportTicketActionsMixin:
                 label=f"Reply sent via {channel}",
                 actor_type="admin",
                 actor_id=ctx.user.id,
+            )
+            emit_event(
+                db,
+                event_type="support.reply",
+                aggregate_type="support_ticket",
+                aggregate_id=ticket.id,
+                actor_type="admin",
+                actor_id=ctx.user.id,
+                payload={
+                    "customer_id": ticket.customer_id,
+                    "merchant_id": ticket.merchant_id,
+                    "order_id": ticket.order_id,
+                    "ticket_number": ticket.id,
+                    "message": body,
+                },
             )
         log_admin_audit(
             db,

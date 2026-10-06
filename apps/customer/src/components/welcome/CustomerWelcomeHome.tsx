@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { startTransition, useOptimistic } from "react";
 import { FileText, MapPinned, MessageCircle, Package, ShieldCheck, Truck } from "lucide-react";
 import CustomerMotion from "@/components/motion/CustomerMotion";
 import Marquee from "@/components/magic/Marquee";
@@ -50,17 +51,23 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
   const active = dashboard?.active_order;
   const hasHistory = Boolean(dashboard?.orders?.length);
   const stats = dashboard?.stats;
+  const [rebookingId, setRebookingId] = useOptimistic<string | null>(null);
 
-  async function onRebook(orderId: string) {
-    try {
-      const token = getToken ? await getToken() : "dev";
-      if (!token) return;
-      const payload = await customerApi.rebook(token, orderId);
-      sessionStorage.setItem(REBOOK_STORAGE_KEY, JSON.stringify(payload));
-      router.push("/book?rebook=1");
-    } catch {
-      alert("Could not start rebook from this order.");
-    }
+  function onRebook(orderId: string) {
+    startTransition(() => {
+      setRebookingId(orderId);
+      void (async () => {
+        try {
+          const token = getToken ? await getToken() : "dev";
+          if (!token) return;
+          const payload = await customerApi.rebook(token, orderId);
+          sessionStorage.setItem(REBOOK_STORAGE_KEY, JSON.stringify(payload));
+          router.push("/book?rebook=1");
+        } catch {
+          alert("Could not start rebook from this order.");
+        }
+      })();
+    });
   }
 
   return (
@@ -228,10 +235,11 @@ export default function CustomerWelcomeHome({ dashboard, error, getToken }: Prop
                 </Link>
                 <button
                   type="button"
-                  onClick={() => void onRebook(o.order_id)}
-                  className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-secondary hover:bg-secondary/10"
+                  disabled={rebookingId === o.order_id}
+                  onClick={() => onRebook(o.order_id)}
+                  className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-secondary hover:bg-secondary/10 disabled:opacity-60"
                 >
-                  Rebook
+                  {rebookingId === o.order_id ? "Opening…" : "Rebook"}
                 </button>
               </li>
             ))}

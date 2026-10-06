@@ -1,41 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
-import type { DriverCommunicationsSnapshot } from "@/lib/communications";
 import { flushOfflineQueues, registerWebPush } from "@/lib/offline-client";
 import { publicEnv } from "@/lib/env";
 
-const POLL_MS = 15_000;
-
 export function useDriverCommunications() {
-  const [data, setData] = useState<DriverCommunicationsSnapshot | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const qc = useQueryClient();
   const [syncing, setSyncing] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
   const mounted = useRef(true);
   const wsRef = useRef<WebSocket | null>(null);
 
-  const refresh = useCallback(async (silent = false) => {
-    if (!silent) setRefreshing(true);
-    try {
-      const snap = await driverApi.communicationsHub();
-      if (mounted.current) {
-        setData(snap);
-        setError("");
-      }
-    } catch (e) {
-      if (mounted.current)
-        setError(e instanceof Error ? e.message : "communications_refresh_failed");
-    } finally {
-      if (mounted.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, []);
+  const query = useQuery({
+    queryKey: ["driver-communications"],
+    queryFn: () => driverApi.communicationsHub(),
+  });
+
+  const refresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["driver-communications"] });
+  }, [qc]);
 
   const syncOffline = useCallback(async () => {
     setSyncing(true);
@@ -43,7 +28,7 @@ export function useDriverCommunications() {
       await flushOfflineQueues();
       await driverApi.syncOffline().catch(() => undefined);
       await driverApi.retryOffline().catch(() => undefined);
-      await refresh(true);
+      await refresh();
     } finally {
       if (mounted.current) setSyncing(false);
     }
@@ -51,23 +36,13 @@ export function useDriverCommunications() {
 
   useEffect(() => {
     mounted.current = true;
-    refresh();
-    // Push registration is owned by CommunicationsProvider (idle-deferred once).
-    // Do not re-register on every communications page visit.
-
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh(true);
-    }, POLL_MS);
-
     const onOnline = () => {
       void syncOffline();
-      void refresh(true);
+      void refresh();
     };
     window.addEventListener("online", onOnline);
-
     return () => {
       mounted.current = false;
-      window.clearInterval(interval);
       window.removeEventListener("online", onOnline);
     };
   }, [refresh, syncOffline]);
@@ -93,9 +68,9 @@ export function useDriverCommunications() {
       ws.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data as string) as { type?: string };
-          if (msg.type !== "pong") void refresh(true);
+          if (msg.type !== "pong") void refresh();
         } catch {
-          void refresh(true);
+          void refresh();
         }
       };
       ws.onclose = () => {
@@ -103,7 +78,7 @@ export function useDriverCommunications() {
       };
     }
 
-    connectWs().catch(() => undefined);
+    void connectWs().catch(() => undefined);
 
     const ping = window.setInterval(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -121,19 +96,19 @@ export function useDriverCommunications() {
   const markRead = useCallback(
     async (notificationId: string) => {
       await driverApi.markNotificationRead(notificationId);
-      await refresh(true);
+      await refresh();
     },
     [refresh]
   );
 
   return {
-    data,
-    error,
-    loading,
-    refreshing,
+    data: query.data ?? null,
+    error: query.error instanceof Error ? query.error.message : "",
+    loading: query.isLoading && !query.data,
+    refreshing: query.isFetching && Boolean(query.data),
     syncing,
     wsConnected,
-    refresh: () => refresh(true),
+    refresh,
     syncOffline,
     markRead,
     registerPush: registerWebPush,

@@ -1,6 +1,6 @@
 """Live Fleetbase public ids vs local placeholder fixtures."""
 
-from porterchain_api.fleetbase_engine.public_ids import is_consumable_public_id
+from porterchain_api.dispatch_engine.public_ids import is_consumable_public_id
 
 
 def test_live_order_and_vehicle_ids_pass() -> None:

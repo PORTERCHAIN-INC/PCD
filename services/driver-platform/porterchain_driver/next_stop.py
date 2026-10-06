@@ -139,7 +139,7 @@ class NextStopResolver:
                 hit = by_key.get(key)
                 if hit is not None:
                     chosen = hit
-                    source_hint = "fleetbase_sequence"
+                    source_hint = "day_plan"
                     break
 
         origin = self._driver_origin(db, driver.id, route.stops)
@@ -149,7 +149,7 @@ class NextStopResolver:
             )
 
         # When sequence locks the next stop, still Valhalla ETA to that stop only.
-        if source_hint == "fleetbase_sequence":
+        if source_hint == "day_plan":
             ranked = self._rank_with_matrix(origin, [chosen])
             if ranked is not None:
                 stop, meters, seconds, src = ranked

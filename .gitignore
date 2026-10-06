@@ -33,6 +33,7 @@ infrastructure/deploy/scripts/mail-keys.local.env
 backups/*.sql.gz
 backups/*.sql
 backups/phase1-*.md
+backups/pre-migrate-*
 __pycache__/
 **/__pycache__/
 *.py[cod]

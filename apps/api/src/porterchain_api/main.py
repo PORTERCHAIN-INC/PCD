@@ -58,13 +58,6 @@ async def lifespan(_app: FastAPI):
 
     ensure_handlers_registered()
     await realtime_hub.start()
-    # Permanent Fleetbase bond: best-effort auth handshake (never blocks boot).
-    try:
-        from porterchain_api.fleetbase_engine.bond import run_boot_handshake
-
-        run_boot_handshake(settings)
-    except Exception:  # noqa: BLE001
-        pass
     try:
         yield
     finally:
@@ -141,7 +134,7 @@ def create_app() -> FastAPI:
     from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
 
-    from porterchain_api.fleetbase_engine import BookingValidationError
+    from porterchain_api.merchant_engine.booking_validation import BookingValidationError
     from porterchain_api.platform.errors import error_envelope
     import logging
 

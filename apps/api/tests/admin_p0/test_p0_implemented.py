@@ -192,9 +192,14 @@ def test_int_fb_008_no_porterchain_vroom_client() -> None:
 
 @pytest.mark.admin_p0
 @pytest.mark.tc_id("INT-FB-007")
-def test_int_fb_007_vroom_lives_in_fleetbase_orchestrator() -> None:
-    orch = REPO_ROOT / "services" / "fleetbase-adapter" / "porterchain_fleetbase_adapter" / "orchestrator"
-    assert orch.is_dir(), "Fleetbase adapter orchestrator (VROOM home) missing"
+def test_int_fb_007_solver_is_ortools_not_a_vroom_client() -> None:
+    orch = REPO_ROOT / "services" / "fleetbase-adapter"
+    sequencer = API_SRC / "dispatch_engine" / "sequencer.py"
+    assert not orch.exists()
+    assert sequencer.is_file()
+    text = sequencer.read_text()
+    assert "ortools" in text
+    assert "porterchain_fleetbase_adapter" not in text
 
 
 @pytest.mark.admin_p0

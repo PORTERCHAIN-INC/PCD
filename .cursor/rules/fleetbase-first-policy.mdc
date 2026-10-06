@@ -1,22 +1,17 @@
 ---
-description: Fleetbase-first and routing-provider policy — always prefer Fleetbase/Valhalla/OSRM over custom builds and Google
+description: PorterChain owns dispatch. Valhalla is the road. Google is places and tiles.
 alwaysApply: true
 ---
 
-# Fleetbase-first & routing-provider policy
+# PorterChain dispatch and routing
 
-## Rule 1 — Fleetbase first, custom build last
+## Rule 1 — PorterChain owns execution
 
-Before writing any logistics operations code (dispatch, drivers, vehicles, live GPS, geofences, POD, route execution, fleet views, notifications to drivers):
+Dispatch, driver duty, live GPS, proof files, and the day plan live in PorterChain. Valhalla is the road cost. OR-Tools in `dispatch_engine` orders one van’s stops. Do not call Fleetbase HTTP for those jobs, and do not add a VROOM client.
 
-1. **Use Fleetbase** if the capability exists in Core, FleetOps, or console.
-2. **Wrap via `services/fleetbase-adapter/`** if Fleetbase has it but we need it inside PorterChain API.
-3. **Extend** Fleetbase only through its extension points (never fork/patch upstream `apps/fleetbase/`).
-4. **Build our own ONLY** when Fleetbase does not provide it AND it is commercial/domain-unique (pricing, quotes, Stripe, CRM, claims, customer/merchant UX, onboarding/compliance).
+Google stays Places autocomplete and map tiles. OSRM is a labeled fallback when Valhalla is down, and it stays off in production.
 
-**Permanent bond:** treat Fleetbase as a bonded capability via identity + `fleetbase-adapter` + handshake — never fork PHP into PorterChain. SSOT: [docs/FLEETBASE_PERMANENT_BOND.md](../../docs/FLEETBASE_PERMANENT_BOND.md). Heal local wire with `pnpm fleetbase:bond`.
-
-Forbidden re-builds: dispatch boards, driver online/availability state, live tracking maps, GPS ping storage, vehicle registries, geofence engines, POD storage, route optimizers, SocketCluster listeners in web apps.
+**Do not rebuild:** a second console, SocketCluster, hardware telematics, fleet-group trees, or geofence dwell history.
 
 ## Rule 2 — Routing providers: Valhalla/OSRM first, Google only when they cannot
 
@@ -24,7 +19,7 @@ Spatial operations priority:
 
 1. **Valhalla** (`porterchain-valhalla` :8002) — primary: routes, matrix, isochrones, costing.
 2. **OSRM** — ETA legs, distance/duration fallback when Valhalla unavailable.
-3. **Fleetbase adapter** — when the routing must reflect dispatch execution.
+3. **PorterChain day plan** — when the line must match an accepted stop order. Call Valhalla. Do not call Fleetbase for the geometry.
 
 **Google Maps is NOT a routing engine.** Use Google only where Valhalla/OSRM are not capable:
 
@@ -36,11 +31,11 @@ Never use Google for: distance/duration for pricing or dispatch, route geometry,
 
 ## Rule 3 — No manual spatial math in ops layer
 
-Do not hand-roll haversine/matrix/sequencing/ETA in `admin_engine` or ops routers. If Valhalla/OSRM can compute it, call them (or the adapter). Keep haversine only for non-operational UI approximations (and label it as such).
+Do not hand-roll haversine/matrix/sequencing/ETA in `admin_engine` or ops routers. If Valhalla or OSRM can compute it, call them. Keep haversine only for non-operational UI approximations (and label it as such).
 
 ## Decision checklist for any new feature
 
-1. Does Fleetbase do this? → Use/wrap it.
-2. Else can Valhalla/OSRM compute the spatial part? → Call them.
-3. Else is Google needed for places/autocomplete only? → Limit to that.
-4. Else is this commercial logic Fleetbase must never own? → Build in PorterChain, and document why in `FLEETBASE_MODULES.md` style (Use/Extend/Replace).
+1. Is this dispatch, GPS, proof, or a day plan? → Build it in PorterChain. Do not call Fleetbase.
+2. Can Valhalla or OSRM compute the spatial part? → Call them.
+3. Is Google needed for places or map tiles only? → Limit it to that.
+4. Is this commercial logic (price, quote, Stripe, CRM, claims)? → Keep it in PorterChain.

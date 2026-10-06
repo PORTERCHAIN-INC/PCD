@@ -1,12 +1,18 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import LeadDetailClient from "@/components/leads/LeadDetailClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+type Props = { params: Promise<{ id: string }> };
 
-const LeadDetailClient = dynamic(() => import("@/components/leads/LeadDetailClient"), {
-  loading: () => <Spinner label="Loading lead…" />,
-});
+export default async function LeadDetailPage({ params }: Props) {
+  const { id } = await params;
+  const client = new QueryClient();
+  const lead = await adminServerFetch<unknown>(`/v1/admin/leads/${id}`);
+  if (lead) client.setQueryData(["lead", id], lead);
 
-export default function LeadDetailPage(props: { params: Promise<{ id: string }> }) {
-  return <LeadDetailClient {...props} />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <LeadDetailClient params={params} />
+    </HydrationBoundary>
+  );
 }

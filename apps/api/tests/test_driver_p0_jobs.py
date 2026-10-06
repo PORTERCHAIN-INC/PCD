@@ -107,18 +107,13 @@ def test_api_d_07_offline_executor_dispatches_arrive() -> None:
     executor = DriverOfflineExecutor(platform=platform)
     db = MagicMock()
     driver = SimpleNamespace(id="d1")
-    bridge = MagicMock()
-
     executor.execute(
         db,
         driver,
         "arrive_stop",
         {"stop_id": "stop-1"},
-        fleetbase_bridge=bridge,
     )
-    platform.stops.arrive_stop.assert_called_once_with(
-        db, driver, "stop-1", fleetbase_bridge=bridge
-    )
+    platform.stops.arrive_stop.assert_called_once_with(db, driver, "stop-1")
 
 
 @pytest.mark.driver_p0
@@ -128,18 +123,13 @@ def test_api_d_07_offline_executor_dispatches_deliver() -> None:
     executor = DriverOfflineExecutor(platform=platform)
     db = MagicMock()
     driver = SimpleNamespace(id="d1")
-    bridge = MagicMock()
-
     executor.execute(
         db,
         driver,
         "deliver_stop",
         {"stop_id": "stop-2"},
-        fleetbase_bridge=bridge,
     )
-    platform.stops.deliver_stop.assert_called_once_with(
-        db, driver, "stop-2", fleetbase_bridge=bridge
-    )
+    platform.stops.deliver_stop.assert_called_once_with(db, driver, "stop-2")
 
 
 @pytest.mark.driver_p0

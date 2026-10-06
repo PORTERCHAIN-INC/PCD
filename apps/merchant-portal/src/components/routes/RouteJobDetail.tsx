@@ -12,7 +12,9 @@ import {
 } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
 import { VEHICLE_CHOICES } from "@/lib/route-module/allocateVehicle";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   useCallback,
   useEffect,
@@ -48,27 +50,39 @@ type ParcelDraft = {
 
 export default function RouteJobDetail({ jobId }: { jobId: string }) {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
-  const [job, setJob] = useState<RouteImportJob | null>(null);
   const [stops, setStops] = useState<StopDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const keyOrg = orgId ?? null;
+  const ready = Boolean(isLoaded && isSignedIn && jobId);
 
-  const load = useCallback(async () => {
-    if (!isSignedIn) return;
-    const token = await getApiToken();
-    const next = await getRouteImport(token, jobId, orgId);
-    setJob(next);
-    setStops(toDrafts(next.stops));
-    setError(null);
-  }, [getApiToken, isSignedIn, jobId, orgId]);
+  const jobQuery = useQuery({
+    queryKey: ["merchant-route-job", keyOrg, jobId],
+    enabled: ready,
+    queryFn: async () => {
+      const token = await getApiToken();
+      return getRouteImport(token, jobId, orgId);
+    },
+  });
+
+  const job = jobQuery.data ?? null;
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    void load().catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : "Could not load this route");
-    });
-  }, [isLoaded, isSignedIn, load]);
+    if (job) setStops(toDrafts(job.stops));
+  }, [job]);
 
+  useEffect(() => {
+    if (jobQuery.error) {
+      setError(
+        jobQuery.error instanceof Error ? jobQuery.error.message : "Could not load this route"
+      );
+    }
+  }, [jobQuery.error]);
+
+  const load = useCallback(async () => {
+    await jobQuery.refetch();
+    setError(null);
+  }, [jobQuery]);
   const vehicleLabel = useMemo(() => {
     const id = job?.vehicle_class;
     return VEHICLE_CHOICES.find((item) => item.id === id)?.label || id || "Vehicle pending";
@@ -132,7 +146,7 @@ export default function RouteJobDetail({ jobId }: { jobId: string }) {
   }
 
   if (error && !job) return <p className="text-red-600">{error}</p>;
-  if (!job) return <p className="text-muted">Loading route…</p>;
+  if (!job) return <PageSkeleton rows={4} />;
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6">

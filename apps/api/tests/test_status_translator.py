@@ -1,7 +1,7 @@
 """Fleetbase status translation tests."""
 
 from porterchain_api.domain.states import OrderState
-from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
+from porterchain_api.domain.status_translator import StatusTranslator
 
 
 def test_completed_maps_to_delivered() -> None:

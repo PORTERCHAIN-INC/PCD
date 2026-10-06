@@ -1,13 +1,18 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import NotificationsPageClient from "@/components/notifications/NotificationsPageClient";
+import { merchantOrgId, merchantServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { PageSkeleton } from "@porterchain/ui/loading";
+export default async function MerchantNotificationsPage() {
+  const orgId = await merchantOrgId();
+  const client = new QueryClient();
+  if (orgId) {
+    const inbox = await merchantServerFetch<unknown>("/v1/notifications/inbox?limit=100", orgId);
+    if (inbox) client.setQueryData(["merchant-notification-inbox", orgId], inbox);
+  }
 
-const NotificationsPageClient = dynamic(
-  () => import("@/components/notifications/NotificationsPageClient"),
-  { loading: () => <PageSkeleton rows={3} /> }
-);
-
-export default function MerchantNotificationsPage() {
-  return <NotificationsPageClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <NotificationsPageClient />
+    </HydrationBoundary>
+  );
 }

@@ -58,6 +58,7 @@ class DriverCommunicationService:
             NotificationRecord.recipient_id == driver_id,
             NotificationRecord.channel == "in_app",
             NotificationRecord.is_archived.is_(archived),
+            NotificationRecord.is_sandbox.is_(False),
         )
         rows = base.order_by(NotificationRecord.created_at.desc()).limit(limit).all()
         unread = (
@@ -68,6 +69,7 @@ class DriverCommunicationService:
                 NotificationRecord.channel == "in_app",
                 NotificationRecord.is_read.is_(False),
                 NotificationRecord.is_archived.is_(False),
+                NotificationRecord.is_sandbox.is_(False),
             )
             .count()
         )

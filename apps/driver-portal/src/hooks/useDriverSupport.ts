@@ -1,57 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi } from "@/lib/api";
-import type { DriverSupportSnapshot } from "@/lib/support";
-
-const POLL_MS = 20_000;
 
 export function useDriverSupport() {
-  const [data, setData] = useState<DriverSupportSnapshot | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const qc = useQueryClient();
   const [actionPending, setActionPending] = useState<string | null>(null);
-  const mounted = useRef(true);
-
-  const refresh = useCallback(async (silent = false) => {
-    if (!silent) setRefreshing(true);
-    try {
-      const snap = await driverApi.supportHub();
-      if (mounted.current) {
-        setData(snap);
-        setError("");
-      }
-    } catch (e) {
-      if (mounted.current) setError(e instanceof Error ? e.message : "support_refresh_failed");
-    } finally {
-      if (mounted.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    mounted.current = true;
-    refresh();
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh(true);
-    }, POLL_MS);
-    return () => {
-      mounted.current = false;
-      window.clearInterval(interval);
-    };
-  }, [refresh]);
+  const supportQuery = useQuery({
+    queryKey: ["driver-support-hub"],
+    queryFn: () => driverApi.supportHub(),
+  });
+  const refresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["driver-support-hub"] });
+  }, [qc]);
+  const data = supportQuery.data ?? null;
+  const error =
+    supportQuery.error instanceof Error
+      ? supportQuery.error.message
+      : supportQuery.error
+        ? "support_refresh_failed"
+        : "";
+  const loading = supportQuery.isLoading && !data;
+  const refreshing = supportQuery.isFetching && Boolean(data);
 
   const run = useCallback(
     async (id: string, fn: () => Promise<unknown>) => {
       setActionPending(id);
       try {
         await fn();
-        await refresh(true);
+        await refresh();
       } finally {
-        if (mounted.current) setActionPending(null);
+        setActionPending(null);
       }
     },
     [refresh]
@@ -63,7 +43,7 @@ export function useDriverSupport() {
     loading,
     refreshing,
     actionPending,
-    refresh: () => refresh(true),
+    refresh,
     createTicket: (body: {
       subject: string;
       description?: string;

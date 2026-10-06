@@ -116,13 +116,13 @@ jobs:
       - name: Alembic upgrade head
         working-directory: apps/api
         run: |
-          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           alembic upgrade head
 
       - name: Seed merchant + pricing + admin for E2E
         working-directory: apps/api
         run: |
-          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           # Retail + merchant tariffs, admin, then merchant user (phase_3 BLOCKER without these)
           python - <<'PY'
           import importlib.util
@@ -176,7 +176,7 @@ jobs:
       - name: D3 static + E2E phases
         working-directory: apps/api
         run: |
-          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           # Prove env reached the process (PlatformSettings / publishers)
           python - <<'PY'
           from porterchain_shared.config.settings import get_platform_settings

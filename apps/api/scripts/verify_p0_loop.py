@@ -204,102 +204,53 @@ def check_stripe_invoice_proof(check: Check, *, prod: bool) -> None:
 
 
 def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
-    from porterchain_api.fleetbase_engine.sync_health import SLO_TARGET_PCT, assess_fleetbase_sync
+    """G2/G3 used to score Fleetbase link rate. Fleetbase is retired — assert day plan."""
+    bridge_on = bool(getattr(settings, "fleetbase_dispatch_bridge", False))
+    engine = (getattr(settings, "dispatch_engine", None) or "porterchain").strip().lower()
+
+    if bridge_on:
+        check.run(
+            "G2",
+            "Fleetbase dispatch bridge off",
+            False,
+            detail="Set FLEETBASE_DISPATCH_BRIDGE=false — adapter removed",
+        )
+        check.run(
+            "G3",
+            "DISPATCH_ENGINE=porterchain",
+            engine == "porterchain",
+            detail=f"dispatch_engine={engine!r}",
+        )
+        return
+
+    check.run(
+        "G2",
+        "Fleetbase bridge retired",
+        True,
+        detail="bridge disabled; day plan is PorterChain OR-Tools",
+    )
+    check.run(
+        "G3",
+        "DISPATCH_ENGINE=porterchain",
+        engine in ("", "porterchain"),
+        detail=f"dispatch_engine={engine or 'porterchain'!r}",
+    )
 
     if prod:
         status, body = _http_json(f"{api_url.rstrip('/')}/health/ready")
         if status != 200:
-            check.run("G2", f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%", False, detail=f"HTTP {status}")
-            check.run("G3", "Fleetbase webhook secret configured", False, detail="readiness unreachable")
+            check.run("G2", "API readiness (day plan path)", False, detail=f"HTTP {status}")
             return
-
         checks = body.get("checks", {}) if isinstance(body, dict) else {}
-        fleetbase = body.get("fleetbase_sync", {}) if isinstance(body, dict) else {}
-        bridge_on = checks.get("fleetbase") == "bridge_enabled"
-        if not bridge_on:
-            check.run("G2", f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%", True, detail="bridge disabled")
-            check.run("G3", "Fleetbase webhook secret configured", True, detail="bridge disabled")
-            return
-
-        meets = bool(fleetbase.get("meets_slo"))
-        pct = fleetbase.get("link_pct", 0)
-        linked = fleetbase.get("linked_orders", 0)
-        total = fleetbase.get("eligible_orders", 0)
-        dead = fleetbase.get("dead_letters", 0)
-        check.run(
-            "G2",
-            f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%",
-            meets or total == 0,
-            detail=f"{linked}/{total} ({pct}%), dead_letters={dead}",
-            warn=not meets and bridge_on,
-        )
-        webhook_ok = checks.get("fleetbase_webhook") == "configured"
-        check.run(
-            "G3",
-            "Fleetbase webhook secret configured",
-            webhook_ok,
-            detail=checks.get("fleetbase_webhook", ""),
-        )
-        return
-
-    with SessionLocal() as db:
-        slo = assess_fleetbase_sync(db, settings)
-        total = slo["eligible_orders"]
-        linked = slo["linked_orders"]
-        pct = slo["link_pct"]
-        dead = slo["dead_letters"]
-        ok_g2 = slo["meets_slo"]
-        check.run(
-            "G2",
-            f"Fleetbase sync link rate ≥{SLO_TARGET_PCT:.0f}%",
-            ok_g2,
-            detail=f"{linked}/{total} ({pct:.1f}%), dead_letters={dead}",
-            warn=not ok_g2 and settings.fleetbase_dispatch_bridge,
-        )
-
-    secret_ok = bool(settings.fleetbase_webhook_secret or settings.fleetbase_api_key)
-    check.run(
-        "G3",
-        "Fleetbase webhook secret configured",
-        secret_ok,
-        detail="set FLEETBASE_WEBHOOK_SECRET (or API key fallback)",
-    )
-
-    if settings.fleetbase_webhook_secret and settings.fleetbase_dispatch_bridge:
-        import hashlib
-        import hmac
-
-        payload = b'{"event":"order.updated","data":{"id":"test"}}'
-        sig = "sha256=" + hmac.new(
-            settings.fleetbase_webhook_secret.encode(), payload, hashlib.sha256
-        ).hexdigest()
-        # Prefer the CLI --api-url (localhost) over env PORTERCHAIN_API_URL tunnels.
-        ingress_base = (api_url or settings.porterchain_api_url).rstrip("/")
-        req = urllib.request.Request(
-            f"{ingress_base}/webhooks/fleetbase",
-            data=payload,
-            method="POST",
-            headers={
-                "Content-Type": "application/json",
-                "X-Fleetbase-Signature": sig,
-            },
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                ingress_ok = resp.status in (200, 201)
-                ingress_detail = f"HTTP {resp.status} via {ingress_base}"
-        except urllib.error.HTTPError as exc:
-            ingress_ok = exc.code not in (503,)
-            ingress_detail = f"HTTP {exc.code} via {ingress_base}"
-        except urllib.error.URLError as exc:
-            ingress_ok = False
-            ingress_detail = f"unreachable {ingress_base}: {exc.reason}"
-        check.run(
-            "G3",
-            "Webhook ingress accepts signed payload",
-            ingress_ok,
-            detail=ingress_detail,
-        )
+        # Optional: readiness may still expose a retired fleetbase key as off.
+        fb = checks.get("fleetbase")
+        if fb and fb not in ("bridge_disabled", "removed", "ok", "off"):
+            check.run(
+                "G2",
+                "Readiness does not enable Fleetbase bridge",
+                False,
+                detail=f"checks.fleetbase={fb!r}",
+            )
 
 
 def check_g4_g9_e2e(check: Check, settings, *, skip_e2e: bool) -> None:

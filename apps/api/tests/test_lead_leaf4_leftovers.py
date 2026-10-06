@@ -113,9 +113,64 @@ def test_growth_alert_does_not_email_staff(db, monkeypatch) -> None:
     db.add(lead)
     db.flush()
     notify_unassigned_high_priority(db, lead)
-    assert captured
-    assert {spec["channel"] for spec in captured} == {"in_app"}
-    assert all(spec["template_key"] == "lead_sla_escalation" for spec in captured)
+    assert captured == []
+
+
+def test_growth_alert_emails_watch_list_only_when_admin_app_is_empty(db, monkeypatch) -> None:
+    captured: list[dict] = []
+
+    def _capture(_db, specs, *, event_type, correlation_id):
+        captured.extend(specs)
+
+    monkeypatch.setattr(
+        "porterchain_api.platform.staff_notify.dispatch_staff_specs",
+        _capture,
+    )
+    monkeypatch.setattr(
+        "porterchain_api.notification_engine.staff_fanout.ops_watch_emails",
+        lambda: {"growth@porterchain.com"},
+    )
+    monkeypatch.setattr(
+        "porterchain_api.notification_engine.realtime.anyone_online",
+        lambda role: role == "admin",
+    )
+    online = CrmLead(
+        company_name="Online Co",
+        email=f"online-{uuid.uuid4().hex[:6]}@t.test",
+        priority="high",
+        status="new",
+        channel="website",
+        source="website",
+    )
+    db.add(online)
+    db.flush()
+    notify_unassigned_high_priority(db, online)
+    assert captured == []
+
+    captured.clear()
+    monkeypatch.setattr(
+        "porterchain_api.notification_engine.realtime.anyone_online",
+        lambda role: False,
+    )
+    empty = CrmLead(
+        company_name="Empty Office",
+        email=f"empty-{uuid.uuid4().hex[:6]}@t.test",
+        priority="urgent",
+        status="new",
+        channel="website",
+        source="website",
+    )
+    db.add(empty)
+    db.flush()
+    notify_unassigned_high_priority(db, empty)
+    emails = [spec for spec in captured if spec["channel"] == "email"]
+    assert len(emails) == 1
+    assert emails[0]["context"]["offline_watch"] is True
+    assert emails[0]["deep_link"].startswith("http")
+    assert emails[0]["deep_link"].endswith(f"/leads/{empty.id}")
+    assert emails[0]["context"]["title"] == "Empty Office — unassigned high lead"
+    assert "notice_body" not in emails[0]["context"]
+    assert not any(spec["channel"] == "in_app" for spec in captured)
 
 
 def test_agent_inbox_lists_unassigned_and_notices(db) -> None:
@@ -172,6 +227,42 @@ def test_agent_inbox_lists_unassigned_and_notices(db) -> None:
     assert sla and sla[0]["notice_kind"] == "sla"
     assert "past first response" in sla[0]["notice_body"]
     assert hot_notes and hot_notes[0]["notice_kind"] == "unassigned"
+    assert hot_notes[0]["notice_subject"].endswith("— unassigned high lead")
     assert "is unassigned" in hot_notes[0]["notice_body"]
     assert not any(n["company_name"] == f"Quiet {suffix}" for n in notices)
     assert payload["config"]["internal_email"] is False
+
+
+def test_notification_center_hides_unassigned_high_lead(db) -> None:
+    from porterchain_api.notification_engine.engine import get_notification_engine
+
+    engine = get_notification_engine()
+    user_id = f"growth-{uuid.uuid4().hex[:8]}"
+    lead = engine.dispatch(
+        db,
+        event_type="lead.unassigned",
+        template_key="lead_sla_escalation",
+        channel="in_app",
+        recipient_type="admin",
+        recipient_id=user_id,
+        context={"title": "Acme — unassigned high lead", "company_name": "Acme", "deep_link": "/leads/x"},
+        category="crm",
+        priority="high",
+        deep_link="/leads/x",
+    )
+    ops = engine.dispatch(
+        db,
+        event_type="test.ops",
+        template_key="exception_opened",
+        channel="in_app",
+        recipient_type="admin",
+        recipient_id=user_id,
+        context={"order_number": "1001"},
+        category="orders",
+        priority="high",
+    )
+    assert lead is not None and ops is not None
+    center = engine.inbox_payload(db, user_role="admin", user_id=user_id)
+    assert lead.id not in {item["id"] for item in center["items"]}
+    assert ops.id in {item["id"] for item in center["items"]}
+    assert center["unread_count"] == 1

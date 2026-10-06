@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 import { pingIndexNow } from "@/lib/marketing/indexnow";
 import { publicEnv } from "@/lib/env";
 
-export const runtime = "nodejs";
-
 function authorize(req: Request): boolean {
   const secret = (process.env.WEBSITE_REVALIDATE_SECRET ?? "").trim();
   if (!secret) return false;

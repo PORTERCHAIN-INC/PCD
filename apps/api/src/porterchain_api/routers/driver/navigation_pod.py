@@ -18,8 +18,7 @@ from porterchain_api.routers.driver._deps import (
     get_settings,
     require_approved_driver,
     router,
-    svc,
-)
+    svc)
 
 
 @router.get("/navigation/session")
@@ -27,10 +26,8 @@ def navigation_session(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    order_id: str | None = None,
-):
+    order_id: str | None = None):
     """Full navigation session — Fleetbase GPS, OSRM ETA, Valhalla route."""
-    bridge = svc.fleetbase_bridge(settings)
     if not order_id:
         jobs = svc.platform.jobs.list_jobs(db, ctx.driver)
         current = jobs.get("current")
@@ -39,7 +36,7 @@ def navigation_session(
         order_id = current["order_id"]
     try:
         return svc.platform.navigation.session(
-            db, ctx.driver, order_id, settings, fleetbase_bridge=bridge
+            db, ctx.driver, order_id, settings
         )
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="job_not_found") from exc
@@ -50,16 +47,14 @@ def navigationroute_response(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    route_id: str | None = None,
-):
-    bridge = svc.fleetbase_bridge(settings)
+    route_id: str | None = None):
     if not route_id:
         route = svc.platform.stops.assignedroute_response(db, ctx.driver)
         if not route:
             raise HTTPException(status_code=404, detail="route_not_found")
         route_id = route.route_id
     return svc.platform.navigation.route_session(
-        db, ctx.driver, route_id, settings, fleetbase_bridge=bridge
+        db, ctx.driver, route_id, settings
     )
 
 
@@ -68,12 +63,10 @@ def order_navigation(
     order_id: str,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    bridge = svc.fleetbase_bridge(settings)
+    settings: Settings = Depends(get_settings)):
     try:
         return svc.platform.navigation.route_for_order(
-            db, ctx.driver, order_id, settings, fleetbase_bridge=bridge
+            db, ctx.driver, order_id, settings
         )
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="order_not_found") from exc
@@ -86,20 +79,16 @@ def pod_photo(
     body: PodPhotoRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.pod.capture_photo(
                 db,
                 ctx.driver,
                 stop_id,
-                file_url=body.file_url,
-                fleetbase_bridge=bridge,
-            )
-        return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
+                file_url=body.file_url)
+        return {"success": result.success}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
 
@@ -111,20 +100,16 @@ def pod_signature(
     body: PodSignatureRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.pod.capture_signature(
                 db,
                 ctx.driver,
                 stop_id,
-                signature_data=body.signature_data,
-                fleetbase_bridge=bridge,
-            )
-        return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
+                signature_data=body.signature_data)
+        return {"success": result.success}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
 
@@ -136,20 +121,16 @@ def pod_barcode(
     body: PodBarcodeRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.pod.capture_barcode(
                 db,
                 ctx.driver,
                 stop_id,
-                barcode=body.barcode,
-                fleetbase_bridge=bridge,
-            )
-        return {"success": result.success, "fleetbase_synced": result.fleetbase_synced}
+                barcode=body.barcode)
+        return {"success": result.success}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
 
@@ -161,19 +142,15 @@ def pod_complete(
     body: PodOtpRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.pod.complete_pod(
                 db,
                 ctx.driver,
                 stop_id,
-                otp=body.otp,
-                fleetbase_bridge=bridge,
-            )
+                otp=body.otp)
             if not result.success:
                 raise HTTPException(status_code=400, detail=result.message)
         return {"success": True, "state": "POD_COMPLETED"}
@@ -187,8 +164,7 @@ def pod_complete(
 def generate_otp(
     order_id: str,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     require_approved_driver(ctx)
     try:
         with db_transaction(db):
@@ -204,16 +180,14 @@ def generate_otp(
 def queue_offline(
     body: OfflineActionRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     with db_transaction(db):
         result = svc.platform.offline.queue_action(
             db,
             ctx.driver,
             action_type=body.action_type,
             payload=body.payload,
-            client_id=body.client_id,
-        )
+            client_id=body.client_id)
     return result
 
 
@@ -226,13 +200,11 @@ def offline_pending(ctx: Annotated[DriverContext, Depends(get_driver_context)], 
 def offline_sync(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     """Replay queued offline actions through DriverPlatform (connectivity restored)."""
     require_approved_driver(ctx)
     return svc.persist(
         db,
         lambda: svc.platform.offline.sync_pending(
             db, ctx.driver, executor=svc.offline_executor(db, settings)
-        ),
-    )
+        ))

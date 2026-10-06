@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Spinner } from "@porterchain/ui/loading";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import { customerApi } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
@@ -13,7 +13,7 @@ import { isClerkConfigured } from "@/lib/env";
 
 export default function InvoicesClient() {
   if (!isClerkConfigured()) {
-    return <InvoicesBody getToken={async () => "dev"} />;
+    return <InvoicesBody ready signedIn getToken={async () => "dev"} />;
   }
   return <InvoicesWithClerk />;
 }
@@ -28,24 +28,25 @@ function InvoicesWithClerk() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  if (!isLoaded || !isSignedIn) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-gray-bg">
-        <Spinner label="Loading invoices…" />
-      </main>
-    );
-  }
-
-  return <InvoicesBody getToken={getToken} />;
+  return <InvoicesBody ready={isLoaded} signedIn={Boolean(isSignedIn)} getToken={getToken} />;
 }
 
-function InvoicesBody({ getToken }: { getToken: () => Promise<string | null> }) {
+function InvoicesBody({
+  ready,
+  signedIn,
+  getToken,
+}: {
+  ready: boolean;
+  signedIn: boolean;
+  getToken: () => Promise<string | null>;
+}) {
   const {
     data: rows,
     error,
     isLoading,
   } = useQuery({
     queryKey: ["customer-invoices"],
+    enabled: ready && signedIn,
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
@@ -64,9 +65,9 @@ function InvoicesBody({ getToken }: { getToken: () => Promise<string | null> }) 
           Could not load invoices.
         </p>
       ) : null}
-      {isLoading ? (
-        <div className="mt-8 flex justify-center">
-          <Spinner label="Loading invoices…" />
+      {isLoading && !rows ? (
+        <div className="mt-8">
+          <PageSkeleton rows={4} />
         </div>
       ) : null}
       {rows && rows.length === 0 ? (

@@ -66,19 +66,16 @@ def _invoke(ctx: AdminContext, module: str, fn, *args, **kwargs):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-def _detail(db: Session, driver_id: str, warning: str | None = None) -> dict:
+def _detail(db: Session, driver_id: str) -> dict:
     detail = _d360.detail(db, driver_id)
     if not detail:
         raise HTTPException(status_code=404, detail="driver_not_found")
-    if warning:
-        detail["fleetbase_sync_warning"] = warning
     return detail
 
 
 def _mutated(ctx: AdminContext, db: Session, driver_id: str, fn, *args, **kwargs) -> dict:
-    result = _invoke(ctx, "drivers", fn, db, ctx, driver_id, *args, **kwargs)
-    warning = result[1] if isinstance(result, tuple) else None
-    return _detail(db, driver_id, warning)
+    _invoke(ctx, "drivers", fn, db, ctx, driver_id, *args, **kwargs)
+    return _detail(db, driver_id)
 
 
 def _vehicle(vehicle) -> dict:
@@ -87,7 +84,6 @@ def _vehicle(vehicle) -> dict:
         "vehicle_class": getattr(vehicle, "vehicle_class", None),
         "plate_number": getattr(vehicle, "plate_number", None),
         "is_active": vehicle.is_active,
-        "fleetbase_vehicle_id": vehicle.fleetbase_vehicle_id,
     }
 
 

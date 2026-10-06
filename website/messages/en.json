@@ -872,7 +872,7 @@
   "liveMap": {
     "label": "Shipment tracking",
     "title": "Status, driver, and ETA on every run",
-    "subtitle": "After dispatch, receivers see Fleetbase GPS and a road ETA when routing is available. The card below is an illustration, not a live van.",
+    "subtitle": "After dispatch, receivers see driver GPS and a road ETA when routing is available. The card below is an illustration, not a live van.",
     "liveTracking": "Example tracking",
     "inTransit": "In Transit",
     "eta": "Sample ETA",

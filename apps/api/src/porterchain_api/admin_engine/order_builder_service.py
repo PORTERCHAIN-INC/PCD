@@ -18,8 +18,8 @@ from porterchain_api.booking_engine.order_transitions import transition_to_dispa
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import OrderSource, OrderState
-from porterchain_api.fleetbase_engine import MerchantSyncService
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.lookups import get_merchant
 from porterchain_api.booking_models import Order
 from porterchain_api.pricing_engine import get_pricing_service

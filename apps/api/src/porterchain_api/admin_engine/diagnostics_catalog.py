@@ -36,13 +36,10 @@ COMPONENT_CATEGORY: dict[str, str] = {
     "event_bus": "infrastructure",
     "postgresql": "infrastructure",
     "redis": "infrastructure",
-    "fleetbase_adapter": "integrations",
-    "fleetbase": "integrations",
-    "fleetbase_console": "integrations",
+    "dispatch": "integrations",
     "google_maps": "integrations",
     "osrm": "integrations",
     "valhalla": "integrations",
-    "vroom": "integrations",  # fleetbase-first:ok — catalog id, not a PC solver
     "clerk": "integrations",
     "stripe": "integrations",
     "firebase_fcm": "integrations",
@@ -62,10 +59,7 @@ TEST_CATALOG: list[dict[str, str]] = [
     {"id": "google_maps", "name": "Google Maps", "category": "integrations", "description": "Geocoding API probe", "masterrule": "Appendix B"},
     {"id": "osrm", "name": "OSRM", "category": "integrations", "description": "Routing fallback", "masterrule": "Appendix B"},
     {"id": "valhalla", "name": "Valhalla", "category": "integrations", "description": "Primary routing engine", "masterrule": "Appendix B"},
-    {"id": "vroom", "name": "VROOM (Fleetbase orchestrator)", "category": "integrations", "description": "Multi-stop TSP inside Fleetbase", "masterrule": "Appendix B"},  # fleetbase-first:ok
-    {"id": "fleetbase", "name": "Fleetbase", "category": "integrations", "description": "Execution engine HTTP", "masterrule": "§13"},
-    {"id": "fleetbase_adapter", "name": "Fleetbase Adapter", "category": "integrations", "description": "Mandatory adapter boundary", "masterrule": "§8, ADR-003"},
-    {"id": "fleetbase_console", "name": "Fleetbase Console", "category": "integrations", "description": "Dispatch console (SSO)", "masterrule": "Appendix B"},
+    {"id": "dispatch", "name": "Dispatch (day plan)", "category": "integrations", "description": "OR-Tools day plan + Valhalla road cost", "masterrule": "§13"},
     {"id": "email_smtp", "name": "Email (SMTP)", "category": "integrations", "description": "Transactional email config", "masterrule": "§11.3"},
     {"id": "mailpit", "name": "Mailpit", "category": "integrations", "description": "Local dev email inbox", "masterrule": "Appendix B"},
     {"id": "event_bus", "name": "Event Bus", "category": "infrastructure", "description": "Publish smoke test + Redis streams", "masterrule": "§12, ADR-005"},
@@ -83,9 +77,9 @@ TEST_CATALOG: list[dict[str, str]] = [
     {"id": "finance_engine", "name": "Finance Engine", "category": "engines", "description": "Invoices and payments admin", "masterrule": "§6"},
     {"id": "claims_engine", "name": "Claims Engine", "category": "engines", "description": "Claims workflow", "masterrule": "§6"},
     {"id": "support_engine", "name": "Support Engine", "category": "engines", "description": "Support tickets", "masterrule": "§6"},
-    {"id": "layered_architecture", "name": "Layered Architecture", "category": "infrastructure", "description": "No direct Fleetbase from UI", "masterrule": "§3, ADR-007"},
+    {"id": "layered_architecture", "name": "Layered Architecture", "category": "infrastructure", "description": "No vendor dispatch HTTP from UI", "masterrule": "§3, ADR-007"},
     {"id": "stripe_webhook", "name": "Stripe Webhook Config", "category": "integrations", "description": "Webhook secret configured", "masterrule": "§14, ADR-006"},
-    {"id": "scheduled_jobs", "name": "Scheduled Jobs", "category": "observability", "description": "Fleetbase retry queue health", "masterrule": "§16"},
+    {"id": "scheduled_jobs", "name": "Scheduled Jobs", "category": "observability", "description": "Worker and day-plan queue health", "masterrule": "§16"},
 ]
 
 TEST_IDS: tuple[str, ...] = tuple(t["id"] for t in TEST_CATALOG)

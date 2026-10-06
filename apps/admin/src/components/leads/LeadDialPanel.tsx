@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
+
 import { leadsApi } from "@/lib/leads";
 import type { Lead } from "@/lib/crm";
 
@@ -234,7 +236,7 @@ export function LeadDialPanel({ lead }: { lead: Lead }) {
           <div>
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">Opener</p>
             {scriptsLoading ? (
-              <Spinner label="Scripts…" />
+              <PageSkeleton rows={1} />
             ) : (
               <p className="text-sm text-primary">{opener || "—"}</p>
             )}

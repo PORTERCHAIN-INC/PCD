@@ -108,7 +108,7 @@ class E2EValidationReverseMixin:
                 transition_order_state(db, o, OrderState.FAILED, event_type="order.failed", payload={"e2e_return": True})
             return "PASS"
 
-        record("Driver Assigned", do_return_failed, layer="fleetbase_engine")
+        record("Driver Assigned", do_return_failed, layer="admin_engine")
         record("Return Pickup", lambda: self._advance_if_possible(db, order.id, OrderState.RETURN_TO_SENDER, "order.return_to_sender"))
         record("Warehouse", lambda: "PASS", layer="operations")
         record("Merchant", lambda: "PASS", layer="merchant_engine")

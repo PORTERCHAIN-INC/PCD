@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import { blogApi, type BlogAuthor } from "@/lib/blog";
 import AdminPage from "@/components/layout/AdminPage";
 
@@ -71,7 +72,7 @@ export default function BlogAuthorsClient() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   }

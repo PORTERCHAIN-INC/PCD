@@ -32,10 +32,6 @@ export default function NotificationBell({
     queryKey: ["merchant-notification-inbox", orgId],
     enabled,
     staleTime: 30_000,
-    refetchInterval: (query) => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-      return 90_000;
-    },
     queryFn: async () => notificationsApi.inbox(await getApiToken(), orgId, 20),
   });
 
@@ -54,7 +50,8 @@ export default function NotificationBell({
     await qc.invalidateQueries({ queryKey: ["merchant-notification-inbox", orgId] });
   };
 
-  if (!isLoaded || !isSignedIn) return null;
+  if (isLoaded && !isSignedIn) return null;
+  if (!data && !isSignedIn) return null;
 
   return (
     <HeaderDropdown
@@ -96,7 +93,11 @@ export default function NotificationBell({
       </div>
       <div className="max-h-[min(52dvh,360px)] overflow-y-auto">
         {loading ? (
-          <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>
+          <div className="space-y-2 px-4 py-4" aria-hidden>
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+          </div>
         ) : items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted">No notifications yet</p>
         ) : (

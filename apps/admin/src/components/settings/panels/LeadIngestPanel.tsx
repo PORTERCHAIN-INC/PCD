@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Lock, RefreshCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
 import { settingsApi, type LeadIngestSettings } from "@/lib/settings";
@@ -77,31 +79,36 @@ export default function LeadIngestPanel() {
     REFERRAL_CREDIT_CENTS: 25000,
   });
 
-  const load = useCallback(async () => {
-    if (!isSignedIn) return;
-    setError("");
-    try {
-      const token = await getApiToken();
-      const res = await settingsApi.leadIngest(token);
-      setData(res);
-      setVisible({
-        META_PIXEL_ID: res.visible.META_PIXEL_ID ?? "",
-        LINKEDIN_CONVERSION_URN: res.visible.LINKEDIN_CONVERSION_URN ?? "",
-        LEAD_TERRITORY_MAP_JSON: res.visible.LEAD_TERRITORY_MAP_JSON ?? "",
-        LEAD_ROUND_ROBIN_JSON: res.visible.LEAD_ROUND_ROBIN_JSON ?? "",
-        LEAD_SLA_MINUTES_JSON: res.visible.LEAD_SLA_MINUTES_JSON ?? "",
-        REFERRAL_CREDIT_CENTS: res.visible.REFERRAL_CREDIT_CENTS ?? 25000,
-      });
-      setSecretDrafts({});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
-    }
-  }, [getApiToken, isSignedIn]);
+  const query = useQuery({
+    queryKey: ["admin", "lead-ingest"],
+    enabled: isLoaded && isSignedIn,
+    queryFn: async () => settingsApi.leadIngest(await getApiToken()),
+  });
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    void load();
-  }, [isLoaded, isSignedIn, load]);
+    if (!query.data) return;
+    const res = query.data;
+    setData(res);
+    setVisible({
+      META_PIXEL_ID: res.visible.META_PIXEL_ID ?? "",
+      LINKEDIN_CONVERSION_URN: res.visible.LINKEDIN_CONVERSION_URN ?? "",
+      LEAD_TERRITORY_MAP_JSON: res.visible.LEAD_TERRITORY_MAP_JSON ?? "",
+      LEAD_ROUND_ROBIN_JSON: res.visible.LEAD_ROUND_ROBIN_JSON ?? "",
+      LEAD_SLA_MINUTES_JSON: res.visible.LEAD_SLA_MINUTES_JSON ?? "",
+      REFERRAL_CREDIT_CENTS: res.visible.REFERRAL_CREDIT_CENTS ?? 25000,
+    });
+    setSecretDrafts({});
+  }, [query.data]);
+
+  useEffect(() => {
+    if (query.error)
+      setError(query.error instanceof Error ? query.error.message : "Failed to load");
+  }, [query.error]);
+
+  const load = useCallback(async () => {
+    setError("");
+    await query.refetch();
+  }, [query.refetch]);
 
   async function save(extra?: { generate?: string[] }) {
     setBusy(true);
@@ -142,7 +149,7 @@ export default function LeadIngestPanel() {
   }
 
   if (!data && !error) {
-    return <p className="text-sm text-muted">Loading lead ingest settings…</p>;
+    return <PageSkeleton rows={4} />;
   }
 
   return (

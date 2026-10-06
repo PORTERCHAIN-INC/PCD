@@ -50,29 +50,17 @@ def test_fleetbase_bridge_disabled_without_secrets_in_production() -> None:
     assert settings.fleetbase_dispatch_bridge is False
 
 
-def test_fleetbase_bridge_rejected_without_secrets_in_production() -> None:
-    with pytest.raises(ValidationError, match="FLEETBASE_DISPATCH_BRIDGE"):
-        Settings(
-            _env_file=None,
-            app_env="production",
-            jwt_secret="a" * 64,
-            fleetbase_dispatch_bridge=True,
-            fleetbase_api_key="",
-            fleetbase_webhook_secret="",
-            fleetbase_default_company_uuid="",
-        )
-
-
-def test_fleetbase_bridge_allowed_with_secrets_in_production() -> None:
+def test_production_boots_without_fleetbase_secrets() -> None:
     settings = Settings(
         _env_file=None,
         app_env="production",
         jwt_secret="a" * 64,
         fleetbase_dispatch_bridge=True,
-        fleetbase_api_key="fb-key",
-        fleetbase_webhook_secret="wh-secret",
-        fleetbase_default_company_uuid="company-uuid-1",
+        fleetbase_api_key="",
+        fleetbase_webhook_secret="",
+        fleetbase_default_company_uuid="",
         clerk_secret_key=_LEGACY_CLERK_PROD["clerk_secret_key"],
         clerk_jwks_url=_LEGACY_CLERK_PROD["clerk_jwks_url"],
     )
     assert settings.fleetbase_dispatch_bridge is True
+    assert settings.fleetbase_sso_enabled is False

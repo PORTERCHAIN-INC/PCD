@@ -148,7 +148,7 @@ jobs:
           DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
           APP_ENV: local
         run: |
-          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           alembic upgrade head
 
       - name: API tests (PostgreSQL)
@@ -156,7 +156,7 @@ jobs:
           DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
           APP_ENV: local
         run: |
-          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
           pip install pytest-cov
           pytest tests/ --cov=porterchain_api --cov-config=.coveragerc --cov-report=json -v
 
@@ -171,5 +171,5 @@ jobs:
           DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
           APP_ENV: local
         run: |
-          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbase-adapter:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           python scripts/validate_postgres_modules.py

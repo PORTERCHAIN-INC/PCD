@@ -1,12 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import BlogAuthorsClient from "@/components/blog/BlogAuthorsClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+export default async function BlogAuthorsPage() {
+  const client = new QueryClient();
+  const authors = await adminServerFetch<unknown>("/v1/admin/blog/authors");
+  if (authors) client.setQueryData(["blog-authors"], authors);
 
-const BlogAuthorsClient = dynamic(() => import("@/components/blog/BlogAuthorsClient"), {
-  loading: () => <Spinner label="Loading…" />,
-});
-
-export default function BlogAuthorsPage() {
-  return <BlogAuthorsClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <BlogAuthorsClient />
+    </HydrationBoundary>
+  );
 }

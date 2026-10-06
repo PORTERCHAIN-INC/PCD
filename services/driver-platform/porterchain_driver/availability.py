@@ -21,13 +21,11 @@ class AvailabilityService:
         db: Session,
         driver: Any,
         *,
-        online: bool,
-        fleetbase_bridge: Any = None,
-    ) -> dict:
+        online: bool) -> dict:
         from porterchain_driver.shift import ShiftService
 
         mode = "online" if online else "offline"
-        ShiftService().set_availability(db, driver, mode, fleetbase_bridge=fleetbase_bridge)
+        ShiftService().set_availability(db, driver, mode)
         return self.get_status(driver)
 
     def accept_assignment(
@@ -35,8 +33,6 @@ class AvailabilityService:
         db: Session,
         driver: Any,
         order_id: str,
-        *,
-        fleetbase_bridge: Any = None,
     ) -> dict:
         from porterchain_api.booking_models import Order
         from porterchain_api.domain.states import OrderState
@@ -55,16 +51,7 @@ class AvailabilityService:
             OrderState.DRIVER_ACCEPTED,
             event_type=DomainEventType.DRIVER_ACCEPTED,
             actor_type="driver",
-            actor_id=driver.id,
-        )
-        if fleetbase_bridge and order.fleetbase_order_id:
-            fleetbase_bridge.sync_order_state(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=order.fleetbase_order_id,
-                order_state=OrderState.DRIVER_ACCEPTED.value,
-            )
-        # Phase 1d: driver-scoped Fleetbase sequence after accept (best-effort).
+            actor_id=driver.id)
         try:
             from porterchain_driver.jobs import JobsService
 
@@ -79,9 +66,7 @@ class AvailabilityService:
         driver: Any,
         order_id: str,
         *,
-        reason: str = "",
-        fleetbase_bridge: Any = None,
-    ) -> dict:
+        reason: str = "") -> dict:
         from porterchain_api.booking_models import Order
         from porterchain_api.domain.states import OrderState
         from porterchain_api.booking_engine.order_transitions import transition_order_state
@@ -99,18 +84,10 @@ class AvailabilityService:
             event_type=DomainEventType.DRIVER_REJECTED,
             actor_type="driver",
             actor_id=driver.id,
-            payload={"reason": reason},
-        )
+            payload={"reason": reason})
         fleetbase_order_id = order.fleetbase_order_id
         order.assigned_driver_id = None
         db.flush()
-        if fleetbase_bridge and fleetbase_order_id:
-            fleetbase_bridge.sync_order_state(
-                db,
-                order_id=order.id,
-                fleetbase_order_id=fleetbase_order_id,
-                order_state=OrderState.DISPATCH_READY.value,
-            )
         return {"order_id": order.id, "state": order.state}
 
     def _emit_availability_event(self, db: Session, driver: Any, online: bool) -> None:
@@ -123,5 +100,4 @@ class AvailabilityService:
             aggregate_id=driver.id,
             actor_type="driver",
             actor_id=driver.id,
-            payload={"availability": driver.availability},
-        )
+            payload={"availability": driver.availability})

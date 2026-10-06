@@ -9,7 +9,7 @@ from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.auth.invitation_service import InvitationService, pending_clerk_id
 from porterchain_api.auth.sso_service import SsoService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+from porterchain_api.platform.retired_sync import BookingSyncService
 from porterchain_api.merchant_engine.webhook_delivery_service import _hook_matches_event
 from porterchain_api.schemas import AddressInput, CreateBookingDraftRequest
 

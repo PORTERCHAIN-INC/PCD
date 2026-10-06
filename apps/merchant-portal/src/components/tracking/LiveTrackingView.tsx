@@ -214,7 +214,7 @@ function StatusCard({ tracking }: { tracking: LiveTracking }) {
       )}
       <p className="mt-2 text-xs text-muted">
         Last update: {tracking.last_updated ? formatDate(tracking.last_updated) : "—"} · GPS from
-        Fleetbase (polled)
+        Driver GPS
       </p>
     </section>
   );

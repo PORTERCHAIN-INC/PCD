@@ -174,7 +174,7 @@ export function RouteScreen({
         ) : null}
         <Text style={styles.status} testID="route-status">
           {handshake.api === "up"
-            ? "On the network · GPS to Fleetbase"
+            ? "On the network · GPS to PorterChain dispatch"
             : "API down — queued work syncs when you reconnect"}
         </Text>
         {offlinePending > 0 || syncedHint ? (

@@ -76,11 +76,8 @@ def _notice(db: Session, lead: CrmLead, *, kind: str) -> dict[str, Any]:
             f"Source: {lead.source or '—'} / {lead.channel or '—'}."
         )
     else:
-        subject = f"Unassigned {priority} lead: {company}"
-        body = (
-            f"Lead {lead.id} ({company}) is unassigned at {priority} priority. "
-            f"Source: {lead.source or '—'} / {lead.channel or '—'}."
-        )
+        subject = f"{company} — unassigned high lead"
+        body = f"{company} is unassigned. Open the lead in Lead Agent."
     row = _row(db, lead)
     row["notice_kind"] = kind
     row["notice_subject"] = subject

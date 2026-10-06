@@ -36,7 +36,7 @@ export interface WorkspaceData {
   incidents: DriverIncident[];
   openTickets: SupportTicket[];
   nextStop: DriverNextStop | null;
-  lastUpdated: Date;
+  lastUpdated: Date | string;
   queues: ReturnType<typeof splitQueues>;
   shiftStatus: string;
   shiftActive: boolean;
@@ -182,14 +182,34 @@ export function useDriverWorkspace() {
   const setOnline = useCallback(
     async (online: boolean) => {
       setActionPending(online ? "online" : "offline");
+      const previous = qc.getQueryData<WorkspaceData>(["driver-workspace"]);
+      if (previous) {
+        qc.setQueryData<WorkspaceData>(["driver-workspace"], {
+          ...previous,
+          dashboard: {
+            ...previous.dashboard,
+            is_online: online,
+            availability: online ? "online" : "offline",
+          },
+          shiftStatus: shiftStatusLabel({
+            isOnline: online,
+            routeStatus: previous.route?.status ?? null,
+            availability: online ? "online" : "offline",
+            shiftActive: previous.shift?.shift_active,
+          }),
+        });
+      }
       try {
         await driverApi.setOnline(online);
         await refresh();
+      } catch (err) {
+        if (previous) qc.setQueryData(["driver-workspace"], previous);
+        throw err;
       } finally {
         setActionPending(null);
       }
     },
-    [refresh]
+    [qc, refresh]
   );
 
   const startShift = useCallback(

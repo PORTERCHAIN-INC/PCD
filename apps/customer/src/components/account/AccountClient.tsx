@@ -1,16 +1,16 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Spinner } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import { isClerkConfigured } from "@/lib/env";
-import { customerApi, type CustomerSupportTicket } from "@/lib/api";
+import { customerApi } from "@/lib/api";
 
 export default function AccountClient() {
   if (!isClerkConfigured()) {
-    return <AccountBody getToken={async () => "dev"} />;
+    return <AccountBody ready signedIn getToken={async () => "dev"} />;
   }
   return <AccountWithClerk />;
 }
@@ -25,19 +25,28 @@ function AccountWithClerk() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  if (!isLoaded || !isSignedIn) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-gray-bg">
-        <Spinner label="Loading account…" />
-      </main>
-    );
-  }
-
-  return <AccountBody getToken={getToken} />;
+  return <AccountBody ready={isLoaded} signedIn={Boolean(isSignedIn)} getToken={getToken} />;
 }
 
-function AccountBody({ getToken }: { getToken: () => Promise<string | null> }) {
-  const [tickets, setTickets] = useState<CustomerSupportTicket[]>([]);
+function AccountBody({
+  ready,
+  signedIn,
+  getToken,
+}: {
+  ready: boolean;
+  signedIn: boolean;
+  getToken: () => Promise<string | null>;
+}) {
+  const qc = useQueryClient();
+  const { data: tickets = [] } = useQuery({
+    queryKey: ["customer-support-tickets"],
+    enabled: ready && signedIn,
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      return customerApi.listSupport(token);
+    },
+  });
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
@@ -45,16 +54,8 @@ function AccountBody({ getToken }: { getToken: () => Promise<string | null> }) {
   const [error, setError] = useState("");
 
   async function refreshTickets() {
-    const token = await getToken();
-    if (!token) return;
-    const rows = await customerApi.listSupport(token);
-    setTickets(rows);
+    await qc.invalidateQueries({ queryKey: ["customer-support-tickets"] });
   }
-
-  useEffect(() => {
-    void refreshTickets().catch(() => setError("Could not load support tickets."));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function submitTicket(e: React.FormEvent) {
     e.preventDefault();

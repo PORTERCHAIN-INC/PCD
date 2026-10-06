@@ -77,7 +77,7 @@ def test_integration_health_emits_triad_and_validates_schema() -> None:
                     ):
                         health = AdminSettingsService().integration_health(db, settings)
 
-    for key in ("api", "database", "redis", "stripe", "fleetbase"):
+    for key in ("api", "database", "redis", "stripe", "dispatch"):
         assert health[key]["status"] in ("healthy", "warning", "critical")
         assert "raw" in health[key]
 

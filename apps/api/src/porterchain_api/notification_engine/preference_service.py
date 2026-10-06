@@ -192,3 +192,53 @@ class PreferenceService:
                     push_enabled=False,
                     sms_enabled=False,
                 )
+
+
+_TEMPLATE_TOGGLE = {
+    "order_created": "order_booked",
+    "order_booked": "order_booked",
+    "booking_confirmed": "order_booked",
+    "parcel_picked_up": "order_delivered",
+    "delivered": "order_delivered",
+    "order_cancelled": "order_failed",
+    "exception_opened": "order_failed",
+    "exception_resolved": "order_failed",
+    "merchant_invoice_ready": "invoice_generated",
+    "payment_receipt": "payment_received",
+    "claim_opened": "claim_updates",
+    "claim_updated": "claim_updates",
+    "support_ticket_created": "support_replies",
+    "support_reply": "support_replies",
+}
+
+
+def drop_muted_merchant_specs(db: Session, specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Merchant settings toggles bind to the template, not a shared category row."""
+    from porterchain_api.merchant_engine.settings_service import DEFAULT_NOTIFICATIONS
+    from porterchain_api.merchant_models import Merchant
+
+    cache: dict[str, dict[str, Any]] = {}
+    kept: list[dict[str, Any]] = []
+    for spec in specs:
+        if spec.get("recipient_type") != "merchant":
+            kept.append(spec)
+            continue
+        merchant_id = str(spec.get("recipient_id") or "")
+        toggle = _TEMPLATE_TOGGLE.get(str(spec.get("template_key") or ""))
+        if not toggle or not merchant_id:
+            kept.append(spec)
+            continue
+        if merchant_id not in cache:
+            merchant = db.get(Merchant, merchant_id)
+            profile = merchant.profile if merchant and isinstance(merchant.profile, dict) else {}
+            settings = profile.get("settings") if isinstance(profile.get("settings"), dict) else {}
+            notes = settings.get("notifications") if isinstance(settings.get("notifications"), dict) else {}
+            cache[merchant_id] = {**DEFAULT_NOTIFICATIONS, **notes}
+        prefs = cache[merchant_id]
+        event_on = bool(prefs.get(toggle, toggle != "weekly_summary"))
+        channels = prefs.get("channels") if isinstance(prefs.get("channels"), dict) else {}
+        channel = str(spec.get("channel") or "")
+        channel_on = bool(channels.get(channel, True)) if channel in ("email", "in_app") else True
+        if event_on and channel_on:
+            kept.append(spec)
+    return kept

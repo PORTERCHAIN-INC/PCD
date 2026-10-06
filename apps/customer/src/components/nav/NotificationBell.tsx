@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderDropdown from "@/components/nav/HeaderDropdown";
-import { isClerkConfigured } from "@/lib/env";
+import { isClerkConfigured, publicEnv } from "@/lib/env";
 import { notificationsApi } from "@/lib/notifications";
 
 function relativeTime(iso: string): string {
@@ -34,14 +35,31 @@ function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
   const qc = useQueryClient();
   const enabled = Boolean(isLoaded && isSignedIn);
 
+  useEffect(() => {
+    if (!enabled) return;
+    let ws: WebSocket | null = null;
+    let cancelled = false;
+    void (async () => {
+      const token = await getToken();
+      if (!token || cancelled) return;
+      const base = publicEnv.porterchainApiUrl.replace(/^http/, "ws");
+      ws = new WebSocket(
+        `${base}/v1/notifications/ws?token=${encodeURIComponent(token)}&portal=customer`
+      );
+      ws.onmessage = () => {
+        void qc.invalidateQueries({ queryKey: ["customer-notification-inbox"] });
+      };
+    })();
+    return () => {
+      cancelled = true;
+      ws?.close();
+    };
+  }, [enabled, getToken, qc]);
+
   const { data, isLoading: loading } = useQuery({
     queryKey: ["customer-notification-inbox"],
     enabled,
     staleTime: 30_000,
-    refetchInterval: () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-      return 90_000;
-    },
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
@@ -52,7 +70,8 @@ function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
   const items = data?.items ?? [];
   const unread = data?.unread_count ?? 0;
 
-  if (!isLoaded || !isSignedIn) return null;
+  if (isLoaded && !isSignedIn) return null;
+  if (!data && !isSignedIn) return null;
 
   return (
     <HeaderDropdown
@@ -104,7 +123,11 @@ function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
       </div>
       <div className="max-h-[min(50dvh,360px)] overflow-y-auto">
         {loading ? (
-          <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>
+          <div className="space-y-2 px-4 py-4" aria-hidden>
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+          </div>
         ) : items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted">No notifications yet</p>
         ) : (

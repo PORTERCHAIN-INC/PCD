@@ -9,6 +9,7 @@ import { relativeTime } from "@/lib/crmFormat";
 import { Button } from "@/components/crm/primitives";
 import { settingsApi, type AuditEntry, type SettingsDashboard } from "@/lib/settings";
 import { SECTION_DESCRIPTIONS } from "@/lib/settings-metadata";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { SettingsCard, SettingsPageHeader, StatTile } from "../ui/SettingsPrimitives";
 import { RestoreAuditModal } from "./RestoreAuditModal";
 
@@ -42,7 +43,7 @@ export function AuditPanel() {
         className="min-w-0 overflow-hidden"
       >
         {isLoading ? (
-          <p className="text-sm text-muted">Loading…</p>
+          <PageSkeleton rows={3} />
         ) : (
           <div className="min-w-0 space-y-3">
             {logs.map((log, i) => (

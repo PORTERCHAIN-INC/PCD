@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.public_address import public_address_snapshot
 from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
-from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
+from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
 from porterchain_api.config import Settings
 from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 from porterchain_api.merchant_engine.organization_sync import public_shipper_branding

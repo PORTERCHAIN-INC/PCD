@@ -1,9 +1,10 @@
 "use client";
 
 import { cn } from "@porterchain/ui/utils";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useApiData } from "@/hooks/useApiData";
 import { ops, type OpsOrder } from "@/lib/operations";
-import { Badge, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { dateTime, titleCase } from "@/lib/crmFormat";
 
 function SlaRow({ o, onOpen }: { o: OpsOrder; onOpen?: () => void }) {
@@ -35,7 +36,7 @@ export function SlaPanel({
   onOpenOrder: (id: string) => void;
 }) {
   const { data } = useApiData((t) => ops.sla(t), [tick], { key: "ops-sla" });
-  if (!data) return <Spinner />;
+  if (!data) return <PageSkeleton rows={3} />;
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <SectionCard title={`Breached (${data.breached_count})`}>

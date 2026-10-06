@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, type Locale } from "@/i18n/routing";
@@ -41,13 +42,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function BlogCategoryPage({ params, searchParams }: Props) {
-  const { locale, category } = await params;
+async function CategoryBody({
+  locale,
+  category,
+  searchParams,
+}: {
+  locale: string;
+  category: BlogCategory;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { page: pageParam } = await searchParams;
-
-  if (!isBlogCategory(category)) notFound();
-
-  setRequestLocale(locale);
   const t = await getTranslations("blog.category");
   const tHome = await getTranslations("blog.home");
   const tBlog = await getTranslations("blog");
@@ -63,11 +67,10 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
 
   const categoryLabel = (cat: BlogCategory) => tBlog(`categories.${cat}`);
   const readLabel = (minutes: number) => tHome("minRead", { minutes });
-
   const name = categoryLabel(category);
 
   return (
-    <CorporateShell>
+    <>
       <section className="pt-28 pb-8 md:pt-32 bg-white border-b border-primary/[0.04]">
         <Container>
           <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
@@ -119,6 +122,30 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
           </div>
         </Container>
       </section>
+    </>
+  );
+}
+
+export default async function BlogCategoryPage({ params, searchParams }: Props) {
+  const { locale, category } = await params;
+
+  if (!isBlogCategory(category)) notFound();
+
+  setRequestLocale(locale);
+
+  return (
+    <CorporateShell>
+      <Suspense
+        fallback={
+          <section className="site-section bg-gray-bg">
+            <Container>
+              <p className="text-sm text-muted">Loading articles…</p>
+            </Container>
+          </section>
+        }
+      >
+        <CategoryBody locale={locale} category={category} searchParams={searchParams} />
+      </Suspense>
     </CorporateShell>
   );
 }

@@ -316,11 +316,11 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
         *,
         reason: str | None = None,
     ) -> dict:
-        """Drag-move on the board: exception columns only; execution moves are Fleetbase-owned."""
+        """Drag-move on the board: exception columns only; execution advances in the driver app."""
         if to_column in BOARD_EXECUTION_COLUMNS:
             raise ValueError(
-                "execution_moves_run_in_fleetbase — use the Fleetbase console to "
-                "dispatch/advance this order; this board only marks exceptions"
+                "execution_moves_run_in_driver_app — use assign / Optimize / the driver app "
+                "to dispatch and advance this order; this board only marks exceptions"
             )
         target_state_str = BOARD_COLUMN_TARGET.get(to_column)
         if not target_state_str:

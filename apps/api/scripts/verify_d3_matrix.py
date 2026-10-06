@@ -117,25 +117,30 @@ MATRIX: tuple[Row, ...] = (
     ),
     Row(
         feature="Dispatch",
-        engine="fleetbase_engine + admin operations",
+        engine="dispatch_engine + admin operations",
         api_needles=(
             'prefix="/v1/admin/operations"',
             "/sync/health",
             "/dispatch/orders/{order_id}/assign",
+            "/optimize/run",
         ),
         client_checks=(
             (Path("apps/admin/src/lib/operations.ts"), "/v1/admin/operations"),
         ),
-        extra_paths=(API_SRC / "fleetbase_engine",),
+        extra_paths=(
+            API_SRC / "dispatch_engine",
+            API_SRC / "admin_engine" / "operations_service.py",
+        ),
         e2e_phases=("phase_2_forward_logistics",),
     ),
     Row(
         feature="Routing",
-        engine="Valhalla/OSRM + Fleetbase",
+        engine="Valhalla/OSRM + OR-Tools day plan",
         api_needles=(),
         extra_paths=(
             API_SRC / "services/routing.py",
             ROOT / "services/python/porterchain_services/maps",
+            API_SRC / "dispatch_engine" / "sequencer.py",
         ),
         e2e_phases=("phase_1_system_layer",),
     ),
@@ -153,9 +158,17 @@ MATRIX: tuple[Row, ...] = (
     ),
     Row(
         feature="Proof of delivery",
-        engine="driver_engine + Fleetbase webhook",
-        api_needles=("pod-complete", 'prefix="/webhooks"', '@router.post("/fleetbase")'),
-        extra_paths=(API_SRC / "driver_engine", API_SRC / "fleetbase_engine/webhook_ingress_service.py"),
+        engine="driver_engine + navigation_pod",
+        api_needles=(
+            "pod-complete",
+            "pod-photo",
+            'prefix="/driver-api/v1"',
+        ),
+        extra_paths=(
+            API_SRC / "driver_engine",
+            ROUTERS / "driver" / "navigation_pod.py",
+            ROOT / "services/driver-platform/porterchain_driver/pod.py",
+        ),
         e2e_phases=("phase_2_forward_logistics",),
     ),
     Row(

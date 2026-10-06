@@ -154,6 +154,8 @@ export default function CapacityGuideChat({
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const formId = useId();
+  // Stable across prerender — AI SDK defaults to Math.random() for chat id (blocking route).
+  const chatId = useId();
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [guideState, setGuideState] = useState<GuideSessionState>(DEFAULT_GUIDE_STATE);
@@ -200,6 +202,7 @@ export default function CapacityGuideChat({
 
   const { messages, sendMessage, status, error, clearError, addToolApprovalResponse } =
     useChat<UIMessage>({
+      id: chatId,
       transport,
       messages: [
         {

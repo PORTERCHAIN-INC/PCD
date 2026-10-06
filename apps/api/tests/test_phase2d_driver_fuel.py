@@ -64,7 +64,7 @@ def test_next_stop_follows_sequence_waypoint_order() -> None:
     assert out is not None
     assert out["order_id"] == "o1"
     assert out["stop_type"] == "dropoff"
-    assert out["source"] and "fleetbase_sequence" in out["source"]
+    assert out["source"] and "day_plan" in out["source"]
     assert out["distance_m"] == 800
 
 

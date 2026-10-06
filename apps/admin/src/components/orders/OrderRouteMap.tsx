@@ -130,13 +130,13 @@ function RouteMapInner({ orderId }: { orderId: string }) {
           />
           <span className="whitespace-nowrap text-[10px] text-muted">
             {cursor + 1}/{trail.length}
-            {playback?.source ? ` · ${playback.source.replace("fleetbase_", "")}` : ""}
+            {playback?.source ? ` · ${playback.source.replace(/_/g, " ")}` : ""}
           </span>
         </div>
       ) : (
         <p className="text-[11px] text-muted">
           {playback?.message ??
-            "No Fleetbase position history yet — playback appears after the driver app reports GPS."}
+            "No position history yet. Playback appears after the driver app reports GPS."}
         </p>
       )}
     </div>

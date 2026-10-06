@@ -1,10 +1,10 @@
-"""Live map snapshot — mirrored Fleetbase positions + PC order stops.
+"""Live map snapshot — Redis last_known pins + PorterChain order stops.
 
-Policy: the browser gets Google tiles only; Fleetbase positions arrive via the
-Redis ops mirror (worker refreshes adapter GETs — never SocketCluster in web
-apps, never request-thread Fleetbase HTTP). Order stop markers come from the
-Porterchain mirror. Route geometry is computed by MapsService (Valhalla);
-without it we fall back to straight legs between stops, labeled source="direct".
+Policy: the browser gets Google tiles only. Driver pins come from
+``dispatch_engine.gps_board`` (on-duty shift + Redis last_known). Order stop
+markers come from the PorterChain order. Route geometry is computed by
+MapsService (Valhalla); without it we fall back to straight legs between
+stops, labeled source="direct".
 """
 
 from __future__ import annotations
@@ -14,14 +14,10 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.dispatch_suggestions_service import (
-    _coords,
-    _driver_location,
-    _driver_online,
-)
+from porterchain_api.admin_engine.dispatch_suggestions_service import _coords
 from porterchain_api.admin_models import Driver
-from porterchain_api.fleetbase_engine import ops_mirror
 from porterchain_api.booking_models import Order
+from porterchain_api.dispatch_engine import gps_board, ops_mirror
 from porterchain_services.maps.polyline import decode_polyline
 
 logger = logging.getLogger(__name__)
@@ -70,28 +66,6 @@ def _density_cells(orders: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], 
     values = list(buckets.values()) or list(fallback.values())
     source = "h3" if buckets else "grid"
     return sorted(values, key=lambda c: -c["weight"]), source
-
-
-def _gps_pin(
-    *,
-    driver_id: str,
-    fleetbase_id: str,
-    name: str,
-    loc: tuple[float, float],
-    online: bool,
-    gps_source: str,
-    recorded_at: str | None,
-) -> dict[str, Any]:
-    return {
-        "id": driver_id,
-        "fleetbase_driver_id": fleetbase_id,
-        "name": name,
-        "lat": loc[0],
-        "lng": loc[1],
-        "online": online,
-        "gps_source": gps_source,
-        "recorded_at": recorded_at,
-    }
 
 
 def _stop_label(raw: dict, fallback: str) -> str:
@@ -214,82 +188,7 @@ class LiveMapService:
                 }
             )
 
-        drivers_out: list[dict[str, Any]] = []
-        fleetbase_drivers, drivers_source = ops_mirror.read_drivers()
-        blob_by_id: dict[str, dict[str, Any]] = {}
-        if isinstance(fleetbase_drivers, list):
-            for fd in fleetbase_drivers:
-                fid = str(fd.get("id") or fd.get("uuid") or "")
-                if fid:
-                    blob_by_id[fid] = fd
-
-        from porterchain_api.driver_engine.last_known import read_last_known
-
-        pc_drivers = db.query(Driver).filter(Driver.fleetbase_driver_id.isnot(None)).all()
-        seen: set[str] = set()
-        for d in pc_drivers:
-            fid = str(d.fleetbase_driver_id or "")
-            payload = ops_mirror.driver_by_fleetbase_id(fid) if fid else None
-            if payload is None:
-                payload = blob_by_id.get(fid)
-            known = read_last_known(d.id)
-            loc = (known.lat, known.lng) if known else _driver_location(payload)
-            if not loc:
-                continue
-            recorded_at = None
-            if known:
-                gps_source = "last_known"
-                recorded_at = known.recorded_at.isoformat()
-            else:
-                gps_source = "mirror"
-                if isinstance(payload, dict):
-                    raw_at = payload.get("location_recorded_at")
-                    recorded_at = str(raw_at) if raw_at else None
-            drivers_out.append(
-                _gps_pin(
-                    driver_id=d.id,
-                    fleetbase_id=fid,
-                    name=d.full_name,
-                    loc=loc,
-                    online=_driver_online(payload, d),
-                    gps_source=gps_source,
-                    recorded_at=recorded_at,
-                )
-            )
-            if fid:
-                seen.add(fid)
-
-        if drivers_source == ops_mirror.SOURCE_MIRROR:
-            for fid, fd in blob_by_id.items():
-                if fid in seen:
-                    continue
-                loc = _driver_location(fd) or _driver_location(
-                    ops_mirror.driver_by_fleetbase_id(fid)
-                )
-                if not loc:
-                    continue
-                online = fd.get("online")
-                if not isinstance(online, bool):
-                    online = str(fd.get("status") or "").lower() in {"online", "active"}
-                drivers_out.append(
-                    _gps_pin(
-                        driver_id=fid,
-                        fleetbase_id=fid,
-                        name=str(fd.get("name") or "Driver"),
-                        loc=loc,
-                        online=bool(online),
-                        gps_source="mirror",
-                        recorded_at=None,
-                    )
-                )
-        if drivers_out and drivers_source != ops_mirror.SOURCE_MIRROR:
-            drivers_source = ops_mirror.SOURCE_LAST_KNOWN
-        elif not drivers_out:
-            drivers_source = (
-                ops_mirror.SOURCE_UNAVAILABLE
-                if drivers_source == ops_mirror.SOURCE_UNAVAILABLE
-                else ops_mirror.SOURCE_MISS
-            )
+        drivers_out, drivers_source = gps_board.board_pins(db)
 
         density, density_source = _density_cells(out_orders)
         zones, zones_source = ops_mirror.read_zones()
@@ -312,35 +211,17 @@ class LiveMapService:
         }
 
     def playback(self, db: Session, order_id: str) -> dict[str, Any]:
-        """Mirrored Fleetbase position breadcrumbs for client-side route playback."""
+        """Shift/order breadcrumb playback. Empty until shift_trace is wired."""
         order = db.get(Order, order_id)
         if not order:
             raise LookupError(f"Order {order_id} not found")
 
-        if not order.fleetbase_order_id:
-            return {
-                "order_id": order_id,
-                "fleetbase_order_id": order.fleetbase_order_id,
-                "points": [],
-                "source": "none",
-                "message": "Order not synced to Fleetbase",
-            }
-
-        hist, source = ops_mirror.read_history(order.fleetbase_order_id)
-        if not hist:
-            return {
-                "order_id": order_id,
-                "fleetbase_order_id": order.fleetbase_order_id,
-                "points": [],
-                "source": source if source != ops_mirror.SOURCE_MIRROR else "none",
-                "message": "Position history not yet mirrored",
-            }
-
         return {
             "order_id": order_id,
             "fleetbase_order_id": order.fleetbase_order_id,
-            "points": hist.get("points") or [],
-            "source": hist.get("source") or source,
+            "points": [],
+            "source": "none",
+            "message": "No driver GPS yet",
         }
 
     def route_geometry(self, db: Session, order_id: str) -> dict[str, Any]:

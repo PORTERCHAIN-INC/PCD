@@ -9,7 +9,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 API_SRC = ROOT / "apps/api/src/porterchain_api"
-ADAPTER_SRC = ROOT / "services/fleetbase-adapter"
 _WEB_ROOTS = (
     ROOT / "apps/admin/src",
     ROOT / "apps/merchant-portal/src",
@@ -34,25 +33,17 @@ def _check_ui_no_fleetbase_fetch() -> list[str]:
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             if re.search(r"fetch\([^)]*localhost:8000", text):
-                failures.append(f"masterrule §3.7 UI fetch to Fleetbase :8000: {rel}")
+                failures.append(f"masterrule §3.7 UI fetch to retired vendor :8000: {rel}")
             if re.search(r"fetch\([^)]*fleetbase", text, re.IGNORECASE):
-                failures.append(f"masterrule §3.7 UI fetch to Fleetbase: {rel}")
+                failures.append(f"masterrule §3.7 UI fetch to retired Fleetbase host: {rel}")
     return failures
 
 
-def _check_adapter_no_domain_logic() -> list[str]:
-    failures: list[str] = []
-    if not ADAPTER_SRC.is_dir():
-        return failures
-    for path in sorted(ADAPTER_SRC.rglob("*.py")):
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        if "porterchain_api.domain" in text or "booking_engine" in text:
-            rel = path.relative_to(ROOT)
-            failures.append(f"masterrule §3.6 adapter imports domain logic: {rel}")
-        if re.search(r"(^|\n)\s*from sqlalchemy|import sqlalchemy", text):
-            rel = path.relative_to(ROOT)
-            failures.append(f"masterrule §3.6 adapter must not use SQLAlchemy: {rel}")
-    return failures
+def _check_adapter_gone() -> list[str]:
+    adapter = ROOT / "services/fleetbase-adapter"
+    if adapter.is_dir():
+        return ["masterrule §3.6 services/fleetbase-adapter still present — remove with cutover"]
+    return []
 
 
 def _check_models_no_http() -> list[str]:
@@ -69,7 +60,7 @@ def _check_models_no_http() -> list[str]:
 def main() -> int:
     failures = (
         _check_ui_no_fleetbase_fetch()
-        + _check_adapter_no_domain_logic()
+        + _check_adapter_gone()
         + _check_models_no_http()
     )
     if failures:
@@ -77,7 +68,7 @@ def main() -> int:
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("Masterrule §3 layer audit passed (ARCH-G3 — UI, adapter, ORM layers clean).")
+    print("Masterrule §3 layer audit passed (ARCH-G3 — UI clean, adapter gone, ORM layers clean).")
     return 0
 
 

@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Button from "@/components/ui/Button";
 import { billingApi } from "@/lib/billing";
 
@@ -11,27 +13,19 @@ export function CodConnectPanel({
   getToken: () => Promise<string>;
   orgId?: string | null;
 }) {
-  const [status, setStatus] = useState<{
-    cod_enabled: boolean;
-    stripe_connect_account_id: string | null;
-    connect_ready: boolean;
-  } | null>(null);
+  const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [actionErr, setActionErr] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: ["merchant-cod-status", orgId ?? null],
+    queryFn: async () => billingApi.codStatus(await getToken(), orgId ?? undefined),
+  });
+  const status = query.data ?? null;
+  const err =
+    actionErr ||
+    (query.error instanceof Error ? query.error.message : query.error ? String(query.error) : null);
 
-  const refresh = useCallback(async () => {
-    setErr(null);
-    try {
-      const token = await getToken();
-      setStatus(await billingApi.codStatus(token, orgId ?? undefined));
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load COD status");
-    }
-  }, [getToken, orgId]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = () => qc.invalidateQueries({ queryKey: ["merchant-cod-status", orgId ?? null] });
 
   return (
     <div className="space-y-4 rounded-lg border border-border bg-surface p-4">
@@ -41,6 +35,7 @@ export function CodConnectPanel({
         door. Retail Checkout is unchanged.
       </p>
       {err && <p className="text-sm text-danger">{err}</p>}
+      {query.isLoading && !status ? <PageSkeleton rows={2} /> : null}
       {status && (
         <dl className="grid gap-2 text-sm sm:grid-cols-2">
           <div>
@@ -61,14 +56,14 @@ export function CodConnectPanel({
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            setErr(null);
+            setActionErr(null);
             try {
               const token = await getToken();
               const res = await billingApi.codConnect(token, orgId ?? undefined);
               if (res.url) window.location.href = res.url;
               await refresh();
             } catch (e) {
-              setErr(e instanceof Error ? e.message : "Connect failed");
+              setActionErr(e instanceof Error ? e.message : "Connect failed");
             } finally {
               setBusy(false);
             }
@@ -82,13 +77,13 @@ export function CodConnectPanel({
           disabled={busy || !status?.connect_ready}
           onClick={async () => {
             setBusy(true);
-            setErr(null);
+            setActionErr(null);
             try {
               const token = await getToken();
               await billingApi.codEnable(token, !status?.cod_enabled, orgId ?? undefined);
               await refresh();
             } catch (e) {
-              setErr(e instanceof Error ? e.message : "Update failed");
+              setActionErr(e instanceof Error ? e.message : "Update failed");
             } finally {
               setBusy(false);
             }

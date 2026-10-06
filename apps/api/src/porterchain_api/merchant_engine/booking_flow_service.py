@@ -18,7 +18,7 @@ from porterchain_api.booking_engine.site_access import (
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import BookingDraftState
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError, MerchantSyncService
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError, MerchantSyncService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.rbac import MerchantContext

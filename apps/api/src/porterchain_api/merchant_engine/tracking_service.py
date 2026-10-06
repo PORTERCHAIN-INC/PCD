@@ -1,7 +1,7 @@
-"""Merchant tracking — orchestrates Fleetbase tracking, OSRM ETA, Valhalla routes (masterrule §3).
+"""Merchant tracking — PorterChain order + Redis GPS + Valhalla ETA (masterrule §3).
 
-Google Maps renders only on the client. Fleetbase provides live GPS/status/POD.
-OSRM provides ETA. Valhalla provides optimized route geometry.
+Google Maps renders only on the client. Live pin and status come from PorterChain.
+OSRM is a labeled ETA fallback when Valhalla is down. Valhalla provides route geometry.
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.order_engine.buckets import IN_FLIGHT
 from porterchain_api.config import Settings
-from porterchain_api.fleetbase_engine.pod_normalize import normalize_pod
-from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
+from porterchain_api.reporting.pod_normalize import normalize_pod
+from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
 from porterchain_api.merchant_engine.organization_sync import public_shipper_branding
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.tracking_views import (
@@ -260,7 +260,7 @@ class MerchantTrackingService:
         driver_id = getattr(order, "assigned_driver_id", None)
         if not driver_id:
             return None
-        from porterchain_api.fleetbase_engine.ops_mirror import porterchain_driver_pin
+        from porterchain_api.dispatch_engine.ops_mirror import porterchain_driver_pin
 
         return porterchain_driver_pin(driver_id)
 

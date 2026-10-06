@@ -86,7 +86,14 @@ class DeliveryService:
                 db.close()
 
         if channel == "email" and template == "lead_sla_escalation":
-            return record_internal_inbox_skip(notification_id, channel, template, recipient, recipient_type, context, self._mark_deferred)
+            from porterchain_api.notification_engine.staff_fanout import ops_watch_emails
+
+            address = (recipient or "").strip().lower()
+            watch = ops_watch_emails()
+            if not context.get("offline_watch") or not address or address not in watch:
+                return record_internal_inbox_skip(
+                    notification_id, channel, template, recipient, recipient_type, context, self._mark_deferred
+                )
 
         try:
             if channel == "email":
@@ -315,6 +322,15 @@ class DeliveryService:
     def _send_email(self, recipient: str, template: str, context: dict[str, Any]) -> None:
         if not recipient:
             raise ValueError("email_recipient_required")
+        from porterchain_api.db import SessionLocal
+        from porterchain_api.notification_engine.bounce import address_is_bounced
+
+        bounce_db = SessionLocal()
+        try:
+            if address_is_bounced(bounce_db, recipient):
+                raise DeliveryDeferred("email_bounced")
+        finally:
+            bounce_db.close()
         settings = get_platform_settings()
         subject, text_body, html_body = render_email(template, context)
         if context.get("is_sandbox") is True:
@@ -381,13 +397,16 @@ class DeliveryService:
         from_obj: dict[str, str] = {"address": from_addr}
         if from_name:
             from_obj["name"] = from_name
-        payload = {
+        payload: dict[str, Any] = {
             "from": from_obj,
             "to": [{"email_address": {"address": recipient}}],
             "subject": subject,
             "htmlbody": html_body or text_body,
             "textbody": text_body or "",
         }
+        reply_to = context.get("support_email") or context.get("reply_to")
+        if isinstance(reply_to, str) and "@" in reply_to:
+            payload["reply_to"] = [{"address": reply_to.strip()}]
         try:
             resp = httpx.post(
                 api_url,

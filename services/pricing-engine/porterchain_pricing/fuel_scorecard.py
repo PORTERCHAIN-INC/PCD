@@ -81,7 +81,7 @@ def enrich_optimize_metrics_fuel(
     fuel: FuelConfig | None = None,
     vehicle_class: str | None = None,
 ) -> dict[str, Any]:
-    """Attach fuel scorecard fields onto Fleetbase optimize metrics."""
+    """Attach fuel scorecard fields onto PorterChain day-plan optimize metrics."""
     base = dict(metrics or {})
     cfg = fuel or FuelConfig()
     km = float(base.get("after_distance_km") or 0.0)

@@ -20,10 +20,7 @@ CHECKS: list[tuple[str, str]] = [
     ("SpiceDB", "tcp://127.0.0.1:50051"),
     ("Valhalla", "http://127.0.0.1:8002/status"),
     ("OSRM loopback", "http://127.0.0.1:5000/health"),
-    ("Fleetbase API", "http://127.0.0.1:8000"),
     ("PorterChain API", "http://127.0.0.1:8001/health"),
-    ("VROOM", "tcp://127.0.0.1:8030"),
-    ("SocketCluster", "tcp://127.0.0.1:38000"),
 ]
 
 
@@ -66,11 +63,6 @@ def main() -> int:
     print(
         f"  {'note':4}  {'crm-postgres :5433':22}  "
         f"{'listening — not PorterChain' if crm else 'not listening'}"
-    )
-    console_ok, _detail = http_ok("http://127.0.0.1:4200")
-    print(
-        f"  {'note':4}  {'Fleetbase console':22}  http://127.0.0.1:4200  "
-        f"({'up' if console_ok else 'down — upstream image does not build; API :8000 is enough'})"
     )
     if failed:
         print(f"\n{failed} required check(s) down. See docs/CONNECTIONS.md.")

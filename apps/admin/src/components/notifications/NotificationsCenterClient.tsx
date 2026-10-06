@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Fragment } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,13 +21,15 @@ import {
   type InboxNotification,
   type NotificationRecord,
 } from "@/lib/notifications";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
 import { cn } from "@porterchain/ui/utils";
 import AdminPage from "@/components/layout/AdminPage";
 
-/** Must match NotificationBell — one inbox cache for shell + page. */
-const INBOX_KEY = ["admin-notification-inbox"] as const;
+/** Bell cache. This page uses its own key so lead pointers stay off the center. */
+const BELL_INBOX_KEY = ["admin-notification-inbox"] as const;
+const CENTER_INBOX_KEY = ["admin-notification-center-inbox"] as const;
+const LEAD_NOTICE = "lead_sla_escalation";
 
 type Tab = "inbox" | "dashboard" | "queue" | "history" | "failed" | "templates" | "devices";
 
@@ -69,9 +72,9 @@ export default function NotificationsCenterClient() {
 
   const authOk = isLoaded && (isSignedIn || process.env.NODE_ENV === "development");
   const { data: inbox } = useQuery({
-    queryKey: INBOX_KEY,
+    queryKey: CENTER_INBOX_KEY,
     enabled: authOk && tab === "inbox",
-    queryFn: async () => notificationsApi.inbox(await getApiToken(), 100),
+    queryFn: async () => notificationsApi.inbox(await getApiToken(), 100, LEAD_NOTICE),
   });
   const { data: dashboard } = useApiData((t) => notificationsApi.dashboard(t), [version], {
     key: "notifications-dashboard",
@@ -116,7 +119,8 @@ export default function NotificationsCenterClient() {
     try {
       const token = await getApiToken();
       await notificationsApi.markRead(token, id);
-      await qc.invalidateQueries({ queryKey: INBOX_KEY });
+      await qc.invalidateQueries({ queryKey: CENTER_INBOX_KEY });
+      await qc.invalidateQueries({ queryKey: BELL_INBOX_KEY });
     } finally {
       setBusy(null);
     }
@@ -127,7 +131,8 @@ export default function NotificationsCenterClient() {
     try {
       const token = await getApiToken();
       await notificationsApi.markAllRead(token);
-      await qc.invalidateQueries({ queryKey: INBOX_KEY });
+      await qc.invalidateQueries({ queryKey: CENTER_INBOX_KEY });
+      await qc.invalidateQueries({ queryKey: BELL_INBOX_KEY });
     } finally {
       setBusy(null);
     }
@@ -239,7 +244,7 @@ export default function NotificationsCenterClient() {
 
       {tab === "queue" && (
         <RecordTable
-          rows={queue ?? undefined}
+          rows={withoutLeadNotices(queue ?? undefined)}
           onRetry={retry}
           busy={busy}
           empty="Queue is empty."
@@ -247,7 +252,7 @@ export default function NotificationsCenterClient() {
       )}
       {tab === "history" && (
         <RecordTable
-          rows={history ?? undefined}
+          rows={withoutLeadNotices(history ?? undefined)}
           onRetry={retry}
           busy={busy}
           empty="No notification history yet."
@@ -255,7 +260,7 @@ export default function NotificationsCenterClient() {
       )}
       {tab === "failed" && (
         <RecordTable
-          rows={failed ?? undefined}
+          rows={withoutLeadNotices(failed ?? undefined)}
           onRetry={retry}
           busy={busy}
           empty="No failed notifications."
@@ -279,7 +284,7 @@ export default function NotificationsCenterClient() {
             {testMsg ? <p className="text-xs text-muted">{testMsg}</p> : null}
           </div>
           {!templates ? (
-            <Spinner />
+            <PageSkeleton rows={3} />
           ) : (
             <div className="divide-y divide-primary/5">
               {templates.map((t) => (
@@ -332,7 +337,7 @@ export default function NotificationsCenterClient() {
             </p>
           </div>
           {!devices ? (
-            <Spinner />
+            <PageSkeleton rows={3} />
           ) : devices.length === 0 ? (
             <EmptyState
               title="No registered devices"
@@ -362,6 +367,10 @@ export default function NotificationsCenterClient() {
   );
 }
 
+function withoutLeadNotices(rows: NotificationRecord[] | undefined) {
+  return rows?.filter((row) => row.template_key !== LEAD_NOTICE);
+}
+
 function InboxPanel({
   data,
   busy,
@@ -371,7 +380,16 @@ function InboxPanel({
   busy: string | null;
   onOpen: (item: InboxNotification) => void;
 }) {
-  if (!data) return <Spinner label="Loading alerts…" />;
+  if (!data) {
+    return (
+      <div className="space-y-3 px-1 py-2" aria-hidden>
+        <div className="h-4 w-40 animate-pulse rounded bg-primary/5 motion-reduce:animate-none" />
+        <div className="h-16 w-full animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none" />
+        <div className="h-16 w-full animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none" />
+        <div className="h-16 w-full animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none" />
+      </div>
+    );
+  }
   if (data.items.length === 0) {
     return <EmptyState title="No alerts yet" hint="You’re all caught up." />;
   }
@@ -464,7 +482,7 @@ function RecordTable({
     }
   }
 
-  if (!rows) return <Spinner />;
+  if (!rows) return <PageSkeleton rows={3} />;
   if (rows.length === 0) return <EmptyState title={empty} />;
   return (
     <SectionCard title={`Notifications (${rows.length})`}>
@@ -523,7 +541,7 @@ function RecordTable({
                   <tr className="bg-slate-50/80">
                     <td colSpan={showRetry ? 7 : 6} className="px-4 py-3">
                       {!logs[r.id] ? (
-                        <Spinner />
+                        <PageSkeleton rows={3} />
                       ) : logs[r.id].length === 0 ? (
                         <p className="text-xs text-muted">No delivery attempts logged yet.</p>
                       ) : (

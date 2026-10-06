@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import Container from "@/components/ui/Container";
 import MarkdownContent from "@/components/blog/MarkdownContent";
 import { getPreviewPost } from "@/lib/blog";
-import type { Locale } from "@/i18n/routing";
+import { ensureStaticParams } from "@/lib/seo/ensure-static-params";
+import { routing, type Locale } from "@/i18n/routing";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<{ token?: string }>;
 };
 
-export const dynamic = "force-dynamic";
+/** Token-gated draft preview — request-time only. */
+export const instant = false;
+
+export function generateStaticParams() {
+  return ensureStaticParams(
+    routing.locales.map((locale) => ({ locale, slug: "__build__" })),
+    { locale: routing.locales[0]!, slug: "__build__" }
+  );
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -22,18 +32,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function BlogPreviewPage({ params, searchParams }: Props) {
-  const { locale, slug } = await params;
+async function PreviewBody({
+  locale,
+  slug,
+  searchParams,
+}: {
+  locale: string;
+  slug: string;
+  searchParams: Promise<{ token?: string }>;
+}) {
   const { token } = await searchParams;
-  setRequestLocale(locale);
-
   if (!token?.trim()) notFound();
 
   const post = await getPreviewPost(locale as Locale, slug, token.trim());
   if (!post) notFound();
 
   return (
-    <CorporateShell>
+    <>
       <section className="border-b border-amber-500/30 bg-amber-50 py-3">
         <Container>
           <p className="text-center text-sm font-medium text-amber-900">
@@ -55,6 +70,27 @@ export default async function BlogPreviewPage({ params, searchParams }: Props) {
           </div>
         </Container>
       </article>
+    </>
+  );
+}
+
+export default async function BlogPreviewPage({ params, searchParams }: Props) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+
+  return (
+    <CorporateShell>
+      <Suspense
+        fallback={
+          <section className="site-section bg-white">
+            <Container size="narrow">
+              <p className="text-sm text-muted">Loading draft preview…</p>
+            </Container>
+          </section>
+        }
+      >
+        <PreviewBody locale={locale} slug={slug} searchParams={searchParams} />
+      </Suspense>
     </CorporateShell>
   );
 }

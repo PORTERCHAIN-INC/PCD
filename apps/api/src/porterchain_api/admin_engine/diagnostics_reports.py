@@ -78,7 +78,7 @@ class DiagnosticsReportsMixin:
         integration = self.run_platform_validation(db, settings)
         workflows = self.workflow_scenarios(db, settings)
         events = self.event_bus_inspector(db, limit=50)
-        fleetbase = self.fleetbase_sync_monitor(db)
+        day_plan = self.day_plan_monitor(db)
         observability = self.observability(db, settings)
 
         reports = {
@@ -88,7 +88,7 @@ class DiagnosticsReportsMixin:
             "INTEGRATION_VALIDATION.md": self._report_integration(integration),
             "BUSINESS_WORKFLOW_VALIDATION.md": self._report_workflows(workflows),
             "EVENT_BUS_REPORT.md": self._report_events(events),
-            "FLEETBASE_SYNC_REPORT.md": self._report_fleetbase(fleetbase),
+            "DAY_PLAN_REPORT.md": self._report_day_plan(day_plan),
             "CHAOS_TEST_REPORT.md": self._report_chaos(settings),
             "PERFORMANCE_REPORT.md": self._report_performance(observability),
             "SECURITY_REPORT.md": self._report_security(settings),
@@ -169,14 +169,17 @@ class DiagnosticsReportsMixin:
             lines.append(f"- `{e['event_name']}` @ {e['timestamp']}")
         return "\n".join(lines)
 
-    def _report_fleetbase(self, fb: dict[str, Any]) -> str:
+    def _report_day_plan(self, plan: dict[str, Any]) -> str:
         return "\n".join(
             [
-                "# Fleetbase Sync Report",
+                "# Day Plan Report",
                 "",
-                f"- Pending: {fb['pending_sync']}",
-                f"- Successful: {fb['successful_sync']}",
-                f"- Failed: {fb['failed_sync']}",
+                f"- Engine: {plan.get('engine', 'porterchain')}",
+                f"- Solver: {plan.get('solver', 'ortools')}",
+                f"- Road cost: {plan.get('road_cost', 'valhalla')}",
+                f"- Pending runs: {plan.get('pending_runs', 0)}",
+                f"- Ready runs: {plan.get('ready_runs', 0)}",
+                f"- Failed runs: {plan.get('failed_runs', 0)}",
             ]
         )
 
@@ -193,7 +196,7 @@ class DiagnosticsReportsMixin:
             "",
             f"- Clerk: {'configured' if is_clerk_configured(settings) else 'dev bypass' if settings.clerk_dev_bypass else 'missing'}",
             f"- Stripe webhook secret: {'yes' if settings.stripe_webhook_secret else 'no'}",
-            f"- Fleetbase webhook secret: {'yes' if settings.fleetbase_webhook_secret else 'no'}",
+            f"- Dispatch engine: {settings.dispatch_engine or 'porterchain'}",
         ]
         return "\n".join(lines)
 

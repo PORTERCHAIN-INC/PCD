@@ -66,5 +66,4 @@ class PodCaptureResult:
     success: bool
     proof_type: str
     proof_id: str | None
-    fleetbase_synced: bool
     message: str = ""

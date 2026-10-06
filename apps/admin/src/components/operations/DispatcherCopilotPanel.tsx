@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { Check, Pencil, Sparkles, X } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { ops, type CopilotAction } from "@/lib/operations";
 import { formatSuggestionEta } from "@/lib/telemetryLabels";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { relativeTime, titleCase } from "@/lib/crmFormat";
 
 type LlmSuggestRow = {
@@ -126,7 +127,7 @@ export function DispatcherCopilotPanel({
     }
   }
 
-  if (loading && !data) return <Spinner />;
+  if (loading && !data) return <PageSkeleton rows={3} />;
 
   const llm = aiOps?.llm;
   const phase2On = Boolean(aiOps?.phase2?.intelligence || aiOps?.phase2?.ai_dispatch);

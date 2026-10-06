@@ -1,7 +1,7 @@
 """Shared stop + parcel helpers for single book and route import.
 
 ``packages`` table is SoT (labels/scans). ``compliance_metadata.stops[].packages``
-is a Fleetbase projection cache written by PackageService.project_packages_onto_stops —
+is a projection cache written by PackageService.project_packages_onto_stops —
 not a second cargo authority.
 """
 
@@ -103,7 +103,7 @@ def _is_pickup(stop: dict[str, Any]) -> bool:
     return kind in {"pickup", "pick", "pu", "origin"}
 
 
-def fleetbase_stop(stop: dict[str, Any]) -> dict[str, Any]:
+def cargo_stop(stop: dict[str, Any]) -> dict[str, Any]:
     kind = "pickup" if _is_pickup(stop) else "dropoff"
     sequence = stop.get("sequence")
     payload: dict[str, Any] = {
@@ -121,6 +121,9 @@ def fleetbase_stop(stop: dict[str, Any]) -> dict[str, Any]:
         "city": stop.get("city"),
         "province": stop.get("province") or "ON",
         "notes": stop.get("notes"),
+        "contact_name": stop.get("contact_name"),
+        "contact_email": stop.get("contact_email"),
+        "contact_phone": stop.get("contact_phone"),
         "packages": clean_packages(stop.get("packages")),
         "time_window_start": iso_dt(stop.get("time_window_start")),
         "time_window_end": iso_dt(stop.get("time_window_end")),
@@ -136,13 +139,23 @@ def _addr_fields(addr: Any) -> dict[str, Any]:
     else:
         data = {}
     formatted = str(data.get("formatted") or data.get("address") or "")
-    return {
+    out = {
         "formatted": formatted,
         "address": formatted,
         "lat": data.get("lat"),
         "lng": data.get("lng"),
         "postal": data.get("postal"),
     }
+    email = data.get("contact_email") or data.get("email")
+    phone = data.get("contact_phone") or data.get("phone")
+    name = data.get("contact_name") or data.get("name")
+    if isinstance(email, str) and "@" in email:
+        out["contact_email"] = email.strip()
+    if isinstance(phone, str) and phone.strip():
+        out["contact_phone"] = phone.strip()
+    if isinstance(name, str) and name.strip():
+        out["contact_name"] = name.strip()
+    return out
 
 
 def book_stops_for_request(body: Any) -> list[dict[str, Any]]:

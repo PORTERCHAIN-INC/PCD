@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   flexRender,
@@ -24,9 +24,28 @@ import {
   type BookingDraftRow,
 } from "@/lib/booking-drafts";
 import { Badge, Button } from "@/components/crm/primitives";
+import { SavedPresetsControl } from "@/components/crm/SavedPresetsControl";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 const VIEWS_KEY = "porterchain.booking-drafts.views";
 const COLS_KEY = "porterchain.booking-drafts.columns";
+
+const COLUMN_LABELS: Record<string, string> = {
+  select: "Select",
+  draft_number: "Draft #",
+  display_state: "Status",
+  customer_email: "Customer",
+  merchant_name: "Merchant",
+  booking_type: "Type",
+  vehicle_class: "Vehicle",
+  amount_cents: "Amount",
+  payment_status: "Payment",
+  current_step: "Step",
+  created_at: "Created",
+  updated_at: "Updated",
+  expires_at: "Expires",
+  actions: "Actions",
+};
 
 type Props = {
   rows: BookingDraftRow[];
@@ -47,6 +66,7 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
     }
   });
   const [globalFilter, setGlobalFilter] = useState("");
+  const deferredFilter = useDeferredValue(globalFilter);
 
   const columns = useMemo<ColumnDef<BookingDraftRow>[]>(
     () => [
@@ -204,7 +224,7 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
   const table = useReactTable({
     data: rows,
     columns,
-    state: { grouping, columnSizing, columnVisibility, globalFilter },
+    state: { grouping, columnSizing, columnVisibility, globalFilter: deferredFilter },
     onGroupingChange: setGrouping,
     onColumnSizingChange: setColumnSizing,
     onColumnVisibilityChange: (updater) => {
@@ -223,26 +243,8 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
     enableColumnResizing: true,
   });
 
-  function saveView() {
-    const name = prompt("View name");
-    if (!name) return;
-    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "{}") as Record<
-      string,
-      VisibilityState
-    >;
-    views[name] = columnVisibility;
-    localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
-  }
-
-  function loadView() {
-    const views = JSON.parse(localStorage.getItem(VIEWS_KEY) || "{}") as Record<
-      string,
-      VisibilityState
-    >;
-    const names = Object.keys(views);
-    if (!names.length) return alert("No saved views");
-    const name = prompt(`Load view:\n${names.join("\n")}`);
-    if (name && views[name]) setColumnVisibility(views[name]);
+  function columnLabel(id: string) {
+    return COLUMN_LABELS[id] ?? id.replace(/_/g, " ");
   }
 
   return (
@@ -275,17 +277,20 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
                   checked={col.getIsVisible()}
                   onChange={col.getToggleVisibilityHandler()}
                 />
-                {col.id}
+                {columnLabel(col.id)}
               </label>
             ))}
           </div>
         </details>
-        <Button variant="outline" onClick={saveView}>
-          Save view
-        </Button>
-        <Button variant="outline" onClick={loadView}>
-          Load view
-        </Button>
+        <SavedPresetsControl
+          storageKey={VIEWS_KEY}
+          value={columnVisibility}
+          onLoad={(next) => {
+            setColumnVisibility(next);
+            localStorage.setItem(COLS_KEY, JSON.stringify(next));
+          }}
+          label="Column views"
+        />
         <Button variant="outline" onClick={() => exportCsv(rows)}>
           <Download className="h-4 w-4" />
           CSV
@@ -294,7 +299,9 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
 
       <div className="min-w-0 overflow-x-auto rounded-2xl border border-primary/10 bg-white">
         {loading ? (
-          <p className="p-8 text-center text-sm text-muted">Loading drafts…</p>
+          <div className="p-6">
+            <PageSkeleton rows={5} />
+          </div>
         ) : (
           <table
             className="w-full min-w-full text-left text-sm"

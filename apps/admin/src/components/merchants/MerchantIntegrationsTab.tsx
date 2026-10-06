@@ -1105,12 +1105,13 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
                       variant="outline"
                       className="text-xs"
                       disabled={busy === `del-${w.id}`}
+                      aria-busy={busy === `del-${w.id}`}
                       onClick={() => void loadDeliveries(w.id)}
                     >
                       {openHook === w.id
                         ? "Hide deliveries"
                         : busy === `del-${w.id}`
-                          ? "Loading…"
+                          ? "Working…"
                           : "Deliveries"}
                     </Button>
                     {canMutate ? (

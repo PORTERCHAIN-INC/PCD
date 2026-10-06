@@ -36,7 +36,7 @@ def test_accept_assignment_enqueues_driver_optimize() -> None:
 
 def test_execute_queued_run_applies_sequence_for_pc_driver() -> None:
     from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
-    from porterchain_api.fleetbase_engine.optimize_run_store import STATUS_PENDING, STATUS_READY
+    from porterchain_api.dispatch_engine.optimize_run_store import STATUS_PENDING, STATUS_READY
 
     pending = {
         "run_id": "run-1",
@@ -44,16 +44,19 @@ def test_execute_queued_run_applies_sequence_for_pc_driver() -> None:
         "pc_driver_id": "drv-1",
         "order_ids": ["ord-1"],
         "mode": "optimize_routes",
-        "engine": "vroom",
-        "vehicle_ids": ["vehicle_abc123xyz"],
-        "driver_ids": ["driver_abc123xyz"],
+        "engine": "porterchain",
+        "vehicle_ids": ["veh-1"],
+        "driver_ids": ["drv-1"],
     }
     ready_result = {
         "ok": True,
+        "status": STATUS_READY,
+        "pc_driver_id": "drv-1",
+        "apply_on_ready": True,
         "assignments": [
             {
                 "porterchain_order_id": "ord-1",
-                "order_id": "order_abc123xyz",
+                "order_id": "ord-1",
                 "sequence": 1,
                 "stops": [{"type": "pickup"}, {"type": "delivery"}],
             }
@@ -65,9 +68,13 @@ def test_execute_queued_run_applies_sequence_for_pc_driver() -> None:
             "porterchain_api.admin_engine.orchestrator_ops_service.read_optimize_run",
             return_value=pending,
         ),
-        patch.object(OrchestratorOpsService, "run", return_value=ready_result),
-        patch("porterchain_api.admin_engine.orchestrator_ops_service.write_optimize_run"),
+        patch(
+            "porterchain_api.dispatch_engine.day_plan.finish_porterchain_run",
+            return_value=ready_result,
+        ),
         patch("porterchain_driver.sequence_store.apply_run_to_driver") as apply,
+        patch("porterchain_api.dispatch_engine.optimize_events.emit_ready"),
+        patch("porterchain_api.dispatch_engine.optimize_events.emit_applied"),
     ):
         out = OrchestratorOpsService().execute_queued_run(MagicMock(), "run-1")
     assert out["status"] == STATUS_READY
@@ -164,7 +171,7 @@ def test_stops_for_orders_applies_interleaved_sequence() -> None:
     assert stops[3].status == "locked"
 
 
-def test_next_stop_follows_fleetbase_sequence_when_applied() -> None:
+def test_next_stop_follows_day_plan_when_applied() -> None:
     near = SimpleNamespace(
         stop_id="ord-2-pickup",
         stop_type="pickup",
@@ -205,4 +212,4 @@ def test_next_stop_follows_fleetbase_sequence_when_applied() -> None:
         out = resolver.resolve(db, driver)
     assert out is not None
     assert out["stop_id"] == "ord-1-pickup"
-    assert str(out["source"]).startswith("fleetbase_sequence")
+    assert str(out["source"]).startswith("day_plan")

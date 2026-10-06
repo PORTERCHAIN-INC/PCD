@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, type Locale } from "@/i18n/routing";
 import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
@@ -35,11 +36,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata(locale, "blog", t("title"), t("description"));
 }
 
-export default async function BlogHomePage({ params, searchParams }: Props) {
-  const { locale } = await params;
+async function BlogHomeBody({
+  locale,
+  searchParams,
+}: {
+  locale: string;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { page: pageParam } = await searchParams;
-  setRequestLocale(locale);
-
   const t = await getTranslations("blog.home");
   const tBlog = await getTranslations("blog");
   const tPag = await getTranslations("blog.pagination");
@@ -63,7 +67,7 @@ export default async function BlogHomePage({ params, searchParams }: Props) {
   const readLabel = (minutes: number) => t("minRead", { minutes });
 
   return (
-    <CorporateShell>
+    <>
       <section className="pt-28 pb-10 md:pt-32 md:pb-14 bg-white border-b border-primary/[0.04]">
         <Container>
           <div className="max-w-3xl">
@@ -140,6 +144,27 @@ export default async function BlogHomePage({ params, searchParams }: Props) {
           </div>
         </Container>
       </section>
+    </>
+  );
+}
+
+export default async function BlogHomePage({ params, searchParams }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  return (
+    <CorporateShell>
+      <Suspense
+        fallback={
+          <section className="site-section bg-gray-bg">
+            <Container>
+              <p className="text-sm text-muted">Loading blog…</p>
+            </Container>
+          </section>
+        }
+      >
+        <BlogHomeBody locale={locale} searchParams={searchParams} />
+      </Suspense>
     </CorporateShell>
   );
 }

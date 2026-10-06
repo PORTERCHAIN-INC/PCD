@@ -22,6 +22,7 @@ _HEALTHY_EXACT = frozenset(
         "local",
         "operational",
         "legacy_ok",
+        "porterchain",
     }
 )
 

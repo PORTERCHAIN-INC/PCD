@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import { leadsApi } from "@/lib/leads";
 import type { Task } from "@/lib/crm";
 import AdminPage from "@/components/layout/AdminPage";
@@ -122,7 +123,7 @@ export default function LeadsCalendarClient() {
 
       {isLoading ? (
         <div className="flex justify-center py-16">
-          <Spinner />
+          <PageSkeleton rows={3} />
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-7">

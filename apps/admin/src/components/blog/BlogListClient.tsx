@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, RefreshCw } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 import {
   BLOG_CATEGORIES,
@@ -115,7 +116,7 @@ export default function BlogListClient() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Spinner />
+            <PageSkeleton rows={3} />
           </div>
         ) : rows.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted">No blog posts match these filters.</p>

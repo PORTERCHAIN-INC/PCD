@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@porterchain/ui", "@porterchain/config", "@porterchain/types"],
+  reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },

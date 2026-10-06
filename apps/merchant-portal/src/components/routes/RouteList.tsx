@@ -6,8 +6,9 @@ import { listRouteImports, type RouteListItem } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
 import { VEHICLE_CHOICES } from "@/lib/route-module/allocateVehicle";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 type Scope = "all" | "today";
 
@@ -19,40 +20,38 @@ export default function RouteList({ refreshKey = 0 }: { refreshKey?: number }) {
   const [vehicle, setVehicle] = useState("");
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
-  const [total, setTotal] = useState(0);
-  const [today, setToday] = useState(0);
-  const [constructionCount, setConstructionCount] = useState(0);
-  const [routes, setRoutes] = useState<RouteListItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const keyOrg = orgId ?? null;
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const token = await getApiToken();
-        const result = await listRouteImports(token, {
-          date: scope === "today" ? todayStamp() : date ? date.slice(0, 10) : undefined,
-          construction,
-          vehicleClass: vehicle || undefined,
-          status: status || undefined,
-          search: search || undefined,
-          orgId,
-        });
-        if (cancelled) return;
-        setTotal(result.total);
-        setToday(result.today);
-        setConstructionCount(result.construction);
-        setRoutes(result.routes);
-        setError(null);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load routes");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [construction, date, getApiToken, orgId, refreshKey, scope, search, status, vehicle]);
+  const { data, error: queryError } = useQuery({
+    queryKey: [
+      "merchant-routes",
+      keyOrg,
+      scope,
+      date,
+      construction,
+      vehicle,
+      status,
+      search,
+      refreshKey,
+    ],
+    queryFn: async () => {
+      const token = await getApiToken();
+      return listRouteImports(token, {
+        date: scope === "today" ? todayStamp() : date ? date.slice(0, 10) : undefined,
+        construction,
+        vehicleClass: vehicle || undefined,
+        status: status || undefined,
+        search: search || undefined,
+        orgId,
+      });
+    },
+  });
 
+  const total = data?.total ?? 0;
+  const today = data?.today ?? 0;
+  const constructionCount = data?.construction ?? 0;
+  const routes: RouteListItem[] = data?.routes ?? [];
+  const error = queryError instanceof Error ? queryError.message : null;
   return (
     <section className="space-y-4">
       <div className="grid grid-cols-3 gap-2 sm:gap-3">

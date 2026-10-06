@@ -1,20 +1,24 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { publicEnv } from "@/lib/env";
-import { isClerkClientShellPath } from "@/lib/clerk-shell";
 import ClerkProviderShell from "@/components/providers/ClerkProviderShell";
 
 /**
- * Mount Clerk only on login routes. Import statically (not next/dynamic) so
- * useAuth() on /login never runs outside ClerkProvider during chunk load.
+ * Clerk wraps the locale tree when a publishable key exists.
+ * Locale comes from the server layout (not useLocale) so Cache Components
+ * can prerender the shared shell without a client navigation hook.
  */
-export default function AppClerkProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() ?? "";
-
-  if (!publicEnv.clerkPublishableKey || !isClerkClientShellPath(pathname)) {
+export default function AppClerkProvider({
+  children,
+  locale,
+}: {
+  children: ReactNode;
+  locale: string;
+}) {
+  if (!publicEnv.clerkPublishableKey) {
     return <>{children}</>;
   }
 
-  return <ClerkProviderShell>{children}</ClerkProviderShell>;
+  return <ClerkProviderShell locale={locale}>{children}</ClerkProviderShell>;
 }

@@ -58,7 +58,7 @@ from porterchain_api.merchant_engine.import_rows import (
     rows_to_stops,
 )
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.stop_cargo import fleetbase_stop
+from porterchain_api.merchant_engine.stop_cargo import cargo_stop
 from porterchain_api.merchant_models import BulkImportJob
 
 logger = logging.getLogger(__name__)
@@ -381,7 +381,7 @@ class MerchantRouteImportService:
         if stops is not None and not any(s.get("geocode_status") == "pending" for s in stops):
             return
         try:
-            from porterchain_api.fleetbase_engine.routing_jobs import enqueue_routing_job
+            from porterchain_api.dispatch_engine.routing_jobs import enqueue_routing_job
 
             enqueue_routing_job({"action": "geocode_import", "job_id": job_id})
         except Exception as exc:  # noqa: BLE001
@@ -389,7 +389,7 @@ class MerchantRouteImportService:
 
     def _enqueue_optimize(self, job_id: str) -> None:
         try:
-            from porterchain_api.fleetbase_engine.routing_jobs import enqueue_routing_job
+            from porterchain_api.dispatch_engine.routing_jobs import enqueue_routing_job
 
             enqueue_routing_job({"action": "optimize_import", "job_id": job_id})
         except Exception as exc:  # noqa: BLE001
@@ -425,8 +425,8 @@ class MerchantRouteImportService:
     def _explain(self, stops: list[dict[str, Any]]) -> str:
         return explain_stops(stops)
 
-    def _fleetbase_stop(self, stop: dict[str, Any]) -> dict[str, Any]:
-        return fleetbase_stop(stop)
+    def _cargo_stop(self, stop: dict[str, Any]) -> dict[str, Any]:
+        return cargo_stop(stop)
 
     def _driver_notes(self, stops: list[dict[str, Any]]) -> str | None:
         return driver_notes(stops)

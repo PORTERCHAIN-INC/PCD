@@ -10,7 +10,7 @@ const INTEGRATION_META: Record<string, { label: string; note: string }> = {
   database: { label: "PostgreSQL", note: "Primary transactional store" },
   redis: { label: "Redis / Queue", note: "Event bus and job queue" },
   stripe: { label: "Stripe", note: "Payments — masterrule §14" },
-  fleetbase: { label: "Fleetbase", note: "Execution engine via adapter only" },
+  dispatch: { label: "Dispatch", note: "PorterChain day plan" },
   google_maps: { label: "Google Maps", note: "Places autocomplete & map tiles only" },
   firebase: { label: "Firebase", note: "Push notifications" },
   clerk: { label: "Clerk", note: "Identity — auth only, not RBAC" },
@@ -190,8 +190,8 @@ export default function DashboardPanel({
         <QuickLink
           icon={Globe}
           title="Integrations"
-          hint="Fleetbase & Stripe status"
-          target="fleetbase"
+          hint="Dispatch and Stripe status"
+          target="dispatch"
         />
       </div>
 

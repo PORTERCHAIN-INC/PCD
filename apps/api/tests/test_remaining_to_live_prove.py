@@ -34,7 +34,7 @@ def test_driver_optimize_handler_enqueues_without_tsp():
     src = inspect.getsource(jobs_router.optimize_jobs)
     assert "optimize_route" in src
     opt_src = inspect.getsource(JobsService.optimize_route)
-    assert "enqueue_run" in src or "enqueue_run" in opt_src
+    assert "queue_one_van" in opt_src
     assert "_two_opt" not in inspect.getsource(DriverRouteOptimizer)
     assert "haversine" not in inspect.getsource(JobsService.optimize_route)
 
@@ -113,7 +113,7 @@ def test_assignable_drivers_never_calls_adapter():
     db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
     with (
         patch(
-            "porterchain_api.fleetbase_engine.ops_mirror.online_map_from_mirror",
+            "porterchain_api.dispatch_engine.ops_mirror.online_map_from_mirror",
             return_value={},
         ),
         patch(
@@ -146,18 +146,17 @@ def test_route_import_resolve_does_not_sleep():
     assert all(s["geocode_status"] == "pending" for s in resolved)
 
 
-def test_metrics_include_sync_job_gauges():
+def test_metrics_include_routing_source_gauges():
     note_routing_source("valhalla")
     text = prometheus_metrics()
-    assert "porterchain_fleetbase_sync_jobs" in text
-    assert 'status="pending"' in text
     assert "porterchain_routing_source_total" in text
+    assert 'source="valhalla"' in text
 
 
-def test_readiness_ok_when_fleetbase_link_pct_below_slo():
+def test_readiness_ok_reports_dispatch_porterchain():
     db = MagicMock()
     db.execute.return_value = None
-    settings = Settings(app_env="local", fleetbase_dispatch_bridge=True)
+    settings = Settings(app_env="local")
     with (
         patch("porterchain_api.platform.health.ping_redis", return_value=True),
         patch("porterchain_api.platform.health._routing_health", return_value="ok"),
@@ -170,24 +169,17 @@ def test_readiness_ok_when_fleetbase_link_pct_below_slo():
             return_value="enterprise",
         ),
         patch(
-            "porterchain_api.fleetbase_engine.sync_health.assess_fleetbase_sync",
-            return_value={
-                "meets_slo": False,
-                "link_pct": 12.0,
-                "webhook_secret_configured": True,
-            },
-        ),
-        patch(
             "porterchain_api.merchant_engine.webhook_delivery_health.assess_merchant_webhook_delivery",
             return_value={"meets_slo": True, "success_pct": 100.0},
         ),
     ):
         result = readiness(db, settings)
     assert result["status"] == "ok"
-    assert "below_slo" in str(result["checks"].get("fleetbase_sync"))
+    assert result["checks"].get("dispatch") == "porterchain"
+    assert "fleetbase_sync" not in result["checks"]
 
 
-def test_worker_fleetbase_mode_excludes_event_bus():
+def test_worker_modes_are_events_queues_routing_only():
     import sys
     from pathlib import Path
 
@@ -198,16 +190,14 @@ def test_worker_fleetbase_mode_excludes_event_bus():
     else:
         sys.path.remove(str(worker_root))
         sys.path.insert(0, str(worker_root))
-    from run import FLEET_SYNC_KINDS, _load_local_api_env, mode_includes, parse_worker_mode
+    from run import WORKER_MODES, _load_local_api_env, mode_includes, parse_worker_mode
 
-    assert parse_worker_mode(["--mode", "fleetbase"]) == "fleetbase"
-    assert mode_includes("fleetbase", "events") is False
-    assert mode_includes("fleetbase", "queues") is False
-    assert mode_includes("fleetbase", "fleetbase") is True
+    assert "fleetbase" not in WORKER_MODES
+    assert parse_worker_mode(["--mode", "routing"]) == "routing"
+    assert mode_includes("routing", "routing") is True
+    assert mode_includes("routing", "events") is False
     assert mode_includes("all", "events") is True
     assert callable(_load_local_api_env)
-    assert "vehicle" in FLEET_SYNC_KINDS
-    assert "driver_profile" in FLEET_SYNC_KINDS
 
 
 def test_optimize_worker_imports_user_models_for_driver_fk():

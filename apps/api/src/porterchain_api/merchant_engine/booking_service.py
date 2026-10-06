@@ -13,7 +13,7 @@ from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
 from porterchain_api.config import Settings
-from porterchain_api.fleetbase_engine import MerchantSyncService
+from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
 from porterchain_api.domain.states import OrderState, OrderSource
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.rbac import MerchantContext
@@ -25,12 +25,12 @@ from porterchain_api.booking_engine.order_metadata import resolve_order_type
 from porterchain_api.services.routing import resolve_route_distance
 from porterchain_pricing import GeoPoint, PricingRequest
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.service_area import assert_ontario_booking
 from porterchain_api.merchant_engine.stop_cargo import (
     book_stops_for_request,
     cargo_rollup,
-    fleetbase_stop,
+    cargo_stop,
     packages_from_stops,
     parse_dt,
     pickup_stop,
@@ -270,7 +270,7 @@ class MerchantBookingService:
         scheduled_at, schedule_mode = schedule_from_body(body)
         weight_kg, dimensions = cargo_rollup(body)
         cargo_stops = book_stops_for_request(body)
-        compliance["stops"] = [fleetbase_stop(stop) for stop in cargo_stops]
+        compliance["stops"] = [cargo_stop(stop) for stop in cargo_stops]
         compliance["schedule_mode"] = schedule_mode
         if weight_kg is not None:
             compliance["weight_kg"] = weight_kg
@@ -369,12 +369,11 @@ class MerchantBookingService:
             return order
 
         if not auto_dispatch:
-            # Hold at BOOKED — admin Release to Fleetbase (Shopify control plane).
+            # Hold at BOOKED — admin Release to dispatch (Shopify control plane).
             db.refresh(order)
             return order
 
-        # Publish dispatch-ready → the registered event handler pushes the order
-        # to Fleetbase via the adapter (event-driven; no direct call here).
+        # Publish dispatch-ready → PorterChain day plan / assign path (event-driven).
         transition_to_dispatch_ready(
             db,
             order,
@@ -454,7 +453,5 @@ class MerchantBookingService:
 
 
 def push_redacted_order(db: Session, settings: Settings, order: Order) -> None:
-    """Push a wiped delivery contact back through the existing Fleetbase booking path."""
-    from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
-
-    FleetbaseIntegrationBridge().sync_order(db, settings, order)
+    """The wiped contact is already on the PorterChain order."""
+    del db, settings, order

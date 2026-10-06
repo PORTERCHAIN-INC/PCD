@@ -203,9 +203,7 @@ Rows in **Intentionally not done** above: Critical Alerts · on-call topics · e
 ## Related SSOT
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md) — Finished / Current / Required + rejected overlays
-- [FLEETBASE_MODULES.md](../FLEETBASE_MODULES.md) — Use / Extend / Replace / Future (parked Phase 6 points here)
-- [FLEETBASE_PERMANENT_BOND.md](FLEETBASE_PERMANENT_BOND.md) — PorterChain↔Fleetbase permanent bond (do not fork PHP)
 - [docs/PORTERCHAIN_CHARTER.md](PORTERCHAIN_CHARTER.md) — 10-customer gate
 - [DRIVER_VERIFICATION_INTENTIONAL_SKIPS.md](DRIVER_VERIFICATION_INTENTIONAL_SKIPS.md) — thin pointer → this file
 - `shared/python/porterchain_shared/config/project_mode.py` — ProjectMode / RuntimePosture SoT
-- `.cursor/rules/fleetbase-first-policy.mdc` · `dependency-freeze.mdc` · `porterchain-charter.mdc`
+- `.cursor/rules/fleetbase-first-policy.mdc` · `dependency-freeze.mdc` · `porterchain-charter.mdc` (PorterChain owns dispatch; no vendor adapter)

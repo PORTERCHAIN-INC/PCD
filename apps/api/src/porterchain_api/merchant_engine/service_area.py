@@ -7,7 +7,7 @@ outside the Valhalla tile. Ontario district prefixes alone are too wide
 
 from __future__ import annotations
 
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 from porterchain_pricing.components.fsa import fsa_from_point, is_ontario_fsa, normalize_fsa
 from porterchain_pricing.gta150_fsa import is_gta150_fsa

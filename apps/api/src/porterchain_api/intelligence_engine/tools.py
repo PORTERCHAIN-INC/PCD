@@ -1,4 +1,4 @@
-"""Read-only tools for ops NIM context — never mutate Fleetbase, Stripe, or orders.
+"""Read-only tools for ops NIM context — never mutate Stripe, day plans, or orders.
 
 Used to ground suggest_ops_action with live PorterChain snapshots. Tools return
 JSON-serialisable dicts suitable for prompt injection only.
@@ -92,12 +92,12 @@ def get_sla_queue(db: Session, *, limit: int = 12) -> dict[str, Any]:
         "at_risk_count": int(raw.get("at_risk_count") or len(at_risk)),
         "breached": breached,
         "at_risk": at_risk,
-        "note": "Read-only SLA queue. Prefer Fleetbase console before reassign suggestions.",
+        "note": "Read-only SLA queue. Prefer the live map and day plan before reassign suggestions.",
     }
 
 
 def get_optimize_run(db: Session, run_id: str) -> dict[str, Any]:
-    """Slim Fleetbase optimize run for NIM insert/reject narration (Phase 1b)."""
+    """Slim PorterChain day-plan run for NIM insert/reject narration."""
     del db  # run store is Redis — Session unused but keeps tool signature uniform
     from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
 
@@ -140,7 +140,7 @@ def get_optimize_run(db: Session, run_id: str) -> dict[str, Any]:
 
 
 def get_manifest_summary(db: Session, driver_id: str) -> dict[str, Any]:
-    """Applied Fleetbase waypoint sequence for a driver (Phase 4 / 1b)."""
+    """Applied PorterChain day-plan waypoints for a driver."""
     del db
     from porterchain_driver.sequence_store import read_sequence
 
@@ -153,7 +153,7 @@ def get_manifest_summary(db: Session, driver_id: str) -> dict[str, Any]:
             "tool": "get_manifest_summary",
             "driver_id": did,
             "waypoints": [],
-            "note": "No applied Fleetbase sequence for this driver yet.",
+            "note": "No accepted day plan for this driver yet.",
         }
     waypoints = plan.get("waypoints") if isinstance(plan.get("waypoints"), list) else []
     slim = [
@@ -172,7 +172,7 @@ def get_manifest_summary(db: Session, driver_id: str) -> dict[str, Any]:
         "engine": plan.get("engine"),
         "waypoint_count": len(slim),
         "waypoints": slim,
-        "note": "Read-only applied sequence. Fleetbase remains commit SoT.",
+        "note": "Read-only accepted day plan. Optimize Accept remains commit SoT.",
     }
 
 

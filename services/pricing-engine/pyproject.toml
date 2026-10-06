@@ -1,7 +1,7 @@
 [project]
 name = "porterchain-pricing"
 version = "0.1.0"
-description = "Porterchain Pricing & Contract Engine — independent of Fleetbase"
+description = "PorterChain Pricing & Contract Engine — retail and merchant quotes"
 requires-python = ">=3.12"
 dependencies = []
 

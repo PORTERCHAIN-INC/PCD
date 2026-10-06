@@ -298,6 +298,9 @@ class LeadIngestService(LeadIngestResolveMixin):
                         "created": created,
                         "merged": merged,
                         "ingest_event_id": evt_id,
+                        "priority": getattr(lead, "priority", None),
+                        "company_name": getattr(lead, "company_name", None),
+                        "lead_id": lead.id,
                     },
                 )
             except Exception:

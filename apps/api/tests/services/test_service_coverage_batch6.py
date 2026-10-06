@@ -14,7 +14,7 @@ from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
-from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+from porterchain_api.platform.retired_sync import BookingSyncService
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.webhook_delivery_service import deliver_merchant_fanout
 
@@ -80,15 +80,6 @@ def test_booking_sync_cancellation(db, settings, dispatch_order) -> None:
     svc._bridge = MagicMock()
     svc.sync_cancellation(db, settings, dispatch_order)
     svc._bridge.cancel_order.assert_not_called()
-    from porterchain_api.fleetbase_models import FleetbaseSyncJob
-
-    job = (
-        db.query(FleetbaseSyncJob)
-        .filter(FleetbaseSyncJob.idempotency_key == f"cancellation:{dispatch_order.id}")
-        .first()
-    )
-    assert job is not None
-    assert job.kind == "cancellation"
 
 
 @patch("porterchain_api.merchant_engine.webhook_delivery_service.SessionLocal")

@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Check, Sparkles, X } from "lucide-react";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useApiData } from "@/hooks/useApiData";
 import { ordersApi, type AssistPayload, type AssistProposal, type Playbook } from "@/lib/orders";
-import { Badge, Button, EmptyState, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 export function OrderAssistPanel({
   orderId,
@@ -19,29 +20,24 @@ export function OrderAssistPanel({
   onOpenException?: (suggested?: string) => void;
   compact?: boolean;
 }) {
-  const { getApiToken } = useAdminAuth();
-  const [data, setData] = useState<AssistPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    loading,
+    error: loadError,
+    getApiToken,
+    refetch,
+  } = useApiData<AssistPayload>((token) => ordersApi.assist(token, orderId), [orderId], {
+    key: `order-assist-${orderId}`,
+    staleTime: 15_000,
+  });
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
     setError(null);
-    try {
-      const token = await getApiToken();
-      setData(await ordersApi.assist(token, orderId));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Assist failed to load");
-    } finally {
-      setLoading(false);
-    }
-  }, [getApiToken, orderId]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+    await refetch();
+  }, [refetch]);
 
   async function decide(proposal: AssistProposal, decision: "accept" | "reject") {
     setBusy(proposal.id);
@@ -122,8 +118,8 @@ export function OrderAssistPanel({
 
   if (loading && !data) {
     return (
-      <div className="py-6">
-        <Spinner label="Loading assist…" />
+      <div className="py-2">
+        <PageSkeleton rows={3} />
       </div>
     );
   }
@@ -137,7 +133,7 @@ export function OrderAssistPanel({
             Order assist
           </p>
           <p className="mt-0.5 text-xs text-muted">
-            Propose · human confirms. Never advances Accept→Delivered (Fleetbase-owned).
+            Propose · human confirms. Never advances Accept to Delivered on its own.
           </p>
         </div>
         <Button variant="outline" className="px-2 py-1 text-xs" onClick={() => void load()}>
@@ -145,9 +141,9 @@ export function OrderAssistPanel({
         </Button>
       </div>
 
-      {error && (
+      {(error || loadError) && (
         <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
+          {error || loadError}
         </p>
       )}
       {info && (

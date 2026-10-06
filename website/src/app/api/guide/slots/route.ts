@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { listGuideSlots } from "@/lib/home/guide-api";
 
-export const runtime = "nodejs";
-
 export async function GET(request: Request) {
   const meetingType =
     new URL(request.url).searchParams.get("meeting_type") === "meeting" ? "meeting" : "call";

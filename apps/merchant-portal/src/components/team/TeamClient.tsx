@@ -20,7 +20,8 @@ import { isClerkConfigured, useLocalDevAuth } from "@/lib/env";
 import { merchantSignupUrl } from "@/lib/onboarding";
 import { formatDate } from "@/lib/utils";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { startTransition, useCallback, useOptimistic, useState } from "react";
 
 type Tab = "contacts" | "members" | "roles" | "activity" | "security";
 
@@ -34,21 +35,14 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function TeamClient() {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
+  const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("contacts");
-  const [overview, setOverview] = useState<TeamOverview | null>(null);
-  const [contacts, setContacts] = useState<MerchantContact[]>([]);
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [activity, setActivity] = useState<ActivityLogEntry[]>([]);
-  const [roles, setRoles] = useState<PermissionsCatalog | null>(null);
-  const [twoFactor, setTwoFactor] = useState<TwoFactorStatus | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    if (!isSignedIn) return;
-    setError(null);
-    try {
+  const teamQuery = useQuery({
+    queryKey: ["merchant-team", orgId ?? null],
+    enabled: Boolean(isLoaded && isSignedIn),
+    queryFn: async () => {
       const token = await getApiToken();
-      const [ov, con, mem, act, rol, tfa] = await Promise.all([
+      const [overview, contacts, members, activity, roles, twoFactor] = await Promise.all([
         teamApi.overview(token, orgId),
         contactsApi.list(token, orgId),
         teamApi.members(token, orgId),
@@ -56,27 +50,33 @@ export default function TeamClient() {
         teamApi.roles(token, orgId),
         teamApi.twoFactor(token, orgId),
       ]);
-      setOverview(ov);
-      setContacts(con);
-      setMembers(mem);
-      setActivity(act);
-      setRoles(rol);
-      setTwoFactor(tfa);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load team");
-    }
-  }, [getApiToken, orgId, isSignedIn]);
+      return { overview, contacts, members, activity, roles, twoFactor };
+    },
+  });
+  const overview = teamQuery.data?.overview ?? null;
+  const contacts = teamQuery.data?.contacts ?? [];
+  const members = teamQuery.data?.members ?? [];
+  const activity = teamQuery.data?.activity ?? [];
+  const roles = teamQuery.data?.roles ?? null;
+  const twoFactor = teamQuery.data?.twoFactor ?? null;
+  const error = teamQuery.error
+    ? teamQuery.error instanceof Error
+      ? teamQuery.error.message
+      : "Failed to load team"
+    : null;
 
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    void load();
-  }, [isLoaded, isSignedIn, load]);
+  const load = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["merchant-team", orgId ?? null] });
+  }, [orgId, qc]);
 
-  if (!isLoaded || !overview) {
+  if (!overview && (!isLoaded || teamQuery.isLoading)) {
     if (error) {
       return <EmptyState title="Could not load team" hint={error} />;
     }
     return <PageSkeleton rows={4} />;
+  }
+  if (!overview) {
+    return <EmptyState title="Could not load team" hint={error ?? "Team data is unavailable."} />;
   }
 
   return (
@@ -364,6 +364,16 @@ function MembersTab({
 }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("merchant_ops");
+  const [optimisticMembers, applyOptimistic] = useOptimistic(
+    members,
+    (
+      current: TeamMember[],
+      action: { type: "role"; id: string; role: string } | { type: "remove"; id: string }
+    ) => {
+      if (action.type === "remove") return current.filter((m) => m.id !== action.id);
+      return current.map((m) => (m.id === action.id ? { ...m, role: action.role } : m));
+    }
+  );
 
   const addSeat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,16 +383,30 @@ function MembersTab({
     await onRefresh();
   };
 
-  const remove = async (id: string) => {
-    const token = await getToken();
-    await teamApi.remove(token, id, orgId);
-    await onRefresh();
+  const remove = (id: string) => {
+    startTransition(async () => {
+      applyOptimistic({ type: "remove", id });
+      try {
+        const token = await getToken();
+        await teamApi.remove(token, id, orgId);
+        await onRefresh();
+      } catch {
+        await onRefresh();
+      }
+    });
   };
 
-  const changeRole = async (id: string, newRole: string) => {
-    const token = await getToken();
-    await teamApi.updateRole(token, id, newRole, orgId);
-    await onRefresh();
+  const changeRole = (id: string, newRole: string) => {
+    startTransition(async () => {
+      applyOptimistic({ type: "role", id, role: newRole });
+      try {
+        const token = await getToken();
+        await teamApi.updateRole(token, id, newRole, orgId);
+        await onRefresh();
+      } catch {
+        await onRefresh();
+      }
+    });
   };
 
   const reactivate = async (id: string) => {
@@ -433,7 +457,7 @@ function MembersTab({
       </p>
 
       <ul className="divide-y divide-primary/5 rounded-2xl border border-primary/10 bg-white">
-        {members.map((m) => (
+        {optimisticMembers.map((m) => (
           <li
             key={m.id}
             className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 text-sm"
@@ -494,7 +518,7 @@ function MembersTab({
             </div>
           </li>
         ))}
-        {members.length === 0 && (
+        {optimisticMembers.length === 0 && (
           <li className="px-6 py-8 text-center text-muted">No team members</li>
         )}
       </ul>

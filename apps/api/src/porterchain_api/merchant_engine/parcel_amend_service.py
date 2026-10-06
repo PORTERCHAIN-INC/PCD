@@ -248,7 +248,7 @@ class ParcelAmendService:
             "city": dropoff.get("city"),
         }
         compliance = dict(meta)
-        compliance["stops"] = [self._routes._fleetbase_stop(stop) for stop in resolved]
+        compliance["stops"] = [self._routes._cargo_stop(stop) for stop in resolved]
         compliance["additional_stops"] = [
             {
                 "formatted": s.get("formatted") or s.get("address"),
@@ -309,14 +309,6 @@ class ParcelAmendService:
         PackageService().sync_from_order(db, order)
         db.commit()
         db.refresh(order)
-
-        if settings is not None:
-            try:
-                from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
-
-                BookingSyncService().push_order(db, settings, order)
-            except Exception:  # noqa: BLE001 — commercial amend must not fail on Fleetbase
-                logger.debug("fleetbase cargo sync skipped after parcel amend", exc_info=True)
 
         return {
             "order_id": order.id,

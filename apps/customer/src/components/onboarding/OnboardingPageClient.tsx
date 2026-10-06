@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import PortalOnboardingView from "@/components/onboarding/PortalOnboardingView";
 import { useCustomerOnboarding } from "@/hooks/useCustomerOnboarding";
 import { isClerkConfigured } from "@/lib/env";
@@ -24,8 +25,8 @@ function RedirectToDashboard() {
 
 function CustomerOnboardingWithClerk() {
   const router = useRouter();
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { data, loading, error, refresh, setLoading } = useCustomerOnboarding(30_000);
+  const { isLoaded, isSignedIn } = useAuth();
+  const { data, loading, error, refresh } = useCustomerOnboarding(30_000);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -33,33 +34,13 @@ function CustomerOnboardingWithClerk() {
       router.replace("/sign-in?redirect_url=/onboarding");
       return;
     }
-    let cancelled = false;
-    let timer: number | undefined;
-    void (async () => {
-      const token = await getToken();
-      if (!token || cancelled) return;
-      const status = await refresh(token);
-      if (status?.ready) {
-        router.replace("/dashboard");
-        return;
-      }
-      timer = window.setInterval(async () => {
-        const t = await getToken();
-        if (!t) return;
-        const next = await refresh(t);
-        if (next?.ready) router.replace("/dashboard");
-      }, 30_000);
-    })();
-    return () => {
-      cancelled = true;
-      if (timer) window.clearInterval(timer);
-    };
-  }, [getToken, isLoaded, isSignedIn, refresh, router]);
+    if (data?.ready) router.replace("/dashboard");
+  }, [data?.ready, isLoaded, isSignedIn, router]);
 
   if ((loading && !data) || !isLoaded) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gray-bg">
-        <p className="text-sm text-muted">Loading activation status…</p>
+      <div className="flex min-h-dvh items-center justify-center bg-gray-bg p-6">
+        <PageSkeleton rows={3} />
       </div>
     );
   }
@@ -71,12 +52,7 @@ function CustomerOnboardingWithClerk() {
           <p className="text-sm text-red-600">{error}</p>
           <button
             type="button"
-            onClick={() => {
-              setLoading(true);
-              void getToken().then((t) => {
-                if (t) void refresh(t);
-              });
-            }}
+            onClick={() => void refresh()}
             className="mt-4 rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-white"
           >
             Retry
@@ -94,11 +70,7 @@ function CustomerOnboardingWithClerk() {
       portalSubtitle="Account activation"
       data={data}
       refreshing={loading}
-      onRefresh={() => {
-        void getToken().then((t) => {
-          if (t) void refresh(t);
-        });
-      }}
+      onRefresh={() => void refresh()}
       footerNote="Add a verified email in Clerk if the email step is pending. Contact support if identity conflict appears."
     />
   );

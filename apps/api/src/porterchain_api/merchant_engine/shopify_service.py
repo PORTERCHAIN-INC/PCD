@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac, verify_webhook_hmac
 from porterchain_api.integrations.shopify_orders import (
     customer_slice,

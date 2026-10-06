@@ -33,14 +33,18 @@ class NotificationEngine:
         unread_only: bool = False,
         archived: bool = False,
         limit: int = 50,
+        exclude_templates: set[str] | None = None,
     ) -> dict:
         """In-app inbox payload for notification center UI."""
+        hidden = {"lead_sla_escalation", *(t for t in (exclude_templates or set()) if t)}
         q = db.query(NotificationRecord).filter(
             NotificationRecord.recipient_type == user_role,
             NotificationRecord.recipient_id == user_id,
             NotificationRecord.channel == "in_app",
             NotificationRecord.is_archived.is_(archived),
         )
+        if hidden:
+            q = q.filter(NotificationRecord.template_key.notin_(hidden))
         if unread_only and not archived:
             q = q.filter(NotificationRecord.is_read.is_(False))
         rows = q.order_by(NotificationRecord.created_at.desc()).limit(limit * 2).all()
@@ -57,14 +61,17 @@ class NotificationEngine:
                 NotificationRecord.is_archived.is_(False),
                 NotificationRecord.is_sandbox.is_(False),
             )
-            .count()
         )
+        if hidden:
+            unread = unread.filter(NotificationRecord.template_key.notin_(hidden))
+        unread = unread.count()
 
         return {
             "unread_count": unread,
             "items": [
                 {
                     "id": r.id,
+                    "template_key": r.template_key,
                     "title": r.title,
                     "body": r.body,
                     "priority": r.priority,

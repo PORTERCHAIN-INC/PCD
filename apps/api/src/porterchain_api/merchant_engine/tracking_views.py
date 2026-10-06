@@ -24,7 +24,7 @@ _TRACKING_ERRORS = {
 _REPLAY_SOURCE_ALIASES = {
     "fleetbase": "live",
     "fleetbase_activity": "activity",
-    "fleetbase_live": "live",
+    "last_known": "live",
     "osrm": "eta",
     "valhalla": "route",
 }

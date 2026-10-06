@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""§5.1.14 / DD-13 — Fleetbase sync dashboard in admin diagnostics."""
+"""§5.1.14 — Day-plan / execution metrics dashboard in admin diagnostics."""
 
 from __future__ import annotations
 
@@ -16,9 +16,9 @@ def main() -> int:
     failures: list[str] = []
 
     for path, needles in (
-        (DIAG_ROUTER, ("/fleetbase-sync", "/execution-metrics")),
-        (WORKFLOWS, ("fleetbase_sync_monitor", "execution_metrics_dashboard")),
-        (EXEC, ("fleetbase_sync", "assess_fleetbase_sync")),
+        (DIAG_ROUTER, ("/day-plan", "/execution-metrics")),
+        (WORKFLOWS, ("day_plan_monitor", "execution_metrics_dashboard")),
+        (EXEC, ("dispatch", "porterchain", "ortools")),
     ):
         if not path.is_file():
             failures.append(f"§5.1.14 missing {path.relative_to(ROOT)}")
@@ -29,11 +29,11 @@ def main() -> int:
                 failures.append(f"§5.1.14 {path.name} missing {needle}")
 
     if failures:
-        print("Fleetbase sync dashboard guard failed:")
+        print("Day-plan diagnostics dashboard guard failed:")
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("Fleetbase sync dashboard guard passed (§5.1.14 — admin diagnostics + execution dashboard).")
+    print("Day-plan diagnostics dashboard guard passed (§5.1.14 — day plan + execution metrics).")
     return 0
 
 

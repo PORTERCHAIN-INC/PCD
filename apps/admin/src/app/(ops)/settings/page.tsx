@@ -1,19 +1,27 @@
-"use client";
-
 import { Suspense } from "react";
-import { Spinner } from "@/components/crm/primitives";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import { PageSkeleton, RouteLoading } from "@porterchain/ui/loading";
 import SettingsCenter from "@/components/settings/SettingsCenter";
+import { adminServerFetch } from "@/lib/server-api";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const client = new QueryClient();
+  const center = await adminServerFetch<unknown>("/v1/admin/settings/center");
+  if (center) {
+    client.setQueryData(["settings-center"], center);
+  }
+
   return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center py-20">
-          <Spinner label="Loading settings…" />
-        </div>
-      }
-    >
-      <SettingsCenter />
-    </Suspense>
+    <HydrationBoundary state={dehydrate(client)}>
+      <Suspense
+        fallback={
+          <RouteLoading label="Loading settings">
+            <PageSkeleton rows={6} />
+          </RouteLoading>
+        }
+      >
+        <SettingsCenter />
+      </Suspense>
+    </HydrationBoundary>
   );
 }

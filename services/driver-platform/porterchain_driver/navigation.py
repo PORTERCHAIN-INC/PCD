@@ -1,11 +1,11 @@
-"""Navigation session — Fleetbase GPS, OSRM ETA, Valhalla routes (masterrule §3).
+"""Navigation session — Redis GPS, OSRM ETA, Valhalla routes (masterrule §3).
 
 Google Maps renders on the client only. This service orchestrates:
-- Fleetbase live tracking via booking_engine.TrackingService + adapter
+- PorterChain tracking via booking_engine.TrackingService
 - OSRM ETA polylines via porterchain_services.MapsService
 - Valhalla optimized routes via MapsService
-- Redis last-known for nav origin when Fleetbase live GPS is missing
-- Fleetbase position history for replay (not the deprecated ping table)
+- Redis last-known for nav origin
+- Shift trace replay (road-snapped when opened)
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING, Any
 
 from porterchain_api.booking_engine.tracking_service import TrackingService
 from porterchain_api.config import Settings
-from porterchain_api.fleetbase_engine.nav_geometry_cache import read_nav_geometry, write_nav_geometry
-from porterchain_api.fleetbase_engine.tracking_translator import TrackingTranslator
+from porterchain_api.dispatch_engine.nav_geometry_cache import read_nav_geometry, write_nav_geometry
+from porterchain_api.booking_engine.tracking_translator import TrackingTranslator
 from porterchain_services.maps.service import MapsService
 
 if TYPE_CHECKING:
@@ -44,7 +44,7 @@ ENFORCE_STOP_PRESENCE = False
 
 
 def assert_driver_inside_stop(driver_id: str, order: Any, stop_id: str) -> None:
-    """Fail closed when last-known GPS (Fleetbase overlay) is outside the stop circle.
+    """Fail closed when last-known GPS is outside the stop circle.
 
     Missing GPS does not block arrive — last-known is a cache, not a hard lock.
     While ENFORCE_STOP_PRESENCE is False, a fix outside the circle does not block either.
@@ -59,8 +59,7 @@ def assert_driver_inside_stop(driver_id: str, order: Any, stop_id: str) -> None:
     label = "pickup" if str(stop_id).endswith("-pickup") else "dropoff"
     fence = next(
         (g for g in NavigationService._stop_geofences(order) if g.get("geofence_type") == label),
-        None,
-    )
+        None)
     if not fence:
         return
     center = fence.get("center") if isinstance(fence.get("center"), dict) else {}
@@ -120,7 +119,7 @@ class NavigationService:
                 "message": "Offline map tile cache — planned; session geometry available for prefetch",
             },
             "routing_engines": {
-                "gps": "fleetbase",
+                "gps": "last_known",
                 "eta": "osrm",
                 "optimized_route": "valhalla",
                 "map_display": "google_maps",
@@ -135,10 +134,8 @@ class NavigationService:
         driver: Any,
         order_id: str,
         settings: Settings,
-        *,
-        fleetbase_bridge: Any = None,
     ) -> dict:
-        return self.session(db, driver, order_id, settings, fleetbase_bridge=fleetbase_bridge)
+        return self.session(db, driver, order_id, settings)
 
     def route_for_stops(
         self,
@@ -146,10 +143,8 @@ class NavigationService:
         driver: Any,
         route_id: str,
         settings: Settings,
-        *,
-        fleetbase_bridge: Any = None,
     ) -> dict:
-        session = self.route_session(db, driver, route_id, settings, fleetbase_bridge=fleetbase_bridge)
+        session = self.route_session(db, driver, route_id, settings)
         return {
             "route_id": route_id,
             "stops": session["stops"],
@@ -162,8 +157,6 @@ class NavigationService:
         driver: Any,
         order_id: str,
         settings: Settings,
-        *,
-        fleetbase_bridge: Any = None,
     ) -> dict[str, Any]:
         from porterchain_api.booking_models import Order
 
@@ -181,7 +174,7 @@ class NavigationService:
         dropoff = _coords_from_address(order.dropoff if isinstance(order.dropoff, dict) else None)
 
         current_location = self._resolve_current_location(db, driver, translated, live_raw)
-        fleetbase_location = translated.get("location")
+        live_location = translated.get("location")
 
         pickup_route = None
         delivery_route = None
@@ -199,7 +192,7 @@ class NavigationService:
         elif current_location and dropoff:
             delivery_route = self._eta_leg(current_location, dropoff, label="delivery")
 
-        eta_origin = fleetbase_location or current_location or pickup
+        eta_origin = live_location or current_location or pickup
         eta = self._eta_leg(eta_origin, dropoff, label="eta") if eta_origin and dropoff else None
 
         optimized_route = delivery_route
@@ -233,8 +226,8 @@ class NavigationService:
             "route_polyline": route_polyline,
             "navigation_url": _maps_url(order.pickup, order.dropoff),
             "current_location": current_location,
-            "driver_location": fleetbase_location or current_location,
-            "gps_source": "fleetbase" if fleetbase_location else ("porterchain_ping" if current_location else None),
+            "driver_location": live_location or current_location,
+            "gps_source": "last_known" if live_location else ("porterchain_ping" if current_location else None),
             "live": translated,
             "delivery_status": self._delivery_status(order.state, translated),
             "stops": [
@@ -263,7 +256,7 @@ class NavigationService:
                 "message": "Offline map tile cache — planned; session geometry available for prefetch",
             },
             "routing_engines": {
-                "gps": "fleetbase",
+                "gps": "last_known",
                 "eta": "osrm",
                 "optimized_route": "valhalla",
                 "map_display": "google_maps",
@@ -277,8 +270,6 @@ class NavigationService:
         driver: Any,
         route_id: str,
         settings: Settings,
-        *,
-        fleetbase_bridge: Any = None,
     ) -> dict[str, Any]:
         from porterchain_driver.stops import StopsService
 
@@ -288,7 +279,7 @@ class NavigationService:
         if first_oid:
             try:
                 primary = self.session(
-                    db, driver, first_oid, settings, fleetbase_bridge=fleetbase_bridge
+                    db, driver, first_oid, settings
                 )
             except LookupError:
                 primary = None
@@ -341,8 +332,7 @@ class NavigationService:
         db: Session,
         driver: Any,
         translated: dict[str, Any],
-        live_raw: dict[str, Any] | None,
-    ) -> dict[str, float] | None:
+        live_raw: dict[str, Any] | None) -> dict[str, float] | None:
         loc = translated.get("location")
         if isinstance(loc, dict) and loc.get("lat") is not None and loc.get("lng") is not None:
             return {"lat": float(loc["lat"]), "lng": float(loc["lng"])}
@@ -359,8 +349,7 @@ class NavigationService:
         origin: dict[str, float] | tuple[float, float],
         destination: tuple[float, float],
         *,
-        label: str = "osrm",
-    ) -> dict[str, Any] | None:
+        label: str = "osrm") -> dict[str, Any] | None:
         if isinstance(origin, dict):
             origin_pt = (float(origin["lat"]), float(origin["lng"]))
         else:
@@ -380,8 +369,7 @@ class NavigationService:
     def _route_leg(
         self,
         origin: tuple[float, float] | None,
-        destination: tuple[float, float] | None,
-    ) -> dict[str, Any] | None:
+        destination: tuple[float, float] | None) -> dict[str, Any] | None:
         if not origin or not destination:
             return None
         route = self._maps.optimized_route(origin, destination)
@@ -436,8 +424,7 @@ class NavigationService:
         history: list[dict[str, Any]],
         activity: list[dict[str, Any]],
         live_raw: dict[str, Any] | None,
-        ping_frames: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
+        ping_frames: list[dict[str, Any]]) -> list[dict[str, Any]]:
         frames: list[dict[str, Any]] = []
         seen: set[str] = set()
 
@@ -454,7 +441,7 @@ class NavigationService:
         for item in activity:
             loc = item.get("location")
             if isinstance(loc, dict) and loc.get("lat") is not None and loc.get("lng") is not None:
-                add_frame(float(loc["lat"]), float(loc["lng"]), item.get("at"), "fleetbase_activity")
+                add_frame(float(loc["lat"]), float(loc["lng"]), item.get("at"), "activity")
 
         for ev in history:
             loc = ev.get("location")
@@ -470,7 +457,7 @@ class NavigationService:
                         float(loc["lat"]),
                         float(loc["lng"]),
                         live_raw.get("last_updated") or live_raw.get("updated_at"),
-                        "fleetbase_live",
+                        "last_known",
                     )
 
         frames.sort(key=lambda f: str(f.get("at") or ""))
@@ -501,8 +488,7 @@ class NavigationService:
             "AT_PICKUP",
             "PICKED_UP",
             "IN_TRANSIT",
-            "AT_DESTINATION",
-        )
+            "AT_DESTINATION")
         return {
             "order_state": order_state,
             "fleetbase_status": translated.get("fleetbase_status"),

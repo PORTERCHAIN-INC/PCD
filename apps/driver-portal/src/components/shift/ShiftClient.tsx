@@ -66,7 +66,7 @@ export default function ShiftClient() {
     );
   }
 
-  if (loading || !data) {
+  if (!data) {
     return (
       <DriverShell>
         <div className="animate-pulse space-y-4">

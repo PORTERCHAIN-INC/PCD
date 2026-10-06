@@ -21,6 +21,7 @@ import { INDUSTRY_PAGE_LABELS } from "@/lib/seo/internal-linking";
 import { business, contact, industrySlug } from "@/lib/seo/routes";
 import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
+import { ensureStaticParams } from "@/lib/seo/ensure-static-params";
 import { routing, type Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -33,7 +34,7 @@ export async function generateStaticParams() {
       params.push({ locale, slug });
     }
   }
-  return params;
+  return ensureStaticParams(params, { locale: routing.locales[0]!, slug: "__build__" });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

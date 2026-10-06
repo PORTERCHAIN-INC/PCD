@@ -32,6 +32,8 @@ import { humanCustomerError } from "../errors";
 import type { VisitorTracking } from "../linking";
 import { sessionIdentity } from "../session";
 import { AddressField } from "../ui/AddressField";
+import { ConsentCheck } from "../ui/ConsentCheck";
+import { DANGEROUS_GOODS, PRIVACY_NOTICE, TERMS_OF_SERVICE } from "../ui/consentCopy";
 import {
   addressReady,
   dayChoices,
@@ -985,21 +987,27 @@ export function BookScreen({
                     {quote.amount_display || formatCad(quote.amount_cents)}
                   </Text>
                   <Text style={styles.lede}>{phone || "No phone on this booking"}</Text>
-                  <Check
-                    label="I accept the terms"
-                    checked={terms}
-                    onPress={() => setTerms((v) => !v)}
-                  />
-                  <Check
-                    label="I accept the privacy notice"
-                    checked={privacy}
-                    onPress={() => setPrivacy((v) => !v)}
-                  />
-                  <Check
-                    label="No undeclared dangerous goods"
-                    checked={dangerous}
-                    onPress={() => setDangerous((v) => !v)}
-                  />
+                  <Text style={styles.lede}>Open each statement, read it, then accept.</Text>
+                  <View style={styles.consent}>
+                    <ConsentCheck
+                      label="I accept the Terms of Service"
+                      checked={terms}
+                      document={TERMS_OF_SERVICE}
+                      onChange={setTerms}
+                    />
+                    <ConsentCheck
+                      label="I accept the Privacy Notice"
+                      checked={privacy}
+                      document={PRIVACY_NOTICE}
+                      onChange={setPrivacy}
+                    />
+                    <ConsentCheck
+                      label="No undeclared dangerous goods"
+                      checked={dangerous}
+                      document={DANGEROUS_GOODS}
+                      onChange={setDangerous}
+                    />
+                  </View>
                   {error ? <Text style={styles.error}>{error}</Text> : null}
                   <PrimaryButton
                     label={busy ? "Working…" : "Pay with Stripe"}
@@ -1028,24 +1036,6 @@ export function BookScreen({
   );
 }
 
-function Check({
-  label,
-  checked,
-  onPress,
-}: {
-  label: string;
-  checked: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable accessibilityRole="checkbox" accessibilityState={{ checked }} onPress={onPress}>
-      <Text style={styles.choice}>
-        {checked ? "☑" : "☐"} {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { gap: 10, paddingBottom: 32 },
@@ -1062,6 +1052,13 @@ const styles = StyleSheet.create({
   lede: { ...typography.caption, color: colors.muted },
   label: { ...typography.caption, color: colors.muted },
   choice: { ...typography.body, color: colors.primary },
+  consent: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     backgroundColor: colors.white,

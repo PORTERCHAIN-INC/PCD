@@ -38,7 +38,7 @@ def _iter_engine_py() -> list[Path]:
         "merchant_engine",
         "admin_engine",
         "driver_engine",
-        "fleetbase_engine",
+        "dispatch_engine",
         "pricing_engine",
         "billing_engine",
         "notification_engine",
@@ -98,36 +98,36 @@ def test_hs10_osrm_fallback_and_public_demo_gated() -> None:
 
 
 @pytest.mark.tc_id("HS-13")
-def test_hs13_optimize_run_body_defaults_vroom_no_inline_adapter() -> None:
+def test_hs13_optimize_run_body_defaults_porterchain_day_plan() -> None:
     body = OptimizeRunBody()
     assert body.mode == "allocate"
-    assert body.engine == "vroom"
+    assert body.engine == "porterchain"
     assert body.shape == "fleet"
 
     commit = OptimizeCommitBody(assignments=[{"order_id": "order_x"}])
     assert commit.run_id is None
 
     db = MagicMock()
+    order = SimpleNamespace(id="pc-1", assigned_driver_id="drv-1", merchant_id=None)
     svc = OrchestratorOpsService()
     with (
-        patch.object(
-            svc,
-            "_resolve_fleetbase_ids",
-            return_value=(["order_abc123"], {"order_abc123": "pc-1"}, []),
-        ),
-        patch.object(svc, "_synced_fleet", return_value=(["vehicle_abc123"], ["driver_abc123"])),
-        patch("porterchain_api.admin_engine.orchestrator_ops_service.write_optimize_run"),
-        patch("porterchain_api.admin_engine.orchestrator_ops_service.enqueue_optimize_job") as enq,
-        patch("porterchain_api.admin_engine.orchestrator_ops_service.get_fleetbase_integration") as fb,
+        patch.object(svc, "_shape_order_ids", return_value=["pc-1"]),
+        patch.object(svc, "_load_orders", return_value=[order]),
+        patch.object(svc, "_resolve_pc_driver", return_value="drv-1"),
+        patch.object(svc, "_vehicle_for_driver", return_value=None),
+        patch(
+            "porterchain_api.dispatch_engine.day_plan.queue_one_van",
+            return_value={"ok": True, "status": "pending", "run_id": "run-1", "engine": "porterchain"},
+        ) as enq,
+        patch("porterchain_api.driver_engine.last_known.read_last_known", return_value=None),
+        patch("porterchain_api.dispatch_engine.optimize_events.emit_enqueued"),
     ):
         out = svc.enqueue_run(db)
     assert out["ok"] is True
     assert out["status"] == "pending"
     enq.assert_called_once()
-    fb.assert_not_called()
-    # Signature default engine is vroom (Fleetbase orchestrator id).
     sig = inspect.signature(OrchestratorOpsService.enqueue_run)
-    assert sig.parameters["engine"].default == "vroom"
+    assert sig.parameters["engine"].default == "porterchain"
 
 
 @pytest.mark.tc_id("MP-RTE-002b")
@@ -175,7 +175,7 @@ def test_mp_rte_enqueue_optimize_payload_shape() -> None:
     """_enqueue_optimize posts optimize_import action (worker contract)."""
     svc = MerchantRouteImportService()
     with patch(
-        "porterchain_api.fleetbase_engine.routing_jobs.enqueue_routing_job"
+        "porterchain_api.dispatch_engine.routing_jobs.enqueue_routing_job"
     ) as enq:
         svc._enqueue_optimize("job-xyz")
     enq.assert_called_once_with({"action": "optimize_import", "job_id": "job-xyz"})

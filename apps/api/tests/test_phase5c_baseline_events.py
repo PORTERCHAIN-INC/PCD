@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from porterchain_api.fleetbase_engine.optimize_events import (
+from porterchain_api.dispatch_engine.optimize_events import (
     DEFAULT_OPTIMIZE_ENGINE,
     assert_driver_scoped,
     foreign_order_ids,
@@ -74,47 +75,41 @@ def test_golden_fixture_driver_scoped_contract() -> None:
 
 def test_enqueue_emits_optimize_enqueued() -> None:
     from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
-    from porterchain_api.fleetbase_engine.optimize_run_store import STATUS_PENDING
+    from porterchain_api.dispatch_engine.optimize_run_store import STATUS_PENDING
 
     emitted: list[tuple] = []
 
     def _capture(event_type, *, run_id, payload=None, **_kw):
         emitted.append((event_type, run_id, payload or {}))
 
+    order = SimpleNamespace(id="ord-1", assigned_driver_id="drv-1", merchant_id=None)
     svc = OrchestratorOpsService()
     with (
         patch.object(svc, "_shape_order_ids", return_value=["ord-1"]),
-        patch.object(
-            svc,
-            "_resolve_fleetbase_ids",
-            return_value=(["order_01HQXYZABCDEFGHJKLMNPQRST"], {"order_01HQXYZABCDEFGHJKLMNPQRST": "ord-1"}, []),
-        ),
-        patch.object(
-            svc,
-            "_synced_fleet",
-            return_value=(["vehicle_01HQXYZABCDEFGHJKLMNPQR"], ["driver_01HQXYZABCDEFGHJKLMNPQRS"]),
-        ),
+        patch.object(svc, "_load_orders", return_value=[order]),
+        patch.object(svc, "_resolve_pc_driver", return_value="drv-1"),
+        patch.object(svc, "_vehicle_for_driver", return_value=None),
         patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.write_optimize_run"
+            "porterchain_api.dispatch_engine.day_plan.queue_one_van",
+            return_value={
+                "ok": True,
+                "status": STATUS_PENDING,
+                "run_id": "run-1",
+                "engine": "porterchain",
+            },
         ),
+        patch("porterchain_api.driver_engine.last_known.read_last_known", return_value=None),
         patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.enqueue_optimize_job"
-        ),
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.is_consumable_public_id",
-            return_value=True,
-        ),
-        patch(
-            "porterchain_api.fleetbase_engine.optimize_events.emit_optimize_event",
+            "porterchain_api.dispatch_engine.optimize_events.emit_optimize_event",
             side_effect=_capture,
         ),
     ):
         pending = svc.enqueue_run(
             object(),
             order_ids=["ord-1"],
-            engine="vroom",
+            engine="porterchain",
             shape="vehicle",
-            vehicle_ids=["vehicle_01HQXYZABCDEFGHJKLMNPQR"],
+            vehicle_ids=["veh-1"],
             pc_driver_id="drv-1",
         )
     assert pending["status"] == STATUS_PENDING

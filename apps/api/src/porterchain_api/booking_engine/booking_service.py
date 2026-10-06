@@ -150,12 +150,22 @@ class BookingService:
                 reason=reason,
             )
         )
+        from porterchain_api.config import get_settings
+
+        website = (get_settings().website_url or "").rstrip("/")
         emit_event(
             db,
             event_type=E.CHECKOUT_ABANDONED,
             aggregate_type="quote",
             aggregate_id=quote.id,
             correlation_id=quote.id,
-            payload={"reason": reason, "email": quote.email, "phone": quote.phone},
+            payload={
+                "reason": reason,
+                "email": quote.email,
+                "phone": quote.phone,
+                "quote_id": quote.id,
+                "customer_id": quote.customer_id,
+                "recovery_url": f"{website}/sign-up?intent=quote&quote_id={quote.id}" if website else None,
+            },
         )
         db.commit()

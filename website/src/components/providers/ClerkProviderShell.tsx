@@ -2,11 +2,15 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { InactivityLogout } from "@porterchain/auth";
-import { useLocale } from "next-intl";
 import { publicEnv } from "@/lib/env";
 
-export default function ClerkProviderShell({ children }: { children: React.ReactNode }) {
-  const locale = useLocale();
+export default function ClerkProviderShell({
+  children,
+  locale,
+}: {
+  children: React.ReactNode;
+  locale: string;
+}) {
   const signInUrl = `/${locale}/login`;
   const signUpUrl = `/${locale}/sign-up`;
   const continueUrl = `/${locale}/login/continue`;

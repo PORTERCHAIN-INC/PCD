@@ -126,3 +126,70 @@ def order_sla_status(
     if (deadline - ref) <= timedelta(minutes=max(int(at_risk_minutes), 1)):
         return "at_risk"
     return "ok"
+
+
+def publish_due_delivery_notices(db: Any, *, limit: int = 25) -> dict[str, int]:
+    """Emit order.delayed or sla.breached once per open order. The board already counts these."""
+    from porterchain_api.booking_engine._core import emit_event
+    from porterchain_api.booking_models import Order
+
+    open_states = (
+        "DISPATCH_READY",
+        "DRIVER_ASSIGNED",
+        "DRIVER_ACCEPTED",
+        "DRIVER_EN_ROUTE",
+        "AT_PICKUP",
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "AT_DESTINATION",
+    )
+    now = datetime.now(UTC)
+    rows = (
+        db.query(Order)
+        .filter(Order.state.in_(open_states), Order.is_sandbox.is_(False))
+        .limit(limit)
+        .all()
+    )
+    delayed = 0
+    breached = 0
+    for order in rows:
+        status = order_sla_status(order, now)
+        if status not in ("at_risk", "breached"):
+            continue
+        meta = dict(order.compliance_metadata or {})
+        notices = dict(meta.get("sla_notices") or {})
+        kind = "breached" if status == "breached" else "delayed"
+        if notices.get(kind):
+            continue
+        event_type = "sla.breached" if kind == "breached" else "order.delayed"
+        message = (
+            "Delivery promise missed"
+            if kind == "breached"
+            else "Delivery is at risk of missing its promise"
+        )
+        emit_event(
+            db,
+            event_type=event_type,
+            aggregate_type="order",
+            aggregate_id=order.id,
+            actor_type="system",
+            payload={
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "tracking_number": order.tracking_number,
+                "customer_id": order.customer_id,
+                "merchant_id": order.merchant_id,
+                "message": message,
+                "title": "SLA breached" if kind == "breached" else "Delivery delayed",
+            },
+        )
+        notices[kind] = now.isoformat()
+        meta["sla_notices"] = notices
+        order.compliance_metadata = meta
+        if kind == "breached":
+            breached += 1
+        else:
+            delayed += 1
+    if delayed or breached:
+        db.commit()
+    return {"delayed": delayed, "breached": breached}

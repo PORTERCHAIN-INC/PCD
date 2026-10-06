@@ -197,7 +197,7 @@ export function PrivacyTab({
         )}
         <p className="mt-3 text-xs text-muted">
           Subprocessors: Shopify, Clerk, and Stripe may process data outside Canada. The database
-          host, Fleetbase when a stop is dispatched, and the mailer stay in Canada.
+          host and the mailer stay in Canada.
         </p>
       </div>
       {(privacy?.recent_logs?.length ?? 0) > 0 ? (

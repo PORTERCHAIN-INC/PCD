@@ -32,7 +32,7 @@ export default function AdminAppsMenu() {
     >
       <div className="border-b border-primary/8 px-4 py-3">
         <p className="text-sm font-semibold text-primary">PorterChain network</p>
-        <p className="text-xs text-muted">Portals, API, and bonded tools</p>
+        <p className="text-xs text-muted">Portals, API, and local tools</p>
       </div>
 
       <div className="max-h-[55dvh] overflow-y-auto p-2">

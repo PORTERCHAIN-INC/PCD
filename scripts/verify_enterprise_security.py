@@ -52,8 +52,10 @@ def main() -> int:
         failures.append("customers router missing privacy export")
 
     webhooks = PATHS["webhooks router"].read_text(encoding="utf-8")
-    if "construct_webhook_event" not in webhooks or "fleetbase_webhook" not in webhooks:
-        failures.append("webhooks missing Stripe/Fleetbase signature verify")
+    if "construct_webhook_event" not in webhooks:
+        failures.append("webhooks missing Stripe signature verify")
+    if "fleetbase_webhook" in webhooks:
+        failures.append("webhooks still expose retired Fleetbase ingress")
 
     rate = PATHS["rate limit middleware"].read_text(encoding="utf-8")
     if "PortalRateLimitMiddleware" not in rate or "rate_limit_unavailable" not in rate:

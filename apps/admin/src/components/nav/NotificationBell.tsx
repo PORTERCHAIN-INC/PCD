@@ -83,8 +83,6 @@ export default function NotificationBell({
   const { data, isLoading } = useQuery({
     queryKey: ["admin-notification-inbox"],
     enabled,
-    // Slow fallback; live updates arrive via WS once armed.
-    refetchInterval: 120_000,
     queryFn: async () => loadInbox(await getApiToken()),
   });
 
@@ -204,7 +202,7 @@ export default function NotificationBell({
             </span>
             <p className="text-sm font-medium text-primary">No notifications yet</p>
             <p className="max-w-[220px] text-xs text-muted">
-              Live alerts for tickets, claims, and ops will show up here.
+              Tickets, claims, and ops show up here. Leads stay in Lead Agent.
             </p>
           </div>
         ) : (

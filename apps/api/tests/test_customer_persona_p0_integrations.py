@@ -1,4 +1,4 @@
-"""Customer persona P0 integrations — Stripe link, Valhalla/OSRM, Fleetbase, notif/Mailpit.
+"""Customer persona P0 integrations — Stripe link, Valhalla/OSRM, dispatch, notif/Mailpit.
 
 Companion to test_customer_persona_p0.py. Catalog:
 docs/CUSTOMER_PERSONA_DEV_TEST_CASES.md (PAY-*, SPA-*, FB-*, NOTIF-*, C-UI book).
@@ -7,6 +7,7 @@ docs/CUSTOMER_PERSONA_DEV_TEST_CASES.md (PAY-*, SPA-*, FB-*, NOTIF-*, C-UI book)
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from importlib import util
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -22,7 +23,6 @@ from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.booking_engine.booking_service import BookingService
 from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
-from porterchain_api.booking_engine.fleetbase_sync_handler import sync_order_from_event
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.booking_models import Customer, DomainEvent, Order, Stop
@@ -409,50 +409,9 @@ def test_fb_confirmation_dual_writes_stops_and_order_created(db: Session, settin
     )
 
 
-def test_fb_sync_handler_pushes_via_booking_sync_service(db: Session, settings: Settings) -> None:
-    """FB-001: event handler calls Fleetbase BookingSyncService.push_order (adapter path)."""
-    customer = _make_customer(db)
-    order = Order(
-        order_number=generate_order_number(),
-        tracking_number=generate_tracking_number(),
-        state=OrderState.DISPATCH_READY.value,
-        customer_id=customer.id,
-        amount_cents=2500,
-        currency="cad",
-        pickup=_addr_dict(),
-        dropoff=_addr_dict(),
-        scheduled_at=datetime.now(UTC),
-    )
-    db.add(order)
-    db.commit()
-
-    push = MagicMock()
-    session = MagicMock()
-    session.query.return_value.filter.return_value.first.return_value = order
-    session.close = MagicMock()
-
-    with patch(
-        "porterchain_api.fleetbase_engine.booking_sync_service.BookingSyncService"
-    ) as sync_cls:
-        sync_cls.return_value.push_order = push
-        with patch(
-            "porterchain_api.config.get_settings",
-            return_value=settings,
-        ):
-            with patch(
-                "porterchain_api.db.SessionLocal",
-                return_value=session,
-            ):
-                sync_order_from_event(
-                    {
-                        "aggregate_id": order.id,
-                        "payload": {"order_id": order.id},
-                        "event_type": "order.created",
-                    }
-                )
-    push.assert_called_once()
-    assert push.call_args.args[0] is session
-    assert push.call_args.args[2] is order
+def test_fb_sync_handler_module_is_gone() -> None:
+    """Fleetbase order sync left with the adapter; day plan owns dispatch."""
+    assert util.find_spec("porterchain_api.booking_engine.fleetbase_sync_handler") is None
 
 
 # ---------------------------------------------------------------------------
@@ -461,9 +420,9 @@ def test_fb_sync_handler_pushes_via_booking_sync_service(db: Session, settings: 
 
 
 def test_notif_order_created_routes_customer_email_inbox() -> None:
-    """NOTIF-001: ORDER_CREATED → customer in_app + email."""
+    """NOTIF-001: create is in-app. The booked mail is the one email."""
     customer_id = f"cust-{uuid4().hex[:8]}"
-    specs = _specs_for_event(
+    created = _specs_for_event(
         DomainEventType.ORDER_CREATED,
         {
             "customer_id": customer_id,
@@ -473,14 +432,25 @@ def test_notif_order_created_routes_customer_email_inbox() -> None:
             "order_number": "PC-1",
         },
     )
-    channels = {(s["channel"], s["recipient_type"]) for s in specs if s["recipient_id"] == customer_id}
+    channels = {(s["channel"], s["recipient_type"]) for s in created if s["recipient_id"] == customer_id}
     assert ("in_app", "customer") in channels
-    emails = [s for s in specs if s["channel"] == "email" and s.get("recipient_address") == "buyer@p0.test"]
-    assert emails, "customer email channel missing for ORDER_CREATED"
+    assert not any(s["channel"] == "email" for s in created)
+    booked = _specs_for_event(
+        DomainEventType.ORDER_BOOKED,
+        {
+            "customer_id": customer_id,
+            "email": "buyer@p0.test",
+            "order_id": "ord-1",
+            "tracking_number": "PCTEST",
+            "order_number": "PC-1",
+        },
+    )
+    emails = [s for s in booked if s["channel"] == "email" and s.get("recipient_address") == "buyer@p0.test"]
+    assert emails, "customer email channel missing for ORDER_BOOKED"
 
 
 def test_notif_booking_confirmed_routes_push_and_email() -> None:
-    """NOTIF-001 push path via BOOKING_CONFIRMED fan-out."""
+    """NOTIF-001: confirmation does not send a second mail. Assignment carries the push."""
     customer_id = f"cust-{uuid4().hex[:8]}"
     specs = _specs_for_event(
         DomainEventType.BOOKING_CONFIRMED,
@@ -492,9 +462,12 @@ def test_notif_booking_confirmed_routes_push_and_email() -> None:
         },
     )
     channels = {s["channel"] for s in specs if s["recipient_id"] == customer_id}
-    assert "in_app" in channels
-    assert "push" in channels
-    assert "email" in channels
+    assert channels == {"in_app"}
+    assigned = _specs_for_event(
+        DomainEventType.DRIVER_ASSIGNED,
+        {"customer_id": customer_id, "driver_id": "drv-1", "order_id": "ord-2"},
+    )
+    assert any(s["channel"] == "push" and s["recipient_id"] == customer_id for s in assigned)
 
 
 def test_notif_booking_confirmed_template_registered() -> None:

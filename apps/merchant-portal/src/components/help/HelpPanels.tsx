@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { claimStatusLabel, claimTypeLabel, ticketStatusLabel } from "@/lib/catalog";
 import { settingsApi, type ClaimRow, type SupportTicket, type TimelineEntry } from "@/lib/settings";
 import { formatDate } from "@/lib/utils";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 function TimelineList({ entries }: { entries: TimelineEntry[] }) {
   if (!entries.length) {
@@ -120,7 +121,7 @@ export function SupportPanel({
         </ul>
         {selectedId ? (
           <div className="mt-4 rounded-xl border border-primary/10 bg-gray-bg p-4">
-            {detailBusy && <p className="text-sm text-muted">Loading ticket…</p>}
+            {detailBusy && <PageSkeleton rows={2} />}
             {detailError && <p className="text-sm text-red-600">{detailError}</p>}
             {detail && !detailBusy ? (
               <div className="space-y-3">
@@ -300,7 +301,7 @@ export function ClaimsPanel({
         </ul>
         {selectedId ? (
           <div className="mt-4 rounded-xl border border-primary/10 bg-gray-bg p-4">
-            {detailBusy && <p className="text-sm text-muted">Loading claim…</p>}
+            {detailBusy && <PageSkeleton rows={2} />}
             {detailError && <p className="text-sm text-red-600">{detailError}</p>}
             {detail && !detailBusy ? (
               <div className="space-y-3">

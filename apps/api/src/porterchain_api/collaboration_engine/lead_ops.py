@@ -178,7 +178,7 @@ def _enqueue_growth_staff_alert(
     priority: str,
     kind: str = "unassigned",
 ) -> None:
-    """Record an in-app growth notice. Email is not sent; Lead Agent Inbox is the surface."""
+    """Lead Agent owns the notice. Email the watch list only when the admin app is empty."""
     try:
         import uuid
         from datetime import date
@@ -191,11 +191,11 @@ def _enqueue_growth_staff_alert(
         day = date.today().isoformat()
         # domain_events.correlation_id is varchar(36) — use uuid5 digest, not a long string.
         correlation = str(uuid.uuid5(uuid.NAMESPACE_URL, f"lead:{lead.id}:{kind}:{day}"))
-        title = (
-            f"SLA breached {priority} lead"
-            if kind == "sla"
-            else f"Unassigned {priority} lead"
-        )
+        company = lead.company_name or "Lead"
+        if kind == "sla":
+            title = f"SLA breached {priority} lead"
+        else:
+            title = f"{company} — unassigned high lead"
         ctx = {
             "company_name": lead.company_name or "",
             "contact_name": lead.primary_contact_name or "",
@@ -205,31 +205,49 @@ def _enqueue_growth_staff_alert(
             "channel": lead.channel or "",
             "deep_link": f"/leads/{lead.id}",
             "title": title,
-            "body": f"{lead.company_name or lead.id} needs attention",
-            "message": f"{lead.company_name or lead.id} needs attention",
+            "body": f"{company} needs an owner" if kind == "sla" else "",
+            "message": f"{company} needs an owner" if kind == "sla" else "",
         }
+        if kind != "sla":
+            ctx["notice_body"] = ""
         fanout_tag = "sla_breached" if kind == "sla" else "unassigned_high"
         sentinel = growth_staff_sentinel()
-        # In-app only. Staff read these on Lead Agent → Inbox; do not email noreply → staff.
-        specs = [
-            {
-                "template_key": "lead_sla_escalation",
-                "channel": "in_app",
-                "recipient_type": "admin",
-                "recipient_id": sentinel,
-                "context": ctx,
-                "search_tags": {"lead_id": lead.id, "fanout": fanout_tag},
-                "category": "crm",
-                "priority": "high" if priority == "high" else "critical",
-                "deep_link": f"/leads/{lead.id}",
-            },
-        ]
-        dispatch_staff_specs(
-            db,
-            specs,
-            event_type=f"lead.{kind}",
-            correlation_id=correlation,
-        )
+        # The lead row in Lead Agent is the notice. Do not write the notification inbox.
+        specs: list[dict] = []
+        if kind != "sla":
+            from porterchain_api.config import get_settings
+            from porterchain_api.notification_engine.realtime import anyone_online
+            from porterchain_api.notification_engine.staff_fanout import ops_watch_emails
+
+            if ops_watch_emails() and not anyone_online("admin"):
+                admin = get_settings().admin_portal_url.rstrip("/")
+                email_ctx = {
+                    **ctx,
+                    "deep_link": f"{admin}/leads/{lead.id}",
+                    "title": title,
+                    "offline_watch": True,
+                }
+                email_ctx.pop("notice_body", None)
+                specs.append(
+                    {
+                        "template_key": "lead_sla_escalation",
+                        "channel": "email",
+                        "recipient_type": "admin",
+                        "recipient_id": sentinel,
+                        "context": email_ctx,
+                        "search_tags": {"lead_id": lead.id, "fanout": fanout_tag},
+                        "category": "crm",
+                        "priority": "high",
+                        "deep_link": email_ctx["deep_link"],
+                    }
+                )
+        if specs:
+            dispatch_staff_specs(
+                db,
+                specs,
+                event_type=f"lead.{kind}",
+                correlation_id=correlation,
+            )
     except Exception:  # noqa: BLE001
         logger.exception("lead_growth_staff_alert_failed lead=%s kind=%s", lead.id, kind)
 

@@ -1,7 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
 import MerchantAccessGate from "@/components/MerchantAccessGate";
@@ -17,23 +19,10 @@ import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { activeNavLabel } from "@/lib/merchant-nav";
 import { isShopifyPublicEntry } from "@/lib/shopifyPublicEntry";
 
-export default function PortalShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+function MerchantChrome({ pathname, children }: { pathname: string; children: React.ReactNode }) {
   const pageLabel = activeNavLabel(pathname);
   const { setProfile } = useMerchantProfile();
   const { session } = useMerchantAuth();
-
-  // OAuth callback / install handshake must render app UI without Clerk gate (App Store 2.3.3).
-  if (isShopifyPublicEntry(pathname, searchParams)) {
-    return (
-      <div className="min-h-dvh bg-gray-bg">
-        <main className="py-8 sm:py-12">
-          <Container className="min-w-0">{children}</Container>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-x-clip bg-gray-bg">
@@ -80,10 +69,39 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           <main
             className={cn("min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip py-4 sm:py-6")}
           >
-            <Container className="min-w-0">{children}</Container>
+            <Container className="min-w-0">
+              <RouteViewTransition>{children}</RouteViewTransition>
+            </Container>
           </main>
         </ModuleGate>
       </MerchantAccessGate>
     </div>
+  );
+}
+
+function PortalShellBody({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // OAuth callback / install handshake must render app UI without Clerk gate (App Store 2.3.3).
+  if (isShopifyPublicEntry(pathname, searchParams)) {
+    return (
+      <div className="min-h-dvh bg-gray-bg">
+        <main className="py-8 sm:py-12">
+          <Container className="min-w-0">{children}</Container>
+        </main>
+      </div>
+    );
+  }
+
+  return <MerchantChrome pathname={pathname}>{children}</MerchantChrome>;
+}
+
+export default function PortalShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <Suspense fallback={<MerchantChrome pathname={pathname}>{children}</MerchantChrome>}>
+      <PortalShellBody>{children}</PortalShellBody>
+    </Suspense>
   );
 }

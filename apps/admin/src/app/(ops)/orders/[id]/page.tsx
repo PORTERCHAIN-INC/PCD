@@ -1,15 +1,22 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import OrderDetailPageClient from "@/components/orders/OrderDetailPageClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import { use } from "react";
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+type Props = { params: Promise<{ id: string }> };
 
-const OrderDetailPageClient = dynamic(() => import("@/components/orders/OrderDetailPageClient"), {
-  loading: () => <Spinner label="Loading order…" />,
-  ssr: false,
-});
+export default async function OrderDetailPage({ params }: Props) {
+  const { id } = await params;
+  const client = new QueryClient();
+  const [detail, tracking] = await Promise.all([
+    adminServerFetch<unknown>(`/v1/admin/orders/${id}`),
+    adminServerFetch<unknown>(`/v1/admin/orders/${id}/tracking`),
+  ]);
+  if (detail) client.setQueryData(["order", id], detail);
+  if (tracking) client.setQueryData(["order-tracking", id], tracking);
 
-export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  return <OrderDetailPageClient id={id} />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <OrderDetailPageClient id={id} />
+    </HydrationBoundary>
+  );
 }

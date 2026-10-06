@@ -4,8 +4,8 @@ import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { Spinner } from "@porterchain/ui/loading";
+import { useRouter } from "next/navigation";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import { customerApi } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
@@ -21,43 +21,49 @@ function addressLine(addr?: Record<string, unknown> | null) {
   return parts.join(", ") || "—";
 }
 
-export default function InvoiceDetailClient() {
+export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   if (!isClerkConfigured()) {
-    return <DetailBody getToken={async () => "dev"} />;
+    return <DetailBody invoiceId={invoiceId} ready signedIn getToken={async () => "dev"} />;
   }
-  return <DetailWithClerk />;
+  return <DetailWithClerk invoiceId={invoiceId} />;
 }
 
-function DetailWithClerk() {
+function DetailWithClerk({ invoiceId }: { invoiceId: string }) {
   const router = useRouter();
-  const params = useParams<{ invoice_id: string }>();
   const { isSignedIn, isLoaded, getToken } = useAuth();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.replace(`/sign-in?redirect_url=/invoices/${params.invoice_id ?? ""}`);
+      router.replace(`/sign-in?redirect_url=/invoices/${invoiceId}`);
     }
-  }, [isLoaded, isSignedIn, params.invoice_id, router]);
+  }, [isLoaded, isSignedIn, invoiceId, router]);
 
-  if (!isLoaded || !isSignedIn) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-gray-bg">
-        <Spinner label="Loading invoice…" />
-      </main>
-    );
-  }
-
-  return <DetailBody getToken={getToken} />;
+  return (
+    <DetailBody
+      invoiceId={invoiceId}
+      ready={isLoaded}
+      signedIn={Boolean(isSignedIn)}
+      getToken={getToken}
+    />
+  );
 }
 
-function DetailBody({ getToken }: { getToken: () => Promise<string | null> }) {
-  const params = useParams<{ invoice_id: string }>();
-  const invoiceId = params.invoice_id;
+function DetailBody({
+  invoiceId,
+  ready,
+  signedIn,
+  getToken,
+}: {
+  invoiceId: string;
+  ready: boolean;
+  signedIn: boolean;
+  getToken: () => Promise<string | null>;
+}) {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const { data: detail, error } = useQuery({
     queryKey: ["customer-invoice", invoiceId],
-    enabled: Boolean(invoiceId),
+    enabled: ready && signedIn && Boolean(invoiceId),
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
@@ -95,8 +101,8 @@ function DetailBody({ getToken }: { getToken: () => Promise<string | null> }) {
       </div>
       {error ? <p className="mt-4 text-sm text-red-700">Invoice not found.</p> : null}
       {!detail && !error ? (
-        <div className="mt-8 flex justify-center">
-          <Spinner label="Loading invoice…" />
+        <div className="mt-8">
+          <PageSkeleton rows={5} />
         </div>
       ) : null}
       {detail ? (

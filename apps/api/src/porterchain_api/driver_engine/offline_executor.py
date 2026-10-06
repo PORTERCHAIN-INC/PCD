@@ -14,16 +14,16 @@ class DriverOfflineExecutor:
     def __init__(self, platform: DriverPlatform | None = None) -> None:
         self._platform = platform or DriverPlatform()
 
-    def execute(self, db: Any, driver: Any, action_type: str, payload: dict, *, fleetbase_bridge: Any = None) -> None:
+    def execute(self, db: Any, driver: Any, action_type: str, payload: dict) -> None:
         action = action_type.lower()
         if action == "arrive_stop":
             self._platform.stops.arrive_stop(
-                db, driver, payload["stop_id"], fleetbase_bridge=fleetbase_bridge
+                db, driver, payload["stop_id"]
             )
             return
         if action == "deliver_stop":
             self._platform.stops.deliver_stop(
-                db, driver, payload["stop_id"], fleetbase_bridge=fleetbase_bridge
+                db, driver, payload["stop_id"]
             )
             return
         if action == "location":
@@ -35,54 +35,42 @@ class DriverOfflineExecutor:
                 accuracy_m=payload.get("accuracy_m"),
                 heading=payload.get("heading"),
                 speed_mps=payload.get("speed_mps"),
-                recorded_at=payload.get("recorded_at"),
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                recorded_at=payload.get("recorded_at"))
             return
         if action == "pod_photo":
             self._platform.pod.capture_photo(
                 db,
                 driver,
                 payload["stop_id"],
-                file_url=payload["file_url"],
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                file_url=payload["file_url"])
             return
         if action == "camera_upload":
             self._platform.pod.capture_photo(
                 db,
                 driver,
                 payload["stop_id"],
-                file_url=payload["file_url"],
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                file_url=payload["file_url"])
             return
         if action == "pod_signature":
             self._platform.pod.capture_signature(
                 db,
                 driver,
                 payload["stop_id"],
-                signature_data=payload["signature_data"],
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                signature_data=payload["signature_data"])
             return
         if action == "pod_barcode":
             self._platform.pod.capture_barcode(
                 db,
                 driver,
                 payload["stop_id"],
-                barcode=payload["barcode"],
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                barcode=payload["barcode"])
             return
         if action == "pod_complete":
             result = self._platform.pod.complete_pod(
                 db,
                 driver,
                 payload["stop_id"],
-                otp=payload.get("otp"),
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                otp=payload.get("otp"))
             if not result.success:
                 raise ValueError(result.message or "pod_complete_failed")
             return
@@ -90,11 +78,11 @@ class DriverOfflineExecutor:
             mode = payload.get("mode")
             if mode:
                 self._platform.shift.set_availability(
-                    db, driver, str(mode), fleetbase_bridge=fleetbase_bridge
+                    db, driver, str(mode)
                 )
             else:
                 self._platform.availability.set_online(
-                    db, driver, online=bool(payload.get("online")), fleetbase_bridge=fleetbase_bridge
+                    db, driver, online=bool(payload.get("online"))
                 )
             return
         if action == "shift_start":
@@ -102,19 +90,17 @@ class DriverOfflineExecutor:
             self._platform.shift.start_shift(
                 db,
                 driver,
-                fleetbase_bridge=fleetbase_bridge,
                 route_id=payload.get("route_id"),
-                pretrip=raw if isinstance(raw, dict) else None,
-            )
+                pretrip=raw if isinstance(raw, dict) else None)
             return
         if action == "shift_end":
-            self._platform.shift.end_shift(db, driver, fleetbase_bridge=fleetbase_bridge)
+            self._platform.shift.end_shift(db, driver)
             return
         if action == "shift_break":
-            self._platform.shift.start_break(db, driver, fleetbase_bridge=fleetbase_bridge)
+            self._platform.shift.start_break(db, driver)
             return
         if action == "shift_resume":
-            self._platform.shift.resume_shift(db, driver, fleetbase_bridge=fleetbase_bridge)
+            self._platform.shift.resume_shift(db, driver)
             return
         if action == "document_upload":
             self._platform.documents.upload_document(
@@ -122,8 +108,7 @@ class DriverOfflineExecutor:
                 driver,
                 doc_type=payload["doc_type"],
                 file_url=payload["file_url"],
-                metadata=payload.get("metadata"),
-            )
+                metadata=payload.get("metadata"))
             return
         if action == "incident":
             self._platform.incidents.report_incident(
@@ -133,8 +118,7 @@ class DriverOfflineExecutor:
                 description=payload["description"],
                 order_id=payload.get("order_id"),
                 location=payload.get("location"),
-                evidence=payload.get("evidence"),
-            )
+                evidence=payload.get("evidence"))
             return
         if action == "support_ticket":
             self._platform.support.create_ticket(
@@ -143,8 +127,7 @@ class DriverOfflineExecutor:
                 subject=payload["subject"],
                 description=payload.get("description"),
                 order_id=payload.get("order_id"),
-                priority=payload.get("priority", "normal"),
-            )
+                priority=payload.get("priority", "normal"))
             return
         if action == "accept_order":
             order_id = payload.get("order_id")
@@ -165,7 +148,7 @@ class DriverOfflineExecutor:
             }:
                 raise ConflictSkip("order_already_accepted")
             self._platform.availability.accept_assignment(
-                db, driver, order_id, fleetbase_bridge=fleetbase_bridge
+                db, driver, order_id
             )
             return
         if action == "reject_order":
@@ -181,9 +164,7 @@ class DriverOfflineExecutor:
                 db,
                 driver,
                 order_id,
-                reason=payload.get("reason", ""),
-                fleetbase_bridge=fleetbase_bridge,
-            )
+                reason=payload.get("reason", ""))
             return
         if action == "generate_otp":
             order_id = payload.get("order_id")
@@ -205,7 +186,6 @@ class DriverOfflineExecutor:
             self._platform.jobs.optimize_route(
                 db,
                 driver,
-                preview=bool(payload.get("preview", False)),
-            )
+                preview=bool(payload.get("preview", False)))
             return
         raise ValueError(f"unsupported_offline_action:{action_type}")

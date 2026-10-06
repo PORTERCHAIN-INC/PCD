@@ -4,8 +4,9 @@ import Button from "@/components/ui/Button";
 import { EmptyState } from "@porterchain/ui/empty-state";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { referralsApi, type ReferralOverview, type ReferralSubmitInput } from "@/lib/referrals";
-import { useCallback, useEffect, useState } from "react";
+import { referralsApi, type ReferralSubmitInput } from "@/lib/referrals";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 
 function money(cents: number, currency = "CAD"): string {
   return (cents / 100).toLocaleString(undefined, {
@@ -16,8 +17,18 @@ function money(cents: number, currency = "CAD"): string {
 
 export default function ReferralsClient() {
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
-  const [data, setData] = useState<ReferralOverview | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const referralQuery = useQuery({
+    queryKey: ["merchant-referrals", orgId ?? null],
+    enabled: Boolean(isLoaded && isSignedIn),
+    queryFn: async () => referralsApi.overview(await getApiToken(), orgId),
+  });
+  const data = referralQuery.data ?? null;
+  const error = referralQuery.error
+    ? referralQuery.error instanceof Error
+      ? referralQuery.error.message
+      : "Failed to load referrals"
+    : null;
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
@@ -31,20 +42,8 @@ export default function ReferralsClient() {
   });
 
   const load = useCallback(async () => {
-    if (!isSignedIn) return;
-    setError(null);
-    try {
-      const token = await getApiToken();
-      setData(await referralsApi.overview(token, orgId));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load referrals");
-    }
-  }, [getApiToken, orgId, isSignedIn]);
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    void load();
-  }, [isLoaded, isSignedIn, load]);
+    await qc.invalidateQueries({ queryKey: ["merchant-referrals", orgId ?? null] });
+  }, [orgId, qc]);
 
   async function copyShare() {
     if (!data?.share_url) return;
@@ -93,7 +92,7 @@ export default function ReferralsClient() {
     }
   }
 
-  if (!isLoaded || (!data && !error)) {
+  if (!data && (!isLoaded || referralQuery.isLoading)) {
     return <PageSkeleton rows={4} />;
   }
   if (error && !data) {

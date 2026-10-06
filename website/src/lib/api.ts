@@ -82,9 +82,11 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 /** Public guest tracking only — retail book/quote lives on the customer portal. */
 export function getOrderByTracking(trackingNumber: string) {
-  return apiFetch<OrderResult>(`/v1/orders/${trackingNumber}`);
+  return apiFetch<OrderResult>(`/v1/orders/${trackingNumber}`, { cache: "no-store" });
 }
 
 export function getOrderLiveTracking(trackingNumber: string) {
-  return apiFetch<OrderLiveTracking>(`/v1/orders/${trackingNumber}/tracking`);
+  return apiFetch<OrderLiveTracking>(`/v1/orders/${trackingNumber}/tracking`, {
+    cache: "no-store",
+  });
 }

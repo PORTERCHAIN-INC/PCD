@@ -82,7 +82,7 @@ export const SECTION_ICONS: Record<string, LucideIcon> = {
   merchant: Store,
   driver: Truck,
   customer: Users,
-  fleetbase: Truck,
+  dispatch: Truck,
   google_maps: Map,
   stripe: CreditCard,
   firebase: Zap,
@@ -103,7 +103,8 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
     "Staff: first-party IdP (magic link + passkeys). Driver/merchant/customer: Clerk apps.",
   security:
     "API rate limits from Doppler/env. Staff sessions from IdP; portal passwords from Clerk.",
-  vehicles: "Quote vehicle catalog. Enabled flags gate retail quotes. Physical fleet is Fleetbase.",
+  vehicles:
+    "Quote vehicle catalog. Enabled flags gate retail quotes. Physical fleet is PorterChain.",
   pricing: "GTA matrix, FSA, liftgate/weight card, tax, and fuel — quotes use these immediately.",
   coverage:
     "Active service cities gate retail quotes (empty = unrestricted). Zones remain ops notes.",
@@ -118,8 +119,7 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   documents:
     "Upload size and allowed types gate blog media and POD downloads. Retention remains policy.",
   claims: "Investigation SLA stamps due-at on open; max compensation caps approved payouts.",
-  fleetbase:
-    "Permanent bond — execution via adapter (`pnpm fleetbase:bond`); no Ember console in admin.",
+  dispatch: "Dispatch is the PorterChain day plan.",
   google_maps: "Places autocomplete and map tiles only — not a routing engine.",
   stripe: "Payments — secrets never exposed in UI.",
   firebase: "Mobile push — project status only.",
@@ -128,7 +128,7 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
     "Email / SMS / push health plus the locked staff push alert budget. Template ops under Notifications.",
   lead_ingest:
     "Lead webhook secrets, Meta/LinkedIn CAPI, territory map, and referral credits — saved to Doppler on write.",
-  automation: "Fleetbase sync retry max and first backoff delay are wired into RetryQueue.",
+  automation: "Dispatch retry settings stay on the PorterChain worker.",
   audit: "Immutable trail of settings changes with actor and reason.",
   backup: "Export/import Settings-owned configuration.",
 };
@@ -377,7 +377,7 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
       type: "number",
       min: 1,
       max: 20,
-      hint: "Wired — Fleetbase RetryQueue max_attempts",
+      hint: "Wired — worker retry max",
       effect: "wired",
     },
     {

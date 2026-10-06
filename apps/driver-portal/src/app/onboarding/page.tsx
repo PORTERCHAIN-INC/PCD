@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import DriverOnboardingView from "@/components/onboarding/DriverOnboardingView";
 import { useDriverOnboarding } from "@/hooks/useDriverOnboarding";
 import { hasDriverSession } from "@/lib/api";
@@ -24,8 +25,8 @@ export default function OnboardingPage() {
 
   if (loading && !data) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[var(--gray-bg)]">
-        <p className="text-sm text-[var(--muted)]">Loading activation status…</p>
+      <div className="flex min-h-dvh items-center justify-center bg-[var(--gray-bg)] p-6">
+        <PageSkeleton rows={3} />
       </div>
     );
   }

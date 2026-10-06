@@ -13,7 +13,7 @@ from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_engine.invoice_service import public_document_url
 from porterchain_api.config import Settings
-from porterchain_api.fleetbase_engine.pod_normalize import normalize_pod
+from porterchain_api.reporting.pod_normalize import normalize_pod
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.booking_models import Booking, Customer, DomainEvent, Invoice, Order, OrderException, Payment, Quote
 from porterchain_api.domain.customer_goods import booked_capacity_class
@@ -114,7 +114,7 @@ class OrderPlatformDetailMixin:
         live_tracking = None
         live_raw: dict[str, Any] | None = None
         try:
-            from porterchain_api.fleetbase_engine.tracking_facade import TrackingFacade
+            from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
 
             live_raw = self._tracking.get_live_tracking(db, settings, order)
             snapshot = TrackingFacade.translate_live(live_raw)
@@ -122,28 +122,16 @@ class OrderPlatformDetailMixin:
         except Exception:
             live_tracking = None
 
-        fb_status = (live_tracking or {}).get("fleetbase_status")
+        fb_status = (live_tracking or {}).get("status")
         fb_mapped = None
         proofs: list[dict[str, Any]] = []
         if isinstance(live_raw, dict):
             raw_proofs = live_raw.get("proofs")
             if isinstance(raw_proofs, list):
                 proofs = [p for p in raw_proofs if isinstance(p, dict)]
-        if order.fleetbase_order_id and not fb_status:
-            try:
-                from porterchain_api.fleetbase_engine.integration_bridge import FleetbaseIntegrationBridge
-
-                sync = FleetbaseIntegrationBridge().sync_status_from_fleetbase(settings, order)
-                if sync:
-                    fb_status = sync.get("status") or fb_status
-                    fb_mapped = sync.get("target_state")
-                    if not proofs and isinstance(sync.get("proofs"), list):
-                        proofs = [p for p in sync["proofs"] if isinstance(p, dict)]
-            except Exception:
-                pass
         if fb_mapped is None and fb_status:
             try:
-                from porterchain_api.fleetbase_engine.status_translator import StatusTranslator
+                from porterchain_api.domain.status_translator import StatusTranslator
 
                 mapped = StatusTranslator.to_state(status=str(fb_status))
                 fb_mapped = mapped.value if mapped else None

@@ -32,7 +32,7 @@ from porterchain_pricing.zone import ZoneService
 
 
 class PricingEngine:
-    """Retail + merchant price calculation — Fleetbase never involved.
+    """Retail + merchant price calculation (PorterChain; no vendor dispatch).
 
     Retail (and merchant without contract) uses the GTA delivery rate matrix:
     base covers N km, then extra km + extra pickup/drop fees + flat location surcharges.

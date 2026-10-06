@@ -16,6 +16,8 @@ def test_driver_optimize_preview_sets_apply_on_ready_false() -> None:
         fleetbase_order_id="order_abc123xyz",
         state="DRIVER_ACCEPTED",
         assigned_driver_id="drv-1",
+        pickup={"lat": 43.65, "lng": -79.38},
+        dropoff={"lat": 43.7, "lng": -79.4},
     )
     vehicle = SimpleNamespace(
         driver_id="drv-1",
@@ -27,14 +29,16 @@ def test_driver_optimize_preview_sets_apply_on_ready_false() -> None:
     with (
         patch.object(svc, "_today_orders", return_value=[order]),
         patch.object(svc, "list_jobs", return_value={"jobs": [], "upcoming": [], "completed": []}),
+        patch("porterchain_driver.sequence_store.read_sequence", return_value=None),
         patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.OrchestratorOpsService.enqueue_run",
+            "porterchain_api.dispatch_engine.day_plan.queue_one_van",
             return_value={
                 "run_id": "run-1",
                 "status": "pending",
                 "assignments": [],
-                "metrics": {},
+                "metrics": {"engine": "porterchain"},
                 "apply_on_ready": False,
+                "engine": "porterchain",
             },
         ) as enqueue,
         patch(
@@ -47,8 +51,8 @@ def test_driver_optimize_preview_sets_apply_on_ready_false() -> None:
 
     assert out["preview"] is True
     assert out["apply_on_ready"] is False
-    assert enqueue.call_args.kwargs["apply_on_ready"] is False
-    assert enqueue.call_args.kwargs["pc_driver_id"] == "drv-1"
+    assert enqueue.call_args.args[0]["apply_on_ready"] is False
+    assert enqueue.call_args.args[0]["pc_driver_id"] == "drv-1"
 
 
 def test_optimize_run_status_preview_does_not_apply() -> None:
@@ -98,7 +102,7 @@ def test_accept_optimize_run_applies() -> None:
             "porterchain_driver.sequence_store.apply_run_to_driver",
             return_value=[{"sequence": 0}],
         ) as apply,
-        patch("porterchain_api.fleetbase_engine.optimize_events.emit_applied"),
+        patch("porterchain_api.dispatch_engine.optimize_events.emit_applied"),
         patch.object(svc, "list_jobs", return_value={"jobs": []}),
         patch.object(
             svc,

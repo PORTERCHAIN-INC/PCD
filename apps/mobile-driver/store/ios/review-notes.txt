@@ -12,7 +12,7 @@ Sign-in
 Background location (Guideline 5.1.4)
   NSLocationWhenInUseUsageDescription, NSLocationAlwaysAndWhenInUseUsageDescription, and NSLocationAlwaysUsageDescription are set.
   UIBackgroundModes includes location.
-  Precise location is used only while the driver is on duty so Porterchain dispatch (Fleetbase) can see the van with the screen locked. It is not used for advertising or cross-app tracking. The driver can go off duty to stop the on-duty ping.
+  Precise location is used only while the driver is on duty so PorterChain dispatch can see the van with the screen locked. It is not used for advertising or cross-app tracking. The driver can go off duty to stop the on-duty ping.
 
 Camera
   Used for proof-of-delivery photos and scanning this-order package QR / Code 128 labels. Microphone is not requested.

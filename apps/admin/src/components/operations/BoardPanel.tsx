@@ -11,7 +11,7 @@ import {
   isExceptionColumn,
   type ExceptionColumn,
 } from "@/components/orders/ExceptionReasonModal";
-import { Spinner } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 export function BoardPanel({
   tick,
@@ -55,17 +55,18 @@ export function BoardPanel({
       return;
     }
     setError(
-      "Execution columns (accept → delivered) advance in Fleetbase / the driver app. Use Assign for drivers, or Order 360 for exceptions."
+      "Execution columns (accept → delivered) advance in the driver app. Use Assign for drivers, or Order 360 for exceptions."
     );
   }
 
-  if (!data) return <Spinner label="Loading board…" />;
+  if (!data) return <PageSkeleton rows={4} />;
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted">
         Click a card to open Order 360. Drop on <strong>Assigned</strong> to pick a driver, or on
-        Failed / Returned / Lost / Damaged to enter a reason. Accept → Deliver stays in Fleetbase.
+        Failed / Returned / Lost / Damaged to enter a reason. Accept through deliver stays in the
+        driver app.
       </p>
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">

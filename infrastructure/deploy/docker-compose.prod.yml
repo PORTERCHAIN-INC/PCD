@@ -238,13 +238,6 @@ services:
       PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
       PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
       PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
-      FLEETBASE_DISPATCH_BRIDGE: ${FLEETBASE_DISPATCH_BRIDGE:-false}
-      FLEETBASE_SSO_ENABLED: ${FLEETBASE_SSO_ENABLED:-false}
-      FLEETBASE_API_URL: ${FLEETBASE_API_URL:-}
-      FLEETBASE_API_KEY: ${FLEETBASE_API_KEY:-}
-      FLEETBASE_WEBHOOK_SECRET: ${FLEETBASE_WEBHOOK_SECRET:-}
-      FLEETBASE_DEFAULT_COMPANY_UUID: ${FLEETBASE_DEFAULT_COMPANY_UUID:-}
-      FLEETBASE_CONSOLE_URL: ${FLEETBASE_CONSOLE_URL:-}
       CLERK_DEV_BYPASS: "false"
       SPICEDB_ENABLED: ${SPICEDB_ENABLED:-true}
       SPICEDB_REQUIRED: ${SPICEDB_REQUIRED:-true}
@@ -354,13 +347,6 @@ services:
       REDIS_URL: redis://redis:6379/0
       DB_POOL_SIZE: "5"
       DB_MAX_OVERFLOW: "5"
-      FLEETBASE_DISPATCH_BRIDGE: ${FLEETBASE_DISPATCH_BRIDGE:-false}
-      FLEETBASE_SSO_ENABLED: ${FLEETBASE_SSO_ENABLED:-false}
-      FLEETBASE_API_URL: ${FLEETBASE_API_URL:-}
-      FLEETBASE_API_KEY: ${FLEETBASE_API_KEY:-}
-      FLEETBASE_WEBHOOK_SECRET: ${FLEETBASE_WEBHOOK_SECRET:-}
-      FLEETBASE_DEFAULT_COMPANY_UUID: ${FLEETBASE_DEFAULT_COMPANY_UUID:-}
-      FLEETBASE_CONSOLE_URL: ${FLEETBASE_CONSOLE_URL:-}
       STRIPE_MOCK: "false"
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
@@ -534,7 +520,6 @@ services:
       # HTTP/3 (QUIC) disabled — UDP/443 left unpublished intentionally.
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./porterchain-sso:/etc/caddy/porterchain-sso:ro
       - caddy-data:/data
       - caddy-config:/config
     networks:

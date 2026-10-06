@@ -14,8 +14,7 @@ import pytest
 
 from porterchain_api.admin_engine.control_tower.scoring import compute_ranked_suggestions
 from porterchain_api.driver_engine.last_known import LastKnown, write_last_known
-from porterchain_api.fleetbase_engine import ops_mirror
-from porterchain_api.fleetbase_engine.ops_mirror_refresh import OpsMirrorRefreshService
+from porterchain_api.dispatch_engine import ops_mirror
 from porterchain_api.spatial.h3_index import cell, pick_nearby
 
 pytest.importorskip("h3")
@@ -161,94 +160,17 @@ class TestOpsMirrorPerDriver:
 
 
 class TestOpsMirrorRefreshSkip:
-    def test_skips_tracking_get_when_last_known_fresh(self):
-        adapter = MagicMock()
-        adapter.fetch_tracking.return_value = {"ok": True}
-        adapter.position_history.return_value = {"points": []}
-        order = SimpleNamespace(
-            fleetbase_order_id="fb-ord",
-            assigned_driver_id="drv-1",
-            scheduled_at=datetime.now(UTC),
-        )
-        driver = SimpleNamespace(id="drv-1", fleetbase_driver_id="fb-drv")
-        db = MagicMock()
-        q = MagicMock()
-        db.query.return_value = q
-        q.filter.return_value = q
-        q.order_by.return_value = q
-        q.limit.return_value = q
-        q.all.return_value = [order]
-        db.get.return_value = driver
+    """Retired — Fleetbase ops-mirror refresh was deleted with the adapter."""
 
-        known = LastKnown(
-            driver_id="drv-1",
-            lat=NEAR[0],
-            lng=NEAR[1],
-            recorded_at=datetime.now(UTC),
-            fleetbase_driver_id="fb-drv",
-        )
-        meta = {"history_refreshed_at": datetime.now(UTC).isoformat()}
-        with (
-            patch(
-                "porterchain_api.driver_engine.last_known.read_last_known",
-                return_value=known,
-            ),
-            patch.object(ops_mirror, "read_meta", return_value=meta),
-            patch.object(ops_mirror, "read_tracking", return_value=({"stale": False}, "fleetbase_mirror")),
-            patch.object(ops_mirror, "write_tracking") as write_tracking,
-            patch.object(ops_mirror, "write_history") as write_history,
-        ):
-            tracking_n, history_n, skipped, _hist_at = OpsMirrorRefreshService()._refresh_orders(
-                db, adapter
+    def test_ops_mirror_refresh_module_gone(self):
+        import importlib.util
+
+        assert (
+            importlib.util.find_spec(
+                "porterchain_api.dispatch_engine.ops_mirror_refresh"
             )
-
-        adapter.fetch_tracking.assert_not_called()
-        adapter.position_history.assert_not_called()
-        write_history.assert_not_called()
-        write_tracking.assert_called_once()
-        assert skipped == 1
-        assert tracking_n == 1
-        assert history_n == 0
-
-    def test_fetches_tracking_when_last_known_stale(self):
-        adapter = MagicMock()
-        adapter.fetch_tracking.return_value = {"ok": True}
-        adapter.position_history.return_value = {"points": []}
-        order = SimpleNamespace(
-            fleetbase_order_id="fb-ord",
-            assigned_driver_id="drv-1",
-            scheduled_at=datetime.now(UTC),
+            is None
         )
-        driver = SimpleNamespace(id="drv-1", fleetbase_driver_id="fb-drv")
-        db = MagicMock()
-        q = MagicMock()
-        db.query.return_value = q
-        q.filter.return_value = q
-        q.order_by.return_value = q
-        q.limit.return_value = q
-        q.all.return_value = [order]
-        db.get.return_value = driver
-
-        known = LastKnown(
-            driver_id="drv-1",
-            lat=NEAR[0],
-            lng=NEAR[1],
-            recorded_at=datetime.now(UTC) - timedelta(seconds=90),
-            fleetbase_driver_id="fb-drv",
-        )
-        with (
-            patch(
-                "porterchain_api.driver_engine.last_known.read_last_known",
-                return_value=known,
-            ),
-            patch.object(ops_mirror, "read_meta", return_value={}),
-            patch.object(ops_mirror, "write_tracking"),
-            patch.object(ops_mirror, "write_history"),
-        ):
-            OpsMirrorRefreshService()._refresh_orders(db, adapter)
-
-        adapter.fetch_tracking.assert_called_once_with("fb-ord")
-        adapter.position_history.assert_called_once()
 
 
 class TestScoringNoFleetbaseHttp:
@@ -308,27 +230,17 @@ class TestScoringNoFleetbaseHttp:
             ),
             patch.object(ops_mirror, "online_map_from_mirror", return_value={}),
             patch.object(ops_mirror, "driver_by_fleetbase_id", return_value=None),
-            patch(
-                "porterchain_api.services.fleetbase_integration.get_fleetbase_integration"
-            ) as get_fb,
         ):
             result = compute_ranked_suggestions(db, "ord-h3", maps=maps)
 
-        get_fb.assert_not_called()
+        assert result.get("drivers") is not None
         sources = maps.matrix_durations.call_args[0][0]
         assert sources == [NEAR]
 
 
 class TestWorkerInterval:
-    def test_ops_mirror_interval_is_30s(self):
-        worker_root = Path(__file__).resolve().parents[2] / "worker"
-        # apps/api/run.py shadows apps/worker/run.py if already imported.
-        sys.modules.pop("run", None)
-        if str(worker_root) not in sys.path:
-            sys.path.insert(0, str(worker_root))
-        else:
-            sys.path.remove(str(worker_root))
-            sys.path.insert(0, str(worker_root))
-        from run import OPS_MIRROR_INTERVAL_SECONDS
-
-        assert OPS_MIRROR_INTERVAL_SECONDS == 30
+    def test_worker_does_not_drain_fleetbase(self):
+        text = (Path(__file__).resolve().parents[2] / "worker" / "run.py").read_text()
+        assert "_drain_fleetbase_retry_queue" not in text
+        assert "_refresh_fleetbase_ops_mirror" not in text
+        assert "OPS_MIRROR_INTERVAL_SECONDS" not in text

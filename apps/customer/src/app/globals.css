@@ -278,3 +278,29 @@ body {
     animation: none;
   }
 }
+
+/* Route view transitions (Next experimental.viewTransition) — skip under reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: 160ms ease-out both pc-vt-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation: 200ms ease-in both pc-vt-fade-in;
+  }
+}
+@keyframes pc-vt-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes pc-vt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

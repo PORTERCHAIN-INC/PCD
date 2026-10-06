@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -8,14 +9,13 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import type { Order360Actions } from "@/components/orders/OrderDetailView";
 import type { ExceptionColumn } from "@/components/orders/ExceptionReasonModal";
 import type { OrderBuilderPrefill } from "@/components/orders/OrderBuilderModal";
-import { Spinner } from "@/components/crm/primitives";
 import { downloadOrderFile, ordersApi, type OrderDetail } from "@/lib/orders";
 import { ops } from "@/lib/operations";
 
 const OrderDetailView = dynamic(() => import("@/components/orders/OrderDetailView"), {
   loading: () => (
     <div className="flex min-h-[40vh] items-center justify-center">
-      <Spinner />
+      <PageSkeleton rows={3} />
     </div>
   ),
   ssr: false,

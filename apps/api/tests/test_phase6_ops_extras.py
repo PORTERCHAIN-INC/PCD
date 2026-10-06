@@ -103,7 +103,7 @@ def test_soft_sequence_orders_prior_assignments() -> None:
             return_value=plan,
         ),
         patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.OrchestratorOpsService.enqueue_run",
+            "porterchain_api.dispatch_engine.day_plan.queue_one_van",
             return_value={"run_id": "r1", "status": "pending"},
         ) as enqueue,
         patch.object(
@@ -116,4 +116,4 @@ def test_soft_sequence_orders_prior_assignments() -> None:
         out = DriverRouteOptimizer().reoptimize_remaining(db, driver, "x")
     assert out and out.get("soft_sequence") is True
     # Soft order: o2 before o1 from sequence waypoints.
-    assert enqueue.call_args.kwargs["order_ids"] == ["o2", "o1"]
+    assert enqueue.call_args.args[0]["order_ids"] == ["o2", "o1"]

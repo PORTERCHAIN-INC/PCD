@@ -18,16 +18,14 @@ from porterchain_api.routers.driver._deps import (
     guard_portal_ready,
     require_approved_driver,
     router,
-    svc,
-)
+    svc)
 
 
 @router.get("/dashboard", response_model=DriverDashboardResponse)
 def dashboard(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
@@ -44,15 +42,13 @@ def dashboard(
         active_route_id=snap.active_route_id,
         bonuses_available=snap.bonuses_available,
         performance_score=snap.performance_score,
-        pending_documents=snap.pending_documents,
-    )
+        pending_documents=snap.pending_documents)
 
 
 @router.get("/earnings")
 def earnings_snapshot(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     return svc.platform.finance.snapshot(db, ctx.driver)
 
 
@@ -69,8 +65,7 @@ def earnings_today(ctx: Annotated[DriverContext, Depends(get_driver_context)], d
 @router.get("/earnings/statements")
 def earnings_statements(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     return {"statements": svc.platform.finance.list_statements(db, ctx.driver.id)}
 
 
@@ -78,8 +73,7 @@ def earnings_statements(
 def earnings_statement_detail(
     statement_id: str,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     try:
         return svc.platform.finance.statement_detail(db, ctx.driver.id, statement_id)
     except LookupError as exc:
@@ -90,8 +84,7 @@ def earnings_statement_detail(
 def earnings_statement_download(
     statement_id: str,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     try:
         content, filename = svc.platform.finance.statement_csv(db, ctx.driver.id, statement_id)
     except LookupError as exc:
@@ -99,8 +92,7 @@ def earnings_statement_download(
     return Response(
         content=content,
         media_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 
 @router.get("/wallet")
@@ -132,8 +124,7 @@ def bonuses(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Sess
 def claim_bonus(
     bonus_id: str,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     try:
         with db_transaction(db):
             result = svc.platform.bonuses.claim_bonus(db, ctx.driver, bonus_id)
@@ -157,9 +148,7 @@ def set_availability(
     body: AvailabilityRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    bridge = svc.fleetbase_bridge(settings)
+    settings: Settings = Depends(get_settings)):
     if body.mode is None and body.online is None:
         raise HTTPException(status_code=422, detail="online or mode required")
     try:
@@ -167,12 +156,12 @@ def set_availability(
         with db_transaction(db):
             if body.mode is not None:
                 result = svc.platform.shift.set_availability(
-                    db, ctx.driver, body.mode, fleetbase_bridge=bridge
+                    db, ctx.driver, body.mode
                 )
             else:
                 mode = "online" if body.online else "offline"
                 result = svc.platform.shift.set_availability(
-                    db, ctx.driver, mode, fleetbase_bridge=bridge
+                    db, ctx.driver, mode
                 )
         return result
     except PermissionError as exc:
@@ -184,8 +173,7 @@ def set_availability(
 @router.get("/shift")
 def get_shift(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-):
+    db: Session = Depends(get_db)):
     return svc.platform.shift.snapshot(db, ctx.driver)
 
 
@@ -194,18 +182,16 @@ def start_shift(
     body: ShiftStartRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
     from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     guard_portal_ready(ctx, settings)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.shift.start_shift(
-                db, ctx.driver, fleetbase_bridge=bridge, route_id=body.route_id, pretrip=body.pretrip
+                db, ctx.driver, route_id=body.route_id, pretrip=body.pretrip
             )
         return result
     except PermissionError as exc:
@@ -218,13 +204,11 @@ def start_shift(
 def end_shift(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
-            result = svc.platform.shift.end_shift(db, ctx.driver, fleetbase_bridge=bridge)
+            result = svc.platform.shift.end_shift(db, ctx.driver)
         return result
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -234,14 +218,12 @@ def end_shift(
 def shift_break(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.shift.start_break(
-                db, ctx.driver, fleetbase_bridge=bridge
+                db, ctx.driver
             )
         return result
     except (LookupError, PermissionError) as exc:
@@ -253,14 +235,12 @@ def shift_break(
 def shift_resume(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    bridge = svc.fleetbase_bridge(settings)
     try:
         with db_transaction(db):
             result = svc.platform.shift.resume_shift(
-                db, ctx.driver, fleetbase_bridge=bridge
+                db, ctx.driver
             )
         return result
     except (LookupError, PermissionError) as exc:

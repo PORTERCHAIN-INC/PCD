@@ -21,10 +21,10 @@ const STAFF_PUSH_ALERT_BUDGET = [
 ] as const;
 
 const INTEGRATION_DOCS: Record<string, string[]> = {
-  fleetbase: [
-    "Permanent bond: identity + fleetbase-adapter + heal (`pnpm fleetbase:bond`) — not the Ember console.",
-    "All Fleetbase calls go through the adapter — never direct HTTP from UI or routers.",
-    "Fleetbase is execution only: GPS, routes, POD — not CRM, billing, or staff identity.",
+  dispatch: [
+    "Dispatch is the PorterChain day plan.",
+    "Dispatch stays in PorterChain. The browser does not call a second system.",
+    "PorterChain runs GPS, routes, and proof. CRM, billing, and staff identity stay separate.",
   ],
   stripe: [
     "Stripe Checkout for retail; invoicing for merchants.",
@@ -55,7 +55,7 @@ const INTEGRATION_DOCS: Record<string, string[]> = {
 type Action = { label: string; href?: string; external?: boolean };
 
 const ACTIONS: Record<string, Action[]> = {
-  fleetbase: [
+  dispatch: [
     { label: "Operations control tower", href: "/operations" },
     { label: "System", href: "/system" },
   ],

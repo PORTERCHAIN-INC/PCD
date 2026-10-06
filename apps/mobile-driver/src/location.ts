@@ -13,7 +13,7 @@ let lastSuccessfulPingAt = 0;
 let softOfflineArmed = false;
 
 export function idleLocation(): LocationState {
-  return { kind: "idle", detail: "Location idle — on-duty pings go to Fleetbase" };
+  return { kind: "idle", detail: "Location idle — on-duty pings go to PorterChain dispatch" };
 }
 
 function humanLocationDetail(err: unknown): string {
@@ -53,7 +53,10 @@ export async function requestLocationAccess(): Promise<LocationState> {
       await Location.requestBackgroundPermissionsAsync();
     }
 
-    return { kind: "granted", detail: "Location on — foreground + background → Fleetbase" };
+    return {
+      kind: "granted",
+      detail: "Location on — foreground and background go to PorterChain dispatch",
+    };
   } catch (err) {
     return {
       kind: "error",
@@ -76,7 +79,7 @@ export async function sendLocationPing(): Promise<LocationState> {
         speed_mps: pos.coords.speed,
       });
       markLocationPingSuccess();
-      return { kind: "granted", detail: "Location ping sent to Fleetbase" };
+      return { kind: "granted", detail: "Location ping sent to PorterChain dispatch" };
     } catch {
       await enqueueGpsPing({
         lat: pos.coords.latitude,
@@ -95,7 +98,7 @@ export async function sendLocationPing(): Promise<LocationState> {
   }
 }
 
-/** Signal soft-offline once when GPS goes stale while on duty (Fleetbase remains SoT). */
+/** Signal soft-offline once when GPS goes stale while on duty. */
 export async function maybeSoftOfflineOnStale(online: boolean): Promise<LocationState | null> {
   if (!online || softOfflineArmed || !isLocationStale()) return null;
   softOfflineArmed = true;
@@ -138,7 +141,7 @@ export async function startBackgroundLocation(): Promise<LocationState> {
     markLocationPingSuccess();
     return {
       kind: "granted",
-      detail: "Background location active — Fleetbase keeps the van on the map",
+      detail: "Background location active — PorterChain keeps the van on the map",
     };
   } catch (err) {
     return {

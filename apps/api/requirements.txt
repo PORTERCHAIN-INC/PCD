@@ -22,11 +22,11 @@ authzed>=1.21.0
 grpcio>=1.70.0
 webauthn>=2.7.0
 h3>=4.2.0
+ortools==9.15.6755
 
 # Platform packages (editable — install from repo root or use PYTHONPATH)
 -e ../../shared/python
 -e ../../services/python
--e ../../services/fleetbase-adapter
 -e ../../services/pricing-engine
 -e ../../services/event-bus
 -e ../../services/driver-platform

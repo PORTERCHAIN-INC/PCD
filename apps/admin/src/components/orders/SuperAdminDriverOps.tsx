@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useOptimistic, useState } from "react";
 import { Button } from "@/components/crm/primitives";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ordersApi, type OrderDetail } from "@/lib/orders";
 
 type Snapshot = Awaited<ReturnType<typeof ordersApi.driverOps>>;
+type ParcelRow = Snapshot["parcels"][number];
 
 const STATUS_LABEL: Record<string, string> = {
   manifested: "Manifested",
@@ -27,7 +28,13 @@ export function SuperAdminDriverOps({
   const { getApiToken } = useAdminAuth();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [proofUrl, setProofUrl] = useState("");
+  const [stopKind, setStopKind] = useState("delivery");
+  const [stopAddress, setStopAddress] = useState("");
+  const [stopDollars, setStopDollars] = useState("");
+  const [link, setLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [announce, setAnnounce] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const token = await getApiToken();
@@ -41,6 +48,15 @@ export function SuperAdminDriverOps({
       setError(err instanceof Error ? err.message : "Could not load driver steps");
     });
   }, [load, profile?.role, detail.state]);
+
+  const baseParcels = snapshot?.parcels ?? [];
+  const [parcels, markParcelStatus] = useOptimistic(
+    baseParcels,
+    (current: ParcelRow[], update: { parcelId: string; status: string }) =>
+      current.map((parcel) =>
+        String(parcel.id ?? "") === update.parcelId ? { ...parcel, status: update.status } : parcel
+      )
+  );
 
   if (profile?.role !== "super_admin") return null;
 
@@ -60,28 +76,95 @@ export function SuperAdminDriverOps({
     }
   }
 
-  async function setStatus(parcelId: string, status: string) {
-    setBusy(parcelId);
+  function setStatus(parcelId: string, status: string, trackingSuffix?: string) {
+    setError(null);
+    startTransition(async () => {
+      markParcelStatus({ parcelId, status });
+      setAnnounce(`Parcel status updated to ${STATUS_LABEL[status] ?? status}`);
+      setBusy(parcelId);
+      try {
+        const token = await getApiToken();
+        if (!token) throw new Error("Sign in again");
+        await ordersApi.setParcelStatus(token, detail.order_id, parcelId, status, trackingSuffix);
+        await load();
+        onRefresh?.();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not update parcel status");
+        setAnnounce("Could not update parcel status");
+        await load();
+      } finally {
+        setBusy(null);
+      }
+    });
+  }
+
+  async function addProof() {
+    setBusy("proof");
     setError(null);
     try {
       const token = await getApiToken();
       if (!token) throw new Error("Sign in again");
-      await ordersApi.setParcelStatus(token, detail.order_id, parcelId, status);
+      await ordersApi.addProof(token, detail.order_id, proofUrl.trim());
+      setProofUrl("");
       await load();
       onRefresh?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update parcel status");
+      setError(err instanceof Error ? err.message : "Could not add proof");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function addStop() {
+    setBusy("extra");
+    setError(null);
+    setLink(null);
+    try {
+      const token = await getApiToken();
+      if (!token) throw new Error("Sign in again");
+      const cents = Math.round(Number(stopDollars) * 100);
+      const result = await ordersApi.addExtraStop(token, detail.order_id, {
+        kind: stopKind,
+        formatted: stopAddress.trim(),
+        amount_cents: cents,
+      });
+      setLink(result.checkout_url);
+      setStopAddress("");
+      setStopDollars("");
+      await load();
+      onRefresh?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add the stop");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function resend(leg: string) {
+    setBusy(`resend-${leg}`);
+    setError(null);
+    try {
+      const token = await getApiToken();
+      if (!token) throw new Error("Sign in again");
+      const result = await ordersApi.resendExtraStop(token, detail.order_id, leg);
+      setLink(result.checkout_url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resend the link");
     } finally {
       setBusy(null);
     }
   }
 
   const actions = snapshot?.actions ?? [];
-  const parcels = snapshot?.parcels ?? [];
   const statuses = snapshot?.parcel_statuses ?? [];
 
   return (
     <section className="mt-4 rounded-2xl border border-primary/15 bg-white p-4">
+      {announce ? (
+        <p className="sr-only" role="status" aria-live="polite">
+          {announce}
+        </p>
+      ) : null}
       <h2 className="text-sm font-bold text-primary">Driver steps</h2>
       <p className="mt-1 text-xs text-muted">
         Super admin can accept, start the route, and move the stop. Parcel status can be set here
@@ -124,7 +207,9 @@ export function SuperAdminDriverOps({
                   className="rounded-lg border border-primary/15 px-2 py-1 text-sm"
                   value={current}
                   disabled={Boolean(busy) || !id}
-                  onChange={(event) => void setStatus(id, event.target.value)}
+                  onChange={(event) =>
+                    void setStatus(id, event.target.value, String(parcel.tracking_suffix ?? ""))
+                  }
                 >
                   {statuses.map((status) => (
                     <option key={status} value={status}>
@@ -137,6 +222,86 @@ export function SuperAdminDriverOps({
           })}
         </div>
       ) : null}
+      <div className="mt-4 space-y-2">
+        <p className="text-xs font-bold text-muted">Proof photo later</p>
+        <div className="flex flex-wrap gap-2">
+          <input
+            className="min-w-64 flex-1 rounded-lg border border-primary/15 px-2 py-1 text-sm"
+            placeholder="https://… proof image URL"
+            value={proofUrl}
+            onChange={(event) => setProofUrl(event.target.value)}
+          />
+          <Button
+            type="button"
+            className="px-2 py-1 text-xs"
+            disabled={Boolean(busy)}
+            onClick={() => void addProof()}
+          >
+            {busy === "proof" ? "Saving…" : "Add proof photo"}
+          </Button>
+        </div>
+      </div>
+      <div className="mt-4 space-y-2">
+        <p className="text-xs font-bold text-muted">Additional pickup or delivery</p>
+        <div className="flex flex-wrap gap-2">
+          <select
+            className="rounded-lg border border-primary/15 px-2 py-1 text-sm"
+            value={stopKind}
+            onChange={(event) => setStopKind(event.target.value)}
+          >
+            <option value="pickup">Pickup</option>
+            <option value="delivery">Delivery</option>
+          </select>
+          <input
+            className="min-w-64 flex-1 rounded-lg border border-primary/15 px-2 py-1 text-sm"
+            placeholder="Address"
+            value={stopAddress}
+            onChange={(event) => setStopAddress(event.target.value)}
+          />
+          <input
+            className="w-28 rounded-lg border border-primary/15 px-2 py-1 text-sm"
+            placeholder="Amount CAD"
+            value={stopDollars}
+            onChange={(event) => setStopDollars(event.target.value)}
+          />
+          <Button
+            type="button"
+            className="px-2 py-1 text-xs"
+            disabled={Boolean(busy)}
+            onClick={() => void addStop()}
+          >
+            {busy === "extra" ? "Sending…" : "Add stop and send link"}
+          </Button>
+        </div>
+        {link ? (
+          <p className="text-xs">
+            Customer payment link:{" "}
+            <a className="text-secondary underline" href={link}>
+              {link}
+            </a>
+          </p>
+        ) : null}
+        {(snapshot?.extra_stops ?? []).map((stop) => (
+          <p
+            key={String(stop.leg)}
+            className="flex flex-wrap items-center gap-2 text-xs text-muted"
+          >
+            <span>
+              {String(stop.kind)} · {String(stop.formatted)} · {String(stop.status)}
+            </span>
+            {stop.status === "pending" && stop.leg ? (
+              <button
+                type="button"
+                className="font-semibold text-secondary"
+                disabled={Boolean(busy)}
+                onClick={() => void resend(String(stop.leg))}
+              >
+                Resend link
+              </button>
+            ) : null}
+          </p>
+        ))}
+      </div>
     </section>
   );
 }

@@ -99,8 +99,10 @@ export function formatDistanceKm(km: number | null | undefined): string {
   return `${km.toFixed(1)} km`;
 }
 
-export function formatLastUpdated(date: Date): string {
-  return format(date, "h:mm:ss a");
+export function formatLastUpdated(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(value.getTime())) return "";
+  return format(value, "h:mm:ss a");
 }
 
 export function countOpenClaims(incidents: { status: string; incident_type: string }[]): number {

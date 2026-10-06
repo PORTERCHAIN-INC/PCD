@@ -1,15 +1,16 @@
 "use client";
 
 import { useApiData } from "@/hooks/useApiData";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { drivers } from "@/lib/drivers";
-import { Badge, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, SectionCard } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
 
 export function IncidentsTab({ id }: { id: string }) {
   const { data, error } = useApiData((t) => drivers.incidents(t, id), [id], {
     key: `driver-incidents-${id}`,
   });
-  if (!data && !error) return <Spinner />;
+  if (!data && !error) return <PageSkeleton rows={3} />;
   const incidents = data?.incidents ?? [];
   const claims = data?.claims ?? [];
   return (

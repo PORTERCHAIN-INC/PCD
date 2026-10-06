@@ -197,7 +197,7 @@ export function MasterruleCallout() {
         <span className="font-semibold text-primary">Commercial & access settings.</span> Badges
         show what actually changes runtime (Wired), what lives in Doppler/IdP (Env), and what is
         stored as policy only. Secrets never appear here. Live GPS and fleet execution stay in
-        Fleetbase via the permanent bond (adapter), not an admin console login.
+        Dispatch stays in PorterChain. There is no separate console login.
       </p>
     </div>
   );

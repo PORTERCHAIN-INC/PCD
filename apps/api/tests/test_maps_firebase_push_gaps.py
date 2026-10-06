@@ -264,7 +264,7 @@ def test_gap06_failure_scenario_aliases_resolve() -> None:
     from porterchain_api.admin_engine.e2e_validation_catalog import FAILURE_SCENARIOS
 
     for name in (
-        "fleetbase_offline",
+        "day_plan_offline",
         "google_maps_failure",
         "osrm_failure",
         "valhalla_failure",
@@ -276,6 +276,11 @@ def test_gap06_failure_scenario_aliases_resolve() -> None:
         assert name in FAILURE_SCENARIOS
         assert resolve_chaos_scenario(name) == name
         assert name in CANONICAL_CHAOS_SCENARIOS
+
+    assert resolve_chaos_scenario("fleetbase_offline") == "day_plan_offline"
+    assert resolve_chaos_scenario("fleetbase_adapter_failure") == "day_plan_offline"
+    assert "fleetbase_offline" in FAILURE_SCENARIOS
+    assert "fleetbase_adapter_failure" in FAILURE_SCENARIOS
 
     for failure_name, canonical in CHAOS_ALIASES.items():
         assert failure_name in FAILURE_SCENARIOS

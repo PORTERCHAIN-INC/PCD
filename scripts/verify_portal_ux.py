@@ -12,6 +12,7 @@ PORTALS = (
     "apps/merchant-portal",
     "apps/driver-portal",
     "apps/customer",
+    "apps/admin",
 )
 
 REQUIRED_UI_EXPORTS = ("./empty-state", "./loading")
@@ -20,20 +21,29 @@ REQUIRED_IMPORTS = (
     "@porterchain/ui/loading",
 )
 
+# Paths that must import shared loading or empty-state (hydrated shells / list UIs).
 PORTAL_WIRING: dict[str, tuple[str, ...]] = {
     "apps/merchant-portal": (
-        "src/components/MerchantAccessGate.tsx",
+        "src/components/portal/ModuleGate.tsx",
         "src/components/orders/OrdersTable.tsx",
         "src/components/reports/ReportsClient.tsx",
+        "src/app/(portal)/loading.tsx",
     ),
     "apps/driver-portal": (
-        "src/app/jobs/page.tsx",
-        "src/app/dashboard/page.tsx",
         "src/components/DriverShell.tsx",
+        "src/components/dashboard/DashboardClient.tsx",
+        "src/components/jobs/JobsListClient.tsx",
+        "src/app/loading.tsx",
     ),
     "apps/customer": (
-        "src/app/dashboard/page.tsx",
-        "src/app/track/[trackingNumber]/page.tsx",
+        "src/app/dashboard/dashboard-client.tsx",
+        "src/app/track/[trackingNumber]/track-order-client.tsx",
+        "src/components/notifications/NotificationsClient.tsx",
+        "src/app/loading.tsx",
+    ),
+    "apps/admin": (
+        "src/app/(ops)/loading.tsx",
+        "src/components/operations/OpsTowerFallback.tsx",
     ),
 }
 
@@ -69,7 +79,7 @@ def main() -> int:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: shared EmptyState + skeletons wired in merchant, driver, customer")
+    print("  PASS: shared EmptyState + skeletons wired in merchant, driver, customer, admin")
     return 0
 
 

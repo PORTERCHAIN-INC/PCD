@@ -39,6 +39,7 @@ export {
 } from "./clerkAppearance";
 export {
   PC_IMP_COOKIE,
+  PC_IMP_FLAG,
   PC_IMP_STORAGE_KEY,
   clearImpersonationBearer,
   readImpersonationBearer,

@@ -1,70 +1,78 @@
 #!/usr/bin/env python3
-"""§3.3.2 — Fleetbase sync handlers are event-bus entry points only."""
+"""Day-plan cutover — no Fleetbase sync handlers remain on the event bus."""
 
 from __future__ import annotations
 
-import ast
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HANDLER_FILE = ROOT / "apps/api/src/porterchain_api/booking_engine/fleetbase_sync_handler.py"
 EVENT_BUS_HANDLERS = ROOT / "services/event-bus/porterchain_event_bus/handlers/__init__.py"
+RETIRED_HANDLER = ROOT / "apps/api/src/porterchain_api/booking_engine/fleetbase_sync_handler.py"
+SEQUENCER = ROOT / "apps/api/src/porterchain_api/dispatch_engine/sequencer.py"
 
-_IMPORT_ALLOWLIST: frozenset[str] = frozenset(
+_FORBIDDEN_IMPORT = "fleetbase_sync_handler"
+_ALLOW_SELF = frozenset(
     {
-        "services/event-bus/porterchain_event_bus/handlers/__init__.py",
-        "apps/api/src/porterchain_api/booking_engine/fleetbase_sync_handler.py",
-        "apps/api/tests/test_customer_persona_p0_integrations.py",
+        "scripts/verify_fleetbase_event_handlers.py",
     }
 )
 
-_HANDLER_SUFFIX = "_from_event"
+
+def _check_no_handler_module() -> list[str]:
+    if RETIRED_HANDLER.is_file():
+        return [f"retired Fleetbase handler still present: {RETIRED_HANDLER.relative_to(ROOT)}"]
+    return []
 
 
-def _check_import_sites() -> list[str]:
+def _check_event_bus_clean() -> list[str]:
+    if not EVENT_BUS_HANDLERS.is_file():
+        return [f"missing event bus handlers: {EVENT_BUS_HANDLERS.relative_to(ROOT)}"]
+    text = EVENT_BUS_HANDLERS.read_text(encoding="utf-8")
     failures: list[str] = []
-    pattern = "fleetbase_sync_handler"
+    if _FORBIDDEN_IMPORT in text or "BookingSyncService" in text:
+        failures.append("event bus still registers Fleetbase sync")
+    return failures
+
+
+def _check_no_import_sites() -> list[str]:
+    failures: list[str] = []
     for path in sorted(ROOT.rglob("*.py")):
         rel = str(path.relative_to(ROOT))
-        if "node_modules" in rel or ".venv" in rel:
+        if "node_modules" in rel or ".venv" in rel or "/build/" in rel:
+            continue
+        if rel in _ALLOW_SELF:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
-        if pattern not in text:
+        if _FORBIDDEN_IMPORT not in text:
             continue
-        if rel in _IMPORT_ALLOWLIST:
-            continue
-        if f"from porterchain_api.booking_engine.{pattern}" in text or f"import {pattern}" in text:
-            failures.append(f"§3.3.2 direct fleetbase_sync_handler import: {rel}")
+        if f"from porterchain_api.booking_engine.{_FORBIDDEN_IMPORT}" in text or f"import {_FORBIDDEN_IMPORT}" in text:
+            failures.append(f"direct fleetbase_sync_handler import: {rel}")
     return failures
 
 
-def _check_handler_shape() -> list[str]:
-    failures: list[str] = []
-    if not HANDLER_FILE.is_file():
-        return [f"§3.3.2 missing handler module: {HANDLER_FILE.relative_to(ROOT)}"]
-    tree = ast.parse(HANDLER_FILE.read_text(encoding="utf-8"))
-    for node in tree.body:
-        if not isinstance(node, ast.FunctionDef):
-            continue
-        if node.name.startswith("_"):
-            continue
-        if not node.name.endswith(_HANDLER_SUFFIX):
-            failures.append(f"§3.3.2 handler must end with {_HANDLER_SUFFIX!r}: {node.name}")
-        arg_names = [a.arg for a in node.args.args]
-        if arg_names != ["envelope"]:
-            failures.append(f"§3.3.2 handler {node.name} must accept envelope only")
-    return failures
+def _check_day_solver() -> list[str]:
+    if not SEQUENCER.is_file():
+        return ["dispatch_engine/sequencer.py missing — day plan required after Fleetbase removal"]
+    text = SEQUENCER.read_text(encoding="utf-8")
+    if "ortools" not in text and "OR-Tools" not in text and "pywrapcp" not in text:
+        return ["dispatch_engine/sequencer.py must use OR-Tools for the day plan"]
+    return []
 
 
 def main() -> int:
-    failures = _check_import_sites() + _check_handler_shape()
+    failures = (
+        _check_no_handler_module()
+        + _check_event_bus_clean()
+        + _check_no_import_sites()
+        + _check_day_solver()
+    )
     if failures:
-        print("Fleetbase event-handler guard failed:")
+        print("Day-plan event-handler guard failed:")
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("Fleetbase event-handler guard passed (§3.3.2 — event-bus only, envelope handlers).")
+    print("Day-plan event-handler guard passed — no Fleetbase sync handlers; OR-Tools sequencer present.")
     return 0
 
 

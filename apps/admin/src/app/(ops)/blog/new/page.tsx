@@ -1,12 +1,6 @@
-"use client";
+import BlogNewClient from "@/components/blog/BlogNewClient";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
-
-const BlogNewClient = dynamic(() => import("@/components/blog/BlogNewClient"), {
-  loading: () => <Spinner label="Loading…" />,
-});
-
+/** Form-only — no list to prefetch; keep as server page wrapping the client form. */
 export default function BlogNewPage() {
   return <BlogNewClient />;
 }

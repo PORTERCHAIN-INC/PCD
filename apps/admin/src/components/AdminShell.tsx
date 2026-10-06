@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import Container from "@porterchain/ui/container";
 import { cn } from "@porterchain/ui/utils";
+import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import { activeNavLabel } from "@/lib/admin-nav";
 import AdminAccessGate from "@/components/AdminAccessGate";
 import AdminAccountMenu from "@/components/nav/AdminAccountMenu";
@@ -56,7 +57,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <div className="mx-0.5 hidden h-6 w-px bg-primary/10 sm:block" />
 
             <div className="flex min-w-0 flex-1 items-center">
-              <AdminMenuBar />
+              <Suspense fallback={<div className="h-8 min-w-0 flex-1" />}>
+                <AdminMenuBar />
+              </Suspense>
             </div>
 
             <div className="flex shrink-0 items-center gap-1 border-l border-primary/10 pl-2 sm:gap-2">
@@ -70,7 +73,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <main className={cn("ops-main min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-clip")}>
           {/* Fluid rail — every ops page uses full viewport width for tables/KPIs. */}
           <Container width="fluid" className="admin-page-rail min-w-0">
-            {children}
+            <RouteViewTransition>{children}</RouteViewTransition>
           </Container>
         </main>
       </div>

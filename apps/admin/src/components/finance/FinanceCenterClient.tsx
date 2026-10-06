@@ -8,7 +8,7 @@ import { cn, formatCents } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import dynamic from "next/dynamic";
 import { ListPager } from "@/components/crm/ListPager";
-import { Button, EmptyState, Spinner } from "@/components/crm/primitives";
+import { Button, EmptyState } from "@/components/crm/primitives";
 import { SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import {
   exportGlCsv,
@@ -19,20 +19,23 @@ import {
 } from "@/lib/finance";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import AdminPage from "@/components/layout/AdminPage";
+import { PageSkeleton, TableSkeleton } from "@porterchain/ui/loading";
 
 const FinanceInvoicesGrid = dynamic(() => import("@/components/finance/FinanceInvoicesGrid"), {
-  loading: () => <Spinner />,
+  ssr: false,
+  loading: () => <TableSkeleton rows={6} />,
 });
 const FinancePaymentsGrid = dynamic(() => import("@/components/finance/FinancePaymentsGrid"), {
-  loading: () => <Spinner />,
+  ssr: false,
+  loading: () => <TableSkeleton rows={6} />,
 });
 const FinanceMerchantArPanel = dynamic(
   () => import("@/components/finance/FinanceMerchantArPanel"),
-  { loading: () => <Spinner /> }
+  { ssr: false, loading: () => <PageSkeleton rows={4} /> }
 );
 const FinanceCollectionsPanel = dynamic(
   () => import("@/components/finance/FinanceCollectionsPanel"),
-  { loading: () => <Spinner /> }
+  { ssr: false, loading: () => <PageSkeleton rows={4} /> }
 );
 
 type Tab =
@@ -237,11 +240,7 @@ function FinancePageInner() {
         }
       />
 
-      {dashLoading && !dashboard ? (
-        <div className="flex justify-center py-12">
-          <Spinner label="Loading finance…" />
-        </div>
-      ) : null}
+      {dashLoading && !dashboard ? <PageSkeleton rows={4} /> : null}
 
       {dashboard ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -379,7 +378,7 @@ function FinancePageInner() {
                 </button>
               </div>
               {invLoading ? (
-                <Spinner />
+                <TableSkeleton rows={5} />
               ) : (
                 <FinanceInvoicesGrid rows={invoices.slice(0, 8)} dense hideToolbar />
               )}
@@ -430,9 +429,7 @@ function FinancePageInner() {
               </label>
             </div>
             {invLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner />
-              </div>
+              <TableSkeleton rows={8} />
             ) : (
               <>
                 <FinanceInvoicesGrid rows={invoices} hideToolbar={false} />
@@ -450,9 +447,7 @@ function FinancePageInner() {
         {tab === "payments" ? (
           <Panel>
             {payLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner />
-              </div>
+              <TableSkeleton rows={8} />
             ) : (
               <>
                 <FinancePaymentsGrid rows={payments} />
@@ -469,13 +464,7 @@ function FinancePageInner() {
 
         {tab === "payouts" ? (
           <Panel>
-            {payoutLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner />
-              </div>
-            ) : (
-              <PayoutsTable rows={payouts} />
-            )}
+            {payoutLoading ? <TableSkeleton rows={6} /> : <PayoutsTable rows={payouts} />}
           </Panel>
         ) : null}
 
@@ -493,9 +482,7 @@ function FinancePageInner() {
                 : ""}
             </p>
             {colLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner />
-              </div>
+              <TableSkeleton rows={6} />
             ) : collections.length === 0 ? (
               <EmptyState
                 title="No collections due"
@@ -520,9 +507,7 @@ function FinancePageInner() {
         {tab === "ledger" ? (
           <Panel>
             {ledgerLoading ? (
-              <div className="flex justify-center py-12">
-                <Spinner />
-              </div>
+              <TableSkeleton rows={8} />
             ) : ledger.length === 0 ? (
               <EmptyState title="Ledger is empty" hint="Posted finance events show up here." />
             ) : (
@@ -566,9 +551,7 @@ function FinancePageInner() {
         {tab === "reports" ? (
           <Panel>
             {reportsLoading || !reports ? (
-              <div className="flex justify-center py-12">
-                <Spinner />
-              </div>
+              <PageSkeleton rows={3} />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[
@@ -650,13 +633,7 @@ function PayoutsTable({ rows }: { rows: PayoutRow[] }) {
 
 export default function FinanceCenterClient() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center py-16">
-          <Spinner label="Loading finance…" />
-        </div>
-      }
-    >
+    <Suspense fallback={<PageSkeleton rows={5} />}>
       <FinancePageInner />
     </Suspense>
   );

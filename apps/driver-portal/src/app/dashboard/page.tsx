@@ -1,12 +1,17 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import DashboardClient from "@/components/dashboard/DashboardClient";
+import { loadDriverWorkspace } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { PageSkeleton } from "@porterchain/ui/loading";
+export default async function DashboardPage() {
+  const client = new QueryClient();
+  const workspace = await loadDriverWorkspace();
+  if (workspace) {
+    client.setQueryData(["driver-workspace"], workspace);
+  }
 
-const DashboardClient = dynamic(() => import("@/components/dashboard/DashboardClient"), {
-  loading: () => <PageSkeleton rows={5} />,
-});
-
-export default function DashboardPage() {
-  return <DashboardClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <DashboardClient />
+    </HydrationBoundary>
+  );
 }

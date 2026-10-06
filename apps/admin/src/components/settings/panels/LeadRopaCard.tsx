@@ -1,32 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useApiData } from "@/hooks/useApiData";
 import { leadsApi } from "@/lib/leads";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { SettingsCard } from "../ui/SettingsPrimitives";
-
-type Ropa = Awaited<ReturnType<typeof leadsApi.privacyRopa>>;
 
 /** Static CrmLead processing inventory — not a multi-region residency product. */
 export function LeadRopaCard() {
-  const { getApiToken, isSignedIn } = useAdminAuth();
-  const [data, setData] = useState<Ropa | null>(null);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    if (!isSignedIn) return;
-    setError("");
-    try {
-      const token = await getApiToken();
-      setData(await leadsApi.privacyRopa(token));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load processing record");
-    }
-  }, [getApiToken, isSignedIn]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { data, error, refetch } = useApiData((t) => leadsApi.privacyRopa(t), [], {
+    key: "lead-ropa",
+  });
 
   return (
     <SettingsCard title="Lead processing record (RoPA)">
@@ -72,12 +55,12 @@ export function LeadRopaCard() {
           <p className="mt-2 text-xs text-muted">{data.notes}</p>
         </>
       ) : (
-        <p className="text-sm text-muted">Loading…</p>
+        <PageSkeleton rows={2} />
       )}
       <button
         type="button"
         className="mt-3 text-xs font-medium text-secondary hover:underline"
-        onClick={() => void load()}
+        onClick={() => void refetch()}
       >
         Refresh
       </button>

@@ -2,9 +2,9 @@
 
 **Type:** CANONICAL · **Verified:** 2026-09-17 · **Map:** `graphify-out/GRAPH_REPORT.md` (17 616 nodes, 50 030 edges)
 
-Graphify first, then this file. Do not restore the deleted markdown novel. Live pins live in `.cursor/rules/porterchain-stack.mdc`. Fleetbase Use/Extend/Replace lives in [FLEETBASE_MODULES.md](FLEETBASE_MODULES.md). Charter (root): [docs/PORTERCHAIN_CHARTER.md](docs/PORTERCHAIN_CHARTER.md).
+Graphify first, then this file. Do not restore the deleted markdown novel. Live pins live in `.cursor/rules/porterchain-stack.mdc`. Charter (root): [docs/PORTERCHAIN_CHARTER.md](docs/PORTERCHAIN_CHARTER.md).
 
-**PorterChain ↔ Fleetbase permanent bond:** identity (company UUID + API key) + `FleetbaseAdapter` contract + boot/`verify_bond` handshake + `pnpm fleetbase:bond` self-heal + RetryQueue. Fleetbase stays upstream under `apps/fleetbase/` — never fork PHP into PorterChain product code; portals never call `:8000`. Full SSOT: [docs/FLEETBASE_PERMANENT_BOND.md](docs/FLEETBASE_PERMANENT_BOND.md).
+**Dispatch stays in PorterChain.** The day solver is OR-Tools in `dispatch_engine`. Valhalla is the road cost. Google is Places and map tiles. There is no Fleetbase adapter and no vendor console.
 
 Each layer below is **Finished / Current / Required**. Core is the charter. Leaves are personas and vendor boxes. Do not skip a trunk.
 
@@ -13,9 +13,9 @@ charter (why we exist)
         │
 ARCHITECTURE.md + FastAPI :8001 + *_engine
         │
-adapters: MapsService · Stripe sdk.py · Clerk · FleetbaseAdapter (permanent bond) · FCM
+adapters: MapsService · Stripe sdk.py · Clerk · FCM
         │
-Valhalla :8002 → OSRM :5000 (GTA ±150 km) │ Stripe │ Clerk │ Firebase FCM │ Fleetbase :8000 + VROOM
+Valhalla :8002 → OSRM :5000 (GTA ±150 km) │ Stripe │ Clerk │ Firebase FCM │ OR-Tools day plan
         │
 admin :3002 · merchant :3001 · customer :3004 · website :3000
 driver web BFF :3003 · driver iOS/Android · customer iOS/Android
@@ -37,20 +37,20 @@ PorterChain is a **Transportation Capacity Network**. Customers pay for capacity
 
 ## Trunk — request path
 
-Next.js portals + Expo apps → HTTPS `:8001` (`/v1/*`, `/driver-api/v1/*`) → thin FastAPI routers → `*_engine` → adapters → Postgres **18** / Redis **8.8** / Fleetbase Valkey **8**. Worker drains EventBus + Fleetbase retry queue.
+Next.js portals + Expo apps → HTTPS `:8001` (`/v1/*`, `/driver-api/v1/*`) → thin FastAPI routers → `*_engine` → adapters → Postgres **18** / Redis **8.8**. Worker drains EventBus + day-plan / routing queues.
 
-Web apps never call Fleetbase HTTP or SocketCluster. Google Maps is Places + tiles only — never distance, ETA, matrix, or geometry for pricing/dispatch.
+Web apps never call SocketCluster. Google Maps is Places + tiles only — never distance, ETA, matrix, or geometry for pricing/dispatch.
 
 ```
 portal / website / mobile
         │  :8001
    routers (auth + require_module + one service call)
         │
-   engines (commercial / domain)
+   engines (commercial / domain) including dispatch_engine
         │
-   adapters: MapsService · Stripe sdk.py · Clerk auth/ · FleetbaseAdapter · FCM
+   adapters: MapsService · Stripe sdk.py · Clerk auth/ · FCM
         │
-   Valhalla :8002 → OSRM :5000 │ Stripe │ Clerk │ Firebase │ Fleetbase :8000
+   Valhalla :8002 → OSRM :5000 │ Stripe │ Clerk │ Firebase
 ```
 
 Driver web uses a Next BFF (`/api/driver` → `/driver-api/v1`). Mobile driver uses Bearer directly. Do not unify those.
@@ -62,8 +62,8 @@ Driver web uses a Next BFF (`/api/driver` → `/driver-api/v1`). Mobile driver u
 | `admin_engine`        | Control Tower, staff RBAC, settings               | Custom dispatch board       |
 | `pricing_engine`      | Quote bridge, SQLAlchemy pricing repo             | Dispatch assignment         |
 | `billing_engine`      | Ledger, COD/Connect _policy_                      | Stripe SDK                  |
-| `fleetbase_engine`    | RetryQueue, booking sync, ops mirror              | Browser → Fleetbase         |
-| `driver_engine`       | Driver façade over Fleetbase                      | GPS ping store              |
+| `dispatch_engine`     | OR-Tools day plan, GPS board, optimize run store  | Multi-van fleet split       |
+| `driver_engine`       | Duty, accept, proof, Redis last-known GPS         | Day solver                  |
 | `auth` / `authz`      | Clerk verify, SpiceDB Check                       | Caching Check allows        |
 | `notification_engine` | FCM / email orchestration                         | Identity provider           |
 
@@ -81,22 +81,22 @@ ORM: `*_models.py` under `apps/api/src/porterchain_api/`. Contracts: `schemas_*.
 
 1. **Valhalla** (`porterchain-valhalla` :8002) — primary: routes, matrix, isochrones, costing.
 2. **OSRM** (`porterchain-osrm` :5000) — ETA / distance fallback when Valhalla is down. Same **GTA ±150 km** PBF as Valhalla (`infrastructure/docker/scripts/prepare-valhalla-gta.sh` then `prepare-osrm-gta.sh`). Not 150 GB. Not full Ontario.
-3. **Fleetbase adapter** — dispatch execution, VROOM orchestration (`VROOM_ROUTER: valhalla`).
+3. **OR-Tools** in `dispatch_engine/sequencer.py` — one-van day plan. No VROOM client.
 4. **Google** — Places autocomplete and map tiles only.
 
 Canonical client: `services/python/porterchain_services/maps/service.py` (`MapsService`). Pricing façade: `apps/api/src/porterchain_api/services/routing.py` (`resolve_route_distance`).
 
 Engines may call public `route`, `route_with_source`, `route_distance_meters`, `route_multi`, `matrix_durations`, `isochrone`, `eta_between`, `optimized_route`. They must never call `_osrm_*` or `_valhalla_*`.
 
-**VROOM stays in** `services/fleetbase-adapter/.../orchestrator`. PorterChain does not grow a second solver.
+**The day solver is OR-Tools in `dispatch_engine`.** Valhalla is the road cost. OSRM is only a labeled fallback when Valhalla is down, and it stays off in production. Google is Places and map tiles. Do not add a VROOM client or a Fleetbase HTTP call for dispatch, GPS, or proof.
 
 `https://router.project-osrm.org` is a **labeled last resort** inside `MapsService` (`OSRM_PUBLIC_DEMO_LAST_RESORT`) gated by `osrm_allow_public_demo` (default **false**). It must not be the env/compose default.
 
-|              |                                                                      |
-| ------------ | -------------------------------------------------------------------- |
-| **Finished** | Valhalla digest-pinned; GTA ±150 km extract; VROOM local on Valhalla |
-| **Current**  | MapsService Valhalla-first; OSRM host is local `:5000`               |
-| **Required** | CI fails unlabeled public OSRM; no VROOM import under `*_engine`     |
+|              |                                                                  |
+| ------------ | ---------------------------------------------------------------- |
+| **Finished** | Valhalla digest-pinned; GTA ±150 km extract; OR-Tools day plan   |
+| **Current**  | MapsService Valhalla-first; OSRM host is local `:5000`           |
+| **Required** | CI fails unlabeled public OSRM; no VROOM client under `*_engine` |
 
 ---
 
@@ -130,17 +130,15 @@ Stripe Checkout remains the retail prepaid path. COD via Connect + Checkout/Paym
 
 ---
 
-## Branch — execution (Fleetbase)
+## Branch — execution
 
-Use Fleetbase for dispatch, driver online, live GPS SoT, POD, vehicles. Wrap via `services/fleetbase-adapter/`. Do not rebuild a dispatch board. See [FLEETBASE_MODULES.md](FLEETBASE_MODULES.md).
+Dispatch, driver duty, live GPS, proof, and the day plan live in PorterChain. Valhalla is the road cost. Do not add a second console or a Fleetbase HTTP call.
 
-**Permanent bond SSOT:** [docs/FLEETBASE_PERMANENT_BOND.md](docs/FLEETBASE_PERMANENT_BOND.md) — identity (company + API key) + adapter contract + boot/`verify_bond` handshake + `pnpm fleetbase:bond` self-heal + RetryQueue. Never fork `apps/fleetbase/` into PorterChain product code; never call `:8000` from portals.
-
-|              |                                                                                                                                                                             |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Finished** | Adapter + retry queue; UI `:8000` banned in portals; bond handshake on boot + readiness (`fleetbase_bond`)                                                                  |
-| **Current**  | Admin may _link_ to the console (`system-links.ts`); G2 link-rate SLO via `assess_fleetbase_sync`                                                                           |
-| **Required** | Mobile and portals never fetch Fleetbase HTTP or SocketCluster; heal with `pnpm fleetbase:bond`, purge seed with `pnpm fleetbase:purge-seed` (do not mass-backfill dummies) |
+|              |                                             |
+| ------------ | ------------------------------------------- |
+| **Finished** | Day solver is OR-Tools in `dispatch_engine` |
+| **Current**  | One assigned van, at most 25 stops          |
+| **Required** | No Fleetbase HTTP from the API              |
 
 ---
 
@@ -148,15 +146,15 @@ Use Fleetbase for dispatch, driver online, live GPS SoT, POD, vehicles. Wrap via
 
 One public interface per persona. Guard: `scripts/openapi_census.py`.
 
-| Persona         | Prefix                               | Auth                                                       |
-| --------------- | ------------------------------------ | ---------------------------------------------------------- |
-| Staff           | `/v1/admin`                          | Staff IdP session (`pc_staff_sid` / `Bearer staff_sess_*`) |
-| Merchant portal | `/v1/merchant`                       | Clerk org                                                  |
-| Partner API     | `/v1/merchant-api`                   | API key + idempotency                                      |
-| Driver mobile   | `/driver-api/v1`                     | Clerk Bearer                                               |
-| Retail book     | `/v1/quotes` `/v1/bookings`          | session / checkout                                         |
-| Public track    | `/v1/orders/{tracking_number}`       | none                                                       |
-| Vendors         | `/webhooks/clerk\|stripe\|fleetbase` | signatures                                                 |
+| Persona         | Prefix                         | Auth                                                       |
+| --------------- | ------------------------------ | ---------------------------------------------------------- |
+| Staff           | `/v1/admin`                    | Staff IdP session (`pc_staff_sid` / `Bearer staff_sess_*`) |
+| Merchant portal | `/v1/merchant`                 | Clerk org                                                  |
+| Partner API     | `/v1/merchant-api`             | API key + idempotency                                      |
+| Driver mobile   | `/driver-api/v1`               | Clerk Bearer                                               |
+| Retail book     | `/v1/quotes` `/v1/bookings`    | session / checkout                                         |
+| Public track    | `/v1/orders/{tracking_number}` | none                                                       |
+| Vendors         | `/webhooks/clerk\|stripe`      | signatures                                                 |
 
 Cut (must stay gone): `POST /driver/location`, `GET /v1/merchant/tracking/orders/{id}`, `POST .../invoices/{id}/resend`.
 
@@ -341,12 +339,12 @@ Graphify hubs (connectivity, not always the bug): `Settings`, `MerchantContext`,
 
 ## Folder law
 
-- Vendor I/O in adapters (`MapsService`, Stripe `sdk.py`, `auth/clerk_*`, `porterchain_fleetbase_adapter`).
+- Vendor I/O in adapters (`MapsService`, Stripe `sdk.py`, `auth/clerk_*`, FCM).
 - Commercial logic in `*_engine/*_service.py`.
 - Routers: auth + `require_module` + one service call. No new inline `BaseModel`.
 - Spatial math in admin ops is banned (`scripts/verify_no_ops_spatial_math.py`).
 - New ORM writes belong in the owning `*_engine` (`scripts/verify_model_ownership.py`).
-- Fleetbase HTTP / Stripe SDK / UI `:8000` / public OSRM defaults guarded by `scripts/verify_architecture_boundaries.py` + `scripts/verify_vendor_leaves.py`.
+- No vendor dispatch HTTP / Stripe SDK / UI `:8000` / public OSRM defaults guarded by `scripts/verify_architecture_boundaries.py` + `scripts/verify_vendor_leaves.py`.
 
 ---
 
@@ -358,10 +356,10 @@ Do not create `core/`, `backend/`, or `personas/`. Those names already live unde
 | ---------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------- |
 | `core/domain/models.py`                        | `*_models.py` under `apps/api/src/porterchain_api/`                                  | Restore deleted `models.py`               |
 | `core/domain/types.ts`                         | Portal `lib/api.ts` + shared packages                                                | One TS dump across personas               |
-| `core/blackbox/fleetbase.py`                   | `services/fleetbase-adapter/.../integration.py` `FleetbaseAdapter`                   | Re-sync PHP core from FastAPI             |
+| `core/blackbox/fleetbase.py`                   | **Removed** — day plan is `dispatch_engine` (OR-Tools + Valhalla)                    | Restore Fleetbase adapter                 |
 | `core/blackbox/clerk.py`                       | `apps/api/src/porterchain_api/auth/clerk.py`                                         | Ad-hoc Clerk env names                    |
 | `core/blackbox/firebase.py`                    | `notification_engine` (FCM only)                                                     | Firebase Auth                             |
-| `core/blackbox/routing.py`                     | `MapsService`; VROOM in Fleetbase orchestrator                                       | PorterChain VROOM client                  |
+| `core/blackbox/routing.py`                     | `MapsService` + `dispatch_engine/sequencer.py`                                       | PorterChain VROOM client                  |
 | `core/blackbox/google_maps.py` Distance Matrix | **Illegal**                                                                          | Google distance / ETA / matrix / geometry |
 | `core/blackbox/communications.py`              | `notification_engine`                                                                | Second mail/FCM engine                    |
 | `backend/api/v1/auth.py` + `router.py`         | `routers/auth.py` + census prefixes                                                  | One fat `router.py`                       |
@@ -416,15 +414,13 @@ Do not install `codegraph-ai/CodeGraph`. Do not wire Graphify or Ripwire into `.
 
 ### Implement — how to build a slice or the whole
 
-| File                                                                                   | Follow for                                                         |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [FLEETBASE_MODULES.md](FLEETBASE_MODULES.md)                                           | Use / Extend / Replace per Fleetbase module                        |
-| [docs/FLEETBASE_PERMANENT_BOND.md](docs/FLEETBASE_PERMANENT_BOND.md)                   | Permanent PorterChain↔Fleetbase bond (identity + handshake + heal) |
-| [`.cursor/rules/fleetbase-first-policy.mdc`](.cursor/rules/fleetbase-first-policy.mdc) | Fleetbase first; Valhalla/OSRM before Google                       |
-| [INTEGRATIONS.md](INTEGRATIONS.md)                                                     | Vendor registry (`integrations.yaml`)                              |
-| [apps/api/README.md](apps/api/README.md)                                               | OpenAPI snapshot + `pnpm docs:openapi`                             |
-| [docs/api/PARTNER_GUIDE.md](docs/api/PARTNER_GUIDE.md)                                 | `/v1/merchant-api` API-key surface                                 |
-| [infrastructure/docker/osrm/data/README.md](infrastructure/docker/osrm/data/README.md) | Local OSRM GTA ±150 km extract (not committed graph)               |
+| File                                                                                   | Follow for                                           |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [`.cursor/rules/fleetbase-first-policy.mdc`](.cursor/rules/fleetbase-first-policy.mdc) | PorterChain owns dispatch; Valhalla before Google    |
+| [INTEGRATIONS.md](INTEGRATIONS.md)                                                     | Vendor registry (`integrations.yaml`)                |
+| [apps/api/README.md](apps/api/README.md)                                               | OpenAPI snapshot + `pnpm docs:openapi`               |
+| [docs/api/PARTNER_GUIDE.md](docs/api/PARTNER_GUIDE.md)                                 | `/v1/merchant-api` API-key surface                   |
+| [infrastructure/docker/osrm/data/README.md](infrastructure/docker/osrm/data/README.md) | Local OSRM GTA ±150 km extract (not committed graph) |
 
 Diagrams (not markdown law): `docs/architecture/mermaid/*.mmd` — start at [system_architecture.mmd](docs/architecture/mermaid/system_architecture.mmd). Do not restore PlantUML duplicates.
 
@@ -437,10 +433,10 @@ Diagrams (not markdown law): `docs/architecture/mermaid/*.mmd` — start at [sys
 
 Guards (Python, not markdown): `scripts/verify_doc_pointer_stubs.py`, `scripts/verify_doc_governance.py`, `scripts/verify_architecture_boundaries.py`, `scripts/verify_vendor_leaves.py`.
 
-Do not recreate: `models.py`, `core/`, `backend/`, `personas/`, `masterrule.md`, `FLEETBASE_INTEGRATION.md`, `TECH_STACK.md`, `SYSTEM_ARCHITECTURE.md`, PlantUML duplicates, dated `graphify-out/20*/` snapshots, or other archived novels. Bond/integration living SSOT is [docs/FLEETBASE_PERMANENT_BOND.md](docs/FLEETBASE_PERMANENT_BOND.md) (not the deleted `FLEETBASE_INTEGRATION.md`). `FLEETBASE_MODULES.md` may still link some of those — trust this file over stale links. Generated native `ios`/`android` folders and `.next` caches are local-only.
+Do not recreate deleted vendor trees or the old dispatch bond. Generated native `ios`/`android` folders and `.next` caches are local-only.
 
 ---
 
 ## Related
 
-The tables above are the follow-list. Root CANONICAL: this file · [FLEETBASE_MODULES.md](FLEETBASE_MODULES.md) · [docs/FLEETBASE_PERMANENT_BOND.md](docs/FLEETBASE_PERMANENT_BOND.md) · [docs/PORTERCHAIN_CHARTER.md](docs/PORTERCHAIN_CHARTER.md).
+The tables above are the follow-list. Root CANONICAL: this file · [docs/PORTERCHAIN_CHARTER.md](docs/PORTERCHAIN_CHARTER.md).

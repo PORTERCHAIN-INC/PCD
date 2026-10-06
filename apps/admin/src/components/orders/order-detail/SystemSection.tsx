@@ -32,7 +32,7 @@ export function ApiActivityTab({ detail }: { detail: OrderDetail }) {
   const items = [
     ...(detail.api_activity ?? []),
     ...detail.domain_events.filter((e) =>
-      String(e.event_type).match(/stripe|fleetbase|firebase|webhook|email|maps/i)
+      String(e.event_type).match(/stripe|firebase|webhook|email|maps|day_plan|optimize/i)
     ),
   ];
   return <EventListTab items={items} empty="No API activity recorded" />;

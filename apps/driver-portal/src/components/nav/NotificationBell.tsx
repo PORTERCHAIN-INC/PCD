@@ -29,10 +29,6 @@ export default function NotificationBell({
   const { data, isLoading: loading } = useQuery({
     queryKey: ["driver-notification-inbox"],
     staleTime: 20_000,
-    refetchInterval: () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
-      return 60_000;
-    },
     queryFn: async () => {
       const snap = await driverApi.communicationsHub();
       return {
@@ -98,7 +94,11 @@ export default function NotificationBell({
       </div>
       <div className="max-h-[min(50dvh,360px)] overflow-y-auto">
         {loading ? (
-          <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>
+          <div className="space-y-2 px-4 py-4" aria-hidden>
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+            <div className="h-10 animate-pulse rounded-lg bg-primary/5 motion-reduce:animate-none" />
+          </div>
         ) : items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted">No notifications yet</p>
         ) : (

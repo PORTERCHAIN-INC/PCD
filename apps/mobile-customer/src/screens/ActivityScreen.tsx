@@ -15,6 +15,7 @@ import {
 import { humanCustomerError } from "../errors";
 import { EmptyState, type MotionName } from "../ui/Motion";
 import { Screen } from "../ui/Screen";
+import { peekCachedDashboard } from "./HomeScreen";
 
 type Segment = "orders" | "bookings" | "parcels" | "billing";
 
@@ -25,7 +26,7 @@ function vehicleLabel(id?: string | null) {
 
 export function ActivityScreen({ onTrack }: { onTrack: (tracking: string) => void }) {
   const [segment, setSegment] = useState<Segment>("orders");
-  const [data, setData] = useState<CustomerDashboard | null>(null);
+  const [data, setData] = useState<CustomerDashboard | null>(() => peekCachedDashboard());
   const [quotes, setQuotes] = useState<Record<string, QuoteResult>>({});
   const [error, setError] = useState<string | null>(null);
 

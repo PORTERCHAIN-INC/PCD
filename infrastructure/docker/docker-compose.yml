@@ -7,52 +7,14 @@
 #
 # Profiles:
 #   core     — PostgreSQL, Redis, Mailpit (always safe to start for PorterChain)
-#   routing  — Valhalla + local OSRM (GTA ±150 km) + VROOM sidecar
-#   fleetbase — MySQL + Fleetbase API + console (requires Fleetbase images)
+#   routing  — Valhalla + local OSRM (GTA ±150 km)
 #   proxy    — Nginx dev proxy
 
 name: porterchain
 
 services:
-  # Fleetbase services require MySQL (see line 19) — do NOT remove.
-  # PorterChain API uses PostgreSQL only (line 72).
-  database:
-    profiles: [core, fleetbase]
-    image: mysql:8.0.46
-    container_name: porterchain-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-fleetbase}
-      MYSQL_USER: ${MYSQL_USER:-fleetbase}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-fleetbase}
-    command: ["--innodb-buffer-pool-size=128M", "--max-connections=50", "--performance-schema=OFF"]
-    ports:
-      - "127.0.0.1:3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - porterchain-data
-      - porterchain-internal
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u",
-          "root",
-          "-p${MYSQL_ROOT_PASSWORD:-change-me-root}",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
   cache:
-    profiles: [core, fleetbase]
+    profiles: [core]
     image: redis:8.8.0-alpine3.23
     container_name: porterchain-redis
     restart: unless-stopped
@@ -221,55 +183,7 @@ services:
       retries: 5
       start_period: 20s
 
-  # Open-source VROOM for Fleetbase orchestrator (not Verso SaaS, not a PorterChain HTTP port).
-  # Fleetbase application reaches this via host.docker.internal:8030 + VROOM_ENDPOINT_MODE=binary.
-  vroom:
-    profiles: [routing]
-    image: ghcr.io/vroom-project/vroom-docker:v1.14.0
-    container_name: porterchain-vroom
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:8030:3000"
-    volumes:
-      - ./vroom/config.yml:/conf/config.yml:ro
-    environment:
-      VROOM_ROUTER: valhalla
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      valhalla:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'node -e "require(''http'').get(''http://127.0.0.1:3000/health'',r=>process.exit(r.statusCode<400?0:1)).on(''error'',()=>process.exit(1))"',
-        ]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  # Fleetbase images — enable when images are available in your registry.
-  # fleetbase-api:
-  #   profiles: [fleetbase]
-  #   image: fleetbase/api:latest
-  #   container_name: porterchain-fleetbase-api
-  #   restart: unless-stopped
-  #   env_file:
-  #     - ../../env/fleetbase.env.example
-  #   ports:
-  #     - "127.0.0.1:8000:8000"
-  #   depends_on:
-  #     database:
-  #       condition: service_healthy
-  #     cache:
-  #       condition: service_healthy
-  #   volumes:
-  #     - fleetbase-storage:/fleetbase/api/storage
-  #   networks:
-  #     - porterchain-internal
-
+  # Fleetbase images were removed. PorterChain does not start a console.
   proxy:
     profiles: [proxy]
     image: nginx:1.31-alpine3.23
@@ -292,9 +206,7 @@ networks:
     internal: true
 
 volumes:
-  mysql-data:
   postgres-data:
   redis-data:
   mailpit-data:
-  fleetbase-storage:
   api-storage:

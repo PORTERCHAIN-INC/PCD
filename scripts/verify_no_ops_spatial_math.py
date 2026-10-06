@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Fleetbase-first guard — ban hand-rolled spatial math in the admin ops layer.
+"""Dispatch spatial guard — ban hand-rolled math in the admin ops layer.
 
 Implements .cursor/rules/fleetbase-first-policy.mdc rule 3: admin_engine and
 admin routers must never compute dispatch distance, nearest-driver ranking,
-matrices, or waypoint sequencing locally — those payloads go to Valhalla/OSRM
-via the Fleetbase adapter. Also bans references to removed modules so the
-deleted live-map / route-center stack cannot silently regrow.
+matrices, or waypoint sequencing locally. Road cost is Valhalla/OSRM.
+Day sequencing is OR-Tools only in dispatch_engine — not in admin_engine.
 """
 
 from __future__ import annotations
@@ -24,27 +23,26 @@ SCAN_DIRS = (
 _BANNED: tuple[tuple[re.Pattern[str], str], ...] = tuple(
     (re.compile(pattern, re.IGNORECASE), why)
     for pattern, why in (
-        (r"haversine|great_circle", "straight-line distance — use Valhalla/OSRM via adapter"),
-        (r"nearest[_ ]driver", "nearest-driver ranking — Fleetbase dispatch / matrix owns this"),
+        (r"haversine|great_circle", "straight-line distance — use Valhalla/OSRM"),
+        (r"nearest[_ ]driver", "nearest-driver ranking — Valhalla matrix / dispatch scoring"),
         (r"distance[_ ]matrix|travel[_ ]matrix", "matrix math — call Valhalla/OSRM matrix API"),
-        (r"\bortools\b|\bvroom\b", "optimization solver — Fleetbase orchestrator owns sequencing"),
-        (r"waypoint[_ ]sequenc|def \w*optimi|class \w*Optimiz", "sequencing/optimization code — Fleetbase orchestrator only"),
+        (
+            r"(?:^|\s)(?:from|import)\s+ortools\b|(?:^|\s)(?:from|import)\s+vroom\b",
+            "optimization solver import — only dispatch_engine/sequencer.py may use OR-Tools",
+        ),
+        (r"waypoint[_ ]sequenc|def \w*optimi|class \w*Optimiz", "sequencing — call dispatch_engine day plan"),
         (
             r"/v1/operations/live-map|/v1/admin/map/live",
-            "deleted live-map aliases — keep only adapter-fed /v1/admin/operations/live-map",
+            "deleted live-map aliases — keep /v1/admin/operations/live-map",
         ),
         (
             r"RouteCenterPlan\b|route_center_plans\b|/admin/route-center\b",
-            "Route Center dispatch was deleted — Fleetbase orchestrator only",
+            "Route Center dispatch was deleted — use PorterChain day plan",
         ),
-        (r"DriverLocationPing", "ping mirror is deprecated for ops — Fleetbase owns driver GPS"),
+        (r"DriverLocationPing", "ping mirror is deprecated for ops — use Redis last_known"),
     )
 )
 
-# Wholesale stop-list templates (§8.1.10 / RouteCenterTemplate) remain — commercial SoT,
-# not Fleetbase sequencing. Ban above targets dispatch RouteCenterPlan only.
-
-# Scoring / assignment leftover GET — diagnostics/orchestrator may still call Fleetbase.
 _HTTP_SCAN = (
     ROOT / "apps/api/src/porterchain_api/admin_engine/control_tower",
     ROOT / "apps/api/src/porterchain_api/admin_engine/dispatch_suggestions_service.py",
@@ -52,9 +50,10 @@ _HTTP_SCAN = (
 _BANNED_HTTP: tuple[tuple[re.Pattern[str], str], ...] = tuple(
     (re.compile(pattern), why)
     for pattern, why in (
-        (r"get_fleetbase_integration", "scoring/assignment must not open Fleetbase HTTP"),
-        (r"adapter\.list_drivers", "use ops_mirror roster, not adapter.list_drivers"),
-        (r"adapter\.drivers\.get", "use ops_mirror.driver_by_fleetbase_id"),
+        (r"get_fleetbase_integration", "scoring/assignment must not open retired Fleetbase HTTP"),
+        (r"adapter\.list_drivers", "use PorterChain duty / last_known roster"),
+        (r"adapter\.drivers\.get", "use PorterChain driver id + last_known"),
+        (r"porterchain_fleetbase_adapter", "Fleetbase adapter package is removed"),
     )
 )
 
@@ -68,7 +67,7 @@ _TSP_BANNED: tuple[tuple[re.Pattern[str], str], ...] = tuple(
     for pattern, why in (
         (
             r"_two_opt|_solve_pd_vrp|two_opt_improve|class _StopNode",
-            "Python TSP — Fleetbase orchestrator / one Valhalla matrix only",
+            "Python TSP — day plan is OR-Tools in dispatch_engine; Valhalla is the matrix",
         ),
     )
 )
@@ -93,9 +92,9 @@ def main() -> int:
             for lineno, line in enumerate(py.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
                 stripped = line.strip()
                 if "fleetbase-first:ok" in stripped:
-                    continue  # inline waiver for labels that name Fleetbase-owned steps
+                    continue
                 if stripped.startswith("#"):
-                    continue  # plain comments may reference history
+                    continue
                 for pattern, why in _BANNED:
                     if pattern.search(line):
                         failures.append(f"{rel}:{lineno}: `{pattern.pattern}` — {why}")
@@ -141,6 +140,9 @@ def main() -> int:
         for py in files:
             if py in maps_allow:
                 continue
+            # OR-Tools day plan is allowed only here.
+            if "dispatch_engine" in str(py.relative_to(ROOT)).replace("\\", "/"):
+                continue
             rel = py.relative_to(ROOT)
             text = py.read_text(encoding="utf-8", errors="ignore")
             for lineno, line in enumerate(text.splitlines(), 1):
@@ -152,7 +154,6 @@ def main() -> int:
                         f"{rel}:{lineno}: private Maps `_osrm_`/`_valhalla_` — use MapsService public API"
                     )
 
-    # HS-20 — Google Places OK for autocomplete; Distance Matrix / Directions forbidden for pricing.
     _GOOGLE_DM = re.compile(
         r"distancematrix|distance_matrix|google\.maps\.DistanceMatrix|"
         r"maps/api/distancematrix|maps/api/directions|DirectionsService|"
@@ -196,11 +197,19 @@ def main() -> int:
                         "pricing distance via MapsService (Valhalla/OSRM)"
                     )
 
+    sequencer = ROOT / "apps/api/src/porterchain_api/dispatch_engine/sequencer.py"
+    if not sequencer.is_file():
+        failures.append("missing dispatch_engine/sequencer.py — OR-Tools day plan required")
+    elif "ortools" not in sequencer.read_text(encoding="utf-8") and "pywrapcp" not in sequencer.read_text(
+        encoding="utf-8"
+    ):
+        failures.append("dispatch_engine/sequencer.py must use OR-Tools")
+
     if failures:
-        print("fleetbase-first spatial-math guard FAILED:")
+        print("dispatch spatial-math guard FAILED:")
         print("\n".join(f"  - {f}" for f in failures))
         return 1
-    print("OK: no hand-rolled spatial math / leftover Fleetbase HTTP / Google Distance Matrix in scoring paths")
+    print("OK: no hand-rolled spatial math in ops; OR-Tools day plan in dispatch_engine; Places/tiles only for Google")
     return 0
 
 

@@ -16,8 +16,7 @@ from porterchain_api.routers.driver._deps import (
     get_db,
     get_driver_context,
     get_settings,
-    router,
-)
+    router)
 
 _verification = DriverVerificationService()
 _background = DriverBackgroundCheckService()
@@ -37,8 +36,7 @@ class MockBackgroundCompleteRequest(BaseModel):
 @router.get("/verification/identity")
 def identity_verification_status(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     return _verification.status(ctx.driver, settings)
 
 
@@ -46,8 +44,7 @@ def identity_verification_status(
 def start_identity_verification_session(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     try:
         with db_transaction(db):
             return _verification.start_identity_session(db, settings, ctx.driver)
@@ -62,8 +59,7 @@ def mock_complete_identity_verification(
     body: MockIdentityCompleteRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     """Local-only: complete a mock Stripe Identity session without webhooks."""
     try:
         with db_transaction(db):
@@ -72,8 +68,7 @@ def mock_complete_identity_verification(
                 settings,
                 ctx.driver,
                 session_id=body.session_id,
-                verified=body.verified,
-            )
+                verified=body.verified)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
@@ -84,8 +79,7 @@ def mock_complete_identity_verification(
 def background_check_status(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     return _background.status(ctx.driver, settings, db=db)
 
 
@@ -93,8 +87,7 @@ def background_check_status(
 def start_background_check(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     try:
         with db_transaction(db):
             return _background.start_screening(db, settings, ctx.driver)
@@ -109,8 +102,7 @@ def mock_complete_background_check(
     body: MockBackgroundCompleteRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     """Local-only: complete a mock Checkr screening without webhooks."""
     try:
         with db_transaction(db):
@@ -119,8 +111,7 @@ def mock_complete_background_check(
                 settings,
                 ctx.driver,
                 invitation_id=body.invitation_id,
-                result=body.result,
-            )
+                result=body.result)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
@@ -140,8 +131,7 @@ class AbstractSubmitRequest(BaseModel):
 @router.get("/verification/abstract")
 def abstract_status(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     return _abstract.status(ctx.driver, settings)
 
 
@@ -150,8 +140,7 @@ def submit_abstract(
     body: AbstractSubmitRequest,
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
+    settings: Settings = Depends(get_settings)):
     try:
         with db_transaction(db):
             return _abstract.submit(
@@ -164,8 +153,7 @@ def submit_abstract(
                 has_active_suspension=body.has_active_suspension,
                 expires_at=body.expires_at,
                 issued_at=body.issued_at,
-                reference_number=body.reference_number,
-            )
+                reference_number=body.reference_number)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:

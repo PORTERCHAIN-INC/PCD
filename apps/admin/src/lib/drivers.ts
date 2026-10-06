@@ -57,8 +57,6 @@ export type DriverDetail = DriverRow & {
   assignable?: boolean;
   assign_blockers?: string[];
   clerk_linked?: boolean;
-  /** Present when suspend succeeded locally but Fleetbase offline sync failed (D-15). */
-  fleetbase_sync_warning?: string | null;
   metrics: {
     orders_today: number;
     in_progress: number;

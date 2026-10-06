@@ -1,7 +1,5 @@
 import { buildAppleAppSiteAssociationDocument } from "@/lib/mobile-deep-links";
 
-export const dynamic = "force-static";
-
 export async function GET() {
   const teamId = (process.env.APPLE_TEAM_ID ?? "TEAMID").trim();
   const body = buildAppleAppSiteAssociationDocument(teamId);

@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from porterchain_api.fleetbase_engine.pod_normalize import normalize_pod, proof_slug
+from porterchain_api.reporting.pod_normalize import normalize_pod, proof_slug
 from porterchain_api.reporting.pod_export import (
     PodFetchFailed,
     PodUnavailable,

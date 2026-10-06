@@ -196,7 +196,7 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
         <Card>
           <CardTitle>Emergency</CardTitle>
           <Text style={styles.meta}>
-            Alerts dispatch. Location is whatever Fleetbase last received.
+            Alerts dispatch. Location is the last ping PorterChain received.
           </Text>
           <PrimaryButton
             tone="danger"

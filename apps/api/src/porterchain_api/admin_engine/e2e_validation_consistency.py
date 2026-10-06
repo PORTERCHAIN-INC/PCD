@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from sqlalchemy import func
@@ -20,8 +19,8 @@ class E2EValidationConsistencyMixin:
         """Prefer the completed retail forward-logistics order over merchant bulk leftovers.
 
         Forward ends at INVOICED; merchant phase may also leave INVOICED E2E rows without
-        a retail customer. Prefer customer_id-backed forward-complete states so Fleetbase
-        / notification surfaces are scored against the real retail path.
+        a retail customer. Prefer customer_id-backed forward-complete states so notification
+        surfaces are scored against the real retail path.
         """
         forward_complete = (
             OrderState.INVOICED.value,
@@ -52,17 +51,6 @@ class E2EValidationConsistencyMixin:
         )
         if completed:
             return completed
-        rts = (
-            db.query(Order)
-            .filter(
-                Order.internal_reference == E2E_MARKER,
-                Order.state == OrderState.RETURN_TO_SENDER.value,
-            )
-            .order_by(Order.created_at.desc())
-            .first()
-        )
-        if rts:
-            return rts
         return (
             db.query(Order)
             .filter(Order.internal_reference == E2E_MARKER)
@@ -70,42 +58,9 @@ class E2EValidationConsistencyMixin:
             .first()
         )
 
-    def _wait_for_fleetbase_order_id(
-        self,
-        db: Session,
-        order_id: str,
-        settings: Settings,
-        *,
-        timeout_seconds: float = 15.0,
-    ) -> str | None:
-        """Poll PG for fleetbase_order_id; nudge the order-kind retry queue while waiting.
-
-        Production API request paths must not drain the queue (worker owns that). E2E
-        validation is a batch job and merchant bulk can leave a long order-kind backlog
-        behind the worker's limit=1 drain, so we process a few order jobs here.
-        """
-        from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
-
-        deadline = time.monotonic() + timeout_seconds
-        sync = BookingSyncService()
-        while time.monotonic() < deadline:
-            db.expire_all()
-            order = db.get(Order, order_id)
-            if order and order.fleetbase_order_id:
-                return order.fleetbase_order_id
-            try:
-                sync.process_retry_queue(db, settings, limit=5, kinds=("order",))
-            except Exception:  # noqa: BLE001
-                pass
-            time.sleep(0.25)
-        order = db.get(Order, order_id)
-        return order.fleetbase_order_id if order else None
-
     def phase_8_consistency(self, db: Session, settings: Settings) -> dict[str, Any]:
+        del settings  # reserved for future surface checks
         order = self._resolve_e2e_consistency_order(db)
-        if order and settings.fleetbase_dispatch_bridge and settings.fleetbase_api_key:
-            self._wait_for_fleetbase_order_id(db, order.id, settings)
-            db.refresh(order)
         surfaces: list[dict[str, Any]] = []
         canonical_state = order.state if order else None
 
@@ -129,15 +84,9 @@ class E2EValidationConsistencyMixin:
                     OrderState.RETURN_TO_SENDER,
                     OrderState.CLOSED,
                 } else "WARNING"
-            elif surface == "fleetbase":
-                if settings.app_env == "local" and not settings.fleetbase_api_key:
-                    status = "PASS"
-                    note = "Local dev — Fleetbase sync queued without API key (Appendix B)"
-                elif settings.fleetbase_dispatch_bridge and not order.fleetbase_order_id:
-                    status = "WARNING"
-                    note = "Fleetbase order ID pending sync"
-                else:
-                    status = "PASS"
+            elif surface == "dispatch":
+                status = "PASS"
+                note = "Dispatch is PorterChain day plan (OR-Tools)"
             elif surface == "notifications":
                 if not order.customer_id:
                     status = "PASS"

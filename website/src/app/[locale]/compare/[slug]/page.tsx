@@ -10,6 +10,7 @@ import {
   hasProgrammaticLocale,
   listLocalizedComparisonSlugs,
 } from "@/lib/seo/programmatic-content";
+import { ensureStaticParams } from "@/lib/seo/ensure-static-params";
 import { buildProgrammaticPageMetadata } from "@/lib/seo/page-helpers";
 import { routing, type Locale } from "@/i18n/routing";
 
@@ -23,7 +24,7 @@ export async function generateStaticParams() {
       params.push({ locale, slug });
     }
   }
-  return params;
+  return ensureStaticParams(params, { locale: routing.locales[0]!, slug: "__build__" });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

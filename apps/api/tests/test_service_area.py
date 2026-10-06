@@ -1,6 +1,6 @@
 """Ontario service-area gate for programmatic bookings."""
 
-from porterchain_api.fleetbase_engine.merchant_sync_service import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.service_area import assert_ontario_booking, fsa_from_address
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 from datetime import UTC, datetime

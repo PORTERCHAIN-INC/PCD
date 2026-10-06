@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.driver_engine.auth_service import DriverAuthService
-from porterchain_api.driver_engine.fleetbase_bridge import DriverFleetbaseBridge
 from porterchain_api.driver_engine.offline_executor import DriverOfflineExecutor
 from porterchain_driver import DriverPlatform
 
@@ -17,15 +16,12 @@ T = TypeVar("T")
 
 
 class DriverApiService:
-    """Central driver portal service — routers delegate here; owns commits and Fleetbase bridge."""
+    """Central driver portal service — routers delegate here; owns commits."""
 
     def __init__(self) -> None:
         self.platform = DriverPlatform()
         self.auth = DriverAuthService()
 
-    @staticmethod
-    def fleetbase_bridge(settings: Settings) -> DriverFleetbaseBridge:
-        return DriverFleetbaseBridge(settings)
 
     @staticmethod
     def persist(db: Session, fn: Callable[[], T]) -> T:
@@ -46,11 +42,11 @@ class DriverApiService:
         return order
 
     def offline_executor(self, db: Session, settings: Settings) -> DriverOfflineExecutor:
-        bridge = self.fleetbase_bridge(settings)
+        del settings
         executor = DriverOfflineExecutor(self.platform)
 
-        class _BridgeExecutor:
+        class _Executor:
             def execute(self, driver: Any, action_type: str, payload: dict) -> None:
-                executor.execute(db, driver, action_type, payload, fleetbase_bridge=bridge)
+                executor.execute(db, driver, action_type, payload)
 
-        return _BridgeExecutor()
+        return _Executor()

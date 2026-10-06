@@ -1,10 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { AlertTriangle } from "lucide-react";
 import { DispatchQueuePanel } from "@/components/operations/DispatchQueuePanel";
 import { ActivityPanel } from "@/components/operations/ActivityPanel";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import { pressureCounts } from "@/components/operations/opsViews";
 import type { OpsStats } from "@/lib/operations";
 
@@ -13,7 +14,7 @@ const LiveMapPanel = dynamic(
   {
     loading: () => (
       <div className="flex h-64 items-center justify-center rounded-xl border border-primary/10 bg-white">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     ),
     ssr: false,

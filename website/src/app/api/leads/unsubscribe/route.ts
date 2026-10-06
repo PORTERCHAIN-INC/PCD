@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPorterchainApiBase } from "@/lib/api-base";
 
-export const runtime = "nodejs";
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();

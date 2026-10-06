@@ -1,4 +1,4 @@
-"""Driver location pings — last-known Redis + Fleetbase enqueue.
+"""Driver location pings — last-known Redis registry.
 
 ``driver_location_pings`` INSERT is off unless ``write_ping_table`` (GPS_WRITE_PING_TABLE).
 """
@@ -51,13 +51,10 @@ class LocationService:
         heading: float | None = None,
         speed_mps: float | None = None,
         recorded_at: str | None = None,
-        write_ping_table: bool = False,
-        fleetbase_bridge: Any = None,
-    ) -> dict:
+        write_ping_table: bool = False) -> dict:
         from porterchain_api.driver_engine.last_known import (
             accumulate_shift_mileage,
-            write_last_known,
-        )
+            write_last_known)
 
         stamp = _parse_stamp(recorded_at)
         ping_id: str | None = None
@@ -72,8 +69,7 @@ class LocationService:
                 heading=heading,
                 speed_mps=speed_mps,
                 source="app",
-                created_at=stamp,
-            )
+                created_at=stamp)
             db.add(ping)
             db.flush()
             ping_id = ping.id
@@ -86,8 +82,7 @@ class LocationService:
                 accuracy_m=accuracy_m,
                 heading=heading,
                 speed_mps=speed_mps,
-                fleetbase_driver_id=getattr(driver, "fleetbase_driver_id", None),
-            )
+                fleetbase_driver_id=getattr(driver, "fleetbase_driver_id", None))
             shift_id = _active_shift_id(db, driver.id)
             if shift_id:
                 accumulate_shift_mileage(
@@ -95,20 +90,8 @@ class LocationService:
                     shift_id=shift_id,
                     lat=lat,
                     lng=lng,
-                    recorded_at=stamp,
-                )
+                    recorded_at=stamp)
         except Exception:
             logger.debug("gps last-known write skipped driver=%s", driver.id, exc_info=True)
-        if fleetbase_bridge and driver.fleetbase_driver_id:
-            fleetbase_bridge.track_driver_location(
-                db,
-                driver_id=driver.id,
-                fleetbase_driver_id=driver.fleetbase_driver_id,
-                lat=lat,
-                lng=lng,
-                heading=heading,
-                speed=speed_mps,
-                recorded_at=stamp.isoformat(),
-            )
         db.flush()
         return {"recorded": True, "ping_id": ping_id, "recorded_at": stamp.isoformat()}

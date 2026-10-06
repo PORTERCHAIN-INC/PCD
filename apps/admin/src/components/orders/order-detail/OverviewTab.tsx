@@ -134,7 +134,7 @@ export function OverviewTab({
             ) : null}
             {detail.shopify.held_for_ops || detail.state === "BOOKED" ? (
               <p className="mt-2 text-xs text-amber-700">
-                Held for ops — release to Fleetbase when ready.
+                Held for ops. Release to dispatch when ready.
               </p>
             ) : null}
             <div className="mt-2 flex flex-wrap gap-2">
@@ -146,7 +146,7 @@ export function OverviewTab({
                   disabled={shopifyBusy === "release"}
                   onClick={() => void releaseShopify()}
                 >
-                  {shopifyBusy === "release" ? "…" : "Release to Fleetbase"}
+                  {shopifyBusy === "release" ? "…" : "Release to dispatch"}
                 </Button>
               ) : null}
               <Button

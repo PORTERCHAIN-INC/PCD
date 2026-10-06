@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Pencil, Plus, Search, Trash2, X } from "lucide-react";
-import { Button, EmptyState, Field, Input, Select, Spinner } from "@/components/crm/primitives";
+import { Button, EmptyState, Field, Input, Select } from "@/components/crm/primitives";
+import { TableSkeleton } from "@porterchain/ui/loading";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { merchants as merchantsApi } from "@/lib/merchants";
@@ -465,7 +466,7 @@ export default function FsaRatesCard({
       )}
 
       {loading ? (
-        <Spinner label="Loading rates…" />
+        <TableSkeleton rows={6} />
       ) : rates.length === 0 ? (
         <EmptyState
           title="No FSA rates yet"

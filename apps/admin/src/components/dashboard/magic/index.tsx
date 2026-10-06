@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
+import { useRef } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@porterchain/ui/utils";
 
 /** Magic UI–style counting number (framer-motion spring). */
@@ -19,33 +19,15 @@ export function NumberTicker({
   suffix?: string;
 }) {
   const safe = Number.isFinite(value) ? value : 0;
-  const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(0);
-  const spring = useSpring(motionValue, { damping: 40, stiffness: 120 });
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-
-  useEffect(() => {
-    if (inView) motionValue.set(safe);
-  }, [inView, motionValue, safe]);
-
-  useEffect(() => {
-    const unsub = spring.on("change", (latest) => {
-      if (!ref.current) return;
-      ref.current.textContent = `${prefix}${latest.toLocaleString("en-CA", {
-        minimumFractionDigits: decimalPlaces,
-        maximumFractionDigits: decimalPlaces,
-      })}${suffix}`;
-    });
-    return unsub;
-  }, [spring, decimalPlaces, prefix, suffix]);
+  const text = safe.toLocaleString("en-CA", {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  });
 
   return (
-    <span ref={ref} className={cn("tabular-nums", className)}>
+    <span className={cn("tabular-nums", className)}>
       {prefix}
-      {safe.toLocaleString("en-CA", {
-        minimumFractionDigits: decimalPlaces,
-        maximumFractionDigits: decimalPlaces,
-      })}
+      {text}
       {suffix}
     </span>
   );

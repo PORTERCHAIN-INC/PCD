@@ -6,13 +6,12 @@ Sync to droplet: `infrastructure/deploy/sync-secrets.sh` (prefers runner-staged 
 
 ## Upload helpers
 
-| Script                                   | What it sets                                        |
-| ---------------------------------------- | --------------------------------------------------- |
-| `scripts/upload-clerk-to-doppler.sh`     | Clerk platform + driver keys                        |
-| `scripts/upload-ingest-to-doppler.sh`    | `PUBLIC_INGEST_API_KEY` (generate if missing)       |
-| `scripts/upload-leads-to-doppler.sh`     | Lead webhook / CAPI / territory keys from local env |
-| `scripts/upload-mail-to-doppler.sh`      | ZeptoMail HTTPS (`mail-keys.local.env`)             |
-| `scripts/upload-fleetbase-to-doppler.sh` | Fleetbase bridge                                    |
+| Script                                | What it sets                                        |
+| ------------------------------------- | --------------------------------------------------- |
+| `scripts/upload-clerk-to-doppler.sh`  | Clerk platform + driver keys                        |
+| `scripts/upload-ingest-to-doppler.sh` | `PUBLIC_INGEST_API_KEY` (generate if missing)       |
+| `scripts/upload-leads-to-doppler.sh`  | Lead webhook / CAPI / territory keys from local env |
+| `scripts/upload-mail-to-doppler.sh`   | ZeptoMail HTTPS (`mail-keys.local.env`)             |
 
 ## Lead ingest bus (optional until channel goes live)
 

@@ -48,20 +48,6 @@ class OrderState(StrEnum):
     REFUNDED = "REFUNDED"
 
 
-# Terminal / no-dispatch states — not in the live Fleetbase link SLO.
-FLEETBASE_SYNC_EXCLUDED_STATES: frozenset[str] = frozenset(
-    {
-        OrderState.CANCELLED.value,
-        OrderState.REFUNDED.value,
-        OrderState.DELIVERED.value,
-        OrderState.INVOICED.value,
-        OrderState.CLOSED.value,
-        OrderState.FAILED.value,
-        OrderState.POD_COMPLETED.value,
-    }
-)
-
-
 class BookingDraftState(StrEnum):
     DRAFT = "DRAFT"
     QUOTE_GENERATED = "QUOTE_GENERATED"

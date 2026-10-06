@@ -10,6 +10,7 @@ import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { getDashboard } from "@/lib/api";
 import { merchantPortalJob } from "@/lib/merchant-nav";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -20,19 +21,17 @@ export default function DashboardPage() {
   const enabled = Boolean(isLoaded && isSignedIn && orgId);
 
   const { data, error, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["merchant-dashboard", orgId],
+    queryKey: ["merchant-dashboard", orgId ?? null],
     enabled,
     queryFn: async () => getDashboard(await getApiToken(), orgId),
   });
 
   const refresh = useCallback(() => {
-    void qc.invalidateQueries({ queryKey: ["merchant-dashboard", orgId] });
+    void qc.invalidateQueries({ queryKey: ["merchant-dashboard", orgId ?? null] });
   }, [orgId, qc]);
 
   useMerchantRealtime(enabled, orgId, getApiToken, refresh);
 
-  if (!isLoaded) return <p className="text-muted">Loading…</p>;
-  if (!isSignedIn) return <p className="text-muted">Please sign in.</p>;
   if (error && !data) {
     return (
       <p className="text-red-600">
@@ -40,7 +39,10 @@ export default function DashboardPage() {
       </p>
     );
   }
-  if (isLoading || !data) return <p className="text-muted">Loading dashboard…</p>;
+  if (!data && (isLoading || !isLoaded || !isSignedIn)) {
+    return <PageSkeleton rows={5} />;
+  }
+  if (!data) return null;
 
   const invoiceUrl =
     data.latest_invoice?.pdf_url ?? data.latest_invoice?.stripe_receipt_url ?? null;

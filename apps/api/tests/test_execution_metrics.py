@@ -63,7 +63,8 @@ def test_build_execution_metrics_dashboard(db: Session, settings: Settings) -> N
     dashboard = build_execution_metrics_dashboard(db, settings)
     assert "orders" in dashboard
     assert "deploy_frequency" in dashboard
-    assert "fleetbase_sync" in dashboard
+    assert "dispatch" in dashboard
+    assert dashboard["dispatch"].get("engine") == "ortools"
     assert "merchant_webhook_delivery" in dashboard
     assert "auto_dispatch" in dashboard
     assert "on_time_delivery" in dashboard

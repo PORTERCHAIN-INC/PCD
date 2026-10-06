@@ -15,8 +15,12 @@ export function formatNextStopMeta(opts: {
     parts.push(roadish ? `~${opts.eta} min (road)` : `~${opts.eta} min`);
   } else if (src === "haversine") {
     parts.push("distance only — not a road ETA");
-  } else if (src.startsWith("fleetbase_sequence")) {
-    parts.push("Fleetbase sequence");
+  } else if (
+    src.startsWith("day_plan") ||
+    src.startsWith("fleetbase_sequence") ||
+    src.startsWith("sequence")
+  ) {
+    parts.push("Day plan");
   }
   if (opts.distance != null) {
     const km = `${(opts.distance / 1000).toFixed(1)} km`;
@@ -33,8 +37,15 @@ export function mileageCaption(source?: string | null): string {
 
 export function optimizeEngineNote(engine?: string | null): string {
   if (engine === "haversine") return "";
-  if (engine === "fleetbase" || engine === "vroom" || engine === "greedy") {
-    return "Fleetbase sequence";
+  if (
+    engine === "porterchain" ||
+    engine === "ortools" ||
+    engine === "fleetbase" ||
+    engine === "vroom" ||
+    engine === "greedy" ||
+    engine === "insertion"
+  ) {
+    return "Day plan";
   }
   if (engine === "valhalla" || engine === "osrm") return "road network";
   return "";

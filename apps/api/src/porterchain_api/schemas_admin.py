@@ -1491,13 +1491,14 @@ class ExceptionResolveBody(BaseModel):
 class OptimizeRunBody(BaseModel):
     order_ids: list[str] | None = None
     mode: str = "allocate"
-    engine: str | None = "vroom"
-    #: Input shaping only — never a second solver. ``fleet`` = all synced;
+    engine: str | None = "porterchain"
+    #: Input shaping only — never a second solver. ``fleet`` = pool orders;
     #: ``merchant`` = one merchant's orders; ``vehicle`` = lock vehicle_ids.
     shape: str = "fleet"
     merchant_id: str | None = None
     vehicle_ids: list[str] | None = None
     driver_ids: list[str] | None = None
+    pc_driver_id: str | None = None
     #: Page into the eligible pool when order_ids is omitted. One page is PREVIEW_ORDER_CAP.
     offset: int = 0
 

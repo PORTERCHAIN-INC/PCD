@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def process_webhook(payload: dict[str, Any]) -> None:
-    source = payload.get("source")
     action = payload.get("action")
     if action == "lead_ingest":
         from porterchain_api.collaboration_engine.lead_ingest_jobs import (
@@ -35,9 +34,6 @@ def process_webhook(payload: dict[str, Any]) -> None:
         return
     if isinstance(action, str) and action.startswith("shopify_"):
         _shopify_ingress(payload)
-        return
-    if source == "fleetbase":
-        logger.info("webhook ingress ack: fleetbase order=%s", payload.get("update", {}).get("porterchain_order_id"))
         return
     logger.info("webhook processed: keys=%s", list(payload.keys()))
 

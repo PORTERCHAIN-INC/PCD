@@ -393,6 +393,10 @@ class Settings(BaseSettings):
             "PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE",
         ),
     )
+    dispatch_engine: str = Field(
+        default="porterchain",
+        validation_alias=AliasChoices("dispatch_engine", "DISPATCH_ENGINE"),
+    )
     #: Deprecated driver_location_pings INSERT. Default off — last-known Redis is the registry.
     gps_write_ping_table: bool = Field(
         default=False,
@@ -420,7 +424,7 @@ class Settings(BaseSettings):
     )
     sso_token_ttl_seconds: int = 300
     fleetbase_console_url: str = ""
-    fleetbase_sso_enabled: bool = True
+    fleetbase_sso_enabled: bool = False
     # Leftover request-path Fleetbase GET/orchestrator budget (adapter ops_timeout).
     fleetbase_ops_timeout: float = Field(
         default=2.0,
@@ -505,7 +509,7 @@ class Settings(BaseSettings):
         default=False,
         validation_alias=AliasChoices("phase2_intelligence", "PORTERCHAIN_PHASE2_INTELLIGENCE"),
     )
-    # cuOpt shadow A/B vs VROOM — never auto-commits (Fleetbase remains SoT).
+    # cuOpt shadow A/B vs OR-Tools — never auto-commits (day plan remains SoT).
     phase2_cuopt_shadow: bool = Field(
         default=False,
         validation_alias=AliasChoices(
@@ -597,23 +601,6 @@ class Settings(BaseSettings):
                 "JWT_SECRET must be set to a secure non-default value when APP_ENV is not local "
                 "(generate with: openssl rand -hex 32)"
             )
-        return self
-
-    @model_validator(mode="after")
-    def require_fleetbase_secrets_when_bridge_enabled(self) -> Self:
-        if not is_local_env(self.app_env) and self.fleetbase_dispatch_bridge:
-            missing: list[str] = []
-            if not self.fleetbase_api_key:
-                missing.append("FLEETBASE_API_KEY")
-            if not self.fleetbase_webhook_secret:
-                missing.append("FLEETBASE_WEBHOOK_SECRET")
-            if not self.fleetbase_default_company_uuid:
-                missing.append("FLEETBASE_DEFAULT_COMPANY_UUID")
-            if missing:
-                raise ValueError(
-                    "FLEETBASE_DISPATCH_BRIDGE=true in production requires: "
-                    + ", ".join(missing)
-                )
         return self
 
     @model_validator(mode="after")

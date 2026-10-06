@@ -59,7 +59,6 @@ SUBPROCESSORS: list[dict[str, str]] = [
     {"name": "Clerk", "purpose": "Merchant sign-in", "region": "Canada and the United States"},
     {"name": "Stripe", "purpose": "Merchant charges", "region": "Outside Canada"},
     {"name": "Database host", "purpose": "Store the delivery record", "region": "Canada"},
-    {"name": "Fleetbase", "purpose": "Dispatch a stop when the order was released", "region": "Canada"},
     {"name": "Mailer", "purpose": "Tell the merchant a privacy file is ready", "region": "Canada"},
 ]
 
@@ -389,6 +388,7 @@ def _shop_orders(db: Session, shop: ShopifyShop | None) -> list[Order]:
 
 
 def _wipe_order(db: Session, settings: Settings, order: Order, *, hold: bool) -> None:
+    del settings  # wiped contact stays on the PorterChain order only
     if isinstance(order.dropoff, dict):
         order.dropoff = _wipe_address(order.dropoff, hold=hold)
     order.special_instructions = None
@@ -423,13 +423,6 @@ def _wipe_order(db: Session, settings: Settings, order: Order, *, hold: bool) ->
             address.postal = compact[:3] or None
             address.lat = None
             address.lng = None
-    if order.fleetbase_order_id:
-        try:
-            from porterchain_api.merchant_engine.booking_service import push_redacted_order
-
-            push_redacted_order(db, settings, order)
-        except Exception:
-            logger.exception("shopify_privacy_fleetbase_sync_failed order=%s", order.id)
 
 
 def _wipe_address(addr: dict[str, Any], *, hold: bool) -> dict[str, Any]:

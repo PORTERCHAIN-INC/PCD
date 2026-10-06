@@ -12,15 +12,22 @@ type Props = {
   onTrack: (tracking: string) => void;
 };
 
+let cachedDashboard: CustomerDashboard | null = null;
+
+/** Last successful Home payload — used to skip the cold-start spinner on re-entry. */
+export function peekCachedDashboard(): CustomerDashboard | null {
+  return cachedDashboard;
+}
+
 export function HomeScreen({ onBook, onTrack }: Props) {
-  const [data, setData] = useState<CustomerDashboard | null>(null);
+  const [data, setData] = useState<CustomerDashboard | null>(cachedDashboard);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cachedDashboard == null);
 
   const load = useCallback(() => {
-    setLoading(true);
     void fetchDashboard()
       .then((dashboard) => {
+        cachedDashboard = dashboard;
         setData(dashboard);
         setError(null);
       })
@@ -78,9 +85,10 @@ export function HomeScreen({ onBook, onTrack }: Props) {
             </Pressable>
             <Pressable
               onPress={() => {
-                void rebook(order.order_id)
-                  .then(() => onBook(order.order_id))
-                  .catch(() => setError("Could not start rebook from this order."));
+                onBook(order.order_id);
+                void rebook(order.order_id).catch(() =>
+                  setError("Could not start rebook from this order.")
+                );
               }}
             >
               <Text style={styles.link}>Rebook</Text>

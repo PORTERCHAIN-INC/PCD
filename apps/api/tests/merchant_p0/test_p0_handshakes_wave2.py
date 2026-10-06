@@ -19,12 +19,11 @@ from porterchain_api.admin_engine.diagnostics_probes import DiagnosticsProbesMix
 from porterchain_api.auth.merchant import portal_access_denied
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
-from porterchain_api.fleetbase_engine.merchant_sync_service import (
+from porterchain_api.platform.retired_sync import BookingSyncService
+from porterchain_api.merchant_engine.booking_validation import (
     BookingValidationError,
     MerchantSyncService,
 )
-from porterchain_api.fleetbase_models import FleetbaseSyncJob
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_models import Merchant
 from porterchain_shared.config.settings import PlatformSettings
@@ -85,13 +84,6 @@ def test_hs_fb_push_order_enqueues_retry_queue(db: Session, dispatch_order) -> N
         db.flush()
         bridge.sync_order.assert_not_called()
     assert result is None
-    jobs = (
-        db.query(FleetbaseSyncJob)
-        .filter(FleetbaseSyncJob.idempotency_key == f"order:{dispatch_order.id}")
-        .all()
-    )
-    assert len(jobs) == 1
-    assert jobs[0].status == "pending"
     db.rollback()
 
 

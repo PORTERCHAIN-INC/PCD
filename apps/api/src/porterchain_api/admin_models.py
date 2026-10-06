@@ -76,8 +76,8 @@ class Driver(Base):
     vehicle_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     background_check_status: Mapped[str] = mapped_column(String(32), default="pending")
     rating: Mapped[float | None] = mapped_column(nullable=True)
-    # MIRROR of Fleetbase presence only — live online SoT is Fleetbase (via adapter).
-    # Do not treat this column as dispatch authority.
+    # Live online SoT is PorterChain shift / Redis last_known — not a vendor mirror.
+    # Do not treat this column as dispatch authority alone.
     is_online: Mapped[bool] = mapped_column(Boolean, default=False)
     availability: Mapped[str] = mapped_column(String(32), default="offline")
     wallet_balance_cents: Mapped[int] = mapped_column(Integer, default=0)

@@ -58,9 +58,7 @@ export function PodTab({ pod, orderId }: { pod: Record<string, unknown>; orderId
     return (
       <div className="space-y-2">
         <p className="text-sm text-muted">Proof of delivery not yet captured</p>
-        <p className="text-xs text-muted">
-          Capture in the driver app / Fleetbase — Admin is read-only.
-        </p>
+        <p className="text-xs text-muted">Capture in the driver app. Admin is read-only.</p>
       </div>
     );
   }
@@ -70,7 +68,7 @@ export function PodTab({ pod, orderId }: { pod: Record<string, unknown>; orderId
       <div className="flex flex-wrap items-center gap-3">
         {pod.source ? (
           <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
-            Live from Fleetbase
+            Proof on file
           </p>
         ) : null}
         {hasGallery ? <PodDownloadAll orderId={orderId} getApiToken={getApiToken} /> : null}
@@ -80,7 +78,7 @@ export function PodTab({ pod, orderId }: { pod: Record<string, unknown>; orderId
           {photos.map((p, i) =>
             typeof p.url === "string" ? (
               <figure key={String(p.id ?? i)} className="space-y-1">
-                {/* eslint-disable-next-line @next/next/no-img-element -- Fleetbase proof URL */}
+                {/* eslint-disable-next-line @next/next/no-img-element -- proof file URL */}
                 <img
                   src={p.url}
                   alt="Delivery photo"
@@ -104,7 +102,7 @@ export function PodTab({ pod, orderId }: { pod: Record<string, unknown>; orderId
                   : null;
             return src ? (
               <figure key={String(s.id ?? `sig-${i}`)} className="space-y-1">
-                {/* eslint-disable-next-line @next/next/no-img-element -- Fleetbase signature */}
+                {/* eslint-disable-next-line @next/next/no-img-element -- signature file URL */}
                 <img
                   src={src}
                   alt="Recipient signature"
@@ -129,9 +127,7 @@ export function PodTab({ pod, orderId }: { pod: Record<string, unknown>; orderId
         </div>
       )}
       {!hasGallery && pod.event_payload ? (
-        <p className="text-xs text-muted">
-          POD event recorded — media not synced from Fleetbase yet.
-        </p>
+        <p className="text-xs text-muted">POD event recorded. The photo is not on file yet.</p>
       ) : null}
     </div>
   );

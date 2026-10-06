@@ -16,13 +16,15 @@ import {
   type TrackingDashboard,
 } from "@/lib/tracking";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageSkeleton } from "@porterchain/ui/loading";
+import { Suspense, useCallback, useEffect, useEffectEvent, useState } from "react";
 
 const POLL_MS = 10_000;
 
 export default function TrackPageClient() {
   return (
-    <Suspense fallback={<p className="text-muted">Loading track…</p>}>
+    <Suspense fallback={<PageSkeleton rows={4} />}>
       <WithGoogleMaps>
         <TrackPageInner />
       </WithGoogleMaps>
@@ -34,26 +36,30 @@ function TrackPageInner() {
   const searchParams = useSearchParams();
   const initial = searchParams.get("q") || "";
   const { getApiToken, orgId, isLoaded, isSignedIn } = useMerchantAuth();
+  const qc = useQueryClient();
   const [query, setQuery] = useState(initial);
   const [live, setLive] = useState<LiveTracking | null>(null);
-  const [dashboard, setDashboard] = useState<TrackingDashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [choices, setChoices] = useState<TrackingChoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const ready = Boolean(isLoaded && isSignedIn && orgId);
+  const keyOrg = orgId ?? null;
+
+  const dashboardQuery = useQuery({
+    queryKey: ["merchant-tracking-dashboard", keyOrg],
+    enabled: ready,
+    queryFn: async () => {
+      const token = await getApiToken();
+      return trackingApi.dashboard(token, orgId);
+    },
+  });
+  const dashboard = (dashboardQuery.data ?? null) as TrackingDashboard | null;
 
   const refreshDashboard = useCallback(async () => {
-    if (!isSignedIn || !orgId) return;
-    try {
-      const token = await getApiToken();
-      const data = await trackingApi.dashboard(token, orgId);
-      setDashboard(data);
-    } catch {
-      /* dashboard optional */
-    }
-  }, [getApiToken, isSignedIn, orgId]);
+    await qc.invalidateQueries({ queryKey: ["merchant-tracking-dashboard", keyOrg] });
+  }, [qc, keyOrg]);
 
   const trackNumber = useCallback(
     async (number: string, silent = false) => {
@@ -104,14 +110,15 @@ function TrackPageInner() {
     void trackNumber(initial);
   }, [initial, ready, trackNumber]);
 
+  const onPollLive = useEffectEvent(() => {
+    void trackNumber(query.trim() || live?.tracking_number || "", true);
+  });
+
   useEffect(() => {
     if (!ready || !live) return;
-    const timer = setInterval(
-      () => void trackNumber(query.trim() || live.tracking_number, true),
-      POLL_MS
-    );
+    const timer = setInterval(() => onPollLive(), POLL_MS);
     return () => clearInterval(timer);
-  }, [live, query, ready, trackNumber]);
+  }, [live, ready]);
 
   useMerchantRealtime(ready, orgId, getApiToken, refresh);
 
@@ -120,9 +127,7 @@ function TrackPageInner() {
     await trackNumber(query);
   }
 
-  if (!isLoaded) return <p className="text-muted">Loading…</p>;
-  if (!isSignedIn) return <p className="text-muted">Please sign in.</p>;
-  if (!orgId) return <p className="text-muted">Loading company…</p>;
+  if (isLoaded && !isSignedIn) return <p className="text-muted">Please sign in.</p>;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -130,7 +135,7 @@ function TrackPageInner() {
         <h1 className="text-2xl font-bold text-primary">Track</h1>
         <p className="text-sm text-muted">
           Look up a tracking number, an order number, or your customer&apos;s PO. Driver GPS from
-          Fleetbase appears once dispatched (polled, not a map WebSocket).
+          The driver pin appears once the van is moving.
         </p>
       </div>
 
@@ -141,7 +146,7 @@ function TrackPageInner() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || !ready}>
           {loading ? "Looking up…" : "Track"}
         </Button>
       </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
@@ -14,7 +15,7 @@ import {
 } from "@/lib/finance";
 import { relativeTime } from "@/lib/crmFormat";
 import { downloadOrderFile } from "@/lib/orders";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import AdminPage from "@/components/layout/AdminPage";
@@ -86,7 +87,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
   if (loading)
     return (
       <div className="flex justify-center py-20">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   if (!detail) return <p className="py-12 text-center text-muted">Invoice not found</p>;

@@ -230,21 +230,25 @@ def test_staff_push_fanout_device_aware_email_fallback(db) -> None:
     )
     db.flush()
 
-    expanded = expand_staff_specs(
-        db,
-        [
-            {
-                "template_key": "sla_breached",
-                "channel": "push",
-                "recipient_type": "admin",
-                "recipient_id": staff_sentinel("ops"),
-                "context": {"title": "SLA"},
-                "search_tags": {},
-                "priority": "critical",
-                "category": "orders",
-            }
-        ],
-    )
+    with patch(
+        "porterchain_api.notification_engine.staff_fanout.ops_watch_emails",
+        return_value={no_device.email.strip().lower()},
+    ):
+        expanded = expand_staff_specs(
+            db,
+            [
+                {
+                    "template_key": "sla_breached",
+                    "channel": "push",
+                    "recipient_type": "admin",
+                    "recipient_id": staff_sentinel("ops"),
+                    "context": {"title": "SLA"},
+                    "search_tags": {},
+                    "priority": "critical",
+                    "category": "orders",
+                }
+            ],
+        )
     by_id = {s["recipient_id"]: s for s in expanded}
     assert by_id[with_device.id]["channel"] == "push"
     assert by_id[with_device.id]["context"].get("email") == with_device.email

@@ -7,7 +7,7 @@ import { ArrowLeft, Clock, CreditCard, MapPin, Package, Radio, Sparkles } from "
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { formatState, SLA_STYLES, STATE_STYLES, type OrderDetail } from "@/lib/orders";
 import { relativeTime } from "@/lib/crmFormat";
-import { Badge, Spinner } from "@/components/crm/primitives";
+import { Badge } from "@/components/crm/primitives";
 import { OrderAssistPanel } from "@/components/orders/OrderAssistPanel";
 import { SuperAdminDriverOps } from "@/components/orders/SuperAdminDriverOps";
 import { ActionFlash } from "@/components/orders/sections";
@@ -20,35 +20,35 @@ import {
   SidebarSection,
   SidebarRow,
 } from "@/components/orders/order-detail/shared";
+import { OverviewTab } from "@/components/orders/order-detail/OverviewTab";
 import type { Order360Actions } from "@/components/orders/order-detail/types";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
-const OverviewTab = dynamic(
-  () => import("@/components/orders/order-detail/OverviewTab").then((m) => m.OverviewTab),
-  { loading: () => <Spinner /> }
-);
+const tabFallback = () => <PageSkeleton rows={3} />;
+
 const JourneySection = dynamic(
   () => import("@/components/orders/order-detail/JourneySection").then((m) => m.JourneySection),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const PartiesSection = dynamic(
   () => import("@/components/orders/order-detail/PartiesSection").then((m) => m.PartiesSection),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const MoneySection = dynamic(
   () => import("@/components/orders/order-detail/MoneySection").then((m) => m.MoneySection),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const EvidenceSection = dynamic(
   () => import("@/components/orders/order-detail/EvidenceSection").then((m) => m.EvidenceSection),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const CareSection = dynamic(
   () => import("@/components/orders/order-detail/CareSection").then((m) => m.CareSection),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 const SystemSection = dynamic(
   () => import("@/components/orders/order-detail/SystemSection").then((m) => m.SystemSection),
-  { loading: () => <Spinner /> }
+  { loading: tabFallback }
 );
 
 export type { Order360Actions };
@@ -142,11 +142,7 @@ export default function OrderDetailView({
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Spinner />
-      </div>
-    );
+    return <PageSkeleton rows={5} />;
   }
   if (!detail) {
     return <p className="py-12 text-center text-muted">{error ?? "Order not found"}</p>;
@@ -195,20 +191,9 @@ export default function OrderDetailView({
                 <Meta label="Tracking" value={detail.tracking_number} mono />
                 <Meta label="Booking #" value={detail.booking_number || "—"} mono />
                 <Meta label="Draft #" value={detail.booking_draft_number || "—"} mono />
-                <Meta label="Fleetbase ID" value={detail.fleetbase_order_id || "—"} mono />
                 <Meta
-                  label="PC ↔ Fleetbase"
-                  value={
-                    detail.status_sync?.fleetbase_status
-                      ? `${String(detail.status_sync.pc_state)} · FB ${String(detail.status_sync.fleetbase_status)}${
-                          detail.status_sync.status_aligned === true
-                            ? " · aligned"
-                            : detail.status_sync.status_aligned === false
-                              ? " · drift"
-                              : ""
-                        }`
-                      : String(detail.status_sync?.truth ?? "PC commercial only")
-                  }
+                  label="Status"
+                  value={String(detail.status_sync?.pc_state ?? detail.state ?? "—")}
                 />
                 <Meta label="Driver" value={detail.driver_name || "Unassigned"} />
                 <Meta label="Vehicle" value={detail.vehicle_label || "—"} />
@@ -249,7 +234,7 @@ export default function OrderDetailView({
               label="Location"
               value={
                 live?.current_location
-                  ? "Fleetbase GPS (polled)"
+                  ? "Driver GPS"
                   : detail.state.includes("TRANSIT")
                     ? "In transit"
                     : "—"

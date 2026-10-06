@@ -1,10 +1,10 @@
-"""Applied Fleetbase waypoint sequence for a driver (Phase 4 interleaved PUDO).
+"""Applied day-plan waypoint sequence for a driver (interleaved PUDO).
 
-Fleetbase optimize/commit is the SoT. We cache the ordered pickup/dropoff legs
+PorterChain optimize/accept is the SoT. We cache the ordered pickup/dropoff legs
 so ``StopsService`` and ``NextStopResolver`` can execute the tour without a
 local TSP.
 
-Phase 5b: version token + previous snapshot for admin/driver race + rollback;
+Version token + previous snapshot for admin/driver race + rollback;
 idempotent apply by ``run_id``.
 """
 
@@ -80,7 +80,7 @@ def _leg_type(raw: Any) -> str | None:
 
 
 def waypoints_from_assignments(assignments: list[Any]) -> list[dict[str, Any]]:
-    """Flatten Fleetbase assignment rows into ordered pickup/dropoff waypoints."""
+    """Flatten day-plan assignment rows into ordered pickup/dropoff waypoints."""
     rows = [a for a in assignments if isinstance(a, dict)]
     rows.sort(key=lambda a: int(a.get("sequence") or 0))
     waypoints: list[dict[str, Any]] = []
@@ -114,7 +114,7 @@ def waypoints_from_assignments(assignments: list[Any]) -> list[dict[str, Any]]:
                 seq += 1
             continue
         # Order-level assignment: preserve tour order as pickup then dropoff
-        # for that order (Fleetbase may re-interleave on the next reopt).
+        # for that order (a later reopt may re-interleave).
         for leg in ("pickup", "dropoff"):
             waypoints.append(
                 {
@@ -213,7 +213,7 @@ def rollback_sequence(driver_id: str) -> dict[str, Any] | None:
     }
     write_sequence(driver_id, restored)
     try:
-        from porterchain_api.fleetbase_engine.optimize_events import emit_rolled_back
+        from porterchain_api.dispatch_engine.optimize_events import emit_rolled_back
 
         emit_rolled_back(
             str(current.get("run_id") or "unknown"),

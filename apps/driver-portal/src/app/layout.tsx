@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Carlito } from "next/font/google";
 import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
+import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { CommunicationsProvider } from "@/components/providers/CommunicationsProvider";
 import DriverQueryProvider from "@/components/providers/DriverQueryProvider";
+import DriverFrame from "@/components/DriverFrame";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -21,7 +24,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const impersonating = (await cookies()).get(PC_IMP_FLAG)?.value === "1";
   return (
     <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
       <body className={brand.className}>
@@ -32,9 +36,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fallbackRedirect="/onboarding"
         >
           <SessionContextProvider>
-            <ImpersonationBanner portal="driver" />
+            <ImpersonationBanner portal="driver" active={impersonating} />
             <DriverQueryProvider>
-              <CommunicationsProvider>{children}</CommunicationsProvider>
+              <CommunicationsProvider>
+                <DriverFrame>{children}</DriverFrame>
+              </CommunicationsProvider>
             </DriverQueryProvider>
           </SessionContextProvider>
         </AppClerkProvider>

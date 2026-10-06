@@ -66,7 +66,7 @@ class DomainEventType(StrEnum):
     DISPATCH_RECOMMENDATION = "dispatch.recommendation"
     ETA_PREDICTED = "eta.predicted"
 
-    # Optimize lifecycle (Phase 5c) — Fleetbase VROOM remains commit SoT
+    # Optimize lifecycle — PorterChain day plan (OR-Tools)
     OPTIMIZE_ENQUEUED = "optimize.enqueued"
     OPTIMIZE_READY = "optimize.ready"
     OPTIMIZE_APPLIED = "optimize.applied"
@@ -96,7 +96,8 @@ class DomainEventType(StrEnum):
     NOTIFICATION_SENT = "notification.sent"
     WEBHOOK_RECEIVED = "webhook.received"
 
-    # Fleetbase sync
+    # Retired vendor sync names — kept so old envelopes still deserialize.
+    # Nothing emits these after the PorterChain day-plan cutover.
     FLEETBASE_ORDER_CREATED = "fleetbase.order_created"
     FLEETBASE_STATUS_UPDATED = "fleetbase.status_updated"
     FLEETBASE_POD_RECEIVED = "fleetbase.pod_received"

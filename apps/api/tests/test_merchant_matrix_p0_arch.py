@@ -82,15 +82,13 @@ def test_neg_arch_002_engines_do_not_call_private_valhalla_osrm() -> None:
 def test_neg_arch_003_no_porterchain_vroom_client_under_engines() -> None:
     """NEG-ARCH-003"""
     hits: list[str] = []
-    for engine in ("merchant_engine", "pricing_engine", "booking_engine", "admin_engine", "fleetbase_engine"):
+    for engine in ("merchant_engine", "pricing_engine", "booking_engine", "admin_engine", "dispatch_engine"):
         root = API_SRC / engine
         if not root.is_dir():
             continue
         for path in _iter_py(root):
             text = path.read_text(encoding="utf-8", errors="ignore")
             if any(tok in text for tok in _ENGINE_VROOM_FORBIDDEN):
-                # fleetbase_engine may mention VROOM as adapter config prose — allow comments only when
-                # there is no import/call site. Hard-fail on import-like tokens.
                 if "import vroom" in text or "from vroom" in text or "vroom_client" in text:
                     hits.append(str(path.relative_to(REPO)))
     assert not hits, f"in-engine VROOM client: {hits}"

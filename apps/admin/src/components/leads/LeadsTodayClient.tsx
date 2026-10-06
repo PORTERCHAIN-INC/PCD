@@ -5,7 +5,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import AdminPage from "@/components/layout/AdminPage";
-import { Spinner } from "@/components/crm/primitives";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { leadsApi } from "@/lib/leads";
 
 type PackRow = {
@@ -263,7 +263,7 @@ export default function LeadsTodayClient() {
         </div>
       </div>
       {isLoading ? (
-        <Spinner label="Loading packs…" />
+        <PageSkeleton rows={4} />
       ) : error ? (
         <p className="text-sm text-red-700">Failed to load Today packs.</p>
       ) : (

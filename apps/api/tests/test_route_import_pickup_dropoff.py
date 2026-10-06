@@ -24,7 +24,7 @@ from porterchain_api.merchant_engine.import_errors import route_import_error_mes
 from porterchain_api.merchant_engine.import_geocode import geocode_stop
 from porterchain_api.merchant_engine.import_quote import resolve_stops
 from porterchain_api.merchant_engine.import_rows import rows_to_stops
-from porterchain_api.merchant_engine.stop_cargo import fleetbase_stop
+from porterchain_api.merchant_engine.stop_cargo import cargo_stop
 from porterchain_api.merchant_models import Merchant
 
 WAREHOUSE = "91 breton avenue mississauga l4z 4k5"
@@ -253,7 +253,7 @@ def test_confirmed_stop_and_address_keep_the_point() -> None:
         "external_ref": "SO-1",
         "postal": "M5J 2J2",
     }
-    fb = fleetbase_stop(stop)
+    fb = cargo_stop(stop)
     assert (fb["lat"], fb["lng"], fb["external_ref"]) == (43.64, -79.38, "SO-1")
 
     addr = _address_input(stop)

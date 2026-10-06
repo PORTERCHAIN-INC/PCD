@@ -1,33 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchDriverOnboarding, type DriverOnboardingStatus } from "@/lib/onboarding";
 
+const KEY = ["driver-onboarding"] as const;
+
 export function useDriverOnboarding(pollMs = 30_000) {
-  const [data, setData] = useState<DriverOnboardingStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: KEY,
+    queryFn: () => fetchDriverOnboarding(),
+    refetchInterval: (q) => {
+      if (!pollMs) return false;
+      const data = q.state.data as DriverOnboardingStatus | undefined;
+      if (data?.ready) return false;
+      return pollMs;
+    },
+  });
 
   const refresh = useCallback(async () => {
-    setError("");
-    try {
-      const status = await fetchDriverOnboarding();
-      setData(status);
-      return status;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "onboarding_fetch_failed");
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const result = await qc.fetchQuery({ queryKey: KEY, queryFn: () => fetchDriverOnboarding() });
+    return result;
+  }, [qc]);
 
-  useEffect(() => {
-    void refresh();
-    if (!pollMs) return;
-    const id = window.setInterval(() => void refresh(), pollMs);
-    return () => window.clearInterval(id);
-  }, [pollMs, refresh]);
-
-  return { data, loading, error, refresh };
+  return {
+    data: query.data ?? null,
+    loading: query.isLoading || query.isFetching,
+    error: query.error instanceof Error ? query.error.message : "",
+    refresh,
+  };
 }

@@ -1,4 +1,4 @@
-"""Confirm a route-import job into a merchant booking + Fleetbase stop payload."""
+"""Confirm a route-import job into a merchant booking."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from porterchain_api.merchant_engine.import_mapping_profiles import save_profile
 from porterchain_api.merchant_engine.import_quote import split_stops
 from porterchain_api.merchant_engine.import_rows import optional_float, optional_text
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.stop_cargo import fleetbase_stop
+from porterchain_api.merchant_engine.stop_cargo import cargo_stop
 from porterchain_api.merchant_models import BulkImportJob
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 
@@ -54,9 +54,9 @@ def attach_route_cargo(
     *,
     job_id: str | None = None,
 ) -> None:
-    """Persist sequenced stops + parcels for Fleetbase without a parcels table."""
+    """Persist sequenced stops + parcels on the order without a parcels table."""
     compliance = dict(order.compliance_metadata or {})
-    compliance["stops"] = [fleetbase_stop(stop) for stop in stops]
+    compliance["stops"] = [cargo_stop(stop) for stop in stops]
     if cfg.get("weight_kg") is not None:
         compliance["weight_kg"] = cfg.get("weight_kg")
     if cfg.get("dimensions"):

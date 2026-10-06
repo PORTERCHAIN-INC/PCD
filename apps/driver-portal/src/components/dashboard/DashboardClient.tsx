@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import {
   Bell,
   CheckCircle2,
@@ -29,7 +29,6 @@ export default function DashboardClient() {
   const {
     data,
     error,
-    loading,
     refreshing,
     actionPending,
     setOnline,
@@ -39,6 +38,7 @@ export default function DashboardClient() {
     refresh,
   } = useDriverWorkspace();
   const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
+  const [optimisticOnline, setOptimisticOnline] = useOptimistic(data?.dashboard.is_online ?? false);
 
   if (error && !data) {
     return (
@@ -48,7 +48,7 @@ export default function DashboardClient() {
     );
   }
 
-  if (loading || !data) {
+  if (!data) {
     return (
       <DriverShell>
         <StatCardsSkeleton count={8} />
@@ -79,13 +79,11 @@ export default function DashboardClient() {
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                dashboard.is_online
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-gray-200 text-gray-700"
+                optimisticOnline ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-700"
               }`}
             >
               <span
-                className={`h-2 w-2 rounded-full ${dashboard.is_online ? "bg-emerald-500 animate-pulse" : "bg-gray-400"}`}
+                className={`h-2 w-2 rounded-full ${optimisticOnline ? "bg-emerald-500 animate-pulse" : "bg-gray-400"}`}
               />
               {data.shiftStatus}
             </span>
@@ -231,15 +229,25 @@ export default function DashboardClient() {
       <section className="mt-6 space-y-4">
         {!shiftActive ? <PretripGate checks={pretrip} onChange={setPretrip} /> : null}
         <QuickActions
-          isOnline={dashboard.is_online}
+          isOnline={optimisticOnline}
           shiftActive={shiftActive}
           hasRoute={Boolean(route?.route_id || dashboard.active_route_id)}
           actionPending={actionPending}
           pretripReady={pretripComplete(pretrip)}
           onStartShift={() => startShift(pretrip)}
           onEndShift={endShift}
-          onGoOnline={() => setOnline(true)}
-          onGoOffline={() => setOnline(false)}
+          onGoOnline={() => {
+            startTransition(() => {
+              setOptimisticOnline(true);
+              void setOnline(true);
+            });
+          }}
+          onGoOffline={() => {
+            startTransition(() => {
+              setOptimisticOnline(false);
+              void setOnline(false);
+            });
+          }}
           onEmergency={triggerEmergency}
         />
       </section>

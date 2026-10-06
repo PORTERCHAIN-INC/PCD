@@ -1,4 +1,4 @@
-"""Dispatch queue — Fleetbase sync jobs (DD-05a)."""
+"""Dispatch queue — PorterChain day-plan and suggestion jobs."""
 
 from __future__ import annotations
 
@@ -43,44 +43,11 @@ def process_dispatch(payload: dict[str, Any]) -> None:
         _score_suggestions(order_id)
         return
 
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import SessionLocal
-    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
-    from porterchain_api.booking_models import Order
-
-    settings = get_settings()
-    with SessionLocal() as db:
-        order = db.query(Order).filter(Order.id == order_id).first()
-        if not order:
-            logger.warning("dispatch job: order %s not found", order_id)
-            return
-
-        sync = BookingSyncService()
-        if action == "assign":
-            driver_id = payload.get("driver_id")
-            fleetbase_driver_id = None
-            if driver_id:
-                from porterchain_api.admin_models import Driver
-
-                driver = db.query(Driver).filter(Driver.id == driver_id).first()
-                if not driver:
-                    logger.warning("dispatch assign: driver %s not found", driver_id)
-                else:
-                    if not driver.fleetbase_driver_id:
-                        sync.push_driver(db, settings, driver)
-                    fleetbase_driver_id = driver.fleetbase_driver_id
-            sync.push_driver_assignment(
-                db,
-                settings,
-                order,
-                fleetbase_driver_id=fleetbase_driver_id,
-                driver_id=driver_id,
-            )
-        else:
-            sync.push_order(db, settings, order)
-        db.commit()
-
-    logger.info("dispatch job completed: order_id=%s action=%s", order_id, action)
+    logger.info(
+        "dispatch sync skipped; PorterChain keeps the order order_id=%s action=%s",
+        order_id,
+        action,
+    )
 
 
 def _score_suggestions(order_id: str) -> None:
@@ -108,13 +75,19 @@ def _score_suggestions(order_id: str) -> None:
 
 
 def _optimize_run(run_id: str) -> None:
-    """Step 2 Wave 0: Fleetbase orchestrator preview → Redis (not the API thread)."""
+    """One-van day plan in this worker (OR-Tools + Valhalla)."""
     import porterchain_api.user_models  # noqa: F401 — Driver FK metadata in worker
     from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
     from porterchain_api.db import SessionLocal
 
     with SessionLocal() as db:
-        result = OrchestratorOpsService().execute_queued_run(db, run_id)
+        rec = OrchestratorOpsService().get_run(run_id) or {}
+        if isinstance(rec, dict) and rec.get("engine") == "porterchain":
+            from porterchain_api.dispatch_engine.day_plan import finish_porterchain_run
+
+            result = finish_porterchain_run(db, run_id, rec)
+        else:
+            result = OrchestratorOpsService().execute_queued_run(db, run_id)
     logger.info(
         "optimize_run completed: run_id=%s status=%s assigned=%s",
         run_id,

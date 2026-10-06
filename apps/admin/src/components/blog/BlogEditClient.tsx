@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Button, Spinner } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import BlogPostForm from "@/components/blog/BlogPostForm";
 import { blogApi, type BlogPostInput } from "@/lib/blog";
 import AdminPage from "@/components/layout/AdminPage";
@@ -88,7 +89,7 @@ export default function BlogEditClient({ params }: { params: Promise<{ id: strin
   if (isLoading || !form) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner />
+        <PageSkeleton rows={3} />
       </div>
     );
   }

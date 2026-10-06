@@ -1,20 +1,18 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import FinanceInvoiceClient from "./invoice-client";
+import { adminServerFetch } from "@/lib/server-api";
 
-import { use } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
-import FinanceInvoiceDetailView from "@/components/finance/FinanceInvoiceDetailView";
-import { financeApi } from "@/lib/finance";
+type Props = { params: Promise<{ id: string }> };
 
-export default function FinanceInvoicePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
+export default async function FinanceInvoicePage({ params }: Props) {
+  const { id } = await params;
+  const client = new QueryClient();
+  const detail = await adminServerFetch<unknown>(`/v1/admin/finance/invoices/${id}`);
+  if (detail) client.setQueryData(["finance-invoice", id], detail);
 
-  const { data: detail, isLoading } = useQuery({
-    queryKey: ["finance-invoice", id],
-    enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
-    queryFn: async () => financeApi.invoiceDetail(await getApiToken(), id),
-  });
-
-  return <FinanceInvoiceDetailView detail={detail ?? null} loading={isLoading} />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <FinanceInvoiceClient id={id} />
+    </HydrationBoundary>
+  );
 }

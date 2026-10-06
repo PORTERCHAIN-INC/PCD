@@ -6,9 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_fleetbase_adapter.events.lifecycle import FleetbaseLifecycleTranslator
-from porterchain_fleetbase_adapter.events import EventTranslator
-from porterchain_fleetbase_adapter.webhooks import WebhookService
+from porterchain_api.domain.order_lifecycle import FleetbaseLifecycleTranslator
 
 
 def test_presence_events_classify() -> None:
@@ -18,30 +16,8 @@ def test_presence_events_classify() -> None:
     assert FleetbaseLifecycleTranslator.classify("order.assigned") == "driver"
 
 
-def test_webhook_presence_does_not_treat_driver_id_as_order() -> None:
-    svc = WebhookService(webhook_secret="")
-    update = svc.process(
-        b"{}",
-        {
-            "event": "driver.online",
-            "data": {"uuid": "fb-drv-1", "online": True, "status": "online"},
-        },
-    )
-    assert update is not None
-    assert update["fleetbase_order_id"] is None
-    assert update["fleetbase_driver_id"] == "fb-drv-1"
-    assert update["online"] is True
-    assert update["domain_event"] == "driver.presence"
-
-
-def test_extract_online_from_event_name() -> None:
-    t = EventTranslator()
-    assert t.extract_online({}, "driver.offline") is False
-    assert t.extract_online({"online": True}, "driver.updated") is True
-
-
 def test_mirror_driver_presence_updates_local() -> None:
-    from porterchain_api.fleetbase_engine.webhook_processor import WebhookProcessor
+    from porterchain_api.platform.retired_sync import WebhookProcessor
 
     driver = SimpleNamespace(
         id="d1",

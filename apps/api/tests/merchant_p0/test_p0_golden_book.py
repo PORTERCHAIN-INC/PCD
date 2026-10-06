@@ -15,8 +15,6 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
-from porterchain_api.fleetbase_models import FleetbaseSyncJob
 from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.rbac import MerchantContext
@@ -153,17 +151,6 @@ def test_live_confirm_path_enqueues_fleetbase_via_event_handler(
     )
     assert order.is_sandbox is False
     assert order.state == OrderState.BOOKED.value
-
-    # push_order is enqueue-only; no adapter HTTP / _bridge needed on this path.
-    BookingSyncService().push_order(db, settings, order, commit=False)
-
-    jobs = (
-        db.query(FleetbaseSyncJob)
-        .filter(FleetbaseSyncJob.idempotency_key == f"order:{order.id}")
-        .all()
-    )
-    assert len(jobs) == 1
-    assert jobs[0].status == "pending"
     db.rollback()
 
 
@@ -201,11 +188,4 @@ def test_sandbox_confirm_does_not_enqueue_fleetbase(
         db, settings, merchant_ctx, _body(), sandbox=True
     )
     assert order.is_sandbox is True
-
-    jobs = (
-        db.query(FleetbaseSyncJob)
-        .filter(FleetbaseSyncJob.idempotency_key == f"order:{order.id}")
-        .all()
-    )
-    assert jobs == []
     db.rollback()

@@ -1,12 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import FinanceCenterClient from "@/components/finance/FinanceCenterClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+export default async function FinancePage() {
+  const client = new QueryClient();
+  const dashboard = await adminServerFetch<unknown>("/v1/admin/finance/dashboard");
+  if (dashboard) client.setQueryData(["finance-dashboard"], dashboard);
 
-const FinanceCenterClient = dynamic(() => import("@/components/finance/FinanceCenterClient"), {
-  loading: () => <Spinner label="Loading finance…" />,
-});
-
-export default function FinancePage() {
-  return <FinanceCenterClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <FinanceCenterClient />
+    </HydrationBoundary>
+  );
 }

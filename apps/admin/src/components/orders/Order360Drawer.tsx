@@ -4,14 +4,16 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { AlertTriangle, Check, Copy, ExternalLink } from "lucide-react";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
 import { ops } from "@/lib/operations";
 import { ordersApi } from "@/lib/orders";
 import { dateTime, titleCase } from "@/lib/crmFormat";
-import { Badge, Button, Drawer, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, Drawer } from "@/components/crm/primitives";
 import { ActionFlash } from "@/components/orders/sections";
 import type { ExceptionColumn } from "@/components/orders/ExceptionReasonModal";
+import { DetailsTab } from "@/components/orders/order360/panels";
 import {
   DRAWER_TABS,
   SlaBadge,
@@ -24,34 +26,38 @@ import {
 
 const RouteTimeline = dynamic(
   () => import("@/components/orders/order360/shared").then((m) => m.RouteTimeline),
-  { loading: () => <Spinner /> }
+  {
+    loading: () => (
+      <div className="h-16 animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none" />
+    ),
+  }
 );
 const OrderRouteMap = dynamic(
   () => import("@/components/orders/OrderRouteMap").then((m) => m.OrderRouteMap),
-  { loading: () => <Spinner label="Loading map…" /> }
-);
-const DetailsTab = dynamic(
-  () => import("@/components/orders/order360/panels").then((m) => m.DetailsTab),
-  { loading: () => <Spinner /> }
+  {
+    loading: () => (
+      <div className="h-48 animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none" />
+    ),
+  }
 );
 const TimelineTab = dynamic(
   () => import("@/components/orders/order360/panels").then((m) => m.TimelineTab),
-  { loading: () => <Spinner /> }
+  { loading: () => <PageSkeleton rows={2} /> }
 );
 const PodTab = dynamic(() => import("@/components/orders/order360/panels").then((m) => m.PodTab), {
-  loading: () => <Spinner />,
+  loading: () => <PageSkeleton rows={2} />,
 });
 const MoneyTab = dynamic(
   () => import("@/components/orders/order360/panels").then((m) => m.MoneyTab),
-  { loading: () => <Spinner /> }
+  { loading: () => <PageSkeleton rows={2} /> }
 );
 const CareTab = dynamic(
   () => import("@/components/orders/order360/panels").then((m) => m.CareTab),
-  { loading: () => <Spinner /> }
+  { loading: () => <PageSkeleton rows={2} /> }
 );
 const OrderAssistPanel = dynamic(
   () => import("@/components/orders/OrderAssistPanel").then((m) => m.OrderAssistPanel),
-  { loading: () => <Spinner /> }
+  { loading: () => <PageSkeleton rows={2} /> }
 );
 const AssignDriverModal = dynamic(
   () => import("@/components/orders/AssignDriverModal").then((m) => m.AssignDriverModal),
@@ -174,7 +180,24 @@ export function Order360Drawer({
         }
       >
         {loading && !detail ? (
-          <Spinner label="Loading order…" />
+          <div className="space-y-4">
+            <p className="sr-only" role="status">
+              Loading order
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5" aria-hidden>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-16 animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none"
+                />
+              ))}
+            </div>
+            <div
+              className="h-16 animate-pulse rounded-xl bg-primary/5 motion-reduce:animate-none"
+              aria-hidden
+            />
+            <PageSkeleton rows={3} />
+          </div>
         ) : error && !detail ? (
           <div className="space-y-3 py-6 text-center">
             <p className="text-sm text-red-600">Could not load order: {error}</p>
@@ -253,19 +276,9 @@ export function Order360Drawer({
                 sub={titleCase(detail.invoice_status)}
               />
               <Strip
-                label="PC ↔ FB"
-                value={
-                  detail.status_sync?.fleetbase_status
-                    ? String(detail.status_sync.fleetbase_status)
-                    : "—"
-                }
-                sub={
-                  detail.status_sync?.status_aligned === true
-                    ? "Aligned"
-                    : detail.status_sync?.status_aligned === false
-                      ? "Drift"
-                      : String(detail.status_sync?.truth ?? "PC only")
-                }
+                label="Status"
+                value={String(detail.state ?? "—")}
+                sub={titleCase(detail.state)}
               />
             </div>
 

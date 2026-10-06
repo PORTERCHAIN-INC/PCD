@@ -1,12 +1,17 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import DashboardClient from "@/components/dashboard/DashboardClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+export default async function DashboardPage() {
+  const client = new QueryClient();
+  const center = await adminServerFetch<unknown>("/v1/admin/dashboard/center");
+  if (center) {
+    client.setQueryData(["dashboard-center"], center);
+  }
 
-const DashboardClient = dynamic(() => import("@/components/dashboard/DashboardClient"), {
-  loading: () => <Spinner label="Loading dashboard…" />,
-});
-
-export default function DashboardPage() {
-  return <DashboardClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <DashboardClient />
+    </HydrationBoundary>
+  );
 }

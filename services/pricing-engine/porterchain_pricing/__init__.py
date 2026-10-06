@@ -1,4 +1,4 @@
-"""Porterchain Pricing & Contract Engine — independent of Fleetbase."""
+"""PorterChain Pricing & Contract Engine — retail and merchant quotes."""
 
 from porterchain_pricing.catalog import (
     PACKAGE_SURCHARGE_CENTS,

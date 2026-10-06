@@ -1,8 +1,8 @@
 /**
- * UI-OPS-006 — Optimize tab smoke (Fleetbase/VROOM copy + pool → preview → commit).
+ * UI-OPS-006 — Optimize tab smoke (day plan copy + pool → preview → commit).
  *
  * Requires admin on ADMIN_BASE_URL (default :3002) with local Clerk/API bypass.
- * BFF + optimize APIs are mocked — no live Fleetbase/VROOM needed.
+ * BFF + optimize APIs are mocked.
  *
  *   ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.spec.ts
  */
@@ -228,9 +228,7 @@ async function mockPorterchainBff(page: import("@playwright/test").Page) {
 }
 
 test.describe(`UI-OPS-006 ${tcId("UI-OPS-006")} @p0`, () => {
-  test("Optimize tab: pool → Run preview → Commit manifests (mocked Fleetbase)", async ({
-    page,
-  }) => {
+  test("Optimize tab: pool → Run preview → Commit", async ({ page }) => {
     test.skip(!process.env.ADMIN_RUN_LIVE, "set ADMIN_RUN_LIVE=1 with admin on :3002 (dev bypass)");
 
     await ensureAdminReachable(page);
@@ -241,8 +239,7 @@ test.describe(`UI-OPS-006 ${tcId("UI-OPS-006")} @p0`, () => {
     });
 
     await expect(page.getByRole("button", { name: /^Optimize$/ }).first()).toBeVisible();
-    await expect(page.getByText(/Optimize \(Fleetbase Orchestrator\)/i)).toBeVisible();
-    await expect(page.getByText(/Engines stay on\s+Fleetbase \(VROOM default\)/i)).toBeVisible();
+    await expect(page.getByText(/Preview orders one assigned van/i)).toBeVisible();
     await expect(page.getByText(/Pool: 2 synced orders ready for orchestrator/i)).toBeVisible();
 
     await page.getByRole("button", { name: /Run preview/i }).click();
@@ -264,13 +261,15 @@ test.describe(`UI-OPS-006 ${tcId("UI-OPS-006")} @p0`, () => {
     await expect(page.getByText(/Pool: 2 synced orders ready for orchestrator/i)).toBeVisible();
   });
 
-  test("Optimize tab shows Fleetbase-only copy (no PorterChain pathing)", async ({ page }) => {
+  test("Optimize tab shows the PorterChain day plan", async ({ page }) => {
     test.skip(!process.env.ADMIN_RUN_LIVE, "set ADMIN_RUN_LIVE=1 with admin on :3002 (dev bypass)");
 
     await ensureAdminReachable(page);
     await mockPorterchainBff(page);
     await page.goto("/operations?view=tools&tool=optimize");
-    await expect(page.getByText(/no PorterChain pathing/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Preview orders one assigned van/i)).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(
       page
         .locator("select")

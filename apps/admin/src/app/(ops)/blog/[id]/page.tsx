@@ -1,12 +1,18 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import BlogEditClient from "@/components/blog/BlogEditClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+type Props = { params: Promise<{ id: string }> };
 
-const BlogEditClient = dynamic(() => import("@/components/blog/BlogEditClient"), {
-  loading: () => <Spinner label="Loading…" />,
-});
+export default async function BlogEditPage({ params }: Props) {
+  const { id } = await params;
+  const client = new QueryClient();
+  const post = await adminServerFetch<unknown>(`/v1/admin/blog/posts/${id}`);
+  if (post) client.setQueryData(["blog-post", id], post);
 
-export default function BlogEditPage(props: { params: Promise<{ id: string }> }) {
-  return <BlogEditClient {...props} />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <BlogEditClient params={params} />
+    </HydrationBoundary>
+  );
 }

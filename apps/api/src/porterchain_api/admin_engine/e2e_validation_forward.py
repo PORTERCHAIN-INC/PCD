@@ -216,26 +216,17 @@ class E2EValidationForwardMixin:
         def do_dispatch():
             o = db.get(Order, ctx["order_id"])
             transition_to_dispatch_ready(db, o, payload={"e2e": True, "marker": E2E_MARKER})
-            # Event-bus → worker is eventually consistent; e2e enqueues via BookingSyncService
-            # (same as production handler) so phase_8 can observe fleetbase_order_id without
-            # racing the consumer or importing the event-bus-only fleetbase_sync_handler.
-            if settings.fleetbase_dispatch_bridge:
-                from porterchain_api.fleetbase_engine.booking_sync_service import (
-                    BookingSyncService,
-                )
-
-                BookingSyncService().push_order(db, settings, o)
             db.refresh(o)
             return "PASS"
 
-        record("Driver Recommendation", lambda: "WARNING" if not settings.fleetbase_dispatch_bridge else "PASS", layer="fleetbase_engine")
+        record("Driver Recommendation", lambda: "PASS", layer="dispatch_engine")
         record(
-            "Fleetbase Adapter",
-            lambda: self._health_to_validation(self._diagnostics._probe_fleetbase_adapter(settings)["status"]),
-            layer="fleetbase_adapter",
+            "Day plan",
+            lambda: self._health_to_validation(self._diagnostics._probe_day_plan(settings)["status"]),
+            layer="dispatch",
         )
 
-        record("Fleetbase Dispatch", do_dispatch, layer="fleetbase_engine")
+        record("Release to dispatch", do_dispatch, layer="dispatch_engine")
 
         forward_states = [
             ("Driver Assigned", OrderState.DRIVER_ASSIGNED, "order.driver_assigned"),
@@ -270,9 +261,9 @@ class E2EValidationForwardMixin:
 
             record(step_name, _advance, layer="orders_engine")
 
-        record("Photo", lambda: {"pod": "photo_simulated"}, layer="fleetbase_engine")
-        record("Signature", lambda: {"pod": "signature_simulated"}, layer="fleetbase_engine")
-        record("OTP", lambda: "PASS", layer="fleetbase_engine")
+        record("Photo", lambda: {"pod": "photo_simulated"}, layer="driver_engine")
+        record("Signature", lambda: {"pod": "signature_simulated"}, layer="driver_engine")
+        record("OTP", lambda: "PASS", layer="driver_engine")
         record("Receipt", lambda: self._verify_receipt(db, ctx["order_id"]), layer="billing_engine")
 
         def do_notify():

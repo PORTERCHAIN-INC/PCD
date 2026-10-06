@@ -38,7 +38,7 @@ def test_map_04_no_google_distance_matrix_in_driver_engine() -> None:
 
 @pytest.mark.driver_p0
 def test_api_d_05_navigation_idle_session() -> None:
-    """API-D-05 — idle navigation session pins Valhalla/OSRM/Fleetbase engine labels."""
+    """API-D-05 — idle navigation session pins Valhalla/OSRM/last_known engine labels."""
     session = NavigationService().idle_session(SimpleNamespace(id="d1", availability="offline"))
     assert session["idle"] is True
     assert session["state"] == "idle"
@@ -46,7 +46,7 @@ def test_api_d_05_navigation_idle_session() -> None:
     engines = session["routing_engines"]
     assert engines["eta"] == "osrm"
     assert engines["optimized_route"] == "valhalla"
-    assert engines["gps"] == "fleetbase"
+    assert engines["gps"] == "last_known"
     assert engines["map_display"] == "google_maps"
     assert "google" not in engines["eta"].lower()
     assert "google" not in engines["optimized_route"].lower()

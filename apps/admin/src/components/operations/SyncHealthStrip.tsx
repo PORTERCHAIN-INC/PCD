@@ -6,7 +6,7 @@ import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
 import { ops } from "@/lib/operations";
 
-/** Fleetbase sync queue health strip for Operations Control Tower. */
+/** Dispatch health strip for Operations Control Tower. */
 export function SyncHealthStrip({
   tick = 0,
   compactWhenOk = true,
@@ -25,7 +25,7 @@ export function SyncHealthStrip({
         data-testid="ops-sync-health"
       >
         <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-        Sync health unavailable
+        Dispatch health unavailable
       </div>
     );
   }
@@ -65,10 +65,10 @@ export function SyncHealthStrip({
           tone.ring,
           tone.label
         )}
-        title="Fleetbase sync healthy — open System"
+        title="Dispatch is PorterChain — open System"
       >
         <StatusIcon className={cn("h-3.5 w-3.5", tone.icon)} />
-        Sync ok
+        Dispatch ok
       </Link>
     );
   }
@@ -83,7 +83,7 @@ export function SyncHealthStrip({
     >
       <span className={cn("flex items-center gap-1.5 font-semibold", tone.label)}>
         <StatusIcon className={cn("h-3.5 w-3.5", tone.icon)} />
-        Fleetbase sync
+        Dispatch
       </span>
       <span className="text-primary/80">
         Queue pending {pending}

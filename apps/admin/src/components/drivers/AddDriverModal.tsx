@@ -414,8 +414,7 @@ export function AddDriverModal({
           <span>
             <span className="font-medium text-primary">Approve immediately</span>
             <span className="mt-0.5 block text-muted">
-              Sets status to approved and syncs to Fleetbase when configured. Leave unchecked for
-              pending review.
+              Sets status to approved. Leave unchecked for pending review.
             </span>
           </span>
         </label>

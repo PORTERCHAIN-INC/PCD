@@ -4,8 +4,9 @@ import Link from "next/link";
 import { Bell, Smartphone } from "lucide-react";
 import { useApiData } from "@/hooks/useApiData";
 import { notificationsApi } from "@/lib/notifications";
-import { Badge, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { relativeTime, titleCase } from "@/lib/crmFormat";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 const STATUS_TONE: Record<string, string> = {
   sent: "green",
@@ -43,7 +44,9 @@ export function EntityAlertsPanel({
   if (loading && !data) {
     return (
       <SectionCard title="Alerts & preferences">
-        <Spinner label="Loading alerts…" />
+        <div className="px-4 py-3">
+          <PageSkeleton rows={3} />
+        </div>
       </SectionCard>
     );
   }

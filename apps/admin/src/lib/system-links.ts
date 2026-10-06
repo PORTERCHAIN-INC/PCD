@@ -110,13 +110,6 @@ export function getSystemLinks(): SystemLink[] {
       host: "api.porterchain.com",
     },
     {
-      id: "fleetbase-api",
-      label: "Fleetbase API",
-      description: "Permanent bond target (engineers)",
-      href: url("NEXT_PUBLIC_FLEETBASE_API_URL", "http://localhost:8000", "http://localhost:8000"),
-      port: 8000,
-    },
-    {
       id: "valhalla",
       label: "Valhalla",
       description: "Routing engine status",

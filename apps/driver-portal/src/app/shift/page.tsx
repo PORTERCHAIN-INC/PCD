@@ -1,11 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import ShiftClient from "@/components/shift/ShiftClient";
+import { driverServerGet } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
+export default async function ShiftPage() {
+  const client = new QueryClient();
+  const shift = await driverServerGet<unknown>("/v1/shift");
+  if (shift) client.setQueryData(["driver-shift"], shift);
 
-const ShiftClient = dynamic(() => import("@/components/shift/ShiftClient"), {
-  loading: () => <p className="p-4 text-sm text-[var(--muted)]">Loading…</p>,
-});
-
-export default function ShiftPage() {
-  return <ShiftClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <ShiftClient />
+    </HydrationBoundary>
+  );
 }

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { KeyRound, LogOut } from "lucide-react";
-import { Spinner } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import type { AdminStaffProfile } from "@/lib/admin-access";
 import { publicEnv } from "@/lib/env";
@@ -87,7 +86,7 @@ export default function AdminAccessGate({ children }: Props) {
     });
   }, [router, setProfile, setSession]);
 
-  const { checking, errorDetail } = usePortalSessionGate({
+  const { errorDetail } = usePortalSessionGate({
     portal: "admin",
     apiUrl: "/api/porterchain",
     isLoaded,
@@ -120,15 +119,6 @@ export default function AdminAccessGate({ children }: Props) {
     window.addEventListener(STAFF_PASSKEY_EVENT, onPasskeyChanged);
     return () => window.removeEventListener(STAFF_PASSKEY_EVENT, onPasskeyChanged);
   }, [refreshPasskeyStatus]);
-
-  if (!isLoaded || checking) {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-gray-bg">
-        <Spinner />
-        <p className="text-sm text-muted">Loading session…</p>
-      </div>
-    );
-  }
 
   if (errorDetail) {
     return (

@@ -1,8 +1,7 @@
-"""Control Tower Optimize — wrap Fleetbase orchestrator for PC order ids.
+"""Control Tower Optimize — PorterChain one-van day plan.
 
-Maps Porterchain queue orders → fleetbase_order_id, runs allocate/optimize,
-and commits assignment plans (creates Fleetbase manifests). Never rebuilds
-sequencing engines locally.
+Maps queue orders to the OR-Tools sequencer (Valhalla matrix). Preview is
+stored in Redis; accept writes ``sequence_store``. No Fleetbase id required.
 """
 
 from __future__ import annotations
@@ -10,30 +9,32 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver, Vehicle
-from porterchain_api.config import get_settings
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.fleetbase_engine.optimize_run_store import (
+from porterchain_api.dispatch_engine.optimize_run_store import (
     STATUS_ERROR,
     STATUS_PENDING,
     STATUS_READY,
-    enqueue_optimize_job,
     read_optimize_run,
-    write_optimize_run,
 )
-from porterchain_api.fleetbase_engine.public_ids import is_consumable_public_id
 from porterchain_api.booking_models import Order
-from porterchain_api.services.fleetbase_integration import get_fleetbase_integration
 import porterchain_api.user_models as _user_models  # noqa: F401 — Driver.porterchain_user_id FK
 
 logger = logging.getLogger(__name__)
 
 COMMIT_CACHE_KEY = "porterchain:optimize_commit:{run_id}"
 COMMIT_CACHE_TTL_SECONDS = 24 * 60 * 60
+
+# Unassigned / retryable pool eligible for Optimize.
+OPTIMIZE_STATES = frozenset(
+    {"BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "FAILED", "DRIVER_ASSIGNED", "DRIVER_ACCEPTED"}
+)
+PREVIEW_ORDER_CAP = 20
+# One van — same cap as the sequencer.
+DAY_STOP_CAP = 25
 
 
 def _read_commit_cache(run_id: str) -> dict[str, Any] | None:
@@ -67,26 +68,17 @@ def _write_commit_cache(run_id: str, payload: dict[str, Any]) -> None:
         logger.debug("optimize commit cache write failed: %s", exc)
 
 
-# Unassigned / retryable pool eligible for Optimize.
-OPTIMIZE_STATES = frozenset(
-    {"BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "FAILED", "DRIVER_ASSIGNED", "DRIVER_ACCEPTED"}
-)
-# Preview cap — do not dump the whole queue into VROOM on one click.
-PREVIEW_ORDER_CAP = 20
-
-
 class OrchestratorOpsService:
     def pool(self, db: Session, *, limit: int = 100, offset: int = 0) -> dict[str, Any]:
         from porterchain_api.admin_engine.optimize_pool import build_optimize_pool
 
-        vehicle_ids, driver_ids = self._synced_fleet(db)
+        vehicle_ids, driver_ids = self._porterchain_fleet(db)
         return build_optimize_pool(
             db,
             limit=limit,
             offset=offset,
             vehicle_ids=vehicle_ids,
             driver_ids=driver_ids,
-            is_live_id=is_consumable_public_id,
         )
 
     def _shape_order_ids(
@@ -98,7 +90,6 @@ class OrchestratorOpsService:
         merchant_id: str | None,
         offset: int = 0,
     ) -> list[str] | None:
-        """Filter order ids for merchant-wise / fleet shaping (Fleetbase input only)."""
         if order_ids:
             base = list(order_ids)
         else:
@@ -110,62 +101,63 @@ class OrchestratorOpsService:
         shaped = [o.id for o in orders if o.merchant_id == merchant_id]
         return shaped or None
 
-    def _synced_fleet(self, db: Session) -> tuple[list[str], list[str]]:
-        """Fleetbase vehicle/driver ids already linked on PC rows."""
+    def _porterchain_fleet(self, db: Session) -> tuple[list[str], list[str]]:
+        """Active vans and approved drivers — PorterChain ids only."""
         vehicles = (
             db.query(Vehicle)
-            .filter(Vehicle.is_active.is_(True), Vehicle.fleetbase_vehicle_id.isnot(None))
+            .filter(Vehicle.is_active.is_(True))
             .all()
         )
-        vehicle_ids = [
-            v.fleetbase_vehicle_id
-            for v in vehicles
-            if is_consumable_public_id(v.fleetbase_vehicle_id)
-        ]
+        vehicle_ids = [v.id for v in vehicles if v.id]
         drivers = (
             db.query(Driver)
-            .filter(
-                Driver.status == DriverStatus.APPROVED.value,
-                Driver.fleetbase_driver_id.isnot(None),
-            )
+            .filter(Driver.status == DriverStatus.APPROVED.value)
             .all()
         )
-        driver_ids = [
-            d.fleetbase_driver_id
-            for d in drivers
-            if is_consumable_public_id(d.fleetbase_driver_id)
-        ]
+        driver_ids = [d.id for d in drivers if d.id]
         return vehicle_ids, driver_ids
 
-    def _resolve_fleetbase_ids(
-        self, db: Session, order_ids: list[str] | None
-    ) -> tuple[list[str], dict[str, str], list[str]]:
-        """Return (fleetbase_ids, fb→pc map, missing_pc_ids)."""
+    def _load_orders(self, db: Session, order_ids: list[str] | None) -> list[Order]:
         if order_ids:
-            orders = db.query(Order).filter(Order.id.in_(order_ids)).all()
-        else:
-            pool = self.pool(db, limit=PREVIEW_ORDER_CAP)
-            orders = [
-                db.get(Order, row["id"])
-                for row in pool["orders"]
-                if row.get("id")
-            ]
-            orders = [o for o in orders if o]
+            rows = db.query(Order).filter(Order.id.in_(order_ids)).all()
+            by_id = {o.id: o for o in rows}
+            return [by_id[i] for i in order_ids if i in by_id]
+        pool = self.pool(db, limit=PREVIEW_ORDER_CAP)
+        ids = [row["id"] for row in pool["orders"] if row.get("id")]
+        if not ids:
+            return []
+        rows = db.query(Order).filter(Order.id.in_(ids)).all()
+        by_id = {o.id: o for o in rows}
+        return [by_id[i] for i in ids if i in by_id]
 
-        fb_ids: list[str] = []
-        fb_to_pc: dict[str, str] = {}
-        missing: list[str] = []
-        for o in orders:
-            if not o:
-                continue
-            if not is_consumable_public_id(o.fleetbase_order_id):
-                missing.append(o.id)
-                continue
-            fb_ids.append(o.fleetbase_order_id)
-            fb_to_pc[o.fleetbase_order_id] = o.id
-        if not order_ids:
-            fb_ids = fb_ids[:PREVIEW_ORDER_CAP]
-        return fb_ids, fb_to_pc, missing
+    def _resolve_pc_driver(
+        self,
+        db: Session,
+        *,
+        pc_driver_id: str | None,
+        driver_ids: list[str] | None,
+        orders: list[Order],
+    ) -> str | None:
+        if pc_driver_id:
+            return str(pc_driver_id)
+        if driver_ids:
+            return str(driver_ids[0])
+        assigned = {o.assigned_driver_id for o in orders if o.assigned_driver_id}
+        if len(assigned) == 1:
+            return str(next(iter(assigned)))
+        _, fleet_drivers = self._porterchain_fleet(db)
+        for did in fleet_drivers:
+            d = db.get(Driver, did)
+            if d and (bool(d.is_online) or d.availability == "online"):
+                return str(d.id)
+        return fleet_drivers[0] if fleet_drivers else None
+
+    def _vehicle_for_driver(self, db: Session, driver_id: str) -> Vehicle | None:
+        return (
+            db.query(Vehicle)
+            .filter(Vehicle.driver_id == driver_id, Vehicle.is_active.is_(True))
+            .first()
+        )
 
     def enqueue_run(
         self,
@@ -173,7 +165,7 @@ class OrchestratorOpsService:
         *,
         order_ids: list[str] | None = None,
         mode: str = "allocate",
-        engine: str | None = "vroom",  # fleetbase-first:ok — Fleetbase orchestrator engine id
+        engine: str | None = "porterchain",
         vehicle_ids: list[str] | None = None,
         driver_ids: list[str] | None = None,
         shape: str = "fleet",
@@ -183,215 +175,178 @@ class OrchestratorOpsService:
         apply_on_ready: bool = True,
         offset: int = 0,
     ) -> dict[str, Any]:
-        """Accept a preview request. Fleetbase HTTP runs in the worker only.
+        """Queue a one-van PorterChain day-plan preview. Worker runs OR-Tools."""
+        from porterchain_api.dispatch_engine.day_plan import payload_from_orders, queue_one_van
+        from porterchain_api.platform.last_known import read_last_known
 
-        Optional ``vehicle_ids`` / ``driver_ids`` lock scope (driver optimize).
-        ``shape=merchant`` filters to one merchant's synced orders.
-        ``prior_assignments`` locks already-assigned orders for post-pickup reopt.
-        ``pc_driver_id`` scopes the run to a PorterChain driver.
-        ``apply_on_ready`` (default True) writes the sequence when the worker
-        finishes — set False for driver Preview→Accept UX.
-        """
-        shaped_orders = self._shape_order_ids(
+        del mode, prior_assignments  # accepted for API compat; day plan uses locked prefix
+        shaped = self._shape_order_ids(
             db, shape=shape, order_ids=order_ids, merchant_id=merchant_id, offset=offset
         )
-        fb_ids, _fb_to_pc, missing = self._resolve_fleetbase_ids(db, shaped_orders)
-        if not fb_ids:
+        orders = self._load_orders(db, shaped)
+        if not orders:
             return {
                 "ok": False,
                 "status": STATUS_ERROR,
-                "error": "no_synced_orders",
-                "message": (
-                    "No orders with a live Fleetbase id in the optimize pool. "
-                    "Placeholder ids like fb-123 are skipped."
-                ),
-                "missing_sync": missing,
-                "assignments": [],
-                "unassigned": [],
-                "metrics": {},
-            }
-        fleet_vehicle_ids, fleet_driver_ids = self._synced_fleet(db)
-        if shape == "vehicle":
-            if not vehicle_ids:
-                return {
-                    "ok": False,
-                    "status": STATUS_ERROR,
-                    "error": "vehicle_shape_requires_vehicle_ids",
-                    "message": "Vehicle-wise optimize needs at least one synced Fleetbase vehicle id.",
-                    "missing_sync": missing,
-                    "assignments": [],
-                    "unassigned": [],
-                    "metrics": {},
-                }
-            scoped_vehicles = [v for v in vehicle_ids if is_consumable_public_id(v)]
-        else:
-            scoped_vehicles = (
-                [v for v in vehicle_ids if is_consumable_public_id(v)]
-                if vehicle_ids is not None
-                else fleet_vehicle_ids
-            )
-        scoped_drivers = (
-            [d for d in driver_ids if is_consumable_public_id(d)]
-            if driver_ids is not None
-            else fleet_driver_ids
-        )
-        if not scoped_vehicles:
-            return {
-                "ok": False,
-                "status": STATUS_ERROR,
-                "error": "no_synced_vehicles",
-                "message": (
-                    "No vehicles synced to Fleetbase. Attach a cargo van to an "
-                    "approved driver and wait for Fleetbase sync."
-                ),
-                "missing_sync": missing,
+                "error": "no_eligible_orders",
+                "message": "No orders with coordinates in the optimize pool.",
+                "missing_sync": [],
                 "assignments": [],
                 "unassigned": [],
                 "metrics": {},
             }
 
-        run_id = str(uuid4())
-        pending: dict[str, Any] = {
-            "run_id": run_id,
-            "status": STATUS_PENDING,
-            "ok": True,
-            "mode": mode,
-            "engine": engine,
-            "shape": shape,
-            "merchant_id": merchant_id,
-            "order_ids": list(shaped_orders) if shaped_orders else None,
-            "vehicle_ids": scoped_vehicles,
-            "driver_ids": scoped_drivers,
-            "prior_assignments": list(prior_assignments) if prior_assignments else None,
-            "pc_driver_id": pc_driver_id,
-            "apply_on_ready": bool(apply_on_ready),
-            "missing_sync": missing,
-            "assignments": [],
-            "unassigned": [],
-            "metrics": {},
-            "queued_at": datetime.now(UTC).isoformat(),
-        }
+        driver_id = self._resolve_pc_driver(
+            db, pc_driver_id=pc_driver_id, driver_ids=driver_ids, orders=orders
+        )
+        if not driver_id:
+            return {
+                "ok": False,
+                "status": STATUS_ERROR,
+                "error": "no_driver",
+                "message": "Approve a driver before running Optimize.",
+                "missing_sync": [],
+                "assignments": [],
+                "unassigned": [],
+                "metrics": {},
+            }
+
+        vehicle = None
+        if vehicle_ids:
+            getter = getattr(db, "get", None)
+            if callable(getter):
+                try:
+                    vehicle = getter(Vehicle, vehicle_ids[0])
+                except Exception:  # noqa: BLE001 — test doubles / missing row
+                    vehicle = None
+        if vehicle is None:
+            vehicle = self._vehicle_for_driver(db, driver_id)
+        vehicle_class = str(vehicle.vehicle_class) if vehicle and vehicle.vehicle_class else None
+
+        # Cap: sequencer refuses >25 stops (~12.5 pickup/drop pairs).
+        if len(orders) * 2 > DAY_STOP_CAP:
+            return {
+                "ok": False,
+                "status": STATUS_ERROR,
+                "error": "day_too_large",
+                "message": f"At most {DAY_STOP_CAP // 2} jobs on one van. Narrow the selection.",
+                "missing_sync": [],
+                "assignments": [],
+                "unassigned": [],
+                "metrics": {},
+            }
+
+        known = read_last_known(driver_id)
+        origin = (
+            {"lat": known.lat, "lng": known.lng}
+            if known is not None
+            else None
+        )
+        payload = payload_from_orders(
+            orders,
+            vehicle_class=vehicle_class,
+            driver_id=driver_id,
+            apply_on_ready=bool(apply_on_ready),
+            origin=origin,
+        )
+        if vehicle is not None:
+            payload["capacity"] = {
+                "kg": vehicle.capacity_kg,
+                "volume_m3": None,
+                "pallets": None,
+                "parcels": None,
+            }
+        payload["shape"] = shape
+        payload["merchant_id"] = merchant_id
+        payload["order_ids"] = [o.id for o in orders]
+        payload["vehicle_ids"] = [vehicle.id] if vehicle else list(vehicle_ids or [])
+        payload["driver_ids"] = [driver_id]
+        payload["engine"] = "porterchain"
+        if engine and engine not in {"porterchain", "vroom", "greedy", "capacity"}:
+            payload["engine"] = "porterchain"
+
         try:
-            write_optimize_run(run_id, pending)
-            enqueue_optimize_job(run_id)
-            if not pc_driver_id:
-                from porterchain_api.fleetbase_engine.optimize_run_store import mark_fleet_optimize_open
+            pending = queue_one_van(payload)
+            if not pc_driver_id and not driver_ids:
+                from porterchain_api.dispatch_engine.optimize_run_store import mark_fleet_optimize_open
 
                 mark_fleet_optimize_open()
-            from porterchain_api.fleetbase_engine.optimize_events import emit_enqueued
+            from porterchain_api.dispatch_engine.optimize_events import emit_enqueued
 
             emit_enqueued(
-                run_id,
-                engine=engine or "vroom",  # fleetbase-first:ok — passthrough to Fleetbase
+                pending["run_id"],
+                engine="porterchain",
                 shape=shape,
-                order_count=len(fb_ids),
-                pc_driver_id=pc_driver_id,
+                order_count=len(orders),
+                pc_driver_id=driver_id,
             )
+            return pending
         except Exception as exc:
             logger.warning("optimize enqueue failed: %s", exc)
-            pending = {
-                **pending,
-                "status": STATUS_ERROR,
+            from porterchain_api.dispatch_engine.optimize_events import emit_rejected
+
+            emit_rejected("none", error="optimize_enqueue_failed")
+            return {
                 "ok": False,
+                "status": STATUS_ERROR,
                 "error": "optimize_enqueue_failed",
                 "message": "Could not queue the preview. Try again.",
+                "assignments": [],
+                "unassigned": [],
+                "metrics": {},
             }
-            try:
-                write_optimize_run(run_id, pending)
-            except Exception:
-                logger.debug("optimize enqueue error-store failed", exc_info=True)
-            from porterchain_api.fleetbase_engine.optimize_events import emit_rejected
-
-            emit_rejected(run_id, error="optimize_enqueue_failed")
-        return pending
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:
         return read_optimize_run(run_id)
 
     def execute_queued_run(self, db: Session, run_id: str) -> dict[str, Any]:
-        """Worker only — Fleetbase orchestrator HTTP."""
+        """Worker fallback when the run record is not already engine=porterchain."""
+        from porterchain_api.dispatch_engine.day_plan import finish_porterchain_run
+
         rec = read_optimize_run(run_id)
         if not rec:
             return {"ok": False, "status": STATUS_ERROR, "error": "run_not_found", "assignments": []}
         if rec.get("status") != STATUS_PENDING:
             return rec
-        result = self.run(
-            db,
-            order_ids=rec.get("order_ids"),
-            mode=str(rec.get("mode") or "allocate"),
-            engine=rec.get("engine") or "vroom",  # fleetbase-first:ok — passthrough to Fleetbase
-            vehicle_ids=rec.get("vehicle_ids"),
-            driver_ids=rec.get("driver_ids"),
-            prior_assignments=rec.get("prior_assignments"),
-        )
-        status = STATUS_READY if result.get("ok") else STATUS_ERROR
-        merged = {**rec, **result, "run_id": run_id, "status": status}
+        # Always the PorterChain sequencer — Fleetbase HTTP path is gone.
+        merged = finish_porterchain_run(db, run_id, {**rec, "engine": "porterchain"})
+        status = STATUS_READY if merged.get("status") == "ready" or merged.get("ok") else STATUS_ERROR
         if status == STATUS_READY:
-            try:
-                from porterchain_api.intelligence_engine.cuopt_shadow import (
-                    cuopt_shadow_enabled,
-                    run_cuopt_shadow,
-                )
-
-                if cuopt_shadow_enabled():
-                    shadow = run_cuopt_shadow(
-                        db,
-                        order_ids=list(rec.get("order_ids") or result.get("order_ids") or []),
-                        vroom_metrics=merged.get("metrics")  # fleetbase-first:ok — compare-only shadow input
-                        if isinstance(merged.get("metrics"), dict)
-                        else {},
-                        vehicle_count=len(merged.get("vehicle_ids") or []) or 1,
-                    )
-                    metrics = dict(merged.get("metrics") or {})
-                    metrics["cuopt_shadow"] = shadow
-                    merged["metrics"] = metrics
-            except Exception as exc:  # noqa: BLE001 — shadow must never fail the run
-                logger.warning("cuOpt shadow failed run_id=%s: %s", run_id, exc)
-                metrics = dict(merged.get("metrics") or {})
-                metrics["cuopt_shadow"] = {
-                    "status": "error",
-                    "reason": str(exc)[:200],
-                    "commit_sot": "fleetbase_vroom",  # fleetbase-first:ok — label only
-                }
-                merged["metrics"] = metrics
-        try:
-            write_optimize_run(run_id, merged)
-        except Exception as exc:
-            logger.warning("optimize result store failed: %s", exc)
+            merged["ok"] = True
+            merged["status"] = STATUS_READY
         pc_driver_id = merged.get("pc_driver_id") or rec.get("pc_driver_id")
         if not pc_driver_id:
-            from porterchain_api.fleetbase_engine.optimize_run_store import clear_fleet_optimize_open
+            from porterchain_api.dispatch_engine.optimize_run_store import clear_fleet_optimize_open
 
             clear_fleet_optimize_open()
         if status == STATUS_READY:
-            from porterchain_api.fleetbase_engine.optimize_events import emit_ready
+            from porterchain_api.dispatch_engine.optimize_events import emit_ready
 
             emit_ready(
                 run_id,
-                engine=merged.get("engine") or "vroom",  # fleetbase-first:ok — passthrough to Fleetbase
+                engine="porterchain",
                 assignment_count=len(merged.get("assignments") or []),
                 unassigned_count=len(merged.get("unassigned") or []),
             )
-            if pc_driver_id:
-                apply_flag = merged.get("apply_on_ready")
-                if apply_flag is None:
-                    apply_flag = True
-                if apply_flag:
-                    try:
-                        from porterchain_api.fleetbase_engine.optimize_events import emit_applied
-                        from porterchain_driver.sequence_store import apply_run_to_driver
+            apply_flag = merged.get("apply_on_ready")
+            if apply_flag is None:
+                apply_flag = True
+            if pc_driver_id and apply_flag:
+                try:
+                    from porterchain_api.dispatch_engine.optimize_events import emit_applied
+                    from porterchain_driver.sequence_store import apply_run_to_driver
 
-                        waypoints = apply_run_to_driver(str(pc_driver_id), merged)
-                        if waypoints:
-                            emit_applied(
-                                run_id,
-                                pc_driver_id=str(pc_driver_id),
-                                waypoint_count=len(waypoints),
-                            )
-                    except Exception as exc:  # noqa: BLE001 — sequence apply must not fail the run
-                        logger.warning("driver sequence apply failed run_id=%s: %s", run_id, exc)
+                    waypoints = apply_run_to_driver(str(pc_driver_id), merged)
+                    if waypoints:
+                        emit_applied(
+                            run_id,
+                            pc_driver_id=str(pc_driver_id),
+                            waypoint_count=len(waypoints),
+                        )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("driver sequence apply failed run_id=%s: %s", run_id, exc)
         else:
-            from porterchain_api.fleetbase_engine.optimize_events import emit_rejected
+            from porterchain_api.dispatch_engine.optimize_events import emit_rejected
 
             emit_rejected(
                 run_id,
@@ -406,174 +361,21 @@ class OrchestratorOpsService:
         *,
         order_ids: list[str] | None = None,
         mode: str = "allocate",
-        engine: str | None = "vroom",  # fleetbase-first:ok — Fleetbase orchestrator engine id
+        engine: str | None = "porterchain",
         vehicle_ids: list[str] | None = None,
         driver_ids: list[str] | None = None,
         prior_assignments: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        """Call Fleetbase orchestrator. Worker / execute_queued_run only — not HTTP handlers."""
-        fb_ids, fb_to_pc, missing = self._resolve_fleetbase_ids(db, order_ids)
-        if not fb_ids:
-            return {
-                "ok": False,
-                "error": "no_synced_orders",
-                "message": (
-                    "No orders with a live Fleetbase id in the optimize pool. "
-                    "Placeholder ids like fb-123 are skipped."
-                ),
-                "missing_sync": missing,
-                "assignments": [],
-                "metrics": {},
-            }
-
-        fleet_vehicle_ids, fleet_driver_ids = self._synced_fleet(db)
-        scoped_vehicles = (
-            [v for v in vehicle_ids if is_consumable_public_id(v)]
-            if vehicle_ids is not None
-            else fleet_vehicle_ids
-        )
-        scoped_drivers = (
-            [d for d in driver_ids if is_consumable_public_id(d)]
-            if driver_ids is not None
-            else fleet_driver_ids
-        )
-        if not scoped_vehicles:
-            return {
-                "ok": False,
-                "error": "no_synced_vehicles",
-                "message": (
-                    "No vehicles synced to Fleetbase. Attach a cargo van to an "
-                    "approved driver and wait for Fleetbase sync."
-                ),
-                "missing_sync": missing,
-                "assignments": [],
-                "metrics": {},
-            }
-
-        # prior_assignments use Fleetbase order public_ids (adapter contract).
-        priors = [
-            {
-                "order_id": row.get("order_id"),
-                "vehicle_id": row.get("vehicle_id"),
-                "driver_id": row.get("driver_id"),
-            }
-            for row in (prior_assignments or [])
-            if isinstance(row, dict) and row.get("order_id")
-        ]
-
-        settings = get_settings()
-        adapter = get_fleetbase_integration(settings)
-        result = adapter.run_orchestrator(
-            fb_ids,
+        """Enqueue and return the pending run (worker finishes the search)."""
+        del prior_assignments
+        return self.enqueue_run(
+            db,
+            order_ids=order_ids,
             mode=mode,
-            engine=engine,
-            vehicle_ids=scoped_vehicles,
-            driver_ids=scoped_drivers or None,
-            prior_assignments=priors or None,
+            engine=engine or "porterchain",
+            vehicle_ids=vehicle_ids,
+            driver_ids=driver_ids,
         )
-        # Attach PC order ids for the UI.
-        for row in result.get("assignments") or []:
-            fb = row.get("order_id")
-            if fb and fb in fb_to_pc:
-                row["porterchain_order_id"] = fb_to_pc[fb]
-
-        unassigned_details: list[dict[str, Any]] = []
-        for row in result.get("unassigned_details") or []:
-            if not isinstance(row, dict):
-                continue
-            fb = row.get("order_id")
-            detail = dict(row)
-            if fb and fb in fb_to_pc:
-                detail["porterchain_order_id"] = fb_to_pc[fb]
-            unassigned_details.append(detail)
-
-        before = {
-            "before_order_count": len(fb_ids),
-            "before_distance_m": None,
-            "before_duration_s": None,
-            "note": "Before metrics are plan-relative; Fleetbase returns after totals on the proposed plan.",
-        }
-        metrics = {**before, **(result.get("metrics") or {})}
-        metrics = self._enrich_fuel_scorecard(
-            db, metrics, vehicle_ids=scoped_vehicles
-        )
-        return {
-            **result,
-            "mode": mode,
-            "engine": engine,
-            "missing_sync": missing,
-            "fleetbase_order_ids": fb_ids,
-            "vehicle_ids": scoped_vehicles,
-            "driver_ids": scoped_drivers,
-            "unassigned_details": unassigned_details,
-            "metrics": metrics,
-            "ran_at": datetime.now(UTC).isoformat(),
-        }
-
-    def _enrich_fuel_scorecard(
-        self,
-        db: Session,
-        metrics: dict[str, Any],
-        *,
-        vehicle_ids: list[str] | None = None,
-    ) -> dict[str, Any]:
-        """Attach pricing_fuel × km scorecard (Valhalla right-turn lives in matrix costing)."""
-        from porterchain_pricing.fuel_scorecard import enrich_optimize_metrics_fuel
-        from porterchain_pricing.types import FuelConfig
-
-        fuel = FuelConfig()
-        try:
-            from porterchain_api.admin_models import SystemConfig
-
-            row = (
-                db.query(SystemConfig)
-                .filter(SystemConfig.key == "pricing_fuel")
-                .first()
-            )
-            if row and isinstance(row.value, dict):
-                fuel = FuelConfig(
-                    **{
-                        k: v
-                        for k, v in row.value.items()
-                        if k in FuelConfig.__dataclass_fields__
-                    }
-                )
-        except Exception as exc:  # noqa: BLE001
-            logger.debug("pricing_fuel load for scorecard failed: %s", exc)
-
-        vehicle_class: str | None = None
-        if vehicle_ids:
-            try:
-                rows = (
-                    db.query(Vehicle.vehicle_class)
-                    .filter(Vehicle.fleetbase_vehicle_id.in_(list(vehicle_ids)))
-                    .all()
-                )
-                classes = [str(r[0]) for r in rows if r and r[0]]
-                # Prefer truck costing class when any scoped vehicle is a box truck.
-                from porterchain_services.maps.costing import (
-                    valhalla_costing_for_vehicle_class,
-                )
-
-                truckish = [
-                    c for c in classes if valhalla_costing_for_vehicle_class(c) == "truck"
-                ]
-                vehicle_class = truckish[0] if truckish else (classes[0] if classes else None)
-            except Exception as exc:  # noqa: BLE001
-                logger.debug("vehicle_class for fuel scorecard failed: %s", exc)
-
-        enriched = enrich_optimize_metrics_fuel(
-            metrics, fuel=fuel, vehicle_class=vehicle_class
-        )
-        if vehicle_class:
-            from porterchain_services.maps.costing import (
-                valhalla_costing_for_vehicle_class,
-            )
-
-            enriched["valhalla_costing"] = valhalla_costing_for_vehicle_class(
-                vehicle_class
-            )
-        return enriched
 
     def commit(
         self,
@@ -598,6 +400,8 @@ class OrchestratorOpsService:
             unassigned = stored.get("unassigned") or stored.get("unassigned_details") or []
             if rejects > 0 and unassigned:
                 raise ValueError("capacity_rejects_block_commit")
+            if not pc_driver_id:
+                pc_driver_id = stored.get("pc_driver_id")
         del db
 
         if pc_driver_id and expected_sequence_version is not None:
@@ -614,33 +418,19 @@ class OrchestratorOpsService:
                     expected_version=int(expected_sequence_version),
                 )
 
-        settings = get_settings()
-        adapter = get_fleetbase_integration(settings)
-        # Strip PC-only fields before sending to Fleetbase.
-        cleaned: list[dict[str, Any]] = []
-        for a in assignments:
-            cleaned.append(
-                {
-                    "order_id": a.get("order_id"),
-                    "vehicle_id": a.get("vehicle_id"),
-                    "driver_id": a.get("driver_id"),
-                    "distance": a.get("distance_m") or a.get("distance") or 0,
-                    "duration": a.get("duration_s") or a.get("duration") or 0,
-                    "sequence": a.get("sequence"),
-                }
-            )
         day = scheduled_date or datetime.now(UTC).date().isoformat()
-        result = adapter.commit_orchestrator(cleaned, scheduled_date=day)
         payload = {
-            **result,
+            "ok": True,
+            "engine": "porterchain",
             "scheduled_date": day,
             "committed_at": datetime.now(UTC).isoformat(),
             "run_id": rid,
             "idempotent": False,
+            "assignments": assignments,
         }
         if rid:
             _write_commit_cache(rid, payload)
-            from porterchain_api.fleetbase_engine.optimize_run_store import clear_fleet_optimize_open
+            from porterchain_api.dispatch_engine.optimize_run_store import clear_fleet_optimize_open
 
             clear_fleet_optimize_open()
         if pc_driver_id:
@@ -653,15 +443,13 @@ class OrchestratorOpsService:
                         "status": "ready",
                         "run_id": rid,
                         "assignments": assignments,
-                        "engine": "fleetbase_commit",
+                        "engine": "porterchain",
                     },
                     expected_version=expected_sequence_version,
                 )
-            except Exception as exc:  # noqa: BLE001 — commit already landed in Fleetbase
+            except Exception as exc:  # noqa: BLE001
                 logger.warning("post-commit sequence apply failed: %s", exc)
         return payload
 
     def engines(self) -> list[dict[str, Any]]:
-        settings = get_settings()
-        adapter = get_fleetbase_integration(settings)
-        return adapter.list_orchestrator_engines()
+        return [{"id": "porterchain", "name": "PorterChain", "label": "One van day plan"}]

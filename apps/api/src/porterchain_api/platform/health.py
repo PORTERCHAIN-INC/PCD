@@ -67,7 +67,6 @@ def liveness() -> dict[str, str]:
 
 def readiness(db: Session, settings: Settings) -> dict:
     checks: dict[str, str] = {}
-    fleetbase_sync: dict = {}
 
     try:
         db.execute(text("SELECT 1"))
@@ -95,41 +94,7 @@ def readiness(db: Session, settings: Settings) -> dict:
     queue = _queue_health()
     checks["queues"] = queue["status"]
     checks["stripe"] = "configured" if settings.stripe_secret else "mock_or_unconfigured"
-    checks["fleetbase"] = (
-        "bridge_enabled" if settings.fleetbase_dispatch_bridge else "bridge_disabled"
-    )
-    if settings.fleetbase_dispatch_bridge:
-        try:
-            from porterchain_api.fleetbase_engine.sync_health import assess_fleetbase_sync
-
-            fleetbase_sync = assess_fleetbase_sync(db, settings)
-            if not fleetbase_sync.get("webhook_secret_configured"):
-                checks["fleetbase_webhook"] = "missing_secret"
-            else:
-                checks["fleetbase_webhook"] = "configured"
-            checks["fleetbase_sync"] = (
-                "ok" if fleetbase_sync.get("meets_slo") else f"below_slo:{fleetbase_sync.get('link_pct')}%"
-            )
-            try:
-                from porterchain_api.fleetbase_engine.bond import verify_fleetbase_bond
-
-                bond = verify_fleetbase_bond(settings, reset_circuit=False)
-                if bond.get("skipped"):
-                    checks["fleetbase_bond"] = "skipped"
-                elif bond.get("bonded"):
-                    checks["fleetbase_bond"] = "ok"
-                else:
-                    checks["fleetbase_bond"] = f"unbonded:{bond.get('error_type') or bond.get('error') or 'unknown'}"
-                fleetbase_sync["bond"] = {
-                    k: bond.get(k)
-                    for k in ("ok", "bonded", "skipped", "latency_ms", "error", "status_code")
-                    if k in bond
-                }
-            except Exception as bond_exc:  # noqa: BLE001
-                checks["fleetbase_bond"] = f"error: {bond_exc}"
-        except Exception as exc:  # noqa: BLE001
-            checks["fleetbase_sync"] = f"error: {exc}"
-            fleetbase_sync = {"error": str(exc)}
+    checks["dispatch"] = "porterchain"
 
     try:
         from porterchain_api.notification_engine.fcm_service import (
@@ -165,8 +130,6 @@ def readiness(db: Session, settings: Settings) -> dict:
         "checks": checks,
         "queues": queue,
     }
-    if fleetbase_sync:
-        payload["fleetbase_sync"] = fleetbase_sync
 
     try:
         from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
@@ -195,7 +158,7 @@ def public_status(db: Session, settings: Settings) -> dict:
         "database": "operational" if checks.get("database") == "ok" else "outage",
         "redis": "operational" if checks.get("redis") == "ok" else "degraded",
         "payments": "operational" if checks.get("stripe") in ("configured", "mock_or_unconfigured") else "degraded",
-        "dispatch": "operational" if checks.get("fleetbase") else "degraded",
+        "dispatch": "operational" if checks.get("dispatch") == "porterchain" else "degraded",
     }
     return {
         "status": overall,

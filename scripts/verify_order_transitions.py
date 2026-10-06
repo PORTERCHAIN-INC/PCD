@@ -56,18 +56,18 @@ _ORDER_STATE_ASSIGN_ALLOWLIST: frozenset[str] = frozenset(
 
 def _check_fleetbase_maps() -> list[str]:
     failures: list[str] = []
-    sys.path.insert(0, str(ROOT / "services/fleetbase-adapter"))
+    sys.path.insert(0, str(API_SRC.parent))
     try:
-        from porterchain_fleetbase_adapter.events.lifecycle import (  # noqa: WPS433
+        from porterchain_api.domain.order_lifecycle import (  # noqa: WPS433
             FLEETBASE_EVENT_TO_STATE,
             FLEETBASE_STATUS_TO_STATE,
             PORTERCHAIN_STATE_TO_FLEETBASE_STATUS,
         )
     except ImportError as exc:
-        return [f"§3.3.1 cannot import fleetbase lifecycle maps: {exc}"]
+        return [f"§3.3.1 cannot import lifecycle maps: {exc}"]
     finally:
-        if str(ROOT / "services/fleetbase-adapter") in sys.path:
-            sys.path.remove(str(ROOT / "services/fleetbase-adapter"))
+        if str(API_SRC.parent) in sys.path:
+            sys.path.remove(str(API_SRC.parent))
 
     sys.path.insert(0, str(API_SRC.parent))
     try:

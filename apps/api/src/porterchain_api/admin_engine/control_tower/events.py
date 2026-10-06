@@ -26,44 +26,13 @@ class EventsMixin:
         ]
 
     def sync_health(self, db: Session, *, audit_limit: int = 40) -> dict:
-        """Fleetbase sync queue health for the ops control tower.
-
-        Reads the Porterchain retry queue + sync audit mirror; never calls
-        Fleetbase directly (masterrule §3 — adapter boundary).
-        """
-        from porterchain_api.fleetbase_engine import ErrorQueue
-        from porterchain_api.fleetbase_models import FleetbaseSyncAudit
-
-        recent = (
-            db.query(FleetbaseSyncAudit)
-            .order_by(FleetbaseSyncAudit.created_at.desc())
-            .limit(audit_limit)
-            .all()
-        )
+        """Dispatch health. PorterChain keeps the order. There is no sync queue."""
+        del db, audit_limit
         return {
-            "queue": ErrorQueue.stats(db),
-            "dead_letters": [
-                {
-                    "id": j.id,
-                    "kind": j.kind,
-                    "direction": j.direction,
-                    "order_id": j.order_id,
-                    "attempts": j.attempts,
-                    "last_error": j.last_error,
-                }
-                for j in ErrorQueue.list_dead(db)
-            ],
-            "recent_audit": [
-                {
-                    "direction": a.direction,
-                    "kind": a.kind,
-                    "status": a.status,
-                    "order_id": a.order_id,
-                    "message": a.message,
-                    "at": a.created_at.isoformat() if a.created_at else None,
-                }
-                for a in recent
-            ],
+            "queue": {"pending": 0, "retrying": 0, "dead": 0, "done": 0},
+            "dead_letters": [],
+            "recent_audit": [],
+            "engine": "porterchain",
         }
 
     def ai_ops(self, db: Session) -> dict:

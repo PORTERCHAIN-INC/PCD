@@ -46,7 +46,6 @@ from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.schemas_auth import (
     AuthMeResponse,
-    FleetbaseSsoResponse,
     MerchantVerticalRequest,
     PortalOnboardingResponse,
     SessionContextResponse,
@@ -139,17 +138,10 @@ def customer_onboarding(
     return PortalOnboardingResponse(**customer_onboarding_payload(db, claims, settings))
 
 
-@router.post("/sso/fleetbase", response_model=FleetbaseSsoResponse)
-def sso_fleetbase(
-    principal: Annotated[CurrentPrincipal, Depends(require_authenticated)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> FleetbaseSsoResponse:
-    """
-    Exchange staff IdP (or legacy Clerk) session for Fleetbase console SSO.
-    Fleetbase trusts Porterchain JWT — no Fleetbase login screen for Porterchain users.
-    """
-    return FleetbaseSsoResponse(**_invoke(_sso.exchange_fleetbase_session_for_principal, db, settings, principal))
+@router.post("/sso/fleetbase", include_in_schema=False)
+def sso_fleetbase() -> None:
+    """Retired with the Fleetbase console — always 404."""
+    raise HTTPException(status_code=404, detail="not_found")
 
 from porterchain_api.routers import auth_staff as _auth_staff  # noqa: F401
 from porterchain_api.routers import auth_staff_sessions as _auth_staff_sessions  # noqa: F401

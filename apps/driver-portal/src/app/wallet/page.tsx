@@ -1,41 +1,15 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import WalletClient from "./wallet-client";
+import { driverServerGet } from "@/lib/server-api";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import DriverShell from "@/components/DriverShell";
-import { driverApi, hasDriverSession } from "@/lib/api";
-import { formatCents } from "@/lib/utils";
-
-export default function WalletPage() {
-  const router = useRouter();
-  const [data, setData] = useState<Awaited<ReturnType<typeof driverApi.wallet>> | null>(null);
-
-  useEffect(() => {
-    hasDriverSession().then((ok) => {
-      if (!ok) router.replace("/login");
-      else driverApi.wallet().then(setData);
-    });
-  }, [router]);
+export default async function WalletPage() {
+  const client = new QueryClient();
+  const wallet = await driverServerGet<unknown>("/v1/wallet");
+  if (wallet) client.setQueryData(["driver-wallet"], wallet);
 
   return (
-    <DriverShell>
-      <h1 className="text-2xl font-bold">Wallet</h1>
-      {data && (
-        <>
-          <p className="mt-2 text-3xl font-bold text-[var(--secondary)]">
-            {formatCents(data.balance_cents)}
-          </p>
-          <h2 className="mt-8 font-semibold">Recent transactions</h2>
-          <ul className="mt-3 space-y-2">
-            {(data.transactions as { description: string; amount_cents: number }[]).map((t, i) => (
-              <li key={i} className="rounded-xl bg-white px-4 py-3 text-sm flex justify-between">
-                <span>{t.description || "Transaction"}</span>
-                <span className="font-medium">{formatCents(t.amount_cents)}</span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </DriverShell>
+    <HydrationBoundary state={dehydrate(client)}>
+      <WalletClient />
+    </HydrationBoundary>
   );
 }

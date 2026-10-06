@@ -12,7 +12,14 @@ type ImpStatus = {
 };
 
 /** Visible break-glass banner while an audited impersonation session is active. */
-export function ImpersonationBanner({ portal }: { portal: "driver" | "merchant" | "customer" }) {
+export function ImpersonationBanner({
+  portal,
+  active = false,
+}: {
+  portal: "driver" | "merchant" | "customer";
+  /** True when the pc_imp cookie is already set, so the bar is in the first HTML. */
+  active?: boolean;
+}) {
   const [status, setStatus] = useState<ImpStatus | null>(null);
 
   useEffect(() => {
@@ -44,7 +51,7 @@ export function ImpersonationBanner({ portal }: { portal: "driver" | "merchant" 
     };
   }, [portal]);
 
-  if (!status) return null;
+  if (!status && !active) return null;
 
   async function endSession() {
     const token = readImpersonationBearer();
@@ -70,9 +77,10 @@ export function ImpersonationBanner({ portal }: { portal: "driver" | "merchant" 
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
         <p>
-          <strong>Audited impersonation</strong> — staff {status.actor_email} viewing as{" "}
-          {status.target_label || status.target_email}. Reason: {status.reason}. ~
-          {Math.max(1, Math.floor(status.seconds_remaining / 60))}m left.
+          <strong>Audited impersonation</strong>
+          {status
+            ? ` — staff ${status.actor_email} viewing as ${status.target_label || status.target_email}. Reason: ${status.reason}. ~${Math.max(1, Math.floor(status.seconds_remaining / 60))}m left.`
+            : " — opening this session."}
         </p>
         <button
           type="button"

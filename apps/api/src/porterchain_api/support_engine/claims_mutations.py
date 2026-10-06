@@ -169,7 +169,12 @@ class ClaimsMutationsMixin:
                 aggregate_id=claim_id,
                 actor_type="admin",
                 actor_id=ctx.user.id,
-                payload={"from_status": previous, "to_status": status},
+                payload={
+                    "from_status": previous,
+                    "to_status": status,
+                    "order_id": claim.order_id,
+                    "status": status,
+                },
             )
         self._append_timeline(
             db, claim, label="Decision Made", actor_type="admin", actor_id=ctx.user.id,

@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import { BulkErrorReport, BulkPreviewTable } from "@/components/bulk/BulkUploadReport";
 import { QuoteLines } from "@/components/billing/QuoteLines";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
+import { PageSkeleton } from "@porterchain/ui/loading";
 import {
   applyRouteImportMappingProfile,
   confirmBulk,
@@ -327,7 +328,7 @@ export default function BulkPage() {
   }
 
   if (!isLoaded || !isSignedIn || !orgId) {
-    return <p className="text-sm text-muted">Loading company…</p>;
+    return <PageSkeleton rows={4} />;
   }
 
   const quoteReady = Boolean(routeJob?.quote?.amount_cents != null);
@@ -721,7 +722,7 @@ export default function BulkPage() {
               <p className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
                 <span className="font-semibold">Drop-order reorder ≠ fleet Optimize.</span> This
                 uses nearest-neighbor on your stops for quoting only. Driver stop order is decided
-                later by Fleetbase VROOM — not this button.
+                later by the day plan — not this button.
               </p>
 
               <div className="flex flex-wrap gap-2">

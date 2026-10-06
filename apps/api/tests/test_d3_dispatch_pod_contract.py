@@ -20,10 +20,10 @@ def test_pod_driver_and_webhook_routes_present() -> None:
     routers = Path(__file__).resolve().parents[1] / "src/porterchain_api/routers"
     corpus = "\n".join(p.read_text(encoding="utf-8") for p in routers.rglob("*.py"))
     assert "pod-complete" in corpus
-    assert '@router.post("/fleetbase")' in corpus or 'post("/fleetbase")' in corpus
+    assert 'post("/fleetbase")' not in corpus
 
 
-def test_fleetbase_engine_wired() -> None:
+def test_fleetbase_engine_is_gone() -> None:
     api_src = Path(__file__).resolve().parents[1] / "src/porterchain_api"
-    assert (api_src / "fleetbase_engine").is_dir()
-    assert (api_src / "fleetbase_engine/webhook_ingress_service.py").is_file()
+    assert not (api_src / "fleetbase_engine").exists()
+    assert (api_src / "dispatch_engine/sequencer.py").is_file()

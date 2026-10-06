@@ -53,7 +53,7 @@ def prometheus_metrics() -> str:
                 "# TYPE porterchain_merchant_webhook_deliveries gauge",
                 f'porterchain_merchant_webhook_deliveries{{outcome="succeeded"}} {webhook_slo.get("succeeded_deliveries", 0)}',
                 f'porterchain_merchant_webhook_deliveries{{outcome="failed"}} {webhook_slo.get("failed_deliveries", 0)}',
-                "# HELP porterchain_auto_dispatch_pct Orders with driver or Fleetbase link in pipeline",
+                "# HELP porterchain_auto_dispatch_pct Orders with an assigned driver in the dispatch pipeline",
                 "# TYPE porterchain_auto_dispatch_pct gauge",
                 f"porterchain_auto_dispatch_pct {business['auto_dispatch'].get('pct', 100.0)}",
                 "# HELP porterchain_on_time_delivery_pct Delivered orders within scheduled window",
@@ -65,25 +65,6 @@ def prometheus_metrics() -> str:
             ]
         )
         lines.extend(prometheus_notification_lines(notify_sli))
-
-        from porterchain_api.fleetbase_models import FleetbaseSyncJob
-        from sqlalchemy import func
-
-        sync_counts = dict(
-            db.query(FleetbaseSyncJob.status, func.count(FleetbaseSyncJob.id))
-            .group_by(FleetbaseSyncJob.status)
-            .all()
-        )
-        lines.extend(
-            [
-                "# HELP porterchain_fleetbase_sync_jobs FleetbaseSyncJob rows by status",
-                "# TYPE porterchain_fleetbase_sync_jobs gauge",
-            ]
-        )
-        for status in ("pending", "retrying", "dead"):
-            lines.append(
-                f'porterchain_fleetbase_sync_jobs{{status="{status}"}} {int(sync_counts.get(status, 0))}'
-            )
     finally:
         db.close()
 

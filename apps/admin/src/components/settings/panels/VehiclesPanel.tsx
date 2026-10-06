@@ -216,7 +216,7 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
         <StatTile label="Booking enabled" value={String(stats.bookingEnabled)} tone="success" />
         <StatTile
           label="Physical fleet"
-          value="Fleetbase"
+          value="PorterChain"
           sub="Bonded execution — not edited here"
         />
         <StatTile
@@ -384,10 +384,7 @@ export default function VehiclesPanel({ data, defaultClass, saving, onSave }: Pr
         </div>
       </SettingsCard>
 
-      <SettingsCard
-        title="How this works"
-        description="Porterchain owns the catalog; Fleetbase owns execution"
-      >
+      <SettingsCard title="How this works" description="Porterchain owns the catalog and the vans">
         <ul className="space-y-2 text-sm text-muted">
           <li className="flex gap-2">
             <Car className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />

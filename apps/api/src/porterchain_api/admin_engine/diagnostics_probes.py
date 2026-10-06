@@ -331,7 +331,7 @@ class DiagnosticsProbesMixin:
         return {"status": status, "warnings": warnings, "details": {"queue_depths": depths}}
 
     def _probe_scheduled_jobs(self, db: Session) -> dict[str, Any]:
-        from porterchain_api.fleetbase_engine import ErrorQueue
+        from porterchain_api.platform.retired_sync import ErrorQueue
 
         stats = ErrorQueue.stats(db)
         pending = stats.get("pending", 0) + stats.get("retrying", 0)

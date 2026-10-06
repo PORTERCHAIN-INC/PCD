@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 from porterchain_api.billing_engine.settlement_service import SettlementService
@@ -59,7 +60,7 @@ def test_preference_and_device_services(db) -> None:
 
 def test_driver_services(settings, driver) -> None:
     api = DriverApiService()
-    assert api.fleetbase_bridge(settings) is not None
+    assert api.offline_executor(MagicMock(), settings) is not None
     assert DriverAuthService() is not None
     assert isinstance(evaluate_driver_onboarding(driver, settings=settings), dict)
 

@@ -12,7 +12,7 @@ from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryS
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
+from porterchain_api.platform.retired_sync import BookingSyncService
 from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
 from porterchain_api.merchant_engine.settings_service import MerchantSettingsService
@@ -206,16 +206,6 @@ def test_booking_sync_push_order(db, settings, dispatch_order) -> None:
     # Enqueue-only: no HTTP; returns existing link (None until drain).
     assert fb_id is None
     svc._bridge.sync_order.assert_not_called()
-    from porterchain_api.fleetbase_models import FleetbaseSyncJob
-
-    job = (
-        db.query(FleetbaseSyncJob)
-        .filter(FleetbaseSyncJob.idempotency_key == f"order:{dispatch_order.id}")
-        .first()
-    )
-    assert job is not None
-    assert job.kind == "order"
-    assert job.status == "pending"
 
 
 def test_merchant_settings_extended(db, merchant_ctx) -> None:

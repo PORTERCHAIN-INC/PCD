@@ -1,12 +1,18 @@
-"use client";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import DriverDetailClient from "@/components/drivers/DriverDetailClient";
+import { adminServerFetch } from "@/lib/server-api";
 
-import dynamic from "next/dynamic";
-import { Spinner } from "@/components/crm/primitives";
+type Props = { params: Promise<{ id: string }> };
 
-const DriverDetailClient = dynamic(() => import("@/components/drivers/DriverDetailClient"), {
-  loading: () => <Spinner label="Loading driver…" />,
-});
+export default async function DriverDetailPage({ params }: Props) {
+  const { id } = await params;
+  const client = new QueryClient();
+  const detail = await adminServerFetch<unknown>(`/v1/admin/drivers/${id}`);
+  if (detail) client.setQueryData(["admin", `driver-detail-${id}`, id, 0], detail);
 
-export default function DriverDetailPage() {
-  return <DriverDetailClient />;
+  return (
+    <HydrationBoundary state={dehydrate(client)}>
+      <DriverDetailClient id={id} />
+    </HydrationBoundary>
+  );
 }

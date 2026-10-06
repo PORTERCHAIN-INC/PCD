@@ -9,16 +9,9 @@ import { merchants, merchantActionMessage } from "@/lib/merchants";
 import { financeApi } from "@/lib/finance";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import { ListPager } from "@/components/crm/ListPager";
-import {
-  Badge,
-  Button,
-  Field,
-  Input,
-  Select,
-  SectionCard,
-  Spinner,
-} from "@/components/crm/primitives";
+import { Badge, Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, titleCase, dateTime } from "@/lib/crmFormat";
+import { PageSkeleton } from "@porterchain/ui/loading";
 
 const CONTRACT_STATUSES = ["draft", "active", "expired", "cancelled"] as const;
 const TERMS = ["IMMEDIATE", "NET_7", "NET_14", "NET_15", "NET_30", "NET_45", "CUSTOM"];
@@ -57,8 +50,8 @@ export function StatementTab({ id }: { id: string }) {
   if (!data) {
     return (
       <SectionCard title="Current billing period">
-        <div className="px-5 py-8">
-          <Spinner label="Loading statement…" />
+        <div className="px-5 py-4">
+          <PageSkeleton rows={3} />
         </div>
       </SectionCard>
     );

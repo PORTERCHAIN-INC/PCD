@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.shopify_control_service import (
-    release_shopify_order_to_fleetbase,
+    release_shopify_order_to_dispatch,
     set_auto_dispatch,
     set_ingress_paused,
 )
@@ -214,7 +214,7 @@ def test_release_shopify_order(db: Session, shopify_shop: ShopifyShop, monkeypat
         "porterchain_api.admin_engine.merchant_org.write_staff_audit",
         MagicMock(),
     ):
-        out = release_shopify_order_to_fleetbase(db, _admin_ctx(), order.id)
+        out = release_shopify_order_to_dispatch(db, _admin_ctx(), order.id)
     assert out["state"] == OrderState.DISPATCH_READY.value
     db.refresh(order)
     assert (order.compliance_metadata or {}).get("shopify", {}).get("held_for_ops") is False

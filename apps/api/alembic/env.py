@@ -15,7 +15,6 @@ from porterchain_api import (  # noqa: F401
     booking_models,
     crm_models,
     driver_models,
-    fleetbase_models,
     identity_models,
     merchant_models,
     user_models,

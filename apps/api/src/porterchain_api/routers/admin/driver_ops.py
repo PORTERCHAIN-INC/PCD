@@ -15,6 +15,17 @@ class DriverOpsRequest(BaseModel):
 
 class ParcelStatusRequest(BaseModel):
     status: str
+    tracking_suffix: str | None = None
+
+
+class ProofUrlRequest(BaseModel):
+    file_url: str
+
+
+class ExtraStopRequest(BaseModel):
+    kind: str
+    formatted: str
+    amount_cents: int
 
 
 @router.get("/orders/{order_id}/driver-ops")
@@ -50,4 +61,48 @@ def set_order_parcel_status(
         order_id,
         parcel_id,
         body.status,
+        tracking_suffix=body.tracking_suffix,
     )
+
+
+@router.post("/orders/{order_id}/proof")
+def add_order_proof(
+    order_id: str,
+    body: ProofUrlRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    return _invoke(ctx, "orders", _driver_ops.add_proof, db, settings, ctx, order_id, body.file_url)
+
+
+@router.post("/orders/{order_id}/extra-stops")
+def add_order_extra_stop(
+    order_id: str,
+    body: ExtraStopRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    return _invoke(
+        ctx,
+        "orders",
+        _driver_ops.add_extra_stop,
+        db,
+        settings,
+        ctx,
+        order_id,
+        kind=body.kind,
+        formatted=body.formatted,
+        amount_cents=body.amount_cents,
+    )
+
+
+@router.post("/orders/{order_id}/extra-stops/{leg}/resend")
+def resend_order_extra_stop(
+    order_id: str,
+    leg: str,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+) -> dict:
+    return _invoke(ctx, "orders", _driver_ops.resend_extra_stop, db, ctx, order_id, leg)

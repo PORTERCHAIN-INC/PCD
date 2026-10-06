@@ -83,9 +83,9 @@ def main() -> int:
     print(f"  [{'PASS' if ok else 'FAIL'}] API /health/ready — HTTP {status}")
     if ok:
         checks = ready.get("checks", {})
-        for key in ("database", "redis", "stripe", "fleetbase", "firebase"):
+        for key in ("database", "redis", "stripe", "dispatch", "firebase"):
             if key in checks:
-                mark = "PASS" if checks[key] in ("ok", "configured", "bridge_disabled", "push_disabled") else "WARN"
+                mark = "PASS" if checks[key] in ("ok", "configured", "porterchain", "push_disabled") else "WARN"
                 if mark == "WARN":
                     warns.append(f"ready.{key}={checks[key]}")
                 print(f"         {key}: {checks[key]} [{mark}]")

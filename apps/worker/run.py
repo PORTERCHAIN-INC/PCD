@@ -17,7 +17,6 @@ _last_draft_reconcile_at = 0.0
 _last_standing_orders_at = 0.0
 _last_notification_retry_at = 0.0
 _last_webhook_retry_at = 0.0
-_last_ops_mirror_at = 0.0
 _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
@@ -25,11 +24,11 @@ _last_lead_archive_at = 0.0
 _last_shopify_retention_at = 0.0
 _last_lead_agent_at = 0.0
 _last_blog_schedule_at = 0.0
+_last_delivery_sla_at = 0.0
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 STANDING_ORDERS_INTERVAL_SECONDS = 300
 NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
 WEBHOOK_RETRY_INTERVAL_SECONDS = 60
-OPS_MIRROR_INTERVAL_SECONDS = 30
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
@@ -37,15 +36,11 @@ LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS = 86400
 SHOPIFY_RETENTION_INTERVAL_SECONDS = 86400
 LEAD_AGENT_INTERVAL_SECONDS = 180
 BLOG_SCHEDULE_INTERVAL_SECONDS = 60
-TRACKING_DRAIN_LIMIT = 10
-# Vehicles/drivers must land in Fleetbase before Optimize can assign. Do not
-# starve them behind a backlog of order sync jobs (commercial drain is limit=1).
-FLEET_SYNC_KINDS = ("vehicle", "driver_profile", "driver_online")
-FLEET_DRAIN_LIMIT = 5
+DELIVERY_SLA_INTERVAL_SECONDS = 60
 EVENT_BUS_BLOCK_MS = 1000
 # Catch up Redis stream lag without waiting on empty BRPOP fan-out.
 EVENT_BUS_BURST = 50
-WORKER_MODES = ("all", "events", "queues", "fleetbase", "routing")
+WORKER_MODES = ("all", "events", "queues", "routing")
 
 
 def _load_local_api_env() -> None:
@@ -89,7 +84,7 @@ def parse_worker_mode(argv: list[str] | None = None) -> str:
         "--mode",
         choices=WORKER_MODES,
         default=(os.environ.get("WORKER_MODE") or "all").strip() or "all",
-        help="events = bus only; queues = Redis queues + sweepers; fleetbase = drain + ops mirror; routing = ROUTING queue only",
+        help="events = bus only; queues = Redis queues + sweepers; routing = ROUTING queue only",
     )
     args = parser.parse_args(argv)
     return str(args.mode)
@@ -139,62 +134,6 @@ def _drain_queues(publisher, *, timeout_seconds: int = 0, queues=None) -> int:
                 processed += 1
             except Exception:
                 logger.exception("failed to process %s message %s", queue.value, msg.message_id)
-    return processed
-
-
-def _drain_fleetbase_retry_queue() -> int:
-    """Commercial drain limit=1; tracking drain is a separate batch (limit=10)."""
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import SessionLocal
-    from porterchain_api.fleetbase_engine.booking_sync_service import BookingSyncService
-    from porterchain_api.fleetbase_engine.retry_queue import TRACKING_KIND
-
-    settings = get_settings()
-    if not settings.fleetbase_dispatch_bridge:
-        return 0
-
-    svc = BookingSyncService()
-    with SessionLocal() as db:
-        fleet = svc.process_retry_queue(
-            db, settings, limit=FLEET_DRAIN_LIMIT, kinds=list(FLEET_SYNC_KINDS)
-        )
-        commercial = svc.process_retry_queue(
-            db,
-            settings,
-            limit=1,
-            exclude_kinds=[TRACKING_KIND, *FLEET_SYNC_KINDS],
-        )
-        tracking = svc.process_retry_queue(
-            db, settings, limit=TRACKING_DRAIN_LIMIT, kinds=[TRACKING_KIND]
-        )
-    processed = (
-        int(fleet.get("processed", 0))
-        + int(commercial.get("processed", 0))
-        + int(tracking.get("processed", 0))
-    )
-    if (
-        processed
-        or fleet.get("failed")
-        or fleet.get("skipped")
-        or commercial.get("failed")
-        or commercial.get("skipped")
-        or tracking.get("failed")
-        or tracking.get("skipped")
-    ):
-        logger.info(
-            "fleetbase retry drain: fleet processed=%s failed=%s skipped=%s; "
-            "commercial processed=%s failed=%s skipped=%s; "
-            "tracking processed=%s failed=%s skipped=%s",
-            fleet.get("processed", 0),
-            fleet.get("failed", 0),
-            fleet.get("skipped", 0),
-            commercial.get("processed", 0),
-            commercial.get("failed", 0),
-            commercial.get("skipped", 0),
-            tracking.get("processed", 0),
-            tracking.get("failed", 0),
-            tracking.get("skipped", 0),
-        )
     return processed
 
 
@@ -369,6 +308,29 @@ def _drain_lead_sla_escalation() -> int:
     return int(result.get("notified", 0))
 
 
+def _drain_delivery_sla() -> int:
+    """Emit order.delayed and sla.breached once when an open order misses its promise."""
+    global _last_delivery_sla_at
+    now = time.monotonic()
+    if now - _last_delivery_sla_at < DELIVERY_SLA_INTERVAL_SECONDS:
+        return 0
+    _last_delivery_sla_at = now
+
+    from porterchain_api.booking_engine.order_sla import publish_due_delivery_notices
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = publish_due_delivery_notices(db, limit=25)
+    sent = int(result.get("delayed", 0)) + int(result.get("breached", 0))
+    if sent:
+        logger.info(
+            "delivery sla notices: delayed=%s breached=%s",
+            result.get("delayed", 0),
+            result.get("breached", 0),
+        )
+    return sent
+
+
 def _drain_lead_soft_archive() -> int:
     """Soft-archive inactive unconverted leads (~24 months)."""
     global _last_lead_archive_at
@@ -461,36 +423,6 @@ def _drain_driver_compliance_expiry() -> int:
     return int(result.get("updated", 0))
 
 
-def _refresh_fleetbase_ops_mirror() -> int:
-    """Pull leftover Fleetbase GETs into Redis so API request threads never wait."""
-    global _last_ops_mirror_at
-    now = time.monotonic()
-    if now - _last_ops_mirror_at < OPS_MIRROR_INTERVAL_SECONDS:
-        return 0
-    _last_ops_mirror_at = now
-
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import SessionLocal
-    from porterchain_api.fleetbase_engine.ops_mirror_refresh import OpsMirrorRefreshService
-
-    settings = get_settings()
-    if not settings.fleetbase_dispatch_bridge:
-        return 0
-
-    with SessionLocal() as db:
-        result = OpsMirrorRefreshService().refresh(db, settings)
-    if result.get("skipped"):
-        return 0
-    logger.info(
-        "fleetbase ops mirror: drivers=%s zones=%s tracking=%s history=%s",
-        result.get("drivers", 0),
-        result.get("zones", 0),
-        result.get("tracking", 0),
-        result.get("history", 0),
-    )
-    return int(result.get("drivers", 0)) + int(result.get("tracking", 0))
-
-
 def main(argv: list[str] | None = None) -> None:
     _load_local_api_env()
     from porterchain_api.platform.bus import ensure_handlers_registered
@@ -537,12 +469,10 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_lead_nurture()
                 processed += _drain_lead_agent()
                 processed += _drain_lead_sla_escalation()
+                processed += _drain_delivery_sla()
                 processed += _drain_lead_soft_archive()
                 processed += _drain_shopify_buyer_retention()
                 processed += _drain_blog_scheduled_publish()
-            if mode_includes(mode, "fleetbase"):
-                processed += _drain_fleetbase_retry_queue()
-                processed += _refresh_fleetbase_ops_mirror()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")

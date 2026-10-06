@@ -412,6 +412,8 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             headline="Your shipment has arrived",
             lead=f"Order {order or tracking} was delivered successfully. {TAGLINE}.",
             rows=[("Order", order), ("Tracking", tracking)],
+            cta_label="Track this shipment" if _g(ctx, "public_track_url") else "",
+            cta_url=_g(ctx, "public_track_url"),
             preheader=f"Delivered · {tracking or order}",
         )
 
@@ -489,9 +491,10 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
         )
 
     if template == "lead_sla_escalation":
+        headline = str(ctx.get("title") or f"Unassigned {_g(ctx, 'priority')} lead")
         return build_transactional_html(
-            eyebrow="Growth SLA",
-            headline=f"Unassigned {_g(ctx, 'priority')} lead",
+            eyebrow="Lead Agent",
+            headline=headline,
             lead=f"{_g(ctx, 'company_name') or 'Lead'} needs assignment.",
             rows=[
                 ("Lead", _g(ctx, "lead_id")),
@@ -501,6 +504,27 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             cta_label="Open lead",
             cta_url=_g(ctx, "deep_link") or "#",
             preheader="Unassigned high-priority lead",
+        )
+
+    parcel_mail = {
+        "order_booked": ("Booked", "Your delivery is booked"),
+        "parcel_picked_up": ("Picked up", "Your parcel has been picked up"),
+        "order_cancelled": ("Cancelled", "This delivery was cancelled"),
+        "exception_opened": ("Exception", "There is a problem with this delivery"),
+        "order_delayed": ("Delayed", "This delivery is running late"),
+        "sla_breached": ("SLA", "This delivery missed its promise"),
+    }
+    if template in parcel_mail:
+        eyebrow, headline = parcel_mail[template]
+        track_url = _g(ctx, "public_track_url")
+        return build_transactional_html(
+            eyebrow=eyebrow,
+            headline=headline,
+            lead=body or headline,
+            rows=[("Order", order), ("Tracking", tracking)],
+            cta_label="Track this shipment" if track_url else "",
+            cta_url=track_url,
+            preheader=f"{headline} · {tracking or order}",
         )
 
     # Generic branded shell for remaining templates
@@ -580,5 +604,12 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
     except KeyError:
         subject = spec["subject"]
         body = spec["body"]
+    if template == "lead_sla_escalation" and context.get("title"):
+        subject = str(context["title"])
+    if template == "lead_sla_escalation" and "notice_body" in context:
+        body = str(context["notice_body"])
+    track = context.get("public_track_url")
+    if isinstance(track, str) and track.startswith("http") and track not in body:
+        body = f"{body}\n\nTrack: {track}"
     html_body = _html_for(template, context, subject=subject, body=body)
     return subject, body, html_body

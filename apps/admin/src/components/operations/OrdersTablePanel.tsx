@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Bookmark, Search, Trash2 } from "lucide-react";
 import { useApiData } from "@/hooks/useApiData";
 import { BOARD_LABELS, ops, SLA_TONE, type OpsOrder } from "@/lib/operations";
-import { Badge, Button, EmptyState, SectionCard, Spinner } from "@/components/crm/primitives";
+import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { dateTime, titleCase } from "@/lib/crmFormat";
+import { TableSkeleton } from "@porterchain/ui/loading";
 
 const VIEWS_KEY = "porterchain.ops.orderViews";
 const DENSITY_KEY = "porterchain.ops.orderDensity";
@@ -290,7 +291,7 @@ export function OrdersTablePanel({
       )}
 
       {loading && !data ? (
-        <Spinner label="Loading orders…" />
+        <TableSkeleton rows={6} />
       ) : (
         <div className="ops-table-scroll">
           <table className={`w-full text-left ${density === "compact" ? "text-xs" : "text-sm"}`}>

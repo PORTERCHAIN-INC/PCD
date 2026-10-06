@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { PageSkeleton } from "@porterchain/ui/loading";
+import { useDeferredValue, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Badge, Button, Spinner } from "@/components/crm/primitives";
+import { Badge, Button } from "@/components/crm/primitives";
 import {
   DRIVER_LEAD_SOURCE,
   WEBSITE_CONTACT_LEAD_SOURCE,
@@ -103,15 +104,22 @@ export default function LeadsListClient() {
     });
   }, [sourceFromUrl, priorityFromUrl, statusFromUrl, hasPhoneFromUrl]);
 
+  const deferredSearch = useDeferredValue(filters.search);
+  const listFilters = { ...filters, search: deferredSearch };
+
   const {
     data: page,
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["leads", JSON.stringify({ ...filters, offset: undefined })],
+    queryKey: ["leads", JSON.stringify({ ...listFilters, offset: undefined })],
     enabled: isLoaded && (isSignedIn || process.env.NODE_ENV === "development"),
     queryFn: async () =>
-      leadsApi.list(await getApiToken(), { ...filters, limit: filters.limit ?? 50, offset: 0 }),
+      leadsApi.list(await getApiToken(), {
+        ...listFilters,
+        limit: listFilters.limit ?? 50,
+        offset: 0,
+      }),
   });
   const rows = page?.items ?? [];
   const total = page?.total ?? 0;
@@ -122,7 +130,7 @@ export default function LeadsListClient() {
   useEffect(() => {
     setExtra([]);
     setLoadOffset(0);
-  }, [JSON.stringify({ ...filters, offset: undefined, limit: undefined })]);
+  }, [JSON.stringify({ ...listFilters, offset: undefined, limit: undefined })]);
 
   const allRows = [...rows, ...extra];
   const canLoadMore = allRows.length < total;
@@ -703,7 +711,7 @@ export default function LeadsListClient() {
 
         {isLoading ? (
           <div className="flex justify-center py-12" role="status" aria-live="polite">
-            <Spinner />
+            <PageSkeleton rows={3} />
             <span className="sr-only">Loading leads</span>
           </div>
         ) : allRows.length === 0 ? (
@@ -845,14 +853,14 @@ export default function LeadsListClient() {
               <div className="mt-4 flex justify-center">
                 <Button
                   variant="outline"
-                  disabled={loadingMore}
+                  aria-busy={loadingMore}
                   onClick={() => {
                     void (async () => {
                       setLoadingMore(true);
                       try {
                         const nextOffset = (page?.limit ?? 50) + loadOffset;
                         const more = await leadsApi.list(await getApiToken(), {
-                          ...filters,
+                          ...listFilters,
                           limit: page?.limit ?? 50,
                           offset: nextOffset,
                         });
@@ -864,7 +872,7 @@ export default function LeadsListClient() {
                     })();
                   }}
                 >
-                  {loadingMore ? "Loading…" : `Load more (${allRows.length} of ${total})`}
+                  {loadingMore ? "Working…" : `Load more (${allRows.length} of ${total})`}
                 </Button>
               </div>
             ) : null}

@@ -6,7 +6,7 @@ Data used to provide the app (linked to identity, not used for tracking):
     Email, name, phone — Clerk driver account and ops profile.
 
   Location
-    Precise location — on-duty GPS pings to Porterchain API / Fleetbase so dispatch can see the van.
+    Precise location — on-duty GPS pings to PorterChain dispatch so the van can be seen on the map.
 
   Photos
     Proof of delivery and document uploads (licence, insurance, vehicle). User-provided.

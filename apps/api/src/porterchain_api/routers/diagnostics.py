@@ -134,10 +134,18 @@ def event_bus_inspector(
     return _svc.event_bus_inspector(db, aggregate_filter=filter, limit=limit)
 
 
+@router.get("/day-plan")
+def day_plan_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    """Day-plan scorecard for diagnostics (OR-Tools + Valhalla)."""
+    _guard(ctx)
+    return _svc.day_plan_monitor(db)
+
+
 @router.get("/fleetbase-sync")
 def fleetbase_sync_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    """Deprecated alias for ``/day-plan`` (one release)."""
     _guard(ctx)
-    return _svc.fleetbase_sync_monitor(db)
+    return _svc.day_plan_monitor(db)
 
 
 @router.get("/merchant-webhook-delivery")
