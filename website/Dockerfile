@@ -12,6 +12,7 @@ COPY packages/auth/package.json ./packages/auth/
 COPY packages/types/package.json ./packages/types/
 COPY packages/config/package.json ./packages/config/
 COPY packages/maps/package.json ./packages/maps/
+COPY packages/ui/package.json ./packages/ui/
 RUN pnpm install --frozen-lockfile --filter @porterchain/website...
 
 FROM base AS builder
@@ -21,6 +22,7 @@ COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=deps /app/packages/maps/node_modules ./packages/maps/node_modules
+COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 COPY package.json pnpm-lock.yaml ./
 COPY website/pnpm-workspace.docker.yaml ./pnpm-workspace.yaml
 COPY website ./website
@@ -28,6 +30,7 @@ COPY packages/auth ./packages/auth
 COPY packages/types ./packages/types
 COPY packages/config ./packages/config
 COPY packages/maps ./packages/maps
+COPY packages/ui ./packages/ui
 ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ARG NEXT_PUBLIC_SITE_URL=https://porterchain.com
 # Leave empty in production so the site uses same-origin /v1/* (Caddy → API).
