@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 TRACK_PAGES = (
-    ("retail website", ROOT / "website/src/app/[locale]/track/[tracking]/page.tsx"),
+    ("retail website", ROOT / "website/src/app/[locale]/track/[tracking]/track-view.tsx"),
     ("customer portal", ROOT / "apps/customer/src/components/tracking/CustomerLiveTrack.tsx"),
 )
 
