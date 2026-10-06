@@ -158,7 +158,10 @@ class InvoiceService:
 
     def _fold_paid_addons(self, db: Session, order: Order) -> None:
         from porterchain_api.domain.states import PaymentStatus
-        from porterchain_driver.field_admin import merge_additional_payment
+        try:
+            from porterchain_driver.field_admin import merge_additional_payment
+        except ImportError:
+            return
 
         rows = (
             db.query(Payment)

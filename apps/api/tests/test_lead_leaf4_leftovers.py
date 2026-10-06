@@ -63,7 +63,7 @@ def test_ingest_applies_channel_sla_and_urgent_task(db, monkeypatch) -> None:
             external_event_id=f"sla-{suffix}",
             company_name=f"SLA Co {suffix}",
             email=f"sla-{suffix}@t.test",
-            phone=f"416555{int(suffix[:4], 16) % 10000:04d}",
+            phone=f"416{suffix[:7].ljust(7, '0')}",
             priority="high",
         ),
     )

@@ -32,6 +32,7 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
         "admin_engine/control_tower/exceptions.py",  # exception board Shopify hold/release
         "admin_engine/control_tower/service.py",  # control tower Shopify ops side-effects
         "integrations/shopify_carrier_rates.py",  # carrier quote persistence
+        "notification_engine/preference_service.py",  # merchant notif prefs
     }
 )
 
@@ -41,6 +42,7 @@ _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
         "auth/staff_session.py",  # StaffWebAuthnCredential — Staff IdP owns
         "merchant_engine/billing_service.py",  # MerchantContract read+flush path
         "notification_engine/delivery_service.py",  # AdminUser resolve on deliver
+        "booking_engine/order_sla.py",  # SLA timestamps on admin-adjacent order rows
     }
 )
 

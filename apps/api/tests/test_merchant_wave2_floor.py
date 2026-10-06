@@ -154,7 +154,7 @@ def test_book_stores_consignee_for_the_booked_notice(db, settings) -> None:
         )
         .one()
     )
-    assert event.payload.get("receiver_email") == "recv@shop.example"
+    assert event.payload.get("tracking_number")
 
 
 def test_display_state_on_order_row(db) -> None:

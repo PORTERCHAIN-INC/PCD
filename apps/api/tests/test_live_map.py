@@ -51,6 +51,14 @@ def _order(state: OrderState = OrderState.IN_TRANSIT, **overrides) -> Order:
 
 
 def _cleanup(db: Session, *rows) -> None:
+    db.rollback()
+    ids = [getattr(row, "id", None) for row in rows if row is not None]
+    from porterchain_api.driver_models import DriverShift
+
+    if ids:
+        db.query(DriverShift).filter(DriverShift.driver_id.in_([i for i in ids if i])).delete(
+            synchronize_session=False
+        )
     for row in rows:
         if row is None:
             continue
