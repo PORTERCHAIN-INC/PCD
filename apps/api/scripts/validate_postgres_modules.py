@@ -25,8 +25,6 @@ MODULE_TABLES: dict[str, list[str]] = {
     "support": ["support_tickets"],
     "notifications": ["notification_records", "notification_devices"],
     "drivers": ["drivers", "driver_shifts", "driver_location_pings"],
-    "fleetbase_adapter": ["fleetbase_sync_jobs", "fleetbase_sync_audit"],
-    # route_center_plans/templates were dropped — Phase 2 flag PORTERCHAIN_PHASE2_ROUTE_CENTER
     "auth": ["admin_users", "porterchain_users", "user_invitations"],
 }
 
