@@ -111,17 +111,11 @@ def test_assignable_drivers_never_calls_adapter():
     db = MagicMock()
     db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
     db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
-    with (
-        patch(
-            "porterchain_api.dispatch_engine.ops_mirror.online_map_from_mirror",
-            return_value={},
-        ),
-        patch(
-            "porterchain_api.services.fleetbase_integration.get_fleetbase_integration"
-        ) as get_fb,
+    with patch(
+        "porterchain_api.dispatch_engine.ops_mirror.online_map_from_mirror",
+        return_value={},
     ):
         assert mixin.assignable_drivers(db) == []
-        get_fb.assert_not_called()
 
 
 def test_navigation_session_source_has_no_fetch_route():

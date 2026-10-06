@@ -184,7 +184,7 @@ def test_arch_customer_portal_pages_exist() -> None:
 
 def test_arch_admin_customers_pages_and_tabs() -> None:
     """A-UI inventory: list/detail + tabs + Add order + Create customer modal."""
-    list_page = (ADMIN_SRC / "app/(ops)/customers/page.tsx").read_text(encoding="utf-8")
+    list_page = (ADMIN_SRC / "app/(ops)/customers/screen.tsx").read_text(encoding="utf-8")
     detail = (ADMIN_SRC / "components/customers/CustomerDetailClient.tsx").read_text(encoding="utf-8")
     lib = (ADMIN_SRC / "lib/customers.ts").read_text(encoding="utf-8")
     assert "Add customer" in list_page

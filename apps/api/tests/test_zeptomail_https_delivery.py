@@ -66,6 +66,14 @@ def test_send_email_uses_zeptomail_https() -> None:
             "porterchain_api.notification_engine.delivery_service.render_email",
             return_value=("Subj", "text", "<p>html</p>"),
         ),
+        patch(
+            "porterchain_api.db.SessionLocal",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "porterchain_api.notification_engine.bounce.address_is_bounced",
+            return_value=False,
+        ),
         patch("httpx.post", return_value=mock_resp) as post,
     ):
         svc._send_email("ravi@porterchain.com", "staff_activate", {})
@@ -97,6 +105,14 @@ def test_send_email_https_http_error() -> None:
         patch(
             "porterchain_api.notification_engine.delivery_service.render_email",
             return_value=("Subj", "text", "<p>html</p>"),
+        ),
+        patch(
+            "porterchain_api.db.SessionLocal",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "porterchain_api.notification_engine.bounce.address_is_bounced",
+            return_value=False,
         ),
         patch("httpx.post", return_value=mock_resp),
         pytest.raises(ValueError, match="zeptomail_http_401"),

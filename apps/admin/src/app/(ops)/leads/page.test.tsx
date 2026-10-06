@@ -25,7 +25,7 @@ vi.mock("@/lib/leads", async () => {
   };
 });
 
-import LeadsPage from "./page";
+import LeadsListClient from "@/components/leads/LeadsListClient";
 
 describe("LeadsPage (merchant inbox)", () => {
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe("LeadsPage (merchant inbox)", () => {
   });
 
   it("renders lead workspace heading, metrics strip, and lead row", async () => {
-    renderWithProviders(<LeadsPage />);
+    renderWithProviders(<LeadsListClient />);
 
     expect(await screen.findByRole("heading", { name: /lead workspace/i })).toBeInTheDocument();
     await waitFor(() => expect(list).toHaveBeenCalled());
@@ -74,7 +74,7 @@ describe("LeadsPage (merchant inbox)", () => {
 
   it("opens manual capture controls", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LeadsPage />);
+    renderWithProviders(<LeadsListClient />);
     await screen.findByRole("heading", { name: /lead workspace/i });
     await user.click(screen.getByRole("button", { name: /add lead/i }));
     expect(
@@ -85,7 +85,7 @@ describe("LeadsPage (merchant inbox)", () => {
 
   it("toggles merge queue filter and refetches", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LeadsPage />);
+    renderWithProviders(<LeadsListClient />);
     await screen.findByText("Acme Logistics");
     const before = list.mock.calls.length;
     await user.click(screen.getByRole("button", { name: /merge candidate queue/i }));
@@ -118,7 +118,7 @@ describe("LeadsPage (driver applications)", () => {
   });
 
   it("switches copy and hides merchant-only capture when driver filter is on", async () => {
-    renderWithProviders(<LeadsPage />);
+    renderWithProviders(<LeadsListClient />);
     expect(await screen.findByRole("heading", { name: /lead workspace/i })).toBeInTheDocument();
     expect(await screen.findByText(/vehicle partner applications/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /add lead/i })).not.toBeInTheDocument();

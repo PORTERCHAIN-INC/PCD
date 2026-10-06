@@ -164,6 +164,10 @@ class TestSnapshot:
                     "porterchain_api.dispatch_engine.gps_board.read_last_known",
                     return_value=known,
                 ),
+                patch(
+                    "porterchain_api.platform.last_known.read_last_known",
+                    return_value=known,
+                ),
             ):
                 snap = LiveMapService().snapshot(db)
 
@@ -230,6 +234,10 @@ class TestSnapshot:
                 ),
                 patch(
                     "porterchain_api.dispatch_engine.gps_board.read_last_known",
+                    return_value=known,
+                ),
+                patch(
+                    "porterchain_api.platform.last_known.read_last_known",
                     return_value=known,
                 ),
             ):

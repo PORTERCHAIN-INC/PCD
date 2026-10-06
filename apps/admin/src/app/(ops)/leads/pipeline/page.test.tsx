@@ -19,7 +19,7 @@ vi.mock("@/lib/leads", async () => {
   };
 });
 
-import LeadsPipelinePage from "./page";
+import LeadsPipelineClient from "@/components/leads/LeadsPipelineClient";
 
 describe("LeadsPipelinePage", () => {
   beforeEach(() => {
@@ -58,7 +58,7 @@ describe("LeadsPipelinePage", () => {
   });
 
   it("loads acquisition pipeline columns and lead cards", async () => {
-    renderWithProviders(<LeadsPipelinePage />);
+    renderWithProviders(<LeadsPipelineClient />);
     expect(
       await screen.findByRole("heading", { name: /acquisition pipeline/i })
     ).toBeInTheDocument();

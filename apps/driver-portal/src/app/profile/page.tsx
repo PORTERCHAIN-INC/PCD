@@ -5,7 +5,7 @@ import { driverServerGet } from "@/lib/server-api";
 export default async function ProfilePage() {
   const client = new QueryClient();
   const [snap, identity, background, abstract] = await Promise.all([
-    driverServerGet<{} | null>("/v1/profile"),
+    driverServerGet<Record<string, unknown> | null>("/v1/profile"),
     driverServerGet<{ enabled?: boolean }>("/v1/verification/identity"),
     driverServerGet<{ enabled?: boolean }>("/v1/verification/background"),
     driverServerGet<{ enabled?: boolean }>("/v1/verification/abstract"),

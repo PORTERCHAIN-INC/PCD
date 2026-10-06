@@ -106,6 +106,10 @@ class NotificationEngine:
         ctx = dict(context or {})
         meta = template_meta(template_key)
         cat = category or meta.get("category", "operational")
+        if len(recipient_id) > 36:
+            from uuid import NAMESPACE_URL, uuid5
+
+            recipient_id = str(uuid5(NAMESPACE_URL, f"{recipient_type}:{recipient_id}"))
 
         if not self._prefs.is_enabled(
             db,

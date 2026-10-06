@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
-from unittest.mock import patch
 
 from porterchain_api.admin_engine.booking_draft_admin_service import (
     AdminBookingDraftService,
@@ -106,13 +105,10 @@ def test_merchant_sync_validate(db, merchant_ctx) -> None:
     assert result.payment_terms == "NET_30"
 
 
-@patch("porterchain_api.platform.retired_sync.get_fleetbase_integration")
-def test_webhook_ingress_disabled(mock_integration, db, settings) -> None:
+def test_webhook_ingress_removed(db, settings) -> None:
     settings.fleetbase_dispatch_bridge = False
-    result = WebhookIngressService().accept(
-        db, settings, raw_body=b"{}", signature=None
-    )
-    assert result["status"] == "ignored"
+    result = WebhookIngressService().accept(db, settings, raw_body=b"{}", signature=None)
+    assert result is None
 
 
 def test_merchant_tracking_by_number(db, settings, merchant_ctx, dispatch_order) -> None:

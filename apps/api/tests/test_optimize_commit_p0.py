@@ -21,10 +21,8 @@ def test_commit_requires_assignments() -> None:
         svc.commit(MagicMock(), assignments=[])
 
 
-def test_commit_strips_pc_fields_and_calls_adapter() -> None:
+def test_commit_records_assignments_without_fleetbase() -> None:
     svc = OrchestratorOpsService()
-    adapter = MagicMock()
-    adapter.commit_orchestrator.return_value = {"ok": True, "manifests": ["m1"]}
     assignments = [
         {
             "order_id": "order_abc123",
@@ -38,22 +36,12 @@ def test_commit_strips_pc_fields_and_calls_adapter() -> None:
     ]
     with (
         patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.get_settings"
-        ),
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.get_fleetbase_integration",
-            return_value=adapter,
-        ),
-        patch(
             "porterchain_api.admin_engine.orchestrator_ops_service._write_commit_cache"
         ) as write_cache,
         patch(
             "porterchain_api.admin_engine.orchestrator_ops_service._read_commit_cache",
             return_value=None,
         ),
-        patch(
-            "porterchain_api.intelligence_engine.cuopt_shadow.run_cuopt_shadow"
-        ) as cuopt,
     ):
         out = svc.commit(
             MagicMock(),
@@ -62,30 +50,17 @@ def test_commit_strips_pc_fields_and_calls_adapter() -> None:
             run_id="run-commit-1",
         )
 
-    adapter.commit_orchestrator.assert_called_once()
-    cleaned = adapter.commit_orchestrator.call_args.args[0]
-    assert cleaned == [
-        {
-            "order_id": "order_abc123",
-            "vehicle_id": "vehicle_abc123",
-            "driver_id": "driver_abc123",
-            "distance": 1200,
-            "duration": 400,
-            "sequence": 1,
-        }
-    ]
-    assert "porterchain_order_id" not in cleaned[0]
     assert out["ok"] is True
+    assert out["engine"] == "porterchain"
     assert out["idempotent"] is False
     assert out["run_id"] == "run-commit-1"
     assert out["scheduled_date"] == "2026-09-17"
+    assert out["assignments"] == assignments
     write_cache.assert_called_once()
-    cuopt.assert_not_called()
 
 
-def test_commit_idempotent_by_run_id_skips_adapter() -> None:
+def test_commit_idempotent_by_run_id() -> None:
     svc = OrchestratorOpsService()
-    adapter = MagicMock()
     prior = {
         "ok": True,
         "run_id": "run-idem",
@@ -93,15 +68,9 @@ def test_commit_idempotent_by_run_id_skips_adapter() -> None:
         "committed_at": "2026-09-17T12:00:00+00:00",
         "idempotent": False,
     }
-    with (
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service._read_commit_cache",
-            return_value=prior,
-        ),
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.get_fleetbase_integration",
-            return_value=adapter,
-        ),
+    with patch(
+        "porterchain_api.admin_engine.orchestrator_ops_service._read_commit_cache",
+        return_value=prior,
     ):
         out = svc.commit(
             MagicMock(),
@@ -109,15 +78,13 @@ def test_commit_idempotent_by_run_id_skips_adapter() -> None:
             run_id="run-idem",
         )
 
-    adapter.commit_orchestrator.assert_not_called()
     assert out["idempotent"] is True
     assert out["run_id"] == "run-idem"
     assert out["ok"] is True
 
 
-def test_commit_sequence_conflict_before_adapter() -> None:
+def test_commit_sequence_conflict() -> None:
     svc = OrchestratorOpsService()
-    adapter = MagicMock()
     with (
         patch(
             "porterchain_api.admin_engine.orchestrator_ops_service._read_commit_cache",
@@ -126,10 +93,6 @@ def test_commit_sequence_conflict_before_adapter() -> None:
         patch(
             "porterchain_driver.sequence_store.read_sequence",
             return_value={"version": 3},
-        ),
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.get_fleetbase_integration",
-            return_value=adapter,
         ),
     ):
         with pytest.raises(SequenceConflictError) as excinfo:
@@ -142,13 +105,10 @@ def test_commit_sequence_conflict_before_adapter() -> None:
             )
     assert excinfo.value.current_version == 3
     assert excinfo.value.expected_version == 1
-    adapter.commit_orchestrator.assert_not_called()
 
 
 def test_commit_applies_driver_sequence_when_pc_driver_id() -> None:
     svc = OrchestratorOpsService()
-    adapter = MagicMock()
-    adapter.commit_orchestrator.return_value = {"ok": True}
     with (
         patch(
             "porterchain_api.admin_engine.orchestrator_ops_service._read_commit_cache",
@@ -156,13 +116,6 @@ def test_commit_applies_driver_sequence_when_pc_driver_id() -> None:
         ),
         patch(
             "porterchain_api.admin_engine.orchestrator_ops_service._write_commit_cache"
-        ),
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.get_settings"
-        ),
-        patch(
-            "porterchain_api.admin_engine.orchestrator_ops_service.get_fleetbase_integration",
-            return_value=adapter,
         ),
         patch(
             "porterchain_driver.sequence_store.read_sequence",
@@ -278,12 +231,13 @@ def test_accept_optimize_propagates_sequence_conflict() -> None:
     assert excinfo.value.current_version == 5
 
 
-def test_execute_queued_run_may_attach_cuopt_but_commit_path_isolated() -> None:
-    """cuOpt is shadow-on-ready only; commit must never be the SoT writer."""
+def test_execute_queued_run_is_porterchain_only() -> None:
+    """Commit and the worker finish path never write through Fleetbase or cuOpt."""
     import inspect
 
     commit_src = inspect.getsource(OrchestratorOpsService.commit)
     assert "run_cuopt_shadow" not in commit_src
     assert "cuopt_shadow" not in commit_src
     exec_src = inspect.getsource(OrchestratorOpsService.execute_queued_run)
-    assert "run_cuopt_shadow" in exec_src
+    assert "finish_porterchain_run" in exec_src
+    assert "get_fleetbase_integration" not in exec_src

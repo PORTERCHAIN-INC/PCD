@@ -5,6 +5,7 @@ Implements .cursor/rules/fleetbase-first-policy.mdc rule 3: admin_engine and
 admin routers must never compute dispatch distance, nearest-driver ranking,
 matrices, or waypoint sequencing locally. Road cost is Valhalla/OSRM.
 Day sequencing is OR-Tools only in dispatch_engine — not in admin_engine.
+HS-20: Google Places is autocomplete/tiles only; never Distance Matrix for ops math.
 """
 
 from __future__ import annotations

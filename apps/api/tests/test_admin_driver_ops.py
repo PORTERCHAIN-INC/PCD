@@ -12,7 +12,7 @@ def test_picked_up_order_has_delivery_steps_only() -> None:
     ids = [item["id"] for item in driver_actions_for("PICKED_UP", has_driver=True)]
     assert "accept" not in ids
     assert "decline" not in ids
-    assert ids == ["start_route", "arrive_delivery", "complete_delivery"]
+    assert ids == ["start_route", "arrive_delivery", "complete_delivery", "complete_delivery_without_proof"]
 
 
 def test_unassigned_order_has_no_driver_steps() -> None:

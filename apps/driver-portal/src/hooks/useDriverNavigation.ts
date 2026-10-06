@@ -21,12 +21,14 @@ export function useDriverNavigation(orderId?: string | null) {
       typeof document !== "undefined" && document.visibilityState === "hidden" ? false : POLL_MS,
   });
 
-  const refresh = useEffectEvent(() => {
+  const refreshNav = () => {
     void qc.invalidateQueries({ queryKey: ["driver-navigation", orderId ?? null] });
+  };
+  const onSequence = useEffectEvent(() => {
+    refreshNav();
   });
 
   useEffect(() => {
-    const onSequence = () => refresh();
     window.addEventListener("pc:sequence-applied", onSequence);
     return () => window.removeEventListener("pc:sequence-applied", onSequence);
   }, []);
@@ -66,6 +68,6 @@ export function useDriverNavigation(orderId?: string | null) {
     error: query.error instanceof Error ? query.error.message : "",
     loading: query.isLoading && !query.data,
     deviceLocation,
-    refresh: () => refresh(),
+    refresh: refreshNav,
   };
 }

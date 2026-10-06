@@ -40,7 +40,6 @@ def test_core_tables_exist() -> None:
         "merchants",
         "crm_leads",
         "crm_companies",
-        "fleetbase_sync_jobs",
         "domain_events",
         "alembic_version",
     }

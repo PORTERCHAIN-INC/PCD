@@ -16,7 +16,7 @@ def test_presence_events_classify() -> None:
     assert FleetbaseLifecycleTranslator.classify("order.assigned") == "driver"
 
 
-def test_mirror_driver_presence_updates_local() -> None:
+def test_mirror_driver_presence_retired() -> None:
     from porterchain_api.platform.retired_sync import WebhookProcessor
 
     driver = SimpleNamespace(
@@ -32,10 +32,9 @@ def test_mirror_driver_presence_updates_local() -> None:
         db,
         {"fleetbase_driver_id": "fb-1", "online": True, "event": "driver.online"},
     )
-    assert out is driver
-    assert driver.is_online is True
-    assert driver.availability == "online"
-    db.commit.assert_called()
+    assert out is None
+    assert driver.is_online is False
+    db.commit.assert_not_called()
 
 
 def test_reject_and_rehire_lifecycle() -> None:

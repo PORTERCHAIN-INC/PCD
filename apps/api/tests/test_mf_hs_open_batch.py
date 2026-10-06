@@ -25,9 +25,6 @@ MF_HS_PROBE_IDS = (
     "google_maps",
     "osrm",
     "valhalla",
-    "vroom",
-    "fleetbase",
-    "fleetbase_adapter",
     "notification_engine",
     "mailpit",
     "email_smtp",
@@ -60,8 +57,6 @@ def test_mf_hs07_non_live_probes_return_health_shape(settings) -> None:
         "google_maps": svc._probe_google_maps(platform, live=False, app_env=settings.app_env),
         "osrm": svc._probe_osrm(platform, live=False),
         "valhalla": svc._probe_valhalla(platform, live=False),
-        "fleetbase_adapter": svc._probe_fleetbase_adapter(settings, live=False),
-        "fleetbase": svc._probe_fleetbase(settings, live=False),
     }
     for name, probe in probes.items():
         assert "status" in probe, name

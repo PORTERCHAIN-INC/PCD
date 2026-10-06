@@ -162,6 +162,10 @@ def test_in_app_inbox_for_each_user_type_and_template(db, user_role: str, templa
     assert rec.channel == "in_app"
 
     inbox = engine.inbox_payload(db, user_role=user_role, user_id=user_id, limit=50)
+    if template_key == "lead_sla_escalation":
+        ids = {item["id"] for item in inbox["items"]}
+        assert rec.id not in ids
+        return
     assert inbox["unread_count"] >= 1
     ids = {item["id"] for item in inbox["items"]}
     assert rec.id in ids

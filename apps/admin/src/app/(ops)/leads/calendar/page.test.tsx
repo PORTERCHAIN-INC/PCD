@@ -19,7 +19,7 @@ vi.mock("@/lib/leads", async () => {
   };
 });
 
-import LeadCalendarPage from "./page";
+import LeadsCalendarClient from "@/components/leads/LeadsCalendarClient";
 
 describe("LeadCalendarPage", () => {
   beforeEach(() => {
@@ -48,7 +48,7 @@ describe("LeadCalendarPage", () => {
   });
 
   it("fetches calendar tasks for the visible week", async () => {
-    renderWithProviders(<LeadCalendarPage />);
+    renderWithProviders(<LeadsCalendarClient />);
     await waitFor(() => expect(calendar).toHaveBeenCalled());
     const args = calendar.mock.calls[0]?.[1] as {
       due_after?: string;

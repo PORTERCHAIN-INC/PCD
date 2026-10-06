@@ -28,7 +28,7 @@ def test_normalize_pod_gallery_shape():
     assert len(pod["photos"]) == 1
     assert len(pod["signatures"]) == 1
     assert pod["otp"][0]["otp"] == "1234"
-    assert pod["source"] == "fleetbase"
+    assert pod["source"] == "porterchain"
 
 
 def test_label_and_manifest_pdf_bytes():
