@@ -20,7 +20,7 @@ firebase-admin>=7.5.0
 msgpack>=1.2.1
 authzed>=1.21.0
 grpcio>=1.70.0
-webauthn>=2.7.0
+webauthn>=3.0.1
 h3>=4.2.0
 ortools==9.15.6755
 
