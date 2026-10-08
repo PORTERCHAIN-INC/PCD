@@ -52,3 +52,19 @@ def _reset_authz_client():
     reset_authz_client()
     yield
     reset_authz_client()
+
+
+@pytest.fixture(autouse=True)
+def _no_live_shopify_token_calls(monkeypatch):
+    """Never reach Shopify's token endpoint from tests.
+
+    Shops seeded with a legacy token would otherwise try the one-time migration
+    exchange. A network-style failure keeps the stored token (renewal deferred).
+    Token tests patch ``shopify_tokens._token_request`` themselves.
+    """
+    from porterchain_api.merchant_engine import shopify_tokens
+
+    def _offline(shop: str, data: dict[str, str]):
+        raise shopify_tokens.ShopifyTokenError(None, "tests_offline")
+
+    monkeypatch.setattr(shopify_tokens, "_token_request", _offline)

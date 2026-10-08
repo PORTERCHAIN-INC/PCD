@@ -43,8 +43,14 @@ def admin_graphql(
             json={"query": query, "variables": variables or {}},
         )
     if response.status_code >= 400:
-        logger.warning("shopify_graphql_http status=%s shop=%s", response.status_code, shop)
-        raise ShopifyAdminError(f"http_{response.status_code}")
+        from porterchain_api.merchant_engine.shopify_tokens import token_rejection_reason
+
+        # 403 is both "missing scope" and "non-expiring token refused": keep which one.
+        reason = token_rejection_reason(response.status_code, response.text)
+        logger.warning(
+            "shopify_graphql_http status=%s shop=%s reason=%s", response.status_code, shop, reason
+        )
+        raise ShopifyAdminError(f"http_{response.status_code}" + (f":{reason}" if reason else ""))
     body = response.json()
     if not isinstance(body, dict):
         raise ShopifyAdminError("graphql_body")

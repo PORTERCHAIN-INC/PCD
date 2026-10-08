@@ -18,6 +18,7 @@ from porterchain_api.booking_models import Address, Order, Stop
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
+from porterchain_api.merchant_engine.shopify_tokens import clear_tokens
 from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain
 from porterchain_api.merchant_models import ShopifyDataSubjectRequest, ShopifyIngressDlq, ShopifyShop
 
@@ -206,7 +207,7 @@ def process_privacy_request(db: Session, settings: Settings, request_id: str) ->
     elif row.topic in {"customers/redact", "shop/redact"}:
         if row.topic == "shop/redact" and shop is not None:
             shop.uninstalled_at = datetime.now(UTC)
-            shop.encrypted_access_token = None
+            clear_tokens(shop)
             shop.encrypted_webhook_secret = None
             shop.default_pickup_address_id = None
         touched, reason = _redact_orders(db, settings, row, shop)

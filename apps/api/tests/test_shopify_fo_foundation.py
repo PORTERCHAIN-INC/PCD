@@ -97,7 +97,7 @@ def test_post_install_registers_fs_only_when_flag_on() -> None:
     shop.encrypted_access_token = "enc"
     with (
         patch(
-            "porterchain_api.merchant_engine.shopify_service._decrypt",
+            "porterchain_api.merchant_engine.shopify_fulfillment_ops.access_token_for",
             return_value="tok",
         ),
         patch(

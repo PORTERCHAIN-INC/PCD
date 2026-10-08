@@ -266,6 +266,12 @@ class ShopifyShop(Base):
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     shop_domain: Mapped[str] = mapped_column(String(255), index=True)
     encrypted_access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Expiring offline token (1 h) + refresh token (90 d). See shopify_tokens.py.
+    access_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    encrypted_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    refresh_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # expiring | custom_app | token_reauth_required; NULL = legacy non-expiring token.
+    token_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     encrypted_webhook_secret: Mapped[str | None] = mapped_column(String(512), nullable=True)
     default_pickup_address_id: Mapped[str | None] = mapped_column(
         ForeignKey("saved_addresses.id"), nullable=True, index=True

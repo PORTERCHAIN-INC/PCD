@@ -39,6 +39,7 @@ from porterchain_api.merchant_engine.import_geocode import geocode_stop
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
 from porterchain_api.merchant_engine.service_area import assert_ontario_booking
+from porterchain_api.merchant_engine import shopify_tokens as tokens
 from porterchain_api.merchant_engine.shopify_urls import (
     app_home_url,
     callback_url,
@@ -214,7 +215,7 @@ def connect_custom_app(
         row = ShopifyShop(merchant_id=ctx.merchant.id, shop_domain=shop, auto_dispatch=False)
         db.add(row)
     row.merchant_id = ctx.merchant.id
-    row.encrypted_access_token = _encrypt(token, settings)
+    tokens.store_custom_app_token(row, token, settings)
     if webhook_secret:
         row.encrypted_webhook_secret = _encrypt(webhook_secret.strip(), settings)
     if pickup_id:
@@ -264,7 +265,7 @@ def disconnect_shop(db: Session, ctx: MerchantContext, shop_id: str) -> None:
         raise LookupError("shop_not_found")
     _delete_partner_services(shop)
     shop.uninstalled_at = datetime.now(UTC)
-    shop.encrypted_access_token = None
+    tokens.clear_tokens(shop)
     shop.carrier_service_gid = None
     shop.fulfillment_service_gid = None
     shop.location_gid = None
@@ -317,7 +318,7 @@ def complete_oauth(
         row = ShopifyShop(merchant_id=merchant.id, shop_domain=shop, auto_dispatch=False)
         db.add(row)
     row.merchant_id = merchant.id
-    row.encrypted_access_token = _encrypt(access_token, settings)
+    tokens.store_token_response(row, token_body, settings)  # expiring pair + refresh token
     row.scopes = str(token_body.get("scope") or settings.shopify_api_scopes)
     gid = shop_payload.get("id") if isinstance(shop_payload, dict) else None
     row.shopify_shop_gid = str(gid) if gid else row.shopify_shop_gid
@@ -470,7 +471,7 @@ def ingest_webhook(
         if shop:
             _delete_partner_services(shop)
             shop.uninstalled_at = datetime.now(UTC)
-            shop.encrypted_access_token = None
+            tokens.clear_tokens(shop)
             shop.carrier_service_gid = None
             shop.fulfillment_service_gid = None
             shop.location_gid = None
@@ -653,7 +654,7 @@ def capture_cod_transaction(db: Session, settings: Settings, order: Order) -> No
     shop = _active_shop(db, shop_domain)
     if not shop:
         return
-    token = _decrypt(shop.encrypted_access_token, settings)
+    token = tokens.access_token_for(shop, settings)
     if not token:
         return
     amount = (order.cod_amount_cents or 0) / 100.0
@@ -770,19 +771,8 @@ def _admin_url(shop: str, path: str, settings: Settings) -> str:
 
 
 def _exchange_token(shop: str, code: str, settings: Settings) -> dict[str, Any]:
-    url = f"https://{shop}/admin/oauth/access_token"
-    with httpx.Client(timeout=15.0) as client:
-        response = client.post(
-            url,
-            json={
-                "client_id": settings.shopify_api_key,
-                "client_secret": settings.shopify_api_secret,
-                "code": code,
-            },
-        )
-        response.raise_for_status()
-        body = response.json()
-    return body if isinstance(body, dict) else {}
+    """Authorization code → expiring offline token (``expiring=1``) + refresh token."""
+    return tokens.exchange_authorization_code(shop, code, settings)
 
 
 def _admin_get(shop: str, token: str, path: str, settings: Settings) -> dict[str, Any] | None:

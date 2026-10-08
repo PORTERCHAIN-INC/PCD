@@ -64,6 +64,8 @@ def _go_live_status(
         "has_rate_card": _has_rate_card(db, merchant),
         # Shopify only offers our checkout rates once it holds our CarrierService.
         "carrier_registered": any(bool(s.carrier_service_gid) for s in connected),
+        # Shopify refused our token: the merchant must reopen the app to re-approve.
+        "token_valid": not any(s.token_status == "token_reauth_required" for s in connected),
     }
     blocking: list[str] = []
     if not checks["oauth_configured"]:
@@ -72,6 +74,8 @@ def _go_live_status(
         blocking.append("shop_not_connected")
     if checks["shop_connected"] and not checks["pickup_set"]:
         blocking.append("pickup_required")
+    if checks["shop_connected"] and not checks["token_valid"]:
+        blocking.append("token_reauth_required")
     if checks["shop_connected"] and not checks["carrier_registered"]:
         blocking.append("carrier_not_registered")
     if not checks["merchant_active"]:

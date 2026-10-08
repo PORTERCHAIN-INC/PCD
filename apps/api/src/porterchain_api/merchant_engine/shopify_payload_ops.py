@@ -481,7 +481,9 @@ def _push_reverse_delivery(
     )
     if not reverse_id.startswith("gid://shopify/ReverseFulfillmentOrder/"):
         return
-    token = shopify._decrypt(shop.encrypted_access_token, settings)
+    from porterchain_api.merchant_engine.shopify_tokens import access_token_for
+
+    token = access_token_for(shop, settings)
     if not token or not order.tracking_number:
         return
     try:

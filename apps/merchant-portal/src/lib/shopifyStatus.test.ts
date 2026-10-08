@@ -23,3 +23,13 @@ test("blocking codes become one sentence", () => {
     "Not live yet: checkout rates are not registered in Shopify."
   );
 });
+
+test("a refused Shopify token asks for re-approval, not the shipping scope", () => {
+  const copy = shopifyRatesProblem("token_reauth_required") ?? "";
+  assert.match(copy, /approve access again/);
+  assert.doesNotMatch(copy, /shipping permission/);
+  assert.equal(
+    shopifyBlockingText(["token_reauth_required"]),
+    "Not live yet: reopen the app from Shopify admin to approve access again."
+  );
+});

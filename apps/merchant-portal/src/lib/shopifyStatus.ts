@@ -28,6 +28,8 @@ const RATE_STATUS: Record<string, string> = {
   carrier_scope_missing:
     "PorterChain does not have Shopify's shipping permission yet. Re-open the app from Shopify admin and approve the requested access, then retry.",
   carrier_no_token: "PorterChain is not authorized on this store yet. Connect the store first.",
+  token_reauth_required:
+    "Shopify no longer accepts PorterChain's saved access for this store. Open PorterChain Delivery from your Shopify admin and approve access again; checkout rates switch on right after.",
   carrier_register_failed:
     "Shopify did not accept PorterChain's checkout rates yet. Retry rate setup; if it keeps failing, email support@porterchain.com.",
 };
@@ -47,6 +49,7 @@ export function shopifyRatesProblem(status: string | null | undefined): string |
 
 const BLOCKING: Record<string, string> = {
   carrier_not_registered: "checkout rates are not registered in Shopify",
+  token_reauth_required: "reopen the app from Shopify admin to approve access again",
   pickup_required: "add a pickup address",
   merchant_not_active: "your PorterChain account is awaiting activation",
   rate_card_required: "a rate card is needed before checkout can show prices",

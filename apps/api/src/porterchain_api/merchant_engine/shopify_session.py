@@ -9,7 +9,6 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-import httpx
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
@@ -33,11 +32,15 @@ def shop_has_offline_token(db: Session, shop_domain: str) -> bool:
     return bool(row and row.encrypted_access_token)
 
 
-def ensure_carrier_rates(db: Session, settings: Settings, shop_domain: str) -> str:
+def ensure_carrier_rates(
+    db: Session, settings: Settings, shop_domain: str, *, rehook: bool = False
+) -> str:
     """Opening the app on an installed shop re-registers a missing CarrierService.
 
     Returns ``ready`` or the reason Shopify refused (see ``carrier_error_code``).
     Only the carrier step runs here (not the webhook sweep): the app page waits on it.
+    ``rehook`` (a legacy token was just migrated) re-runs the full install hooks once,
+    because webhooks and the carrier were refused while the old token was in use.
     """
     from porterchain_api.merchant_engine.shopify_fulfillment_ops import (
         _register_carrier_service,
@@ -53,6 +56,11 @@ def ensure_carrier_rates(db: Session, settings: Settings, shop_domain: str) -> s
     )
     if row is None or not getattr(row, "encrypted_access_token", None):
         return "carrier_no_token"
+    if rehook:
+        from porterchain_api.merchant_engine import shopify_service as shopify
+
+        shopify._post_install_hooks(row, settings)  # sets row.install_hooks
+        return rates_status(row)
     if getattr(row, "carrier_service_gid", None):
         return "ready"
     try:
@@ -115,23 +123,10 @@ def rates_status(shop: ShopifyShop | None) -> str:
 
 
 def _exchange_session_token(shop: str, subject_token: str, settings: Settings) -> dict[str, Any]:
-    """Managed-install session token → offline Admin API token."""
-    url = f"https://{shop}/admin/oauth/access_token"
-    with httpx.Client(timeout=15.0) as client:
-        response = client.post(
-            url,
-            data={
-                "client_id": settings.shopify_api_key,
-                "client_secret": settings.shopify_api_secret,
-                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-                "subject_token": subject_token,
-                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                "requested_token_type": "urn:shopify:params:oauth:token-type:offline-access-token",
-            },
-        )
-        response.raise_for_status()
-        body = response.json()
-    return body if isinstance(body, dict) else {}
+    """Managed-install session token → expiring offline Admin API token + refresh token."""
+    from porterchain_api.merchant_engine.shopify_tokens import exchange_id_token
+
+    return exchange_id_token(shop, subject_token, settings)
 
 
 def install_from_session_token(
@@ -147,6 +142,7 @@ def install_from_session_token(
         SIGNUP_SOURCE_SHOPIFY,
         apply_signup_policy,
     )
+    from porterchain_api.merchant_engine.shopify_tokens import store_token_response
 
     if not shopify.oauth_configured(settings):
         raise ValueError("shopify_oauth_not_configured")
@@ -169,7 +165,7 @@ def install_from_session_token(
         row = ShopifyShop(merchant_id=merchant.id, shop_domain=shop, auto_dispatch=False)
         db.add(row)
     row.merchant_id = merchant.id
-    row.encrypted_access_token = shopify._encrypt(access_token, settings)
+    store_token_response(row, token_body, settings)
     row.scopes = str(token_body.get("scope") or settings.shopify_api_scopes)
     gid = shop_payload.get("id")
     row.shopify_shop_gid = str(gid) if gid else row.shopify_shop_gid

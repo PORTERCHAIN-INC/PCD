@@ -13,6 +13,13 @@ from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_models import ShopifyShop
+from porterchain_api.merchant_engine.shopify_tokens import (
+    TOKEN_REAUTH_REQUIRED,
+    access_token_for,
+    is_token_rejection,
+    mark_reauth_required,
+    no_token_code,
+)
 from porterchain_api.merchant_engine.shopify_urls import (
     carrier_rates_url,
     fulfillment_callback_prefix,
@@ -98,7 +105,7 @@ def push_fulfillment(
     if not shop:
         _record_error("shop_not_connected")
         return
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
         _record_error("missing_access_token")
         return
@@ -227,7 +234,7 @@ def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, A
 
 
 def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
         raise RuntimeError("webhook_register_failed:no_token")
     address = webhook_url(settings)
@@ -303,8 +310,14 @@ _CARRIER_CODES = (CARRIER_NO_TOKEN, CARRIER_SCOPE_MISSING, CARRIER_PLAN_UNSUPPOR
 
 
 def carrier_error_code(exc: BaseException | str | None) -> str:
-    """Map a registration failure to one stable code (never raw Shopify text)."""
+    """Map a registration failure to one stable code (never raw Shopify text).
+
+    A refused token (403 "Non-expiring access tokens are no longer accepted", or 401)
+    is ``token_reauth_required``, not a missing scope: only a new grant fixes it.
+    """
     text = str(exc or "")
+    if is_token_rejection(text):
+        return TOKEN_REAUTH_REQUIRED
     for code in _CARRIER_CODES:
         if code in text:
             return code
@@ -327,9 +340,9 @@ def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> str:
     Returns the stored id. Raises ``RuntimeError("carrier_register_failed:<code>")``
     when Shopify refuses, so install and the portal can say rates are not live.
     """
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
-        raise RuntimeError(f"{CARRIER_REGISTER_FAILED}:{CARRIER_NO_TOKEN}")
+        raise RuntimeError(f"{CARRIER_REGISTER_FAILED}:{no_token_code(shop, CARRIER_NO_TOKEN)}")
     from porterchain_api.merchant_engine.shopify_admin_graphql import (
         carrier_service_create,
         carrier_service_find,
@@ -393,10 +406,12 @@ def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> str:
     granted = str(getattr(shop, "scopes", "") or "")
     if code == CARRIER_REGISTER_FAILED and granted and "write_shipping" not in granted:
         code = CARRIER_SCOPE_MISSING
-    if existing:
+    if existing and code != TOKEN_REAUTH_REQUIRED:
         # The old id did not update and nothing replaced it: do not report rates as live.
         shop.carrier_service_gid = None
         _persist_shop(shop)
+    if code == TOKEN_REAUTH_REQUIRED:
+        mark_reauth_required(shop, "carrier_token_refused")
     logger.warning(
         "shopify_carrier_register_failed shop=%s code=%s reasons=%s",
         shop.shop_domain,
@@ -408,7 +423,7 @@ def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> str:
 
 def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None:
     """Register FulfillmentService. Callback prefix lets Shopify append the notification path."""
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
         return
     callback = fulfillment_callback_prefix(settings)
@@ -707,7 +722,7 @@ def cancel_shopify_fulfillment(db: Session, settings: Settings, order: Order) ->
     shop = _helpers()._active_shop(db, shop_domain) if shop_domain else None
     if not shop:
         return
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
         return
     from porterchain_api.merchant_engine.shopify_admin_graphql import fulfillment_cancel
@@ -716,7 +731,7 @@ def cancel_shopify_fulfillment(db: Session, settings: Settings, order: Order) ->
 
 
 def delete_partner_services(shop: ShopifyShop, settings: Settings) -> None:
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
         return
     from porterchain_api.merchant_engine.shopify_admin_graphql import (
@@ -762,7 +777,7 @@ def act_on_queued_fo(
         return {"ok": True, "skipped": "shop_not_connected", "action": action}
     if action == "shopify_fo_request" and shop.ingress_paused:
         return {"ok": True, "skipped": "ingress_paused", "action": action}
-    token = _helpers()._decrypt(shop.encrypted_access_token, settings)
+    token = access_token_for(shop, settings)
     if not token:
         return {"ok": True, "skipped": "missing_access_token", "action": action}
     kind = str(body.get("kind") or "")

@@ -17,8 +17,8 @@ from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.shopify_session import (
     ensure_carrier_rates,
     install_from_session_token,
-    shop_has_offline_token,
 )
+from porterchain_api.merchant_engine.shopify_tokens import token_state_for_open
 from porterchain_api.merchant_engine.shopify_urls import app_error_url
 from porterchain_api.platform.rate_limit import (
     TRAFFIC_SHOPIFY_CARRIER,
@@ -73,9 +73,9 @@ def shopify_install(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> RedirectResponse:
-    # No stored token: start Shopify's OAuth authorize URL. A hand-built
+    # No usable token: start Shopify's OAuth authorize URL. A hand-built
     # /app/grant link is not an OAuth session, so the bot never leaves it.
-    # A stored token means install finished: open the admin app.
+    # A token Shopify accepts means install finished: open the admin app.
     host = request.query_params.get("host")
     shopify_initiated = "hmac" in request.query_params
     if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
@@ -83,7 +83,10 @@ def shopify_install(
     if shopify_initiated:
         installed = None
         id_token = (request.query_params.get("id_token") or "").strip()
-        if id_token and not shop_has_offline_token(db, shop):
+        # "" = none stored, refused by Shopify, or refresh expired; "migrated" = a
+        # legacy non-expiring token was just exchanged for an expiring one.
+        token_state = token_state_for_open(db, settings, shop)
+        if id_token and not token_state:
             try:
                 installed = install_from_session_token(
                     db,
@@ -92,16 +95,19 @@ def shopify_install(
                     id_token=id_token,
                 )
             except Exception:
+                db.rollback()
                 logger.exception("shopify_session_install_failed shop=%s", shop)
-        # Only a stored token means install already finished. id_token alone
+        # Only a usable stored token means install already finished. id_token alone
         # still has to reach the grant screen or the authenticate check fails.
-        if shop_has_offline_token(db, shop):
+        if installed is not None or token_state:
             # Fresh install already ran the hooks; a later open re-registers a
             # missing CarrierService so "Open app" heals a shop with no rates.
             rates = (
                 shopify.rates_status(installed)
                 if installed is not None
-                else ensure_carrier_rates(db, settings, shop)
+                else ensure_carrier_rates(
+                    db, settings, shop, rehook=token_state == "migrated"
+                )
             )
             return RedirectResponse(
                 shopify.app_home_url(settings, shop_domain=shop, host=host, rates=rates),
