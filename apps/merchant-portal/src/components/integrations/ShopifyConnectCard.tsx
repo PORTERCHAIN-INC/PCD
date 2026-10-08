@@ -8,6 +8,11 @@ import { listSavedAddresses, type SavedAddress } from "@/lib/booking";
 import { publicEnv } from "@/lib/env";
 import { integrationsApi, type ShopifyConnection, type ShopifyGoLive } from "@/lib/integrations";
 import { settingsApi } from "@/lib/settings";
+import {
+  SHOPIFY_SUPPORT_EMAIL,
+  shopifyBlockingText,
+  shopifyRatesProblem,
+} from "@/lib/shopifyStatus";
 import { useCallback, useEffect, useState } from "react";
 
 function isWarehouse(addr: SavedAddress) {
@@ -17,15 +22,18 @@ function isWarehouse(addr: SavedAddress) {
 function setupStatus(goLive: ShopifyGoLive | undefined, pickup: string | null): string | null {
   if (!pickup) return null;
   if (goLive?.ready) return "Live. Checkout can use PorterChain.";
-  return "PorterChain is finishing setup.";
+  return shopifyBlockingText(goLive?.blocking) ?? "PorterChain is finishing setup.";
 }
 
 export default function ShopifyConnectCard({
   initialShop = "",
   justConnected = false,
+  ratesStatus = null,
 }: {
   initialShop?: string;
   justConnected?: boolean;
+  /** `rates` from the install redirect; the reason Shopify refused the carrier, if it did. */
+  ratesStatus?: string | null;
 }) {
   const { getApiToken, orgId, isSignedIn } = useMerchantAuth();
   const [data, setData] = useState<ShopifyConnection | null>(null);
@@ -37,6 +45,9 @@ export default function ShopifyConnectCard({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [carrierError, setCarrierError] = useState<string | null>(
+    ratesStatus && ratesStatus !== "ready" ? ratesStatus : null
+  );
 
   useEffect(() => {
     if (initialShop) setShop((current) => current || initialShop);
@@ -46,12 +57,12 @@ export default function ShopifyConnectCard({
     if (!isSignedIn || !orgId) return;
     const apiToken = await getApiToken();
     const [connection, saved] = await Promise.all([
-      integrationsApi.shopify(apiToken, orgId),
+      integrationsApi.shopify(apiToken, orgId, initialShop || undefined),
       listSavedAddresses(apiToken, orgId).catch(() => [] as SavedAddress[]),
     ]);
     setData(connection);
     setAddresses(saved);
-  }, [getApiToken, isSignedIn, orgId]);
+  }, [getApiToken, initialShop, isSignedIn, orgId]);
 
   useEffect(() => {
     if (!isSignedIn || !orgId) return;
@@ -64,6 +75,10 @@ export default function ShopifyConnectCard({
   const connectedShops = (data?.shops ?? []).filter((row) => row.connected);
   const connected = connectedShops.length > 0;
   const needsAddress = warehouses.length === 0;
+  // The store from Shopify's "Open app" may already be held by another PorterChain account.
+  const lookup = data?.shop_lookup ?? null;
+  const linkedElsewhere = lookup?.status === "linked_elsewhere";
+  const blockedElsewhere = linkedElsewhere && !lookup?.can_link;
 
   async function ensurePickupId(apiToken: string): Promise<string | undefined> {
     if (defaultWarehouse) return defaultWarehouse.id;
@@ -155,6 +170,25 @@ export default function ShopifyConnectCard({
     }
   }
 
+  async function retryRates(shopId: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const apiToken = await getApiToken();
+      const result = await integrationsApi.shopifyGoLive(apiToken, { shop_id: shopId }, orgId);
+      setData((current) => ({ ...result, shop_lookup: current?.shop_lookup ?? null }));
+      setCarrierError(
+        result.hooks?.carrier_registered
+          ? null
+          : (result.hooks?.carrier_error ?? "carrier_register_failed")
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not retry rate setup");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function setPickup(shopId: string, addressId: string) {
     const apiToken = await getApiToken();
     await integrationsApi.shopifySetPickup(apiToken, shopId, addressId, orgId);
@@ -198,12 +232,33 @@ export default function ShopifyConnectCard({
           {connectedShops.map((row) => {
             const pickup = row.default_pickup ?? defaultWarehouse?.formatted ?? null;
             const status = setupStatus(data?.go_live, pickup);
+            const ratesProblem = row.carrier_registered
+              ? null
+              : shopifyRatesProblem(carrierError ?? "carrier_register_failed");
             return (
               <li key={row.id} className="rounded-xl border border-primary/10 p-3 text-sm">
                 <p className="font-medium text-primary">{row.shop_domain}</p>
                 <p className="text-muted">
                   {pickup ? `Pickup: ${pickup}` : "Add a pickup address"}
                 </p>
+                {row.carrier_registered ? (
+                  <p className="mt-1 text-emerald-800">
+                    Checkout rates: PorterChain is registered as a carrier in Shopify.
+                  </p>
+                ) : (
+                  <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-amber-900">
+                    <p>{ratesProblem}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
+                      disabled={busy}
+                      onClick={() => void retryRates(row.id)}
+                    >
+                      Retry rate setup
+                    </Button>
+                  </div>
+                )}
                 {status ? <p className="mt-1 text-muted">{status}</p> : null}
                 {warehouses.length > 1 ? (
                   <label className="mt-2 block text-xs text-muted">
@@ -255,7 +310,27 @@ export default function ShopifyConnectCard({
         </div>
       ) : null}
 
-      {!connected ? (
+      {initialShop && blockedElsewhere ? (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <p className="font-medium">{initialShop} is linked to a different PorterChain account.</p>
+          <p className="mt-1">
+            Sign in with the account that installed PorterChain Delivery on this store, or email{" "}
+            <a className="underline" href={`mailto:${SHOPIFY_SUPPORT_EMAIL}`}>
+              {SHOPIFY_SUPPORT_EMAIL}
+            </a>{" "}
+            and we will move it to this account.
+          </p>
+        </div>
+      ) : null}
+
+      {initialShop && linkedElsewhere && !blockedElsewhere && !connected ? (
+        <p className="mt-4 rounded-xl bg-primary/5 px-3 py-2 text-sm text-primary">
+          PorterChain Delivery is installed on {initialShop} but not linked to this account yet.
+          Connect links it here; Shopify will confirm you manage the store.
+        </p>
+      ) : null}
+
+      {!connected && !blockedElsewhere ? (
         <div className="mt-4 space-y-3">
           {initialShop ? (
             <p className="text-sm text-primary">

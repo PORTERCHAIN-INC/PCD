@@ -115,7 +115,11 @@ def test_install_handshake_rejects_bad_hmac_and_redirects_valid() -> None:
         params={"shop": "demo.myshopify.com", "timestamp": "1337178173", "hmac": "00"},
         follow_redirects=False,
     )
-    assert bad.status_code == 401
+    # Browser step: a portal page explains the failure instead of a JSON 401.
+    assert bad.status_code == 302
+    assert bad.headers["location"] == (
+        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&error=oauth_hmac_invalid"
+    )
 
     pairs = {"shop": "demo.myshopify.com", "timestamp": "1337178173"}
     message = "&".join(f"{key}={value}" for key, value in sorted(pairs.items()))
@@ -159,7 +163,7 @@ def test_install_with_token_opens_app_home() -> None:
     app.include_router(router)
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_db] = _db_returning(
-        SimpleNamespace(encrypted_access_token="enc")
+        SimpleNamespace(encrypted_access_token="enc", carrier_service_gid="gid://shopify/DeliveryCarrierService/1")
     )
     client = TestClient(app)
     pairs = {"shop": "demo.myshopify.com", "timestamp": "1337178173"}
@@ -171,7 +175,7 @@ def test_install_with_token_opens_app_home() -> None:
     )
     assert ok.status_code == 302
     assert ok.headers["location"] == (
-        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1"
+        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1&rates=ready"
     )
 
 

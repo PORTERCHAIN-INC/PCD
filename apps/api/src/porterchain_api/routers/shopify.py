@@ -15,9 +15,11 @@ from porterchain_api.merchant_engine.booking_validation import BookingValidation
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.shopify_session import (
+    ensure_carrier_rates,
     install_from_session_token,
     shop_has_offline_token,
 )
+from porterchain_api.merchant_engine.shopify_urls import app_error_url
 from porterchain_api.platform.rate_limit import (
     TRAFFIC_SHOPIFY_CARRIER,
     TRAFFIC_SHOPIFY_WEBHOOK,
@@ -53,10 +55,20 @@ def _enforce_shopify_limit(
     return rate_limit_headers(limit, current)
 
 
+def _error_redirect(
+    settings: Settings, code: str, *, shop: str | None, host: str | None
+) -> RedirectResponse:
+    """Browser install steps end on a portal page with next steps, never raw JSON."""
+    return RedirectResponse(
+        app_error_url(settings, code=code, shop_domain=shop, host=host),
+        status_code=302,
+    )
+
+
 @router.get("/install")
 def shopify_install(
     request: Request,
-    shop: str = Query(..., min_length=3),
+    shop: str = Query(default=""),
     merchant_id: str | None = Query(default=None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -64,14 +76,16 @@ def shopify_install(
     # No stored token: start Shopify's OAuth authorize URL. A hand-built
     # /app/grant link is not an OAuth session, so the bot never leaves it.
     # A stored token means install finished: open the admin app.
+    host = request.query_params.get("host")
     shopify_initiated = "hmac" in request.query_params
     if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
-        raise HTTPException(status_code=401, detail="oauth_hmac_invalid")
+        return _error_redirect(settings, "oauth_hmac_invalid", shop=shop, host=host)
     if shopify_initiated:
+        installed = None
         id_token = (request.query_params.get("id_token") or "").strip()
         if id_token and not shop_has_offline_token(db, shop):
             try:
-                install_from_session_token(
+                installed = install_from_session_token(
                     db,
                     settings,
                     shop_domain=shop,
@@ -82,12 +96,15 @@ def shopify_install(
         # Only a stored token means install already finished. id_token alone
         # still has to reach the grant screen or the authenticate check fails.
         if shop_has_offline_token(db, shop):
+            # Fresh install already ran the hooks; a later open re-registers a
+            # missing CarrierService so "Open app" heals a shop with no rates.
+            rates = (
+                shopify.rates_status(installed)
+                if installed is not None
+                else ensure_carrier_rates(db, settings, shop)
+            )
             return RedirectResponse(
-                shopify.app_home_url(
-                    settings,
-                    shop_domain=shop,
-                    host=request.query_params.get("host"),
-                ),
+                shopify.app_home_url(settings, shop_domain=shop, host=host, rates=rates),
                 status_code=302,
             )
     try:
@@ -98,7 +115,7 @@ def shopify_install(
             grant_screen=False,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return _error_redirect(settings, str(exc), shop=shop, host=host)
     return RedirectResponse(url, status_code=302)
 
 
@@ -107,11 +124,13 @@ def shopify_callback(
     request: Request,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    shop: str = Query(...),
-    code: str = Query(...),
+    shop: str = Query(default=""),
+    code: str = Query(default=""),
     state: str | None = Query(default=None),
     host: str | None = Query(default=None),
 ) -> RedirectResponse:
+    if not shop or not code:
+        return _error_redirect(settings, "oauth_code_missing", shop=shop, host=host)
     try:
         connected = shopify.complete_oauth(
             db,
@@ -121,9 +140,20 @@ def shopify_callback(
             state=state,
             query_string=request.url.query,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    dest = shopify.app_home_url(settings, shop_domain=connected.shop_domain, host=host)
+    except (ValueError, LookupError, PermissionError) as exc:
+        db.rollback()
+        logger.warning("shopify_oauth_callback_refused shop=%s code=%s", shop, exc)
+        return _error_redirect(settings, str(exc), shop=shop, host=host)
+    except Exception:  # noqa: BLE001 — token exchange / Shopify outage
+        db.rollback()
+        logger.exception("shopify_oauth_callback_failed shop=%s", shop)
+        return _error_redirect(settings, "install_failed", shop=shop, host=host)
+    dest = shopify.app_home_url(
+        settings,
+        shop_domain=connected.shop_domain,
+        host=host,
+        rates=shopify.rates_status(connected),
+    )
     return RedirectResponse(dest, status_code=302)
 
 

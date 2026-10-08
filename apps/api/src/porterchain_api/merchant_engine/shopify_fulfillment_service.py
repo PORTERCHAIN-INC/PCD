@@ -108,6 +108,7 @@ from porterchain_api.merchant_engine.shopify_fulfillment_ops import (  # noqa: E
     _reject_reason,
     act_on_queued_fo,
     cancel_shopify_fulfillment,
+    carrier_error_code,
     delete_partner_services,
     fulfillment_event_status,
     push_fulfillment,
@@ -115,21 +116,38 @@ from porterchain_api.merchant_engine.shopify_fulfillment_ops import (  # noqa: E
 )
 
 
-def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> None:
+def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]:
+    """Register webhooks, CarrierService (+ FO when flagged). Never raises.
+
+    Returns what happened so install can tell the merchant whether checkout rates
+    are live instead of claiming they are.
+    """
+    errors: list[str] = []
+    carrier_error: str | None = None
     try:
         _register_webhooks(shop, settings)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         logger.warning("shopify_webhook_register_failed shop=%s", shop.shop_domain, exc_info=True)
+        errors.append(f"webhooks:{exc}")
     try:
         _register_carrier_service(shop, settings)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         logger.warning("shopify_carrier_register_failed shop=%s", shop.shop_domain, exc_info=True)
+        errors.append(f"carrier:{exc}")
+        carrier_error = carrier_error_code(exc)
     if settings.shopify_fulfillment_service_enabled:
         try:
             _register_fulfillment_service(shop, settings)
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "shopify_fulfillment_service_register_failed shop=%s",
                 shop.shop_domain,
                 exc_info=True,
             )
+            errors.append(f"fulfillment_service:{exc}")
+    return {
+        "ok": not errors,
+        "errors": errors,
+        "carrier_registered": bool(getattr(shop, "carrier_service_gid", None)),
+        "carrier_error": carrier_error,
+    }

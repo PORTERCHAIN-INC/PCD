@@ -132,8 +132,16 @@ export type ShopifyGoLive = {
     pickup_set?: boolean;
     merchant_active?: boolean;
     has_rate_card?: boolean;
+    carrier_registered?: boolean;
   };
   blocking: string[];
+};
+
+/** Who holds the store named in `?shop=`, from this company's point of view. */
+export type ShopifyShopLookup = {
+  shop_domain: string;
+  status: "not_linked" | "disconnected" | "linked_here" | "linked_elsewhere";
+  can_link: boolean;
 };
 
 export type ShopifyConnection = {
@@ -148,7 +156,13 @@ export type ShopifyConnection = {
   app_url?: string;
   shops: ShopifyShopConnection[];
   go_live?: ShopifyGoLive;
-  hooks?: { ok?: boolean; errors?: string[] };
+  hooks?: {
+    ok?: boolean;
+    errors?: string[];
+    carrier_registered?: boolean;
+    carrier_error?: string | null;
+  };
+  shop_lookup?: ShopifyShopLookup | null;
 };
 
 export type OAuthProvider = {
@@ -390,8 +404,14 @@ export const integrationsApi = {
       orgId,
     }),
 
-  shopify: (token: string, orgId?: string) =>
-    integrationsFetch<ShopifyConnection>("/v1/merchant/shopify", token, { orgId }),
+  shopify: (token: string, orgId?: string, shop?: string) =>
+    integrationsFetch<ShopifyConnection>(
+      shop
+        ? `/v1/merchant/shopify?${new URLSearchParams({ shop }).toString()}`
+        : "/v1/merchant/shopify",
+      token,
+      { orgId }
+    ),
 
   shopifyInstallUrl: (token: string, shop: string, orgId?: string, pickupAddressId?: string) => {
     const qs = new URLSearchParams({ shop });

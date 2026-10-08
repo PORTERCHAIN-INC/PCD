@@ -28,9 +28,11 @@ def shopify_connection(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
+    shop: str | None = None,
 ):
+    """``?shop=`` adds ``shop_lookup`` so /shopify can say who holds that store."""
     require_module(ctx, "api_keys")
-    return shopify.connection_payload(db, ctx.merchant.id, settings)
+    return shopify.connection_payload(db, ctx.merchant.id, settings, shop_domain=shop)
 
 
 @router.get("/shopify/install-url")

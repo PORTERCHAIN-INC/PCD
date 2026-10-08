@@ -49,8 +49,18 @@ def admin_graphql(
     if not isinstance(body, dict):
         raise ShopifyAdminError("graphql_body")
     if body.get("errors"):
-        logger.warning("shopify_graphql_errors shop=%s", shop)
-        raise ShopifyAdminError("graphql_errors")
+        # Keep only Shopify's error codes (e.g. ACCESS_DENIED) so callers can tell
+        # a missing scope from a bad request. Codes carry no buyer data.
+        codes = sorted(
+            {
+                str((err.get("extensions") or {}).get("code") or "")
+                for err in body["errors"]
+                if isinstance(err, dict) and isinstance(err.get("extensions"), dict)
+            }
+            - {""}
+        )
+        logger.warning("shopify_graphql_errors shop=%s codes=%s", shop, ",".join(codes))
+        raise ShopifyAdminError("graphql_errors" + (":" + ",".join(codes) if codes else ""))
     data = body.get("data")
     return data if isinstance(data, dict) else {}
 
@@ -143,6 +153,32 @@ def carrier_service_update(
     if not gid:
         raise ShopifyAdminError("carrier_service_missing")
     return gid
+
+
+def carrier_service_find(
+    shop: str, token: str, settings: Settings, *, callback_url: str, name: str = "PorterChain"
+) -> str | None:
+    """Return the store's existing PorterChain CarrierService id, if one is already there."""
+    data = admin_graphql(
+        shop,
+        token,
+        settings,
+        """
+        query CarrierServices {
+          carrierServices(first: 50) {
+            nodes { id name callbackUrl active }
+          }
+        }
+        """,
+    )
+    block = data.get("carrierServices") if isinstance(data.get("carrierServices"), dict) else {}
+    nodes = block.get("nodes") if isinstance(block.get("nodes"), list) else []
+    for node in nodes:
+        if not isinstance(node, dict) or not node.get("id"):
+            continue
+        if str(node.get("callbackUrl") or "") == callback_url or str(node.get("name") or "") == name:
+            return str(node["id"])
+    return None
 
 
 def carrier_service_delete(shop: str, token: str, settings: Settings, *, service_id: str) -> None:

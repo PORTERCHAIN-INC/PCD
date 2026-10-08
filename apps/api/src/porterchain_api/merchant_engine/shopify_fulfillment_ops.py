@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -193,6 +194,7 @@ def push_fulfillment(
 def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]:
     """Admin heal: re-run webhook + carrier (+ FO if flag) registration."""
     errors: list[str] = []
+    carrier_error: str | None = None
     try:
         _register_webhooks(shop, settings)
     except Exception as exc:  # noqa: BLE001
@@ -203,6 +205,7 @@ def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, A
     except Exception as exc:  # noqa: BLE001
         logger.warning("shopify_carrier_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
         errors.append(f"carrier:{exc}")
+        carrier_error = carrier_error_code(exc)
     if settings.shopify_fulfillment_service_enabled:
         try:
             _register_fulfillment_service(shop, settings)
@@ -218,6 +221,8 @@ def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, A
         "shop_domain": shop.shop_domain,
         "ok": not errors,
         "errors": errors,
+        "carrier_registered": bool(getattr(shop, "carrier_service_gid", None)),
+        "carrier_error": carrier_error,
     }
 
 
@@ -289,39 +294,82 @@ def _persist_shop(shop: ShopifyShop) -> None:
         sess.commit()
 
 
-def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> None:
-    """Register Shopify CarrierService so checkout can call our rate callback."""
+# Why Shopify refused the CarrierService. The portal turns these into merchant copy.
+CARRIER_NO_TOKEN = "carrier_no_token"
+CARRIER_SCOPE_MISSING = "carrier_scope_missing"
+CARRIER_PLAN_UNSUPPORTED = "carrier_plan_unsupported"
+CARRIER_REGISTER_FAILED = "carrier_register_failed"
+_CARRIER_CODES = (CARRIER_NO_TOKEN, CARRIER_SCOPE_MISSING, CARRIER_PLAN_UNSUPPORTED)
+
+
+def carrier_error_code(exc: BaseException | str | None) -> str:
+    """Map a registration failure to one stable code (never raw Shopify text)."""
+    text = str(exc or "")
+    for code in _CARRIER_CODES:
+        if code in text:
+            return code
+    lowered = text.lower()
+    if "access_denied" in lowered or "write_shipping" in lowered or "http_403" in lowered:
+        return CARRIER_SCOPE_MISSING
+    if (
+        "carrier calculated" in lowered
+        or "carrier-calculated" in lowered
+        or "calculated shipping" in lowered
+        or re.search(r"\bplan\b", lowered)
+    ):
+        return CARRIER_PLAN_UNSUPPORTED
+    return CARRIER_REGISTER_FAILED
+
+
+def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> str:
+    """Register (or re-activate) the Shopify CarrierService checkout calls for rates.
+
+    Returns the stored id. Raises ``RuntimeError("carrier_register_failed:<code>")``
+    when Shopify refuses, so install and the portal can say rates are not live.
+    """
     token = _helpers()._decrypt(shop.encrypted_access_token, settings)
     if not token:
-        return
+        raise RuntimeError(f"{CARRIER_REGISTER_FAILED}:{CARRIER_NO_TOKEN}")
+    from porterchain_api.merchant_engine.shopify_admin_graphql import (
+        carrier_service_create,
+        carrier_service_find,
+        carrier_service_update,
+    )
+
     callback = carrier_rates_url(settings)
     existing = shop.carrier_service_gid if isinstance(shop.carrier_service_gid, str) else ""
-    try:
-        from porterchain_api.merchant_engine.shopify_admin_graphql import (
-            ShopifyAdminError,
-            carrier_service_create,
-            carrier_service_update,
-        )
+    reasons: list[str] = []
 
-        if existing:
-            shop.carrier_service_gid = carrier_service_update(
-                shop.shop_domain,
-                token,
-                settings,
-                service_id=existing,
-                callback_url=callback,
-            )
-            _persist_shop(shop)
-            return
-        shop.carrier_service_gid = carrier_service_create(
-            shop.shop_domain, token, settings, callback_url=callback
-        )
+    def _save(gid: str) -> str:
+        shop.carrier_service_gid = gid
         _persist_shop(shop)
-        return
-    except ShopifyAdminError:
-        logger.info("shopify_carrier_graphql_fallback shop=%s", shop.shop_domain)
-    except Exception:  # noqa: BLE001
-        logger.info("shopify_carrier_graphql_fallback shop=%s", shop.shop_domain, exc_info=True)
+        logger.info("shopify_carrier_registered shop=%s", shop.shop_domain)
+        return gid
+
+    if existing:
+        try:
+            return _save(
+                carrier_service_update(
+                    shop.shop_domain, token, settings, service_id=existing, callback_url=callback
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 — stale id: fall through to create
+            reasons.append(f"update:{exc}")
+    try:
+        return _save(carrier_service_create(shop.shop_domain, token, settings, callback_url=callback))
+    except Exception as exc:  # noqa: BLE001
+        reasons.append(f"create:{exc}")
+    # A service from an earlier install can still be on the store ("already configured").
+    try:
+        found = carrier_service_find(shop.shop_domain, token, settings, callback_url=callback)
+        if found:
+            return _save(
+                carrier_service_update(
+                    shop.shop_domain, token, settings, service_id=found, callback_url=callback
+                )
+            )
+    except Exception as exc:  # noqa: BLE001
+        reasons.append(f"find:{exc}")
     resp = _helpers()._admin_post(
         shop.shop_domain,
         token,
@@ -334,15 +382,28 @@ def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> None:
                 "service_discovery": True,
                 "carrier_service_type": "api",
                 "format": "json",
+                "active": True,
             }
         },
     )
     service = resp.get("carrier_service") if isinstance(resp, dict) else None
     if isinstance(service, dict) and service.get("id"):
-        shop.carrier_service_gid = str(service["id"])
+        return _save(str(service["id"]))
+    code = carrier_error_code(" | ".join(reasons))
+    granted = str(getattr(shop, "scopes", "") or "")
+    if code == CARRIER_REGISTER_FAILED and granted and "write_shipping" not in granted:
+        code = CARRIER_SCOPE_MISSING
+    if existing:
+        # The old id did not update and nothing replaced it: do not report rates as live.
+        shop.carrier_service_gid = None
         _persist_shop(shop)
-        return
-    raise RuntimeError("carrier_register_failed")
+    logger.warning(
+        "shopify_carrier_register_failed shop=%s code=%s reasons=%s",
+        shop.shop_domain,
+        code,
+        " | ".join(reasons)[:500],
+    )
+    raise RuntimeError(f"{CARRIER_REGISTER_FAILED}:{code}")
 
 
 def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None:

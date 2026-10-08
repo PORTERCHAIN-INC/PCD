@@ -19,7 +19,8 @@ function readRedirectLocation(url: string): Promise<string | null> {
       resolve(location);
     });
     req.on("error", () => resolve(null));
-    req.setTimeout(8_000, () => {
+    // The API may re-register a missing CarrierService before answering.
+    req.setTimeout(15_000, () => {
       req.destroy();
       resolve(null);
     });

@@ -60,6 +60,7 @@ from porterchain_api.merchant_engine.shopify_one_click import (  # noqa: F401
     connection_payload,
     go_live,
 )
+from porterchain_api.merchant_engine.shopify_session import can_rebind_shop, rates_status  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -308,7 +309,10 @@ def complete_oauth(
     merchant = _merchant_for_install(db, merchant_id, shop, shop_payload)
     row = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop).first()
     if row and row.merchant_id != merchant.id:
-        raise ValueError("shop_already_connected")
+        if not can_rebind_shop(db, row):
+            raise ValueError("shop_already_connected")
+        logger.info("shopify_shop_rebound shop=%s from=%s to=%s", shop, row.merchant_id, merchant.id)
+        row.default_pickup_address_id = None  # old company's pickup; carrier ids stay
     if row is None:
         row = ShopifyShop(merchant_id=merchant.id, shop_domain=shop, auto_dispatch=False)
         db.add(row)
@@ -710,7 +714,7 @@ def _merchant_for_install(
             )
             .first()
         )
-        if other:
+        if other and not can_rebind_shop(db, other):
             raise ValueError("shop_already_connected")
         return merchant
 
@@ -822,5 +826,6 @@ from porterchain_api.merchant_engine.shopify_fulfillment_service import (  # noq
 from porterchain_api.merchant_engine import shopify_fulfillment_service as _fo  # noqa: E402
 
 
-def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> None:
-    _fo._post_install_hooks(shop, settings)
+def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]:
+    shop.install_hooks = _fo._post_install_hooks(shop, settings)  # request-scoped, not a column
+    return shop.install_hooks

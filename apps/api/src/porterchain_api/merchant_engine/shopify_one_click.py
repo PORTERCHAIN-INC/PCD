@@ -62,6 +62,8 @@ def _go_live_status(
         "pickup_set": pickup_ok and bool(connected),
         "merchant_active": merchant.status == MerchantStatus.ACTIVE.value,
         "has_rate_card": _has_rate_card(db, merchant),
+        # Shopify only offers our checkout rates once it holds our CarrierService.
+        "carrier_registered": any(bool(s.carrier_service_gid) for s in connected),
     }
     blocking: list[str] = []
     if not checks["oauth_configured"]:
@@ -70,6 +72,8 @@ def _go_live_status(
         blocking.append("shop_not_connected")
     if checks["shop_connected"] and not checks["pickup_set"]:
         blocking.append("pickup_required")
+    if checks["shop_connected"] and not checks["carrier_registered"]:
+        blocking.append("carrier_not_registered")
     if not checks["merchant_active"]:
         blocking.append("merchant_not_active")
     if not checks["has_rate_card"]:
@@ -122,7 +126,32 @@ def bind_merchant_shop_pickups(db: Session, merchant_id: str) -> None:
         ensure_shop_pickup_bound(db, shop)
 
 
-def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dict[str, Any]:
+def shop_link_status(db: Session, merchant_id: str, shop_domain: str | None) -> dict[str, Any] | None:
+    """Who holds ``shop_domain``, from the signed-in company's point of view.
+
+    ``linked_here``: this company. ``linked_elsewhere``: another company; ``can_link``
+    says whether Connect may move it (dead row or unclaimed install placeholder).
+    Never names the other company.
+    """
+    from porterchain_api.merchant_engine.shopify_service import can_rebind_shop
+    from porterchain_api.merchant_engine.shopify_urls import is_shop_domain
+
+    shop = normalize_shop_domain(shop_domain or "")
+    if not shop or not is_shop_domain(shop):
+        return None
+    row = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop).first()
+    live = bool(row and row.uninstalled_at is None and row.encrypted_access_token)
+    if row is None or not live:
+        status = "not_linked" if row is None or row.merchant_id != merchant_id else "disconnected"
+        return {"shop_domain": shop, "status": status, "can_link": True}
+    if row.merchant_id == merchant_id:
+        return {"shop_domain": shop, "status": "linked_here", "can_link": True}
+    return {"shop_domain": shop, "status": "linked_elsewhere", "can_link": can_rebind_shop(db, row)}
+
+
+def connection_payload(
+    db: Session, merchant_id: str, settings: Settings, *, shop_domain: str | None = None
+) -> dict[str, Any]:
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
 
     merchant = db.get(Merchant, merchant_id)
@@ -177,6 +206,7 @@ def connection_payload(db: Session, merchant_id: str, settings: Settings) -> dic
         "app_url": app_home_url(settings),
         "shops": rows,
         "go_live": go_live,
+        "shop_lookup": shop_link_status(db, merchant_id, shop_domain) if shop_domain else None,
     }
 
 

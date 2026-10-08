@@ -112,13 +112,44 @@ def shopify_admin_app_url(
 
 
 def app_home_url(
-    settings: Settings, *, shop_domain: str | None = None, host: str | None = None
+    settings: Settings,
+    *,
+    shop_domain: str | None = None,
+    host: str | None = None,
+    rates: str | None = None,
 ) -> str:
-    """Configured app homepage. This is where a finished install must land."""
+    """Configured app homepage. This is where a finished install must land.
+
+    ``rates`` is ``ready`` only when Shopify holds our CarrierService; otherwise it
+    names what is missing so the page never claims checkout rates it cannot serve.
+    """
     base = f"{settings.merchant_portal_url.rstrip('/')}/shopify"
     if not shop_domain:
         return base
     params = {"shop": normalize_shop_domain(shop_domain), "connected": "1"}
+    if rates:
+        params["rates"] = rates
+    if host:
+        params["host"] = host
+    return f"{base}?{urlencode(params)}"
+
+
+def app_error_url(
+    settings: Settings,
+    *,
+    code: str,
+    shop_domain: str | None = None,
+    host: str | None = None,
+) -> str:
+    """Merchant-portal page for a failed browser install step (never raw JSON)."""
+    base = f"{settings.merchant_portal_url.rstrip('/')}/shopify"
+    params: dict[str, str] = {}
+    shop = normalize_shop_domain(shop_domain or "")
+    if shop and is_shop_domain(shop):
+        params["shop"] = shop
+    import re
+
+    params["error"] = re.sub(r"[^a-z0-9_]", "", (code or "").lower())[:64] or "install_failed"
     if host:
         params["host"] = host
     return f"{base}?{urlencode(params)}"
