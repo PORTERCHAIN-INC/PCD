@@ -72,7 +72,7 @@ export function retailPortalChoicesFromSession(
   return RETAIL_PORTALS.filter((portal) => canAccessPortal(ctx.permissions, portal)).map(
     (portal) => ({
       portal,
-      url: portal === "customer" ? customerHomeUrl() : PORTAL_HOME[portal],
+      url: portal === "customer" ? customerHomeUrl() : withVisitorHandoff(PORTAL_HOME[portal]),
       label: PORTAL_LABEL[portal],
     })
   );

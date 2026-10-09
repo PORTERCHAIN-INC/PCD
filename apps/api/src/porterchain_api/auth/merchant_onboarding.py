@@ -292,6 +292,7 @@ def save_merchant_vertical(
     vertical: str,
     *,
     settings: Settings | None = None,
+    attribution: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if not is_valid_merchant_vertical(vertical):
         raise HTTPException(status_code=400, detail="Pick a business type from the list.")
@@ -303,6 +304,10 @@ def save_merchant_vertical(
             detail="Ask your owner to finish the company file.",
         )
 
+    if attribution:
+        from porterchain_api.marketing_site.signup_attribution import stamp_signup_attribution
+
+        stamp_signup_attribution(merchant, attribution)
     save_vertical(db, merchant, vertical, VERTICAL_INDUSTRY.get(vertical))
 
     return evaluate_merchant_onboarding(db, claims, settings=settings)

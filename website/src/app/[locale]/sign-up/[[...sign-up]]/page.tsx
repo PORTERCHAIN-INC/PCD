@@ -5,7 +5,7 @@
  * After success → /login/continue for portal routing.
  */
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { SignUp, useAuth } from "@clerk/nextjs";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
@@ -19,7 +19,8 @@ import LoginShell from "@/components/portal/LoginShell";
 import PlatformAuthLayout, { PlatformAuthLoading } from "@/components/portal/PlatformAuthLayout";
 import PostAuthPortalRedirect from "@/components/portal/PostAuthPortalRedirect";
 import { isClerkConfigured } from "@/lib/env";
-import { rememberQuoteIntent } from "@/lib/visitor-tracking";
+import { getStoredAttribution } from "@/lib/seo/attribution";
+import { getOrCreateVisitorId, rememberQuoteIntent } from "@/lib/visitor-tracking";
 
 export default function SignUpPage() {
   return (
@@ -54,6 +55,29 @@ function SignUpContent() {
       rememberQuoteIntent({ intent, from, vehicle, ref });
     }
   }, [intent, from, vehicle, ref]);
+
+  // Session UTM / landing attribution travels with the new account (Clerk unsafeMetadata).
+  const [signupAttribution, setSignupAttribution] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const att = getStoredAttribution();
+    const picked: Record<string, string | undefined> = {
+      utm_source: att.utm_source,
+      utm_medium: att.utm_medium,
+      utm_campaign: att.utm_campaign,
+      utm_term: att.utm_term,
+      utm_content: att.utm_content,
+      from: from ?? att.from,
+      landing_page: att.landingPageUrl,
+      referrer: att.referrer,
+      pc_vid: getOrCreateVisitorId(),
+    };
+    setSignupAttribution(
+      Object.fromEntries(Object.entries(picked).filter(([, v]) => Boolean(v))) as Record<
+        string,
+        string
+      >
+    );
+  }, [from]);
 
   const continueParams = new URLSearchParams();
   if (intent) continueParams.set("intent", intent);
@@ -122,6 +146,7 @@ function SignUpContent() {
           forceRedirectUrl={continuePath}
           fallbackRedirectUrl={continuePath}
           appearance={porterchainClerkAppearance}
+          unsafeMetadata={{ signup_attribution: signupAttribution }}
         />
         <PasswordRequirements
           copy={{

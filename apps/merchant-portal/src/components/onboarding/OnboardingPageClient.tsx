@@ -10,6 +10,7 @@ import {
   saveMerchantVertical,
 } from "@/lib/onboarding";
 import { isClerkConfigured } from "@/lib/env";
+import { readSignupAttribution } from "@/lib/signupAttribution";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 
 /**
@@ -118,7 +119,11 @@ function MerchantOnboardingWithClerk() {
       }}
       onSaveVertical={async (vertical) => {
         const token = await getApiToken();
-        const status = await saveMerchantVertical(token, vertical);
+        const status = await saveMerchantVertical(
+          token,
+          vertical,
+          readSignupAttribution() as Record<string, string> | undefined
+        );
         setData(status);
       }}
       onSaveCompany={async (body) => {

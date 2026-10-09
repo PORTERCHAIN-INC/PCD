@@ -23,6 +23,7 @@ export default function robots(): MetadataRoute.Robots {
         "article",
         "case-study",
         "developer",
+        "delivery",
       ].map((id) => `${base}/sitemap/${id}.xml`),
     ],
   };

@@ -20,6 +20,7 @@ import {
 import { CAPABILITY_PAGES } from "./content/capabilities";
 import { DEVELOPER_DOC_SLUGS } from "@/lib/developer-docs";
 import { getAllCitySegmentPairs } from "./city-segment-seo";
+import { DELIVERY_VERTICALS, deliveryPagePath, listDeliveryPages } from "./delivery-programmatic";
 import { isPublishableCitySegment } from "./city-segment-publication";
 import { INDEXABLE_VEHICLE_SEGMENTS, shouldIndexVehicleRoute } from "./vehicle-publication";
 import { getAllPosts, listBlogAuthors } from "@/lib/blog";
@@ -42,7 +43,8 @@ export type SitemapPartitionId =
   | "resource"
   | "article"
   | "case-study"
-  | "developer";
+  | "developer"
+  | "delivery";
 
 export const SITEMAP_PARTITION_IDS: SitemapPartitionId[] = [
   "static",
@@ -54,6 +56,7 @@ export const SITEMAP_PARTITION_IDS: SitemapPartitionId[] = [
   "article",
   "case-study",
   "developer",
+  "delivery",
 ];
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
@@ -303,6 +306,22 @@ export function buildDeveloperSitemapEntries(): SitemapEntry[] {
   return entries;
 }
 
+/** Programmatic /delivery pages — English copy only; noindex (weak) pages are left out. */
+export function buildDeliverySitemapEntries(): SitemapEntry[] {
+  const entries: SitemapEntry[] = [];
+  const locale: Locale = "en";
+  push(entries, locale, "delivery", 0.85, "weekly");
+  push(entries, locale, "delivery-cost-calculator", 0.85);
+  push(entries, locale, "facts", 0.7);
+  for (const vertical of DELIVERY_VERTICALS) {
+    push(entries, locale, deliveryPagePath(vertical.slug), 0.8);
+  }
+  for (const page of listDeliveryPages()) {
+    if (page.index) push(entries, locale, page.path, 0.7);
+  }
+  return entries;
+}
+
 export function buildSitemapPartition(
   id: SitemapPartitionId
 ): SitemapEntry[] | Promise<SitemapEntry[]> {
@@ -325,6 +344,8 @@ export function buildSitemapPartition(
       return buildCaseStudySitemapEntries();
     case "developer":
       return buildDeveloperSitemapEntries();
+    case "delivery":
+      return buildDeliverySitemapEntries();
     default:
       return [];
   }

@@ -30,6 +30,7 @@ from porterchain_api.routers import (
     orders,
     payments,
     public_inquiries,
+    public_marketing,
     zeptomail_webhook,
     public_guide,
     public_blog,
@@ -105,6 +106,7 @@ def create_app() -> FastAPI:
     app.include_router(pricing_admin.router)
     app.include_router(shopify.router)
     app.include_router(public_inquiries.router)
+    app.include_router(public_marketing.router)
     app.include_router(zeptomail_webhook.router)
     app.include_router(public_guide.router)
     app.include_router(lead_webhooks.router)

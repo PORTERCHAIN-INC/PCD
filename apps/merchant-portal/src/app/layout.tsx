@@ -8,6 +8,7 @@ import { MerchantAuthProvider } from "@/components/providers/MerchantAuthProvide
 import MerchantQueryProvider from "@/components/providers/MerchantQueryProvider";
 import { publicEnv } from "@/lib/env";
 import { merchantOrgId, merchantServerFetch } from "@/lib/server-api";
+import SignupAttributionCapture from "@/components/SignupAttributionCapture";
 import "./globals.css";
 
 const brand = Carlito({
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <MerchantQueryProvider>
               <HydrationBoundary state={dehydrate(client)}>
                 <SessionContextProvider>
+                  <SignupAttributionCapture />
                   <ImpersonationBanner portal="merchant" active={impersonating} />
                   {children}
                 </SessionContextProvider>

@@ -141,6 +141,14 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
         "write_role": "super_admin",
     },
     {
+        "id": "marketing_site",
+        "storage_key": "marketing_site",
+        "effect": "wired",
+        "readers": ["marketing_site.config.get_marketing_site"],
+        "ui_editable": True,
+        "summary": "Website marketing: hero copy A/B flag (off by default) and price-calculator limits.",
+    },
+    {
         "id": "coverage",
         "storage_key": "settings_coverage",
         "effect": "wired",
@@ -360,6 +368,7 @@ WRITABLE_LOGICAL_KEYS: frozenset[str] = frozenset(
         "pricing_book",
         "driver_pay",
         "delivery_promise",
+        "marketing_site",
         "coverage",
         "booking",
         "merchant",

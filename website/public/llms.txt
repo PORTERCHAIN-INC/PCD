@@ -10,7 +10,15 @@
 - https://porterchain.com/en/merchants — Vanity → /en/business
 - https://porterchain.com/en/drivers — Vanity → /en/vehicle-partner
 
+## Key facts
+- Same-day local delivery for businesses in the Greater Toronto Area (about 150 km around downtown Toronto; 357 postal areas / FSAs).
+- Vehicles: sedan/SUV, cargo van, 16 ft box truck, all driven on a standard Ontario G licence.
+- Default same-day wave: order by 11:00 for delivery 14:00-21:00, Monday-Saturday; each quote shows the exact window.
+- Pricing: per delivery from driving distance and vehicle, base distance included, HST shown; instant price at /en/delivery-cost-calculator.
+- Full entity facts: https://porterchain.com/en/facts
+
 ## Company
+- https://porterchain.com/en/facts — Entity facts: coverage, hours, vehicles, pricing approach
 - https://porterchain.com/en/company — About PorterChain (entity reference)
 - https://porterchain.com/en/contact — Contact and quote requests
 - https://porterchain.com/en/trust — Trust center (SLA, DPA, MSA)
@@ -20,6 +28,18 @@
 - https://porterchain.com/en/business#pricing — How pricing works (quote-based capacity on merchants hub)
 - https://porterchain.com/en/platform — How PorterChain operates capacity behind the network
 - https://porterchain.com/en/how-porterchain-works — How capacity booking works
+
+## Same-day delivery by industry and area
+- https://porterchain.com/en/delivery — Hub: 7 industries x 18 GTA areas (answer-first area guides)
+- https://porterchain.com/en/delivery-cost-calculator — Instant price between two GTA postal codes (live pricing engine, HST included, no sign-up)
+- https://porterchain.com/en/delivery/shopify-merchants — Shopify & e-commerce merchants
+- https://porterchain.com/en/delivery/pharmacy — Pharmacy delivery
+- https://porterchain.com/en/delivery/labs — Lab & specimen courier
+- https://porterchain.com/en/delivery/warehouses — Warehouse & 3PL overflow
+- https://porterchain.com/en/delivery/wholesale-traders — Wholesale & trading companies
+- https://porterchain.com/en/delivery/construction — Construction materials
+- https://porterchain.com/en/delivery/plumbing-electrical — Plumbing & electrical parts
+- Pattern: https://porterchain.com/en/delivery/{industry}/{area} e.g. /en/delivery/pharmacy/mississauga
 
 ## Industries
 - https://porterchain.com/en/business#industries — Industries served (on merchants hub)

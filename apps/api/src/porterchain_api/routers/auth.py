@@ -114,7 +114,11 @@ def merchant_onboarding_vertical(
     settings: Settings = Depends(get_settings),
 ) -> PortalOnboardingResponse:
     """§8.1.12 — Merchant selects primary business vertical during onboarding."""
-    return PortalOnboardingResponse(**save_merchant_vertical(db, claims, body.vertical, settings=settings))
+    return PortalOnboardingResponse(
+        **save_merchant_vertical(
+            db, claims, body.vertical, settings=settings, attribution=body.attribution
+        )
+    )
 
 
 @router.patch("/merchant/onboarding/profile", response_model=PortalOnboardingResponse)

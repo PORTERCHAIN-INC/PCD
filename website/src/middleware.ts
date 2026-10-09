@@ -18,6 +18,9 @@ function shouldBypassIntl(pathname: string): boolean {
     pathname.startsWith("/api") ||
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
+    // Split sitemaps (/sitemap/{id}.xml) and the AI-crawler index must not get a locale redirect.
+    pathname.startsWith("/sitemap/") ||
+    pathname === "/llms.txt" ||
     pathname === "/ravi" ||
     pathname.startsWith("/ravi/") ||
     pathname === "/proof-of-resolution" ||

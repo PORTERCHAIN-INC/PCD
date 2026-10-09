@@ -81,6 +81,8 @@ class CanonicalLeadEvent:
     sla_first_response_minutes: int = 60
     # Bulk CSV / vendor import: skip nurture, unassigned alerts, soft-match, event bus.
     quiet: bool = False
+    # Website calculator etc.: keep SLA/assignment but no automatic welcome email or nurture.
+    skip_outreach: bool = False
 
 
 @dataclass
@@ -252,7 +254,7 @@ class LeadIngestService(LeadIngestResolveMixin):
 
             notify_unassigned_high_priority(db, lead)
 
-        if created and not event.quiet:
+        if created and not event.quiet and not event.skip_outreach:
             from porterchain_api.collaboration_engine.lead_nurture import (
                 apply_nurture_after_ingest,
             )

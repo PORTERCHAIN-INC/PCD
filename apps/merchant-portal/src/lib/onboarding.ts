@@ -88,7 +88,8 @@ export async function fetchMerchantOnboarding(token: string): Promise<PortalOnbo
 
 export async function saveMerchantVertical(
   token: string,
-  vertical: string
+  vertical: string,
+  attribution?: Record<string, string>
 ): Promise<PortalOnboardingStatus> {
   const res = await fetch(`${publicEnv.porterchainApiUrl}/v1/auth/merchant/onboarding/vertical`, {
     method: "PATCH",
@@ -97,7 +98,9 @@ export async function saveMerchantVertical(
       "X-Porterchain-Portal": "merchant",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ vertical }),
+    body: JSON.stringify(
+      attribution && Object.keys(attribution).length ? { vertical, attribution } : { vertical }
+    ),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

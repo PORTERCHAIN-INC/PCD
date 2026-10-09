@@ -89,3 +89,5 @@ class PortalOnboardingResponse(BaseModel):
 
 class MerchantVerticalRequest(BaseModel):
     vertical: str = Field(..., description="construction | medical | food-beverage | wholesale")
+    #: First-touch website attribution (utm_*, from, landing_page, referrer, pc_vid).
+    attribution: dict[str, str] | None = None

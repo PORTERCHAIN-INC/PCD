@@ -142,6 +142,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: CalendarDays,
       },
       {
+        href: "/leads/attribution",
+        label: "Lead Attribution",
+        description: "Leads by source, industry, FSA and UTM",
+        icon: ClipboardList,
+      },
+      {
         href: "/blog",
         label: "Website Blog",
         description: "Marketing content (EN / FR)",
@@ -234,6 +240,7 @@ export const ADMIN_TOP_LEVEL_ROUTES = [
   "/leads/agent",
   "/leads/pipeline",
   "/leads/calendar",
+  "/leads/attribution",
   "/blog",
   "/blog/authors",
   "/finance",

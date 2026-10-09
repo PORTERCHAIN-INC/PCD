@@ -23,6 +23,7 @@ from porterchain_api.domain.pricing_version import (
     assert_pricing_editor,
 )
 from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
+from porterchain_api.marketing_site.config import default_marketing_site, normalize_marketing_site
 from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -99,6 +100,8 @@ CONFIG_KEYS = {
     "driver_pay": "driver_pay_plan",
     # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
     "delivery_promise": "delivery_promise",
+    # Website marketing switches (hero A/B flag, calculator limits). A/B off by default.
+    "marketing_site": "marketing_site",
     "coverage": "settings_coverage",
     # Legacy storage keys still readable for migration
     "service_areas": "service_areas",
@@ -197,6 +200,7 @@ DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
 DEFAULTS["pricing_book"] = default_price_book()
 DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
 DEFAULTS["delivery_promise"] = default_delivery_promise()
+DEFAULTS["marketing_site"] = default_marketing_site()
 
 
 def _is_pending_subject(subject: str | None) -> bool:
@@ -692,6 +696,11 @@ class AdminSettingsService:
                 return normalize_delivery_promise(value)
             except ValueError:
                 return value
+        if key == "marketing_site":
+            try:
+                return normalize_marketing_site(value)
+            except ValueError:
+                return value
         if key == "settings_coverage":
             return self._coverage_value(db, value)
         return value
@@ -777,6 +786,8 @@ class AdminSettingsService:
             value = normalize_driver_pay_plan(value)
         if key == "delivery_promise":
             value = normalize_delivery_promise(value)
+        if key == "marketing_site":
+            value = normalize_marketing_site(value)
         if key == "pricing_gta_rate" and isinstance(value, dict):
             value = self._normalize_pricing_gta(value)
         if key == "pricing_customer_distance" and isinstance(value, dict):
