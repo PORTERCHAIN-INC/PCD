@@ -2,18 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
-import Container from "@/components/ui/Container";
-import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import { JsonLd } from "@/components/seo";
 import {
-  AnswerFirst,
   BulletList,
   DeliverySection,
   FaqList,
+  IncludedList,
   LinkGrid,
-  QuickFacts,
+  VehicleCards,
 } from "@/components/marketing/delivery/DeliveryBlocks";
 import DeliveryCta from "@/components/marketing/delivery/DeliveryCta";
+import DeliveryHero from "@/components/marketing/delivery/DeliveryHero";
+import { VEHICLE_PHOTOS } from "@/components/marketing/delivery/vertical-visuals";
+import CtaBand from "@/components/marketing/ui/CtaBand";
 import HeroVariantTitle from "@/components/marketing/delivery/HeroVariantTitle";
 import { routing } from "@/i18n/routing";
 import { siteConfig } from "@/lib/seo/config";
@@ -105,76 +106,93 @@ export default async function DeliveryIndustryAreaPage({ params }: Props) {
           buildDeliveryBreadcrumbJsonLd(crumbs, siteConfig.baseUrl),
         ]}
       />
-      <PageBreadcrumbs
-        items={crumbs.map((c, i) => ({
+      <DeliveryHero
+        locale={locale}
+        crumbs={crumbs.map((c, i) => ({
           label: c.name,
           href: i < crumbs.length - 1 ? c.path.replace(`/${locale}`, "") || "/" : undefined,
         }))}
-      />
-      <section className="bg-white pb-10 pt-8 sm:pt-12">
-        <Container>
-          <p className="text-sm font-semibold uppercase tracking-wide text-secondary">
-            {vertical.name} · {place.name}
-          </p>
+        eyebrow={`${vertical.name} · ${place.name}`}
+        title={
           <HeroVariantTitle
             control={vertical.hero.control}
             variantB={vertical.hero.variantB}
             suffix={`in ${place.name}`}
-            className="mt-3 max-w-4xl text-3xl font-bold tracking-tight text-primary sm:text-5xl"
+            className="max-w-4xl text-balance text-[2rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl"
           />
-          <div className="mt-6">
-            <AnswerFirst text={content.answer} />
-          </div>
-          <div className="mt-8">
-            <DeliveryCta
-              label={vertical.cta.label}
-              pitch={vertical.cta.pitch}
-              industry={vertical.slug}
-              area={place.slug}
-              pickupFsa={place.fsas[0]}
-              from={from}
-            />
-          </div>
-          <div className="mt-10">
-            <QuickFacts items={content.quickFacts} />
-          </div>
-        </Container>
-      </section>
+        }
+        answer={content.answer}
+        actions={
+          <DeliveryCta
+            label={vertical.cta.label}
+            pitch={vertical.cta.pitch}
+            industry={vertical.slug}
+            area={place.slug}
+            pickupFsa={place.fsas[0]}
+            from={from}
+            tone="dark"
+          />
+        }
+        facts={content.quickFacts}
+      />
 
-      <DeliverySection title={`Delivering in ${place.name}`} tone="soft">
-        <p className="max-w-3xl text-base leading-relaxed text-primary/90">{content.areaSummary}</p>
+      <DeliverySection id="area" title={`Delivering in ${place.name}`} tone="soft">
+        <p className="max-w-3xl text-base leading-relaxed text-primary/90 sm:text-lg">
+          {content.areaSummary}
+        </p>
         <p className="mt-4 text-sm text-muted">
           Postal areas covered:{" "}
           <span className="font-medium text-primary">{place.fsas.join(" · ")}</span>
         </p>
       </DeliverySection>
 
-      <DeliverySection title={`How ${vertical.noun} delivery works`}>
+      <DeliverySection id="how" title={`How ${vertical.noun} delivery works`}>
         <BulletList items={content.serviceDetails} />
       </DeliverySection>
 
-      <DeliverySection title="Vehicles for this work" tone="soft">
-        <ul className="grid gap-3 sm:grid-cols-3">
-          {content.vehicles.map((v) => (
-            <li key={v.id} className="rounded-xl border border-primary/10 bg-white p-4">
-              <p className="font-semibold text-primary">{v.label}</p>
-              <p className="mt-1 text-sm text-muted">Capacity: {v.capacity}.</p>
-              <p className="mt-1 text-sm text-muted">Best for {v.bestFor}.</p>
-              <p className="mt-1 text-xs text-muted">Driven on a standard Ontario G licence.</p>
-            </li>
-          ))}
-        </ul>
+      {vertical.hub ? (
+        <DeliverySection
+          id="service-details"
+          title={vertical.hub.serviceDetails.title}
+          lead={vertical.hub.serviceDetails.lead}
+          tone="soft"
+        >
+          <IncludedList
+            included={vertical.hub.serviceDetails.included}
+            notIncluded={vertical.hub.serviceDetails.notIncluded}
+          />
+        </DeliverySection>
+      ) : null}
+
+      <DeliverySection
+        id="vehicles"
+        title="Vehicles for this work"
+        tone={vertical.hub ? "white" : "soft"}
+      >
+        <VehicleCards
+          vehicles={content.vehicles.map((v) => ({ ...v, photo: VEHICLE_PHOTOS[v.id] }))}
+        />
       </DeliverySection>
 
-      <DeliverySection title="Cut-off and delivery promise">
-        <p className="max-w-3xl text-base leading-relaxed text-primary/90">{content.promise}</p>
+      <DeliverySection
+        id="promise"
+        title="Cut-off and delivery promise"
+        tone={vertical.hub ? "soft" : "white"}
+      >
+        <p className="max-w-3xl text-base leading-relaxed text-primary/90 sm:text-lg">
+          {content.promise}
+        </p>
       </DeliverySection>
 
-      <DeliverySection title="Questions" tone="soft">
+      <DeliverySection id="faq" title="Questions" tone={vertical.hub ? "white" : "soft"}>
         <FaqList items={content.faqs} />
       </DeliverySection>
 
-      <DeliverySection title={`${vertical.name} near ${place.name}`}>
+      <DeliverySection
+        id="nearby"
+        title={`${vertical.name} near ${place.name}`}
+        tone={vertical.hub ? "soft" : "white"}
+      >
         <LinkGrid
           links={content.nearby.map((n) => ({
             href: `/${deliveryPagePath(vertical.slug, n.slug)}`,
@@ -184,9 +202,23 @@ export default async function DeliveryIndustryAreaPage({ params }: Props) {
         />
       </DeliverySection>
 
-      <DeliverySection title="Related" tone="soft">
+      <DeliverySection id="related" title="Related" tone={vertical.hub ? "white" : "soft"}>
         <LinkGrid links={related} />
       </DeliverySection>
+
+      <CtaBand
+        id="area-final-heading"
+        title={vertical.cta.label}
+        body={`${vertical.cta.pitch} Pickup or drop-off in ${place.name}.`}
+        primary={{
+          href: `/delivery-cost-calculator?from=${encodeURIComponent(from)}&industry=${vertical.slug}&pickup=${place.fsas[0]}`,
+          label: "Get a price",
+        }}
+        secondary={{
+          href: `/sign-up?intent=merchant&from=${encodeURIComponent(from)}`,
+          label: "Open a business account",
+        }}
+      />
     </CorporateShell>
   );
 }

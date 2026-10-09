@@ -1,9 +1,10 @@
 // Run: cd website && node --test src/lib/seo/delivery-programmatic.test.mjs src/lib/marketing/calculator-lead.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import test from "node:test";
 
 import {
+  COVERAGE_FSA_COUNT,
   DELIVERY_AREAS,
   DELIVERY_VERTICALS,
   ENTITY_FACTS,
@@ -78,14 +79,14 @@ function validateJsonLd(node, path = "$") {
   return errors;
 }
 
-test("only meaningful combinations are generated (122) and weak ones are noindex", () => {
+test("only meaningful combinations are generated (140) and weak ones are noindex", () => {
   const pages = listDeliveryPages();
-  assert.equal(DELIVERY_VERTICALS.length, 7);
+  assert.equal(DELIVERY_VERTICALS.length, 8);
   assert.equal(DELIVERY_AREAS.length, 18);
-  assert.equal(pages.length, 122);
+  assert.equal(pages.length, 140);
   assert.equal(new Set(pages.map((p) => p.path)).size, pages.length);
   const noindex = pages.filter((p) => !p.index);
-  assert.equal(noindex.length, 13);
+  assert.equal(noindex.length, 14);
   assert.ok(noindex.every((p) => p.reason === "thin_coverage" || p.reason === "time_critical_far"));
   // Warehouses / wholesale only where there is industrial land.
   assert.ok(!pages.some((p) => p.vertical === "warehouses" && p.area === "downtown-toronto"));
@@ -116,7 +117,10 @@ test("area FSAs come from the GTA coverage list, are unique and well-formed", ()
       new URL("services/pricing-engine/porterchain_pricing/data/gta150_fsa_registry.json", repo)
     )
   );
-  assert.equal(ENTITY_FACTS.coverageFsaCount, registry.fsas.length);
+  // 362 = registry boundary FSAs (357) + the 5 downtown non-geographic hub overrides.
+  assert.equal(ENTITY_FACTS.coverageFsaCount, GTA150_FSA_CODES.size);
+  assert.equal(COVERAGE_FSA_COUNT, GTA150_FSA_CODES.size);
+  assert.equal(GTA150_FSA_CODES.size, registry.fsas.filter((r) => r.active !== false).length + 5);
   const reg = new Map(registry.fsas.map((r) => [r.code, r]));
   const dt = getDeliveryArea("downtown-toronto");
   const meanLat = dt.fsas.reduce((s, c) => s + reg.get(c).lat, 0) / dt.fsas.length;
@@ -144,8 +148,8 @@ test("every page has unique, specific content", () => {
       );
     }
   }
-  assert.equal(titles.size, 122);
-  assert.equal(answers.size, 122);
+  assert.equal(titles.size, 140);
+  assert.equal(answers.size, 140);
 });
 
 test("JSON-LD for every page validates (Service + Offer, FAQPage, BreadcrumbList)", () => {
@@ -166,7 +170,7 @@ test("JSON-LD for every page validates (Service + Offer, FAQPage, BreadcrumbList
     assert.equal(docs[0].url, `${BASE}/en/${p.path}`);
     assert.equal(docs[2].itemListElement.at(-1).item, `${BASE}/en/${p.path}`);
   }
-  assert.equal(checked, 366);
+  assert.equal(checked, 420);
 });
 
 test("validator catches dishonest or broken schema", () => {
@@ -193,4 +197,58 @@ test("llms.txt lists the facts page, delivery hub and calculator", () => {
   for (const path of ["/en/facts", "/en/delivery", "/en/delivery-cost-calculator"]) {
     assert.ok(llms.includes(`https://porterchain.com${path}`), path);
   }
+});
+
+/** Every "<n> postal areas / FSAs" claim in public copy must equal the generated FSA list. */
+test("coverage count is in sync across facts, llms.txt and site copy", () => {
+  const web = new URL("website/", repo);
+  const files = [];
+  const walk = (dir) => {
+    for (const name of readdirSync(dir)) {
+      if (name === "generated" || name === "node_modules" || name.startsWith(".")) continue;
+      const child = new URL(name, dir.href.endsWith("/") ? dir : `${dir.href}/`);
+      if (statSync(child).isDirectory()) walk(new URL(`${child.href}/`));
+      else if (/\.(tsx?|json|txt|md)$/.test(name) && !/\.test\./.test(name)) files.push(child);
+    }
+  };
+  walk(new URL("src/", web));
+  walk(new URL("messages/", web));
+  files.push(new URL("public/llms.txt", web));
+  const claim =
+    /\b(\d{3})\s*(?:GTA\s+)?(?:postal areas|postal codes|FSAs|forward sortation areas|zones postales|régions de tri)/gi;
+  const found = [];
+  for (const file of files) {
+    const text = readFileSync(file, "utf8");
+    for (const m of text.matchAll(claim))
+      found.push({ file: file.pathname.split("/website/")[1], n: Number(m[1]) });
+  }
+  const wrong = found.filter((f) => f.n !== GTA150_FSA_CODES.size);
+  assert.deepEqual(wrong, [], `coverage must say ${GTA150_FSA_CODES.size}`);
+  assert.ok(
+    found.some((f) => f.file === "public/llms.txt"),
+    "llms.txt states the coverage count"
+  );
+});
+
+test("llms.txt lists every industry hub and the industry count", () => {
+  const llms = readFileSync(new URL("website/public/llms.txt", repo), "utf8");
+  for (const v of DELIVERY_VERTICALS) {
+    assert.ok(llms.includes(`https://porterchain.com/en/delivery/${v.slug} `), v.slug);
+  }
+  assert.ok(
+    llms.includes(`${DELIVERY_VERTICALS.length} industries x ${DELIVERY_AREAS.length} GTA areas`),
+    "hub line counts"
+  );
+});
+
+test("furniture hub states the service limits from the commercial terms", () => {
+  const v = getDeliveryVertical("furniture");
+  assert.ok(v?.hub, "furniture hub content");
+  const text = JSON.stringify(v.hub);
+  for (const needle of ["Threshold", "50 lb", "liftgate", "assembl", "carton"]) {
+    assert.ok(text.toLowerCase().includes(needle.toLowerCase()), needle);
+  }
+  assert.ok(v.hub.faqs.length >= 6);
+  assert.deepEqual(validateJsonLd(buildDeliveryFaqJsonLd(v.hub.faqs)), []);
+  assert.deepEqual(v.vehicles, ["cargo_van", "box_16"]);
 });

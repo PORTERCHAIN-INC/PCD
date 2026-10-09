@@ -45,14 +45,25 @@ export const DELIVERY_VEHICLES: Record<VehicleId, DeliveryVehicle> = {
   },
 };
 
-/** Default same-day wave — mirrors the pricing-engine `delivery_promise` default
- * (an example value until ops confirm; the quote always shows the real window). */
+/** Same-day wave — mirrors the pricing-engine `delivery_promise` default.
+ * Approved by Ravi 2026-10-09: "Order by 11 AM. Delivered 2–9 PM same day, Mon–Sat."
+ * The quote always shows the exact window for the addresses booked. */
 export const DELIVERY_PROMISE_DEFAULT = {
   cutoff: "11:00",
   windowStart: "14:00",
   windowEnd: "21:00",
   days: "Monday to Saturday",
+  daysShort: "Mon–Sat",
 } as const;
+
+/**
+ * Coverage size — the number of GTA postal areas (FSAs) the pricing engine quotes:
+ * `porterchain_pricing.gta150_fsa_codes()` = 357 StatCan boundary FSAs + 5 downtown
+ * non-geographic FSAs (M5D, M5K, M5L, M5W, M5X) = 362. Must equal `GTA150_FSA_CODES.size`
+ * (generated list); `delivery-programmatic.test.mjs` and `scripts/verify_gta150_fsa_sync.py`
+ * fail if this, /facts, llms.txt or site copy drift.
+ */
+export const COVERAGE_FSA_COUNT = 362;
 
 export type DistanceBand = "core" | "inner" | "outer";
 
@@ -315,6 +326,26 @@ export const DELIVERY_AREAS: DeliveryArea[] = [
 
 export type DeliveryFaq = { question: string; answer: string };
 
+export type DeliveryHubBlock = { title: string; body: string; vehicle?: VehicleId };
+
+/** Optional long-form content for an industry hub (/delivery/{industry}). */
+export type DeliveryHubContent = {
+  intro: string;
+  image?: { src: string; alt: string; width: number; height: number };
+  /** Titled groups of short cards, rendered in order. */
+  sections: Array<{
+    id: string;
+    title: string;
+    lead?: string;
+    /** Blocks are steps in order (numbered badges). */
+    numbered?: boolean;
+    blocks: DeliveryHubBlock[];
+  }>;
+  /** Service details: what is and is not included (factual, from the commercial terms). */
+  serviceDetails: { title: string; lead: string; included: string[]; notIncluded: string[] };
+  faqs: DeliveryFaq[];
+};
+
 export type DeliveryVertical = {
   slug: string;
   name: string;
@@ -336,7 +367,11 @@ export type DeliveryVertical = {
   cta: { label: string; pitch: string };
   /** Hero copy for the A/B flag; `control` is what ships when the flag is off. */
   hero: { control: string; variantB: string };
+  /** Richer hub page content (furniture first; other verticals fall back to `handling`). */
+  hub?: DeliveryHubContent;
 };
+
+const SINGLE_LIFT_LIMIT = "50 lb (23 kg)";
 
 export const DELIVERY_VERTICALS: DeliveryVertical[] = [
   {
@@ -537,6 +572,164 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
     hero: {
       control: "Same-day plumbing & electrical parts delivery",
       variantB: "Get the missing part to the job today",
+    },
+  },
+  {
+    slug: "furniture",
+    name: "Furniture & appliance delivery",
+    noun: "furniture order",
+    audience:
+      "furniture and appliance retailers, showrooms, online home brands and interior designers",
+    goods: "sofas, beds, mattresses, dining sets, boxed and flat-pack furniture and appliances",
+    vehicles: ["cargo_van", "box_16"],
+    sameDayCritical: false,
+    industrialOnly: false,
+    handling: [
+      "16 ft box truck for sofas, bed sets, dining sets and appliances; cargo van for boxed and flat-pack pieces",
+      "Multi-box items are booked as one stop with every carton listed, loaded together and photographed at drop-off",
+      "Threshold delivery to the front door, lobby, garage or loading dock named at booking",
+      `One driver per vehicle: the driver lifts single pieces up to ${SINGLE_LIFT_LIMIT}; heavier pieces need a helper at pickup and drop-off`,
+      "No liftgate — pieces are hand-unloaded from the back of the van or truck",
+      "No assembly, unpacking, room-of-choice placement or removal of old furniture or packaging",
+    ],
+    compliance:
+      "Photo proof of delivery is attached to every order, and your customer gets a live tracking link.",
+    specialistFaq: {
+      question: "Do your drivers carry furniture inside or assemble it?",
+      answer:
+        "No. Delivery is to the threshold — the front door, lobby, garage or loading dock you name at booking. Drivers do not assemble, unpack, place items in a room or take away old furniture or packaging.",
+    },
+    cta: {
+      label: "Price a furniture delivery",
+      pitch: "Live price for a van or box-truck delivery.",
+    },
+    hero: {
+      control: "Same-day furniture delivery",
+      variantB: "Get furniture to your customers today",
+    },
+    hub: {
+      intro:
+        "PorterChain delivers sofas, beds, dining sets, flat-pack furniture and appliances for retailers, showrooms and online home brands across the GTA — from your store or warehouse to your customer's door. Pick a 16 ft box truck or a cargo van, see the price instantly, and your customer follows the delivery live.",
+      image: {
+        src: "/images/brand/open-road.jpg",
+        alt: "PorterChain box truck on the highway",
+        width: 2560,
+        height: 1454,
+      },
+      sections: [
+        {
+          id: "vehicles",
+          title: "The right vehicle for the piece",
+          lead: "Both vehicles are driven on a standard Ontario G licence and priced live by distance.",
+          blocks: [
+            {
+              vehicle: "box_16",
+              title: "16 ft box truck",
+              body: "Sofas and sectionals, bed sets, dining sets, wardrobes and appliances. Up to about 3,000 kg per load.",
+            },
+            {
+              vehicle: "cargo_van",
+              title: "Cargo van",
+              body: "Boxed and flat-pack furniture, chairs, mattresses in a box and small appliances. Up to about 900 kg per load.",
+            },
+          ],
+        },
+        {
+          id: "multi-box",
+          title: "Multi-box items arrive complete",
+          lead: "A bed frame in three cartons or a sectional in four is still one delivery.",
+          numbered: true,
+          blocks: [
+            {
+              title: "List every carton",
+              body: "Book the item as one stop and list each box (for example: bed frame, 3 boxes), so the driver knows the full count before pickup.",
+            },
+            {
+              title: "Loaded together",
+              body: "All cartons for an item travel on the same vehicle — no split shipments and no second trip for the last box.",
+            },
+            {
+              title: "Photographed at drop-off",
+              body: "The proof-of-delivery photo shows the cartons at the door, attached to the order for you and your customer.",
+            },
+          ],
+        },
+        {
+          id: "scheduling",
+          title: "Scheduling that fits your sales floor",
+          blocks: [
+            {
+              title: "Same day",
+              body: "Order by 11 AM for delivery 2–9 PM the same day, Monday to Saturday. Later orders go out the next operating day.",
+            },
+            {
+              title: "Book ahead",
+              body: "Schedule a later date when your customer wants it, and the quote shows the delivery window before you book.",
+            },
+            {
+              title: "Your customer stays informed",
+              body: "A live tracking link with the driver's progress, then photo proof of delivery when it lands.",
+            },
+          ],
+        },
+      ],
+      serviceDetails: {
+        title: "What the service includes",
+        lead: "Clear terms up front, so your customer knows exactly what to expect at the door.",
+        included: [
+          "Threshold delivery: the driver brings each piece to the front door, lobby, garage or loading dock you name at booking.",
+          `One driver per vehicle, who lifts single pieces up to ${SINGLE_LIFT_LIMIT} on their own.`,
+          "Pieces over 50 lb (23 kg) need a helper from your team at pickup and from the receiver at drop-off.",
+          "Live tracking for your customer and photo proof of delivery on every order.",
+        ],
+        notIncluded: [
+          "Liftgate — our vans and box trucks are hand-unloaded from the back.",
+          "Assembly, installation or unpacking.",
+          "Room-of-choice placement or carrying beyond the threshold.",
+          "Removal of old furniture, appliances or packaging.",
+        ],
+      },
+      faqs: [
+        {
+          question: "Do you offer same-day furniture delivery in the GTA?",
+          answer:
+            "Yes. Order by 11 AM for delivery 2–9 PM the same day, Monday to Saturday, across our GTA coverage. Later orders go out the next operating day, and every quote shows the exact window.",
+        },
+        {
+          question: "What does threshold delivery mean?",
+          answer:
+            "The driver brings each piece to the first entrance you name at booking — a front door, building lobby, garage or loading dock. Carrying it further inside, up stairs to a room, or placing it is not part of the service.",
+        },
+        {
+          question: "How heavy can a single piece be?",
+          answer: `Each vehicle has one driver, who lifts single pieces up to ${SINGLE_LIFT_LIMIT} on their own. For anything heavier, have someone from your team help load at pickup and make sure the receiver can help unload at drop-off. The box truck carries up to about 3,000 kg in total.`,
+        },
+        {
+          question: "Do your trucks have a liftgate?",
+          answer:
+            "No. Our cargo vans and 16 ft box trucks have no liftgate, so pieces are hand-unloaded from the back of the vehicle. Plan heavier items with a helper at each end.",
+        },
+        {
+          question: "Do you assemble furniture or take away the old piece?",
+          answer:
+            "No. Drivers do not assemble, install or unpack items, and they do not remove old furniture, appliances or packaging.",
+        },
+        {
+          question: "Can I book an item that comes in several boxes?",
+          answer:
+            "Yes. Book it as one stop and list every carton. The cartons travel together on one vehicle and the proof-of-delivery photo shows them at the door.",
+        },
+        {
+          question: "How much does furniture delivery cost?",
+          answer:
+            "The price depends on the driving distance and the vehicle — a cargo van or a 16 ft box truck. The calculator uses the same pricing engine as checkout and shows the total including HST, with no sign-up.",
+        },
+        {
+          question: "Can my Shopify store offer this at checkout?",
+          answer:
+            "Yes. The PorterChain Shopify app adds a same-day rate at checkout using the same pricing engine as the calculator, then books the delivery when the order is paid.",
+        },
+      ],
     },
   },
 ];
@@ -854,7 +1047,7 @@ export const ENTITY_FACTS = {
   hub: "Downtown Toronto (43.6532, -79.3832)",
   coverage:
     "About 150 km around downtown Toronto: Toronto, Peel, York, Durham, Halton and Hamilton — checked by postal code (FSA) at quote time.",
-  coverageFsaCount: 357,
+  coverageFsaCount: COVERAGE_FSA_COUNT,
   hours:
     "Office Monday–Friday 08:00–18:00, Saturday 09:00–14:00 (Toronto time); deliveries Monday–Saturday.",
   vehicles: Object.values(DELIVERY_VEHICLES).map((v) => `${v.label} (${v.capacity})`),

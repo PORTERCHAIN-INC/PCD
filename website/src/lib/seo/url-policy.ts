@@ -122,6 +122,8 @@ const CITY_SEGMENT_HUB: Record<string, string[]> = {
   "last-mile-delivery": ["local-delivery"],
   "on-demand-delivery": ["local-delivery"],
   "b2b-delivery": ["business"],
+  "furniture-delivery": ["delivery/furniture"],
+  "appliance-delivery": ["delivery/furniture"],
   "recurring-delivery": ["campaigns/recurring-delivery", "capabilities/recurring-routes"],
 };
 
@@ -136,7 +138,22 @@ const DELIVERY_VERTICAL_ALIAS: Record<string, string[]> = {
   "electrical-distribution": ["delivery/plumbing-electrical"],
   "plumbing-supply": ["delivery/plumbing-electrical"],
   ecommerce: ["delivery/shopify-merchants"],
+  "furniture-delivery": ["delivery/furniture"],
+  "furniture-appliance": ["delivery/furniture"],
+  appliances: ["delivery/furniture"],
 };
+
+/** Legacy furniture slugs (2025 /industries/*, /campaigns/*, /solutions/*) → the furniture hub. */
+const FURNITURE_LEGACY_SLUGS = new Set([
+  "furniture",
+  "furniture-delivery",
+  "furniture-appliance-delivery",
+  "furniture-and-appliance-delivery",
+  "appliance-delivery",
+]);
+const LEGACY_FURNITURE_FAMILIES = new Set(["industry", "industries", "campaigns", "solutions"]);
+const furnitureHub = (slug: string | undefined): string[] =>
+  slug && FURNITURE_LEGACY_SLUGS.has(slug) ? ["delivery/furniture"] : [];
 const DELIVERY_AREA_ALIAS: Record<string, string> = {
   toronto: "downtown-toronto",
   oshawa: "oshawa-whitby",
@@ -162,9 +179,10 @@ function deliveryCandidates(p: string[]): string[] {
 /** Families whose valid URLs are exactly the indexable manifest (+ fallbacks when not). */
 const MANAGED_FAMILIES: Record<string, (parts: string[]) => string[]> = {
   delivery: deliveryCandidates,
-  industry: (p) => [`campaigns/${p[1] ?? ""}`, "solutions"],
+  industry: (p) => [...furnitureHub(p[1]), `campaigns/${p[1] ?? ""}`, "solutions"],
   // The /campaigns hub was a 67-word link list (thin) → consolidated into /solutions.
   campaigns: (p) => [
+    ...furnitureHub(p[1]),
     ...(p[1] ? [`industry/${p[1]}`] : []),
     ...(p[1] === "recurring-delivery" ? ["capabilities/recurring-routes"] : []),
     "solutions",
@@ -182,7 +200,7 @@ const MANAGED_FAMILIES: Record<string, (parts: string[]) => string[]> = {
   "success-stories": () => ["success-stories"],
   "integrations-education": () => ["integrations"],
   "onboarding-education": () => ["guides"],
-  solutions: () => ["solutions"],
+  solutions: (p) => [...furnitureHub(p[1]), "solutions"],
   developers: (p) => (p[1] === "docs" ? ["developers/docs", "developers"] : ["developers"]),
   "sedan-delivery": () => ["vehicles"],
   "cargo-van-delivery": () => ["vehicles"],
@@ -291,7 +309,12 @@ function managedFallback(locale: PolicyLocale, rest: string): string | null {
   if (area && !LOCALE_APP_SECTIONS.has(first)) {
     if (parts.length === 2 && isIndexablePath(full)) return null;
     const seg = parts[1] ?? "";
-    const candidates = [`service-areas/${area}`, ...(CITY_SEGMENT_HUB[seg] ?? []), "service-areas"];
+    const candidates = [
+      ...furnitureHub(seg),
+      `service-areas/${area}`,
+      ...(CITY_SEGMENT_HUB[seg] ?? []),
+      "service-areas",
+    ];
     return pickWithEnglishFallback(locale, rest, candidates);
   }
 
@@ -300,6 +323,14 @@ function managedFallback(locale: PolicyLocale, rest: string): string | null {
   if (HUB_ONLY_SINGLE.has(first) && parts.length === 1) return null;
   if (first === "developers" && parts[1] !== "docs") return null;
   if (isIndexablePath(full)) return null;
+  // Legacy furniture slugs go straight to the furniture hub; FR has no hub yet, so the EN page
+  // beats the generic FR /solutions page (single hop either way).
+  if (furnitureHub(parts[1]).length && LEGACY_FURNITURE_FAMILIES.has(first)) {
+    return (
+      pickIndexable(locale, ["delivery/furniture"]) ??
+      pickWithEnglishFallback("en", "", ["delivery/furniture"])
+    );
+  }
   return pickWithEnglishFallback(locale, rest, family(parts));
 }
 
