@@ -64,21 +64,7 @@ class WebhookProcessor(_Quiet):
     pass
 
 
-class FleetbaseIntegrationBridge(_Quiet):
-    def sync_order(self, *_args: Any, **_kwargs: Any) -> None:
-        return None
-
-    def sync_status_from_fleetbase(self, *_args: Any, **_kwargs: Any) -> None:
-        return None
-
-
-class PermanentSyncSkip(Exception):
-    pass
-
-
-CLAIM_LEASE_SECONDS = 0
 SLO_TARGET_PCT = 0
-FLEETBASE_SYNC_SLO_TARGET_PCT = 0
 
 
 def _find_inflight(*_args: Any, **_kwargs: Any) -> None:

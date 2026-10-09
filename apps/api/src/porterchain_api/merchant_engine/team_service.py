@@ -16,7 +16,7 @@ from porterchain_api.domain.catalog_labels import merchant_status_label, seat_st
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantRole
 from porterchain_api.merchant_engine.audit_copy import serialize_audit_log
 from porterchain_api.merchant_engine.lookups import get_merchant
-from porterchain_api.merchant_engine.rbac import MerchantContext, english_role, modules_for_role, permissions_catalog
+from porterchain_api.merchant_engine.rbac import MerchantContext, english_role, permissions_catalog
 from porterchain_api.merchant_models import MerchantAuditLog, MerchantUser
 
 
@@ -121,19 +121,6 @@ class MerchantTeamService:
         self._sync_team_contacts(db, ctx.merchant)
         return user
 
-    # Back-compat name used by older callers — delegates to add_seat (no Clerk).
-    def invite_member(
-        self,
-        db: Session,
-        ctx: MerchantContext,
-        settings=None,  # noqa: ANN001 — unused; kept for call-site compat during cutover
-        *,
-        email: str,
-        role: str,
-    ) -> MerchantUser:
-        _ = settings
-        return self.add_seat(db, ctx, email=email, role=role)
-
     def remove_member(self, db: Session, ctx: MerchantContext, user_id: str) -> None:
         user = (
             db.query(MerchantUser)
@@ -150,26 +137,6 @@ class MerchantTeamService:
 
         sync_authz_after_persona_mutation(db, user.clerk_user_id)
         self._sync_team_contacts(db, ctx.merchant)
-
-    def update_role(self, db: Session, ctx: MerchantContext, user_id: str, role: str) -> MerchantUser:
-        if role not in {r.value for r in MerchantRole}:
-            raise ValueError("invalid_team_role")
-        user = (
-            db.query(MerchantUser)
-            .filter(MerchantUser.id == user_id, MerchantUser.merchant_id == ctx.merchant.id)
-            .first()
-        )
-        if not user:
-            raise LookupError("team_member_not_found")
-        assert_not_last_owner(db, merchant_id=ctx.merchant.id, user=user, next_role=role)
-        user.role = role
-        self._audit(db, ctx, "team.role_updated", user.id, {"email": user.email, "role": role})
-        db.commit()
-        db.refresh(user)
-        from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
-
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
-        return user
 
     def update_member(
         self,
@@ -212,10 +179,6 @@ class MerchantTeamService:
         sync_authz_after_persona_mutation(db, user.clerk_user_id)
         self._sync_team_contacts(db, ctx.merchant)
         return user
-
-    def permissions_for_role(self, role: str) -> list[str]:
-        role_enum = MerchantRole(role) if role in {r.value for r in MerchantRole} else MerchantRole.OPS
-        return sorted(modules_for_role(role_enum))
 
     def roles_and_permissions(self) -> dict:
         return permissions_catalog()

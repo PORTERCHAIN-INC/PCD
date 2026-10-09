@@ -84,14 +84,6 @@ export function isGoogleMapsConfigured(): boolean {
   return publicEnv.googleMapsApiKey.length > 0;
 }
 
-export function isPorterchainApiConfigured(): boolean {
-  return Boolean(getPorterchainApiBase());
-}
-
 export function isClerkConfigured(): boolean {
   return publicEnv.clerkPublishableKey.length > 0;
-}
-
-export function isDriverAppConfigured(): boolean {
-  return publicEnv.driverAppIosUrl.length > 0 || publicEnv.driverAppAndroidUrl.length > 0;
 }

@@ -18,17 +18,3 @@ class CustomerService(BaseService):
                 payload={"email": email, "clerk_user_id": clerk_user_id},
             )
         )
-
-    def on_payment_succeeded(self, customer_id: str, order_id: str) -> None:
-        # Booking/payment confirmation is owned by notification_engine via
-        # DomainEventType.PAYMENT_SUCCEEDED / ORDER_BOOKED fanout — do not
-        # enqueue legacy gateway notifications here.
-        self.ctx.events.publish(
-            EventEnvelope(
-                event_type=DomainEventType.PAYMENT_SUCCEEDED,
-                aggregate_type="order",
-                aggregate_id=order_id,
-                actor=EventActor(type="customer", id=customer_id),
-                payload={"customer_id": customer_id, "order_id": order_id},
-            )
-        )

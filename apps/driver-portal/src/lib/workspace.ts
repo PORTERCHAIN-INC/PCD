@@ -94,11 +94,6 @@ export function formatWorkingHours(startedAt: string | null, now = new Date()): 
   return `${hours}h ${mins}m`;
 }
 
-export function formatDistanceKm(km: number | null | undefined): string {
-  if (km == null || Number.isNaN(km)) return "—";
-  return `${km.toFixed(1)} km`;
-}
-
 export function formatLastUpdated(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(value.getTime())) return "";

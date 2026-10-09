@@ -195,16 +195,6 @@ class TupleWriter:
             [Relationship("order", order_id, "parent", "organization", merchant_id)]
         )
 
-    def grant_driver_owner(self, user_id: str, driver_id: str) -> str:
-        return self.client.write_relationships(
-            [Relationship("driver_profile", driver_id, "owner", "user", user_id)]
-        )
-
-    def grant_customer_owner(self, user_id: str, customer_id: str) -> str:
-        return self.client.write_relationships(
-            [Relationship("customer_profile", customer_id, "owner", "user", user_id)]
-        )
-
 
 def bootstrap_all_profiles(db: Session) -> dict[str, int]:
     """One-shot: write SpiceDB tuples for every provisioned profile."""

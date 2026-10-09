@@ -117,9 +117,4 @@ export function buildBlogInternalLinks(locale: Locale, post: PostSeoInput) {
   return links.slice(0, 10);
 }
 
-export function getFeaturedIndustrySlug(post: PostSeoInput): string | null {
-  const slugs = getIndustrySlugsForPost(post);
-  return slugs[0] ?? null;
-}
-
 export { industrySlug };

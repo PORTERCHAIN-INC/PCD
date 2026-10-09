@@ -48,16 +48,6 @@ class SessionContextResponse(BaseModel):
     auth: dict = Field(default_factory=dict)
 
 
-class FleetbaseSsoResponse(BaseModel):
-    sso_token: str
-    expires_in: int
-    console_url: str
-    fleetbase_user_uuid: str | None = None
-    roles: list[str] = Field(default_factory=list)
-    permissions: list[str] = Field(default_factory=list)
-    fleetbase_session: dict | None = None
-
-
 class PortalOnboardingStep(BaseModel):
     id: str
     label: str

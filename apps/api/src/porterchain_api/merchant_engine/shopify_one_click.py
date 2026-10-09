@@ -253,26 +253,3 @@ def go_live(
     payload = connection_payload(db, ctx.merchant.id, settings)
     payload["hooks"] = hooks
     return payload
-
-
-
-def handle_gdpr_topic(
-    db: Session,
-    settings: Settings,
-    *,
-    topic: str,
-    shop: ShopifyShop | None,
-    raw_body: bytes,
-    webhook_id: str | None = None,
-) -> dict[str, Any]:
-    """Open a privacy case. The reply has no buyer fields; the worker does the wipe."""
-    del settings
-    from porterchain_api.merchant_engine.shopify_privacy import open_privacy_request
-
-    opened = open_privacy_request(
-        db, topic=topic, shop=shop, raw_body=raw_body, webhook_id=webhook_id
-    )
-    if opened.get("duplicate"):
-        return {"ok": True, "duplicate": True}
-    return {"ok": True, "request_id": opened.get("request_id")}
-

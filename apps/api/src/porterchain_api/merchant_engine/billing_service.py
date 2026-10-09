@@ -382,22 +382,6 @@ class MerchantBillingService:
             merchant_email=ctx.merchant.email,
         )
 
-    def get_invoice_pdf_url(self, db: Session, ctx: MerchantContext, invoice_id: str) -> str | None:
-        row = (
-            db.query(Invoice, Order)
-            .join(Order, Invoice.order_id == Order.id)
-            .filter(Invoice.id == invoice_id, Order.merchant_id == ctx.merchant.id)
-            .first()
-        )
-        if not row:
-            raise LookupError("invoice_not_found")
-        inv, _order = row
-        if inv.pdf_url:
-            return inv.pdf_url
-        if merchant_uses_stripe(ctx.merchant) and inv.stripe_receipt_url:
-            return inv.stripe_receipt_url
-        return None
-
     def remind_invoice(self, db: Session, ctx: MerchantContext, invoice_id: str) -> dict[str, Any]:
         from porterchain_api.merchant_engine.invoice_reminder import remind_invoice
 
@@ -860,12 +844,6 @@ class MerchantBillingService:
         from porterchain_api.merchant_engine.billing_views import merchant_ledger
 
         return merchant_ledger(db, ctx)
-
-    def _uninvoiced_total(self, db: Session, ctx: MerchantContext) -> int:
-        return self._ar(db, ctx).uninvoiced_cents
-
-    def _credit_notes_total(self, db: Session, ctx: MerchantContext) -> int:
-        return self._ar(db, ctx).credits_cents
 
     def _ar(self, db: Session, ctx: MerchantContext) -> MerchantAr:
         return merchant_ar(db, ctx.merchant)

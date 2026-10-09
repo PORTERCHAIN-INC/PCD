@@ -1,19 +1,5 @@
 "use client";
 
-export const WEIGHT_OPTIONS = [
-  { label: "1 kg", value: "1" },
-  { label: "5 kg", value: "5" },
-  { label: "10 kg", value: "10" },
-  { label: "25 kg", value: "25" },
-];
-
-export const DIMENSION_OPTIONS = [
-  { label: "Envelope", value: "Envelope" },
-  { label: "30 × 20 × 10 cm", value: "30 x 20 x 10 cm" },
-  { label: "40 × 30 × 20 cm", value: "40 x 30 x 20 cm" },
-  { label: "60 × 40 × 40 cm", value: "60 x 40 x 40 cm" },
-];
-
 export const VALUE_OPTIONS = [
   { label: "$100", value: "100" },
   { label: "$500", value: "500" },

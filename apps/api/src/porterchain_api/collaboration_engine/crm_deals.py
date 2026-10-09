@@ -24,7 +24,6 @@ from porterchain_api.crm_models import (
 from porterchain_api.domain.crm_states import (
     PIPELINE_STAGES,
     STAGE_PROBABILITY,
-    CompanyMerchantStatus,
     ContractStatus,
     DealStage,
     LeadStatus,
@@ -54,15 +53,6 @@ class CrmDealsMixin:
         if company_id:
             q = q.filter(CrmDeal.company_id == company_id)
         return q.order_by(CrmDeal.position.asc(), CrmDeal.updated_at.desc()).limit(limit).all()
-
-    def get_deal(self, db: Session, deal_id: str) -> CrmDeal | None:
-        return db.get(CrmDeal, deal_id)
-
-    def deal_with_company_name(self, db: Session, deal: CrmDeal) -> dict:
-        company = db.get(CrmCompany, deal.company_id) if deal.company_id else None
-        data = {c.name: getattr(deal, c.name) for c in deal.__table__.columns}
-        data["company_name"] = company.legal_name if company else None
-        return data
 
     def board(self, db: Session) -> list[dict]:
         deals = self.list_deals(db, limit=1000)
@@ -246,56 +236,3 @@ class CrmDealsMixin:
             subject="Deal created", actor_id=_actor(ctx),
         )
         return deal
-
-    def update_deal(self, db: Session, ctx: CrmActor | None, deal_id: str, data: dict) -> CrmDeal:
-        deal = db.get(CrmDeal, deal_id)
-        if not deal:
-            raise LookupError("deal_not_found")
-        prev_stage = deal.stage
-        for key, value in data.items():
-            setattr(deal, key, value)
-        if "stage" in data and data["stage"] != prev_stage:
-            self._apply_stage_change(db, ctx, deal, prev_stage)
-        db.commit()
-        db.refresh(deal)
-        return deal
-
-    def move_deal(self, db: Session, ctx: CrmActor | None, deal_id: str, stage: str, position: int) -> CrmDeal:
-        deal = db.get(CrmDeal, deal_id)
-        if not deal:
-            raise LookupError("deal_not_found")
-        prev_stage = deal.stage
-        deal.stage = stage
-        deal.position = position
-        if stage != prev_stage:
-            self._apply_stage_change(db, ctx, deal, prev_stage)
-        db.commit()
-        db.refresh(deal)
-        return deal
-
-    def _apply_stage_change(self, db: Session, ctx: CrmActor | None, deal: CrmDeal, prev_stage: str) -> None:
-        deal.probability = STAGE_PROBABILITY.get(deal.stage, deal.probability)
-        if deal.stage in (DealStage.WON.value, DealStage.LOST.value):
-            deal.closed_at = _now()
-        self.log_activity(
-            db,
-            entity_type="deal",
-            entity_id=deal.id,
-            activity_type="status_change",
-            subject=f"Stage: {prev_stage} → {deal.stage}",
-            actor_id=_actor(ctx),
-            commit=False,
-        )
-        # Auto-advance company status as the deal matures.
-        if deal.company_id and deal.stage == DealStage.WON.value:
-            company = db.get(CrmCompany, deal.company_id)
-            if company and company.merchant_status != CompanyMerchantStatus.ACTIVE_MERCHANT.value:
-                company.merchant_status = CompanyMerchantStatus.NEGOTIATING.value
-
-    def delete_deal(self, db: Session, deal_id: str) -> None:
-        deal = db.get(CrmDeal, deal_id)
-        if not deal:
-            raise LookupError("deal_not_found")
-        db.delete(deal)
-        db.commit()
-

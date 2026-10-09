@@ -142,8 +142,6 @@ export const healthDashboardSchema = z
   })
   .passthrough();
 
-export type HealthDashboardParsed = z.infer<typeof healthDashboardSchema>;
-
 /** Human labels for compact integration_health keys. */
 export const INTEGRATION_HEALTH_LABELS: Record<string, string> = {
   api: "API",

@@ -249,22 +249,6 @@ export type CrmCalendarEvent = {
   organizer?: string | null;
 };
 
-export type CrmCalendarPayload = {
-  integration: {
-    provider: string;
-    configured: boolean;
-    accounts_url: string;
-    api_base: string;
-    calendar_uid: string | null;
-    timezone: string;
-    missing: string[];
-    sync_task_types: string[];
-  };
-  crm_events: CrmCalendarEvent[];
-  zoho_events: CrmCalendarEvent[];
-  zoho_error: string | null;
-};
-
 export type Invoice = {
   id: string;
   invoice_number: string;
@@ -289,67 +273,4 @@ export type Invoice = {
   paid_at: string | null;
   created_at: string;
   updated_at: string;
-};
-
-export type CompanyFacets = {
-  industries: string[];
-  statuses: Array<{ value: string; count: number }>;
-  cities: Array<{ name: string; count: number }>;
-  provinces: Array<{ code: string; count: number }>;
-};
-
-export type CompanyStats = {
-  total: number;
-  active_merchants: number;
-  converted: number;
-  conversion_rate_percent: number;
-  monthly_pipeline_value_cents: number;
-  by_status: Array<{ status: string; count: number }>;
-  by_industry: Array<{ industry: string; count: number }>;
-  by_province: Array<{ province: string; count: number }>;
-  top_companies: Array<{ id: string; name: string; value_cents: number; merchant_status: string }>;
-};
-
-export type CrmDashboard = {
-  new_leads: number;
-  todays_follow_ups: number;
-  overdue_tasks: number;
-  meetings_today: number;
-  contracts_pending: number;
-  quotes_pending: number;
-  merchant_conversions: number;
-  pipeline_value_cents: number;
-  monthly_revenue_forecast_cents: number;
-  open_deals: number;
-  won_deals_this_month: number;
-  active_companies: number;
-  recent_activities: Array<Record<string, unknown>>;
-  lead_sources: Array<{ source: string; count: number }>;
-  top_sales_reps: Array<{ owner_id: string; won_deals: number; revenue_cents: number }>;
-  pipeline_by_stage: Array<{ stage: string; count: number; value_cents: number }>;
-};
-
-export type CrmReports = {
-  pipeline: Array<{ stage: string; count: number; value_cents: number }>;
-  conversion_rate_percent: number;
-  revenue_forecast_cents: number;
-  lead_sources: Array<{ source: string; count: number }>;
-  sales_performance: Array<{ owner_id: string; deals: number; revenue_cents: number }>;
-  merchant_acquisition_cost_cents: number;
-  avg_time_to_close_days: number;
-  quote_win_rate_percent: number;
-};
-
-export type CrmMeta = {
-  pipeline_stages: string[];
-  stage_probability: Record<string, number>;
-  contact_roles: string[];
-};
-
-export type ImportResult = {
-  entity: string;
-  total: number;
-  imported: number;
-  duplicates: number;
-  errors: Array<{ row: number; error: string }>;
 };

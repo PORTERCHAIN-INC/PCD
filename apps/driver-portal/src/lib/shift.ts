@@ -1,7 +1,5 @@
 import type { DriverVehicle } from "./api";
 
-export type AvailabilityMode = "online" | "offline" | "busy" | "idle" | "on_break" | "available";
-
 export interface ShiftRoute {
   route_id: string;
   status: string;

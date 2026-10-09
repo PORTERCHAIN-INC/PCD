@@ -22,20 +22,6 @@ import {
 import { getNicheMessageKey } from "./niche-landing";
 import { VEHICLE_CITY_SEO_SLUGS, type VehicleCitySeoSlug } from "./city-segment-seo";
 
-export const PRIMARY_CITY_SLUGS = [
-  "toronto",
-  "mississauga",
-  "brampton",
-  "vaughan",
-  "oakville",
-  "oshawa",
-  "kitchener-waterloo",
-  "hamilton",
-  "london",
-  "st-catharines",
-  "niagara",
-] as const;
-
 const CITY_SEO_SLUGS_FOR_LINKS: CitySeoSlug[] = [
   "toronto",
   "mississauga",

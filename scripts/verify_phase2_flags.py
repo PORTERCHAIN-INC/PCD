@@ -13,8 +13,6 @@ PHASE2_PY = ROOT / "shared/python/porterchain_shared/config/phase2.py"
 PHASE2_MJS = ROOT / "packages/config/phase2.mjs"
 API_CONFIG = ROOT / "apps/api/src/porterchain_api/config.py"
 ENV_EXAMPLE = ROOT / "apps/api/.env.example"
-ADR_010 = ROOT / "docs/architecture/ADR-010-phase2-strategies.md"
-ADR_014 = ROOT / "docs/architecture/ADR-014-phase2-feature-flags.md"
 
 FLAG_NAMES = (
     "PORTERCHAIN_PHASE2_CRM",

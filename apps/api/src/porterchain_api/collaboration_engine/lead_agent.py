@@ -28,12 +28,6 @@ def _agent_enabled() -> bool:
     return bool(getattr(get_settings(), "lead_agent_auto_send", True))
 
 
-def _cf(lead: CrmLead) -> dict[str, Any]:
-    bag = lead.custom_fields if isinstance(lead.custom_fields, dict) else {}
-    agent = bag.get(_AGENT_CF)
-    return dict(agent) if isinstance(agent, dict) else {}
-
-
 def _set_cf(lead: CrmLead, patch: dict[str, Any]) -> None:
     bag = dict(lead.custom_fields) if isinstance(lead.custom_fields, dict) else {}
     cur = dict(bag.get(_AGENT_CF) or {}) if isinstance(bag.get(_AGENT_CF), dict) else {}

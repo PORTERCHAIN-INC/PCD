@@ -4,19 +4,10 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.domain.states import QuoteState
 from porterchain_api.booking_models import Booking, Customer, Invoice, Order, OrderEvent, Payment, Quote
 
 
 class OrderPlatformLegacyMixin:
-    def list_quotes(self, db: Session, *, state: str | None = None, limit: int = 50) -> list[Quote]:
-        q = db.query(Quote)
-        if state:
-            q = q.filter(Quote.state == state)
-        return q.order_by(Quote.created_at.desc()).limit(limit).all()
-
-    def list_bookings(self, db: Session, *, limit: int = 50) -> list[Booking]:
-        return db.query(Booking).order_by(Booking.created_at.desc()).limit(limit).all()
 
     def list_orders(
         self,
@@ -91,6 +82,3 @@ class OrderPlatformLegacyMixin:
 
     def list_invoices(self, db: Session, *, limit: int = 50) -> list[Invoice]:
         return db.query(Invoice).order_by(Invoice.created_at.desc()).limit(limit).all()
-
-    def pending_quotes_count(self, db: Session) -> int:
-        return db.query(Quote).filter(Quote.state == QuoteState.QUOTE.value).count()

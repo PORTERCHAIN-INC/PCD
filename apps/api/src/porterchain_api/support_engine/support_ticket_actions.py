@@ -236,14 +236,3 @@ class SupportTicketActionsMixin:
             except Exception as exc:
                 results.append({"ticket_id": tid, "status": f"error:{exc}"})
         return results
-
-    def update_ticket(self, db: Session, ticket_id: str, **fields) -> SupportTicket:
-        ticket = self.get_ticket(db, ticket_id)
-        if not ticket:
-            raise LookupError("ticket_not_found")
-        for k, v in fields.items():
-            if v is not None and hasattr(ticket, k):
-                setattr(ticket, k, v)
-        db.commit()
-        db.refresh(ticket)
-        return ticket

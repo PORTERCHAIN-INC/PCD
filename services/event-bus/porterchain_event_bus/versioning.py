@@ -52,7 +52,3 @@ EVENT_SCHEMA_VERSIONS: dict[str, int] = {
 
 def schema_version_for(event_type: str) -> int:
     return EVENT_SCHEMA_VERSIONS.get(event_type, 1)
-
-
-def is_compatible(event_type: str, envelope_version: int) -> bool:
-    return envelope_version <= schema_version_for(event_type)

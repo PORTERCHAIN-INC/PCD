@@ -46,9 +46,6 @@ class CrmContractsMixin:
             q = q.filter(CrmContract.status == status)
         return q.order_by(CrmContract.created_at.desc()).limit(limit).all()
 
-    def get_contract(self, db: Session, contract_id: str) -> CrmContract | None:
-        return db.get(CrmContract, contract_id)
-
     def create_contract(self, db: Session, ctx: CrmActor | None, data: dict) -> CrmContract:
         contract = CrmContract(
             contract_number=self._next_number(db, CrmContract, "contract_number", "C"),

@@ -72,11 +72,3 @@ def roles_for_platform_permission(permission: str) -> frozenset[str]:
     if allowed is None:
         return frozenset()
     return frozenset(r.value for r in allowed)
-
-
-def all_platform_permission_names() -> frozenset[str]:
-    names = {"portal", "admin", "system_all"}
-    for key in MODULE_PERMISSIONS:
-        names.add(to_schema_permission(key))
-        names.add(key)
-    return frozenset(names)

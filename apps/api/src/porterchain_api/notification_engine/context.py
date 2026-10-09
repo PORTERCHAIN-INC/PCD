@@ -2,33 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any
 
 from sqlalchemy.orm import Session
-
-
-class NotificationContext(TypedDict, total=False):
-    """Fields emitters should provide (or that hydrate fills from Order)."""
-
-    order_id: str
-    order_number: str
-    tracking_number: str
-    customer_id: str
-    merchant_id: str
-    merchant_name: str
-    merchant_email: str
-    driver_id: str
-    email: str
-    contact_email: str
-    deep_link: str
-    customer_deep_link: str
-    merchant_deep_link: str
-    driver_deep_link: str
-    admin_deep_link: str
-    status: str
-    message: str
-    exception_type: str
-    exception_id: str
 
 
 def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:

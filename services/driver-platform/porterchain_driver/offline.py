@@ -63,9 +63,6 @@ class OfflineService:
     def list_pending(self, db: Session, driver_id: str) -> list[dict]:
         return self._list_by_status(db, driver_id, "pending")
 
-    def list_failed(self, db: Session, driver_id: str) -> list[dict]:
-        return self._list_by_status(db, driver_id, "failed")
-
     def status(self, db: Session, driver_id: str) -> dict[str, Any]:
         from porterchain_api.driver_models import DriverOfflineAction
 

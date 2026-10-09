@@ -49,12 +49,6 @@ class MerchantContactsService:
             )
         db.commit()
 
-    def sync_for_merchant(self, db: Session, merchant_id: str) -> None:
-        merchant = db.get(Merchant, merchant_id)
-        if not merchant:
-            return
-        self.sync_team_contacts(db, merchant)
-
     def list_contacts(self, db: Session, ctx: MerchantContext) -> list[dict[str, Any]]:
         self.sync_team_contacts(db, ctx.merchant)
         company = self.ensure_company(db, ctx.merchant)

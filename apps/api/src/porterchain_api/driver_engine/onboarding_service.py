@@ -73,10 +73,6 @@ def _compliance_docs_complete(driver: Driver) -> bool:
     return all(_has_doc_file(driver, key) for key in _REQUIRED_DOC_TYPES)
 
 
-def _doc_uploaded(driver: Driver, doc_type: str) -> bool:
-    return _has_doc_file(driver, doc_type)
-
-
 def evaluate_driver_onboarding(driver: Driver, *, settings: Settings | None = None) -> dict[str, Any]:
     """Return structured onboarding checklist for driver portal gate."""
     clerk_linked = not _is_pending_clerk_id(driver.clerk_user_id)

@@ -52,9 +52,6 @@ RETURNED_STATES = ("RETURN_TO_SENDER",)
 
 HIGH_PRIORITY_CENTS = 20000
 
-# Food SLA — orders inside an active delivery window surface first in dispatch (§8.1.8).
-FOOD_SLA_DISPATCH_STATES = DISPATCH_POOL + DELIVERY_ONLY_POOL
-
 
 def dispatch_queue_sort_key(order: Any, *, now: datetime | None = None) -> tuple[int, datetime]:
     """Lower tuple sorts earlier — urgent food windows before generic FIFO."""

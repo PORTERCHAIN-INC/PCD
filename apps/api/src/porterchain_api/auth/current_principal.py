@@ -83,16 +83,6 @@ class CurrentPrincipal:
             for a in self.role_assignments
         )
 
-    def has_self_scope(self, profile_id: str) -> bool:
-        if UnifiedPermission.SYSTEM_ALL in self.permissions:
-            return True
-        if not profile_id:
-            return False
-        return any(
-            a.scope_type == "self" and (a.scope_id == profile_id or not a.scope_id)
-            for a in self.role_assignments
-        )
-
     def has_any_permission(self, *permissions: UnifiedPermission | str) -> bool:
         return any(self.has_permission(p) for p in permissions)
 

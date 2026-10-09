@@ -77,9 +77,3 @@ export function isOverPerfBudget(metricName: "INP" | "LCP" | "CLS", value: numbe
   if (metricName === "LCP") return value > PERF_BUDGET_LCP_GOOD_MS;
   return value > PERF_BUDGET_CLS_GOOD;
 }
-
-/** Stricter LCP check for hub/blog (business + other); matrix keeps CWV default. */
-export function isOverMarketingLcpBudget(routeClass: PageRouteClass, lcpMs: number): boolean {
-  if (routeClass === "matrix") return lcpMs > PERF_BUDGET_LCP_GOOD_MS;
-  return lcpMs > PERF_BUDGET_LCP_MARKETING_MS;
-}

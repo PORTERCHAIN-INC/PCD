@@ -10,16 +10,6 @@ class OAuthClientCreateRequest(BaseModel):
     redirect_uris: list[str] = Field(default_factory=list)
 
 
-class OAuthClientResponse(BaseModel):
-    client_id: str
-    name: str
-    scopes: list[str]
-    environment: str
-    redirect_uris: list[str]
-    created_at: str | None = None
-    client_secret: str | None = None
-
-
 class OAuthAuthorizeRequest(BaseModel):
     client_id: str
     redirect_uri: str

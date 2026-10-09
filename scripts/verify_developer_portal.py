@@ -17,7 +17,6 @@ POSTMAN = ROOT / "docs/api/porterchain.postman.json"
 CHANGELOG = ROOT / "docs/api/CHANGELOG.md"
 OPENAPI = ROOT / "docs/api/openapi.json"
 WEBHOOKS_DOC = ROOT / "docs/api/WEBHOOKS_IDEMPOTENCY_RATE_LIMITS.md"
-STATUS_DOC = ROOT / "docs/STATUS_PAGE.md"
 
 
 def main() -> int:

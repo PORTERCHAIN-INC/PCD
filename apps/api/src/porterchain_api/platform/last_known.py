@@ -64,17 +64,6 @@ class LastKnown:
     fleetbase_driver_id: str | None = None
     h3: str | None = None
 
-    def as_track_payload(self) -> dict[str, Any]:
-        return {
-            "fleetbase_driver_id": self.fleetbase_driver_id,
-            "driver_id": self.driver_id,
-            "lat": self.lat,
-            "lng": self.lng,
-            "heading": self.heading,
-            "speed": self.speed_mps,
-            "recorded_at": self.recorded_at.isoformat(),
-        }
-
 
 def parse_recorded_at(raw: Any) -> datetime | None:
     """Parse GPS timestamps. Naive values are treated as UTC. Not string-ordered."""

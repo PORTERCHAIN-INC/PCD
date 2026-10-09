@@ -194,10 +194,6 @@ export async function getPost(locale: Locale, slug: string): Promise<BlogPost | 
   return fetchApiPost(locale, slug);
 }
 
-export async function getCaseStudyPosts(locale: Locale): Promise<BlogPostMeta[]> {
-  return fetchApiPostsPage(locale, { caseStudy: true, limit: BLOG_PAGE_SIZE });
-}
-
 export async function getFeaturedPost(locale: Locale): Promise<BlogPostMeta | null> {
   const featured = await fetchApiPostsPage(locale, { featured: true, limit: 1 });
   if (featured[0]) return featured[0];
@@ -238,12 +234,6 @@ export async function getRelatedPosts(
     .slice(0, limit);
 }
 
-export async function searchPosts(locale: Locale, query: string): Promise<BlogPostMeta[]> {
-  const q = query.trim();
-  if (!q) return getAllPosts(locale);
-  return fetchAllApiPosts(locale, { search: q });
-}
-
 export function paginatePosts<T>(posts: T[], page: number, perPage = POSTS_PER_PAGE) {
   const totalPages = Math.max(1, Math.ceil(posts.length / perPage));
   const currentPage = Math.min(Math.max(1, page), totalPages);
@@ -265,10 +255,6 @@ export async function getCategoryPostCounts(locale: Locale): Promise<Record<Blog
     counts[post.category]++;
   }
   return counts;
-}
-
-export function getAuthorForPost(authorId: string) {
-  return getAuthor(authorId);
 }
 
 /** CMS authors with static fallback for image build / API down. */

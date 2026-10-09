@@ -57,9 +57,3 @@ class TicketStatus(StrEnum):
     ESCALATED = "escalated"
     RESOLVED = "resolved"
     CLOSED = "closed"
-
-
-class CrmTaskStatus(StrEnum):
-    OPEN = "open"
-    DONE = "done"
-    CANCELLED = "cancelled"

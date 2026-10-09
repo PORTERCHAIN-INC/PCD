@@ -10,8 +10,6 @@ import {
 
 assertUniqueFooterHrefs();
 
-export type FooterVariant = "corporate" | "booking" | "business";
-
 interface OrganizedFooterLinksProps {
   getSectionTitle: (section: FooterSectionId) => string;
   getLinkLabel: (section: FooterSectionId, id: string) => string;

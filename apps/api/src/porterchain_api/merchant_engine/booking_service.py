@@ -453,8 +453,3 @@ class MerchantBookingService:
         # Never silent-promote: duplicate inherits source env.
         src_sandbox = bool(getattr(order, "is_sandbox", False) or meta.get("sandbox") is True)
         return self.create_shipment(db, settings, ctx, body, sandbox=src_sandbox)
-
-
-def push_redacted_order(db: Session, settings: Settings, order: Order) -> None:
-    """The wiped contact is already on the PorterChain order."""
-    del db, settings, order

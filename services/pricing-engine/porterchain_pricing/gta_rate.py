@@ -48,10 +48,6 @@ _LEGACY_MATRIX_KEYS: dict[str, str] = {
     "large_van": "sprinter_van",
 }
 
-# Back-compat aliases used by older call sites / tests
-BASE_KM_LIMIT = DEFAULT_BASE_KM_LIMIT
-DOWNTOWN_FEE_CAD = DEFAULT_DOWNTOWN_FEE_CAD
-UPPER_ZONE_FEE_CAD = DEFAULT_UPPER_ZONE_FEE_CAD
 VEHICLE_MATRIX = DEFAULT_VEHICLE_MATRIX
 
 # One collapse table for every legacy / camelCase / alias vehicle key → catalog id.

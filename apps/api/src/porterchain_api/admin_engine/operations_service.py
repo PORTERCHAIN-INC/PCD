@@ -11,7 +11,7 @@ from porterchain_api.booking_engine.order_transitions import transition_order_st
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
-from porterchain_api.booking_models import Order, OrderException
+from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import dispatch_queue_sort_key
 
 
@@ -27,15 +27,6 @@ class AdminOperationsService:
         )
         rows.sort(key=dispatch_queue_sort_key)
         return rows[:limit]
-
-    def exception_queue(self, db: Session, *, limit: int = 50) -> list[OrderException]:
-        return (
-            db.query(OrderException)
-            .filter(OrderException.status == "open")
-            .order_by(OrderException.created_at.desc())
-            .limit(limit)
-            .all()
-        )
 
     def assign_driver(
         self,

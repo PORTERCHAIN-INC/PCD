@@ -42,10 +42,6 @@ class PlatformSettings(BaseSettings):
     fleetbase_console_url: str = ""
     fleetbase_sso_enabled: bool = False
 
-    # Staff SSO JWT (PorterChain portals)
-    sso_jwt_secret: str = ""
-    sso_token_ttl_seconds: int = 300
-
     # Maps / routing
     google_maps_api_key: str = Field(
         default="",
@@ -165,48 +161,6 @@ class PlatformSettings(BaseSettings):
         validation_alias=AliasChoices("zeptomail_api_url", "ZEPTOMAIL_API_URL"),
     )
 
-    # Zoho Calendar (CRM meetings / follow-ups)
-    zoho_calendar_client_id: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "zoho_calendar_client_id",
-            "ZOHO_CALENDAR_CLIENT_ID",
-            "ZOHO_CALANDER_API",
-        ),
-    )
-    zoho_calendar_client_secret: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "zoho_calendar_client_secret",
-            "ZOHO_CALENDAR_CLIENT_SECRET",
-            "ZOHO_CALANDER_API_SECRET",
-        ),
-    )
-    zoho_calendar_refresh_token: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "zoho_calendar_refresh_token",
-            "ZOHO_CALENDAR_REFRESH_TOKEN",
-            "ZOHO_CALANDER_API_OPERATION",
-        ),
-    )
-    zoho_calendar_accounts_url: str = Field(
-        default="https://accounts.zohocloud.ca",
-        validation_alias=AliasChoices("zoho_calendar_accounts_url", "ZOHO_CALENDAR_ACCOUNTS_URL"),
-    )
-    zoho_calendar_api_base: str = Field(
-        default="https://calendar.zoho.ca/api/v1",
-        validation_alias=AliasChoices("zoho_calendar_api_base", "ZOHO_CALENDAR_API_BASE"),
-    )
-    zoho_calendar_uid: str = Field(
-        default="",
-        validation_alias=AliasChoices("zoho_calendar_uid", "ZOHO_CALENDAR_UID"),
-    )
-    zoho_calendar_timezone: str = Field(
-        default="America/Toronto",
-        validation_alias=AliasChoices("zoho_calendar_timezone", "ZOHO_CALENDAR_TIMEZONE"),
-    )
-
     # JWT session (driver API — Porterchain-issued refresh tokens)
     jwt_secret: str = ""
     jwt_access_ttl_minutes: int = 60
@@ -221,14 +175,6 @@ class PlatformSettings(BaseSettings):
     @property
     def is_local(self) -> bool:
         return self.app_env.lower() in ("local", "development", "dev", "test")
-
-    @property
-    def zoho_calendar_configured(self) -> bool:
-        return bool(
-            self.zoho_calendar_client_id
-            and self.zoho_calendar_client_secret
-            and self.zoho_calendar_refresh_token
-        )
 
     def smtp_from_for(self, alias: str | None = None) -> str:
         """Resolve transactional From address — ops (default), sales, or personal."""

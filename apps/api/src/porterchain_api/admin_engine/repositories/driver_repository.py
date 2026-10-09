@@ -21,6 +21,3 @@ class AdminUserRepository:
 
     def get_by_clerk_id(self, db: Session, clerk_user_id: str) -> AdminUser | None:
         return db.query(AdminUser).filter(AdminUser.clerk_user_id == clerk_user_id).first()
-
-    def first_active(self, db: Session) -> AdminUser | None:
-        return db.query(AdminUser).filter(AdminUser.is_active.is_(True)).first()

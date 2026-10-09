@@ -166,10 +166,6 @@ class AdminOrdersService(OrderPlatformService):
         filename = f"shipment-{order.order_number}.pdf"
         return pdf, filename
 
-    def label_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
-        """Deprecated — use labels_pdf (4×6 thermal)."""
-        return self.labels_pdf(db, order_id)
-
     def labels_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
         from porterchain_api.reporting.label_service import LabelService, PackagesRequired
 

@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.booking_draft_admin_rows import (
     ACTIVE_PRE_CONFIRM,
-    display_state,
     draft_row,
     is_abandoned,
     payment_for_draft,
@@ -63,9 +62,6 @@ class AdminBookingDraftService:
         if not order or not order.merchant_id:
             return None
         return get_merchant(db, order.merchant_id)
-
-    def _display_state(self, draft: BookingDraft) -> str:
-        return display_state(draft)
 
     def _is_abandoned(self, draft: BookingDraft, now: datetime) -> bool:
         return is_abandoned(draft, now)

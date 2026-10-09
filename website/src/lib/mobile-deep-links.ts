@@ -4,8 +4,6 @@
 
 export const APP_LINK_HOSTS = ["porterchain.com", "www.porterchain.com"] as const;
 
-export const DRIVER_APP_LINK_HOSTS = [...APP_LINK_HOSTS, "driver.porterchain.com"] as const;
-
 export const MOBILE_APP_IDS = {
   customer: {
     iosBundleId: "com.porterchain.customer",
@@ -76,20 +74,4 @@ export function parseFingerprintList(value: string | undefined, fallback: string
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-/** Map https universal link path → in-app screen key (customer shell). */
-export function resolveCustomerDeepLinkPath(pathname: string): "track" | "sign-in" | null {
-  const normalized = pathname.replace(/\/$/, "") || "/";
-  if (normalized === "/track" || /\/track$/.test(normalized)) return "track";
-  if (normalized === "/login" || /\/login$/.test(normalized)) return "sign-in";
-  return null;
-}
-
-/** Map https universal link path → driver invite token if present. */
-export function parseDriverInviteToken(pathname: string, query?: string): string | null {
-  if (!pathname.includes("driver-invite")) return null;
-  if (!query) return null;
-  const params = new URLSearchParams(query.startsWith("?") ? query.slice(1) : query);
-  return params.get("token");
 }

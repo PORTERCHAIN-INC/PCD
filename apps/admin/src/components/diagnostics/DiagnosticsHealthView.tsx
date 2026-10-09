@@ -358,20 +358,3 @@ function CategoryChip({
     </button>
   );
 }
-
-export function DiagnosticsHealthCompact({ data }: { data: HealthDashboard | null }) {
-  if (!data) return null;
-  return (
-    <div className="flex items-center gap-2 text-sm">
-      <ShieldCheck className="h-4 w-4 text-muted" />
-      <Badge
-        tone={data.overall === "healthy" ? "green" : data.overall === "warning" ? "amber" : "red"}
-      >
-        {data.overall}
-      </Badge>
-      <span className="text-muted">
-        {data.summary.healthy}/{data.components.length} healthy
-      </span>
-    </div>
-  );
-}

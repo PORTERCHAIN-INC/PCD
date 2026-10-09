@@ -298,9 +298,3 @@ export function activeNavLabel(pathname: string, search = ""): string | null {
   const item = ranked.find((i) => isNavActive(pathname, i.href, search));
   return item?.label ?? null;
 }
-
-export function navCoversAllTopLevelRoutes(): { ok: boolean; missing: string[] } {
-  const navPaths = new Set(ALL_ADMIN_NAV_ITEMS.map((i) => splitHref(i.href).path));
-  const missing = ADMIN_TOP_LEVEL_ROUTES.filter((r) => !navPaths.has(r));
-  return { ok: missing.length === 0, missing: [...missing] };
-}

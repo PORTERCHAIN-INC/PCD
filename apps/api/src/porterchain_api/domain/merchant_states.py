@@ -35,16 +35,6 @@ PORTAL_ROLE_MAP: dict[str, MerchantRole] = {
 }
 
 
-class MerchantPaymentTerms(StrEnum):
-    IMMEDIATE = "IMMEDIATE"
-    NET_7 = "NET_7"
-    NET_14 = "NET_14"
-    NET_15 = "NET_15"
-    NET_30 = "NET_30"
-    NET_45 = "NET_45"
-    CUSTOM = "CUSTOM"
-
-
 class BulkImportStatus(StrEnum):
     UPLOADED = "UPLOADED"
     VALIDATING = "VALIDATING"

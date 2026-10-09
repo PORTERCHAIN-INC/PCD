@@ -3,21 +3,16 @@
 from __future__ import annotations
 
 import logging
-import uuid
-from datetime import UTC, datetime, timedelta
 
-from jose import jwt
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.staff_lookups import get_admin_user
-from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.identity_links import (
     require_porterchain_user_id,
     upsert_sso_link,
 )
 from porterchain_api.auth.persona_bundle import load_persona_bundle
-from porterchain_api.auth.persona_principal import resolve_persona_principal
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_shared.auth.principal import AuthPrincipal
@@ -26,8 +21,6 @@ from porterchain_shared.types.user_types import UserType
 
 logger = logging.getLogger(__name__)
 
-SSO_AUDIENCE_FLEETBASE = "fleetbase"
-SSO_ISSUER = "porterchain"
 
 _ADMIN_PLATFORM: dict[AdminRole, PlatformRole] = {
     AdminRole.SUPER_ADMIN: PlatformRole.SUPER_ADMIN,
@@ -47,11 +40,6 @@ _ADMIN_PLATFORM: dict[AdminRole, PlatformRole] = {
 
 
 class SsoService:
-    def resolve_principal(
-        self, db: Session, claims: ClerkClaims, settings: Settings | None = None
-    ) -> AuthPrincipal | None:
-        """Legacy Clerk path — prefer ``auth_principal_from_current`` for staff IdP."""
-        return resolve_persona_principal(db, claims, settings=settings)
 
     def auth_principal_from_current(
         self, db: Session, current: CurrentPrincipal
@@ -81,36 +69,6 @@ class SsoService:
             email=admin.email or current.email,
             session_id=current.session_id,
         )
-
-    def issue_sso_token(
-        self,
-        settings: Settings,
-        principal: AuthPrincipal,
-        *,
-        audience: str,
-        subject: str,
-    ) -> str:
-        secret = settings.sso_jwt_secret or settings.jwt_secret
-        if not secret:
-            raise ValueError("sso_jwt_secret_not_configured")
-
-        now = datetime.now(UTC)
-        payload = {
-            "iss": SSO_ISSUER,
-            "aud": audience,
-            "sub": principal.user_id,
-            "clerk_user_id": subject,  # IdP subject (staff:{id} or Clerk user_*)
-            "auth_subject": subject,
-            "user_type": principal.user_type.value,
-            "org_id": principal.org_id,
-            "email": principal.email,
-            "roles": sorted(r.value for r in principal.roles),
-            "permissions": sorted(p.value for p in principal.permissions()),
-            "jti": str(uuid.uuid4()),
-            "iat": int(now.timestamp()),
-            "exp": int((now + timedelta(seconds=settings.sso_token_ttl_seconds)).timestamp()),
-        }
-        return jwt.encode(payload, secret, algorithm="HS256")
 
     def _upsert_identity_link(
         self,

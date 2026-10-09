@@ -13,11 +13,3 @@ export type { Locale };
 
 export const locales = routing.locales;
 export const defaultLocale = routing.defaultLocale;
-
-export function isValidLocale(locale: string): locale is Locale {
-  return (routing.locales as readonly string[]).includes(locale);
-}
-
-export function getValidLocales(): Locale[] {
-  return [...routing.locales];
-}

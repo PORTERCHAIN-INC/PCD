@@ -17,14 +17,3 @@ export type PublishableContent = {
   sources?: string[];
   canonicalSlug?: string;
 };
-
-export function isPublished(content: Pick<PublishableContent, "status" | "index">): boolean {
-  return content.status === "published" && content.index;
-}
-
-export function parseContentDate(iso?: string): Date | undefined {
-  if (!iso) return undefined;
-  const parsed = Date.parse(iso);
-  if (Number.isNaN(parsed)) return undefined;
-  return new Date(parsed);
-}

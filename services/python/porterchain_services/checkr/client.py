@@ -53,9 +53,6 @@ class CheckrClient:
     def create_invitation(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/v1/invitations", json=payload)
 
-    def retrieve_report(self, report_id: str) -> dict[str, Any]:
-        return self._request("GET", f"/v1/reports/{report_id}")
-
     def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
         with self._client() as client:
             response = client.request(method, path, **kwargs)

@@ -194,8 +194,3 @@ def simulate_sandbox_lifecycle(
         "fixtures": fixtures,
         "webhooks_targeted": len(sandbox_hooks),
     }
-
-
-def sandbox_fixture_preview(order: Order, event_type: str = "order.delivered") -> dict[str, Any]:
-    """Body shape for docs / OpenAPI examples."""
-    return _event_body(order, event_type, payload={"example": True})

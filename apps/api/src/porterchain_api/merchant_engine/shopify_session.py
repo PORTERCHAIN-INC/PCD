@@ -17,21 +17,6 @@ from porterchain_api.merchant_models import ShopifyShop
 logger = logging.getLogger(__name__)
 
 
-def shop_has_offline_token(db: Session, shop_domain: str) -> bool:
-    """True when this shop already completed install and we stored a token."""
-    from porterchain_api.merchant_engine.shopify_urls import is_shop_domain, normalize_shop_domain
-
-    shop = normalize_shop_domain(shop_domain)
-    if not is_shop_domain(shop):
-        return False
-    row = (
-        db.query(ShopifyShop)
-        .filter(ShopifyShop.shop_domain == shop, ShopifyShop.uninstalled_at.is_(None))
-        .first()
-    )
-    return bool(row and row.encrypted_access_token)
-
-
 def ensure_carrier_rates(
     db: Session, settings: Settings, shop_domain: str, *, rehook: bool = False
 ) -> str:

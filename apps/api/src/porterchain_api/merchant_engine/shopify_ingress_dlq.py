@@ -25,7 +25,6 @@ REASON_HMAC = "hmac"
 REASON_PAYLOAD = "payload_invalid"
 REASON_WORKER = "worker_error"
 REASON_BOOKING = "booking_rejected"
-REASON_CANCEL_POLICY = "cancel_skipped"
 
 
 def _is_booking_validation_error(exc: BaseException) -> bool:

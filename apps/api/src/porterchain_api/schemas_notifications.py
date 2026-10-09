@@ -1,5 +1,3 @@
-from datetime import datetime
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -44,30 +42,3 @@ class SendTestRequest(BaseModel):
     recipient_address: str | None = Field(default=None, max_length=512)
     recipient_type: str = Field(default="admin", max_length=32)
     recipient_id: str | None = Field(default=None, max_length=36)
-
-
-class NotificationRecordOut(BaseModel):
-    id: str
-    event_type: str | None
-    template_key: str
-    category: str
-    channel: str
-    priority: str
-    recipient_type: str
-    recipient_id: str
-    recipient_address: str | None
-    title: str
-    body: str
-    status: str
-    retry_count: int
-    failure_reason: str | None
-    search_tags: dict[str, Any]
-    is_read: bool
-    is_archived: bool
-    deep_link: str | None = None
-    queued_at: datetime | None
-    sent_at: datetime | None
-    delivered_at: datetime | None
-    opened_at: datetime | None
-    clicked_at: datetime | None
-    created_at: datetime

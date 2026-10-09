@@ -19,8 +19,6 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 CANDIDATE_CAP = 6  # max live Fleetbase position lookups (legacy sync path / matrix seed)
-# D-28: unknown position must not invent a competitive ETA — large soft penalty instead.
-DEFAULT_ETA_MIN = 25.0
 NO_POSITION_ETA_MIN = 180.0
 LOAD_PENALTY_MIN = 8.0
 OFFLINE_PENALTY_MIN = 12.0

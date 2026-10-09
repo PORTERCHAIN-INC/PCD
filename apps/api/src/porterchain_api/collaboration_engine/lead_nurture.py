@@ -236,11 +236,6 @@ def _enqueue_nurture_email(lead: CrmLead, *, website_url: str, campaign: str = "
         return False
 
 
-def _enqueue_d1_email(lead: CrmLead, *, website_url: str) -> bool:
-    """Backward-compatible alias for tests / callers."""
-    return _enqueue_nurture_email(lead, website_url=website_url, campaign="d1")
-
-
 def apply_nurture_after_ingest(
     db: Session, lead: CrmLead, *, created: bool, website_url: str = ""
 ) -> dict[str, Any]:

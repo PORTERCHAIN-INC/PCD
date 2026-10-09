@@ -9,7 +9,7 @@ import hashlib
 import json
 import logging
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any
 from urllib.parse import quote
 
@@ -221,12 +221,3 @@ def geocode_stop(
         city=norm.city,
         postal=norm.postal,
     )
-
-
-def reset_throttle_for_tests() -> None:
-    global _last_call_at
-    _last_call_at = 0.0
-
-
-def geocode_result_to_dict(result: GeocodeResult) -> dict[str, Any]:
-    return asdict(result)

@@ -357,23 +357,6 @@ class NotificationEngine:
         db.flush()
         return len(rows)
 
-    def mark_clicked(self, db: Session, notification_id: str, *, user_role: str, user_id: str) -> bool:
-        row = (
-            db.query(NotificationRecord)
-            .filter(
-                NotificationRecord.id == notification_id,
-                NotificationRecord.recipient_type == user_role,
-                NotificationRecord.recipient_id == user_id,
-            )
-            .first()
-        )
-        if not row:
-            return False
-        row.clicked_at = datetime.now(UTC)
-        row.is_read = True
-        db.flush()
-        return True
-
     def schedule_retry(self, db: Session, record: NotificationRecord, error: str) -> None:
         record.retry_count += 1
         record.failure_reason = error

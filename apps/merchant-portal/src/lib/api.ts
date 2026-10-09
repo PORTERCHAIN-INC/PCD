@@ -302,58 +302,8 @@ export function getDashboard(token: string, orgId?: string) {
   return merchantFetch<MerchantDashboard>("/v1/merchant/dashboard", token, { orgId });
 }
 
-export async function listOrders(
-  token: string,
-  orgId?: string,
-  params?: { state?: string; search?: string }
-) {
-  const qs = new URLSearchParams();
-  if (params?.state) qs.set("state", params.state);
-  if (params?.search) qs.set("search", params.search);
-  const q = qs.toString();
-  const page = await merchantFetch<{ items: MerchantOrder[] } | MerchantOrder[]>(
-    `/v1/merchant/orders${q ? `?${q}` : ""}`,
-    token,
-    { orgId }
-  );
-  return Array.isArray(page) ? page : page.items;
-}
-
-export function getOrder(token: string, orderId: string, orgId?: string) {
-  return merchantFetch<MerchantOrder>(`/v1/merchant/orders/${orderId}`, token, { orgId });
-}
-
-export function trackOrder(token: string, tracking: string, orgId?: string) {
-  return merchantFetch<{ order: MerchantOrder; timeline: Array<Record<string, unknown>> }>(
-    `/v1/merchant/track/${encodeURIComponent(tracking)}`,
-    token,
-    { orgId }
-  );
-}
-
-export function createBooking(
-  token: string,
-  payload: BookDeliveryPayload,
-  orgId?: string,
-  idempotencyKey?: string
-) {
-  return merchantFetch<MerchantOrder>("/v1/merchant/bookings", token, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    orgId,
-    headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
-  });
-}
-
 export function cancelOrder(token: string, orderId: string, orgId?: string) {
   return merchantFetch<MerchantOrder>(`/v1/merchant/orders/${orderId}/cancel`, token, {
-    method: "POST",
-    orgId,
-  });
-}
-
-export function duplicateOrder(token: string, orderId: string, orgId?: string) {
-  return merchantFetch<MerchantOrder>(`/v1/merchant/orders/${orderId}/duplicate`, token, {
     method: "POST",
     orgId,
   });
@@ -624,20 +574,12 @@ export function patchOrderParcels(
   });
 }
 
-export function getProfile(token: string, orgId?: string) {
-  return merchantFetch<MerchantProfile>("/v1/merchant/profile", token, { orgId });
-}
-
 export function updateProfile(token: string, payload: Partial<MerchantProfile>, orgId?: string) {
   return merchantFetch<MerchantProfile>("/v1/merchant/profile", token, {
     method: "PATCH",
     body: JSON.stringify(payload),
     orgId,
   });
-}
-
-export function listTeam(token: string, orgId?: string) {
-  return merchantFetch<TeamMember[]>("/v1/merchant/team", token, { orgId });
 }
 
 export function inviteTeamMember(token: string, email: string, role: string, orgId?: string) {
@@ -652,34 +594,6 @@ export function removeTeamMember(token: string, userId: string, orgId?: string) 
   return merchantFetch<void>(`/v1/merchant/team/${userId}`, token, { method: "DELETE", orgId });
 }
 
-export function listApiKeys(token: string, orgId?: string) {
-  return merchantFetch<ApiKeyRecord[]>("/v1/merchant/api-keys", token, { orgId });
-}
-
-export function createApiKey(
-  token: string,
-  payload: { name: string; scopes?: string[]; environment?: string },
-  orgId?: string
-) {
-  return merchantFetch<ApiKeyRecord>("/v1/merchant/api-keys", token, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    orgId,
-  });
-}
-
 export function revokeApiKey(token: string, keyId: string, orgId?: string) {
   return merchantFetch<void>(`/v1/merchant/api-keys/${keyId}`, token, { method: "DELETE", orgId });
-}
-
-export function getBillingStatement(token: string, orgId?: string) {
-  return merchantFetch<BillingStatement>("/v1/merchant/billing/statement", token, { orgId });
-}
-
-export function listInvoices(token: string, orgId?: string) {
-  return merchantFetch<InvoiceItem[]>("/v1/merchant/billing/invoices", token, { orgId });
-}
-
-export function getReports(token: string, orgId?: string) {
-  return merchantFetch<ReportSummary>("/v1/merchant/reports/summary", token, { orgId });
 }

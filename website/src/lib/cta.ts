@@ -16,7 +16,3 @@ export const REQUEST_CAPACITY_CTA = {
 export function quoteCtaLabel(locale: string = "en"): string {
   return locale === "fr" ? QUOTE_CTA.fr : QUOTE_CTA.en;
 }
-
-export function requestCapacityCtaLabel(locale: string = "en"): string {
-  return locale === "fr" ? REQUEST_CAPACITY_CTA.fr : REQUEST_CAPACITY_CTA.en;
-}

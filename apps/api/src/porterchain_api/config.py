@@ -422,7 +422,6 @@ class Settings(BaseSettings):
         default="dev-sso-secret-change-in-production",
         validation_alias=AliasChoices("jwt_secret", "JWT_SECRET"),
     )
-    sso_token_ttl_seconds: int = 300
     fleetbase_console_url: str = ""
     fleetbase_sso_enabled: bool = False
     # Leftover request-path Fleetbase GET/orchestrator budget (adapter ops_timeout).

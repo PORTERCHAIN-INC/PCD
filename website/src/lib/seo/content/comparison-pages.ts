@@ -451,10 +451,6 @@ export function getComparisonBySlug(slug: string): ComparisonPage | null {
   return COMPARISON_PAGES.find((p) => p.slug === slug) ?? null;
 }
 
-export function getAllComparisonSlugs(): string[] {
-  return COMPARISON_PAGES.map((p) => p.slug);
-}
-
 export function buildComparisonInternalLinks(
   locale: Locale,
   page: ComparisonPage

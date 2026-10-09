@@ -30,15 +30,6 @@ export type SuccessStory = PublishableContent & {
   evidenceNotes?: string;
 };
 
-export const MERCHANT_TYPE_LABELS: Record<SuccessStoryMerchantType, string> = {
-  "construction-materials": "Construction materials",
-  "electrical-distribution": "Electrical distribution",
-  "plumbing-supply": "Plumbing supply",
-  "coffee-roasters": "Coffee roasters",
-  "pharmacy-medical": "Pharmacies",
-  cosmetics: "Beauty brands",
-};
-
 export const SUCCESS_STORIES: SuccessStory[] = [
   {
     slug: "construction-distributor-jobsite-delivery",
@@ -227,16 +218,4 @@ export function isPublicSuccessStory(story: SuccessStory): boolean {
 
 export function listPublicSuccessStories(): SuccessStory[] {
   return SUCCESS_STORIES.filter(isPublicSuccessStory);
-}
-
-export function getSuccessStoriesByMerchantType(type: SuccessStoryMerchantType): SuccessStory[] {
-  return SUCCESS_STORIES.filter((s) => s.merchantType === type);
-}
-
-export function getAllSuccessStorySlugs(): string[] {
-  return SUCCESS_STORIES.map((s) => s.slug);
-}
-
-export function getPublicSuccessStorySlugs(): string[] {
-  return listPublicSuccessStories().map((s) => s.slug);
 }

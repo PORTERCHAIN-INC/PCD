@@ -73,60 +73,6 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def ensure_crm_tasks(db) -> None:
-    """Backfill CRM tasks when companies exist but tasks were skipped by a partial CRM seed."""
-    from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
-    from porterchain_api.admin_models import AdminUser
-    from porterchain_api.crm_models import CrmCompany, CrmDeal, CrmSalesTask
-
-    if db.query(CrmSalesTask).first():
-        return
-    companies = db.query(CrmCompany).limit(3).all()
-    deals = db.query(CrmDeal).limit(3).all()
-    rep = db.query(AdminUser).filter(AdminUser.email == "ava@porterchain.com").first()
-    if not companies or not rep:
-        return
-    svc = CrmSalesService()
-    ctx = AdminContext(user=rep, role=AdminRole.SALES_MANAGER)
-    now = _now()
-    payloads = [
-        {
-            "title": "Follow up on Maple Leaf volume pricing",
-            "task_type": "follow_up",
-            "priority": "high",
-            "entity_type": "deal",
-            "entity_id": deals[0].id if deals else companies[0].id,
-            "company_id": companies[0].id,
-            "deal_id": deals[0].id if deals else None,
-            "assigned_to": rep.id,
-            "due_at": now.replace(hour=15, minute=0),
-        },
-        {
-            "title": "Send NDA to Northern MedSupply",
-            "task_type": "document",
-            "priority": "medium",
-            "entity_type": "company",
-            "entity_id": companies[1].id if len(companies) > 1 else companies[0].id,
-            "company_id": companies[1].id if len(companies) > 1 else companies[0].id,
-            "assigned_to": rep.id,
-            "due_at": now - timedelta(days=2),
-        },
-        {
-            "title": "Discovery call with GTA BuildMat",
-            "task_type": "meeting",
-            "priority": "high",
-            "entity_type": "deal",
-            "entity_id": deals[2].id if len(deals) > 2 else (deals[0].id if deals else companies[0].id),
-            "company_id": companies[2].id if len(companies) > 2 else companies[0].id,
-            "deal_id": deals[2].id if len(deals) > 2 else (deals[0].id if deals else None),
-            "assigned_to": rep.id,
-            "due_at": now.replace(hour=11, minute=0),
-        },
-    ]
-    for payload in payloads:
-        svc.create_task(db, ctx, payload)
-
-
 def seed_complete(db) -> bool:
     return (
         db.query(BookingDraft).filter(BookingDraft.session_id == "seed-draft-session").first()

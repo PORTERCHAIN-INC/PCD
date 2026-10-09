@@ -12,15 +12,6 @@ export const CONSTRUCTION_PROGRAM_KEYS = ["materials", "electrical", "plumbing"]
 
 export type ConstructionProgramKey = (typeof CONSTRUCTION_PROGRAM_KEYS)[number];
 
-export const CONSTRUCTION_PROGRAM_TO_INDUSTRY: Record<
-  ConstructionProgramKey,
-  ConstructionIndustrySlug
-> = {
-  materials: "construction-materials",
-  electrical: "electrical-distribution",
-  plumbing: "plumbing-supply",
-};
-
 export const SOLUTION_VERTICAL_SLUGS = [
   "wholesale",
   "medical",
@@ -52,14 +43,6 @@ const VERTICAL_CARD_INDEX: Record<SolutionVerticalSlug, number> = {
 
 export function isValidSolutionVertical(slug: string): slug is SolutionVerticalSlug {
   return SOLUTION_VERTICAL_SLUGS.includes(slug as SolutionVerticalSlug);
-}
-
-export function industrySlugForVertical(slug: SolutionVerticalSlug): NicheSlug {
-  return VERTICAL_INDUSTRY[slug];
-}
-
-export function cardIndexForVertical(slug: SolutionVerticalSlug): number {
-  return VERTICAL_CARD_INDEX[slug];
 }
 
 /** Public path for a solutions vertical (construction uses a short top-level URL). */

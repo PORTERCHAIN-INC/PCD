@@ -49,25 +49,6 @@ class OrderRepository:
         order = self.get_for_scope(db, order_id, scope)
         return assert_order_visible(order, scope)
 
-    def get_by_tracking_for_scope(
-        self,
-        db: Session,
-        tracking_number: str,
-        scope: TenantScope,
-    ) -> Order | None:
-        q = db.query(Order).filter(Order.tracking_number == tracking_number)
-        q = self._apply_scope(q, scope)
-        return q.first()
-
-    def require_by_tracking_for_scope(
-        self,
-        db: Session,
-        tracking_number: str,
-        scope: TenantScope,
-    ) -> Order:
-        order = self.get_by_tracking_for_scope(db, tracking_number, scope)
-        return assert_order_visible(order, scope)
-
     def list_for_scope(
         self,
         db: Session,
@@ -82,9 +63,6 @@ class OrderRepository:
 
     def get_for_merchant(self, db: Session, merchant_id: str, order_id: str) -> Order | None:
         return self.get_for_scope(db, order_id, TenantScope.merchant(merchant_id))
-
-    def require_for_merchant(self, db: Session, merchant_id: str, order_id: str) -> Order:
-        return self.require_for_scope(db, order_id, TenantScope.merchant(merchant_id))
 
     def get_by_tracking_for_merchant(
         self,
@@ -159,16 +137,6 @@ class OrderRepository:
         """First match for a tracking number, order number, or PO. Company-scoped only."""
         matches = self.find_for_merchant_lookup(db, merchant_id, query)
         return matches[0] if matches else None
-
-    def list_for_merchant(
-        self,
-        db: Session,
-        merchant_id: str,
-        *,
-        limit: int = 50,
-        offset: int = 0,
-    ) -> list[Order]:
-        return self.list_for_scope(db, TenantScope.merchant(merchant_id), limit=limit, offset=offset)
 
     def get_for_customer(self, db: Session, customer_id: str, order_id: str) -> Order | None:
         return self.get_for_scope(db, order_id, TenantScope.customer(customer_id))

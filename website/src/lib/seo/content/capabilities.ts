@@ -298,10 +298,6 @@ export function getCapabilityBySlug(slug: string): CapabilityPage | null {
   return CAPABILITY_PAGES.find((p) => p.slug === slug) ?? null;
 }
 
-export function getAllCapabilitySlugs(): string[] {
-  return CAPABILITY_PAGES.map((p) => p.slug);
-}
-
 const EXTRA_PATH_BUILDER: Record<
   NonNullable<CapabilityPage["extraLinks"]>[number]["path"],
   (locale: Locale) => string

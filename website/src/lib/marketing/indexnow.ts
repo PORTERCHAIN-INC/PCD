@@ -9,11 +9,6 @@ export function getIndexNowKey(): string {
   return (process.env.INDEXNOW_KEY ?? "").trim();
 }
 
-export function indexNowKeyFileName(): string | null {
-  const key = getIndexNowKey();
-  return key ? `${key}.txt` : null;
-}
-
 export async function pingIndexNow(
   urls: string[]
 ): Promise<{ ok: boolean; status?: number; skipped?: string }> {

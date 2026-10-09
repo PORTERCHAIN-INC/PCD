@@ -262,9 +262,6 @@ class EventBus:
             }
         return envelope
 
-    def recent_memory_events(self, limit: int = 100) -> list[dict[str, Any]]:
-        return self._memory_events[-limit:]
-
 
 @lru_cache
 def get_event_bus() -> EventBus:

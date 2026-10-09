@@ -23,7 +23,6 @@ Period = Literal["today", "week", "month"]
 COMPLETED_STATES = frozenset({"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"})
 
 TX_DELIVERY = frozenset({"delivery"})
-TX_BONUS = frozenset({"bonus"})
 TX_ADJUSTMENT = frozenset({"adjustment", "correction", "credit"})
 TX_INCENTIVE = frozenset({"incentive"})
 TX_DEDUCTION = frozenset({"deduction", "fee", "tax"})

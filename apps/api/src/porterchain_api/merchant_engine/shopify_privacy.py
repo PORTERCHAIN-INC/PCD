@@ -46,22 +46,6 @@ _HOLD_CLAIM = frozenset(
     }
 )
 
-DATA_ELEMENTS: list[dict[str, str | int]] = [
-    {"field": "customer.email", "purpose": "deliver", "lawful_basis": "contract", "retention_days": RETENTION_DAYS},
-    {"field": "customer.phone", "purpose": "deliver", "lawful_basis": "contract", "retention_days": RETENTION_DAYS},
-    {"field": "customer.name", "purpose": "deliver", "lawful_basis": "contract", "retention_days": RETENTION_DAYS},
-    {"field": "dropoff.formatted", "purpose": "deliver", "lawful_basis": "contract", "retention_days": RETENTION_DAYS},
-    {"field": "dropoff.postal", "purpose": "invoice", "lawful_basis": "legal_obligation", "retention_days": RETENTION_DAYS},
-    {"field": "amount_cents", "purpose": "invoice", "lawful_basis": "legal_obligation", "retention_days": RETENTION_DAYS},
-]
-
-SUBPROCESSORS: list[dict[str, str]] = [
-    {"name": "Shopify", "purpose": "Store the order the merchant asked us to deliver", "region": "Outside Canada"},
-    {"name": "Clerk", "purpose": "Merchant sign-in", "region": "Canada and the United States"},
-    {"name": "Stripe", "purpose": "Merchant charges", "region": "Outside Canada"},
-    {"name": "Database host", "purpose": "Store the delivery record", "region": "Canada"},
-    {"name": "Mailer", "purpose": "Tell the merchant a privacy file is ready", "region": "Canada"},
-]
 
 
 def normalize_phone(raw: str | None) -> str:

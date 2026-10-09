@@ -56,8 +56,6 @@ export const DELIVERY_INTENT_SEO_TO_MESSAGE_KEY: Record<DeliveryIntentCitySeoSlu
   "on-demand-delivery": "onDemand",
 };
 
-export type CitySegmentType = "industry" | "vehicle" | "delivery-intent";
-
 export type ResolvedCitySegment =
   | { type: "industry"; nicheSlug: string; serviceAreaSlug: string; segmentSlug: IndustrySeoSlug }
   | {

@@ -23,19 +23,6 @@ from porterchain_api.merchant_models import BulkImportJob
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 
 REQUIRED_COLUMNS = {"pickup", "dropoff", "scheduled_at"}
-OPTIONAL_COLUMNS = {
-    "internal_reference",
-    "purchase_order_number",
-    "cost_centre",
-    "pickup_lat",
-    "pickup_lng",
-    "dropoff_lat",
-    "dropoff_lng",
-    "recipient_id",
-    "vehicle_class",
-    "package_type",
-    "weight_kg",
-}
 
 
 class MerchantBulkService:

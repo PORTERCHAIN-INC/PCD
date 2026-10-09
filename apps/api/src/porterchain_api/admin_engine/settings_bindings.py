@@ -420,10 +420,3 @@ def bindings_payload() -> dict[str, Any]:
         "aliases": SECTION_ALIASES,
         "writable": sorted(WRITABLE_LOGICAL_KEYS),
     }
-
-
-def binding_for(section_id: str) -> dict[str, Any] | None:
-    for b in SETTINGS_BINDINGS:
-        if b["id"] == section_id:
-            return b
-    return None

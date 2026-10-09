@@ -109,10 +109,6 @@ class DiagnosticsChaosMixin:
             ],
         }
 
-    def _chaos_fleetbase(self, db: Session, settings: Settings) -> dict[str, Any]:
-        """Deprecated alias — same as day-plan chaos."""
-        return self._chaos_day_plan(db, settings)
-
     def _chaos_stripe(self, settings: Settings) -> dict[str, Any]:
         # Scenario = Stripe offline. Pass if recovery paths are wired — do not fail
         # because the live Stripe API is unreachable (that is the injected condition).

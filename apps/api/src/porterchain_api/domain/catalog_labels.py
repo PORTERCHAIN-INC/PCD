@@ -53,57 +53,6 @@ PACKAGE_LABELS: dict[str, str] = {
     "ftlLoad": "Full load",
 }
 
-INVOICE_STATUS_LABELS: dict[str, str] = {
-    "none": "Not invoiced",
-    "generated": "Invoiced",
-    "draft": "Draft",
-    "pending": "Pending",
-    "sent": "Sent",
-    "paid": "Paid",
-    "overdue": "Overdue",
-    "void": "Void",
-    "partial": "Partially paid",
-}
-
-CLAIM_STATUS_LABELS: dict[str, str] = {
-    "open": "Open",
-    "pending": "Pending",
-    "under_review": "Under review",
-    "approved": "Approved",
-    "denied": "Denied",
-    "closed": "Closed",
-    "resolved": "Resolved",
-}
-
-CLAIM_TYPE_LABELS: dict[str, str] = {
-    "merchant_complaint": "Complaint",
-    "damaged_parcel": "Damaged parcel",
-    "lost_parcel": "Lost parcel",
-    "late_delivery": "Late delivery",
-}
-
-PAYMENT_STATUS_LABELS: dict[str, str] = {
-    "pending": "Pending",
-    "succeeded": "Paid",
-    "paid": "Paid",
-    "failed": "Failed",
-    "refunded": "Refunded",
-}
-
-SLA_STATUS_LABELS: dict[str, str] = {
-    "ok": "On time",
-    "at_risk": "At risk",
-    "breached": "Late",
-}
-
-TICKET_STATUS_LABELS: dict[str, str] = {
-    "open": "Open",
-    "pending": "Pending",
-    "waiting": "Waiting",
-    "closed": "Closed",
-    "resolved": "Resolved",
-}
-
 # Company / seat / onboarding — same words on portal, wait screen, and admin.
 MERCHANT_STATUS_LABELS: dict[str, str] = {
     "PENDING": "Pending",
@@ -183,34 +132,6 @@ def vehicle_label(code: str | None) -> str:
         canon = canonical_vehicle_id(raw)
         return VEHICLE_LABELS.get(canon) or mapped
     return mapped
-
-
-def package_label(code: str | None) -> str:
-    return _lookup(PACKAGE_LABELS, code)
-
-
-def invoice_status_label(status: str | None) -> str:
-    return _lookup(INVOICE_STATUS_LABELS, status)
-
-
-def claim_status_label(status: str | None) -> str:
-    return _lookup(CLAIM_STATUS_LABELS, status)
-
-
-def claim_type_label(claim_type: str | None) -> str:
-    return _lookup(CLAIM_TYPE_LABELS, claim_type)
-
-
-def payment_status_label(status: str | None) -> str:
-    return _lookup(PAYMENT_STATUS_LABELS, status)
-
-
-def sla_status_label(status: str | None) -> str:
-    return _lookup(SLA_STATUS_LABELS, status)
-
-
-def ticket_status_label(status: str | None) -> str:
-    return _lookup(TICKET_STATUS_LABELS, status)
 
 
 def merchant_status_label(status: str | None) -> str:

@@ -134,13 +134,6 @@ export type FinanceDashboard = {
   revenue_forecast_cents: number;
 };
 
-export type FinanceListPage<T> = {
-  items: T[];
-  total: number;
-  limit: number;
-  offset: number;
-};
-
 export type FinanceFilters = {
   status?: string;
   merchant_id?: string;

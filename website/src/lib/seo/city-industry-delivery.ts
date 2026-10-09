@@ -331,15 +331,3 @@ export function getCityIndustryContent(
 
   return content;
 }
-
-/** All valid (industrySlug, serviceAreaSlug) pairs for static generation — live niches only. */
-export function getCityIndustrySlugPairs(): { industrySlug: string; serviceAreaSlug: string }[] {
-  const pairs: { industrySlug: string; serviceAreaSlug: string }[] = [];
-  for (const ind of INDUSTRY_CONFIGS) {
-    if (isDraftNicheSlug(ind.slug)) continue;
-    for (const area of SERVICE_AREA_CONFIGS) {
-      pairs.push({ industrySlug: ind.slug, serviceAreaSlug: area.slug });
-    }
-  }
-  return pairs;
-}

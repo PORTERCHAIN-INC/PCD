@@ -33,17 +33,3 @@ class DiagnosticsFleetbaseProbesMixin:
                 "note": "Day plan is OR-Tools. Valhalla is the road cost.",
             },
         }
-
-    def _probe_fleetbase_console(self, settings: Settings) -> dict[str, Any]:
-        """Retired console — report day plan instead."""
-        return self._probe_day_plan(settings)
-
-    def _probe_fleetbase_adapter(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
-        return self._probe_day_plan(settings, live=live)
-
-    def _probe_fleetbase(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
-        return self._probe_day_plan(settings, live=live)
-
-    def _probe_vroom(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
-        """No VROOM client — same day-plan check."""
-        return self._probe_day_plan(settings, live=live)

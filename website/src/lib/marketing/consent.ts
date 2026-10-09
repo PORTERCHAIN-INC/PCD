@@ -3,8 +3,6 @@
  * Defaults denied until the user grants categories via CMP.
  */
 
-export type ConsentCategory = "necessary" | "analytics" | "marketing" | "experience";
-
 export type ConsentState = {
   necessary: true;
   analytics: boolean;

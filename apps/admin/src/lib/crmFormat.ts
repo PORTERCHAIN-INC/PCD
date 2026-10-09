@@ -48,31 +48,6 @@ export function initials(name: string | null | undefined): string {
     .toUpperCase();
 }
 
-// Pipeline stage display config
-export const STAGE_LABELS: Record<string, string> = {
-  prospecting: "Prospecting",
-  qualified: "Qualified",
-  meeting_scheduled: "Meeting",
-  quote_sent: "Quote Sent",
-  negotiation: "Negotiation",
-  contract_review: "Contract",
-  won: "Won",
-  lost: "Lost",
-  hold: "On Hold",
-};
-
-export const STAGE_ACCENT: Record<string, string> = {
-  prospecting: "#64748b",
-  qualified: "#0ea5e9",
-  meeting_scheduled: "#6366f1",
-  quote_sent: "#8b5cf6",
-  negotiation: "#f59e0b",
-  contract_review: "#0d9488",
-  won: "#16a34a",
-  lost: "#dc2626",
-  hold: "#94a3b8",
-};
-
 type Tone = "blue" | "green" | "red" | "amber" | "violet" | "slate" | "teal" | "sky";
 
 export const STATUS_TONE: Record<string, Tone> = {
@@ -119,8 +94,6 @@ export const STATUS_TONE: Record<string, Tone> = {
   high: "amber",
   urgent: "red",
 };
-
-export const PRIORITY_TONE = STATUS_TONE;
 
 // ---- CSV helpers (client-side parse / generate) ----
 export function parseCsv(text: string): Array<Record<string, string>> {

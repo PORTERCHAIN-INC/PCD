@@ -330,15 +330,5 @@ export function buildSitemapPartition(
   }
 }
 
-/** Combined sitemap (all partitions) — used for validation and backwards compatibility. */
-export async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
-  const article = await buildArticleSitemapEntries();
-  const parts = SITEMAP_PARTITION_IDS.filter((id) => id !== "article").flatMap((id) => {
-    const result = buildSitemapPartition(id);
-    return result instanceof Promise ? [] : result;
-  });
-  return [...parts, ...article];
-}
-
 void ONBOARDING_EDUCATION_PAGES;
 void INTEGRATIONS_EDUCATION_PAGES;

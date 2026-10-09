@@ -53,10 +53,6 @@ def invoice_due_date(created_at: datetime | None, terms: str | None) -> datetime
     return base + timedelta(days=net_terms_days(terms))
 
 
-def payment_for_order(payment: Payment | None) -> Payment | None:
-    return payment
-
-
 def invoice_status(
     invoice: Invoice,
     order: Order | None,

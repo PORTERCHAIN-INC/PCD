@@ -55,9 +55,6 @@ class CrmContactsMixin:
             )
         return q.order_by(CrmContact.created_at.desc()).limit(limit).all()
 
-    def get_contact(self, db: Session, contact_id: str) -> CrmContact | None:
-        return db.get(CrmContact, contact_id)
-
     def create_contact(self, db: Session, ctx: CrmActor | None, data: dict) -> CrmContact:
         contact = CrmContact(**data)
         db.add(contact)

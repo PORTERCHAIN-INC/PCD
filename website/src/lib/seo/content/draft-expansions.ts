@@ -45,7 +45,3 @@ export const DRAFT_SERVICE_AREA_MESSAGE_KEYS: Record<DraftServiceAreaSlug, strin
 export function isDraftNicheSlug(slug: string): slug is DraftNicheSlug {
   return (DRAFT_NICHE_SLUGS as readonly string[]).includes(slug);
 }
-
-export function isDraftServiceAreaSlug(slug: string): slug is DraftServiceAreaSlug {
-  return (DRAFT_SERVICE_AREA_SLUGS as readonly string[]).includes(slug);
-}

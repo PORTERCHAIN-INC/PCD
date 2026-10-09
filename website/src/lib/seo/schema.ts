@@ -209,9 +209,6 @@ export const SCHEMA_SERVICE_AREAS: readonly SchemaPlace[] = [
   },
 ];
 
-/** Simple area name list for fallback / Service schema when only names are needed. */
-export const SCHEMA_AREA_SERVED_NAMES = SCHEMA_SERVICE_AREAS.map((p) => p.name);
-
 /** Delivery service types for LocalBusiness and Service (helps Google classify). */
 export const SCHEMA_DELIVERY_SERVICE_TYPES = [
   "Courier service",
@@ -276,18 +273,6 @@ export type BreadcrumbListSchema = {
     position: number;
     name: string;
     item?: string;
-  }>;
-};
-
-export type ItemListSchema = {
-  "@context": "https://schema.org";
-  "@type": "ItemList";
-  name?: string;
-  itemListElement: Array<{
-    "@type": "ListItem";
-    position: number;
-    name: string;
-    url?: string;
   }>;
 };
 
@@ -491,31 +476,6 @@ function buildHyperlocalPlace(
         ? { postalCode: postalCodes.length === 1 ? postalCodes[0] : postalCodes }
         : {}),
     },
-  };
-}
-
-/**
- * SoftwareApplication schema for Lane A product pages (home, platform, developers).
- */
-export function buildSoftwareApplicationSchema(options?: {
-  baseUrl?: string;
-}): SoftwareApplicationSchema {
-  const base = (options?.baseUrl ?? BASE).replace(/\/$/, "");
-  return {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: `${siteConfig.name} Capacity Network`,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    description: ORGANIZATION_DESCRIPTION,
-    url: `${base}/platform`,
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "CAD",
-      description:
-        "Transportation capacity programs — quote-based pricing by vehicle class and route",
-    },
-    provider: { "@type": "Organization", name: siteConfig.name, url: base },
   };
 }
 

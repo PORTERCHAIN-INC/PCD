@@ -38,11 +38,6 @@ export function useClerkDevApiBypass() {
   return clerkDevBypassEnabled();
 }
 
-/** Alias — Local Super Admin is the professional development entry. */
-export function useLocalSuperAdminAvailable() {
-  return clerkDevBypassEnabled();
-}
-
 export function isClerkConfigured() {
   return publicEnv.clerkPublishableKey.length > 0;
 }

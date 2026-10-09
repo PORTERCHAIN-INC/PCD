@@ -154,50 +154,6 @@ def create_invoice_checkout_session(
     return session.url, session.id
 
 
-def create_addon_checkout_session(
-    settings: Settings,
-    *,
-    amount_cents: int,
-    currency: str,
-    payment_id: str,
-    order_id: str,
-    stop_leg: str,
-    description: str,
-    customer_email: str | None,
-) -> tuple[str, str]:
-    """Retail Checkout for an extra customer stop. Not a merchant AR invoice."""
-    stripe_sdk.configure(settings.stripe_secret)
-    success_url, cancel_url = _checkout_urls(settings, "customer")
-    metadata = {
-        "kind": "additional_stop",
-        "payment_id": payment_id,
-        "order_id": order_id,
-        "stop_leg": stop_leg,
-        "checkout_channel": "customer",
-    }
-    session = stripe_sdk.create_checkout_session(
-        mode="payment",
-        line_items=[
-            {
-                "price_data": {
-                    "currency": (currency or "cad").lower(),
-                    "unit_amount": int(amount_cents),
-                    "product_data": {"name": description[:120], "description": description[:250]},
-                },
-                "quantity": 1,
-            }
-        ],
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata=metadata,
-        payment_intent_data={"metadata": metadata},
-        customer_email=customer_email,
-    )
-    if not session.url:
-        raise RuntimeError("stripe_session_missing_url")
-    return session.url, session.id
-
-
 def handle_checkout_completed(settings: Settings, session: dict) -> dict | None:
     metadata = session.get("metadata") or {}
     total_details = session.get("total_details") or {}

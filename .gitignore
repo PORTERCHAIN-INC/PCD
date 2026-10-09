@@ -83,7 +83,7 @@ apps/fleetbase/
 coverage.json
 **/coverage.json
 
-# Graphify / CodeGraph / Ripwire local indexes (commit GRAPH_REPORT.md only)
+# Graphify / CodeGraph / Ripwire local indexes (commit GRAPH_REPORT.md only — doc-governance gate requires it)
 .codegraph/
 graphify-out/cache/
 graphify-out/graph.json
@@ -110,8 +110,8 @@ website/test-results/
 # Website local graphify artifacts
 website/graphify-out/
 
-# Ripwire cache file (legacy path; dir already ignored)
-.ripwire
+# Ripwire index file (any directory)
+**/.ripwire
 
 vendors.csv
 docs/archive/vendor-leads/*.csv

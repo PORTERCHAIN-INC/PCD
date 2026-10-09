@@ -89,8 +89,3 @@ def upsert_sso_link(
         db.commit()
     db.refresh(link)
     return link
-
-
-def stamp_fleetbase_user_uuid(link: IdentityLink, fleetbase_user_uuid: str) -> None:
-    link.fleetbase_user_uuid = fleetbase_user_uuid
-    link.last_synced_at = datetime.now(UTC)

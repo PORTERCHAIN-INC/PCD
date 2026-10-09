@@ -24,9 +24,3 @@ export function isVehiclesTabActive(pathname: string, item: VehiclesTabItem): bo
   }
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
-
-export function isVehiclesNavActive(pathname: string): boolean {
-  return VEHICLES_NAV_PATHS.some(
-    (href) => pathname === href || (href !== "/vehicles" && pathname.startsWith(`${href}/`))
-  );
-}

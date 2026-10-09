@@ -10,8 +10,6 @@ export const CONSTRUCTION_NICHE_SLUGS = [
   "plumbing-supply",
 ] as const;
 
-export type ConstructionNicheSlug = (typeof CONSTRUCTION_NICHE_SLUGS)[number];
-
 export const NICHE_SLUGS = [
   ...CONSTRUCTION_NICHE_SLUGS,
   "coffee-roasters",

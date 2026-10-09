@@ -538,10 +538,6 @@ export function getAuthorityPageBySlug(slug: string): AuthorityPage | null {
   return AUTHORITY_PAGES.find((p) => p.slug === slug) ?? null;
 }
 
-export function getAllAuthoritySlugs(): string[] {
-  return AUTHORITY_PAGES.map((p) => p.slug);
-}
-
 const EXTRA_PATH_TO_BUILDER: Record<string, (locale: Locale) => string> = {
   onboarding: business,
   workflow: business,

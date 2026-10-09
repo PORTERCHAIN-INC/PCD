@@ -161,17 +161,6 @@ export type ServiceAreaConfig = {
   generationHints?: GenerationHints;
 };
 
-export type CampaignSegmentConfig = {
-  id: ContentId;
-  slug: Slug;
-  messageKey: MessageKey;
-  /** Short display name. */
-  label: string;
-  /** Optional link to industry slug when campaign aligns with an industry. */
-  industrySlug?: Slug;
-  generationHints?: GenerationHints;
-};
-
 // ——— Content variant registries (key → schema only; copy lives in messages or generated) ———
 
 export type FAQVariantConfig = {

@@ -196,19 +196,6 @@ class BookingDraftService:
 
         return apply_update(self, db, settings, draft, body, event_label="Draft Updated")
 
-    def _apply_update(
-        self,
-        db: Session,
-        settings: Settings,
-        draft: BookingDraft,
-        body: CreateBookingDraftRequest | UpdateBookingDraftRequest,
-        *,
-        event_label: str,
-    ) -> BookingDraft:
-        from porterchain_api.booking_engine.draft_compose import apply_update
-
-        return apply_update(self, db, settings, draft, body, event_label=event_label)
-
     def attach_quote(self, db: Session, quote: Quote, session_id: str | None) -> BookingDraft:
         from porterchain_api.booking_engine.draft_compose import attach_quote as _attach
 
@@ -376,29 +363,6 @@ class BookingDraftService:
         db.commit()
         db.refresh(draft)
         return draft
-
-    def list_for_admin(
-        self,
-        db: Session,
-        *,
-        state: str | None = None,
-        search: str | None = None,
-        customer_id: str | None = None,
-        limit: int = 100,
-    ) -> list[BookingDraft]:
-        query = db.query(BookingDraft).order_by(BookingDraft.updated_at.desc())
-        if state:
-            query = query.filter(BookingDraft.state == state)
-        if customer_id:
-            query = query.filter(BookingDraft.customer_id == customer_id)
-        if search:
-            like = f"%{search}%"
-            query = query.filter(
-                (BookingDraft.id.like(like))
-                | (BookingDraft.session_id.like(like))
-                | (BookingDraft.quote_id.like(like))
-            )
-        return query.limit(limit).all()
 
     def assert_access(
         self,

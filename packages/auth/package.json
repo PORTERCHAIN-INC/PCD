@@ -15,9 +15,7 @@
     "lint": "tsc --noEmit",
     "build": "tsc --noEmit"
   },
-  "dependencies": {
-    "@porterchain/types": "workspace:*"
-  },
+  "dependencies": {},
   "peerDependencies": {
     "@clerk/nextjs": "^7.0.0",
     "react": "^19.0.0"

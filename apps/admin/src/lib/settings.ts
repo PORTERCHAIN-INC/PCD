@@ -233,9 +233,6 @@ export type LeadIngestSettings = {
   save?: { ok?: boolean; written?: string[]; skipped?: string };
 };
 
-/** @deprecated stubs removed — kept empty for any residual imports */
-export const MODULE_SECTION_LINKS: Record<string, { href: string; label: string }> = {};
-
 export const settingsApi = {
   center: (token: string) => adminFetch<SettingsCenter>(`${B}/center`, token),
   dashboard: (token: string) => adminFetch<SettingsDashboard>(`${B}/dashboard`, token),

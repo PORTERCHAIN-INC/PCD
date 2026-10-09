@@ -48,10 +48,6 @@ def get_admin_by_email(db: Session, email: str) -> AdminUser | None:
     return db.query(AdminUser).filter(AdminUser.email == email.lower().strip()).first()
 
 
-def list_admin_users(db: Session) -> list[AdminUser]:
-    return db.query(AdminUser).all()
-
-
 def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
     from porterchain_api.auth.email_identity import emails_match
 
@@ -65,10 +61,6 @@ def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
         return False
     row.clerk_user_id = clerk_id
     return True
-
-
-def stamp_porterchain_user_id(row: AdminUser, user_id: str) -> None:
-    row.porterchain_user_id = user_id
 
 
 def ensure_local_super_admin(db: Session) -> AdminUser:

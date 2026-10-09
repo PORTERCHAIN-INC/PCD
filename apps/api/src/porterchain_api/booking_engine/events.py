@@ -2,7 +2,6 @@
 
 # Quote
 QUOTE_CREATED = "quote.created"
-QUOTE_UPDATED = "quote.updated"
 QUOTE_ACCEPTED = "quote.accepted"
 QUOTE_EXPIRED = "quote.expired"
 
@@ -37,10 +36,6 @@ BOOKING_STARTED = "booking.started"
 BOOKING_CONSENT_RECORDED = "booking.consent_recorded"
 BOOKING_DRAFT_RESTORED = "booking.draft_restored"
 RECEIPT_GENERATED = "receipt.generated"
-DISPATCH_QUEUED = "dispatch.queued"
-
-# Fleetbase
-FLEETBASE_ORDER_CREATED = "fleetbase.order_created"
 
 # Visitor
 VISITOR_SESSION_STARTED = "visitor.session_started"

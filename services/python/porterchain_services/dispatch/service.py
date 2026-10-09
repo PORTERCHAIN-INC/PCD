@@ -9,17 +9,6 @@ from porterchain_shared.queue.names import QueueName
 class DispatchService(BaseService):
     service_name = "dispatch"
 
-    def enqueue_dispatch_ready(self, order_id: str) -> None:
-        self.ctx.queues.enqueue(QueueName.DISPATCH, {"order_id": order_id, "action": "dispatch_ready"})
-        self.ctx.events.publish(
-            EventEnvelope(
-                event_type=DomainEventType.ORDER_DISPATCH_READY,
-                aggregate_type="order",
-                aggregate_id=order_id,
-                payload={},
-            )
-        )
-
     def assign_driver(self, order_id: str, driver_id: str, actor_id: str) -> None:
         self.ctx.events.publish(
             EventEnvelope(

@@ -26,33 +26,6 @@ class AdminDashboardResponse(BaseModel):
     fleet_health_percent: float
 
 
-class CrmSummaryResponse(BaseModel):
-    visitor_leads: int
-    quote_requests: int
-    abandoned_checkouts: int
-    business_inquiries: int
-    open_tasks: int
-
-
-class LeadItem(BaseModel):
-    id: str
-    source: str
-    email: str
-    phone: str | None
-    stage: str
-    quote_id: str | None
-    created_at: datetime
-
-
-class MerchantAdminItem(BaseModel):
-    id: str
-    status: str
-    company_name: str
-    email: str
-    payment_terms: str
-    created_at: datetime
-
-
 class MerchantSizeTier(BaseModel):
     """
     One row of a merchant's size / weight surcharge table.
@@ -220,21 +193,6 @@ class MerchantActivateUsersRequest(BaseModel):
 
 class MerchantCompleteOnboardingRequest(BaseModel):
     email: str | None = None
-
-
-class DriverItem(BaseModel):
-    id: str
-    status: str
-    full_name: str
-    email: str
-    phone: str | None
-    license_verified: bool
-    insurance_verified: bool
-    vehicle_verified: bool
-    background_check_status: str
-    rating: float | None
-    wallet_balance_cents: int
-    created_at: datetime
 
 
 class DriverVerifyRequest(BaseModel):
@@ -560,15 +518,6 @@ class AssignDriverRequest(BaseModel):
     driver_id: str
 
 
-class ClaimItem(BaseModel):
-    id: str
-    order_id: str
-    claim_type: str
-    status: str
-    description: str | None
-    created_at: datetime
-
-
 class ClaimListItem(BaseModel):
     id: str
     claim_number: str
@@ -694,15 +643,6 @@ class ClaimBulkRequest(BaseModel):
     action: str
     investigator_id: str | None = None
     status: str | None = None
-
-
-class TicketItem(BaseModel):
-    id: str
-    status: str
-    priority: str
-    subject: str
-    order_id: str | None
-    created_at: datetime
 
 
 class TicketListItem(BaseModel):
@@ -835,42 +775,6 @@ class SupportSlaConfigRequest(BaseModel):
     business_hours_only: bool | None = None
 
 
-class ReportsSummaryResponse(BaseModel):
-    monthly_orders: int
-    monthly_revenue_cents: int
-    active_merchants: int
-    active_drivers: int
-    delivery_sla_percent: float
-    cancellation_rate_percent: float
-    claim_rate_percent: float
-
-
-class ReportSaveRequest(BaseModel):
-    name: str
-    category_id: str
-    chart_type: str = "bar"
-    filters: dict[str, Any] = Field(default_factory=dict)
-    pinned: bool = False
-
-
-class ReportScheduleRequest(BaseModel):
-    name: str
-    category_id: str
-    schedule: str
-    email: str
-
-
-class ReportBuilderPreviewRequest(BaseModel):
-    dataset: str
-    group_by: str
-    metric: str = "count"
-
-
-class ReportExportAuditRequest(BaseModel):
-    report_id: str
-    format: str
-
-
 class StaffItem(BaseModel):
     id: str
     email: str
@@ -1000,16 +904,6 @@ class StaffInviteRequest(BaseModel):
     name: str | None = None
 
 
-class StaffInviteResponse(BaseModel):
-    id: str
-    email: str
-    name: str | None
-    role: str
-    clerk_action: str
-    invitation_status: str
-    created_at: datetime
-
-
 class StaffEnrollResponse(BaseModel):
     """Staff IdP enrollment — activate link emailed; token still returned for ops copy."""
 
@@ -1033,18 +927,6 @@ class SettingsImportRequest(BaseModel):
     config: dict[str, Any]
     reason: str | None = None
     dry_run: bool = False
-
-
-class CrmTaskCreateRequest(BaseModel):
-    title: str
-    lead_id: str | None = None
-    merchant_id: str | None = None
-
-
-class CrmNoteCreateRequest(BaseModel):
-    entity_type: str
-    entity_id: str
-    body: str
 
 
 class FinanceDashboardResponse(BaseModel):

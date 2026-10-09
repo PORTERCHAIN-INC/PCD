@@ -15,23 +15,6 @@ interface VehicleIllustrationProps {
   objectFit?: "cover" | "contain";
 }
 
-export function resolveVehicleIllustration(key: string): VehicleIllustrationType {
-  const map: Record<string, VehicleIllustrationType> = {
-    sedan: "sedan",
-    suv: "suv",
-    pickup: "pickup",
-    "cargo-van": "cargo-van",
-    cargoVan: "cargo-van",
-    "high-roof": "high-roof",
-    highRoof: "high-roof",
-    "box-16": "box-16",
-    box16: "box-16",
-    "box-20": "box-20",
-    box20: "box-20",
-  };
-  return map[key] ?? "sedan";
-}
-
 export default function VehicleIllustration({
   type,
   className = "",

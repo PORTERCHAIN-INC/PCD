@@ -63,18 +63,3 @@ export async function clearStaffSession(apiUrl?: string): Promise<void> {
     window.dispatchEvent(new Event(STAFF_AUTH_EVENT));
   }
 }
-
-/** @deprecated Prefer cookie probe — bearer must not live in JS. */
-export function getStaffBearer(): string | null {
-  return null;
-}
-
-/** @deprecated No-op — bearer must not live in sessionStorage. */
-export function setStaffBearer(_bearerToken: string): void {
-  /* intentionally empty */
-}
-
-/** @deprecated */
-export function clearStaffBearer(): void {
-  /* intentionally empty */
-}

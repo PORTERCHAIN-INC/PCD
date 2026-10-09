@@ -11,7 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 MASTER = ROOT / "masterrule.md"
 VERIFIED = "2026-07-05"
 MASTERRULE_LINK = "[§21](./masterrule.md#21-simplification--essential-complexity)"
-MASTERRULE_LINK_NESTED = lambda depth: f"[§21]({'../' * depth}masterrule.md#21-simplification--essential-complexity)"
 
 # --- Appendix C groups (39 × 5, G39 has 1 file) ---
 GROUPS: dict[str, list[str]] = {
@@ -294,12 +293,6 @@ class PointerSpec:
     archive: str | None = None
 
 
-def rel_link(from_path: Path, to_path: str) -> str:
-    target = ROOT / to_path
-    rel = Path(os_path_relpath(from_path.parent, target))
-    return rel.as_posix()
-
-
 def os_path_relpath(from_dir: Path, to_file: Path) -> str:
     import os
 
@@ -375,10 +368,6 @@ def ensure_canonical_footer(content: str, path: Path, extras: list[tuple[str, st
         # replace existing governance section
         content = re.sub(r"\n---\n\n## Governance\n[\s\S]*$", "", content.rstrip())
     return content.rstrip() + footer
-
-
-def normalize_supporting_to_pointer(path: Path, spec: PointerSpec) -> None:
-    write_pointer(path, spec)
 
 
 # Pointer registry: path -> PointerSpec (relative canonical from file's directory)

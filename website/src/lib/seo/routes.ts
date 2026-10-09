@@ -175,11 +175,6 @@ export function quoteContact(locale: Locale, from: string, query?: RouteQuery): 
   return withQuery(localePath(locale, "sign-up"), { from, intent: "quote", ...query });
 }
 
-/** @deprecated Prefer quoteContact (sign-up → book). */
-export function demoContact(locale: Locale, from: string, query?: RouteQuery): string {
-  return quoteContact(locale, from, query);
-}
-
 export function drive(locale: Locale, query?: RouteQuery): string {
   return withQuery(localePath(locale, PATHS.DRIVE), query);
 }
@@ -197,17 +192,4 @@ export function cityIndustrySeo(
     locale,
     `${encodeURIComponent(cityUrlSlug)}/${encodeURIComponent(industryUrlSlug)}`
   );
-}
-
-export function vehicleDeliveryPath(
-  locale: Locale,
-  segment:
-    | "sedan-delivery"
-    | "suv-delivery"
-    | "trade-van-delivery"
-    | "pickup-truck-delivery"
-    | "cargo-van-delivery"
-    | "box-truck-delivery"
-): string {
-  return localePath(locale, segment);
 }

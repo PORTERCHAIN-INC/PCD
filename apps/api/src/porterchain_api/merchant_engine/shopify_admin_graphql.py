@@ -93,11 +93,6 @@ def as_gid(kind: str, value: str) -> str:
     return f"gid://shopify/{kind}/{raw}"
 
 
-def numeric_id(value: str) -> str:
-    raw = (value or "").strip()
-    return raw.rsplit("/", 1)[-1]
-
-
 def carrier_service_create(shop: str, token: str, settings: Settings, *, callback_url: str) -> str:
     data = admin_graphql(
         shop,

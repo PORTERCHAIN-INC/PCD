@@ -5,7 +5,6 @@ Canonical billing event for notifications is ``merchant.billed``
 a compatibility alias and is wired to the same notification router path.
 """
 
-MERCHANT_CREATED = "merchant.created"
 MERCHANT_APPROVED = "merchant.approved"
 MERCHANT_ACTIVATED = "merchant.activated"
 MERCHANT_SUSPENDED = "merchant.suspended"

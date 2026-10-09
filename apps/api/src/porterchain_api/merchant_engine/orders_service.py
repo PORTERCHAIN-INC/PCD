@@ -237,9 +237,6 @@ class MerchantOrdersService:
     def get_by_tracking(self, db: Session, ctx: MerchantContext, tracking_number: str) -> Order | None:
         return self._order_repo.get_by_tracking_for_merchant(db, ctx.merchant.id, tracking_number)
 
-    def get_by_lookup(self, db: Session, ctx: MerchantContext, query: str) -> Order | None:
-        return self._order_repo.get_by_lookup_for_merchant(db, ctx.merchant.id, query)
-
     # ------------------------------------------------------------------ #
     # Proof of delivery downloads (BR)
     # ------------------------------------------------------------------ #

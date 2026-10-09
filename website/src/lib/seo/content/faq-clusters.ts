@@ -38,16 +38,6 @@ export type FAQCluster = {
 
 export type FAQClusterLink = { href: string; label: string };
 
-/** Construction + legacy niches for FAQ and cluster internal links. */
-export const PRIMARY_INDUSTRY_SLUGS = [
-  "construction-materials",
-  "electrical-distribution",
-  "plumbing-supply",
-  "coffee-roasters",
-  "pharmacy-medical",
-  "cosmetics",
-] as const;
-
 /** All FAQ clusters. Content is substantive so pages are non-thin. */
 export const FAQ_CLUSTERS: FAQCluster[] = [
   {
@@ -806,10 +796,6 @@ const slugSet = new Set(FAQ_CLUSTERS.map((c) => c.slug));
 
 export function getFaqClusterBySlug(slug: string): FAQCluster | null {
   return FAQ_CLUSTERS.find((c) => c.slug === slug) ?? null;
-}
-
-export function getAllFaqClusterSlugs(): string[] {
-  return FAQ_CLUSTERS.map((c) => c.slug);
 }
 
 export function buildFaqClusterInternalLinks(

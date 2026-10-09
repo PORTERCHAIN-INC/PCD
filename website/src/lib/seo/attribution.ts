@@ -135,20 +135,3 @@ export function resolveLeadSource(explicitFrom?: string): string | undefined {
   const att = getStoredAttribution();
   return explicitFrom ?? att.from ?? att.sourcePage;
 }
-
-/**
- * Map backend snake_case attribution to our shape (for API payloads we keep snake_case).
- */
-export function attributionToBackend(a: Attribution): {
-  source_page?: string;
-  from?: string;
-  locale?: string;
-  market?: string;
-} {
-  return {
-    ...(a.sourcePage != null && { source_page: a.sourcePage }),
-    ...(a.from != null && { from: a.from }),
-    ...(a.locale != null && { locale: a.locale }),
-    ...(a.market != null && { market: a.market }),
-  };
-}

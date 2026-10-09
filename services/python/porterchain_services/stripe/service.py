@@ -1,12 +1,10 @@
 """Stripe payment service — all payment rails through Porterchain."""
 
 import logging
-from typing import Any
 
 from porterchain_services.base import BaseService
 from porterchain_shared.events.catalog import DomainEventType
 from porterchain_shared.events.envelope import EventEnvelope
-from porterchain_shared.queue.names import QueueName
 
 logger = logging.getLogger(__name__)
 
@@ -62,24 +60,3 @@ class StripeService(BaseService):
             )
         )
         return session.url
-
-    def handle_webhook_event(self, event_type: str, data: dict[str, Any]) -> None:
-        if event_type == "checkout.session.completed":
-            self.ctx.events.publish(
-                EventEnvelope(
-                    event_type=DomainEventType.PAYMENT_SUCCEEDED,
-                    aggregate_type="payment",
-                    aggregate_id=data.get("id", ""),
-                    payload=data,
-                )
-            )
-            self.ctx.queues.enqueue(QueueName.BILLING, {"action": "payment_succeeded", "data": data})
-        elif event_type == "payment_intent.payment_failed":
-            self.ctx.events.publish(
-                EventEnvelope(
-                    event_type=DomainEventType.PAYMENT_FAILED,
-                    aggregate_type="payment",
-                    aggregate_id=data.get("id", ""),
-                    payload=data,
-                )
-            )

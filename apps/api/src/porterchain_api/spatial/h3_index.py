@@ -7,7 +7,6 @@ Missing ``h3`` degrades to empty rings — callers fall back to rating cap.
 from __future__ import annotations
 
 import logging
-from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -85,12 +84,3 @@ def pick_nearby(
         if len(chosen) >= min_count:
             break
     return chosen[:cap]
-
-
-def cells_for_positions(
-    items: Iterable[tuple[str, float, float]],
-) -> dict[str, tuple[float, float, str | None]]:
-    out: dict[str, tuple[float, float, str | None]] = {}
-    for driver_id, lat, lng in items:
-        out[driver_id] = (lat, lng, cell(lat, lng))
-    return out

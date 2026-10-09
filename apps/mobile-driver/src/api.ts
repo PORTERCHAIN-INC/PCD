@@ -294,10 +294,6 @@ export function syncOffline(): Promise<OfflineSyncResult> {
   return driverFetch<OfflineSyncResult>(`${DRIVER_API}/offline/sync`, { method: "POST" });
 }
 
-export function fetchOfflinePending(): Promise<{ actions: OfflineActionRow[] }> {
-  return driverFetch(`${DRIVER_API}/offline/pending`);
-}
-
 export function fetchOfflineStatus(): Promise<OfflineStatus> {
   return driverFetch<OfflineStatus>(`${DRIVER_API}/communications/offline`);
 }
@@ -389,10 +385,6 @@ export function fetchInbox(): Promise<InboxSnapshot> {
   return driverFetch<InboxSnapshot>(`${DRIVER_API}/communications/notifications`);
 }
 
-export function fetchCommunicationsHub(): Promise<Record<string, unknown>> {
-  return driverFetch(`${DRIVER_API}/communications`);
-}
-
 export function fetchInboxHistory(limit = 100): Promise<InboxSnapshot> {
   return driverFetch<InboxSnapshot>(
     `${DRIVER_API}/communications/notifications/history?limit=${encodeURIComponent(String(limit))}`
@@ -456,10 +448,6 @@ export function openClaim(body: {
     method: "POST",
     body: JSON.stringify(body),
   });
-}
-
-export function fetchEmergencyContact(): Promise<EmergencyContact> {
-  return driverFetch<EmergencyContact>(`${DRIVER_API}/support/emergency-contact`);
 }
 
 export function updateEmergencyContact(body: {

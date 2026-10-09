@@ -96,9 +96,6 @@ export const BRAND_OPEN_ROAD = localImg(
   3072
 );
 
-/** @deprecated Prefer BRAND_DOCK_PAIR / BRAND_FLEET_DEPOT */
-export const BRAND_FLEET = BRAND_DOCK_PAIR;
-
 /** @deprecated Homepage uses GtaAiRouteVisual — kept for blog / legacy refs. */
 export const ROUTE_OPTIMIZATION_HOME = localImg(
   "/images/stock/toronto-gta-skyline-landscape.jpg",
@@ -106,9 +103,6 @@ export const ROUTE_OPTIMIZATION_HOME = localImg(
   1024,
   734
 );
-
-/** @deprecated Use ROUTE_OPTIMIZATION_HOME */
-export const SMART_ROUTING_DISPATCH = ROUTE_OPTIMIZATION_HOME;
 
 /** Guaranteed-working fallback when a remote image fails to load. */
 export const FALLBACK_IMAGE = img(
@@ -334,11 +328,6 @@ const VEHICLE_PARTNER_KEYS = {
 export function getVehicleImage(type: string): SiteImageRef {
   const key = type as keyof typeof siteImages.vehicles;
   return siteImages.vehicles[key] ?? siteImages.vehicles.sedan;
-}
-
-export function getIndustryImage(industryId: string): SiteImageRef {
-  const key = industryId as keyof typeof siteImages.industries;
-  return siteImages.industries[key] ?? siteImages.industries.wholesale;
 }
 
 export function getNicheHeroImage(slug: string): SiteImageRef {

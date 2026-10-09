@@ -9,11 +9,6 @@ function pathOf(url: string): string {
   return path;
 }
 
-export function parseInviteUrl(url: string | null): string | null {
-  const link = parseDriverLink(url);
-  return link.kind === "invite" ? link.token : null;
-}
-
 export function parseJobUrl(url: string | null): string | null {
   const link = parseDriverLink(url);
   return link.kind === "job" ? link.orderId : null;

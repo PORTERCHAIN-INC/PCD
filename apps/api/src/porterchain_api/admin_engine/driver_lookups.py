@@ -29,7 +29,6 @@ __all__ = [
     "persist_presence",
     "rebind_clerk_by_email",
     "stamp_driver_porterchain_user_id",
-    "stamp_porterchain_user_id",
 ]
 
 
@@ -62,10 +61,6 @@ def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
         return False
     row.clerk_user_id = clerk_id
     return True
-
-
-def stamp_porterchain_user_id(row: Driver, user_id: str) -> None:
-    row.porterchain_user_id = user_id
 
 
 def bind_clerk_user_id(db: Session, driver: Any, clerk_user_id: str) -> Any:

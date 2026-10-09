@@ -89,15 +89,3 @@ class AvailabilityService:
         order.assigned_driver_id = None
         db.flush()
         return {"order_id": order.id, "state": order.state}
-
-    def _emit_availability_event(self, db: Session, driver: Any, online: bool) -> None:
-        from porterchain_api.booking_engine._core import emit_event
-
-        emit_event(
-            db,
-            event_type="driver.online" if online else "driver.offline",
-            aggregate_type="driver",
-            aggregate_id=driver.id,
-            actor_type="driver",
-            actor_id=driver.id,
-            payload={"availability": driver.availability})

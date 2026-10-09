@@ -448,18 +448,6 @@ class AdminMerchantService:
 
         return validate_preferred_vehicles(db, preferred)
 
-    def update_team_member_role(
-        self,
-        db: Session,
-        ctx: AdminContext,
-        merchant_id: str,
-        user_id: str,
-        *,
-        role: str,
-    ) -> Any:
-        """M-30: Admin parity for seat role changes."""
-        return self.update_team_member(db, ctx, merchant_id, user_id, role=role)
-
     def remove_team_member(
         self,
         db: Session,

@@ -15,11 +15,6 @@ VOICE_PHRASES_EN = (
     "50kg pallet",
 )
 
-VOICE_PHRASES_FR = (
-    "tout de suite près de moi",
-    "50 kg",
-)
-
 
 def main() -> int:
     failures: list[str] = []

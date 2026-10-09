@@ -10,12 +10,6 @@ class QuoteState(StrEnum):
     CANCELLED = "CANCELLED"
 
 
-class BookingState(StrEnum):
-    BOOKED = "BOOKED"
-    CANCELLED = "CANCELLED"
-    REFUNDED = "REFUNDED"
-
-
 class PaymentStatus(StrEnum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
@@ -99,13 +93,6 @@ class OrderType(StrEnum):
     RECURRING = "RECURRING"
     EXPRESS = "EXPRESS"
     SCHEDULED = "SCHEDULED"
-
-
-class BillingCycle(StrEnum):
-    ON_DELIVERY = "ON_DELIVERY"
-    WEEKLY = "WEEKLY"
-    BIWEEKLY = "BIWEEKLY"
-    MONTHLY = "MONTHLY"
 
 
 class ExceptionType(StrEnum):

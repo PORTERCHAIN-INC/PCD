@@ -63,31 +63,7 @@ export const BUSINESS_FLEET_KEYS = [
   "box20",
 ] as const;
 
-export const BUSINESS_ONBOARDING_STEPS = [
-  "submit",
-  "consultation",
-  "requirements",
-  "pricing",
-  "agreement",
-  "delivering",
-] as const;
-
-export const BUSINESS_TECH_KEYS = [
-  "shopify",
-  "woocommerce",
-  "csv",
-  "api",
-  "erp",
-  "inventory",
-  "barcode",
-  "stripe",
-  "email",
-  "sms",
-] as const;
-
 export const BUSINESS_BILLING_KEYS = ["payAsYouGo", "creditAccount", "enterprise"] as const;
-
-export const BUSINESS_SUCCESS_KEYS = ["coffee", "restaurant", "medical", "construction"] as const;
 
 export const BUSINESS_FAQ_KEYS = [
   "sameDay",
@@ -134,16 +110,3 @@ export const BUSINESS_TRUSTED_KEYS = [
 ] as const;
 
 import type { VehicleIllustrationType } from "@/components/marketing/illustrations/VehicleIllustration";
-
-export const FLEET_ILLUSTRATIONS: Record<
-  (typeof BUSINESS_FLEET_KEYS)[number],
-  VehicleIllustrationType
-> = {
-  sedan: "sedan",
-  suv: "suv",
-  pickup: "pickup",
-  cargoVan: "cargo-van",
-  highRoof: "high-roof",
-  box16: "box-16",
-  box20: "box-20",
-};

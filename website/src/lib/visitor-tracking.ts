@@ -160,35 +160,6 @@ function deviceLabel(): string {
   return isMobilePhoneBrowser() ? "mobile" : "desktop";
 }
 
-/** Payload for POST /v1/quotes `tracking` + anonymous_session_id. */
-export function getVisitorTracking(overrides?: {
-  intent?: string;
-  guide_stage?: string;
-}): VisitorTrackingPayload {
-  if (typeof window === "undefined") return {};
-  const attr: Attribution = getStoredAttribution();
-  const journey = loadJourney();
-  const ua = navigator.userAgent;
-  return {
-    browser: ua.slice(0, 120),
-    utm_source: attr.utm_source,
-    utm_medium: attr.utm_medium,
-    utm_campaign: attr.utm_campaign,
-    utm_term: attr.utm_term,
-    utm_content: attr.utm_content,
-    referrer: attr.referrer || document.referrer || undefined,
-    device: deviceLabel(),
-    landing_page: attr.landingPageUrl?.slice(0, 512),
-    from_page: attr.from,
-    locale: attr.locale,
-    source_page: attr.sourcePage,
-    page_view_count: journey.page_view_count,
-    paths: journey.paths.slice(-12),
-    intent: overrides?.intent ?? readQuoteIntent().intent ?? attr.from,
-    guide_stage: overrides?.guide_stage,
-  };
-}
-
 /**
  * Append cross-origin handoff params for customer portal / book redirects.
  * Subdomains do not share localStorage — URL is the bridge.

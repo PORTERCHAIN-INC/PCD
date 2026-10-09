@@ -24,26 +24,6 @@ export const fadeUp: Variants = {
   visible: { opacity: 1, y: 0 },
 };
 
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
-
-export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.94 },
-  visible: { opacity: 1, scale: 1 },
-};
-
-export const slideFromLeft: Variants = {
-  hidden: { opacity: 0, x: -36 },
-  visible: { opacity: 1, x: 0 },
-};
-
-export const slideFromRight: Variants = {
-  hidden: { opacity: 0, x: 36 },
-  visible: { opacity: 1, x: 0 },
-};
-
 export const staggerContainer: Variants = {
   hidden: {},
   visible: {
@@ -58,19 +38,4 @@ export const staggerFast: Variants = {
   },
 };
 
-export const cardHover = {
-  rest: { y: 0, scale: 1 },
-  hover: { y: -4, scale: 1.01 },
-};
-
 export const viewportOnce = { once: true, margin: "-80px" as const, amount: 0.25 };
-
-/** Motion budget (playbook) — keep Magic UI + framer-motion; no new kits. */
-export const MOTION_BUDGET = {
-  /** Max intentional moments in a marketing hero (entrance + optional ambient). */
-  heroMomentsMax: 2,
-  /** SEO matrix / city×industry pages: no Lottie / MagicCard in hero. */
-  matrixHeroMotion: false as const,
-  /** Prefer CSS / static for matrix LCP. */
-  allowLottie: ["home", "business", "platform"] as const,
-} as const;

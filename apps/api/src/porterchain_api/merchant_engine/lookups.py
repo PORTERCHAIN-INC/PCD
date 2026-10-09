@@ -94,10 +94,6 @@ def get_merchant_by_clerk_org(db: Session, clerk_org_id: str) -> Merchant | None
     return db.query(Merchant).filter(Merchant.clerk_org_id == clerk_org_id).first()
 
 
-def list_merchant_users(db: Session) -> list[MerchantUser]:
-    return db.query(MerchantUser).all()
-
-
 def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
     from porterchain_api.auth.email_identity import emails_match
 
@@ -111,10 +107,6 @@ def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
         return False
     row.clerk_user_id = clerk_id
     return True
-
-
-def stamp_porterchain_user_id(row: MerchantUser, user_id: str) -> None:
-    row.porterchain_user_id = user_id
 
 
 def list_merchants(db: Session, *, status: str | None = None, limit: int = 50) -> list[Merchant]:

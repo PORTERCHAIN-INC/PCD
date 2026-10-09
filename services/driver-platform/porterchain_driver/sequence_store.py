@@ -59,15 +59,6 @@ def write_sequence(driver_id: str, payload: dict[str, Any]) -> None:
     )
 
 
-def clear_sequence(driver_id: str) -> None:
-    try:
-        from porterchain_shared.redis_client import get_redis_client
-
-        get_redis_client().delete(cache_key(driver_id))
-    except Exception as exc:  # noqa: BLE001
-        logger.debug("driver sequence clear failed: %s", exc)
-
-
 def _leg_type(raw: Any) -> str | None:
     if raw is None:
         return None

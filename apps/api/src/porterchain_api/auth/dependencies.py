@@ -198,35 +198,6 @@ def require_all_permissions(*needed: UnifiedPermission | str) -> Callable:
     return _dependency
 
 
-def require_organization_scope(organization_id_param: str = "merchant_id") -> Callable:
-    """Ensure CurrentPrincipal has organization-scoped assignment for the route org.
-
-    Prefer ``assert_organization_scope`` from route handlers that already resolve
-    merchant_id. This factory only works when a matching path/query param is
-    available via FastAPI injection (named ``merchant_id`` by default).
-    """
-
-    async def _dependency(
-        principal: Annotated[CurrentPrincipal, Depends(require_authenticated)],
-        db: Session = Depends(get_db),
-        merchant_id: Annotated[str | None, Header(alias="X-Merchant-Id")] = None,
-    ) -> CurrentPrincipal:
-        org_id = merchant_id
-        if not org_id:
-            return principal
-        if principal.has_organization_scope(org_id):
-            return principal
-        _record_denial(
-            db,
-            actor_user_id=principal.user_id,
-            action="organization_scope.denied",
-            detail={"organization_id": org_id, "param": organization_id_param},
-        )
-        raise HTTPException(status_code=403, detail="organization_scope_denied")
-
-    return _dependency
-
-
 def assert_organization_scope(principal: CurrentPrincipal, organization_id: str, db: Session) -> None:
     """Deny unless SpiceDB grants organization#portal for this user. Fail closed on Check errors.
 

@@ -7,7 +7,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WEBSITE_APP = ROOT / "website/src/app/[locale]"
-REDIRECT_MARKER = "portal-book-redirect"
 FORBIDDEN_IN_APP = (
     "startBooking",
     "syncBookingCheckout",

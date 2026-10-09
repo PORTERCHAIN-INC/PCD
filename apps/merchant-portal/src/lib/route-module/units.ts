@@ -132,11 +132,3 @@ export function parcelVolumeCm3(parcel: Parcel): number {
       convertToCm(parcel.height, parcel.dimensionsUnit)
   );
 }
-
-export function maxSideCm(parcel: Parcel): number {
-  return Math.max(
-    convertToCm(parcel.length, parcel.dimensionsUnit),
-    convertToCm(parcel.width, parcel.dimensionsUnit),
-    convertToCm(parcel.height, parcel.dimensionsUnit)
-  );
-}

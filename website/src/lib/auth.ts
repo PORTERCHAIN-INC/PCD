@@ -78,18 +78,6 @@ export function retailPortalChoicesFromSession(
   );
 }
 
-/** @deprecated Use retailPortalChoicesFromSession — website is retail-only. */
-export function portalChoicesFromSession(
-  ctx: Pick<SessionContext, "permissions">
-): Array<{ portal: PorterchainPortal; url: string; label: string }> {
-  return retailPortalChoicesFromSession(ctx);
-}
-
-export function portalHomeUrlFromSession(ctx: SessionContext): string | null {
-  const choices = retailPortalChoicesFromSession(ctx);
-  return choices[0]?.url ?? null;
-}
-
 /** Non-retail access detected after Platform login — point to the correct IdP. */
 export function nonRetailSignInHints(
   ctx: Pick<SessionContext, "permissions">

@@ -34,3 +34,7 @@ ortools==9.15.6755
 # Thermal labels (4×6) + QR — LabelService only
 reportlab>=4.4.0
 qrcode[pil]>=8.0
+
+# Spreadsheet import/export — merchant bulk upload (.xlsx/.xls), import_ingest, report Excel export
+openpyxl>=3.1.5
+xlrd>=2.0.1

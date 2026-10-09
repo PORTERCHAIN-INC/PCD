@@ -182,18 +182,6 @@ class ContractStatus(StrEnum):
     TERMINATED = "terminated"
 
 
-class ActivityType(StrEnum):
-    NOTE = "note"
-    CALL = "call"
-    EMAIL = "email"
-    MEETING = "meeting"
-    SITE_VISIT = "site_visit"
-    DEMO = "demo"
-    STATUS_CHANGE = "status_change"
-    DOCUMENT = "document"
-    SYSTEM = "system"
-
-
 class TaskType(StrEnum):
     CALL = "call"
     EMAIL = "email"
@@ -211,17 +199,3 @@ class TaskStatus(StrEnum):
     IN_PROGRESS = "in_progress"
     DONE = "done"
     CANCELLED = "cancelled"
-
-
-# Canonical contact roles for logistics merchant accounts.
-CONTACT_ROLES: list[str] = [
-    "decision_maker",
-    "primary_contact",
-    "influencer",
-    "accounts_payable",
-    "warehouse_manager",
-    "shipping_manager",
-    "operations_manager",
-    "purchasing",
-    "owner",
-]

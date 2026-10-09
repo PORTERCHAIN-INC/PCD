@@ -7,20 +7,10 @@ from porterchain_api.domain.order_lifecycle import (
     ASSIGNMENT_EVENTS,
     CLAIM_EVENTS,
     EXCEPTION_EVENTS,
-    FLEETBASE_EVENT_TO_STATE,
-    FLEETBASE_STATUS_TO_STATE,
     POD_EVENTS,
     TRACKING_EVENTS,
     FleetbaseLifecycleTranslator,
 )
-
-# Re-export for tests and legacy imports.
-FLEETBASE_EVENT_TO_STATE_ENUM: dict[str, OrderState] = {
-    k: OrderState(v) for k, v in FLEETBASE_EVENT_TO_STATE.items()
-}
-FLEETBASE_STATUS_TO_STATE_ENUM: dict[str, OrderState] = {
-    k: OrderState(v) for k, v in FLEETBASE_STATUS_TO_STATE.items()
-}
 
 
 class StatusTranslator:

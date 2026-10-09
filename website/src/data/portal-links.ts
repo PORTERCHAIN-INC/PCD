@@ -14,25 +14,9 @@ export const unifiedSignUpPath = "/sign-up";
 
 /** Retail customer app (:3004) — sole authenticated customer surface. */
 export const customerPortalDashboardUrl = `${publicEnv.customerPortalUrl}/dashboard`;
-export const customerPortalSignInUrl = `${publicEnv.customerPortalUrl}/sign-in`;
 
 /** Authenticated quote / book surface after Platform sign-up. */
 export const customerPortalBookUrl = `${publicEnv.customerPortalUrl}/book`;
-
-/**
- * Customer book URL with optional handoff query (caller should layer `pc_vid` via
- * `withVisitorHandoff` on the client).
- */
-export function customerPortalBookHandoffUrl(
-  query?: Record<string, string | undefined | null>
-): string {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query ?? {})) {
-    if (value) params.set(key, value);
-  }
-  const qs = params.toString();
-  return qs ? `${customerPortalBookUrl}?${qs}` : customerPortalBookUrl;
-}
 
 /** Marketing “Get a quote” → Clerk sign-up (then customer portal book). */
 export function quoteSignUpPath(query?: { from?: string; vehicle?: string; ref?: string }): string {
@@ -45,7 +29,6 @@ export function quoteSignUpPath(query?: { from?: string; vehicle?: string; ref?:
   return q ? `${unifiedSignUpPath}?${q}` : unifiedSignUpPath;
 }
 
-export const merchantSignInUrl = `${publicEnv.merchantPortalUrl}/sign-in`;
 /** Admin staff IdP (not Platform Clerk). */
 export const adminSignInUrl = `${publicEnv.adminPortalUrl}/sign-in`;
 /** Driver Clerk invite-only portal. */
@@ -54,8 +37,6 @@ export const driverSignInUrl = `${publicEnv.driverPortalUrl}/login`;
 export const merchantPortalUrl = publicEnv.merchantPortalUrl;
 export const driverPortalUrl = publicEnv.driverPortalUrl;
 export const adminPortalUrl = publicEnv.adminPortalUrl;
-/** Admin ops home after Platform login (port 3002). */
-export const adminPortalDashboardUrl = `${publicEnv.adminPortalUrl}/dashboard`;
 
 export function portalDisplayHost(url: string): string {
   try {

@@ -41,10 +41,6 @@ export const RESEARCH_REPORTS: ResearchReport[] = [
   },
 ];
 
-export function getResearchReportBySlug(slug: string): ResearchReport | undefined {
-  return RESEARCH_REPORTS.find((r) => r.slug === slug);
-}
-
 export function getIndexableResearchReports(): ResearchReport[] {
   return RESEARCH_REPORTS.filter((r) => r.status === "published" && r.index);
 }
