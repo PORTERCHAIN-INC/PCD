@@ -316,6 +316,13 @@ class RouteImportPackageInput(BaseModel):
     dimensions: str | None = None
     notes: str | None = None
     package_type: str | None = None
+    #: Multi-box items: boxes of one item share `item_key` ("box n of N" on labels).
+    item_key: str | None = Field(default=None, max_length=64)
+    item_label: str | None = Field(default=None, max_length=120)
+    box_index: int | None = Field(default=None, ge=1, le=50)
+    box_count: int | None = Field(default=None, ge=1, le=50)
+    #: Shorthand: this one item ships in N boxes (expanded to N packages).
+    boxes: int | None = Field(default=None, ge=1, le=50)
 
 
 MerchantBookDeliveryRequest.model_rebuild()

@@ -1,6 +1,7 @@
 """Pydantic schemas for driver platform API."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -119,6 +120,14 @@ class ExceptionRequest(BaseModel):
     exception_type: str
     notes: str | None = None
     photo_url: str | None = None
+
+
+class PackageMissingRequest(BaseModel):
+    """A box missing at pickup — photo (URL or camera data URL) and a reason code."""
+
+    photo_url: str
+    reason: Literal["not_ready", "not_found", "damaged", "wrong_item", "other"]
+    notes: str | None = Field(default=None, max_length=500)
 
 
 class DocumentUploadRequest(BaseModel):

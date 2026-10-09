@@ -16,6 +16,13 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
+from porterchain_api.admin_engine.pricing_versioning import bump_price_version
+from porterchain_api.domain.pricing_version import (
+    PRICING_STORAGE_KEYS,
+    assert_pricing_editor,
+)
+from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
+from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
 from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
@@ -85,6 +92,9 @@ CONFIG_KEYS = {
     "pricing_tax": "pricing_tax",
     "pricing_fuel": "pricing_fuel",
     "pricing_rate_card": "pricing_rate_card",
+    # Price book (parcel tiers, small/handling rules, retail, dedicated) + driver pay plan.
+    "pricing_book": "pricing_book",
+    "driver_pay": "driver_pay_plan",
     "coverage": "settings_coverage",
     # Legacy storage keys still readable for migration
     "service_areas": "service_areas",
@@ -180,6 +190,8 @@ from porterchain_pricing.gta_rate import default_gta_rate_config
 DEFAULTS["vehicle_types"] = default_vehicle_catalog()
 DEFAULTS["pricing_customer_distance"] = default_customer_pricing()
 DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
+DEFAULTS["pricing_book"] = default_price_book()
+DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
 
 
 def _is_pending_subject(subject: str | None) -> bool:
@@ -660,6 +672,16 @@ class AdminSettingsService:
             return normalize_customer_pricing(value)
         if key == "pricing_rate_card" and isinstance(value, dict):
             return self._normalize_pricing_rate_card(value)
+        if key == "pricing_book":
+            try:
+                return normalize_price_book(value)
+            except ValueError:
+                return value
+        if key == "driver_pay_plan":
+            try:
+                return normalize_driver_pay_plan(value)
+            except ValueError:
+                return value
         if key == "settings_coverage":
             return self._coverage_value(db, value)
         return value
@@ -733,7 +755,16 @@ class AdminSettingsService:
         *,
         reason: str | None = None,
     ) -> SystemConfig:
+        pricing_key = key in PRICING_STORAGE_KEYS
+        card_pruned = False
+        if pricing_key:
+            # Covers PUT, audit restore and config import — all write through here.
+            assert_pricing_editor(ctx)
         record = self.get_config(db, key)
+        if key == "pricing_book":
+            value = normalize_price_book(value)
+        if key == "driver_pay_plan":
+            value = normalize_driver_pay_plan(value)
         if key == "pricing_gta_rate" and isinstance(value, dict):
             value = self._normalize_pricing_gta(value)
         if key == "pricing_customer_distance" and isinstance(value, dict):
@@ -757,6 +788,7 @@ class AdminSettingsService:
                 }
                 if next_vehicles != vehicles:
                     card_rec.value = {**card_rec.value, "vehicles": next_vehicles}
+                    card_pruned = True
         if key == "pricing_rate_card" and isinstance(value, dict):
             existing = record.value if record and isinstance(record.value, dict) else None
             value = self._normalize_pricing_rate_card(value, existing=existing)
@@ -780,6 +812,8 @@ class AdminSettingsService:
             resource_id=key,
             payload={"old": old_value, "new": value, "reason": reason},
         )
+        if (pricing_key and old_value != value) or card_pruned:
+            bump_price_version(db, ctx, source=f"settings:{key}", reason=reason)
         db.commit()
         if key == "settings_booking":
             from porterchain_api.booking_engine.order_sla import refresh_open_sla_deadlines

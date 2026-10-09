@@ -240,4 +240,16 @@ def map_shopify_order(
         weight_kg=line_weight_kg(payload),
         vehicle_class="cargo_van",
         package_type="looseParcel",
+        packages=_multi_box_packages(payload),
     )
+
+
+def _multi_box_packages(payload: dict[str, Any]) -> list[Any] | None:
+    """Per-box packages when a line declares `boxes`; else None (one default package)."""
+    from porterchain_api.integrations.shopify_carrier_rates import packages_from_items
+    from porterchain_api.schemas_merchant import RouteImportPackageInput
+
+    rows = packages_from_items(payload.get("line_items") if isinstance(payload.get("line_items"), list) else None)
+    if not rows:
+        return None
+    return [RouteImportPackageInput(**row) for row in rows]

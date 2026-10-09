@@ -18,11 +18,28 @@ STATUS_PICKED_UP = "picked_up"
 STATUS_LOADED = "loaded"
 STATUS_OUT_FOR_DELIVERY = "out_for_delivery"
 STATUS_DELIVERED = "delivered"
+#: Not at pickup; the driver reported it with a photo. Accounted for at pickup,
+#: never expected at delivery (it was never loaded).
+STATUS_MISSING_AT_PICKUP = "missing_at_pickup"
 
 _PICKUP_DONE = frozenset(
     {STATUS_PICKED_UP, STATUS_LOADED, STATUS_OUT_FOR_DELIVERY, STATUS_DELIVERED}
 )
+_PICKUP_ACCOUNTED = _PICKUP_DONE | {STATUS_MISSING_AT_PICKUP}
 _DELIVERY_DONE = frozenset({STATUS_DELIVERED})
+MISSING_REASONS = frozenset({"not_ready", "not_found", "damaged", "wrong_item", "other"})
+
+
+def _phase_progress(rows: list[Package], phase: str) -> tuple[int, int, list[Package], int]:
+    """(scanned, required, outstanding, missing) — missing boxes leave the delivery count."""
+    missing = [p for p in rows if p.status == STATUS_MISSING_AT_PICKUP]
+    if phase == "pickup":
+        outstanding = [p for p in rows if p.status not in _PICKUP_ACCOUNTED]
+        scanned = len([p for p in rows if p.status in _PICKUP_DONE])
+        return scanned, len(rows), outstanding, len(missing)
+    carried = [p for p in rows if p.status != STATUS_MISSING_AT_PICKUP]
+    outstanding = [p for p in carried if p.status not in _DELIVERY_DONE]
+    return len(carried) - len(outstanding), len(carried), outstanding, len(missing)
 
 
 class PackagesIncomplete(Exception):
@@ -65,6 +82,10 @@ class ScanGateService:
                 "instructions": (p.dimensions or {}).get("instructions") if isinstance(p.dimensions, dict) else None,
                 "scanned_pickup": p.status in _PICKUP_DONE,
                 "scanned_delivery": p.status in _DELIVERY_DONE,
+                "missing_at_pickup": p.status == STATUS_MISSING_AT_PICKUP,
+                "item_key": getattr(p, "item_key", None),
+                "box_index": getattr(p, "box_index", None),
+                "box_count": getattr(p, "box_count", None),
             }
             for p in rows
         ]
@@ -85,21 +106,21 @@ class ScanGateService:
             by_order.setdefault(pkg.order_id, []).append(pkg)
         out: dict[str, dict[str, Any]] = {}
         for oid, pkgs in by_order.items():
-            pickup_missing = [p for p in pkgs if p.status not in _PICKUP_DONE]
-            delivery_missing = [p for p in pkgs if p.status not in _DELIVERY_DONE]
-            required = len(pkgs)
+            p_scanned, p_required, p_out, p_missing = _phase_progress(pkgs, "pickup")
+            d_scanned, d_required, d_out, _ = _phase_progress(pkgs, "delivery")
             out[oid] = {
                 "scan_pickup": {
-                    "scanned": required - len(pickup_missing),
-                    "required": required,
-                    "complete": required > 0 and not pickup_missing,
-                    "missing_suffixes": [p.tracking_suffix for p in pickup_missing],
+                    "scanned": p_scanned,
+                    "required": p_required,
+                    "complete": p_required > 0 and not p_out,
+                    "missing_suffixes": [p.tracking_suffix for p in p_out],
+                    "reported_missing": p_missing,
                 },
                 "scan_delivery": {
-                    "scanned": required - len(delivery_missing),
-                    "required": required,
-                    "complete": required > 0 and not delivery_missing,
-                    "missing_suffixes": [p.tracking_suffix for p in delivery_missing],
+                    "scanned": d_scanned,
+                    "required": d_required,
+                    "complete": d_required > 0 and not d_out,
+                    "missing_suffixes": [p.tracking_suffix for p in d_out],
                 },
             }
         for oid in order_ids:
@@ -117,15 +138,14 @@ class ScanGateService:
                 "packages": [],
             }
         rows = self._packages.ensure_for_order(db, order)
-        required = _PICKUP_DONE if phase == "pickup" else _DELIVERY_DONE
-        missing = [p for p in rows if p.status not in required]
-        scanned = len(rows) - len(missing)
+        scanned, required, outstanding, reported = _phase_progress(rows, phase)
         return {
             "phase": phase,
             "scanned": scanned,
-            "required": len(rows),
-            "complete": len(missing) == 0 and len(rows) > 0,
-            "missing_suffixes": [p.tracking_suffix for p in missing],
+            "required": required,
+            "complete": len(outstanding) == 0 and required > 0,
+            "missing_suffixes": [p.tracking_suffix for p in outstanding],
+            "reported_missing": reported,
             "packages": self.package_rows(db, order),
         }
 
@@ -194,7 +214,7 @@ class ScanGateService:
             if pkg.status not in _PICKUP_DONE:
                 pkg.status = STATUS_PICKED_UP
         else:
-            if pkg.status == STATUS_MANIFESTED:
+            if pkg.status in (STATUS_MANIFESTED, STATUS_MISSING_AT_PICKUP):
                 raise ValueError("scan_pickup_required_first")
             pkg.status = STATUS_DELIVERED
 
@@ -210,6 +230,129 @@ class ScanGateService:
         }
         db.commit()
         return result
+
+    def pickup_checklist(self, db: Session, order: Order) -> dict[str, Any]:
+        """
+        Pickup checklist grouped by item: each multi-box item lists its boxes
+        (n of N); a single parcel is its own one-box item. Item names are
+        "Item n" / "Parcel n" — never contents, same as the labels.
+        """
+        from porterchain_api.merchant_engine.package_service import item_ordinals
+
+        rows = [] if _whole_vehicle(order) else self._packages.ensure_for_order(db, order)
+        ordinals = item_ordinals(rows)
+        items: dict[str, dict[str, Any]] = {}
+        for pkg in sorted(rows, key=lambda r: r.parcel_index or 0):
+            multi = bool(pkg.item_key and (pkg.box_count or 0) > 1)
+            key = pkg.item_key if multi else f"parcel:{pkg.id}"
+            entry = items.get(key)
+            if entry is None:
+                entry = items[key] = {
+                    "item_key": pkg.item_key if multi else None,
+                    "label": f"Item {ordinals[pkg.item_key]}" if multi else f"Parcel {pkg.parcel_index}",
+                    "box_count": pkg.box_count if multi else 1,
+                    "boxes": [],
+                }
+            entry["boxes"].append(
+                {
+                    "package_id": pkg.id,
+                    "box_index": pkg.box_index if multi else 1,
+                    "parcel_index": pkg.parcel_index,
+                    "tracking_suffix": pkg.tracking_suffix,
+                    "status": pkg.status,
+                    "scanned": pkg.status in _PICKUP_DONE,
+                    "missing": pkg.status == STATUS_MISSING_AT_PICKUP,
+                }
+            )
+        out_items = []
+        for entry in items.values():
+            boxes = entry["boxes"]
+            entry["scanned"] = sum(1 for b in boxes if b["scanned"])
+            entry["missing"] = sum(1 for b in boxes if b["missing"])
+            entry["complete"] = all(b["scanned"] or b["missing"] for b in boxes)
+            out_items.append(entry)
+        scanned, required, outstanding, reported = _phase_progress(rows, "pickup")
+        return {
+            "order_id": order.id,
+            "whole_vehicle": _whole_vehicle(order),
+            "items": out_items,
+            "scanned": scanned,
+            "missing": reported,
+            "required": required,
+            "can_confirm": _whole_vehicle(order) or (required > 0 and not outstanding),
+        }
+
+    def report_missing(
+        self,
+        db: Session,
+        order: Order,
+        package_id: str,
+        *,
+        photo_url: str,
+        reason: str,
+        notes: str | None = None,
+        actor_id: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        A box is not at pickup: photo + reason are required. The box counts as
+        accounted for at pickup (so pickup can be confirmed) and drops out of
+        the delivery count. Opens a `package_missing` exception and raises
+        `incident.reported` (ops alert), like a stop exception.
+        """
+        from porterchain_api.platform.package_events import emit_package_missing
+        from porterchain_api.booking_models import OrderException
+
+        photo = (photo_url or "").strip()
+        if not photo:
+            raise ValueError("photo_required")
+        # Same photo forms as stop exceptions / POD: an uploaded URL or the
+        # compressed camera data URL the driver app produces.
+        if not photo.startswith(("https://", "http://", "data:image/")):
+            raise ValueError("photo_url_invalid")
+        if len(photo) > 3_000_000:
+            raise ValueError("photo_too_large")
+        code = (reason or "").strip().lower()
+        if code not in MISSING_REASONS:
+            raise ValueError("reason_invalid")
+        self._packages.ensure_for_order(db, order)
+        pkg = db.query(Package).filter(Package.id == package_id, Package.order_id == order.id).first()
+        if not pkg:
+            raise LookupError("package_not_found")
+        if pkg.status in _PICKUP_DONE:
+            raise ValueError("package_already_picked_up")
+        pkg.status = STATUS_MISSING_AT_PICKUP
+        exc = OrderException(
+            order_id=order.id,
+            type="package_missing",
+            status="open",
+            reported_by_type="driver",
+            reported_by_id=actor_id,
+            evidence={
+                "package_id": pkg.id,
+                "tracking_suffix": pkg.tracking_suffix,
+                "item_key": pkg.item_key,
+                "box_index": pkg.box_index,
+                "box_count": pkg.box_count,
+                "phase": "pickup",
+                "reason": code,
+                "notes": (notes or "").strip()[:500],
+                "photo_url": photo,
+            },
+        )
+        db.add(exc)
+        db.flush()
+        emit_package_missing(
+            db,
+            order_id=order.id,
+            driver_id=actor_id,
+            exception_id=exc.id,
+            package_id=pkg.id,
+            reason=code,
+        )
+        result = {"exception_id": exc.id, "package_id": pkg.id, "status": pkg.status}
+        checklist = self.pickup_checklist(db, order)
+        db.commit()
+        return {**result, "checklist": checklist}
 
     def scan_qr_from_body(
         self,

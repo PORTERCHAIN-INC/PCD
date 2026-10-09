@@ -46,7 +46,8 @@ def render_thermal_labels(pages: list[dict[str, Any]]) -> bytes:
     """
     Each page dict keys:
       route_hint, stop_sequence, from_line, to_line, order_number, tracking_base,
-      cod_line, qr_payload, tracking_suffix, parcel_index, total_parcels
+      cod_line, qr_payload, tracking_suffix, parcel_index, total_parcels,
+      item_line ("Item 2 · box 1 of 3" for multi-box items; never contents)
     """
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(LABEL_WIDTH, LABEL_HEIGHT))
@@ -139,4 +140,10 @@ def _draw_page(c: canvas.Canvas, page: dict[str, Any]) -> None:
     c.setFont("Helvetica-Bold", 11)
     idx = page.get("parcel_index") or 1
     total = page.get("total_parcels") or 1
-    c.drawCentredString(LABEL_WIDTH / 2, margin + 4, f"BOX {idx} of {total}")
+    item_line = str(page.get("item_line") or "").strip()
+    if item_line:
+        c.drawCentredString(LABEL_WIDTH / 2, margin + 20, item_line[:48])
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(LABEL_WIDTH / 2, margin + 4, f"Parcel {idx} of {total}")
+    else:
+        c.drawCentredString(LABEL_WIDTH / 2, margin + 4, f"BOX {idx} of {total}")

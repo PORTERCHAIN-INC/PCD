@@ -240,6 +240,11 @@ class Package(Base):
     dimensions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="manifested", index=True)
     stop_sequence: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    #: Multi-box item: boxes of one item share `item_key`; `box_index` of `box_count`.
+    item_key: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    item_label: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    box_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    box_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     barcode: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
     label_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     signature_required: Mapped[bool] = mapped_column(default=False)

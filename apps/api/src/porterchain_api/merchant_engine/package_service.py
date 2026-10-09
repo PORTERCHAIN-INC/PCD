@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Sequence
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
-from porterchain_api.merchant_engine.stop_cargo import meaningful_packages
+from porterchain_api.merchant_engine.stop_cargo import expand_item_boxes, meaningful_packages
 
 # After this date, prolonged JSON+table dual SoT is anti-Dean — table wins;
 # stops[].packages exists only as a derived Fleetbase payload cache.
@@ -67,6 +67,62 @@ def _weight(pkg: dict[str, Any]) -> Decimal | None:
         return None
 
 
+def _int_or_none(raw: Any) -> int | None:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value >= 1 else None
+
+
+def _item_fields(pkg: dict[str, Any]) -> dict[str, Any]:
+    """Multi-box item fields from an inbound / projected package dict."""
+    key = str(pkg.get("item_key") or pkg.get("item_id") or "").strip()[:64] or None
+    label = str(pkg.get("item_label") or pkg.get("item_name") or "").strip()[:120] or None
+    box_count = _int_or_none(pkg.get("box_count"))
+    box_index = _int_or_none(pkg.get("box_index"))
+    if box_count and box_index and box_index > box_count:
+        box_index = None
+    return {"item_key": key, "item_label": label, "box_index": box_index, "box_count": box_count}
+
+
+def item_ordinals(rows: Sequence[Package]) -> dict[str, int]:
+    """item_key → 1-based item number in parcel order ("Item 2" on labels / checklist)."""
+    out: dict[str, int] = {}
+    for row in sorted(rows, key=lambda r: r.parcel_index or 0):
+        if row.item_key and row.item_key not in out:
+            out[row.item_key] = len(out) + 1
+    return out
+
+
+def item_box_line(row: Package, ordinals: dict[str, int]) -> str:
+    """
+    "Item 2 · box 1 of 3" for a multi-box item, else "".
+
+    Never the product title or SKU: labels must not reveal contents (PHI for
+    pharmacy / lab orders). The item number matches the driver checklist.
+    """
+    if not row.item_key or not row.box_count or row.box_count < 2:
+        return ""
+    n = ordinals.get(row.item_key)
+    return f"Item {n} · box {row.box_index or '?'} of {row.box_count}" if n else ""
+
+
+def _number_item_boxes(rows: list[Package]) -> None:
+    """Fill box n-of-N for item boxes that arrived without numbers (order kept)."""
+    groups: dict[str, list[Package]] = {}
+    for row in rows:
+        if row.item_key:
+            groups.setdefault(row.item_key, []).append(row)
+    for boxes in groups.values():
+        indexes = [b.box_index for b in boxes]
+        if all(indexes) and len(set(indexes)) == len(boxes) and all(b.box_count == len(boxes) for b in boxes):
+            continue
+        for n, box in enumerate(boxes, start=1):
+            box.box_index = n
+            box.box_count = len(boxes)
+
+
 def extract_json_parcels(order: Order) -> list[dict[str, Any]]:
     """Flatten stop packages into ordered parcel dicts with stop_key / stop_sequence."""
     meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
@@ -112,7 +168,7 @@ def _package_to_stop_dict(pkg: Package) -> dict[str, Any]:
         for k in ("length_cm", "width_cm", "height_cm")
         if k in dims and dims[k] is not None
     }
-    return {
+    out = {
         "id": pkg.id,
         "name": display or pkg.tracking_suffix or f"BOX {pkg.parcel_index}",
         "sku": sku,
@@ -127,6 +183,14 @@ def _package_to_stop_dict(pkg: Package) -> dict[str, Any]:
         "tracking_suffix": pkg.tracking_suffix,
         "status": pkg.status,
     }
+    if pkg.item_key:
+        out.update(
+            item_key=pkg.item_key,
+            item_label=pkg.item_label,
+            box_index=pkg.box_index,
+            box_count=pkg.box_count,
+        )
+    return out
 
 
 class PackageService:
@@ -216,6 +280,7 @@ class PackageService:
                 }
             ]
 
+        parcels = expand_item_boxes(parcels)
         total = len(parcels)
         tracking = order.tracking_number or order.id[:8]
         existing = {p.parcel_index: p for p in self.list_for_order(db, order.id)}
@@ -234,9 +299,16 @@ class PackageService:
             row.stop_sequence = pkg.get("_stop_sequence")
             row.weight_kg = _weight(pkg)
             row.dimensions = _dims(pkg)
+            item = _item_fields(pkg)
+            row.item_key = item["item_key"]
+            row.item_label = item["item_label"]
+            row.box_index = item["box_index"] if item["item_key"] else None
+            row.box_count = item["box_count"] if item["item_key"] else None
             if not row.status:
                 row.status = "manifested"
             kept.append(row)
+
+        _number_item_boxes(kept)
 
         if replace:
             for idx, row in existing.items():

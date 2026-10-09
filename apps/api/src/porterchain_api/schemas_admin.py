@@ -107,6 +107,10 @@ class MerchantPricingRequest(BaseModel):
     rate_card: dict[str, Any] | None = None
     #: Commercial schedule (fuel override, pickup, mins, compact, size_match).
     schedule: MerchantSchedule | None = None
+    #: Price-book overrides on top of Settings → Pricing (`enabled`,
+    #: `multi_box_as_one_item`, stop price, tiers, small/handling, minimum,
+    #: dedicated). Merged key by key; send null to clear all overrides.
+    price_book: dict[str, Any] | None = None
 
 
 class MerchantPricingResponse(MerchantPricingRequest):
@@ -121,6 +125,10 @@ class MerchantPricingResponse(MerchantPricingRequest):
     has_custom_gta: bool = False
     #: Platform GTA before merchant overlay — for Reset / diff in admin UI.
     platform_gta_rate: dict[str, Any] | None = None
+    #: Global price book with this merchant's overrides applied (read-only).
+    price_book_effective: dict[str, Any] | None = None
+    #: Pricing settings version new quotes are stamped with.
+    price_version: str | None = None
 
 
 class MerchantUpdateRequest(BaseModel):

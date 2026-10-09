@@ -34,6 +34,7 @@ def _request_from_quote_body(
     dimensions: str | None = None,
     package_type: str | None = None,
     use_overrides: bool = False,
+    parcel_count: int | None = None,
 ) -> PricingRequest:
     stops = [_geo(s) for s in (body.additional_stops or [])]
     pickup = _geo(body.pickup)
@@ -60,6 +61,8 @@ def _request_from_quote_body(
         channel=channel,  # type: ignore[arg-type]
         merchant_id=merchant_id,
         promo_code=body.promo_code,
+        booking_mode="vehicle" if getattr(body, "booking_mode", None) == "vehicle" else "parcels",
+        parcel_count=max(int(parcel_count or 1), 1),
     )
 
 
@@ -122,6 +125,7 @@ def _request_from_quote(quote: Quote) -> PricingRequest:
         dimensions=dimensions,
         package_type=quote.package_type,
         use_overrides=True,
+        parcel_count=len([i for i in payload.get("items") or [] if isinstance(i, dict)]) or 1,
     )
 
 

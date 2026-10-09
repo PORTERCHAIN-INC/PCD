@@ -202,6 +202,7 @@ class QuoteService:
             dimensions=load.dimensions,
             package_type=load.package_type,
             use_overrides=True,
+            parcel_count=len(load.items) or 1,
         )
         # Production quotes need Valhalla/OSRM. Local/CI may fall back to haversine
         # when those services are not running (never Google).

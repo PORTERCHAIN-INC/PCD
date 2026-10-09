@@ -29,6 +29,9 @@ def parse_dt(value: Any) -> datetime | None:
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
 
 
+_ITEM_KEYS = ("item_key", "item_label", "box_index", "box_count", "boxes")
+
+
 def clean_packages(raw: Any) -> list[dict[str, Any]]:
     if not isinstance(raw, list):
         return []
@@ -36,21 +39,24 @@ def clean_packages(raw: Any) -> list[dict[str, Any]]:
     for pkg in raw:
         if not isinstance(pkg, dict):
             continue
-        packages.append(
-            {
-                "id": pkg.get("id"),
-                "name": pkg.get("name") or pkg.get("sku") or "Parcel",
-                "sku": pkg.get("sku"),
-                "quantity": pkg.get("quantity") or 1,
-                "weight_kg": pkg.get("weight_kg"),
-                "length_cm": pkg.get("length_cm"),
-                "width_cm": pkg.get("width_cm"),
-                "height_cm": pkg.get("height_cm"),
-                "dimensions": pkg.get("dimensions"),
-                "notes": pkg.get("notes"),
-                "package_type": pkg.get("package_type"),
-            }
-        )
+        row = {
+            "id": pkg.get("id"),
+            "name": pkg.get("name") or pkg.get("sku") or "Parcel",
+            "sku": pkg.get("sku"),
+            "quantity": pkg.get("quantity") or 1,
+            "weight_kg": pkg.get("weight_kg"),
+            "length_cm": pkg.get("length_cm"),
+            "width_cm": pkg.get("width_cm"),
+            "height_cm": pkg.get("height_cm"),
+            "dimensions": pkg.get("dimensions"),
+            "notes": pkg.get("notes"),
+            "package_type": pkg.get("package_type"),
+        }
+        # Multi-box item fields ride along only when set (no shape change otherwise).
+        for key in _ITEM_KEYS:
+            if pkg.get(key) not in (None, ""):
+                row[key] = pkg.get(key)
+        packages.append(row)
     return packages
 
 
@@ -270,6 +276,36 @@ def packages_from_stops(stops: list[dict[str, Any]] | None) -> list[dict[str, An
     return meaningful_packages(first.get("packages"))
 
 
+def _box_int(raw: Any) -> int | None:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value >= 1 else None
+
+
+def expand_item_boxes(parcels: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    One entry per physical box. A package dict with `boxes: N` (N > 1) is one
+    item shipped in N boxes: it becomes N rows sharing an `item_key`, numbered
+    `box_index` 1..N. Dicts that already carry `box_index` pass through.
+    """
+    out: list[dict[str, Any]] = []
+    for pos, pkg in enumerate(parcels, start=1):
+        boxes = _box_int(pkg.get("boxes"))
+        if not boxes or boxes == 1 or pkg.get("box_index"):
+            out.append(pkg)
+            continue
+        boxes = min(boxes, 50)
+        key = str(pkg.get("item_key") or pkg.get("item_id") or pkg.get("sku") or f"item-{pos}")[:64]
+        label = pkg.get("item_label") or pkg.get("item_name") or pkg.get("name")
+        for n in range(1, boxes + 1):
+            row = {k: v for k, v in pkg.items() if k != "boxes"}
+            row.update({"item_key": key, "item_label": label, "box_index": n, "box_count": boxes})
+            out.append(row)
+    return out
+
+
 def parcels_for_pricing(body: Any) -> list[ParcelSpec]:
     """
     One priced parcel per booked package, for contract schedules billed per parcel.
@@ -281,10 +317,12 @@ def parcels_for_pricing(body: Any) -> list[ParcelSpec]:
     if getattr(body, "additional_stops", None):
         return []
     out: list[ParcelSpec] = []
+    dicts = []
     for raw in getattr(body, "packages", None) or []:
         pkg = raw.model_dump() if hasattr(raw, "model_dump") else raw
-        if not isinstance(pkg, dict):
-            continue
+        if isinstance(pkg, dict):
+            dicts.append(pkg)
+    for pkg in expand_item_boxes(dicts):
         sides = [pkg.get("length_cm"), pkg.get("width_cm"), pkg.get("height_cm")]
         dims: dict[str, float] | str | None = None
         if any(sides):
@@ -292,5 +330,12 @@ def parcels_for_pricing(body: Any) -> list[ParcelSpec]:
         elif pkg.get("dimensions"):
             dims = pkg.get("dimensions")
         weight = pkg.get("weight_kg")
-        out.append(ParcelSpec(stop_index=0, weight_kg=float(weight) if weight else None, dimensions=dims))
+        out.append(
+            ParcelSpec(
+                stop_index=0,
+                weight_kg=float(weight) if weight else None,
+                dimensions=dims,
+                item_key=str(pkg.get("item_key") or "").strip() or None,
+            )
+        )
     return out

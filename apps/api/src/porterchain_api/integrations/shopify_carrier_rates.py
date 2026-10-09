@@ -190,16 +190,35 @@ def _dimensions_from_items(items: list[Any] | None) -> dict[str, float] | None:
     return _in_to_cm(best) if best else None
 
 
-def parcels_from_items(items: list[Any] | None) -> list[ParcelSpec]:
-    """
-    One parcel per shipped unit, with that line's grams and dimensions.
+#: Line-item property names a store can use for "this item ships in N boxes".
+BOX_PROPERTY_NAMES = frozenset({"boxes", "_boxes", "boxes per item", "boxes_per_item", "box count", "box_count"})
+MAX_BOXES_PER_ITEM = 20
 
-    Contract schedules bill per parcel; Shopify sends one line per variant with
-    a quantity and per-unit grams, so each unit is treated as its own packed
-    parcel. Lines without grams or size properties stay unknown (standard).
-    """
-    out: list[ParcelSpec] = []
-    for item in items or []:
+
+def item_boxes(item: Any) -> int:
+    """Boxes per unit from a line's properties (default 1)."""
+    props = item.get("properties") if isinstance(item, dict) else None
+    if not isinstance(props, list):
+        return 1
+    for prop in props:
+        if not isinstance(prop, dict):
+            continue
+        if str(prop.get("name") or "").strip().lower() in BOX_PROPERTY_NAMES:
+            try:
+                return max(1, min(int(float(prop.get("value"))), MAX_BOXES_PER_ITEM))
+            except (TypeError, ValueError):
+                return 1
+    return 1
+
+
+def _line_key(item: dict[str, Any], pos: int) -> str:
+    raw = item.get("id") or item.get("variant_id") or item.get("sku") or f"line{pos}"
+    return str(raw)[:48]
+
+
+def _shipped_units(items: list[Any] | None):
+    """(line position, line, grams per unit, qty, dims in inches, boxes) for shippable lines."""
+    for pos, item in enumerate(items or [], start=1):
         if not isinstance(item, dict) or item.get("requires_shipping") is False:
             continue
         try:
@@ -207,14 +226,80 @@ def parcels_from_items(items: list[Any] | None) -> list[ParcelSpec]:
             qty = max(int(item.get("quantity") or 1), 1)
         except (TypeError, ValueError):
             continue
-        dims = _item_dims_in(item)
-        spec = ParcelSpec(
-            stop_index=0,
-            weight_kg=grams / 1000.0 if grams > 0 else None,
-            dimensions=_in_to_cm(dims) if dims else None,
-        )
-        out.extend([spec] * qty)
+        yield pos, item, grams, qty, _item_dims_in(item), item_boxes(item)
+
+
+def parcels_from_items(items: list[Any] | None) -> list[ParcelSpec]:
+    """
+    One parcel per shipped unit, with that line's grams and dimensions.
+
+    Contract schedules bill per parcel; Shopify sends one line per variant with
+    a quantity and per-unit grams, so each unit is treated as its own packed
+    parcel. Lines without grams or size properties stay unknown (standard).
+
+    A line whose `boxes` property is N > 1 ships each unit in N boxes: N parcels
+    sharing an `item_key` (weight split evenly). Price-book merchants with
+    multi-box ON bill them as one item; contracts bill every box.
+    """
+    out: list[ParcelSpec] = []
+    for pos, item, grams, qty, dims, boxes in _shipped_units(items):
+        if boxes == 1:
+            spec = ParcelSpec(
+                stop_index=0,
+                weight_kg=grams / 1000.0 if grams > 0 else None,
+                dimensions=_in_to_cm(dims) if dims else None,
+            )
+            out.extend([spec] * qty)
+            continue
+        each_kg = (grams / 1000.0 / boxes) if grams > 0 else None
+        for unit in range(1, qty + 1):
+            key = f"{_line_key(item, pos)}:{unit}"
+            out.extend(
+                ParcelSpec(
+                    stop_index=0,
+                    weight_kg=each_kg,
+                    dimensions=_in_to_cm(dims) if dims else None,
+                    item_key=key,
+                )
+                for _ in range(boxes)
+            )
     return out
+
+
+def packages_from_items(items: list[Any] | None) -> list[dict[str, Any]] | None:
+    """
+    Booking packages for an order with multi-box lines (same split as
+    `parcels_from_items`, so the booked price matches checkout). None when no
+    line declares boxes — the order keeps today's single default package.
+    """
+    units = list(_shipped_units(items))
+    if not any(boxes > 1 for *_rest, boxes in units):
+        return None
+    out: list[dict[str, Any]] = []
+    for pos, item, grams, qty, dims, boxes in units:
+        title = str(item.get("title") or item.get("name") or "Item").strip()[:120]
+        cm = _in_to_cm(dims) if dims else {}
+        base = {
+            "name": title,
+            "sku": str(item.get("sku") or "").strip() or None,
+            "length_cm": cm.get("length"),
+            "width_cm": cm.get("width"),
+            "height_cm": cm.get("height"),
+        }
+        for unit in range(1, qty + 1):
+            key = f"{_line_key(item, pos)}:{unit}"
+            for n in range(1, boxes + 1):
+                out.append(
+                    {
+                        **base,
+                        "weight_kg": (grams / 1000.0 / boxes) if grams > 0 else None,
+                        "item_key": key if boxes > 1 else None,
+                        "item_label": title if boxes > 1 else None,
+                        "box_index": n if boxes > 1 else None,
+                        "box_count": boxes if boxes > 1 else None,
+                    }
+                )
+    return out[:200]
 
 
 def resolve_shopify_vehicle(
@@ -335,7 +420,7 @@ def quote_merchant_rate(
         routing_source=routing_source,
         channel="merchant",
         merchant_id=merchant.id,
-        parcel_count=_parcel_count_from_items(items),
+        parcel_count=max(_parcel_count_from_items(items), len(parcels_from_items(items))),
         parcels=parcels_from_items(items),
     )
     breakdown = get_pricing_service(db).calculate_merchant(request)

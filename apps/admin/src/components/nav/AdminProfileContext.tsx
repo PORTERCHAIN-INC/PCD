@@ -22,3 +22,8 @@ export function useAdminProfile() {
   if (!ctx) throw new Error("useAdminProfile must be used within AdminProfileProvider");
   return ctx;
 }
+
+/** Same as useAdminProfile but safe outside the provider (tests, isolated panels). */
+export function useOptionalAdminProfile() {
+  return useContext(AdminProfileContext)?.profile ?? null;
+}

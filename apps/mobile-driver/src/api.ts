@@ -17,12 +17,14 @@ import type {
   EmergencyContact,
   InboxSnapshot,
   InsuranceStatus,
+  MissingReason,
   NavigationSession,
   NavigationRoute,
   OfflineActionRow,
   OfflineStatus,
   OfflineSyncResult,
   OptimizeResult,
+  PickupChecklist,
   PublicHealthStatus,
   RatingsSummary,
   RouteStopRow,
@@ -368,6 +370,29 @@ export function scanPackage(
     method: "POST",
     body: JSON.stringify({ qr_payload: qrPayload, phase }),
   });
+}
+
+export function fetchPickupChecklist(orderId: string): Promise<PickupChecklist> {
+  return driverFetch<PickupChecklist>(
+    `${DRIVER_API}/orders/${encodeURIComponent(orderId)}/pickup-checklist`
+  );
+}
+
+/** Box not at pickup: photo (camera data URL) + reason. Accounts for the box. */
+export function reportPackageMissing(
+  orderId: string,
+  packageId: string,
+  body: { photo_url: string; reason: MissingReason; notes?: string }
+): Promise<{
+  exception_id: string;
+  package_id: string;
+  status: string;
+  checklist: PickupChecklist;
+}> {
+  return driverFetch(
+    `${DRIVER_API}/orders/${encodeURIComponent(orderId)}/packages/${encodeURIComponent(packageId)}/missing`,
+    { method: "POST", body: JSON.stringify(body) }
+  );
 }
 
 export function codCheckout(orderId: string): Promise<{

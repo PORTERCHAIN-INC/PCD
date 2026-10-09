@@ -113,6 +113,9 @@ export default function Delivery360({
   const [messageError, setMessageError] = useState(false);
 
   const [scanInput, setScanInput] = useState("");
+  const [missingFor, setMissingFor] = useState<string | null>(null);
+  const [missingReason, setMissingReason] = useState("not_found");
+  const [missingPhoto, setMissingPhoto] = useState("");
   const rid = routeId ?? `route-${new Date().toISOString().slice(0, 10)}`;
   const pickupPhase = isInPickupPhase(job);
   const deliveryPhase = isInDeliveryPhase(job);
@@ -264,7 +267,7 @@ export default function Delivery360({
           ) : null}
           {primary.key.startsWith("confirm_") && !scansComplete ? (
             <p className="mt-2 text-sm text-amber-800">
-              Scan all packages first ({scanProgress.scanned}/{scanProgress.required})
+              Scan or report every package first ({scanProgress.scanned}/{scanProgress.required})
             </p>
           ) : null}
           {wholeVehicle ? (
@@ -426,14 +429,73 @@ export default function Delivery360({
                       (pkg.tracking_suffix
                         ? `BOX ${pkg.parcel_index ?? i + 1} of ${pkg.total_parcels ?? job.packages.length}`
                         : String(pkg.package_type ?? "Package"))}
+                    {pkg.item_key && (pkg.box_count ?? 0) > 1
+                      ? ` · item box ${pkg.box_index ?? "?"} of ${pkg.box_count}`
+                      : ""}
                     {pkg.instructions ? ` · ${pkg.instructions}` : ""}
                     {done ? " · scanned" : ""}
+                    {pkg.missing_at_pickup ? " · reported missing" : ""}
                   </p>
                   <p className="text-[var(--muted)]">
                     {pkg.tracking_suffix ?? "—"}
                     {pkg.weight_kg != null ? ` · ${pkg.weight_kg} kg` : ""}
                     {pkg.status ? ` · ${pkg.status}` : ""}
                   </p>
+                  {scanPhase === "pickup" &&
+                  !completed &&
+                  !done &&
+                  !pkg.missing_at_pickup &&
+                  pkg.id ? (
+                    missingFor === pkg.id ? (
+                      <div className="mt-2 space-y-2">
+                        <select
+                          value={missingReason}
+                          onChange={(e) => setMissingReason(e.target.value)}
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                        >
+                          <option value="not_ready">Not ready</option>
+                          <option value="not_found">Not found</option>
+                          <option value="damaged">Damaged</option>
+                          <option value="wrong_item">Wrong item</option>
+                          <option value="other">Other</option>
+                        </select>
+                        <input
+                          value={missingPhoto}
+                          onChange={(e) => setMissingPhoto(e.target.value)}
+                          placeholder="Photo URL (required)"
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                        />
+                        <button
+                          type="button"
+                          disabled={pending === "report_missing" || !missingPhoto.trim()}
+                          onClick={() =>
+                            run("report_missing", async () => {
+                              await driverApi.reportPackageMissing(job.order_id, String(pkg.id), {
+                                photo_url: missingPhoto.trim(),
+                                reason: missingReason,
+                              });
+                              setMissingFor(null);
+                              setMissingPhoto("");
+                            })
+                          }
+                          className="rounded-xl bg-red-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                        >
+                          {pending === "report_missing" ? "…" : "Report box missing"}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMissingFor(String(pkg.id));
+                          setMissingPhoto("");
+                        }}
+                        className="mt-2 text-xs font-semibold text-red-600 underline"
+                      >
+                        Not here? Report missing
+                      </button>
+                    )
+                  ) : null}
                 </li>
               );
             })}

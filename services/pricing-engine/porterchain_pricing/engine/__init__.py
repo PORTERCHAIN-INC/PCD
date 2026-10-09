@@ -25,6 +25,13 @@ from porterchain_pricing.policy import (
     MODEL_FSA,
     MerchantPricingPolicy,
 )
+from porterchain_pricing.price_book import (
+    BookParcel,
+    dedicated_charge,
+    effective_price_book,
+    price_parcels,
+    retail_charge,
+)
 from porterchain_pricing.promotion import PromotionService
 from porterchain_pricing.rate_card import default_rate_card
 from porterchain_pricing.tax import TaxService
@@ -58,6 +65,8 @@ class PricingEngine:
         ctx = ctx or PricingContext()
         card = ctx.rate_card or default_rate_card()
         breakdown = PriceBreakdown()
+        # Every quote carries the pricing-settings version it was priced with.
+        breakdown.metadata["price_version"] = ctx.price_version
 
         distance_meters = request.distance_meters
         if distance_meters is None:
@@ -128,6 +137,21 @@ class PricingEngine:
                 return breakdown
             route_priced = True
 
+        # Price book: whole-vehicle (dedicated) and the one retail price are
+        # fixed prices that replace the stop / distance base. OFF by default.
+        book = self._price_book(request, ctx, breakdown)
+        fixed_priced = False
+        if not route_priced and breakdown.base_cents == 0 and book is not None:
+            fixed_priced = self._apply_fixed_price(request, book, breakdown)
+        book_parcels = bool(
+            book is not None
+            and not route_priced
+            and not fixed_priced
+            and request.channel == "merchant"
+            and request.booking_mode != "vehicle"
+            and book["merchant_parcels"]["enabled"]
+        )
+
         # Retail is the published GTA card only — injected platform FSA rows
         # must not price a website quote.
         if (
@@ -138,6 +162,10 @@ class PricingEngine:
             and policy.pricing_model == MODEL_FSA
         ):
             self._apply_fsa_rate(request, ctx, breakdown, gta_cfg=gta_cfg)
+
+        if breakdown.base_cents == 0 and book_parcels and policy.pricing_model == MODEL_FSA:
+            # Price-book merchant with no FSA row: the default stop price per drop.
+            self._apply_book_stop_price(request, book, breakdown)
 
         if breakdown.base_cents == 0:
             if policy.pricing_model == MODEL_FSA:
@@ -156,17 +184,27 @@ class PricingEngine:
                 policy=policy,
             )
 
-        if not route_priced:
+        if not route_priced and not fixed_priced:
             # Compact banding can replace FSA base when schedule says so.
             if request.channel != "retail":
                 self._apply_compact_banding(request, ctx, breakdown)
 
             # Negotiated contract prices encode their own zone / lane terms, and
             # an FSA flat rate is an all-in price for that destination.
-            if not breakdown.contract_id and breakdown.metadata.get("pricing_model") != "fsa_flat_rate":
+            if not breakdown.contract_id and breakdown.metadata.get("pricing_model") not in (
+                "fsa_flat_rate",
+                "price_book_stop",
+            ):
                 self._apply_zone_multiplier(breakdown, zone_mult)
 
-            self._apply_size_weight(request, ctx, breakdown)
+            if book_parcels and not breakdown.metadata.get("compact_banding"):
+                # Quantity tiers + small rule + handling replace generic size tiers.
+                if not self._apply_book_parcels(request, book, breakdown):
+                    breakdown.finalize()
+                    return breakdown
+            else:
+                book_parcels = False
+                self._apply_size_weight(request, ctx, breakdown)
 
         if request.channel == "merchant" and request.requires_liftgate and card.liftgate_cents:
             breakdown.add_item("liftgate", "Liftgate service", card.liftgate_cents)
@@ -179,9 +217,11 @@ class PricingEngine:
             breakdown.metadata["wait_minutes"] = wait_minutes
 
         if request.channel == "merchant":
-            if not route_priced:
+            if not route_priced and not fixed_priced:
                 self._apply_origin_pickup(request, policy, breakdown)
                 self._apply_route_minimum(request, ctx, policy, breakdown)
+                if book_parcels:
+                    self._apply_book_minimum(request, book, breakdown)
             self.contracts.apply_volume_discount(request, ctx, breakdown)
 
         # Customer distance fare has no fuel line. Merchant fuel is a percent of
@@ -210,6 +250,113 @@ class PricingEngine:
                 order_amount_cents=breakdown.final_cents
             )
         return breakdown
+
+    # ------------------------------------------------------------ price book
+
+    def _price_book(
+        self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown
+    ) -> dict | None:
+        """Effective book (global + merchant overrides); None if it is invalid."""
+        merchant_cfg = ctx.merchant_pricing_config if request.channel == "merchant" else None
+        try:
+            return effective_price_book(ctx.price_book, merchant_cfg)
+        except ValueError as exc:
+            breakdown.metadata["price_book_invalid"] = str(exc)
+            return None
+
+    def _apply_fixed_price(self, request: PricingRequest, book: dict, breakdown: PriceBreakdown) -> bool:
+        if request.booking_mode == "vehicle":
+            vehicle = str(request.vehicle_class or "").lower()
+            got = dedicated_charge(book, vehicle, request.dedicated_hours)
+            if got is None:
+                return False
+            cents, units, unit = got
+            label = "hour" if unit == "hour" else "half-day"
+            breakdown.add_item("dedicated_vehicle", f"Dedicated {vehicle} ({units} × {label})", cents)
+            breakdown.base_cents = cents
+            breakdown.metadata["pricing_model"] = "dedicated"
+            breakdown.metadata["dedicated_units"] = units
+            breakdown.metadata["dedicated_unit"] = unit
+            return True
+        if request.channel == "retail":
+            cents = retail_charge(book, request.parcel_count)
+            if cents is None:
+                return False
+            breakdown.add_item("retail_fixed", "Delivery (fixed price)", cents)
+            breakdown.base_cents = cents
+            breakdown.metadata["pricing_model"] = "retail_fixed"
+            return True
+        return False
+
+    def _apply_book_stop_price(self, request: PricingRequest, book: dict, breakdown: PriceBreakdown) -> None:
+        drops = 1 + len(request.additional_stops or [])
+        cents = int(book["stop_price_cents"]) * drops
+        if cents <= 0:
+            return
+        breakdown.add_item("stop_price", f"Delivery ({drops} stop{'s' if drops != 1 else ''})", cents)
+        breakdown.base_cents = cents
+        breakdown.distance_cents = 0
+        breakdown.metadata["pricing_model"] = "price_book_stop"
+
+    def _apply_book_parcels(self, request: PricingRequest, book: dict, breakdown: PriceBreakdown) -> bool:
+        """Parcel tier + handling lines. False = custom quote (route refused)."""
+        from porterchain_pricing.components.size_weight import parse_dimensions_cm
+
+        n_stops = 1 + len(request.additional_stops or [])
+        parcels: list[BookParcel] = []
+        if request.parcels:
+            for spec in request.parcels:
+                idx = spec.stop_index if 0 <= spec.stop_index < n_stops else 0
+                parcels.append(
+                    BookParcel(idx, spec.weight_kg, parse_dimensions_cm(spec.dimensions), spec.item_key)
+                )
+        else:
+            total = max(int(request.parcel_count or 1), 1)
+            each_kg = (float(request.weight_kg) / total) if request.weight_kg else None
+            dims = parse_dimensions_cm(request.dimensions)
+            parcels = [BookParcel(0, each_kg, dims) for _ in range(total)]
+        multi = bool(book.get("multi_box_as_one_item"))
+        charge = price_parcels(
+            book,
+            parcels,
+            vehicle_class=request.vehicle_class,
+            multi_box_as_one_item=multi,
+            n_stops=n_stops,
+        )
+        if charge.custom_quote_reason:
+            breakdown.items = []
+            breakdown.base_cents = 0
+            breakdown.metadata["fsa_refused"] = True
+            breakdown.metadata["custom_quote"] = True
+            breakdown.metadata["custom_quote_reason"] = charge.custom_quote_reason
+            breakdown.metadata["pricing_model"] = "fsa_refused"
+            return False
+        units = sum(s.billable_units for s in charge.stops)
+        if charge.parcel_cents:
+            breakdown.add_item("parcel_tier", f"Parcels ({units} billable)", charge.parcel_cents)
+        if charge.handling_cents:
+            breakdown.add_item("handling", "Heavy / large item handling", charge.handling_cents)
+        breakdown.metadata["price_book"] = {
+            "billable_units": units,
+            "small_boxes": sum(s.small_boxes for s in charge.stops),
+            "tier_rates_cents": list(charge.tier_rates),
+            "multi_box_as_one_item": multi,
+            "handling": [c for s in charge.stops for c in s.handling_codes],
+        }
+        return True
+
+    def _apply_book_minimum(self, request: PricingRequest, book: dict, breakdown: PriceBreakdown) -> None:
+        if any(i.code == "route_minimum" for i in breakdown.items):
+            return
+        minimum = book["minimum"]
+        drops = 1 + len(request.additional_stops or [])
+        min_cents = minimum["cents"] * (drops if minimum["mode"] == "per_stop" else 1)
+        top_up = min_cents - sum(i.amount_cents for i in breakdown.items)
+        if top_up <= 0:
+            return
+        breakdown.add_item("route_minimum", "Route minimum", top_up)
+        breakdown.metadata["route_minimum_cents"] = min_cents
+        breakdown.metadata["route_minimum_top_up_cents"] = top_up
 
     def _contract_schedule(
         self,

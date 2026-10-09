@@ -32,7 +32,42 @@ export type ScanProgress = {
   required: number;
   complete: boolean;
   missing_suffixes: string[];
+  /** Boxes the driver reported missing at pickup (photo + reason). */
+  reported_missing?: number;
 };
+
+export type PickupChecklistBox = {
+  package_id: string;
+  box_index: number | null;
+  parcel_index: number;
+  tracking_suffix: string;
+  status: string;
+  scanned: boolean;
+  missing: boolean;
+};
+
+export type PickupChecklistItem = {
+  item_key: string | null;
+  /** "Item 2" or "Parcel 4" — never contents. */
+  label: string;
+  box_count: number;
+  boxes: PickupChecklistBox[];
+  scanned: number;
+  missing: number;
+  complete: boolean;
+};
+
+export type PickupChecklist = {
+  order_id: string;
+  whole_vehicle: boolean;
+  items: PickupChecklistItem[];
+  scanned: number;
+  missing: number;
+  required: number;
+  can_confirm: boolean;
+};
+
+export type MissingReason = "not_ready" | "not_found" | "damaged" | "wrong_item" | "other";
 
 export type Handshake = {
   api: LinkState;
@@ -185,6 +220,10 @@ export type DriverPackage = {
   instructions?: string | null;
   scanned_pickup?: boolean;
   scanned_delivery?: boolean;
+  missing_at_pickup?: boolean;
+  item_key?: string | null;
+  box_index?: number | null;
+  box_count?: number | null;
   package_type?: string;
 };
 

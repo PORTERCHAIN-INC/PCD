@@ -9,10 +9,18 @@ from porterchain_api.merchant_engine.offboard import billing_context
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
 from porterchain_api.merchant_models import Merchant, MerchantRecipient, MerchantUser, SavedAddress
+from porterchain_api.admin_engine.pricing_versioning import bump_price_version
+from porterchain_api.domain.pricing_version import (
+    SUPER_ADMIN_ONLY,
+    assert_pricing_editor,
+    is_super_admin,
+)
 from porterchain_api.schemas_merchant import RecipientResponse, SavedAddressResponse
 
 ORG_ERROR_MESSAGES: dict[str, str] = {
     "merchant_not_found": "That company was not found.",
+    "pricing_super_admin_only": "Only a super admin can change prices.",
+    "multi_box_not_allowed_on_contract": "Contract-priced merchants bill every box; multi-box stays off.",
     "address_not_found": "That location was not found.",
     "recipient_not_found": "That recipient was not found.",
     "contact_not_found": "That contact was not found.",
@@ -181,8 +189,20 @@ def apply_merchant_terms(
     merchant = svc._get_or_raise(db, merchant_id)
     if payment_terms:
         merchant.payment_terms = payment_terms
-    if pricing_config is not None:
+    if pricing_config is not None and pricing_config != (merchant.pricing_config or {}):
+        old_config = dict(merchant.pricing_config or {})
+        assert_merchant_pricing_write(ctx, old_config, pricing_config)
         merchant.pricing_config = pricing_config
+        write_staff_audit(
+            db,
+            ctx,
+            merchant_id,
+            action="pricing.merchant.update",
+            resource_type="pricing",
+            resource_id=merchant_id,
+            payload={"old": old_config, "new": pricing_config},
+        )
+        bump_price_version(db, ctx, source=f"merchant:{merchant_id}")
     if credit_limit_cents is not None:
         merchant.credit_limit_cents = credit_limit_cents
     if parent_merchant_id is not None:
@@ -299,6 +319,41 @@ def complete_onboarding_payload(
     }
 
 
+#: Merchant price-book switches an ADMIN may flip; every other pricing key is super-admin only.
+_ADMIN_PRICE_BOOK_FLAGS = ("enabled", "multi_box_as_one_item")
+
+
+def _without_admin_flags(config: dict) -> dict:
+    out = dict(config or {})
+    book = dict(out.get("price_book") or {})
+    for flag in _ADMIN_PRICE_BOOK_FLAGS:
+        book.pop(flag, None)
+    if book:
+        out["price_book"] = book
+    else:
+        out.pop("price_book", None)
+    return out
+
+
+def assert_merchant_pricing_write(ctx: AdminContext, old: dict, new: dict) -> None:
+    """
+    Super admin: any pricing change. Admin: only the price-book on/off and
+    multi-box switches. Contract (schedule) merchants keep multi-box OFF.
+    """
+    schedule = new.get("schedule") if isinstance(new.get("schedule"), dict) else {}
+    book = new.get("price_book") if isinstance(new.get("price_book"), dict) else {}
+    if schedule.get("contract_schedule") and book.get("multi_box_as_one_item"):
+        raise ValueError("multi_box_not_allowed_on_contract")
+    if book:
+        from porterchain_pricing.price_book import effective_price_book
+
+        effective_price_book(None, new)  # raises price_book_invalid:<path>
+    if is_super_admin(ctx):
+        return
+    if _without_admin_flags(old) != _without_admin_flags(new):
+        raise PermissionError(SUPER_ADMIN_ONLY)
+
+
 def merge_pricing_config(db: Session, ctx: AdminContext, merchant_id: str, patch: dict):
     from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 
@@ -324,6 +379,15 @@ def merge_pricing_config(db: Session, ctx: AdminContext, merchant_id: str, patch
         elif isinstance(schedule, dict):
             config["schedule"] = dict(schedule)
 
+    if "price_book" in overlay:
+        book = overlay.pop("price_book")
+        if book is None or book == {}:
+            config.pop("price_book", None)
+        elif isinstance(book, dict):
+            merged_book = dict(config.get("price_book") or {})
+            merged_book.update(book)
+            config["price_book"] = merged_book
+
     if "rate_card" in overlay:
         card = overlay.pop("rate_card")
         if card is None:
@@ -339,9 +403,20 @@ def merge_pricing_config(db: Session, ctx: AdminContext, merchant_id: str, patch
     merchant = svc.get_merchant(db, merchant_id)
     if not merchant:
         raise LookupError("merchant_not_found")
-    if pricing_model in ("fsa", "distance"):
+    if pricing_model in ("fsa", "distance") and merchant.pricing_model != pricing_model:
+        old_model = merchant.pricing_model
         merchant.pricing_model = pricing_model
-        db.flush()
+        write_staff_audit(
+            db,
+            ctx,
+            merchant_id,
+            action="pricing.merchant.model",
+            resource_type="pricing",
+            resource_id=merchant_id,
+            payload={"old": old_model, "new": pricing_model},
+        )
+        bump_price_version(db, ctx, source=f"merchant:{merchant_id}:model")
+        db.commit()
     return merchant
 
 
@@ -417,8 +492,10 @@ def apply_kaylulu_pricing_template(db: Session, ctx: AdminContext, merchant_id: 
     from porterchain_api.merchant_engine.rate_card_view import admin_pricing_view
 
     merchant = require_merchant(db, merchant_id)
+    old_config = dict(merchant.pricing_config or {})
     merchant.pricing_config = kaylulu_pricing_config(existing=merchant.pricing_config)
     merchant.pricing_model = "fsa"
+    bump_price_version(db, ctx, source=f"merchant:{merchant_id}:kaylulu")
     db.flush()
     write_staff_audit(
         db,
@@ -427,7 +504,7 @@ def apply_kaylulu_pricing_template(db: Session, ctx: AdminContext, merchant_id: 
         action="pricing.kaylulu_template_applied",
         resource_type="pricing",
         resource_id=merchant_id,
-        payload={},
+        payload={"old": old_config, "new": merchant.pricing_config},
     )
     return admin_pricing_view(db, merchant)
 
@@ -448,13 +525,17 @@ def clone_pricing_from(
 
     if source_merchant_id == merchant_id:
         raise ValueError("cannot_clone_from_self")
+    # Cloning copies custom prices — same rule as editing them.
+    assert_pricing_editor(ctx)
     target = require_merchant(db, merchant_id)
     source = require_merchant(db, source_merchant_id)
     if not source:
         raise LookupError("source_merchant_not_found")
 
+    old_config = dict(target.pricing_config or {})
     target.pricing_model = source.pricing_model
     target.pricing_config = deepcopy(source.pricing_config or {})
+    bump_price_version(db, ctx, source=f"merchant:{merchant_id}:clone")
     db.flush()
 
     fsa_copied = 0
@@ -495,6 +576,8 @@ def clone_pricing_from(
             "source_merchant_id": source_merchant_id,
             "include_fsa": include_fsa,
             "fsa_rows_copied": fsa_copied,
+            "old": old_config,
+            "new": target.pricing_config,
         },
     )
     view = admin_pricing_view(db, target)

@@ -490,6 +490,15 @@ export type MerchantPricing = {
   gta_rate?: MerchantGtaRate | null;
   /** Commercial schedule knobs (fuel, pickup, mins, compact). */
   schedule?: MerchantSchedule | null;
+  /** Per-merchant price-book overrides (pricing_config.price_book); omit = platform book. */
+  price_book?: MerchantPriceBookOverride | null;
+};
+
+/** Admins may flip these two switches; every other book key is super-admin only. */
+export type MerchantPriceBookOverride = {
+  enabled?: boolean;
+  multi_box_as_one_item?: boolean;
+  [key: string]: unknown;
 };
 
 /** Form shell only — GTA downtown/upper-zone fees live on the API catalog, not in this UI. */
@@ -561,6 +570,10 @@ export type MerchantPricingDetail = MerchantPricing & {
   card?: MerchantRateCard | null;
   has_custom_gta?: boolean;
   platform_gta_rate?: MerchantGtaRate | null;
+  /** Merged platform + merchant price book the engine uses. */
+  price_book_effective?: Record<string, unknown> | null;
+  /** Current price version (pv-N) stamped on new quotes. */
+  price_version?: string | null;
 };
 
 export const merchants = {

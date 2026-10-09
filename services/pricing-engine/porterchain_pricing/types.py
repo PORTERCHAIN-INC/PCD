@@ -36,6 +36,9 @@ class ParcelSpec:
     stop_index: int = 0
     weight_kg: float | None = None
     dimensions: dict[str, float] | str | None = None
+    #: Boxes of one item share a key (multi-box items). Price-book merchants
+    #: with `multi_box_as_one_item` bill them as one unit; contracts ignore it.
+    item_key: str | None = None
 
 
 @dataclass(frozen=True)
@@ -77,6 +80,10 @@ class PricingRequest:
     #: Per-parcel detail. Optional: contract routes split `parcel_count`,
     #: `weight_kg` and `dimensions` across the stops when it is empty.
     parcels: list[ParcelSpec] = field(default_factory=list)
+    #: "parcels" or "vehicle" (whole-vehicle / dedicated booking).
+    booking_mode: str = "parcels"
+    #: Hours booked for a dedicated vehicle (None = the minimum units).
+    dedicated_hours: float | None = None
 
 
 @dataclass
@@ -240,3 +247,7 @@ class PricingContext:
     fsa_rates: list[FsaRateRecord] = field(default_factory=list)
     #: Parsed from `merchant_pricing_config`; platform defaults when absent.
     merchant_policy: MerchantPricingPolicy | None = None
+    #: Global price book (`system_config.pricing_book`, raw); None = built-in defaults (all OFF).
+    price_book: dict[str, Any] | None = None
+    #: Pricing settings version id stamped on every quote (e.g. "pv-3").
+    price_version: str | None = None

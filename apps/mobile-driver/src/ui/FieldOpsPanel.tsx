@@ -4,6 +4,7 @@ import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
 import { codCheckout, fetchJob, scanPackage } from "../api";
 import { formatCents } from "../format";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
+import { PickupChecklist } from "./PickupChecklist";
 import { PrimaryButton } from "./PrimaryButton";
 import type { DriverJobDetail, Handshake, ScanProgress } from "../types";
 
@@ -46,6 +47,7 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanPr
   const [action, setAction] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
+  const [checklistKey, setChecklistKey] = useState(0);
 
   useEffect(() => {
     if (!orderId) {
@@ -97,15 +99,29 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanPr
             {phase} scans {scan?.scanned ?? 0}/{scan?.required ?? 0}
             {scan?.complete ? " · complete" : ""}
           </Text>
-          {(job.packages ?? []).map((pkg, index) => (
-            <Text key={pkg.id ?? pkg.tracking_suffix ?? String(index)} style={styles.meta}>
-              {pkg.preset_label || `Parcel ${index + 1}`}
-              {pkg.instructions ? ` · ${pkg.instructions}` : ""}
-              {pkg.tracking_suffix ? ` · ${pkg.tracking_suffix}` : ""}
-            </Text>
-          ))}
+          {phase === "pickup" ? (
+            <PickupChecklist
+              orderId={orderId}
+              busy={locked}
+              refreshKey={checklistKey}
+              onError={onError}
+              onChanged={() => {
+                void fetchJob(orderId)
+                  .then(setJob)
+                  .catch(() => undefined);
+              }}
+            />
+          ) : (
+            (job.packages ?? []).map((pkg, index) => (
+              <Text key={pkg.id ?? pkg.tracking_suffix ?? String(index)} style={styles.meta}>
+                {pkg.preset_label || `Parcel ${index + 1}`}
+                {pkg.instructions ? ` · ${pkg.instructions}` : ""}
+                {pkg.tracking_suffix ? ` · ${pkg.tracking_suffix}` : ""}
+              </Text>
+            ))
+          )}
           {(scan?.missing_suffixes?.length ?? 0) > 0 ? (
-            <Text style={styles.meta}>Missing: {scan?.missing_suffixes?.join(", ")}</Text>
+            <Text style={styles.meta}>Not scanned yet: {scan?.missing_suffixes?.join(", ")}</Text>
           ) : null}
           <TextInput
             style={styles.input}
@@ -135,6 +151,7 @@ export function FieldOpsPanel({ orderId, stopType, busy, seed, onError, onScanPr
               void scanPackage(orderId, code.trim(), phase)
                 .then((result) => {
                   setCode("");
+                  setChecklistKey((k) => k + 1);
                   setNote(
                     result.complete
                       ? "All packages scanned"

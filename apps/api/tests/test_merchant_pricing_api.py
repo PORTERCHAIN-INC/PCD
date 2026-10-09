@@ -10,7 +10,7 @@ from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
 from porterchain_api.main import app
-from porterchain_api.merchant_models import Merchant
+from porterchain_api.merchant_models import Merchant, MerchantAuditLog
 from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
 from porterchain_pricing.types import GeoPoint, PricingRequest
 
@@ -26,6 +26,9 @@ def merchant(db):
     db.add(row)
     db.commit()
     yield row
+    db.rollback()
+    # Pricing writes are audited per merchant; clear them before the merchant row.
+    db.query(MerchantAuditLog).filter(MerchantAuditLog.merchant_id == row.id).delete()
     db.delete(row)
     db.commit()
 

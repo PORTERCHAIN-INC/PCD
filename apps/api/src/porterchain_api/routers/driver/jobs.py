@@ -11,6 +11,7 @@ from porterchain_api.routers.driver._deps import (
     ExceptionRequest,
     HTTPException,
     LocationPingRequest,
+    PackageMissingRequest,
     RouteResponse,
     Session,
     Settings,
@@ -275,6 +276,54 @@ def scan_order_package(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except PackagesIncomplete as exc:
         raise HTTPException(status_code=409, detail=exc.payload) from exc
+
+
+@router.get("/orders/{order_id}/pickup-checklist")
+def order_pickup_checklist(
+    order_id: str,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db)):
+    """Per-item pickup checklist: every box scanned or reported missing before confirm."""
+    require_approved_driver(ctx)
+    from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+    try:
+        order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)
+        return ScanGateService().pickup_checklist(db, order)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+@router.post("/orders/{order_id}/packages/{package_id}/missing")
+def report_package_missing(
+    order_id: str,
+    package_id: str,
+    body: PackageMissingRequest,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db)):
+    """Box not at pickup: photo + reason. Opens a package_missing exception and alerts ops."""
+    require_approved_driver(ctx)
+    from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+    try:
+        order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)
+        return ScanGateService().report_missing(
+            db,
+            order,
+            package_id,
+            photo_url=body.photo_url,
+            reason=body.reason,
+            notes=body.notes,
+            actor_id=ctx.driver.id,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/routes/{route_id}/stops/{stop_id}/exception")

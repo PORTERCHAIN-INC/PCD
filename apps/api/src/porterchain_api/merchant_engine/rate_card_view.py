@@ -9,7 +9,10 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import PricingFsaRate
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
+from porterchain_api.pricing_engine.repository import (
+    SqlAlchemyPricingRepository,
+    current_price_version,
+)
 from porterchain_api.domain.catalog_labels import VEHICLE_LABELS
 from porterchain_pricing.policy import (
     MODEL_DISTANCE,
@@ -144,4 +147,17 @@ def admin_pricing_view(db: Session, merchant: Merchant) -> dict[str, Any]:
         "fsa_rate_count": own,
         "platform_fsa_rate_count": platform,
         "card": merchant_rate_card(db, merchant),
+        "price_book": dict(cfg.get("price_book") or {}) or None,
+        "price_book_effective": _effective_book(db, cfg),
+        "price_version": current_price_version(db),
     }
+
+
+def _effective_book(db: Session, cfg: dict[str, Any]) -> dict[str, Any] | None:
+    from porterchain_pricing.price_book import effective_price_book
+
+    raw = SqlAlchemyPricingRepository(db)._load_system_value("pricing_book")
+    try:
+        return effective_price_book(raw, cfg)
+    except ValueError:
+        return None

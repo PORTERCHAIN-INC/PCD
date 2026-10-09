@@ -111,27 +111,37 @@ class ContractSchedule:
     def handling_tier(
         self, weight_kg: float | None, dims_cm: tuple[float | None, ...] | None
     ) -> HandlingTier | None:
-        """
-        Higher of the weight tier and the footprint tier (they do not stack).
+        """Higher of the weight tier and the footprint tier; None = custom quotation."""
+        return handling_tier_for(self.handling, weight_kg, dims_cm)
 
-        Unknown weight or size counts as the lowest tier for that trigger.
-        None means beyond the last tier — a custom quotation.
-        """
-        weight_idx = 0
-        if weight_kg is not None and weight_kg > 0:
-            weight_idx = next(
-                (i for i, t in enumerate(self.handling) if weight_kg <= t.max_weight_kg + _EPS),
-                len(self.handling),
-            )
-        fp = footprint_cm(dims_cm)
-        size_idx = 0
-        if fp is not None:
-            size_idx = next(
-                (i for i, t in enumerate(self.handling) if fits(fp, t.max_footprint_cm)),
-                len(self.handling),
-            )
-        idx = max(weight_idx, size_idx)
-        return self.handling[idx] if idx < len(self.handling) else None
+
+def handling_tier_for(
+    tiers: tuple[HandlingTier, ...],
+    weight_kg: float | None,
+    dims_cm: tuple[float | None, ...] | None,
+) -> HandlingTier | None:
+    """
+    Higher of the weight tier and the footprint tier (they do not stack).
+
+    Unknown weight or size counts as the lowest tier for that trigger.
+    None means beyond the last tier — a custom quotation. Shared by contract
+    schedules and the global price book so both judge a box the same way.
+    """
+    weight_idx = 0
+    if weight_kg is not None and weight_kg > 0:
+        weight_idx = next(
+            (i for i, t in enumerate(tiers) if weight_kg <= t.max_weight_kg + _EPS),
+            len(tiers),
+        )
+    fp = footprint_cm(dims_cm)
+    size_idx = 0
+    if fp is not None:
+        size_idx = next(
+            (i for i, t in enumerate(tiers) if fits(fp, t.max_footprint_cm)),
+            len(tiers),
+        )
+    idx = max(weight_idx, size_idx)
+    return tiers[idx] if idx < len(tiers) else None
 
 
 def footprint_cm(dims_cm: tuple[float | None, ...] | None) -> tuple[float, float] | None:
@@ -160,8 +170,6 @@ def schedule_from_dict(raw: dict[str, Any]) -> ContractSchedule:
     van = raw["van"]
     compact = raw["compact"]
     handling = raw["handling"]
-    kg_per = KG_PER_UNIT[handling.get("weight_unit", "lb")]
-    cm_per = CM_PER_UNIT[handling.get("dimension_unit", "in")]
     return ContractSchedule(
         id=str(raw["id"]),
         pickup_cents=int(van["pickup_cents"]),
@@ -193,18 +201,25 @@ def schedule_from_dict(raw: dict[str, Any]) -> ContractSchedule:
             route_minimum_cents=int(compact["route_minimum_cents"]),
             fsas=_codes(compact["fsas"]),
         ),
-        handling=tuple(
-            HandlingTier(
-                code=str(t["code"]),
-                max_weight_kg=float(t["max_weight"]) * kg_per,
-                max_footprint_cm=(
-                    float(t["max_footprint"][0]) * cm_per,
-                    float(t["max_footprint"][1]) * cm_per,
-                ),
-                surcharge_cents=int(t["surcharge_cents"]),
-            )
-            for t in handling["tiers"]
-        ),
+        handling=handling_tiers_from_dict(handling),
+    )
+
+
+def handling_tiers_from_dict(handling: dict[str, Any]) -> tuple[HandlingTier, ...]:
+    """`{weight_unit, dimension_unit, tiers: [...]}` → tiers in kg / cm (contract JSON shape)."""
+    kg_per = KG_PER_UNIT[handling.get("weight_unit", "lb")]
+    cm_per = CM_PER_UNIT[handling.get("dimension_unit", "in")]
+    return tuple(
+        HandlingTier(
+            code=str(t["code"]),
+            max_weight_kg=float(t["max_weight"]) * kg_per,
+            max_footprint_cm=(
+                float(t["max_footprint"][0]) * cm_per,
+                float(t["max_footprint"][1]) * cm_per,
+            ),
+            surcharge_cents=int(t["surcharge_cents"]),
+        )
+        for t in handling["tiers"]
     )
 
 

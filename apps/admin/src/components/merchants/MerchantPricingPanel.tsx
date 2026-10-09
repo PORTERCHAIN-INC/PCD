@@ -20,6 +20,7 @@ function stripDetail(d: MerchantPricingDetail): MerchantPricing {
     surcharges: { ...d.surcharges },
     size_tiers: d.size_tiers.map((t) => ({ ...t })),
     gta_rate: d.gta_rate ?? null,
+    ...(d.price_book ? { price_book: { ...d.price_book } } : {}),
     schedule: d.schedule
       ? {
           ...d.schedule,
@@ -255,6 +256,48 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
               </p>
             }
           />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Price book">
+        <div className="space-y-2 p-5 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={Boolean(
+                draft.price_book?.enabled ??
+                (data?.price_book_effective?.merchant_parcels as { enabled?: boolean } | undefined)
+                  ?.enabled
+              )}
+              onChange={(e) => {
+                setDraft({
+                  ...draft,
+                  price_book: { ...draft.price_book, enabled: e.target.checked },
+                });
+                setMessage(null);
+              }}
+            />
+            Price parcels with the platform price book (Settings → Pricing → Price book)
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              disabled={Boolean(draft.schedule?.contract_schedule)}
+              checked={Boolean(draft.price_book?.multi_box_as_one_item)}
+              onChange={(e) => {
+                setDraft({
+                  ...draft,
+                  price_book: { ...draft.price_book, multi_box_as_one_item: e.target.checked },
+                });
+                setMessage(null);
+              }}
+            />
+            Charge a multi-box item as one item (default off; contract merchants stay off)
+          </label>
+          <p className="text-xs text-muted">
+            Admins can flip these two switches. Other price changes need a super admin.
+            {data?.price_version ? ` Current price version: ${data.price_version}.` : ""}
+          </p>
         </div>
       </SectionCard>
 

@@ -142,7 +142,12 @@ class MerchantBookingService:
         weight_kg, dimensions = cargo_rollup(body)
         scheduled_at, schedule_mode = schedule_from_body(body)
         packages = getattr(body, "packages", None) or []
-        parcel_count = max(len(packages), 1) if packages else max(int(getattr(body, "parcel_count", 1) or 1), 1)
+        parcels = parcels_for_pricing(body)
+        parcel_count = (
+            max(len(parcels), len(packages), 1)
+            if packages
+            else max(int(getattr(body, "parcel_count", 1) or 1), 1)
+        )
         return PricingRequest(
             pickup=pickup_geo,
             dropoff=dropoff_geo,
@@ -162,7 +167,7 @@ class MerchantBookingService:
             volume_units=volume_units,
             requires_liftgate=body.requires_liftgate,
             parcel_count=parcel_count,
-            parcels=parcels_for_pricing(body),
+            parcels=parcels,
         )
 
     def find_by_idempotency_key(

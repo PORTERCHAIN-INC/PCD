@@ -8,6 +8,7 @@ import type { VehicleClassConfig } from "@/lib/settings";
 import { BindingBadge, SettingsCard, SettingsPageHeader } from "../ui/SettingsPrimitives";
 import CustomerPricingPanel from "./CustomerPricingPanel";
 import FsaRatesCard from "./FsaRatesCard";
+import PriceBookPanel from "./PriceBookPanel";
 
 import { DEFAULT_DOWNTOWN_FEE_CAD } from "@porterchain/types";
 
@@ -105,12 +106,16 @@ type Props = {
   rateCardData?: unknown;
   vehicleCatalog?: unknown;
   customerData?: unknown;
+  priceBookData?: unknown;
+  driverPayData?: unknown;
   saving?: boolean;
   onSaveGta: (value: GtaPricingConfig, reason: string) => Promise<void>;
   onSaveTax: (value: TaxConfig, reason: string) => Promise<void>;
   onSaveFuel: (value: FuelConfig, reason: string) => Promise<void>;
   onSaveRateCard: (value: RateCardConfig, reason: string) => Promise<void>;
   onSaveCustomer?: (value: unknown, reason: string) => Promise<void>;
+  onSavePriceBook?: (value: unknown, reason: string) => Promise<void>;
+  onSaveDriverPay?: (value: unknown, reason: string) => Promise<void>;
 };
 
 export default function PricingPanel({
@@ -120,12 +125,16 @@ export default function PricingPanel({
   rateCardData,
   vehicleCatalog,
   customerData,
+  priceBookData,
+  driverPayData,
   saving,
   onSaveGta,
   onSaveTax,
   onSaveFuel,
   onSaveRateCard,
   onSaveCustomer,
+  onSavePriceBook,
+  onSaveDriverPay,
 }: Props) {
   const catalog = useMemo(() => {
     if (!Array.isArray(vehicleCatalog)) return [] as VehicleClassConfig[];
@@ -155,7 +164,7 @@ export default function PricingPanel({
   }));
   const [rateCard, setRateCard] = useState<RateCardConfig>(() => normalizeRateCard(rateCardData));
   const [reason, setReason] = useState("");
-  const [audience, setAudience] = useState<"merchant" | "customer">("customer");
+  const [audience, setAudience] = useState<"merchant" | "customer" | "book">("customer");
   const [dirty, setDirty] = useState<"gta" | "tax" | "fuel" | "card" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -210,7 +219,7 @@ export default function PricingPanel({
             </Button>
             <Button
               variant="primary"
-              disabled={audience === "customer" || !dirty || saving}
+              disabled={audience !== "merchant" || !dirty || saving}
               onClick={() => void save()}
             >
               <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
@@ -232,11 +241,28 @@ export default function PricingPanel({
         >
           Merchant
         </Button>
+        {onSavePriceBook && onSaveDriverPay && (
+          <Button
+            variant={audience === "book" ? "primary" : "outline"}
+            onClick={() => setAudience("book")}
+          >
+            Price book &amp; driver pay
+          </Button>
+        )}
       </div>
+      {audience === "book" && onSavePriceBook && onSaveDriverPay && (
+        <PriceBookPanel
+          bookData={priceBookData}
+          driverPayData={driverPayData}
+          saving={saving}
+          onSaveBook={onSavePriceBook}
+          onSaveDriverPay={onSaveDriverPay}
+        />
+      )}
       {audience === "customer" && onSaveCustomer && (
         <CustomerPricingPanel data={customerData} saving={saving} onSave={onSaveCustomer} />
       )}
-      {audience === "customer" ? null : (
+      {audience !== "merchant" ? null : (
         <>
           {toast && <p className="text-sm text-secondary">{toast}</p>}
           {missing.length > 0 && (

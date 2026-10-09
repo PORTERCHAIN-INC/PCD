@@ -54,5 +54,6 @@ class PricingService:
             "contract_id": breakdown.contract_id,
             "promo_code": breakdown.promo_code,
             "items": [{"code": i.code, "label": i.label, "amount_cents": i.amount_cents} for i in breakdown.items],
+            "price_version": breakdown.metadata.get("price_version"),
             "metadata": breakdown.metadata,
         }

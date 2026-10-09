@@ -16,6 +16,7 @@ from porterchain_api.admin_models import (
 )
 from porterchain_api.db import engine
 from porterchain_api.merchant_models import Merchant
+from porterchain_api.domain.pricing_version import VERSION_KEY, format_version
 from porterchain_pricing.gta_rate import (
     customer_gta_from_dict,
     default_customer_distance_dict,
@@ -53,6 +54,8 @@ class SqlAlchemyPricingRepository:
         ctx.zones = self._load_zones()
         ctx.tax = self._load_tax_config()
         ctx.fuel = self._load_fuel_config()
+        ctx.price_book = self._load_system_value("pricing_book")
+        ctx.price_version = format_version(self._load_system_value(VERSION_KEY))
         system_card = self._load_rate_card()
         if request.channel == "retail":
             # Customer distance card only. Merchant FSA, rate card, and fuel stay off this quote.
@@ -109,6 +112,17 @@ class SqlAlchemyPricingRepository:
         else:
             ctx.rate_card = system_card
         return ctx
+
+    def _load_system_value(self, key: str):
+        """Raw `system_config` value, or None (missing table / row)."""
+        if not self._has_table("system_config"):
+            return None
+        try:
+            row = self.db.query(SystemConfig).filter(SystemConfig.key == key).first()
+        except ProgrammingError:
+            self.db.rollback()
+            return None
+        return row.value if row else None
 
     def _load_rate_card(self):
         if not self._has_table("system_config"):
@@ -275,3 +289,9 @@ class SqlAlchemyPricingRepository:
         if row and isinstance(row.value, dict):
             return gta_rate_config_from_dict(row.value)
         return default_gta_rate_config()
+
+
+def current_price_version(db: Session) -> str:
+    """`pv-<n>` for the admin pricing views (the engine reads it via load_context)."""
+    row = db.query(SystemConfig).filter(SystemConfig.key == VERSION_KEY).first()
+    return format_version(row.value if row else None)

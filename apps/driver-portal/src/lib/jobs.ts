@@ -135,6 +135,11 @@ export interface DriverJobDetail extends DriverJobSummary {
     dimensions?: unknown;
     scanned_pickup?: boolean;
     scanned_delivery?: boolean;
+    /** Reported missing at pickup (photo + reason) — accounted for, not carried. */
+    missing_at_pickup?: boolean;
+    item_key?: string | null;
+    box_index?: number | null;
+    box_count?: number | null;
     package_type?: string;
     vehicle_class?: string;
     preset_label?: string | null;
@@ -220,21 +225,26 @@ export function resolveScanProgress(
 ): DriverScanProgress {
   const named = phase === "delivery" ? job.scan_delivery : job.scan_pickup;
   if (named && named.required > 0) return named;
-  const pkgs = job.packages.filter((p) => Boolean(p.tracking_suffix || p.id));
+  const all = job.packages.filter((p) => Boolean(p.tracking_suffix || p.id));
+  // Boxes reported missing at pickup count as accounted for at pickup and are
+  // not expected at delivery.
+  const pkgs = phase === "delivery" ? all.filter((p) => !p.missing_at_pickup) : all;
   if (pkgs.length === 0) {
     return named ?? { scanned: 0, required: 0, complete: false, missing_suffixes: [] };
   }
+  const accounted = (p: (typeof pkgs)[number]) =>
+    phase === "delivery"
+      ? Boolean(p.scanned_delivery)
+      : Boolean(p.scanned_pickup) || Boolean(p.missing_at_pickup);
   const scanned = pkgs.filter((p) =>
     phase === "delivery" ? Boolean(p.scanned_delivery) : Boolean(p.scanned_pickup)
   ).length;
+  const outstanding = pkgs.filter((p) => !accounted(p));
   return {
     scanned,
     required: pkgs.length,
-    complete: scanned === pkgs.length,
-    missing_suffixes: pkgs
-      .filter((p) => !(phase === "delivery" ? p.scanned_delivery : p.scanned_pickup))
-      .map((p) => p.tracking_suffix ?? "")
-      .filter(Boolean),
+    complete: outstanding.length === 0,
+    missing_suffixes: outstanding.map((p) => p.tracking_suffix ?? "").filter(Boolean),
   };
 }
 

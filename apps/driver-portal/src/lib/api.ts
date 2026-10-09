@@ -273,6 +273,15 @@ export const driverApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  reportPackageMissing: (
+    orderId: string,
+    packageId: string,
+    body: { photo_url: string; reason: string; notes?: string }
+  ) =>
+    driverFetch<{ exception_id: string; package_id: string; status: string }>(
+      `/v1/orders/${orderId}/packages/${packageId}/missing`,
+      { method: "POST", body: JSON.stringify(body) }
+    ),
   codCheckout: (orderId: string) =>
     driverFetch<{ checkout_url: string; session_id: string; amount_cents: number; mock?: boolean }>(
       `/v1/orders/${orderId}/cod-checkout`,

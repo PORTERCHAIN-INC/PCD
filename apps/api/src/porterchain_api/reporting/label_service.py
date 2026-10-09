@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
 from porterchain_api.domain.sandbox import order_is_sandbox
-from porterchain_api.merchant_engine.package_service import PackageService
+from porterchain_api.merchant_engine.package_service import PackageService, item_box_line, item_ordinals
 from porterchain_api.reporting.qr_codec import encode_label_qr
 from porterchain_api.reporting.thermal_pdf import render_thermal_labels
 
@@ -27,6 +27,16 @@ def _addr(addr: dict[str, Any] | None) -> str:
         addr.get("postal_code") or addr.get("postal") or addr.get("zip"),
     ]
     return ", ".join(str(p) for p in parts if p) or "—"
+
+
+def _route_hint(order: Order) -> str:
+    """Route / wave code when dispatch has written one onto the order, else ""."""
+    meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+    for key in ("route_hint", "route_code", "wave_code"):
+        raw = str(meta.get(key) or "").replace("|", "").strip()
+        if raw:
+            return raw[:16]
+    return ""
 
 
 def _cod_line(order: Order) -> str:
@@ -139,11 +149,14 @@ class LabelService:
         cod_line = _cod_line(order)
         cod_cents = _cod_cents_for_qr(order)
         sandbox = order_is_sandbox(order)
+        ordinals = item_ordinals(packages)
+        route_hint = _route_hint(order)
         pages: list[dict[str, Any]] = []
         for pkg in packages:
             pages.append(
                 {
-                    "route_hint": "",
+                    "route_hint": route_hint,
+                    "item_line": item_box_line(pkg, ordinals),
                     "stop_sequence": pkg.stop_sequence,
                     "from_line": from_line,
                     "to_line": to_line,
@@ -153,7 +166,7 @@ class LabelService:
                     "qr_payload": encode_label_qr(
                         order_id=order.id,
                         package_id=pkg.id,
-                        route_hint=None,
+                        route_hint=route_hint or None,
                         stop_sequence=pkg.stop_sequence,
                         cod_cents=cod_cents,
                     ),
