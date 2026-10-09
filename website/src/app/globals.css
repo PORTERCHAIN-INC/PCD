@@ -7,6 +7,10 @@
   --secondary-hover: #1a47bf;
   --accent: #3b82f6;
   --accent-light: #60a5fa;
+  /* Secondary accent (Oct 2026): emerald for success / live data only. AA: emerald-700 text on
+     white 5.5:1, on emerald-50 5.1:1. Deep navy = --primary. */
+  --success: #047857;
+  --success-soft: #ecfdf5;
   --white: #ffffff;
   --gray-bg: #f8fafc;
   --foreground: #0b1220;
@@ -43,6 +47,8 @@
   --color-accent: var(--accent);
   --color-gray-bg: var(--gray-bg);
   --color-muted: var(--muted);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --font-sans: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;
 }
 
@@ -1638,5 +1644,55 @@ button.booking-schedule-field:focus-visible {
 @media (max-width: 767px) {
   html[data-price-bar="on"] .pc-fab {
     translate: 0 -4.25rem;
+  }
+}
+
+/* Step progress line: draws as the section scrolls in (scroll-driven, no JS). Browsers without
+   view timelines, and reduced motion, get the finished line. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .draw-on-view {
+      transform-origin: left center;
+      animation: draw-x linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 45%;
+    }
+  }
+}
+@keyframes draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Home hero network: routes draw once, end nodes pulse. Reduced motion = finished, still. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-route {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: hero-route-draw 1.6s 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .hero-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: hero-pulse 2.4s ease-out infinite;
+  }
+}
+@keyframes hero-route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hero-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
   }
 }
