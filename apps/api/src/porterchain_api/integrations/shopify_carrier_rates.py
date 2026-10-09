@@ -14,7 +14,11 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
-from porterchain_api.merchant_engine.service_area import fsa_from_address, service_area_error
+from porterchain_api.merchant_engine.service_area import (
+    fsa_from_address,
+    merchant_coverage_fsas,
+    service_area_error,
+)
 from porterchain_api.merchant_engine.shopify_service import (
     _active_shop,
     _decrypt,
@@ -26,7 +30,7 @@ from porterchain_api.merchant_models import Merchant, ShopifyRateQuote, ShopifyS
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_merchant import AddressInput
 from porterchain_api.services.routing import resolve_route_distance
-from porterchain_pricing import GeoPoint, PricingRequest
+from porterchain_pricing import GeoPoint, ParcelSpec, PricingRequest
 
 logger = logging.getLogger(__name__)
 
@@ -145,46 +149,72 @@ def _parcel_count_from_items(items: list[Any] | None) -> int:
     return max(total, 1)
 
 
+def _item_dims_in(item: Any) -> tuple[float, float, float] | None:
+    """L×W×H (inches) from a line's `length`/`width`/`height` properties, if present."""
+    props = item.get("properties") if isinstance(item, dict) else None
+    if not isinstance(props, list):
+        return None
+    got: dict[str, float] = {}
+    for prop in props:
+        if not isinstance(prop, dict):
+            continue
+        name = str(prop.get("name") or "").strip().lower()
+        try:
+            val = float(prop.get("value"))
+        except (TypeError, ValueError):
+            continue
+        if name in ("length", "width", "height", "l", "w", "h"):
+            key = {"l": "length", "w": "width", "h": "height"}.get(name, name)
+            got[key] = val
+    if len(got) < 2:
+        return None
+    return (
+        float(got.get("length") or 0),
+        float(got.get("width") or 0),
+        float(got.get("height") or 0),
+    )
+
+
+def _in_to_cm(dims: tuple[float, float, float]) -> dict[str, float]:
+    # Shopify furniture props are typically inches; the engine bills in cm.
+    return {"length": dims[0] * 2.54, "width": dims[1] * 2.54, "height": dims[2] * 2.54}
+
+
 def _dimensions_from_items(items: list[Any] | None) -> dict[str, float] | None:
     """Best-effort dims from Shopify line properties (inches → cm for engine)."""
-    if not items:
-        return None
-    # Use the largest single line's L×W×H when present on properties.
     best: tuple[float, float, float] | None = None
-    for item in items:
-        if not isinstance(item, dict):
+    for item in items or []:
+        dims = _item_dims_in(item)
+        if dims and (best is None or sum(dims) > sum(best)):
+            best = dims
+    return _in_to_cm(best) if best else None
+
+
+def parcels_from_items(items: list[Any] | None) -> list[ParcelSpec]:
+    """
+    One parcel per shipped unit, with that line's grams and dimensions.
+
+    Contract schedules bill per parcel; Shopify sends one line per variant with
+    a quantity and per-unit grams, so each unit is treated as its own packed
+    parcel. Lines without grams or size properties stay unknown (standard).
+    """
+    out: list[ParcelSpec] = []
+    for item in items or []:
+        if not isinstance(item, dict) or item.get("requires_shipping") is False:
             continue
-        props = item.get("properties")
-        if not isinstance(props, list):
+        try:
+            grams = int(item.get("grams") or 0)
+            qty = max(int(item.get("quantity") or 1), 1)
+        except (TypeError, ValueError):
             continue
-        got: dict[str, float] = {}
-        for prop in props:
-            if not isinstance(prop, dict):
-                continue
-            name = str(prop.get("name") or "").strip().lower()
-            try:
-                val = float(prop.get("value"))
-            except (TypeError, ValueError):
-                continue
-            if name in ("length", "width", "height", "l", "w", "h"):
-                key = {"l": "length", "w": "width", "h": "height"}.get(name, name)
-                got[key] = val
-        if len(got) >= 2:
-            dims = (
-                float(got.get("length") or 0),
-                float(got.get("width") or 0),
-                float(got.get("height") or 0),
-            )
-            if best is None or sum(dims) > sum(best):
-                best = dims
-    if not best:
-        return None
-    # Shopify furniture props are typically inches; engine SizeTier use cm when unit=cm.
-    return {
-        "length": best[0] * 2.54,
-        "width": best[1] * 2.54,
-        "height": best[2] * 2.54,
-    }
+        dims = _item_dims_in(item)
+        spec = ParcelSpec(
+            stop_index=0,
+            weight_kg=grams / 1000.0 if grams > 0 else None,
+            dimensions=_in_to_cm(dims) if dims else None,
+        )
+        out.extend([spec] * qty)
+    return out
 
 
 def resolve_shopify_vehicle(
@@ -192,15 +222,25 @@ def resolve_shopify_vehicle(
     *,
     dropoff: AddressInput | None = None,
     dimensions: dict[str, float] | None = None,
+    items: list[Any] | None = None,
 ) -> str:
     """
-    cargo_van by default; compact-class when schedule.compact is on, parcel
-    fits max_packed_inches, and dest FSA has a compact vehicle row (checked at
-    quote time via engine — here we only gate on packed size).
+    cargo_van by default; compact-class when schedule.compact is on and the
+    parcel fits max_packed_inches.
+
+    A merchant on a contract schedule is compact only when every parcel's
+    packed size is known and fits AND the destination is in the compact
+    territory — otherwise the whole load is van.
     """
-    from porterchain_pricing.policy import policy_from_config
+    from porterchain_pricing.policy import MODEL_FSA, policy_from_config
 
     policy = policy_from_config(getattr(merchant, "pricing_config", None) or {})
+    if policy.schedule.contract_schedule and getattr(merchant, "pricing_model", None) == MODEL_FSA:
+        from porterchain_pricing.contract_schedule import load_contract_schedule
+
+        terms = load_contract_schedule(policy.schedule.contract_schedule)
+        if terms is not None:
+            return _contract_vehicle(terms, dropoff, items)
     compact = policy.schedule.compact
     if not compact.enabled:
         return "cargo_van"
@@ -226,6 +266,21 @@ def resolve_shopify_vehicle(
     return "cargo_van"
 
 
+def _contract_vehicle(terms: Any, dropoff: AddressInput | None, items: list[Any] | None) -> str:
+    from porterchain_pricing.components.size_weight import parse_dimensions_cm
+    from porterchain_pricing.contract_schedule import fits, footprint_cm
+
+    dest = fsa_from_address(dropoff)[:3] if dropoff else ""
+    parcels = parcels_from_items(items)
+    if not parcels or not terms.in_compact_territory(dest):
+        return "cargo_van"
+    for parcel in parcels:
+        fp = footprint_cm(parse_dimensions_cm(parcel.dimensions))
+        if fp is None or not fits(fp, terms.compact.max_packed_cm):
+            return "cargo_van"
+    return str(terms.compact.vehicle_classes[0])
+
+
 def apply_shopify_book_vehicle(merchant: Merchant, body: Any, payload: dict[str, Any]) -> Any:
     """Align book vehicle_class with carrier quote resolve (Quote≡Book). Never raises."""
     try:
@@ -233,7 +288,9 @@ def apply_shopify_book_vehicle(merchant: Merchant, body: Any, payload: dict[str,
             payload.get("line_items") if isinstance(payload.get("line_items"), list) else []
         )
         dims = _dimensions_from_items(line_items)
-        vehicle = resolve_shopify_vehicle(merchant, dropoff=body.dropoff, dimensions=dims)
+        vehicle = resolve_shopify_vehicle(
+            merchant, dropoff=body.dropoff, dimensions=dims, items=line_items
+        )
         from porterchain_api.domain.customer_goods import persist_vehicle_class
 
         return body.model_copy(update={"vehicle_class": persist_vehicle_class(vehicle)})
@@ -261,7 +318,7 @@ def quote_merchant_rate(
     distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo)
     dims = _dimensions_from_items(items)
     vehicle = vehicle_class or resolve_shopify_vehicle(
-        merchant, dropoff=dropoff, dimensions=dims
+        merchant, dropoff=dropoff, dimensions=dims, items=items
     )
     request = PricingRequest(
         pickup=pickup_geo,
@@ -279,11 +336,10 @@ def quote_merchant_rate(
         channel="merchant",
         merchant_id=merchant.id,
         parcel_count=_parcel_count_from_items(items),
+        parcels=parcels_from_items(items),
     )
     breakdown = get_pricing_service(db).calculate_merchant(request)
-    meta = dict(getattr(breakdown, "metadata", None) or {})
-    if meta.get("fsa_refused"):
-        return 0, _breakdown_dict(breakdown)
+    # A refused FSA miss finalizes at 0; caller turns that into empty rates.
     return int(breakdown.final_cents), _breakdown_dict(breakdown)
 
 
@@ -291,14 +347,19 @@ def _request_hash(
     *,
     shop_id: str,
     merchant_id: str,
-    pickup_postal: str,
     dropoff_postal: str,
     weight_kg: float | None,
 ) -> str:
+    """Match key for checkout ↔ book.
+
+    Shop + destination (+ weight), not ship-from postal. Checkout may price from a
+    Shopify origin while book starts from the saved warehouse — those must still
+    match. Pickup is stored on the quote snapshot and reused only when the quote
+    itself is a trusted match (bound id / hash / dest FSA).
+    """
     payload = {
         "shop_id": shop_id,
         "merchant_id": merchant_id,
-        "pickup": _postal_norm(pickup_postal),
         "dropoff": _postal_norm(dropoff_postal),
         "weight_kg": round(weight_kg, 3) if weight_kg is not None else None,
     }
@@ -363,31 +424,59 @@ def find_quote_for_book(
     dropoff_postal: str | None,
     weight_kg: float | None = None,
 ) -> ShopifyRateQuote | None:
-    """Best-effort match for webhook book — newest non-expired quote for dest FSA."""
+    """Newest non-expired quote for this shop whose destination FSA matches.
+
+    Never falls back to an unrelated destination — that used to hand the wrong
+    checkout pickup to multi-location shops (pricing-audit-v2 §1).
+    """
+    dest = _postal_norm(dropoff_postal)
+    if not dest:
+        return None
     now = datetime.now(UTC)
-    q = (
+    rows = (
         db.query(ShopifyRateQuote)
         .filter(
             ShopifyRateQuote.shop_id == shop_id,
             ShopifyRateQuote.expires_at >= now,
         )
         .order_by(ShopifyRateQuote.created_at.desc())
+        .limit(20)
+        .all()
     )
+    for row in rows:
+        if _postal_norm(row.dropoff_postal)[:3] != dest[:3]:
+            continue
+        if weight_kg is None or row.weight_kg is None:
+            return row
+        try:
+            if abs(float(row.weight_kg) - float(weight_kg)) < 0.05:
+                return row
+        except (TypeError, ValueError):
+            return row
+    return None
+
+
+def quote_usable_for_order(
+    quote: Any,
+    *,
+    shop_id: str,
+    dropoff_postal: str | None,
+) -> bool:
+    """True when a bound / hashed quote still belongs to this shop + destination."""
+    if quote is None:
+        return False
+    if getattr(quote, "shop_id", None) != shop_id:
+        return False
+    expires = getattr(quote, "expires_at", None)
+    if expires is not None:
+        exp = expires if expires.tzinfo else expires.replace(tzinfo=UTC)
+        if exp < datetime.now(UTC):
+            return False
     dest = _postal_norm(dropoff_postal)
-    rows = q.limit(20).all()
-    if not rows:
-        return None
-    if dest:
-        for row in rows:
-            if _postal_norm(row.dropoff_postal)[:3] == dest[:3]:
-                if weight_kg is None or row.weight_kg is None:
-                    return row
-                try:
-                    if abs(float(row.weight_kg) - float(weight_kg)) < 0.05:
-                        return row
-                except (TypeError, ValueError):
-                    return row
-    return rows[0]
+    q_dest = _postal_norm(getattr(quote, "dropoff_postal", None))
+    if dest and q_dest and q_dest[:3] != dest[:3]:
+        return False
+    return True
 
 
 def find_quote_by_hash(
@@ -459,6 +548,68 @@ def _resolve_origin(origin: dict[str, Any] | None) -> tuple[AddressInput | None,
     return _ensure_geo(origin_input), None
 
 
+#: Where a Shopify pickup came from — stored on the rate quote so book can reuse it.
+PICKUP_SOURCE_SHOPIFY_ORIGIN = "shopify_origin"
+PICKUP_SOURCE_PORTERCHAIN = "porterchain_pickup"
+
+
+def resolve_shopify_pickup(
+    default_pickup: AddressInput,
+    origin: dict[str, Any] | None,
+) -> tuple[AddressInput, str, str | None]:
+    """
+    The one pickup rule for Shopify checkout AND order book.
+
+    Shopify ship-from when it is Canadian and inside the GTA ±150 km tile;
+    otherwise the merchant's saved PorterChain pickup. Returns
+    (pickup, source, fallback_reason). Book passes the checkout quote's stored
+    pickup when it has one (see `pickup_from_rate_quote`), else origin=None,
+    which resolves to the saved pickup — the same answer checkout gave when
+    Shopify's ship-from was unusable.
+    """
+    origin_pickup, fallback = _resolve_origin(origin)
+    if origin_pickup is not None:
+        return origin_pickup, PICKUP_SOURCE_SHOPIFY_ORIGIN, None
+    return default_pickup, PICKUP_SOURCE_PORTERCHAIN, fallback
+
+
+def _pickup_snapshot(pickup: AddressInput, source: str) -> dict[str, Any]:
+    return {
+        "formatted": pickup.formatted,
+        "postal": pickup.postal,
+        "lat": pickup.lat,
+        "lng": pickup.lng,
+        "source": source,
+    }
+
+
+def pickup_from_rate_quote(quote: Any) -> tuple[AddressInput, str] | None:
+    """Pickup the checkout quote priced from, when still usable for booking."""
+    if quote is None:
+        return None
+    expires = getattr(quote, "expires_at", None)
+    if expires is not None:
+        exp = expires if expires.tzinfo else expires.replace(tzinfo=UTC)
+        if exp < datetime.now(UTC):
+            return None
+    breakdown = getattr(quote, "breakdown", None)
+    snap = breakdown.get("pickup") if isinstance(breakdown, dict) else None
+    if not isinstance(snap, dict) or not snap.get("formatted"):
+        return None
+    try:
+        addr = AddressInput(
+            formatted=str(snap.get("formatted") or ""),
+            postal=snap.get("postal") or None,
+            lat=float(snap["lat"]) if snap.get("lat") is not None else None,
+            lng=float(snap["lng"]) if snap.get("lng") is not None else None,
+        )
+    except (TypeError, ValueError):
+        return None
+    if service_area_error("pickup", addr):
+        return None
+    return addr, str(snap.get("source") or PICKUP_SOURCE_PORTERCHAIN)
+
+
 def carrier_service_rates(
     db: Session,
     settings: Settings,
@@ -511,19 +662,16 @@ def carrier_service_rates(
     dropoff_raw = _shopify_address_to_input(destination)
     if not dropoff_raw:
         return _empty(shop, "dropoff_missing", dest_country=dest_country)
-    if service_area_error("destination", dropoff_raw):
+    if service_area_error("destination", dropoff_raw, merchant_coverage_fsas(db, merchant)):
         return _empty(shop, "dest_out_of_area", dest_fsa=fsa_from_address(dropoff_raw)[:3])
     dropoff = _ensure_geo(dropoff_raw)
 
-    origin_pickup, fallback = _resolve_origin(origin)
-    if origin_pickup is not None:
-        pickup = origin_pickup
-    else:
-        # Shopify's ship-from is the store's default location, which is often a
-        # placeholder (US / no address). We pick up from the merchant's saved
-        # PorterChain pickup, which is also what the order book path uses.
-        pickup_fsa = fsa_from_address(default_pickup)[:3]
-        if service_area_error("pickup", default_pickup):
+    pickup, pickup_source, fallback = resolve_shopify_pickup(default_pickup, origin)
+    if pickup_source == PICKUP_SOURCE_PORTERCHAIN:
+        # Shopify's ship-from is often a placeholder (US / no address). Quote from
+        # the merchant's saved PorterChain pickup; book reuses this quote's pickup.
+        pickup_fsa = fsa_from_address(pickup)[:3]
+        if service_area_error("pickup", pickup):
             return _empty(shop, "pickup_out_of_area", origin=fallback, pickup_fsa=pickup_fsa)
         logger.info(
             "shopify_carrier_origin_fallback shop=%s reason=%s origin_country=%s pickup_fsa=%s",
@@ -532,7 +680,6 @@ def carrier_service_rates(
             _country(origin) or "-",
             pickup_fsa or "-",
         )
-        pickup = default_pickup
 
     items = rate_in.get("items") if isinstance(rate_in.get("items"), list) else []
     weight_kg = _weight_kg_from_items(items)
@@ -571,10 +718,10 @@ def carrier_service_rates(
     if cents <= 0:
         return _empty(shop, "zero_price", dest_fsa=fsa_from_address(dropoff)[:3])
 
+    breakdown = {**breakdown, "pickup": _pickup_snapshot(pickup, pickup_source)}
     req_hash = _request_hash(
         shop_id=shop.id,
         merchant_id=merchant.id,
-        pickup_postal=pickup.postal or "",
         dropoff_postal=dropoff.postal or "",
         weight_kg=weight_kg,
     )

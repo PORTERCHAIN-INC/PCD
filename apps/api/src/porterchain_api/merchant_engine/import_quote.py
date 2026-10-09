@@ -224,6 +224,10 @@ def quote_if_ready(
     )
     pricing = get_pricing_service(db)
     breakdown = pricing.calculate_merchant(request)
+    meta = breakdown.metadata if isinstance(breakdown.metadata, dict) else {}
+    if meta.get("fsa_refused"):
+        # No price rather than a $0 preview; confirm → create_shipment refuses.
+        return None
     from porterchain_api.merchant_engine.quote_snapshot import merchant_facing_quote
 
     picture = merchant_facing_quote(

@@ -190,8 +190,10 @@ export default function FsaRatesCard({
         detail.includes("already_exists")
           ? "A rate already covers that exact combination of merchant, origin, destination and vehicle."
           : detail.includes("out_of_gta150_tile")
-            ? "That FSA is outside the GTA ±150 km tile (e.g. Ottawa K*). Use an in-tile FSA or distance pricing."
-            : detail
+            ? "That FSA is outside the GTA ±150 km tile (e.g. Ottawa K*). Only an FSA-model merchant's own rates may go beyond the tile."
+            : detail.includes("outside_ontario")
+              ? "That FSA is outside Ontario."
+              : detail
       );
     } finally {
       setBusy(false);
@@ -301,8 +303,9 @@ export default function FsaRatesCard({
       <p className="mb-4 text-xs text-muted">
         Checked after merchant contracts and before the GTA vehicle matrix. Leaving merchant, origin
         or vehicle blank means the rate applies to all of them; when several rates match, the most
-        specific one wins. Destinations must be in the GTA ±150 km tile — unrated in-tile FSAs fall
-        to Valhalla distance.
+        specific one wins. Platform rates must be in the GTA ±150 km tile; an FSA-model
+        merchant&apos;s own rates may cover any Ontario FSA. Unrated in-tile FSAs fall to Valhalla
+        distance.
       </p>
 
       {gap && (
@@ -322,7 +325,7 @@ export default function FsaRatesCard({
         <div className="mb-4 rounded-xl border border-secondary/30 bg-secondary/5 p-4">
           <Field
             label="Bulk FSA flats"
-            hint="One per line: M5V,45.00 or M5V,30,T1 — out-of-tile codes are rejected"
+            hint="One per line: M5V,45.00 or M5V,30,T1 — out-of-tile codes are rejected unless the merchant is on FSA pricing"
           >
             <textarea
               className="min-h-[96px] w-full rounded-lg border border-primary/15 bg-white px-3 py-2 text-sm"

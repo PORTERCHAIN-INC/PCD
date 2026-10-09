@@ -44,21 +44,6 @@ class PricingSimulator:
         self._apply_overrides(ctx, overrides or {})
         return self.engine.calculate(request, ctx)
 
-    def compare_scenarios(
-        self,
-        request: PricingRequest,
-        scenarios: list[dict[str, Any]],
-        *,
-        base_context: PricingContext | None = None,
-    ) -> list[dict[str, Any]]:
-        results = []
-        for scenario in scenarios:
-            name = scenario.get("name", "scenario")
-            overrides = scenario.get("overrides", {})
-            breakdown = self.simulate(request, overrides=overrides, base_context=base_context)
-            results.append({"name": name, "breakdown": breakdown})
-        return results
-
     @staticmethod
     def _apply_overrides(ctx: PricingContext, overrides: dict[str, Any]) -> None:
         if "tax" in overrides:

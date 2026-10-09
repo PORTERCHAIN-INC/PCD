@@ -15,7 +15,7 @@ from porterchain_api.merchant_engine.booking_service import MerchantBookingServi
 from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.rate_card_view import merchant_rate_card
-from porterchain_api.merchant_engine.service_area import assert_ontario_booking
+from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
 from porterchain_api.routers.merchant._deps import _order_response
 from porterchain_api.schemas_merchant import (
@@ -71,7 +71,7 @@ def api_create_booking(
             if existing:
                 return _order_response(existing)
 
-        assert_ontario_booking(body)
+        assert_ontario_booking(body, extra_fsas=merchant_coverage_fsas(db, ctx.merchant))
 
         try:
             order = _booking.create_shipment(

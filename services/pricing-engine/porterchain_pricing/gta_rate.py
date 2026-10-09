@@ -14,15 +14,15 @@ from typing import Any, Mapping
 
 from porterchain_pricing.types import GeoPoint
 
-# AUDIT P2-1 / PLAN Wave 4: downtown = south of Bloor latitude; Markham / North York
-# are AABB surface-road boxes. Do NOT replace with Valhalla isochrones — that changes
-# quoted CAD. Product must sign a map before any isochrone surcharge. Coverage UI may
-# call MapsService.isochrone(); calculate_gta_delivery_rate must never.
-BLOOR_LAT = 43.6708
-
-# Rough bounding boxes for Markham / North York surface-road surcharge
-_NORTH_YORK = {"min_lat": 43.72, "max_lat": 43.80, "min_lng": -79.55, "max_lng": -79.28}
-_MARKHAM = {"min_lat": 43.80, "max_lat": 43.95, "min_lng": -79.42, "max_lng": -79.18}
+# Location surcharges are FSA / city based — never Valhalla isochrones or road
+# matrices (HS-20 / verify_no_ops_spatial_math). Coverage UI may call Valhalla
+# isochrones; quote math must never.
+#
+# BUSINESS DECISION (Ravi to confirm): downtown = the City of Toronto Downtown
+# Plan area FSAs below (Bathurst → Don River, lake → Bloor / Rosedale ravine,
+# plus large-receiver codes). Markham / North York = FSA sets + whole-locality
+# token in the formatted address (not street names like "Markham St").
+# An address with no postal code / locality gets no surcharge.
 
 # Defaults — CAD dollars (also seed for admin Settings → Pricing)
 DEFAULT_BASE_KM_LIMIT = 20.0
@@ -54,41 +54,27 @@ DOWNTOWN_FEE_CAD = DEFAULT_DOWNTOWN_FEE_CAD
 UPPER_ZONE_FEE_CAD = DEFAULT_UPPER_ZONE_FEE_CAD
 VEHICLE_MATRIX = DEFAULT_VEHICLE_MATRIX
 
-VEHICLE_LABELS: dict[str, str] = {
-    "sedan_suv": "Sedan / SUV",
-    "pickup": "Pickup",
-    "cargo_van": "Cargo van",
-    "sprinter_van": "Sprinter van",
-    "box_16": "16 ft box",
-    "box_20": "20 ft box",
-    # legacy labels
-    "sedan": "Sedan / SUV",
-    "suv": "Sedan / SUV",
-    "box_truck": "16 ft box",
-    "small_van": "Cargo van",
-    "large_van": "Sprinter van",
-}
-
-# Booking / website / legacy API vehicle keys → catalog matrix keys
+# One collapse table for every legacy / camelCase / alias vehicle key → catalog id.
+# Used by normalize_vehicle_type, vehicle_classes_match, and config loaders.
 VEHICLE_ALIAS: dict[str, str] = {
     "sedan": "sedan_suv",
     "suv": "sedan_suv",
     "sedan_suv": "sedan_suv",
     "sedansuv": "sedan_suv",
     "pickup": "pickup",
+    "pickup_truck": "pickup",
     "minivan": "cargo_van",
     "small_van": "cargo_van",
     "cargo_van": "cargo_van",
     "cargovan": "cargo_van",
-    "cargoVan": "cargo_van",
     "large_van": "sprinter_van",
     "largevan": "sprinter_van",
     "high_roof": "sprinter_van",
     "highroof": "sprinter_van",
-    "highRoof": "sprinter_van",
     "sprinter_van": "sprinter_van",
     "sprintervan": "sprinter_van",
     "sprinter": "sprinter_van",
+    "sprintervans": "sprinter_van",
     "box_truck": "box_16",
     "boxtruck": "box_16",
     "box_16ft": "box_16",
@@ -296,70 +282,11 @@ def merge_merchant_gta_overlay(system: GtaRateConfig, merchant_config: dict[str,
     return gta_rate_config_from_dict(overlay, base=system)
 
 
-@dataclass(frozen=True)
-class GtaRateResult:
-    vehicle_type: str
-    total_km: float
-    total_pickups: int
-    total_drops: int
-    is_downtown: bool
-    is_upper_zone: bool
-    distance_cost_cad: float
-    stop_fees_cad: float
-    location_surcharges_cad: float
-    total_cad: float
-    downtown_fee_cad: float = 0.0
-    upper_zone_fee_cad: float = 0.0
 
-    @property
-    def total_cents(self) -> int:
-        return int(round(self.total_cad * 100))
-
-    @property
-    def distance_cost_cents(self) -> int:
-        return int(round(self.distance_cost_cad * 100))
-
-    @property
-    def stop_fees_cents(self) -> int:
-        return int(round(self.stop_fees_cad * 100))
-
-    @property
-    def location_surcharges_cents(self) -> int:
-        return int(round(self.location_surcharges_cad * 100))
-
-    @property
-    def downtown_fee_cents(self) -> int:
-        return int(round(self.downtown_fee_cad * 100))
-
-    @property
-    def upper_zone_fee_cents(self) -> int:
-        return int(round(self.upper_zone_fee_cad * 100))
-
-
-# Retail catalog ids. Applied only when that id is actually on the rate card,
-# so a merchant card that still stores sedan and suv separately keeps both.
-_CATALOG_COLLAPSE = {
-    "sedan": "sedan_suv",
-    "suv": "sedan_suv",
-    "sedan_suv": "sedan_suv",
-    "sedansuv": "sedan_suv",
-    "box16": "box_16",
-    "box_16": "box_16",
-    "box16ft": "box_16",
-    "box_truck": "box_16",
-    "boxtruck": "box_16",
-    "box20": "box_20",
-    "box_20": "box_20",
-    "cargovan": "cargo_van",
-    "cargo_van": "cargo_van",
-    "pickup": "pickup",
-    "pickup_truck": "pickup",
-    "highroof": "sprinter_van",
-    "high_roof": "sprinter_van",
-    "sprinter": "sprinter_van",
-    "sprinter_van": "sprinter_van",
-    "sprintervans": "sprinter_van",
-}
+def _canon_vehicle_key(value: str) -> str:
+    key = value.strip().lower().replace("-", "_").replace(" ", "_")
+    compact = key.replace("_", "")
+    return VEHICLE_ALIAS.get(key) or VEHICLE_ALIAS.get(compact) or key
 
 
 def vehicle_classes_match(stored: str | None, requested: str | None) -> bool:
@@ -370,13 +297,7 @@ def vehicle_classes_match(stored: str | None, requested: str | None) -> bool:
         return False
     if stored == requested:
         return True
-
-    def canon(value: str) -> str:
-        key = value.strip().lower().replace("-", "_").replace(" ", "_")
-        compact = key.replace("_", "")
-        return _CATALOG_COLLAPSE.get(key) or _CATALOG_COLLAPSE.get(compact) or key
-
-    return canon(stored) == canon(requested)
+    return _canon_vehicle_key(stored) == _canon_vehicle_key(requested)
 
 
 def normalize_vehicle_type(vehicle_type: str, *, known: Mapping[str, Any] | None = None) -> str:
@@ -392,42 +313,92 @@ def normalize_vehicle_type(vehicle_type: str, *, known: Mapping[str, Any] | None
         if candidate in matrix:
             return candidate
     for candidate in candidates:
-        alias = VEHICLE_ALIAS.get(candidate)
+        alias = VEHICLE_ALIAS.get(candidate) or VEHICLE_ALIAS.get(candidate.replace("_", ""))
         if alias and alias in matrix:
             return alias
-    for candidate in candidates:
-        collapsed = _CATALOG_COLLAPSE.get(candidate) or _CATALOG_COLLAPSE.get(candidate.replace("_", ""))
-        if collapsed and collapsed in matrix:
-            return collapsed
     raise ValueError("Invalid vehicle type selected.")
 
 
-def _in_bounds(lat: float, lng: float, box: Mapping[str, float]) -> bool:
-    return box["min_lat"] <= lat <= box["max_lat"] and box["min_lng"] <= lng <= box["max_lng"]
+# --- Location surcharges (FSA / city; not lat/lon boxes or street-name match) ---
+
+# Downtown = City of Toronto "Downtown Plan" area (Bathurst St → Don River,
+# lake → Bloor / Rosedale ravine), expressed as the FSAs that sit inside it,
+# plus Canada Post large-receiver codes in the core (M5K/M5L/M5W/M5X).
+DOWNTOWN_FSAS: frozenset[str] = frozenset(
+    {
+        "M4X",  # St. James Town / Cabbagetown
+        "M4Y",  # Church and Wellesley
+        "M5A",  # Regent Park / Harbourfront
+        "M5B",  # Garden District
+        "M5C",  # St. James Town (south)
+        "M5E",  # Berczy Park
+        "M5G",  # Central Bay Street
+        "M5H",  # Richmond / Adelaide / King
+        "M5J",  # Harbourfront East / Union Station / Islands
+        "M5K",  # TD Centre (large receiver)
+        "M5L",  # Commerce Court (large receiver)
+        "M5S",  # University of Toronto / Harbord
+        "M5T",  # Kensington Market / Chinatown
+        "M5V",  # CN Tower / King West / Railway Lands
+        "M5W",  # Stn A (large receiver)
+        "M5X",  # First Canadian Place (large receiver)
+    }
+)
+
+# Markham (Canada Post). L3T is Thornhill-east (Markham side of Yonge).
+MARKHAM_FSAS: frozenset[str] = frozenset({"L3P", "L3R", "L3S", "L3T", "L6B", "L6C", "L6E", "L6G"})
+
+# North York (Canada Post district name "North York").
+NORTH_YORK_FSAS: frozenset[str] = frozenset(
+    {
+        "M2H", "M2J", "M2K", "M2L", "M2M", "M2N", "M2P", "M2R",
+        "M3A", "M3B", "M3C", "M3H", "M3J", "M3K", "M3L", "M3M", "M3N",
+        "M4A", "M5M", "M6A", "M6B", "M6L", "M9L", "M9M",
+    }
+)  # fmt: skip
+
+UPPER_ZONE_FSAS: frozenset[str] = MARKHAM_FSAS | NORTH_YORK_FSAS
+
+
+def _fsa_of(point: GeoPoint) -> str:
+    from porterchain_pricing.components.fsa import fsa_from_point
+
+    return fsa_from_point(point)
+
+
+def _formatted_city_token(formatted: str, city: str) -> bool:
+    """
+    True when `city` is the locality segment of a comma-separated address
+    ("…, Markham, ON L3R…"), never a street name ("600 Markham St, Toronto").
+    """
+    city = " ".join(city.lower().split())
+    for raw in (formatted or "").lower().split(","):
+        part = " ".join(raw.strip().split())
+        if part == city:
+            return True
+        # "Markham ON" / "North York ON L…" when province shares the segment.
+        if part.startswith(city + " "):
+            rest = part[len(city) :].strip().split()
+            if rest and rest[0] == "on":
+                return True
+    return False
 
 
 def is_downtown_point(point: GeoPoint) -> bool:
-    """True if stop is south of Bloor St (central Toronto)."""
-    text = (point.formatted or "").lower()
-    if "south of bloor" in text or "financial district" in text:
-        return True
-    if point.lat is None:
-        return False
-    if point.lat >= BLOOR_LAT:
-        return False
-    if point.lng is None:
-        return True
-    return -79.55 <= point.lng <= -79.25
+    """True when the stop's FSA is in DOWNTOWN_FSAS (no lat/lon box, no text match)."""
+    fsa = _fsa_of(point)
+    return bool(fsa) and fsa in DOWNTOWN_FSAS
 
 
 def is_upper_zone_point(point: GeoPoint) -> bool:
-    """True if stop is Markham / North York surface-road area."""
-    text = (point.formatted or "").lower()
-    if "markham" in text or "north york" in text or "northyork" in text:
+    """True when the stop is Markham or North York by FSA or city token."""
+    fsa = _fsa_of(point)
+    if fsa and fsa in UPPER_ZONE_FSAS:
         return True
-    if point.lat is None or point.lng is None:
-        return False
-    return _in_bounds(point.lat, point.lng, _NORTH_YORK) or _in_bounds(point.lat, point.lng, _MARKHAM)
+    formatted = point.formatted or ""
+    return _formatted_city_token(formatted, "markham") or _formatted_city_token(
+        formatted, "north york"
+    )
 
 
 def detect_location_flags(
@@ -439,61 +410,3 @@ def detect_location_flags(
     downtown = any(is_downtown_point(s) for s in stops)
     upper = any(is_upper_zone_point(s) for s in stops)
     return downtown, upper
-
-
-def calculate_gta_delivery_rate(
-    *,
-    vehicle_type: str,
-    total_km: float,
-    total_pickups: int = 1,
-    total_drops: int = 1,
-    is_downtown: bool = False,
-    is_upper_zone: bool = False,
-    config: GtaRateConfig | None = None,
-) -> GtaRateResult:
-    """
-    GTA quote function (CAD dollars, 2-decimal total). Uses editable config when provided.
-
-    Composed from the distance, stop-fee and location components so quoting one
-    of them on its own can never drift from the full matrix.
-    """
-    from porterchain_pricing.components.distance import DistanceRateService
-    from porterchain_pricing.components.location import LocationSurchargeService
-    from porterchain_pricing.components.stops import StopFeeService
-
-    cfg = config or default_gta_rate_config()
-    matrix_key = normalize_vehicle_type(vehicle_type, known=cfg.vehicles)
-
-    km = max(float(total_km), 0.0)
-    pickups = max(int(total_pickups), 1)
-    drops = max(int(total_drops), 1)
-
-    distance_q = DistanceRateService().quote(vehicle_type=matrix_key, total_km=km, config=cfg)
-    stops_q = StopFeeService().quote(
-        vehicle_type=matrix_key, total_pickups=pickups, total_drops=drops, config=cfg
-    )
-    location_q = LocationSurchargeService().quote(
-        is_downtown=is_downtown, is_upper_zone=is_upper_zone, config=cfg
-    )
-
-    distance_cost = distance_q.total_cents / 100.0
-    stop_fees = stops_q.total_cents / 100.0
-    downtown_fee = location_q.metadata["downtown_fee_cents"] / 100.0
-    upper_fee = location_q.metadata["upper_zone_fee_cents"] / 100.0
-    location = downtown_fee + upper_fee
-
-    total = round(distance_cost + stop_fees + location, 2)
-    return GtaRateResult(
-        vehicle_type=matrix_key,
-        total_km=km,
-        total_pickups=pickups,
-        total_drops=drops,
-        is_downtown=is_downtown,
-        is_upper_zone=is_upper_zone,
-        distance_cost_cad=round(distance_cost, 2),
-        stop_fees_cad=round(stop_fees, 2),
-        location_surcharges_cad=round(location, 2),
-        total_cad=total,
-        downtown_fee_cad=round(downtown_fee, 2),
-        upper_zone_fee_cad=round(upper_fee, 2),
-    )

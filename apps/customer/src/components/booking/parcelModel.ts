@@ -161,6 +161,19 @@ export function humanQuoteError(message: string): string {
     parcels_required: "Add a parcel, or choose the whole vehicle.",
     whole_vehicle_not_available: "Whole vehicle is not offered for this class.",
     pickup_outside_service_area: "Pickup is outside the service area.",
+    dropoff_outside_service_area: "Dropoff is outside the service area.",
   };
-  return known[message] ?? message;
+  if (known[message]) return known[message];
+  if (message.startsWith("quote_price_changed:")) {
+    const cents = Number(message.split(":")[1]);
+    if (Number.isFinite(cents)) {
+      const dollars = (cents / 100).toLocaleString("en-CA", {
+        style: "currency",
+        currency: "CAD",
+      });
+      return `The price updated to ${dollars}. Confirm again to pay the new amount.`;
+    }
+    return "The price changed. Confirm again to pay the new amount.";
+  }
+  return message;
 }

@@ -24,9 +24,9 @@ class PaymentService:
         *,
         checkout_channel: str = "retail",
     ) -> tuple[str | None, Payment]:
-        from porterchain_api.services.pricing import revalidate_retail_quote
+        from porterchain_api.booking_engine.quote_service import revalidate_quote_for_payment
 
-        quote = revalidate_retail_quote(db, quote)
+        quote = revalidate_quote_for_payment(db, quote)
 
         payment = Payment(
             quote_id=quote.id,

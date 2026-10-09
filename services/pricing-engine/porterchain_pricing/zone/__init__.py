@@ -76,36 +76,36 @@ def zone_contains(zone: ZoneRecord, lat: float, lng: float) -> bool:
 
 
 class ZoneService:
-  def __init__(self, zones: list[ZoneRecord] | None = None) -> None:
-      self._zones = zones or DEFAULT_ZONES
+    def __init__(self, zones: list[ZoneRecord] | None = None) -> None:
+        self._zones = zones or DEFAULT_ZONES
 
-  def with_context(self, ctx: PricingContext) -> ZoneService:
-      if ctx.zones:
-          return ZoneService(ctx.zones)
-      return self
+    def with_context(self, ctx: PricingContext) -> ZoneService:
+        if ctx.zones:
+            return ZoneService(ctx.zones)
+        return self
 
-  def resolve_zone(self, point: GeoPoint) -> ZoneRecord | None:
-      if point.lat is None or point.lng is None:
-          return self._zones[0] if self._zones else None
-      for zone in self._zones:
-          if zone_contains(zone, point.lat, point.lng):
-              return zone
-      return self._zones[-1] if self._zones else None
+    def resolve_zone(self, point: GeoPoint) -> ZoneRecord | None:
+        if point.lat is None or point.lng is None:
+            return self._zones[0] if self._zones else None
+        for zone in self._zones:
+            if zone_contains(zone, point.lat, point.lng):
+                return zone
+        return self._zones[-1] if self._zones else None
 
-  def resolve_lane(self, pickup: GeoPoint, dropoff: GeoPoint, ctx: PricingContext) -> str:
-      pickup_zone = self.resolve_zone(pickup)
-      dropoff_zone = self.resolve_zone(dropoff)
-      pickup_code = pickup_zone.code if pickup_zone else "unknown"
-      dropoff_code = dropoff_zone.code if dropoff_zone else "unknown"
-      return f"{pickup_code}->{dropoff_code}"
+    def resolve_lane(self, pickup: GeoPoint, dropoff: GeoPoint, ctx: PricingContext) -> str:
+        pickup_zone = self.resolve_zone(pickup)
+        dropoff_zone = self.resolve_zone(dropoff)
+        pickup_code = pickup_zone.code if pickup_zone else "unknown"
+        dropoff_code = dropoff_zone.code if dropoff_zone else "unknown"
+        return f"{pickup_code}->{dropoff_code}"
 
-  def zone_multiplier(self, pickup: GeoPoint, dropoff: GeoPoint) -> tuple[str | None, float]:
-      pickup_zone = self.resolve_zone(pickup)
-      dropoff_zone = self.resolve_zone(dropoff)
-      if pickup_zone and dropoff_zone:
-          multiplier = max(pickup_zone.multiplier, dropoff_zone.multiplier)
-          code = pickup_zone.code if pickup_zone.code == dropoff_zone.code else f"{pickup_zone.code}_{dropoff_zone.code}"
-          return code, multiplier
-      if pickup_zone:
-          return pickup_zone.code, pickup_zone.multiplier
-      return None, 1.0
+    def zone_multiplier(self, pickup: GeoPoint, dropoff: GeoPoint) -> tuple[str | None, float]:
+        pickup_zone = self.resolve_zone(pickup)
+        dropoff_zone = self.resolve_zone(dropoff)
+        if pickup_zone and dropoff_zone:
+            multiplier = max(pickup_zone.multiplier, dropoff_zone.multiplier)
+            code = pickup_zone.code if pickup_zone.code == dropoff_zone.code else f"{pickup_zone.code}_{dropoff_zone.code}"
+            return code, multiplier
+        if pickup_zone:
+            return pickup_zone.code, pickup_zone.multiplier
+        return None, 1.0

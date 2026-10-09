@@ -1,4 +1,9 @@
-/** Auto-synced from porterchain_pricing/data/gta150_fsa_registry.json — do not hand-edit. */
+/**
+ * Generated from porterchain_pricing.gta150_fsa_codes() — do not hand-edit.
+ * Registry version=1 count=362 hub_overrides=M5D, M5K, M5L, M5W, M5X.
+ * Regenerate: python scripts/sync_website_gta150_fsa.py
+ * CI: python scripts/verify_gta150_fsa_sync.py
+ */
 export const GTA150_FSA_CODES = new Set<string>([
   "K0H",
   "K0K",
@@ -232,10 +237,13 @@ export const GTA150_FSA_CODES = new Set<string>([
   "M5A",
   "M5B",
   "M5C",
+  "M5D",
   "M5E",
   "M5G",
   "M5H",
   "M5J",
+  "M5K",
+  "M5L",
   "M5M",
   "M5N",
   "M5P",
@@ -243,6 +251,8 @@ export const GTA150_FSA_CODES = new Set<string>([
   "M5S",
   "M5T",
   "M5V",
+  "M5W",
+  "M5X",
   "M6A",
   "M6B",
   "M6C",
@@ -361,4 +371,11 @@ export const GTA150_FSA_CODES = new Set<string>([
 
 export function isGta150Fsa(fsa: string): boolean {
   return GTA150_FSA_CODES.has(fsa.trim().toUpperCase().slice(0, 3));
+}
+
+export const ONTARIO_FSA_PREFIXES = new Set<string>(["K", "L", "M", "N", "P"]);
+
+export function isOntarioFsa(fsa: string): boolean {
+  const first = fsa.trim().toUpperCase().charAt(0);
+  return ONTARIO_FSA_PREFIXES.has(first);
 }

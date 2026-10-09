@@ -5,6 +5,7 @@ Requires: curl/unzip, Docker (ghcr.io/osgeo/gdal), network.
 
 Usage (from repo root):
   python scripts/build_gta150_fsa_registry.py
+  python scripts/sync_website_gta150_fsa.py   # keep website/src/lib/seo/gta150FsaCodes.ts in sync
 """
 
 from __future__ import annotations

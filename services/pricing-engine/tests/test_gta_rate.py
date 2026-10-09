@@ -2,23 +2,43 @@
 
 from __future__ import annotations
 
-from porterchain_pricing.gta_rate import calculate_gta_delivery_rate, normalize_vehicle_type
+from porterchain_pricing.components import DistanceRateService, LocationSurchargeService, StopFeeService
+from porterchain_pricing.gta_rate import GtaRateConfig, normalize_vehicle_type
 from porterchain_pricing.pricing_service import PricingService
 from porterchain_pricing.types import GeoPoint, PricingContext, PricingRequest, TaxConfig
 
 
+def _matrix_cents(
+    *,
+    vehicle_type: str,
+    total_km: float,
+    total_pickups: int = 1,
+    total_drops: int = 1,
+    is_downtown: bool = False,
+    is_upper_zone: bool = False,
+    config: GtaRateConfig | None = None,
+) -> int:
+    """Distance + stop fees + location surcharges — the components the engine sums."""
+    return (
+        DistanceRateService().quote(vehicle_type=vehicle_type, total_km=total_km, config=config).total_cents
+        + StopFeeService()
+        .quote(
+            vehicle_type=vehicle_type,
+            total_pickups=total_pickups,
+            total_drops=total_drops,
+            config=config,
+        )
+        .total_cents
+        + LocationSurchargeService()
+        .quote(is_downtown=is_downtown, is_upper_zone=is_upper_zone, config=config)
+        .total_cents
+    )
+
+
 def test_sprinter_15_drops_18km_is_285():
     """1 pickup, 15 drops, 18 km, large van → $285.00."""
-    result = calculate_gta_delivery_rate(
-        vehicle_type="sprinter_van",
-        total_km=18,
-        total_pickups=1,
-        total_drops=15,
-        is_downtown=False,
-        is_upper_zone=False,
-    )
-    assert result.total_cad == 285.0
-    assert result.total_cents == 28500
+    cents = _matrix_cents(vehicle_type="sprinter_van", total_km=18, total_pickups=1, total_drops=15)
+    assert cents == 28500
 
 
 def test_vehicle_aliases_map_to_matrix():
@@ -31,23 +51,15 @@ def test_vehicle_aliases_map_to_matrix():
 
 def test_extra_km_beyond_20():
     # sedan_suv base 45 + 5 * 1.25 = 51.25
-    result = calculate_gta_delivery_rate(vehicle_type="sedan", total_km=25, total_pickups=1, total_drops=1)
-    assert result.total_cad == 51.25
-    assert result.vehicle_type == "sedan_suv"
+    assert _matrix_cents(vehicle_type="sedan", total_km=25) == 5125
+    assert normalize_vehicle_type("sedan") == "sedan_suv"
 
 
 def test_location_surcharges_once_each():
-    result = calculate_gta_delivery_rate(
-        vehicle_type="suv",
-        total_km=10,
-        total_pickups=1,
-        total_drops=1,
-        is_downtown=True,
-        is_upper_zone=True,
-    )
+    cents = _matrix_cents(vehicle_type="suv", total_km=10, is_downtown=True, is_upper_zone=True)
     # sedan_suv 45 + 25 + 15 = 85 (suv collapses into sedan_suv)
-    assert result.total_cad == 85.0
-    assert result.vehicle_type == "sedan_suv"
+    assert cents == 8500
+    assert normalize_vehicle_type("suv") == "sedan_suv"
 
 
 def test_retail_engine_matches_matrix_via_additional_stops():
@@ -84,14 +96,10 @@ def test_admin_config_override_changes_quote():
             }
         }
     )
-    result = calculate_gta_delivery_rate(
-        vehicle_type="sprinter_van",
-        total_km=18,
-        total_pickups=1,
-        total_drops=15,
-        config=cfg,
+    cents = _matrix_cents(
+        vehicle_type="sprinter_van", total_km=18, total_pickups=1, total_drops=15, config=cfg
     )
-    assert result.total_cad == 290.0
+    assert cents == 29000
 
 
 def test_tax_zero_by_default_matches_clean_quote():
@@ -161,15 +169,10 @@ def test_customer_sedan_suv_28km_extra_drop_downtown_is_95():
     from porterchain_pricing.gta_rate import customer_gta_from_dict, default_customer_distance_dict
 
     cfg = customer_gta_from_dict(default_customer_distance_dict())
-    result = calculate_gta_delivery_rate(
-        vehicle_type="sedan_suv",
-        total_km=28,
-        total_pickups=1,
-        total_drops=2,
-        is_downtown=True,
-        config=cfg,
+    cents = _matrix_cents(
+        vehicle_type="sedan_suv", total_km=28, total_pickups=1, total_drops=2, is_downtown=True, config=cfg
     )
-    assert result.total_cents == 9500
+    assert cents == 9500
 
 
 def test_stored_suv_matches_sedan_suv():

@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from porterchain_pricing.types import ParcelSpec
+
 
 def iso_dt(value: Any) -> str | None:
     if value is None or value == "":
@@ -266,3 +268,29 @@ def packages_from_stops(stops: list[dict[str, Any]] | None) -> list[dict[str, An
     if not first:
         return []
     return meaningful_packages(first.get("packages"))
+
+
+def parcels_for_pricing(body: Any) -> list[ParcelSpec]:
+    """
+    One priced parcel per booked package, for contract schedules billed per parcel.
+
+    Packages on the booking body are not tied to a stop, so only a single-drop
+    booking gets explicit parcels; a multi-stop one returns [] and the engine
+    splits `parcel_count` across the stops.
+    """
+    if getattr(body, "additional_stops", None):
+        return []
+    out: list[ParcelSpec] = []
+    for raw in getattr(body, "packages", None) or []:
+        pkg = raw.model_dump() if hasattr(raw, "model_dump") else raw
+        if not isinstance(pkg, dict):
+            continue
+        sides = [pkg.get("length_cm"), pkg.get("width_cm"), pkg.get("height_cm")]
+        dims: dict[str, float] | str | None = None
+        if any(sides):
+            dims = {k: float(v or 0) for k, v in zip(("length", "width", "height"), sides)}
+        elif pkg.get("dimensions"):
+            dims = pkg.get("dimensions")
+        weight = pkg.get("weight_kg")
+        out.append(ParcelSpec(stop_index=0, weight_kg=float(weight) if weight else None, dimensions=dims))
+    return out

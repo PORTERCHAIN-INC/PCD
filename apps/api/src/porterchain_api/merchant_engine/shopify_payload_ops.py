@@ -27,11 +27,91 @@ from porterchain_api.integrations.shopify_orders import (
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.import_geocode import geocode_stop
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.service_area import assert_ontario_booking
+from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_models import Merchant, ShopifyShop
 from porterchain_api.schemas_merchant import AddressInput
 
 logger = logging.getLogger(__name__)
+
+def _rate_quote_for_order(
+    db: Session,
+    *,
+    shop: ShopifyShop,
+    body: Any,
+    payload: dict[str, Any],
+) -> Any:
+    """Trusted checkout rate quote for this order.
+
+    Bound id (when present and still for this shop + dest), then dest-hash
+    (shop + destination + weight — no warehouse postal), then dest-FSA match.
+    Never returns an unrelated destination quote.
+    """
+    try:
+        from porterchain_api.integrations.shopify_carrier_rates import (
+            _request_hash,
+            find_quote_by_hash,
+            find_quote_for_book,
+            quote_usable_for_order,
+        )
+        from porterchain_api.merchant_models import ShopifyRateQuote
+
+        drop_postal = getattr(body.dropoff, "postal", None) or ""
+        bound_id = quote_id_from_order(payload)
+        if bound_id:
+            row = db.get(ShopifyRateQuote, bound_id)
+            if quote_usable_for_order(row, shop_id=shop.id, dropoff_postal=drop_postal):
+                return row
+        req_hash = _request_hash(
+            shop_id=shop.id,
+            merchant_id=shop.merchant_id,
+            dropoff_postal=drop_postal,
+            weight_kg=body.weight_kg,
+        )
+        row = find_quote_by_hash(db, shop_id=shop.id, request_hash=req_hash)
+        if quote_usable_for_order(row, shop_id=shop.id, dropoff_postal=drop_postal):
+            return row
+        return find_quote_for_book(
+            db,
+            shop_id=shop.id,
+            dropoff_postal=drop_postal,
+            weight_kg=body.weight_kg,
+        )
+    except Exception:  # noqa: BLE001 — booking must not fail on quote lookup
+        logger.exception("shopify_book_quote_lookup_failed shop=%s", shop.shop_domain)
+        return None
+
+
+def _order_has_invoice(db: Session, order: Order) -> bool:
+    from porterchain_api.booking_models import Invoice
+
+    return db.query(Invoice.id).filter(Invoice.order_id == order.id).first() is not None
+
+
+def _resolve_book_pickup(
+    db: Session,
+    *,
+    shop: ShopifyShop,
+    body: Any,
+    payload: dict[str, Any],
+) -> tuple[Any, str, Any]:
+    """Pickup + source + matched rate quote for Shopify book."""
+    from porterchain_api.integrations.shopify_carrier_rates import (
+        pickup_from_rate_quote,
+        resolve_shopify_pickup,
+    )
+
+    rate_quote = _rate_quote_for_order(db, shop=shop, body=body, payload=payload)
+    from_quote = pickup_from_rate_quote(rate_quote)
+    if from_quote is not None:
+        quote_pickup, pickup_source = from_quote
+        try:
+            quote_pickup = shopify._ensure_coords(quote_pickup)
+        except ValueError:
+            quote_pickup, pickup_source = body.pickup, "porterchain_pickup"
+        return quote_pickup, pickup_source, rate_quote
+    quote_pickup, pickup_source, _reason = resolve_shopify_pickup(body.pickup, None)
+    return quote_pickup, pickup_source, rate_quote
+
 
 def _book_from_shopify_payload(
     db: Session,
@@ -78,8 +158,12 @@ def _book_from_shopify_payload(
     from porterchain_api.integrations.shopify_carrier_rates import apply_shopify_book_vehicle
 
     body = apply_shopify_book_vehicle(merchant, body, payload)
+    quote_pickup, pickup_source, rate_quote = _resolve_book_pickup(
+        db, shop=shop, body=body, payload=payload
+    )
+    body = body.model_copy(update={"pickup": quote_pickup})
     try:
-        assert_ontario_booking(body)
+        assert_ontario_booking(body, extra_fsas=merchant_coverage_fsas(db, merchant))
     except shopify.BookingValidationError as exc:
         if exc.code == "out_of_service_area":
             return {"ok": True, "skipped": "out_of_service_area"}
@@ -131,43 +215,11 @@ def _book_from_shopify_payload(
     fo_id = payload.get("fulfillment_order_id")
     if fo_id:
         shopify_meta["fulfillment_order_id"] = str(fo_id)
-    try:
-        from porterchain_api.integrations.shopify_carrier_rates import (
-            _request_hash,
-            find_quote_by_hash,
-            find_quote_for_book,
-        )
-        from porterchain_api.merchant_models import ShopifyRateQuote
-
-        drop_postal = getattr(body.dropoff, "postal", None) or ""
-        quote = None
-        bound_id = quote_id_from_order(payload)
-        if bound_id:
-            row = db.get(ShopifyRateQuote, bound_id)
-            if row is not None and row.shop_id == shop.id:
-                quote = row
-        if quote is None:
-            req_hash = _request_hash(
-                shop_id=shop.id,
-                merchant_id=shop.merchant_id,
-                pickup_postal=getattr(body.pickup, "postal", None) or "",
-                dropoff_postal=drop_postal,
-                weight_kg=body.weight_kg,
-            )
-            quote = find_quote_by_hash(db, shop_id=shop.id, request_hash=req_hash)
-        if quote is None:
-            quote = find_quote_for_book(
-                db,
-                shop_id=shop.id,
-                dropoff_postal=drop_postal,
-                weight_kg=body.weight_kg,
-            )
-        if quote:
-            shopify_meta["rate_quote_id"] = quote.id
-            shopify_meta["rate_quote_cents"] = quote.total_cents
-            shopify_meta["rate_quote_hash"] = quote.request_hash
-    except Exception:  # noqa: BLE001 — booking must not fail on quote lookup
-        logger.exception("shopify_book_quote_attach_failed shop=%s", shop.shop_domain)
+    shopify_meta["pickup_source"] = pickup_source
+    if rate_quote is not None:
+        shopify_meta["rate_quote_id"] = rate_quote.id
+        shopify_meta["rate_quote_cents"] = rate_quote.total_cents
+        shopify_meta["rate_quote_hash"] = rate_quote.request_hash
     extra["shopify"] = shopify_meta
     order.compliance_metadata = extra
     db.commit()
@@ -290,7 +342,16 @@ def _update_from_shopify_payload(
     if existing.state not in shopify._PRE_PICKUP:
         events = list((existing.compliance_metadata or {}).get("shopify", {}).get("fo_events") or [])
         events.append({"kind": "orders_updated", "at": datetime.now(UTC).isoformat()})
-        _note_shopify(existing, fo_events=events[-20:], drift_after_pickup=True)
+        _note_shopify(
+            existing,
+            fo_events=events[-20:],
+            drift_after_pickup=True,
+            price_locked=True,
+            amount_cents_unchanged=int(existing.amount_cents or 0),
+        )
+        logger.info(
+            "shopify_update_price_locked order=%s state=%s", existing.id, existing.state
+        )
         db.commit()
         return {"ok": True, "order_id": existing.id, "drift": True}
     pickup_row = shopify.default_pickup_address(db, shop.merchant_id, shop=shop)
@@ -300,24 +361,106 @@ def _update_from_shopify_payload(
 
     ensure_shop_pickup_bound(db, shop, address=pickup_row)
     pickup = shopify._ensure_coords(shopify.address_from_saved(pickup_row))
-    body = map_shopify_order(payload, pickup=pickup)
+    # Keep the pickup the order was booked with (checkout quote / saved pickup
+    # rule already applied at book). Only the buyer side changes on edit.
+    booked_pickup = _address_from_stop(existing.pickup) if existing.pickup else pickup
+    body = map_shopify_order(payload, pickup=booked_pickup)
+    merchant = db.query(Merchant).filter(Merchant.id == shop.merchant_id).first()
+    if not merchant or merchant.status != MerchantStatus.ACTIVE.value:
+        raise RuntimeError("merchant_not_active")
+    from porterchain_api.integrations.shopify_carrier_rates import apply_shopify_book_vehicle
+
+    body = apply_shopify_book_vehicle(merchant, body, payload)
     try:
-        assert_ontario_booking(body)
+        assert_ontario_booking(body, extra_fsas=merchant_coverage_fsas(db, merchant))
     except shopify.BookingValidationError as exc:
         if exc.code == "out_of_service_area":
             return {"ok": True, "skipped": "out_of_service_area", "order_id": existing.id}
         raise
+
+    previous_amount = int(existing.amount_cents or 0)
     existing.dropoff = body.dropoff.model_dump()
     if body.weight_kg is not None:
         existing.weight_kg = body.weight_kg
-    _note_shopify(
-        existing,
-        customer=customer_slice(payload, shop_domain=shop.shop_domain),
-        line_items=line_item_slice(payload),
-        order_name=_name,
-    )
+    note_fields: dict[str, Any] = {
+        "customer": customer_slice(payload, shop_domain=shop.shop_domain),
+        "line_items": line_item_slice(payload),
+        "order_name": _name,
+    }
+
+    can_reprice = existing.state in shopify._PRE_PICKUP and not _order_has_invoice(db, existing)
+    if can_reprice:
+        from porterchain_api.integrations.shopify_carrier_rates import quote_merchant_rate
+
+        line_items = (
+            payload.get("line_items") if isinstance(payload.get("line_items"), list) else []
+        )
+        try:
+            cents, breakdown = quote_merchant_rate(
+                db,
+                merchant,
+                pickup=body.pickup,
+                dropoff=body.dropoff,
+                weight_kg=body.weight_kg,
+                items=line_items,
+                vehicle_class=getattr(body, "vehicle_class", None),
+            )
+        except Exception:  # noqa: BLE001 — keep prior price; never abort the webhook
+            logger.exception(
+                "shopify_update_reprice_failed order=%s shop=%s", existing.id, shop.shop_domain
+            )
+            _note_shopify(
+                existing,
+                **note_fields,
+                reprice_failed=True,
+                amount_cents_unchanged=previous_amount,
+            )
+            db.commit()
+            return {"ok": True, "order_id": existing.id, "updated": True, "reprice": "failed"}
+        if (breakdown.get("metadata") or {}).get("fsa_refused"):
+            _note_shopify(
+                existing,
+                **note_fields,
+                reprice_skipped="fsa_refused",
+                amount_cents_unchanged=previous_amount,
+            )
+            db.commit()
+            return {
+                "ok": True,
+                "order_id": existing.id,
+                "skipped": "fsa_refused",
+                "updated": True,
+            }
+        existing.amount_cents = int(cents)
+        note_fields["reprice"] = {
+            "from_cents": previous_amount,
+            "to_cents": int(cents),
+            "at": datetime.now(UTC).isoformat(),
+        }
+    else:
+        events = list((existing.compliance_metadata or {}).get("shopify", {}).get("fo_events") or [])
+        events.append(
+            {
+                "kind": "orders_updated_price_locked",
+                "at": datetime.now(UTC).isoformat(),
+                "amount_cents": previous_amount,
+                "reason": "invoiced",
+            }
+        )
+        note_fields["fo_events"] = events[-20:]
+        note_fields["price_locked"] = True
+        note_fields["amount_cents_unchanged"] = previous_amount
+        logger.info("shopify_update_price_locked order=%s reason=invoiced", existing.id)
+
+    _note_shopify(existing, **note_fields)
     db.commit()
-    return {"ok": True, "order_id": existing.id, "updated": True}
+    return {
+        "ok": True,
+        "order_id": existing.id,
+        "updated": True,
+        "repriced": can_reprice,
+        "amount_cents": existing.amount_cents,
+    }
 
 
 def _sync_fulfillment_order(

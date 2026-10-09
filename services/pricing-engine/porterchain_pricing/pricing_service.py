@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from porterchain_pricing.engine import PricingEngine
 from porterchain_pricing.repository import InMemoryPricingRepository, PricingRepository
 from porterchain_pricing.simulator import PricingSimulator
@@ -26,65 +28,10 @@ class PricingService:
         return self.engine.calculate(request, ctx)
 
     def calculate_retail(self, request: PricingRequest) -> PriceBreakdown:
-        retail_request = PricingRequest(
-            pickup=request.pickup,
-            dropoff=request.dropoff,
-            vehicle_class=request.vehicle_class,
-            package_type=request.package_type,
-            service_type=request.service_type,
-            weight_kg=request.weight_kg,
-            dimensions=request.dimensions,
-            declared_value_cents=request.declared_value_cents,
-            schedule_mode=request.schedule_mode,
-            scheduled_at=request.scheduled_at,
-            is_rush=request.is_rush,
-            additional_stops=request.additional_stops,
-            distance_meters=request.distance_meters,
-            estimated_duration_minutes=request.estimated_duration_minutes,
-            routing_source=request.routing_source,
-            volume_cm3=request.volume_cm3,
-            channel="retail",
-            promo_code=request.promo_code,
-            wallet_credit_cents=request.wallet_credit_cents,
-            referral_credit_cents=request.referral_credit_cents,
-            wait_minutes=request.wait_minutes,
-            requires_liftgate=request.requires_liftgate,
-            total_pickups=request.total_pickups,
-            total_drops=request.total_drops,
-            is_downtown=request.is_downtown,
-            is_upper_zone=request.is_upper_zone,
-        )
-        return self.calculate(retail_request)
+        return self.calculate(replace(request, channel="retail", merchant_id=None))
 
     def calculate_merchant(self, request: PricingRequest) -> PriceBreakdown:
-        merchant_request = PricingRequest(
-            pickup=request.pickup,
-            dropoff=request.dropoff,
-            vehicle_class=request.vehicle_class,
-            package_type=request.package_type,
-            service_type=request.service_type,
-            weight_kg=request.weight_kg,
-            dimensions=request.dimensions,
-            declared_value_cents=request.declared_value_cents,
-            schedule_mode=request.schedule_mode,
-            scheduled_at=request.scheduled_at,
-            is_rush=request.is_rush,
-            additional_stops=request.additional_stops,
-            distance_meters=request.distance_meters,
-            estimated_duration_minutes=request.estimated_duration_minutes,
-            routing_source=request.routing_source,
-            wait_minutes=request.wait_minutes,
-            channel="merchant",
-            merchant_id=request.merchant_id,
-            promo_code=request.promo_code,
-            volume_units=request.volume_units,
-            requires_liftgate=request.requires_liftgate,
-            total_pickups=request.total_pickups,
-            total_drops=request.total_drops,
-            is_downtown=request.is_downtown,
-            is_upper_zone=request.is_upper_zone,
-        )
-        return self.calculate(merchant_request)
+        return self.calculate(replace(request, channel="merchant"))
 
     @staticmethod
     def to_line_items(breakdown: PriceBreakdown) -> list[PriceLineItem]:

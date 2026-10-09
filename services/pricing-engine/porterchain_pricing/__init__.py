@@ -33,7 +33,6 @@ from porterchain_pricing.gta150_fsa import (
 from porterchain_pricing.gta_rate import (
     VEHICLE_MATRIX,
     GtaRateConfig,
-    calculate_gta_delivery_rate,
     default_gta_rate_config,
     gta_rate_config_from_dict,
     merge_merchant_gta_overlay,
@@ -48,6 +47,7 @@ from porterchain_pricing.rate_card import RateCard, VehicleRate, default_rate_ca
 from porterchain_pricing.types import (
     FsaRateRecord,
     GeoPoint,
+    ParcelSpec,
     PriceBreakdown,
     PriceLineItem,
     PricingContext,
@@ -63,6 +63,7 @@ __all__ = [
     "FsaRateRecord",
     "FsaRateService",
     "GeoPoint",
+    "ParcelSpec",
     "LocationSurchargeService",
     "SizeWeightConfig",
     "SizeWeightService",
@@ -94,7 +95,6 @@ __all__ = [
     "VehicleClass",
     "VehicleRate",
     "ZoneService",
-    "calculate_gta_delivery_rate",
     "default_gta_rate_config",
     "default_rate_card",
     "estimate_duration_minutes",

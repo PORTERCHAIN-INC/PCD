@@ -55,6 +55,7 @@ def _call(
     body = json.dumps(payload).encode()
     sig = base64.b64encode(hmac.new(_SECRET.encode(), body, hashlib.sha256).digest()).decode()
     quote = MagicMock(return_value=quote_result)
+    persist = MagicMock(return_value=SimpleNamespace(id="q1"))
     with (
         patch(f"{_MOD}._active_shop", return_value=shop),
         patch(f"{_MOD}.default_pickup_address", return_value=pickup),
@@ -62,7 +63,7 @@ def _call(
         patch(f"{_MOD}.ensure_shop_pickup_bound", side_effect=lambda db, s, address: s),
         patch(f"{_MOD}._ensure_geo", side_effect=lambda a: a),
         patch(f"{_MOD}.quote_merchant_rate", quote),
-        patch(f"{_MOD}.persist_rate_quote", return_value=SimpleNamespace(id="q1")),
+        patch(f"{_MOD}.persist_rate_quote", persist),
     ):
         out = carrier_service_rates(
             db,
@@ -72,7 +73,7 @@ def _call(
             shop_domain=_SHOP,
             payload=payload,
         )
-    return out, quote
+    return out, quote, persist
 
 
 def _lines(caplog: pytest.LogCaptureFixture, prefix: str) -> list[str]:
@@ -92,7 +93,7 @@ def _lines(caplog: pytest.LogCaptureFixture, prefix: str) -> list[str]:
 )
 def test_unusable_origin_falls_back_to_pickup(caplog, origin, reason):
     caplog.set_level(logging.INFO, logger=_MOD)
-    out, quote = _call(origin=origin)
+    out, quote, persist = _call(origin=origin)
     assert out["rates"][0]["service_code"] == "porterchain_same_day"
     assert out["rates"][0]["total_price"] == "5200"
     assert quote.call_args.kwargs["pickup"] is _PICKUP
@@ -107,7 +108,7 @@ def test_unusable_origin_falls_back_to_pickup(caplog, origin, reason):
 def test_in_area_origin_used_as_is(caplog):
     caplog.set_level(logging.INFO, logger=_MOD)
     origin = {"country": "CA", "postal_code": "L4W 1S9", "city": "Mississauga"}
-    out, quote = _call(origin=origin)
+    out, quote, persist = _call(origin=origin)
     assert out["rates"]
     assert quote.call_args.kwargs["pickup"].postal == "L4W 1S9"
     assert not _lines(caplog, "shopify_carrier_origin_fallback")
@@ -116,7 +117,7 @@ def test_in_area_origin_used_as_is(caplog):
 def test_non_canada_destination_empty_with_reason(caplog):
     caplog.set_level(logging.INFO, logger=_MOD)
     dest = {"country": "US", "postal_code": "10001", "city": "New York", "address1": "1 Main"}
-    out, quote = _call(origin=None, destination=dest)
+    out, quote, persist = _call(origin=None, destination=dest)
     assert out == {"rates": []}
     quote.assert_not_called()
     lines = _lines(caplog, "shopify_carrier_empty")
@@ -129,7 +130,7 @@ def test_non_canada_destination_empty_with_reason(caplog):
 def test_destination_out_of_area_logs_fsa_only(caplog):
     caplog.set_level(logging.INFO, logger=_MOD)
     dest = {"country": "CA", "postal_code": "K1A 0A6", "city": "Ottawa", "address1": "1 Wellington"}
-    out, _ = _call(origin=None, destination=dest)
+    out, _, _ = _call(origin=None, destination=dest)
     assert out == {"rates": []}
     (line,) = _lines(caplog, "shopify_carrier_empty")
     assert "reason=dest_out_of_area" in line
@@ -139,7 +140,7 @@ def test_destination_out_of_area_logs_fsa_only(caplog):
 
 def test_no_pickup_empty_with_reason(caplog):
     caplog.set_level(logging.INFO, logger=_MOD)
-    out, quote = _call(origin={"country": "US"}, pickup=None)
+    out, quote, persist = _call(origin={"country": "US"}, pickup=None)
     assert out == {"rates": []}
     quote.assert_not_called()
     (line,) = _lines(caplog, "shopify_carrier_empty")
@@ -150,7 +151,7 @@ def test_no_pickup_empty_with_reason(caplog):
 def test_fallback_pickup_must_be_in_area(caplog):
     caplog.set_level(logging.INFO, logger=_MOD)
     ottawa = SimpleNamespace(formatted="Ottawa ON K1A 0A6", postal="K1A0A6", lat=45.42, lng=-75.7)
-    out, quote = _call(origin={"country": "US"}, pickup=ottawa)
+    out, quote, persist = _call(origin={"country": "US"}, pickup=ottawa)
     assert out == {"rates": []}
     quote.assert_not_called()
     (line,) = _lines(caplog, "shopify_carrier_empty")
@@ -168,7 +169,7 @@ def test_fallback_pickup_must_be_in_area(caplog):
 )
 def test_refused_or_zero_quote_logs_reason(caplog, result, reason):
     caplog.set_level(logging.INFO, logger=_MOD)
-    out, _ = _call(origin=None, quote_result=result)
+    out, _, _ = _call(origin=None, quote_result=result)
     assert out == {"rates": []}
     (line,) = _lines(caplog, "shopify_carrier_empty")
     assert f"reason={reason}" in line
@@ -208,9 +209,67 @@ def test_pricing_exception_logs_reason(caplog):
 
 def test_inactive_merchant_logs_status(caplog):
     caplog.set_level(logging.INFO, logger=_MOD)
-    out, quote = _call(origin=None, status="ONBOARDING")
+    out, quote, persist = _call(origin=None, status="ONBOARDING")
     assert out == {"rates": []}
     quote.assert_not_called()
     (line,) = _lines(caplog, "shopify_carrier_empty")
     assert "reason=merchant_inactive" in line
     assert "status=ONBOARDING" in line
+
+
+def test_checkout_persists_pickup_snapshot_on_fallback():
+    """Book can reuse the same pickup the shopper was quoted against."""
+    out, quote, persist = _call(origin={"country": "US"})
+    assert out["rates"]
+    kw = persist.call_args.kwargs
+    snap = kw["breakdown"]["pickup"]
+    assert snap["source"] == "porterchain_pickup"
+    assert snap["formatted"] == _PICKUP.formatted
+    assert snap["postal"] == _PICKUP.postal
+    assert snap["lat"] == _PICKUP.lat
+
+
+def test_checkout_persists_shopify_origin_when_usable():
+    out, quote, persist = _call(origin={"country": "CA", "postal_code": "L4W 1S9", "city": "Mississauga"})
+    snap = persist.call_args.kwargs["breakdown"]["pickup"]
+    assert snap["source"] == "shopify_origin"
+    assert "L4W" in (snap["postal"] or "").upper()
+
+
+def test_resolve_shopify_pickup_shared_rule():
+    from porterchain_api.integrations.shopify_carrier_rates import (
+        PICKUP_SOURCE_PORTERCHAIN,
+        PICKUP_SOURCE_SHOPIFY_ORIGIN,
+        resolve_shopify_pickup,
+    )
+    from porterchain_api.schemas_merchant import AddressInput
+
+    default = AddressInput(formatted="100 King", postal="M5X1A9", lat=43.65, lng=-79.38)
+    pickup, source, reason = resolve_shopify_pickup(default, {"country": "US"})
+    assert source == PICKUP_SOURCE_PORTERCHAIN and reason == "origin_non_canada"
+    assert pickup is default
+    with patch(f"{_MOD}._ensure_geo", side_effect=lambda a: a):
+        pickup, source, reason = resolve_shopify_pickup(
+            default, {"country": "CA", "postal_code": "L4W 1S9", "city": "Mississauga"}
+        )
+    assert source == PICKUP_SOURCE_SHOPIFY_ORIGIN and reason is None
+    assert pickup.postal and "L4W" in pickup.postal.upper()
+
+
+def test_pickup_from_rate_quote_rejects_expired():
+    from datetime import UTC, datetime, timedelta
+    from porterchain_api.integrations.shopify_carrier_rates import pickup_from_rate_quote
+
+    expired = SimpleNamespace(
+        expires_at=datetime.now(UTC) - timedelta(minutes=1),
+        breakdown={"pickup": {"formatted": "x", "postal": "M5X1A9", "lat": 43.65, "lng": -79.38, "source": "porterchain_pickup"}},
+    )
+    assert pickup_from_rate_quote(expired) is None
+    live = SimpleNamespace(
+        expires_at=datetime.now(UTC) + timedelta(minutes=10),
+        breakdown={"pickup": {"formatted": "100 King", "postal": "M5X1A9", "lat": 43.65, "lng": -79.38, "source": "porterchain_pickup"}},
+    )
+    got = pickup_from_rate_quote(live)
+    assert got is not None
+    addr, source = got
+    assert addr.formatted == "100 King" and source == "porterchain_pickup"

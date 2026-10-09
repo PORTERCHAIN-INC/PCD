@@ -51,9 +51,3 @@ export type MerchantRateCard = {
   platform_fsa_rate_count: number;
   currency: string;
 };
-
-export function pricingModelLabel(model: string): string {
-  if (model === "fsa") return "Ontario FSA flat rates";
-  if (model === "distance") return "Distance and vehicle";
-  return "Distance and vehicle";
-}

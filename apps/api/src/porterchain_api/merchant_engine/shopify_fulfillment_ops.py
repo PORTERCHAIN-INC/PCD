@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
-from porterchain_api.merchant_models import ShopifyShop
+from porterchain_api.merchant_models import Merchant, ShopifyShop
 from porterchain_api.merchant_engine.shopify_tokens import (
     TOKEN_REAUTH_REQUIRED,
     access_token_for,
@@ -807,13 +807,16 @@ def _act_on_fulfillment_requests(
     accepted = 0
     rejected = 0
     window = (datetime.now(UTC) + timedelta(hours=8)).isoformat()
+    from porterchain_api.merchant_engine.service_area import merchant_coverage_fsas
+
+    coverage = merchant_coverage_fsas(db, db.get(Merchant, shop.merchant_id))
     for node in nodes:
         method = ""
         delivery = node.get("deliveryMethod")
         if isinstance(delivery, dict):
             method = str(delivery.get("methodType") or "")
         payload = _order_payload_from_fo(node)
-        reason = _reject_reason(payload, method)
+        reason = _reject_reason(payload, method, coverage)
         fo_id = str(node.get("id") or "")
         if not fo_id:
             continue
@@ -924,7 +927,9 @@ def _act_on_cancellations(
     return {"ok": True, "accepted": accepted, "rejected": rejected}
 
 
-def _reject_reason(payload: dict[str, Any], method: str) -> str | None:
+def _reject_reason(
+    payload: dict[str, Any], method: str, extra_fsas: frozenset[str] = frozenset()
+) -> str | None:
     from porterchain_api.integrations.shopify_orders import is_canada_country
     from porterchain_api.merchant_engine.service_area import service_area_error
     from porterchain_api.schemas_merchant import AddressInput
@@ -942,7 +947,9 @@ def _reject_reason(payload: dict[str, Any], method: str) -> str | None:
     if not is_canada_country(country):
         return "PorterChain delivers in Canada only."
     postal = str(address.get("zip") or "")
-    err = service_area_error("destination", AddressInput(formatted=postal or "Canada", postal=postal or None))
+    err = service_area_error(
+        "destination", AddressInput(formatted=postal or "Canada", postal=postal or None), extra_fsas
+    )
     if err:
         return "Outside the priced delivery tile."
     return None

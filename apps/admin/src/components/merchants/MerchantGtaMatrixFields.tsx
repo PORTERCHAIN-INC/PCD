@@ -2,6 +2,7 @@
 
 import { Button, Input } from "@/components/crm/primitives";
 import type { MerchantGtaRate, MerchantGtaVehicleRates } from "@/lib/merchants";
+import { DEFAULT_DOWNTOWN_FEE_CAD } from "@porterchain/types";
 
 const DEFAULT_ROW: MerchantGtaVehicleRates = {
   base_price: 65,
@@ -35,7 +36,8 @@ export default function MerchantGtaMatrixFields({
   function ensure(): MerchantGtaRate {
     return {
       base_km_limit: base.base_km_limit ?? platform?.base_km_limit ?? 20,
-      downtown_fee_cad: base.downtown_fee_cad ?? platform?.downtown_fee_cad ?? 25,
+      downtown_fee_cad:
+        base.downtown_fee_cad ?? platform?.downtown_fee_cad ?? DEFAULT_DOWNTOWN_FEE_CAD,
       upper_zone_fee_cad: base.upper_zone_fee_cad ?? platform?.upper_zone_fee_cad ?? 15,
       vehicles: { ...vehicles },
     };
@@ -90,7 +92,7 @@ export default function MerchantGtaMatrixFields({
           <Input
             className="mt-1"
             type="number"
-            value={base.downtown_fee_cad ?? 25}
+            value={base.downtown_fee_cad ?? DEFAULT_DOWNTOWN_FEE_CAD}
             onChange={(e) => patchMeta({ downtown_fee_cad: num(e.target.value, 0) })}
           />
         </label>

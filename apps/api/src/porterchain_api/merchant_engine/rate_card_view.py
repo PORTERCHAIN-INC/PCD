@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_models import PricingFsaRate
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
-from porterchain_pricing.gta_rate import VEHICLE_LABELS
+from porterchain_api.domain.catalog_labels import VEHICLE_LABELS
 from porterchain_pricing.policy import (
     MODEL_DISTANCE,
     MODEL_FSA,

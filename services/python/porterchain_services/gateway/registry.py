@@ -9,18 +9,19 @@ if TYPE_CHECKING:
     from porterchain_services.driver.service import DriverService
     from porterchain_services.maps.service import MapsService
     from porterchain_services.merchant.service import MerchantService
-    from porterchain_services.pricing.service import PricingService
     from porterchain_services.stripe.service import StripeService
     from porterchain_services.visitor.service import VisitorService
 
 
 class ServiceRegistry:
-    """Lazy-loaded service container — used by API gateway and workers."""
+    """Lazy-loaded service container — used by API gateway and workers.
+
+    Pricing is not here: callers use porterchain_api.pricing_engine.get_pricing_service(db).
+    """
 
     def __init__(self) -> None:
         self._stripe: StripeService | None = None
         self._maps: MapsService | None = None
-        self._pricing: PricingService | None = None
         self._merchant: MerchantService | None = None
         self._driver: DriverService | None = None
         self._dispatch: DispatchService | None = None
@@ -42,14 +43,6 @@ class ServiceRegistry:
 
             self._maps = MapsService()
         return self._maps
-
-    @property
-    def pricing(self) -> "PricingService":
-        if self._pricing is None:
-            from porterchain_services.pricing.service import PricingService
-
-            self._pricing = PricingService()
-        return self._pricing
 
     @property
     def merchant(self) -> "MerchantService":
@@ -92,8 +85,6 @@ class ServiceRegistry:
         return self._visitor
 
     def health(self) -> dict[str, str]:
-        import os
-
         return {
             "gateway": "ok",
             "dispatch": "porterchain",

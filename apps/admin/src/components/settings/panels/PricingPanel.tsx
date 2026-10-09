@@ -9,6 +9,8 @@ import { BindingBadge, SettingsCard, SettingsPageHeader } from "../ui/SettingsPr
 import CustomerPricingPanel from "./CustomerPricingPanel";
 import FsaRatesCard from "./FsaRatesCard";
 
+import { DEFAULT_DOWNTOWN_FEE_CAD } from "@porterchain/types";
+
 export type GtaVehicleRates = {
   base_price: number;
   extra_km_rate: number;
@@ -80,7 +82,7 @@ function normalizeGta(raw: unknown, catalogIds: string[]): GtaPricingConfig {
   }
   return {
     base_km_limit: num(src.base_km_limit, 20),
-    downtown_fee_cad: num(src.downtown_fee_cad, 25),
+    downtown_fee_cad: num(src.downtown_fee_cad, DEFAULT_DOWNTOWN_FEE_CAD),
     upper_zone_fee_cad: num(src.upper_zone_fee_cad, 15),
     vehicles,
   };

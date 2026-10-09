@@ -24,6 +24,21 @@ class GeoPoint:
 
 
 @dataclass(frozen=True)
+class ParcelSpec:
+    """
+    One packed parcel on a route, for contract schedules that bill per parcel.
+
+    `stop_index` 0 is the dropoff; n is `additional_stops[n - 1]`. Dimensions
+    take the same shapes as `PricingRequest.dimensions` (cm). Unknown weight or
+    size is allowed and counts as the standard tier.
+    """
+
+    stop_index: int = 0
+    weight_kg: float | None = None
+    dimensions: dict[str, float] | str | None = None
+
+
+@dataclass(frozen=True)
 class PricingRequest:
     """Input for a price calculation — B2C or B2B."""
 
@@ -59,6 +74,9 @@ class PricingRequest:
     is_upper_zone: bool | None = None
     #: Parcel / carton count for compact stop banding (default 1).
     parcel_count: int = 1
+    #: Per-parcel detail. Optional: contract routes split `parcel_count`,
+    #: `weight_kg` and `dimensions` across the stops when it is empty.
+    parcels: list[ParcelSpec] = field(default_factory=list)
 
 
 @dataclass

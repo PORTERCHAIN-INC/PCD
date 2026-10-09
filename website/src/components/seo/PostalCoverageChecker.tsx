@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { extractFsa } from "@/lib/traffic/postal";
 import { resolveZoneByFsa } from "@/lib/traffic/zones";
-import { isGta150Fsa } from "@/lib/seo/gta150FsaCodes";
+import { isGta150Fsa, isOntarioFsa } from "@/lib/seo/gta150FsaCodes";
 import type { Locale } from "@/i18n/routing";
 import { quoteContact } from "@/lib/seo/routes";
 import { QUOTE_CTA } from "@/lib/cta";
@@ -44,11 +44,6 @@ const COPY = {
     cta: QUOTE_CTA.fr,
   },
 } as const;
-
-function isOntarioFsa(fsa: string): boolean {
-  const first = fsa.charAt(0);
-  return first === "M" || first === "L" || first === "N" || first === "K" || first === "P";
-}
 
 export default function PostalCoverageChecker({ locale, cityLabel, trackSource }: Props) {
   const [input, setInput] = useState("");

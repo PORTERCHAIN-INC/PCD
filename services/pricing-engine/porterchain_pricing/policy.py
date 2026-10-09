@@ -15,11 +15,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-#: How the base price is chosen for this merchant.
-MODEL_AUTO = "auto"
+#: How the base price is chosen for this merchant. `merchants.pricing_model`
+#: (DB check constraint) is the source of truth; only these two exist.
 MODEL_DISTANCE = "distance"
 MODEL_FSA = "fsa"
-PRICING_MODELS = (MODEL_AUTO, MODEL_DISTANCE, MODEL_FSA)
+PRICING_MODELS = (MODEL_DISTANCE, MODEL_FSA)
 
 #: Admins enter tier limits in whatever unit they think in; we bill in cm / kg.
 CM_PER_UNIT = {"cm": 1.0, "in": 2.54, "ft": 30.48}
@@ -62,6 +62,15 @@ FSA_MISS_REFUSE = "refuse"
 FSA_MISS_MODES = (FSA_MISS_FALLBACK, FSA_MISS_REFUSE)
 
 
+# Named commercial defaults for compact banding (business PDF still pending —
+# change these in one place only; keep values identical across admin / API schemas).
+COMPACT_DEFAULT_PARCELS_PER_STOP = 3
+COMPACT_DEFAULT_BAND_NEAR_CENTS = 1000  # ≤4 billable stops
+COMPACT_DEFAULT_BAND_NEAR_MAX_STOPS = 4
+COMPACT_DEFAULT_BAND_FAR_CENTS = 600  # remaining stops
+COMPACT_DEFAULT_ROUTE_MINIMUM_CENTS = 5000
+
+
 @dataclass
 class CompactStopBand:
     """Bill this cents when billable stop count is ≤ max_stops (None = open-ended)."""
@@ -80,14 +89,17 @@ class CompactSchedule:
     enabled: bool = False
     vehicle_classes: list[str] = field(default_factory=lambda: ["sedan_suv", "sedan", "suv"])
     max_packed_inches: tuple[float, float] = (10.0, 10.0)
-    parcels_per_stop: int = 3
+    parcels_per_stop: int = COMPACT_DEFAULT_PARCELS_PER_STOP
     stop_rates: list[CompactStopBand] = field(
         default_factory=lambda: [
-            CompactStopBand(cents=1000, max_stops=4),
-            CompactStopBand(cents=600, max_stops=None),
+            CompactStopBand(
+                cents=COMPACT_DEFAULT_BAND_NEAR_CENTS,
+                max_stops=COMPACT_DEFAULT_BAND_NEAR_MAX_STOPS,
+            ),
+            CompactStopBand(cents=COMPACT_DEFAULT_BAND_FAR_CENTS, max_stops=None),
         ]
     )
-    route_minimum_cents: int = 5000
+    route_minimum_cents: int = COMPACT_DEFAULT_ROUTE_MINIMUM_CENTS
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -115,6 +127,9 @@ class MerchantSchedule:
     route_minimums_cents: dict[str, int] = field(default_factory=dict)
     compact: CompactSchedule = field(default_factory=CompactSchedule)
     size_match: str = SIZE_MATCH_ALL
+    #: Id of a checked-in contract schedule (`contract_schedule.SCHEDULE_FILES`).
+    #: When set on an FSA-model merchant it prices the route and defines coverage.
+    contract_schedule: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -125,6 +140,7 @@ class MerchantSchedule:
             "route_minimums_cents": dict(self.route_minimums_cents),
             "compact": self.compact.to_dict(),
             "size_match": self.size_match,
+            "contract_schedule": self.contract_schedule,
         }
 
 
@@ -161,12 +177,8 @@ def _compact_from_dict(raw: Any) -> CompactSchedule:
             else ["sedan_suv", "sedan", "suv"]
         ),
         max_packed_inches=packed_t,
-        parcels_per_stop=max(_i(raw.get("parcels_per_stop"), 3), 1),
-        stop_rates=bands
-        or [
-            CompactStopBand(cents=1000, max_stops=4),
-            CompactStopBand(cents=600, max_stops=None),
-        ],
+        parcels_per_stop=max(_i(raw.get("parcels_per_stop"), COMPACT_DEFAULT_PARCELS_PER_STOP), 1),
+        stop_rates=bands or CompactSchedule().stop_rates,
         route_minimum_cents=max(_i(raw.get("route_minimum_cents")), 0),
     )
 
@@ -210,6 +222,7 @@ def schedule_from_dict(raw: Any) -> MerchantSchedule:
         route_minimums_cents=mins,
         compact=_compact_from_dict(raw.get("compact")),
         size_match=size_match if size_match in SIZE_MATCHES else SIZE_MATCH_ALL,
+        contract_schedule=str(raw.get("contract_schedule") or "").strip() or None,
     )
 
 
@@ -368,15 +381,11 @@ def size_tier_from_dict(raw: Any) -> SizeTier | None:
 class MerchantPricingPolicy:
     """Platform defaults until a merchant is configured otherwise."""
 
-    pricing_model: str = MODEL_AUTO
+    pricing_model: str = MODEL_DISTANCE
     charge_downtown: bool = True
     charge_upper_zone: bool = True
     size_tiers: list[SizeTier] = field(default_factory=list)
     schedule: MerchantSchedule = field(default_factory=MerchantSchedule)
-
-    @property
-    def suppresses_location_fees(self) -> bool:
-        return not (self.charge_downtown and self.charge_upper_zone)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -394,7 +403,7 @@ def policy_from_config(config: dict[str, Any] | None) -> MerchantPricingPolicy:
     """Read the policy out of a merchant's `pricing_config`, ignoring junk."""
     cfg = config if isinstance(config, dict) else {}
 
-    model = str(cfg.get("pricing_model") or MODEL_AUTO).lower()
+    model = str(cfg.get("pricing_model") or MODEL_DISTANCE).lower()
     surcharges = cfg.get("surcharges")
     surcharges = surcharges if isinstance(surcharges, dict) else {}
 
@@ -402,7 +411,7 @@ def policy_from_config(config: dict[str, Any] | None) -> MerchantPricingPolicy:
     tiers = [t for t in (size_tier_from_dict(r) for r in tiers_raw) if t] if isinstance(tiers_raw, list) else []
 
     return MerchantPricingPolicy(
-        pricing_model=model if model in PRICING_MODELS else MODEL_AUTO,
+        pricing_model=model if model in PRICING_MODELS else MODEL_DISTANCE,
         charge_downtown=_b(surcharges.get("downtown"), True),
         charge_upper_zone=_b(surcharges.get("upper_zone"), True),
         size_tiers=tiers,

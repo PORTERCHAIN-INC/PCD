@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { billingApi } from "@/lib/billing";
-import { pricingModelLabel, type MerchantRateCard } from "@/lib/rate-card";
+import { COMPACT_SCHEDULE_DEFAULTS, pricingModelLabel } from "@porterchain/types";
+import type { MerchantRateCard } from "@/lib/rate-card";
 import { formatCents } from "@/lib/utils";
 
 export function RateCardPanel({
@@ -83,7 +84,10 @@ export function RateCardPanel({
                           <p className="text-muted">
                             {(card.schedule.compact.vehicle_classes || []).join(", ") ||
                               "Compact vehicles"}{" "}
-                            · {card.schedule.compact.parcels_per_stop ?? 3} parcels / stop · min{" "}
+                            ·{" "}
+                            {card.schedule.compact.parcels_per_stop ??
+                              COMPACT_SCHEDULE_DEFAULTS.parcels_per_stop}{" "}
+                            parcels / stop · min{" "}
                             {formatCents(card.schedule.compact.route_minimum_cents)}
                           </p>
                           {(card.schedule.compact.stop_rates_cents || []).length > 0 ? (

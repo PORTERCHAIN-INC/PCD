@@ -1,6 +1,7 @@
 """FSA rates inside a full quote: precedence, replacement and surcharge handling."""
 
 from porterchain_pricing.engine import PricingEngine
+from porterchain_pricing.policy import MerchantPricingPolicy
 from porterchain_pricing.types import (
     FsaRateRecord,
     GeoPoint,
@@ -27,6 +28,8 @@ def _request(**kw) -> PricingRequest:
 
 
 def _ctx(rates: list[FsaRateRecord] | None = None, **kw) -> PricingContext:
+    # FSA flat rates only apply to merchants explicitly on pricing_model="fsa".
+    kw.setdefault("merchant_policy", MerchantPricingPolicy(pricing_model="fsa"))
     ctx = PricingContext(**kw)
     ctx.fsa_rates = rates or []
     return ctx
@@ -40,6 +43,24 @@ def test_without_a_matching_rate_the_gta_matrix_still_prices_the_trip():
     result = PricingEngine().calculate(_request(), _ctx())
     assert result.metadata["pricing_model"] == "gta_delivery_rate"
     assert "fsa_rate" not in _codes(result)
+
+
+def test_a_distance_merchant_ignores_fsa_rates():
+    """No implicit "auto" model: distance merchants never get an FSA flat rate."""
+    rates = [FsaRateRecord(id="r1", dest_fsa="M5V", flat_cents=1800, merchant_id="m1")]
+    ctx = _ctx(rates, merchant_policy=MerchantPricingPolicy(pricing_model="distance"))
+    result = PricingEngine().calculate(_request(), ctx)
+    assert result.metadata["pricing_model"] == "gta_delivery_rate"
+    assert "fsa_rate" not in _codes(result)
+    assert not result.metadata.get("fsa_fallback")
+
+
+def test_a_default_policy_is_distance():
+    rates = [FsaRateRecord(id="r1", dest_fsa="M5V", flat_cents=1800, merchant_id="m1")]
+    ctx = PricingContext()
+    ctx.fsa_rates = rates
+    result = PricingEngine().calculate(_request(), ctx)
+    assert result.metadata["pricing_model"] == "gta_delivery_rate"
 
 
 def test_a_matching_rate_replaces_the_distance_charge():

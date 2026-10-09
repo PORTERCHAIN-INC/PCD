@@ -177,14 +177,34 @@ class ContractService:
                 if amount:
                     breakdown.add_item("custom_rule", rule.get("label", "Custom rule"), amount)
 
-            volume_discounts = config.get("volume_discounts", [])
-            for tier in sorted(volume_discounts, key=lambda t: t.get("min_units", 0), reverse=True):
-                min_units = int(tier.get("min_units", 0))
-                if request.volume_units >= min_units:
-                    pct = float(tier.get("discount_percent", 0))
-                    if pct:
-                        discount = int(breakdown.subtotal_cents * pct / 100) if breakdown.subtotal_cents else 0
-                        if discount:
-                            breakdown.discount_cents += discount
-                            breakdown.add_item("volume_discount", f"Volume discount ({pct}%)", -discount)
-                    break
+    def apply_volume_discount(
+        self,
+        request: PricingRequest,
+        ctx: PricingContext,
+        breakdown: PriceBreakdown,
+    ) -> None:
+        """
+        Merchant `pricing_config.volume_discounts` — percent off the charges on
+        the quote once the base (contract / FSA / GTA / compact), size, wait and
+        minimums are in. Runs before fuel and tax so both see the discounted base.
+        """
+        if request.channel != "merchant":
+            return
+        config = ctx.merchant_pricing_config or {}
+        volume_discounts = config.get("volume_discounts") or []
+        if not isinstance(volume_discounts, list):
+            return
+        charges = sum(i.amount_cents for i in breakdown.items if i.amount_cents > 0)
+        if charges <= 0:
+            return
+        tiers = [t for t in volume_discounts if isinstance(t, dict)]
+        for tier in sorted(tiers, key=lambda t: t.get("min_units", 0), reverse=True):
+            min_units = int(tier.get("min_units", 0))
+            if request.volume_units < min_units:
+                continue
+            pct = float(tier.get("discount_percent", 0))
+            discount = int(charges * pct / 100) if pct else 0
+            if discount:
+                breakdown.discount_cents += discount
+                breakdown.add_item("volume_discount", f"Volume discount ({pct:g}%)", -discount)
+            break

@@ -1,6 +1,6 @@
 import { adminFetch } from "@/lib/api";
 import type { Activity, Contract, Invoice, Task } from "@/lib/crm";
-import { CAPACITY_CLASS_IDS, vehicleLabel } from "@porterchain/types";
+import { CAPACITY_CLASS_IDS, COMPACT_SCHEDULE_DEFAULTS, vehicleLabel } from "@porterchain/types";
 
 export type MerchantRow = {
   id: string;
@@ -460,6 +460,8 @@ export type MerchantSchedule = {
   route_minimums_cents: Record<string, number>;
   compact: MerchantScheduleCompact;
   size_match: "all" | "any";
+  /** Checked-in contract schedule id (e.g. "kaylulu-2026-09"); prices the route when set. */
+  contract_schedule?: string | null;
 };
 
 export const DEFAULT_MERCHANT_SCHEDULE: MerchantSchedule = {
@@ -472,14 +474,12 @@ export const DEFAULT_MERCHANT_SCHEDULE: MerchantSchedule = {
     enabled: false,
     vehicle_classes: ["sedan_suv", "sedan", "suv"],
     max_packed_inches: [10, 10],
-    parcels_per_stop: 3,
-    stop_rates_cents: [
-      { max_stops: 4, cents: 1000 },
-      { max_stops: null, cents: 600 },
-    ],
-    route_minimum_cents: 5000,
+    parcels_per_stop: COMPACT_SCHEDULE_DEFAULTS.parcels_per_stop,
+    stop_rates_cents: COMPACT_SCHEDULE_DEFAULTS.stop_rates_cents.map((band) => ({ ...band })),
+    route_minimum_cents: COMPACT_SCHEDULE_DEFAULTS.route_minimum_cents,
   },
   size_match: "all",
+  contract_schedule: null,
 };
 
 export type MerchantPricing = {
@@ -551,12 +551,6 @@ export type MerchantRateCard = {
   platform_fsa_rate_count: number;
   currency: string;
 };
-
-export function pricingModelLabel(model: string): string {
-  if (model === "fsa") return "Ontario FSA flat rates";
-  if (model === "distance") return "Distance and vehicle";
-  return "Distance and vehicle";
-}
 
 export type MerchantPricingDetail = MerchantPricing & {
   merchant_id: string;

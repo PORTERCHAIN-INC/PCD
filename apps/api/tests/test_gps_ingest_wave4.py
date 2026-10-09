@@ -12,7 +12,8 @@ from porterchain_api.admin_engine.live_map_service import _density_cells
 from porterchain_api.merchant_engine.import_route_optimize import optimize_drop_order_with_source
 from porterchain_driver.next_stop import NextStopResolver
 from porterchain_driver.route_optimizer import DriverRouteOptimizer
-from porterchain_pricing.gta_rate import calculate_gta_delivery_rate, is_downtown_point, is_upper_zone_point
+from porterchain_pricing.components import LocationSurchargeService
+from porterchain_pricing.gta_rate import is_downtown_point, is_upper_zone_point
 from porterchain_pricing.types import GeoPoint
 from porterchain_pricing.zone import DEFAULT_ZONES, ZoneService
 from porterchain_services.maps.service import MapsService
@@ -71,15 +72,15 @@ class TestZoneAabbParity:
             assert got is not None
             assert got.code == old_code(lat, lng)
 
-    def test_gta_cad_boxes_unchanged(self):
-        assert is_downtown_point(GeoPoint(lat=43.65, lng=-79.38)) is True
-        assert is_downtown_point(GeoPoint(lat=43.68, lng=-79.38)) is False
-        assert is_upper_zone_point(GeoPoint(lat=43.85, lng=-79.30)) is True
-        result = calculate_gta_delivery_rate(
-            vehicle_type="suv", total_km=10, is_downtown=True, is_upper_zone=True
-        )
-        assert result.total_cad == 85.0
-        assert result.vehicle_type == "sedan_suv"
+    def test_gta_location_fees_are_fsa_based(self):
+        assert is_downtown_point(GeoPoint(lat=43.65, lng=-79.38, postal="M5X 1A9")) is True
+        # Etobicoke sits south of the old Bloor latitude box but is not downtown.
+        assert is_downtown_point(GeoPoint(lat=43.60, lng=-79.50, postal="M8W 1A1")) is False
+        # Coordinates alone never add a surcharge.
+        assert is_downtown_point(GeoPoint(lat=43.65, lng=-79.38)) is False
+        assert is_upper_zone_point(GeoPoint(lat=43.85, lng=-79.30, postal="L3R 0A1")) is True
+        q = LocationSurchargeService().quote(is_downtown=True, is_upper_zone=True)
+        assert q.total_cents == 4000
         assert "isochrone" not in inspect.getsource(is_downtown_point)
         assert "isochrone" not in inspect.getsource(is_upper_zone_point)
 
@@ -199,5 +200,11 @@ class TestOptimizerMatrix:
 class TestIsochroneHelper:
     def test_isochrone_exists_and_cad_does_not_call_it(self):
         assert callable(MapsService.isochrone)
-        src = inspect.getsource(calculate_gta_delivery_rate)
-        assert "isochrone" not in src
+        from porterchain_pricing import gta_rate
+
+        # Comment mentions the word; executable code must not call it.
+        for line in inspect.getsource(gta_rate).splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            assert "isochrone(" not in stripped

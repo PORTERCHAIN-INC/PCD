@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_models import PricingFsaRate
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.schemas_pricing import FsaRateBody, FsaRateOut
-from porterchain_pricing.components import normalize_fsa
+from porterchain_pricing.components import is_ontario_fsa, normalize_fsa
 from porterchain_pricing.gta150_fsa import is_gta150_fsa
 
 
@@ -31,7 +31,21 @@ class FsaAdminService:
             raise ValueError(f"{field}_invalid: expected a form like M5V")
         if require_in_tile and not is_gta150_fsa(normalized):
             raise ValueError(f"{field}_out_of_gta150_tile: {normalized}")
+        if not is_ontario_fsa(normalized):
+            raise ValueError(f"{field}_outside_ontario: {normalized}")
         return normalized
+
+    def dest_tile_required(self, db: Session, merchant_id: str | None) -> bool:
+        """
+        Platform rows and distance merchants stay on the GTA tile. An FSA-model
+        merchant's own table defines its coverage, so it may rate any Ontario FSA.
+        """
+        if not merchant_id:
+            return True
+        from porterchain_api.admin_engine.merchant_service import AdminMerchantService
+
+        merchant = AdminMerchantService().get_merchant(db, merchant_id)
+        return getattr(merchant, "pricing_model", None) != "fsa"
 
     def to_out(self, row: PricingFsaRate) -> FsaRateOut:
         return FsaRateOut(
@@ -60,7 +74,12 @@ class FsaAdminService:
 
     def create_rate(self, db: Session, body: FsaRateBody) -> FsaRateOut:
         row = PricingFsaRate(
-            dest_fsa=self.validated_fsa(body.dest_fsa, field="dest_fsa", required=True),
+            dest_fsa=self.validated_fsa(
+                body.dest_fsa,
+                field="dest_fsa",
+                required=True,
+                require_in_tile=self.dest_tile_required(db, body.merchant_id),
+            ),
             origin_fsa=self.validated_fsa(body.origin_fsa, field="origin_fsa", required=False),
             flat_cents=body.flat_cents,
             merchant_id=body.merchant_id,
@@ -83,7 +102,12 @@ class FsaAdminService:
         row = db.query(PricingFsaRate).filter(PricingFsaRate.id == rate_id).first()
         if not row:
             raise LookupError("fsa_rate_not_found")
-        row.dest_fsa = self.validated_fsa(body.dest_fsa, field="dest_fsa", required=True)
+        row.dest_fsa = self.validated_fsa(
+            body.dest_fsa,
+            field="dest_fsa",
+            required=True,
+            require_in_tile=self.dest_tile_required(db, body.merchant_id),
+        )
         row.origin_fsa = self.validated_fsa(body.origin_fsa, field="origin_fsa", required=False)
         row.flat_cents = body.flat_cents
         row.merchant_id = body.merchant_id
@@ -111,14 +135,20 @@ class FsaAdminService:
         *,
         merchant_id: str | None = None,
     ) -> dict[str, Any]:
-        """Create or update dest_fsa flats. Rejects out-of-tile codes (no silent Ottawa K*)."""
+        """Create or update dest_fsa flats. Out-of-tile codes are rejected except on
+        an FSA-model merchant's own table (no silent Ottawa K* on platform rows)."""
         created = updated = 0
         errors: list[dict[str, str]] = []
+        tile_required: dict[str | None, bool] = {}
         for i, body in enumerate(rows):
             try:
-                dest = self.validated_fsa(body.dest_fsa, field="dest_fsa", required=True)
-                origin = self.validated_fsa(body.origin_fsa, field="origin_fsa", required=False)
                 mid = merchant_id if merchant_id is not None else body.merchant_id
+                if mid not in tile_required:
+                    tile_required[mid] = self.dest_tile_required(db, mid)
+                dest = self.validated_fsa(
+                    body.dest_fsa, field="dest_fsa", required=True, require_in_tile=tile_required[mid]
+                )
+                origin = self.validated_fsa(body.origin_fsa, field="origin_fsa", required=False)
                 q = db.query(PricingFsaRate).filter(PricingFsaRate.dest_fsa == dest)
                 if mid is not None:
                     q = q.filter(PricingFsaRate.merchant_id == mid)
@@ -172,8 +202,9 @@ class FsaAdminService:
             "error_count": len(errors),
             "errors": errors[:40],
             "note": (
-                "Out-of-tile FSAs are rejected. Unrated in-tile destinations "
-                "use Valhalla distance floor when pricing_model=fsa."
+                "Out-of-tile FSAs are rejected unless the rows belong to an FSA-model "
+                "merchant. Unrated in-tile destinations use the distance floor when "
+                "the merchant falls back to distance."
             ),
         }
 

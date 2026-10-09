@@ -147,20 +147,8 @@ DEFAULTS: dict[str, Any] = {
         "dispatch_retry_seconds": 60,
     },
     "vehicle_types": None,  # filled below from customer_goods so one catalog is the source
-    # GTA delivery rate matrix — CAD dollars; keys match vehicle_types ids
-    "pricing_gta_rate": {
-        "base_km_limit": 20.0,
-        "downtown_fee_cad": 25.0,
-        "upper_zone_fee_cad": 15.0,
-        "vehicles": {
-            "sedan_suv": {"base_price": 45.0, "extra_km_rate": 1.25, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "pickup": {"base_price": 60.0, "extra_km_rate": 1.90, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "cargo_van": {"base_price": 65.0, "extra_km_rate": 2.0, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "sprinter_van": {"base_price": 75.0, "extra_km_rate": 2.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "box_16": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-            "box_20": {"base_price": 125.0, "extra_km_rate": 3.5, "extra_pick_fee": 20.0, "extra_drop_fee": 15.0},
-        },
-    },
+    # GTA delivery rate matrix — filled below from porterchain_pricing (one source of defaults)
+    "pricing_gta_rate": None,
     "pricing_customer_distance": None,
     "pricing_tax": {"hst_percent": 13.0, "tax_included": False, "exempt_merchant_ids": []},
     "pricing_fuel": {
@@ -187,9 +175,11 @@ DEFAULTS: dict[str, Any] = {
 }
 
 from porterchain_api.domain.customer_goods import default_customer_pricing, default_vehicle_catalog
+from porterchain_pricing.gta_rate import default_gta_rate_config
 
 DEFAULTS["vehicle_types"] = default_vehicle_catalog()
 DEFAULTS["pricing_customer_distance"] = default_customer_pricing()
+DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
 
 
 def _is_pending_subject(subject: str | None) -> bool:

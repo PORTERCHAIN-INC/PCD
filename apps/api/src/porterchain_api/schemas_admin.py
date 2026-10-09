@@ -1,7 +1,12 @@
 from datetime import date, datetime
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from porterchain_pricing.policy import (
+    COMPACT_DEFAULT_PARCELS_PER_STOP,
+    COMPACT_DEFAULT_ROUTE_MINIMUM_CENTS,
+    CompactSchedule,
+)
 
 BlogTag = Annotated[str, Field(max_length=40)]
 
@@ -73,17 +78,16 @@ class MerchantSurcharges(BaseModel):
 
 
 class MerchantScheduleCompact(BaseModel):
+    """Defaults come from porterchain_pricing.policy.CompactSchedule (one place)."""
+
     enabled: bool = False
     vehicle_classes: list[str] = Field(default_factory=lambda: ["sedan_suv", "sedan", "suv"])
     max_packed_inches: list[float] = Field(default_factory=lambda: [10.0, 10.0])
-    parcels_per_stop: int = Field(default=3, ge=1)
+    parcels_per_stop: int = Field(default=COMPACT_DEFAULT_PARCELS_PER_STOP, ge=1)
     stop_rates_cents: list[dict[str, Any]] = Field(
-        default_factory=lambda: [
-            {"max_stops": 4, "cents": 1000},
-            {"max_stops": None, "cents": 600},
-        ]
+        default_factory=lambda: CompactSchedule().to_dict()["stop_rates_cents"]
     )
-    route_minimum_cents: int = Field(default=5000, ge=0)
+    route_minimum_cents: int = Field(default=COMPACT_DEFAULT_ROUTE_MINIMUM_CENTS, ge=0)
 
 
 class MerchantSchedule(BaseModel):
@@ -96,6 +100,18 @@ class MerchantSchedule(BaseModel):
     route_minimums_cents: dict[str, int] = Field(default_factory=dict)
     compact: MerchantScheduleCompact = Field(default_factory=MerchantScheduleCompact)
     size_match: Literal["all", "any"] = "all"
+    #: Checked-in contract schedule id (porterchain_pricing.contract_schedule).
+    contract_schedule: str | None = None
+
+    @field_validator("contract_schedule")
+    @classmethod
+    def _known_contract_schedule(cls, value: str | None) -> str | None:
+        from porterchain_pricing.contract_schedule import SCHEDULE_FILES
+
+        value = (value or "").strip() or None
+        if value is not None and value not in SCHEDULE_FILES:
+            raise ValueError(f"unknown contract_schedule: {value}")
+        return value
 
 
 class MerchantPricingRequest(BaseModel):

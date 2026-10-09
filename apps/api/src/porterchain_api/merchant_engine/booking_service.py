@@ -25,13 +25,14 @@ from porterchain_api.booking_engine.order_metadata import resolve_order_type
 from porterchain_api.services.routing import resolve_route_distance
 from porterchain_pricing import GeoPoint, PricingRequest
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError
-from porterchain_api.merchant_engine.service_area import assert_ontario_booking
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError, assert_not_fsa_refused
+from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_engine.stop_cargo import (
     book_stops_for_request,
     cargo_rollup,
     cargo_stop,
     packages_from_stops,
+    parcels_for_pricing,
     parse_dt,
     pickup_stop,
 )
@@ -161,6 +162,7 @@ class MerchantBookingService:
             volume_units=volume_units,
             requires_liftgate=body.requires_liftgate,
             parcel_count=parcel_count,
+            parcels=parcels_for_pricing(body),
         )
 
     def find_by_idempotency_key(
@@ -223,7 +225,7 @@ class MerchantBookingService:
                 "merchant_not_active",
                 f"Merchant must be ACTIVE to book (status={ctx.merchant.status}).",
             )
-        assert_ontario_booking(body)
+        assert_ontario_booking(body, extra_fsas=merchant_coverage_fsas(db, ctx.merchant))
         assert_pickup_window(body)
 
         # Explicit caller flag only — org profile preference must not silently dry-run.
@@ -235,6 +237,7 @@ class MerchantBookingService:
         dropoff = body.dropoff
         pricing_request = self.build_pricing_request(ctx, body)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
+        assert_not_fsa_refused(breakdown)
         amount_cents = breakdown.final_cents
 
         # WORKFLOW: validate merchant → pricing → contract → payment terms

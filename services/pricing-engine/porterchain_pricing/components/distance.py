@@ -1,7 +1,7 @@
 """
 Distance component — base fare covering the first N km, then a per-km rate.
 
-Extracted from `calculate_gta_delivery_rate` so a route can price distance on
+Distance component of the GTA matrix so a route can price distance on
 its own without pulling in stop fees or location surcharges.
 """
 

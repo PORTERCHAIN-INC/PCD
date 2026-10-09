@@ -13,8 +13,16 @@ from porterchain_pricing.components import (
     normalize_fsa,
 )
 from porterchain_pricing.components.size_weight import parse_volume_cm3
-from porterchain_pricing.gta_rate import calculate_gta_delivery_rate, default_gta_rate_config
-from porterchain_pricing.types import FsaRateRecord, GeoPoint, SizeWeightConfig
+from porterchain_pricing.engine import PricingEngine
+from porterchain_pricing.gta_rate import default_gta_rate_config
+from porterchain_pricing.types import (
+    FsaRateRecord,
+    GeoPoint,
+    PricingContext,
+    PricingRequest,
+    SizeWeightConfig,
+    TaxConfig,
+)
 
 
 # ------------------------------------------------------------------ distance
@@ -75,11 +83,25 @@ def test_each_location_fee_applies_at_most_once():
 # -------------------------------------------------------- distance ≡ matrix
 
 
-def test_components_sum_to_the_gta_matrix_total():
-    """The matrix is built from the components, so the two must never diverge."""
+def test_components_sum_to_the_engine_distance_total():
+    """The engine's distance quote is built from the components; the two must never diverge."""
     cfg = default_gta_rate_config()
     args = dict(vehicle_type="box_truck", total_km=45.0, total_pickups=2, total_drops=3)
-    matrix = calculate_gta_delivery_rate(**args, is_downtown=True, is_upper_zone=True, config=cfg)
+    req = PricingRequest(
+        pickup=GeoPoint(lat=43.65, lng=-79.38),
+        dropoff=GeoPoint(lat=43.70, lng=-79.40),
+        vehicle_class=args["vehicle_type"],
+        channel="merchant",
+        merchant_id="m-1",
+        distance_meters=int(args["total_km"] * 1000),
+        total_pickups=args["total_pickups"],
+        total_drops=args["total_drops"],
+        is_downtown=True,
+        is_upper_zone=True,
+    )
+    engine_cents = PricingEngine().calculate(
+        req, PricingContext(gta_rate=cfg, tax=TaxConfig(hst_percent=0.0))
+    ).final_cents
 
     parts = (
         DistanceRateService().quote(
@@ -95,7 +117,7 @@ def test_components_sum_to_the_gta_matrix_total():
         .quote(is_downtown=True, is_upper_zone=True, config=cfg)
         .total_cents
     )
-    assert parts == int(round(matrix.total_cad * 100))
+    assert parts == engine_cents
 
 
 # --------------------------------------------------------------- size/weight

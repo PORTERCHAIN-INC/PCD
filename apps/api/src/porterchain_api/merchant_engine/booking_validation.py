@@ -9,6 +9,7 @@ logistics-engine entry point that guards what is allowed to be dispatched.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -24,6 +25,27 @@ class BookingValidationError(Exception):
         self.code = code
         self.message = message
         super().__init__(f"{code}: {message}")
+
+
+FSA_REFUSED_MESSAGE = (
+    "No FSA flat rate covers this destination, and this account does not fall back to distance pricing."
+)
+
+
+CUSTOM_QUOTE_MESSAGE = (
+    "This route needs a custom quotation under your rate schedule ({reason}). "
+    "Contact PorterChain to book it."
+)
+
+
+def assert_not_fsa_refused(breakdown: Any) -> None:
+    """A refused FSA miss finalizes at $0 — never preview, book, or build it as a price."""
+    meta = getattr(breakdown, "metadata", None)
+    if isinstance(meta, dict) and meta.get("fsa_refused"):
+        if meta.get("custom_quote"):
+            reason = str(meta.get("custom_quote_reason") or "custom_quote").replace("_", " ")
+            raise BookingValidationError("fsa_refused", CUSTOM_QUOTE_MESSAGE.format(reason=reason))
+        raise BookingValidationError("fsa_refused", FSA_REFUSED_MESSAGE)
 
 
 @dataclass(frozen=True)

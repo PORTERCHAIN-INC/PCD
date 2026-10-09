@@ -18,7 +18,7 @@ from porterchain_api.booking_engine.site_access import (
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import BookingDraftState
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError, MerchantSyncService
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError, MerchantSyncService, assert_not_fsa_refused
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.rbac import MerchantContext
@@ -111,14 +111,14 @@ class MerchantBookingFlowService:
             return {"valid": False, "address_errors": address_errors}
 
         try:
-            from porterchain_api.merchant_engine.service_area import assert_ontario_booking
+            from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
             from porterchain_api.merchant_engine.booking_service import (
                 _assert_credit_headroom,
                 assert_pickup_window,
             )
             from porterchain_api.merchant_engine.stop_cargo import cargo_rollup
 
-            assert_ontario_booking(body)
+            assert_ontario_booking(body, extra_fsas=merchant_coverage_fsas(db, ctx.merchant))
             assert_pickup_window(body)
             _assert_credit_headroom(db, ctx)
         except BookingValidationError as exc:
@@ -135,10 +135,9 @@ class MerchantBookingFlowService:
 
         pricing_request = self._booking.build_pricing_request(ctx, body, vehicle_class=vehicle_class)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
-        amount_cents = breakdown.final_cents
-
         try:
-            validated = self._sync.validate_booking(db, ctx.merchant, amount_cents=amount_cents)
+            assert_not_fsa_refused(breakdown)
+            validated = self._sync.validate_booking(db, ctx.merchant, amount_cents=breakdown.final_cents)
             contract_pricing = bool(validated.contract_id)
             warnings = list(validated.warnings)
         except BookingValidationError as exc:
@@ -160,7 +159,7 @@ class MerchantBookingFlowService:
 
         return {
             "valid": True,
-            "amount_cents": amount_cents,
+            "amount_cents": breakdown.final_cents,
             "currency": "cad",
             "vehicle_class": vehicle_class,
             "vehicle_recommendation": vehicle_hint,

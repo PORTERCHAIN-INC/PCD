@@ -14,73 +14,38 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.states import QuoteState
 from porterchain_api.booking_models import Quote
 from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem, WebsitePricingSnapshot
-from porterchain_api.services.pricing import _request_from_quote_body, expire_quote_if_needed
+from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem
+from porterchain_api.pricing_engine.quote_bridge import (
+    _request_from_quote_body,
+    expire_quote_if_needed,
+    revalidate_retail_quote,
+)
 
 
-def _website_breakdown_to_line_items(
-    snapshot: WebsitePricingSnapshot,
-) -> list[PricingLineItem]:
-    breakdown = snapshot.breakdown
-    customer_price = snapshot.customer_price_cad
-    subtotal = float(breakdown.get("subtotal", 0))
-    adjusted_cost = float(breakdown.get("adjustedCost", subtotal))
-    traffic_multiplier = float(breakdown.get("trafficMultiplier", 1))
-    margin_multiplier = float(breakdown.get("marginMultiplier", 1.18))
+def _assert_in_coverage(db: Session, ends: tuple[tuple[str, Any, Any], ...]) -> None:
+    """Raise `{label}_outside_service_area` unless every end is in the GTA ±150 km area."""
+    from porterchain_api.admin_engine.platform_settings import address_in_coverage
 
-    def cents(key_camel: str, key_snake: str, label: str, code: str) -> PricingLineItem | None:
-        amount = float(breakdown.get(key_camel, breakdown.get(key_snake, 0)))
-        if amount == 0:
-            return None
-        return PricingLineItem(code=code, label=label, amount_cents=int(round(amount * 100)))
-
-    items: list[PricingLineItem] = []
-    for item in (
-        cents("baseFee", "base_fee", "Base fee", "base"),
-        cents("distanceFee", "distance_fee", "Distance", "distance"),
-        cents("timeFee", "time_fee", "Time", "time"),
-        cents("weightFee", "weight_fee", "Weight", "weight"),
-        cents("fuelFee", "fuel_fee", "Fuel surcharge", "fuel"),
-        cents("stopFee", "stop_fee", "Additional stops", "stops"),
-        cents("helperFee", "helper_fee", "Helper", "helper"),
-    ):
-        if item:
-            items.append(item)
-
-    traffic_delta = adjusted_cost - subtotal
-    if traffic_delta != 0:
-        items.append(
-            PricingLineItem(
-                code="traffic",
-                label=f"Traffic adjustment (×{traffic_multiplier:.2f})",
-                amount_cents=int(round(traffic_delta * 100)),
-            )
-        )
-
-    margin_delta = customer_price - adjusted_cost
-    if margin_delta != 0:
-        items.append(
-            PricingLineItem(
-                code="margin",
-                label=f"Service fee (×{margin_multiplier:.2f})",
-                amount_cents=int(round(margin_delta * 100)),
-            )
-        )
-
-    return items
+    for label, formatted, postal in ends:
+        if not address_in_coverage(
+            db,
+            formatted=formatted if isinstance(formatted, str) else None,
+            postal=postal if isinstance(postal, str) else None,
+        ):
+            raise ValueError(f"{label}_outside_service_area")
 
 
-def _website_pricing_summary(snapshot: WebsitePricingSnapshot) -> dict[str, Any]:
-    return {
-        "engine": snapshot.quote_engine,
-        "customer_price_cad": snapshot.customer_price_cad,
-        "driver_payout_cad": snapshot.driver_payout_cad,
-        "platform_margin_cad": snapshot.platform_margin_cad,
-        "engine_vehicle_id": snapshot.engine_vehicle_id,
-        "duration_minutes": snapshot.duration_minutes,
-        "breakdown": snapshot.breakdown,
-        "traffic": snapshot.traffic,
-    }
+def revalidate_quote_for_payment(db: Session, quote: Quote) -> Quote:
+    """Before Stripe: quote still valid, both ends still in area, price unchanged."""
+    quote = expire_quote_if_needed(db, quote)
+    if quote.state == QuoteState.QUOTE_EXPIRED.value:
+        raise ValueError("quote_expired")
+    ends = []
+    for label, blob in (("pickup", quote.pickup), ("dropoff", quote.dropoff)):
+        data = blob if isinstance(blob, dict) else {}
+        ends.append((label, data.get("formatted"), data.get("postal")))
+    _assert_in_coverage(db, tuple(ends))
+    return revalidate_retail_quote(db, quote)
 
 
 class QuoteService:
@@ -189,7 +154,6 @@ class QuoteService:
         }
 
     def _price_body(self, db: Session, settings: Settings, body: CreateQuoteRequest) -> dict[str, Any]:
-        from porterchain_api.admin_engine.platform_settings import address_in_coverage
         from porterchain_api.admin_engine.settings_service import AdminSettingsService
         from porterchain_api.domain.customer_goods import parcels_payload, presets_from_card, resolve_load
         from porterchain_api.domain.retail_vehicles import enabled_retail_vehicle_ids
@@ -222,14 +186,14 @@ class QuoteService:
             fallback_weight_kg=body.weight_kg,
             fallback_dimensions=body.dimensions,
         )
-        pickup_formatted = getattr(body.pickup, "formatted", None) if body.pickup is not None else None
-        pickup_postal = getattr(body.pickup, "postal", None) if body.pickup is not None else None
-        if not address_in_coverage(
+        # Same GTA ±150 km tile gate on both ends as merchant / Shopify booking.
+        _assert_in_coverage(
             db,
-            formatted=pickup_formatted if isinstance(pickup_formatted, str) else None,
-            postal=pickup_postal if isinstance(pickup_postal, str) else None,
-        ):
-            raise ValueError("pickup_outside_service_area")
+            (
+                ("pickup", getattr(body.pickup, "formatted", None), getattr(body.pickup, "postal", None)),
+                ("dropoff", getattr(body.dropoff, "formatted", None), getattr(body.dropoff, "postal", None)),
+            ),
+        )
 
         request = _request_from_quote_body(
             body,

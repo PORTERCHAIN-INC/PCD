@@ -1,19 +1,18 @@
-"""Porterchain pricing bridge — delegates to porterchain_pricing engine."""
+"""Porterchain pricing bridge — retail quote helpers for the booking engine."""
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.config import Settings
+from porterchain_api.booking_models import DomainEvent, Quote
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import QuoteState
-from porterchain_api.booking_models import DomainEvent, Quote
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas import AddressInput, CreateQuoteRequest, PricingLineItem
-from porterchain_pricing import GeoPoint, PricingRequest, haversine_meters, total_route_meters
 from porterchain_api.services.routing import resolve_route_distance
+from porterchain_pricing import GeoPoint, PricingRequest
 
 
 def _geo(addr: AddressInput) -> GeoPoint:
@@ -64,62 +63,13 @@ def _request_from_quote_body(
     )
 
 
-def calculate_pricing(
-    db: Session,
-    *,
-    vehicle_class: str,
-    package_type: str,
-    distance_meters: int | None,
-    weight_kg: float | None,
-    schedule_mode: str,
-    declared_value_cents: int | None = None,
-    additional_stops_count: int = 0,
-    pickup: AddressInput | None = None,
-    dropoff: AddressInput | None = None,
-    merchant_id: str | None = None,
-    service_type: str | None = None,
-    dimensions: str | None = None,
-    scheduled_at: datetime | None = None,
-    promo_code: str | None = None,
-) -> tuple[int, list[PricingLineItem]]:
-    """Calculate price using Porterchain Pricing Engine."""
-    pickup_geo = _geo(pickup) if pickup else GeoPoint()
-    dropoff_geo = _geo(dropoff) if dropoff else GeoPoint()
-    channel = "merchant" if merchant_id else "retail"
-    request = PricingRequest(
-        pickup=pickup_geo,
-        dropoff=dropoff_geo,
-        vehicle_class=vehicle_class,
-        package_type=package_type,
-        service_type=service_type or ("scheduled" if schedule_mode == "later" else "same_day"),
-        weight_kg=weight_kg,
-        dimensions=dimensions,
-        declared_value_cents=declared_value_cents,
-        schedule_mode=schedule_mode,
-        scheduled_at=scheduled_at,
-        is_rush=schedule_mode == "now",
-        distance_meters=distance_meters,
-        channel=channel,  # type: ignore[arg-type]
-        merchant_id=merchant_id,
-        promo_code=promo_code,
-    )
-    if additional_stops_count > 0 and not pickup and not dropoff:
-        pass  # legacy callers without addresses — distance_meters already set
-
-    service = get_pricing_service(db)
-    breakdown = service.calculate_merchant(request) if merchant_id else service.calculate_retail(request)
-    items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
-    if breakdown.tax_cents and not any(i.code == "tax" for i in items):
-        items.append(PricingLineItem(code="tax", label="HST", amount_cents=breakdown.tax_cents))
-    return breakdown.final_cents, items
-
-
 def _address_from_dict(data: dict) -> AddressInput:
     return AddressInput(
         formatted=data.get("formatted", ""),
         place_id=data.get("place_id"),
         lat=data.get("lat"),
         lng=data.get("lng"),
+        postal=data.get("postal"),
     )
 
 
@@ -175,68 +125,6 @@ def _request_from_quote(quote: Quote) -> PricingRequest:
     )
 
 
-def PricingRequest_replace(request: PricingRequest, **kwargs) -> PricingRequest:
-    data = {
-        "pickup": request.pickup,
-        "dropoff": request.dropoff,
-        "vehicle_class": request.vehicle_class,
-        "package_type": request.package_type,
-        "service_type": request.service_type,
-        "weight_kg": request.weight_kg,
-        "dimensions": request.dimensions,
-        "volume_cm3": request.volume_cm3,
-        "declared_value_cents": request.declared_value_cents,
-        "schedule_mode": request.schedule_mode,
-        "scheduled_at": request.scheduled_at,
-        "is_rush": request.is_rush,
-        "additional_stops": request.additional_stops,
-        "distance_meters": request.distance_meters,
-        "estimated_duration_minutes": request.estimated_duration_minutes,
-        "routing_source": request.routing_source,
-        "channel": request.channel,
-        "merchant_id": request.merchant_id,
-        "promo_code": request.promo_code,
-        "wallet_credit_cents": request.wallet_credit_cents,
-        "referral_credit_cents": request.referral_credit_cents,
-        "volume_units": request.volume_units,
-        "requires_liftgate": request.requires_liftgate,
-        "total_pickups": request.total_pickups,
-        "total_drops": request.total_drops,
-        "is_downtown": request.is_downtown,
-        "is_upper_zone": request.is_upper_zone,
-        "wait_minutes": request.wait_minutes,
-    }
-    data.update(kwargs)
-    return PricingRequest(**data)
-
-
-def revalidate_retail_quote(db: Session, quote: Quote) -> Quote:
-    """Recalculate authoritative retail price from stored quote fields (masterrule §11)."""
-    quote = expire_quote_if_needed(db, quote)
-    if quote.state == QuoteState.QUOTE_EXPIRED.value:
-        raise ValueError("quote_expired")
-
-    service = get_pricing_service(db)
-    request = _request_from_quote(quote)
-    from porterchain_api.config import get_settings
-    from porterchain_shared.redis_health import is_local_env
-
-    if request.routing_source == "haversine" and not is_local_env(get_settings().app_env):
-        raise ValueError("route_unavailable")
-    breakdown = service.calculate_retail(request)
-    items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
-    summary = service.to_api_breakdown(breakdown)
-    if quote.pricing_breakdown and quote.pricing_breakdown.get("summary", {}).get("client_estimate_cents"):
-        summary["client_estimate_cents"] = quote.pricing_breakdown["summary"]["client_estimate_cents"]
-
-    quote.amount_cents = breakdown.final_cents
-    quote.pricing_breakdown = {"items": [i.model_dump() for i in items], "summary": summary}
-    quote.distance_meters = breakdown.metadata.get("distance_meters") or quote.distance_meters
-    db.commit()
-    db.refresh(quote)
-    return quote
-
-
 def expire_quote_if_needed(db: Session, quote: Quote, now: datetime | None = None) -> Quote:
     now = now or datetime.now(UTC)
     exp = quote.expires_at
@@ -258,41 +146,40 @@ def expire_quote_if_needed(db: Session, quote: Quote, now: datetime | None = Non
     return quote
 
 
-def create_quote(db: Session, settings: Settings, body: CreateQuoteRequest) -> Quote:
-    request = _request_from_quote_body(body)
-    service = get_pricing_service(db)
-    breakdown = service.calculate_retail(request)
-    distance_meters = breakdown.metadata.get("distance_meters")
-    items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
+def revalidate_retail_quote(db: Session, quote: Quote) -> Quote:
+    """Recalculate authoritative retail price from stored quote fields (masterrule §11).
 
-    expires_at = datetime.now(UTC) + timedelta(minutes=settings.quote_ttl_minutes)
-    quote = Quote(
-        state=QuoteState.QUOTE.value,
-        anonymous_session_id=body.anonymous_session_id,
-        pickup=body.pickup.model_dump(),
-        dropoff=body.dropoff.model_dump(),
-        vehicle_class=persist_vehicle_class(body.vehicle_class),
-        package_type=body.package_type,
-        weight_kg=body.weight_kg,
-        dimensions=body.dimensions,
-        scheduled_at=body.scheduled_at,
-        schedule_mode=body.schedule_mode,
-        amount_cents=breakdown.final_cents,
-        pricing_breakdown={"items": [i.model_dump() for i in items], "summary": service.to_api_breakdown(breakdown)},
-        distance_meters=distance_meters,
-        expires_at=expires_at,
-    )
-    db.add(quote)
-    db.flush()
-    db.add(
-        DomainEvent(
-            event_type="quote.created",
-            aggregate_type="quote",
-            aggregate_id=quote.id,
-            correlation_id=quote.id,
-            payload={"amount_cents": breakdown.final_cents},
-        )
-    )
+    If the recomputed amount differs from the quoted amount, persist the new
+    figure and raise `quote_price_changed:N` so the customer confirms before
+    Stripe charges. Coverage is checked by the caller
+    (booking_engine.quote_service.revalidate_quote_for_payment).
+    """
+    quote = expire_quote_if_needed(db, quote)
+    if quote.state == QuoteState.QUOTE_EXPIRED.value:
+        raise ValueError("quote_expired")
+
+    service = get_pricing_service(db)
+    request = _request_from_quote(quote)
+    from porterchain_api.config import get_settings
+    from porterchain_shared.redis_health import is_local_env
+
+    if request.routing_source == "haversine" and not is_local_env(get_settings().app_env):
+        raise ValueError("route_unavailable")
+    breakdown = service.calculate_retail(request)
+    items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
+    summary = service.to_api_breakdown(breakdown)
+    if quote.pricing_breakdown and quote.pricing_breakdown.get("summary", {}).get("client_estimate_cents"):
+        summary["client_estimate_cents"] = quote.pricing_breakdown["summary"]["client_estimate_cents"]
+
+    quoted = int(quote.amount_cents or 0)
+    new_cents = int(breakdown.final_cents)
+    quote.pricing_breakdown = {"items": [i.model_dump() for i in items], "summary": summary}
+    quote.distance_meters = breakdown.metadata.get("distance_meters") or quote.distance_meters
+    if new_cents != quoted:
+        quote.amount_cents = new_cents
+        db.commit()
+        db.refresh(quote)
+        raise ValueError(f"quote_price_changed:{new_cents}")
     db.commit()
     db.refresh(quote)
     return quote

@@ -19,7 +19,7 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError, assert_not_fsa_refused
 from porterchain_api.merchant_engine.lookups import get_merchant
 from porterchain_api.booking_models import Order
 from porterchain_api.pricing_engine import get_pricing_service
@@ -140,6 +140,7 @@ class OrderBuilderService:
         amount_cents = breakdown.final_cents
 
         try:
+            assert_not_fsa_refused(breakdown)
             validated = MerchantSyncService().validate_booking(
                 db, merchant, amount_cents=amount_cents
             )

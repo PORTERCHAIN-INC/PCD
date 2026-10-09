@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Button, Field, Input } from "@/components/crm/primitives";
 import { SettingsCard } from "../ui/SettingsPrimitives";
 
-import { CAPACITY_CLASS_IDS, vehicleLabel } from "@porterchain/types";
+import { CAPACITY_CLASS_IDS, DEFAULT_DOWNTOWN_FEE_CAD, vehicleLabel } from "@porterchain/types";
 
 type Rates = {
   base_price: number;
@@ -76,7 +76,7 @@ function normalize(raw: unknown): CustomerCard {
     .filter((row) => row.id);
   return {
     base_km_limit: num(src.base_km_limit, 20),
-    downtown_fee_cad: num(src.downtown_fee_cad, 25),
+    downtown_fee_cad: num(src.downtown_fee_cad, DEFAULT_DOWNTOWN_FEE_CAD),
     upper_zone_fee_cad: num(src.upper_zone_fee_cad, 15),
     weight_threshold_kg: num(src.weight_threshold_kg, 50),
     weight_cents_per_kg: num(src.weight_cents_per_kg, 0),

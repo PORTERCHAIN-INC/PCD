@@ -408,7 +408,7 @@ function CustomerBookDeliveryBody({
       }
       throw new Error("payment_unavailable");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Booking failed");
+      setError(humanQuoteError(err instanceof Error ? err.message : "Booking failed"));
     } finally {
       setLoading(false);
     }

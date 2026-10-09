@@ -246,6 +246,10 @@ def test_admin_apply_kaylulu_and_clone_pricing(client, merchant, db):
     assert len(body["size_tiers"]) == 4
     assert body["size_tiers"][1]["label"] == "Handling Tier 1"
     assert body["size_tiers"][1]["surcharge_cents"] == 3000
+    assert body["size_tiers"][3]["label"] == "Handling Tier 3 — custom quotation"
+    assert body["schedule"]["contract_schedule"] == "kaylulu-2026-09"
+    assert body["schedule"]["size_match"] == "all"
+    assert body["surcharges"] == {"downtown": False, "upper_zone": False}
 
     cloned = client.post(f"/v1/admin/merchants/{merchant.id}/pricing/clone-from/{source.id}")
     assert cloned.status_code == 200, cloned.text

@@ -211,9 +211,6 @@ class SqlAlchemyPricingRepository:
                     config=config,
                 )
             )
-        if request.promo_code:
-            # ensure requested code is searchable even if inactive filter missed
-            pass
         return promos
 
     def _load_zones(self) -> list[ZoneRecord]:

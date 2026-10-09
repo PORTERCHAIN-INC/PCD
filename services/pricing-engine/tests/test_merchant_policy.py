@@ -42,15 +42,15 @@ def _codes(b) -> list[str]:
 
 def test_an_absent_config_yields_platform_defaults():
     p = policy_from_config(None)
-    assert p.pricing_model == "auto"
+    assert p.pricing_model == "distance"
     assert p.charge_downtown and p.charge_upper_zone
     assert p.size_tiers == []
 
 
 @pytest.mark.parametrize("junk", [{"pricing_model": "nonsense"}, {"pricing_model": 42}, "notadict"])
-def test_a_malformed_model_falls_back_to_auto(junk):
+def test_a_malformed_model_falls_back_to_distance(junk):
     """pricing_config is a free-form column, so junk must not break a quote."""
-    assert policy_from_config(junk).pricing_model == "auto"
+    assert policy_from_config(junk).pricing_model == "distance"
 
 
 def test_malformed_tier_rows_are_dropped_not_fatal():

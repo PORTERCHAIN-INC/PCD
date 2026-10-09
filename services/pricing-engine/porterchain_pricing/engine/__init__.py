@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from porterchain_pricing.components.contract_route import ContractRouteService
 from porterchain_pricing.components.distance import DistanceRateService
 from porterchain_pricing.components.fsa import FsaRateService
 from porterchain_pricing.components.location import LocationSurchargeService
@@ -12,6 +13,7 @@ from porterchain_pricing.components.size_weight import (
 )
 from porterchain_pricing.components.stops import StopFeeService
 from porterchain_pricing.contract import ContractService
+from porterchain_pricing.contract_schedule import ContractSchedule, load_contract_schedule
 from porterchain_pricing.distance import estimate_duration_minutes, total_route_meters
 from porterchain_pricing.gta_rate import (
     GtaRateConfig,
@@ -20,7 +22,6 @@ from porterchain_pricing.gta_rate import (
 )
 from porterchain_pricing.policy import (
     FSA_MISS_REFUSE,
-    MODEL_DISTANCE,
     MODEL_FSA,
     MerchantPricingPolicy,
 )
@@ -51,6 +52,7 @@ class PricingEngine:
         self.location = LocationSurchargeService()
         self.size_weight = SizeWeightService()
         self.fsa = FsaRateService()
+        self.contract_route = ContractRouteService()
 
     def calculate(self, request: PricingRequest, ctx: PricingContext | None = None) -> PriceBreakdown:
         ctx = ctx or PricingContext()
@@ -92,9 +94,10 @@ class PricingEngine:
             breakdown.metadata["driver_payout_cents_preview"] = card.compute_driver_payout_cents()
 
         zone_svc = self.zones.with_context(ctx)
-        zone_code, _zone_mult = zone_svc.zone_multiplier(request.pickup, request.dropoff)
+        zone_code, zone_mult = zone_svc.zone_multiplier(request.pickup, request.dropoff)
         lane_code = zone_svc.resolve_lane(request.pickup, request.dropoff, ctx)
         breakdown.zone_code = zone_code
+        breakdown.metadata["zone_multiplier"] = zone_mult
 
         gta_cfg = ctx.gta_rate or default_gta_rate_config()
 
@@ -114,16 +117,27 @@ class PricingEngine:
                 request, ctx, breakdown, distance_km=max(distance_km, 1.0), zone_code=zone_code, lane_code=lane_code
             )
 
+        # A merchant on a checked-in contract schedule is priced per stop and
+        # per parcel from that schedule — no FSA rows, distance stop fees, zone
+        # multiplier, location surcharges or generic size tiers.
+        schedule_terms = self._contract_schedule(request, policy, breakdown)
+        route_priced = False
+        if schedule_terms is not None and breakdown.base_cents == 0:
+            if not self._apply_contract_route(request, schedule_terms, breakdown):
+                breakdown.finalize()
+                return breakdown
+            route_priced = True
+
         # Retail is the published GTA card only — injected platform FSA rows
         # must not price a website quote.
-        fsa_applied = False
         if (
-            request.channel != "retail"
+            not route_priced
+            and request.channel != "retail"
             and breakdown.base_cents == 0
             and ctx.fsa_rates
-            and policy.pricing_model != MODEL_DISTANCE
+            and policy.pricing_model == MODEL_FSA
         ):
-            fsa_applied = self._apply_fsa_rate(request, ctx, breakdown, gta_cfg=gta_cfg)
+            self._apply_fsa_rate(request, ctx, breakdown, gta_cfg=gta_cfg)
 
         if breakdown.base_cents == 0:
             if policy.pricing_model == MODEL_FSA:
@@ -134,27 +148,25 @@ class PricingEngine:
                     breakdown.finalize()
                     return breakdown
                 breakdown.metadata["fsa_fallback"] = True
-                self._apply_gta_rate(
-                    request,
-                    breakdown,
-                    distance_km=distance_km,
-                    gta_cfg=gta_cfg,
-                    policy=policy,
-                )
-            else:
-                self._apply_gta_rate(
-                    request,
-                    breakdown,
-                    distance_km=distance_km,
-                    gta_cfg=gta_cfg,
-                    policy=policy,
-                )
+            self._apply_gta_rate(
+                request,
+                breakdown,
+                distance_km=distance_km,
+                gta_cfg=gta_cfg,
+                policy=policy,
+            )
 
-        # Compact banding can replace FSA base when schedule says so.
-        if request.channel != "retail" and not breakdown.metadata.get("fsa_refused"):
-            self._apply_compact_banding(request, ctx, breakdown)
+        if not route_priced:
+            # Compact banding can replace FSA base when schedule says so.
+            if request.channel != "retail":
+                self._apply_compact_banding(request, ctx, breakdown)
 
-        self._apply_size_weight(request, ctx, breakdown)
+            # Negotiated contract prices encode their own zone / lane terms, and
+            # an FSA flat rate is an all-in price for that destination.
+            if not breakdown.contract_id and breakdown.metadata.get("pricing_model") != "fsa_flat_rate":
+                self._apply_zone_multiplier(breakdown, zone_mult)
+
+            self._apply_size_weight(request, ctx, breakdown)
 
         if request.channel == "merchant" and request.requires_liftgate and card.liftgate_cents:
             breakdown.add_item("liftgate", "Liftgate service", card.liftgate_cents)
@@ -167,8 +179,10 @@ class PricingEngine:
             breakdown.metadata["wait_minutes"] = wait_minutes
 
         if request.channel == "merchant":
-            self._apply_origin_pickup(request, policy, breakdown)
-            self._apply_route_minimum(request, ctx, policy, breakdown, fsa_applied=fsa_applied)
+            if not route_priced:
+                self._apply_origin_pickup(request, policy, breakdown)
+                self._apply_route_minimum(request, ctx, policy, breakdown)
+            self.contracts.apply_volume_discount(request, ctx, breakdown)
 
         # Customer distance fare has no fuel line. Merchant fuel is a percent of
         # the pre-tax charges, same truncation as HST. Schedule override wins.
@@ -196,6 +210,71 @@ class PricingEngine:
                 order_amount_cents=breakdown.final_cents
             )
         return breakdown
+
+    def _contract_schedule(
+        self,
+        request: PricingRequest,
+        policy: MerchantPricingPolicy,
+        breakdown: PriceBreakdown,
+    ) -> ContractSchedule | None:
+        """The checked-in schedule named by an FSA-model merchant's policy, if any."""
+        schedule_id = policy.schedule.contract_schedule
+        if request.channel != "merchant" or policy.pricing_model != MODEL_FSA or not schedule_id:
+            return None
+        terms = load_contract_schedule(schedule_id)
+        if terms is None:
+            breakdown.metadata["contract_schedule_unknown"] = schedule_id
+        return terms
+
+    def _apply_contract_route(
+        self,
+        request: PricingRequest,
+        schedule: ContractSchedule,
+        breakdown: PriceBreakdown,
+    ) -> bool:
+        """Price the whole route from the schedule. False when it is a custom quote."""
+        quote = self.contract_route.quote(request, schedule)
+        if quote.metadata.get("refused"):
+            breakdown.metadata.update(quote.metadata)
+            breakdown.metadata["fsa_refused"] = True
+            breakdown.metadata["custom_quote"] = True
+            breakdown.metadata["pricing_model"] = "fsa_refused"
+            return False
+        for item in quote.items:
+            breakdown.add_item(item.code, item.label, item.amount_cents)
+        breakdown.base_cents = quote.total_cents
+        breakdown.distance_cents = 0
+        breakdown.metadata.update(quote.metadata)
+        breakdown.metadata["pricing_model"] = "contract_route"
+        return True
+
+    def _apply_zone_multiplier(self, breakdown: PriceBreakdown, multiplier: float) -> None:
+        """
+        Scale the base charges by the admin-configured zone multiplier
+        (`pricing_zones.multiplier`). Shown as its own line so the quote stays
+        explainable; a multiplier of 1.0 (the default zones) adds nothing.
+
+        Compact banding is an all-in territory rate — zone must not scale it
+        (Ravi / pricing-audit-v2).
+        """
+        if breakdown.metadata.get("compact_banding"):
+            return
+        try:
+            mult = float(multiplier)
+        except (TypeError, ValueError):
+            return
+        if mult <= 0 or abs(mult - 1.0) < 1e-9:
+            return
+        charges = sum(i.amount_cents for i in breakdown.items if i.amount_cents > 0)
+        if charges <= 0:
+            return
+        delta = int(round(charges * (mult - 1.0)))
+        if delta == 0:
+            return
+        breakdown.add_item("zone_multiplier", f"Zone adjustment (×{mult:g})", delta)
+        breakdown.base_cents = int(round(breakdown.base_cents * mult))
+        breakdown.metadata["zone_multiplier_applied"] = mult
+        breakdown.metadata["zone_multiplier_delta_cents"] = delta
 
     def _stop_counts(self, request: PricingRequest) -> tuple[int, int]:
         pickups = request.total_pickups if request.total_pickups is not None else 1
@@ -252,9 +331,13 @@ class PricingEngine:
         Extra stops are still billed because they are extra work, not extra
         geography; location surcharges are billed only when the matching row
         says its price does not already include them.
+
+        A merchant with its own table is priced from that table only — a
+        platform-wide row must not fill a gap the merchant left unrated.
         """
+        own = [r for r in ctx.fsa_rates if r.merchant_id and r.merchant_id == request.merchant_id]
         quote = self.fsa.quote(
-            ctx.fsa_rates,
+            own or ctx.fsa_rates,
             pickup=request.pickup,
             dropoff=request.dropoff,
             merchant_id=request.merchant_id,
@@ -432,32 +515,12 @@ class PricingEngine:
         breakdown.add_item("origin_pickup", "Origin pickup", cents)
         breakdown.metadata["origin_pickup_cents"] = cents
 
-    def _matched_fsa_tier(self, request: PricingRequest, ctx: PricingContext) -> str | None:
-        """Tier from the FSA row that would price this quote, if any."""
-        quote = self.fsa.quote(
-            ctx.fsa_rates,
-            pickup=request.pickup,
-            dropoff=request.dropoff,
-            merchant_id=request.merchant_id,
-            vehicle_class=request.vehicle_class,
-        )
-        if not quote.applies:
-            return None
-        rate_id = quote.metadata.get("rate_id")
-        for row in ctx.fsa_rates:
-            if row.id == rate_id:
-                tier = (row.config or {}).get("tier")
-                return str(tier) if tier else None
-        return None
-
     def _apply_route_minimum(
         self,
         request: PricingRequest,
         ctx: PricingContext,
         policy: MerchantPricingPolicy,
         breakdown: PriceBreakdown,
-        *,
-        fsa_applied: bool,
     ) -> None:
         schedule = policy.schedule
         # Compact path has its own route minimum.
@@ -467,9 +530,8 @@ class PricingEngine:
             mins = schedule.route_minimums_cents or {}
             if not mins:
                 return
-            tier = breakdown.metadata.get("fsa_tier") or (
-                self._matched_fsa_tier(request, ctx) if fsa_applied else None
-            )
+            # `_apply_fsa_rate` records the matched row's tier; nothing else sets it.
+            tier = breakdown.metadata.get("fsa_tier")
             if not tier or tier not in mins:
                 return
             min_cents = int(mins[tier])
@@ -537,21 +599,22 @@ class PricingEngine:
             return
 
         # Replace prior base / FSA / GTA line items with compact stop charge.
-        kept = [
-            i
-            for i in breakdown.items
-            if i.code
-            not in {
-                "fsa_rate",
-                "base",
-                "distance",
-                "extra_km",
-                "extra_pickup",
-                "extra_drop",
-                "downtown",
-                "upper_zone",
-            }
-        ]
+        # Drop every geographic / distance / stop-fee line the prior base layer
+        # may have added. StopFeeService emits a single "stop_fees" code (not
+        # extra_pickup / extra_drop), so those must be listed explicitly.
+        _COMPACT_REPLACES = {
+            "fsa_rate",
+            "base",
+            "distance",
+            "extra_km",
+            "extra_pickup",
+            "extra_drop",
+            "stop_fees",
+            "downtown",
+            "upper_zone",
+            "zone_multiplier",
+        }
+        kept = [i for i in breakdown.items if i.code not in _COMPACT_REPLACES]
         breakdown.items = kept
         breakdown.base_cents = band_cents
         breakdown.distance_cents = 0

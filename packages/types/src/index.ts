@@ -40,3 +40,4 @@ export type {
 } from "./blog";
 export type { BlogAuthor } from "./blog-authors";
 export { BLOG_AUTHORS, getBlogAuthor } from "./blog-authors";
+export { COMPACT_SCHEDULE_DEFAULTS, DEFAULT_DOWNTOWN_FEE_CAD, pricingModelLabel } from "./pricing";

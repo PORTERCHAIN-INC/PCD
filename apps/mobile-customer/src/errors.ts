@@ -14,6 +14,7 @@ const COPY: Record<string, string> = {
   parcels_required: "Add a parcel, or choose the whole vehicle.",
   whole_vehicle_not_available: "Whole vehicle is not offered for this class.",
   pickup_outside_service_area: "That pickup is outside the service area.",
+  dropoff_outside_service_area: "That dropoff is outside the service area.",
   quote_not_found: "This quote expired. Get a new quote.",
   order_not_found: "Shipment not found.",
   mock_checkout_disabled: "Test checkout is not available on this server.",
@@ -29,6 +30,17 @@ const COPY: Record<string, string> = {
 export function humanCustomerError(raw: string): string {
   const key = raw.trim();
   if (COPY[key]) return COPY[key];
+  if (key.startsWith("quote_price_changed:")) {
+    const cents = Number(key.split(":")[1]);
+    if (Number.isFinite(cents)) {
+      const dollars = (cents / 100).toLocaleString("en-CA", {
+        style: "currency",
+        currency: "CAD",
+      });
+      return `The price updated to ${dollars}. Confirm again to pay the new amount.`;
+    }
+    return "The price changed. Confirm again to pay the new amount.";
+  }
   if (key.startsWith("identity_conflict")) {
     return "This sign-in is a staff, merchant, or driver account. Sign out and use a customer account.";
   }

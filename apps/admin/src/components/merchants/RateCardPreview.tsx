@@ -1,7 +1,8 @@
 "use client";
 
 import { money } from "@/lib/crmFormat";
-import { pricingModelLabel, type MerchantRateCard } from "@/lib/merchants";
+import { pricingModelLabel } from "@porterchain/types";
+import type { MerchantRateCard } from "@/lib/merchants";
 
 export default function RateCardPreview({ card }: { card: MerchantRateCard }) {
   return (
@@ -62,6 +63,12 @@ export default function RateCardPreview({ card }: { card: MerchantRateCard }) {
         </div>
         {card.schedule ? (
           <>
+            {card.schedule.contract_schedule ? (
+              <div className="flex justify-between gap-4 sm:col-span-2">
+                <dt className="text-muted">Contract schedule</dt>
+                <dd>{card.schedule.contract_schedule} (prices routes and coverage)</dd>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-4">
               <dt className="text-muted">FSA miss</dt>
               <dd>{card.schedule.fsa_miss === "refuse" ? "Refuse quote" : "Distance fallback"}</dd>

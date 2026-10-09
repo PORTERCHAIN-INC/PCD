@@ -98,6 +98,16 @@ def unpaid_non_cod(payload: dict[str, Any]) -> bool:
 
 
 def quote_id_from_order(payload: dict[str, Any]) -> str | None:
+    """Checkout rate quote id, when the order still carries it.
+
+    The rate response attaches a `quote_id` metafield, but Shopify documents no
+    way to read rate metafields back from the order, and `service_code` must
+    stay stable (`porterchain_same_day`), so it cannot carry the id. Orders
+    expose only code / title / source / carrier_identifier on shipping_lines.
+    We still honour `note_attributes` (cart attributes) and echoed line
+    metafields when present;
+    otherwise book matches on shop + destination (shopify_payload_ops).
+    """
     notes = payload.get("note_attributes")
     if isinstance(notes, list):
         for attr in notes:
