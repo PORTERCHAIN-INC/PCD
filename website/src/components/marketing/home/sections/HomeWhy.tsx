@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Calculator, Clock3, Headset, MapPinned } from "lucide-react";
+import { COVERAGE_FSA_COUNT } from "@/lib/seo/delivery-programmatic";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/marketing/ui/SectionHeader";
 
@@ -24,7 +25,7 @@ export default async function HomeWhy({ locale, promise }: { locale: string; pro
           id="home-why-heading"
           eyebrow={t("eyebrow")}
           title={t("title")}
-          lead={t("lead")}
+          lead={t("lead", { count: COVERAGE_FSA_COUNT })}
         />
         <div className="overflow-hidden rounded-3xl border border-primary/8 bg-white shadow-xl shadow-primary/5">
           <table className="w-full border-collapse text-left">

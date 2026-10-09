@@ -1,12 +1,12 @@
 import Container from "@/components/ui/Container";
 import PageBreadcrumbs, { type BreadcrumbItem } from "@/components/seo/PageBreadcrumbs";
-import DesktopHeroPicture from "@/components/marketing/ui/DesktopHeroPicture";
+import NetworkGraphic from "@/components/marketing/home/HomeHeroImage";
 import TrustBadges from "@/components/marketing/ui/TrustBadges";
 import type { VerticalPhoto } from "@/components/marketing/delivery/vertical-visuals";
 
 /**
  * Dark hero shared by the calculator and /delivery pages — same visual language as the home hero
- * (navy, blue glow, fleet photography on desktop only so mobile LCP stays the heading text).
+ * (navy, blue glow, the SVG network graphic on desktop only — no photography, so LCP is the heading text).
  */
 export default function DeliveryHero({
   locale,
@@ -60,15 +60,10 @@ export default function DeliveryHero({
           </div>
           {image ? (
             <div
-              className="relative hidden aspect-[16/10] overflow-hidden rounded-3xl shadow-2xl shadow-black/30 ring-1 ring-white/10 lg:block"
+              className="relative hidden aspect-[16/10] overflow-hidden rounded-3xl bg-white/[0.03] ring-1 ring-white/10 lg:block"
               aria-hidden
             >
-              <DesktopHeroPicture
-                src={image.src}
-                width={image.width}
-                height={image.height}
-                sizes="(min-width: 1280px) 560px, 45vw"
-              />
+              <NetworkGraphic />
             </div>
           ) : null}
         </div>

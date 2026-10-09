@@ -14,10 +14,12 @@ export default async function HomeHowItWorks({ locale }: { locale: string }) {
   return (
     <section className="bg-white" aria-labelledby="home-how-heading">
       <Container className="py-16 sm:py-24">
-        <SectionHeader id="home-how-heading" eyebrow={t("eyebrow")} title={t("title")} />
+        <div className="flex items-end justify-between gap-6">
+          <SectionHeader id="home-how-heading" eyebrow={t("eyebrow")} title={t("title")} />
+        </div>
         <ol className="relative mt-10 grid gap-4 md:grid-cols-3 md:gap-6">
           <span
-            className="absolute left-[16.5%] right-[16.5%] top-[2.375rem] hidden h-px bg-gradient-to-r from-secondary/40 via-secondary/20 to-secondary/40 md:block"
+            className="absolute left-[16.5%] right-[16.5%] top-[2.375rem] hidden h-0.5 bg-secondary/50 md:block draw-on-view"
             aria-hidden
           />
           {STEPS.map(({ id, Icon }, index) => (

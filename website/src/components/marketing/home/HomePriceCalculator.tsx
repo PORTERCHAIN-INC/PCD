@@ -1,5 +1,6 @@
 "use client";
 
+import LottieMotion from "@/components/motion/LottieMotion";
 import { useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -214,7 +215,16 @@ export default function HomePriceCalculator() {
             className="mt-4 rounded-xl border border-secondary/20 bg-secondary/[0.04] p-4"
             data-testid="home-price-result"
           >
-            <p className="text-sm font-medium text-muted">{t("resultLabel")}</p>
+            <div className="flex items-center gap-2">
+              <LottieMotion
+                src="/lottie/success-check.json"
+                aspect={1}
+                loop={false}
+                className="w-7 shrink-0"
+                testId="price-success-motion"
+              />
+              <p className="text-sm font-medium text-muted">{t("resultLabel")}</p>
+            </div>
             <p className="mt-0.5 text-3xl font-bold tracking-tight">
               {money(estimate.amount_cents)}
             </p>

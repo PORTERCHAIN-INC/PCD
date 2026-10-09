@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import SectionHeader from "@/components/marketing/ui/SectionHeader";
+import LottieMotion from "@/components/motion/LottieMotion";
 
 const STEPS = ["booked", "assigned", "pickedUp", "outForDelivery", "delivered"] as const;
 /** Index of the step currently in progress in the static sample. */
@@ -47,7 +48,14 @@ export default async function HomeTrackingDemo({ locale }: { locale: string }) {
               {t("sampleBadge")}
             </span>
           </div>
-          <p className="mt-4 text-2xl font-semibold tracking-tight text-primary">{t("eta")}</p>
+          <LottieMotion
+            src="/lottie/van-route.json"
+            aspect={3}
+            stillFrame={100}
+            className="mt-4 rounded-2xl bg-gray-bg"
+            testId="tracking-motion"
+          />
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-primary">{t("eta")}</p>
           <ol className="mt-5 space-y-0">
             {STEPS.map((step, index) => {
               const done = index < CURRENT;

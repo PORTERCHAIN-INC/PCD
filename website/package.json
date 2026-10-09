@@ -18,7 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:p0": "playwright test --grep @p0",
     "test:e2e:install": "playwright install chromium",
-    "test:seo": "tsx --test src/lib/seo/url-policy.test.mts src/i18n/client-messages.test.mts src/lib/seo/delivery-programmatic.test.mjs"
+    "test:seo": "tsx --test src/lib/seo/url-policy.test.mts src/i18n/client-messages.test.mts src/lib/seo/delivery-programmatic.test.mjs src/lib/track-status.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.13",
@@ -33,6 +33,7 @@
     "ai": "^7.0.37",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.42.2",
+    "lottie-web": "5.13.0",
     "lucide-react": "^1.23.0",
     "next": "16.3.8",
     "next-intl": "^4.13.1",

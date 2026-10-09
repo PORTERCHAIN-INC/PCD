@@ -83,8 +83,7 @@ export default async function HomeChooser({ locale }: { locale: string }) {
       >
         <div className="absolute inset-y-0 right-0 -z-10 hidden w-[62%] lg:block" aria-hidden>
           <HomeHeroImage />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary/25" />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-transparent to-primary/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/40 to-transparent" />
         </div>
         <div
           className="pointer-events-none absolute -left-40 -top-40 -z-10 h-[32rem] w-[32rem] rounded-full bg-secondary/25 blur-3xl"

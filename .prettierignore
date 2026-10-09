@@ -29,3 +29,4 @@ AppIcons (1)/
 
 # Build-time SEO manifest + blog seed — regenerate with `pnpm --dir website seo:manifest`
 website/src/generated/
+website/public/lottie/*.json

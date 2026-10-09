@@ -721,6 +721,9 @@ importers:
       framer-motion:
         specifier: ^12.42.2
         version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      lottie-web:
+        specifier: 5.13.0
+        version: 5.13.0
       lucide-react:
         specifier: ^1.23.0
         version: 1.23.0(react@19.2.7)
