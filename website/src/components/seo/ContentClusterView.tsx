@@ -100,7 +100,12 @@ export default async function ContentClusterView({
       {data.comparisonRows && data.comparisonRows.length > 0 && (
         <section className="site-section bg-gray-bg">
           <Container>
-            <div className="overflow-x-auto">
+            <div
+              className="overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label="Scrollable table"
+            >
               <table className="w-full min-w-[640px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-primary/10">

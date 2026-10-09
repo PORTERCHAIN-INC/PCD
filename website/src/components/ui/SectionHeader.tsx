@@ -1,8 +1,4 @@
-"use client";
-
-import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { easeOutExpo } from "@/lib/motion";
 
 interface SectionHeaderProps {
   label?: string;
@@ -21,14 +17,8 @@ export default function SectionHeader({
   dark = false,
   className,
 }: SectionHeaderProps) {
-  const reduce = useReducedMotion();
-
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 24, filter: "blur(6px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: reduce ? 0.2 : 0.65, ease: easeOutExpo }}
+    <div
       className={cn(
         "mb-6 sm:mb-8 md:mb-9",
         align === "center" && "text-center mx-auto max-w-3xl",
@@ -36,7 +26,15 @@ export default function SectionHeader({
       )}
     >
       {label && (
-        <span className="inline-block type-caption font-bold text-secondary mb-2">{label}</span>
+        <span
+          className={cn(
+            "inline-block type-caption font-bold mb-2",
+            // On navy sections the blue label fails AA (3.0:1); use the light accent there.
+            dark ? "text-[#93c5fd]" : "text-secondary [.bg-primary_&]:text-[#93c5fd]"
+          )}
+        >
+          {label}
+        </span>
       )}
       <h2 className={cn("type-h2 text-balance", dark ? "text-white" : "text-primary")}>{title}</h2>
       {subtitle && (
@@ -50,6 +48,6 @@ export default function SectionHeader({
           {subtitle}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }

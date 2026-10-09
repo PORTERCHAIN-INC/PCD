@@ -39,7 +39,7 @@ export default function BlogPagination({
             {previousLabel}
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-muted/40 border border-primary/[0.04] cursor-not-allowed">
+          <span className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-muted border border-primary/[0.04] cursor-not-allowed">
             <ChevronLeft className="w-4 h-4" />
             {previousLabel}
           </span>
@@ -56,7 +56,7 @@ export default function BlogPagination({
             <ChevronRight className="w-4 h-4" />
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-muted/40 border border-primary/[0.04] cursor-not-allowed">
+          <span className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-muted border border-primary/[0.04] cursor-not-allowed">
             {nextLabel}
             <ChevronRight className="w-4 h-4" />
           </span>

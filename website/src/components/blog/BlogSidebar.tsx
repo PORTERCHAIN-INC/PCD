@@ -39,7 +39,7 @@ export default function BlogSidebar({
           {trending.map((post, i) => (
             <li key={post.slug}>
               <Link href={`/blog/${post.slug}`} className="group block">
-                <span className="text-xs font-bold text-secondary/60">
+                <span className="text-xs font-bold text-secondary">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <p className="mt-1 text-sm font-medium text-primary group-hover:text-secondary transition-colors line-clamp-2 leading-snug">

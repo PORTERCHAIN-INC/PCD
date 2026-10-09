@@ -94,7 +94,7 @@ export default function PlatformAuthLayout({
             </div>
           ) : null}
 
-          <p className="mt-8 text-center text-[0.7rem] text-muted/80 sm:text-left">
+          <p className="mt-8 text-center text-xs text-muted sm:text-left">
             <Link href="/" className="transition-colors hover:text-primary">
               ← {t("backHome")}
             </Link>

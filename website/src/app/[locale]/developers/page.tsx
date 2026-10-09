@@ -147,7 +147,7 @@ export default async function DevelopersPage({ params }: Props) {
       <section className="site-section bg-white">
         <Container>
           <SectionHeader label={t("flows.label")} title={t("flows.title")} />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Scrollable table">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-primary/10 text-left">

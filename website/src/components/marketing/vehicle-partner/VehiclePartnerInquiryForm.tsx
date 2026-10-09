@@ -253,7 +253,7 @@ export default function VehiclePartnerInquiryForm({
             />
           </div>
           <p className="mt-1.5 text-xs text-muted">
-            {t("extension")} <span className="text-muted/80">({t("optional")})</span>
+            {t("extension")} <span className="text-muted">({t("optional")})</span>
           </p>
         </div>
 

@@ -25,7 +25,7 @@ export default function PageBreadcrumbs({ items, tone = "light" }: PageBreadcrum
               {item.href ? (
                 <Link
                   href={item.href}
-                  className="rounded hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="inline-flex min-h-6 items-center rounded hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
                   {item.label}
                 </Link>
@@ -51,7 +51,10 @@ export default function PageBreadcrumbs({ items, tone = "light" }: PageBreadcrum
                 <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-50" aria-hidden />
               )}
               {item.href ? (
-                <Link href={item.href} className="hover:text-primary transition-colors">
+                <Link
+                  href={item.href}
+                  className="inline-flex min-h-6 items-center hover:text-primary transition-colors"
+                >
                   {item.label}
                 </Link>
               ) : (

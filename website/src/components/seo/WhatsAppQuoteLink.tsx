@@ -27,7 +27,7 @@ export default function WhatsAppQuoteLink({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#075E54] px-5 py-3 text-sm font-semibold text-white hover:bg-[#064a42] transition-colors"
         onClick={() =>
           track(ANALYTICS_EVENTS.WHATSAPP_QUOTE_CLICK, {
             source_section: sourceSection,
