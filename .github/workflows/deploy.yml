@@ -368,6 +368,17 @@ jobs:
               fi
               exit 1
             }
+            # Bounded retries (6 attempts, ~65s) so a warming container never triggers a DB restore.
+            retry_cmd() {
+              local attempt=1
+              for delay in 5 10 15 15 20 0; do
+                if "$@"; then return 0; fi
+                [ "$delay" = 0 ] && return 1
+                echo "retry $attempt/5 in ${delay}s: $*"
+                sleep "$delay"
+                attempt=$((attempt + 1))
+              done
+            }
             bash scripts/snapshot-before-migrate.sh capture-images
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             export WEB_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
@@ -444,17 +455,17 @@ jobs:
               done
             done
             rm -f /tmp/pcd-running-images
-            curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50 caddy; exit 1)
-            docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker compose -f docker-compose.prod.yml logs --tail 80 api; exit 1)
+            retry_cmd curl -fsS -o /dev/null http://localhost:80 && echo "Caddy responding (HTTP->HTTPS)" || (docker compose -f docker-compose.prod.yml logs --tail 50 caddy; exit 1)
+            retry_cmd docker compose -f docker-compose.prod.yml exec -T api curl -fsS http://localhost:8001/health && echo " <- API healthy" || (docker compose -f docker-compose.prod.yml logs --tail 80 api; exit 1)
             echo "Smoke test: booking draft + quote..."
-            if ! docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/booking-drafts \
+            if ! retry_cmd docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/booking-drafts \
               -H 'Content-Type: application/json' \
               -d '{"session_id":"deploy-smoke-test"}' >/dev/null; then
               docker compose -f docker-compose.prod.yml logs --tail 120 api || true
               rollback_and_exit "booking-drafts smoke failed after migrate"
             fi
             echo " <- booking-drafts OK"
-            if ! docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/quotes \
+            if ! retry_cmd docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/quotes \
               -H 'Content-Type: application/json' \
               -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"vehicle","scheduled_at":"2026-07-04T12:00:00Z"}' >/dev/null; then
               docker compose -f docker-compose.prod.yml logs --tail 120 api || true
@@ -560,19 +571,40 @@ jobs:
         if: needs.plan.outputs.rollout == 'full' && steps.deploy-full.outcome == 'success'
         run: |
           set -e
-          curl -fsS https://api.porterchain.com/health | grep -q '"status":"ok"'
-          curl -fsS https://api.porterchain.com/health/ready
-          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
-          curl -fsS -o /dev/null -w "%{http_code}" https://admin.porterchain.com/sign-in | grep -q 200
-          curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/login | grep -qE '200|307|308'
-          curl -fsS -o /dev/null -w "%{http_code}" https://customer.porterchain.com/login | grep -qE '200|307|308'
+          # Bounded retries: 6 attempts over ~65s (5/10/15/15/20s backoff). Containers can
+          # answer 502/503 while warming up; a check fails only after all attempts fail.
+          retry_smoke() {
+            local desc="$1"; shift
+            local attempt=1
+            for delay in 5 10 15 15 20 0; do
+              if "$@"; then return 0; fi
+              if [ "$delay" = 0 ]; then
+                echo "::error::smoke failed after $attempt attempts: $desc"
+                return 1
+              fi
+              echo "smoke retry $attempt/5 in ${delay}s: $desc"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
+          }
+          http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
+          body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+          quote_ok() {
+            curl -fsS --max-time 30 -X POST https://api.porterchain.com/v1/quotes \
+              -H 'Content-Type: application/json' \
+              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"vehicle","scheduled_at":"2026-07-05T18:00:00Z"}' \
+              | grep -q quote_id
+          }
+          retry_smoke "api health" body_has https://api.porterchain.com/health '"status":"ok"'
+          retry_smoke "api ready" http_code_is https://api.porterchain.com/health/ready 200
+          retry_smoke "website /en" http_code_is https://porterchain.com/en 200
+          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
+          retry_smoke "merchant login" http_code_is https://merchant.porterchain.com/login '200|307|308'
+          retry_smoke "customer login" http_code_is https://customer.porterchain.com/login '200|307|308'
           # Retired Fleetbase hosts must 404 (never fall through to marketing).
-          curl -fsS -o /dev/null -w "%{http_code}" https://console.porterchain.com/ | grep -q 404
-          curl -fsS -o /dev/null -w "%{http_code}" https://fleetbase.porterchain.com/ | grep -q 404
-          curl -fsS -X POST https://api.porterchain.com/v1/quotes \
-            -H 'Content-Type: application/json' \
-            -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"vehicle","scheduled_at":"2026-07-05T18:00:00Z"}' \
-            | grep -q quote_id
+          retry_smoke "console 404" http_code_is https://console.porterchain.com/ 404
+          retry_smoke "fleetbase 404" http_code_is https://fleetbase.porterchain.com/ 404
+          retry_smoke "public quote" quote_ok
           echo "Prod D3 smoke passed"
 
       - name: Roll back pre-migrate snapshot when prod smoke fails
@@ -592,31 +624,103 @@ jobs:
         if: needs.plan.outputs.pin_website == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
-          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en | grep -q 200
-          curl -fsS https://porterchain.com/sitemap.xml | grep -q '<urlset'
-          curl -fsS -o /dev/null -w "%{http_code}" https://porterchain.com/en/toronto/trade-van-delivery | grep -q 200
+          # Bounded retries: 6 attempts over ~65s (5/10/15/15/20s backoff). Containers can
+          # answer 502/503 while warming up; a check fails only after all attempts fail.
+          retry_smoke() {
+            local desc="$1"; shift
+            local attempt=1
+            for delay in 5 10 15 15 20 0; do
+              if "$@"; then return 0; fi
+              if [ "$delay" = 0 ]; then
+                echo "::error::smoke failed after $attempt attempts: $desc"
+                return 1
+              fi
+              echo "smoke retry $attempt/5 in ${delay}s: $desc"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
+          }
+          http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
+          body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+          retry_smoke "website /en" http_code_is https://porterchain.com/en 200
+          retry_smoke "sitemap" body_has https://porterchain.com/sitemap.xml '<urlset\|<sitemapindex'
+          retry_smoke "trade-van page" http_code_is https://porterchain.com/en/toronto/trade-van-delivery 200
           echo "Website prod smoke passed"
 
       - name: Prod merchant smoke
         if: needs.plan.outputs.pin_merchant == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
-          curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/sign-in | grep -qE '200|307|308'
-          curl -fsS -o /dev/null -w "%{http_code}" "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1" | grep -q 200
+          # Bounded retries: 6 attempts over ~65s (5/10/15/15/20s backoff). Containers can
+          # answer 502/503 while warming up; a check fails only after all attempts fail.
+          retry_smoke() {
+            local desc="$1"; shift
+            local attempt=1
+            for delay in 5 10 15 15 20 0; do
+              if "$@"; then return 0; fi
+              if [ "$delay" = 0 ]; then
+                echo "::error::smoke failed after $attempt attempts: $desc"
+                return 1
+              fi
+              echo "smoke retry $attempt/5 in ${delay}s: $desc"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
+          }
+          http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
+          body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+          retry_smoke "merchant sign-in" http_code_is https://merchant.porterchain.com/sign-in '200|307|308'
+          retry_smoke "merchant shopify" http_code_is "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1" 200
           echo "Merchant prod smoke passed"
 
       - name: Prod API smoke
         if: needs.plan.outputs.pin_api == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
-          curl -fsS https://api.porterchain.com/health | grep -q '"status":"ok"'
-          curl -fsS https://api.porterchain.com/health/ready
+          # Bounded retries: 6 attempts over ~65s (5/10/15/15/20s backoff). Containers can
+          # answer 502/503 while warming up; a check fails only after all attempts fail.
+          retry_smoke() {
+            local desc="$1"; shift
+            local attempt=1
+            for delay in 5 10 15 15 20 0; do
+              if "$@"; then return 0; fi
+              if [ "$delay" = 0 ]; then
+                echo "::error::smoke failed after $attempt attempts: $desc"
+                return 1
+              fi
+              echo "smoke retry $attempt/5 in ${delay}s: $desc"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
+          }
+          http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
+          body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+          retry_smoke "api health" body_has https://api.porterchain.com/health '"status":"ok"'
+          retry_smoke "api ready" http_code_is https://api.porterchain.com/health/ready 200
           echo "API prod smoke passed"
 
       - name: Prod portals smoke
         if: needs.plan.outputs.scope == 'portals' && steps.deploy-partial.outcome == 'success'
         run: |
           set -e
-          curl -fsS -o /dev/null -w "%{http_code}" https://admin.porterchain.com/sign-in | grep -q 200
-          curl -fsS -o /dev/null -w "%{http_code}" https://merchant.porterchain.com/sign-in | grep -qE '200|307|308'
+          # Bounded retries: 6 attempts over ~65s (5/10/15/15/20s backoff). Containers can
+          # answer 502/503 while warming up; a check fails only after all attempts fail.
+          retry_smoke() {
+            local desc="$1"; shift
+            local attempt=1
+            for delay in 5 10 15 15 20 0; do
+              if "$@"; then return 0; fi
+              if [ "$delay" = 0 ]; then
+                echo "::error::smoke failed after $attempt attempts: $desc"
+                return 1
+              fi
+              echo "smoke retry $attempt/5 in ${delay}s: $desc"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
+          }
+          http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
+          body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
+          retry_smoke "merchant sign-in" http_code_is https://merchant.porterchain.com/sign-in '200|307|308'
           echo "Portals prod smoke passed"
