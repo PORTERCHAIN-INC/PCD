@@ -241,11 +241,13 @@ def main() -> int:
     products = sections.get("products", {}).get("links", {})
     resources_links = sections.get("resources", {}).get("links", {})
     company_links = sections.get("company", {}).get("links", {})
-    # New IA: merchant/capacity primary lives in the navbar; footer is crawl map.
+    # Website Phase 1 IA (Oct 2026): five navbar links (Price, Industries, Track, Shopify app,
+    # Sign in); Merchants (/business) moved to the footer crawl map. Either surface satisfies this.
     navbar_data = WEBSITE / "src/data/navbar-navigation.ts"
     navbar_text = navbar_data.read_text(encoding="utf-8") if navbar_data.is_file() else ""
-    if 'href: "/business"' not in navbar_text:
-        failures.append("navbar-navigation.ts missing merchants /business capacity link")
+    footer_nav_text = FOOTER_NAV.read_text(encoding="utf-8") if FOOTER_NAV.is_file() else ""
+    if 'href: "/business"' not in navbar_text and 'href: "/business"' not in footer_nav_text:
+        failures.append("merchants /business capacity link missing from navbar and footer navigation")
     if "getQuote" not in products and "contact" not in company_links:
         failures.append("site-footer-en.json missing quote path (products.getQuote or company.contact)")
     if "trust" not in company_links and "trust" not in sections.get("solutions", {}).get("links", {}):

@@ -327,7 +327,12 @@
     "whatsappChat": "Chat WhatsApp",
     "getQuote": "Obtenir un devis",
     "bookNow": "Obtenir un devis",
-    "toggleMenu": "Ouvrir le menu"
+    "toggleMenu": "Ouvrir le menu",
+    "price": "Prix",
+    "track": "Suivi",
+    "shopifyApp": "App Shopify",
+    "book": "Réserver",
+    "primaryNavLabel": "Navigation principale"
   },
   "footer": {
     "tagline": "Technologie logistique pour les entreprises qui ne peuvent pas se permettre d'angles morts opérationnels.",

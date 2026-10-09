@@ -327,7 +327,12 @@
     "whatsappChat": "WhatsApp chat",
     "getQuote": "Get a quote",
     "bookNow": "Get a quote",
-    "toggleMenu": "Toggle navigation menu"
+    "toggleMenu": "Toggle navigation menu",
+    "price": "Price",
+    "track": "Track",
+    "shopifyApp": "Shopify app",
+    "book": "Book now",
+    "primaryNavLabel": "Primary"
   },
   "footer": {
     "tagline": "Logistics technology for businesses that can't afford operational blind spots.",

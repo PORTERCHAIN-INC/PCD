@@ -26,7 +26,9 @@
         "inventoryTransfers": "Transferts d'inventaire",
         "returnsRoundTrip": "Retours et aller-retour",
         "aiDispatch": "Appariement intelligent",
-        "platform": "Comment nous opérons"
+        "platform": "Comment nous opérons",
+        "calculator": "Calculateur de coût de livraison",
+        "industriesHub": "Livraison par industrie"
       }
     },
     "solutions": {
@@ -91,7 +93,9 @@
         "privacy": "Confidentialité",
         "terms": "Conditions",
         "cookies": "Témoins",
-        "accessibility": "Accessibilité"
+        "accessibility": "Accessibilité",
+        "merchants": "Pour les marchands",
+        "drivers": "Conduire avec PorterChain"
       }
     }
   }

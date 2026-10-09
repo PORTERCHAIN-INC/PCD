@@ -68,7 +68,9 @@ test.describe(`website money loop @p0`, () => {
     await page.goto(`/${LOCALE}`);
     // Wait for the hero/nav CTA to render (cold dev compiles used to race innerText).
     await expect(
-      page.getByRole("link", { name: /get a quote|request capacity|quote/i }).first()
+      page
+        .getByRole("link", { name: /get a quote|get a price|book now|request capacity|quote/i })
+        .first()
     ).toBeVisible({ timeout: 20_000 });
     const body = (await page.locator("body").innerText()).toLowerCase();
     const hasCapacityCta = /get a quote|request capacity|book|quote/.test(body);

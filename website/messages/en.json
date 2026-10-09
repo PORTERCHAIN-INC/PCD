@@ -625,6 +625,188 @@
       "secondaryCta": "Speak with a Logistics Specialist"
     }
   },
+  "homePage": {
+    "hero": {
+      "eyebrow": "Same-day B2B delivery · Greater Toronto Area",
+      "headline": "Same-day delivery across the GTA.",
+      "promise": "Order by {cutoff}. Delivered {window} same day, {days}.",
+      "promiseDays": "Mon–Sat",
+      "subtitle": "Sedans, cargo vans and 16 ft box trucks for businesses — live tracking and proof of delivery on every stop.",
+      "bookNow": "Book now",
+      "connectShopify": "Connect Shopify",
+      "businessAccounts": "Business accounts",
+      "headlineAccent": "Priced in seconds.",
+      "shopifyBadge": "Shopify app",
+      "shopifyBadgeHint": "same-day rates at checkout"
+    },
+    "calculator": {
+      "title": "Get a price",
+      "subtitle": "Instant price. No sign-up.",
+      "pickup": "Pickup postal code",
+      "dropoff": "Drop-off postal code",
+      "pickupPlaceholder": "M5V 2T6",
+      "dropoffPlaceholder": "L4W 1N7",
+      "vehicle": "Vehicle",
+      "vehicles": {
+        "sedan_suv": {
+          "label": "Sedan / SUV",
+          "hint": "Bags, totes, small boxes"
+        },
+        "cargo_van": {
+          "label": "Cargo van",
+          "hint": "Cartons, parts, small pallets"
+        },
+        "box_16": {
+          "label": "16 ft box truck",
+          "hint": "Pallets and bulky freight"
+        }
+      },
+      "submit": "Get a price",
+      "pricing": "Pricing…",
+      "resultLabel": "Your price",
+      "resultMeta": "{pickup} → {dropoff} · {vehicle}",
+      "taxIncluded": "Includes {tax} tax",
+      "distance": "≈ {km} km",
+      "book": "Book this delivery",
+      "details": "See full breakdown",
+      "disclaimerFallback": "Estimate. The final price is confirmed before you book.",
+      "errors": {
+        "invalidPostal": "Enter a valid postal code for both ends (for example M5V 2T6).",
+        "pickup_outside_service_area": "That pickup postal code is outside our GTA coverage.",
+        "dropoff_outside_service_area": "That drop-off postal code is outside our GTA coverage.",
+        "vehicle_class_not_available": "That vehicle is not available for instant pricing.",
+        "rate_limited": "Too many price checks in a minute. Please wait a moment and try again.",
+        "calculator_disabled": "Instant pricing is paused right now. Please contact us for a quote.",
+        "generic": "We could not price that trip. Please try again.",
+        "network": "We could not reach the pricing service. Please try again."
+      }
+    },
+    "coverage": {
+      "ariaLabel": "Coverage at a glance",
+      "postalAreas": "{count} postal areas",
+      "postalAreasHint": "GTA postal codes (FSAs) we deliver to, checked at quote time",
+      "areas": "{count} service areas",
+      "areasHint": "Toronto, Peel, York, Durham, Halton and Hamilton",
+      "vehicles": "{count} vehicle classes",
+      "vehiclesHint": "Sedan / SUV, cargo van, 16 ft box truck"
+    },
+    "industries": {
+      "eyebrow": "Industries",
+      "title": "Built for businesses that ship every day",
+      "all": "All industries",
+      "items": {
+        "shopify": {
+          "title": "Shopify brands",
+          "body": "Same-day orders out of your store or warehouse, tracked end to end."
+        },
+        "pharmacy": {
+          "title": "Pharmacy & labs",
+          "body": "Prescriptions, specimens and supplies with chain-of-custody proof."
+        },
+        "furniture": {
+          "title": "Furniture & appliances",
+          "body": "Box truck or van, threshold delivery, multi-box items kept together."
+        },
+        "warehouses": {
+          "title": "Warehouses & traders",
+          "body": "Overflow and recurring runs for 3PLs, wholesalers and traders."
+        },
+        "construction": {
+          "title": "Construction",
+          "body": "Materials and tools to the jobsite before the crew needs them."
+        },
+        "trades": {
+          "title": "Plumbing & electrical",
+          "body": "Counter-to-jobsite parts runs for supply houses and contractors."
+        }
+      }
+    },
+    "howItWorks": {
+      "eyebrow": "How it works",
+      "title": "Three steps. No phone tag.",
+      "steps": {
+        "price": {
+          "title": "Price it",
+          "body": "Enter two postal codes and a vehicle. You see the price instantly."
+        },
+        "book": {
+          "title": "Book it",
+          "body": "Add pickup and drop-off details and confirm the delivery window."
+        },
+        "track": {
+          "title": "Track it",
+          "body": "Follow the driver live and get proof of delivery when it lands."
+        }
+      }
+    },
+    "trackingDemo": {
+      "eyebrow": "Live tracking",
+      "title": "Every stop, visible.",
+      "body": "You and your receiver see the same live status, from pickup to proof of delivery.",
+      "sampleBadge": "Sample",
+      "sampleNote": "Illustrative example, not a real order.",
+      "order": "Order SAMPLE-0001",
+      "route": "M5V → L4W · Cargo van",
+      "eta": "ETA 2:25 PM",
+      "steps": {
+        "booked": "Booked",
+        "assigned": "Driver assigned",
+        "pickedUp": "Picked up",
+        "outForDelivery": "Out for delivery",
+        "delivered": "Delivered with photo proof"
+      },
+      "times": {
+        "booked": "10:42 AM",
+        "assigned": "10:51 AM",
+        "pickedUp": "11:37 AM",
+        "outForDelivery": "1:58 PM",
+        "delivered": "Pending"
+      },
+      "cta": "Track a delivery"
+    },
+    "trust": {
+      "logosTitle": "Delivering for GTA businesses"
+    },
+    "final": {
+      "title": "Price your next delivery.",
+      "body": "Two postal codes. One price. Book when you are ready.",
+      "primary": "Get a price",
+      "secondary": "Book now"
+    },
+    "brand": {
+      "operatedBy": "Operated by {legalName}, from our downtown Toronto hub."
+    },
+    "why": {
+      "eyebrow": "Why PorterChain",
+      "title": "What every delivery includes.",
+      "lead": "No sales call and no waiting for a quote. These are the facts behind every booking.",
+      "caption": "What you need and what PorterChain provides",
+      "colNeed": "You need",
+      "colGet": "With PorterChain",
+      "rows": {
+        "price": {
+          "need": "A price now",
+          "title": "Instant pricing.",
+          "body": "Two postal codes and a vehicle give the price in seconds — the same engine as checkout, HST included, no sign-up."
+        },
+        "speed": {
+          "need": "Delivery today",
+          "title": "Same day.",
+          "body": "Order by 11 AM, delivered 2–9 PM, Monday to Saturday."
+        },
+        "tracking": {
+          "need": "To know where it is",
+          "title": "Real-time tracking.",
+          "body": "You and your receiver follow the driver live, then get photo proof of delivery."
+        },
+        "team": {
+          "need": "Someone to call",
+          "title": "Local GTA team.",
+          "body": "Support from our Toronto team — office Monday–Friday 8 AM–6 PM, Saturday 9 AM–2 PM."
+        }
+      }
+    }
+  },
   "marketing": {
     "consent": {
       "title": "Cookie preferences",
@@ -645,6 +827,16 @@
       "reviewCount": "({count} reviews)",
       "stars": "{value} out of 5 stars",
       "googleLink": "Read our Google reviews"
+    },
+    "priceBar": {
+      "label": "Instant GTA price, no sign-up",
+      "cta": "Get a price"
+    },
+    "trustBadges": {
+      "ariaLabel": "Included with every delivery",
+      "insured": "Insured · COI on request",
+      "tracked": "Live tracking",
+      "pod": "Photo proof of delivery"
     }
   },
   "hero": {

@@ -6,13 +6,15 @@ export interface FooterLink {
 }
 
 /**
- * Footer IA — sole discovery crawl map for Solutions / Vehicles / Resources / Company.
- * Merchants (/business) and Drivers (/vehicle-partner) stay in the navbar only — not repeated here.
- * Each href appears at most once across all columns.
+ * Footer IA — discovery crawl map for everything outside the five navbar links.
+ * Merchants (/business) and Drivers (/vehicle-partner) moved here from the navbar
+ * (website Phase 1, Oct 2026). Each href appears at most once across all columns.
  */
 export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
   product: [
     { id: "getQuote", href: "/sign-up?intent=quote&from=footer" },
+    { id: "calculator", href: "/delivery-cost-calculator" },
+    { id: "industriesHub", href: "/delivery" },
     { id: "pricing", href: "/business#pricing" },
     { id: "capabilities", href: "/capabilities" },
     { id: "multiStop", href: "/capabilities/multi-stop-delivery" },
@@ -81,6 +83,8 @@ export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
   ],
   company: [
     { id: "about", href: "/company" },
+    { id: "merchants", href: "/business" },
+    { id: "drivers", href: "/vehicle-partner" },
     { id: "contact", href: "/contact" },
     { id: "careers", href: "/careers" },
     { id: "trust", href: "/trust" },

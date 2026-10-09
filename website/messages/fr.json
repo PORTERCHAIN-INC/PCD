@@ -560,6 +560,188 @@
       "secondaryCta": "Parler à un spécialiste logistique"
     }
   },
+  "homePage": {
+    "hero": {
+      "eyebrow": "Livraison B2B le jour même · Grand Toronto",
+      "headline": "Livraison le jour même dans le Grand Toronto.",
+      "promise": "Commandez avant {cutoff}. Livré entre {windowStart} et {windowEnd} le jour même, {days}.",
+      "promiseDays": "du lundi au samedi",
+      "subtitle": "Berlines, fourgons et camions cube de 16 pi pour les entreprises — suivi en direct et preuve de livraison à chaque arrêt.",
+      "bookNow": "Réserver",
+      "connectShopify": "Connecter Shopify",
+      "businessAccounts": "Comptes entreprise",
+      "headlineAccent": "Prix en quelques secondes.",
+      "shopifyBadge": "Application Shopify",
+      "shopifyBadgeHint": "tarifs le jour même au paiement"
+    },
+    "calculator": {
+      "title": "Obtenir un prix",
+      "subtitle": "Prix instantané. Sans inscription.",
+      "pickup": "Code postal de ramassage",
+      "dropoff": "Code postal de livraison",
+      "pickupPlaceholder": "M5V 2T6",
+      "dropoffPlaceholder": "L4W 1N7",
+      "vehicle": "Véhicule",
+      "vehicles": {
+        "sedan_suv": {
+          "label": "Berline / VUS",
+          "hint": "Sacs, bacs, petites boîtes"
+        },
+        "cargo_van": {
+          "label": "Fourgon",
+          "hint": "Cartons, pièces, petites palettes"
+        },
+        "box_16": {
+          "label": "Camion cube 16 pi",
+          "hint": "Palettes et marchandises volumineuses"
+        }
+      },
+      "submit": "Obtenir un prix",
+      "pricing": "Calcul…",
+      "resultLabel": "Votre prix",
+      "resultMeta": "{pickup} → {dropoff} · {vehicle}",
+      "taxIncluded": "Taxes incluses : {tax}",
+      "distance": "≈ {km} km",
+      "book": "Réserver cette livraison",
+      "details": "Voir le détail",
+      "disclaimerFallback": "Estimation. Le prix final est confirmé avant la réservation.",
+      "errors": {
+        "invalidPostal": "Entrez un code postal valide aux deux extrémités (par exemple M5V 2T6).",
+        "pickup_outside_service_area": "Ce code postal de ramassage est hors de notre zone du Grand Toronto.",
+        "dropoff_outside_service_area": "Ce code postal de livraison est hors de notre zone du Grand Toronto.",
+        "vehicle_class_not_available": "Ce véhicule n’est pas disponible pour un prix instantané.",
+        "rate_limited": "Trop de demandes de prix en une minute. Patientez un instant et réessayez.",
+        "calculator_disabled": "Les prix instantanés sont suspendus pour le moment. Contactez-nous pour une soumission.",
+        "generic": "Impossible de calculer ce trajet. Veuillez réessayer.",
+        "network": "Le service de tarification est injoignable. Veuillez réessayer."
+      }
+    },
+    "coverage": {
+      "ariaLabel": "Couverture en bref",
+      "postalAreas": "{count} zones postales",
+      "postalAreasHint": "Codes postaux (RTA) du Grand Toronto desservis, vérifiés au moment du prix",
+      "areas": "{count} zones de service",
+      "areasHint": "Toronto, Peel, York, Durham, Halton et Hamilton",
+      "vehicles": "{count} catégories de véhicules",
+      "vehiclesHint": "Berline / VUS, fourgon, camion cube 16 pi"
+    },
+    "industries": {
+      "eyebrow": "Industries",
+      "title": "Conçu pour les entreprises qui expédient chaque jour",
+      "all": "Toutes les industries",
+      "items": {
+        "shopify": {
+          "title": "Marques Shopify",
+          "body": "Commandes le jour même depuis votre boutique ou entrepôt, suivies de bout en bout."
+        },
+        "pharmacy": {
+          "title": "Pharmacies et laboratoires",
+          "body": "Ordonnances, échantillons et fournitures avec preuve de chaîne de possession."
+        },
+        "furniture": {
+          "title": "Mobilier et électroménagers",
+          "body": "Camion cube ou fourgon, livraison au seuil, articles en plusieurs boîtes livrés ensemble."
+        },
+        "warehouses": {
+          "title": "Entrepôts et grossistes",
+          "body": "Capacité de débordement et trajets récurrents pour 3PL, grossistes et négociants."
+        },
+        "construction": {
+          "title": "Construction",
+          "body": "Matériaux et outils au chantier avant que l’équipe en ait besoin."
+        },
+        "trades": {
+          "title": "Plomberie et électricité",
+          "body": "Pièces du comptoir au chantier pour distributeurs et entrepreneurs."
+        }
+      }
+    },
+    "howItWorks": {
+      "eyebrow": "Comment ça marche",
+      "title": "Trois étapes. Sans appels inutiles.",
+      "steps": {
+        "price": {
+          "title": "Obtenez un prix",
+          "body": "Entrez deux codes postaux et un véhicule. Le prix s’affiche instantanément."
+        },
+        "book": {
+          "title": "Réservez",
+          "body": "Ajoutez les détails de ramassage et de livraison et confirmez la plage horaire."
+        },
+        "track": {
+          "title": "Suivez",
+          "body": "Suivez le chauffeur en direct et recevez la preuve de livraison à l’arrivée."
+        }
+      }
+    },
+    "trackingDemo": {
+      "eyebrow": "Suivi en direct",
+      "title": "Chaque arrêt, visible.",
+      "body": "Vous et votre destinataire voyez le même statut en direct, du ramassage à la preuve de livraison.",
+      "sampleBadge": "Exemple",
+      "sampleNote": "Exemple illustratif, pas une vraie commande.",
+      "order": "Commande SAMPLE-0001",
+      "route": "M5V → L4W · Fourgon",
+      "eta": "Arrivée prévue 14 h 25",
+      "steps": {
+        "booked": "Réservée",
+        "assigned": "Chauffeur assigné",
+        "pickedUp": "Ramassée",
+        "outForDelivery": "En cours de livraison",
+        "delivered": "Livrée avec preuve photo"
+      },
+      "times": {
+        "booked": "10 h 42",
+        "assigned": "10 h 51",
+        "pickedUp": "11 h 37",
+        "outForDelivery": "13 h 58",
+        "delivered": "En attente"
+      },
+      "cta": "Suivre une livraison"
+    },
+    "trust": {
+      "logosTitle": "Ils livrent avec nous dans le Grand Toronto"
+    },
+    "final": {
+      "title": "Calculez le prix de votre prochaine livraison.",
+      "body": "Deux codes postaux. Un prix. Réservez quand vous êtes prêt.",
+      "primary": "Obtenir un prix",
+      "secondary": "Réserver"
+    },
+    "brand": {
+      "operatedBy": "Exploité par {legalName}, depuis notre plateforme du centre-ville de Toronto."
+    },
+    "why": {
+      "eyebrow": "Pourquoi PorterChain",
+      "title": "Ce que comprend chaque livraison.",
+      "lead": "Pas d'appel commercial ni d'attente de soumission. Voici les faits derrière chaque réservation.",
+      "caption": "Ce dont vous avez besoin et ce que PorterChain fournit",
+      "colNeed": "Votre besoin",
+      "colGet": "Avec PorterChain",
+      "rows": {
+        "price": {
+          "need": "Un prix tout de suite",
+          "title": "Prix instantané.",
+          "body": "Deux codes postaux et un véhicule donnent le prix en quelques secondes — le même moteur qu'au paiement, TVH incluse, sans inscription."
+        },
+        "speed": {
+          "need": "Une livraison aujourd'hui",
+          "title": "Le jour même.",
+          "body": "Commandez avant 11 h, livré entre 14 h et 21 h, du lundi au samedi."
+        },
+        "tracking": {
+          "need": "Savoir où en est la livraison",
+          "title": "Suivi en temps réel.",
+          "body": "Vous et votre destinataire suivez le chauffeur en direct, puis recevez une preuve de livraison photo."
+        },
+        "team": {
+          "need": "Quelqu'un à appeler",
+          "title": "Équipe locale du Grand Toronto.",
+          "body": "Soutien par notre équipe de Toronto — bureau du lundi au vendredi de 8 h à 18 h, le samedi de 9 h à 14 h."
+        }
+      }
+    }
+  },
   "marketing": {
     "consent": {
       "title": "Préférences de témoins",
@@ -580,6 +762,16 @@
       "reviewCount": "({count} avis)",
       "stars": "{value} étoiles sur 5",
       "googleLink": "Lire nos avis Google"
+    },
+    "priceBar": {
+      "label": "Prix instantané, sans inscription",
+      "cta": "Obtenir un prix"
+    },
+    "trustBadges": {
+      "ariaLabel": "Inclus dans chaque livraison",
+      "insured": "Assuré · attestation sur demande",
+      "tracked": "Suivi en direct",
+      "pod": "Preuve de livraison photo"
     }
   },
   "login": {
