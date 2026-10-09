@@ -6,12 +6,12 @@
 :root {
   color-scheme: light;
   --primary: #0a1628;
-  --secondary: #2563eb;
+  --secondary: #1f56d8; /* a11y: text-secondary on bg-secondary/10 tints >= 4.5:1 (was #2563eb) */
   --accent: #38bdf8;
   --white: #ffffff;
   --gray-bg: #f0f4f8;
   --foreground: #0a1628;
-  --muted: #64748b;
+  --muted: #5b6779; /* a11y: 4.5:1+ on gray-bg tints (was #64748b) */
   --surface: #ffffff;
   --surface-border: rgba(10, 22, 40, 0.08);
 }

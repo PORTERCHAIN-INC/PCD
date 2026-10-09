@@ -103,6 +103,7 @@ export type Handshake = {
   distanceLabel: string | null;
   /** Cached from job detail during handshake — avoids FieldOps / OTP refetch races. */
   otpRequired: boolean;
+  podRequirements: PodRequirements | null;
   scanPickup: ScanProgress | null;
   scanDelivery: ScanProgress | null;
   codAmountCents: number | null;
@@ -247,10 +248,24 @@ export type DriverProofOfDelivery = {
   otp_verified?: boolean;
 };
 
+/** API pod_policy.requirements_for — what the dropoff needs before completion. */
+export type PodRequirements = {
+  enforced?: boolean;
+  photo_or_signature?: boolean;
+  photo?: boolean;
+  signature?: boolean;
+  id_check?: boolean;
+  otp?: boolean;
+  reasons?: string[];
+};
+
 export type DriverJobDetail = DriverJobSummary & {
   scan_pickup?: ScanProgress;
   scan_delivery?: ScanProgress;
   otp_required?: boolean;
+  pod_requirements?: PodRequirements;
+  pod_missing?: string[];
+  on_duty?: boolean;
   cod_amount_cents?: number | null;
   cod_status?: string | null;
   currency?: string;

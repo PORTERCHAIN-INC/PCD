@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 UPLOAD_ACTION_TYPES = frozenset(
-    {"pod_photo", "camera_upload", "pod_signature", "pod_barcode", "document_upload"}
+    {"pod_photo", "camera_upload", "pod_signature", "pod_barcode", "pod_id_check", "document_upload"}
 )
 GPS_ACTION_TYPES = frozenset({"location"})
 

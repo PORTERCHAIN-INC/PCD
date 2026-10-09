@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations, getMessages } from "next-intl/server";
 import SiteShell from "@/components/layout/SiteShell";
+import ReviewsProof from "@/components/marketing/ReviewsProof";
 import { BusinessStickyCloser } from "@/components/marketing/MarketingCloser";
 import { JsonLd } from "@/components/seo";
 import {
@@ -56,6 +57,7 @@ export default async function BusinessPage({ params }: Props) {
       />
       <SiteShell>
         <BusinessPageSections locale={loc} />
+        <ReviewsProof locale={loc} />
       </SiteShell>
       <BusinessStickyCloser />
     </>

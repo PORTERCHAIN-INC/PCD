@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { customerPublicEnv, loadMonorepoEnv } from "@porterchain/config/monorepo-env.mjs";
+import { baselineSecurityHeaders } from "@porterchain/config/security-headers.mjs";
 
 loadMonorepoEnv(process.cwd());
 
@@ -16,6 +17,9 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react"],
+  },
+  async headers() {
+    return [{ source: "/(.*)", headers: baselineSecurityHeaders() }];
   },
   env: customerPublicEnv(),
 };

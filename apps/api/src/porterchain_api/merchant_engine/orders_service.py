@@ -339,8 +339,9 @@ class MerchantOrdersService:
             pdf, filename = LabelService().build_order_labels_pdf(
                 db, order, merchant_name=ctx.merchant.company_name
             )
-        except PackagesRequired as exc:
-            raise LookupError(str(exc)) from exc
+        except PackagesRequired:
+            # 409 + clear copy (was a misleading 404 the portal never surfaced).
+            raise
         db.commit()
         return pdf, filename
 
@@ -363,8 +364,9 @@ class MerchantOrdersService:
                 orders,
                 merchant_names={ctx.merchant.id: ctx.merchant.company_name},
             )
-        except PackagesRequired as exc:
-            raise LookupError(str(exc)) from exc
+        except PackagesRequired:
+            # 409 + clear copy (was a misleading 404 the portal never surfaced).
+            raise
         except ValueError:
             raise
         db.commit()
@@ -417,7 +419,10 @@ _PRINT_ERRORS = {
     "too_many_orders": "Print up to 20 orders at a time.",
     "labels_bulk_too_many_orders": "Print labels for up to 100 orders at a time.",
     "labels_bulk_too_many_pages": "Bulk labels are limited to 500 pages.",
-    "packages_required": "Add packages before printing labels.",
+    "packages_required": (
+        "This order has no packages yet, so there is nothing to label. "
+        "Add packages (box count and sizes) on the order, then print labels."
+    ),
 }
 
 

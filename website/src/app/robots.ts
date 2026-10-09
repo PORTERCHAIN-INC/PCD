@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/seo/config";
+import { SITEMAP_PARTITION_IDS } from "@/lib/seo/sitemap-entries";
 
 export default function robots(): MetadataRoute.Robots {
   const base = siteConfig.baseUrl.replace(/\/$/, "");
@@ -13,18 +14,7 @@ export default function robots(): MetadataRoute.Robots {
     ],
     sitemap: [
       `${base}/sitemap.xml`,
-      ...[
-        "static",
-        "industry",
-        "service",
-        "vehicle",
-        "location",
-        "resource",
-        "article",
-        "case-study",
-        "developer",
-        "delivery",
-      ].map((id) => `${base}/sitemap/${id}.xml`),
+      ...SITEMAP_PARTITION_IDS.map((id) => `${base}/sitemap/${id}.xml`),
     ],
   };
 }

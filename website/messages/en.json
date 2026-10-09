@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "PorterChain | GTA Delivery Capacity — Drivers, Vehicles & Technology",
-    "description": "Full-stack local logistics for the GTA: professional drivers and vehicles, proprietary software for quotes, tracking and proof, plus dedicated ops support. Same-day, overflow, and recurring capacity — get a quote.",
+    "description": "GTA delivery capacity on demand: professional drivers and vehicles for same-day, overflow and recurring routes, with live tracking and proof. Get a quote.",
     "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
     "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it.",
     "keywords": [
@@ -36,11 +36,11 @@
     "subtitle": "Same capacity network, visible technology. Three moments before you buy a lane.",
     "tabsAria": "Product moments",
     "tabs": {
-      "quote": "",
+      "quote": "Get a quote",
       "track": "Live tracking",
       "pod": "Proof of delivery"
     },
-    "cta": "",
+    "cta": "Get a quote",
     "ctaHint": "Share lanes and vehicle class — we confirm capacity in writing.",
     "panels": {
       "quote": {
@@ -121,7 +121,7 @@
     "eyebrow": "What we do",
     "title": "Your capacity operation, handled end to end.",
     "subtitle": "Technology, drivers, vehicles, and ops — not a dashboard you staff alone. Here’s how a GTA shipment moves from quote to claims-ready closeout.",
-    "cta": "",
+    "cta": "Get a quote",
     "ctaHint": "Share lanes and vehicle class — we confirm capacity in writing.",
     "features": {
       "monitor": {
@@ -355,7 +355,7 @@
     "about": "About",
     "contact": "Contact",
     "login": "Login",
-    "bookNow": "",
+    "bookNow": "Get a quote",
     "toggleMenu": "Toggle menu",
     "solutionItems": {
       "sameDay": "Same-Day Delivery",
@@ -488,7 +488,7 @@
       "toolWorking": "Working…",
       "toolFailed": "Couldn’t complete that step — try again or talk to a specialist.",
       "actions": {
-        "quote": "",
+        "quote": "Get a quote",
         "merchants": "Get Business Account",
         "drivers": "Driver partners",
         "pricing": "How pricing works",
@@ -636,7 +636,15 @@
       "experience": "Experience",
       "reject": "Reject optional",
       "save": "Save choices",
-      "accept": "Accept all"
+      "accept": "Accept all",
+      "customize": "Customize"
+    },
+    "reviewsProof": {
+      "title": "What customers say",
+      "googleRating": "{value} ★ on Google",
+      "reviewCount": "({count} reviews)",
+      "stars": "{value} out of 5 stars",
+      "googleLink": "Read our Google reviews"
     }
   },
   "hero": {
@@ -2354,7 +2362,7 @@
       "subtitle": "Practical logistics and delivery guidance to help you prepare orders, organize stops, choose the right vehicle, set up recurring runs, and onboard smoothly with Porterchain."
     },
     "ctaTitle": "Ready to get started?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "relatedTitle": "Related"
   },
   "knowledge": {
@@ -2408,14 +2416,14 @@
     "whereWeDeliver": "Where we deliver",
     "relatedPages": "Related",
     "ctaTitle": "Ready to get started?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "talkToUs": "Talk to us"
   },
   "localDelivery": {
     "metaTitle": "B2B local delivery GTA | Same-day & recurring routes Toronto, Mississauga, Brampton | Porterchain",
     "metaDescription": "B2B local delivery across the GTA — same-day, recurring, and overflow capacity for wholesalers, distributors, construction, medical, and retail. Toronto, Peel, York, Durham. Vehicle fit, proof of delivery, and onboarding in days.",
     "ctaTitle": "Ready to get started?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "relatedTitle": "Related",
     "serviceAreasTitle": "Where we deliver",
     "industriesTitle": "Industries we serve"
@@ -2428,7 +2436,7 @@
     "whereWeDeliver": "Where we deliver",
     "relatedPages": "Related",
     "ctaTitle": "Ready to get started?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "talkToUs": "Talk to us"
   },
   "integrationsEducation": {
@@ -2440,7 +2448,7 @@
     "relatedPages": "Related",
     "moreInSeries": "More in this series",
     "ctaTitle": "Ready to get started?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "talkToUs": "Talk to us"
   },
   "onboardingEducation": {
@@ -2452,7 +2460,7 @@
     "relatedPages": "Related",
     "moreInSeries": "More in this series",
     "ctaTitle": "Ready to get started?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "talkToUs": "Talk to us"
   },
   "serviceAreasIndex": {
@@ -5006,7 +5014,7 @@
     "contactCta": {
       "title": "Ready to run your delivery with us?",
       "description": "Tell us your volume and service areas. We'll show you how we can run your recurring delivery — reliably and simply.",
-      "ctaPrimary": "",
+      "ctaPrimary": "Get a quote",
       "ctaSecondary": "Contact"
     },
     "proof": {

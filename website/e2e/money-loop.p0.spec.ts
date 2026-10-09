@@ -66,6 +66,10 @@ test.describe(`website money loop @p0`, () => {
 
   test(`W-GTM-002 ${tcId("W-GTM-002")} CTA language favors quote/capacity`, async ({ page }) => {
     await page.goto(`/${LOCALE}`);
+    // Wait for the hero/nav CTA to render (cold dev compiles used to race innerText).
+    await expect(
+      page.getByRole("link", { name: /get a quote|request capacity|quote/i }).first()
+    ).toBeVisible({ timeout: 20_000 });
     const body = (await page.locator("body").innerText()).toLowerCase();
     const hasCapacityCta = /get a quote|request capacity|book|quote/.test(body);
     const demoFirst = /^[\s\S]{0,400}book a demo|platform tour/.test(body);

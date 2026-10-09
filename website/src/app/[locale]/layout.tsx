@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { publicEnv } from "@/lib/env";
-import AppClerkProvider from "@/components/providers/AppClerkProvider";
 import DeferredSiteIntegrations from "@/components/integrations/DeferredSiteIntegrations";
 import AttributionCapture from "@/components/seo/AttributionCapture";
 import HtmlLang from "@/components/i18n/HtmlLang";
@@ -72,12 +71,13 @@ export default async function LocaleLayout({ children, params }: Props) {
       <HtmlLang locale={locale} />
       <JsonLd data={buildOrganizationSchema()} />
       <JsonLd data={buildWebSiteSchema()} />
-      <NextIntlClientProvider messages={messages}>
-        <AppClerkProvider locale={locale}>
+      {/* Server-rendered language for assistive tech + crawlers (root <html lang> is static "en"). */}
+      <div lang={locale} style={{ display: "contents" }}>
+        <NextIntlClientProvider messages={messages}>
           {children}
           <DeferredSiteIntegrations />
-        </AppClerkProvider>
-      </NextIntlClientProvider>
+        </NextIntlClientProvider>
+      </div>
       <Suspense fallback={null}>
         <AttributionCapture />
       </Suspense>

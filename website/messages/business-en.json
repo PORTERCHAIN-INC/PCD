@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "B2B Delivery Services GTA | Same-Day, Urgent & Emergency | PorterChain",
-    "description": "GTA B2B delivery services: same-day, urgent, emergency, and quick delivery; fleet overflow; intra-city logistics; jobsite, wholesale, and last-mile routes. Cargo van to box truck. Get a quote.",
+    "description": "GTA B2B delivery: same-day, urgent and overflow capacity, jobsite and wholesale routes, cargo van to box truck. Tracking and proof on every stop.",
     "ogTitle": "Porterchain — B2B Delivery Services for the GTA",
     "ogDescription": "Professional drivers and vehicles for construction supply, wholesale distribution, pharmacy courier, and business continuity when your fleet is not enough."
   },
@@ -12,7 +12,7 @@
     "resources": "Resources",
     "about": "About",
     "contact": "Contact",
-    "requestConsultation": "",
+    "requestConsultation": "Get a quote",
     "toggleMenu": "Toggle menu",
     "solutionItems": {
       "recurring": "Recurring Delivery",
@@ -26,7 +26,7 @@
     "titleLine1": "Vehicle and driver capacity",
     "titleLine2": "for every delivery scenario.",
     "subtitle": "From emergency delivery and same-day urgent runs to recurring intra-city logistics — one commercial delivery partner across Toronto, Peel, York, and Durham. Live tracking and proof on every stop · quote-based, no platform fees.",
-    "ctaPrimary": "",
+    "ctaPrimary": "Get a quote",
     "ctaSecondary": "See vehicles"
   },
   "brandBand": {
@@ -135,7 +135,7 @@
   },
   "stickyCta": {
     "message": "Need same-day or emergency delivery capacity?",
-    "button": ""
+    "button": "Get a quote"
   },
   "trustedBy": {
     "label": "Industries we serve across the GTA",

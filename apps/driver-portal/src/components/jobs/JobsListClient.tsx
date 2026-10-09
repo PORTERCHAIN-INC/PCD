@@ -233,7 +233,7 @@ export default function JobsListClient() {
                 )}
               >
                 {t.label}
-                <span className="ml-1.5 opacity-70">({t.count})</span>
+                <span className="ml-1.5 opacity-90">({t.count})</span>
               </button>
             ))}
           </div>

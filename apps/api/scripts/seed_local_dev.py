@@ -63,10 +63,10 @@ SEED_ADMIN_EMAIL = "seed-admin@porterchain.com"
 # Real Platform Clerk founder — kept as super_admin in local/prod data.
 FOUNDER_SUPER_ADMIN_EMAIL = "porterchaininc@gmail.com"
 
-PICKUP = AddressInput(formatted="123 King St W, Toronto ON", lat=43.6488, lng=-79.3817)
-DROPOFF = AddressInput(formatted="456 Queen St W, Toronto ON", lat=43.6479, lng=-79.3957)
-PICKUP2 = AddressInput(formatted="100 Bay St, Toronto ON", lat=43.6481, lng=-79.3795)
-DROPOFF2 = AddressInput(formatted="200 Spadina Ave, Toronto ON", lat=43.6501, lng=-79.3962)
+PICKUP = AddressInput(formatted="123 King St W, Toronto ON M5H 3T9", lat=43.6488, lng=-79.3817, postal="M5H 3T9")
+DROPOFF = AddressInput(formatted="456 Queen St W, Toronto ON M5V 2B1", lat=43.6479, lng=-79.3957, postal="M5V 2B1")
+PICKUP2 = AddressInput(formatted="100 Bay St, Toronto ON M5J 2S1", lat=43.6481, lng=-79.3795, postal="M5J 2S1")
+DROPOFF2 = AddressInput(formatted="200 Spadina Ave, Toronto ON M5T 2C2", lat=43.6501, lng=-79.3962, postal="M5T 2C2")
 
 
 def _now() -> datetime:
@@ -209,6 +209,9 @@ def create_retail_order(db, settings, *, label: str, pickup: AddressInput, dropo
             pickup=pickup,
             dropoff=dropoff,
             vehicle_class="cargo_van",
+            # Whole-vehicle booking: a parcels-mode quote without parcels fails with
+            # parcels_required at checkout.
+            booking_mode="vehicle",
             package_type="looseParcel",
             scheduled_at=_now() + timedelta(hours=3),
             website_pricing=_website_pricing(),

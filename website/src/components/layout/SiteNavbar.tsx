@@ -122,11 +122,24 @@ export default function SiteNavbar() {
             </LinkButton>
           </div>
 
+          {/* Always-visible quote CTA on mobile/tablet header (readiness audit #10). */}
+          <div className="xl:hidden ml-auto shrink-0">
+            <LinkButton
+              href={quoteHref}
+              size="sm"
+              external={quoteExternal}
+              trackSource="nav_mobile"
+              className="min-h-[2.75rem] px-4 whitespace-nowrap"
+            >
+              {quoteLabel}
+            </LinkButton>
+          </div>
+
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
             className={cn(
-              "xl:hidden p-2.5 rounded-xl min-w-[2.75rem] min-h-[2.75rem] flex items-center justify-center ml-auto",
+              "xl:hidden p-2.5 rounded-xl min-w-[2.75rem] min-h-[2.75rem] flex items-center justify-center",
               navLight ? "text-primary" : "text-white"
             )}
             aria-label={t("toggleMenu")}

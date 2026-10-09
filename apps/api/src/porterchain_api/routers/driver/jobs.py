@@ -234,6 +234,7 @@ def deliverstop_response(
     settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
     from porterchain_api.merchant_engine.scan_gate_service import PackagesIncomplete
+    from porterchain_driver.pod_policy import DriverOffDuty, PodMissing
 
     try:
         with db_transaction(db):
@@ -244,6 +245,8 @@ def deliverstop_response(
                 auto_reoptimize=settings.enable_driver_auto_reoptimize)
         return stop_response(stop)
     except PackagesIncomplete as exc:
+        raise HTTPException(status_code=409, detail=exc.payload) from exc
+    except (PodMissing, DriverOffDuty) as exc:
         raise HTTPException(status_code=409, detail=exc.payload) from exc
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc

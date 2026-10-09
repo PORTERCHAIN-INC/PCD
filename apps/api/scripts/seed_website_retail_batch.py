@@ -11,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -41,7 +42,8 @@ ROUTES: list[tuple[str, float, float, str, float, float]] = [
     ("3401 Dufferin St, North York ON M6A 2T9", 43.7253, -79.4512, "1900 Eglinton Ave E, Scarborough ON M1L 2L9", 43.7273, -79.2925),
     ("609 Kipling Ave, Etobicoke ON M8Z 5G9", 43.6360, -79.5340, "300 Borough Dr, Scarborough ON M1P 4P5", 43.7750, -79.2570),
     ("5100 Erin Mills Pkwy, Mississauga ON L5M 4Z2", 43.5480, -79.7130, "100 City Centre Dr, Mississauga ON L5B 2C9", 43.5930, -79.6420),
-    ("Toronto Pearson Airport, Mississauga ON L5P 1B2", 43.6777, -79.6248, "Union Station, Toronto ON M5J 1E6", 43.6454, -79.3806),
+    ("5995 Airport Rd, Mississauga ON L4V 1E3", 43.6930, -79.6330,  # Pearson area; L5P is not in the GTA150 FSA tile
+     "Union Station, Toronto ON M5J 1E6", 43.6454, -79.3806),
     ("2200 Eglinton Ave W, Mississauga ON L5M 2E3", 43.5530, -79.6860, "4800 Yonge St, North York ON M2N 5N9", 43.7670, -79.4130),
     ("2000 Credit Valley Rd, Mississauga ON L5M 4N4", 43.5690, -79.6980, "1400 Dupont St, Toronto ON M6H 2B2", 43.6650, -79.4400),
     ("1027 Yonge St, Toronto ON M4W 2K9", 43.6750, -79.3890, "2300 Keele St, North York ON M6M 3Z9", 43.7070, -79.4780),
@@ -62,8 +64,15 @@ def _website_pricing(distance_km: float = 8.0) -> WebsitePricingSnapshot:
     )
 
 
+_POSTAL_RE = re.compile(r"\b([A-Z]\d[A-Z])\s?(\d[A-Z]\d)\b")
+
+
 def _addr(formatted: str, lat: float, lng: float) -> AddressInput:
-    return AddressInput(formatted=formatted, lat=lat, lng=lng)
+    # Pass the postal code explicitly so service-area (FSA) checks don't fall back to
+    # out_of_service_area when no geocoder is configured locally.
+    m = _POSTAL_RE.search(formatted)
+    postal = f"{m.group(1)} {m.group(2)}" if m else None
+    return AddressInput(formatted=formatted, lat=lat, lng=lng, postal=postal)
 
 
 def create_website_booking(

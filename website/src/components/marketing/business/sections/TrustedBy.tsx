@@ -53,7 +53,7 @@ export default function TrustedBy() {
   return (
     <section className="biz-section overflow-hidden border-b border-[#0b1220]/5 bg-white">
       <Container>
-        <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#64748b]">
+        <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#5b6779]">
           {t("label")}
         </p>
       </Container>

@@ -78,6 +78,9 @@ def test_complete_pod_from_at_destination_walks_delivered(monkeypatch: pytest.Mo
         fake_transition,
     )
     monkeypatch.setattr(ProofOfDeliveryService, "verify_otp", lambda *_a, **_k: True)
+    # Proof (photo/signature) already captured and driver on shift — POD gate satisfied.
+    monkeypatch.setattr("porterchain_driver.pod_policy.missing_for", lambda *_a, **_k: [])
+    monkeypatch.setattr("porterchain_driver.pod_policy.assert_on_duty", lambda *_a, **_k: None)
 
     result = ProofOfDeliveryService().complete_pod(
         MagicMock(), SimpleNamespace(id="d1"), "o1-dropoff", otp="123456"

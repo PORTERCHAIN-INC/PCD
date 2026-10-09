@@ -88,9 +88,11 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
     if (typeof detailRaw === "string") {
       detail = detailRaw;
     } else if (detailRaw && typeof detailRaw === "object") {
-      const d = detailRaw as { code?: string; error?: string };
+      const d = detailRaw as { code?: string; error?: string; message?: string };
       if (d.code === "sequence_version_conflict") {
         detail = "sequence_version_conflict";
+      } else if ((d.code === "pod_required" || d.code === "driver_off_duty") && d.message) {
+        detail = d.message;
       } else {
         detail = d.error || d.code || "request_failed";
       }
@@ -336,6 +338,15 @@ export const driverApi = {
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/pod-signature`, {
       method: "POST",
       body: JSON.stringify({ signature_data: signatureData }),
+    }),
+  podIdCheck: (
+    routeId: string,
+    stopId: string,
+    body: { id_type: string; name_matches: boolean; age_verified?: boolean | null }
+  ) =>
+    driverFetch(`/v1/routes/${routeId}/stops/${stopId}/pod-id-check`, {
+      method: "POST",
+      body: JSON.stringify(body),
     }),
   podComplete: (routeId: string, stopId: string, otp?: string) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/pod-complete`, {

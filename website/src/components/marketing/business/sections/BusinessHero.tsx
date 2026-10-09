@@ -23,7 +23,7 @@ export default function BusinessHero() {
           image={openRoad}
           fill
           priority
-          unoptimized
+          quality={80}
           className="object-cover object-[72%_center] sm:object-[68%_center] lg:object-[62%_center]"
           sizes="100vw"
         />

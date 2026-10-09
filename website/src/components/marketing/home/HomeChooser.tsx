@@ -100,8 +100,7 @@ export default function HomeChooser() {
             image={fleet}
             fill
             priority
-            unoptimized
-            quality={100}
+            quality={75}
             className="object-cover object-[center_40%]"
             sizes="100vw"
           />

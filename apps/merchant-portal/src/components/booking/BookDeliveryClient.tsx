@@ -603,6 +603,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   <div>
                     <label className="text-sm font-medium text-primary">Saved pickup</label>
                     <select
+                      aria-label="Saved pickup"
                       className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
                       onChange={(e) => applySavedPickup(e.target.value)}
                       defaultValue=""
@@ -668,6 +669,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   <div>
                     <label className="text-sm font-medium text-primary">Recipient</label>
                     <select
+                      aria-label="Recipient"
                       className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
                       value={recipientId}
                       onChange={(e) => {
@@ -849,6 +851,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                         "PorterChain sends the vehicle. You book a class for the job — you do not manage a fleet."}
                     </p>
                     <select
+                      aria-label="Vehicle we send"
                       className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
                       value={vehicleClass}
                       onChange={(e) => setVehicleClass(e.target.value)}
@@ -877,6 +880,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   <div>
                     <label className="text-sm font-medium text-primary">Package type</label>
                     <select
+                      aria-label="Package type"
                       className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
                       value={packageType}
                       onChange={(e) => setPackageType(e.target.value)}
@@ -981,8 +985,14 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-primary">Special instructions</label>
+                  <label
+                    htmlFor="book-special-instructions"
+                    className="text-sm font-medium text-primary"
+                  >
+                    Special instructions
+                  </label>
                   <textarea
+                    id="book-special-instructions"
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
                     rows={3}
                     value={instructions}

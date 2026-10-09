@@ -3,14 +3,14 @@
 :root {
   /* Professional white + blue system — no green/orange brand accents */
   --primary: #0b1220;
-  --secondary: #2563eb;
-  --secondary-hover: #1d4ed8;
+  --secondary: #1f56d8; /* a11y: secondary text on secondary/10 tints >= 4.5:1 (was #2563eb) */
+  --secondary-hover: #1a47bf;
   --accent: #3b82f6;
   --accent-light: #60a5fa;
   --white: #ffffff;
   --gray-bg: #f8fafc;
   --foreground: #0b1220;
-  --muted: #64748b;
+  --muted: #5b6779; /* a11y: 4.5:1+ on gray-bg tints (was #64748b) */
   --page-gutter: clamp(1rem, 2.5vw, 2.75rem);
   --page-max: 90rem;
   --nav-height: 4rem;
@@ -756,7 +756,7 @@ p {
   --biz-accent: #2563eb;
   --biz-accent-hover: #1d4ed8;
   --biz-light: #f0f4f8;
-  --biz-muted: #64748b;
+  --biz-muted: #5b6779;
   --foreground: #0a1628;
   --primary: #0a1628;
   font-family: Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif;

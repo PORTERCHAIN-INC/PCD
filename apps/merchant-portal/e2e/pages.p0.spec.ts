@@ -1,4 +1,12 @@
-import { test, expect, playwrightCases, tcId } from "./fixtures";
+import {
+  test,
+  expect,
+  playwrightCases,
+  tcId,
+  liveReady,
+  liveSkipReason,
+  storageStatePath,
+} from "./fixtures";
 
 /** Page / subpage P0 skeletons — one describe per SSOT id. */
 const pageCases = playwrightCases("skeleton").filter(
@@ -31,12 +39,23 @@ for (const c of pageCases) {
   if (c.id.startsWith("AD-")) continue;
 
   test.describe(`${c.id} ${tcId(c.id)} @p0`, () => {
-    test.skip(true, `${c.id}: skeleton — fill assert for ${ROUTE_HINT[c.id] ?? "route"}`);
+    test.skip(!liveReady("dispatcher"), liveSkipReason("dispatcher"));
+    const jar = storageStatePath("dispatcher");
+    if (jar) test.use({ storageState: jar });
 
     test(c.title, async ({ page }) => {
       const route = ROUTE_HINT[c.id] ?? "/dashboard";
-      await page.goto(route);
-      await expect(page.locator("body")).toBeVisible();
+      const errors: string[] = [];
+      page.on("pageerror", (err) => errors.push(err.message));
+      const res = await page.goto(route);
+      expect(res?.status() ?? 200, `${route} HTTP status`).toBeLessThan(400);
+      await page.waitForLoadState("networkidle").catch(() => undefined);
+      await expect(page.locator("body")).not.toContainText(/This page could not be found/i);
+      await expect(page.locator("body")).not.toContainText(
+        /Application error|Something went wrong/i
+      );
+      await expect(page.locator("main, [role=main]").first()).toBeVisible({ timeout: 15_000 });
+      expect(errors, `uncaught errors on ${route}`).toEqual([]);
     });
   });
 }

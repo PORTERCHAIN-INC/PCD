@@ -61,12 +61,25 @@ export function SuperAdminDriverOps({
   if (profile?.role !== "super_admin") return null;
 
   async function run(action: string) {
+    let reason: string | undefined;
+    if (action === "complete_delivery_without_proof") {
+      // Override of the proof-of-delivery and on-shift gates — always audited with a reason.
+      const answer = window.prompt(
+        "Finish this delivery without proof? This is recorded in the audit log.\nReason (required):"
+      );
+      if (answer === null) return;
+      reason = answer.trim();
+      if (reason.length < 5) {
+        setError("Give a reason (at least 5 characters) to finish without proof.");
+        return;
+      }
+    }
     setBusy(action);
     setError(null);
     try {
       const token = await getApiToken();
       if (!token) throw new Error("Sign in again");
-      await ordersApi.runDriverOp(token, detail.order_id, action);
+      await ordersApi.runDriverOp(token, detail.order_id, action, reason);
       await load();
       onRefresh?.();
     } catch (err) {

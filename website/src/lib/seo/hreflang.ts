@@ -58,6 +58,16 @@ function shouldIndexInEnvironment(requestedIndex: boolean): boolean {
   return true;
 }
 
+/** Collapse stray/duplicate separators so no title renders as "… |" or "| …" (audit #14). */
+export function cleanSeoTitle(raw: string): string {
+  return raw
+    .replace(/\s+/g, " ")
+    .replace(/(\s*\|\s*){2,}/g, " | ")
+    .replace(/^\s*[|·–—-]\s*/, "")
+    .replace(/\s*[|·–—-]\s*$/, "")
+    .trim();
+}
+
 export function buildSeoMetadata(params: {
   locale: Locale;
   pathSegment: string;
@@ -69,11 +79,12 @@ export function buildSeoMetadata(params: {
   const {
     locale,
     pathSegment,
-    title,
+    title: rawTitle,
     description,
     openGraphType = "website",
     index = true,
   } = params;
+  const title = cleanSeoTitle(rawTitle);
   const allowIndex = shouldIndexInEnvironment(index);
   const ogImages = defaultOpenGraphImages(title, pathSegment, locale);
   return {

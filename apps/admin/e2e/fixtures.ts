@@ -139,3 +139,31 @@ export async function ensureAdminReachable(page: Page): Promise<void> {
   }
   test.skip(true, "Admin portal not reachable on ADMIN_BASE_URL");
 }
+
+/**
+ * Open an admin path with a staff session. On a local stack the sign-in page offers
+ * "Continue as Local Super Admin" (mints a real local staff session); use it when no
+ * storage state / sid was provided. Skips (or fails when ADMIN_RUN_LIVE=1) if neither works.
+ */
+export async function gotoAsStaff(page: Page, pathname: string): Promise<void> {
+  await page.goto(pathname);
+  const localButton = page.getByRole("button", { name: /continue as local super admin/i });
+  const onSignIn = await localButton
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!onSignIn) return;
+  await localButton.click();
+  await page
+    .waitForURL((url) => !/sign-?in|login/i.test(url.pathname), { timeout: 20_000 })
+    .catch(() => undefined);
+  await page.goto(pathname);
+  const stillSignIn = await page
+    .getByRole("heading", { name: /staff sign-in/i })
+    .isVisible()
+    .catch(() => false);
+  if (stillSignIn) {
+    if (liveEnabled) throw new Error("Local staff sign-in did not create a session");
+    test.skip(true, "No staff session (set ADMIN_STORAGE_STATE or run the local stack)");
+  }
+}

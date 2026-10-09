@@ -6,17 +6,30 @@ from __future__ import annotations
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SITEMAP_TS = ROOT / "website/src/app/sitemap.ts"
+SITEMAP_INDEX = ROOT / "website/src/app/sitemap.xml/route.ts"
+SITEMAP_PART = ROOT / "website/src/app/sitemap/[id]/route.ts"
+SITEMAP_XML = ROOT / "website/src/lib/seo/sitemap-xml.ts"
 ENTRIES_TS = ROOT / "website/src/lib/seo/sitemap-entries.ts"
 
 
 def main() -> int:
     failures: list[str] = []
-    sitemap = SITEMAP_TS.read_text(encoding="utf-8")
     entries = ENTRIES_TS.read_text(encoding="utf-8")
-
-    if "generateSitemaps" not in sitemap:
-        failures.append("sitemap.ts: expected generateSitemaps() for partitioned sitemaps")
+    for path in (SITEMAP_INDEX, SITEMAP_PART, SITEMAP_XML):
+        if not path.is_file():
+            failures.append(f"missing {path.relative_to(ROOT)}")
+    if not failures:
+        index = SITEMAP_INDEX.read_text(encoding="utf-8")
+        part = SITEMAP_PART.read_text(encoding="utf-8")
+        xml = SITEMAP_XML.read_text(encoding="utf-8")
+        if "sitemapIndexXml" not in index:
+            failures.append("sitemap.xml/route.ts: expected sitemap index (sitemapIndexXml)")
+        if "generateStaticParams" not in part or "SITEMAP_PARTITION_IDS" not in part:
+            failures.append("sitemap/[id]/route.ts: expected static partitions from SITEMAP_PARTITION_IDS")
+        if "<sitemapindex" not in xml or "<urlset" not in xml:
+            failures.append("sitemap-xml.ts: expected sitemapindex + urlset serializers")
+        if "new Date()" in xml:
+            failures.append("sitemap-xml.ts: must not fabricate lastmod")
     if "lastModified: new Date()" in entries:
         failures.append("sitemap-entries.ts: must not use lastModified: new Date()")
     if "SITEMAP_PARTITIONS" not in entries and "buildStaticSitemapEntries" not in entries:

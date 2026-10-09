@@ -38,8 +38,7 @@ export default function HeroPhoto({
         className="object-cover"
         sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 1100px"}
         priority={priority}
-        quality={brand ? 100 : 90}
-        unoptimized={brand}
+        quality={brand ? 90 : 80}
       />
       <div
         className="absolute inset-0 bg-gradient-to-t from-primary/35 via-primary/5 to-transparent pointer-events-none"

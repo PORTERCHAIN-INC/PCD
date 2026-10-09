@@ -325,8 +325,12 @@ function OrdersGridTable({ rows, selected, onSelect, loading }: Props) {
         header: "",
         size: 50,
         cell: ({ row }) => (
-          <Link href={`/orders/${row.original.order_id}`} className="text-secondary">
-            <ExternalLink className="h-4 w-4" />
+          <Link
+            href={`/orders/${row.original.order_id}`}
+            className="text-secondary"
+            aria-label={`Open order ${row.original.order_number ?? row.original.order_id}`}
+          >
+            <ExternalLink className="h-4 w-4" aria-hidden />
           </Link>
         ),
       },
@@ -374,6 +378,7 @@ function OrdersGridTable({ rows, selected, onSelect, loading }: Props) {
           title="Client filter on the current page only — use server filters above for the full result set"
         />
         <select
+          aria-label="Group rows"
           value={grouping[0] ?? ""}
           onChange={(e) => setGrouping(e.target.value ? [e.target.value] : [])}
           className="rounded-xl border border-primary/10 px-3 py-2 text-sm"

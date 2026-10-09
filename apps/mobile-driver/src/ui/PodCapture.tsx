@@ -7,6 +7,25 @@ import { SignaturePad } from "./SignaturePad";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import { capturePodPhotoDataUrl } from "../pod";
 import { type PodDraft } from "./podDraft";
+import type { PodRequirements } from "../types";
+
+const ID_TYPES: Array<{ id: string; label: string }> = [
+  { id: "drivers_licence", label: "Driver's licence" },
+  { id: "health_card", label: "Health card" },
+  { id: "passport", label: "Passport" },
+  { id: "photo_id_card", label: "Ontario Photo Card" },
+  { id: "other_government", label: "Other government photo ID" },
+];
+
+function requirementLine(req: PodRequirements | null | undefined, otpRequired: boolean): string {
+  const parts: string[] = [];
+  if (req?.signature) parts.push("receiver signature");
+  else parts.push("photo or signature");
+  if (req?.photo) parts.push("photo");
+  if (req?.id_check) parts.push("receiver ID check");
+  if (otpRequired) parts.push("receiver OTP");
+  return `Required before complete: ${parts.join(" · ")}.`;
+}
 
 export type { PodDraft } from "./podDraft";
 export { emptyPodDraft } from "./podDraft";
@@ -16,11 +35,22 @@ type Props = {
   draft: PodDraft;
   orderId: string | null;
   otpRequired: boolean;
+  requirements?: PodRequirements | null;
   onChange: (next: PodDraft) => void;
   onPhotoError: (message: string) => void;
 };
 
-export function PodCapture({ busy, draft, orderId, otpRequired, onChange, onPhotoError }: Props) {
+export function PodCapture({
+  busy,
+  draft,
+  orderId,
+  otpRequired,
+  requirements,
+  onChange,
+  onPhotoError,
+}: Props) {
+  const idLabel = ID_TYPES.find((t) => t.id === draft.idType)?.label;
+  const pharmacy = Boolean(requirements?.reasons?.includes("pharmacy_medical"));
   const [picking, setPicking] = useState(false);
   const [otpBusy, setOtpBusy] = useState(false);
   const [otpHint, setOtpHint] = useState<string | null>(null);
@@ -30,10 +60,12 @@ export function PodCapture({ busy, draft, orderId, otpRequired, onChange, onPhot
   return (
     <View style={styles.wrap} testID="pod-capture">
       <Text style={styles.title}>Proof of delivery</Text>
-      <Text style={styles.lede}>
-        Photo required before complete
-        {otpRequired ? " · merchant requires receiver OTP" : ""}.
-      </Text>
+      <Text style={styles.lede}>{requirementLine(requirements, otpRequired)}</Text>
+      {pharmacy ? (
+        <Text style={styles.warn}>
+          Pharmacy / medical: hand over only to the named receiver after checking photo ID.
+        </Text>
+      ) : null}
       <PrimaryButton
         tone="ghost"
         label={picking ? "Opening camera…" : draft.photoUrl ? "Retake photo" : "Capture photo"}
@@ -74,6 +106,33 @@ export function PodCapture({ busy, draft, orderId, otpRequired, onChange, onPhot
           setPadKey((k) => k + 1);
         }}
       />
+
+      {requirements?.id_check ? (
+        <View testID="pod-id-check">
+          <Text style={styles.label}>Receiver ID check (required)</Text>
+          <PrimaryButton
+            tone="ghost"
+            label={idLabel ? `ID type: ${idLabel} (tap to change)` : "Choose ID type"}
+            disabled={busy}
+            onPress={() => {
+              const i = ID_TYPES.findIndex((t) => t.id === draft.idType);
+              const nextType = ID_TYPES[(i + 1) % ID_TYPES.length];
+              onChange({ ...draft, idType: nextType.id });
+            }}
+          />
+          <PrimaryButton
+            tone="ghost"
+            label={
+              draft.idNameMatches
+                ? "✓ Photo and name match the receiver"
+                : "Confirm photo and name match the receiver"
+            }
+            disabled={busy || !draft.idType}
+            onPress={() => onChange({ ...draft, idNameMatches: !draft.idNameMatches })}
+          />
+          <Text style={styles.meta}>Do not write down or photograph the ID number.</Text>
+        </View>
+      ) : null}
 
       <Text style={styles.label}>Barcode / tracking</Text>
       <TextInput

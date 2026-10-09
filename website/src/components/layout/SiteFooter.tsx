@@ -137,8 +137,8 @@ export default function SiteFooter() {
 
         <div className="pt-8 border-t border-white/10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="text-center sm:text-left space-y-1">
-            <p className="text-white/40 type-small">{t("copyright", { year })}</p>
-            <p className="text-white/40 type-caption">{t("contactLine")}</p>
+            <p className="text-white/60 type-small">{t("copyright", { year })}</p>
+            <p className="text-white/60 type-caption">{t("contactLine")}</p>
           </div>
           <div className="flex flex-wrap justify-center lg:justify-end gap-4 sm:gap-6">
             <a

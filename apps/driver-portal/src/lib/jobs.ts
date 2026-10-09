@@ -168,6 +168,18 @@ export interface DriverJobDetail extends DriverJobSummary {
     otp_verified: boolean;
   };
   otp_required?: boolean;
+  /** What must be captured before the dropoff can complete (API pod_policy). */
+  pod_requirements?: {
+    enforced?: boolean;
+    photo_or_signature?: boolean;
+    photo?: boolean;
+    signature?: boolean;
+    id_check?: boolean;
+    otp?: boolean;
+    reasons?: string[];
+  };
+  pod_missing?: string[];
+  on_duty?: boolean;
   incidents: Array<{
     id: string;
     incident_type: string;
@@ -289,6 +301,11 @@ export function actionErrorMessage(code: string): string {
     invalid_otp: "That OTP does not match. Ask the receiver for the current code.",
     otp_required: "This delivery requires the receiver OTP before you can complete proof.",
     package_not_found: "Package not found on this order.",
+    pod_required: "Capture the required proof (photo, signature or ID check) before completing.",
+    pod_complete_required: "Complete proof of delivery (with the receiver OTP) first.",
+    driver_off_duty: "Start your shift before completing deliveries.",
+    id_name_mismatch: "The name on the ID must match the receiver. Do not hand over the parcel.",
+    invalid_id_type: "Choose the type of ID you checked.",
   };
   return map[code] ?? code.replace(/_/g, " ");
 }
@@ -437,3 +454,18 @@ export function formatAccessLine(bits: {
   if (bits.special_instructions) parts.push(bits.special_instructions);
   return parts.length ? parts.join(" · ") : null;
 }
+
+export const POD_MISSING_LABELS: Record<string, string> = {
+  photo_or_signature: "Photo or signature",
+  photo: "Delivery photo",
+  signature: "Receiver signature",
+  id_check: "Receiver ID check",
+};
+
+export const ID_TYPES: Array<{ id: string; label: string }> = [
+  { id: "drivers_licence", label: "Driver's licence" },
+  { id: "health_card", label: "Health card" },
+  { id: "passport", label: "Passport" },
+  { id: "photo_id_card", label: "Ontario Photo Card" },
+  { id: "other_government", label: "Other government photo ID" },
+];

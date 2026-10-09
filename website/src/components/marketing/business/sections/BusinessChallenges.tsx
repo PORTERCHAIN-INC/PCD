@@ -26,7 +26,7 @@ export default function BusinessChallenges() {
       <Container>
         <BlurFade inView className="text-center max-w-2xl mx-auto mb-14">
           <h2 className="biz-heading text-[#0b1220] tracking-tight">{t("title")}</h2>
-          <p className="mt-4 text-[#64748b] leading-relaxed">{t("subtitle")}</p>
+          <p className="mt-4 text-[#5b6779] leading-relaxed">{t("subtitle")}</p>
         </BlurFade>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
@@ -39,7 +39,7 @@ export default function BusinessChallenges() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="font-semibold text-[#0b1220] mb-2">{t(`items.${key}.title`)}</h3>
-                  <p className="text-sm text-[#64748b] leading-relaxed">
+                  <p className="text-sm text-[#5b6779] leading-relaxed">
                     {t(`items.${key}.description`)}
                   </p>
                 </MagicCard>

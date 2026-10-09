@@ -66,12 +66,24 @@ async def lifespan(_app: FastAPI):
         await realtime_hub.stop()
 
 
+def api_docs_exposed(settings) -> bool:
+    """Interactive docs + OpenAPI JSON only in local/dev/test, or when explicitly enabled."""
+    from porterchain_shared.redis_health import is_local_env
+
+    return bool(getattr(settings, "api_docs_enabled", False)) or is_local_env(settings.app_env)
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
+    docs_on = api_docs_exposed(settings)
     app = FastAPI(
         title="Porterchain API",
         version="0.1.0",
         lifespan=lifespan,
+        # Production must not publish the full API map (readiness audit #11).
+        docs_url="/docs" if docs_on else None,
+        redoc_url="/redoc" if docs_on else None,
+        openapi_url="/openapi.json" if docs_on else None,
     )
     cors_kwargs: dict = {
         "allow_origins": settings.cors_origin_list,

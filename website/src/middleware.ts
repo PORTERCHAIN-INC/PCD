@@ -3,6 +3,7 @@ import createMiddleware from "next-intl/middleware";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { isClerkClientShellPath } from "./lib/clerk-shell";
+import { isKnownInvalidRoute } from "./lib/seo/known-route-guard";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
@@ -32,7 +33,23 @@ function handleRequest(req: NextRequest) {
   if (shouldBypassIntl(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
-  return intlMiddleware(req);
+  const doubled = req.nextUrl.pathname.match(/^\/(en|fr)\/(en|fr)(\/.*)?$/);
+  if (doubled) {
+    // /en/en/... (double locale prefix) -> one canonical URL, permanent redirect.
+    const url = req.nextUrl.clone();
+    url.pathname = `/${doubled[2]}${doubled[3] ?? ""}`;
+    return NextResponse.redirect(url, 308);
+  }
+  if (isKnownInvalidRoute(req.nextUrl.pathname, routing.locales)) {
+    // Rewrite to an unmatched path so Next serves not-found.tsx with a real 404 status.
+    const locale = req.nextUrl.pathname.split("/")[1];
+    return NextResponse.rewrite(new URL(`/${locale}/__not-found__`, req.url));
+  }
+  const res = intlMiddleware(req);
+  const first = req.nextUrl.pathname.split("/")[1];
+  if (first === "fr") res.headers.set("Content-Language", "fr-CA");
+  else if (first === "en") res.headers.set("Content-Language", "en-CA");
+  return res;
 }
 
 const clerkHandler = clerkMiddleware(async (_auth, req) => handleRequest(req));

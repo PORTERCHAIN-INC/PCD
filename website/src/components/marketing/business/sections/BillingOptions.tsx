@@ -36,7 +36,7 @@ export default function BillingOptions() {
             {t("label")}
           </span>
           <h2 className="biz-heading mt-3 tracking-tight text-[#0b1220]">{t("title")}</h2>
-          <p className="mt-4 leading-relaxed text-[#64748b]">{t("subtitle")}</p>
+          <p className="mt-4 leading-relaxed text-[#5b6779]">{t("subtitle")}</p>
         </motion.div>
 
         <div className="mx-auto mb-12 grid max-w-4xl gap-6 sm:grid-cols-3">
@@ -50,7 +50,7 @@ export default function BillingOptions() {
               className="border-l-2 border-[#2563eb]/25 pl-4"
             >
               <h3 className="text-sm font-semibold text-[#0b1220]">{t(`factors.${key}.title`)}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-[#64748b]">
+              <p className="mt-1.5 text-sm leading-relaxed text-[#5b6779]">
                 {t(`factors.${key}.body`)}
               </p>
             </motion.div>
@@ -98,7 +98,7 @@ export default function BillingOptions() {
                 <p
                   className={cn(
                     "mt-2 text-sm leading-relaxed",
-                    isFeatured ? "text-white/60" : "text-[#64748b]"
+                    isFeatured ? "text-white/60" : "text-[#5b6779]"
                   )}
                 >
                   {t(`plans.${key}.description`)}
@@ -167,7 +167,7 @@ export default function BillingOptions() {
             <h3 className="mt-2 text-xl font-bold tracking-tight text-[#0b1220]">
               {t("programCompare.title")}
             </h3>
-            <p className="mt-3 text-sm leading-relaxed text-[#64748b]">
+            <p className="mt-3 text-sm leading-relaxed text-[#5b6779]">
               {t("programCompare.subtitle")}
             </p>
           </div>
@@ -187,16 +187,16 @@ export default function BillingOptions() {
                 <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-[#2563eb]">
                   {t(`programCompare.columns.${key}.bestFor`)}
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#64748b]">
+                <p className="mt-3 text-sm leading-relaxed text-[#5b6779]">
                   {t(`programCompare.columns.${key}.body`)}
                 </p>
               </motion.div>
             ))}
           </div>
-          <p className="mt-6 text-center text-xs text-[#64748b]">{t("programCompare.footnote")}</p>
+          <p className="mt-6 text-center text-xs text-[#5b6779]">{t("programCompare.footnote")}</p>
         </motion.div>
 
-        <p className="mt-8 text-center text-xs text-[#64748b]">{t("footnote")}</p>
+        <p className="mt-8 text-center text-xs text-[#5b6779]">{t("footnote")}</p>
       </Container>
     </section>
   );

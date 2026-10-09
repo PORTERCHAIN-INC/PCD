@@ -2,7 +2,7 @@
   "metadata": {
     "home": {
       "title": "Capacité de livraison RGT | Chauffeurs, véhicules et technologie | PorterChain",
-      "description": "Logistique locale pleine pile pour le Grand Toronto — logiciel propriétaire plus chauffeurs et véhicules professionnels pour capacité jour même, débordement et récurrente. Sur devis. Suivi et preuve à chaque arrêt.",
+      "description": "Capacité de livraison dans le RGT : chauffeurs et véhicules pros pour le jour même, le débordement et les routes récurrentes, avec suivi et preuve.",
       "ogTitle": "PorterChain — Réseau de capacité de transport pour le RGT",
       "ogDescription": "Technologie, chauffeurs, véhicules et opérations logistiques pour les entreprises ontariennes — capacité quand votre flotte ne suffit pas."
     },
@@ -325,8 +325,8 @@
     "businessLogin": "Connexion entreprise",
     "login": "Connexion",
     "whatsappChat": "Chat WhatsApp",
-    "getQuote": "",
-    "bookNow": "",
+    "getQuote": "Obtenir un devis",
+    "bookNow": "Obtenir un devis",
     "toggleMenu": "Ouvrir le menu"
   },
   "footer": {
@@ -381,7 +381,7 @@
       "2": "Suivi en direct et preuve de livraison"
     },
     "platformCta": "Voir les véhicules",
-    "demoCta": "",
+    "demoCta": "Obtenir un devis",
     "quoteCta": "Obtenir un devis"
   },
   "seo": {
@@ -439,7 +439,7 @@
     "answers": {
       "eyebrow": "En bref",
       "title": "Réponses rapides",
-      "cta": "",
+      "cta": "Obtenir une soumission",
       "secondaryCta": "Voir les véhicules",
       "what": {
         "question": "Qu'est-ce que PorterChain?",
@@ -468,7 +468,7 @@
         "label": "Quand vous avez besoin de capacité",
         "title": "Les problèmes de livraison qui arrêtent vos opérations",
         "subtitle": "Les entreprises ontariennes font appel à PorterChain pour la livraison le jour même, urgente et d'urgence — plus le débordement de flotte et la logistique intra-urbaine récurrente dans le RGT.",
-        "cta": "",
+        "cta": "Obtenir un devis",
         "items": {
           "0": "Livraison d'urgence",
           "1": "Débordement de flotte",
@@ -2114,7 +2114,7 @@
           "href": "/trust"
         },
         "2": {
-          "title": "",
+          "title": "Obtenir un devis",
           "description": "Dites-nous ce qui doit bouger et nous mapperons la bonne capacité.",
           "href": "/business?from=company#inquiry"
         }
@@ -2178,7 +2178,7 @@
       "successMessage": "Merci. Un membre de notre équipe répondra sous un jour ouvrable.",
       "errorMessage": "Impossible d'envoyer votre message. Réessayez ou écrivez-nous directement.",
       "quote": {
-        "title": "",
+        "title": "Obtenir un devis",
         "subtitle": "Partagez les détails de votre envoi et nous deviserons la capacité véhicule-chauffeur adaptée.",
         "urgency": "Urgence",
         "urgencyPlaceholder": "Sélectionner l'urgence",
@@ -3186,7 +3186,7 @@
           "feature0": "Options de la berline au camion cube",
           "feature1": "Suivi en direct + preuve de livraison",
           "feature2": "Devis confirmé avant répartition",
-          "cta": ""
+          "cta": "Obtenir un devis"
         },
         "1": {
           "name": "Compte entreprise",

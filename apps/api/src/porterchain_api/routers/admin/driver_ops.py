@@ -11,6 +11,8 @@ _driver_ops = AdminDriverOpsService()
 
 class DriverOpsRequest(BaseModel):
     action: str
+    # Required (>= 5 chars) for complete_delivery_without_proof; stored in the audit log.
+    reason: str | None = None
 
 
 class ParcelStatusRequest(BaseModel):
@@ -41,7 +43,7 @@ def run_order_driver_ops(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    return _invoke(ctx, "orders", _driver_ops.run, db, settings, ctx, order_id, body.action)
+    return _invoke(ctx, "orders", _driver_ops.run, db, settings, ctx, order_id, body.action, body.reason)
 
 
 @router.post("/orders/{order_id}/parcels/{parcel_id}/status")

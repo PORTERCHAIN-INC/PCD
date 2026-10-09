@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 
 from fastapi import HTTPException
-from jose import JWTError, jwk, jwt
 import httpx
+import jwt
+from jwt import PyJWK, PyJWTError
 
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk_registry import clerk_jwks_urls
@@ -30,11 +31,18 @@ async def _get_jwks(url: str) -> dict:
 
 
 def _rsa_key_for_token(jwks: dict, token: str):
-    header = jwt.get_unverified_header(token)
+    """Return the verification key for the token's ``kid`` (PyJWT; python-jose removed)."""
+    try:
+        header = jwt.get_unverified_header(token)
+    except PyJWTError:
+        return None
     kid = header.get("kid")
     for key_data in jwks.get("keys", []):
         if key_data.get("kid") == kid:
-            return jwk.construct(key_data)
+            try:
+                return PyJWK(key_data, algorithm="RS256").key
+            except PyJWTError:
+                return None
     return None
 
 
@@ -122,8 +130,13 @@ async def verify_clerk_token(
         raise HTTPException(status_code=503, detail="clerk_not_configured")
 
     audience = (settings.clerk_audience or "").strip() or None
-    decode_options = {"verify_aud": bool(audience), "verify_exp": True, "verify_nbf": True}
-    last_error: JWTError | None = None
+    decode_options = {
+        "verify_signature": True,
+        "verify_aud": bool(audience),
+        "verify_exp": True,
+        "verify_nbf": True,
+    }
+    last_error: PyJWTError | None = None
 
     for clerk_app, jwks_url in jwks_entries:
         jwks = await _get_jwks(jwks_url)
@@ -148,7 +161,7 @@ async def verify_clerk_token(
             return enrich_claims_with_verified_email(claims, settings)
         except HTTPException:
             raise
-        except JWTError as exc:
+        except PyJWTError as exc:
             last_error = exc
             continue
 

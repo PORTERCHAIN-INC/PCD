@@ -16,6 +16,10 @@
     "./phase2": {
       "types": "./phase2.ts",
       "default": "./phase2.mjs"
+    },
+    "./security-headers.mjs": {
+      "types": "./security-headers.d.ts",
+      "default": "./security-headers.mjs"
     }
   },
   "files": [
@@ -25,7 +29,9 @@
     "sentry/portal.ts",
     "phase2.mjs",
     "phase2.ts",
-    "tsconfig.base.json"
+    "tsconfig.base.json",
+    "security-headers.mjs",
+    "security-headers.d.ts"
   ],
   "dependencies": {
     "@sentry/nextjs": "^10.64.0"

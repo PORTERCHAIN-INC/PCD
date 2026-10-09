@@ -50,7 +50,7 @@ function SpecStat({
     <div className="rounded-2xl border border-secondary/15 bg-white p-3 sm:p-3.5 shadow-sm min-w-0">
       <div className="flex items-center gap-1.5 text-secondary mb-1.5">
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-secondary/80 truncate">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-secondary truncate">
           {label}
         </p>
       </div>
@@ -298,9 +298,7 @@ export default function FleetSelector({
                     alt={t(`items.${activeKey}.name`)}
                     width={fleetVehicleUsesPhoto(activeKey) ? 1024 : 420}
                     height={fleetVehicleUsesPhoto(activeKey) ? 585 : 420}
-                    priority
-                    unoptimized={fleetVehicleUsesPhoto(activeKey)}
-                    quality={100}
+                    quality={90}
                     sizes="(max-width: 1024px) 90vw, 640px"
                     className={
                       fleetVehicleUsesPhoto(activeKey)
@@ -321,20 +319,27 @@ export default function FleetSelector({
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden />
               </button>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center">
                 {BUSINESS_FLEET_KEYS.map((key, i) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setActive(i)}
                     aria-label={t(`items.${key}.name`)}
-                    className={cn(
-                      "h-1.5 rounded-full transition-all",
-                      i === active
-                        ? "w-6 bg-secondary"
-                        : "w-1.5 bg-primary/20 hover:bg-secondary/50"
-                    )}
-                  />
+                    aria-current={i === active ? "true" : undefined}
+                    className="group flex h-7 min-w-7 items-center justify-center"
+                  >
+                    {/* 28px hit area (WCAG 2.5.8 needs 24px even when the card is scaled); the visible dot stays small. */}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "h-1.5 rounded-full transition-all",
+                        i === active
+                          ? "w-6 bg-secondary"
+                          : "w-1.5 bg-primary/20 group-hover:bg-secondary/50"
+                      )}
+                    />
+                  </button>
                 ))}
               </div>
               <button

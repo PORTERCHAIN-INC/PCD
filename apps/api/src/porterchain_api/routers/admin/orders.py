@@ -2,6 +2,7 @@
 
 from fastapi.responses import RedirectResponse, Response
 
+from porterchain_api.reporting.label_service import PackagesRequired
 from porterchain_api.admin_engine.orders_service import build_admin_order_filters
 from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendError, parcel_amend_http
 from porterchain_api.reporting.pod_export import PodFetchFailed, PodUnavailable, pod_error_message
@@ -46,6 +47,11 @@ def _invoke(ctx: AdminContext, module: str, fn, *args, **kwargs):
         raise HTTPException(status_code=502, detail=pod_error_message(str(exc))) from None
     except PodUnavailable as exc:
         raise HTTPException(status_code=404, detail=pod_error_message(str(exc))) from None
+    except PackagesRequired:
+        raise HTTPException(
+            status_code=409,
+            detail="This order has no packages yet. Add packages, then print labels.",
+        ) from None
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

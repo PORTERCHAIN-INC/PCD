@@ -118,7 +118,12 @@ function BoardDemo({ t }: { t: OpsT }) {
           </div>
         </div>
 
-        <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+        <div
+          className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]"
+          tabIndex={0}
+          role="region"
+          aria-label="Dispatch board"
+        >
           {BOARD_COLS.map((col) => (
             <div key={col.key} className="flex w-[148px] shrink-0 flex-col sm:w-[168px]">
               <div className="mb-2 flex items-center gap-1.5 px-0.5">

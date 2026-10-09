@@ -42,7 +42,7 @@ export default function HomeVehicleLeadCapture() {
   return (
     <div className="mt-8 w-full max-w-md">
       <p className="text-sm font-medium text-white/70">{t("prompt")}</p>
-      <div className="mt-4 grid grid-cols-3 gap-2.5 sm:gap-3" role="list">
+      <div className="mt-4 grid grid-cols-3 gap-2.5 sm:gap-3">
         {LEAD_VEHICLES.map((vehicle, index) => {
           const photo = FLEET_VEHICLE_PHOTOS[vehicle.photoKey];
           const icon = FLEET_VEHICLE_ICONS[vehicle.fleetKey];
@@ -76,8 +76,7 @@ export default function HomeVehicleLeadCapture() {
                     src={photo}
                     alt=""
                     fill
-                    unoptimized
-                    quality={100}
+                    quality={80}
                     className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
                     sizes="(max-width: 640px) 33vw, 200px"
                   />

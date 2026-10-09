@@ -167,7 +167,7 @@ class AdminOrdersService(OrderPlatformService):
         return pdf, filename
 
     def labels_pdf(self, db: Session, order_id: str) -> tuple[bytes, str] | None:
-        from porterchain_api.reporting.label_service import LabelService, PackagesRequired
+        from porterchain_api.reporting.label_service import LabelService
 
         order = self.get_order(db, order_id)
         if not order:
@@ -177,12 +177,8 @@ class AdminOrdersService(OrderPlatformService):
             from porterchain_api.merchant_engine.lookups import company_name
 
             merchant_name = company_name(db, order.merchant_id)
-        try:
-            pdf, filename = LabelService().build_order_labels_pdf(
-                db, order, merchant_name=merchant_name
-            )
-        except PackagesRequired:
-            return None
+        # PackagesRequired propagates so ops get a 409 + "add packages", not "order not found".
+        pdf, filename = LabelService().build_order_labels_pdf(db, order, merchant_name=merchant_name)
         db.commit()
         return pdf, filename
 

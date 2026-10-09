@@ -27,7 +27,7 @@ export default function BusinessFAQ() {
             {t("label")}
           </span>
           <h2 className="mt-3 biz-heading text-[#0b1220] tracking-tight">{t("title")}</h2>
-          <p className="mt-4 text-[#64748b]">{t("subtitle")}</p>
+          <p className="mt-4 text-[#5b6779]">{t("subtitle")}</p>
         </motion.div>
 
         <Accordion items={items} speakableCount={4} />

@@ -325,6 +325,15 @@ export function Order360View({
         </div>
       </div>
 
+      {recordError ? (
+        <p
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+        >
+          {recordError}
+        </p>
+      ) : null}
+
       <nav className="flex flex-wrap gap-1 border-b border-primary/10 pb-1">
         {visibleSections.map((s) => (
           <button
@@ -398,7 +407,7 @@ export function Order360View({
             onPrintPreview={() => void downloadPrintPreview()}
             busy={recordBusy}
             printBusy={printBusy}
-            error={recordError}
+            error={null /* shown once, as an alert under the header */}
           />
         </div>
       )}
@@ -424,9 +433,6 @@ export function Order360View({
           ) : null}
         </div>
       )}
-      {recordError && activeSection !== "evidence" ? (
-        <p className="text-sm text-red-600">{recordError}</p>
-      ) : null}
       {emailNote ? <p className="text-sm text-muted">{emailNote}</p> : null}
       {cancelNote ? <p className="text-sm text-muted">{cancelNote}</p> : null}
       {detail.cancel_rule ? <p className="text-xs text-muted">{detail.cancel_rule}</p> : null}

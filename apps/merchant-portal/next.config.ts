@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadMonorepoEnv, merchantPublicEnv } from "@porterchain/config/monorepo-env.mjs";
+import { baselineCsp } from "@porterchain/config/security-headers.mjs";
 
 loadMonorepoEnv(process.cwd());
 
@@ -17,12 +18,17 @@ const shopifyEmbedHeaders = [
   ...baseSecurityHeaders,
   {
     key: "Content-Security-Policy",
-    value:
-      "frame-ancestors https://admin.shopify.com https://*.myshopify.com https://*.shopify.com;",
+    value: baselineCsp({
+      frameAncestors: "https://admin.shopify.com https://*.myshopify.com https://*.shopify.com",
+    }),
   },
 ];
 
-const defaultSecurityHeaders = [...baseSecurityHeaders, { key: "X-Frame-Options", value: "DENY" }];
+const defaultSecurityHeaders = [
+  ...baseSecurityHeaders,
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Content-Security-Policy", value: baselineCsp() },
+];
 
 const nextConfig: NextConfig = {
   output: "standalone",

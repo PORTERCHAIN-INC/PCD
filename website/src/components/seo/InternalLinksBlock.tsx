@@ -1,5 +1,19 @@
 import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
+import { routing } from "@/i18n/routing";
+
+const LOCALE_PREFIX = new RegExp(`^/(?:${routing.locales.join("|")})(?=/|\\?|#|$)`);
+
+/**
+ * Builders return locale-prefixed paths (/en/faq/x?from=business). The locale-aware Link
+ * prefixes again when the href carries a query string, producing /en/en/... 404s
+ * (readiness audit #14). Strip the prefix and let Link add the active locale once.
+ */
+export function unprefixLocale(href: string): string {
+  if (!href.startsWith("/")) return href;
+  const stripped = href.replace(LOCALE_PREFIX, "");
+  return stripped === "" ? "/" : stripped.startsWith("/") ? stripped : `/${stripped}`;
+}
 
 interface InternalLinksBlockProps {
   title: string;
@@ -16,7 +30,7 @@ export default function InternalLinksBlock({ title, links }: InternalLinksBlockP
           {links.map((link) => (
             <li key={link.href}>
               <Link
-                href={link.href}
+                href={unprefixLocale(link.href)}
                 className="text-secondary hover:text-primary font-medium transition-colors"
               >
                 {link.label}

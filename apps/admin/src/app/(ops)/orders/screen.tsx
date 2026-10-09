@@ -233,6 +233,7 @@ export default function OrdersPage() {
             </>
           ) : null}
           <select
+            aria-label="Status filter"
             value={filters.state ? `state:${filters.state}` : `queue:${queue}`}
             onChange={(e) => {
               const value = e.target.value;
@@ -262,6 +263,7 @@ export default function OrdersPage() {
             </optgroup>
           </select>
           <select
+            aria-label="Payment status filter"
             value={filters.payment_status ?? ""}
             onChange={(e) =>
               changeFilters((f) => ({ ...f, payment_status: e.target.value || undefined }))
@@ -274,6 +276,7 @@ export default function OrdersPage() {
             <option value="FAILED">Failed</option>
           </select>
           <select
+            aria-label="Priority filter"
             value={filters.priority ?? ""}
             onChange={(e) =>
               changeFilters((f) => ({ ...f, priority: e.target.value || undefined }))
@@ -287,6 +290,7 @@ export default function OrdersPage() {
           <input
             type="text"
             placeholder="City"
+            aria-label="City filter"
             value={filters.city ?? ""}
             onChange={(e) => changeFilters((f) => ({ ...f, city: e.target.value || undefined }))}
             className="w-28 rounded-xl border border-primary/10 px-3 py-2 text-sm"

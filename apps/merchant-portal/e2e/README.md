@@ -56,3 +56,15 @@ pnpm test:merchant-p0:live
 ```
 
 Do **not** paste comment lines (`# ...`) into the same shell paste as commands on zsh.
+
+## Local stack without Clerk jars
+
+Against the local dev stack (merchant portal dev auth, Bearer `dev`), dispatcher/owner journeys
+and the page smoke tests run without a storage state:
+
+```bash
+MERCHANT_E2E_LIVE=1 MERCHANT_E2E_LOCAL_BYPASS=1 pnpm --filter @porterchain/merchant-portal exec playwright test
+```
+
+Viewer-role checks (MP-AUTH-006, viewer persona) still need `MERCHANT_STORAGE_STATE_VIEWER`.
+Never use the bypass against staging or production.

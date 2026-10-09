@@ -8,6 +8,7 @@ from porterchain_api.routers.driver._deps import (
     HTTPException,
     OfflineActionRequest,
     PodBarcodeRequest,
+    PodIdCheckRequest,
     PodOtpRequest,
     PodPhotoRequest,
     PodSignatureRequest,
@@ -19,6 +20,21 @@ from porterchain_api.routers.driver._deps import (
     require_approved_driver,
     router,
     svc)
+
+
+def _pod_failure_status(message: str) -> int:
+    return 409 if message.startswith("pod_required") or message == "driver_off_duty" else 400
+
+
+def _pod_failure_detail(message: str):
+    """Keep legacy string details (otp_required / invalid_otp); structured for the new gates."""
+    from porterchain_driver.pod_policy import DriverOffDuty, PodMissing
+
+    if message.startswith("pod_required:"):
+        return PodMissing([m for m in message.split(":", 1)[1].split(",") if m]).payload
+    if message == "driver_off_duty":
+        return DriverOffDuty().payload
+    return message
 
 
 @router.get("/navigation/session")
@@ -114,6 +130,31 @@ def pod_signature(
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
 
 
+@router.post("/routes/{route_id}/stops/{stop_id}/pod-id-check")
+def pod_id_check(
+    route_id: str,
+    stop_id: str,
+    body: PodIdCheckRequest,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db)):
+    """Record that the driver checked the receiver's government ID (pharmacy / id_required)."""
+    require_approved_driver(ctx)
+    try:
+        with db_transaction(db):
+            result = svc.platform.pod.capture_id_check(
+                db,
+                ctx.driver,
+                stop_id,
+                id_type=body.id_type,
+                name_matches=body.name_matches,
+                age_verified=body.age_verified)
+        return {"success": result.success}
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="stop_not_found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @router.post("/routes/{route_id}/stops/{stop_id}/pod-barcode")
 def pod_barcode(
     route_id: str,
@@ -152,7 +193,7 @@ def pod_complete(
                 stop_id,
                 otp=body.otp)
             if not result.success:
-                raise HTTPException(status_code=400, detail=result.message)
+                raise HTTPException(status_code=_pod_failure_status(result.message), detail=_pod_failure_detail(result.message))
         return {"success": True, "state": "POD_COMPLETED"}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc

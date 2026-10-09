@@ -55,37 +55,38 @@ _PICKUP_DONE_STATES = frozenset(
 )
 
 
-# Paused 2026-10-05. Complete delivery is accepted without photo, signature,
-# barcode, or OTP proof. Web, iOS, and Android all call deliver_stop.
-# Set True to restore the proof requirement.
-ENFORCE_DROP_POD = False
+# Paused 2026-10-05, restored by readiness audit #5 (Oct 2026). ``None`` means "follow
+# DRIVER_POD_ENFORCED" (default on, see pod_policy). Tests may patch True/False.
+ENFORCE_DROP_POD: bool | None = None
+
+
+def _pod_enforced() -> bool:
+    if ENFORCE_DROP_POD is not None:
+        return bool(ENFORCE_DROP_POD)
+    from porterchain_driver.pod_policy import pod_enforced
+
+    return pod_enforced()
 
 
 def _assert_dropoff_pod_ready(db: Session, order: Any) -> None:
-    """Dean correctness: dropoff deliver requires captured proof; OTP jobs need POD_COMPLETED.
+    """Dropoff deliver requires the proof the order's rules ask for; OTP jobs need POD_COMPLETED.
 
-    While ENFORCE_DROP_POD is False, a missing proof does not block complete delivery.
+    Raises ``PodMissing`` (a ``PermissionError`` whose ``str`` is ``pod_required``) listing what
+    is still missing (photo_or_signature / signature / id_check).
     """
-    if not ENFORCE_DROP_POD:
+    if not _pod_enforced():
         return
     from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
     from porterchain_api.domain.states import OrderState
-    from porterchain_api.driver_models import DriverStopMeta
+    from porterchain_driver.pod_policy import PodMissing, missing_for
 
     state = str(getattr(order, "state", "") or "")
     if state == OrderState.POD_COMPLETED.value:
         return
 
-    meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
-    proofs = list((meta_row.meta or {}).get("proofs", [])) if meta_row else []
-    proof_types = {
-        str(item.get("type") or "")
-        for item in proofs
-        if isinstance(item, dict)
-    }
-    has_capture = bool(proof_types & {"photo", "signature", "barcode", "complete"})
-    if not has_capture:
-        raise PermissionError("pod_required")
+    missing = missing_for(db, order)
+    if missing:
+        raise PodMissing(missing)
 
     if otp_required_at_delivery(getattr(order, "compliance_metadata", None)):
         raise PermissionError("pod_complete_required")
@@ -267,12 +268,20 @@ class StopsService:
         stop_id: str,
         *,
         enforce_sequence: bool = True,
-        auto_reoptimize: bool = False) -> StopView:
+        auto_reoptimize: bool = False,
+        pod_override: bool = False,
+        duty_override: bool = False) -> StopView:
+        """Complete a stop. ``pod_override`` / ``duty_override`` are for the audited super-admin
+        "finish without proof" path only — driver routes never pass them."""
         order = self._order_for_stop(db, driver.id, stop_id)
         from porterchain_api.domain.states import OrderState
         from porterchain_driver.earnings import EarningsService
 
         _validate_stop_action(order, stop_id, "deliver")
+        if not stop_id.endswith("-pickup") and not duty_override:
+            from porterchain_driver.pod_policy import assert_on_duty
+
+            assert_on_duty(db, driver)
         if enforce_sequence:
             _validate_current_stop(db, driver, stop_id)
 
@@ -296,7 +305,8 @@ class StopsService:
                 _record_stop_completion(db, driver.id, order.id, "dropoff")
                 EarningsService().credit_delivery(db, driver, order_id=order.id)
             else:
-                _assert_dropoff_pod_ready(db, order)
+                if not pod_override:
+                    _assert_dropoff_pod_ready(db, order)
                 steps = _DELIVERY_COMPLETE_STEPS
                 _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
                 target = OrderState.DELIVERED

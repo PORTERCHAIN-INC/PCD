@@ -58,6 +58,15 @@ class DriverOfflineExecutor:
                 payload["stop_id"],
                 signature_data=payload["signature_data"])
             return
+        if action == "pod_id_check":
+            self._platform.pod.capture_id_check(
+                db,
+                driver,
+                payload["stop_id"],
+                id_type=str(payload.get("id_type") or ""),
+                name_matches=bool(payload.get("name_matches")),
+                age_verified=payload.get("age_verified"))
+            return
         if action == "pod_barcode":
             self._platform.pod.capture_barcode(
                 db,

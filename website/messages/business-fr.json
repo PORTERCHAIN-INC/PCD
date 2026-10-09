@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Services Porterchain | Capacité de transport B2B — RGT et Ontario",
-    "description": "Services de livraison B2B dans le RGT — urgence le jour même, débordement de flotte, routes de gros récurrentes, logistique de chantier, distribution du dernier kilomètre et messagerie médicale à Toronto, Mississauga, Brampton et en Ontario.",
+    "description": "Livraison B2B dans le RGT : jour même, urgences, débordement, chantiers et routes de gros, du fourgon au camion cube. Suivi et preuve à chaque arrêt.",
     "ogTitle": "Porterchain — Services de livraison B2B pour le RGT",
     "ogDescription": "Chauffeurs professionnels et véhicules pour fournitures construction, distribution en gros, messagerie pharmacie et continuité d'affaires quand votre flotte ne suffit pas."
   },
@@ -12,7 +12,7 @@
     "resources": "Ressources",
     "about": "À propos",
     "contact": "Contact",
-    "requestConsultation": "",
+    "requestConsultation": "Obtenir un devis",
     "toggleMenu": "Basculer le menu",
     "solutionItems": {
       "recurring": "Livraison récurrente",
@@ -26,7 +26,7 @@
     "titleLine1": "Quand votre flotte ne peut pas couvrir,",
     "titleLine2": "PorterChain livre.",
     "subtitle": "Urgence le jour même, débordement de flotte, livraison chantier et routes de gros récurrentes — chauffeurs professionnels de la berline au camion cube à Toronto, Peel, York et Durham. Suivi en direct et preuve à chaque arrêt · sur devis, sans frais plateforme.",
-    "ctaPrimary": "",
+    "ctaPrimary": "Obtenir un devis",
     "ctaSecondary": "Voir les véhicules"
   },
   "brandBand": {

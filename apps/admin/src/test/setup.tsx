@@ -34,3 +34,14 @@ vi.mock("next/link", () => ({
     </a>
   ),
 }));
+
+// happy-dom 20 no longer defines the blocking dialogs; tests spy on them.
+for (const name of ["confirm", "alert", "prompt"] as const) {
+  if (typeof (window as unknown as Record<string, unknown>)[name] !== "function") {
+    Object.defineProperty(window, name, {
+      configurable: true,
+      writable: true,
+      value: name === "confirm" ? () => true : () => undefined,
+    });
+  }
+}

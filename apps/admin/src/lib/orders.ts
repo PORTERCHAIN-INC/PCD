@@ -310,11 +310,11 @@ export const ordersApi = {
       parcel_statuses: string[];
       extra_stops?: Array<Record<string, unknown>>;
     }>(`${B}/${id}/driver-ops`, token),
-  runDriverOp: (token: string, id: string, action: string) =>
+  runDriverOp: (token: string, id: string, action: string, reason?: string) =>
     adminFetch<{ ok: boolean; order_id: string; state: string; action: string }>(
       `${B}/${id}/driver-ops`,
       token,
-      { method: "POST", body: JSON.stringify({ action }) }
+      { method: "POST", body: JSON.stringify(reason ? { action, reason } : { action }) }
     ),
   setParcelStatus: (
     token: string,

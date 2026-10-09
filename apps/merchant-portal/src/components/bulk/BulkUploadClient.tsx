@@ -6,6 +6,7 @@ import { QuoteLines } from "@/components/billing/QuoteLines";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import {
+  type BulkUploadWarning,
   applyRouteImportMappingProfile,
   confirmBulk,
   confirmRouteImport,
@@ -77,6 +78,7 @@ export default function BulkPage() {
     duplicate_rows: number;
     preview: Array<Record<string, unknown>>;
     errors: Array<Record<string, unknown>>;
+    warnings?: BulkUploadWarning[];
   } | null>(null);
   const [routeJob, setRouteJob] = useState<RouteImportJob | null>(null);
   const [vehicleClass, setVehicleClass] = useState("sprinter_van");
@@ -762,6 +764,7 @@ export default function BulkPage() {
               <input
                 type="file"
                 accept=".csv,.xlsx"
+                aria-label="Upload bookings CSV or Excel file"
                 onChange={onClassicUpload}
                 disabled={loading}
               />
@@ -783,6 +786,19 @@ export default function BulkPage() {
                 Valid: {preview.valid_rows} · Errors: {preview.error_rows} · Duplicates:{" "}
                 {preview.duplicate_rows}
               </p>
+              {preview.warnings && preview.warnings.length > 0 && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                >
+                  <p className="font-semibold">Possible duplicate upload</p>
+                  <ul className="mt-1 list-disc space-y-1 pl-5">
+                    {preview.warnings.map((w, i) => (
+                      <li key={`${w.code}-${i}`}>{w.message}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {preview.errors.length > 0 && (
                 <div>
                   <h3 className="font-medium text-primary">Error report</h3>

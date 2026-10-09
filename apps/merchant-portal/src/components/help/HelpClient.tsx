@@ -50,6 +50,12 @@ export default function HelpClient() {
   const load = () =>
     qc.invalidateQueries({ queryKey: ["merchant-help", keyOrg, canTickets, canClaims] });
 
+  // Deep link from the dashboard: /help?tab=claims
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get("tab");
+    if (wanted === "claims" || wanted === "tickets") setTab(wanted);
+  }, []);
+
   useEffect(() => {
     if (tabs.some((t) => t.id === tab)) return;
     setTab(tabs[0]?.id ?? "tickets");

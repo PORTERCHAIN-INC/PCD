@@ -30,6 +30,8 @@ import {
   vehicleLabel,
   STOP_EXCEPTION_TYPES,
   formatAccessLine,
+  ID_TYPES,
+  POD_MISSING_LABELS,
 } from "@/lib/jobs";
 import { cn, formatCents } from "@/lib/utils";
 
@@ -106,6 +108,8 @@ export default function Delivery360({
   const [otp, setOtp] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [signature, setSignature] = useState("");
+  const [idType, setIdType] = useState("");
+  const [idNameMatches, setIdNameMatches] = useState(false);
   const [incidentType, setIncidentType] = useState("customer_not_available");
   const [incidentNotes, setIncidentNotes] = useState("");
   const [exceptionPhoto, setExceptionPhoto] = useState("");
@@ -140,6 +144,13 @@ export default function Delivery360({
     contact_phone_masked: job.next_stop?.contact_phone_masked ?? null,
   });
   const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
+  const podEnforced = Boolean(job.pod_requirements?.enforced);
+  const podMissing = job.pod_missing ?? [];
+  const requiredItems = [
+    ...(job.pod_requirements?.signature ? [] : ["photo_or_signature"]),
+    ...(job.pod_requirements?.signature ? ["signature"] : []),
+    ...(job.pod_requirements?.id_check ? ["id_check"] : []),
+  ];
 
   async function run(action: string, fn: () => Promise<unknown>) {
     setPending(action);
@@ -544,6 +555,39 @@ export default function Delivery360({
 
       {deliveryPhase && !completed && (
         <Section title="Proof of Delivery" icon={CheckCircle2}>
+          {job.on_duty === false ? (
+            <p
+              role="alert"
+              className="mb-4 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800"
+            >
+              You are off shift. Start your shift before completing this delivery.
+            </p>
+          ) : null}
+          {podEnforced ? (
+            <div
+              className="mb-4 rounded-xl border border-[var(--border)] p-3 text-sm"
+              aria-live="polite"
+            >
+              <p className="font-semibold text-[var(--primary)]">Required before completing</p>
+              <ul className="mt-1 space-y-0.5">
+                {requiredItems.map((key) => {
+                  const done = !podMissing.includes(key);
+                  return (
+                    <li key={key} className={done ? "text-emerald-800" : "text-amber-900"}>
+                      {done ? "✓" : "•"} {POD_MISSING_LABELS[key] ?? key}
+                      {done ? " — captured" : ""}
+                    </li>
+                  );
+                })}
+              </ul>
+              {job.pod_requirements?.reasons?.includes("pharmacy_medical") ? (
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  Pharmacy / medical delivery: hand over only to the named receiver after checking
+                  ID.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
             {job.otp_required ? (
               <div className="space-y-2">
@@ -623,6 +667,61 @@ export default function Delivery360({
                 Save signature
               </button>
             </div>
+            {job.pod_requirements?.id_check ? (
+              <fieldset className="space-y-2 sm:col-span-2">
+                <legend className="flex items-center gap-2 text-sm font-semibold">
+                  <KeyRound className="h-4 w-4" /> Receiver ID check
+                </legend>
+                <label htmlFor="pod-id-type" className="block text-xs text-[var(--muted)]">
+                  ID type (do not write down the ID number)
+                </label>
+                <select
+                  id="pod-id-type"
+                  value={idType}
+                  onChange={(e) => setIdType(e.target.value)}
+                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                >
+                  <option value="">Choose ID type…</option>
+                  {ID_TYPES.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={idNameMatches}
+                    onChange={(e) => setIdNameMatches(e.target.checked)}
+                  />
+                  Photo and name on the ID match the receiver
+                </label>
+                <button
+                  type="button"
+                  disabled={!idType || !idNameMatches || pending === "id_check"}
+                  onClick={() =>
+                    runUpload(
+                      "id_check",
+                      "pod_id_check",
+                      {
+                        stop_id: job.delivery_stop_id,
+                        id_type: idType,
+                        name_matches: idNameMatches,
+                        route_id: rid,
+                      },
+                      () =>
+                        driverApi.podIdCheck(rid, job.delivery_stop_id, {
+                          id_type: idType,
+                          name_matches: idNameMatches,
+                        })
+                    )
+                  }
+                  className="text-xs font-semibold text-[var(--secondary)]"
+                >
+                  Record ID check
+                </button>
+              </fieldset>
+            ) : null}
           </div>
           {(job.cod_amount_cents ?? 0) > 0 && (
             <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--gray-bg)] p-3">
@@ -664,7 +763,12 @@ export default function Delivery360({
           )}
           <button
             type="button"
-            disabled={pending === "pod_complete" || (Boolean(job.otp_required) && !otp.trim())}
+            disabled={
+              pending === "pod_complete" ||
+              (Boolean(job.otp_required) && !otp.trim()) ||
+              (podEnforced && podMissing.length > 0) ||
+              job.on_duty === false
+            }
             onClick={() =>
               run("pod_complete", () =>
                 driverApi.podComplete(rid, job.delivery_stop_id, otp.trim() || undefined)

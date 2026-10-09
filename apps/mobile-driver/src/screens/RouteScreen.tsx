@@ -12,7 +12,7 @@ import { StatusRail } from "../ui/StatusRail";
 import { PodCapture, type PodDraft } from "../ui/PodCapture";
 import { FieldOpsPanel } from "../ui/FieldOpsPanel";
 import { RouteControls } from "../ui/RouteControls";
-import { ENFORCE_DROP_POD } from "../hooks/completeStopAction";
+import { ENFORCE_DROP_POD, podMissing } from "../hooks/completeStopAction";
 import { capturePodPhotoDataUrl } from "../pod";
 import { STOP_EXCEPTION_TYPES, stopExceptionById } from "../stopExceptions";
 import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
@@ -88,11 +88,9 @@ export function RouteScreen({
   const canNav = !finished && Boolean(handshake.navigationUrl || handshake.destLat != null);
   const needsPod = canWork && isDeliveryStop(handshake.nextStopType);
   const otpRequired = handshake.otpRequired;
+  const missingPod = needsPod ? podMissing(podDraft, handshake.podRequirements, otpRequired) : [];
   const canComplete =
-    canWork &&
-    work.complete &&
-    (!ENFORCE_DROP_POD || !needsPod || Boolean(podDraft.photoUrl)) &&
-    (!ENFORCE_DROP_POD || !otpRequired || Boolean(podDraft.otp.trim()));
+    canWork && work.complete && handshake.online && (!ENFORCE_DROP_POD || missingPod.length === 0);
   const needsScan =
     canWork &&
     ((handshake.scanPickup?.required ?? 0) > 0 || (handshake.scanDelivery?.required ?? 0) > 0);
@@ -102,7 +100,7 @@ export function RouteScreen({
     needsScan,
     scanComplete: scanComplete || !needsScan,
     needsPod: ENFORCE_DROP_POD && needsPod,
-    podReady: Boolean(podDraft.photoUrl) && (!otpRequired || Boolean(podDraft.otp.trim())),
+    podReady: missingPod.length === 0,
     completed: false,
   });
   const syncedHint =
@@ -236,6 +234,7 @@ export function RouteScreen({
             draft={podDraft}
             orderId={handshake.currentOrderId}
             otpRequired={otpRequired}
+            requirements={handshake.podRequirements}
             onChange={onPodChange}
             onPhotoError={onPhotoError}
           />

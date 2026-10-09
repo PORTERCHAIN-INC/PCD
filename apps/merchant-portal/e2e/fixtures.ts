@@ -69,9 +69,18 @@ export function storageStatePath(role: MerchantSeat): string | undefined {
   return fs.existsSync(resolved) ? resolved : undefined;
 }
 
+/**
+ * Local stack only: the merchant portal dev auth (Bearer "dev") signs in as the seeded
+ * owner seat, so dispatcher/owner journeys can run without a Clerk jar. Viewer-role checks
+ * still need a real viewer jar.
+ */
+export const localBypass = process.env.MERCHANT_E2E_LOCAL_BYPASS === "1";
+
 /** Describe-level gate — skips before Chromium launch. */
 export function liveReady(role: MerchantSeat): boolean {
-  return liveEnabled && Boolean(storageStatePath(role));
+  if (!liveEnabled) return false;
+  if (storageStatePath(role)) return true;
+  return localBypass && role !== "viewer";
 }
 
 export function liveSkipReason(role: MerchantSeat): string {

@@ -29,7 +29,7 @@ WORKDIR /app/apps/api
 # CVE-2025-47273 even though PackageIndex is not vendored. Install patched
 # setuptools for anything that actually imports it; drop ensurepip + pip SBOM.
 RUN pip install "setuptools>=78.1.1" \
-    && pip install -r requirements.txt \
+    && pip install -r requirements.txt -c requirements.lock.txt \
     && pip install --upgrade --force-reinstall "setuptools>=78.1.1" \
     && rm -rf /usr/local/lib/python3.14/ensurepip \
     && find /usr/local/lib -path '*/pip/_vendor/bom.cdx.json' -delete

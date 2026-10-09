@@ -518,6 +518,7 @@ class JobsService:
                 "otp_verified": bool(stop_meta.get("delivery_otp_hash")),
             },
             "otp_required": otp_required_at_delivery(order.compliance_metadata),
+            **_pod_gate(db, driver, order),
             "incidents": [
                 {
                     "id": i.id,
@@ -692,3 +693,19 @@ class JobsService:
             "otp_required": stop.otp_required,
             "pod_required": stop.pod_required,
         }
+
+
+def _pod_gate(db: Session, driver: Any, order: Any) -> dict[str, Any]:
+    """What the driver must capture before completing the dropoff (readiness audit #5)."""
+    from porterchain_driver.pod_policy import duty_enforced, is_on_duty, missing_for, requirements_for
+
+    try:
+        req = requirements_for(db, order)
+        missing = missing_for(db, order, requirements=req) if req["enforced"] else []
+    except Exception:  # noqa: BLE001 — never break the job screen over the gate preview
+        req, missing = {"enforced": False}, []
+    return {
+        "pod_requirements": req,
+        "pod_missing": missing,
+        "on_duty": is_on_duty(db, driver) if duty_enforced() else True,
+    }

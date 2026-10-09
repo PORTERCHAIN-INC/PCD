@@ -18,6 +18,12 @@ class Settings(BaseSettings):
 
     app_env: str = "local"
     app_debug: bool = True
+    # Interactive /docs, /redoc and /openapi.json. Always on in local/dev/test;
+    # off in staging/production unless API_DOCS_ENABLED=true (readiness audit 2026-10-09).
+    api_docs_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("api_docs_enabled", "API_DOCS_ENABLED"),
+    )
     log_level: str = "debug"
     porterchain_api_url: str = "http://localhost:8001"
     database_url: str = "postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain"

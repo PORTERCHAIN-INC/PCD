@@ -120,7 +120,7 @@ function PersonaHero({ job, data }: { job: MerchantPortalJob; data: MerchantDash
               <Link href="/billing" className="text-xs font-medium text-secondary hover:underline">
                 Billing →
               </Link>
-              <Link href="/invoices" className="text-xs text-muted hover:underline">
+              <Link href="/billing?tab=invoices" className="text-xs text-muted hover:underline">
                 Invoices →
               </Link>
             </div>
@@ -158,7 +158,7 @@ function PersonaHero({ job, data }: { job: MerchantPortalJob; data: MerchantDash
               </span>
             </p>
             <Link
-              href="/tracking"
+              href="/track"
               className="mt-3 inline-block text-xs font-medium text-secondary hover:underline"
             >
               Live tracking →
@@ -317,7 +317,7 @@ export function MerchantDashboardGraphics({
             />
           ) : null}
           {showTrack ? (
-            <KpiTile label="In transit" value={data.in_transit} href="/tracking" icon={Truck} />
+            <KpiTile label="In transit" value={data.in_transit} href="/track" icon={Truck} />
           ) : null}
           {showOps ? (
             <KpiTile label="Monthly orders" value={data.monthly_orders} icon={Package} />
@@ -337,7 +337,7 @@ export function MerchantDashboardGraphics({
               label="Outstanding"
               value={Math.round(data.outstanding_balance_cents / 100)}
               prefix="$"
-              href="/invoices"
+              href="/billing?tab=invoices"
               icon={FileText}
               hint={`${data.invoices_due} due`}
             />
@@ -346,7 +346,7 @@ export function MerchantDashboardGraphics({
             <KpiTile
               label="Open claims"
               value={data.open_claims}
-              href="/claims"
+              href="/help?tab=claims"
               icon={AlertTriangle}
             />
           ) : null}
@@ -354,7 +354,7 @@ export function MerchantDashboardGraphics({
             <KpiTile
               label="Support tickets"
               value={data.open_support_tickets}
-              href="/support"
+              href="/help"
               icon={LifeBuoy}
             />
           ) : null}

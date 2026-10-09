@@ -22,14 +22,9 @@ type Props = {
 };
 
 function defaultQuality(src: string): number {
-  // Local brand photography — keep near-lossless (Next default is 75 → soft).
-  if (src.startsWith("/images/brand/")) return 100;
-  return 90;
-}
-
-/** Brand JPGs should not be re-encoded to AVIF/WebP (softens edges). */
-function defaultUnoptimized(src: string): boolean {
-  return src.startsWith("/images/brand/");
+  // Brand photography: q90 AVIF/WebP stays sharp at a fraction of the bytes.
+  if (src.startsWith("/images/brand/")) return 90;
+  return 80;
 }
 
 export default function SiteImage({
@@ -45,7 +40,9 @@ export default function SiteImage({
   const [src, setSrc] = useState(image.src);
   const alt = image.alt;
   const q = quality ?? defaultQuality(image.src);
-  const skipOptimizer = unoptimized ?? defaultUnoptimized(image.src);
+  // Always use the Next optimizer (AVIF/WebP + responsive srcset) unless a caller opts out.
+  // Raw 5K JPEGs made mobile LCP 26–37 s in production (readiness audit #2).
+  const skipOptimizer = unoptimized ?? false;
 
   const handleError = () => {
     if (src !== FALLBACK_IMAGE.src) {

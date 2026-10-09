@@ -78,6 +78,9 @@ export const publicEnv = {
   hotjarId: envText(process.env.NEXT_PUBLIC_HOTJAR_ID),
   bingSiteVerification: envText(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION),
   yandexSiteVerification: envText(process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION),
+  /** Real Google Business Profile rating, shown only when BOTH are set (never invented). */
+  googleRatingValue: envText(process.env.NEXT_PUBLIC_GOOGLE_RATING_VALUE),
+  googleRatingCount: envText(process.env.NEXT_PUBLIC_GOOGLE_RATING_COUNT),
 } as const;
 
 export function isGoogleMapsConfigured(): boolean {

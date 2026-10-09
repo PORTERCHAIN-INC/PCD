@@ -508,7 +508,9 @@ def test_reattempt_then_return_to_sender(db, merchant_ctx, settings, monkeypatch
     assert decision["action"] == "reattempt" and decision["attempts"] == 1
     assert decision["quote"]["leg"] == "reattempt"
     assert decision["quote"]["final_cents"] > 0  # priced by the merchant's own engine config
-    attempted = [r for r in _records(db, order) if r.template_key == "cx_attempted"]
+    attempted = [
+        r for r in _records(db, order) if r.template_key == "cx_attempted" and r.channel == "email"
+    ]  # SMS may also queue when an SMS provider is configured
     assert len(attempted) == 1 and "/manage?t=" in attempted[0].body
     assert any(r["kind"] == "attempted" for r in results)
 
@@ -530,7 +532,9 @@ def test_reattempt_then_return_to_sender(db, merchant_ctx, settings, monkeypatch
     decision = order.compliance_metadata["cx"]["reattempt"]
     assert decision["action"] == "return_to_sender" and decision["attempts"] == 2
     assert decision["quote"]["leg"] == "return_to_sender"
-    attempted = [r for r in _records(db, order) if r.template_key == "cx_attempted"]
+    attempted = [
+        r for r in _records(db, order) if r.template_key == "cx_attempted" and r.channel == "email"
+    ]  # SMS may also queue when an SMS provider is configured
     assert len(attempted) == 2
     assert build_experience(db, order)["returning_to_sender"] is True
 

@@ -144,6 +144,14 @@ class PodSignatureRequest(BaseModel):
     signature_data: str
 
 
+class PodIdCheckRequest(BaseModel):
+    """Receiver ID check — document type + yes/no checks only (no ID number / DOB stored)."""
+
+    id_type: str
+    name_matches: bool
+    age_verified: bool | None = None
+
+
 class PodBarcodeRequest(BaseModel):
     barcode: str
 
@@ -322,6 +330,9 @@ class DriverJobDetailResponse(DriverJobSummary):
     documents: list[dict] = Field(default_factory=list)
     proof_of_delivery: dict = Field(default_factory=dict)
     otp_required: bool = False
+    pod_requirements: dict = Field(default_factory=dict)
+    pod_missing: list[str] = Field(default_factory=list)
+    on_duty: bool = True
     incidents: list[dict] = Field(default_factory=list)
     amount_cents: int = 0
     currency: str = "cad"

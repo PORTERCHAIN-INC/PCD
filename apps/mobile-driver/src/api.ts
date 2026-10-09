@@ -54,8 +54,10 @@ function detailFromBody(body: unknown, status: number): string {
     const detail = (body as { detail: unknown }).detail;
     if (typeof detail === "string") return detail;
     if (typeof detail === "object" && detail) {
-      const d = detail as { code?: string; error?: string };
+      const d = detail as { code?: string; error?: string; message?: string };
       if (d.code === "sequence_version_conflict") return "sequence_version_conflict";
+      if ((d.code === "pod_required" || d.code === "driver_off_duty") && d.message)
+        return d.message;
       return d.error || d.code || JSON.stringify(detail);
     }
   }
@@ -261,6 +263,17 @@ export function podBarcode(routeId: string, stopId: string, barcode: string): Pr
   return driverFetch(
     `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/pod-barcode`,
     { method: "POST", body: JSON.stringify({ barcode }) }
+  );
+}
+
+export function podIdCheck(
+  routeId: string,
+  stopId: string,
+  body: { id_type: string; name_matches: boolean; age_verified?: boolean | null }
+): Promise<unknown> {
+  return driverFetch(
+    `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/pod-id-check`,
+    { method: "POST", body: JSON.stringify(body) }
   );
 }
 

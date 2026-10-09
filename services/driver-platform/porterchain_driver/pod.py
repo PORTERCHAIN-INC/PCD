@@ -71,6 +71,31 @@ class ProofOfDeliveryService:
         self._record_pod(db, order.id, driver.id, "signature", signature_data[:200])
         return PodCaptureResult(success=True, proof_type="signature", proof_id=order.id)
 
+    def capture_id_check(
+        self,
+        db: Session,
+        driver: Any,
+        stop_id: str,
+        *,
+        id_type: str,
+        name_matches: bool,
+        age_verified: bool | None = None,
+    ) -> PodCaptureResult:
+        """Receiver ID check (pharmacy / merchant id_required). Stores only the document type and
+        the yes/no checks — never the ID number, DOB or an image of the ID."""
+        allowed = {"drivers_licence", "health_card", "passport", "photo_id_card", "other_government"}
+        kind = (id_type or "").strip().lower()
+        if kind not in allowed:
+            raise ValueError("invalid_id_type")
+        if not name_matches:
+            raise ValueError("id_name_mismatch")
+        order = _order_for_stop(db, driver, stop_id)
+        value = f"type={kind};name_match=1"
+        if age_verified is not None:
+            value += f";age_ok={1 if age_verified else 0}"
+        self._record_pod(db, order.id, driver.id, "id_check", value)
+        return PodCaptureResult(success=True, proof_type="id_check", proof_id=order.id)
+
     def capture_barcode(
         self,
         db: Session,
@@ -92,6 +117,27 @@ class ProofOfDeliveryService:
         otp: str | None = None) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
         from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
+        from porterchain_api.domain.states import OrderState as _OS
+        from porterchain_driver.pod_policy import (
+            DriverOffDuty,
+            assert_on_duty,
+            missing_for,
+            pod_enforced)
+
+        if (order.state or "").strip() != _OS.POD_COMPLETED.value:
+            try:
+                assert_on_duty(db, driver)
+            except DriverOffDuty:
+                return PodCaptureResult(
+                    success=False, proof_type="complete", proof_id=None, message="driver_off_duty")
+            if pod_enforced():
+                missing = missing_for(db, order)
+                if missing:
+                    return PodCaptureResult(
+                        success=False,
+                        proof_type="complete",
+                        proof_id=None,
+                        message="pod_required:" + ",".join(missing))
 
         code = (otp or "").strip()
         requires_otp = otp_required_at_delivery(getattr(order, "compliance_metadata", None))

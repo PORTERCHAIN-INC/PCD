@@ -75,9 +75,14 @@ class AdminDriverOpsService:
         ctx: AdminContext,
         order_id: str,
         action: str,
+        reason: str | None = None,
     ) -> dict[str, Any]:
         self._require_super_admin(ctx)
         order = self._order(db, order_id)
+        override = action == "complete_delivery_without_proof"
+        clean_reason = (reason or "").strip()
+        if override and len(clean_reason) < 5:
+            raise ValueError("Give a reason (at least 5 characters) to finish without proof.")
         allowed = {
             item["id"]
             for item in driver_actions_for(order.state, has_driver=bool(order.assigned_driver_id))
@@ -85,15 +90,31 @@ class AdminDriverOpsService:
         if action not in allowed:
             raise ValueError("That step is not available for this order.")
         driver = self._driver(db, order)
+        override_context: dict[str, Any] = {}
+        if override:
+            from porterchain_driver.pod_policy import is_on_duty, missing_for
+
+            override_context = {
+                "reason": clean_reason[:500],
+                "pod_missing": missing_for(db, order),
+                "driver_on_duty": is_on_duty(db, driver),
+                "driver_id": driver.id,
+            }
         perform(db, settings, driver, order, action)
         db.refresh(order)
+        if override:
+            from porterchain_api.platform.delivery_override_events import emit_delivery_override
+
+            emit_delivery_override(
+                db, order_id=order.id, admin_user_id=str(ctx.user.id), context=override_context
+            )
         commit_admin_audit(
             db,
             ctx,
-            action="ops.admin.driver_action",
+            action="ops.admin.delivery_override" if override else "ops.admin.driver_action",
             resource_type="order",
             resource_id=order.id,
-            payload={"action": action, "order_state": order.state},
+            payload={"action": action, "order_state": order.state, **override_context},
         )
         return {"ok": True, "order_id": order.id, "state": order.state, "action": action}
 

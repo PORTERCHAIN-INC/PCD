@@ -5,7 +5,7 @@ import { siteConfig } from "./config";
 import { localePath } from "./routes";
 import { getNicheMessageKey, NICHE_SLUGS } from "./niche-landing";
 import { getServiceAreaMessageKey, SERVICE_AREA_SLUGS, isCoreServiceArea } from "./service-areas";
-import { CAMPAIGN_SLUGS } from "./campaign-landing";
+import { CAMPAIGN_SLUGS, getCampaignMessageKey } from "./campaign-landing";
 import { FAQ_CLUSTERS } from "./content/faq-clusters";
 import { AUTHORITY_PAGES } from "./content/authority-pages";
 import { COMPARISON_PAGES } from "./content/comparison-pages";
@@ -18,7 +18,7 @@ import {
   getAllIntegrationsEducationSlugs,
 } from "./content/integrations-education";
 import { CAPABILITY_PAGES } from "./content/capabilities";
-import { DEVELOPER_DOC_SLUGS } from "@/lib/developer-docs";
+import { DEVELOPER_DOC_SLUGS, getDeveloperDoc } from "@/lib/developer-docs";
 import { getAllCitySegmentPairs } from "./city-segment-seo";
 import { DELIVERY_VERTICALS, deliveryPagePath, listDeliveryPages } from "./delivery-programmatic";
 import { isPublishableCitySegment } from "./city-segment-publication";
@@ -62,12 +62,16 @@ export const SITEMAP_PARTITION_IDS: SitemapPartitionId[] = [
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
 const frNicheLanding = frMessages.nicheLanding as Record<string, Partial<NicheLandingContent>>;
+const frCampaignLanding = (frMessages as unknown as Record<string, unknown>).campaignLanding as
+  Record<string, Partial<NicheLandingContent>> | undefined;
 const frServiceAreaLanding = frMessages.serviceAreaLanding as unknown as Record<
   string,
   ServiceAreaMessageContent
 >;
 
 const EN_ONLY_STATIC_SEGMENTS = new Set([
+  // FR hub is noindex until the FR area pages are complete (service-areas/page.tsx).
+  "service-areas",
   "how-porterchain-works",
   "onboarding-education",
   "integrations-education",
@@ -88,13 +92,12 @@ const STATIC_PATHS: {
   { segment: "authors", priority: 0.7, freq: "monthly" },
   { segment: "track", priority: 0.8 },
   { segment: "vehicle-partner", priority: 0.85 },
-  { segment: "drive", priority: 0.8 },
+  // "solutions" and "construction" are pushed with the solution verticals below.
+  // "drive" omitted: it 308-redirects to /vehicle-partner (sitemaps must list final URLs).
   { segment: "platform", priority: 0.8, freq: "weekly" },
   { segment: "capabilities", priority: 0.85, freq: "weekly" },
   { segment: "integrations", priority: 0.85 },
   { segment: "enterprise", priority: 0.85 },
-  { segment: "solutions", priority: 0.9 },
-  { segment: "construction", priority: 0.85 },
   { segment: "vehicles", priority: 0.9 },
   { segment: "service-areas", priority: 0.85 },
   { segment: "faq", priority: 0.85 },
@@ -158,6 +161,13 @@ export function buildStaticSitemapEntries(): SitemapEntry[] {
       push(entries, locale, solutionVerticalPathSegment(vertical), 0.85);
     }
     for (const slug of CAMPAIGN_SLUGS) {
+      // FR campaigns without a full translation render the EN copy with noindex — keep them out.
+      if (
+        locale === "fr" &&
+        !isPublishableNiche(frCampaignLanding?.[getCampaignMessageKey(slug) ?? ""])
+      ) {
+        continue;
+      }
       push(entries, locale, `campaigns/${slug}`, 0.75);
     }
   }
@@ -300,6 +310,8 @@ export function buildDeveloperSitemapEntries(): SitemapEntry[] {
   for (const locale of routing.locales) {
     push(entries, locale, "developers/docs", 0.7);
     for (const slug of DEVELOPER_DOC_SLUGS) {
+      // Docs are read from the API docs folder; a missing file renders not-found (soft 404).
+      if (!getDeveloperDoc(slug)) continue;
       push(entries, locale, `developers/docs/${slug}`, 0.65);
     }
   }

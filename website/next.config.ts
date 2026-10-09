@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadMonorepoEnv, websitePublicEnv } from "@porterchain/config/monorepo-env.mjs";
+import { baselineCsp, websiteCsp } from "@porterchain/config/security-headers.mjs";
 import createNextIntlPlugin from "next-intl/plugin";
 import { toNextRedirects } from "./src/lib/seo/redirects";
 
@@ -11,7 +12,25 @@ const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+const isDev = process.env.NODE_ENV !== "production";
+const fullCsp = websiteCsp({
+  apiUrl:
+    websitePublicEnv().NEXT_PUBLIC_PORTERCHAIN_API_URL ||
+    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL,
+  dev: isDev,
+});
+// Baseline is always enforced; the full allowlist is report-only unless WEBSITE_CSP_ENFORCE=true
+// at BUILD time (headers are baked into the build; Docker build arg WEBSITE_CSP_ENFORCE).
+const cspHeaders =
+  process.env.WEBSITE_CSP_ENFORCE === "true"
+    ? [{ key: "Content-Security-Policy", value: fullCsp }]
+    : [
+        { key: "Content-Security-Policy", value: baselineCsp() },
+        { key: "Content-Security-Policy-Report-Only", value: fullCsp },
+      ];
+
 const securityHeaders = [
+  ...cspHeaders,
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

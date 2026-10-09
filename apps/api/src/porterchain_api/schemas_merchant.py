@@ -300,6 +300,7 @@ class BulkUploadResponse(BaseModel):
     duplicate_rows: int
     preview: list[dict[str, Any]]
     errors: list[dict[str, Any]]
+    warnings: list[dict[str, Any]] = []
 
 
 class RouteImportPackageInput(BaseModel):

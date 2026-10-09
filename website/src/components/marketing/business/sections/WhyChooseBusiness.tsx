@@ -47,7 +47,7 @@ export default function WhyChooseBusiness() {
           className="text-center max-w-2xl mx-auto mb-14"
         >
           <h2 className="biz-heading text-[#0b1220] tracking-tight">{t("title")}</h2>
-          <p className="mt-4 text-[#64748b] leading-relaxed">{t("subtitle")}</p>
+          <p className="mt-4 text-[#5b6779] leading-relaxed">{t("subtitle")}</p>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -69,7 +69,7 @@ export default function WhyChooseBusiness() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-[#0b1220] text-sm">{t(`items.${key}`)}</h3>
-                    <p className="mt-1 text-xs text-[#64748b] leading-relaxed">
+                    <p className="mt-1 text-xs text-[#5b6779] leading-relaxed">
                       {t(`descriptions.${key}`)}
                     </p>
                   </div>

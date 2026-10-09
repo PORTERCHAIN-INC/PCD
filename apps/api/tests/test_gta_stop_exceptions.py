@@ -156,10 +156,13 @@ def test_next_stop_access_and_masked_phone() -> None:
     assert "4165551212" not in str(out["contact_phone_masked"])
 
 
-def test_dropoff_open_when_pod_paused() -> None:
-    """Default: missing proof does not block complete delivery."""
+def test_dropoff_open_when_pod_paused(monkeypatch) -> None:
+    """Kill switch DRIVER_POD_ENFORCED=false: missing proof does not block complete delivery.
+
+    (Enforcement is ON by default since readiness audit #5.)"""
     from porterchain_driver.stops import _assert_dropoff_pod_ready
 
+    monkeypatch.setenv("DRIVER_POD_ENFORCED", "false")
     db = MagicMock()
     order = SimpleNamespace(id="ord-1", state="AT_DESTINATION", compliance_metadata={})
     _assert_dropoff_pod_ready(db, order)

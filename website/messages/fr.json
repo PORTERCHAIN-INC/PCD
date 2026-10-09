@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "PorterChain | Capacité de livraison RGT — Chauffeurs, véhicules et technologie",
-    "description": "Logistique locale pleine pile pour le RGT : chauffeurs et véhicules professionnels, logiciel propriétaire pour devis, suivi et preuve, plus soutien ops dédié. Capacité jour même, débordement et récurrente — obtenez un devis.",
+    "description": "Capacité de livraison dans le RGT : chauffeurs et véhicules pros pour le jour même, le débordement et les routes récurrentes, avec suivi et preuve.",
     "ogTitle": "PorterChain — Réseau de capacité de transport pour le RGT",
     "ogDescription": "Technologie, chauffeurs, véhicules et opérations logistiques pour les entreprises ontariennes — capacité quand votre flotte ne suffit pas.",
     "keywords": [
@@ -36,11 +36,11 @@
     "subtitle": "Le même réseau de capacité, technologie visible. Trois moments avant d'acheter un corridor.",
     "tabsAria": "Moments produit",
     "tabs": {
-      "quote": "",
+      "quote": "Obtenir un devis",
       "track": "Suivi en direct",
       "pod": "Preuve de livraison"
     },
-    "cta": "",
+    "cta": "Obtenir un devis",
     "ctaHint": "Indiquez corridors et classe de véhicule — nous confirmons la capacité par écrit.",
     "panels": {
       "quote": {
@@ -121,7 +121,7 @@
     "eyebrow": "Ce que nous faisons",
     "title": "Votre opération de capacité, gérée de bout en bout.",
     "subtitle": "Technologie, chauffeurs, véhicules et ops — pas un tableau de bord que vous staffez seul. Voici comment un envoi RGT passe du devis à une clôture prête pour réclamations.",
-    "cta": "",
+    "cta": "Obtenir un devis",
     "ctaHint": "Indiquez corridors et classe de véhicule — nous confirmons la capacité par écrit.",
     "features": {
       "monitor": {
@@ -353,7 +353,7 @@
     "about": "À propos",
     "contact": "Contact",
     "login": "Connexion",
-    "bookNow": "",
+    "bookNow": "Obtenir un devis",
     "merchants": "Marchands",
     "drivers": "Chauffeurs",
     "toggleMenu": "Basculer le menu",
@@ -423,7 +423,7 @@
       "toolWorking": "En cours…",
       "toolFailed": "Étape impossible — réessayez ou parlez à un spécialiste.",
       "actions": {
-        "quote": "",
+        "quote": "Obtenir un devis",
         "merchants": "Obtenir un compte affaires",
         "drivers": "Partenaires chauffeurs",
         "pricing": "Comment fonctionne la tarification",
@@ -571,7 +571,15 @@
       "experience": "Expérience",
       "reject": "Refuser les optionnels",
       "save": "Enregistrer",
-      "accept": "Tout accepter"
+      "accept": "Tout accepter",
+      "customize": "Personnaliser"
+    },
+    "reviewsProof": {
+      "title": "Ce que disent nos clients",
+      "googleRating": "{value} ★ sur Google",
+      "reviewCount": "({count} avis)",
+      "stars": "{value} étoiles sur 5",
+      "googleLink": "Lire nos avis Google"
     }
   },
   "login": {
@@ -2238,7 +2246,7 @@
       "subtitle": "Guide pratique pour préparer vos commandes, organiser les arrêts, choisir le bon véhicule, mettre en place des livraisons récurrentes et vous intégrer en douceur avec Porterchain."
     },
     "ctaTitle": "Prêt à commencer?",
-    "ctaPrimary": "",
+    "ctaPrimary": "Obtenir un devis",
     "relatedTitle": "Voir aussi"
   },
   "knowledge": {

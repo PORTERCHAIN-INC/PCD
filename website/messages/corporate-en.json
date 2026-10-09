@@ -2,7 +2,7 @@
   "metadata": {
     "home": {
       "title": "GTA Delivery Capacity | Drivers, Vehicles & Technology | PorterChain",
-      "description": "Full-stack local logistics for the Greater Toronto Area — proprietary software plus professional drivers and vehicles for same-day, overflow, and recurring capacity. Quote-based. Tracking and proof on every stop.",
+      "description": "GTA delivery capacity on demand: professional drivers and vehicles for same-day, overflow and recurring routes, with live tracking and proof. Get a quote.",
       "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
       "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it."
     },
@@ -325,8 +325,8 @@
     "businessLogin": "Business login",
     "login": "Sign in",
     "whatsappChat": "WhatsApp chat",
-    "getQuote": "",
-    "bookNow": "",
+    "getQuote": "Get a quote",
+    "bookNow": "Get a quote",
     "toggleMenu": "Toggle navigation menu"
   },
   "footer": {
@@ -381,7 +381,7 @@
       "2": "Live tracking and proof of delivery"
     },
     "platformCta": "See vehicles",
-    "demoCta": "",
+    "demoCta": "Get a quote",
     "quoteCta": "Get a quote"
   },
   "seo": {
@@ -439,7 +439,7 @@
     "answers": {
       "eyebrow": "At a glance",
       "title": "Quick answers",
-      "cta": "",
+      "cta": "Get a quote",
       "secondaryCta": "See vehicles",
       "what": {
         "question": "What is PorterChain?",
@@ -468,7 +468,7 @@
         "label": "When you need capacity",
         "title": "Delivery problems that stop your operation",
         "subtitle": "Ontario businesses call PorterChain for same-day, urgent, and emergency delivery — plus fleet overflow and recurring intra-city logistics across the GTA.",
-        "cta": "",
+        "cta": "Get a quote",
         "items": {
           "0": "Emergency delivery",
           "1": "Fleet overflow",
@@ -2235,7 +2235,7 @@
           "href": "/trust"
         },
         "2": {
-          "title": "",
+          "title": "Get a quote",
           "description": "Tell us what needs to move and we'll map the right capacity.",
           "href": "/business?from=company#inquiry"
         }
@@ -2299,7 +2299,7 @@
       "successMessage": "Thank you. A member of our team will respond within one business day.",
       "errorMessage": "We couldn't send your message. Please try again or email us directly.",
       "quote": {
-        "title": "",
+        "title": "Get a quote",
         "subtitle": "Share your shipment details and we'll quote matched vehicle-and-driver capacity.",
         "urgency": "Urgency",
         "urgencyPlaceholder": "Select urgency",
@@ -3307,7 +3307,7 @@
           "feature0": "Sedan through box truck options",
           "feature1": "Live tracking + proof of delivery",
           "feature2": "Confirmed quote before dispatch",
-          "cta": ""
+          "cta": "Get a quote"
         },
         "1": {
           "name": "Business account",

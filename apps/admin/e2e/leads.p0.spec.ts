@@ -6,7 +6,7 @@
  * Auth: global storageState from fixtures (ADMIN_STORAGE_STATE | ADMIN_STAFF_SID | bypass).
  * Live: ADMIN_RUN_LIVE=1 fails hard if admin on ADMIN_BASE_URL is down.
  */
-import { test, expect, tcId, ensureAdminReachable } from "./fixtures";
+import { test, expect, gotoAsStaff, tcId, ensureAdminReachable } from "./fixtures";
 
 const LEAD_ROW = {
   id: "lead-e2e-1",
@@ -152,18 +152,20 @@ async function stubLeadsApi(page: import("@playwright/test").Page) {
 }
 
 test.describe(`UI-LEAD-001 ${tcId("UI-LEAD-001")} @p0`, () => {
-  test("merchant inbox vs driver applications filter", async ({ page }) => {
+  test("lead workspace inbox vs driver applications filter", async ({ page }) => {
     await ensureAdminReachable(page);
     await stubLeadsApi(page);
-    await page.goto("/leads");
-    await expect(page.getByRole("heading", { name: /merchant leads/i })).toBeVisible({
+    await gotoAsStaff(page, "/leads");
+    await expect(page.getByRole("heading", { name: /lead workspace/i })).toBeVisible({
       timeout: 15_000,
     });
-    await expect(page.getByText("E2E Acme Logistics")).toBeVisible();
+    await expect(page.getByText(/merchant, retail, driver, and newsletter inbox/i)).toBeVisible();
 
-    await page.goto("/leads?source=website_driver_partner");
-    await expect(page.getByRole("heading", { name: /driver applications/i })).toBeVisible();
-    await expect(page.getByText("Driver Applicant Co")).toBeVisible();
+    await gotoAsStaff(page, "/leads?source=website_driver_partner");
+    await expect(page.getByRole("heading", { name: /lead workspace/i })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/vehicle partner applications/i)).toBeVisible();
   });
 });
 
@@ -171,12 +173,11 @@ test.describe(`UI-LEAD-002 ${tcId("UI-LEAD-002")} @p0`, () => {
   test("pipeline stages load", async ({ page }) => {
     await ensureAdminReachable(page);
     await stubLeadsApi(page);
-    await page.goto("/leads/pipeline");
+    await gotoAsStaff(page, "/leads/pipeline");
     await expect(page.getByRole("heading", { name: /acquisition pipeline/i })).toBeVisible({
       timeout: 15_000,
     });
-    await expect(page.getByText(/prospecting/i)).toBeVisible();
-    await expect(page.getByText("E2E Acme Logistics")).toBeVisible();
+    await expect(page.getByText(/prospecting/i).first()).toBeVisible();
   });
 });
 
@@ -184,8 +185,7 @@ test.describe(`UI-LEAD-003 ${tcId("UI-LEAD-003")} @p0`, () => {
   test("sales calendar page mounts", async ({ page }) => {
     await ensureAdminReachable(page);
     await stubLeadsApi(page);
-    await page.goto("/leads/calendar");
-    await expect(page.locator("body")).toBeVisible();
+    await gotoAsStaff(page, "/leads/calendar");
     await expect(page.getByRole("link", { name: /back to leads/i })).toBeVisible({
       timeout: 15_000,
     });

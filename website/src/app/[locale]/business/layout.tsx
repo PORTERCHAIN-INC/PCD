@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { buildAlternateLanguages } from "@/lib/seo/hreflang";
 
 const brand = Carlito({
   subsets: ["latin"],
@@ -36,10 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `/${locale}/business`,
-      languages: {
-        en: "/en/business",
-        fr: "/fr/business",
-      },
+      // Same hreflang set as every other page (en, fr-CA, x-default) — audit #14.
+      languages: buildAlternateLanguages(locale as (typeof routing.locales)[number], "business"),
     },
     robots: { index: true, follow: true },
   };

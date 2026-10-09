@@ -292,6 +292,7 @@ function DriverApp() {
                     stopId: handshake.stopId,
                     nextStopType: handshake.nextStopType,
                     otpRequired: handshake.otpRequired,
+                    podRequirements: handshake.podRequirements,
                     podDraft,
                     setPodDraft,
                   });

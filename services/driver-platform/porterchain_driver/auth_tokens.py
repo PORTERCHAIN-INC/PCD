@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from jose import jwt
+import jwt  # PyJWT (python-jose removed: unmaintained, open CVE)
 
 DRIVER_TOKEN_AUD = "porterchain-driver"
 

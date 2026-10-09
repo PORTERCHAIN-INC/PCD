@@ -69,7 +69,7 @@ export default function BusinessIndustries() {
             {t("label")}
           </span>
           <h2 className="biz-heading mt-3 tracking-tight text-[#0b1220]">{t("title")}</h2>
-          <p className="mt-4 leading-relaxed text-[#64748b]">{t("subtitle")}</p>
+          <p className="mt-4 leading-relaxed text-[#5b6779]">{t("subtitle")}</p>
         </motion.div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
@@ -110,7 +110,7 @@ export default function BusinessIndustries() {
             );
           })}
         </div>
-        <p className="mt-8 text-center text-sm text-[#64748b]">{t("footnote")}</p>
+        <p className="mt-8 text-center text-sm text-[#5b6779]">{t("footnote")}</p>
       </Container>
     </section>
   );

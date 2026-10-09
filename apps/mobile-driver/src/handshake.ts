@@ -82,6 +82,7 @@ export const idleHandshake = (): Handshake => ({
   etaLabel: null,
   distanceLabel: null,
   otpRequired: false,
+  podRequirements: null,
   scanPickup: null,
   scanDelivery: null,
   codAmountCents: null,
@@ -178,6 +179,7 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
       try {
         const job = await fetchJob(next.currentOrderId);
         next.otpRequired = Boolean(job.otp_required);
+        next.podRequirements = job.pod_requirements ?? null;
         next.scanPickup = job.scan_pickup ?? null;
         next.scanDelivery = job.scan_delivery ?? null;
         next.codAmountCents = job.cod_amount_cents ?? null;

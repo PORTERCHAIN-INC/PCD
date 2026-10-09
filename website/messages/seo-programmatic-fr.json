@@ -209,7 +209,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "serviceAreas",
@@ -973,7 +973,7 @@
         },
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         }
       ]
     },
@@ -998,7 +998,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "serviceAreas",
@@ -1056,7 +1056,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "serviceAreas",
@@ -1085,7 +1085,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "workflow",
@@ -1118,7 +1118,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "pricing",
@@ -1151,7 +1151,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "serviceAreas",
@@ -1261,7 +1261,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "platform",
@@ -1290,7 +1290,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "serviceAreas",
@@ -1319,7 +1319,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "trustClaims",
@@ -1348,7 +1348,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "platform",
@@ -1377,7 +1377,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "platform",
@@ -1410,7 +1410,7 @@
         },
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         }
       ]
     },
@@ -1435,7 +1435,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "platform",
@@ -1464,7 +1464,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "trustClaims",
@@ -1493,7 +1493,7 @@
       "extraLinks": [
         {
           "path": "onboarding",
-          "label": ""
+          "label": "Obtenir un devis"
         },
         {
           "path": "trustClaims",

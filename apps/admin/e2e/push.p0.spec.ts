@@ -7,7 +7,7 @@
  */
 import fs from "fs";
 import path from "path";
-import { test, expect, tcId } from "./fixtures";
+import { test, expect, gotoAsStaff, tcId } from "./fixtures";
 
 const VALID_TEST_FCM = `430248198034:APA91${"p".repeat(140)}`;
 
@@ -30,9 +30,15 @@ test.describe(`UI-NTF-003 ${tcId("UI-NTF-003")} @p0 @push`, () => {
     expect(strip).toContain('data-testid="ops-push-health"');
     expect(strip).toContain("notificationsApi.pushHealth");
 
+    // The page is a thin server wrapper; the button lives in the client component.
     const notifPage = fs.readFileSync(path.join(root, "app/(ops)/notifications/page.tsx"), "utf8");
-    expect(notifPage).toContain("Enable browser push");
-    expect(notifPage).toContain("registerBrowserPush");
+    expect(notifPage).toContain("NotificationsCenterClient");
+    const notifClient = fs.readFileSync(
+      path.join(root, "components/notifications/NotificationsCenterClient.tsx"),
+      "utf8"
+    );
+    expect(notifClient).toContain("Enable browser push");
+    expect(notifClient).toContain("registerBrowserPush");
   });
 });
 
@@ -91,10 +97,10 @@ test.describe(`GAP-01 ${tcId("GAP-01")} live-when-ready @push`, () => {
       });
     });
 
-    await page.goto("/operations");
+    await gotoAsStaff(page, "/operations");
     await expect(page.getByTestId("ops-push-health")).toBeVisible({ timeout: 15000 });
 
-    await page.goto("/notifications?tab=devices");
+    await gotoAsStaff(page, "/notifications?tab=devices");
     const enable = page.getByRole("button", { name: /Enable browser push/i });
     await expect(enable).toBeVisible({ timeout: 15000 });
     await enable.click();
@@ -133,7 +139,7 @@ test.describe(`UI-OPS PushHealthStrip ${tcId("UI-OPS-001")} live-when-ready @pus
       });
     });
 
-    await page.goto("/operations");
+    await gotoAsStaff(page, "/operations");
     await expect(page.getByTestId("ops-push-health")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("ops-push-health")).toContainText(/Push/i);
   });

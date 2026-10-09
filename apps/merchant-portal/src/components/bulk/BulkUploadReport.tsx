@@ -3,7 +3,10 @@ import { formatCents } from "@/lib/utils";
 type BulkError = Record<string, unknown>;
 
 const ERROR_LABELS: Record<string, string> = {
-  duplicate: "Duplicate row (same pickup, drop-off, and schedule as another row)",
+  duplicate:
+    "Duplicate row (same pickup, drop-off, schedule and reference as another row in this file)",
+  already_imported:
+    "Already booked from an earlier upload (last 30 days) — skipped so it is not booked twice",
   address_validation: "Invalid pickup or drop-off address",
   recipient_not_found: "Recipient ID not found in your account",
   invalid_scheduled_at: "Scheduled time is missing or invalid (use ISO format)",

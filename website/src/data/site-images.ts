@@ -40,12 +40,12 @@ export const ECOMMERCE_TRUCK = localImg(
   1024
 );
 
-/** Full fleet lineup — sedan through box truck (MAIN brand image, ~5K source). */
+/** Full fleet lineup — sedan through box truck (MAIN brand image, 2560px source; served as AVIF/WebP). */
 export const BRAND_FLEET_LINEUP = localImg(
   "/images/brand/fleet-lineup.jpg",
   "Porterchain green fleet — sedan, SUV, van, and box truck — moving commerce on chain",
-  5408,
-  3072
+  2560,
+  1454
 );
 
 /** Brand fleet at the dock — box truck + trailer (legacy dock pair). */
@@ -92,8 +92,8 @@ export const BRAND_WAREHOUSE_LOADING = localImg(
 export const BRAND_OPEN_ROAD = localImg(
   "/images/brand/open-road.jpg",
   "Porterchain green box truck on the open highway — moving commerce on chain",
-  5408,
-  3072
+  2560,
+  1454
 );
 
 /** @deprecated Homepage uses GtaAiRouteVisual — kept for blog / legacy refs. */

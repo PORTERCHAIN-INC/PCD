@@ -21,6 +21,9 @@ export default function CookieConsentBanner({ onConsentChange }: Props) {
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
   const [experience, setExperience] = useState(false);
+  // Mobile: categories collapse behind "Customize" so the banner covers less of the
+  // viewport. Reject and Accept stay one tap away with equal size (Law 25 / GDPR).
+  const [showPrefs, setShowPrefs] = useState(false);
 
   useEffect(() => {
     const stored = readStoredConsent();
@@ -47,20 +50,26 @@ export default function CookieConsentBanner({ onConsentChange }: Props) {
       role="dialog"
       aria-labelledby="pc-consent-title"
       aria-describedby="pc-consent-desc"
-      className="fixed inset-x-0 bottom-0 z-[80] border-t border-primary/10 bg-white/95 p-4 shadow-premium backdrop-blur-md sm:p-5"
+      className="fixed inset-x-0 bottom-0 z-[80] border-t border-primary/10 bg-white/95 px-4 py-3 shadow-premium backdrop-blur-md sm:p-5"
     >
-      <div className="mx-auto flex max-w-5xl flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 flex-1">
           <h2 id="pc-consent-title" className="text-sm font-semibold text-primary">
             {t("title")}
           </h2>
-          <p id="pc-consent-desc" className="mt-1 text-xs leading-relaxed text-muted">
+          <p
+            id="pc-consent-desc"
+            className="mt-1 text-xs leading-snug text-primary/80 sm:leading-relaxed"
+          >
             {t("description")}{" "}
             <Link href="/cookies" className="font-medium text-secondary hover:underline">
               {t("policyLink")}
             </Link>
           </p>
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-primary">
+          <div
+            id="pc-consent-prefs"
+            className={`mt-3 flex-wrap gap-4 text-xs text-primary ${showPrefs ? "flex" : "hidden sm:flex"}`}
+          >
             <label className="inline-flex items-center gap-2">
               <input
                 type="checkbox"
@@ -100,25 +109,36 @@ export default function CookieConsentBanner({ onConsentChange }: Props) {
             </label>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap shrink-0">
           <button
             type="button"
             onClick={() => persist({ analytics: false, marketing: false, experience: false })}
-            className="rounded-xl border border-primary/10 px-4 py-2.5 text-xs font-medium text-primary hover:bg-gray-bg"
+            className="min-h-[2.75rem] rounded-xl border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-bg sm:px-4"
           >
             {t("reject")}
           </button>
+          {showPrefs ? null : (
+            <button
+              type="button"
+              onClick={() => setShowPrefs(true)}
+              aria-controls="pc-consent-prefs"
+              aria-expanded={false}
+              className="min-h-[2.75rem] rounded-xl border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-bg sm:hidden"
+            >
+              {t("customize")}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => persist({ analytics, marketing, experience })}
-            className="rounded-xl border border-primary/10 px-4 py-2.5 text-xs font-medium text-primary hover:bg-gray-bg"
+            className={`min-h-[2.75rem] rounded-xl border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-bg sm:inline-flex sm:items-center sm:px-4 ${showPrefs ? "" : "hidden"}`}
           >
             {t("save")}
           </button>
           <button
             type="button"
             onClick={() => persist({ analytics: true, marketing: true, experience: true })}
-            className="rounded-xl bg-secondary px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#1d4ed8]"
+            className="min-h-[2.75rem] rounded-xl bg-secondary px-3 py-2 text-xs font-semibold text-white hover:bg-[#1d4ed8] sm:px-4"
           >
             {t("accept")}
           </button>

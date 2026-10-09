@@ -309,6 +309,16 @@ export function cancelOrder(token: string, orderId: string, orgId?: string) {
   });
 }
 
+export type BulkUploadWarning = {
+  code: "duplicate_file" | "rows_already_imported" | string;
+  message: string;
+  prior_job_id?: string;
+  prior_status?: string;
+  prior_filename?: string;
+  prior_uploaded_at?: string | null;
+  count?: number;
+};
+
 export function uploadBulkCsv(token: string, file: File, orgId?: string) {
   const form = new FormData();
   form.append("file", file);
@@ -321,6 +331,7 @@ export function uploadBulkCsv(token: string, file: File, orgId?: string) {
     duplicate_rows: number;
     preview: Array<Record<string, unknown>>;
     errors: Array<Record<string, unknown>>;
+    warnings?: BulkUploadWarning[];
   }>("/v1/merchant/bulk/upload", token, { method: "POST", body: form, orgId });
 }
 

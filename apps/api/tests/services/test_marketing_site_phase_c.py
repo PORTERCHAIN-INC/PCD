@@ -320,9 +320,14 @@ def test_lead_attribution_summary_groups_by_source_industry_fsa(client, db):
     assert out["calculator_leads"] >= 1 and out["total"] >= out["calculator_leads"]
 
 
-def test_admin_attribution_route_requires_crm_read(client, monkeypatch):
+def test_admin_attribution_route_requires_crm_read(monkeypatch):
     from porterchain_api.routers.admin import marketing_leads
 
+    # Local dev staff context needs the dev bypass explicitly (CI has no .env).
+    monkeypatch.setenv("APP_ENV", "local")
+    monkeypatch.setenv("CLERK_DEV_BYPASS", "true")
+    get_settings.cache_clear()
+    client = TestClient(create_app())
     res = client.get("/v1/admin/marketing/lead-attribution?days=7")  # local dev staff context
     assert res.status_code == 200 and res.json()["window_days"] == 7
     asked = []

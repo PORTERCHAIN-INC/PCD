@@ -9,6 +9,7 @@ from porterchain_api.merchant_engine.orders_service import MerchantOrderFilters,
 from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendError, parcel_amend_http
 from porterchain_api.merchant_engine.toronto import parse_toronto_day_bound
 from porterchain_api.merchant_engine.tracking_service import AmbiguousTrackingQuery, tracking_error_message
+from porterchain_api.reporting.label_service import PackagesRequired
 from porterchain_api.reporting.pod_export import PodFetchFailed, PodUnavailable, pod_error_message
 from porterchain_api.routers.merchant._deps import (
     Annotated,
@@ -71,6 +72,8 @@ def _invoke(ctx: MerchantContext, module: str, fn: Callable[..., T], *args: obje
         raise HTTPException(status_code=502, detail=pod_error_message(str(exc))) from None
     except PodUnavailable as exc:
         raise HTTPException(status_code=404, detail=pod_error_message(str(exc))) from None
+    except PackagesRequired as exc:
+        raise HTTPException(status_code=409, detail=_copy(exc, copy)) from None
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=_copy(exc, copy)) from None
     except ValueError as exc:

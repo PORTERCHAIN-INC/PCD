@@ -43,7 +43,7 @@ export default function QuoteSignupPanel({
           <h2 className="text-xl font-semibold tracking-tight text-[#0b1220] sm:text-2xl">
             {t("title")}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{t("subtitle")}</p>
+          <p className="mt-2 text-sm leading-relaxed text-[#5b6779]">{t("subtitle")}</p>
         </div>
       )}
 
@@ -70,7 +70,7 @@ export default function QuoteSignupPanel({
         <ArrowRight className="h-4 w-4" aria-hidden />
       </Link>
 
-      <p className="mt-4 text-center text-xs leading-relaxed text-[#64748b]">
+      <p className="mt-4 text-center text-xs leading-relaxed text-[#5b6779]">
         {t("haveAccount")}{" "}
         <Link
           href={unifiedSignInPath}
@@ -80,7 +80,7 @@ export default function QuoteSignupPanel({
         </Link>
       </p>
 
-      <ul className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[0.7rem] font-medium uppercase tracking-wide text-[#64748b]/90">
+      <ul className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[0.7rem] font-medium uppercase tracking-wide text-[#5b6779]/90">
         <li>{t("assurances.noObligation")}</li>
         <li aria-hidden>·</li>
         <li>{t("assurances.noLongForms")}</li>

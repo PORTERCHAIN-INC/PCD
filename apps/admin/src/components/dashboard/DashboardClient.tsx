@@ -227,7 +227,11 @@ export default function DashboardClient() {
 
           {widgets.activity && (
             <Panel title="Activity timeline" icon={<Activity className="h-4 w-4" />}>
-              <ul className="max-h-64 space-y-2 overflow-y-auto text-sm">
+              <ul
+                className="max-h-64 space-y-2 overflow-y-auto text-sm"
+                tabIndex={0}
+                aria-label="Recent activity"
+              >
                 {center.activity.map((e, i) => (
                   <li
                     key={`${e.id}-${e.occurred_at ?? i}`}
@@ -311,11 +315,21 @@ function CommandHeader({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={onRefresh}>
-            <RefreshCw className="h-4 w-4" />
+          <Button
+            variant="outline"
+            onClick={onRefresh}
+            aria-label="Refresh dashboard"
+            title="Refresh"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden />
           </Button>
-          <Button variant="outline" onClick={onFullscreen}>
-            <Maximize2 className="h-4 w-4" />
+          <Button
+            variant="outline"
+            onClick={onFullscreen}
+            aria-label="Toggle full screen"
+            title="Full screen"
+          >
+            <Maximize2 className="h-4 w-4" aria-hidden />
           </Button>
           <Button variant="outline" onClick={onLayout}>
             <Settings2 className="h-4 w-4" /> Layout

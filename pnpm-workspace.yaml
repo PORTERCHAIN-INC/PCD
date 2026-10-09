@@ -23,10 +23,27 @@ allowBuilds:
   esbuild: true
 # Security patches for Trivy HIGH/CRITICAL on website image (2026-09-18)
 overrides:
-  next: 16.3.3
-  sharp: 0.35.4
+  next: 16.3.8
+  sharp: 0.35.5
   # One copy. openai 4.0.68 pulls 4.0.16; ai 7 pulls 4.0.3. Two copies fail website typecheck.
   "@ai-sdk/provider": 4.0.16
+  # Readiness audit 2026-10-09: patched transitive deps flagged by pnpm audit --prod.
+  "@expo/dom-webview": 57.0.1
+  "shell-quote@<1.11.0": 1.12.0
+  "@grpc/grpc-js@<1.13.6": 1.14.6
+  "@xmldom/xmldom@>=0.8.0 <0.8.15": 0.8.15
+  "@xmldom/xmldom@>=0.9.0 <0.9.12": 0.9.12
+  "brace-expansion@>=5.0.0 <5.0.11": 5.0.12
+  "browserslist@<4.28.7": 4.29.3
+  "compression@<1.8.2": 1.8.2
+  "fast-uri@>=3.0.0 <3.1.7": 3.1.8
+  "image-size@>=1.0.0 <2.0.3": 2.0.4
+  "js-yaml@>=4.0.0 <4.3.2": 4.3.2
+  "source-map-js@<1.2.2": 1.2.2
+  "brace-expansion@<1.1.20": 1.1.21
+  "nanoid@<3.3.18": 3.3.20
+  "postcss@<8.5.18": 8.5.29
+  "baseline-browser-mapping@<2.11.0": 2.11.28
 minimumReleaseAgeExclude:
   - "@clerk/backend@3.11.1"
   - "@clerk/nextjs@7.5.14"
@@ -45,3 +62,6 @@ minimumReleaseAgeExclude:
   - "@sentry/replay@10.64.0"
   - "@sentry/server-utils@10.64.0"
   - "@sentry/vercel-edge@10.64.0"
+  - "@grpc/grpc-js@1.14.6"
+  - happy-dom@20.14.6
+  - baseline-browser-mapping@2.11.28
