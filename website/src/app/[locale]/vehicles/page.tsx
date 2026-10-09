@@ -1,3 +1,5 @@
+import { Link } from "@/i18n/navigation";
+import { DELIVERY_VEHICLES } from "@/lib/seo/delivery-programmatic";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
@@ -6,13 +8,10 @@ import CorporateShell from "@/components/marketing/corporate/layout/CorporateShe
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
 import VehiclesTabNav from "@/components/marketing/vehicles/VehiclesTabNav";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import HeroPhoto from "@/components/ui/HeroPhoto";
 import MarketingCloser from "@/components/marketing/MarketingCloser";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
-import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
 import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
-import { siteImages } from "@/data/site-images";
 import { VEHICLES_TAB_ITEMS } from "@/data/vehicles-navigation";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -60,15 +59,70 @@ export default async function VehiclesHubPage({ params }: Props) {
         secondaryCta={t("hero.secondaryCta")}
         secondaryHref="/business"
         variant="light-centered"
-        illustration={<HeroPhoto image={siteImages.hero.gta} />}
         trackSource="vehicles"
       />
+      <section className="bg-gray-bg" aria-labelledby="vehicles-book-heading">
+        <Container className="py-14 sm:py-20">
+          <h2
+            id="vehicles-book-heading"
+            className="text-2xl font-semibold tracking-tight text-primary sm:text-3xl"
+          >
+            {locale === "fr"
+              ? "Réservable en ligne, prix instantané"
+              : "Bookable online, priced instantly"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-muted">
+            {locale === "fr"
+              ? "Trois classes, toutes conduites avec un permis G standard. Le prix dépend de la distance et du véhicule, TVH incluse."
+              : "Three classes, all driven on a standard Ontario G licence. Price depends on distance and vehicle, HST included."}
+          </p>
+          <div
+            className="mt-8 overflow-x-auto"
+            tabIndex={0}
+            role="region"
+            aria-labelledby="vehicles-book-heading"
+          >
+            <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-primary/15 text-xs uppercase tracking-wide text-muted">
+                  <th scope="col" className="py-3 pr-4 font-semibold">
+                    {locale === "fr" ? "Véhicule" : "Vehicle"}
+                  </th>
+                  <th scope="col" className="py-3 pr-4 font-semibold">
+                    {locale === "fr" ? "Capacité" : "Capacity"}
+                  </th>
+                  <th scope="col" className="py-3 font-semibold">
+                    {locale === "fr" ? "Idéal pour" : "Best for"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.values(DELIVERY_VEHICLES).map((v) => (
+                  <tr key={v.id} className="border-b border-primary/10 align-top">
+                    <th scope="row" className="py-4 pr-4 font-semibold text-primary">
+                      {v.label}
+                    </th>
+                    <td className="py-4 pr-4 text-primary">{v.capacity}</td>
+                    <td className="py-4 text-muted">{v.bestFor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Link
+            href="/delivery-cost-calculator?from=vehicles"
+            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white hover:bg-[#152238] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+          >
+            {locale === "fr" ? "Obtenir un prix" : "Get a price"}
+          </Link>
+        </Container>
+      </section>
       <section className="site-section bg-white">
         <Container>
           <SectionHeader label={t("cards.label")} title={t("cards.title")} />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {cards.map((card, i) => (
-              <FadeIn key={card.id} delay={i * 0.06}>
+            {cards.map((card) => (
+              <div key={card.id}>
                 <article className="card-surface card-surface-hover p-5 h-full flex flex-col">
                   <h3 className="text-lg font-semibold text-primary">{card.title}</h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed flex-1">
@@ -80,7 +134,7 @@ export default async function VehiclesHubPage({ params }: Props) {
                     </LinkButton>
                   </div>
                 </article>
-              </FadeIn>
+              </div>
             ))}
           </div>
         </Container>
@@ -91,7 +145,7 @@ export default async function VehiclesHubPage({ params }: Props) {
         primaryLabel={tCta("quote")}
         primaryHref="/sign-up?intent=quote&from=vehicles"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/solutions"
+        secondaryHref="/delivery"
         variant="gradient"
         trackSource="vehicles"
       />

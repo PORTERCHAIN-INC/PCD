@@ -42,7 +42,9 @@ test.describe("website phase 2 @phase1", () => {
     await expect(page.locator('main a[href="/en/delivery/furniture"]').first()).toBeVisible();
     // Comparison block + final CTA band.
     await expect(
-      page.getByRole("heading", { name: /what every delivery includes/i })
+      page.getByRole("heading", {
+        name: /exact price in seconds, on a GTA-dense same-day network/i,
+      })
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: /price your next delivery/i })).toBeVisible();
     await expect(page.getByText(/^362 postal areas$/)).toBeVisible();

@@ -130,7 +130,7 @@ test.describe("homepage calculator @phase1", () => {
       .map((s) => JSON.parse(s))
       .flat()
       .find((s) => s["@type"] === "FAQPage");
-    expect(faq?.mainEntity?.length).toBe(8);
+    expect(faq?.mainEntity?.length).toBe(6); // top 6 of the core FAQ (data/faq-core.ts)
     const sample = page.getByTestId("tracking-sample");
     await expect(sample).toContainText("Sample");
     await expect(sample).toContainText(/not a real order/i);

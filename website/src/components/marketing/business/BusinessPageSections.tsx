@@ -1,12 +1,14 @@
 import dynamic from "next/dynamic";
+import Container from "@/components/ui/Container";
+import CoreFaqList from "@/components/marketing/faq/CoreFaqList";
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
-import { BusinessQuoteHero } from "@/components/marketing/MarketingHero";
+import BusinessQuoteHero from "@/components/marketing/business/sections/BusinessHero";
 import BusinessHubFacade from "@/components/marketing/business/sections/BusinessHubFacade";
 import BusinessFleet from "@/components/marketing/business/sections/BusinessFleet";
 import BusinessAnswerSection from "@/components/marketing/business/sections/BusinessAnswerSection";
 import BrandMergeBand from "@/components/marketing/brand/BrandMergeBand";
-import { BusinessQuoteCloser } from "@/components/marketing/MarketingCloser";
+import BusinessQuoteCloser from "@/components/marketing/business/sections/FinalCta";
 import BusinessIntentGuides from "@/components/marketing/business/sections/BusinessIntentGuides";
 import {
   HubTrustStrip,
@@ -32,9 +34,6 @@ const TrustedBy = dynamic(() =>
 );
 const BillingOptions = dynamic(
   () => import("@/components/marketing/business/sections/BillingOptions")
-);
-const BusinessFAQ = dynamic(() =>
-  import("@/components/marketing/MarketingFaq").then((m) => m.BusinessFaq)
 );
 
 type Props = {
@@ -91,7 +90,19 @@ export default async function BusinessPageSections({ locale }: Props) {
       <div className="perf-defer-section">
         <BillingOptions />
         <BusinessIntentGuides locale={locale} />
-        <BusinessFAQ />
+        <section className="bg-white" aria-labelledby="business-faq-heading">
+          <Container size="narrow" className="py-16 sm:py-24">
+            <h2
+              id="business-faq-heading"
+              className="text-3xl font-semibold tracking-tight text-primary sm:text-4xl"
+            >
+              {locale === "fr" ? "Questions fréquentes" : "Questions buyers ask"}
+            </h2>
+            <div className="mt-8">
+              <CoreFaqList locale={locale} grouped schema={false} />
+            </div>
+          </Container>
+        </section>
         <BusinessQuoteCloser />
       </div>
     </HubShell>

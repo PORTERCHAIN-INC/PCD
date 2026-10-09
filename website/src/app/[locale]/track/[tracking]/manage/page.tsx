@@ -28,21 +28,23 @@ export function generateStaticParams() {
 async function ManageFromParams({ params }: Props) {
   const { locale, tracking } = await params;
   setRequestLocale(locale);
-  return <ManageView tracking={tracking} />;
+  return (
+    <SiteShell>
+      <ManageView tracking={tracking} />
+    </SiteShell>
+  );
 }
 
 export default function ManageDeliveryPage({ params }: Props) {
   return (
-    <SiteShell>
-      <Suspense
-        fallback={
-          <RouteLoading label="Loading delivery options">
-            <PageSkeleton rows={4} />
-          </RouteLoading>
-        }
-      >
-        <ManageFromParams params={params} />
-      </Suspense>
-    </SiteShell>
+    <Suspense
+      fallback={
+        <RouteLoading label="Loading delivery options">
+          <PageSkeleton rows={4} />
+        </RouteLoading>
+      }
+    >
+      <ManageFromParams params={params} />
+    </Suspense>
   );
 }

@@ -59,6 +59,10 @@ async function TrackData({ locale, tracking }: { locale: string; tracking: strin
   );
 }
 
+/**
+ * The tracking number is only known per request, so the whole page (shell included) streams
+ * behind one boundary. The server-rendered footer needs the locale, which is set here first.
+ */
 async function TrackFromParams({
   params,
 }: {
@@ -66,21 +70,27 @@ async function TrackFromParams({
 }) {
   const { locale, tracking } = await params;
   setRequestLocale(locale);
-  return <TrackData locale={locale} tracking={tracking} />;
+  return (
+    <SiteShell>
+      <Suspense fallback={<TrackFallback />}>
+        <TrackData locale={locale} tracking={tracking} />
+      </Suspense>
+    </SiteShell>
+  );
+}
+
+function TrackFallback() {
+  return (
+    <RouteLoading label="Loading tracking">
+      <PageSkeleton rows={4} />
+    </RouteLoading>
+  );
 }
 
 export default function TrackPage({ params }: Props) {
   return (
-    <SiteShell>
-      <Suspense
-        fallback={
-          <RouteLoading label="Loading tracking">
-            <PageSkeleton rows={4} />
-          </RouteLoading>
-        }
-      >
-        <TrackFromParams params={params} />
-      </Suspense>
-    </SiteShell>
+    <Suspense fallback={<TrackFallback />}>
+      <TrackFromParams params={params} />
+    </Suspense>
   );
 }
