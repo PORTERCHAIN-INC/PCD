@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
-from porterchain_api.merchant_engine.service_area import service_area_error
+from porterchain_api.merchant_engine.service_area import fsa_from_address, service_area_error
 from porterchain_api.merchant_engine.shopify_service import (
     _active_shop,
     _decrypt,
@@ -31,7 +31,6 @@ from porterchain_pricing import GeoPoint, PricingRequest
 logger = logging.getLogger(__name__)
 
 QUOTE_TTL = timedelta(minutes=30)
-_EMPTY = {"rates": []}
 
 
 def _carrier_hmac_secrets(db: Session, settings: Settings, shop_domain: str | None) -> list[str]:
@@ -420,6 +419,46 @@ def _delivery_window() -> tuple[str, str]:
     return earliest.strftime(fmt), latest.strftime(fmt)
 
 
+def _country(addr: dict[str, Any] | None) -> str:
+    if not isinstance(addr, dict):
+        return ""
+    return str(addr.get("country") or addr.get("country_code") or "").strip().upper()[:8]
+
+
+def _empty(shop: Any, reason: str, **ctx: Any) -> dict[str, Any]:
+    """Empty rates + one structured line. Context is codes / FSA / status only."""
+    extra = "".join(f" {k}={v}" for k, v in ctx.items() if v not in (None, ""))
+    logger.info(
+        "shopify_carrier_empty shop=%s reason=%s%s",
+        getattr(shop, "shop_domain", None) or getattr(shop, "id", None),
+        reason,
+        extra,
+    )
+    return {"rates": []}
+
+
+def _resolve_origin(origin: dict[str, Any] | None) -> tuple[AddressInput | None, str | None]:
+    """
+    Shopify ship-from, used only when Canadian and inside the GTA ±150 km tile
+    (same `service_area_error` gate as destination). Otherwise returns the
+    fallback reason; the caller quotes from the merchant's PorterChain pickup.
+    """
+    from porterchain_api.integrations.shopify_orders import is_canada_country
+
+    if not isinstance(origin, dict):
+        return None, "origin_missing"
+    if not is_canada_country(_country(origin)):
+        return None, "origin_non_canada"
+    if not any(origin.get(k) for k in ("postal_code", "zip", "address1", "city")):
+        return None, "origin_missing"
+    origin_input = _shopify_address_to_input(origin)
+    if origin_input is None:
+        return None, "origin_missing"
+    if service_area_error("origin", origin_input):
+        return None, "origin_out_of_area"
+    return _ensure_geo(origin_input), None
+
+
 def carrier_service_rates(
     db: Session,
     settings: Settings,
@@ -448,7 +487,7 @@ def carrier_service_rates(
     if not merchant:
         raise LookupError("merchant_not_found")
     if merchant.status != MerchantStatus.ACTIVE.value:
-        return _EMPTY
+        return _empty(shop, "merchant_inactive", status=merchant.status)
 
     rate_in = payload.get("rate") if isinstance(payload.get("rate"), dict) else payload
     if not isinstance(rate_in, dict):
@@ -459,47 +498,41 @@ def carrier_service_rates(
 
     destination = rate_in.get("destination") if isinstance(rate_in.get("destination"), dict) else None
     origin = rate_in.get("origin") if isinstance(rate_in.get("origin"), dict) else None
-    dest_country = None
-    if isinstance(destination, dict):
-        dest_country = destination.get("country") or destination.get("country_code")
-    origin_country = None
-    if isinstance(origin, dict):
-        origin_country = origin.get("country") or origin.get("country_code")
-    if not is_canada_country(dest_country) or not is_canada_country(origin_country):
-        return _EMPTY
+    dest_country = _country(destination)
+    if not is_canada_country(dest_country):
+        return _empty(shop, "dest_non_canada", dest_country=dest_country)
 
     pickup_row = default_pickup_address(db, merchant.id, shop=shop)
     if not pickup_row:
-        logger.info("shopify_carrier_no_pickup shop=%s", getattr(shop, "shop_domain", shop.id))
-        return _EMPTY
+        return _empty(shop, "no_pickup")
     shop = ensure_shop_pickup_bound(db, shop, address=pickup_row)
     default_pickup = _ensure_geo(address_from_saved(pickup_row))
 
     dropoff_raw = _shopify_address_to_input(destination)
     if not dropoff_raw:
-        return _EMPTY
-    area_err = service_area_error("destination", dropoff_raw)
-    if area_err:
-        logger.info(
-            "shopify_carrier_out_of_area shop=%s err=%s",
-            getattr(shop, "shop_domain", shop.id),
-            area_err,
-        )
-        return _EMPTY
+        return _empty(shop, "dropoff_missing", dest_country=dest_country)
+    if service_area_error("destination", dropoff_raw):
+        return _empty(shop, "dest_out_of_area", dest_fsa=fsa_from_address(dropoff_raw)[:3])
     dropoff = _ensure_geo(dropoff_raw)
 
-    pickup = default_pickup
-    origin_input = _shopify_address_to_input(origin)
-    if origin_input is not None and (origin_input.postal or origin_input.formatted):
-        origin_err = service_area_error("origin", origin_input)
-        if origin_err:
-            logger.info(
-                "shopify_carrier_origin_out_of_area shop=%s err=%s",
-                getattr(shop, "shop_domain", shop.id),
-                origin_err,
-            )
-            return _EMPTY
-        pickup = _ensure_geo(origin_input)
+    origin_pickup, fallback = _resolve_origin(origin)
+    if origin_pickup is not None:
+        pickup = origin_pickup
+    else:
+        # Shopify's ship-from is the store's default location, which is often a
+        # placeholder (US / no address). We pick up from the merchant's saved
+        # PorterChain pickup, which is also what the order book path uses.
+        pickup_fsa = fsa_from_address(default_pickup)[:3]
+        if service_area_error("pickup", default_pickup):
+            return _empty(shop, "pickup_out_of_area", origin=fallback, pickup_fsa=pickup_fsa)
+        logger.info(
+            "shopify_carrier_origin_fallback shop=%s reason=%s origin_country=%s pickup_fsa=%s",
+            getattr(shop, "shop_domain", None) or shop.id,
+            fallback,
+            _country(origin) or "-",
+            pickup_fsa or "-",
+        )
+        pickup = default_pickup
 
     items = rate_in.get("items") if isinstance(rate_in.get("items"), list) else []
     weight_kg = _weight_kg_from_items(items)
@@ -524,7 +557,7 @@ def carrier_service_rates(
             note_commerce_event("shopify_quote", "error")
         except Exception:
             pass
-        return _EMPTY
+        return _empty(shop, "pricing_error")
     finally:
         try:
             from porterchain_api.merchant_engine.commerce_metrics import note_quote_latency
@@ -533,8 +566,10 @@ def carrier_service_rates(
         except Exception:
             pass
 
-    if cents <= 0 or (breakdown.get("metadata") or {}).get("fsa_refused"):
-        return _EMPTY
+    if (breakdown.get("metadata") or {}).get("fsa_refused"):
+        return _empty(shop, "fsa_refused", dest_fsa=fsa_from_address(dropoff)[:3])
+    if cents <= 0:
+        return _empty(shop, "zero_price", dest_fsa=fsa_from_address(dropoff)[:3])
 
     req_hash = _request_hash(
         shop_id=shop.id,
