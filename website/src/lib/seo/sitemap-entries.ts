@@ -6,25 +6,19 @@ import { localePath } from "./routes";
 import { getNicheMessageKey, NICHE_SLUGS } from "./niche-landing";
 import { getServiceAreaMessageKey, SERVICE_AREA_SLUGS, isCoreServiceArea } from "./service-areas";
 import { CAMPAIGN_SLUGS, getCampaignMessageKey } from "./campaign-landing";
-import { FAQ_CLUSTERS } from "./content/faq-clusters";
 import { AUTHORITY_PAGES } from "./content/authority-pages";
 import { COMPARISON_PAGES } from "./content/comparison-pages";
 import {
   ONBOARDING_EDUCATION_PAGES,
   getAllOnboardingEducationSlugs,
 } from "./content/onboarding-education";
-import {
-  INTEGRATIONS_EDUCATION_PAGES,
-  getAllIntegrationsEducationSlugs,
-} from "./content/integrations-education";
-import { CAPABILITY_PAGES } from "./content/capabilities";
+import { INTEGRATIONS_EDUCATION_PAGES } from "./content/integrations-education";
 import { DEVELOPER_DOC_SLUGS, getDeveloperDoc } from "@/lib/developer-docs";
 import { getAllCitySegmentPairs } from "./city-segment-seo";
 import { DELIVERY_VERTICALS, deliveryPagePath, listDeliveryPages } from "./delivery-programmatic";
 import { isPublishableCitySegment } from "./city-segment-publication";
 import { INDEXABLE_VEHICLE_SEGMENTS, shouldIndexVehicleRoute } from "./vehicle-publication";
 import { getAllPosts, listBlogAuthors } from "@/lib/blog";
-import { SOLUTION_VERTICAL_SLUGS, solutionVerticalPathSegment } from "@/lib/solutions-verticals";
 import { BLOG_CATEGORIES } from "@/data/blog-categories";
 import { isPublishableNiche } from "./landing-content";
 import { isDraftNicheSlug } from "./content/draft-expansions";
@@ -69,11 +63,7 @@ const frServiceAreaLanding = frMessages.serviceAreaLanding as unknown as Record<
   ServiceAreaMessageContent
 >;
 
-const EN_ONLY_STATIC_SEGMENTS = new Set([
-  "how-porterchain-works",
-  "onboarding-education",
-  "integrations-education",
-]);
+const EN_ONLY_STATIC_SEGMENTS = new Set(["onboarding-education"]);
 
 const STATIC_PATHS: {
   segment: string;
@@ -90,10 +80,8 @@ const STATIC_PATHS: {
   { segment: "authors", priority: 0.7, freq: "monthly" },
   { segment: "track", priority: 0.8 },
   { segment: "vehicle-partner", priority: 0.85 },
-  // "solutions" and "construction" are pushed with the solution verticals below.
   // "drive" omitted: it 308-redirects to /vehicle-partner (sitemaps must list final URLs).
   { segment: "platform", priority: 0.8, freq: "weekly" },
-  { segment: "capabilities", priority: 0.85, freq: "weekly" },
   { segment: "integrations", priority: 0.85 },
   { segment: "enterprise", priority: 0.85 },
   { segment: "vehicles", priority: 0.9 },
@@ -152,11 +140,6 @@ export function buildStaticSitemapEntries(): SitemapEntry[] {
       if (locale === "fr" && EN_ONLY_STATIC_SEGMENTS.has(segment)) continue;
       push(entries, locale, segment, priority, freq);
     }
-    push(entries, locale, "how-porterchain-works", 0.9);
-    push(entries, locale, "solutions", 0.9, "weekly");
-    for (const vertical of SOLUTION_VERTICAL_SLUGS) {
-      push(entries, locale, solutionVerticalPathSegment(vertical), 0.85);
-    }
     for (const slug of CAMPAIGN_SLUGS) {
       // FR campaigns without a full translation render the EN copy with noindex — keep them out.
       if (
@@ -193,9 +176,6 @@ export function buildIndustrySitemapEntries(): SitemapEntry[] {
 
 export function buildServiceSitemapEntries(): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
-  for (const locale of routing.locales) {
-    push(entries, locale, "local-delivery", 0.9);
-  }
   return entries;
 }
 
@@ -238,12 +218,8 @@ export async function buildResourceSitemapEntries(): Promise<SitemapEntry[]> {
   const authors = await listBlogAuthors();
   const authorIds = authors.map((a) => a.id);
   for (const locale of routing.locales) {
-    for (const cluster of FAQ_CLUSTERS) {
-      if (locale === "fr" && !hasFrProgrammaticSlug("faq", cluster.slug)) continue;
-      push(entries, locale, `faq/${cluster.slug}`, 0.7);
-    }
     for (const page of AUTHORITY_PAGES) {
-      if (page.slug === "how-porterchain-works") continue;
+      if (page.slug === "how-porterchain-works") continue; // merged into /platform
       if (locale === "fr" && !hasFrProgrammaticSlug("guides", page.slug)) continue;
       push(entries, locale, `guides/${page.slug}`, 0.75);
     }
@@ -251,17 +227,9 @@ export async function buildResourceSitemapEntries(): Promise<SitemapEntry[]> {
       if (locale === "fr" && !hasFrProgrammaticSlug("compare", page.slug)) continue;
       push(entries, locale, `compare/${page.slug}`, 0.7);
     }
-    for (const page of CAPABILITY_PAGES) {
-      if (locale === "fr" && !hasFrProgrammaticSlug("capabilities", page.slug)) continue;
-      push(entries, locale, `capabilities/${page.slug}`, 0.8);
-    }
     for (const slug of getAllOnboardingEducationSlugs()) {
       if (skipFrenchEnOnlyContent(locale)) continue;
       push(entries, locale, `onboarding-education/${slug}`, 0.75);
-    }
-    for (const slug of getAllIntegrationsEducationSlugs()) {
-      if (skipFrenchEnOnlyContent(locale)) continue;
-      push(entries, locale, `integrations-education/${slug}`, 0.75);
     }
     for (const id of authorIds) {
       push(entries, locale, `authors/${id}`, 0.55, "monthly");
@@ -286,21 +254,9 @@ export async function buildArticleSitemapEntries(): Promise<SitemapEntry[]> {
   return entries;
 }
 
+/** Case studies were merged into the industry hubs (Oct 2026); kept as an empty child sitemap. */
 export async function buildCaseStudySitemapEntries(): Promise<SitemapEntry[]> {
   const entries: SitemapEntry[] = [];
-  const { listPublicSuccessStories } = await import("./content/success-stories");
-  const { listLocalizedSuccessStorySlugs } = await import("./programmatic-content");
-  const publicSlugs = new Set(listPublicSuccessStories().map((s) => s.slug));
-  for (const locale of routing.locales) {
-    if (publicSlugs.size > 0) {
-      push(entries, locale, "success-stories", 0.7, "monthly");
-    }
-    const localized = await listLocalizedSuccessStorySlugs(locale);
-    for (const slug of localized) {
-      if (!publicSlugs.has(slug)) continue;
-      push(entries, locale, `success-stories/${slug}`, 0.65, "monthly");
-    }
-  }
   return entries;
 }
 

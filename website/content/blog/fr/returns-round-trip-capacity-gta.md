@@ -24,4 +24,4 @@ Vous gardez la relation client et le système d'inventaire. Les partenaires de c
 
 Photo et GPS au ramassage et à la livraison ferment facturation et ajustements d'inventaire sans courir après les chauffeurs.
 
-Approfondir : [Capacité retours et aller-retour](/capabilities/returns-round-trip-capacity).
+Approfondir : [Capacité retours et aller-retour](/platform).

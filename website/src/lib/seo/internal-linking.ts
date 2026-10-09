@@ -1,3 +1,4 @@
+import { FAQ_CLUSTER_DESTINATION } from "@/lib/seo/redirects";
 /**
  * Internal linking between industry, service area, and city-industry SEO pages.
  */
@@ -297,7 +298,7 @@ export function buildIntentHubLinks(
   return INTENT_HUB_FAQ_SLUGS.map((slug) => {
     const cluster = getFaqClusterBySlug(slug);
     const label = titleBySlug?.[slug] ?? cluster?.title ?? slug.replace(/-/g, " ");
-    const baseHref = faqSlug(locale, slug);
+    const baseHref = `/${locale}/${FAQ_CLUSTER_DESTINATION[slug] ?? "faq"}`;
     const href = from ? `${baseHref}?from=${encodeURIComponent(from)}` : baseHref;
     return { href, label };
   });

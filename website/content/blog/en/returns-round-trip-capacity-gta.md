@@ -24,4 +24,4 @@ You keep the customer relationship and inventory system. Capacity partners move 
 
 Photo and GPS on pickup and delivery close billing and inventory adjustments without chasing drivers.
 
-Deep-dive: [Returns and round-trip capacity](/capabilities/returns-round-trip-capacity).
+Deep-dive: [Returns and round-trip capacity](/platform).

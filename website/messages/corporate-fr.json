@@ -673,7 +673,7 @@
       "title": "La technologie opère en arrière-plan",
       "subtitle": "Portail marchand, app chauffeur, tour de contrôle, suivi, preuve de livraison, facturation, routes et partenaires rendent le service fiable.",
       "primary": "Comment ça fonctionne",
-      "href": "/how-porterchain-works",
+      "href": "/platform",
       "capabilities": {
         "portal": "Portail marchand",
         "driver": "App chauffeur",
@@ -688,7 +688,7 @@
       "title": "Pour les entreprises qui ne peuvent pas arrêter de déplacer des marchandises",
       "subtitle": "Fournisseurs construction, pharmacies, laboratoires, fabricants, grossistes et distributeurs locaux utilisent Porterchain quand le transport devient le goulot.",
       "cta": "Histoires clients",
-      "href": "/success-stories"
+      "href": "/delivery"
     },
     "timeline": {
       "label": "Comment ça fonctionne",
@@ -905,7 +905,7 @@
         "0": {
           "title": "Histoires clients",
           "description": "Comment les entreprises ontariennes utilisent les programmes de capacité Porterchain.",
-          "href": "/success-stories"
+          "href": "/delivery"
         },
         "1": {
           "title": "Confiance et assurance",
@@ -925,7 +925,7 @@
         "4": {
           "title": "Capacités de capacité",
           "description": "Multi-arrêts, récurrent, suivi, récupération, appariement et preuve — pages détaillées.",
-          "href": "/capabilities"
+          "href": "/platform"
         }
       }
     },
@@ -1265,12 +1265,12 @@
           "1": {
             "title": "Récupération d'exceptions",
             "description": "Comment les ops réaffectent la capacité quand une fenêtre chantier bloque.",
-            "href": "/capabilities/exception-recovery"
+            "href": "/guides/delivery-failure-modes-and-recovery"
           },
           "2": {
             "title": "Débordement de flotte",
             "description": "Capacité de renfort quand votre flotte construction est réservée.",
-            "href": "/solutions/fleet-overflow"
+            "href": "/business"
           }
         }
       }
@@ -1404,12 +1404,12 @@
           "0": {
             "title": "Livraison multi-arrêts",
             "description": "Boucles de gros multi-dépôts avec véhicule adapté et preuve.",
-            "href": "/capabilities/multi-stop-delivery"
+            "href": "/platform"
           },
           "1": {
             "title": "Débordement de flotte",
             "description": "Capacité de renfort quand les cut-offs dépassent vos camions.",
-            "href": "/solutions/fleet-overflow"
+            "href": "/business"
           },
           "2": {
             "title": "Guide routes de gros",
@@ -1548,7 +1548,7 @@
           "0": {
             "title": "Vérification de livraison",
             "description": "POD et clôture prête pour réclamations sur courses B2B.",
-            "href": "/capabilities/delivery-verification"
+            "href": "/platform"
           },
           "1": {
             "title": "Guide jour même RGT",
@@ -1692,7 +1692,7 @@
           "0": {
             "title": "Routes récurrentes",
             "description": "Programmes cafés et gros alimentaire avec capacité réservée et débordement jour même.",
-            "href": "/capabilities/recurring-routes"
+            "href": "/platform"
           },
           "1": {
             "title": "Blog foodservice tôt le matin",
@@ -1836,12 +1836,12 @@
           "0": {
             "title": "Transferts d'inventaire",
             "description": "Capacité entrepôt-magasin et équilibrage de succursales.",
-            "href": "/capabilities/inventory-transfers"
+            "href": "/guides/inventory-transfers-between-locations"
           },
           "1": {
             "title": "Routage multi-emplacements",
             "description": "Coordonner les sorties entre quais et zones.",
-            "href": "/capabilities/multi-location-routing"
+            "href": "/guides/multi-location-capacity-gta"
           },
           "2": {
             "title": "Blog 3PL Peel",
@@ -1990,7 +1990,7 @@
           "2": {
             "title": "Capacité multi-emplacements",
             "description": "Garder les standards de débordement cohérents entre succursales.",
-            "href": "/capabilities/multi-location-routing"
+            "href": "/guides/multi-location-capacity-gta"
           }
         }
       }
@@ -3040,9 +3040,9 @@
       "title": "Distributeur de matériaux de construction",
       "subtitle": "Un grossiste régional a utilisé la capacité Porterchain pour les livraisons chantier quand les routes récurrentes avaient besoin de débordement — avec suivi et preuve fiables pour son équipe ops.",
       "cta": "Lire les histoires de réussite",
-      "href": "/success-stories",
+      "href": "/delivery",
       "detailCta": "Lire l'histoire complète",
-      "detailHref": "/success-stories/construction-distributor-jobsite-delivery",
+      "detailHref": "/delivery/construction",
       "quote": "Nous avions besoin de livraisons palette sur chantier avec une preuve acceptée par nos entrepreneurs généraux. Porterchain a rendu ça reproductible.",
       "quoteRole": "Responsable des opérations, distributeur de matériaux GTA",
       "metrics": {

@@ -24,4 +24,4 @@ Bacs, caisses et cartons mixtes exigent la bonne classe de fourgonnette et une d
 
 ETA partageable et clôture photo réduisent les appels « où est mon dépôt? » pendant le rush du matin.
 
-Explorer [solutions alimentation](/solutions/food-beverage) et [capacité de routes récurrentes](/capabilities/recurring-routes).
+Explorer [solutions alimentation](/delivery) et [capacité de routes récurrentes](/platform).

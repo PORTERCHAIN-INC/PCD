@@ -9,7 +9,6 @@ import FeatureSection from "@/components/marketing/corporate/sections/FeatureSec
 import MarketingFaq from "@/components/marketing/MarketingFaq";
 import MarketingCloser from "@/components/marketing/MarketingCloser";
 import PageBreadcrumbs from "@/components/seo/PageBreadcrumbs";
-import SolutionsTabNav from "@/components/marketing/solutions/SolutionsTabNav";
 import { siteImages } from "@/data/site-images";
 import { SERVICE_AREA_REGIONS } from "@/lib/solutions-hub-config";
 import { SERVICE_AREA_SLUGS } from "@/lib/seo/service-areas";
@@ -40,7 +39,6 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
   return (
     <>
       <PageBreadcrumbs items={[{ label: tBc("home"), href: "/" }, { label: t("breadcrumb") }]} />
-      <SolutionsTabNav />
       <MarketingHero
         badge={t("hero.badge")}
         title={t("hero.title")}
@@ -48,7 +46,7 @@ export default async function ServiceAreasHubView({ locale: _locale }: ServiceAr
         primaryCta={tCta("quote")}
         primaryHref={`/sign-up?intent=quote&from=${source}`}
         secondaryCta={t("cta.secondary")}
-        secondaryHref="/solutions"
+        secondaryHref="/delivery"
         variant="light-centered"
         illustration={<HeroPhoto image={siteImages.hero.gta} />}
         trackSource={source}

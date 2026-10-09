@@ -24,4 +24,4 @@ Photo and GPS closeout help pharmacy and clinic ops answer compliance questions 
 
 Lock the weekly template. Keep overflow for stockouts and missed cuts.
 
-See [Medical solutions](/solutions/medical) and [Multi-stop delivery](/capabilities/multi-stop-delivery).
+See [Medical solutions](/delivery/pharmacy) and [Multi-stop delivery](/platform).

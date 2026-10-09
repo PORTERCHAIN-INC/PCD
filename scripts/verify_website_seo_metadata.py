@@ -19,9 +19,9 @@ INDEX_PAGES = (
     "contact/page.tsx",
     "developers/page.tsx",
     "developers/docs/page.tsx",
-    "solutions/page.tsx",
+    "delivery/page.tsx",
     "enterprise/page.tsx",
-    "success-stories/page.tsx",
+    "faq/page.tsx",
     "trust/page.tsx",
     "blog/page.tsx",
     "careers/page.tsx",
@@ -31,11 +31,9 @@ INDEX_PAGES = (
 )
 
 SLUG_PAGES_REQUIRING_HELPER = (
-    APP / "solutions/[vertical]/page.tsx",
+    APP / "delivery/[industry]/page.tsx",
     APP / "developers/docs/[slug]/page.tsx",
-    APP / "integrations-education/[slug]/page.tsx",
     APP / "onboarding-education/[slug]/page.tsx",
-    APP / "how-porterchain-works/page.tsx",
 )
 
 BARE_METADATA_PATTERN = re.compile(

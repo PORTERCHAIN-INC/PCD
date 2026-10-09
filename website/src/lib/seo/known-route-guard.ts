@@ -7,8 +7,6 @@ import { isValidNicheSlug } from "@/lib/seo/niche-landing";
 import { isValidServiceAreaSlug } from "@/lib/seo/service-areas";
 import { AUTHORITY_PAGES } from "@/lib/seo/content/authority-pages";
 import { COMPARISON_PAGES } from "@/lib/seo/content/comparison-pages";
-import { FAQ_CLUSTERS } from "@/lib/seo/content/faq-clusters";
-import { listPublicSuccessStories } from "@/lib/seo/content/success-stories";
 
 /**
  * Valid slugs for static content families (English source of truth). FR pages without a
@@ -16,10 +14,8 @@ import { listPublicSuccessStories } from "@/lib/seo/content/success-stories";
  * Blog posts are API-backed (scheduled publishing), so /blog/[slug] is not guarded here.
  */
 const STATIC_SLUG_FAMILIES: Record<string, ReadonlySet<string>> = {
-  faq: new Set(FAQ_CLUSTERS.map((c) => c.slug)),
   guides: new Set(AUTHORITY_PAGES.map((p) => p.slug)),
   compare: new Set(COMPARISON_PAGES.map((p) => p.slug)),
-  "success-stories": new Set(listPublicSuccessStories().map((s) => s.slug)),
 };
 
 /**

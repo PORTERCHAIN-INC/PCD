@@ -24,4 +24,4 @@ Gate codes, dock contacts, and site hours must ride with the overflow assignment
 
 Overflow works best when receivers already know your tracking and POD standard.
 
-More: [Fleet overflow](/solutions/fleet-overflow) · [Exception recovery](/capabilities/exception-recovery).
+More: [Fleet overflow](/business) · [Exception recovery](/guides/delivery-failure-modes-and-recovery).

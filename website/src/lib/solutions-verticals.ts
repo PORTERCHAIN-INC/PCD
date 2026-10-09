@@ -45,14 +45,25 @@ export function isValidSolutionVertical(slug: string): slug is SolutionVerticalS
   return SOLUTION_VERTICAL_SLUGS.includes(slug as SolutionVerticalSlug);
 }
 
-/** Public path for a solutions vertical (construction uses a short top-level URL). */
+/**
+ * Where each former /solutions vertical now lives (footer consolidation, Oct 2026: the
+ * /solutions pages 301 to these /delivery industry hubs — see lib/seo/redirects.ts).
+ */
+const SOLUTION_VERTICAL_DESTINATION: Record<SolutionVerticalSlug, string> = {
+  construction: "delivery/construction",
+  wholesale: "delivery/warehouses",
+  medical: "delivery/pharmacy",
+  "food-beverage": "delivery",
+  "3pl": "delivery/warehouses",
+  "fleet-overflow": "business",
+};
+
+/** Public path for a former solutions vertical (its live /delivery or /business page). */
 export function solutionVerticalPath(vertical: SolutionVerticalSlug): string {
-  if (vertical === "construction") return "/construction";
-  return `/solutions/${vertical}`;
+  return `/${SOLUTION_VERTICAL_DESTINATION[vertical]}`;
 }
 
-/** Metadata / sitemap path segment without leading slash. */
+/** Path segment without leading slash. */
 export function solutionVerticalPathSegment(vertical: SolutionVerticalSlug): string {
-  if (vertical === "construction") return "construction";
-  return `solutions/${vertical}`;
+  return SOLUTION_VERTICAL_DESTINATION[vertical];
 }

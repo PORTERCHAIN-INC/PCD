@@ -10,8 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 BLOG_EN = ROOT / "website/content/blog/en"
 BLOG_FR = ROOT / "website/content/blog/fr"
 ICP = ROOT / "docs/ICP.md"
-SOLUTIONS_VERTICAL = ROOT / "website/src/app/[locale]/solutions/[vertical]/page.tsx"
-SUCCESS_STORIES = ROOT / "website/src/app/[locale]/success-stories/page.tsx"
+# Oct 2026: /solutions and /success-stories merged (301) into the /delivery industry hubs.
+INDUSTRY_HUB = ROOT / "website/src/app/[locale]/delivery/[industry]/page.tsx"
+DELIVERY_INDEX = ROOT / "website/src/app/[locale]/delivery/page.tsx"
 
 CASE_STUDY_SLUG = "case-study-construction-distributor-gta"
 FRONTMATTER_KEYS = ("caseStudy: true", "onTimePercent:", "costDeltaPercent:", "volumeMetric:")
@@ -33,7 +34,7 @@ def _case_study_post(locale_dir: Path) -> Path | None:
 def main() -> int:
     failures: list[str] = []
 
-    for label, path in (("solutions vertical", SOLUTIONS_VERTICAL), ("success-stories", SUCCESS_STORIES)):
+    for label, path in (("industry hub", INDUSTRY_HUB), ("delivery index", DELIVERY_INDEX)):
         if not path.is_file():
             failures.append(f"missing {label} at {path.relative_to(ROOT)}")
 

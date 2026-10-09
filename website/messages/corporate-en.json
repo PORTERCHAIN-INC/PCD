@@ -673,7 +673,7 @@
       "title": "Technology runs the operation behind the scenes",
       "subtitle": "Merchant portal, driver app, control tower, tracking, proof of delivery, billing, route management, and partner management make the service reliable.",
       "primary": "How it works",
-      "href": "/how-porterchain-works",
+      "href": "/platform",
       "capabilities": {
         "portal": "Merchant portal",
         "driver": "Driver app",
@@ -688,7 +688,7 @@
       "title": "Built for businesses that cannot stop moving goods",
       "subtitle": "Construction suppliers, pharmacies, labs, manufacturers, wholesalers, and local distributors use Porterchain when transportation availability becomes the bottleneck.",
       "cta": "Customer stories",
-      "href": "/success-stories"
+      "href": "/delivery"
     },
     "timeline": {
       "label": "How it works",
@@ -905,7 +905,7 @@
         "0": {
           "title": "Customer stories",
           "description": "How Ontario businesses use Porterchain capacity programs.",
-          "href": "/success-stories"
+          "href": "/delivery"
         },
         "1": {
           "title": "Trust & insurance",
@@ -925,7 +925,7 @@
         "4": {
           "title": "Capacity capabilities",
           "description": "Multi-stop, recurring, tracking, recovery, matching, and proof — deep-dives.",
-          "href": "/capabilities"
+          "href": "/platform"
         }
       }
     },
@@ -1265,12 +1265,12 @@
           "1": {
             "title": "Exception recovery",
             "description": "How ops reassigns capacity when a site window stalls.",
-            "href": "/capabilities/exception-recovery"
+            "href": "/guides/delivery-failure-modes-and-recovery"
           },
           "2": {
             "title": "Fleet overflow",
             "description": "Backup capacity when your construction fleet is booked.",
-            "href": "/solutions/fleet-overflow"
+            "href": "/business"
           }
         }
       }
@@ -1404,12 +1404,12 @@
           "0": {
             "title": "Multi-stop delivery",
             "description": "How multi-drop wholesale loops run with vehicle fit and proof.",
-            "href": "/capabilities/multi-stop-delivery"
+            "href": "/platform"
           },
           "1": {
             "title": "Fleet overflow",
             "description": "Backup capacity when cut-offs outrun your own trucks.",
-            "href": "/solutions/fleet-overflow"
+            "href": "/business"
           },
           "2": {
             "title": "Wholesale routes guide",
@@ -1548,7 +1548,7 @@
           "0": {
             "title": "Delivery verification",
             "description": "POD and claims-ready closeout for regulated B2B runs.",
-            "href": "/capabilities/delivery-verification"
+            "href": "/platform"
           },
           "1": {
             "title": "Same-day GTA guide",
@@ -1692,7 +1692,7 @@
           "0": {
             "title": "Recurring routes",
             "description": "Café and wholesale food programs with reserved capacity and same-day overflow.",
-            "href": "/capabilities/recurring-routes"
+            "href": "/platform"
           },
           "1": {
             "title": "Early-morning foodservice blog",
@@ -1836,12 +1836,12 @@
           "0": {
             "title": "Inventory transfers",
             "description": "Warehouse-to-store and branch balancing capacity.",
-            "href": "/capabilities/inventory-transfers"
+            "href": "/guides/inventory-transfers-between-locations"
           },
           "1": {
             "title": "Multi-location routing",
             "description": "Coordinate outbound across docks and zones.",
-            "href": "/capabilities/multi-location-routing"
+            "href": "/guides/multi-location-capacity-gta"
           },
           "2": {
             "title": "3PL Peel blog",
@@ -1990,7 +1990,7 @@
           "2": {
             "title": "Multi-location capacity",
             "description": "Keep overflow standards consistent across branches.",
-            "href": "/capabilities/multi-location-routing"
+            "href": "/guides/multi-location-capacity-gta"
           }
         }
       }
@@ -3161,9 +3161,9 @@
       "title": "Construction materials distributor",
       "subtitle": "A regional wholesaler used Porterchain capacity for jobsite deliveries when recurring routes needed overflow support — with tracking and proof their ops team could trust.",
       "cta": "Read success stories",
-      "href": "/success-stories",
+      "href": "/delivery",
       "detailCta": "Read the full story",
-      "detailHref": "/success-stories/construction-distributor-jobsite-delivery",
+      "detailHref": "/delivery/construction",
       "quote": "We needed pallet delivery to sites with proof our GCs would accept. Porterchain made it repeatable.",
       "quoteRole": "Operations Manager, GTA building supply distributor",
       "metrics": {

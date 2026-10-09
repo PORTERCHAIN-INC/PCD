@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 NEIGHBOURHOODS = ROOT / "website/src/lib/seo/city-neighbourhoods.ts"
 SERVICE_AREA_PAGE = ROOT / "website/src/app/[locale]/service-areas/[slug]/page.tsx"
-SUCCESS_PAGE = ROOT / "website/src/app/[locale]/success-stories/[slug]/page.tsx"
+REDIRECTS = ROOT / "website/src/lib/seo/redirects.ts"
 SUCCESS_DATA = ROOT / "website/src/lib/seo/content/success-stories.ts"
 SCHEMA = ROOT / "website/src/lib/seo/schema.ts"
 CADDY = ROOT / "infrastructure/deploy/Caddyfile"
@@ -38,16 +38,11 @@ def main() -> int:
     if "postalCodes" not in schema or "postalCode" not in schema:
         failures.append("schema.ts missing postalCode/postalCodes hyperlocal support")
 
-    success_page = SUCCESS_PAGE.read_text(encoding="utf-8")
-    for marker in ("AuthorCard", "authorPerson", "permissioned", "anonymizedStoryNote"):
-        if marker not in success_page:
-            failures.append(f"success-story page missing {marker}")
-
-    success_data = SUCCESS_DATA.read_text(encoding="utf-8")
-    if "permissioned: true" not in success_data:
-        failures.append("success-stories.ts needs at least one permissioned: true story")
-    if "authorId:" not in success_data:
-        failures.append("success-stories.ts missing authorId E-E-A-T fields")
+    # Oct 2026: success stories merged into the industry hubs (quotes/stats could not be verified).
+    # The data file stays for history; every story URL must 301 to a hub.
+    redirects = REDIRECTS.read_text(encoding="utf-8")
+    if '["success-stories/:slug", "delivery"]' not in redirects:
+        failures.append("success-stories URLs must 301 to /delivery hubs (lib/seo/redirects.ts)")
 
     caddy = CADDY.read_text(encoding="utf-8")
     if "_next/static" not in caddy or "stale-while-revalidate" not in caddy:

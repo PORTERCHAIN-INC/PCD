@@ -24,4 +24,4 @@ Codes de portail, contacts quai et heures de site doivent suivre l'affectation �
 
 Le débordement fonctionne mieux quand les destinataires connaissent déjà votre suivi et votre standard POD.
 
-Plus : [Débordement de flotte](/solutions/fleet-overflow) · [Récupération d'exceptions](/capabilities/exception-recovery).
+Plus : [Débordement de flotte](/business) · [Récupération d'exceptions](/guides/delivery-failure-modes-and-recovery).

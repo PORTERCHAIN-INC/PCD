@@ -1,3 +1,4 @@
+import { MERGED_DELIVERY_VERTICALS } from "@/lib/seo/delivery-programmatic";
 /**
  * Central redirect registry for PorterChain website.
  * Consumed by next.config.ts — single source of truth for historical slugs.
@@ -103,15 +104,6 @@ function corporateOverviewRedirects(): WebsiteRedirect[] {
   );
 }
 
-function guideConsolidationRedirects(): WebsiteRedirect[] {
-  return LOCALES.map((locale) => ({
-    source: `/${locale}/guides/how-porterchain-works`,
-    destination: `/${locale}/how-porterchain-works`,
-    permanent: true,
-    note: "Canonical how-it-works route",
-  }));
-}
-
 function vehicleSlugRedirects(): WebsiteRedirect[] {
   return LOCALES.flatMap((locale) => [
     {
@@ -152,15 +144,6 @@ function educationHubRedirects(): WebsiteRedirect[] {
   );
 }
 
-function constructionShortUrlRedirects(): WebsiteRedirect[] {
-  return LOCALES.map((locale) => ({
-    source: `/${locale}/solutions/construction`,
-    destination: `/${locale}/construction`,
-    permanent: true,
-    note: "Construction solutions hub short URL",
-  }));
-}
-
 /** Vanity hub labels → stable money URLs (single canonical). */
 function hubVanityRedirects(): WebsiteRedirect[] {
   return LOCALES.flatMap((locale) => [
@@ -190,7 +173,7 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
     },
     {
       source: `/${locale}/customers`,
-      destination: `/${locale}/success-stories`,
+      destination: `/${locale}/delivery`,
       permanent: true,
       note: "Customers orphan hub → permissioned success stories",
     },
@@ -243,15 +226,135 @@ function platformSignInAliasRedirects(): WebsiteRedirect[] {
  * collapses chains into a single 301 — they are deliberately NOT returned from next.config
  * redirects(), because those run before middleware and produced multi-hop chains.
  */
+
+/**
+ * Footer consolidation (Oct 2026): thin or duplicate pages merged into the page that helps the
+ * visitor price, book, trust us or find what they came for. One 301 each (url-policy collapses
+ * any older registry chain that pointed at these). Evidence: tmp/website-footer/keep-remove.md.
+ */
+function footerConsolidationRedirects(): WebsiteRedirect[] {
+  const map: Array<[string, string]> = [
+    // ~220-word capability stubs → the guide that covers the same topic, else /platform.
+    ["capabilities/multi-location-routing", "guides/multi-location-capacity-gta"],
+    ["capabilities/inventory-transfers", "guides/inventory-transfers-between-locations"],
+    ["capabilities/exception-recovery", "guides/delivery-failure-modes-and-recovery"],
+    ["capabilities/:slug", "platform"],
+    ["capabilities", "platform"],
+    // Integration explainer stubs (~250 words each) → the integrations / developer hubs.
+    ["integrations-education/api-order-ingestion", "developers"],
+    ["integrations-education/webhooks-delivery-events", "developers"],
+    ["integrations-education/:slug", "integrations"],
+    // /solutions duplicated the /delivery industry hubs.
+    ["solutions/wholesale", "delivery/warehouses"],
+    ["solutions/medical", "delivery/pharmacy"],
+    ["solutions/3pl", "delivery/warehouses"],
+    ["solutions/fleet-overflow", "business"],
+    ["solutions/construction", "delivery/construction"],
+    ...[
+      "furniture",
+      "furniture-delivery",
+      "furniture-appliance-delivery",
+      "furniture-and-appliance-delivery",
+      "appliance-delivery",
+    ].map((slug): [string, string] => [`solutions/${slug}`, "delivery/furniture"]),
+    ["solutions/:slug", "delivery"],
+    ["solutions", "delivery"],
+    ["construction", "delivery/construction"],
+    // Same sections as /platform ("From capacity request to proof of delivery" …).
+    ["how-porterchain-works", "platform"],
+    // Thin hubs (Oct 2026 QA): a 5-link city list, and case studies with unverifiable quotes/stats.
+    ["local-delivery", "service-areas"],
+    ["success-stories/construction-distributor-jobsite-delivery", "delivery/construction"],
+    ["success-stories/plumbing-supply-counter-to-jobsite", "delivery/construction"],
+    ["success-stories/electrical-wholesaler-overflow-capacity", "delivery/construction"],
+    ["success-stories/pharmacy-patient-delivery", "delivery/pharmacy"],
+    ["success-stories/3pl-warehouse-outbound-peel", "delivery/warehouses"],
+    ["success-stories/coffee-roaster-wholesale-delivery", "delivery/warehouses"],
+    ["success-stories/beauty-brand-d2c-fulfillment", "delivery/shopify-merchants"],
+    ["success-stories/:slug", "delivery"],
+    ["success-stories", "delivery"],
+    ["guides/how-porterchain-works", "platform"],
+  ];
+  return LOCALES.flatMap((locale) =>
+    map.map(([from, to]) => ({
+      source: `/${locale}/${from}`,
+      destination: `/${locale}/${to}`,
+      permanent: true,
+      note: "Footer consolidation (Oct 2026)",
+    }))
+  );
+}
+
+/** Industry merges (Oct 2026): weak or overlapping industry hubs fold into the surviving hub. */
+function industryMergeRedirects(): WebsiteRedirect[] {
+  return LOCALES.flatMap((locale) =>
+    Object.entries(MERGED_DELIVERY_VERTICALS).flatMap(([from, to]) => [
+      {
+        source: `/${locale}/delivery/${from}`,
+        destination: `/${locale}/delivery/${to}`,
+        permanent: true,
+        note: "Industry merge (Oct 2026)",
+      },
+      {
+        source: `/${locale}/delivery/${from}/:area`,
+        destination: `/${locale}/delivery/${to}/:area`,
+        permanent: true,
+        note: "Industry merge (Oct 2026)",
+      },
+    ])
+  );
+}
+
+/** FAQ consolidation (Oct 2026): every /faq/{cluster} page merged into /faq or its topic page. */
+export const FAQ_CLUSTER_DESTINATION: Record<string, string> = {
+  "construction-delivery": "delivery/construction",
+  "electrical-distributor-delivery": "delivery/construction",
+  "plumbing-supply-delivery": "delivery/construction",
+  "delivery-pricing": "delivery-cost-calculator",
+  "how-much-does-local-delivery-cost-toronto": "delivery-cost-calculator",
+  onboarding: "faq",
+  "csv-uploads": "developers",
+  "api-integrations": "developers",
+  "local-service-areas": "service-areas",
+  "pharmacy-delivery": "delivery/pharmacy",
+  "how-pharmacy-courier-delivery-works-gta": "delivery/pharmacy",
+  "coffee-roaster-delivery": "delivery/warehouses",
+  "how-to-set-up-recurring-deliveries-coffee-roaster": "delivery/warehouses",
+  "cosmetics-delivery": "delivery/shopify-merchants",
+  "same-day-delivery": "delivery",
+  "same-day-retail-distribution": "delivery",
+  "how-to-onboard-merchant-csv-upload": "developers",
+  "what-vehicle-right-for-parcel-volume": "vehicles",
+  "fleet-overflow-wholesale-delivery": "delivery/warehouses",
+};
+
+function faqConsolidationRedirects(): WebsiteRedirect[] {
+  return LOCALES.flatMap((locale) => [
+    ...Object.entries(FAQ_CLUSTER_DESTINATION).map(([slug, to]) => ({
+      source: `/${locale}/faq/${slug}`,
+      destination: `/${locale}/${to}`,
+      permanent: true,
+      note: "FAQ consolidation (Oct 2026)",
+    })),
+    {
+      source: `/${locale}/faq/:slug`,
+      destination: `/${locale}/faq`,
+      permanent: true,
+      note: "FAQ consolidation (Oct 2026)",
+    },
+  ]);
+}
+
 export const WEBSITE_REDIRECTS: WebsiteRedirect[] = [
+  ...faqConsolidationRedirects(),
+  ...industryMergeRedirects(),
+  ...footerConsolidationRedirects(),
   ...platformSignInAliasRedirects(),
   ...legacyMarketRedirects(),
   ...legacySiteRedirects(),
   ...corporateOverviewRedirects(),
-  ...guideConsolidationRedirects(),
   ...vehicleSlugRedirects(),
   ...educationHubRedirects(),
-  ...constructionShortUrlRedirects(),
   ...hubVanityRedirects(),
   ...retiredMarketingHubRedirects(),
 ];

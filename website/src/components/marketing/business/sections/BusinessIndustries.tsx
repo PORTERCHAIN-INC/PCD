@@ -46,7 +46,7 @@ const ICONS = [
 ];
 
 function playbookHref(key: (typeof BUSINESS_INDUSTRY_KEYS)[number]): string | undefined {
-  if (key === "construction") return "/construction";
+  if (key === "construction") return "/delivery/construction";
   if (key === "foodBeverage") return solutionVerticalPath("food-beverage");
   if (key === "medical") return solutionVerticalPath("medical");
   const niche = HOME_INDUSTRY_TO_NICHE_SLUG[key];

@@ -24,4 +24,4 @@ L'automatisation route le chemin heureux. Les ops ont encore besoin d'une escala
 
 Les API ne créent pas de camions. Devis classe de véhicule et fenêtres avant de câbler le dernier callback.
 
-Lire [Webhooks pour événements de livraison](/integrations-education/webhooks-delivery-events) et [Développeurs](/developers).
+Lire [Webhooks pour événements de livraison](/developers) et [Développeurs](/developers).

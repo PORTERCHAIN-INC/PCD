@@ -24,7 +24,7 @@ def main() -> int:
     failures: list[str] = []
 
     required = (
-        ("track/page.tsx", ("GuestTrackLookup",)),
+        ("track/page.tsx", ("TrackLookupForm",)),
         ("track/[tracking]/page.tsx", ("getOrderByTracking",)),
         ("book/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
         ("book/continue/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),

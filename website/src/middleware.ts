@@ -62,7 +62,7 @@ function handleRequest(req: NextRequest) {
   if (policy.action === "gone") return goneResponse();
   if (policy.action === "notfound") {
     const locale = pathname.split("/")[1] === "fr" ? "fr" : "en";
-    return NextResponse.rewrite(new URL(`/${locale}/__not-found__`, req.url));
+    return NextResponse.rewrite(new URL(`/${locale}/page-not-found`, req.url));
   }
   if (policy.action === "redirect" || wrongHost) {
     const target = policy.action === "redirect" ? policy.location : `${pathname}${search}`;
@@ -80,7 +80,7 @@ function handleRequest(req: NextRequest) {
   if (isKnownInvalidRoute(req.nextUrl.pathname, routing.locales)) {
     // Rewrite to an unmatched path so Next serves not-found.tsx with a real 404 status.
     const locale = req.nextUrl.pathname.split("/")[1];
-    return NextResponse.rewrite(new URL(`/${locale}/__not-found__`, req.url));
+    return NextResponse.rewrite(new URL(`/${locale}/page-not-found`, req.url));
   }
   const res = intlMiddleware(req);
   const first = req.nextUrl.pathname.split("/")[1];
@@ -106,7 +106,7 @@ export default function middleware(req: NextRequest, event: NextFetchEvent) {
 export const config = {
   matcher: [
     // Skip SEO/crawler files — Clerk and locale middleware must not touch these.
-    "/((?!_next|sitemap\\.xml|robots\\.txt|[^?]*\\.(?:css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|lottie/|sitemap\\.xml|robots\\.txt|[^?]*\\.(?:css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],
 };

@@ -24,4 +24,4 @@ Automation routes the happy path. Ops still needs a clear escalation when a wind
 
 APIs do not create trucks. Quote vehicle class and windows before you wire the last status callback.
 
-Read [Webhooks for delivery events](/integrations-education/webhooks-delivery-events) and [Developers](/developers).
+Read [Webhooks for delivery events](/developers) and [Developers](/developers).

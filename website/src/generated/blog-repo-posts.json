@@ -52,7 +52,7 @@
    "box-truck",
    "gta"
   ],
-  "content": "Fleet downtime is normal. Scramble courier roulette is optional.\n\n## Same class, same proof\n\nIf the primary run needed a 16 ft box truck, the overflow quote should too. Wrong class burns the window twice.\n\n## Access notes travel with the job\n\nGate codes, dock contacts, and site hours must ride with the overflow assignment — not live in a text thread.\n\n## One partner across peaks\n\nOverflow works best when receivers already know your tracking and POD standard.\n\nMore: [Fleet overflow](/solutions/fleet-overflow) · [Exception recovery](/capabilities/exception-recovery)."
+  "content": "Fleet downtime is normal. Scramble courier roulette is optional.\n\n## Same class, same proof\n\nIf the primary run needed a 16 ft box truck, the overflow quote should too. Wrong class burns the window twice.\n\n## Access notes travel with the job\n\nGate codes, dock contacts, and site hours must ride with the overflow assignment — not live in a text thread.\n\n## One partner across peaks\n\nOverflow works best when receivers already know your tracking and POD standard.\n\nMore: [Fleet overflow](/business) · [Exception recovery](/guides/delivery-failure-modes-and-recovery)."
  },
  {
   "locale": "en",
@@ -126,7 +126,7 @@
    "multi-stop",
    "gta"
   ],
-  "content": "Clinic loops fail when every stop becomes a call. Treat replenishment like a capacity program.\n\n## Sequence the corridor\n\nGroup clinics by zone and window. Dense multi-stop beats a sedan bouncing across the GTA all afternoon.\n\n## Proof for regulated receivers\n\nPhoto and GPS closeout help pharmacy and clinic ops answer compliance questions without chasing drivers.\n\n## Recurring plus same-day\n\nLock the weekly template. Keep overflow for stockouts and missed cuts.\n\nSee [Medical solutions](/solutions/medical) and [Multi-stop delivery](/capabilities/multi-stop-delivery)."
+  "content": "Clinic loops fail when every stop becomes a call. Treat replenishment like a capacity program.\n\n## Sequence the corridor\n\nGroup clinics by zone and window. Dense multi-stop beats a sedan bouncing across the GTA all afternoon.\n\n## Proof for regulated receivers\n\nPhoto and GPS closeout help pharmacy and clinic ops answer compliance questions without chasing drivers.\n\n## Recurring plus same-day\n\nLock the weekly template. Keep overflow for stockouts and missed cuts.\n\nSee [Medical solutions](/delivery/pharmacy) and [Multi-stop delivery](/platform)."
  },
  {
   "locale": "en",
@@ -219,7 +219,7 @@
    "recurring",
    "gta"
   ],
-  "content": "Foodservice windows do not move for traffic. Roasters and wholesale food distributors need early capacity that arrives with tracking cafés and kitchens can trust.\n\n## Recurring first, overflow second\n\nLock weekly café or restaurant loops so product leaves on schedule. Keep same-day overflow for promotions and missed cuts without inventing a new courier each time.\n\n## Vehicle fit for perishable freight\n\nTotes, cases, and mixed cartons need the right van class and staging discipline. Overpacking a sedan to “save” the quote usually costs the window.\n\n## Proof that quiets the phone\n\nShareable ETA and photo closeout reduce “where is my drop?” calls during the breakfast rush.\n\nExplore [food & beverage solutions](/solutions/food-beverage) and [recurring route capacity](/capabilities/recurring-routes)."
+  "content": "Foodservice windows do not move for traffic. Roasters and wholesale food distributors need early capacity that arrives with tracking cafés and kitchens can trust.\n\n## Recurring first, overflow second\n\nLock weekly café or restaurant loops so product leaves on schedule. Keep same-day overflow for promotions and missed cuts without inventing a new courier each time.\n\n## Vehicle fit for perishable freight\n\nTotes, cases, and mixed cartons need the right van class and staging discipline. Overpacking a sedan to “save” the quote usually costs the window.\n\n## Proof that quiets the phone\n\nShareable ETA and photo closeout reduce “where is my drop?” calls during the breakfast rush.\n\nExplore [food & beverage solutions](/delivery) and [recurring route capacity](/platform)."
  },
  {
   "locale": "en",
@@ -238,7 +238,7 @@
    "wholesale",
    "gta"
   ],
-  "content": "Electricians do not wait on dock stories. Counter-to-jobsite delivery is a capacity product.\n\n## Long stock needs the right van\n\nConduit and fixtures punish the wrong vehicle class. Confirm fit in the quote.\n\n## Site access is half the job\n\nForeman contacts, hoist timing, and muddy site notes belong on the dispatch ticket.\n\n## Proof for billing disputes\n\nPhoto at drop ends “it never arrived” arguments between counter and GC.\n\nExplore [Wholesale solutions](/solutions/wholesale) and [Construction](/construction)."
+  "content": "Electricians do not wait on dock stories. Counter-to-jobsite delivery is a capacity product.\n\n## Long stock needs the right van\n\nConduit and fixtures punish the wrong vehicle class. Confirm fit in the quote.\n\n## Site access is half the job\n\nForeman contacts, hoist timing, and muddy site notes belong on the dispatch ticket.\n\n## Proof for billing disputes\n\nPhoto at drop ends “it never arrived” arguments between counter and GC.\n\nExplore [Warehouses & wholesale](/delivery/warehouses) and [Construction](/delivery/construction)."
  },
  {
   "locale": "en",
@@ -513,7 +513,7 @@
    "capacity",
    "gta"
   ],
-  "content": "Returns fail when ops treat the second address as optional. In the GTA, equipment swaps, unsold stock pickups, and failed-delivery recovery need the same vehicle match and proof as outbound lanes.\n\n## Two stops, one commercial promise\n\nBook both legs with clear access notes. A van that fit the outbound cube must still fit the return — and the dock contact must be reachable.\n\n## Capacity, not a rental SaaS app\n\nYou keep the customer relationship and inventory system. Capacity partners move freight between addresses with tracking and proof — they do not replace your merchandising stack.\n\n## Close both ends\n\nPhoto and GPS on pickup and delivery close billing and inventory adjustments without chasing drivers.\n\nDeep-dive: [Returns and round-trip capacity](/capabilities/returns-round-trip-capacity)."
+  "content": "Returns fail when ops treat the second address as optional. In the GTA, equipment swaps, unsold stock pickups, and failed-delivery recovery need the same vehicle match and proof as outbound lanes.\n\n## Two stops, one commercial promise\n\nBook both legs with clear access notes. A van that fit the outbound cube must still fit the return — and the dock contact must be reachable.\n\n## Capacity, not a rental SaaS app\n\nYou keep the customer relationship and inventory system. Capacity partners move freight between addresses with tracking and proof — they do not replace your merchandising stack.\n\n## Close both ends\n\nPhoto and GPS on pickup and delivery close billing and inventory adjustments without chasing drivers.\n\nDeep-dive: [Returns and round-trip capacity](/platform)."
  },
  {
   "locale": "en",
@@ -659,7 +659,7 @@
    "ops",
    "integrations"
   ],
-  "content": "Integrations fail quietly when every status looks the same in your ERP.\n\n## Name the moments that matter\n\nDispatched, at pickup, exception, delivered, proof ready — each should trigger a different internal action.\n\n## Pair webhooks with human exceptions\n\nAutomation routes the happy path. Ops still needs a clear escalation when a window stalls.\n\n## Capacity first, pipe second\n\nAPIs do not create trucks. Quote vehicle class and windows before you wire the last status callback.\n\nRead [Webhooks for delivery events](/integrations-education/webhooks-delivery-events) and [Developers](/developers)."
+  "content": "Integrations fail quietly when every status looks the same in your ERP.\n\n## Name the moments that matter\n\nDispatched, at pickup, exception, delivered, proof ready — each should trigger a different internal action.\n\n## Pair webhooks with human exceptions\n\nAutomation routes the happy path. Ops still needs a clear escalation when a window stalls.\n\n## Capacity first, pipe second\n\nAPIs do not create trucks. Quote vehicle class and windows before you wire the last status callback.\n\nRead [Webhooks for delivery events](/developers) and [Developers](/developers)."
  },
  {
   "locale": "en",
@@ -732,7 +732,7 @@
    "camion-cube",
    "rgt"
   ],
-  "content": "L'immobilisation de flotte est normale. La roulette coursier est optionnelle.\n\n## Même classe, même preuve\n\nSi la course principale exigeait un camion cube 16 pi, le devis de débordement aussi. La mauvaise classe brûle la fenêtre deux fois.\n\n## Les notes d'accès voyagent avec la course\n\nCodes de portail, contacts quai et heures de site doivent suivre l'affectation — pas vivre dans un fil texte.\n\n## Un partenaire sur les pics\n\nLe débordement fonctionne mieux quand les destinataires connaissent déjà votre suivi et votre standard POD.\n\nPlus : [Débordement de flotte](/solutions/fleet-overflow) · [Récupération d'exceptions](/capabilities/exception-recovery)."
+  "content": "L'immobilisation de flotte est normale. La roulette coursier est optionnelle.\n\n## Même classe, même preuve\n\nSi la course principale exigeait un camion cube 16 pi, le devis de débordement aussi. La mauvaise classe brûle la fenêtre deux fois.\n\n## Les notes d'accès voyagent avec la course\n\nCodes de portail, contacts quai et heures de site doivent suivre l'affectation — pas vivre dans un fil texte.\n\n## Un partenaire sur les pics\n\nLe débordement fonctionne mieux quand les destinataires connaissent déjà votre suivi et votre standard POD.\n\nPlus : [Débordement de flotte](/business) · [Récupération d'exceptions](/guides/delivery-failure-modes-and-recovery)."
  },
  {
   "locale": "fr",
@@ -806,7 +806,7 @@
    "multi-arrêts",
    "rgt"
   ],
-  "content": "Les boucles cliniques échouent quand chaque arrêt devient un appel. Traitez le réapprovisionnement comme un programme de capacité.\n\n## Séquencer le corridor\n\nRegroupez les cliniques par zone et fenêtre. Le multi-arrêts dense bat une berline qui zigzag tout l'après-midi.\n\n## Preuve pour destinataires réglementés\n\nPhoto et GPS aident pharmacie et cliniques à répondre à la conformité sans courir après les chauffeurs.\n\n## Récurrent plus jour même\n\nVerrouillez le modèle hebdomadaire. Gardez le débordement pour ruptures et cut-offs manqués.\n\nVoir [Solutions médicales](/solutions/medical) et [Livraison multi-arrêts](/capabilities/multi-stop-delivery)."
+  "content": "Les boucles cliniques échouent quand chaque arrêt devient un appel. Traitez le réapprovisionnement comme un programme de capacité.\n\n## Séquencer le corridor\n\nRegroupez les cliniques par zone et fenêtre. Le multi-arrêts dense bat une berline qui zigzag tout l'après-midi.\n\n## Preuve pour destinataires réglementés\n\nPhoto et GPS aident pharmacie et cliniques à répondre à la conformité sans courir après les chauffeurs.\n\n## Récurrent plus jour même\n\nVerrouillez le modèle hebdomadaire. Gardez le débordement pour ruptures et cut-offs manqués.\n\nVoir [Solutions médicales](/delivery/pharmacy) et [Livraison multi-arrêts](/platform)."
  },
  {
   "locale": "fr",
@@ -899,7 +899,7 @@
    "récurrent",
    "rgt"
   ],
-  "content": "Les fenêtres foodservice ne bougent pas pour le trafic. Torréfacteurs et distributeurs ont besoin de capacité tôt le matin avec un suivi que cafés et cuisines peuvent croire.\n\n## Récurrent d'abord, débordement ensuite\n\nVerrouillez les boucles hebdomadaires café ou restaurant pour que le produit parte à l'heure. Gardez le débordement jour même pour promotions et cut-offs manqués sans inventer un nouveau coursier à chaque fois.\n\n## Véhicule adapté au fret périssable\n\nBacs, caisses et cartons mixtes exigent la bonne classe de fourgonnette et une discipline de staging. Surcharger une berline pour « sauver » le devis coûte souvent la fenêtre.\n\n## Preuve qui calme le téléphone\n\nETA partageable et clôture photo réduisent les appels « où est mon dépôt? » pendant le rush du matin.\n\nExplorer [solutions alimentation](/solutions/food-beverage) et [capacité de routes récurrentes](/capabilities/recurring-routes)."
+  "content": "Les fenêtres foodservice ne bougent pas pour le trafic. Torréfacteurs et distributeurs ont besoin de capacité tôt le matin avec un suivi que cafés et cuisines peuvent croire.\n\n## Récurrent d'abord, débordement ensuite\n\nVerrouillez les boucles hebdomadaires café ou restaurant pour que le produit parte à l'heure. Gardez le débordement jour même pour promotions et cut-offs manqués sans inventer un nouveau coursier à chaque fois.\n\n## Véhicule adapté au fret périssable\n\nBacs, caisses et cartons mixtes exigent la bonne classe de fourgonnette et une discipline de staging. Surcharger une berline pour « sauver » le devis coûte souvent la fenêtre.\n\n## Preuve qui calme le téléphone\n\nETA partageable et clôture photo réduisent les appels « où est mon dépôt? » pendant le rush du matin.\n\nExplorer [solutions alimentation](/delivery) et [capacité de routes récurrentes](/platform)."
  },
  {
   "locale": "fr",
@@ -918,7 +918,7 @@
    "gros",
    "rgt"
   ],
-  "content": "Les électriciens n'attendent pas les histoires de quai. La livraison comptoir–chantier est un produit de capacité.\n\n## Le long stock exige la bonne fourgonnette\n\nConduits et fixtures punissent la mauvaise classe. Confirmez l'adéquation dans le devis.\n\n## L'accès chantier est la moitié du travail\n\nContacts contremaître, timing de monte-charge et notes de site boueux appartiennent au billet de répartition.\n\n## Preuve pour litiges de facturation\n\nLa photo au dépôt termine les « ça n'est jamais arrivé » entre comptoir et entrepreneur général.\n\nExplorer [Solutions gros](/solutions/wholesale) et [Construction](/construction)."
+  "content": "Les électriciens n'attendent pas les histoires de quai. La livraison comptoir–chantier est un produit de capacité.\n\n## Le long stock exige la bonne fourgonnette\n\nConduits et fixtures punissent la mauvaise classe. Confirmez l'adéquation dans le devis.\n\n## L'accès chantier est la moitié du travail\n\nContacts contremaître, timing de monte-charge et notes de site boueux appartiennent au billet de répartition.\n\n## Preuve pour litiges de facturation\n\nLa photo au dépôt termine les « ça n'est jamais arrivé » entre comptoir et entrepreneur général.\n\nExplorer [Entrepôts et grossistes](/delivery/warehouses) et [Construction](/delivery/construction)."
  },
  {
   "locale": "fr",
@@ -1193,7 +1193,7 @@
    "capacité",
    "rgt"
   ],
-  "content": "Les retours échouent quand les ops traitent la deuxième adresse comme optionnelle. Dans le RGT, échanges d'équipement, ramassages de stock invendu et récupération d'échecs exigent le même appariement véhicule et la même preuve que les sorties.\n\n## Deux arrêts, une promesse commerciale\n\nRéservez les deux jambes avec notes d'accès claires. La fourgonnette qui convenait à l'aller doit encore convenir au retour — et le contact quai doit être joignable.\n\n## Capacité, pas une app SaaS de location\n\nVous gardez la relation client et le système d'inventaire. Les partenaires de capacité déplacent le fret entre adresses avec suivi et preuve — ils ne remplacent pas votre pile marchande.\n\n## Clôturer les deux bouts\n\nPhoto et GPS au ramassage et à la livraison ferment facturation et ajustements d'inventaire sans courir après les chauffeurs.\n\nApprofondir : [Capacité retours et aller-retour](/capabilities/returns-round-trip-capacity)."
+  "content": "Les retours échouent quand les ops traitent la deuxième adresse comme optionnelle. Dans le RGT, échanges d'équipement, ramassages de stock invendu et récupération d'échecs exigent le même appariement véhicule et la même preuve que les sorties.\n\n## Deux arrêts, une promesse commerciale\n\nRéservez les deux jambes avec notes d'accès claires. La fourgonnette qui convenait à l'aller doit encore convenir au retour — et le contact quai doit être joignable.\n\n## Capacité, pas une app SaaS de location\n\nVous gardez la relation client et le système d'inventaire. Les partenaires de capacité déplacent le fret entre adresses avec suivi et preuve — ils ne remplacent pas votre pile marchande.\n\n## Clôturer les deux bouts\n\nPhoto et GPS au ramassage et à la livraison ferment facturation et ajustements d'inventaire sans courir après les chauffeurs.\n\nApprofondir : [Capacité retours et aller-retour](/platform)."
  },
  {
   "locale": "fr",
@@ -1339,7 +1339,7 @@
    "ops",
    "intégrations"
   ],
-  "content": "Les intégrations échouent en silence quand chaque statut se ressemble dans votre ERP.\n\n## Nommez les moments qui comptent\n\nRéparti, au ramassage, exception, livré, preuve prête — chacun doit déclencher une action interne différente.\n\n## Apparier webhooks et exceptions humaines\n\nL'automatisation route le chemin heureux. Les ops ont encore besoin d'une escalade claire quand une fenêtre bloque.\n\n## Capacité d'abord, tuyau ensuite\n\nLes API ne créent pas de camions. Devis classe de véhicule et fenêtres avant de câbler le dernier callback.\n\nLire [Webhooks pour événements de livraison](/integrations-education/webhooks-delivery-events) et [Développeurs](/developers)."
+  "content": "Les intégrations échouent en silence quand chaque statut se ressemble dans votre ERP.\n\n## Nommez les moments qui comptent\n\nRéparti, au ramassage, exception, livré, preuve prête — chacun doit déclencher une action interne différente.\n\n## Apparier webhooks et exceptions humaines\n\nL'automatisation route le chemin heureux. Les ops ont encore besoin d'une escalade claire quand une fenêtre bloque.\n\n## Capacité d'abord, tuyau ensuite\n\nLes API ne créent pas de camions. Devis classe de véhicule et fenêtres avant de câbler le dernier callback.\n\nLire [Webhooks pour événements de livraison](/developers) et [Développeurs](/developers)."
  },
  {
   "locale": "fr",

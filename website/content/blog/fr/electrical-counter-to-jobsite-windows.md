@@ -24,4 +24,4 @@ Contacts contremaître, timing de monte-charge et notes de site boueux appartien
 
 La photo au dépôt termine les « ça n'est jamais arrivé » entre comptoir et entrepreneur général.
 
-Explorer [Solutions gros](/solutions/wholesale) et [Construction](/construction).
+Explorer [Entrepôts et grossistes](/delivery/warehouses) et [Construction](/delivery/construction).

@@ -13,8 +13,9 @@ APP = WEBSITE / "src/app/[locale]"
 
 REQUIRED_PAGES = (
     "platform/page.tsx",
-    "solutions/page.tsx",
-    "solutions/[vertical]/page.tsx",
+    # Oct 2026: /solutions merged into the /delivery industry hubs (301s in lib/seo/redirects.ts).
+    "delivery/page.tsx",
+    "delivery/[industry]/page.tsx",
     "book/page.tsx",
 )
 
@@ -238,9 +239,10 @@ def main() -> int:
 
     footer_labels = json.loads(SITE_FOOTER_EN.read_text(encoding="utf-8"))
     sections = footer_labels.get("sections", {})
-    products = sections.get("products", {}).get("links", {})
-    resources_links = sections.get("resources", {}).get("links", {})
-    company_links = sections.get("company", {}).get("links", {})
+    # Oct 2026 footer IA: services / industries / company / support / legal.
+    products = {**sections.get("products", {}).get("links", {}), **sections.get("services", {}).get("links", {})}
+    resources_links = {**sections.get("resources", {}).get("links", {}), **sections.get("support", {}).get("links", {})}
+    company_links = {**sections.get("company", {}).get("links", {}), **sections.get("support", {}).get("links", {})}
     # Website Phase 1 IA (Oct 2026): five navbar links (Price, Industries, Track, Shopify app,
     # Sign in); Merchants (/business) moved to the footer crawl map. Either surface satisfies this.
     navbar_data = WEBSITE / "src/data/navbar-navigation.ts"
@@ -248,13 +250,14 @@ def main() -> int:
     footer_nav_text = FOOTER_NAV.read_text(encoding="utf-8") if FOOTER_NAV.is_file() else ""
     if 'href: "/business"' not in navbar_text and 'href: "/business"' not in footer_nav_text:
         failures.append("merchants /business capacity link missing from navbar and footer navigation")
-    if "getQuote" not in products and "contact" not in company_links:
+    if "getQuote" not in products and "price" not in products and "contact" not in company_links:
         failures.append("site-footer-en.json missing quote path (products.getQuote or company.contact)")
     if "trust" not in company_links and "trust" not in sections.get("solutions", {}).get("links", {}):
         failures.append("site-footer-en.json missing trust link (company.links.trust)")
     if (
         "platform" not in resources_links
         and "platform" not in products
+        and "howItWorks" not in products
         and "howPorterchainWorks" not in resources_links
     ):
         failures.append(

@@ -24,4 +24,4 @@ Totes, cases, and mixed cartons need the right van class and staging discipline.
 
 Shareable ETA and photo closeout reduce “where is my drop?” calls during the breakfast rush.
 
-Explore [food & beverage solutions](/solutions/food-beverage) and [recurring route capacity](/capabilities/recurring-routes).
+Explore [food & beverage solutions](/delivery) and [recurring route capacity](/platform).

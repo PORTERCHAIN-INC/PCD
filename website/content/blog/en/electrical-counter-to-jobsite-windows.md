@@ -24,4 +24,4 @@ Foreman contacts, hoist timing, and muddy site notes belong on the dispatch tick
 
 Photo at drop ends “it never arrived” arguments between counter and GC.
 
-Explore [Wholesale solutions](/solutions/wholesale) and [Construction](/construction).
+Explore [Warehouses & wholesale](/delivery/warehouses) and [Construction](/delivery/construction).

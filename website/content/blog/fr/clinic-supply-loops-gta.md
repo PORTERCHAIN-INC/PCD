@@ -24,4 +24,4 @@ Photo et GPS aident pharmacie et cliniques à répondre à la conformité sans c
 
 Verrouillez le modèle hebdomadaire. Gardez le débordement pour ruptures et cut-offs manqués.
 
-Voir [Solutions médicales](/solutions/medical) et [Livraison multi-arrêts](/capabilities/multi-stop-delivery).
+Voir [Solutions médicales](/delivery/pharmacy) et [Livraison multi-arrêts](/platform).
