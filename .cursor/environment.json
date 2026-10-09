@@ -1,0 +1,15 @@
+{
+  "name": "PorterChain",
+  "user": "ubuntu",
+  "install": "bash .cursor/cloud-agent-install.sh",
+  "start": "bash .cursor/cloud-agent-start.sh",
+  "ports": [
+    { "name": "website", "port": 3000 },
+    { "name": "merchant", "port": 3001 },
+    { "name": "admin", "port": 3002 },
+    { "name": "driver", "port": 3003 },
+    { "name": "customer", "port": 3004 },
+    { "name": "api", "port": 8001 },
+    { "name": "mailpit", "port": 8025 }
+  ]
+}
