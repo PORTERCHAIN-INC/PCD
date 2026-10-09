@@ -19,6 +19,7 @@ type Tab =
   | "locations"
   | "notifications"
   | "branding"
+  | "experience"
   | "tax"
   | "documents"
   | "privacy";
@@ -29,6 +30,7 @@ const TABS: { id: Tab; label: string; module?: string }[] = [
   { id: "recipients", label: "Delivery contacts" },
   { id: "notifications", label: "Alert preferences" },
   { id: "branding", label: "Branding" },
+  { id: "experience", label: "Customer experience" },
   { id: "tax", label: "Tax" },
   { id: "documents", label: "Documents" },
   { id: "privacy", label: "Privacy" },
@@ -55,6 +57,10 @@ const NotificationsTab = dynamic(
 const BrandingTab = dynamic(() => import("./tabs/BrandingTab").then((m) => m.BrandingTab), {
   loading: () => <PageSkeleton rows={3} />,
 });
+const CustomerExperienceTab = dynamic(
+  () => import("./tabs/CustomerExperienceTab").then((m) => m.CustomerExperienceTab),
+  { loading: () => <PageSkeleton rows={4} /> }
+);
 const TaxTab = dynamic(() => import("./tabs/TaxTab").then((m) => m.TaxTab), {
   loading: () => <PageSkeleton rows={3} />,
 });
@@ -220,6 +226,7 @@ export default function SettingsClient() {
           onSaved={() => void refreshSession()}
         />
       )}
+      {tab === "experience" && <CustomerExperienceTab getToken={getApiToken} orgId={orgId} />}
       {tab === "tax" && (
         <TaxTab tax={data.tax} onRefresh={load} getToken={getApiToken} orgId={orgId} />
       )}

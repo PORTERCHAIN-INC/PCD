@@ -307,3 +307,71 @@ def compute_delivery_promise(
         wave_code=wave["code"],
         tier=(tier or {}).get("name"),
     )
+
+
+def available_windows(
+    config: Any,
+    *,
+    now: datetime,
+    days: int = 7,
+    dest_fsa: str | None = None,
+) -> list[dict[str, Any]]:
+    """Every wave a delivery recipient may pick over the next ``days`` operating days.
+
+    Used by recipient self-scheduling. It reads the same calendar as the checkout
+    promise (waves, weekdays, holidays, FSA tiers) but ignores ``enabled``: the
+    self-service toggle is per merchant, so a disabled checkout promise still
+    yields the (placeholder) default waves.
+    """
+    cfg = normalize_delivery_promise(config if isinstance(config, dict) else None)
+    tz = ZoneInfo(cfg["timezone"])
+    local_now = now.astimezone(tz) if now.tzinfo else now.replace(tzinfo=tz)
+    today = local_now.date()
+    tier = _tier_for(cfg, dest_fsa)
+    same_day_ok = tier is None or tier.get("same_day", True)
+    extra_days = int((tier or {}).get("extra_days") or 0)
+    holidays = set(cfg["holidays"])
+    weekdays = set(cfg["operating_weekdays"])
+
+    def _operating(d: date) -> bool:
+        return d.weekday() in weekdays and d.isoformat() not in holidays
+
+    # Earliest day: FSA extra days push the first offered operating day out.
+    earliest = today + timedelta(days=1) if not same_day_ok else today
+    remaining = extra_days
+    guard = 0
+    while remaining > 0 and guard < 31:
+        guard += 1
+        earliest = earliest + timedelta(days=1)
+        if _operating(earliest):
+            remaining -= 1
+
+    want = max(1, min(int(days or 1), 21))
+    out: list[dict[str, Any]] = []
+    seen_days = 0
+    for offset in range(cfg["max_days_ahead"] + want + 1):
+        day = today + timedelta(days=offset)
+        if day < earliest or not _operating(day):
+            continue
+        waves = cfg["waves"]
+        if day == today:
+            waves = [w for w in waves if local_now.time() <= _to_time(w["cutoff"])]
+        if not waves:
+            continue
+        for wave in waves:
+            start = datetime.combine(day, _to_time(wave["start"]), tzinfo=tz)
+            end = datetime.combine(day, _to_time(wave["end"]), tzinfo=tz)
+            out.append(
+                {
+                    "code": f"{day.isoformat()}:{wave['code']}",
+                    "date": day.isoformat(),
+                    "wave_code": wave["code"],
+                    "window_start": start.isoformat(),
+                    "window_end": end.isoformat(),
+                    "label": f"{day.strftime('%a %b')} {day.day}, {_fmt_time(wave['start'])}-{_fmt_time(wave['end'])}",
+                }
+            )
+        seen_days += 1
+        if seen_days >= want:
+            break
+    return out

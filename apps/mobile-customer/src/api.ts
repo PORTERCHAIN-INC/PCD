@@ -1,3 +1,4 @@
+import type { TrackingExperience } from "@porterchain/types";
 import * as Crypto from "expo-crypto";
 import { apiBaseUrl, fetchTimeoutMs } from "./config";
 import { requireBearer } from "./session";
@@ -288,6 +289,11 @@ export async function probeApi(): Promise<boolean> {
 
 export function getOrderByTracking(trackingNumber: string): Promise<OrderResult> {
   return request(`/v1/orders/${encodeURIComponent(trackingNumber)}`);
+}
+
+/** Branded recipient view; `enhanced: false` unless the merchant enabled it. */
+export function getOrderExperience(trackingNumber: string): Promise<TrackingExperience> {
+  return request(`/v1/orders/${encodeURIComponent(trackingNumber)}/experience`);
 }
 
 export function getOrderLiveTracking(trackingNumber: string): Promise<OrderLiveTracking> {

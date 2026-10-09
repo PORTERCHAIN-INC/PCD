@@ -381,14 +381,19 @@ class MerchantBookingService:
             db.refresh(order)
             return order
 
-        # Publish dispatch-ready → PorterChain day plan / assign path (event-driven).
-        transition_to_dispatch_ready(
-            db,
-            order,
-            event_type="order.dispatch_ready",
-            actor_type="merchant",
-            actor_id=ctx.user.id,
-        )
+        # Bulky gate (per-merchant, off by default): hold at BOOKED until the
+        # recipient picks a delivery window via the signed self-service link.
+        from porterchain_api.customer_experience.scheduling import hold_for_schedule
+
+        if not hold_for_schedule(db, settings, order):
+            # Publish dispatch-ready → PorterChain day plan / assign path (event-driven).
+            transition_to_dispatch_ready(
+                db,
+                order,
+                event_type="order.dispatch_ready",
+                actor_type="merchant",
+                actor_id=ctx.user.id,
+            )
         db.refresh(order)
         if consignee_email:
             from porterchain_api.merchant_engine.consignee_notify import send_consignee_tracking_safe

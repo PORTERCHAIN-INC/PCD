@@ -41,6 +41,9 @@ class TrackingService:
         from porterchain_api.domain.customer_goods import goods_line
 
         goods = goods_line(order.compliance_metadata if isinstance(order.compliance_metadata, dict) else None)
+        if public:
+            # Public track page: anyone holding the number sees it — never parcel contents/value.
+            goods = {**goods, "goods_summary": None, "declared_value_cents": None}
         return OrderResponse(
             order_id=order.id,
             order_number=order.order_number,

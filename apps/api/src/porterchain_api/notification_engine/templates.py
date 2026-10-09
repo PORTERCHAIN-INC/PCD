@@ -527,6 +527,21 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             preheader=f"{headline} · {tracking or order}",
         )
 
+    if template.startswith("cx_"):
+        # Recipient experience (transactional): CTA + CASL sender line from the body.
+        first = body.split("\n", 1)[0].strip() if body else subject
+        cta_url = _g(ctx, "cta_url")
+        return build_transactional_html(
+            eyebrow=_g(ctx, "merchant_name", default="Delivery update"),
+            headline=subject,
+            lead=first,
+            rows=[("Tracking", tracking)],
+            cta_label=_g(ctx, "cta_label", default="Track delivery") if cta_url else "",
+            cta_url=cta_url,
+            note=body.rsplit("\n\n", 1)[-1] if body else "",
+            preheader=first,
+        )
+
     # Generic branded shell for remaining templates
     first_line = body.split("\n", 1)[0].strip() if body else subject
     return build_transactional_html(
@@ -613,3 +628,10 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         body = f"{body}\n\nTrack: {track}"
     html_body = _html_for(template, context, subject=subject, body=body)
     return subject, body, html_body
+
+
+# Recipient experience templates are defined centrally in customer_experience.templates.
+from porterchain_api.customer_experience.templates import CX_TEMPLATE_META, CX_TEMPLATES  # noqa: E402
+
+TEMPLATES.update(CX_TEMPLATES)
+TEMPLATE_META.update(CX_TEMPLATE_META)

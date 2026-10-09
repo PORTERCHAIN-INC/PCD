@@ -41,3 +41,23 @@ export type {
 export type { BlogAuthor } from "./blog-authors";
 export { BLOG_AUTHORS, getBlogAuthor } from "./blog-authors";
 export { COMPACT_SCHEDULE_DEFAULTS, DEFAULT_DOWNTOWN_FEE_CAD, pricingModelLabel } from "./pricing";
+export type {
+  DeliveryInstructions,
+  DeliveryManageOptions,
+  DeliveryWindowOption,
+  TrackingEtaWindow,
+  TrackingExperience,
+  TrackingExperienceEnhanced,
+  TrackingProofOfDelivery,
+  TrackingStepCode,
+  TrackingTimelineItem,
+} from "./trackingExperience";
+export {
+  cleanInstructions,
+  etaWindowText,
+  isEnhancedExperience,
+  manageErrorText,
+  safeBrandColor,
+  statusHeadline,
+  stopsAwayText,
+} from "./trackingExperience";

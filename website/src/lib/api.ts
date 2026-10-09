@@ -1,3 +1,8 @@
+import type {
+  DeliveryInstructions,
+  DeliveryManageOptions,
+  TrackingExperience,
+} from "@porterchain/types";
 import { getPorterchainApiBase } from "@/lib/api-base";
 
 const API_BASE = getPorterchainApiBase();
@@ -89,4 +94,73 @@ export function getOrderLiveTracking(trackingNumber: string) {
   return apiFetch<OrderLiveTracking>(`/v1/orders/${trackingNumber}/tracking`, {
     cache: "no-store",
   });
+}
+
+/** Branded recipient view (enhanced: false unless the merchant turned it on). */
+export function getOrderExperience(trackingNumber: string, manageToken?: string | null) {
+  return apiFetch<TrackingExperience>(
+    `/v1/orders/${encodeURIComponent(trackingNumber)}/experience`,
+    {
+      cache: "no-store",
+      headers: manageToken ? { "X-Manage-Token": manageToken } : undefined,
+    }
+  );
+}
+
+export interface ManageApiError extends Error {
+  code: string | null;
+  status: number;
+}
+
+async function manageFetch<T>(path: string, token: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    cache: "no-store",
+    referrerPolicy: "no-referrer",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Manage-Token": token,
+      ...init?.headers,
+    },
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as {
+      detail?: { code?: string; message?: string } | string;
+    };
+    const detail = body.detail;
+    const err = new Error(
+      typeof detail === "string" ? detail : detail?.message || `API error ${response.status}`
+    ) as ManageApiError;
+    err.code = typeof detail === "object" && detail ? (detail.code ?? null) : null;
+    err.status = response.status;
+    throw err;
+  }
+  return response.json() as Promise<T>;
+}
+
+export function getDeliveryManageOptions(trackingNumber: string, token: string) {
+  return manageFetch<DeliveryManageOptions>(
+    `/v1/delivery-manage/${encodeURIComponent(trackingNumber)}`,
+    token
+  );
+}
+
+export function postDeliverySchedule(trackingNumber: string, token: string, windowCode: string) {
+  return manageFetch<DeliveryManageOptions>(
+    `/v1/delivery-manage/${encodeURIComponent(trackingNumber)}/schedule`,
+    token,
+    { method: "POST", body: JSON.stringify({ window_code: windowCode }) }
+  );
+}
+
+export function postDeliveryInstructions(
+  trackingNumber: string,
+  token: string,
+  instructions: DeliveryInstructions
+) {
+  return manageFetch<DeliveryManageOptions>(
+    `/v1/delivery-manage/${encodeURIComponent(trackingNumber)}/instructions`,
+    token,
+    { method: "POST", body: JSON.stringify(instructions) }
+  );
 }

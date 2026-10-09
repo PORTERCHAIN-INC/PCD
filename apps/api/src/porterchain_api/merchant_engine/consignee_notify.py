@@ -106,6 +106,9 @@ def send_consignee_tracking_safe(
     merchant_name: str | None = None,
 ) -> None:
     try:
-        send_consignee_tracking(db, settings, order, email, merchant_name=merchant_name)
+        # Savepoint: a failed queue write must not poison the caller's session
+        # (create_shipment commits right after this call).
+        with db.begin_nested():
+            send_consignee_tracking(db, settings, order, email, merchant_name=merchant_name)
     except Exception:  # noqa: BLE001
         logger.exception("consignee tracking email failed for order %s", order.id)

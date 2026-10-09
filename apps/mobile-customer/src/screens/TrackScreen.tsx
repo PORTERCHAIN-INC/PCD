@@ -1,8 +1,17 @@
 import { useState } from "react";
-import { Pressable, Text, TextInput, StyleSheet } from "react-native";
+import { Pressable, Text, TextInput, StyleSheet, View } from "react-native";
+import {
+  etaWindowText,
+  isEnhancedExperience,
+  safeBrandColor,
+  statusHeadline,
+  stopsAwayText,
+  type TrackingExperience,
+} from "@porterchain/types";
 import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
 import {
   getOrderByTracking,
+  getOrderExperience,
   getOrderLiveTracking,
   type OrderLiveTracking,
   type OrderResult,
@@ -23,6 +32,8 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [live, setLive] = useState<OrderLiveTracking | null>(null);
+  const [experience, setExperience] = useState<TrackingExperience | null>(null);
+  const enhanced = isEnhancedExperience(experience) ? experience : null;
 
   const trimmed = trackingNumber.trim();
   const status = live?.live_tracking?.delivery_status?.label ?? order?.state ?? null;
@@ -33,15 +44,18 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const [orderResult, liveResult] = await Promise.all([
+      const [orderResult, liveResult, experienceResult] = await Promise.all([
         getOrderByTracking(trimmed),
         getOrderLiveTracking(trimmed).catch(() => null),
+        getOrderExperience(trimmed).catch(() => null),
       ]);
       setOrder(orderResult);
       setLive(liveResult);
+      setExperience(experienceResult);
     } catch (err) {
       setOrder(null);
       setLive(null);
+      setExperience(null);
       const msg = err instanceof Error ? err.message : "lookup_failed";
       setError(humanCustomerError(msg));
     } finally {
@@ -82,10 +96,78 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {order ? (
         <>
+          {enhanced ? (
+            <View
+              testID="track-experience"
+              style={[
+                styles.brandBar,
+                { backgroundColor: safeBrandColor(enhanced.branding.primary_color) },
+              ]}
+            >
+              {enhanced.branding.company_name ? (
+                <Text style={styles.brandName}>{enhanced.branding.company_name}</Text>
+              ) : null}
+              <Text style={styles.brandStatus}>{statusHeadline(enhanced)}</Text>
+            </View>
+          ) : null}
           <Text style={styles.kicker}>Shipment</Text>
-          <Text style={styles.status}>{status ?? order.state}</Text>
+          <Text style={styles.status}>
+            {enhanced ? statusHeadline(enhanced) : (status ?? order.state)}
+          </Text>
           <Text style={styles.meta}>{order.order_number}</Text>
-          {order.goods_summary ? <Text style={styles.meta}>{order.goods_summary}</Text> : null}
+          {enhanced ? (
+            <>
+              {etaWindowText(enhanced.eta_window) ? (
+                <Text style={styles.meta}>
+                  Delivery window: {etaWindowText(enhanced.eta_window)}
+                </Text>
+              ) : null}
+              {stopsAwayText(enhanced.stops_away, enhanced.state) ? (
+                <Text style={styles.meta}>
+                  {stopsAwayText(enhanced.stops_away, enhanced.state)}
+                </Text>
+              ) : null}
+              {enhanced.driver?.name ? (
+                <Text style={styles.meta}>Your driver: {enhanced.driver.name}</Text>
+              ) : null}
+              {enhanced.rules.id_required ? (
+                <Text style={styles.meta}>Photo ID is required at delivery.</Text>
+              ) : null}
+              {enhanced.proof_of_delivery ? (
+                <Text style={styles.meta}>
+                  Delivered
+                  {enhanced.proof_of_delivery.received_by
+                    ? ` · received by ${enhanced.proof_of_delivery.received_by}`
+                    : ""}
+                  {enhanced.proof_of_delivery.proof_types.length
+                    ? ` · proof: ${enhanced.proof_of_delivery.proof_types.join(", ")}`
+                    : ""}
+                </Text>
+              ) : null}
+              {enhanced.timeline
+                .slice()
+                .reverse()
+                .map((item, i) => (
+                  <Text key={`${item.code}-${i}`} style={styles.timeline}>
+                    {item.label}
+                    {item.at
+                      ? ` · ${new Date(item.at).toLocaleString("en-CA", { timeZone: "America/Toronto" })}`
+                      : ""}
+                  </Text>
+                ))}
+              {enhanced.help.email || enhanced.help.phone ? (
+                <Text style={styles.meta}>
+                  Need help?{" "}
+                  {[enhanced.help.email, enhanced.help.phone].filter(Boolean).join(" · ")}
+                </Text>
+              ) : null}
+              {enhanced.self_service.available ? (
+                <Text style={styles.meta}>
+                  To change the time or add a gate code, use the link in your delivery message.
+                </Text>
+              ) : null}
+            </>
+          ) : null}
           {order.pickup?.formatted ? (
             <Text style={styles.meta}>Pickup: {order.pickup.formatted}</Text>
           ) : null}
@@ -142,5 +224,23 @@ const styles = StyleSheet.create({
   meta: {
     ...typography.caption,
     color: colors.muted,
+  },
+  timeline: {
+    ...typography.caption,
+    color: colors.primary,
+  },
+  brandBar: {
+    width: "100%",
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginTop: spacing.md,
+  },
+  brandName: {
+    ...typography.caption,
+    color: colors.white,
+  },
+  brandStatus: {
+    ...typography.title,
+    color: colors.white,
   },
 });

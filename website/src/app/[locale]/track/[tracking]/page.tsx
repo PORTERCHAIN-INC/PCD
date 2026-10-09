@@ -1,9 +1,11 @@
 import { Suspense } from "react";
+import type { TrackingExperience } from "@porterchain/types";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageSkeleton, RouteLoading } from "@porterchain/ui/loading";
 import SiteShell from "@/components/layout/SiteShell";
 import {
   getOrderByTracking,
+  getOrderExperience,
   getOrderLiveTracking,
   type OrderLiveTracking,
   type OrderResult,
@@ -27,6 +29,7 @@ async function TrackData({ locale, tracking }: { locale: string; tracking: strin
   const t = await getTranslations({ locale, namespace: "booking.track" });
   let order: OrderResult | null = null;
   let live: OrderLiveTracking | null = null;
+  let experience: TrackingExperience | null = null;
   let error: string | null = null;
   try {
     order = await getOrderByTracking(tracking);
@@ -39,9 +42,20 @@ async function TrackData({ locale, tracking }: { locale: string; tracking: strin
     } catch {
       live = null;
     }
+    try {
+      experience = await getOrderExperience(tracking);
+    } catch {
+      experience = null;
+    }
   }
   return (
-    <TrackView tracking={tracking} initialOrder={order} initialLive={live} initialError={error} />
+    <TrackView
+      tracking={tracking}
+      initialOrder={order}
+      initialLive={live}
+      initialExperience={experience}
+      initialError={error}
+    />
   );
 }
 

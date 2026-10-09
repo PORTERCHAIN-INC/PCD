@@ -1,3 +1,7 @@
+import type {
+  CustomerExperienceResponse,
+  CustomerExperienceSettings,
+} from "@/lib/customerExperience";
 import { publicEnv } from "@/lib/env";
 import type { ContractPricing } from "@/lib/billing";
 
@@ -281,6 +285,22 @@ export const settingsApi = {
   updateNotifications: (token: string, body: Partial<NotificationPrefs>, orgId?: string) =>
     settingsFetch<NotificationPrefs>("/v1/merchant/settings/notifications", token, {
       method: "PATCH",
+      body: JSON.stringify(body),
+      orgId,
+    }),
+
+  customerExperience: (token: string, orgId?: string) =>
+    settingsFetch<CustomerExperienceResponse>("/v1/merchant/settings/customer-experience", token, {
+      orgId,
+    }),
+
+  updateCustomerExperience: (
+    token: string,
+    body: Partial<CustomerExperienceSettings> & { preset?: string },
+    orgId?: string
+  ) =>
+    settingsFetch<CustomerExperienceResponse>("/v1/merchant/settings/customer-experience", token, {
+      method: "PUT",
       body: JSON.stringify(body),
       orgId,
     }),

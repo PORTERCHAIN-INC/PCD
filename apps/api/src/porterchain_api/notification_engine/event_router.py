@@ -417,6 +417,11 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
         if payload.get("is_sandbox") is True:
             return
 
+        # Recipient experience: proactive consignee messages + failed-delivery policy (off by default).
+        from porterchain_api.customer_experience.events import run_cx_hooks
+
+        run_cx_hooks(db, event_type, payload)
+
         specs = _specs_for_event(event_type, payload)
         if not specs:
             return
@@ -440,6 +445,14 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
         db.close()
 
 
+def handle_tracking_update(envelope: dict[str, Any]) -> None:
+    """GPS pings are frequent: only open a DB session when the ETA is close."""
+    from porterchain_api.customer_experience.events import eta_payload_is_close
+
+    if eta_payload_is_close(dict(envelope.get("payload") or {})):
+        handle_domain_event(envelope)
+
+
 def register_notification_handlers() -> None:
     from porterchain_event_bus.registry import get_handler_registry
 
@@ -461,6 +474,7 @@ def register_notification_handlers() -> None:
         "merchant.booking_created",
         "order.stop_completed",
         "order.failed",
+        "order.delivery_failed",
         DomainEventType.CHECKOUT_ABANDONED,
         DomainEventType.DRIVER_ASSIGNED,
         DomainEventType.ORDER_CANCELLED,
@@ -495,6 +509,7 @@ def register_notification_handlers() -> None:
         registry.subscribe(evt, handle_domain_event)
     for evt in ("driver.emergency", "driver.route_changed"):
         registry.subscribe(evt, handle_domain_event)
+    registry.subscribe(DomainEventType.ORDER_LOCATION_UPDATED, handle_tracking_update)
     for evt in (
         "incident.reported",
         "driver.shift_started",

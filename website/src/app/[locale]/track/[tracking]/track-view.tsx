@@ -2,13 +2,17 @@
 
 import { useEffect, useEffectEvent, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { isEnhancedExperience, type TrackingExperience } from "@porterchain/types";
 import { Link } from "@/i18n/navigation";
 import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { TrackEtaPanel, TrackRouteMap } from "@porterchain/maps";
 import Container from "@/components/ui/Container";
 import GuestTrackLookup from "@/components/portal/GuestTrackLookup";
+import TrackExperiencePanel from "./TrackExperiencePanel";
 import {
   getOrderByTracking,
+  getOrderExperience,
   getOrderLiveTracking,
   type OrderLiveTracking,
   type OrderResult,
@@ -20,11 +24,13 @@ export default function TrackView({
   tracking,
   initialOrder,
   initialLive,
+  initialExperience = null,
   initialError,
 }: {
   tracking: string;
   initialOrder: OrderResult | null;
   initialLive: OrderLiveTracking | null;
+  initialExperience?: TrackingExperience | null;
   initialError: string | null;
 }) {
   const t = useTranslations("booking.track");
@@ -32,6 +38,13 @@ export default function TrackView({
   const [order, setOrder] = useState<OrderResult | null>(initialOrder);
   const [live, setLive] = useState<OrderLiveTracking | null>(initialLive);
   const [error, setError] = useState<string | null>(initialError);
+  const [experience, setExperience] = useState<TrackingExperience | null>(initialExperience);
+  // Signed link from a recipient message (?t=) unlocks POD photos + the manage page.
+  const manageToken = useSearchParams().get("t");
+  const enhanced = isEnhancedExperience(experience) ? experience : null;
+  const manageHref = manageToken
+    ? `/track/${encodeURIComponent(tracking)}/manage?t=${encodeURIComponent(manageToken)}`
+    : null;
   const delivered = Boolean(live?.live_tracking?.delivery_status?.delivered);
 
   const onPoll = useEffectEvent(() => {
@@ -41,7 +54,14 @@ export default function TrackView({
     getOrderLiveTracking(tracking)
       .then(setLive)
       .catch(() => setLive(null));
+    getOrderExperience(tracking, manageToken)
+      .then(setExperience)
+      .catch(() => undefined);
   });
+
+  useEffect(() => {
+    if (manageToken) onPoll();
+  }, [manageToken]);
 
   useEffect(() => {
     if (!tracking || delivered || error) return;
@@ -71,7 +91,8 @@ export default function TrackView({
       )}
       {order && (
         <>
-          {(order.logo_url || order.company_name || order.tracking_page_message) && (
+          {enhanced ? <TrackExperiencePanel exp={enhanced} manageHref={manageHref} /> : null}
+          {!enhanced && (order.logo_url || order.company_name || order.tracking_page_message) && (
             <div className="mb-8 flex items-start gap-3">
               {order.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
