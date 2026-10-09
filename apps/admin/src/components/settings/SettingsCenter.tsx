@@ -507,6 +507,7 @@ function SectionRouter({
         customerData={config.pricing_customer}
         priceBookData={config.pricing_book}
         driverPayData={config.driver_pay}
+        deliveryPromiseData={config.delivery_promise}
         saving={saving}
         onSaveGta={(value, reason) => onSaveConfig("pricing", value, reason)}
         onSaveTax={(value, reason) => onSaveConfig("pricing_tax", value, reason)}
@@ -515,6 +516,7 @@ function SectionRouter({
         onSaveCustomer={(value, reason) => onSaveConfig("pricing_customer", value, reason)}
         onSavePriceBook={(value, reason) => onSaveConfig("pricing_book", value, reason)}
         onSaveDriverPay={(value, reason) => onSaveConfig("driver_pay", value, reason)}
+        onSaveDeliveryPromise={(value, reason) => onSaveConfig("delivery_promise", value, reason)}
       />
     );
   }

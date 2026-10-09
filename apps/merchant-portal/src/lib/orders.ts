@@ -218,6 +218,19 @@ function qs(filters?: OrderFilters): string {
   return q ? `?${q}` : "";
 }
 
+/** Return pickup (customer -> merchant) linked to an original order. */
+export type OrderReturn = {
+  order_id: string;
+  tracking_number: string | null;
+  state: string;
+  source: string | null;
+  created_at: string | null;
+  pricing_note: string | null;
+  price_cents: number | null;
+};
+
+export const RETURNABLE_STATES = ["DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"];
+
 export const ordersApi = {
   list: (token: string, orgId: string | undefined, filters?: OrderFilters) =>
     merchantFetch<OrderListPage>(`/v1/merchant/orders${qs(filters)}`, token, { orgId }),
@@ -237,6 +250,17 @@ export const ordersApi = {
     merchantFetch<BulkActionResponse>("/v1/merchant/orders/bulk", token, {
       method: "POST",
       body: JSON.stringify({ order_ids: orderIds, action }),
+      orgId,
+    }),
+
+  returns: (token: string, orderId: string, orgId?: string) =>
+    merchantFetch<{ returns: OrderReturn[] }>(`/v1/merchant/orders/${orderId}/returns`, token, {
+      orgId,
+    }),
+
+  createReturn: (token: string, orderId: string, orgId?: string) =>
+    merchantFetch<OrderReturn>(`/v1/merchant/orders/${orderId}/returns`, token, {
+      method: "POST",
       orgId,
     }),
 

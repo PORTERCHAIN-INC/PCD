@@ -229,6 +229,36 @@ class MerchantOrdersService:
     def duplicate_owned(self, db: Session, settings: Settings, ctx: MerchantContext, order_id: str):
         return self._booking.duplicate_order(db, settings, ctx, self._require_owned(db, ctx, order_id))
 
+    def create_return_owned(
+        self, db: Session, settings: Settings, ctx: MerchantContext, order_id: str
+    ) -> dict[str, Any]:
+        """Return pickup: customer address -> merchant, priced by the same engine."""
+        from porterchain_api.merchant_engine import return_service as returns
+        from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+
+        original = self._require_owned(db, ctx, order_id)
+        returns.assert_can_open_return(db, original)
+        key = f"portal-return:{original.id}:{len(returns.open_returns(original)) + 1}"
+        try:
+            order = returns.create_return_order(
+                db,
+                settings,
+                ctx,
+                original,
+                source=returns.SOURCE_PORTAL,
+                idempotency_key=key,
+                booking=self._booking,
+            )
+        except BookingValidationError as exc:
+            raise ValueError(exc.code) from exc
+        db.commit()
+        return returns.return_summary(order)
+
+    def returns_owned(self, db: Session, ctx: MerchantContext, order_id: str) -> list[dict[str, Any]]:
+        from porterchain_api.merchant_engine import return_service as returns
+
+        return returns.returns_for(db, self._require_owned(db, ctx, order_id))
+
     def get_tracking_timeline(self, db: Session, ctx: MerchantContext, order_id: str) -> list[dict]:
         if not self.get_order(db, ctx, order_id):
             raise LookupError("order_not_found")

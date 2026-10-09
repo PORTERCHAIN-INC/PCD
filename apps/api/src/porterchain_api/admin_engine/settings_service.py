@@ -19,8 +19,10 @@ from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.pricing_versioning import bump_price_version
 from porterchain_api.domain.pricing_version import (
     PRICING_STORAGE_KEYS,
+    SUPER_ADMIN_SETTING_KEYS,
     assert_pricing_editor,
 )
+from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
 from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -95,6 +97,8 @@ CONFIG_KEYS = {
     # Price book (parcel tiers, small/handling rules, retail, dedicated) + driver pay plan.
     "pricing_book": "pricing_book",
     "driver_pay": "driver_pay_plan",
+    # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
+    "delivery_promise": "delivery_promise",
     "coverage": "settings_coverage",
     # Legacy storage keys still readable for migration
     "service_areas": "service_areas",
@@ -192,6 +196,7 @@ DEFAULTS["pricing_customer_distance"] = default_customer_pricing()
 DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
 DEFAULTS["pricing_book"] = default_price_book()
 DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
+DEFAULTS["delivery_promise"] = default_delivery_promise()
 
 
 def _is_pending_subject(subject: str | None) -> bool:
@@ -682,6 +687,11 @@ class AdminSettingsService:
                 return normalize_driver_pay_plan(value)
             except ValueError:
                 return value
+        if key == "delivery_promise":
+            try:
+                return normalize_delivery_promise(value)
+            except ValueError:
+                return value
         if key == "settings_coverage":
             return self._coverage_value(db, value)
         return value
@@ -757,7 +767,7 @@ class AdminSettingsService:
     ) -> SystemConfig:
         pricing_key = key in PRICING_STORAGE_KEYS
         card_pruned = False
-        if pricing_key:
+        if pricing_key or key in SUPER_ADMIN_SETTING_KEYS:
             # Covers PUT, audit restore and config import — all write through here.
             assert_pricing_editor(ctx)
         record = self.get_config(db, key)
@@ -765,6 +775,8 @@ class AdminSettingsService:
             value = normalize_price_book(value)
         if key == "driver_pay_plan":
             value = normalize_driver_pay_plan(value)
+        if key == "delivery_promise":
+            value = normalize_delivery_promise(value)
         if key == "pricing_gta_rate" and isinstance(value, dict):
             value = self._normalize_pricing_gta(value)
         if key == "pricing_customer_distance" and isinstance(value, dict):

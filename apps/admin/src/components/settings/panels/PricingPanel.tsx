@@ -9,6 +9,7 @@ import { BindingBadge, SettingsCard, SettingsPageHeader } from "../ui/SettingsPr
 import CustomerPricingPanel from "./CustomerPricingPanel";
 import FsaRatesCard from "./FsaRatesCard";
 import PriceBookPanel from "./PriceBookPanel";
+import DeliveryPromisePanel from "./DeliveryPromisePanel";
 
 import { DEFAULT_DOWNTOWN_FEE_CAD } from "@porterchain/types";
 
@@ -108,6 +109,7 @@ type Props = {
   customerData?: unknown;
   priceBookData?: unknown;
   driverPayData?: unknown;
+  deliveryPromiseData?: unknown;
   saving?: boolean;
   onSaveGta: (value: GtaPricingConfig, reason: string) => Promise<void>;
   onSaveTax: (value: TaxConfig, reason: string) => Promise<void>;
@@ -116,6 +118,7 @@ type Props = {
   onSaveCustomer?: (value: unknown, reason: string) => Promise<void>;
   onSavePriceBook?: (value: unknown, reason: string) => Promise<void>;
   onSaveDriverPay?: (value: unknown, reason: string) => Promise<void>;
+  onSaveDeliveryPromise?: (value: unknown, reason: string) => Promise<void>;
 };
 
 export default function PricingPanel({
@@ -127,6 +130,7 @@ export default function PricingPanel({
   customerData,
   priceBookData,
   driverPayData,
+  deliveryPromiseData,
   saving,
   onSaveGta,
   onSaveTax,
@@ -135,6 +139,7 @@ export default function PricingPanel({
   onSaveCustomer,
   onSavePriceBook,
   onSaveDriverPay,
+  onSaveDeliveryPromise,
 }: Props) {
   const catalog = useMemo(() => {
     if (!Array.isArray(vehicleCatalog)) return [] as VehicleClassConfig[];
@@ -164,7 +169,9 @@ export default function PricingPanel({
   }));
   const [rateCard, setRateCard] = useState<RateCardConfig>(() => normalizeRateCard(rateCardData));
   const [reason, setReason] = useState("");
-  const [audience, setAudience] = useState<"merchant" | "customer" | "book">("customer");
+  const [audience, setAudience] = useState<"merchant" | "customer" | "book" | "promise">(
+    "customer"
+  );
   const [dirty, setDirty] = useState<"gta" | "tax" | "fuel" | "card" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -249,7 +256,22 @@ export default function PricingPanel({
             Price book &amp; driver pay
           </Button>
         )}
+        {onSaveDeliveryPromise && (
+          <Button
+            variant={audience === "promise" ? "primary" : "outline"}
+            onClick={() => setAudience("promise")}
+          >
+            Delivery promise
+          </Button>
+        )}
       </div>
+      {audience === "promise" && onSaveDeliveryPromise && (
+        <DeliveryPromisePanel
+          data={deliveryPromiseData}
+          saving={saving}
+          onSave={onSaveDeliveryPromise}
+        />
+      )}
       {audience === "book" && onSavePriceBook && onSaveDriverPay && (
         <PriceBookPanel
           bookData={priceBookData}

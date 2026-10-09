@@ -1130,3 +1130,19 @@ class ShopifyGoLiveRequest(BaseModel):
 
 class PrivacyDeleteRequest(BaseModel):
     reason: str | None = Field(default=None, max_length=500)
+
+
+class MerchantReturnSummary(BaseModel):
+    """A return pickup (customer -> merchant) linked to an original order."""
+
+    order_id: str
+    tracking_number: str | None = None
+    state: str
+    source: str | None = None
+    created_at: str | None = None
+    pricing_note: str | None = None
+    price_cents: int | None = None
+
+
+class MerchantReturnsResponse(BaseModel):
+    returns: list[MerchantReturnSummary]

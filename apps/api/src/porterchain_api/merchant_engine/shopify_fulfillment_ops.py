@@ -65,7 +65,8 @@ def fulfillment_event_status(state: str, event_type: str | None = None) -> str |
         "DRIVER_EN_ROUTE": "CONFIRMED",
         "AT_PICKUP": "CONFIRMED",
         "PICKED_UP": "CARRIER_PICKED_UP",
-        "IN_TRANSIT": "IN_TRANSIT",
+        # Same-day last mile: once moving to the buyer it is out for delivery.
+        "IN_TRANSIT": "OUT_FOR_DELIVERY",
         "AT_DESTINATION": "OUT_FOR_DELIVERY",
         "DELIVERED": "DELIVERED",
         "POD_COMPLETED": "DELIVERED",
@@ -91,6 +92,7 @@ def push_fulfillment(
         shopify_meta = dict(extra.get("shopify") or {})
         shopify_meta["last_fulfillment_error"] = code
         shopify_meta["last_fulfillment_error_at"] = datetime.now(UTC).isoformat()
+        schedule_sync_retry(shopify_meta, code, event_type)
         extra["shopify"] = shopify_meta
         order.compliance_metadata = extra
         db.commit()
@@ -110,11 +112,7 @@ def push_fulfillment(
         _record_error("missing_access_token")
         return
     tracking = order.tracking_number or ""
-    tracking_url = (
-        f"{settings.website_url.rstrip('/')}/track/{tracking}"
-        if tracking
-        else f"{settings.website_url.rstrip('/')}/track"
-    )
+    tracking_url = public_tracking_url(settings, tracking)
     tracking_info = {
         "number": tracking,
         "url": tracking_url,
@@ -188,6 +186,7 @@ def push_fulfillment(
             shopify_meta["last_tracking_state"] = order.state
             shopify_meta.pop("last_fulfillment_error", None)
             shopify_meta.pop("last_fulfillment_error_at", None)
+            shopify_meta.pop("sync_retry", None)
             extra["shopify"] = shopify_meta
             order.compliance_metadata = extra
             db.commit()
@@ -259,8 +258,6 @@ def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
         "fulfillment_orders/merged",
         "fulfillment_orders/order_routing_complete",
         "fulfillment_orders/scheduled_fulfillment_order_ready",
-        "returns/approve",
-        "returns/cancel",
     ]
     if settings.shopify_fulfillment_service_enabled:
         topics.extend(
@@ -287,8 +284,33 @@ def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
         )
         if result is None:
             failed.append(topic)
+    failed.extend(_register_returns_webhooks(shop, settings, token, address))
     if failed:
         raise RuntimeError("webhook_register_failed:" + ",".join(failed[:5]))
+
+
+#: Return webhooks exist only in the GraphQL Admin API and need read_returns.
+RETURNS_WEBHOOK_TOPICS = ("RETURNS_APPROVE", "RETURNS_CANCEL")
+
+
+def _register_returns_webhooks(
+    shop: ShopifyShop, settings: Settings, token: str, address: str
+) -> list[str]:
+    """Subscribe returns/* when the shop granted read_returns; silent skip otherwise."""
+    from porterchain_api.merchant_engine.shopify_urls import has_returns_scope
+
+    if not has_returns_scope(getattr(shop, "scopes", None)):
+        return []
+    try:
+        from porterchain_api.merchant_engine.shopify_admin_graphql import webhook_subscriptions_ensure
+
+        webhook_subscriptions_ensure(
+            shop.shop_domain, token, settings, topics=list(RETURNS_WEBHOOK_TOPICS), uri=address
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("shopify_returns_webhooks_failed shop=%s", shop.shop_domain)
+        return ["returns/approve"]
+    return []
 
 
 
@@ -614,6 +636,7 @@ def _mark_tracking_pushed(
     shopify_meta["last_tracking_state"] = order.state
     shopify_meta.pop("last_fulfillment_error", None)
     shopify_meta.pop("last_fulfillment_error_at", None)
+    shopify_meta.pop("sync_retry", None)
     extra["shopify"] = shopify_meta
     order.compliance_metadata = extra
     db.commit()
@@ -681,6 +704,10 @@ def _emit_fulfillment_event(
     status = fulfillment_event_status(order.state, event_type)
     if not fulfillment_id or not status:
         return
+    pushed = [str(x) for x in (meta.get("pushed_event_statuses") or []) if x]
+    if status in pushed and status not in _REPEATABLE_EVENT_STATUSES:
+        # Idempotent: a replayed lifecycle event must not stack duplicate buyer updates.
+        return
     try:
         from porterchain_api.merchant_engine.shopify_admin_graphql import fulfillment_event_create
 
@@ -702,6 +729,8 @@ def _emit_fulfillment_event(
         shopify_meta = dict(extra.get("shopify") or {})
         shopify_meta["last_event_status"] = status
         shopify_meta["last_event_at"] = datetime.now(UTC).isoformat()
+        shopify_meta["pushed_event_statuses"] = [*pushed, status][-20:]
+        shopify_meta.pop("sync_retry", None)
         extra["shopify"] = shopify_meta
         order.compliance_metadata = extra
         from sqlalchemy.orm import object_session
@@ -711,6 +740,132 @@ def _emit_fulfillment_event(
             sess.commit()
     except Exception:  # noqa: BLE001
         logger.warning("shopify_fulfillment_event_failed order=%s status=%s", order.id, status)
+        _record_event_failure(order, event_type)
+
+
+def _record_event_failure(order: Order, event_type: str | None) -> None:
+    from sqlalchemy.orm import object_session
+
+    extra = dict(order.compliance_metadata or {})
+    shopify_meta = dict(extra.get("shopify") or {})
+    shopify_meta["last_fulfillment_error"] = "event_push_failed"
+    shopify_meta["last_fulfillment_error_at"] = datetime.now(UTC).isoformat()
+    schedule_sync_retry(shopify_meta, "event_push_failed", event_type)
+    extra["shopify"] = shopify_meta
+    order.compliance_metadata = extra
+    sess = object_session(order)
+    if sess is not None:
+        try:
+            sess.commit()
+        except Exception:  # noqa: BLE001
+            sess.rollback()
+
+
+# ------------------------------------------------------------------ #
+# Reliable sync: retry with backoff, swept by the worker every minute.
+# ------------------------------------------------------------------ #
+
+#: Buyer-visible statuses that may legitimately repeat (a second failed attempt, a new delay).
+_REPEATABLE_EVENT_STATUSES = frozenset({"ATTEMPTED_DELIVERY", "DELAYED"})
+#: Transient errors worth retrying. Missing ids / disconnected shop are not.
+RETRYABLE_SYNC_ERRORS = frozenset(
+    {
+        "update_tracking_failed",
+        "fulfillment_create_failed",
+        "fulfillment_create_no_id",
+        "no_fulfillment_orders",
+        "missing_access_token",
+        "event_push_failed",
+    }
+)
+SYNC_RETRY_BACKOFF_SECONDS = (60, 300, 900, 3600, 10800, 21600)
+
+
+def public_tracking_url(settings: Settings, tracking: str) -> str:
+    """Buyer-facing PorterChain tracking page (website /track/{number})."""
+    base = settings.website_url.rstrip("/")
+    return f"{base}/track/{tracking}" if tracking else f"{base}/track"
+
+
+def schedule_sync_retry(
+    shopify_meta: dict[str, Any],
+    code: str,
+    event_type: str | None,
+    *,
+    now: datetime | None = None,
+) -> None:
+    """Set or clear ``sync_retry`` on a Shopify meta dict (mutates in place)."""
+    now = now or datetime.now(UTC)
+    if code not in RETRYABLE_SYNC_ERRORS:
+        shopify_meta.pop("sync_retry", None)
+        return
+    prev = shopify_meta.get("sync_retry") if isinstance(shopify_meta.get("sync_retry"), dict) else {}
+    attempts = int(prev.get("attempts") or 0) + 1
+    if attempts > len(SYNC_RETRY_BACKOFF_SECONDS):
+        shopify_meta.pop("sync_retry", None)
+        shopify_meta["sync_gave_up_at"] = now.isoformat()
+        return
+    delay = SYNC_RETRY_BACKOFF_SECONDS[attempts - 1]
+    shopify_meta["sync_retry"] = {
+        "attempts": attempts,
+        "due_at": (now + timedelta(seconds=delay)).isoformat(),
+        "event_type": event_type or prev.get("event_type"),
+        "code": code,
+    }
+
+
+def _retry_due(retry: Any, now: datetime) -> bool:
+    if not isinstance(retry, dict):
+        return False
+    try:
+        due = datetime.fromisoformat(str(retry.get("due_at") or ""))
+    except ValueError:
+        return True
+    if due.tzinfo is None:
+        due = due.replace(tzinfo=UTC)
+    return due <= now
+
+
+def _clear_sync_retry(db: Session, order: Order) -> None:
+    extra = dict(order.compliance_metadata or {})
+    shopify_meta = dict(extra.get("shopify") or {})
+    shopify_meta.pop("sync_retry", None)
+    extra["shopify"] = shopify_meta
+    order.compliance_metadata = extra
+    db.commit()
+
+
+def sweep_fulfillment_retries(
+    db: Session, settings: Settings, *, now: datetime | None = None, limit: int = 50
+) -> dict[str, int]:
+    """Re-push Shopify fulfillment/tracking for orders whose retry is due."""
+    now = now or datetime.now(UTC)
+    candidates = (
+        db.query(Order)
+        .filter(Order.order_source == OrderSource.SHOPIFY.value)
+        .filter(Order.compliance_metadata["shopify"]["sync_retry"].isnot(None))
+        .limit(500)
+        .all()
+    )
+    due = [
+        o
+        for o in candidates
+        if _retry_due(((o.compliance_metadata or {}).get("shopify") or {}).get("sync_retry"), now)
+    ][:limit]
+    retried = 0
+    for order in due:
+        retry = ((order.compliance_metadata or {}).get("shopify") or {}).get("sync_retry") or {}
+        try:
+            push_fulfillment(db, settings, order, event_type=retry.get("event_type"))
+            retried += 1
+            after = ((order.compliance_metadata or {}).get("shopify") or {}).get("sync_retry")
+            if after == retry:
+                # Nothing to push any more (e.g. cancelled before a fulfillment existed).
+                _clear_sync_retry(db, order)
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            logger.warning("shopify_fulfillment_retry_failed order=%s", order.id, exc_info=True)
+    return {"due": len(due), "retried": retried}
 
 
 def cancel_shopify_fulfillment(db: Session, settings: Settings, order: Order) -> None:

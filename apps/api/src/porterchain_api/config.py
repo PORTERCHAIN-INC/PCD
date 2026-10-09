@@ -450,13 +450,23 @@ class Settings(BaseSettings):
             "read_merchant_managed_fulfillment_orders,"
             "write_merchant_managed_fulfillment_orders,"
             "read_assigned_fulfillment_orders,"
-            "write_assigned_fulfillment_orders"
+            "write_assigned_fulfillment_orders,"
+            # Requested at OAuth only when SHOPIFY_RETURNS_SCOPE_ENABLED (see shopify_urls.oauth_scopes).
+            "read_returns"
         ),
         validation_alias=AliasChoices("shopify_api_scopes", "SHOPIFY_API_SCOPES"),
     )
+    # 2026-10: carrierServiceCreate no longer auto-attaches to the General profile
+    # (merchant adds the rate in Shipping and delivery); see shopify_one_click advisories.
     shopify_api_version: str = Field(
-        default="2026-07",
+        default="2026-10",
         validation_alias=AliasChoices("shopify_api_version", "SHOPIFY_API_VERSION"),
+    )
+    # Request read_returns (returns/approve + returns/cancel via GraphQL webhooks).
+    # Turn on only after an app version with that scope is released in the Partner Dashboard.
+    shopify_returns_scope_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("shopify_returns_scope_enabled", "SHOPIFY_RETURNS_SCOPE_ENABLED"),
     )
     shopify_carrier_rate_limit_per_minute: int = Field(
         default=120,

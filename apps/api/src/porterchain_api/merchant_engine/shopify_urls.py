@@ -176,10 +176,21 @@ _RELEASED_APP_SCOPES = (
 )
 
 
+#: Released only once the app version carrying it is live (settings flag).
+RETURNS_SCOPE = "read_returns"
+
+
 def oauth_scopes(settings: Settings) -> str:
     requested = [part.strip() for part in settings.shopify_api_scopes.split(",") if part.strip()]
     allowed = [part for part in requested if part in _RELEASED_APP_SCOPES]
-    return ",".join(allowed or _RELEASED_APP_SCOPES)
+    scopes = allowed or list(_RELEASED_APP_SCOPES)
+    if getattr(settings, "shopify_returns_scope_enabled", False) and RETURNS_SCOPE not in scopes:
+        scopes = [*scopes, RETURNS_SCOPE]
+    return ",".join(scopes)
+
+
+def has_returns_scope(granted: str | None) -> bool:
+    return RETURNS_SCOPE in {part.strip() for part in str(granted or "").split(",")}
 
 
 def install_url(

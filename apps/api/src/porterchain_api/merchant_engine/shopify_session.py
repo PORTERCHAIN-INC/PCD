@@ -151,7 +151,10 @@ def install_from_session_token(
         db.add(row)
     row.merchant_id = merchant.id
     store_token_response(row, token_body, settings)
-    row.scopes = str(token_body.get("scope") or settings.shopify_api_scopes)
+    # Fallback is what we actually asked for, never the unreleased manifest list.
+    from porterchain_api.merchant_engine.shopify_urls import oauth_scopes
+
+    row.scopes = str(token_body.get("scope") or oauth_scopes(settings))
     gid = shop_payload.get("id")
     row.shopify_shop_gid = str(gid) if gid else row.shopify_shop_gid
     row.uninstalled_at = None

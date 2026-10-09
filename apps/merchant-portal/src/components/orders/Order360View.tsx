@@ -39,6 +39,9 @@ const InvoiceTab = dynamic(() => import("./order360/InvoiceTab").then((m) => m.I
 const PodTab = dynamic(() => import("./order360/PodTab").then((m) => m.PodTab), {
   loading: () => <PageSkeleton rows={2} />,
 });
+const ReturnsCard = dynamic(() => import("./order360/ReturnsCard").then((m) => m.ReturnsCard), {
+  loading: () => <PageSkeleton rows={1} />,
+});
 const SupportTab = dynamic(() => import("./order360/SupportTab").then((m) => m.SupportTab), {
   loading: () => <PageSkeleton rows={3} />,
 });
@@ -339,7 +342,18 @@ export function Order360View({
         ))}
       </nav>
 
-      {activeSection === "overview" && <OverviewTab detail={detail} />}
+      {activeSection === "overview" && (
+        <div className="space-y-6">
+          <OverviewTab detail={detail} />
+          <ReturnsCard
+            orderId={detail.order_id}
+            state={detail.state}
+            canWrite={canWriteOrders}
+            getApiToken={getApiToken}
+            orgId={orgId}
+          />
+        </div>
+      )}
       {activeSection === "journey" && (
         <div className="space-y-6">
           <TimelineTab timeline={detail.timeline} />

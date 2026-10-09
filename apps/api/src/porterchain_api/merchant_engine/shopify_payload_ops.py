@@ -568,35 +568,27 @@ def _return_from_shopify_payload(
     existing = shopify._booking.find_by_idempotency_key(db, ctx, key)
     if existing:
         return {"ok": True, "order_id": existing.id, "replayed": True}
-    from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
+    from porterchain_api.merchant_engine.return_service import SOURCE_SHOPIFY, create_return_order
 
-    body = MerchantBookDeliveryRequest(
-        pickup=_address_from_stop(original.dropoff),
-        dropoff=_address_from_stop(original.pickup),
-        scheduled_at=datetime.now(UTC),
-        schedule_mode="now",
-        internal_reference=f"return-{return_id}",
-        purchase_order_number=shopify_order_id,
-        vehicle_class=original.vehicle_class or "cargo_van",
-        package_type=original.package_type or "looseParcel",
-        weight_kg=original.weight_kg,
-    )
     try:
-        assert_ontario_booking(body)
+        order = create_return_order(
+            db,
+            settings,
+            ctx,
+            original,
+            source=SOURCE_SHOPIFY,
+            idempotency_key=key,
+            booking=shopify._booking,
+            reference=f"return-{return_id}",
+            purchase_order=shopify_order_id,
+            order_source=OrderSource.SHOPIFY.value,
+            auto_dispatch=bool(getattr(shop, "auto_dispatch", False)),
+            extra={"shopify_return_id": return_id},
+        )
     except shopify.BookingValidationError as exc:
         if exc.code == "out_of_service_area":
             return {"ok": True, "skipped": "out_of_service_area"}
         raise
-    order = shopify._booking.create_shipment(
-        db,
-        settings,
-        ctx,
-        body,
-        order_source=OrderSource.SHOPIFY.value,
-        idempotency_key=key,
-        sandbox=bool(original.is_sandbox),
-        auto_dispatch=bool(getattr(shop, "auto_dispatch", False)),
-    )
     _note_shopify(
         order,
         shop_domain=shop.shop_domain,

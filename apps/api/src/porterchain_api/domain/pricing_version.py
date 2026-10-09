@@ -30,6 +30,9 @@ PRICING_STORAGE_KEYS = frozenset(
     }
 )
 
+#: Super-admin-only settings that do not change prices (no price-version bump).
+SUPER_ADMIN_SETTING_KEYS = frozenset({"delivery_promise"})
+
 SUPER_ADMIN_ONLY = "pricing_super_admin_only"
 
 

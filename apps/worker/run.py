@@ -17,6 +17,7 @@ _last_draft_reconcile_at = 0.0
 _last_standing_orders_at = 0.0
 _last_notification_retry_at = 0.0
 _last_webhook_retry_at = 0.0
+_last_shopify_sync_retry_at = 0.0
 _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
@@ -223,6 +224,29 @@ def _drain_merchant_webhook_retries() -> int:
     if result.get("retried") or result.get("due"):
         logger.info(
             "merchant webhook retry sweep: due=%s retried=%s",
+            result.get("due", 0),
+            result.get("retried", 0),
+        )
+    return int(result.get("retried", 0))
+
+
+def _drain_shopify_fulfillment_retries() -> int:
+    """Re-push Shopify fulfillment/tracking whose sync_retry is due (backoff in metadata)."""
+    global _last_shopify_sync_retry_at
+    now = time.monotonic()
+    if now - _last_shopify_sync_retry_at < WEBHOOK_RETRY_INTERVAL_SECONDS:
+        return 0
+    _last_shopify_sync_retry_at = now
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.shopify_fulfillment_ops import sweep_fulfillment_retries
+
+    with SessionLocal() as db:
+        result = sweep_fulfillment_retries(db, get_settings())
+    if result.get("due"):
+        logger.info(
+            "shopify fulfillment retry sweep: due=%s retried=%s",
             result.get("due", 0),
             result.get("retried", 0),
         )
@@ -465,6 +489,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_standing_orders()
                 processed += _drain_notification_retries()
                 processed += _drain_merchant_webhook_retries()
+                processed += _drain_shopify_fulfillment_retries()
                 processed += _drain_driver_compliance_expiry()
                 processed += _drain_lead_nurture()
                 processed += _drain_lead_agent()

@@ -87,7 +87,26 @@ def _go_live_status(
         "one_click_available": checks["oauth_configured"],
         "checks": checks,
         "blocking": blocking,
+        "advisories": go_live_advisories(settings, checks, connected),
     }
+
+
+def go_live_advisories(settings: Settings, checks: dict[str, Any], connected: list[Any]) -> list[str]:
+    """Non-blocking reminders. Never change ``ready``."""
+    from porterchain_api.merchant_engine.shopify_urls import has_returns_scope
+
+    out: list[str] = []
+    # API 2026-10+: Shopify no longer auto-adds a new carrier service to the General
+    # shipping profile; the merchant must switch our rates on (Markets: per market).
+    if checks.get("carrier_registered") and str(settings.shopify_api_version) >= "2026-10":
+        out.append("carrier_rates_enable_in_shipping")
+    if (
+        getattr(settings, "shopify_returns_scope_enabled", False)
+        and connected
+        and not any(has_returns_scope(getattr(s, "scopes", None)) for s in connected)
+    ):
+        out.append("returns_scope_reapprove")
+    return out
 
 
 def ensure_shop_pickup_bound(

@@ -57,6 +57,20 @@ const BLOCKING: Record<string, string> = {
   oauth_not_configured: "Shopify connections are temporarily unavailable",
 };
 
+const ADVISORIES: Record<string, string> = {
+  carrier_rates_enable_in_shipping:
+    "In Shopify admin, open Settings → Shipping and delivery, and make sure PorterChain rates are switched on for your Canada shipping zone (or Canada market). New Shopify versions no longer turn new carriers on automatically.",
+  returns_scope_reapprove:
+    "To sync Shopify returns, reopen PorterChain Delivery from your Shopify admin and approve the new returns permission.",
+};
+
+/** Non-blocking setup reminders (never mean "not live"). Unknown codes are skipped. */
+export function shopifyAdvisoryTexts(advisories: string[] | undefined): string[] {
+  return (advisories ?? [])
+    .map((code) => ADVISORIES[code])
+    .filter((text): text is string => !!text);
+}
+
 export function shopifyBlockingText(blocking: string[] | undefined): string | null {
   const parts = (blocking ?? []).map((code) => BLOCKING[code]).filter(Boolean);
   return parts.length ? `Not live yet: ${parts.join("; ")}.` : null;

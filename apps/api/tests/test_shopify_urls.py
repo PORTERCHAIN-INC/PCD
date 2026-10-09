@@ -250,7 +250,7 @@ def test_app_toml_matches_runtime_defaults() -> None:
     assert raw["access_scopes"]["scopes"] == settings.shopify_api_scopes
     assert raw["access_scopes"]["use_legacy_install_flow"] is True
     assert raw["webhooks"]["api_version"] == settings.shopify_api_version
-    assert settings.shopify_api_version == "2026-07"
+    assert settings.shopify_api_version == "2026-10"
 
     subs = raw["webhooks"]["subscriptions"]
     topics: set[str] = set()

@@ -1,7 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { shopifyBlockingText, shopifyInstallError, shopifyRatesProblem } from "./shopifyStatus.ts";
+import {
+  shopifyAdvisoryTexts,
+  shopifyBlockingText,
+  shopifyInstallError,
+  shopifyRatesProblem,
+} from "./shopifyStatus.ts";
+
+test("advisories are plain reminders and skip unknown codes", () => {
+  assert.deepEqual(shopifyAdvisoryTexts(undefined), []);
+  const [copy] = shopifyAdvisoryTexts(["carrier_rates_enable_in_shipping", "unknown"]);
+  assert.match(copy ?? "", /Shipping and delivery/);
+  assert.equal(shopifyAdvisoryTexts(["returns_scope_reapprove"]).length, 1);
+});
 
 test("rates copy only says live when the carrier is registered", () => {
   assert.equal(shopifyRatesProblem("ready"), null);

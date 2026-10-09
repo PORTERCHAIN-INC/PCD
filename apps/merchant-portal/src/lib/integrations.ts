@@ -135,6 +135,8 @@ export type ShopifyGoLive = {
     carrier_registered?: boolean;
   };
   blocking: string[];
+  /** Non-blocking reminders, e.g. switch PorterChain rates on in Shopify shipping. */
+  advisories?: string[];
 };
 
 /** Who holds the store named in `?shop=`, from this company's point of view. */

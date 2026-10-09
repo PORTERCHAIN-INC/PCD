@@ -35,6 +35,9 @@ def register_default_handlers() -> None:
     registry.subscribe(DomainEventType.ORDER_DELAYED, _handle_shopify_fulfillment)
     registry.subscribe(DomainEventType.EXCEPTION_OPENED, _handle_shopify_fulfillment)
     registry.subscribe(DomainEventType.PROOF_COMPLETED, _handle_shopify_fulfillment)
+    # Failed delivery -> Shopify FAILURE event (state-machine event types, not in the catalog).
+    registry.subscribe("order.failed", _handle_shopify_fulfillment)
+    registry.subscribe("order.delivery_failed", _handle_shopify_fulfillment)
     registry.subscribe(DomainEventType.ORDER_CANCELLED, _handle_shopify_fulfillment_cancel)
 
     from porterchain_api.notification_engine.event_router import register_notification_handlers

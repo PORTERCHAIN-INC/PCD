@@ -10,6 +10,7 @@ import { integrationsApi, type ShopifyConnection, type ShopifyGoLive } from "@/l
 import { settingsApi } from "@/lib/settings";
 import {
   SHOPIFY_SUPPORT_EMAIL,
+  shopifyAdvisoryTexts,
   shopifyBlockingText,
   shopifyRatesProblem,
 } from "@/lib/shopifyStatus";
@@ -260,6 +261,11 @@ export default function ShopifyConnectCard({
                   </div>
                 )}
                 {status ? <p className="mt-1 text-muted">{status}</p> : null}
+                {shopifyAdvisoryTexts(data?.go_live?.advisories).map((text) => (
+                  <p key={text} className="mt-1 rounded-lg bg-sky-50 px-3 py-2 text-sky-900">
+                    {text}
+                  </p>
+                ))}
                 {warehouses.length > 1 ? (
                   <label className="mt-2 block text-xs text-muted">
                     Pickup address

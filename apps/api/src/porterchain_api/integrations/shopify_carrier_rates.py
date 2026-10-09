@@ -583,6 +583,18 @@ def find_quote_by_hash(
     )
 
 
+#: Engine prices are CAD; Shopify converts to the buyer's market currency.
+RATE_CURRENCY = "CAD"
+
+
+def _checkout_promise(db: Session, dropoff: Any) -> Any:
+    """Promise from super-admin cut-off / wave settings; None keeps the fixed window."""
+    from porterchain_api.platform.delivery_promise import checkout_promise
+
+    dest = fsa_from_address(dropoff)[:3] if dropoff else ""
+    return checkout_promise(db, dest_fsa=dest or None)
+
+
 def _delivery_window() -> tuple[str, str]:
     from zoneinfo import ZoneInfo
 
@@ -728,7 +740,12 @@ def carrier_service_rates(
     rate_in = payload.get("rate") if isinstance(payload.get("rate"), dict) else payload
     if not isinstance(rate_in, dict):
         rate_in = {}
-    currency = str(rate_in.get("currency") or "CAD").upper()
+    # Shopify sends the shop's base currency here, whatever market the buyer is in,
+    # and converts a returned rate into the buyer's presentment currency. The engine
+    # prices in CAD, so the rate is always labelled CAD (a USD-base shop used to get
+    # a CAD amount labelled USD).
+    request_currency = str(rate_in.get("currency") or "CAD").upper()[:8]
+    currency = RATE_CURRENCY
 
     from porterchain_api.integrations.shopify_orders import is_canada_country
 
@@ -804,6 +821,11 @@ def carrier_service_rates(
         return _empty(shop, "zero_price", dest_fsa=fsa_from_address(dropoff)[:3])
 
     breakdown = {**breakdown, "pickup": _pickup_snapshot(pickup, pickup_source)}
+    if request_currency != RATE_CURRENCY:
+        breakdown["request_currency"] = request_currency
+    promise = _checkout_promise(db, dropoff)
+    if promise is not None:
+        breakdown["promise"] = promise.as_dict()
     req_hash = _request_hash(
         shop_id=shop.id,
         merchant_id=merchant.id,
@@ -831,11 +853,19 @@ def carrier_service_rates(
         )
         quote_id = None
 
-    desc = "Same-day local capacity"
-    min_delivery, max_delivery = _delivery_window()
+    if promise is not None:
+        fmt = "%Y-%m-%d %H:%M:%S %z"
+        service_name, service_code = promise.service_name, promise.service_code
+        desc = promise.description
+        min_delivery = promise.window_start.strftime(fmt)
+        max_delivery = promise.window_end.strftime(fmt)
+    else:
+        service_name, service_code = "PorterChain Same Day", "porterchain_same_day"
+        desc = "Same-day local capacity"
+        min_delivery, max_delivery = _delivery_window()
     rate: dict[str, Any] = {
-        "service_name": "PorterChain Same Day",
-        "service_code": "porterchain_same_day",
+        "service_name": service_name,
+        "service_code": service_code,
         "total_price": str(cents),
         "currency": currency,
         "description": desc,

@@ -5,6 +5,11 @@
 # FO request topics stay out of this file — they register only when
 # SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off). Accept is implemented
 # behind that flag. client_id stays empty until a public listing is an ops decision.
+# read_returns + returns/* topics: release this version in Partners first, then set
+# SHOPIFY_RETURNS_SCOPE_ENABLED=true so OAuth asks for it (API registers returns
+# webhooks via GraphQL only when the shop granted read_returns).
+# API 2026-10: carrier services are no longer auto-added to the General shipping
+# profile; merchants switch PorterChain rates on in Shipping and delivery / Markets.
 
 name = "PorterChain"
 client_id = ""
@@ -12,14 +17,14 @@ application_url = "https://merchant.porterchain.com/shopify"
 embedded = false
 
 [access_scopes]
-scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders"
+scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders,read_returns"
 use_legacy_install_flow = true
 
 [auth]
 redirect_urls = [ "https://api.porterchain.com/v1/integrations/shopify/callback" ]
 
 [webhooks]
-api_version = "2026-07"
+api_version = "2026-10"
 
   [[webhooks.subscriptions]]
   topics = [

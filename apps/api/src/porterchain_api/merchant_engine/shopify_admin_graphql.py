@@ -714,3 +714,49 @@ def reverse_delivery_shipping_update(
         },
     )
     _payload(data, "reverseDeliveryShippingUpdate")
+
+
+def webhook_subscriptions_ensure(
+    shop: str, token: str, settings: Settings, *, topics: list[str], uri: str
+) -> list[str]:
+    """Create GraphQL-only webhook subscriptions that are not already pointing at ``uri``."""
+    data = admin_graphql(
+        shop,
+        token,
+        settings,
+        """
+        query PcdWebhooks($topics: [WebhookSubscriptionTopic!]) {
+          webhookSubscriptions(first: 50, topics: $topics) {
+            nodes { topic uri }
+          }
+        }
+        """,
+        {"topics": topics},
+    )
+    nodes = ((data.get("webhookSubscriptions") or {}).get("nodes") or []) if data else []
+    have = {
+        str(n.get("topic") or "")
+        for n in nodes
+        if isinstance(n, dict) and str(n.get("uri") or "") == uri
+    }
+    created: list[str] = []
+    for topic in topics:
+        if topic in have:
+            continue
+        result = admin_graphql(
+            shop,
+            token,
+            settings,
+            """
+            mutation PcdWebhookCreate($topic: WebhookSubscriptionTopic!, $sub: WebhookSubscriptionInput!) {
+              webhookSubscriptionCreate(topic: $topic, webhookSubscription: $sub) {
+                webhookSubscription { id }
+                userErrors { field message }
+              }
+            }
+            """,
+            {"topic": topic, "sub": {"uri": uri, "format": "JSON"}},
+        )
+        _payload(result, "webhookSubscriptionCreate")
+        created.append(topic)
+    return created
