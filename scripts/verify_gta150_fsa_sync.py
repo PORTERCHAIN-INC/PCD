@@ -47,7 +47,19 @@ def main() -> int:
             print(f"  extra on website: {extra[:10]}")
         print("  fix: python scripts/sync_website_gta150_fsa.py")
         return 1
+    # Published coverage count (facts, llms.txt, copy) must equal the engine set size.
+    facts = (ROOT / "website/src/lib/seo/delivery-programmatic.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const COVERAGE_FSA_COUNT = (\d+);", facts)
+    if not m or int(m.group(1)) != len(expected):
+        print(f"FAIL: COVERAGE_FSA_COUNT must be {len(expected)} (delivery-programmatic.ts)")
+        return 1
+    llms = (ROOT / "website/public/llms.txt").read_text(encoding="utf-8")
+    claims = [int(n) for n in re.findall(r"\b(\d{3}) postal areas", llms)]
+    if not claims or any(n != len(expected) for n in claims):
+        print(f"FAIL: llms.txt postal-area count {claims} != {len(expected)}")
+        return 1
     print(f"OK — website GTA±150 FSA set matches engine ({len(expected)} codes)")
+    print(f"OK — published coverage count is {len(expected)} (facts constant + llms.txt)")
     return 0
 
 

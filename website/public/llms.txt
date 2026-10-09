@@ -11,9 +11,9 @@
 - https://porterchain.com/en/drivers — Vanity → /en/vehicle-partner
 
 ## Key facts
-- Same-day local delivery for businesses in the Greater Toronto Area (about 150 km around downtown Toronto; 357 postal areas / FSAs).
+- Same-day local delivery for businesses in the Greater Toronto Area (about 150 km around downtown Toronto; 362 postal areas / FSAs).
 - Vehicles: sedan/SUV, cargo van, 16 ft box truck, all driven on a standard Ontario G licence.
-- Default same-day wave: order by 11:00 for delivery 14:00-21:00, Monday-Saturday; each quote shows the exact window.
+- Same-day promise: order by 11 AM, delivered 2-9 PM the same day, Monday-Saturday; each quote shows the exact window.
 - Pricing: per delivery from driving distance and vehicle, base distance included, HST shown; instant price at /en/delivery-cost-calculator.
 - Full entity facts: https://porterchain.com/en/facts
 
@@ -30,7 +30,7 @@
 - https://porterchain.com/en/how-porterchain-works — How capacity booking works
 
 ## Same-day delivery by industry and area
-- https://porterchain.com/en/delivery — Hub: 7 industries x 18 GTA areas (answer-first area guides)
+- https://porterchain.com/en/delivery — Hub: 8 industries x 18 GTA areas (answer-first area guides)
 - https://porterchain.com/en/delivery-cost-calculator — Instant price between two GTA postal codes (live pricing engine, HST included, no sign-up)
 - https://porterchain.com/en/delivery/shopify-merchants — Shopify & e-commerce merchants
 - https://porterchain.com/en/delivery/pharmacy — Pharmacy delivery
@@ -39,6 +39,7 @@
 - https://porterchain.com/en/delivery/wholesale-traders — Wholesale & trading companies
 - https://porterchain.com/en/delivery/construction — Construction materials
 - https://porterchain.com/en/delivery/plumbing-electrical — Plumbing & electrical parts
+- https://porterchain.com/en/delivery/furniture — Furniture & appliance delivery (box truck or van, threshold delivery)
 - Pattern: https://porterchain.com/en/delivery/{industry}/{area} e.g. /en/delivery/pharmacy/mississauga
 
 ## Industries

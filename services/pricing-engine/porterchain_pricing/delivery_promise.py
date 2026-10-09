@@ -27,10 +27,9 @@ SAME_DAY = "same_day"
 NEXT_DAY = "next_day"
 SCHEDULED = "scheduled"
 
-#: EXAMPLE values awaiting an ops decision.
+#: EXAMPLE values awaiting an ops decision. The 11:00 -> 14:00-21:00 wave and Mon-Sat days
+#: were approved by Ravi on 2026-10-09 ("Order by 11 AM. Delivered 2-9 PM same day, Mon-Sat").
 PLACEHOLDER_PATHS: tuple[str, ...] = (
-    "waves",
-    "operating_weekdays",
     "holidays",
     "fsa_tiers",
 )

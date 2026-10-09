@@ -11,13 +11,9 @@ export type PromiseTier = {
 /** Python weekday numbers: Monday = 0 … Sunday = 6. */
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
-/** EXAMPLE values waiting for an ops decision (mirrors the API placeholder list). */
-export const DELIVERY_PROMISE_PLACEHOLDERS: readonly string[] = [
-  "waves",
-  "operating_weekdays",
-  "holidays",
-  "fsa_tiers",
-];
+/** EXAMPLE values waiting for an ops decision (mirrors the API placeholder list).
+ * The wave (11:00 -> 14:00-21:00) and Mon-Sat days were approved on 2026-10-09. */
+export const DELIVERY_PROMISE_PLACEHOLDERS: readonly string[] = ["holidays", "fsa_tiers"];
 
 export const SERVICE_KINDS = [
   { key: "same_day", label: "Same day" },

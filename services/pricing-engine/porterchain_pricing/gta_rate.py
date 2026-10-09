@@ -18,8 +18,9 @@ from porterchain_pricing.types import GeoPoint
 # matrices (HS-20 / verify_no_ops_spatial_math). Coverage UI may call Valhalla
 # isochrones; quote math must never.
 #
-# BUSINESS DECISION (Ravi to confirm): downtown = the City of Toronto Downtown
-# Plan area FSAs below (Bathurst → Don River, lake → Bloor / Rosedale ravine,
+# BUSINESS DECISION (confirmed by Ravi 2026-10-09: FSA only, no lat/lng box):
+# downtown = the City of Toronto Downtown Plan area FSAs below
+# (Bathurst → Don River, lake → Bloor / Rosedale ravine,
 # plus large-receiver codes). Markham / North York = FSA sets + whole-locality
 # token in the formatted address (not street names like "Markham St").
 # An address with no postal code / locality gets no surcharge.
