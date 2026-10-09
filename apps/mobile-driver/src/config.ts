@@ -24,4 +24,3 @@ export const apiBaseUrl = trimSlash(
 
 export const fetchTimeoutMs = 12_000;
 export const locationPingMs = 25_000;
-export const appVersion = "1.0.0";

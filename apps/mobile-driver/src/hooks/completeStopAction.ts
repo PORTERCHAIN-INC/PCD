@@ -5,31 +5,29 @@ import { runOnlineOrQueue } from "../offline";
 import type { PodRequirements } from "../types";
 
 /**
- * Proof of delivery is required again (readiness audit #5). The API is the source of truth
- * (pod_policy + DRIVER_POD_ENFORCED); this mirrors it so the driver sees what is missing
- * before tapping Complete. A super admin can still finish a stop with an audited override.
+ * Missing proof keys for the current draft (empty = ready). Mirrors the server's
+ * pod_policy.missing_for() exactly; the server's pod_requirements are the only source of truth.
+ * Until the server has sent requirements (null), fall back to the server default
+ * (photo or signature) so a driver is never told "ready" and then rejected.
  */
-export const ENFORCE_DROP_POD = true;
-
-/** Missing proof keys for the current draft (empty = ready). */
 export function podMissing(
   draft: PodDraft,
   req: PodRequirements | null | undefined,
   otpRequired: boolean
 ): string[] {
-  if (!ENFORCE_DROP_POD) return [];
-  const enforced = req?.enforced ?? true;
-  if (!enforced) return otpRequired && !draft.otp.trim() ? ["otp"] : [];
+  const policy: PodRequirements = req ?? { enforced: true, photo_or_signature: true };
   const missing: string[] = [];
+  const needOtp = otpRequired || Boolean(policy.otp);
+  if (policy.enforced === false) return needOtp && !draft.otp.trim() ? ["otp"] : [];
   const hasPhoto = Boolean(draft.photoUrl);
   const hasSignature = Boolean(draft.signature.trim());
-  if (req?.photo && !hasPhoto) missing.push("photo");
-  if (req?.signature && !hasSignature) missing.push("signature");
-  if ((req?.photo_or_signature ?? true) && !hasPhoto && !hasSignature && !req?.signature) {
+  if (policy.photo && !hasPhoto) missing.push("photo");
+  if (policy.signature && !hasSignature) missing.push("signature");
+  if (policy.id_check && !(draft.idType && draft.idNameMatches)) missing.push("id_check");
+  if (policy.photo_or_signature && !hasPhoto && !hasSignature && !missing.includes("signature")) {
     missing.unshift("photo_or_signature");
   }
-  if (req?.id_check && !(draft.idType && draft.idNameMatches)) missing.push("id_check");
-  if (otpRequired && !draft.otp.trim()) missing.push("otp");
+  if (needOtp && !draft.otp.trim()) missing.push("otp");
   return missing;
 }
 
@@ -60,7 +58,7 @@ export async function completeStopAction({
   podRequirements,
   podDraft,
   setPodDraft,
-}: Args): Promise<void> {
+}: Args): Promise<"online" | "queued"> {
   if (!routeId || !stopId) throw new Error("no_stop");
   const needsPod = (nextStopType ?? "").toLowerCase() !== "pickup";
 
@@ -80,54 +78,52 @@ export async function completeStopAction({
     Boolean(podDraft.idType && podDraft.idNameMatches);
 
   if (needsPod && hasCapture) {
-    // Offline, each call is queued and the server replays them in order (proof, pod_complete,
-    // then deliver_stop), so the gate is evaluated with the proof already recorded.
-    try {
-      if (podDraft.photoUrl) {
-        await runOnlineOrQueue(
-          "camera_upload",
-          { stop_id: stopId, file_url: podDraft.photoUrl, route_id: routeId },
-          () => podPhoto(routeId, stopId, podDraft.photoUrl as string)
-        );
-      }
-      if (podDraft.signature.trim()) {
-        await runOnlineOrQueue(
-          "pod_signature",
-          { stop_id: stopId, signature_data: podDraft.signature.trim(), route_id: routeId },
-          () => podSignature(routeId, stopId, podDraft.signature.trim())
-        );
-      }
-      if (podDraft.idType && podDraft.idNameMatches) {
-        await runOnlineOrQueue(
-          "pod_id_check",
-          {
-            stop_id: stopId,
-            id_type: podDraft.idType,
-            name_matches: true,
-            route_id: routeId,
-          },
-          () => podIdCheck(routeId, stopId, { id_type: podDraft.idType, name_matches: true })
-        );
-      }
-      if (podDraft.barcode.trim()) {
-        await runOnlineOrQueue(
-          "pod_barcode",
-          { stop_id: stopId, barcode: podDraft.barcode.trim(), route_id: routeId },
-          () => podBarcode(routeId, stopId, podDraft.barcode.trim())
-        );
-      }
+    // Server rejections (4xx) throw straight to the driver. Only "no connection" queues, and once
+    // one call is queued the rest queue behind it, so the server replays proof → pod_complete →
+    // deliver_stop in order and evaluates the POD gate with the proof already recorded.
+    if (podDraft.photoUrl) {
       await runOnlineOrQueue(
-        "pod_complete",
-        { stop_id: stopId, otp: podDraft.otp.trim() || null, route_id: routeId },
-        () => podComplete(routeId, stopId, podDraft.otp.trim() || undefined)
+        "camera_upload",
+        { stop_id: stopId, file_url: podDraft.photoUrl, route_id: routeId },
+        () => podPhoto(routeId, stopId, podDraft.photoUrl as string)
       );
-    } catch (err) {
-      if (ENFORCE_DROP_POD) throw err;
     }
+    if (podDraft.signature.trim()) {
+      await runOnlineOrQueue(
+        "pod_signature",
+        { stop_id: stopId, signature_data: podDraft.signature.trim(), route_id: routeId },
+        () => podSignature(routeId, stopId, podDraft.signature.trim())
+      );
+    }
+    if (podDraft.idType && podDraft.idNameMatches) {
+      await runOnlineOrQueue(
+        "pod_id_check",
+        {
+          stop_id: stopId,
+          id_type: podDraft.idType,
+          name_matches: true,
+          route_id: routeId,
+        },
+        () => podIdCheck(routeId, stopId, { id_type: podDraft.idType, name_matches: true })
+      );
+    }
+    if (podDraft.barcode.trim()) {
+      await runOnlineOrQueue(
+        "pod_barcode",
+        { stop_id: stopId, barcode: podDraft.barcode.trim(), route_id: routeId },
+        () => podBarcode(routeId, stopId, podDraft.barcode.trim())
+      );
+    }
+    await runOnlineOrQueue(
+      "pod_complete",
+      { stop_id: stopId, otp: podDraft.otp.trim() || null, route_id: routeId },
+      () => podComplete(routeId, stopId, podDraft.otp.trim() || undefined)
+    );
   }
 
-  await runOnlineOrQueue("deliver_stop", { stop_id: stopId, route_id: routeId }, () =>
+  const mode = await runOnlineOrQueue("deliver_stop", { stop_id: stopId, route_id: routeId }, () =>
     deliverStop(routeId, stopId)
   );
   setPodDraft(emptyPodDraft());
+  return mode;
 }

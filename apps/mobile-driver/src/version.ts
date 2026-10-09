@@ -1,4 +1,5 @@
-import { appVersion } from "./config";
+import * as Application from "expo-application";
+import Constants from "expo-constants";
 
 /** Compare dotted versions: returns negative if a < b, 0 if equal, positive if a > b. */
 export function compareVersions(a: string, b: string): number {
@@ -22,6 +23,7 @@ export function isBelowMinVersion(current: string, minVersion: string): boolean 
   return compareVersions(current, minVersion) < 0;
 }
 
+/** The version baked into the installed build (CFBundleShortVersionString / versionName). */
 export function currentAppVersion(): string {
-  return appVersion;
+  return Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? "0.0.0";
 }

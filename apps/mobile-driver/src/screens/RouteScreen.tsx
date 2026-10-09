@@ -13,7 +13,7 @@ import { PodCapture, type PodDraft } from "../ui/PodCapture";
 import { FieldOpsPanel } from "../ui/FieldOpsPanel";
 import { DispatchStopPanel } from "../ui/DispatchStopPanel";
 import { RouteControls } from "../ui/RouteControls";
-import { ENFORCE_DROP_POD, podMissing } from "../hooks/completeStopAction";
+import { podMissing } from "../hooks/completeStopAction";
 import { capturePodPhotoDataUrl } from "../pod";
 import { STOP_EXCEPTION_TYPES, stopExceptionById } from "../stopExceptions";
 import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
@@ -29,6 +29,8 @@ type Props = {
   offlinePending: number;
   offlineNote: string | null;
   lastFlush: FlushResult | null;
+  /** Stops completed on this phone that the server has not confirmed yet. */
+  syncingStopIds: string[];
   scanComplete: boolean;
   onDismissOfflineNote: () => void;
   onPodChange: (next: PodDraft) => void;
@@ -54,6 +56,7 @@ export function RouteScreen({
   offlinePending,
   offlineNote,
   lastFlush,
+  syncingStopIds,
   scanComplete,
   onDismissOfflineNote,
   onPodChange,
@@ -78,6 +81,7 @@ export function RouteScreen({
       : "Stops load after handshake";
   const busy = refreshing || Boolean(action);
   const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
+  const stopSyncing = Boolean(handshake.stopId && syncingStopIds.includes(handshake.stopId));
   const canStartDuty = handshake.online || pretripComplete(pretrip);
   const hasStop = Boolean(handshake.routeId && handshake.stopId);
   const arrived = (handshake.stopStatus ?? "").toLowerCase().includes("arriv");
@@ -91,7 +95,7 @@ export function RouteScreen({
   const otpRequired = handshake.otpRequired;
   const missingPod = needsPod ? podMissing(podDraft, handshake.podRequirements, otpRequired) : [];
   const canComplete =
-    canWork && work.complete && handshake.online && (!ENFORCE_DROP_POD || missingPod.length === 0);
+    canWork && work.complete && handshake.online && !stopSyncing && missingPod.length === 0;
   const needsScan =
     canWork &&
     ((handshake.scanPickup?.required ?? 0) > 0 || (handshake.scanDelivery?.required ?? 0) > 0);
@@ -100,7 +104,7 @@ export function RouteScreen({
     arrived,
     needsScan,
     scanComplete: scanComplete || !needsScan,
-    needsPod: ENFORCE_DROP_POD && needsPod,
+    needsPod,
     podReady: missingPod.length === 0,
     completed: false,
   });
@@ -110,6 +114,10 @@ export function RouteScreen({
       : lastFlush && lastFlush.failed > 0
         ? `${lastFlush.failed} failed last sync`
         : null;
+  const rejectedWarn =
+    lastFlush && lastFlush.rejected > 0
+      ? `${lastFlush.rejected} saved action${lastFlush.rejected === 1 ? " was" : "s were"} refused by the server — call dispatch`
+      : null;
 
   const pushWarn = fieldWarning(handshake.push.detail);
   const locationWarn = fieldWarning(handshake.location.detail);
@@ -196,6 +204,18 @@ export function RouteScreen({
             <Text style={styles.warn}>{offlineNote}</Text>
             <PrimaryButton tone="ghost" label="Dismiss" onPress={onDismissOfflineNote} />
           </View>
+        ) : null}
+        {stopSyncing ? (
+          <View style={styles.conflict} testID="stop-syncing">
+            <Text style={styles.warn}>
+              Delivered, syncing — saved on this phone, sends when you are back online
+            </Text>
+          </View>
+        ) : null}
+        {rejectedWarn ? (
+          <Text style={styles.error} testID="offline-rejected">
+            {rejectedWarn}
+          </Text>
         ) : null}
         {handshakeWarn ? <Text style={styles.error}>{handshakeWarn}</Text> : null}
         {pushWarn ? <Text style={styles.push}>{pushWarn}</Text> : null}

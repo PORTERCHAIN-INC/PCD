@@ -1,4 +1,5 @@
 import { apiBaseUrl, fetchTimeoutMs } from "./config";
+import { ApiError, NetworkError } from "./netErrors";
 import { requireBearer } from "./session";
 import type {
   AssignedRoute,
@@ -44,6 +45,11 @@ async function fetchWithTimeout(url: string, init: RequestInit = {}): Promise<Re
   const timer = setTimeout(() => ctrl.abort(), fetchTimeoutMs);
   try {
     return await fetch(url, { ...init, signal: ctrl.signal });
+  } catch (err) {
+    // fetch only rejects when there is no HTTP response (offline, DNS, abort/timeout).
+    throw new NetworkError(
+      err instanceof Error && err.name === "AbortError" ? "network_timeout" : "network_unavailable"
+    );
   } finally {
     clearTimeout(timer);
   }
@@ -86,7 +92,7 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
     }
   }
   if (!res.ok) {
-    throw new Error(detailFromBody(body, res.status));
+    throw new ApiError(detailFromBody(body, res.status), res.status);
   }
   return body as T;
 }

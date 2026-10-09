@@ -57,20 +57,44 @@ export async function waitForSignedSession(timeoutMs = 5_000): Promise<boolean> 
   return Boolean(await last.getToken());
 }
 
-/** Clears local session view after Clerk/dev sign-out. */
+/**
+ * Sign-out. Tries one last sync (bounded), then wipes every piece of driver data on the phone:
+ * queued actions, refused actions, encrypted POD files + key, GPS buffer, background location,
+ * push registration. Wipe runs even if the sync or the Clerk sign-out fails.
+ */
 export async function clearSession(): Promise<void> {
-  // Dynamic import avoids session ↔ push ↔ api cycle.
+  // Dynamic imports avoid the session ↔ api ↔ offline/push cycle.
+  try {
+    const { flushOfflineQueues } = await import("./offline");
+    await Promise.race([
+      flushOfflineQueues(),
+      new Promise((resolve) => setTimeout(resolve, 8_000)),
+    ]);
+  } catch {
+    /* offline: data below is wiped regardless; the driver was warned before signing out */
+  }
+  try {
+    const { stopBackgroundLocation } = await import("./location");
+    await stopBackgroundLocation();
+  } catch {
+    /* ignore */
+  }
   try {
     const { unregisterRememberedPush } = await import("./push");
     await unregisterRememberedPush();
   } catch {
     /* ignore */
   }
-  await snapshot.signOut();
-  setSessionSnapshot({
-    ready: true,
-    signedIn: false,
-    getToken: async () => null,
-    signOut: idleSignOut,
-  });
+  try {
+    await snapshot.signOut();
+  } finally {
+    const { wipeOfflineData } = await import("./offline");
+    await wipeOfflineData();
+    setSessionSnapshot({
+      ready: true,
+      signedIn: false,
+      getToken: async () => null,
+      signOut: idleSignOut,
+    });
+  }
 }

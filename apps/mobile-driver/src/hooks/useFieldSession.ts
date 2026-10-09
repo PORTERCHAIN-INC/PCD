@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 import { endShift, probeApi, startShift } from "../api";
 import { idleHandshake, runHandshake } from "../handshake";
 import {
@@ -10,6 +12,7 @@ import {
 import {
   flushOfflineQueues,
   pendingOfflineCount,
+  queuedStopIds,
   runOnlineOrQueue,
   type FlushResult,
 } from "../offline";
@@ -26,12 +29,16 @@ export function useFieldSession() {
   const [offlinePending, setOfflinePending] = useState(0);
   const [offlineNote, setOfflineNote] = useState<string | null>(null);
   const [lastFlush, setLastFlush] = useState<FlushResult | null>(null);
+  const [syncingStopIds, setSyncingStopIds] = useState<string[]>([]);
   const [signedIn, setSignedIn] = useState(() => getSessionSnapshot().signedIn);
 
+  const signedInRef = useRef(signedIn);
+  signedInRef.current = signedIn;
   useEffect(() => subscribeSession(() => setSignedIn(getSessionSnapshot().signedIn)), []);
 
   const refreshOfflineCount = useCallback(async () => {
     setOfflinePending(await pendingOfflineCount());
+    setSyncingStopIds(await queuedStopIds());
   }, []);
 
   const applyFlush = useCallback((flushed: FlushResult) => {
@@ -49,16 +56,34 @@ export function useFieldSession() {
     }
   }, []);
 
+  /**
+   * Offline, runHandshake returns an empty "idle" handshake (no route, off duty). Applying it
+   * wiped the stop off the screen and stopped GPS mid-route. Keep the last known field state
+   * and only flag the API as down.
+   */
+  const keepFieldStateWhenOffline = useCallback(
+    (next: Handshake) =>
+      (prev: Handshake): Handshake =>
+        next.api === "down" && signedInRef.current && (prev.online || Boolean(prev.routeId))
+          ? {
+              ...prev,
+              api: "down",
+              error: "No connection — your work is saved on this phone and will sync",
+            }
+          : next,
+    []
+  );
+
   const refreshHandshake = useCallback(async () => {
     setBusy(true);
     try {
-      setHandshake(await runHandshake(location));
+      setHandshake(keepFieldStateWhenOffline(await runHandshake(location)));
       await refreshOfflineCount();
       try {
         const flushed = await flushOfflineQueues();
         applyFlush(flushed);
         if (flushed.queued > 0 || flushed.gps_flushed > 0) {
-          setHandshake(await runHandshake(location));
+          setHandshake(keepFieldStateWhenOffline(await runHandshake(location)));
         }
         await refreshOfflineCount();
       } catch {
@@ -67,7 +92,27 @@ export function useFieldSession() {
     } finally {
       setBusy(false);
     }
-  }, [applyFlush, location, refreshOfflineCount]);
+  }, [applyFlush, keepFieldStateWhenOffline, location, refreshOfflineCount]);
+
+  // Reliable sync: flush as soon as the phone reconnects or the app returns to the foreground.
+  const refreshRef = useRef(refreshHandshake);
+  refreshRef.current = refreshHandshake;
+  useEffect(() => {
+    if (!signedIn) return;
+    let wasConnected: boolean | null = null;
+    const unsubNet = NetInfo.addEventListener((state) => {
+      const connected = Boolean(state.isConnected && state.isInternetReachable !== false);
+      if (connected && wasConnected === false) void refreshRef.current();
+      wasConnected = connected;
+    });
+    const appSub = AppState.addEventListener("change", (next) => {
+      if (next === "active") void refreshRef.current();
+    });
+    return () => {
+      unsubNet();
+      appSub.remove();
+    };
+  }, [signedIn]);
 
   // Full /me handshake only after Clerk is live — unsigned mount used to paint a false auth error.
   useEffect(() => {
@@ -152,6 +197,7 @@ export function useFieldSession() {
     offlineNote,
     setOfflineNote,
     lastFlush,
+    syncingStopIds,
     refreshHandshake,
     refreshOfflineCount,
     applyFlush,

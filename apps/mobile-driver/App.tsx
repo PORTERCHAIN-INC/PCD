@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, BackHandler, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { colors } from "@porterchain/mobile-theme";
 import {
@@ -109,6 +109,7 @@ function DriverApp() {
     offlineNote,
     setOfflineNote,
     lastFlush,
+    syncingStopIds,
     applyFlush,
     refreshHandshake,
     refreshOfflineCount,
@@ -167,6 +168,36 @@ function DriverApp() {
     onJob: openJob,
     onPushWithoutJob: enterRoute,
   });
+
+  // Android hardware back: walk back through our own screens; never exit the app mid-stop.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (screen === "job-detail") {
+        setFocusOrderId(null);
+        setScreen("route");
+        setTab("jobs");
+        return true;
+      }
+      if (screen === "inbox" || screen === "support") {
+        setScreen("route");
+        setTab("more");
+        return true;
+      }
+      if (screen === "route" && tab !== "work") {
+        setTab("work");
+        return true;
+      }
+      if (screen === "route" && handshake.online && handshake.stopId) {
+        Alert.alert(
+          "Stop in progress",
+          "Finish or report this stop before leaving. Your work is saved on this phone."
+        );
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [screen, tab, handshake.online, handshake.stopId]);
 
   const runAction = async (name: string, work: () => Promise<unknown>) => {
     setAction(name);
@@ -267,6 +298,7 @@ function DriverApp() {
               offlinePending={offlinePending}
               offlineNote={offlineNote}
               lastFlush={lastFlush}
+              syncingStopIds={syncingStopIds}
               scanComplete={scanComplete}
               onDismissOfflineNote={() => setOfflineNote(null)}
               onPodChange={setPodDraft}

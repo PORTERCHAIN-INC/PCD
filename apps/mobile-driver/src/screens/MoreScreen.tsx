@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View, StyleSheet } from "react-native";
+import { Alert, ScrollView, Text, View, StyleSheet } from "react-native";
 import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
 import {
   fetchPerformance,
@@ -13,6 +13,7 @@ import {
 import { fieldWarning, humanFieldCopy } from "../fieldCopy";
 import { showMonitoringPolicy } from "../hooks/useComplianceGate";
 import { clearSession } from "../session";
+import { readQueue } from "../offline";
 import { Card, CardTitle, Kpi } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
@@ -227,13 +228,29 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
             label={signingOut ? "Signing out…" : "Sign out"}
             disabled={signingOut}
             onPress={() => {
-              setSigningOut(true);
-              void clearSession()
-                .then(() => onSignedOut())
-                .catch((err: unknown) => {
-                  setError(err instanceof Error ? err.message : "sign_out_failed");
+              const run = () => {
+                setSigningOut(true);
+                void clearSession()
+                  .then(() => onSignedOut())
+                  .catch((err: unknown) => {
+                    setError(err instanceof Error ? err.message : "sign_out_failed");
+                  })
+                  .finally(() => setSigningOut(false));
+              };
+              // Sign-out wipes the phone. Warn if unsynced work would be lost with it.
+              void readQueue()
+                .then((queue) => {
+                  if (!queue.length) return run();
+                  Alert.alert(
+                    "Unsynced work on this phone",
+                    `${queue.length} saved action${queue.length === 1 ? "" : "s"} have not reached PorterChain yet. Signing out deletes them from this phone. Get online first if you can.`,
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Sign out anyway", style: "destructive", onPress: run },
+                    ]
+                  );
                 })
-                .finally(() => setSigningOut(false));
+                .catch(run);
             }}
           />
         </Card>
