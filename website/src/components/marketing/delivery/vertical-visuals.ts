@@ -1,24 +1,11 @@
-import {
-  Boxes,
-  FlaskConical,
-  HardHat,
-  Pill,
-  ShoppingBag,
-  Sofa,
-  Warehouse,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
+import { HardHat, Pill, ShoppingBag, Sofa, Warehouse, type LucideIcon } from "lucide-react";
 
 /** Icon + hero photo (our own fleet photography) per /delivery vertical. */
 export const VERTICAL_ICONS: Record<string, LucideIcon> = {
   "shopify-merchants": ShoppingBag,
   pharmacy: Pill,
-  labs: FlaskConical,
   warehouses: Warehouse,
-  "wholesale-traders": Boxes,
   construction: HardHat,
-  "plumbing-electrical": Wrench,
   furniture: Sofa,
 };
 
@@ -34,21 +21,9 @@ export const VERTICAL_PHOTOS: Record<string, VerticalPhoto> = {
     width: 1024,
     height: 585,
   },
-  labs: {
-    src: "/images/brand/vehicles/suv.jpg",
-    alt: "PorterChain delivery SUV",
-    width: 1024,
-    height: 585,
-  },
   warehouses: {
     src: "/images/brand/warehouse-loading.jpg",
     alt: "PorterChain box truck being loaded at a warehouse",
-    width: 2048,
-    height: 1176,
-  },
-  "wholesale-traders": {
-    src: "/images/brand/warehouse-dock.jpg",
-    alt: "PorterChain box truck at a warehouse dock",
     width: 2048,
     height: 1176,
   },
@@ -58,7 +33,6 @@ export const VERTICAL_PHOTOS: Record<string, VerticalPhoto> = {
     width: 2048,
     height: 1176,
   },
-  "plumbing-electrical": { ...van, alt: "PorterChain cargo van at a loading dock" },
   furniture: {
     src: "/images/brand/open-road.jpg",
     alt: "PorterChain box truck on the highway",

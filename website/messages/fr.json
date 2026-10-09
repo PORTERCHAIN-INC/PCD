@@ -627,32 +627,28 @@
     },
     "industries": {
       "eyebrow": "Industries",
-      "title": "Conçu pour les entreprises qui expédient chaque jour",
+      "title": "Cinq secteurs. Un seul réseau le jour même.",
       "all": "Toutes les industries",
       "items": {
         "shopify": {
           "title": "Marques Shopify",
-          "body": "Commandes le jour même depuis votre boutique ou entrepôt, suivies de bout en bout."
+          "body": "Tarifs le jour même au paiement, calculés par le moteur de ce site."
         },
         "pharmacy": {
           "title": "Pharmacies et laboratoires",
-          "body": "Ordonnances, échantillons et fournitures avec preuve de chaîne de possession."
+          "body": "Signature, vérification d'identité et heures de chaîne de possession."
         },
         "furniture": {
-          "title": "Mobilier et électroménagers",
-          "body": "Camion cube ou fourgon, livraison au seuil, articles en plusieurs boîtes livrés ensemble."
+          "title": "Meubles et électroménagers",
+          "body": "Fourgon ou camion de 16 pi, équipe de deux, plages réservées."
+        },
+        "construction": {
+          "title": "Construction et métiers",
+          "body": "Matériaux et pièces au chantier ou au camion, photo à la livraison."
         },
         "warehouses": {
           "title": "Entrepôts et grossistes",
-          "body": "Capacité de débordement et trajets récurrents pour 3PL, grossistes et négociants."
-        },
-        "construction": {
-          "title": "Construction",
-          "body": "Matériaux et outils au chantier avant que l’équipe en ait besoin."
-        },
-        "trades": {
-          "title": "Plomberie et électricité",
-          "body": "Pièces du comptoir au chantier pour distributeurs et entrepreneurs."
+          "body": "Quai à quai, palettes et tournées multi-arrêts sur demande."
         }
       }
     },
@@ -713,8 +709,8 @@
     },
     "why": {
       "eyebrow": "Pourquoi PorterChain",
-      "title": "Ce que comprend chaque livraison.",
-      "lead": "Pas d'appel commercial ni d'attente de soumission. Voici les faits derrière chaque réservation.",
+      "title": "Notre avantage : un prix exact en quelques secondes, sur un réseau dense le jour même dans le Grand Toronto.",
+      "lead": "Deux codes postaux donnent le prix que vous payez — sans soumission ni appel. Un seul réseau local dessert {count} zones postales le jour même, du lundi au samedi.",
       "caption": "Ce dont vous avez besoin et ce que PorterChain fournit",
       "colNeed": "Votre besoin",
       "colGet": "Avec PorterChain",
@@ -860,14 +856,33 @@
   },
   "booking": {
     "track": {
-      "title": "Suivre votre envoi",
+      "title": "Suivre une livraison",
       "status": "Statut",
       "pickup": "Ramassage",
       "dropoff": "Livraison",
       "notFound": "Envoi introuvable.",
       "etaTitle": "Arrivée estimée",
       "etaArrival": "Arrivée",
-      "etaDistance": "km restants"
+      "etaDistance": "km restants",
+      "steps": {
+        "booked": "Réservée",
+        "assigned": "Chauffeur assigné",
+        "pickedUp": "Ramassée",
+        "onTheWay": "En route",
+        "delivered": "Livrée"
+      },
+      "progressLabel": "Progression de la livraison",
+      "stepDone": "terminé",
+      "stepCurrent": "étape en cours",
+      "exceptionTitle": "Cette livraison demande une attention",
+      "exceptionBody": "Elle ne suit pas le trajet normal pour le moment. Contactez l'expéditeur ou notre équipe au +1 (647) 619-7951.",
+      "entryLead": "Entrez le numéro de suivi reçu par courriel ou texto.",
+      "facts": {
+        "live": "Position du chauffeur et heure d'arrivée en direct",
+        "proof": "Photo à la livraison",
+        "noAccount": "Aucun compte requis"
+      },
+      "notFoundHelp": "Vérifiez le numéro et réessayez. Les numéros de test ne s'affichent pas ici."
     }
   },
   "portal": {

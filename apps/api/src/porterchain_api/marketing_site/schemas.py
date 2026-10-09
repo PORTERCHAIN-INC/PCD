@@ -14,6 +14,7 @@ INDUSTRIES: tuple[str, ...] = (
     "wholesale-traders",
     "construction",
     "plumbing-electrical",
+    "furniture",
     "other",
 )
 

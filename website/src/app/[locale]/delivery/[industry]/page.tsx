@@ -1,3 +1,8 @@
+import Container from "@/components/ui/Container";
+import AreaSelector from "@/components/marketing/delivery/AreaSelector";
+import ServicesStrip from "@/components/marketing/delivery/ServicesStrip";
+import ContactBar from "@/components/marketing/delivery/ContactBar";
+import { groupByRegion } from "@/lib/seo/area-regions";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
@@ -9,7 +14,6 @@ import {
   DeliverySection,
   FaqList,
   IncludedList,
-  LinkGrid,
   VehicleCards,
 } from "@/components/marketing/delivery/DeliveryBlocks";
 import DeliveryCta from "@/components/marketing/delivery/DeliveryCta";
@@ -34,7 +38,6 @@ import {
   buildQuoteOffer,
   deliveryBreadcrumbs,
   deliveryPagePath,
-  distanceBand,
   getDeliveryVertical,
   indexability,
   DELIVERY_VERTICALS,
@@ -70,8 +73,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 }
 
-const BAND_LABEL = { core: "Toronto core", inner: "Inner GTA", outer: "Outer GTA" } as const;
-
 /** Hubs without long-form content still get a short, factual FAQ (and FAQPage schema). */
 function hubFaqs(vertical: DeliveryVertical, areaCount: number): DeliveryFaq[] {
   if (vertical.hub) return vertical.hub.faqs;
@@ -102,10 +103,6 @@ export default async function DeliveryIndustryHubPage({ params }: Props) {
   if (!vertical) notFound();
   const areas = areasForVertical(vertical);
   const crumbs = deliveryBreadcrumbs(locale, vertical);
-  const groups = (["core", "inner", "outer"] as const).map((band) => ({
-    band,
-    areas: areas.filter((a) => distanceBand(a.distanceKm) === band),
-  }));
   const base = siteConfig.baseUrl.replace(/\/$/, "");
   const faqs = hubFaqs(vertical, areas.length);
   const hub = vertical.hub;
@@ -235,39 +232,30 @@ export default async function DeliveryIndustryHubPage({ params }: Props) {
         </DeliverySection>
       )}
 
-      {groups
-        .filter((g) => g.areas.length)
-        .map((g) => (
-          <DeliverySection
-            key={g.band}
-            id={`areas-${g.band}`}
-            eyebrow="Area guides"
-            title={BAND_LABEL[g.band]}
-          >
-            <LinkGrid
-              links={g.areas.map((a) => ({
+      <section aria-label="Areas" className="bg-white">
+        <Container className="py-10 sm:py-12">
+          <AreaSelector
+            title={`${vertical.name} by area`}
+            groups={groupByRegion(
+              areas.map((a) => ({
+                slug: a.slug,
                 href: `/${deliveryPagePath(vertical.slug, a.slug)}`,
-                label: `${vertical.name} in ${a.name}`,
+                label: a.name,
                 note: `${a.fsas.length} postal areas · ≈ ${a.distanceKm} km${
                   indexability(vertical, a).index ? "" : " · by confirmation"
                 }`,
-              }))}
-            />
-          </DeliverySection>
-        ))}
+              }))
+            )}
+          />
+        </Container>
+      </section>
 
       <DeliverySection id="hub-faq" title="Questions" tone="soft">
         <FaqList items={faqs} />
       </DeliverySection>
 
-      <DeliverySection id="hub-other" title="Other industries">
-        <LinkGrid
-          links={DELIVERY_VERTICALS.filter((v) => v.slug !== vertical.slug).map((v) => ({
-            href: `/${deliveryPagePath(v.slug)}`,
-            label: v.name,
-          }))}
-        />
-      </DeliverySection>
+      <ServicesStrip current={vertical.slug} />
+      <ContactBar />
 
       <CtaBand
         id="hub-final-heading"

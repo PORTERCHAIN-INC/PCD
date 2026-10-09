@@ -1,3 +1,4 @@
+import ContactBar from "@/components/marketing/delivery/ContactBar";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale,
     "delivery",
     "Same-day business delivery across the GTA | PorterChain",
-    `Same-day delivery for Shopify stores, pharmacies, labs, warehouses, wholesalers, construction, trade suppliers and furniture retailers in ${DELIVERY_AREAS.length} GTA areas. Live prices by postal code.`,
+    `Same-day delivery for Shopify brands, pharmacies and labs, furniture retailers, construction and trades, and warehouses and wholesalers in ${DELIVERY_AREAS.length} GTA areas. Live prices by postal code.`,
     { index: locale === "en" }
   );
 }
@@ -116,35 +117,7 @@ export default async function DeliveryHubPage({ params }: Props) {
           })}
         </ul>
       </DeliverySection>
-      <DeliverySection id="by-area" eyebrow="By area" title="Area guides">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {DELIVERY_AREAS.map((area) => (
-            <div key={area.slug} className="rounded-2xl border border-primary/8 bg-white p-5">
-              <h3 className="font-semibold text-primary">{area.name}</h3>
-              <p className="mt-1 text-xs text-muted">
-                {area.fsas.length} postal areas · ≈ {area.distanceKm} km from downtown
-              </p>
-              <ul className="mt-3 space-y-1.5 text-sm">
-                {pages
-                  .filter((p) => p.area === area.slug)
-                  .map((p) => {
-                    const v = DELIVERY_VERTICALS.find((x) => x.slug === p.vertical);
-                    return (
-                      <li key={p.path}>
-                        <Link
-                          href={`/${p.path}`}
-                          className="inline-flex min-h-6 items-center rounded py-0.5 text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
-                        >
-                          {v?.name}
-                        </Link>
-                      </li>
-                    );
-                  })}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </DeliverySection>
+      <ContactBar />
       <CtaBand
         id="delivery-final-heading"
         title="Price your next delivery."

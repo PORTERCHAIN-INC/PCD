@@ -692,32 +692,28 @@
     },
     "industries": {
       "eyebrow": "Industries",
-      "title": "Built for businesses that ship every day",
+      "title": "Five industries. One same-day network.",
       "all": "All industries",
       "items": {
         "shopify": {
           "title": "Shopify brands",
-          "body": "Same-day orders out of your store or warehouse, tracked end to end."
+          "body": "Same-day rates at checkout, priced by the engine on this site."
         },
         "pharmacy": {
           "title": "Pharmacy & labs",
-          "body": "Prescriptions, specimens and supplies with chain-of-custody proof."
+          "body": "Signature, ID check and chain-of-custody times on every run."
         },
         "furniture": {
           "title": "Furniture & appliances",
-          "body": "Box truck or van, threshold delivery, multi-box items kept together."
-        },
-        "warehouses": {
-          "title": "Warehouses & traders",
-          "body": "Overflow and recurring runs for 3PLs, wholesalers and traders."
+          "body": "Van or 16 ft box truck, two-person crews, booked windows."
         },
         "construction": {
-          "title": "Construction",
-          "body": "Materials and tools to the jobsite before the crew needs them."
+          "title": "Construction & trades",
+          "body": "Materials and parts to the site or van, photo proof at the gate."
         },
-        "trades": {
-          "title": "Plumbing & electrical",
-          "body": "Counter-to-jobsite parts runs for supply houses and contractors."
+        "warehouses": {
+          "title": "Warehouses & wholesale",
+          "body": "Dock-to-dock, pallets and multi-drop routes on demand."
         }
       }
     },
@@ -778,8 +774,8 @@
     },
     "why": {
       "eyebrow": "Why PorterChain",
-      "title": "What every delivery includes.",
-      "lead": "No sales call and no waiting for a quote. These are the facts behind every booking.",
+      "title": "The edge: an exact price in seconds, on a GTA-dense same-day network.",
+      "lead": "Two postal codes give you the price you pay — no quote, no sales call. One local network covers {count} postal areas same day, Monday to Saturday.",
       "caption": "What you need and what PorterChain provides",
       "colNeed": "You need",
       "colGet": "With PorterChain",
@@ -860,14 +856,33 @@
   },
   "booking": {
     "track": {
-      "title": "Track your shipment",
+      "title": "Track a delivery",
       "status": "Status",
       "pickup": "Pickup",
       "dropoff": "Dropoff",
       "notFound": "Shipment not found.",
       "etaTitle": "Estimated arrival",
       "etaArrival": "Arrives",
-      "etaDistance": "km remaining"
+      "etaDistance": "km remaining",
+      "steps": {
+        "booked": "Booked",
+        "assigned": "Driver assigned",
+        "pickedUp": "Picked up",
+        "onTheWay": "On the way",
+        "delivered": "Delivered"
+      },
+      "progressLabel": "Delivery progress",
+      "stepDone": "done",
+      "stepCurrent": "current step",
+      "exceptionTitle": "This delivery needs attention",
+      "exceptionBody": "It is not moving on the normal route right now. Contact the sender or our team at +1 (647) 619-7951.",
+      "entryLead": "Enter the tracking number from your confirmation email or text.",
+      "facts": {
+        "live": "Live driver position and ETA",
+        "proof": "Photo proof when it is delivered",
+        "noAccount": "No account needed"
+      },
+      "notFoundHelp": "Check the number and try again. Test or sandbox numbers are not shown here."
     }
   },
   "portal": {

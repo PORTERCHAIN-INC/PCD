@@ -1,19 +1,17 @@
+import { Link } from "@/i18n/navigation";
+import Container from "@/components/ui/Container";
+import AreaSelector from "@/components/marketing/delivery/AreaSelector";
+import ServicesStrip from "@/components/marketing/delivery/ServicesStrip";
+import ContactBar from "@/components/marketing/delivery/ContactBar";
+import { groupByRegion } from "@/lib/seo/area-regions";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
 import { JsonLd } from "@/components/seo";
-import {
-  BulletList,
-  DeliverySection,
-  FaqList,
-  IncludedList,
-  LinkGrid,
-  VehicleCards,
-} from "@/components/marketing/delivery/DeliveryBlocks";
+import { DeliverySection, FaqList } from "@/components/marketing/delivery/DeliveryBlocks";
 import DeliveryCta from "@/components/marketing/delivery/DeliveryCta";
 import DeliveryHero from "@/components/marketing/delivery/DeliveryHero";
-import { VEHICLE_PHOTOS } from "@/components/marketing/delivery/vertical-visuals";
 import CtaBand from "@/components/marketing/ui/CtaBand";
 import HeroVariantTitle from "@/components/marketing/delivery/HeroVariantTitle";
 import { routing } from "@/i18n/routing";
@@ -27,6 +25,7 @@ import {
   deliveryBreadcrumbs,
   deliveryPagePath,
   getDeliveryArea,
+  areasForVertical,
   getDeliveryVertical,
   indexability,
   isFitCombination,
@@ -146,34 +145,6 @@ export default async function DeliveryIndustryAreaPage({ params }: Props) {
         </p>
       </DeliverySection>
 
-      <DeliverySection id="how" title={`How ${vertical.noun} delivery works`}>
-        <BulletList items={content.serviceDetails} />
-      </DeliverySection>
-
-      {vertical.hub ? (
-        <DeliverySection
-          id="service-details"
-          title={vertical.hub.serviceDetails.title}
-          lead={vertical.hub.serviceDetails.lead}
-          tone="soft"
-        >
-          <IncludedList
-            included={vertical.hub.serviceDetails.included}
-            notIncluded={vertical.hub.serviceDetails.notIncluded}
-          />
-        </DeliverySection>
-      ) : null}
-
-      <DeliverySection
-        id="vehicles"
-        title="Vehicles for this work"
-        tone={vertical.hub ? "white" : "soft"}
-      >
-        <VehicleCards
-          vehicles={content.vehicles.map((v) => ({ ...v, photo: VEHICLE_PHOTOS[v.id] }))}
-        />
-      </DeliverySection>
-
       <DeliverySection
         id="promise"
         title="Cut-off and delivery promise"
@@ -188,23 +159,36 @@ export default async function DeliveryIndustryAreaPage({ params }: Props) {
         <FaqList items={content.faqs} />
       </DeliverySection>
 
-      <DeliverySection
-        id="nearby"
-        title={`${vertical.name} near ${place.name}`}
-        tone={vertical.hub ? "soft" : "white"}
-      >
-        <LinkGrid
-          links={content.nearby.map((n) => ({
-            href: `/${deliveryPagePath(vertical.slug, n.slug)}`,
-            label: `${vertical.name} in ${n.name}`,
-            note: `≈ ${n.kmApart} km away`,
-          }))}
-        />
-      </DeliverySection>
+      <section aria-label="Areas" className="bg-white">
+        <Container className="py-10 sm:py-12">
+          <AreaSelector
+            title={`${vertical.name} in other areas`}
+            currentSlug={place.slug}
+            groups={groupByRegion(
+              areasForVertical(vertical).map((a) => ({
+                slug: a.slug,
+                href: `/${deliveryPagePath(vertical.slug, a.slug)}`,
+                label: a.name,
+              }))
+            )}
+          />
+          <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Related">
+            {related.map((r) => (
+              <li key={r.href}>
+                <Link
+                  href={r.href}
+                  className="font-medium text-secondary underline-offset-4 hover:underline"
+                >
+                  {r.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
 
-      <DeliverySection id="related" title="Related" tone={vertical.hub ? "white" : "soft"}>
-        <LinkGrid links={related} />
-      </DeliverySection>
+      <ServicesStrip current={vertical.slug} />
+      <ContactBar />
 
       <CtaBand
         id="area-final-heading"

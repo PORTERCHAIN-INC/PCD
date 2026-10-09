@@ -12,12 +12,10 @@ export type CalculatorVehicle = (typeof CALCULATOR_VEHICLES)[number]["id"];
 
 export const CALCULATOR_INDUSTRIES = [
   { id: "shopify-merchants", label: "Shopify / e-commerce" },
-  { id: "pharmacy", label: "Pharmacy" },
-  { id: "labs", label: "Lab / specimens" },
-  { id: "warehouses", label: "Warehouse / 3PL" },
-  { id: "wholesale-traders", label: "Wholesale / trading" },
-  { id: "construction", label: "Construction" },
-  { id: "plumbing-electrical", label: "Plumbing / electrical parts" },
+  { id: "pharmacy", label: "Pharmacy / labs" },
+  { id: "furniture", label: "Furniture / appliances" },
+  { id: "construction", label: "Construction / trades" },
+  { id: "warehouses", label: "Warehouse / wholesale" },
   { id: "other", label: "Other" },
 ] as const;
 

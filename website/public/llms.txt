@@ -30,16 +30,13 @@
 - https://porterchain.com/en/how-porterchain-works — How capacity booking works
 
 ## Same-day delivery by industry and area
-- https://porterchain.com/en/delivery — Hub: 8 industries x 18 GTA areas (answer-first area guides)
+- https://porterchain.com/en/delivery — Hub: 5 industries x 18 GTA areas (answer-first area guides)
 - https://porterchain.com/en/delivery-cost-calculator — Instant price between two GTA postal codes (live pricing engine, HST included, no sign-up)
-- https://porterchain.com/en/delivery/shopify-merchants — Shopify & e-commerce merchants
-- https://porterchain.com/en/delivery/pharmacy — Pharmacy delivery
-- https://porterchain.com/en/delivery/labs — Lab & specimen courier
-- https://porterchain.com/en/delivery/warehouses — Warehouse & 3PL overflow
-- https://porterchain.com/en/delivery/wholesale-traders — Wholesale & trading companies
-- https://porterchain.com/en/delivery/construction — Construction materials
-- https://porterchain.com/en/delivery/plumbing-electrical — Plumbing & electrical parts
+- https://porterchain.com/en/delivery/shopify-merchants — Shopify & e-commerce merchants (same-day rates at checkout)
+- https://porterchain.com/en/delivery/pharmacy — Pharmacy & lab courier (signature, ID check, chain-of-custody times)
 - https://porterchain.com/en/delivery/furniture — Furniture & appliance delivery (box truck or van, threshold delivery)
+- https://porterchain.com/en/delivery/construction — Construction & trades (site materials, plumbing and electrical parts)
+- https://porterchain.com/en/delivery/warehouses — Warehouses & wholesale (dock-to-dock, pallets, multi-drop)
 - Pattern: https://porterchain.com/en/delivery/{industry}/{area} e.g. /en/delivery/pharmacy/mississauga
 
 ## Industries

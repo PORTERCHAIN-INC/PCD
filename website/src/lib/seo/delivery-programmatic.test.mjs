@@ -79,14 +79,14 @@ function validateJsonLd(node, path = "$") {
   return errors;
 }
 
-test("only meaningful combinations are generated (140) and weak ones are noindex", () => {
+test("only meaningful combinations are generated (88) and weak ones are noindex", () => {
   const pages = listDeliveryPages();
-  assert.equal(DELIVERY_VERTICALS.length, 8);
+  assert.equal(DELIVERY_VERTICALS.length, 5);
   assert.equal(DELIVERY_AREAS.length, 18);
-  assert.equal(pages.length, 140);
+  assert.equal(pages.length, 88);
   assert.equal(new Set(pages.map((p) => p.path)).size, pages.length);
   const noindex = pages.filter((p) => !p.index);
-  assert.equal(noindex.length, 14);
+  assert.equal(noindex.length, 8);
   assert.ok(noindex.every((p) => p.reason === "thin_coverage" || p.reason === "time_critical_far"));
   // Warehouses / wholesale only where there is industrial land.
   assert.ok(!pages.some((p) => p.vertical === "warehouses" && p.area === "downtown-toronto"));
@@ -148,8 +148,8 @@ test("every page has unique, specific content", () => {
       );
     }
   }
-  assert.equal(titles.size, 140);
-  assert.equal(answers.size, 140);
+  assert.equal(titles.size, 88);
+  assert.equal(answers.size, 88);
 });
 
 test("JSON-LD for every page validates (Service + Offer, FAQPage, BreadcrumbList)", () => {
@@ -170,11 +170,11 @@ test("JSON-LD for every page validates (Service + Offer, FAQPage, BreadcrumbList
     assert.equal(docs[0].url, `${BASE}/en/${p.path}`);
     assert.equal(docs[2].itemListElement.at(-1).item, `${BASE}/en/${p.path}`);
   }
-  assert.equal(checked, 420);
+  assert.equal(checked, 264);
 });
 
 test("validator catches dishonest or broken schema", () => {
-  const v = getDeliveryVertical("labs");
+  const v = getDeliveryVertical("pharmacy");
   const a = getDeliveryArea("north-york");
   const svc = buildDeliveryServiceJsonLd(v, a, { baseUrl: BASE, locale: "en" });
   const faked = { ...svc, offers: { ...svc.offers, price: "9.99" } };

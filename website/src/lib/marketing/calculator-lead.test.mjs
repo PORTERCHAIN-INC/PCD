@@ -15,7 +15,7 @@ const good = {
   businessName: "Acme Supply",
   email: "ops@acme.ca",
   phone: "416-555-0100",
-  industry: "plumbing-electrical",
+  industry: "construction",
   monthlyVolume: "21-100",
 };
 

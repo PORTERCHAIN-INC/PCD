@@ -1,37 +1,16 @@
 import { getTranslations } from "next-intl/server";
-import { ArrowRight, Building2, HardHat, Pill, ShoppingBag, Sofa, Wrench } from "lucide-react";
+import { ArrowRight, Building2, HardHat, Pill, ShoppingBag, Sofa } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/marketing/ui/SectionHeader";
 
 /** Industry tiles → /delivery/{vertical} hubs (furniture has its own hub since Oct 2026). */
 const TILES = [
-  {
-    id: "shopify",
-    href: "/delivery/shopify-merchants",
-    Icon: ShoppingBag,
-    tint: "bg-[#95bf47]/15 text-[#3d5c12]",
-  },
-  { id: "pharmacy", href: "/delivery/pharmacy", Icon: Pill, tint: "bg-rose-100 text-rose-800" },
-  { id: "furniture", href: "/delivery/furniture", Icon: Sofa, tint: "bg-amber-100 text-amber-900" },
-  {
-    id: "warehouses",
-    href: "/delivery/warehouses",
-    Icon: Building2,
-    tint: "bg-sky-100 text-sky-800",
-  },
-  {
-    id: "construction",
-    href: "/delivery/construction",
-    Icon: HardHat,
-    tint: "bg-orange-100 text-orange-900",
-  },
-  {
-    id: "trades",
-    href: "/delivery/plumbing-electrical",
-    Icon: Wrench,
-    tint: "bg-indigo-100 text-indigo-800",
-  },
+  { id: "shopify", href: "/delivery/shopify-merchants", Icon: ShoppingBag },
+  { id: "pharmacy", href: "/delivery/pharmacy", Icon: Pill },
+  { id: "furniture", href: "/delivery/furniture", Icon: Sofa },
+  { id: "construction", href: "/delivery/construction", Icon: HardHat },
+  { id: "warehouses", href: "/delivery/warehouses", Icon: Building2 },
 ] as const;
 
 export default async function HomeIndustries({ locale }: { locale: string }) {
@@ -49,14 +28,16 @@ export default async function HomeIndustries({ locale }: { locale: string }) {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {TILES.map(({ id, href, Icon, tint }) => (
+        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {TILES.map(({ id, href, Icon }) => (
             <li key={id}>
               <Link
                 href={href}
                 className="group flex h-full flex-col rounded-2xl border border-primary/8 bg-white p-6 transition-[border-color,box-shadow,transform] duration-200 hover:border-secondary/40 hover:shadow-xl hover:shadow-primary/8 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
               >
-                <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${tint}`}>
+                <span
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white`}
+                >
                   <Icon className="h-6 w-6" aria-hidden />
                 </span>
                 <span className="mt-5 flex items-center gap-1.5 text-lg font-semibold text-primary">

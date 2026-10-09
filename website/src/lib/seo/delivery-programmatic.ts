@@ -349,6 +349,8 @@ export type DeliveryHubContent = {
 export type DeliveryVertical = {
   slug: string;
   name: string;
+  /** One factual line: what this industry gets that a generic courier does not give. */
+  valueProp: string;
   /** Lower-case noun used inside sentences. */
   noun: string;
   audience: string;
@@ -373,10 +375,18 @@ export type DeliveryVertical = {
 
 const SINGLE_LIFT_LIMIT = "50 lb (23 kg)";
 
+/** Industry merges (Oct 2026): absorbed slug → surviving hub. 301s live in lib/seo/redirects.ts. */
+export const MERGED_DELIVERY_VERTICALS: Record<string, string> = {
+  labs: "pharmacy",
+  "plumbing-electrical": "construction",
+  "wholesale-traders": "warehouses",
+};
+
 export const DELIVERY_VERTICALS: DeliveryVertical[] = [
   {
     slug: "shopify-merchants",
     name: "Shopify & e-commerce merchants",
+    valueProp: "Same-day rates at your Shopify checkout, priced by the same engine as this site.",
     noun: "e-commerce order",
     audience: "Shopify and online stores shipping to GTA customers",
     goods: "customer orders, local same-day parcels and returns",
@@ -407,10 +417,12 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
   },
   {
     slug: "pharmacy",
-    name: "Pharmacy delivery",
+    name: "Pharmacy & lab courier",
+    valueProp:
+      "Sedan couriers for prescriptions and specimens, with signature, ID check and chain-of-custody times.",
     noun: "prescription",
-    audience: "independent and chain pharmacies, compounding labs and clinics",
-    goods: "prescriptions, compounded medication and medical supplies",
+    audience: "pharmacies, clinics and medical labs",
+    goods: "prescriptions, medical supplies, specimens and test kits",
     vehicles: ["sedan_suv"],
     sameDayCritical: true,
     industrialOnly: false,
@@ -419,6 +431,7 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
       "Signature or ID check on delivery when you require it",
       "No safe-place drops for controlled items",
       "Sealed bags stay closed; drivers never handle patient information beyond the label",
+      "Scheduled lab pickups or on-demand STAT runs with chain-of-custody timestamps",
     ],
     compliance:
       "Patient details are limited to what the driver needs to deliver (name, address, phone) and are handled under PIPEDA.",
@@ -437,146 +450,10 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
     },
   },
   {
-    slug: "labs",
-    name: "Lab & specimen courier",
-    noun: "specimen",
-    audience: "medical labs, clinics, research facilities and veterinary practices",
-    goods: "specimens, samples, test kits and lab supplies",
-    vehicles: ["sedan_suv"],
-    sameDayCritical: true,
-    industrialOnly: false,
-    industryPageSlug: "lab-sample-delivery",
-    handling: [
-      "Scheduled daily pickups or on-demand STAT runs",
-      "Chain-of-custody timestamps at pickup and drop-off",
-      "Coolers and totes stay upright and sealed",
-    ],
-    compliance:
-      "Specimens travel exactly as your staff packed and labelled them; anything classed as dangerous goods must be cleared with us before booking.",
-    specialistFaq: {
-      question: "Do you handle UN3373 Category B specimens?",
-      answer:
-        "Packages must be packed and labelled by your facility (for example UN3373 triple packaging). Drivers do not open, repack or relabel specimens; confirm any dangerous-goods requirement with us before booking.",
-    },
-    cta: { label: "Price a specimen run", pitch: "Live price for a lab pickup to drop-off." },
-    hero: {
-      control: "Same-day lab specimen courier",
-      variantB: "Specimens to the lab before the cut-off",
-    },
-  },
-  {
-    slug: "warehouses",
-    name: "Warehouse & 3PL overflow",
-    noun: "warehouse transfer",
-    audience: "3PLs, fulfilment centres and in-house warehouses",
-    goods: "pallets, cartons, store replenishment and inter-site transfers",
-    vehicles: ["cargo_van", "box_16"],
-    sameDayCritical: false,
-    industrialOnly: true,
-    handling: [
-      "Dock-to-dock transfers and multi-stop store replenishment",
-      "Box trucks up to 16 ft for pallets; no special licence needed",
-      "Overflow capacity on peak days without a long-term contract",
-    ],
-    compliance: "Photo and time-stamped proof of delivery is attached to every order.",
-    specialistFaq: {
-      question: "Can you take pallets?",
-      answer:
-        "Yes — a 16 ft box truck takes standard pallets. Tell us the count and weight when you book so the right vehicle is assigned.",
-    },
-    cta: { label: "Price a warehouse transfer", pitch: "Live price for a van or box-truck run." },
-    hero: {
-      control: "Same-day warehouse & 3PL overflow delivery",
-      variantB: "Extra trucks for your busiest warehouse days",
-    },
-  },
-  {
-    slug: "wholesale-traders",
-    name: "Wholesale & trading companies",
-    noun: "wholesale order",
-    audience: "importers, wholesalers and B2B traders",
-    goods: "cartons, mixed SKUs and pallet-sized trade orders",
-    vehicles: ["cargo_van", "box_16"],
-    sameDayCritical: false,
-    industrialOnly: true,
-    handling: [
-      "Multi-drop routes to retailers and restaurants",
-      "Invoiced to your business account with proof of delivery",
-      "Van or box truck matched to the order size",
-    ],
-    compliance: "Commercial invoices and proof of delivery are stored against each order.",
-    specialistFaq: {
-      question: "Can one van do several customer drops?",
-      answer:
-        "Yes. Book a multi-stop run and the driver follows the route order; each stop gets its own proof of delivery.",
-    },
-    cta: { label: "Price a wholesale drop", pitch: "Live price for a van or box-truck delivery." },
-    hero: {
-      control: "Same-day wholesale delivery",
-      variantB: "Deliver trade orders the day they are placed",
-    },
-  },
-  {
-    slug: "construction",
-    name: "Construction materials",
-    noun: "job-site delivery",
-    audience: "contractors, builders and building-supply yards",
-    goods: "fixings, tools, drywall bundles, small pallets and site materials",
-    vehicles: ["cargo_van", "box_16"],
-    sameDayCritical: false,
-    industrialOnly: false,
-    industryPageSlug: "construction-materials",
-    handling: [
-      "Drops to the site contact with photo proof at the gate",
-      "Early-morning and scheduled windows when the site needs them",
-      "Box trucks for bundles; tail-gate delivery only (no cranes or flatbeds)",
-    ],
-    compliance:
-      "Drivers follow site safety rules you share at booking (PPE, check-in, gate times).",
-    specialistFaq: {
-      question: "Do you deliver to active job sites?",
-      answer:
-        "Yes. Add the site contact and gate instructions when you book; the driver calls ahead and photographs the drop location.",
-    },
-    cta: {
-      label: "Price a job-site delivery",
-      pitch: "Live price for a van or box-truck site drop.",
-    },
-    hero: {
-      control: "Same-day construction material delivery",
-      variantB: "Keep crews working — materials on site today",
-    },
-  },
-  {
-    slug: "plumbing-electrical",
-    name: "Plumbing & electrical parts",
-    noun: "parts order",
-    audience: "plumbing, HVAC and electrical supply houses and their trade customers",
-    goods: "fittings, valves, wire, breakers, fixtures and small equipment",
-    vehicles: ["sedan_suv", "cargo_van", "box_16"],
-    sameDayCritical: false,
-    industrialOnly: false,
-    industryPageSlug: "plumbing-supply",
-    handling: [
-      "Counter-to-van runs for contractors waiting on a part",
-      "Branch-to-branch stock transfers",
-      "Photo proof of delivery to the site or service van",
-    ],
-    compliance: "Proof of delivery and order references are kept for your trade-account invoicing.",
-    specialistFaq: {
-      question: "Can you run a part from our counter to a contractor's van?",
-      answer:
-        "Yes. Book a single-stop run with the contractor's phone number; the driver meets them at the site or van.",
-    },
-    cta: { label: "Price a parts run", pitch: "Live price for a counter-to-site delivery." },
-    hero: {
-      control: "Same-day plumbing & electrical parts delivery",
-      variantB: "Get the missing part to the job today",
-    },
-  },
-  {
     slug: "furniture",
     name: "Furniture & appliance delivery",
+    valueProp:
+      "Cargo van or 16 ft box truck, two-person crews for heavy items, a booked delivery window.",
     noun: "furniture order",
     audience:
       "furniture and appliance retailers, showrooms, online home brands and interior designers",
@@ -730,6 +607,69 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
             "Yes. The PorterChain Shopify app adds a same-day rate at checkout using the same pricing engine as the calculator, then books the delivery when the order is paid.",
         },
       ],
+    },
+  },
+  {
+    slug: "construction",
+    name: "Construction & trades",
+    valueProp:
+      "Materials and parts to the site or service van the same day, with photo proof at the gate.",
+    noun: "job-site delivery",
+    audience: "contractors, building-supply yards and plumbing, HVAC and electrical supply houses",
+    goods: "site materials, small pallets, fittings, wire, fixtures and parts",
+    vehicles: ["cargo_van", "box_16"],
+    sameDayCritical: false,
+    industrialOnly: false,
+    industryPageSlug: "construction-materials",
+    handling: [
+      "Drops to the site contact with photo proof at the gate",
+      "Early-morning and scheduled windows when the site needs them",
+      "Counter-to-van parts runs and branch-to-branch stock transfers",
+      "Box trucks for bundles; tail-gate delivery only (no cranes or flatbeds)",
+    ],
+    compliance:
+      "Drivers follow site safety rules you share at booking (PPE, check-in, gate times).",
+    specialistFaq: {
+      question: "Do you deliver to active job sites?",
+      answer:
+        "Yes. Add the site contact and gate instructions when you book; the driver calls ahead and photographs the drop location.",
+    },
+    cta: {
+      label: "Price a job-site delivery",
+      pitch: "Live price for a van or box-truck site drop.",
+    },
+    hero: {
+      control: "Same-day construction material delivery",
+      variantB: "Keep crews working — materials on site today",
+    },
+  },
+  {
+    slug: "warehouses",
+    name: "Warehouses & wholesale",
+    valueProp:
+      "Van and box-truck capacity on demand: dock-to-dock transfers, pallets and multi-drop routes.",
+    noun: "warehouse transfer",
+    audience: "3PLs, fulfilment centres, importers and wholesalers",
+    goods: "pallets, cartons, mixed-SKU trade orders and inter-site transfers",
+    vehicles: ["cargo_van", "box_16"],
+    sameDayCritical: false,
+    industrialOnly: true,
+    handling: [
+      "Dock-to-dock transfers and multi-stop store replenishment",
+      "Box trucks up to 16 ft for pallets; no special licence needed",
+      "Overflow capacity on peak days without a long-term contract",
+      "Multi-drop routes to retailers and restaurants, each stop with its own proof",
+    ],
+    compliance: "Photo and time-stamped proof of delivery is attached to every order.",
+    specialistFaq: {
+      question: "Can you take pallets?",
+      answer:
+        "Yes — a 16 ft box truck takes standard pallets. Tell us the count and weight when you book so the right vehicle is assigned.",
+    },
+    cta: { label: "Price a warehouse transfer", pitch: "Live price for a van or box-truck run." },
+    hero: {
+      control: "Same-day warehouse & 3PL overflow delivery",
+      variantB: "Extra trucks for your busiest warehouse days",
     },
   },
 ];
