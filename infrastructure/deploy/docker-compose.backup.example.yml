@@ -1,0 +1,31 @@
+# Optional: run the off-site backup as a one-shot container instead of on the host.
+#   docker compose -f docker-compose.prod.yml -f docker-compose.backup.example.yml run --rm pg-backup
+# Cron alternative to the systemd timer (host, root crontab):
+#   15 7 * * * cd /opt/porterchain && docker compose -f docker-compose.prod.yml -f docker-compose.backup.example.yml run --rm pg-backup >> /var/log/porterchain-backup.log 2>&1
+# or, with the host script (needs age + aws/rclone on the host):
+#   15 7 * * * set -a; . /opt/porterchain/backup.env; set +a; /opt/porterchain/scripts/backup-offsite-postgres.sh >> /var/log/porterchain-backup.log 2>&1
+services:
+  pg-backup:
+    image: postgres:16.10-alpine3.22 # match the server major version
+    profiles: ["backup"]
+    restart: "no"
+    env_file: /opt/porterchain/backup.env
+    environment:
+      BACKUP_SOURCE: url
+      # PGPASSWORD comes from the main .env; the URL carries no password.
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      BACKUP_DATABASE_URL_BASE: postgresql://porterchain@postgres:5432
+      BACKUP_DIR: /backups
+      AGE_RECIPIENTS_FILE: /run/backup/age-recipients.txt
+    volumes:
+      - ./scripts:/opt/porterchain/scripts:ro
+      - ./backups:/backups
+      - /opt/porterchain/backup-age-recipients.txt:/run/backup/age-recipients.txt:ro
+    entrypoint: ["sh", "-c"]
+    command:
+      - apk add --no-cache -q bash age aws-cli curl && exec bash /opt/porterchain/scripts/backup-offsite-postgres.sh
+    networks:
+      - edge
+    depends_on:
+      postgres:
+        condition: service_healthy

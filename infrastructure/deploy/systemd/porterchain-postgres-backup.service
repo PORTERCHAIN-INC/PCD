@@ -1,0 +1,16 @@
+[Unit]
+Description=PorterChain encrypted off-site Postgres backup
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/porterchain/backup.env
+Environment=COMPOSE_FILE=/opt/porterchain/docker-compose.prod.yml
+Environment=BACKUP_DIR=/opt/porterchain/backups
+ExecStart=/opt/porterchain/scripts/backup-offsite-postgres.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+TimeoutStartSec=2h
