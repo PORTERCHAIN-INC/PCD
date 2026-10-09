@@ -11,92 +11,65 @@
   "googleBusiness": "Fiche Google Business",
   "googleReview": "Avis sur Google",
   "sections": {
-    "product": {
-      "title": "Produit",
+    "services": {
+      "title": "Services",
       "links": {
-        "getQuote": "Obtenir un devis",
-        "pricing": "Tarification",
-        "capabilities": "Toutes les capacités",
-        "multiStop": "Livraison multi-arrêts",
-        "recurring": "Routes récurrentes",
-        "brandedTracking": "Suivi client",
-        "deliveryVerification": "Preuve de livraison",
-        "exceptionRecovery": "Récupération d'exceptions",
-        "multiLocation": "Routage multi-emplacements",
-        "inventoryTransfers": "Transferts d'inventaire",
-        "returnsRoundTrip": "Retours et aller-retour",
-        "aiDispatch": "Appariement intelligent",
-        "platform": "Comment nous opérons",
-        "calculator": "Calculateur de coût de livraison",
-        "industriesHub": "Livraison par industrie"
-      }
-    },
-    "solutions": {
-      "title": "Solutions",
-      "links": {
-        "allSolutions": "Toutes les solutions",
-        "wholesale": "Gros",
-        "medical": "Médical",
-        "foodBeverage": "Alimentation",
-        "construction": "Construction",
-        "threePl": "3PL et entrepôt",
-        "fleetOverflow": "Débordement de flotte",
-        "industries": "Industries",
+        "price": "Prix instantané",
+        "book": "Réserver une livraison",
+        "business": "Comptes entreprise",
+        "track": "Suivre une livraison",
         "serviceAreas": "Zones desservies",
-        "vehicles": "Tous les véhicules",
-        "cargoVan": "Fourgonnette cargo",
-        "tradeVan": "Fourgonnette métier",
-        "boxTruck": "Camion cube",
-        "pickupTruck": "Camionnette"
-      }
-    },
-    "integrations": {
-      "title": "Intégrations",
-      "links": {
-        "allIntegrations": "Toutes les intégrations",
-        "sms": "Notifications SMS",
-        "email": "Notifications courriel",
-        "whatsapp": "Notifications WhatsApp",
-        "webhooks": "Webhooks",
-        "api": "Prise de commandes API",
-        "csv": "Téléversements CSV",
+        "vehicles": "Véhicules",
+        "howItWorks": "Fonctionnement",
+        "integrations": "Intégrations",
         "developers": "Développeurs et API"
       }
     },
-    "resources": {
-      "title": "Guides et ressources",
+    "industries": {
+      "title": "Secteurs",
       "links": {
-        "guides": "Tous les guides",
-        "capacityNetwork": "Qu'est-ce qu'un réseau de capacité?",
-        "sameDay": "Guide capacité jour même",
-        "courierVsCapacity": "Coursier vs partenaire de capacité",
-        "failureModes": "Modes d'échec et récupération",
-        "multiLocationGuide": "Capacité multi-emplacements",
-        "inventoryTransfersGuide": "Guide transferts d'inventaire",
-        "fromStore": "Jour même depuis le magasin",
-        "howPorterchainWorks": "Comment PorterChain fonctionne",
-        "compare": "Comparer les alternatives",
-        "blog": "Blogue",
-        "authors": "Auteurs",
-        "faq": "FAQ"
+        "allIndustries": "Tous les secteurs"
       }
     },
     "company": {
       "title": "Entreprise",
       "links": {
-        "about": "À propos",
-        "contact": "Contact",
-        "careers": "Carrières",
+        "about": "À propos de PorterChain",
         "trust": "Centre de confiance",
-        "claims": "Preuve et réclamations",
-        "trackShipment": "Suivre un envoi",
-        "privacy": "Confidentialité",
-        "terms": "Conditions",
-        "cookies": "Témoins",
-        "accessibility": "Accessibilité",
-        "merchants": "Pour les marchands",
-        "drivers": "Conduire avec PorterChain"
+        "drivers": "Conduire avec PorterChain",
+        "careers": "Carrières",
+        "blog": "Blogue"
+      }
+    },
+    "support": {
+      "title": "Soutien",
+      "links": {
+        "contact": "Nous joindre",
+        "faq": "FAQ",
+        "guides": "Guides",
+        "claims": "Preuve de livraison et réclamations",
+        "merchantPortal": "Portail marchand",
+        "driverPortal": "Portail chauffeur"
+      }
+    },
+    "legal": {
+      "title": "Mentions légales",
+      "links": {
+        "privacy": "Politique de confidentialité",
+        "terms": "Conditions d'utilisation",
+        "cookies": "Politique relative aux témoins",
+        "accessibility": "Accessibilité"
       }
     }
-  }
+  },
+  "ariaLabel": "Pied de page",
+  "navLabel": "Pied de page",
+  "contactTitle": "Parlez-nous",
+  "hoursLabel": "Heures de bureau",
+  "hours": "Lun–ven 8 h–18 h · sam 9 h–14 h (heure de Toronto)",
+  "coverage": "Livraison le jour même dans {count} zones postales du Grand Toronto, du lundi au samedi.",
+  "shopifyBadge": "Application Shopify",
+  "shopifyBadgeHint": "Tarifs le jour même au paiement",
+  "emailLabel": "Courriel",
+  "phoneLabel": "Téléphone"
 }

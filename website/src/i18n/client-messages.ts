@@ -30,7 +30,6 @@ export const CLIENT_MESSAGE_NAMESPACES = [
   "marketing.priceBar",
   "portal.customer",
   "productTrust",
-  "siteFooter",
   "vehiclePartner",
 ] as const;
 
