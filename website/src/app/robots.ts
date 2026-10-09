@@ -9,7 +9,15 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/*/login", "/*/book", "/*/book/", "/*/track/"],
+        disallow: [
+          "/api/",
+          "/*/login",
+          "/*/book",
+          "/*/book/",
+          "/*/track/",
+          // signed draft previews (token in query) — never public content
+          "/*/blog/preview/",
+        ],
       },
     ],
     sitemap: [

@@ -20,7 +20,7 @@ import PlatformAuthLayout, { PlatformAuthLoading } from "@/components/portal/Pla
 import PostAuthPortalRedirect from "@/components/portal/PostAuthPortalRedirect";
 import { isClerkConfigured } from "@/lib/env";
 import { getStoredAttribution } from "@/lib/seo/attribution";
-import { getOrCreateVisitorId, rememberQuoteIntent } from "@/lib/visitor-tracking";
+import { getOrCreateVisitorId, readQuoteIntent, rememberQuoteIntent } from "@/lib/visitor-tracking";
 
 export default function SignUpPage() {
   return (
@@ -46,7 +46,12 @@ function SignUpContent() {
   const { isLoaded, isSignedIn } = useAuth();
 
   const intent = searchParams.get("intent") ?? undefined;
-  const from = searchParams.get("from") ?? undefined;
+  // Internal links no longer carry ?from= (canonical URLs); the clicked CTA is in sessionStorage.
+  const [storedFrom, setStoredFrom] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    setStoredFrom(readQuoteIntent().from);
+  }, []);
+  const from = searchParams.get("from") ?? storedFrom;
   const vehicle = searchParams.get("vehicle") ?? undefined;
   const ref = searchParams.get("ref") ?? undefined;
 

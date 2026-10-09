@@ -47,6 +47,8 @@ const nextConfig: NextConfig = {
       { source: "/shopify/:path*", headers: shopifyEmbedHeaders },
       // Everything except exact /shopify (negative lookahead so DENY is not merged onto embed).
       { source: "/((?!shopify(?:/.*)?$).*)", headers: defaultSecurityHeaders },
+      // App subdomains are private tools: never index (Search Console listed sign-in URLs).
+      { source: "/(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];
   },
 };

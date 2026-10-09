@@ -1,0 +1,7 @@
+# merchant.porterchain.com — signed-in app, not public content.
+# Sign-in pages stay crawlable so search engines can see their X-Robots-Tag: noindex
+# and drop them from the index; everything else is off-limits to crawlers.
+User-agent: *
+Allow: /sign-in
+Allow: /login
+Disallow: /

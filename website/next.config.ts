@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { loadMonorepoEnv, websitePublicEnv } from "@porterchain/config/monorepo-env.mjs";
 import { baselineCsp, websiteCsp } from "@porterchain/config/security-headers.mjs";
 import createNextIntlPlugin from "next-intl/plugin";
-import { toNextRedirects } from "./src/lib/seo/redirects";
 
 loadMonorepoEnv(process.cwd(), "../env/.env");
 
@@ -49,8 +48,12 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
   env: websitePublicEnv(),
+  // Redirects live in middleware (lib/seo/url-policy.ts applies the lib/seo/redirects.ts registry)
+  // so every legacy URL resolves in ONE hop; next.config redirects/trailing-slash ran first and
+  // chained (e.g. /ca/en/industry → /en/industry → /en/business). Keep this empty.
+  skipTrailingSlashRedirect: true,
   async redirects() {
-    return toNextRedirects();
+    return [];
   },
   async headers() {
     return [

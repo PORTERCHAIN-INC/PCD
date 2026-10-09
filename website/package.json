@@ -7,14 +7,18 @@
   },
   "scripts": {
     "dev": "next dev --port 3000 --turbopack",
+    "prebuild": "tsx --conditions=react-server scripts/generate-indexable-manifest.cts",
     "build": "next build",
+    "seo:manifest": "tsx --conditions=react-server scripts/generate-indexable-manifest.cts",
+    "seo:manifest:check": "tsx --conditions=react-server scripts/generate-indexable-manifest.cts --check",
     "start": "next start --port 3000",
     "lint": "eslint",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"messages/**/*.json\"",
     "eval:guide-knowledge": "tsx src/lib/home/guide-knowledge.eval.ts",
     "test:e2e": "playwright test",
     "test:e2e:p0": "playwright test --grep @p0",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "test:seo": "tsx --test src/lib/seo/url-policy.test.mts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.13",
@@ -54,6 +58,7 @@
     "eslint-config-next": "16.2.10",
     "prettier": "^3.9.4",
     "tailwindcss": "^4.3.2",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   }
 }

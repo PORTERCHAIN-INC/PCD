@@ -3,6 +3,7 @@ import type { Locale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { siteConfig } from "./config";
 import { localePath } from "./routes";
+import { isIndexablePath } from "./url-policy";
 
 export const HREFLANG_LOCALE_MAP: Record<Locale, string> = {
   en: "en",
@@ -44,10 +45,17 @@ export function buildAlternateLanguages(
 ): Record<string, string> {
   const base = siteConfig.baseUrl.replace(/\/$/, "");
   const out: Record<string, string> = {};
-  for (const loc of routing.locales) {
+  // Sitemap-managed paths (build-time manifest): only advertise locales that actually serve
+  // an indexable page — an EN-only page must not point hreflang at a FR URL that 301s away.
+  const indexable = routing.locales.filter((loc) => isIndexablePath(localePath(loc, pathSegment)));
+  const managed = indexable.length > 0;
+  const locales = managed ? indexable : [...routing.locales];
+  if (managed && !locales.includes(locale)) locales.push(locale);
+  for (const loc of locales) {
     out[HREFLANG_LOCALE_MAP[loc]] = `${base}${localePath(loc, pathSegment)}`;
   }
-  out["x-default"] = `${base}${localePath("en", pathSegment)}`;
+  const xDefault = locales.includes("en") ? "en" : locale;
+  out["x-default"] = `${base}${localePath(xDefault, pathSegment)}`;
   return out;
 }
 

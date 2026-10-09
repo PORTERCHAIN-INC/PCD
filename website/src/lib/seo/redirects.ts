@@ -15,6 +15,66 @@ const LOCALES = ["en", "fr"] as const;
 
 const removedCorporatePaths = ["overview"] as const;
 
+/**
+ * Paths from the 2025–2026 sites (/ca/en/*, locale-less PC/PORTERCHAIN apps) that Search
+ * Console still knows. Sources are locale-prefixed because url-policy.ts strips /ca/* and adds
+ * /en before matching. Destinations are live, indexable pages (url-policy test enforces it).
+ */
+function legacySiteRedirects(): WebsiteRedirect[] {
+  const map: Array<[string, string]> = [
+    ["about", "company"],
+    ["services", "solutions"],
+    ["industries", "solutions"],
+    ["industries/:slug", "industry/:slug"],
+    ["for-business", "business"],
+    ["driver-partner", "vehicle-partner"],
+    ["driver-partner-terms", "terms"],
+    ["api-integrations", "integrations"],
+    ["standards", "trust"],
+    ["support", "contact"],
+    ["report-issue", "contact"],
+    ["get-started", "sign-up"],
+    ["how-it-works", "how-porterchain-works"],
+    ["product", "platform"],
+    ["product/routing-dispatch", "capabilities/ai-dispatch"],
+    ["product/merchant-setup", "how-porterchain-works"],
+    ["status", "trust"],
+    ["docs", "developers"],
+    ["merchant", "business"],
+    ["merchant-onboarding", "business"],
+    ["merchant-workflow", "how-porterchain-works"],
+    ["knowledge", "guides"],
+    ["resources", "blog"],
+    ["resources/category/:slug", "blog/category/:slug"],
+    ["resources/:slug", "blog/:slug"],
+    ["general-guidelines", "terms"],
+    ["zero-tolerance-policy", "terms"],
+    ["dashboard", "login"],
+    // Blog slugs Search Console knows that have no surviving content (planned CMS posts and
+    // 2026 /resources articles) → closest restored post or hub. Restored posts live in
+    // website/content/blog and are NOT listed here.
+    ["blog/bloglist", "blog"],
+    ["blog/gta-commercial-logistics-guide", "guides"],
+    ["blog/proof-of-delivery-commercial-shipments", "blog/audit-ready-proof-of-delivery"],
+    ["blog/same-day-vs-scheduled-freight-gta", "blog/same-day-b2b-delivery-toronto"],
+    ["blog/cosmetics-fulfillment", "industry/cosmetics"],
+    ["blog/courier-pricing-breakdown", "delivery-cost-calculator"],
+    ["blog/delivery-strategies-local-brands", "blog/retail-last-mile-visibility"],
+    ["blog/logistics-for-coffee-roasters", "blog/coffee-supply-chain-freshness"],
+    ["blog/pharmacy-delivery-logistics", "blog/pharmacy-same-day-courier-gta"],
+    ["blog/route-optimization-insights", "blog/route-optimization-empty-miles"],
+    ["blog/scaling-local-delivery", "blog/same-day-delivery-at-scale"],
+  ];
+  return LOCALES.flatMap((locale) =>
+    map.map(([from, to]) => ({
+      source: `/${locale}/${from}`,
+      destination: `/${locale}/${to}`,
+      permanent: true,
+      note: "Legacy 2025–2026 site path (Search Console)",
+    }))
+  );
+}
+
 function legacyMarketRedirects(): WebsiteRedirect[] {
   return LOCALES.flatMap((locale) => [
     {
@@ -154,7 +214,7 @@ function retiredMarketingHubRedirects(): WebsiteRedirect[] {
     },
     {
       source: `/${locale}/quote`,
-      destination: `/${locale}/sign-up?intent=quote&from=quote`,
+      destination: `/${locale}/sign-up?intent=quote`,
       permanent: true,
       note: "Legacy /quote → business capacity form",
     },
@@ -178,10 +238,15 @@ function platformSignInAliasRedirects(): WebsiteRedirect[] {
   ];
 }
 
-/** All website redirects — order preserved for documentation; Next.js resolves independently. */
+/**
+ * All website redirects. Applied by middleware via url-policy.ts (resolveUrlPolicy), which
+ * collapses chains into a single 301 — they are deliberately NOT returned from next.config
+ * redirects(), because those run before middleware and produced multi-hop chains.
+ */
 export const WEBSITE_REDIRECTS: WebsiteRedirect[] = [
   ...platformSignInAliasRedirects(),
   ...legacyMarketRedirects(),
+  ...legacySiteRedirects(),
   ...corporateOverviewRedirects(),
   ...guideConsolidationRedirects(),
   ...vehicleSlugRedirects(),

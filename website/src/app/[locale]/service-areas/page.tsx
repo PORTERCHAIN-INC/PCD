@@ -12,9 +12,8 @@ export const generateStaticParams = localeStaticParams;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "serviceAreasIndex" });
-  return buildPageMetadata(locale, "service-areas", t("meta.title"), t("meta.description"), {
-    index: locale === "en",
-  });
+  // FR hub is fully translated and lists the published FR area pages — index both locales.
+  return buildPageMetadata(locale, "service-areas", t("meta.title"), t("meta.description"));
 }
 
 export default async function ServiceAreasHubPage({ params }: Props) {

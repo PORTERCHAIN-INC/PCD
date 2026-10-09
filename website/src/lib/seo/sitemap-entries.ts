@@ -70,8 +70,6 @@ const frServiceAreaLanding = frMessages.serviceAreaLanding as unknown as Record<
 >;
 
 const EN_ONLY_STATIC_SEGMENTS = new Set([
-  // FR hub is noindex until the FR area pages are complete (service-areas/page.tsx).
-  "service-areas",
   "how-porterchain-works",
   "onboarding-education",
   "integrations-education",
@@ -103,7 +101,6 @@ const STATIC_PATHS: {
   { segment: "faq", priority: 0.85 },
   { segment: "guides", priority: 0.85, freq: "weekly" },
   { segment: "compare", priority: 0.8 },
-  { segment: "campaigns", priority: 0.75 },
   { segment: "privacy", priority: 0.3 },
   { segment: "terms", priority: 0.3 },
   { segment: "cookies", priority: 0.3 },
@@ -266,9 +263,6 @@ export async function buildResourceSitemapEntries(): Promise<SitemapEntry[]> {
       if (skipFrenchEnOnlyContent(locale)) continue;
       push(entries, locale, `integrations-education/${slug}`, 0.75);
     }
-    for (const category of BLOG_CATEGORIES) {
-      push(entries, locale, `blog/category/${category}`, 0.65);
-    }
     for (const id of authorIds) {
       push(entries, locale, `authors/${id}`, 0.55, "monthly");
     }
@@ -282,6 +276,11 @@ export async function buildArticleSitemapEntries(): Promise<SitemapEntry[]> {
     const posts = await getAllPosts(locale);
     for (const post of posts) {
       push(entries, locale, `blog/${post.slug}`, 0.7, "weekly", parseIsoDate(post.date));
+    }
+    // Category hubs only when they list at least one post (empty hubs are noindex).
+    const used = new Set(posts.map((p) => p.category));
+    for (const category of BLOG_CATEGORIES) {
+      if (used.has(category)) push(entries, locale, `blog/category/${category}`, 0.65);
     }
   }
   return entries;

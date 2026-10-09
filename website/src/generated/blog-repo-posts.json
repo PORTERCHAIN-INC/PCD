@@ -1,0 +1,1362 @@
+[
+ {
+  "locale": "en",
+  "slug": "3pl-outbound-capacity-peel",
+  "title": "3PL Outbound Capacity from Peel Warehouses",
+  "description": "How GTA 3PLs cover outbound multi-stop and peak overflow from Peel docks without adding permanent fleet.",
+  "date": "2026-08-10",
+  "category": "supply-chain",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "3pl",
+   "warehouse",
+   "peel"
+  ],
+  "content": "Peel docks move waves. When merchant SLAs are tight, 3PLs need outbound capacity that matches carton and pallet mix — plus tracking merchants can share.\n\n## Outbound is a capacity product\n\nSoftware alone does not clear a dock. You need vehicles, drivers, and cut-offs aligned to the wave.\n\n## Multi-stop and peak together\n\nPromotions and returns spikes should not force permanent headcount. Book overflow on the same standards as primary lanes.\n\n## Merchant-visible status\n\nShareable tracking and POD keep brands confident without putting every ETA question on your account managers."
+ },
+ {
+  "locale": "en",
+  "slug": "audit-ready-proof-of-delivery",
+  "title": "Building Audit-Ready Proof of Delivery",
+  "description": "Photo, signature, GPS, and reference-linked status history — the compliance layer modern logistics requires.",
+  "date": "2026-06-10",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "compliance",
+   "pod",
+   "operations"
+  ],
+  "content": "Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.\n\n## The proof chain\n\nPorterchain links every delivery confirmation to a **structured proof chain**:\n\n- **Photo capture** with timestamp and geolocation\n- **Signature** where required by customer or regulation\n- **OTP verification** for controlled handoff flows\n- **GPS coordinates** at completion event\n- **Shipment references** tying proof to order and billing records\n- **Status history** — immutable event log from ingest to complete\n\nEach element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._\n\n## Why audit-ready matters\n\nWholesale distributors dispute chargebacks. Medical suppliers face chain-of-custody questions. Construction firms need evidence that high-value materials arrived on site.\n\nAudit-ready proof is not overhead — it is **revenue protection.**\n\n## Built into every shipment\n\nProof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.\n\nWhen compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes."
+ },
+ {
+  "locale": "en",
+  "slug": "box-truck-down-overflow-without-chaos",
+  "title": "When Your Box Truck Is Down: Overflow Without Chaos",
+  "description": "A unit in the shop should not break customer windows. Brief overflow like primary capacity.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "overflow",
+   "fleet",
+   "box-truck",
+   "gta"
+  ],
+  "content": "Fleet downtime is normal. Scramble courier roulette is optional.\n\n## Same class, same proof\n\nIf the primary run needed a 16 ft box truck, the overflow quote should too. Wrong class burns the window twice.\n\n## Access notes travel with the job\n\nGate codes, dock contacts, and site hours must ride with the overflow assignment — not live in a text thread.\n\n## One partner across peaks\n\nOverflow works best when receivers already know your tracking and POD standard.\n\nMore: [Fleet overflow](/solutions/fleet-overflow) · [Exception recovery](/capabilities/exception-recovery)."
+ },
+ {
+  "locale": "en",
+  "slug": "branch-balancing-same-day-capacity",
+  "title": "Same-Day Branch Balancing Without Stretching Your Fleet",
+  "description": "Use overflow capacity to rebalance GTA branches on peak days — without overtime that burns your team.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "branch",
+   "same-day",
+   "overflow"
+  ],
+  "content": "Peak days empty one branch and overload another. Stretching your own fleet creates unsafe overtime and still misses cut-offs.\n\n## Overflow as a release valve\n\nBook backup capacity with the same proof standards as primary lanes so internal teams trust the transfer.\n\n## Keep customer promises intact\n\nWhen stock moves between locations first, customer same-day windows have a chance. Sequence the transfer, then the delivery.\n\n## Quote from real sites\n\nShare branch addresses, typical cube, and peak patterns. Written quotes beat phone roulette when every counter is busy."
+ },
+ {
+  "locale": "en",
+  "slug": "business-case-logistics-technology",
+  "title": "Building a Business Case for Managed Logistics",
+  "description": "How operations leaders quantify ROI from professional delivery partners — fewer exceptions, better SLAs, audit confidence.",
+  "date": "2026-04-18",
+  "category": "business",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "business",
+   "roi",
+   "enterprise"
+  ],
+  "content": "Operations leaders rarely struggle to articulate logistics pain. They struggle to **fund the fix** — especially when the alternative is \"we've always done it this way.\"\n\n## Frame the cost of status quo\n\nQuantify what manual coordination costs today:\n\n- Labor hours on phone and email dispatch\n- Revenue at risk from late or failed deliveries\n- Chargebacks and disputes without solid proof\n- Fuel and mileage from unoptimized routes\n- Customer churn when visibility is poor\n\nThese line items make the business case concrete.\n\n## ROI levers from managed logistics\n\nA professional logistics partner like Porterchain improves:\n\n1. **On-time execution** — managed dispatch with SLA standards\n2. **Exception reduction** — pre-dispatch validation\n3. **Audit confidence** — proof chains on every shipment\n4. **Route efficiency** — measurable mileage and utilization gains\n\n## Pilot before you scale\n\nMost enterprises start with a scoped pilot on select routes. Prove the metrics, then expand — with data, not faith.\n\nThe businesses that win locally are not the ones with the most trucks. They are the ones with the **most accountable operations.**"
+ },
+ {
+  "locale": "en",
+  "slug": "case-study-construction-distributor-gta",
+  "title": "Case study: GTA building supply distributor scales jobsite delivery",
+  "description": "How a regional construction materials distributor hit 98.7% on-time jobsite delivery and cut per-drop logistics cost 22% with structured dispatch and proof on every drop.",
+  "date": "2026-07-01",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": true,
+  "trending": false,
+  "caseStudy": true,
+  "tags": [
+   "case-study",
+   "construction",
+   "metrics",
+   "proof"
+  ],
+  "content": "## At a glance\n\n| Metric                       | Before Porterchain    | After 90-day pilot       |\n| ---------------------------- | --------------------- | ------------------------ |\n| **On-time jobsite delivery** | 81% (ad-hoc couriers) | **98.7%**                |\n| **Per-drop logistics cost**  | Baseline              | **−22%**                 |\n| **Weekly jobsite drops**     | ~18                   | **40+**                  |\n| **Proof on every delivery**  | Partial / disputed    | **100%** photo + GPS POD |\n\n## Customer profile\n\nA regional building materials distributor in the GTA delivers lumber, drywall, and fixtures to active construction sites. Their buyer is an operations manager responsible for 50–120 shipments per week across Peel and Toronto corridors — squarely in Porterchain's Phase 1 ICP.\n\n## Challenge\n\nAd-hoc courier marketplaces handled one-off runs, but recurring jobsite routes lacked accountability:\n\n- Missed contractor cut-offs and gate-access windows\n- No consistent proof when general contractors disputed quantities or timing\n- Dispatch staff spent hours reconciling three courier apps and phone updates\n\n## Solution\n\nPorterchain aligned **16 ft box truck routes** to their daily dispatch list:\n\n1. Fixed time windows encoded per jobsite (gate codes, foreman contact, lift requirements)\n2. Central operations coordination — one control tower for inside sales and planners\n3. Photo + GPS proof of delivery tied to shipment references on every drop\n\n## Results (90 days)\n\n- **98.7% on-time delivery** to agreed jobsite windows (up from 81%)\n- **22% lower per-drop logistics cost** versus blended ad-hoc courier spend\n- **40+ weekly jobsite drops** on recurring routes without adding owned fleet\n- **Zero POD disputes** escalated to billing in the pilot quarter\n\n> \"We needed pallet delivery to sites with proof our GCs would accept. Porterchain made it repeatable.\"\n> — Operations Manager, GTA building supply distributor\n\n## Why this matters for B2B shippers\n\nThis is orchestration software for merchants who own the customer relationship — not a consumer courier app. The same dispatch controls, SLA visibility, and audit-ready proof chain apply across [construction materials](/en/industry/construction-materials), [electrical distribution](/en/industry/electrical-distribution), and [wholesale distribution](/en/solutions/wholesale) workflows.\n\n[Read more success stories](/en/success-stories) or [explore the platform](/en/platform)."
+ },
+ {
+  "locale": "en",
+  "slug": "clinic-supply-loops-gta",
+  "title": "Clinic Supply Loops Without Phone-Tree Dispatch",
+  "description": "Multi-stop clinic replenishment in the GTA needs reserved capacity, access notes, and proof — not another group chat.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "clinic",
+   "medical",
+   "multi-stop",
+   "gta"
+  ],
+  "content": "Clinic loops fail when every stop becomes a call. Treat replenishment like a capacity program.\n\n## Sequence the corridor\n\nGroup clinics by zone and window. Dense multi-stop beats a sedan bouncing across the GTA all afternoon.\n\n## Proof for regulated receivers\n\nPhoto and GPS closeout help pharmacy and clinic ops answer compliance questions without chasing drivers.\n\n## Recurring plus same-day\n\nLock the weekly template. Keep overflow for stockouts and missed cuts.\n\nSee [Medical solutions](/solutions/medical) and [Multi-stop delivery](/capabilities/multi-stop-delivery)."
+ },
+ {
+  "locale": "en",
+  "slug": "coffee-supply-chain-freshness",
+  "title": "Coffee Supply Chain Freshness: Timing the Last Mile",
+  "description": "Tight delivery windows, temperature-aware scheduling, and exception alerts for perishable coffee distribution.",
+  "date": "2026-05-01",
+  "category": "coffee",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "coffee",
+   "perishables",
+   "food"
+  ],
+  "content": "Specialty coffee distribution is a freshness business. Roasters and wholesalers invest in origin, roast profile, and packaging — then lose quality in an uncontrolled last mile.\n\n## Time is a product attribute\n\nCoffee logistics requires:\n\n- **Tight delivery windows** aligned with café receiving hours\n- **Route density** to minimize time on vehicle\n- **Exception alerts** when a stop slips — before beans sit on a warm truck\n\nGeneric delivery treats coffee like any box. Freshness-focused operators treat **transit time as a quality input.**\n\n## Structured routes for recurring accounts\n\nMost coffee wholesalers run recurring loops to cafés and retail partners. Route templates, multi-stop planning, and SLA monitoring turn those loops into **repeatable quality** — not driver-dependent luck.\n\n## Small volume, high standards\n\nYou do not need national scale to need professional logistics. You need dispatch controls, proof, and visibility that match the care you put in the roast.\n\nThat is the supply chain specialty coffee deserves."
+ },
+ {
+  "locale": "en",
+  "slug": "construction-material-logistics",
+  "title": "Construction Material Logistics: Site Delivery Done Right",
+  "description": "Heavy-capacity matching, site coordination, and proof for high-value materials on Ontario job sites.",
+  "date": "2026-05-15",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "heavy-freight",
+   "proof"
+  ],
+  "content": "Construction supply chains punish improvisation. Wrong vehicle class, missed site access windows, or missing proof on a high-value drop creates costly downtime.\n\n## Site-specific constraints\n\nConstruction deliveries demand:\n\n- **Vehicle-class and capacity matching** for lumber, drywall, fixtures, and equipment\n- **Site coordination** — gates, lifts, foreman sign-off\n- **Proof that satisfies GCs and suppliers** when quantities or timing are disputed\n\nDispatch must encode these constraints before release — not discover them at the gate.\n\n## Proof as project documentation\n\nPhoto, signature, and GPS-backed proof tied to shipment references gives project managers evidence that materials arrived when billed — reducing disputes across the supply chain.\n\n## Why Porterchain fits construction\n\nPorterchain treats construction as a first-class vertical: structured dispatch, routing tuned for Ontario roads, and compliance workflows our operations team runs daily — so you do not need to build your own logistics department.\n\nExplore our [construction materials delivery](/en/industry/construction-materials), [electrical distribution](/en/industry/electrical-distribution), and [plumbing supply](/en/industry/plumbing-supply) industry pages, or read about [box truck delivery](/en/box-truck-delivery) for palletized jobsite freight."
+ },
+ {
+  "locale": "en",
+  "slug": "courier-vs-capacity-partner-gta",
+  "title": "Courier vs Capacity Partner for GTA B2B Delivery",
+  "description": "When ad-hoc courier bookings stop scaling — and when you need vehicle-and-driver capacity with dispatch, tracking, and proof.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "courier",
+   "capacity",
+   "gta",
+   "b2b"
+  ],
+  "content": "GTA B2B shippers often start with phone-and-app courier bookings. That works until windows harden, multi-stop waves appear, or finance asks for proof on every drop.\n\n## What changes at scale\n\nA one-off courier trip optimizes for a single move. A capacity partner optimizes for repeatable execution: vehicle class match, professional driver, exception recovery, and closeout evidence.\n\n## Signals you have outgrown ad-hoc\n\nMissed jobsite windows, café routes that slip on peak days, receivers calling for ETA, and disputes without photo or GPS all point past “find another courier.”\n\n## Brief the next quote like capacity\n\nShare corridors, vehicle class, windows, and proof needs. Written capacity options beat another round of phone roulette.\n\nRead the longer guide: [Choosing a courier vs a capacity partner](/guides/choosing-courier-vs-capacity-partner-gta)."
+ },
+ {
+  "locale": "en",
+  "slug": "cutoff-discipline-toronto-peel-york",
+  "title": "Cut-Off Discipline Across Toronto, Peel, and York",
+  "description": "Same-day capacity fails when every zone shares one cut-off. Publish realistic windows by corridor.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "cut-off",
+   "same-day",
+   "gta",
+   "ops"
+  ],
+  "content": "Treating the GTA as one SLA is how sales overpromises and docks underdeliver.\n\n## Zone before slogan\n\nDowntown counters, Peel warehouses, and York jobsites do not share the same staging reality. Publish cut-offs by pickup zone.\n\n## Stage before you quote urgency\n\nFreight that is not ready by the cut-off is not a same-day problem — it is an intake problem. Capacity cannot invent time.\n\n## Overflow when your fleet is full\n\nBook backup capacity with the same tracking and proof so receivers still get a clean window.\n\nGuide: [Same-day delivery capacity in the GTA](/guides/same-day-delivery-capacity-gta)."
+ },
+ {
+  "locale": "en",
+  "slug": "early-morning-foodservice-routes-gta",
+  "title": "Early-Morning Foodservice Routes Across the GTA",
+  "description": "How roasters and wholesale food distributors keep café and kitchen windows with recurring capacity — plus same-day overflow.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "foodservice",
+   "café",
+   "recurring",
+   "gta"
+  ],
+  "content": "Foodservice windows do not move for traffic. Roasters and wholesale food distributors need early capacity that arrives with tracking cafés and kitchens can trust.\n\n## Recurring first, overflow second\n\nLock weekly café or restaurant loops so product leaves on schedule. Keep same-day overflow for promotions and missed cuts without inventing a new courier each time.\n\n## Vehicle fit for perishable freight\n\nTotes, cases, and mixed cartons need the right van class and staging discipline. Overpacking a sedan to “save” the quote usually costs the window.\n\n## Proof that quiets the phone\n\nShareable ETA and photo closeout reduce “where is my drop?” calls during the breakfast rush.\n\nExplore [food & beverage solutions](/solutions/food-beverage) and [recurring route capacity](/capabilities/recurring-routes)."
+ },
+ {
+  "locale": "en",
+  "slug": "electrical-counter-to-jobsite-windows",
+  "title": "Electrical Counter-to-Jobsite Windows That Hold",
+  "description": "Trade counters lose the afternoon when jobsite windows slip. Reserved capacity and POD close the loop.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "electrical",
+   "jobsite",
+   "wholesale",
+   "gta"
+  ],
+  "content": "Electricians do not wait on dock stories. Counter-to-jobsite delivery is a capacity product.\n\n## Long stock needs the right van\n\nConduit and fixtures punish the wrong vehicle class. Confirm fit in the quote.\n\n## Site access is half the job\n\nForeman contacts, hoist timing, and muddy site notes belong on the dispatch ticket.\n\n## Proof for billing disputes\n\nPhoto at drop ends “it never arrived” arguments between counter and GC.\n\nExplore [Wholesale solutions](/solutions/wholesale) and [Construction](/construction)."
+ },
+ {
+  "locale": "en",
+  "slug": "electrical-wholesaler-delivery-ontario",
+  "title": "Electrical Wholesaler Delivery in Ontario: Last-Mile Without the Fleet",
+  "description": "How electrical distributors run same-day and recurring delivery to contractors across the GTA — tracking, cut-offs, and proof on every run.",
+  "date": "2026-06-20",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "electrical",
+   "wholesale",
+   "proof"
+  ],
+  "content": "Electrical wholesalers live on cut-offs. A contractor waiting on wire, panels, or fixtures will call three suppliers before they call you back.\n\n## Why last-mile breaks for electrical distribution\n\nMost wholesalers run tight warehouses and strong counter sales — but last-mile delivery is often a patchwork of ad-hoc couriers, owner-operators, and overloaded inside sales staff chasing ETAs.\n\nThat creates:\n\n- **Missed contractor windows** when routes are not planned as a system\n- **No shareable tracking** for site supers and purchasers\n- **Weak proof** when quantities or timing are disputed\n\n## What a dedicated delivery partner changes\n\nA structured last-mile partner aligns capacity to your cut-off times and zones:\n\n1. **Recurring routes** to your top contractor accounts and job sites\n2. **Same-day capacity** for rush orders within agreed windows\n3. **Tracking links** on every shipment — counter staff stop fielding \"where is it?\" calls\n4. **Photo and signature proof** that stands up when a GC asks for documentation\n\n## Vehicles that match electrical freight\n\nCars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without jumping to full tractor-trailer complexity.\n\n## Porterchain for electrical distributors\n\nWe run recurring and same-day delivery for electrical wholesalers across the GTA, Hamilton, Kitchener-Waterloo, and surrounding Ontario regions — with one dashboard for dispatch visibility and customer-facing tracking.\n\nIf you are evaluating delivery for contractor accounts and job sites, start with your weekly stop count, zones, and cut-off times. That is enough to scope capacity and vehicle fit in days, not months."
+ },
+ {
+  "locale": "en",
+  "slug": "fleet-overflow-capacity-gta",
+  "title": "Fleet Overflow Capacity for GTA Businesses",
+  "description": "When your trucks are full or a unit is down, overflow capacity keeps GTA cut-offs — without permanent headcount.",
+  "date": "2026-08-10",
+  "category": "business",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "overflow",
+   "fleet",
+   "gta"
+  ],
+  "content": "Peak days and breakdowns do not wait for hiring cycles. GTA wholesalers, construction suppliers, and warehouses miss cut-offs when their own fleet is already booked — then scramble for ad-hoc couriers with no proof standard.\n\n## Overflow is capacity insurance\n\nTreat overflow as a planned release valve: the same vehicle classes you already use, professional drivers, shareable tracking, and proof on every stop. Receivers should not feel a scramble when volume spikes.\n\n## When teams book it\n\n- Promotion and launch days\n- A truck in the shop or a driver call-out\n- Hard afternoon cut-offs that outrun your own routes\n\n## How to start\n\nShare typical peak patterns, vehicle class, and zones. A written quote beats phone roulette when the dock is already full."
+ },
+ {
+  "locale": "en",
+  "slug": "inventory-transfers-warehouse-to-store-gta",
+  "title": "Warehouse-to-Store Inventory Transfers in the GTA",
+  "description": "Same-day and scheduled transfer capacity between Ontario warehouses and stores — vehicle fit, dock contacts, and proof.",
+  "date": "2026-08-10",
+  "category": "supply-chain",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "inventory",
+   "transfers",
+   "warehouse"
+  ],
+  "content": "A transfer is a two-stop capacity problem: pull cleanly, deliver cleanly, prove it moved. Treat it like a customer SLA.\n\n## Stage before you dispatch\n\nSKU references, dock contact, and ready freight beat a hopeful same-day request every time.\n\n## Match cube to vehicle\n\nCartons and totes are not pallets. Wrong class burns the window even when the driver is early.\n\n## Close for accountability\n\nPhoto and GPS timestamps help retail and warehouse agree the stock arrived — useful when loss-prevention asks questions."
+ },
+ {
+  "locale": "en",
+  "slug": "jobsite-delivery-capacity-mississauga",
+  "title": "Jobsite Delivery Capacity in Mississauga and Peel",
+  "description": "Pallet and material drops to Mississauga jobsites — vehicle fit, site access, and POD GCs will accept.",
+  "date": "2026-08-10",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "jobsite",
+   "construction",
+   "mississauga"
+  ],
+  "content": "Jobsite delivery fails on access notes and wrong trucks more often than on distance. Mississauga and Peel sites need capacity that fits the gate and the pallet.\n\n## Capture the right contact\n\nGC or site supervisor — not only the purchasing office. Failed access burns the window.\n\n## Match truck to site\n\nBox truck for pallets; trade van for long stock when the site is tight. Confirm class in the quote.\n\n## Proof for billing\n\nPhoto POD closes GC disputes and keeps inside sales out of the evening chase."
+ },
+ {
+  "locale": "en",
+  "slug": "jobsite-delivery-time-windows-pod",
+  "title": "Jobsite Delivery Time Windows and Proof of Delivery: What GCs Expect",
+  "description": "Why construction sites demand tight delivery windows, site access coordination, and audit-ready proof — and how distributors meet that bar.",
+  "date": "2026-06-25",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "heavy-freight",
+   "proof",
+   "jobsite"
+  ],
+  "content": "On an active job site, a late truck is not a minor inconvenience — it can idle crews, delay trades, and trigger back-charges.\n\n## Time windows are operational, not cosmetic\n\nGeneral contractors publish receiving windows for a reason: staging space, hoist availability, and trade sequencing. Distributors that treat \"end of day\" as good enough lose trust fast.\n\nReliable jobsite delivery requires:\n\n- **Committed windows** agreed before dispatch releases\n- **Site access notes** — gate codes, lift restrictions, foreman contact\n- **Driver instructions** that survive handoffs between dispatchers\n\n## Proof of delivery is project documentation\n\nGCs and owners increasingly expect evidence that materials arrived as billed:\n\n- Timestamped **photo proof** at the drop location\n- **Digital signatures** where the site requires sign-off\n- **Shipment references** tied to your order or pick ticket\n\nThis is not paperwork for its own sake — it reduces disputes between supplier, GC, and subcontractor when schedules slip.\n\n## Vehicle and access mismatches cause most failures\n\nThe most common jobsite failures are predictable:\n\n1. Wrong vehicle class for pallet weight or tailgate needs\n2. Arrival outside the published window\n3. No proof when the site super was not present to sign\n\nFixing these is a dispatch design problem, not a \"find any driver\" problem.\n\n## How distributors operationalize jobsite delivery\n\nLeading building supply distributors separate **counter business** from **jobsite routes** — different vehicles, different cut-offs, same tracking standard.\n\nPorterchain supports that model with recurring box truck and van routes across Ontario, live ETAs for site contacts, and proof packages your ops team can pull without calling the driver.\n\nIf jobsite delivery is a growing share of your volume, start by listing sites with strict windows and access constraints. Those routes are the template for a scalable program."
+ },
+ {
+  "locale": "en",
+  "slug": "medical-supply-chain-compliance",
+  "title": "Medical Supply Chain Compliance in Local Delivery",
+  "description": "Chain-of-custody, time-sensitive routing, and documentation standards for regulated healthcare shipments.",
+  "date": "2026-05-28",
+  "category": "medical",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "medical",
+   "compliance",
+   "healthcare"
+  ],
+  "content": "Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.\n\n## Beyond speed: documentation\n\nMedical and healthcare suppliers need:\n\n- **Time-sensitive routing** with realistic ETAs\n- **Chain-of-custody documentation** at handoff\n- **Proof standards** that satisfy internal QA and external auditors\n- **Controlled escalations** when exceptions occur\n\nPorterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**\n\n## Partner network quality\n\nRegulated shipments cannot ride on unknown vehicles and undocumented processes. Our driver partner model emphasizes predictable workflows, clear instructions, and operational support — not race-to-the-bottom gig matching.\n\n## Compliance built into every delivery\n\nWhen documentation is part of every Porterchain shipment, compliance scales with volume. That is how local medical suppliers compete with national distributors on reliability without building an in-house fleet."
+ },
+ {
+  "locale": "en",
+  "slug": "multi-location-delivery-capacity-gta",
+  "title": "Multi-Location Delivery Capacity Across the GTA",
+  "description": "How multi-branch Ontario businesses coordinate pickups, cut-offs, and proof without inventing a courier habit per location.",
+  "date": "2026-08-10",
+  "category": "business",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "multi-location",
+   "gta",
+   "capacity"
+  ],
+  "content": "Multi-location operators rarely fail because they lack a map. They fail when freight is staged at the wrong branch, cut-offs differ by site, and status lives in three group chats.\n\n## One capacity partner, many origins\n\nCounters in Toronto and docks in Peel can share vehicle-and-driver capacity with the same tracking and proof standards. The quote should name the pickup origin — not assume every run leaves one hub.\n\n## Transfers are deliveries too\n\nBranch balancing needs the same discipline as customer drops: staging, vehicle class, and closeout evidence.\n\n## Skip the SaaS trap\n\nYou do not need a new inventory platform to move staged freight. You need capacity that completes — and ops recovery when a window stalls."
+ },
+ {
+  "locale": "en",
+  "slug": "multi-stop-wholesale-routes-gta",
+  "title": "Multi-Stop Wholesale Routes Across the GTA",
+  "description": "How wholesale operators run multi-stop GTA loops with density, vehicle fit, and proof — without stretching night shift.",
+  "date": "2026-08-10",
+  "category": "wholesale",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "multi-stop",
+   "wholesale",
+   "gta"
+  ],
+  "content": "Wholesale rarely ships one door. Counter-to-contractor and warehouse-to-store loops need route density, access notes, and closeout proof that finance will accept.\n\n## Density beats isolated stops\n\nGeneric courier tools treat every stop as a one-off. Multi-stop wholesale needs sequenced loops across Peel and York with realistic ETAs.\n\n## Stage before you promise\n\nLate staging is the most common failure. Align cut-offs so freight is ready before the first wheel turns.\n\n## One partner for overflow days\n\nWhen the template breaks, overflow on the same partner keeps receivers from feeling courier roulette."
+ },
+ {
+  "locale": "en",
+  "slug": "operating-system-commercial-logistics",
+  "title": "Structured Operations for Commercial Logistics",
+  "description": "Why growing businesses need a managed logistics partner — not another courier app — to run dispatch, routing, and proof at scale.",
+  "date": "2026-06-20",
+  "category": "logistics",
+  "authorId": "peter-porter",
+  "featured": true,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "operations",
+   "dispatch",
+   "logistics"
+  ],
+  "content": "Commercial logistics is not a consumer problem. It is an operations problem — one that local businesses solve today with phone trees, spreadsheets, and blind trust in drivers they do not control.\n\nPorterchain was built on a different premise: **business-critical delivery deserves accountable, professional execution.**\n\n## From coordination to control\n\nMost delivery tools optimize for speed of booking. Porterchain optimizes for **accountability across the full shipment lifecycle**:\n\n1. **Pre-dispatch validation** — address checks, vehicle-class matching, capacity gates\n2. **Managed execution** — SLA-based dispatch, not marketplace guesswork\n3. **Live visibility** — status events and exceptions surfaced as execution progresses\n4. **Audit-ready proof** — photo, signature, GPS, and reference-linked history\n\nThis is what structured commercial logistics looks like: one connected operation from booking to delivery confirmation.\n\n## Why integrated operations beat point solutions\n\nPoint tools solve one moment — a quote, a tracking link, a driver notification. A managed logistics partner solves the **workflow** that connects those moments.\n\nWhen dispatch, routing, customer visibility, and billing share the same operational record, teams stop reconciling systems and start improving outcomes: on-time rates, exception rates, fuel efficiency, and customer trust.\n\n## Built for Ontario, built to scale\n\nOur routing, partner network, and compliance procedures are tuned for Canadian address networks and the realities of GTA and Ontario freight — from wholesale multi-stop routes to time-sensitive medical supply.\n\nThe businesses we serve do not need more drivers on demand. They need **reliable execution they can audit.**\n\nThat is the service we deliver every day."
+ },
+ {
+  "locale": "en",
+  "slug": "overflow-vs-dedicated-capacity-gta",
+  "title": "Overflow vs Dedicated vs Recurring Capacity in the GTA",
+  "description": "A practical checklist for choosing overflow, dedicated, or recurring delivery capacity — without SaaS pricing tiers.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": true,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "overflow",
+   "dedicated",
+   "recurring",
+   "pricing"
+  ],
+  "content": "PorterChain prices transportation capacity — not software seats. The useful decision is which shipping pattern you need this quarter.\n\n## Overflow / same-day\n\nBest when a driver is out, a truck is down, or demand spikes. You want backup capacity with the same tracking and proof standards as primary lanes.\n\n## Recurring routes\n\nBest for weekly café, wholesale, clinic, or warehouse loops. Fixed days and windows with overflow available when the template breaks.\n\n## Dedicated program\n\nBest when volume is steady enough to reserve coverage and name a dispatch relationship. Lane pricing replaces trip-by-trip roulette.\n\n## Brief one quote, mix patterns later\n\nMost GTA accounts mix overflow and recurring. Share corridors, vehicle class, and proof needs — get a written capacity path, not a monthly SaaS plan.\n\nSee [business pricing](/business#pricing) for the inclusion checklist."
+ },
+ {
+  "locale": "en",
+  "slug": "pharmacy-same-day-courier-gta",
+  "title": "Pharmacy Same-Day Courier Capacity in the GTA",
+  "description": "Same-day pharmacy and clinic runs with chain-of-custody visibility — without adding in-house fleet.",
+  "date": "2026-08-10",
+  "category": "medical",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "pharmacy",
+   "same-day",
+   "compliance"
+  ],
+  "content": "Pharmacy delivery is urgency plus accountability. Patients and clinics need ETAs; ops need a record that holds up when something goes wrong.\n\n## Same-day with a paper trail\n\nTracking and proof are not optional on regulated B2B runs. Status should live with the shipment.\n\n## Recurring plus urgent\n\nClinic replenishment and patient exceptions can share one capacity partner so the team is not juggling apps.\n\n## Start with zones and windows\n\nShare typical lanes, temperature or handling notes, and GTA zones. Quote from real constraints — not a demo tour."
+ },
+ {
+  "locale": "en",
+  "slug": "plumbing-supply-last-mile-gta",
+  "title": "Plumbing Supply Last-Mile in the GTA: Wholesaler Delivery That Scales",
+  "description": "Recurring routes, pipe and fixture handling, and proof of delivery for plumbing supply houses serving contractors across the Greater Toronto Area.",
+  "date": "2026-06-22",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "plumbing",
+   "wholesale",
+   "same-day-delivery"
+  ],
+  "content": "Plumbing supply houses win on availability and speed to site. Last-mile delivery is where that promise is kept — or broken.\n\n## The wholesale plumbing delivery problem\n\nContractors expect pipe, fittings, and fixtures when the job needs them. Running delivery with a mix of casual couriers and rented vans does not scale:\n\n- Routes change daily but **capacity does not**\n- Long stock and pallet mixes need the **right vehicle**, not whatever is available\n- Site contacts want **tracking and proof**, not phone tag with dispatch\n\n## Recurring routes vs. rush orders\n\nHealthy plumbing wholesalers usually need both:\n\n| Pattern                             | What ops needs                               |\n| ----------------------------------- | -------------------------------------------- |\n| **Recurring contractor routes**     | Same drivers, same windows, predictable cost |\n| **Same-day counter rush**           | Cut-off clarity and overflow capacity        |\n| **Commercial / multi-family sites** | Access notes, foreman sign-off, photo POD    |\n\nA single partner can run both patterns from one dispatch relationship — instead of splitting ops across apps and phone lists.\n\n## Vehicle fit matters for pipe and fixtures\n\nVans handle most trade runs. Box trucks enter when palletized stock, water heaters, or bulk orders are common. Matching vehicle class upfront avoids failed deliveries and re-dispatch cost.\n\n## Proof that protects your counter team\n\nWhen a contractor disputes a drop, your counter team should not reconstruct the story from texts. Photo proof, signatures, and GPS-backed status give inside sales a clean answer — and protect margin on high-value orders.\n\n## Next step for plumbing wholesalers\n\nMap your top 20 stops by volume and zone. That is usually enough to design recurring routes and same-day overflow across the GTA. Porterchain aligns vans and trucks to plumbing supply patterns daily — without asking you to hire drivers or buy vehicles."
+ },
+ {
+  "locale": "en",
+  "slug": "proof-of-delivery-disputes-ontario",
+  "title": "Proof of Delivery That Survives Ontario Billing Disputes",
+  "description": "Photo, signature, and GPS closeout records that help Ontario B2B teams settle delivery disputes without tribal knowledge.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "pod",
+   "claims",
+   "ontario"
+  ],
+  "content": "Most delivery disputes are memory contests: who was on site, what time, was the dock open. Claims-ready proof ends that contest.\n\n## What good closeout includes\n\n- Photo confirmation\n- Receiver signature when required\n- GPS timestamp at completion\n- Exception reason when the stop fails\n\n## Why it matters for trade lanes\n\nJobsite and wholesale receivers escalate fast. Shared evidence keeps GCs, counters, and finance aligned.\n\n## Path when something is damaged\n\nStart from the shipment record, not a disconnected email thread. Ops and enterprise contacts should work the same evidence chain."
+ },
+ {
+  "locale": "en",
+  "slug": "retail-last-mile-visibility",
+  "title": "Retail Last-Mile Visibility Customers Actually Use",
+  "description": "Branded tracking, live ETA, and delivery confirmation that reduce WISMO calls and build trust.",
+  "date": "2026-05-08",
+  "category": "retail",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "retail",
+   "visibility",
+   "customer-experience"
+  ],
+  "content": "\"Where is my order?\" is the most expensive sentence in retail operations. Every call deflects staff from selling and signals a visibility gap your logistics partner should have closed.\n\n## Visibility is a product feature\n\nModern retail buyers expect:\n\n- Live status and ETA updates\n- Delivery confirmation with proof\n- Consistent experience across channels\n\nWhen tracking is an afterthought, support teams become the tracking system.\n\n## Branded, operationally connected\n\nPorterchain's customer tracking experience delivers branded updates powered by the same shipment events our dispatch team uses internally — including public tracking links and live ETA — so customers and operators see **one source of truth.**\n\n## Business impact\n\nReduced WISMO volume. Higher completion rates on first attempt. Better reviews from B2B and B2C accounts that judge you on reliability, not ads.\n\nLast-mile visibility is not a nice-to-have. It is **retention infrastructure.**"
+ },
+ {
+  "locale": "en",
+  "slug": "returns-round-trip-capacity-gta",
+  "title": "Returns and Round-Trip Capacity in the GTA",
+  "description": "Treat B2B returns, swaps, and failed-delivery recovery as two-leg capacity — not an afterthought courier call.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "returns",
+   "round-trip",
+   "capacity",
+   "gta"
+  ],
+  "content": "Returns fail when ops treat the second address as optional. In the GTA, equipment swaps, unsold stock pickups, and failed-delivery recovery need the same vehicle match and proof as outbound lanes.\n\n## Two stops, one commercial promise\n\nBook both legs with clear access notes. A van that fit the outbound cube must still fit the return — and the dock contact must be reachable.\n\n## Capacity, not a rental SaaS app\n\nYou keep the customer relationship and inventory system. Capacity partners move freight between addresses with tracking and proof — they do not replace your merchandising stack.\n\n## Close both ends\n\nPhoto and GPS on pickup and delivery close billing and inventory adjustments without chasing drivers.\n\nDeep-dive: [Returns and round-trip capacity](/capabilities/returns-round-trip-capacity)."
+ },
+ {
+  "locale": "en",
+  "slug": "route-optimization-empty-miles",
+  "title": "How Route Optimization Reduces Empty Miles",
+  "description": "Intelligent sequencing and load matching cut fuel use, emissions, and idle time across commercial delivery networks.",
+  "date": "2026-06-18",
+  "category": "route-optimization",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "routing",
+   "sustainability",
+   "valhalla"
+  ],
+  "content": "Empty miles are the silent tax on every logistics operation. They inflate fuel bills, compress margins, and push more vehicles onto roads than necessary.\n\nModern route optimization treats routing as a **constraint satisfaction problem** — not a list of stops on a map.\n\n## What good routing optimizes for\n\n- **Stop sequencing** — minimize total distance while respecting time windows\n- **Vehicle-class fit** — match capacity and access requirements before dispatch\n- **Multi-stop density** — combine compatible deliveries into single efficient loops\n- **Real-time replanning** — adjust when exceptions occur without breaking SLAs\n\nPorterchain uses Valhalla-powered routing with OSRM fallback on the server side — supporting multi-stop sequences and time-window constraints common in wholesale and recurring B2B routes.\n\n## Measurable impact\n\nOperations teams using structured routing typically see:\n\n- Fewer vehicles dispatched for the same volume\n- Lower fuel spend per completed delivery\n- Improved on-time performance through realistic ETAs\n\nSustainability is not a slide in a deck — it is a **routing outcome** you can measure shipment by shipment.\n\n## From algorithm to operations\n\nRouting only matters when dispatch acts on it. That is why optimization is part of Porterchain's managed dispatch operation: planners see proposed sequences, validate capacity, and release routes with pre-departure checks — not exported CSVs that never match reality.\n\nBetter routes. Fewer empty miles. Operations teams that trust the plan before wheels roll."
+ },
+ {
+  "locale": "en",
+  "slug": "same-day-b2b-delivery-toronto",
+  "title": "Same-Day B2B Delivery in Toronto: Cut-Offs That Hold",
+  "description": "Same-day B2B delivery in Toronto works when cut-offs, vehicle class, and staging match the zone — not when sales overpromises.",
+  "date": "2026-08-10",
+  "category": "same-day-delivery",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "same-day",
+   "toronto",
+   "b2b"
+  ],
+  "content": "Same-day in Toronto is not a slogan. It is staged freight, a vehicle that fits the stop, and a driver who can hit a window in real traffic.\n\n## Zone-realistic cut-offs\n\nDowntown, Peel, and York are not one blanket SLA. Publish cut-offs by pickup zone so inside sales stops promising windows operations cannot hit.\n\n## Vehicle class first\n\nParcels and totes need different capacity than long stock or pallets. Wrong class burns the window even when the driver is on time.\n\n## Proof closes the day\n\nPhoto and signature POD stop the evening dispute cycle. Same-day without proof just moves the argument to tomorrow."
+ },
+ {
+  "locale": "en",
+  "slug": "same-day-delivery-at-scale",
+  "title": "Same-Day Delivery Operations at Scale",
+  "description": "How structured dispatch and live monitoring make same-day service reliable — not heroic.",
+  "date": "2026-05-22",
+  "category": "same-day-delivery",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "same-day",
+   "dispatch",
+   "sla"
+  ],
+  "content": "Same-day delivery is easy to promise and hard to operationalize. The difference between marketing copy and customer trust is **what happens when the third exception hits before noon.**\n\n## Same-day is a dispatch problem\n\nReliable same-day service requires:\n\n1. Real-time capacity visibility across the network\n2. Intelligent routing that does not over-commit drivers\n3. Pre-dispatch validation that rejects bad addresses early\n4. Exception workflows that escalate before customers call\n\nConsumer apps hide this complexity behind a simple booking button. Operations teams live inside it all day.\n\n## SLA execution under pressure\n\nPorterchain's managed dispatch gives planners a single command view: assign, monitor, resequence, and confirm — with proof captured at completion.\n\nSame-day at scale is not about more drivers. It is about **fewer avoidable failures** in the routes you already run.\n\n## Who benefits\n\nRetail replenishment, food distribution, industrial parts — any vertical where the afternoon delivery window is non-negotiable — gains from structured same-day operations backed by professional dispatch, not hope."
+ },
+ {
+  "locale": "en",
+  "slug": "same-day-from-store-capacity-gta",
+  "title": "Same-Day From Your GTA Store — Without Building a Courier Desk",
+  "description": "Fulfill local online and counter orders from the nearest store with vehicle-and-driver capacity, tracking, and proof.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "peter-porter",
+  "featured": true,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "store",
+   "same-day",
+   "retail",
+   "capacity"
+  ],
+  "content": "Ship-from-store only works when the store can stage freight and capacity can hit the window. It is not a checkout widget by itself.\n\n## Capacity from the branch that has stock\n\nMatch pickup to the location that can actually pull the order. Wrong store staging is the top failure mode.\n\n## Customer promise vs ops reality\n\nWhether the shopper sees “same-day” or “standard,” ops still needs vehicle class, cut-off, and proof.\n\n## One partner across locations\n\nMulti-location routing plus same-day overflow beats a different courier per branch.\n\nGuide: [Same-day from store capacity](/guides/same-day-from-store-capacity-gta)."
+ },
+ {
+  "locale": "en",
+  "slug": "sla-dispatch-vs-marketplace",
+  "title": "SLA-Based Dispatch vs. Marketplace Delivery",
+  "description": "Why accountable workflows outperform ad-hoc driver marketplaces for business-critical shipments.",
+  "date": "2026-06-14",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "dispatch",
+   "sla",
+   "operations"
+  ],
+  "content": "When a shipment matters — a medical restock, a wholesale cut-off, a construction site waiting on materials — **reliability beats availability.**\n\nMarketplace delivery optimizes for finding _a_ driver quickly. SLA-based dispatch optimizes for finding the _right_ execution path every time.\n\n## The marketplace gap\n\nAd-hoc marketplaces introduce variability:\n\n- Unknown driver training and vehicle standards\n- Reactive exception handling\n- Inconsistent proof and documentation\n- No central accountability when something fails\n\nFor personal errands, that tradeoff can work. For commercial operations, it creates audit risk and customer churn.\n\n## What structured dispatch provides\n\nPorterchain's dispatch controls enforce standards before and during execution:\n\n| Control                    | Purpose                                            |\n| -------------------------- | -------------------------------------------------- |\n| Address validation         | Prevent failed first attempts                      |\n| Vehicle-class checks       | Match load to capacity                             |\n| Pre-departure verification | Catch issues before departure                      |\n| Live monitoring            | Surface delays early                               |\n| Proof workflow             | Photo, signature, GPS, and audit trail for billing |\n\n## SLA as an operating contract\n\nAn SLA is not marketing language — it is an **operating contract** between your business, Porterchain, and your customers.\n\nManaged dispatch means someone owns the outcome from assignment through proof. That ownership is what growing businesses buy when they choose a commercial logistics partner over a consumer courier app."
+ },
+ {
+  "locale": "en",
+  "slug": "supply-chain-visibility-dispatch",
+  "title": "Supply Chain Visibility Starts at Dispatch",
+  "description": "Why end-to-end visibility is impossible without a connected planning and execution layer.",
+  "date": "2026-04-24",
+  "category": "supply-chain",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "supply-chain",
+   "visibility",
+   "data"
+  ],
+  "content": "Supply chain visibility became a boardroom topic overnight. Most initiatives still fail for a simple reason: **the data stops where the truck starts.**\n\n## Visibility requires connected events\n\nTrue visibility needs a continuous event stream:\n\n- Order ingested with validated addresses\n- Route planned with realistic ETAs\n- Dispatch assigned with accountability\n- In-transit updates and exceptions\n- Proof captured and linked to billing\n\nIf any step lives in a spreadsheet or a driver's text thread, your visibility dashboard is theater.\n\n## Connected operations, end to end\n\nPorterchain can share delivery events with your WMS, ERP, and customer systems — via webhooks and operational exports — so every team works from the same shipment record.\n\nVisibility is not a portal you bolt on. It is **one connected operation** — dispatch, routing, and proof on the same workflow.\n\n## From reactive to predictive\n\nWhen history is structured, operations move from firefighting to pattern recognition: which routes slip, which customers need wider windows, which exceptions are preventable.\n\nThat is how local businesses compete on reliability without enterprise headcount."
+ },
+ {
+  "locale": "en",
+  "slug": "transportation-capacity-network-vs-courier",
+  "title": "Transportation Capacity Network vs Ad-Hoc Courier",
+  "description": "Why GTA operators choose a capacity network — vehicles, drivers, ops, and proof — over courier roulette.",
+  "date": "2026-08-10",
+  "category": "business",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "capacity",
+   "courier",
+   "strategy"
+  ],
+  "content": "Ad-hoc couriers solve today's emergency and create tomorrow's inconsistency. A transportation capacity network sells completed runs: matched vehicles, professional drivers, ops recovery, and proof.\n\n## The product is the completed stop\n\nSoftware seats do not move freight. Capacity does. Technology coordinates; drivers and vehicles execute.\n\n## Primary and overflow together\n\nThe same partner can cover recurring lanes and peak overflow so customers never feel the scramble.\n\n## Evaluate coverage, not demos\n\nAsk about GTA zones, vehicle classes, POD standards, and written quotes. That is the commercial test."
+ },
+ {
+  "locale": "en",
+  "slug": "webhook-events-ops-can-use",
+  "title": "Webhook Events Your Ops Team Can Actually Use",
+  "description": "Delivery webhooks are worthless if they only say “updated.” Map events to dispatch, CS, and finance actions.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "webhooks",
+   "api",
+   "ops",
+   "integrations"
+  ],
+  "content": "Integrations fail quietly when every status looks the same in your ERP.\n\n## Name the moments that matter\n\nDispatched, at pickup, exception, delivered, proof ready — each should trigger a different internal action.\n\n## Pair webhooks with human exceptions\n\nAutomation routes the happy path. Ops still needs a clear escalation when a window stalls.\n\n## Capacity first, pipe second\n\nAPIs do not create trucks. Quote vehicle class and windows before you wire the last status callback.\n\nRead [Webhooks for delivery events](/integrations-education/webhooks-delivery-events) and [Developers](/developers)."
+ },
+ {
+  "locale": "en",
+  "slug": "wholesale-distribution-gta",
+  "title": "Wholesale Distribution Logistics in the GTA",
+  "description": "Recurring routes, multi-stop sequencing, and B2B visibility for Ontario wholesale operators.",
+  "date": "2026-06-05",
+  "category": "wholesale",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "wholesale",
+   "b2b",
+   "gta"
+  ],
+  "content": "Wholesale distribution in the GTA runs on rhythm: morning pulls, afternoon drops, tight cut-offs, and customers who measure you in **fill rate and punctuality** — not star ratings.\n\n## Recurring route complexity\n\nWholesale operators rarely ship one package to one door. They run:\n\n- Multi-stop loops across retail and foodservice accounts\n- Variable cube and weight per stop\n- Time windows tied to receiving dock hours\n- Returns and partial deliveries that change the plan mid-route\n\nGeneric courier tools treat each stop as isolated. Wholesale needs **route templates, capacity planning, and exception controls** baked into dispatch.\n\n## Visibility your customers expect\n\nB2B buyers increasingly expect consumer-grade tracking — branded portals, live ETA, delivery confirmation, and public tracking links — without calling your dispatch desk.\n\nPorterchain's tracking and status updates give your customers the same operational clarity your team has internally.\n\n## Scaling without a logistics department\n\nThe wholesale businesses we work with are growing faster than their ability to hire dispatchers. A managed logistics partner lets them run structured operations with a lean team — and audit-ready proof on every drop."
+ },
+ {
+  "locale": "fr",
+  "slug": "3pl-outbound-capacity-peel",
+  "title": "Capacité sortante 3PL depuis les entrepôts de Peel",
+  "description": "Comment les 3PL du RGT couvrent multi-arrêts sortants et débordement de pointe depuis les quais de Peel sans flotte permanente.",
+  "date": "2026-08-10",
+  "category": "supply-chain",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "3pl",
+   "warehouse",
+   "peel"
+  ],
+  "content": "Les quais de Peel bougent par vagues. Quand les SLA marchands sont serrés, les 3PL ont besoin d'une capacité sortante adaptée au mix cartons/palettes — plus un suivi partageable.\n\n## La sortie est un produit de capacité\n\nLe logiciel seul ne vide pas un quai. Il faut véhicules, chauffeurs et cut-offs alignés à la vague.\n\n## Multi-arrêts et pointe ensemble\n\nPromotions et pics de retours ne devraient pas forcer un effectif permanent. Réservez du débordement aux mêmes standards que les corridors principaux.\n\n## Statut visible pour les marchands\n\nSuivi et POD partageables gardent les marques confientes sans mettre chaque question d'ETA sur vos gestionnaires de comptes."
+ },
+ {
+  "locale": "fr",
+  "slug": "audit-ready-proof-of-delivery",
+  "title": "Building Audit-Ready Proof of Delivery",
+  "description": "Photo, signature, GPS, and reference-linked status history — the compliance layer modern logistics requires.",
+  "date": "2026-06-10",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "compliance",
+   "pod",
+   "operations"
+  ],
+  "content": "Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.\n\n## The proof chain\n\nPorterchain links every delivery confirmation to a **structured proof chain**:\n\n- **Photo capture** with timestamp and geolocation\n- **Signature** where required by customer or regulation\n- **OTP verification** for controlled handoff flows\n- **GPS coordinates** at completion event\n- **Shipment references** tying proof to order and billing records\n- **Status history** — immutable event log from ingest to complete\n\nEach element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._\n\n## Why audit-ready matters\n\nWholesale distributors dispute chargebacks. Medical suppliers face chain-of-custody questions. Construction firms need evidence that high-value materials arrived on site.\n\nAudit-ready proof is not overhead — it is **revenue protection.**\n\n## Built into every shipment\n\nProof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.\n\nWhen compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes."
+ },
+ {
+  "locale": "fr",
+  "slug": "box-truck-down-overflow-without-chaos",
+  "title": "Quand votre camion cube est immobilisé : débordement sans chaos",
+  "description": "Une unité à l'atelier ne doit pas casser les fenêtres clients. Briefez le débordement comme la capacité principale.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "débordement",
+   "flotte",
+   "camion-cube",
+   "rgt"
+  ],
+  "content": "L'immobilisation de flotte est normale. La roulette coursier est optionnelle.\n\n## Même classe, même preuve\n\nSi la course principale exigeait un camion cube 16 pi, le devis de débordement aussi. La mauvaise classe brûle la fenêtre deux fois.\n\n## Les notes d'accès voyagent avec la course\n\nCodes de portail, contacts quai et heures de site doivent suivre l'affectation — pas vivre dans un fil texte.\n\n## Un partenaire sur les pics\n\nLe débordement fonctionne mieux quand les destinataires connaissent déjà votre suivi et votre standard POD.\n\nPlus : [Débordement de flotte](/solutions/fleet-overflow) · [Récupération d'exceptions](/capabilities/exception-recovery)."
+ },
+ {
+  "locale": "fr",
+  "slug": "branch-balancing-same-day-capacity",
+  "title": "Équilibrage de succursales jour même sans étirer votre flotte",
+  "description": "Utilisez la capacité de débordement pour rééquilibrer les succursales du RGT les jours de pointe — sans heures sup qui brûlent l'équipe.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "branch",
+   "same-day",
+   "overflow"
+  ],
+  "content": "Les jours de pointe vident une succursale et surchargent une autre. Étirer votre flotte crée des heures dangereuses et manque quand même les cut-offs.\n\n## Le débordement comme soupape\n\nRéservez de la capacité de renfort avec les mêmes standards de preuve que les corridors principaux.\n\n## Garder les promesses clients intactes\n\nQuand le stock bouge d'abord entre sites, les fenêtres jour même client ont une chance. Séquencez le transfert, puis la livraison.\n\n## Devis depuis de vrais sites\n\nPartagez adresses de succursales, cube typique et pics. Les devis écrits battent la roulette téléphonique."
+ },
+ {
+  "locale": "fr",
+  "slug": "business-case-logistics-technology",
+  "title": "Construire un dossier d'affaires pour la logistique gérée",
+  "description": "Comment les responsables des opérations quantifient le ROI d'un partenaire de livraison professionnel — moins d'exceptions, meilleurs SLA, confiance en audit.",
+  "date": "2026-04-18",
+  "category": "business",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "business",
+   "roi",
+   "enterprise"
+  ],
+  "content": "Operations leaders rarely struggle to articulate logistics pain. They struggle to **fund the fix** — especially when the alternative is \"we've always done it this way.\"\n\n## Frame the cost of status quo\n\nQuantify what manual coordination costs today:\n\n- Labor hours on phone and email dispatch\n- Revenue at risk from late or failed deliveries\n- Chargebacks and disputes without solid proof\n- Fuel and mileage from unoptimized routes\n- Customer churn when visibility is poor\n\nThese line items make the business case concrete.\n\n## ROI levers from managed logistics\n\nA professional logistics partner like Porterchain improves:\n\n1. **On-time execution** — managed dispatch with SLA standards\n2. **Exception reduction** — pre-dispatch validation\n3. **Audit confidence** — proof chains on every shipment\n4. **Route efficiency** — measurable mileage and utilization gains\n\n## Pilot before you scale\n\nMost enterprises start with a scoped pilot on select routes. Prove the metrics, then expand — with data, not faith.\n\nThe businesses that win locally are not the ones with the most trucks. They are the ones with the **most accountable operations.**"
+ },
+ {
+  "locale": "fr",
+  "slug": "case-study-construction-distributor-gta",
+  "title": "Étude de cas : un distributeur de matériaux de construction en GBA augmente les livraisons sur chantier",
+  "description": "Comment un distributeur régional a atteint 98,7 % de livraisons à l'heure sur chantier et réduit le coût logistique par livraison de 22 % grâce à une répartition structurée et une preuve à chaque dépôt.",
+  "date": "2026-07-01",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": true,
+  "trending": false,
+  "caseStudy": true,
+  "tags": [
+   "case-study",
+   "construction",
+   "metrics",
+   "proof"
+  ],
+  "content": "## En bref\n\n| Métrique                              | Avant Porterchain       | Après pilote 90 jours |\n| ------------------------------------- | ----------------------- | --------------------- |\n| **Livraison à l'heure sur chantier**  | 81 % (courriers ad hoc) | **98,7 %**            |\n| **Coût logistique par livraison**     | Référence               | **−22 %**             |\n| **Livraisons chantier hebdomadaires** | ~18                     | **40+**               |\n| **Preuve à chaque livraison**         | Partielle / contestée   | **100 %** photo + GPS |\n\n## Profil client\n\nUn distributeur régional de matériaux de construction dans le GBA livre bois, gypse et quincaillerie sur des chantiers actifs. L'acheteur est un responsable des opérations gérant 50 à 120 expéditions par semaine — au cœur de l'ICP Phase 1 de Porterchain.\n\n## Défi\n\nLes places de marché de courriers géraient les courses ponctuelles, mais les tournées récurrentes manquaient de responsabilité : fenêtres manquées, preuves insuffisantes pour les litiges avec les entrepreneurs généraux, et des heures de réconciliation entre applications.\n\n## Solution\n\nPorterchain a aligné des **routes en camion 16 pi** sur la liste de répartition quotidienne : fenêtres fixes par chantier, OS de répartition centralisé, et preuve photo + GPS sur chaque livraison.\n\n## Résultats (90 jours)\n\n- **98,7 % de livraisons à l'heure** (contre 81 %)\n- **22 % de coût logistique en moins** par livraison\n- **40+ livraisons chantier par semaine** sans flotte interne supplémentaire\n\n> « Nous avions besoin de livraisons palettisées avec une preuve acceptée par nos entrepreneurs généraux. Porterchain a rendu cela reproductible. »\n> — Responsable des opérations, distributeur de matériaux de construction (GBA)\n\n[Plus de réussites](/fr/success-stories) ou [explorer la plateforme](/fr/platform)."
+ },
+ {
+  "locale": "fr",
+  "slug": "clinic-supply-loops-gta",
+  "title": "Boucles d'approvisionnement clinique sans répartition par téléphone",
+  "description": "Le réapprovisionnement multi-arrêts de cliniques dans le RGT exige capacité réservée, notes d'accès et preuve — pas un autre clavardage de groupe.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "clinique",
+   "médical",
+   "multi-arrêts",
+   "rgt"
+  ],
+  "content": "Les boucles cliniques échouent quand chaque arrêt devient un appel. Traitez le réapprovisionnement comme un programme de capacité.\n\n## Séquencer le corridor\n\nRegroupez les cliniques par zone et fenêtre. Le multi-arrêts dense bat une berline qui zigzag tout l'après-midi.\n\n## Preuve pour destinataires réglementés\n\nPhoto et GPS aident pharmacie et cliniques à répondre à la conformité sans courir après les chauffeurs.\n\n## Récurrent plus jour même\n\nVerrouillez le modèle hebdomadaire. Gardez le débordement pour ruptures et cut-offs manqués.\n\nVoir [Solutions médicales](/solutions/medical) et [Livraison multi-arrêts](/capabilities/multi-stop-delivery)."
+ },
+ {
+  "locale": "fr",
+  "slug": "coffee-supply-chain-freshness",
+  "title": "Coffee Supply Chain Freshness: Timing the Last Mile",
+  "description": "Tight delivery windows, temperature-aware scheduling, and exception alerts for perishable coffee distribution.",
+  "date": "2026-05-01",
+  "category": "coffee",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "coffee",
+   "perishables",
+   "food"
+  ],
+  "content": "Specialty coffee distribution is a freshness business. Roasters and wholesalers invest in origin, roast profile, and packaging — then lose quality in an uncontrolled last mile.\n\n## Time is a product attribute\n\nCoffee logistics requires:\n\n- **Tight delivery windows** aligned with café receiving hours\n- **Route density** to minimize time on vehicle\n- **Exception alerts** when a stop slips — before beans sit on a warm truck\n\nGeneric delivery treats coffee like any box. Freshness-focused operators treat **transit time as a quality input.**\n\n## Structured routes for recurring accounts\n\nMost coffee wholesalers run recurring loops to cafés and retail partners. Route templates, multi-stop planning, and SLA monitoring turn those loops into **repeatable quality** — not driver-dependent luck.\n\n## Small volume, high standards\n\nYou do not need national scale to need professional logistics. You need dispatch controls, proof, and visibility that match the care you put in the roast.\n\nThat is the supply chain specialty coffee deserves."
+ },
+ {
+  "locale": "fr",
+  "slug": "construction-material-logistics",
+  "title": "Construction Material Logistics: Site Delivery Done Right",
+  "description": "Heavy-capacity matching, site coordination, and proof for high-value materials on Ontario job sites.",
+  "date": "2026-05-15",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "heavy-freight",
+   "proof"
+  ],
+  "content": "Construction supply chains punish improvisation. Wrong vehicle class, missed site access windows, or missing proof on a high-value drop creates costly downtime.\n\n## Site-specific constraints\n\nConstruction deliveries demand:\n\n- **Vehicle-class and capacity matching** for lumber, drywall, fixtures, and equipment\n- **Site coordination** — gates, lifts, foreman sign-off\n- **Proof that satisfies GCs and suppliers** when quantities or timing are disputed\n\nDispatch must encode these constraints before release — not discover them at the gate.\n\n## Proof as project documentation\n\nPhoto, signature, and GPS-backed proof tied to shipment references gives project managers evidence that materials arrived when billed — reducing disputes across the supply chain.\n\n## Why Porterchain fits construction\n\nPorterchain treats construction as a first-class vertical: structured dispatch, routing tuned for Ontario roads, and compliance workflows our operations team runs daily — so you do not need to build your own logistics department."
+ },
+ {
+  "locale": "fr",
+  "slug": "courier-vs-capacity-partner-gta",
+  "title": "Coursier vs partenaire de capacité pour la livraison B2B au RGT",
+  "description": "Quand les réservations de coursier ponctuelles cessent de scaler — et quand il faut de la capacité véhicule + chauffeur avec répartition, suivi et preuve.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "coursier",
+   "capacité",
+   "rgt",
+   "b2b"
+  ],
+  "content": "Les expéditeurs B2B du RGT commencent souvent par téléphone et apps coursiers. Ça marche jusqu'à ce que les fenêtres se durcissent, les vagues multi-arrêts apparaissent, ou la finance demande une preuve à chaque dépôt.\n\n## Ce qui change à l'échelle\n\nUne course ponctuelle optimise un seul déplacement. Un partenaire de capacité optimise l'exécution répétable : classe de véhicule, chauffeur professionnel, récupération d'exceptions et preuves de clôture.\n\n## Signes que vous avez dépassé le ponctuel\n\nFenêtres chantier manquées, routes café qui glissent les jours de pointe, destinataires qui appellent pour l'ETA, litiges sans photo ni GPS — tout cela dépasse « trouver un autre coursier ».\n\n## Briefez le prochain devis comme de la capacité\n\nPartagez corridors, classe de véhicule, fenêtres et besoins de preuve. Des options de capacité écrites battent une autre roulette téléphonique.\n\nLire le guide : [Choisir un coursier vs un partenaire de capacité](/guides/choosing-courier-vs-capacity-partner-gta)."
+ },
+ {
+  "locale": "fr",
+  "slug": "cutoff-discipline-toronto-peel-york",
+  "title": "Discipline des cut-offs à Toronto, Peel et York",
+  "description": "La capacité jour même échoue quand chaque zone partage un seul cut-off. Publiez des fenêtres réalistes par corridor.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "cut-off",
+   "jour-même",
+   "rgt",
+   "ops"
+  ],
+  "content": "Traiter le RGT comme un seul SLA, c'est ainsi que les ventes surpromettent et les quais sous-livrent.\n\n## La zone avant le slogan\n\nComptoirs du centre-ville, entrepôts de Peel et chantiers de York ne partagent pas la même réalité de staging. Publiez les cut-offs par zone de ramassage.\n\n## Préparer avant de citer l'urgence\n\nLe fret non prêt au cut-off n'est pas un problème jour même — c'est un problème d'intake. La capacité ne invente pas le temps.\n\n## Débordement quand votre flotte est pleine\n\nRéservez de la capacité de renfort avec le même suivi et la même preuve.\n\nGuide : [Capacité de livraison jour même dans le RGT](/guides/same-day-delivery-capacity-gta)."
+ },
+ {
+  "locale": "fr",
+  "slug": "early-morning-foodservice-routes-gta",
+  "title": "Routes foodservice tôt le matin dans le RGT",
+  "description": "Comment torréfacteurs et distributeurs alimentaires tiennent les fenêtres café et cuisine avec capacité récurrente — plus débordement jour même.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "foodservice",
+   "café",
+   "récurrent",
+   "rgt"
+  ],
+  "content": "Les fenêtres foodservice ne bougent pas pour le trafic. Torréfacteurs et distributeurs ont besoin de capacité tôt le matin avec un suivi que cafés et cuisines peuvent croire.\n\n## Récurrent d'abord, débordement ensuite\n\nVerrouillez les boucles hebdomadaires café ou restaurant pour que le produit parte à l'heure. Gardez le débordement jour même pour promotions et cut-offs manqués sans inventer un nouveau coursier à chaque fois.\n\n## Véhicule adapté au fret périssable\n\nBacs, caisses et cartons mixtes exigent la bonne classe de fourgonnette et une discipline de staging. Surcharger une berline pour « sauver » le devis coûte souvent la fenêtre.\n\n## Preuve qui calme le téléphone\n\nETA partageable et clôture photo réduisent les appels « où est mon dépôt? » pendant le rush du matin.\n\nExplorer [solutions alimentation](/solutions/food-beverage) et [capacité de routes récurrentes](/capabilities/recurring-routes)."
+ },
+ {
+  "locale": "fr",
+  "slug": "electrical-counter-to-jobsite-windows",
+  "title": "Fenêtres comptoir électrique–chantier qui tiennent",
+  "description": "Les comptoirs métier perdent l'après-midi quand les fenêtres chantier glissent. Capacité réservée et POD ferment la boucle.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "électrique",
+   "chantier",
+   "gros",
+   "rgt"
+  ],
+  "content": "Les électriciens n'attendent pas les histoires de quai. La livraison comptoir–chantier est un produit de capacité.\n\n## Le long stock exige la bonne fourgonnette\n\nConduits et fixtures punissent la mauvaise classe. Confirmez l'adéquation dans le devis.\n\n## L'accès chantier est la moitié du travail\n\nContacts contremaître, timing de monte-charge et notes de site boueux appartiennent au billet de répartition.\n\n## Preuve pour litiges de facturation\n\nLa photo au dépôt termine les « ça n'est jamais arrivé » entre comptoir et entrepreneur général.\n\nExplorer [Solutions gros](/solutions/wholesale) et [Construction](/construction)."
+ },
+ {
+  "locale": "fr",
+  "slug": "electrical-wholesaler-delivery-ontario",
+  "title": "Livraison grossiste électrique en Ontario : dernier kilomètre sans flotte",
+  "description": "Comment les grossistes électriques gèrent livraison même jour et tournées récurrentes vers entrepreneurs — suivi, cut-offs et preuve sur chaque envoi.",
+  "date": "2026-06-20",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "electrical",
+   "wholesale",
+   "proof"
+  ],
+  "content": "Les grossistes électriques vivent selon les cut-offs. Un entrepreneur qui attend fil, panneaux ou fixtures appellera trois fournisseurs avant de vous rappeler.\n\n## Pourquoi le dernier kilomètre casse\n\nEntrepôt serré et comptoir fort — mais la livraison repose souvent sur coursiers ad hoc et ventes internes qui courent après les ETA.\n\n## Ce qu'un partenaire structuré change\n\n- Tournées récurrentes vers comptes entrepreneurs et chantiers\n- Capacité même jour dans des fenêtres convenues\n- Liens de suivi sur chaque envoi\n- Preuve photo et signature pour les GC\n\n## Porterchain pour la distribution électrique\n\nNous gérons livraison récurrente et même jour pour grossistes électriques dans le RGT, Hamilton, Kitchener-Waterloo et l'Ontario — un tableau de bord pour la visibilité dispatch et le suivi client."
+ },
+ {
+  "locale": "fr",
+  "slug": "fleet-overflow-capacity-gta",
+  "title": "Capacité de débordement de flotte pour entreprises du RGT",
+  "description": "Quand vos camions sont pleins ou une unité immobilisée, le débordement tient les cut-offs du RGT — sans effectif permanent.",
+  "date": "2026-08-10",
+  "category": "business",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "overflow",
+   "fleet",
+   "gta"
+  ],
+  "content": "Les jours de pointe et les pannes n'attendent pas les cycles d'embauche. Grossistes, fournisseurs construction et entrepôts du RGT manquent les cut-offs quand leur flotte est déjà réservée — puis improvisent avec des coursiers sans standard de preuve.\n\n## Le débordement est une assurance capacité\n\nTraitez le débordement comme une soupape planifiée : mêmes classes de véhicule, chauffeurs professionnels, suivi partageable et preuve à chaque arrêt. Les destinataires ne doivent pas sentir la panique quand le volume explose.\n\n## Quand les équipes le réservent\n\n- Jours de promotion et de lancement\n- Camion en atelier ou absence de chauffeur\n- Cut-offs d'après-midi plus durs que vos propres tournées\n\n## Comment commencer\n\nPartagez pics typiques, classe de véhicule et zones. Un devis écrit bat la roulette téléphonique quand le quai est déjà plein."
+ },
+ {
+  "locale": "fr",
+  "slug": "inventory-transfers-warehouse-to-store-gta",
+  "title": "Transferts d'inventaire entrepôt-magasin dans le RGT",
+  "description": "Capacité de transfert jour même et planifiée entre entrepôts et magasins ontariens — véhicule adapté, contacts quai et preuve.",
+  "date": "2026-08-10",
+  "category": "supply-chain",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "inventory",
+   "transfers",
+   "warehouse"
+  ],
+  "content": "Un transfert est un problème de capacité à deux arrêts : collecter proprement, livrer proprement, prouver le mouvement. Traitez-le comme un SLA client.\n\n## Préparer avant de répartir\n\nRéférences SKU, contact quai et fret prêt battent une demande jour même optimiste à chaque fois.\n\n## Apparier le cube au véhicule\n\nCartons et bacs ne sont pas des palettes. Une mauvaise classe brûle la fenêtre même si le chauffeur est en avance.\n\n## Clôturer pour la responsabilité\n\nPhoto et GPS aident retail et entrepôt à s'accorder que le stock est arrivé — utile quand la prévention des pertes pose des questions."
+ },
+ {
+  "locale": "fr",
+  "slug": "jobsite-delivery-capacity-mississauga",
+  "title": "Capacité de livraison chantier à Mississauga et Peel",
+  "description": "Dépôts palettes et matériaux sur chantiers Mississauga — véhicule adapté, accès site et POD acceptée par les EG.",
+  "date": "2026-08-10",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "jobsite",
+   "construction",
+   "mississauga"
+  ],
+  "content": "La livraison chantier échoue plus souvent sur notes d'accès et mauvais camions que sur la distance. Les sites Mississauga et Peel exigent une capacité adaptée à la porte et à la palette.\n\n## Capturer le bon contact\n\nEG ou surintendant de site — pas seulement le bureau d'achats. Un accès raté brûle la fenêtre.\n\n## Apparier le camion au site\n\nCamion cube pour palettes; fourgon métier pour longs stocks si le site est serré. Confirmez la classe dans le devis.\n\n## Preuve pour la facturation\n\nLa POD photo ferme les litiges EG et sort les ventes internes de la course du soir."
+ },
+ {
+  "locale": "fr",
+  "slug": "jobsite-delivery-time-windows-pod",
+  "title": "Fenêtres horaires chantier et preuve de livraison : attentes des entrepreneurs généraux",
+  "description": "Pourquoi les chantiers exigent fenêtres serrées, coordination d'accès et preuve prête pour audit — et comment les distributeurs y répondent.",
+  "date": "2026-06-25",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "heavy-freight",
+   "proof",
+   "jobsite"
+  ],
+  "content": "Sur un chantier actif, un camion en retard peut immobiliser des équipes et déclencher pénalités.\n\n## Les fenêtres horaires sont opérationnelles\n\nLes entrepreneurs généraux publient des plages de réception pour l'espace, les ascenseurs et l'enchaînement des métiers.\n\n## La preuve de livraison documente le projet\n\n- Preuve photo horodatée\n- Signatures numériques si requises\n- Références d'envoi liées au bon de commande\n\n## Erreurs les plus fréquentes\n\n1. Mauvaise classe de véhicule pour palettes ou hayon\n2. Arrivée hors fenêtre publiée\n3. Aucune preuve si le contremaître était absent\n\n## Porterchain pour livraison chantier\n\nTournées récurrentes fourgonnette et camion boîte en Ontario, ETA en direct pour contacts chantier, et dossiers de preuve sans appeler le chauffeur."
+ },
+ {
+  "locale": "fr",
+  "slug": "medical-supply-chain-compliance",
+  "title": "Medical Supply Chain Compliance in Local Delivery",
+  "description": "Chain-of-custody, time-sensitive routing, and documentation standards for regulated healthcare shipments.",
+  "date": "2026-05-28",
+  "category": "medical",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "medical",
+   "compliance",
+   "healthcare"
+  ],
+  "content": "Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.\n\n## Beyond speed: documentation\n\nMedical and healthcare suppliers need:\n\n- **Time-sensitive routing** with realistic ETAs\n- **Chain-of-custody documentation** at handoff\n- **Proof standards** that satisfy internal QA and external auditors\n- **Controlled escalations** when exceptions occur\n\nPorterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**\n\n## Partner network quality\n\nRegulated shipments cannot ride on unknown vehicles and undocumented processes. Our driver partner model emphasizes predictable workflows, clear instructions, and operational support — not race-to-the-bottom gig matching.\n\n## Compliance built into every delivery\n\nWhen documentation is part of every Porterchain shipment, compliance scales with volume. That is how local medical suppliers compete with national distributors on reliability without building an in-house fleet."
+ },
+ {
+  "locale": "fr",
+  "slug": "multi-location-delivery-capacity-gta",
+  "title": "Capacité de livraison multi-emplacements dans le RGT",
+  "description": "Comment les entreprises multi-succursales ontariennes coordonnent collectes, cut-offs et preuve sans inventer une habitude coursier par site.",
+  "date": "2026-08-10",
+  "category": "business",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "multi-location",
+   "gta",
+   "capacity"
+  ],
+  "content": "Les opérateurs multi-sites échouent rarement faute de carte. Ils échouent quand le fret est préparé à la mauvaise succursale, les cut-offs diffèrent, et le statut vit dans trois clavardages.\n\n## Un partenaire de capacité, plusieurs origines\n\nComptoirs à Toronto et quais à Peel peuvent partager véhicule + chauffeur avec les mêmes standards de suivi et de preuve. Le devis doit nommer l'origine de collecte.\n\n## Les transferts sont aussi des livraisons\n\nL'équilibrage de succursales exige la même discipline que les dépôts clients : staging, classe de véhicule et preuve de clôture.\n\n## Éviter le piège SaaS\n\nVous n'avez pas besoin d'une nouvelle plateforme d'inventaire pour déplacer du fret préparé. Vous avez besoin de capacité qui se termine — et de récupération ops quand une fenêtre bloque."
+ },
+ {
+  "locale": "fr",
+  "slug": "multi-stop-wholesale-routes-gta",
+  "title": "Routes de gros multi-arrêts dans le RGT",
+  "description": "Comment les opérateurs de gros gèrent des boucles multi-arrêts dans le RGT avec densité, véhicule adapté et preuve — sans étirer l'équipe de nuit.",
+  "date": "2026-08-10",
+  "category": "wholesale",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "multi-stop",
+   "wholesale",
+   "gta"
+  ],
+  "content": "Le gros envoie rarement une seule porte. Les boucles comptoir-entrepreneur et entrepôt-magasin exigent densité de tournées, notes d'accès et preuve de clôture acceptée par la finance.\n\n## La densité bat les arrêts isolés\n\nLes outils coursiers génériques traitent chaque arrêt comme un one-shot. Le gros multi-arrêts a besoin de boucles séquencées à Peel et York avec des ETA réalistes.\n\n## Préparez avant de promettre\n\nLe staging tardif est l'échec le plus courant. Alignez les cut-offs pour que le fret soit prêt avant le premier tour de roue.\n\n## Un partenaire pour les jours de débordement\n\nQuand le modèle casse, le débordement chez le même partenaire évite la roulette de coursiers."
+ },
+ {
+  "locale": "fr",
+  "slug": "operating-system-commercial-logistics",
+  "title": "Des opérations structurées pour la logistique commerciale",
+  "description": "Pourquoi les entreprises en croissance ont besoin d'un partenaire logistique géré — pas d'une autre application de messagerie — pour la répartition, le routage et la preuve à grande échelle.",
+  "date": "2026-06-20",
+  "category": "logistics",
+  "authorId": "peter-porter",
+  "featured": true,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "operations",
+   "dispatch",
+   "logistics"
+  ],
+  "content": "Commercial logistics is not a consumer problem. It is an operations problem — one that local businesses solve today with phone trees, spreadsheets, and blind trust in drivers they do not control.\n\nPorterchain was built on a different premise: **business-critical delivery deserves accountable, professional execution.**\n\n## From coordination to control\n\nMost delivery tools optimize for speed of booking. Porterchain optimizes for **accountability across the full shipment lifecycle**:\n\n1. **Pre-dispatch validation** — address checks, vehicle-class matching, capacity gates\n2. **Managed execution** — SLA-based dispatch, not marketplace guesswork\n3. **Live visibility** — status events and exceptions surfaced as execution progresses\n4. **Audit-ready proof** — photo, signature, GPS, and reference-linked history\n\nThis is what structured commercial logistics looks like: one connected operation from booking to delivery confirmation.\n\n## Why integrated operations beat point solutions\n\nPoint tools solve one moment — a quote, a tracking link, a driver notification. A managed logistics partner solves the **workflow** that connects those moments.\n\nWhen dispatch, routing, customer visibility, and billing share the same operational record, teams stop reconciling systems and start improving outcomes: on-time rates, exception rates, fuel efficiency, and customer trust.\n\n## Built for Ontario, built to scale\n\nOur routing, partner network, and compliance procedures are tuned for Canadian address networks and the realities of GTA and Ontario freight — from wholesale multi-stop routes to time-sensitive medical supply.\n\nThe businesses we serve do not need more drivers on demand. They need **reliable execution they can audit.**\n\nThat is the service we deliver every day."
+ },
+ {
+  "locale": "fr",
+  "slug": "overflow-vs-dedicated-capacity-gta",
+  "title": "Débordement vs capacité dédiée vs récurrente dans le RGT",
+  "description": "Grille pratique pour choisir débordement, dédié ou récurrent — sans forfaits tarifaires SaaS.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": true,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "débordement",
+   "dédié",
+   "récurrent",
+   "tarification"
+  ],
+  "content": "PorterChain tarifie la capacité de transport — pas des sièges logiciels. La décision utile est quel modèle d'expédition vous avez besoin ce trimestre.\n\n## Débordement / jour même\n\nIdéal quand un chauffeur est absent, un camion immobilisé ou la demande explose. Vous voulez de la capacité de renfort avec les mêmes standards de suivi et de preuve.\n\n## Routes récurrentes\n\nIdéal pour les boucles hebdomadaires café, gros, clinique ou entrepôt. Jours et fenêtres fixes, avec débordement quand le modèle casse.\n\n## Programme dédié\n\nIdéal quand le volume justifie de réserver de la couverture et de nommer une relation de répartition. La tarification par corridor remplace la roulette course par course.\n\n## Un devis, des modèles mixtes ensuite\n\nLa plupart des comptes RGT mélangent débordement et récurrent. Partagez corridors, classe de véhicule et besoins de preuve — obtenez un parcours de capacité écrit, pas un forfait SaaS mensuel.\n\nVoir [tarification affaires](/business#pricing) pour la liste d'inclusion."
+ },
+ {
+  "locale": "fr",
+  "slug": "pharmacy-same-day-courier-gta",
+  "title": "Capacité coursier pharmacie jour même dans le RGT",
+  "description": "Courses pharmacie et clinique jour même avec visibilité de chaîne de custody — sans flotte interne.",
+  "date": "2026-08-10",
+  "category": "medical",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "pharmacy",
+   "same-day",
+   "compliance"
+  ],
+  "content": "La livraison pharmacie, c'est urgence plus responsabilité. Patients et cliniques veulent des ETA; les ops veulent un dossier qui tient quand quelque chose dérape.\n\n## Jour même avec piste d'audit\n\nSuivi et preuve ne sont pas optionnels sur les courses B2B réglementées. Le statut doit vivre avec l'envoi.\n\n## Récurrent plus urgent\n\nRéapprovisionnement clinique et exceptions patients peuvent partager un partenaire de capacité pour éviter de jongler entre apps.\n\n## Commencer par zones et fenêtres\n\nPartagez corridors typiques, notes de manutention et zones RGT. Devis depuis de vraies contraintes — pas une visite de plateforme."
+ },
+ {
+  "locale": "fr",
+  "slug": "plumbing-supply-last-mile-gta",
+  "title": "Dernier kilomètre plomberie dans le RGT : livraison grossiste à l'échelle",
+  "description": "Tournées récurrentes, manutention tuyaux et fixtures, et preuve de livraison pour maisons de plomberie desservant entrepreneurs du Grand Toronto.",
+  "date": "2026-06-22",
+  "category": "construction",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "construction",
+   "plumbing",
+   "wholesale",
+   "same-day-delivery"
+  ],
+  "content": "Les maisons de plomberie gagnent sur disponibilité et vitesse vers chantier. Le dernier kilomètre tient ou brise cette promesse.\n\n## Le problème livraison grossiste plomberie\n\nLes entrepreneurs veulent tuyaux, raccords et fixtures quand le travail l'exige. Mélanger coursiers et location de camionnettes ne scale pas.\n\n## Routes récurrentes vs commandes urgentes\n\n| Modèle                     | Besoin opérationnel                               |\n| -------------------------- | ------------------------------------------------- |\n| **Tournées entrepreneurs** | Mêmes chauffeurs, mêmes fenêtres, coût prévisible |\n| **Urgence comptoir**       | Cut-off clair et capacité de débordement          |\n| **Chantiers commerciaux**  | Notes d'accès, signature contremaître, POD photo  |\n\n## Preuve qui protège le comptoir\n\nQuand un entrepreneur conteste une livraison, le comptoir ne devrait pas reconstruire l'histoire par texto. Preuve photo, signatures et statut GPS donnent une réponse claire.\n\n## Prochaine étape\n\nCartographiez vos 20 principaux arrêts par volume et zone — suffisant pour concevoir tournées récurrentes et débordement même jour dans le RGT avec Porterchain."
+ },
+ {
+  "locale": "fr",
+  "slug": "proof-of-delivery-disputes-ontario",
+  "title": "Preuve de livraison qui survit aux litiges de facturation en Ontario",
+  "description": "Dossiers de clôture photo, signature et GPS qui aident les équipes B2B ontariennes à régler les litiges sans savoir tribal.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "pod",
+   "claims",
+   "ontario"
+  ],
+  "content": "La plupart des litiges de livraison sont des concours de mémoire. Une preuve prête pour réclamations y met fin.\n\n## Ce qu'inclut une bonne clôture\n\n- Confirmation photo\n- Signature destinataire si requise\n- Horodatage GPS à l'achèvement\n- Motif d'exception si l'arrêt échoue\n\n## Pourquoi ça compte pour les corridors métier\n\nChantiers et destinataires de gros escaladent vite. Des preuves partagées alignent EG, comptoirs et finance.\n\n## Parcours en cas de dommage\n\nPartez du dossier d'envoi, pas d'un fil courriel déconnecté. Ops et entreprise doivent travailler la même chaîne de preuves."
+ },
+ {
+  "locale": "fr",
+  "slug": "retail-last-mile-visibility",
+  "title": "Retail Last-Mile Visibility Customers Actually Use",
+  "description": "Branded tracking, live ETA, and delivery confirmation that reduce WISMO calls and build trust.",
+  "date": "2026-05-08",
+  "category": "retail",
+  "authorId": "peter-porter",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "retail",
+   "visibility",
+   "customer-experience"
+  ],
+  "content": "\"Where is my order?\" is the most expensive sentence in retail operations. Every call deflects staff from selling and signals a visibility gap your logistics partner should have closed.\n\n## Visibility is a product feature\n\nModern retail buyers expect:\n\n- Live status and ETA updates\n- Delivery confirmation with proof\n- Consistent experience across channels\n\nWhen tracking is an afterthought, support teams become the tracking system.\n\n## Branded, operationally connected\n\nPorterchain's customer tracking experience delivers branded updates powered by the same shipment events our dispatch team uses internally — including public tracking links and live ETA — so customers and operators see **one source of truth.**\n\n## Business impact\n\nReduced WISMO volume. Higher completion rates on first attempt. Better reviews from B2B and B2C accounts that judge you on reliability, not ads.\n\nLast-mile visibility is not a nice-to-have. It is **retention infrastructure.**"
+ },
+ {
+  "locale": "fr",
+  "slug": "returns-round-trip-capacity-gta",
+  "title": "Capacité retours et aller-retour dans le RGT",
+  "description": "Traitez retours B2B, échanges et récupération d'échecs comme une capacité à deux jambes — pas un appel coursier après coup.",
+  "date": "2026-08-10",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "retours",
+   "aller-retour",
+   "capacité",
+   "rgt"
+  ],
+  "content": "Les retours échouent quand les ops traitent la deuxième adresse comme optionnelle. Dans le RGT, échanges d'équipement, ramassages de stock invendu et récupération d'échecs exigent le même appariement véhicule et la même preuve que les sorties.\n\n## Deux arrêts, une promesse commerciale\n\nRéservez les deux jambes avec notes d'accès claires. La fourgonnette qui convenait à l'aller doit encore convenir au retour — et le contact quai doit être joignable.\n\n## Capacité, pas une app SaaS de location\n\nVous gardez la relation client et le système d'inventaire. Les partenaires de capacité déplacent le fret entre adresses avec suivi et preuve — ils ne remplacent pas votre pile marchande.\n\n## Clôturer les deux bouts\n\nPhoto et GPS au ramassage et à la livraison ferment facturation et ajustements d'inventaire sans courir après les chauffeurs.\n\nApprofondir : [Capacité retours et aller-retour](/capabilities/returns-round-trip-capacity)."
+ },
+ {
+  "locale": "fr",
+  "slug": "route-optimization-empty-miles",
+  "title": "How Route Optimization Reduces Empty Miles",
+  "description": "Intelligent sequencing and load matching cut fuel use, emissions, and idle time across commercial delivery networks.",
+  "date": "2026-06-18",
+  "category": "route-optimization",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "routing",
+   "sustainability",
+   "valhalla"
+  ],
+  "content": "Empty miles are the silent tax on every logistics operation. They inflate fuel bills, compress margins, and push more vehicles onto roads than necessary.\n\nModern route optimization treats routing as a **constraint satisfaction problem** — not a list of stops on a map.\n\n## What good routing optimizes for\n\n- **Stop sequencing** — minimize total distance while respecting time windows\n- **Vehicle-class fit** — match capacity and access requirements before dispatch\n- **Multi-stop density** — combine compatible deliveries into single efficient loops\n- **Real-time replanning** — adjust when exceptions occur without breaking SLAs\n\nPorterchain uses Valhalla-powered routing with OSRM fallback on the server side — supporting multi-stop sequences and time-window constraints common in wholesale and recurring B2B routes.\n\n## Measurable impact\n\nOperations teams using structured routing typically see:\n\n- Fewer vehicles dispatched for the same volume\n- Lower fuel spend per completed delivery\n- Improved on-time performance through realistic ETAs\n\nSustainability is not a slide in a deck — it is a **routing outcome** you can measure shipment by shipment.\n\n## From algorithm to operations\n\nRouting only matters when dispatch acts on it. That is why optimization is part of Porterchain's managed dispatch operation: planners see proposed sequences, validate capacity, and release routes with pre-departure checks — not exported CSVs that never match reality.\n\nBetter routes. Fewer empty miles. Operations teams that trust the plan before wheels roll."
+ },
+ {
+  "locale": "fr",
+  "slug": "same-day-b2b-delivery-toronto",
+  "title": "Livraison B2B jour même à Toronto : des cut-offs qui tiennent",
+  "description": "La livraison B2B jour même à Toronto fonctionne quand cut-offs, classe de véhicule et staging correspondent à la zone — pas quand les ventes surpromettent.",
+  "date": "2026-08-10",
+  "category": "same-day-delivery",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "same-day",
+   "toronto",
+   "b2b"
+  ],
+  "content": "Le jour même à Toronto n'est pas un slogan. C'est du fret préparé, un véhicule adapté à l'arrêt, et un chauffeur qui tient une fenêtre dans le trafic réel.\n\n## Cut-offs réalistes par zone\n\nLe centre-ville, Peel et York ne sont pas un SLA unique. Publiez des cut-offs par zone de collecte pour que les ventes internes arrêtent de promettre des fenêtres impossibles.\n\n## Classe de véhicule d'abord\n\nColis et bacs exigent une capacité différente des longs stocks ou palettes. Une mauvaise classe brûle la fenêtre même si le chauffeur est à l'heure.\n\n## La preuve ferme la journée\n\nPOD photo et signature arrêtent le cycle de litiges du soir. Le jour même sans preuve ne fait que reporter l'argument à demain."
+ },
+ {
+  "locale": "fr",
+  "slug": "same-day-delivery-at-scale",
+  "title": "Same-Day Delivery Operations at Scale",
+  "description": "How structured dispatch and live monitoring make same-day service reliable — not heroic.",
+  "date": "2026-05-22",
+  "category": "same-day-delivery",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "same-day",
+   "dispatch",
+   "sla"
+  ],
+  "content": "Same-day delivery is easy to promise and hard to operationalize. The difference between marketing copy and customer trust is **what happens when the third exception hits before noon.**\n\n## Same-day is a dispatch problem\n\nReliable same-day service requires:\n\n1. Real-time capacity visibility across the network\n2. Intelligent routing that does not over-commit drivers\n3. Pre-dispatch validation that rejects bad addresses early\n4. Exception workflows that escalate before customers call\n\nConsumer apps hide this complexity behind a simple booking button. Operations teams live inside it all day.\n\n## SLA execution under pressure\n\nPorterchain's managed dispatch gives planners a single command view: assign, monitor, resequence, and confirm — with proof captured at completion.\n\nSame-day at scale is not about more drivers. It is about **fewer avoidable failures** in the routes you already run.\n\n## Who benefits\n\nRetail replenishment, food distribution, industrial parts — any vertical where the afternoon delivery window is non-negotiable — gains from structured same-day operations backed by professional dispatch, not hope."
+ },
+ {
+  "locale": "fr",
+  "slug": "same-day-from-store-capacity-gta",
+  "title": "Jour même depuis votre magasin du RGT — sans bâtir un bureau coursier",
+  "description": "Exécutez commandes locales en ligne et comptoir depuis le magasin le plus proche avec capacité véhicule + chauffeur, suivi et preuve.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "peter-porter",
+  "featured": true,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "magasin",
+   "jour-même",
+   "détail",
+   "capacité"
+  ],
+  "content": "Le ship-from-store ne fonctionne que si le magasin peut préparer le fret et si la capacité tient la fenêtre. Ce n'est pas un widget de caisse à lui seul.\n\n## Capacité depuis la succursale qui a le stock\n\nAppariez le ramassage à l'emplacement qui peut vraiment tirer la commande. Le mauvais staging magasin est le premier mode d'échec.\n\n## Promesse client vs réalité ops\n\nQue le client voie « jour même » ou « standard », les ops ont encore besoin de classe de véhicule, cut-off et preuve.\n\n## Un partenaire sur les emplacements\n\nRoutage multi-emplacements plus débordement jour même bat un coursier différent par succursale.\n\nGuide : [Capacité jour même depuis le magasin](/guides/same-day-from-store-capacity-gta)."
+ },
+ {
+  "locale": "fr",
+  "slug": "sla-dispatch-vs-marketplace",
+  "title": "SLA-Based Dispatch vs. Marketplace Delivery",
+  "description": "Why accountable workflows outperform ad-hoc driver marketplaces for business-critical shipments.",
+  "date": "2026-06-14",
+  "category": "logistics",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": true,
+  "caseStudy": false,
+  "tags": [
+   "dispatch",
+   "sla",
+   "operations"
+  ],
+  "content": "When a shipment matters — a medical restock, a wholesale cut-off, a construction site waiting on materials — **reliability beats availability.**\n\nMarketplace delivery optimizes for finding _a_ driver quickly. SLA-based dispatch optimizes for finding the _right_ execution path every time.\n\n## The marketplace gap\n\nAd-hoc marketplaces introduce variability:\n\n- Unknown driver training and vehicle standards\n- Reactive exception handling\n- Inconsistent proof and documentation\n- No central accountability when something fails\n\nFor personal errands, that tradeoff can work. For commercial operations, it creates audit risk and customer churn.\n\n## What structured dispatch provides\n\nPorterchain's dispatch controls enforce standards before and during execution:\n\n| Control                    | Purpose                                            |\n| -------------------------- | -------------------------------------------------- |\n| Address validation         | Prevent failed first attempts                      |\n| Vehicle-class checks       | Match load to capacity                             |\n| Pre-departure verification | Catch issues before departure                      |\n| Live monitoring            | Surface delays early                               |\n| Proof workflow             | Photo, signature, GPS, and audit trail for billing |\n\n## SLA as an operating contract\n\nAn SLA is not marketing language — it is an **operating contract** between your business, Porterchain, and your customers.\n\nManaged dispatch means someone owns the outcome from assignment through proof. That ownership is what growing businesses buy when they choose a commercial logistics partner over a consumer courier app."
+ },
+ {
+  "locale": "fr",
+  "slug": "supply-chain-visibility-dispatch",
+  "title": "Supply Chain Visibility Starts at Dispatch",
+  "description": "Why end-to-end visibility is impossible without a connected planning and execution layer.",
+  "date": "2026-04-24",
+  "category": "supply-chain",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "supply-chain",
+   "visibility",
+   "data"
+  ],
+  "content": "Supply chain visibility became a boardroom topic overnight. Most initiatives still fail for a simple reason: **the data stops where the truck starts.**\n\n## Visibility requires connected events\n\nTrue visibility needs a continuous event stream:\n\n- Order ingested with validated addresses\n- Route planned with realistic ETAs\n- Dispatch assigned with accountability\n- In-transit updates and exceptions\n- Proof captured and linked to billing\n\nIf any step lives in a spreadsheet or a driver's text thread, your visibility dashboard is theater.\n\n## Connected operations, end to end\n\nPorterchain can share delivery events with your WMS, ERP, and customer systems — via webhooks and operational exports — so every team works from the same shipment record.\n\nVisibility is not a portal you bolt on. It is **one connected operation** — dispatch, routing, and proof on the same workflow.\n\n## From reactive to predictive\n\nWhen history is structured, operations move from firefighting to pattern recognition: which routes slip, which customers need wider windows, which exceptions are preventable.\n\nThat is how local businesses compete on reliability without enterprise headcount."
+ },
+ {
+  "locale": "fr",
+  "slug": "transportation-capacity-network-vs-courier",
+  "title": "Réseau de capacité de transport vs coursier ponctuel",
+  "description": "Pourquoi les opérateurs du RGT choisissent un réseau de capacité — véhicules, chauffeurs, ops et preuve — plutôt que la roulette de coursiers.",
+  "date": "2026-08-10",
+  "category": "business",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "capacity",
+   "courier",
+   "strategy"
+  ],
+  "content": "Les coursiers ponctuels règlent l'urgence du jour et créent l'inconstance de demain. Un réseau de capacité de transport vend des courses terminées : véhicules appariés, chauffeurs professionnels, récupération ops et preuve.\n\n## Le produit est l'arrêt terminé\n\nLes sièges logiciels ne déplacent pas le fret. La capacité oui. La technologie coordonne; chauffeurs et véhicules exécutent.\n\n## Principal et débordement ensemble\n\nLe même partenaire peut couvrir corridors récurrents et débordement de pointe pour que les clients ne sentent pas la panique.\n\n## Évaluer la couverture, pas les démos\n\nDemandez zones RGT, classes de véhicule, standards POD et devis écrits. C'est le test commercial."
+ },
+ {
+  "locale": "fr",
+  "slug": "webhook-events-ops-can-use",
+  "title": "Événements webhook que vos ops peuvent vraiment utiliser",
+  "description": "Les webhooks de livraison ne servent à rien s'ils disent seulement « mis à jour ». Mappez les événements aux actions répartition, CS et finance.",
+  "date": "2026-08-11",
+  "category": "logistics",
+  "authorId": "marcus-okonkwo",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "webhooks",
+   "api",
+   "ops",
+   "intégrations"
+  ],
+  "content": "Les intégrations échouent en silence quand chaque statut se ressemble dans votre ERP.\n\n## Nommez les moments qui comptent\n\nRéparti, au ramassage, exception, livré, preuve prête — chacun doit déclencher une action interne différente.\n\n## Apparier webhooks et exceptions humaines\n\nL'automatisation route le chemin heureux. Les ops ont encore besoin d'une escalade claire quand une fenêtre bloque.\n\n## Capacité d'abord, tuyau ensuite\n\nLes API ne créent pas de camions. Devis classe de véhicule et fenêtres avant de câbler le dernier callback.\n\nLire [Webhooks pour événements de livraison](/integrations-education/webhooks-delivery-events) et [Développeurs](/developers)."
+ },
+ {
+  "locale": "fr",
+  "slug": "wholesale-distribution-gta",
+  "title": "Wholesale Distribution Logistics in the GTA",
+  "description": "Recurring routes, multi-stop sequencing, and B2B visibility for Ontario wholesale operators.",
+  "date": "2026-06-05",
+  "category": "wholesale",
+  "authorId": "sarah-chen",
+  "featured": false,
+  "trending": false,
+  "caseStudy": false,
+  "tags": [
+   "wholesale",
+   "b2b",
+   "gta"
+  ],
+  "content": "Wholesale distribution in the GTA runs on rhythm: morning pulls, afternoon drops, tight cut-offs, and customers who measure you in **fill rate and punctuality** — not star ratings.\n\n## Recurring route complexity\n\nWholesale operators rarely ship one package to one door. They run:\n\n- Multi-stop loops across retail and foodservice accounts\n- Variable cube and weight per stop\n- Time windows tied to receiving dock hours\n- Returns and partial deliveries that change the plan mid-route\n\nGeneric courier tools treat each stop as isolated. Wholesale needs **route templates, capacity planning, and exception controls** baked into dispatch.\n\n## Visibility your customers expect\n\nB2B buyers increasingly expect consumer-grade tracking — branded portals, live ETA, delivery confirmation, and public tracking links — without calling your dispatch desk.\n\nPorterchain's tracking and status updates give your customers the same operational clarity your team has internally.\n\n## Scaling without a logistics department\n\nThe wholesale businesses we work with are growing faster than their ability to hire dispatchers. A managed logistics partner lets them run structured operations with a lean team — and audit-ready proof on every drop."
+ }
+]

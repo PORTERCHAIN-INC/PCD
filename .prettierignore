@@ -26,3 +26,6 @@ AppIcons (1)/
 # Playwright artifacts (local runs)
 **/playwright-report/**
 **/test-results/**
+
+# Build-time SEO manifest + blog seed — regenerate with `pnpm --dir website seo:manifest`
+website/src/generated/

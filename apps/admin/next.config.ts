@@ -19,7 +19,11 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
   async headers() {
-    return [{ source: "/(.*)", headers: baselineSecurityHeaders() }];
+    return [
+      { source: "/(.*)", headers: baselineSecurityHeaders() },
+      // App subdomains are private tools: never index (Search Console listed sign-in URLs).
+      { source: "/(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+    ];
   },
   env: adminPublicEnv(),
 };

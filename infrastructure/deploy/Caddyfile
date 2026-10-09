@@ -103,3 +103,10 @@ www.porterchain.com {
 	import common
 	redir https://porterchain.com{uri} permanent
 }
+
+# Plain-HTTP www straight to the canonical https apex in ONE hop. Without this block Caddy's
+# automatic HTTP→HTTPS redirect answers first (http://www → https://www → https://apex = 2 hops,
+# seen in Search Console "Page with redirect"). Plain-HTTP apex keeps the automatic 308.
+http://www.porterchain.com {
+	redir https://porterchain.com{uri} permanent
+}

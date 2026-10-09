@@ -118,8 +118,16 @@ def main() -> int:
         failures.append("website blog.ts missing CDN media base")
     if "/v1/public/blog/posts" not in blog_ts:
         failures.append("website blog.ts missing public API fetch")
-    if "content/blog" in blog_ts or "getAllPostSlugsSync" in blog_ts:
-        failures.append("website blog.ts still reads the markdown catalog")
+    # The CMS owns posts. The only markdown path allowed is the build-time seed
+    # (src/generated/blog-repo-posts.json, generated from website/content/blog by
+    # scripts/generate-indexable-manifest.cts) used when the CMS has no row for a slug —
+    # restored Oct 2026 after the prod CMS turned out empty. No runtime file reads.
+    if re.search(r"from [\"'](node:)?fs[\"']|readFileSync|readdirSync|gray-matter", blog_ts) or (
+        "getAllPostSlugsSync" in blog_ts
+    ):
+        failures.append("website blog.ts still reads the markdown catalog at runtime")
+    if "blog-repo-posts.json" in blog_ts and "mergeRepoPosts" not in blog_ts:
+        failures.append("website blog.ts: repo seed posts must be merged behind CMS rows")
     if "blog_catalog_truncated" not in blog_ts:
         failures.append("website blog.ts missing truncation tripwire")
     if "`blog:${locale}`" not in blog_ts and 'tags: ["blog"' not in blog_ts:

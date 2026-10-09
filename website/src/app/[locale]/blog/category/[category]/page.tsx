@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -36,10 +37,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isBlogCategory(category)) return { title: "Category" };
   const t = await getTranslations({ locale, namespace: "blog" });
   const name = t(`categories.${category}`);
-  return {
-    title: `${name} | Porterchain Blog`,
-    description: `Articles about ${name} from the Porterchain commercial logistics blog.`,
-  };
+  // Self-canonical (it used to inherit the locale root canonical, i.e. "/en"); an empty
+  // category hub is thin, so it stays out of the index until it lists a post.
+  const posts = await getPostsByCategory(locale as Locale, category).catch(() => []);
+  return buildPageMetadata(
+    locale,
+    `blog/category/${category}`,
+    `${name} | Porterchain Blog`,
+    `Articles about ${name} from the Porterchain commercial logistics blog.`,
+    { index: posts.length > 0 }
+  );
 }
 
 async function CategoryBody({

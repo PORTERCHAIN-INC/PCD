@@ -63,7 +63,7 @@
     "validate:ci": "bash scripts/run-ci-gates.sh",
     "validate:precommit": "pnpm format:check && pnpm validate:d2",
     "validate:developer-portal": "python3 scripts/verify_developer_portal.py",
-    "validate:website-seo": "python3 scripts/verify_website_seo_metadata.py && python3 scripts/verify_website_redirects.py && python3 scripts/verify_website_sitemap.py && python3 scripts/verify_website_robots.py && python3 scripts/verify_website_schema.py && python3 scripts/verify_website_internal_links.py && python3 scripts/verify_llms_txt.py && python3 scripts/verify_website_a11y_smoke.py && python3 scripts/verify_website_draft_expansions.py && python3 scripts/verify_website_fr_message_parity.py && python3 scripts/verify_no_false_ai_marketing.py",
+    "validate:website-seo": "python3 scripts/verify_website_seo_metadata.py && python3 scripts/verify_website_redirects.py && python3 scripts/verify_website_sitemap.py && python3 scripts/verify_website_robots.py && python3 scripts/verify_website_schema.py && python3 scripts/verify_website_internal_links.py && python3 scripts/verify_llms_txt.py && python3 scripts/verify_website_a11y_smoke.py && python3 scripts/verify_website_draft_expansions.py && python3 scripts/verify_website_fr_message_parity.py && python3 scripts/verify_no_false_ai_marketing.py && pnpm --dir website seo:manifest:check && pnpm --dir website test:seo",
     "validate:website-e2e-wire": "bash scripts/verify_website_e2e_wire.sh",
     "validate:website-cf-cache": "bash scripts/verify_website_cf_cache.sh",
     "validate:customer-stripe-return": "python3 scripts/verify_customer_stripe_return_urls.py",
@@ -119,7 +119,8 @@
     "load:webhooks": "k6 run tests/load/webhooks.js",
     "prepare": "husky",
     "validate:fleetbase-first": "python3 scripts/verify_no_ops_spatial_math.py",
-    "validate:dispatch-spatial": "python3 scripts/verify_no_ops_spatial_math.py"
+    "validate:dispatch-spatial": "python3 scripts/verify_no_ops_spatial_math.py",
+    "validate:website-sitemap-live": "python3 scripts/verify_sitemap_indexable.py"
   },
   "devDependencies": {
     "husky": "^9.1.7",

@@ -132,7 +132,7 @@ export default async function DevelopersPage({ params }: Props) {
                       {item.description}
                     </p>
                     <div className="mt-5">
-                      <LinkButton href={item.href} external size="sm" showArrow>
+                      <LinkButton href={item.href} external={item.external} size="sm" showArrow>
                         {item.cta}
                       </LinkButton>
                     </div>

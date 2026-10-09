@@ -38,6 +38,8 @@ run "Admin tablet" pnpm validate:admin-tablet
 run "Booking a11y" pnpm validate:booking-a11y
 run "Design" pnpm validate:design
 run "Developer portal" pnpm validate:developer-portal
+# Sitemap manifest freshness + single-hop redirect / no-chain contract (GSC clean-up).
+run "Website SEO" pnpm validate:website-seo
 run "Customer Stripe return" pnpm validate:customer-stripe-return
 run "Product vision" pnpm validate:product-vision
 run "AI governance" pnpm validate:ai-governance

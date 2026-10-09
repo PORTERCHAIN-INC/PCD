@@ -21,6 +21,7 @@ import {
   type BlogPostMeta,
   resolveBlogCover,
 } from "@/lib/blog-meta";
+import repoPostsJson from "@/generated/blog-repo-posts.json";
 
 export type { BlogPost, BlogPostMeta };
 export { POSTS_PER_PAGE, resolveBlogCover };
@@ -86,6 +87,59 @@ function postFromApi(row: PublicBlogPostItem): BlogPost {
   };
 }
 
+type RepoPostRow = Omit<BlogPost, "category" | "readingMinutes"> & {
+  locale: string;
+  category: string;
+};
+
+/**
+ * Posts restored from website/content/blog (git history). Served when the CMS has no row for
+ * the slug — the CMS always wins. Import them with scripts/import_blog_markdown.py to manage
+ * them in the admin; the repo copy then becomes inert.
+ */
+function repoPosts(locale: Locale): BlogPost[] {
+  return (repoPostsJson as RepoPostRow[])
+    .filter((row) => row.locale === locale)
+    .map(({ category, ...row }) => ({
+      ...row,
+      category: isBlogCategory(category) ? category : "logistics",
+      readingMinutes: readingMinutesFor(row.content),
+      content: rewriteBodyMedia(row.content),
+    }));
+}
+
+function repoMeta(post: BlogPost): BlogPostMeta {
+  const meta: Partial<BlogPost> = { ...post };
+  delete meta.content;
+  return meta as BlogPostMeta;
+}
+
+function matchesListOpts(post: BlogPostMeta, opts: ListOpts): boolean {
+  if (opts.category && post.category !== opts.category) return false;
+  if (opts.featured != null && Boolean(post.featured) !== opts.featured) return false;
+  if (opts.trending != null && Boolean(post.trending) !== opts.trending) return false;
+  if (opts.caseStudy != null && Boolean(post.caseStudy) !== opts.caseStudy) return false;
+  const q = opts.search?.trim().toLowerCase();
+  if (q && !`${post.title} ${post.description}`.toLowerCase().includes(q)) return false;
+  return true;
+}
+
+/** CMS rows first-class; repo posts fill slugs the CMS does not have. Newest first. */
+function mergeRepoPosts(
+  locale: Locale,
+  apiPosts: BlogPostMeta[],
+  opts: ListOpts = {}
+): BlogPostMeta[] {
+  const seen = new Set(apiPosts.map((p) => p.slug));
+  const extra = repoPosts(locale)
+    .map(repoMeta)
+    .filter((p) => !seen.has(p.slug) && matchesListOpts(p, opts));
+  if (!extra.length) return apiPosts;
+  return [...apiPosts, ...extra].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+}
+
 type ListOpts = {
   category?: BlogCategory;
   search?: string;
@@ -96,7 +150,7 @@ type ListOpts = {
   offset?: number;
 };
 
-async function fetchApiPostsPage(locale: Locale, opts: ListOpts = {}): Promise<BlogPostMeta[]> {
+async function fetchRawApiPostsPage(locale: Locale, opts: ListOpts = {}): Promise<BlogPostMeta[]> {
   if (catalogSkippedDuringImageBuild()) return [];
   const base = getPorterchainApiBase();
   const limit = Math.min(opts.limit ?? BLOG_PAGE_SIZE, BLOG_LIST_LIMIT);
@@ -129,7 +183,7 @@ async function fetchAllApiPosts(
   const all: BlogPostMeta[] = [];
   let offset = 0;
   while (offset < BLOG_LIST_LIMIT) {
-    const page = await fetchApiPostsPage(locale, {
+    const page = await fetchRawApiPostsPage(locale, {
       ...opts,
       limit: BLOG_PAGE_SIZE,
       offset,
@@ -141,16 +195,27 @@ async function fetchAllApiPosts(
   if (all.length >= BLOG_LIST_LIMIT) {
     throw new Error("blog_catalog_truncated");
   }
-  return all;
+  return mergeRepoPosts(locale, all, opts);
+}
+
+/** One catalog page (featured / trending / related) with repo posts merged in. */
+async function fetchApiPostsPage(locale: Locale, opts: ListOpts = {}): Promise<BlogPostMeta[]> {
+  const page = await fetchRawApiPostsPage(locale, opts);
+  const merged = mergeRepoPosts(locale, page, opts);
+  return opts.limit ? merged.slice(0, opts.limit) : merged;
+}
+
+function repoPost(locale: Locale, slug: string): BlogPost | null {
+  return repoPosts(locale).find((p) => p.slug === slug) ?? null;
 }
 
 async function fetchApiPost(locale: Locale, slug: string): Promise<BlogPost | null> {
-  if (catalogSkippedDuringImageBuild()) return null;
+  if (catalogSkippedDuringImageBuild()) return repoPost(locale, slug);
   const base = getPorterchainApiBase();
   const res = await fetch(`${base}/v1/public/blog/posts/${slug}?locale=${locale}`, {
     next: { revalidate: 3600, tags: ["blog", `blog:${locale}`] },
   });
-  if (res.status === 404) return null;
+  if (res.status === 404) return repoPost(locale, slug);
   if (!res.ok) {
     throw new Error(`blog_catalog_unavailable:${res.status}`);
   }
