@@ -1,20 +1,11 @@
-"use client";
-
-import { motion, useReducedMotion } from "framer-motion";
-
-/** Subtle page mount fade for SiteShell content (all routes). */
+/**
+ * Subtle page mount motion for SiteShell content (all routes).
+ *
+ * Server component + CSS only (Core Web Vitals): the old framer-motion version started every
+ * page at `opacity: 0` until hydration, so LCP waited for ~600 KB of JS. This one only moves
+ * 6px (opacity stays 1, content is visible on first paint) and is skipped under
+ * `prefers-reduced-motion` — see `.page-enter` in globals.css.
+ */
 export default function PageEnter({ children }: { children: React.ReactNode }) {
-  const reduce = useReducedMotion();
-
-  if (reduce) return <>{children}</>;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className="page-enter">{children}</div>;
 }

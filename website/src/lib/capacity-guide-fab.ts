@@ -9,7 +9,8 @@ export function isCapacityGuideFabHidden(pathname: string): boolean {
     .filter(Boolean);
   const offset = parts[0] === "en" || parts[0] === "fr" ? 1 : 0;
   const rest = parts.slice(offset);
-  if (rest.length === 0) return true;
+  // Home no longer embeds the chat inline (website Phase 1), so the launcher shows there too.
+  if (rest.length === 0) return false;
   const head = rest[0];
   if (head === "login" || head === "sign-in" || head === "sign-up") return true;
   return false;

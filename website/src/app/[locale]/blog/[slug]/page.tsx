@@ -132,7 +132,7 @@ export default async function BlogArticlePage({ params }: Props) {
               </header>
 
               <div className="mt-10 max-w-3xl">
-                <HeroPhoto image={resolveBlogCover(post)} aspect="cinematic" />
+                <HeroPhoto image={resolveBlogCover(post)} aspect="cinematic" priority />
               </div>
 
               <div className="mt-12 max-w-3xl">

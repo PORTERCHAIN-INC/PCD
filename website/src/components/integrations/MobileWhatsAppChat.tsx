@@ -51,7 +51,7 @@ export default function MobileWhatsAppChat() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t("ariaLabel")}
-      className="fixed z-[61] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+      className="pc-fab fixed z-[61] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
       style={{
         right: "max(1rem, env(safe-area-inset-right, 0px))",
         bottom: guideFabVisible

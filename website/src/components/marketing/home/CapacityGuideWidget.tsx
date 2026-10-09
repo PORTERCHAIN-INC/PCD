@@ -2,17 +2,33 @@
 
 import { MessageCircle, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import CapacityGuideChat from "@/components/marketing/home/CapacityGuideChat";
 import { usePathname } from "@/i18n/navigation";
 import { isCapacityGuideFabHidden } from "@/lib/capacity-guide-fab";
 import { OPEN_LOGISTICS_CHAT_EVENT } from "@/lib/home/open-logistics-chat";
 import { ANALYTICS_EVENTS, track } from "@/lib/seo/analytics";
 import { cn } from "@/lib/utils";
 
+const loadCapacityGuideChat = () => import("@/components/marketing/home/CapacityGuideChat");
+
 /**
- * Site-wide Logistics line — FAB + panel on every page except home (inline) and login.
- * Shares sessionStorage with the homepage chat. One chat instance stays mounted after first open.
+ * The chat (and the `ai` SDK + zod it pulls in, ~300 KB) is code-split and only downloaded when
+ * the visitor first opens the launcher (or hovers / focuses it) — never on page load.
+ */
+const CapacityGuideChat = dynamic(loadCapacityGuideChat, {
+  ssr: false,
+  loading: () => (
+    <div
+      className="h-[min(32rem,calc(100dvh-6.5rem))] max-h-[70dvh] animate-pulse rounded-2xl bg-[#070d18]/96"
+      aria-hidden
+    />
+  ),
+});
+
+/**
+ * Site-wide Logistics line — FAB + panel on every page except login / sign-up.
+ * One chat instance stays mounted after first open.
  */
 export default function CapacityGuideWidget() {
   const t = useTranslations("homeChooser.guide");
@@ -64,7 +80,7 @@ export default function CapacityGuideWidget() {
 
   return (
     <div
-      className="pointer-events-none fixed z-[60] flex flex-col items-end"
+      className="pc-fab pointer-events-none fixed z-[60] flex flex-col items-end"
       style={{
         right: "max(1rem, env(safe-area-inset-right, 0px))",
         bottom: "max(1.25rem, calc(1rem + env(safe-area-inset-bottom, 0px)))",
@@ -92,6 +108,8 @@ export default function CapacityGuideWidget() {
       <button
         type="button"
         onClick={() => (open ? closePanel() : openPanel())}
+        onPointerEnter={() => void loadCapacityGuideChat()}
+        onFocus={() => void loadCapacityGuideChat()}
         aria-expanded={open}
         aria-controls={mounted ? panelId : undefined}
         aria-label={open ? t("closeAria") : t("launcherAria")}

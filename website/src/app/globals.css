@@ -1587,3 +1587,56 @@ button.booking-schedule-field:focus-visible {
     opacity: 1;
   }
 }
+
+/* Page mount (PageEnter) — transform only so first paint is already visible (LCP-safe). */
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: pc-page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes pc-page-enter {
+  from {
+    transform: translateY(6px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* Mobile nav sheet (SiteNavbar) — CSS-only open animation. */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-sheet {
+    animation: pc-nav-sheet 180ms ease-out both;
+  }
+}
+@keyframes pc-nav-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Mobile "Get a price" bar (MobilePriceBar) — slides up; launchers lift above it. */
+.price-bar {
+  transform: translateY(110%);
+}
+.price-bar--on {
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .price-bar {
+    transition: transform 220ms ease-out;
+  }
+  .pc-fab {
+    transition: translate 220ms ease-out;
+  }
+}
+@media (max-width: 767px) {
+  html[data-price-bar="on"] .pc-fab {
+    translate: 0 -4.25rem;
+  }
+}

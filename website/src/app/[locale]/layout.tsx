@@ -12,6 +12,7 @@ import HtmlLang from "@/components/i18n/HtmlLang";
 import { JsonLd } from "@/components/seo";
 import { buildOrganizationSchema, buildWebSiteSchema } from "@/lib/seo/schema";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
+import { pickMessages } from "@/i18n/client-messages";
 
 type Props = {
   children: React.ReactNode;
@@ -64,7 +65,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
+  // Only namespaces client components use are serialised into the page (see client-messages.ts).
+  const messages = pickMessages(await getMessages());
 
   return (
     <>
