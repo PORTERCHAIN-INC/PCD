@@ -7,7 +7,7 @@ import Container from "@/components/ui/Container";
 import { JsonLd } from "@/components/seo";
 import { buildFAQPageSchema } from "@/lib/seo/schema";
 import { siteImages, getVehiclePartnerImage } from "@/data/site-images";
-import { VehiclePartnerHero } from "@/components/marketing/MarketingHero";
+import VehiclePartnerHero from "@/components/marketing/vehicle-partner/VehiclePartnerHero";
 import HubShell from "@/components/marketing/hub/HubShell";
 import HubMapStage from "@/components/marketing/hub/HubMapStage";
 import HubOfferCards from "@/components/marketing/hub/HubOfferCards";

@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import "server-only";
 
 import {
@@ -150,7 +151,16 @@ type ListOpts = {
   offset?: number;
 };
 
+/**
+ * Cached with "use cache" (not just fetch revalidate): under cacheComponents an uncached fetch
+ * makes on-demand article renders dynamic, which needs a Suspense boundary and then streams a
+ * 200 before notFound() can set 404. Cached, a new CMS slug renders on first request without a
+ * redeploy and an unknown slug answers a real 404. Same 1 h lifetime and tags as before.
+ */
 async function fetchRawApiPostsPage(locale: Locale, opts: ListOpts = {}): Promise<BlogPostMeta[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blog", `blog:${locale}`);
   if (catalogSkippedDuringImageBuild()) return [];
   const base = getPorterchainApiBase();
   const limit = Math.min(opts.limit ?? BLOG_PAGE_SIZE, BLOG_LIST_LIMIT);
@@ -210,6 +220,9 @@ function repoPost(locale: Locale, slug: string): BlogPost | null {
 }
 
 async function fetchApiPost(locale: Locale, slug: string): Promise<BlogPost | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blog", `blog:${locale}`, `blog:${locale}:${slug}`);
   if (catalogSkippedDuringImageBuild()) return repoPost(locale, slug);
   const base = getPorterchainApiBase();
   const res = await fetch(`${base}/v1/public/blog/posts/${slug}?locale=${locale}`, {

@@ -20,8 +20,6 @@ import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import { buildBlogInternalLinks } from "@/lib/seo/blog-seo";
 import { ensureStaticParams } from "@/lib/seo/ensure-static-params";
 import InternalLinksBlock from "@/components/seo/InternalLinksBlock";
-import HeroPhoto from "@/components/ui/HeroPhoto";
-import { resolveBlogCover } from "@/lib/blog";
 import { publicEnv } from "@/lib/env";
 import { Clock } from "lucide-react";
 
@@ -132,10 +130,7 @@ export default async function BlogArticlePage({ params }: Props) {
                 </div>
               </header>
 
-              <div className="mt-10 max-w-3xl">
-                <HeroPhoto image={resolveBlogCover(post)} aspect="cinematic" priority />
-              </div>
-
+              {/* No stock cover photo in the article (Oct 2026): the headline is the LCP; covers stay on cards and OG images. */}
               <div className="mt-12 max-w-3xl">
                 <MarkdownContent content={post.content} />
               </div>

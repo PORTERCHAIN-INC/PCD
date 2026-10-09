@@ -1,15 +1,10 @@
-"use client";
-
 /**
  * Marketing hero implementation. Prefer importing
  * `@/components/marketing/MarketingHero` from page views.
  */
-import { motion, useReducedMotion } from "framer-motion";
 import Container from "@/components/ui/Container";
 import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
-import Magnetic from "@/components/motion/Magnetic";
 import { cn } from "@/lib/utils";
-import { easeOutExpo } from "@/lib/motion";
 import { publicEnv } from "@/lib/env";
 
 interface HeroSectionProps {
@@ -28,16 +23,6 @@ interface HeroSectionProps {
   clearNav?: boolean;
 }
 
-function useHeroMotion() {
-  const reduce = useReducedMotion();
-  return {
-    reduce,
-    initial: reduce ? false : { opacity: 0, y: 24 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: reduce ? 0.15 : 0.7, ease: easeOutExpo },
-  };
-}
-
 export default function HeroSection({
   badge,
   title,
@@ -52,8 +37,6 @@ export default function HeroSection({
   trackSource,
   clearNav = false,
 }: HeroSectionProps) {
-  const m = useHeroMotion();
-
   if (variant === "light-centered") {
     return (
       <section
@@ -64,12 +47,7 @@ export default function HeroSection({
         )}
       >
         <Container>
-          <motion.div
-            initial={m.initial}
-            animate={m.animate}
-            transition={m.transition}
-            className="max-w-3xl mx-auto text-center"
-          >
+          <div className="max-w-3xl mx-auto text-center">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold tracking-wide uppercase">
               {badge}
             </span>
@@ -80,7 +58,7 @@ export default function HeroSection({
               {subtitle}
             </p>
             <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Magnetic>
+              <>
                 <LinkButton
                   href={primaryHref}
                   size="lg"
@@ -89,7 +67,7 @@ export default function HeroSection({
                 >
                   {primaryCta}
                 </LinkButton>
-              </Magnetic>
+              </>
               {secondaryCta && secondaryHref && (
                 <LinkButton
                   href={secondaryHref}
@@ -102,17 +80,8 @@ export default function HeroSection({
                 </LinkButton>
               )}
             </div>
-          </motion.div>
-          {illustration && (
-            <motion.div
-              initial={m.initial}
-              animate={m.animate}
-              transition={{ ...m.transition, delay: m.reduce ? 0 : 0.12 }}
-              className="mt-10 max-w-5xl mx-auto"
-            >
-              {illustration}
-            </motion.div>
-          )}
+          </div>
+          {illustration && <div className="mt-10 max-w-5xl mx-auto">{illustration}</div>}
         </Container>
       </section>
     );
@@ -128,7 +97,7 @@ export default function HeroSection({
         )}
       >
         <Container size="narrow">
-          <motion.div initial={m.initial} animate={m.animate} transition={m.transition}>
+          <div>
             <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
               {badge}
             </span>
@@ -137,11 +106,11 @@ export default function HeroSection({
             </h1>
             <p className="mt-4 text-base sm:text-lg text-muted leading-relaxed">{subtitle}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Magnetic>
+              <>
                 <LinkButton href={primaryHref} trackLabel={primaryCta} trackSource={trackSource}>
                   {primaryCta}
                 </LinkButton>
-              </Magnetic>
+              </>
               {secondaryCta && secondaryHref && (
                 <LinkButton
                   href={secondaryHref}
@@ -153,7 +122,7 @@ export default function HeroSection({
                 </LinkButton>
               )}
             </div>
-          </motion.div>
+          </div>
         </Container>
       </section>
     );
@@ -164,7 +133,7 @@ export default function HeroSection({
       <section className={cn("pt-24 pb-10 md:pt-28 md:pb-14 bg-gray-bg", className)}>
         <Container>
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-start">
-            <motion.div initial={m.initial} animate={m.animate} transition={m.transition}>
+            <div>
               <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
                 {badge}
               </span>
@@ -195,16 +164,8 @@ export default function HeroSection({
                   </LinkButton>
                 )}
               </div>
-            </motion.div>
-            {illustration && (
-              <motion.div
-                initial={m.initial}
-                animate={m.animate}
-                transition={{ ...m.transition, delay: m.reduce ? 0 : 0.1 }}
-              >
-                {illustration}
-              </motion.div>
-            )}
+            </div>
+            {illustration && <div>{illustration}</div>}
           </div>
         </Container>
       </section>
@@ -219,22 +180,13 @@ export default function HeroSection({
       )}
     >
       <div className="absolute inset-0 dot-pattern opacity-30 pointer-events-none" aria-hidden />
-      {!m.reduce ? (
-        <motion.div
-          className="absolute top-1/4 -right-32 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-3xl pointer-events-none"
-          animate={{ opacity: [0.35, 0.55, 0.35], scale: [1, 1.08, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          aria-hidden
-        />
-      ) : (
-        <div
-          className="absolute top-1/4 -right-32 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-3xl pointer-events-none"
-          aria-hidden
-        />
-      )}
+      <div
+        className="absolute top-1/4 -right-32 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-3xl pointer-events-none"
+        aria-hidden
+      />
       <Container className="relative z-10">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-          <motion.div initial={m.initial} animate={m.animate} transition={m.transition}>
+          <div>
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-semibold tracking-wide uppercase border border-white/10">
               {badge}
             </span>
@@ -243,7 +195,7 @@ export default function HeroSection({
             </h1>
             <p className="mt-4 text-lg text-white/65 leading-relaxed max-w-xl">{subtitle}</p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
-              <Magnetic>
+              <>
                 <LinkButton
                   href={primaryHref}
                   size="lg"
@@ -252,7 +204,7 @@ export default function HeroSection({
                 >
                   {primaryCta}
                 </LinkButton>
-              </Magnetic>
+              </>
               {secondaryCta && secondaryHref && (
                 <LinkButton
                   href={secondaryHref}
@@ -265,17 +217,8 @@ export default function HeroSection({
                 </LinkButton>
               )}
             </div>
-          </motion.div>
-          {illustration && (
-            <motion.div
-              initial={m.reduce ? false : { opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ ...m.transition, delay: m.reduce ? 0 : 0.12 }}
-              className="relative"
-            >
-              {illustration}
-            </motion.div>
-          )}
+          </div>
+          {illustration && <div className="relative">{illustration}</div>}
         </div>
       </Container>
     </section>

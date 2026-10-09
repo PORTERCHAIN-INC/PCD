@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { MessageCircle, ShieldCheck, Clock3 } from "lucide-react";
 import Container from "@/components/ui/Container";
 import { easeOutExpo, staggerContainer, fadeUp } from "@/lib/motion";
@@ -21,7 +21,6 @@ export default function ContactHero({
   variant = "default",
   trustItems,
 }: ContactHeroProps) {
-  const reduce = useReducedMotion();
   const isQuote = variant === "quote";
 
   return (
@@ -48,7 +47,7 @@ export default function ContactHero({
       <Container className="relative z-10">
         <motion.div
           className={cn(isQuote ? "mx-auto max-w-3xl text-center" : "max-w-2xl")}
-          initial={reduce ? false : "hidden"}
+          initial={false}
           animate="visible"
           variants={staggerContainer}
         >

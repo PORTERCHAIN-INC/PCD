@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
-import { ContactHero } from "@/components/marketing/MarketingHero";
+import ContactHero from "@/components/marketing/corporate/sections/ContactHero";
 import ContactInfoPanel from "@/components/marketing/corporate/sections/ContactInfoPanel";
 import ContactInquiryForm from "@/components/marketing/corporate/sections/ContactInquiryForm";
 import ContactDepartmentCards from "@/components/marketing/corporate/sections/ContactDepartmentCards";

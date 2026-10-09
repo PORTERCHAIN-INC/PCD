@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 import CorporateShell from "@/components/marketing/corporate/layout/CorporateShell";
-import { CareersHero } from "@/components/marketing/MarketingHero";
+import CareersHero from "@/components/marketing/corporate/sections/CareersHero";
 import BenefitsSection from "@/components/marketing/corporate/sections/BenefitsSection";
 import OpenPositionsSection from "@/components/marketing/corporate/sections/OpenPositionsSection";
 import { buildPositionsFromTranslations } from "@/lib/careers-content";
@@ -11,7 +11,7 @@ import TimelineSection from "@/components/marketing/corporate/sections/TimelineS
 import FeatureSection from "@/components/marketing/corporate/sections/FeatureSection";
 import TestimonialsSection from "@/components/marketing/corporate/sections/TestimonialsSection";
 import MarketingFaq from "@/components/marketing/MarketingFaq";
-import { CareersCloser } from "@/components/marketing/MarketingCloser";
+import CareersCloser from "@/components/marketing/corporate/sections/CareersCtaSection";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import FadeIn from "@/components/marketing/corporate/motion/FadeIn";

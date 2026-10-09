@@ -1,11 +1,6 @@
-"use client";
-
-import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Container from "@/components/ui/Container";
 import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
-import FadeIn from "@/components/marketing/corporate/motion/FadeIn";
-import Magnetic from "@/components/motion/Magnetic";
 
 interface CtaSectionProps {
   title: string;
@@ -31,7 +26,6 @@ export default function CtaSection({
   trackSource,
 }: CtaSectionProps) {
   const isDark = variant === "dark" || variant === "gradient";
-  const reduce = useReducedMotion();
 
   return (
     <section
@@ -46,16 +40,14 @@ export default function CtaSection({
       {variant === "gradient" && (
         <div className="absolute inset-0 dot-pattern opacity-40 pointer-events-none" aria-hidden />
       )}
-      {!reduce && isDark ? (
-        <motion.div
+      {isDark ? (
+        <div
           className="pointer-events-none absolute -left-16 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-secondary/25 blur-3xl"
-          animate={{ opacity: [0.25, 0.5, 0.25], x: [0, 24, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
           aria-hidden
         />
       ) : null}
       <Container className="relative">
-        <FadeIn>
+        <div>
           <div className="max-w-3xl mx-auto text-center">
             <h2
               className={cn(
@@ -76,11 +68,8 @@ export default function CtaSection({
               </p>
             )}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Magnetic>
-                <motion.div
-                  whileHover={reduce ? undefined : { scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+              <>
+                <div>
                   <LinkButton
                     href={primaryHref}
                     variant="primary"
@@ -90,13 +79,10 @@ export default function CtaSection({
                   >
                     {primaryLabel}
                   </LinkButton>
-                </motion.div>
-              </Magnetic>
+                </div>
+              </>
               {secondaryLabel && secondaryHref && (
-                <motion.div
-                  whileHover={reduce ? undefined : { scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                <div>
                   <LinkButton
                     href={secondaryHref}
                     variant={isDark ? "outlineOnDark" : "outline"}
@@ -106,11 +92,11 @@ export default function CtaSection({
                   >
                     {secondaryLabel}
                   </LinkButton>
-                </motion.div>
+                </div>
               )}
             </div>
           </div>
-        </FadeIn>
+        </div>
       </Container>
     </section>
   );

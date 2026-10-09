@@ -43,7 +43,7 @@ export default function VehiclePartnerHero({ locale }: Props) {
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-start">
           <motion.div
             className="max-w-xl"
-            initial={reduce ? false : "hidden"}
+            initial={false}
             animate="visible"
             variants={staggerContainer}
           >
