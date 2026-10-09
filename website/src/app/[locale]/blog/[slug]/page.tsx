@@ -40,7 +40,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const post = await getPost(locale as Locale, slug);
-  if (!post) return { title: "Article" };
+  // Unknown slug → the article renders notFound(); keep it out of the index.
+  if (!post) return { title: "Article", robots: { index: false, follow: true } };
 
   return buildPageMetadata(
     locale,

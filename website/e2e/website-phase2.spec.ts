@@ -95,6 +95,12 @@ test.describe("website phase 2 @phase1", () => {
     }
   });
 
+  test("unknown blog slug never 500s and is noindex", async ({ request }) => {
+    const res = await request.get("/en/blog/no-such-post-zz", { maxRedirects: 0 });
+    expect(res.status()).toBeLessThan(500);
+    expect(await res.text()).toMatch(/<meta name="robots" content="noindex/);
+  });
+
   test("delivery index and sitemap include the furniture hub", async ({ page, request }) => {
     await page.goto("/en/delivery");
     await expect(page.locator('main a[href="/en/delivery/furniture"]').first()).toBeVisible();
