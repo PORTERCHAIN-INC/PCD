@@ -24,7 +24,7 @@ from porterchain_api.domain.pricing_version import (
 )
 from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
 from porterchain_api.marketing_site.config import default_marketing_site, normalize_marketing_site
-from porterchain_api.admin_engine.settings_extra import EXTRA_DEFAULTS, EXTRA_NORMALIZERS, EXTRA_SECTIONS
+from porterchain_api.admin_engine.settings_extra import EXTRA_DEFAULTS, EXTRA_NORMALIZERS, EXTRA_SECTIONS, normalize_finance
 from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -218,7 +218,7 @@ DEFAULTS["pricing_book"] = default_price_book()
 DEFAULTS["pricing_fsa_card"] = default_fsa_card()
 DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
 DEFAULTS.update(EXTRA_DEFAULTS())
-_NORMALIZERS = EXTRA_NORMALIZERS
+_NORMALIZERS = {**EXTRA_NORMALIZERS, "settings_finance": normalize_finance}
 DEFAULTS["delivery_promise"] = default_delivery_promise()
 DEFAULTS["marketing_site"] = default_marketing_site()
 

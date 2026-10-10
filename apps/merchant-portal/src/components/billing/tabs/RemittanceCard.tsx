@@ -68,6 +68,7 @@ export function RemittanceCard({
         Pay to {remittance.payee.replace(/\.$/, "")}. Part payments are applied; anything extra
         becomes credit on your next invoice.
         {remittance.advice_email ? ` Receipts go to ${remittance.advice_email}.` : ""}
+        {remittance.gst_hst_number ? ` GST/HST Reg. No. ${remittance.gst_hst_number}.` : ""}
       </p>
     </section>
   );

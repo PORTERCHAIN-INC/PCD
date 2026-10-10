@@ -151,7 +151,8 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
                 if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled")
             ],
             etransfer_email=_etransfer_email(db),
-        ),
+        )
+        | {"gst_hst_number": _gst_hst(db)},
         "outstanding_balance_cents": outstanding_balance,
         "outstanding_invoices_cents": outstanding_invoices,
         "uninvoiced_orders_cents": uninvoiced,
@@ -169,4 +170,12 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
         "credit_notes_count": len(credit_notes),
         "tax_summary": tax,
         "contract_pricing": contract,
+        "supplier_gst_hst_number": _gst_hst(db),
     }
+
+
+def _gst_hst(db) -> str:
+    """Our GST/HST registration (single source; '' until set in Settings > Finance)."""
+    from porterchain_api.platform.tax_registration import supplier_gst_hst_number
+
+    return supplier_gst_hst_number(db)

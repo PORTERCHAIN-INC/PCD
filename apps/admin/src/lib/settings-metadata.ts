@@ -341,7 +341,7 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
       key: "gst_hst_number",
       label: "GST/HST registration number",
       type: "text",
-      hint: "Wired — printed on every invoice (CRA). Format 123456789 RT0001",
+      hint: "One source for invoices, statements, quotes, receipts and tax reports (CRA). Format 123456789 RT0001; blank = not printed",
       effect: "wired",
     },
     {

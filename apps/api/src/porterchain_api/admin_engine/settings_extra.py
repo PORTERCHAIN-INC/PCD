@@ -16,6 +16,7 @@ from porterchain_api.platform.compliance import (
     normalize_compliance,
     normalize_requests,
 )
+from porterchain_api.platform.tax_registration import normalize_finance  # noqa: F401 (re-export)
 from porterchain_api.platform.future_features import default_future, normalize_future
 from porterchain_pricing.cost_settings import (
     COST_DEFAULTS,

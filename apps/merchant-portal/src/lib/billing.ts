@@ -36,6 +36,8 @@ export type BillingOverview = {
   glossary?: Array<{ term: string; meaning: string }>;
   remittance?: {
     payee: string;
+    /** Porterchain GST/HST registration (empty until set). */
+    gst_hst_number?: string;
     advice_email?: string | null;
     memo: string;
     open_invoice_numbers: string[];

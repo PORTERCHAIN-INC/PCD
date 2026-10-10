@@ -33,6 +33,9 @@ class FsaCellOverride(BaseModel):
 def _card(db: Session, merchant_id: str, fmt: Format):
     try:
         card = cards.rate_card(db, merchant_id)
+        from porterchain_api.admin_engine.platform_settings import supplier_gst_hst_number
+
+        card["supplier_gst_hst_number"] = supplier_gst_hst_number(db)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from None
     except RuntimeError as exc:

@@ -225,14 +225,13 @@ def address_in_coverage(
 
 # --- Invoicing / Interac (CRA + e-Transfer) -------------------------------------------
 
-GST_HST_PLACEHOLDER = "PENDING-GST-HST-NUMBER"
-
-
 def supplier_gst_hst_number(db: Session) -> str:
-    """PorterChain's own GST/HST registration (BN + RT0001). CRA requires it on any invoice
-    of $100+ for the recipient's input tax credit. Placeholder until Ravi sets it."""
-    raw = str(finance_settings(db).get("gst_hst_number") or "").strip()
-    return raw or GST_HST_PLACEHOLDER
+    """PorterChain's own GST/HST registration (BN + RT0001), the single source for every
+    document. CRA requires it on invoices of $100+. Empty when unset: documents omit the
+    line (never a placeholder) and admin shows a warning (see platform.tax_registration)."""
+    from porterchain_api.platform.tax_registration import safe_gst_hst
+
+    return safe_gst_hst(finance_settings(db).get("gst_hst_number"))
 
 
 def tax_label(db: Session) -> str:

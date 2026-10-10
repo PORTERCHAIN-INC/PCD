@@ -326,7 +326,12 @@ def to_pdf(card: dict[str, Any]) -> bytes:
                 styles["Title"],
             ),
             Paragraph(
-                f"From {pickup}. Prices in CAD per drop, HST extra. * downtown core.",
+                f"From {pickup}. Prices in CAD per drop, HST extra. * downtown core."
+                + (
+                    f" GST/HST Reg. No.: {card['supplier_gst_hst_number']}"
+                    if card.get("supplier_gst_hst_number")
+                    else ""
+                ),
                 styles["Normal"],
             ),
             Spacer(1, 8),

@@ -56,6 +56,19 @@ def finance_margin(
     return margin_report(db, days=days, merchant_id=merchant_id)
 
 
+@router.get("/finance/tax-registration")
+def tax_registration(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    """Our GST/HST number (single source for all documents) or a warning when unset."""
+    require_module(ctx, "finance_read")
+    from porterchain_api.admin_engine.platform_settings import supplier_gst_hst_number
+    from porterchain_api.platform.tax_registration import registration_status
+
+    return registration_status(supplier_gst_hst_number(db))
+
+
 @router.get("/analytics/ops")
 def ops_analytics(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],

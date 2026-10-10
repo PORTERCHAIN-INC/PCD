@@ -259,10 +259,15 @@ def test_cycle_billed_orders_skip_per_order_invoice(db: Session):
     assert is_cycle_billed(db, order) is expected
 
 
-def test_invoice_pdf_has_gst_number_and_etransfer_instructions(db: Session):
+def test_invoice_pdf_has_gst_number_and_etransfer_instructions(db: Session, monkeypatch):
+    from porterchain_api.admin_engine import platform_settings
     from porterchain_api.reporting.order_documents import pdf_bytes_for_invoice_id
 
     inv = _cycle_invoice(db)
+    monkeypatch.setattr(platform_settings, "supplier_gst_hst_number", lambda _db: "")
+    unset, _ = pdf_bytes_for_invoice_id(db, inv.id)
+    assert b"GST/HST Reg. No.:" not in unset and b"PENDING" not in unset  # never a placeholder
+    monkeypatch.setattr(platform_settings, "supplier_gst_hst_number", lambda _db: "123456789 RT0001")
     pdf, name = pdf_bytes_for_invoice_id(db, inv.id)
     text = pdf.decode("latin-1")
     assert "GST/HST Reg. No.:" in text
