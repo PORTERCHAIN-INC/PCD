@@ -19,7 +19,7 @@ from porterchain_api.merchant_models import Merchant
 
 OWNER_ROLES = ("super_admin", "admin", "sales", "sales_manager", "finance")
 #: Lifecycle bulk (approve / suspend / activate) stays on the per-merchant routes so
-#: each write keeps its Fleetbase / identity side effects (after_admin_write).
+#: each write keeps its identity side effects (after_admin_write).
 BULK_ACTIONS = ("assign_owner", "set_segment", "credit_hold", "credit_release")
 MAX_BULK = 200
 NEEDS_LABELS = {

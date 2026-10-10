@@ -10,7 +10,7 @@ churn / credit emails). All new columns are nullable or defaulted, so existing
 rows read as "no owner, no hold".
 
 Revision ID: ma0merchops1a2b
-Revises: pb0pricebook1a2b
+Revises: ib1cashtaxpay2b3c (integration chain)
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "ma0merchops1a2b"
-down_revision = "pb0pricebook1a2b"
+down_revision = "ib1cashtaxpay2b3c"
 branch_labels = None
 depends_on = None
 

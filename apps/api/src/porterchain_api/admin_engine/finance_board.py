@@ -51,10 +51,11 @@ def dashboard_payload(svc: Any, db: Session) -> dict[str, Any]:
     paid_count = 0
     merchant_ar_cents = 0
     for inv in db.query(Invoice).all():
-        order = db.query(Order).filter(Order.id == inv.order_id).first()
+        # Cycle invoices (billing_kind="cycle") have no order_id: no order, no Stripe payment.
+        order = db.query(Order).filter(Order.id == inv.order_id).first() if inv.order_id else None
         if order is not None and bool(getattr(order, "is_sandbox", False)):
             continue
-        payment = svc._payment_for_order(db, inv.order_id)
+        payment = svc._payment_for_order(db, inv.order_id) if inv.order_id else None
         st = svc._invoice_status(inv, order, payment)
         outstanding = svc._outstanding_cents(inv, st)
         if st == "paid":

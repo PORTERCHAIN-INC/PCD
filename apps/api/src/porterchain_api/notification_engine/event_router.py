@@ -504,7 +504,6 @@ WATCHED_EVENTS: tuple[str, ...] = (
     DomainEventType.CLAIM_OPENED,
     DomainEventType.CLAIM_RESOLVED,
     DomainEventType.SUPPORT_TICKET_CREATED,
-    DomainEventType.FLEETBASE_STATUS_UPDATED,
     DomainEventType.ORDER_TEMP_EXCURSION,
     DomainEventType.EXCEPTION_OPENED,
     DomainEventType.EXCEPTION_RESOLVED,

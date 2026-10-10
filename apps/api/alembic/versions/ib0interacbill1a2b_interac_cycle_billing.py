@@ -5,7 +5,7 @@ Existing invoices stay valid: new columns are nullable or defaulted, `billing_ki
 reads "order" for every legacy row, and old random invoice numbers are untouched.
 
 Revision ID: ib0interacbill1a2b
-Revises: pb0pricebook1a2b
+Revises: cf1custr2b3c4 (integration chain)
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "ib0interacbill1a2b"
-down_revision = "pb0pricebook1a2b"
+down_revision = "cf1custr2b3c4"
 branch_labels = None
 depends_on = None
 

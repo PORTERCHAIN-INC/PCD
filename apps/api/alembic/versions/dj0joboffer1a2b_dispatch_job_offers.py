@@ -4,7 +4,7 @@ Seeds ``system_config['dispatch_fleet']`` (vehicle capacity table, $27/h,
 85% max fill, 180 s offer TTL) only when missing — an existing row is kept.
 
 Revision ID: dj0joboffer1a2b
-Revises: pb0pricebook1a2b
+Revises: ma0merchops1a2b (integration chain)
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "dj0joboffer1a2b"
-down_revision = "pb0pricebook1a2b"
+down_revision = "ma0merchops1a2b"
 branch_labels = None
 depends_on = None
 

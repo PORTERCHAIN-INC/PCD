@@ -1,14 +1,14 @@
 """customer fast-book: consent log + order ratings
 
 Revision ID: cf0fastbook1a2b
-Revises: pb0pricebook1a2b
+Revises: nt2notifprefs1a2b (integration chain)
 """
 
 import sqlalchemy as sa
 from alembic import op
 
 revision = "cf0fastbook1a2b"
-down_revision = "pb0pricebook1a2b"
+down_revision = "nt2notifprefs1a2b"
 branch_labels = None
 depends_on = None
 

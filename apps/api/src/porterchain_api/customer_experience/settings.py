@@ -247,12 +247,12 @@ def apply_preset(current: dict[str, Any], preset: str) -> dict[str, Any]:
 def retail_cx() -> dict[str, Any]:
     """PorterChain's own retail customers: the full tracking page is the product.
 
-    Branded page, proof-of-delivery photo (behind the signed link) and self-service on.
-    Recipient notification fan-out stays as the default (owned by the notifications work).
+    Only what differs from the defaults (POD photo, self-service and receiver emails are
+    already on there): the branded page, and a 30-day self-service link.
     """
     cfg = default_cx()
-    cfg["tracking"].update({"branded_page": True, "show_pod_photo": True})
-    cfg["self_service"].update({"enabled": True, "link_ttl_hours": 24 * 30})
+    cfg["tracking"]["branded_page"] = True
+    cfg["self_service"]["link_ttl_hours"] = 24 * 30
     return cfg
 
 
