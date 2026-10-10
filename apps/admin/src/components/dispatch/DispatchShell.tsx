@@ -56,7 +56,7 @@ const TABS: { id: DispatchView | "orders"; label: string; href: string }[] = [
 
 const SUBTITLE: Record<DispatchView, string> = {
   today: "Give every waiting order a driver.",
-  plan: "Build the day: sequence stops, check fill, commit.",
+  plan: "Build the day: sequence stops, check fill, approve.",
   live: "Where every delivery is, and whether it lands on time.",
   exceptions: "Everything that needs a human, worst first.",
   fleet: "Drivers, vehicles and how much each can carry.",

@@ -123,7 +123,7 @@ function PlanDiff({ diff }: { diff: NonNullable<FleetPlan["diff"]> }) {
         </p>
       ) : (
         <ul className="mt-2 space-y-1 text-sm text-primary">
-          {rows.map((r) => (
+          {rows.slice(0, 8).map((r) => (
             <li key={r.k + r.text}>
               <span className="mr-2 inline-block w-16 text-xs uppercase text-muted">{r.k}</span>
               {r.text}
@@ -131,6 +131,7 @@ function PlanDiff({ diff }: { diff: NonNullable<FleetPlan["diff"]> }) {
           ))}
         </ul>
       )}
+      {rows.length > 8 && <p className="mt-1 text-xs text-muted">+{rows.length - 8} more</p>}
     </div>
   );
 }
