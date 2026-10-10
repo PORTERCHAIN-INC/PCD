@@ -28,7 +28,7 @@ function BrowserChrome({ url }: { url: string }) {
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
       </div>
-      <div className="mx-auto flex h-7 max-w-md flex-1 items-center justify-center rounded-md bg-white/6 px-3 text-[11px] text-white/45 sm:text-xs">
+      <div className="mx-auto flex h-7 max-w-md flex-1 items-center justify-center rounded-md bg-white/6 px-3 text-[11px] text-white/65 sm:text-xs">
         {url}
       </div>
     </div>
