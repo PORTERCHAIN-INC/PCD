@@ -9,6 +9,7 @@ import MerchantPricingFields from "@/components/merchants/MerchantPricingFields"
 import MerchantGtaMatrixFields from "@/components/merchants/MerchantGtaMatrixFields";
 import RateCardPreview from "@/components/merchants/RateCardPreview";
 import FsaRatesCard from "@/components/settings/panels/FsaRatesCard";
+import FsaRateCardActions from "@/components/merchants/FsaRateCardActions";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants, type MerchantPricing, type MerchantPricingDetail } from "@/lib/merchants";
@@ -316,6 +317,10 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
             />
           </div>
         </SectionCard>
+      )}
+
+      {fsaSelected && (
+        <FsaRateCardActions merchantId={merchantId} onRebuilt={() => void refetch()} />
       )}
 
       {fsaSelected && (

@@ -276,6 +276,15 @@ export const billingApi = {
   invoiceDetail: (token: string, invoiceId: string, orgId?: string) =>
     billingFetch<InvoiceDetail>(`/v1/merchant/billing/invoices/${invoiceId}`, token, { orgId }),
 
+  /** Your FSA rate card from your pickup, as a printable PDF or a CSV. */
+  downloadFsaRateCard: (token: string, format: "pdf" | "csv", orgId?: string) =>
+    billingDownload(
+      `/v1/merchant/pricing/fsa-rate-card?format=${format}`,
+      token,
+      orgId,
+      `porterchain-rate-card.${format}`
+    ),
+
   downloadInvoicesCsv: (token: string, orgId?: string) =>
     billingDownload("/v1/merchant/billing/export/invoices.csv", token, orgId, "invoices.csv"),
 

@@ -38,7 +38,23 @@ export function RateCardPanel({
           {isFsa ? (
             <>
               <div className="rounded-xl border border-primary/10 bg-gray-bg/30 px-4 py-3">
-                <h3 className="font-medium text-primary">Ontario FSA flats</h3>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-medium text-primary">Ontario FSA flats</h3>
+                  <div className="flex gap-2">
+                    {(["pdf", "csv"] as const).map((format) => (
+                      <button
+                        key={format}
+                        type="button"
+                        className="min-h-9 rounded-lg border border-primary/15 px-3 text-xs font-semibold text-primary hover:bg-white"
+                        onClick={async () =>
+                          billingApi.downloadFsaRateCard(await getToken(), format, orgId)
+                        }
+                      >
+                        Rate card {format.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <p className="mt-1 text-muted">
                   Checkout and portal quotes use your FSA schedule (T1 / T2 / T3 by destination
                   postal). Distance tables below are fallback only when your schedule allows it.

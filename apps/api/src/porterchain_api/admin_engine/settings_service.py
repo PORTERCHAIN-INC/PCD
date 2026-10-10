@@ -97,6 +97,8 @@ CONFIG_KEYS = {
     "pricing_rate_card": "pricing_rate_card",
     # Price book (parcel tiers, small/handling rules, retail, dedicated) + driver pay plan.
     "pricing_book": "pricing_book",
+    # Per-merchant FSA rate card formula (base, km, minute, downtown, bands).
+    "pricing_fsa_card": "pricing_fsa_card",
     "driver_pay": "driver_pay_plan",
     # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
     "delivery_promise": "delivery_promise",
@@ -203,12 +205,14 @@ DEFAULTS: dict[str, Any] = {
 }
 
 from porterchain_api.domain.customer_goods import default_customer_pricing, default_vehicle_catalog
+from porterchain_pricing.fsa_card import default_fsa_card, normalize_fsa_card
 from porterchain_pricing.gta_rate import default_gta_rate_config
 
 DEFAULTS["vehicle_types"] = default_vehicle_catalog()
 DEFAULTS["pricing_customer_distance"] = default_customer_pricing()
 DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
 DEFAULTS["pricing_book"] = default_price_book()
+DEFAULTS["pricing_fsa_card"] = default_fsa_card()
 DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
 DEFAULTS["delivery_promise"] = default_delivery_promise()
 DEFAULTS["marketing_site"] = default_marketing_site()
@@ -793,6 +797,8 @@ class AdminSettingsService:
         record = self.get_config(db, key)
         if key == "pricing_book":
             value = normalize_price_book(value)
+        if key == "pricing_fsa_card":
+            value = normalize_fsa_card(value)
         if key == "driver_pay_plan":
             value = normalize_driver_pay_plan(value)
         if key == "delivery_promise":

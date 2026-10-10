@@ -47,3 +47,22 @@ def resolve_route_distance(
     except Exception:
         pass
     return meters, seconds, resolved
+
+
+def route_table(
+    origin: tuple[float, float], targets: list[tuple[float, float]], *, chunk: int = 100
+) -> list[tuple[int | None, int | None]]:
+    """Drive (seconds, meters) from one origin to many targets — Valhalla, OSRM fallback.
+
+    Raises ``RuntimeError('routing_unavailable')``; a rate card never falls back to
+    straight-line distance.
+    """
+    maps = MapsService()
+    out: list[tuple[int | None, int | None]] = []
+    for start in range(0, len(targets), chunk):
+        part = targets[start : start + chunk]
+        matrix, _source = maps.matrix_durations([origin], part)
+        if not matrix or len(matrix[0]) != len(part):
+            raise RuntimeError("routing_unavailable")
+        out.extend(matrix[0])
+    return out

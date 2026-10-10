@@ -27,6 +27,7 @@ from porterchain_api.routers import (
     merchant_api,
     merchants,
     merchants_integrations,
+    fsa_rate_card,
     merchant_ops,
     notifications,
     notifications_admin,
@@ -149,6 +150,8 @@ def create_app() -> FastAPI:
     app.include_router(collaboration.router)
     app.include_router(merchants.router)
     app.include_router(merchants_integrations.router)
+    app.include_router(fsa_rate_card.merchant_router)
+    app.include_router(fsa_rate_card.admin_router)
     app.include_router(merchant_ops.router)
     app.include_router(drivers_admin.router)
     app.include_router(drivers_admin_account.router)

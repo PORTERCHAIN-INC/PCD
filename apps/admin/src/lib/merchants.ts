@@ -691,6 +691,11 @@ export const merchants = {
     }
   ) => adminFetch<MerchantDetail>(`${B}/${id}`, t, { method: "PATCH", body: JSON.stringify(body) }),
   pricing: (t: string, id: string) => adminFetch<MerchantPricingDetail>(`${B}/${id}/pricing`, t),
+  /** Rebuild the FSA rate card from the merchant's pickup (admin overrides are kept). */
+  regenerateFsaRateCard: (t: string, id: string) =>
+    adminFetch<{ cells: unknown[] }>(`${B}/${id}/fsa-rate-card/regenerate`, t, { method: "POST" }),
+  fsaRateCardPath: (id: string, format: "pdf" | "csv") =>
+    `${B}/${id}/fsa-rate-card?format=${format}`,
   savePricing: (t: string, id: string, body: MerchantPricing) =>
     adminFetch<MerchantPricingDetail>(`${B}/${id}/pricing`, t, {
       method: "PUT",

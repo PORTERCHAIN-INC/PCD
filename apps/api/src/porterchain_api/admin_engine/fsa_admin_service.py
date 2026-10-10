@@ -115,8 +115,16 @@ class FsaAdminService:
         row.includes_location_fees = body.includes_location_fees
         row.label = body.label
         row.is_active = body.is_active
-        if body.config is not None:
-            row.config = dict(body.config)
+        previous = dict(row.config or {})
+        config = dict(body.config) if body.config is not None else previous
+        if previous.get("source") == "fsa_rate_card":
+            # Generated cell: keep its routing facts; a hand price is an override that
+            # survives regeneration, and typing the computed price back clears it.
+            config = {**previous, **config}
+            config.pop("override", None)
+            if body.flat_cents != previous.get("computed_cents"):
+                config["override"] = True
+        row.config = config
         db.commit()
         db.refresh(row)
         return self.to_out(row)

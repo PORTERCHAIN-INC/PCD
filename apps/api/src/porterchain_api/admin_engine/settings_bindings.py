@@ -117,6 +117,7 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
             "pricing_rate_card",
             "pricing_customer_distance",
             "pricing_book",
+            "pricing_fsa_card",
             "driver_pay_plan",
         ],
         "write_role": "super_admin",
