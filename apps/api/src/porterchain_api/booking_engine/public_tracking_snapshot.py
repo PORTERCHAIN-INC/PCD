@@ -57,6 +57,9 @@ def _road_eta(
     else:
         origin_pt = origin
 
+    snap = getattr(maps, "snap", None)  # road-snapped origin/destination → steadier ETA
+    if callable(snap):
+        origin_pt, destination = snap(origin_pt), snap(tuple(destination))
     eta = maps.eta_between(origin_pt, destination)
     if not eta:
         return None

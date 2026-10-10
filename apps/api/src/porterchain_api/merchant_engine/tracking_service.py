@@ -290,6 +290,9 @@ class MerchantTrackingService:
             if cached is not None:
                 return cached
 
+        snap = getattr(self._maps, "snap", None)  # road-snapped origin/destination
+        if callable(snap):
+            origin_pt, destination = snap(origin_pt), snap(tuple(destination))
         result = self._maps.eta_between(origin_pt, destination)
         if not result:
             return None

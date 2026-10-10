@@ -390,6 +390,43 @@ class MapsService(BaseService):
             return None
         return data if isinstance(data, dict) else None
 
+    def snap(self, point: tuple[float, float]) -> tuple[float, float]:
+        """Snap a GPS fix / address pin to the nearest drivable road (OSRM nearest,
+        Valhalla locate fallback). Returns the input when neither answers or the
+        snap would move the point more than 300 m (a bad geocode beats a wrong road)."""
+        from math import cos, radians, sqrt
+
+        def close(p: tuple[float, float]) -> bool:
+            dy = (p[0] - point[0]) * 111_000
+            dx = (p[1] - point[1]) * 111_000 * cos(radians(point[0]))
+            return sqrt(dx * dx + dy * dy) <= 300
+
+        base = self._osrm_base()
+        if base:
+            try:
+                r = self._client().get(f"{base}/nearest/v1/driving/{point[1]},{point[0]}")
+                wp = (r.json().get("waypoints") or [None])[0] if r.status_code < 400 else None
+                if wp:
+                    p = (float(wp["location"][1]), float(wp["location"][0]))
+                    if close(p):
+                        return p
+            except (httpx.HTTPError, ValueError, KeyError, TypeError):
+                pass
+        if self.settings.valhalla_url:
+            try:
+                r = self._client().post(
+                    f"{self.settings.valhalla_url.rstrip('/')}/locate",
+                    json={"locations": [{"lat": point[0], "lon": point[1]}], "costing": "auto"},
+                )
+                edges = (r.json() or [{}])[0].get("edges") or [] if r.status_code < 400 else []
+                if edges:
+                    p = (float(edges[0]["correlated_lat"]), float(edges[0]["correlated_lon"]))
+                    if close(p):
+                        return p
+            except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError):
+                pass
+        return point
+
     def map_match(
         self, points: list[tuple[float, float]], *, vehicle_class: str | None = None
     ) -> dict[str, Any] | None:

@@ -130,3 +130,30 @@ def test_service_area_parses_isochrone():
     out = maps_extras.service_area([30], maps=Maps())
     assert out["source"] == "valhalla" and out["areas"][0]["minutes"] == 30
     assert out["areas"][0]["path"][0] == [43.5, -79.9]
+
+
+def test_snap_uses_locate_and_rejects_far_jumps(monkeypatch):
+    from porterchain_services.maps.service import MapsService
+
+    class R:
+        status_code = 200
+
+        def __init__(self, lat, lon):
+            self._j = [{"edges": [{"correlated_lat": lat, "correlated_lon": lon}]}]
+
+        def json(self):
+            return self._j
+
+    m = MapsService()
+    monkeypatch.setattr(m, "_osrm_base", lambda: None)
+    monkeypatch.setattr(m.settings, "valhalla_url", "http://v")
+    target = {"r": R(43.5186, -79.8772)}
+
+    class C:
+        def post(self, url, json):
+            return target["r"]
+
+    monkeypatch.setattr(m, "_client", lambda: C())
+    assert m.snap((43.5185, -79.8770)) == (43.5186, -79.8772)
+    target["r"] = R(43.60, -79.80)  # ~10 km away: keep the original point
+    assert m.snap((43.5185, -79.8770)) == (43.5185, -79.8770)
