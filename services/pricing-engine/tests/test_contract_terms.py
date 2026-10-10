@@ -18,10 +18,19 @@ from porterchain_pricing.policy import policy_from_config
 from porterchain_pricing.types import PricingContext
 from test_contract_schedule import SCHEDULE_ID, _ctx, _price
 
-T = terms_of(load_contract_schedule(SCHEDULE_ID))  # Kaylulu inherits the global terms
+T = terms_of(load_contract_schedule(SCHEDULE_ID))  # Kaylulu contract: 45 min pickup, 15 min stop, no liftgate
+G = terms_of(None)  # global terms
+
+
+def test_b2_kaylulu_contract_keeps_45_min_pickup_grace():
+    assert waiting_cents(T, pickup_minutes=45, stop_minutes=[15])["total_cents"] == 0
+    w = waiting_cents(T, pickup_minutes=50, stop_minutes=[31])
+    assert [x["cents"] for x in w["lines"]] == [750, 1500] and w["total_cents"] == 2250
+    assert T["liftgate_available"] is False
 
 
 def test_b2_waiting_15_free_everywhere_not_pooled_15_min_blocks():
+    T = G
     assert waiting_cents(T, pickup_minutes=15, stop_minutes=[15])["total_cents"] == 0
     # pickup 20 min → 5 over → one 15-min block = $7.50; stop 31 min → 16 over → two blocks = $15
     w = waiting_cents(T, pickup_minutes=20, stop_minutes=[31, 10])
@@ -82,9 +91,7 @@ def test_c03_concierge_past_designated_point():
 
 
 def test_c07_liftgate_not_blocked_globally_but_a_contract_can_turn_it_off():
-    assert (
-        _price(["L5M"], requires_liftgate=True).metadata.get("custom_quote") is not True
-    )
+    assert terms_of(None)["liftgate_available"] is True
     cfg = {
         "pricing_model": "fsa",
         "surcharges": {"downtown": False, "upper_zone": False},
