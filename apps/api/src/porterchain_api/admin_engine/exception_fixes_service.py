@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 TZ = ZoneInfo("America/Toronto")
 SLOT_HOUR = 9
-DRIVER_KINDS = {"late", "at_risk", "unassigned", "margin"}
+DRIVER_KINDS = {"late", "at_risk", "unassigned", "margin", "stuck"}
 DRIVER_TYPES = {"DRIVER_TIMEOUT", "DRIVER_REJECT", "VEHICLE_BREAKDOWN"}
 MAX_RECOMMEND = 10  # Valhalla-backed ranking is the slow part; the rest is rules
 

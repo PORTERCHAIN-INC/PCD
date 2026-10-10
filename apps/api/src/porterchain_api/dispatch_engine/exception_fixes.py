@@ -48,6 +48,15 @@ def suggest(
         if reroute:
             out.append(reroute)
         out.append(contact)
+    elif kind == "idle":
+        out.append(_fix("reassign", f"Give it to {item.get('idle_driver_name') or 'idle driver'}",
+                        "driver is online with no job", driver_id=item.get("idle_driver_id")))
+    elif kind == "stuck":
+        if state in BEFORE_PICKUP and driver:
+            out.append(driver)
+        if reroute:
+            out.append(reroute)
+        out.append(contact)
     elif kind == "unassigned":
         if driver:
             out.append(driver)

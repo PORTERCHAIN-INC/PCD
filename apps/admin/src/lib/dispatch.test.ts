@@ -27,7 +27,7 @@ describe("legacy Control Tower links", () => {
 describe("Dispatch nav", () => {
   const dispatchGroup = ADMIN_NAV_GROUPS.find((g) => g.id === "operations")!;
 
-  it("is Today, Plan, Live, Exceptions, Orders, Fleet, Metrics", () => {
+  it("is Today, Plan, Live, Exceptions, Orders, Fleet (metrics live on Today)", () => {
     expect(dispatchGroup.label).toBe("Dispatch");
     expect(dispatchGroup.items.map((i) => i.label)).toEqual([
       "Today",
@@ -36,7 +36,6 @@ describe("Dispatch nav", () => {
       "Exceptions",
       "Orders",
       "Fleet",
-      "Metrics",
     ]);
   });
 

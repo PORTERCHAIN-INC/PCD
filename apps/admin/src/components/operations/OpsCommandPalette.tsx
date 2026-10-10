@@ -22,7 +22,7 @@ const VIEW_JUMPS: { id: string; label: string; href: string }[] = [
   { id: "orders", label: "Orders", href: "/orders" },
   { id: "fleet", label: "Fleet + capacity", href: "/dispatch/fleet" },
   { id: "drivers", label: "Drivers", href: "/dispatch/fleet" },
-  { id: "metrics", label: "Metrics", href: "/dispatch/metrics" },
+  { id: "metrics", label: "Metrics", href: "/dispatch/today" },
 ];
 
 export function OpsCommandPalette({

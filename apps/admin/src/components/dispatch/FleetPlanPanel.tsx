@@ -11,7 +11,9 @@ import {
   money,
   routeMix,
   STOP_KIND_LABEL,
+  type Consolidation,
   type FleetPlan,
+  type PlanChange,
   type PlanExplanation,
   type PlanRoute,
 } from "@/lib/dispatch";
@@ -97,6 +99,76 @@ function RouteCard({
   );
 }
 
+function changeLine(c: PlanChange, verb: string): string {
+  const who = (id?: string | null, name?: string | null) =>
+    name ?? (id ? id.slice(0, 6) : "no driver");
+  const num = c.order_number ?? c.order_id.slice(0, 8);
+  if (verb === "moved") return `${num}: ${who(c.from, c.from_name)} → ${who(c.to, c.to_name)}`;
+  if (verb === "added") return `${num} → ${who(c.to, c.to_name)}`;
+  return `${num} off ${who(c.from, c.from_name)}`;
+}
+
+function PlanDiff({ diff }: { diff: NonNullable<FleetPlan["diff"]> }) {
+  const rows = (["added", "moved", "removed"] as const).flatMap((k) =>
+    diff[k].map((c) => ({ k, text: changeLine(c, k) }))
+  );
+  return (
+    <div className="rounded-2xl border border-primary/10 bg-white p-4" data-testid="plan-diff">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+        What this re-plan changes
+      </p>
+      {rows.length === 0 ? (
+        <p className="mt-1 text-sm text-primary">
+          No driver changes — same assignments, new order of stops.
+        </p>
+      ) : (
+        <ul className="mt-2 space-y-1 text-sm text-primary">
+          {rows.map((r) => (
+            <li key={r.k + r.text}>
+              <span className="mr-2 inline-block w-16 text-xs uppercase text-muted">{r.k}</span>
+              {r.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ConsolidationList({
+  groups,
+  busy,
+  onPlan,
+}: {
+  groups: Consolidation[];
+  busy: boolean;
+  onPlan: (ids: string[]) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-primary/10 bg-white p-4" data-testid="consolidation">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+        Same-area orders · one route each
+      </p>
+      <ul className="mt-2 divide-y divide-primary/5">
+        {groups.map((g) => (
+          <li key={g.fsa} className="flex items-center gap-3 py-2">
+            <span className="w-12 font-mono text-sm font-semibold text-primary">{g.fsa}</span>
+            <span className="min-w-0 flex-1 truncate text-sm text-primary/80">{g.why}</span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onPlan(g.order_ids)}
+              className="min-h-9 shrink-0 rounded-lg border border-primary/15 px-3 text-xs font-semibold text-primary disabled:opacity-50"
+            >
+              Plan together
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
@@ -124,6 +196,8 @@ export function FleetPlanPanel({
   const [err, setErr] = useState<string | null>(null);
   const [why, setWhy] = useState<PlanExplanation | null>(null);
   const plan = override ?? data?.plan ?? null;
+  const newOrders = data?.new_orders ?? 0;
+  const groups = data?.consolidation ?? [];
 
   const run = async (label: string, fn: (t: string) => Promise<FleetPlan>) => {
     setBusy(label);
@@ -213,17 +287,53 @@ export function FleetPlanPanel({
             type="button"
             disabled={!!busy || !plan?.routes.length}
             onClick={commit}
+            data-dispatch-shortcut="approve"
+            aria-keyshortcuts="A"
             className={cn(BTN, "ml-auto bg-secondary text-white")}
           >
             <CheckCircle2 className="h-4 w-4" />
             {busy === "Commit"
               ? "Assigning…"
-              : `Commit ${plan?.routes.length ?? 0} route${plan?.routes.length === 1 ? "" : "s"}`}
+              : `Approve ${plan?.routes.length ?? 0} route${plan?.routes.length === 1 ? "" : "s"}`}
           </button>
         )}
       </div>
 
+      {plan?.status === "committed" && newOrders > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-3 rounded-2xl border border-secondary/30 bg-secondary/5 p-3"
+          data-testid="new-orders"
+        >
+          <p className="min-w-0 flex-1 text-sm text-primary">
+            <span className="font-semibold">
+              {newOrders} new order{newOrders === 1 ? "" : "s"}
+            </span>{" "}
+            since this plan
+            {data?.new_order_numbers.length
+              ? ` · ${data.new_order_numbers.slice(0, 3).join(", ")}`
+              : ""}
+          </p>
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={() => run("Re-plan", (t) => dispatch.replan(t, plan.id))}
+            className={cn(BTN, "min-h-10 bg-secondary text-white")}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Suggest changes
+          </button>
+        </div>
+      )}
+
       {err && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{err}</p>}
+
+      {groups.length > 0 && (
+        <ConsolidationList
+          groups={groups}
+          busy={!!busy}
+          onPlan={(ids) => run("Plan", (t) => dispatch.planDay(t, { order_ids: ids }))}
+        />
+      )}
 
       {!plan && !busy && (
         <div className="rounded-2xl border border-dashed border-primary/20 bg-white p-8 text-center">
@@ -270,6 +380,8 @@ export function FleetPlanPanel({
             )}
           </div>
 
+          {plan.diff && plan.status === "draft" && <PlanDiff diff={plan.diff} />}
+
           {s.commit && (
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
               Assigned {s.commit.assigned} order(s)
@@ -300,7 +412,7 @@ export function FleetPlanPanel({
                   ))}
                 </ul>
               )}
-              <p className="mt-3 text-xs text-muted">Nothing changes until you commit.</p>
+              <p className="mt-3 text-xs text-muted">Nothing changes until you approve.</p>
             </div>
           )}
 

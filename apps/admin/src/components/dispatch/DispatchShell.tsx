@@ -10,13 +10,11 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import AdminPage from "@/components/layout/AdminPage";
 import { Order360Drawer } from "@/components/orders/Order360Drawer";
 import { OpsCommandPalette } from "@/components/operations/OpsCommandPalette";
-import { OptimizePanel } from "@/components/operations/OptimizePanel";
 import { FleetPlanPanel } from "@/components/dispatch/FleetPlanPanel";
 import { PartnersPanel } from "@/components/dispatch/PartnersPanel";
 import { PartnerJobsPanel } from "@/components/dispatch/PartnerJobsPanel";
 import { RetentionCard } from "@/components/dispatch/RetentionCard";
 import { ScheduledBatchesPanel } from "@/components/operations/ScheduledBatchesPanel";
-import { DispatcherCopilotPanel } from "@/components/operations/DispatcherCopilotPanel";
 import { UtilizationPanel } from "@/components/operations/UtilizationPanel";
 import { BoardPanel } from "@/components/operations/BoardPanel";
 import { PushHealthStrip } from "@/components/operations/PushHealthStrip";
@@ -53,9 +51,7 @@ const TABS: { id: DispatchView | "orders"; label: string; href: string }[] = [
   { id: "plan", label: "Plan", href: "/dispatch/plan" },
   { id: "live", label: "Live", href: "/dispatch/live" },
   { id: "exceptions", label: "Exceptions", href: "/dispatch/exceptions" },
-  { id: "orders", label: "Orders", href: "/orders" },
   { id: "fleet", label: "Fleet", href: "/dispatch/fleet" },
-  { id: "metrics", label: "Metrics", href: "/dispatch/metrics" },
 ];
 
 const SUBTITLE: Record<DispatchView, string> = {
@@ -64,7 +60,6 @@ const SUBTITLE: Record<DispatchView, string> = {
   live: "Where every delivery is, and whether it lands on time.",
   exceptions: "Everything that needs a human, worst first.",
   fleet: "Drivers, vehicles and how much each can carry.",
-  metrics: "Speed, reliability and cost per stop.",
 };
 
 const POLL_MS = 30_000;
@@ -95,6 +90,9 @@ export function DispatchShell({ view }: { view: DispatchView }) {
         const btn = document.querySelector<HTMLButtonElement>('[data-dispatch-shortcut="plan"]');
         if (btn && !btn.disabled) btn.click();
         else router.push("/dispatch/plan");
+      } else if (action.kind === "approve") {
+        const btn = document.querySelector<HTMLButtonElement>('[data-dispatch-shortcut="approve"]');
+        if (btn && !btn.disabled) btn.click();
       } else if (action.kind === "new") setBuilderOpen(true);
       else if (action.kind === "refresh") setTick((x) => x + 1);
       else if (action.kind === "help") setHelp((h) => !h);
@@ -219,40 +217,39 @@ export function DispatchShell({ view }: { view: DispatchView }) {
         </ul>
       </nav>
 
-      {(view === "today" || view === "metrics") && (
-        <MetricsBar tick={tick} days={view === "metrics" ? days : 7} />
+      {view === "today" && (
+        <div className="space-y-2">
+          <div className="flex justify-end gap-1" role="group" aria-label="Metrics window">
+            {[1, 7, 30].map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDays(d)}
+                aria-pressed={days === d}
+                className={cn(
+                  "min-h-8 rounded-full px-3 text-xs font-medium",
+                  days === d ? "bg-secondary text-white" : "border border-primary/15 text-primary"
+                )}
+              >
+                {d === 1 ? "Today" : `${d}d`}
+              </button>
+            ))}
+          </div>
+          <MetricsBar tick={tick} days={days} />
+        </div>
       )}
 
       {view === "today" && (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <TodayPanel tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
-          <ExceptionsQueue tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
-          <div className="xl:col-span-2">
-            <BoardPanel tick={tick} onMoved={refresh} onOpenOrder={openOrder} />
-          </div>
+          <BoardPanel tick={tick} onMoved={refresh} onOpenOrder={openOrder} />
         </div>
       )}
 
       {view === "plan" && (
         <div className="space-y-4">
           <FleetPlanPanel tick={tick} onOpenOrder={openOrder} onCommitted={refresh} />
-          <details className="rounded-2xl border border-primary/10 bg-white">
-            <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-primary">
-              Single-driver day plan
-            </summary>
-            <div className="p-3">
-              <OptimizePanel tick={tick} onOpenOrder={openOrder} onCommitted={refresh} />
-            </div>
-          </details>
           <ScheduledBatchesPanel tick={tick} onOpenOrder={openOrder} />
-          <details className="rounded-2xl border border-primary/10 bg-white">
-            <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-primary">
-              Copilot suggestions
-            </summary>
-            <div className="p-3">
-              <DispatcherCopilotPanel tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
-            </div>
-          </details>
         </div>
       )}
 
@@ -309,25 +306,6 @@ export function DispatchShell({ view }: { view: DispatchView }) {
         </div>
       )}
 
-      {view === "metrics" && (
-        <div className="flex gap-1" role="group" aria-label="Window">
-          {[1, 7, 30].map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDays(d)}
-              aria-pressed={days === d}
-              className={cn(
-                "min-h-10 rounded-full px-4 text-sm font-medium",
-                days === d ? "bg-secondary text-white" : "border border-primary/15 text-primary"
-              )}
-            >
-              {d === 1 ? "Today" : `${d} days`}
-            </button>
-          ))}
-        </div>
-      )}
-
       {help && (
         <div
           role="dialog"
@@ -343,8 +321,9 @@ export function DispatchShell({ view }: { view: DispatchView }) {
             <p className="text-lg font-bold text-primary">Keyboard</p>
             <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               {[
-                ["1 – 7", TABS.map((t) => t.label).join(" · ")],
+                [`1 – ${TABS.length}`, TABS.map((t) => t.label).join(" · ")],
                 ["P", "Plan the day"],
+                ["A", "Approve the draft plan"],
                 ["N", "New order"],
                 ["R", "Refresh"],
                 ["⌘K", "Search orders & jump"],

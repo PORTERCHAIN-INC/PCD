@@ -160,6 +160,7 @@ class FleetPlanService:
                 cap_kg=float(spec["max_kg"]) * cap, cap_boxes=int(spec["max_boxes"] * cap),
                 cap_m3=float(spec["max_m3"]) * cap,
                 start=self.position_fn(d.id) or TORONTO, hourly_cents=int(fleet.get("hourly_cost_cents") or 2700),
+                rank=RANK.get(spec["id"], 0), km_cents=int(spec.get("cost_per_km_cents") or 0),
             ))
         return out
 
@@ -283,7 +284,7 @@ class FleetPlanService:
         names = {d.id: d.full_name for d in db.query(Driver).filter(Driver.id.in_(dids)).all()} if dids else {}
         oids = list({s["order_id"] for r in routes for s in r.stops})
         numbers = {o.id: o.order_number for o in db.query(Order).filter(Order.id.in_(oids)).all()} if oids else {}
-        return {
+        out = {
             "id": plan.id, "status": plan.status, "solver": plan.solver, "version": plan.version,
             "parent_id": plan.parent_id, "service_date": plan.service_date.isoformat(),
             "created_at": plan.created_at.isoformat() if plan.created_at else None,
@@ -295,6 +296,39 @@ class FleetPlanService:
                 "fill_pct": r.fill_pct, "status": r.status,
                 "stops": [{**s, "order_number": numbers.get(s["order_id"])} for s in r.stops],
             } for r in routes],
+        }
+        if plan.parent_id:
+            out["diff"] = self._diff(db, plan.parent_id, out["routes"], names, numbers)
+        return out
+
+    @staticmethod
+    def _diff(db: Session, parent_id: str, routes: list[dict], names: dict, numbers: dict) -> dict:
+        """What this re-plan changes against its parent (drivers by name, orders by number)."""
+        from porterchain_api.dispatch_engine.models import DispatchRoute
+        from porterchain_api.dispatch_engine.plan_insights import diff
+
+        before = [{"driver_id": r.driver_id, "stops": r.stops}
+                  for r in db.query(DispatchRoute).filter(DispatchRoute.plan_id == parent_id).all()]
+        out = diff(before, routes)
+        for rows in out.values():
+            for row in rows:
+                row["order_number"] = numbers.get(row["order_id"])
+                for side in ("from", "to"):
+                    if side in row:
+                        row[f"{side}_name"] = names.get(row[side] or "")
+        return out
+
+    def insights(self, db: Session, plan: dict | None) -> dict:
+        """Orders that arrived after the latest plan, and same-area consolidation suggestions."""
+        from porterchain_api.dispatch_engine.plan_insights import consolidation, driver_by_order
+
+        waiting = self._orders(db, None)
+        planned = driver_by_order(plan["routes"]) if plan else {}
+        new = [o for o in waiting if o.id not in planned]
+        return {
+            "new_orders": len(new) if plan else 0,
+            "new_order_numbers": [o.order_number for o in new][:10] if plan else [],
+            "consolidation": consolidation(waiting, planned)[:5],
         }
 
     def latest(self, db: Session) -> dict | None:

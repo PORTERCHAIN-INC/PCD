@@ -41,7 +41,11 @@ def _actor(ctx: AdminContext) -> str | None:
 # ---------------------------------------------------------------- plans
 @router.get(f"{P}/plans/latest")
 def dispatch_plan_latest(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    return _run(ctx, "dispatch_read", lambda: {"plan": _plans.latest(db)})
+    def read() -> dict:
+        plan = _plans.latest(db)
+        return {"plan": plan, **_plans.insights(db, plan)}
+
+    return _run(ctx, "dispatch_read", read)
 
 
 @router.post(f"{P}/plans")

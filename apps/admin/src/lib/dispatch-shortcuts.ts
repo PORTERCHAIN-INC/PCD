@@ -3,16 +3,19 @@
 export type ShortcutAction =
   | { kind: "tab"; index: number }
   | { kind: "plan" }
+  | { kind: "approve" }
   | { kind: "new" }
   | { kind: "refresh" }
   | { kind: "help" }
   | { kind: "close" };
 
 export function shortcutFor(key: string): ShortcutAction | null {
-  if (/^[1-7]$/.test(key)) return { kind: "tab", index: Number(key) - 1 };
+  if (/^[1-5]$/.test(key)) return { kind: "tab", index: Number(key) - 1 };
   switch (key.toLowerCase()) {
     case "p":
       return { kind: "plan" };
+    case "a":
+      return { kind: "approve" };
     case "n":
       return { kind: "new" };
     case "r":

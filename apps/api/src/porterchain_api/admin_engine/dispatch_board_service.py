@@ -185,6 +185,8 @@ class DispatchBoardService:
                 }
             )
 
+        listed = {i["order_id"] for i in items}
+        items += [i for i in self._anomalies(db, now, skip=listed) if i["order_id"] not in listed]
         floor = float(load_fleet(db)["margin_floor_pct"])
         items += [m for m in margin_items(db, now=now, floor_pct=floor) if m["order_id"] not in seen_orders]
         items.sort(key=lambda i: (SEVERITY_ORDER.get(i["severity"], 9), i["age_min"] if i["age_min"] is not None else -1))
@@ -196,6 +198,23 @@ class DispatchBoardService:
         (fixes or ExceptionFixesService()).annotate(db, page, now=now)
         return {"items": page, "counts": dict(counts), "total": len(items), "offset": offset, "limit": limit,
                 "eta": eta_status}
+
+    @staticmethod
+    def _anomalies(db: Session, now: datetime, skip: set[str]) -> list[dict[str, Any]]:
+        """Stuck orders and idle drivers (see ``dispatch_engine.anomalies``); ``skip``: orders already queued."""
+        from porterchain_api.admin_models import Driver
+        from porterchain_api.booking_models import Order
+        from porterchain_api.dispatch_engine.anomalies import STUCK_MIN, idle_items, stuck_items
+
+        live = Order.is_sandbox.is_(False)
+        active = db.query(Order).filter(live, Order.state.in_(tuple(STUCK_MIN))).all()
+        waiting = [o for o in db.query(Order).filter(live, Order.state == "DISPATCH_READY").limit(50) if o.id not in skip]
+        busy = {o.assigned_driver_id for o in active if o.assigned_driver_id}
+        idle = [] if not waiting else [
+            d for d in db.query(Driver).filter(Driver.status == "APPROVED", Driver.is_online.is_(True)).limit(50)
+            if d.id not in busy
+        ]
+        return stuck_items(active, now) + idle_items(idle, waiting, now)
 
     # ---------- Metrics ----------
     def metrics(self, db: Session, *, days: int = 7, now: datetime | None = None) -> dict[str, Any]:

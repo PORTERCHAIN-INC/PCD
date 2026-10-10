@@ -18,6 +18,8 @@ DROP_PENALTY = 1_000_000  # seconds-equivalent; dropping a pair is always worse 
 HORIZON_S = 14 * 3600
 RUSH_FACTOR = 10  # a rush pair costs 10x more to drop, so capacity overflow bumps scheduled work first
 LATE_PENALTY = 100  # cost per second past a window close (an hour late ≈ 100 h of driving)
+REF_HOURLY_CENTS = 2700  # solver cost unit: one second of driving at this rate
+RIGHT_SIZE_S = 60  # per class rank: a tie-breaker, the smaller vehicle wins when cost is equal
 
 
 @dataclass
@@ -36,6 +38,8 @@ class Vehicle:
     onboard_boxes: int = 0
     onboard_m3: float = 0.0
     must_deliver: list[str] = field(default_factory=list)  # re-plan: drop keys locked to this vehicle
+    rank: int = 0  # size rank (sedan 0 … box truck 3); bigger vehicles cost more to open
+    km_cents: int = 0  # optional per-km cost (fleet ``cost_per_km_cents``)
 
 
 @dataclass
@@ -45,6 +49,7 @@ class Problem:
     vehicles: list[Vehicle]
     matrix: list[list[int]]  # (V+S)x(V+S) seconds, vehicles first
     time_limit_s: int = 5
+    metres: list[list[int]] | None = None  # optional road metres, same shape as ``matrix``
 
     def index(self) -> dict[str, int]:
         v = len(self.vehicles)
@@ -70,7 +75,7 @@ def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
         keys = [k for k in routes.get(veh.id, []) if k in by_key]
         if not keys and not veh.must_deliver:
             continue
-        seconds, at = 0, vi
+        seconds, at, metres = 0, vi, 0
         kg, boxes, m3 = veh.onboard_kg, veh.onboard_boxes, veh.onboard_m3
         peak_kg, peak_boxes, peak_m3 = kg, boxes, m3
         seen: set[str] = set()
@@ -78,6 +83,8 @@ def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
         for k in keys:
             s = by_key[k]
             arrive = seconds + problem.matrix[at][idx[k]]
+            if problem.metres:
+                metres += problem.metres[at][idx[k]]
             if s.window_start_s is not None and arrive < s.window_start_s:
                 arrive = s.window_start_s  # wait for the window to open
             if s.window_end_s is not None and arrive > s.window_end_s:
@@ -108,12 +115,12 @@ def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
             violations.append(f"{veh.id}: route too long")
         fill = max(peak_kg / veh.cap_kg if veh.cap_kg else 0, peak_boxes / veh.cap_boxes if veh.cap_boxes else 0,
                    peak_m3 / veh.cap_m3 if veh.cap_m3 else 0)
-        cost = int(round(seconds / 3600 * veh.hourly_cents))
+        cost = round(seconds / 3600 * veh.hourly_cents + metres / 1000 * veh.km_cents)
         total_cost += cost
         served |= seen
         out_routes.append({
             "vehicle_id": veh.id, "driver_id": veh.driver_id, "vehicle_class": veh.vehicle_class,
-            "stops": seq, "seconds": seconds, "fill_pct": round(fill * 100, 1),
+            "stops": seq, "seconds": seconds, "metres": metres, "fill_pct": round(fill * 100, 1),
             "peak_kg": round(peak_kg, 1), "peak_boxes": peak_boxes, "peak_m3": round(peak_m3, 3), "cost_cents": cost,
         })
     dropped = [p for p, d in problem.pairs if p not in served or d not in served]
@@ -137,6 +144,30 @@ def better(a: dict[str, Any], b: dict[str, Any]) -> bool:
 
 
 # ---------------------------------------------------------------- OR-Tools
+def fixed_cost(veh: Vehicle) -> int:
+    """Cost of opening a vehicle, in reference seconds: its fixed time plus a right-size step."""
+    return int(veh.fixed_s * veh.hourly_cents / REF_HOURLY_CENTS) + RIGHT_SIZE_S * max(0, veh.rank)
+
+
+def arc_cost(seconds: int, metres: int, veh: Vehicle) -> int:
+    """Arc cost in reference seconds: driver time at this vehicle's rate plus per-km cost."""
+    cents = seconds * veh.hourly_cents / 3600 + metres / 1000 * veh.km_cents
+    return round(cents * 3600 / REF_HOURLY_CENTS)
+
+
+def _cost_callback(routing: Any, manager: Any, problem: Problem, veh: Vehicle, m: Any, service: list[int]) -> int:
+    def dist(a: int, b: int) -> int:
+        if not problem.metres or a == 0 or b == 0:
+            return 0
+        return int(problem.metres[a - 1][b - 1])
+
+    def cost(i: int, j: int) -> int:
+        a, b = manager.IndexToNode(i), manager.IndexToNode(j)
+        return arc_cost(m(a, b) + service[a], dist(a, b), veh)
+
+    return routing.RegisterTransitCallback(cost)
+
+
 def solve_ortools(problem: Problem) -> dict[str, list[str]]:
     from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
@@ -164,9 +195,9 @@ def solve_ortools(problem: Problem) -> dict[str, list[str]]:
         return m(a, b) + service[a]
 
     cb = routing.RegisterTransitCallback(transit)
-    routing.SetArcCostEvaluatorOfAllVehicles(cb)
     for k, veh in enumerate(problem.vehicles):
-        routing.SetFixedCostOfVehicle(int(veh.fixed_s), k)
+        routing.SetArcCostEvaluatorOfVehicle(_cost_callback(routing, manager, problem, veh, m, service), k)
+        routing.SetFixedCostOfVehicle(fixed_cost(veh), k)
     routing.AddDimensionWithVehicleCapacity(
         cb, HORIZON_S, [int(veh.max_route_s) for veh in problem.vehicles], True, "Time"
     )

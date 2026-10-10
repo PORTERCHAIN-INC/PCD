@@ -4,8 +4,9 @@ import { isTypingTarget, shortcutFor } from "./dispatch-shortcuts";
 describe("dispatch shortcuts", () => {
   it("maps digits to tabs and letters to actions", () => {
     expect(shortcutFor("1")).toEqual({ kind: "tab", index: 0 });
-    expect(shortcutFor("7")).toEqual({ kind: "tab", index: 6 });
-    expect(shortcutFor("8")).toBeNull();
+    expect(shortcutFor("5")).toEqual({ kind: "tab", index: 4 });
+    expect(shortcutFor("6")).toBeNull();
+    expect(shortcutFor("a")).toEqual({ kind: "approve" });
     expect(shortcutFor("P")).toEqual({ kind: "plan" });
     expect(shortcutFor("n")).toEqual({ kind: "new" });
     expect(shortcutFor("r")).toEqual({ kind: "refresh" });

@@ -2,7 +2,31 @@ import { adminFetch } from "@/lib/api";
 
 const B = "/v1/admin/operations/dispatch";
 
-export const DISPATCH_VIEWS = ["today", "plan", "live", "exceptions", "fleet", "metrics"] as const;
+export const DISPATCH_VIEWS = ["today", "plan", "live", "exceptions", "fleet"] as const;
+export type PlanChange = {
+  order_id: string;
+  order_number?: string | null;
+  from?: string | null;
+  to?: string | null;
+  from_name?: string | null;
+  to_name?: string | null;
+};
+
+export type Consolidation = {
+  fsa: string;
+  order_ids: string[];
+  order_numbers: string[];
+  split_across: number;
+  why: string;
+};
+
+export type PlanLatest = {
+  plan: FleetPlan | null;
+  new_orders: number;
+  new_order_numbers: string[];
+  consolidation: Consolidation[];
+};
+
 export type DispatchView = (typeof DISPATCH_VIEWS)[number];
 
 export function isDispatchView(v: string | undefined | null): v is DispatchView {
@@ -200,6 +224,7 @@ export type FleetPlan = {
     commit?: { assigned: number; skipped: { order_id: string; reason: string }[] };
   };
   routes: PlanRoute[];
+  diff?: { added: PlanChange[]; moved: PlanChange[]; removed: PlanChange[] };
 };
 
 export type PlanExplanation = {
@@ -354,7 +379,7 @@ export const dispatch = {
       body: JSON.stringify(body),
       headers: { "Content-Type": "application/json" },
     }),
-  latestPlan: (t: string) => adminFetch<{ plan: FleetPlan | null }>(`${B}/plans/latest`, t),
+  latestPlan: (t: string) => adminFetch<PlanLatest>(`${B}/plans/latest`, t),
   planDay: (t: string, body: { order_ids?: string[]; time_limit_s?: number } = {}) =>
     adminFetch<FleetPlan>(`${B}/plans`, t, {
       method: "POST",
