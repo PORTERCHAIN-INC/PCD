@@ -183,7 +183,7 @@ export default function IntegrationsClient() {
               orgId={orgId}
             />
           )}
-          {tab === "docs" && docs && <DocsTab docs={docs} events={events} />}
+          {tab === "docs" && docs && <DocsTab docs={docs} />}
         </>
       ) : null}
     </div>
@@ -520,7 +520,7 @@ function LogsTab({
         Delivery history with automatic retry (up to 3 attempts). Failed deliveries can be retried
         manually.
       </p>
-      <DeliveryTable rows={logs} webhooks={webhooks} onRetry={retry} />
+      <DeliveryTable rows={logs} onRetry={retry} />
     </div>
   );
 }
@@ -758,7 +758,7 @@ function SandboxTab({
   );
 }
 
-function DocsTab({ docs, events }: { docs: ApiDoc; events: EventCatalogItem[] }) {
+function DocsTab({ docs }: { docs: ApiDoc }) {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-primary/10 bg-white p-6 text-sm">
@@ -813,12 +813,10 @@ function DocsTab({ docs, events }: { docs: ApiDoc; events: EventCatalogItem[] })
 
 function DeliveryTable({
   rows,
-  webhooks,
   onRetry,
   compact,
 }: {
   rows: WebhookDelivery[];
-  webhooks?: WebhookRecord[];
   onRetry?: (id: string) => void;
   compact?: boolean;
 }) {

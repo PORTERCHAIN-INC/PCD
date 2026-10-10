@@ -1,12 +1,13 @@
 "use client";
 
-import ConnectionsStatus from "@/components/integrations/ConnectionsStatus";
+import ConnectionsStatus, {
+  useConnectionsStatus,
+} from "@/components/integrations/ConnectionsStatus";
 import ShopifyConnectCard from "@/components/integrations/ShopifyConnectCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { publicEnv } from "@/lib/env";
 import { shopifyInstallError, shopifyRatesProblem } from "@/lib/shopifyStatus";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -21,12 +22,8 @@ function normalizeShop(raw: string | null): string {
 }
 
 export default function ShopifyAppClient() {
-  const { isLoaded, isSignedIn, orgId } = useMerchantAuth();
-  // Reads what ConnectionsStatus already fetched; never fetches on its own.
-  const status = useQuery<{ shopify: { shops: unknown[] } }>({
-    queryKey: ["merchant-connections-status", orgId],
-    enabled: false,
-  });
+  const { isLoaded, isSignedIn } = useMerchantAuth();
+  const status = useConnectionsStatus();
   const hasStore = (status.data?.shopify.shops.length ?? 0) > 0;
   const searchParams = useSearchParams();
   const shop = normalizeShop(searchParams.get("shop") ?? searchParams.get("shopify"));

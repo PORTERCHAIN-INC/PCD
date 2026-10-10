@@ -39,12 +39,10 @@ const GROUP: Record<Row["group"], string> = {
   webhooks: "Order updates to your system",
 };
 
-export default function ConnectionsStatus({ title = "Connections" }: { title?: string }) {
+/** One fetch of everything the status board shows; shared by every caller on the page. */
+export function useConnectionsStatus() {
   const { getApiToken, orgId, isSignedIn } = useMerchantAuth();
-  const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const q = useQuery({
+  return useQuery({
     queryKey: ["merchant-connections-status", orgId],
     enabled: Boolean(isSignedIn && orgId),
     queryFn: async () => {
@@ -58,6 +56,14 @@ export default function ConnectionsStatus({ title = "Connections" }: { title?: s
       return { shopify, keys, hooks, logs };
     },
   });
+}
+
+export default function ConnectionsStatus({ title = "Connections" }: { title?: string }) {
+  const { getApiToken, orgId } = useMerchantAuth();
+  const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const q = useConnectionsStatus();
 
   async function fix(f: MerchantFix) {
     if (f.kind === "link") return;
