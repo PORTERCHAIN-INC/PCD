@@ -1,7 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ExternalLink } from "lucide-react";
+/**
+ * Connections tab. One status line per integration (light + plain reason), one Fix per
+ * problem, everything else in a ⋯ menu or a collapsed "Details". Replaces the old
+ * Integrations wall and the separate watchdog panel (they showed health twice).
+ */
+
+import { useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, PlugZap, RefreshCw, ShoppingBag, KeyRound, Webhook } from "lucide-react";
+import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
@@ -10,1293 +18,1243 @@ import { getSystemLinks } from "@/lib/system-links";
 import {
   merchants,
   merchantActionMessage,
+  RETAIL_VEHICLE_OPTIONS,
+  vehicleClassLabel,
   type MerchantTeamUser,
   type MerchantWebhookDeliveryRow,
 } from "@/lib/merchants";
-import { Badge, Button, Field, Input, SectionCard } from "@/components/crm/primitives";
-import { relativeTime, titleCase } from "@/lib/crmFormat";
+import { merchantOps, cad, type ConnectionItem } from "@/lib/merchant-ops";
+import { ordersApi } from "@/lib/orders";
+import {
+  ago,
+  canElevateIntegrations,
+  canMutateIntegrations,
+  deliveryFailed,
+  hookStatus,
+  keyStatus,
+  policyPayload,
+  shopStatus,
+  summarize,
+  type Light,
+  type Status,
+} from "@/lib/merchant-connections";
+import {
+  ActionMenu,
+  Dialog,
+  Empty,
+  FieldLabel,
+  Panel,
+  PrimaryAction,
+  QuietButton,
+  ReasonDialog,
+  SkeletonRows,
+  inputClass,
+  type MenuItem,
+} from "./ops/ui";
 
-/** Roles that may mutate merchant integrations (matches API MODULE_PERMISSIONS.merchants). */
-const MERCHANTS_WRITE_ROLES = new Set([
-  "super_admin",
-  "admin",
-  "sales",
-  "sales_manager",
-  "compliance",
-]);
-
-/** Freeze / force-disconnect — Superadmin or Compliance only. */
-const INTEGRATIONS_ELEVATED_ROLES = new Set(["super_admin", "compliance"]);
-
-/** Merchant seats that can mint keys / webhooks (matches merchant MODULE_PERMISSIONS.api_keys). */
+const DOT: Record<Light, string> = {
+  red: "bg-red-600",
+  amber: "bg-amber-500",
+  green: "bg-emerald-600",
+  off: "bg-slate-300",
+};
+const WORD: Record<Light, string> = {
+  red: "Needs fixing",
+  amber: "Watch",
+  green: "Healthy",
+  off: "Off",
+};
 const MERCHANT_KEYS_ROLES = new Set(["merchant_owner", "merchant_admin"]);
 
-function pickIntegrationsSeat(
-  team: MerchantTeamUser[] | null | undefined
-): MerchantTeamUser | null {
-  const active = (team ?? []).filter((u) => u.is_active);
-  const owner = active.find((u) => u.role === "merchant_owner");
-  if (owner) return owner;
-  return active.find((u) => MERCHANT_KEYS_ROLES.has(u.role)) ?? null;
+function pickSeat(team: MerchantTeamUser[] | null | undefined): MerchantTeamUser | null {
+  const active = (team ?? []).filter((u) => u.is_active !== false);
+  return (
+    active.find((u) => u.role === "merchant_owner") ??
+    active.find((u) => MERCHANT_KEYS_ROLES.has(u.role)) ??
+    null
+  );
 }
 
-function deliveryFailed(d: MerchantWebhookDeliveryRow): boolean {
-  if (typeof d.success === "boolean") return !d.success;
-  const status = (d.status || "").toLowerCase();
-  return status === "failed" || status === "error";
-}
+type Reasoned =
+  | { kind: "pause"; shopId: string; domain: string; paused: boolean }
+  | { kind: "auto"; shopId: string; domain: string; on: boolean }
+  | { kind: "repair"; shopId: string; domain: string }
+  | { kind: "disconnect"; shopId: string; domain: string }
+  | { kind: "freeze" }
+  | { kind: "rotate"; keyId: string; name: string };
+type Confirm =
+  | { kind: "revoke"; keyId: string; name: string }
+  | { kind: "hook_off"; hookId: string; url: string };
 
-function deliveryLabel(d: MerchantWebhookDeliveryRow): string {
-  if (typeof d.success === "boolean") return d.success ? "Ok" : "Failed";
-  if (d.status) return titleCase(d.status);
-  return "Unknown";
-}
-
-function deliveryHttp(d: MerchantWebhookDeliveryRow): number | null {
-  return d.response_status ?? d.http_status ?? null;
-}
-
-function deliveryError(d: MerchantWebhookDeliveryRow): string | null {
-  return d.error_message ?? d.error ?? null;
-}
+const REASONED_COPY: Record<
+  Reasoned["kind"],
+  (r: Reasoned) => { title: string; body: string; cta: string; danger?: boolean }
+> = {
+  pause: (r) => {
+    const p = r as Extract<Reasoned, { kind: "pause" }>;
+    return p.paused
+      ? {
+          title: `Resume orders from ${p.domain}?`,
+          body: "New Shopify orders will be booked again.",
+          cta: "Resume orders",
+        }
+      : {
+          title: `Pause orders from ${p.domain}?`,
+          body: "New Shopify orders wait in a queue until you resume.",
+          cta: "Pause orders",
+          danger: true,
+        };
+  },
+  auto: (r) => {
+    const a = r as Extract<Reasoned, { kind: "auto" }>;
+    return a.on
+      ? {
+          title: "Turn off auto-dispatch?",
+          body: "Shopify orders will wait for staff to release them.",
+          cta: "Turn off",
+        }
+      : {
+          title: "Turn on auto-dispatch?",
+          body: "Shopify orders go straight to drivers.",
+          cta: "Turn on",
+        };
+  },
+  repair: (r) => ({
+    title: `Repair ${(r as Extract<Reasoned, { kind: "repair" }>).domain}?`,
+    body: "Re-registers order updates and checkout shipping rates with Shopify.",
+    cta: "Repair",
+  }),
+  disconnect: (r) => ({
+    title: `Disconnect ${(r as Extract<Reasoned, { kind: "disconnect" }>).domain}?`,
+    body: "Stops all Shopify orders and rates for this store until the merchant reconnects.",
+    cta: "Disconnect",
+    danger: true,
+  }),
+  freeze: () => ({
+    title: "Freeze all API access?",
+    body: "Revokes every API key and turns off every webhook for this merchant. Use for a leak or abuse.",
+    cta: "Freeze",
+    danger: true,
+  }),
+  rotate: (r) => ({
+    title: `Replace ${(r as Extract<Reasoned, { kind: "rotate" }>).name}?`,
+    body: "Issues a new key now. The old one keeps working for 7 days. Copy the new key from the next screen.",
+    cta: "Replace key",
+  }),
+};
 
 export default function MerchantIntegrationsTab({ id }: { id: string }) {
+  const router = useRouter();
   const { getApiToken } = useAdminAuth();
   const { profile } = useAdminProfile();
   const role = profile?.role?.toLowerCase() || "";
-  const canMutate = !profile?.role || MERCHANTS_WRITE_ROLES.has(role);
-  const canElevate = INTEGRATIONS_ELEVATED_ROLES.has(role);
+  const canMutate = canMutateIntegrations(role);
+  const canElevate = canElevateIntegrations(role);
   const canImpersonate = role === "super_admin";
-  const merchantPortalBase =
+  const portal =
     getSystemLinks().find((l) => l.id === "merchant")?.href ?? "https://merchant.porterchain.com";
 
   const [version, setVersion] = useState(0);
-  const { data } = useApiData((t) => merchants.api(t, id), [id, version], {
-    key: `merchant-api-${id}-${version}`,
+  const { data, error } = useApiData((t) => merchants.api(t, id), [id, version], {
+    key: `merchant-api-${id}`,
   });
-  const { data: team } = useApiData((t) => merchants.team(t, id), [id, version], {
-    key: `merchant-team-integrations-${id}-${version}`,
+  const { data: watch } = useApiData((t) => merchantOps.connections(t, id), [id, version], {
+    key: `merchant-connections-${id}`,
   });
-  const integrationsSeat = useMemo(() => pickIntegrationsSeat(team), [team]);
-  const [impersonateOpen, setImpersonateOpen] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
-  const [rateEdits, setRateEdits] = useState<Record<string, string>>({});
-  const [openHook, setOpenHook] = useState<string | null>(null);
-  const [deliveries, setDeliveries] = useState<MerchantWebhookDeliveryRow[]>([]);
-  const [installShop, setInstallShop] = useState("");
-  const [freezeReason, setFreezeReason] = useState("");
-  const [dlqOpen, setDlqOpen] = useState(false);
-  const [dlqRows, setDlqRows] = useState<
-    Array<{
-      id: string;
-      shop_domain: string;
-      action: string;
-      shopify_order_id: string | null;
-      reason_code: string;
-      detail: string | null;
-      status: string;
-      attempts: number;
-      porterchain_order_id: string | null;
-      created_at: string | null;
-    }>
-  >([]);
+  const { data: team } = useApiData((t) => merchants.team(t, id), [id], {
+    key: `merchant-team-integrations-${id}`,
+  });
+  const seat = useMemo(() => pickSeat(team), [team]);
 
-  const apiKeys = data?.api_keys ?? [];
-  const webhooks = data?.webhooks ?? [];
-  const shops = data?.shopify_shops ?? [];
-  const usage = data?.usage;
-  const limits = data?.rate_limits ?? [];
-  const recent = data?.recent_webhook_deliveries ?? [];
-  const health = data?.health;
-  const audit = data?.audit_events ?? [];
-  const partner = data?.shopify_partner;
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
+  const [reasoned, setReasoned] = useState<Reasoned | null>(null);
+  const [confirm, setConfirm] = useState<Confirm | null>(null);
+  const [secret, setSecret] = useState<string | null>(null);
+  const [rate, setRate] = useState<{ keyId: string; value: string } | null>(null);
+  const [policy, setPolicy] = useState<{
+    shopId: string;
+    domain: string;
+    vehicle: string;
+    pkg: string;
+    current: { vehicle: string | null | undefined; pkg: string | null | undefined };
+  } | null>(null);
+  const [policyReason, setPolicyReason] = useState("");
+  const [install, setInstall] = useState<{ shop: string } | null>(null);
+  const [impersonate, setImpersonate] = useState(false);
+  const [dlq, setDlq] = useState<
+    Awaited<ReturnType<typeof merchants.shopifyIngressDlq>>["items"] | null
+  >(null);
+  const [log, setLog] = useState<{ hookId: string; rows: MerchantWebhookDeliveryRow[] } | null>(
+    null
+  );
 
-  async function copyText(kind: string, value: string) {
+  const watchById = useMemo(() => {
+    const m = new Map<string, ConnectionItem>();
+    (watch?.items ?? []).forEach((i) => m.set(`${i.kind}:${i.id}`, i));
+    return m;
+  }, [watch]);
+
+  async function run(fn: (t: string) => Promise<string | void>, after?: () => void) {
+    setBusy(true);
+    setToast(null);
     try {
-      await navigator.clipboard.writeText(value);
-      setCopied(kind);
-      window.setTimeout(() => setCopied(null), 1500);
-    } catch {
-      setError("Could not copy to clipboard");
-    }
-  }
-
-  async function revoke(keyId: string) {
-    if (!canMutate) return;
-    if (!window.confirm("Revoke this API key? The merchant cannot use it after this.")) return;
-    setBusy(keyId);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.revokeApiKey(token, id, keyId);
+      const t = await getApiToken();
+      const msg = await fn(t);
+      if (msg) setToast({ text: msg });
       setVersion((v) => v + 1);
+      after?.();
     } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Could not revoke that key"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function saveRate(keyId: string) {
-    if (!canMutate) return;
-    const raw = rateEdits[keyId];
-    const rpm = Number(raw);
-    if (!Number.isFinite(rpm) || rpm < 10) {
-      setError(merchantActionMessage("rate_limit_invalid"));
-      return;
-    }
-    setBusy(`rate-${keyId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.updateApiKeyRateLimit(token, id, keyId, Math.round(rpm));
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Rate limit update failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function disableHook(webhookId: string) {
-    if (!canMutate) return;
-    if (!window.confirm("Disable this webhook? PorterChain will stop posting events to it.")) {
-      return;
-    }
-    setBusy(webhookId);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.disableWebhook(token, id, webhookId);
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(
-        merchantActionMessage(e instanceof Error ? e.message : "Could not disable that webhook")
-      );
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function enableHook(webhookId: string) {
-    if (!canMutate) return;
-    setBusy(`enable-${webhookId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.enableWebhook(token, id, webhookId);
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(
-        merchantActionMessage(e instanceof Error ? e.message : "Could not re-enable that webhook")
-      );
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function sendTest(webhookId: string) {
-    if (!canMutate) return;
-    setBusy(`test-${webhookId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      const result = await merchants.testWebhook(token, id, webhookId);
-      if (result && result.success === false) {
-        setError(
-          merchantActionMessage(
-            typeof result.error_message === "string" ? result.error_message : "Test delivery failed"
-          )
-        );
-      }
-      setVersion((v) => v + 1);
-      if (openHook === webhookId) {
-        const rows = await merchants.webhookDeliveries(token, id, webhookId);
-        setDeliveries(rows);
-      }
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Test webhook failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function freezeApi() {
-    if (!canElevate) return;
-    const reason =
-      freezeReason.trim() || window.prompt("Reason for freezing Partner API (required):") || "";
-    if (!reason.trim()) {
-      setError(merchantActionMessage("reason_required"));
-      return;
-    }
-    if (
-      !window.confirm(
-        "Freeze Partner API? This revokes all active keys and disables all webhooks for this merchant."
-      )
-    ) {
-      return;
-    }
-    setBusy("freeze");
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.freezePartnerApi(token, id, reason.trim());
-      setFreezeReason("");
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Freeze failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function forceDisconnect(shopId: string, domain: string) {
-    if (!canElevate) return;
-    const reason = window.prompt(`Force-disconnect ${domain}? Enter reason (required):`) || "";
-    if (!reason.trim()) {
-      setError(merchantActionMessage("reason_required"));
-      return;
-    }
-    setBusy(`disc-${shopId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.forceDisconnectShopify(token, id, shopId, reason.trim());
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Force-disconnect failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function toggleIngressPause(shopId: string, domain: string, currentlyPaused: boolean) {
-    if (!canElevate) return;
-    const next = !currentlyPaused;
-    const reason =
-      window.prompt(
-        `${next ? "Pause" : "Resume"} Shopify ingress for ${domain}? Enter reason (required):`
-      ) || "";
-    if (!reason.trim()) {
-      setError(merchantActionMessage("reason_required"));
-      return;
-    }
-    setBusy(`pause-${shopId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.shopifyIngressPause(token, id, shopId, next, reason.trim());
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Ingress pause failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function toggleAutoDispatch(shopId: string, domain: string, currentlyOn: boolean) {
-    if (!canElevate) return;
-    const next = !currentlyOn;
-    const reason =
-      window.prompt(
-        `${next ? "Enable" : "Disable"} auto-dispatch for ${domain}? Enter reason (required):`
-      ) || "";
-    if (!reason.trim()) {
-      setError(merchantActionMessage("reason_required"));
-      return;
-    }
-    setBusy(`auto-${shopId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.shopifyAutoDispatch(token, id, shopId, next, reason.trim());
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(
-        merchantActionMessage(e instanceof Error ? e.message : "Auto-dispatch update failed")
-      );
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function loadDlq() {
-    if (dlqOpen) {
-      setDlqOpen(false);
-      return;
-    }
-    setBusy("dlq");
-    setError(null);
-    try {
-      const token = await getApiToken();
-      const res = await merchants.shopifyIngressDlq(token, id);
-      setDlqRows(res.items);
-      setDlqOpen(true);
-    } catch (e) {
-      setError(
-        merchantActionMessage(e instanceof Error ? e.message : "Could not load ingress DLQ")
-      );
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function replayDlq(dlqId: string) {
-    if (!canMutate) return;
-    setBusy(`replay-${dlqId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.shopifyIngressDlqReplay(token, id, dlqId);
-      const res = await merchants.shopifyIngressDlq(token, id);
-      setDlqRows(res.items);
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Replay failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function reregisterHooks(shopId: string, domain: string) {
-    if (!canElevate) return;
-    const reason =
-      window.prompt(`Re-register Shopify webhooks + CarrierService for ${domain}? Reason:`) || "";
-    if (!reason.trim()) {
-      setError(merchantActionMessage("reason_required"));
-      return;
-    }
-    setBusy(`reg-${shopId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.shopifyReregisterHooks(token, id, shopId, reason.trim());
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Re-register failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function editBookingPolicy(
-    shopId: string,
-    domain: string,
-    vehicle?: string | null,
-    pkg?: string | null
-  ) {
-    if (!canElevate) return;
-    const vehicleNext =
-      window.prompt(
-        `Default vehicle for ${domain} (e.g. cargo_van, box_16):`,
-        vehicle || "cargo_van"
-      ) ?? "";
-    const packageNext =
-      window.prompt(
-        `Default package for ${domain} (e.g. looseParcel, ltlPallet):`,
-        pkg || "looseParcel"
-      ) ?? "";
-    const reason = window.prompt("Reason for booking policy change:") || "";
-    if (!reason.trim()) {
-      setError(merchantActionMessage("reason_required"));
-      return;
-    }
-    setBusy(`policy-${shopId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.shopifyBookingPolicy(token, id, shopId, {
-        default_vehicle_class: vehicleNext.trim() || null,
-        default_package_type: packageNext.trim() || null,
-        reason: reason.trim(),
+      setToast({
+        text: merchantActionMessage(e instanceof Error ? e.message : "That didn't work"),
+        bad: true,
       });
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Policy update failed"));
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   }
 
-  async function copyInstallUrl(shopDomain?: string) {
-    if (!canMutate) return;
-    const shop = (shopDomain || installShop).trim();
-    if (!shop) {
-      setError("Enter a myshopify.com shop domain first");
-      return;
+  const copy = (text: string, label: string) =>
+    navigator.clipboard.writeText(text).then(
+      () => setToast({ text: `${label} copied` }),
+      () => setToast({ text: "Could not copy to clipboard", bad: true })
+    );
+
+  const sendInstallLink = (shop: string) =>
+    run(async (t) => {
+      const res = await merchants.shopifyInstallUrl(t, id, shop.trim());
+      await copy(res.install_url, `Reconnect link for ${res.shop_domain}`);
+      setInstall(null);
+    });
+
+  const loadDlq = () =>
+    run(async (t) => {
+      setDlq((await merchants.shopifyIngressDlq(t, id)).items);
+    });
+
+  const openLog = (hookId: string) =>
+    run(async (t) => {
+      setLog({ hookId, rows: await merchants.webhookDeliveries(t, id, hookId) });
+    });
+
+  function doFix(
+    s: Status,
+    ctx: {
+      shopId?: string;
+      domain?: string;
+      paused?: boolean;
+      keyId?: string;
+      name?: string;
+      hookId?: string;
     }
-    setBusy("install-url");
-    setError(null);
-    try {
-      const token = await getApiToken();
-      const res = await merchants.shopifyInstallUrl(token, id, shop);
-      await copyText("install-url", res.install_url);
-      setInstallShop(res.shop_domain);
-    } catch (e) {
-      setError(
-        merchantActionMessage(e instanceof Error ? e.message : "Could not build install URL")
-      );
-    } finally {
-      setBusy(null);
+  ) {
+    if (!s.fix) return;
+    switch (s.fix.kind) {
+      case "reconnect":
+        return void sendInstallLink(ctx.domain!);
+      case "resume_orders":
+        return setReasoned({
+          kind: "pause",
+          shopId: ctx.shopId!,
+          domain: ctx.domain!,
+          paused: true,
+        });
+      case "repair_setup":
+        return setReasoned({ kind: "repair", shopId: ctx.shopId!, domain: ctx.domain! });
+      case "add_pickup":
+        return router.push(`/merchants/${id}?tab=people&panel=locations`);
+      case "review_failed_orders":
+        return void loadDlq();
+      case "backfill":
+        return void run(async (t) => {
+          const r = await merchantOps.backfill(t, id, ctx.shopId!);
+          return `Pulled recent orders · ${r.accepted ?? 0} booked, ${r.rejected ?? 0} skipped`;
+        });
+      case "retry_failed":
+        return void run(async (t) => {
+          const r = await merchantOps.replayFailed(t, id, 24, ctx.hookId);
+          return `Resent ${r.replayed} · ${r.succeeded} delivered, ${r.failed} still failing`;
+        });
+      case "turn_on":
+        return void run(async (t) => {
+          await merchants.enableWebhook(t, id, ctx.hookId!);
+          return "Webhook turned back on";
+        });
+      case "rotate":
+        return setReasoned({ kind: "rotate", keyId: ctx.keyId!, name: ctx.name! });
+      case "retry_tracking":
+        return void run(async (t) => {
+          const ids =
+            data?.shopify_shops?.find((x) => x.id === ctx.shopId)?.health
+              ?.tracking_failing_orders ?? [];
+          let ok = 0;
+          for (const oid of ids) {
+            const r = await ordersApi.shopifyRepushFulfillment(t, oid);
+            if (r.ok) ok += 1;
+          }
+          return `Tracking resent for ${ok} of ${ids.length} orders`;
+        });
     }
   }
 
-  async function loadDeliveries(webhookId: string) {
-    if (openHook === webhookId) {
-      setOpenHook(null);
-      setDeliveries([]);
-      return;
-    }
-    setBusy(`del-${webhookId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      const rows = await merchants.webhookDeliveries(token, id, webhookId);
-      setDeliveries(rows);
-      setOpenHook(webhookId);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Could not load deliveries"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function retryDelivery(deliveryId: string) {
-    if (!canMutate) return;
-    setBusy(`retry-${deliveryId}`);
-    setError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.retryWebhookDelivery(token, id, deliveryId);
-      if (openHook) {
-        const rows = await merchants.webhookDeliveries(token, id, openHook);
-        setDeliveries(rows);
+  async function submitReasoned(reason: string) {
+    const r = reasoned;
+    if (!r) return;
+    await run(async (t) => {
+      switch (r.kind) {
+        case "pause":
+          const out = await merchants.shopifyIngressPause(t, id, r.shopId, !r.paused, reason);
+          if (!r.paused) return "Orders paused";
+          return out.released || out.release_failed
+            ? `Orders resumed · ${out.released ?? 0} held orders booked, ${out.release_failed ?? 0} need review`
+            : "Orders resumed";
+        case "auto":
+          await merchants.shopifyAutoDispatch(t, id, r.shopId, !r.on, reason);
+          return r.on ? "Auto-dispatch off" : "Auto-dispatch on";
+        case "repair": {
+          const out = await merchants.shopifyReregisterHooks(t, id, r.shopId, reason);
+          if (!out.ok) throw new Error(out.errors?.[0] || "repair_failed");
+          return "Store setup repaired";
+        }
+        case "disconnect":
+          await merchants.forceDisconnectShopify(t, id, r.shopId, reason);
+          return `${r.domain} disconnected`;
+        case "freeze": {
+          const out = await merchants.freezePartnerApi(t, id, reason);
+          return `Frozen · ${out.keys_revoked} keys revoked, ${out.webhooks_disabled} webhooks off`;
+        }
+        case "rotate": {
+          const out = await merchantOps.rotateKey(t, id, r.keyId, 7, reason);
+          setSecret(out.secret);
+          return "New key issued";
+        }
       }
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(merchantActionMessage(e instanceof Error ? e.message : "Retry failed"));
-    } finally {
-      setBusy(null);
-    }
+    });
+    setReasoned(null);
   }
 
-  const keysHref = `${merchantPortalBase}/api?tab=keys`;
-  const hooksHref = `${merchantPortalBase}/api?tab=webhooks`;
-  const shopifyHref = `${merchantPortalBase}/shopify`;
-  const docsHref = `${merchantPortalBase}/api?tab=docs`;
+  if (error) {
+    return (
+      <Panel>
+        <Empty
+          title="Couldn't load connections"
+          hint={error}
+          action={<QuietButton onClick={() => setVersion((v) => v + 1)}>Try again</QuietButton>}
+        />
+      </Panel>
+    );
+  }
+  if (!data) {
+    return (
+      <Panel title="Connections">
+        <SkeletonRows rows={4} label="Checking connections" />
+      </Panel>
+    );
+  }
+
+  const shops = data.shopify_shops ?? [];
+  const keys = data.api_keys ?? [];
+  const hooks = data.webhooks ?? [];
+  const recent = data.recent_webhook_deliveries ?? [];
+  const partner = data.shopify_partner;
+  const throttled = new Set(
+    (data.rate_limits ?? []).filter((r) => r.throttled).map((r) => r.api_key_id)
+  );
+
+  const shopRows = shops.map((s) => ({
+    s,
+    st: shopStatus(s, partner, watchById.get(`shopify:${s.id}`)),
+  }));
+  const keyRows = keys.map((k) => ({
+    k,
+    st: keyStatus(k, throttled.has(k.id), watchById.get(`api_key:${k.id}`)),
+  }));
+  const hookRows = hooks.map((h) => ({
+    h,
+    st: hookStatus(h, recent, watchById.get(`webhook:${h.id}`)),
+  }));
+  const all = [...shopRows, ...keyRows, ...hookRows]
+    .map((r) => r.st)
+    .filter((s) => s.light !== "off");
+  const sum = summarize(all);
+
+  const pageMenu: MenuItem[] = [
+    ...(canMutate
+      ? [{ label: "Copy install link for a new store", onSelect: () => setInstall({ shop: "" }) }]
+      : []),
+    ...(canImpersonate && seat
+      ? [
+          {
+            label: `Open their portal as ${seat.role_label || "owner"}`,
+            onSelect: () => setImpersonate(true),
+          },
+        ]
+      : []),
+    {
+      label: "Merchant API docs",
+      onSelect: () => window.open(`${portal}/api?tab=docs`, "_blank", "noopener"),
+    },
+    ...(canElevate && keys.some((k) => k.is_active)
+      ? [
+          {
+            label: "Freeze all API access",
+            tone: "danger" as const,
+            onSelect: () => setReasoned({ kind: "freeze" }),
+          },
+        ]
+      : []),
+  ];
+  const fixable = (s: Status) => !!s.fix && canMutate && (!s.fix.elevated || canElevate);
+  // One accent button per screen: the first fixable problem, red before amber.
+  const candidates = [
+    ...shopRows.map((r) => ({ k: `shop:${r.s.id}`, st: r.st })),
+    ...keyRows.map((r) => ({ k: `key:${r.k.id}`, st: r.st })),
+    ...hookRows.map((r) => ({ k: `hook:${r.h.id}`, st: r.st })),
+  ].filter((c) => fixable(c.st));
+  const primaryKey = (candidates.find((c) => c.st.light === "red") ?? candidates[0])?.k;
+
+  const reasonedCopy = reasoned ? REASONED_COPY[reasoned.kind](reasoned) : null;
 
   return (
-    <div className="space-y-5">
-      {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      )}
-
-      {profile?.role && !canMutate && (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
-          Read-only role — revoke, rate limits, disable, and retry need a merchants write seat.
-        </p>
-      )}
-
-      <div className="space-y-2 rounded-xl border border-primary/10 bg-gray-bg/40 px-4 py-3 text-sm">
-        <p className="text-muted">
-          Integrations health for this merchant. Keys, webhooks, and Shopify connect are minted in
-          the merchant portal by an Owner/Manager seat — staff Super Admin on this page cannot mint
-          while signed into Admin. Admin revokes, throttles, re-enables, and retries.
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          {canImpersonate && integrationsSeat ? (
-            <Button variant="outline" className="text-xs" onClick={() => setImpersonateOpen(true)}>
-              Open Integrations as {integrationsSeat.role_label || "Owner"}
-            </Button>
-          ) : null}
-          {canImpersonate && !integrationsSeat ? (
-            <p className="text-xs text-amber-800">
-              No active Owner/Manager seat yet — add one on the Team tab, then open Integrations as
-              that user.
+    <div className="space-y-6">
+      <Panel>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-secondary uppercase">
+              Connections
             </p>
-          ) : null}
-          {!canImpersonate ? (
-            <a
-              href={keysHref}
-              className="inline-flex items-center gap-1 text-xs text-secondary underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Merchant portal (your own seat) <ExternalLink className="h-3 w-3" />
-            </a>
-          ) : null}
+            <p className="mt-1 flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-primary sm:text-3xl">
+              <span className={cn("h-3 w-3 rounded-full", DOT[sum.light])} aria-hidden />
+              {sum.line}
+            </p>
+            <p className="mt-1 text-sm text-slate-600 tabular-nums">
+              {[
+                plural(shops.length, "Shopify store"),
+                plural(keys.filter((k) => k.is_active).length, "API key"),
+                plural(hooks.filter((h) => h.is_active).length, "webhook"),
+              ].join(" · ")}
+            </p>
+          </div>
+          <QuietButton square aria-label="Re-check" onClick={() => setVersion((v) => v + 1)}>
+            <RefreshCw className="h-4 w-4" aria-hidden />
+          </QuietButton>
+          <ActionMenu label="Connection actions" items={pageMenu} />
         </div>
-      </div>
-
-      {impersonateOpen && integrationsSeat ? (
-        <ImpersonateModal
-          open
-          targetType="merchant"
-          targetId={integrationsSeat.id}
-          targetLabel={integrationsSeat.email}
-          getApiToken={getApiToken}
-          nextPath="/api?tab=keys"
-          onClose={() => setImpersonateOpen(false)}
-        />
-      ) : null}
-
-      {/* 1. Health — Overview mirror */}
-      <SectionCard title="Health">
-        <div className="grid gap-3 px-5 py-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label="API keys" value={String(data?.api_keys_count ?? apiKeys.length)} />
-          <Metric label="Webhooks" value={String(data?.webhooks_count ?? webhooks.length)} />
-          <Metric label="Requests (7d)" value={String(usage?.total_requests ?? 0)} />
-          <Metric label="Test preference" value={data?.sandbox_mode ? "On" : "Off"} />
-        </div>
-        {health?.failed_deliveries_recent || health?.throttled_keys ? (
-          <p className="border-t border-primary/5 px-5 py-2 text-xs text-muted">
-            {health.throttled_keys ? (
-              <span className="mr-3 text-red-600">{health.throttled_keys} key(s) throttled</span>
-            ) : null}
-            {health.failed_deliveries_recent ? (
-              <span className="text-red-600">
-                {health.failed_deliveries_recent} failed delivery(ies) in recent log
-              </span>
-            ) : null}
+        {toast ? (
+          <p
+            role="status"
+            className={cn(
+              "mt-4 text-sm font-semibold",
+              toast.bad ? "text-red-700" : "text-emerald-700"
+            )}
+          >
+            {toast.text}
           </p>
         ) : null}
-        <div className="border-t border-primary/5 px-5 py-4">
-          <h3 className="text-sm font-semibold text-primary">Live rate limits</h3>
-          <ul className="mt-2 space-y-1 text-sm">
-            {limits.length === 0 && <li className="text-muted">No active keys</li>}
-            {limits.map((l) => (
-              <li key={l.api_key_id} className="flex justify-between gap-4">
-                <span>
-                  {l.name} <span className="text-muted">({l.environment})</span>
-                </span>
-                <span className={l.throttled ? "text-red-600" : "text-muted"}>
-                  {l.requests_last_minute}/{l.rate_limit_per_minute} per min
+      </Panel>
+
+      {!shops.length && !keys.length && !hooks.length ? (
+        <Panel>
+          <Empty
+            icon={<PlugZap className="h-6 w-6" aria-hidden />}
+            title="Nothing connected yet"
+            hint="The merchant connects Shopify or creates API keys from their portal. You can send them a Shopify install link."
+            action={
+              canMutate ? (
+                <PrimaryAction onClick={() => setInstall({ shop: "" })}>
+                  Send Shopify install link
+                </PrimaryAction>
+              ) : undefined
+            }
+          />
+        </Panel>
+      ) : null}
+
+      {shops.length > 0 && (
+        <Group icon={<ShoppingBag className="h-4 w-4" aria-hidden />} title="Shopify">
+          {shopRows.map(({ s, st }) => (
+            <Row
+              key={s.id}
+              name={s.shop_domain}
+              st={st}
+              fix={
+                fixable(st) ? (
+                  <FixButton
+                    primary={primaryKey === `shop:${s.id}`}
+                    disabled={busy}
+                    onClick={() =>
+                      doFix(st, { shopId: s.id, domain: s.shop_domain, paused: s.ingress_paused })
+                    }
+                  >
+                    {st.fix!.label}
+                  </FixButton>
+                ) : null
+              }
+              menu={[
+                ...(canMutate && s.installed
+                  ? [
+                      {
+                        label: "Pull recent orders",
+                        onSelect: () =>
+                          doFix({ ...st, fix: { kind: "backfill", label: "" } }, { shopId: s.id }),
+                      },
+                    ]
+                  : []),
+                ...(canMutate
+                  ? [
+                      {
+                        label: "Copy reconnect link",
+                        onSelect: () => void sendInstallLink(s.shop_domain),
+                      },
+                    ]
+                  : []),
+                ...(canElevate && s.installed
+                  ? [
+                      {
+                        label: "Booking defaults…",
+                        onSelect: () =>
+                          setPolicy({
+                            shopId: s.id,
+                            domain: s.shop_domain,
+                            vehicle: "",
+                            pkg: "",
+                            current: {
+                              vehicle: s.default_vehicle_class,
+                              pkg: s.default_package_type,
+                            },
+                          }),
+                      },
+                      {
+                        label: s.auto_dispatch ? "Turn off auto-dispatch" : "Turn on auto-dispatch",
+                        onSelect: () =>
+                          setReasoned({
+                            kind: "auto",
+                            shopId: s.id,
+                            domain: s.shop_domain,
+                            on: !!s.auto_dispatch,
+                          }),
+                      },
+                      {
+                        label: "Repair store setup",
+                        onSelect: () =>
+                          setReasoned({ kind: "repair", shopId: s.id, domain: s.shop_domain }),
+                      },
+                      {
+                        label: s.ingress_paused ? "Resume orders" : "Pause orders",
+                        onSelect: () =>
+                          setReasoned({
+                            kind: "pause",
+                            shopId: s.id,
+                            domain: s.shop_domain,
+                            paused: !!s.ingress_paused,
+                          }),
+                      },
+                      {
+                        label: "Disconnect store",
+                        tone: "danger" as const,
+                        onSelect: () =>
+                          setReasoned({ kind: "disconnect", shopId: s.id, domain: s.shop_domain }),
+                      },
+                    ]
+                  : []),
+              ]}
+              details={
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                  <Fact
+                    label="Connected"
+                    value={
+                      s.installed
+                        ? s.installed_at
+                          ? new Date(s.installed_at).toLocaleDateString("en-CA")
+                          : "Yes"
+                        : "No"
+                    }
+                  />
+                  <Fact label="Last order from Shopify" value={ago(s.last_webhook_at)} />
+                  <Fact
+                    label="Pickup address"
+                    value={s.default_pickup ?? "Missing"}
+                    bad={!s.default_pickup && s.installed}
+                  />
+                  <Fact
+                    label="Checkout shipping rates"
+                    value={
+                      s.carrier_registered
+                        ? `On · ${partner?.rate_quotes_24h ?? 0} quotes in 24 h`
+                        : "Not set up"
+                    }
+                    bad={!s.carrier_registered && s.installed}
+                  />
+                  <Fact
+                    label="Last checkout quote"
+                    value={
+                      partner?.last_rate_quote_at
+                        ? `${cad(partner.last_rate_quote_cents)} · ${ago(partner.last_rate_quote_at)}`
+                        : "None yet"
+                    }
+                  />
+                  <Fact
+                    label="Tracking sent to Shopify"
+                    value={
+                      partner?.mid_flight_tracking
+                        ? `Yes · ${ago(partner.last_fulfillment?.last_tracking_push_at)}`
+                        : "Not yet"
+                    }
+                  />
+                  <Fact
+                    label="Fulfilment service"
+                    value={
+                      s.fulfillment_service_registered
+                        ? "On"
+                        : partner?.fulfillment_service_enabled
+                          ? "Not set up"
+                          : "Not used"
+                    }
+                  />
+                  <Fact
+                    label="New orders"
+                    value={s.ingress_paused ? "Paused" : "Flowing"}
+                    bad={!!s.ingress_paused}
+                  />
+                  <Fact
+                    label="Auto-dispatch"
+                    value={s.auto_dispatch ? "On" : "Off — staff release orders"}
+                  />
+                  <Fact
+                    label="Booking defaults"
+                    value={
+                      [
+                        s.default_vehicle_class ? vehicleClassLabel(s.default_vehicle_class) : null,
+                        s.default_package_type === "ltlPallet"
+                          ? "Pallets"
+                          : s.default_package_type
+                            ? "Parcels"
+                            : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "Merchant settings"
+                    }
+                  />
+                </dl>
+              }
+            />
+          ))}
+        </Group>
+      )}
+
+      {dlq ? (
+        <Panel
+          title="Orders that couldn't be booked"
+          aside={<QuietButton onClick={() => setDlq(null)}>Close</QuietButton>}
+        >
+          {dlq.filter((r) => r.status !== "resolved").length === 0 ? (
+            <Empty title="None waiting" hint="Every Shopify order made it through." />
+          ) : (
+            <ul className="-my-2 divide-y divide-primary/5">
+              {dlq
+                .filter((r) => r.status !== "resolved")
+                .map((r) => (
+                  <li key={r.id} className="flex items-center gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-primary">
+                        Shopify order {r.shopify_order_id ?? "—"}
+                      </p>
+                      <p className="truncate text-sm text-red-700">
+                        {merchantActionMessage(r.detail || r.reason_code)}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        {ago(r.created_at)} · tried {r.attempts}×
+                      </p>
+                    </div>
+                    {canMutate ? (
+                      <QuietButton
+                        disabled={busy}
+                        onClick={() =>
+                          void run(async (t) => {
+                            const out = (await merchants.shopifyIngressDlqReplay(t, id, r.id)) as {
+                              ok?: boolean;
+                              detail?: string;
+                            };
+                            setDlq((await merchants.shopifyIngressDlq(t, id)).items);
+                            if (out.ok === false)
+                              throw new Error(out.detail || "Still can't book it");
+                            return "Order booked";
+                          })
+                        }
+                      >
+                        Try again
+                      </QuietButton>
+                    ) : null}
+                  </li>
+                ))}
+            </ul>
+          )}
+        </Panel>
+      ) : null}
+
+      {keys.length > 0 && (
+        <Group icon={<KeyRound className="h-4 w-4" aria-hidden />} title="API keys">
+          {keyRows.map(({ k, st }) => (
+            <Row
+              key={k.id}
+              name={`${k.name} · ${k.environment === "sandbox" ? "Test" : "Live"}`}
+              st={st}
+              fix={
+                fixable(st) ? (
+                  <FixButton
+                    primary={primaryKey === `key:${k.id}`}
+                    disabled={busy}
+                    onClick={() => doFix(st, { keyId: k.id, name: k.name })}
+                  >
+                    {st.fix!.label}
+                  </FixButton>
+                ) : null
+              }
+              menu={
+                st.light === "off"
+                  ? []
+                  : [
+                      ...(canMutate
+                        ? [
+                            {
+                              label: "Change rate limit…",
+                              onSelect: () =>
+                                setRate({ keyId: k.id, value: String(k.rate_limit_per_minute) }),
+                            },
+                          ]
+                        : []),
+                      ...(canElevate
+                        ? [
+                            {
+                              label: "Replace key",
+                              onSelect: () =>
+                                setReasoned({ kind: "rotate", keyId: k.id, name: k.name }),
+                            },
+                          ]
+                        : []),
+                      ...(canMutate
+                        ? [
+                            {
+                              label: "Revoke",
+                              tone: "danger" as const,
+                              onSelect: () =>
+                                setConfirm({ kind: "revoke", keyId: k.id, name: k.name }),
+                            },
+                          ]
+                        : []),
+                    ]
+              }
+              details={
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                  <Fact label="Starts with" value={`${k.key_prefix}…`} />
+                  <Fact label="Last call" value={ago(k.last_used_at)} />
+                  <Fact label="Rate limit" value={`${k.rate_limit_per_minute} / min`} />
+                  <Fact
+                    label="Created"
+                    value={k.created_at ? new Date(k.created_at).toLocaleDateString("en-CA") : "—"}
+                  />
+                  <Fact
+                    label="Can do"
+                    value={k.scopes.length ? k.scopes.join(", ") : "Everything"}
+                  />
+                </dl>
+              }
+            />
+          ))}
+        </Group>
+      )}
+
+      {hooks.length > 0 && (
+        <Group
+          icon={<Webhook className="h-4 w-4" aria-hidden />}
+          title="Order updates to their system"
+        >
+          {hookRows.map(({ h, st }) => (
+            <Row
+              key={h.id}
+              name={h.url.replace(/^https?:\/\//, "")}
+              st={st}
+              fix={
+                fixable(st) ? (
+                  <FixButton
+                    primary={primaryKey === `hook:${h.id}`}
+                    disabled={busy}
+                    onClick={() => doFix(st, { hookId: h.id })}
+                  >
+                    {st.fix!.label}
+                  </FixButton>
+                ) : null
+              }
+              menu={[
+                { label: "Delivery log", onSelect: () => void openLog(h.id) },
+                ...(canMutate && h.is_active
+                  ? [
+                      {
+                        label: "Send a test",
+                        onSelect: () =>
+                          void run(async (t) => {
+                            const r = await merchants.testWebhook(t, id, h.id);
+                            if (r && r.success === false)
+                              throw new Error(
+                                typeof r.error_message === "string"
+                                  ? r.error_message
+                                  : "Test didn't arrive"
+                              );
+                            return "Test delivered";
+                          }),
+                      },
+                      {
+                        label: "Turn off",
+                        tone: "danger" as const,
+                        onSelect: () => setConfirm({ kind: "hook_off", hookId: h.id, url: h.url }),
+                      },
+                    ]
+                  : []),
+              ]}
+              details={
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                  <Fact label="Address" value={h.url} />
+                  <Fact
+                    label="Sends"
+                    value={h.events.length ? h.events.join(", ") : "All events"}
+                  />
+                  <Fact label="Mode" value={h.environment === "sandbox" ? "Test" : "Live"} />
+                  <Fact
+                    label="Last attempt"
+                    value={ago(recent.find((d) => d.webhook_id === h.id)?.created_at)}
+                  />
+                </dl>
+              }
+            />
+          ))}
+        </Group>
+      )}
+
+      {(data.audit_events ?? []).length > 0 && (
+        <details className="group rounded-3xl border border-primary/10 bg-white">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-base font-bold text-primary sm:px-6">
+            Connection history
+            <ChevronDown className="h-4 w-4 transition group-open:rotate-180" aria-hidden />
+          </summary>
+          <ol className="divide-y divide-primary/5 border-t border-primary/10 px-5 sm:px-6">
+            {(data.audit_events ?? []).map((e) => (
+              <li
+                key={e.id}
+                className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm"
+              >
+                <span className="font-medium text-primary">{humanAction(e.action)}</span>
+                <span className="text-xs text-slate-600">
+                  {(e.payload?.admin_email as string) || e.actor_user_id || "system"} ·{" "}
+                  {ago(e.created_at)}
                 </span>
               </li>
             ))}
-          </ul>
-        </div>
-        <div className="border-t border-primary/5 px-5 py-4">
-          <h3 className="text-sm font-semibold text-primary">Recent webhook deliveries</h3>
-          {recent.length === 0 ? (
-            <p className="mt-2 text-sm text-muted">No deliveries yet.</p>
-          ) : (
-            <ul className="mt-2 divide-y divide-primary/5">
-              {recent.map((d) => (
-                <li key={d.id} className="flex items-center justify-between gap-2 py-2 text-xs">
-                  <div className="min-w-0">
-                    <p className="font-medium text-primary">
-                      {d.event_type || "event"} · {deliveryLabel(d)}
-                      {deliveryHttp(d) != null ? ` · HTTP ${deliveryHttp(d)}` : ""}
-                    </p>
-                    <p className="truncate text-muted">
-                      {deliveryError(d) || relativeTime(d.created_at)}
-                    </p>
-                  </div>
-                  {deliveryFailed(d) && canMutate ? (
-                    <Button
-                      variant="outline"
-                      className="text-xs"
-                      disabled={busy === `retry-${d.id}`}
-                      onClick={() => void retryDelivery(d.id)}
-                    >
-                      {busy === `retry-${d.id}` ? "…" : "Retry"}
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {canElevate ? (
-          <div className="space-y-2 border-t border-primary/5 px-5 py-4">
-            <h3 className="text-sm font-semibold text-primary">Freeze Partner API</h3>
-            <p className="text-xs text-muted">
-              Superadmin / Compliance — revokes every active key and disables every webhook.
-            </p>
-            <div className="flex flex-wrap items-end gap-2">
-              <Field label="Reason">
-                <Input
-                  className="min-w-[16rem]"
-                  value={freezeReason}
-                  onChange={(e) => setFreezeReason(e.target.value)}
-                  placeholder="Abuse / compromised / suspend"
-                />
-              </Field>
-              <Button
-                variant="outline"
-                className="text-xs text-red-700"
-                disabled={busy === "freeze"}
-                onClick={() => void freezeApi()}
-              >
-                {busy === "freeze" ? "Freezing…" : "Freeze Partner API"}
-              </Button>
-            </div>
-          </div>
-        ) : null}
-      </SectionCard>
+          </ol>
+        </details>
+      )}
 
-      {/* Audit strip */}
-      <SectionCard title="Integrations audit">
-        {audit.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-muted">
-            No key, webhook, Shopify, or freeze events yet.
-          </p>
-        ) : (
-          <ul className="divide-y divide-primary/5">
-            {audit.map((ev) => {
-              const email =
-                typeof ev.payload?.admin_email === "string" ? ev.payload.admin_email : null;
-              const reason = typeof ev.payload?.reason === "string" ? ev.payload.reason : null;
-              return (
-                <li key={ev.id} className="px-5 py-2 text-xs">
-                  <p className="font-medium text-primary">
-                    {ev.action}
-                    {email ? ` · ${email}` : ev.actor_user_id ? ` · ${ev.actor_user_id}` : ""}
-                  </p>
-                  <p className="text-muted">
-                    {relativeTime(ev.created_at)}
-                    {reason ? ` · ${reason}` : ""}
-                    {ev.resource_id ? ` · ${ev.resource_type} ${ev.resource_id.slice(0, 8)}…` : ""}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </SectionCard>
-
-      {/* 2. Shopify — always on + partner health */}
-      <SectionCard title={`Shopify (${shops.length})`}>
-        {data?.shopify_webhook_url ? (
-          <div className="flex flex-wrap items-center gap-2 border-b border-primary/5 px-5 py-3 text-xs">
-            <span className="text-muted">Ingress webhook</span>
-            <code className="max-w-full truncate rounded bg-gray-bg px-1.5 py-0.5 text-[11px] text-primary">
-              {data.shopify_webhook_url}
-            </code>
-            <Button
-              variant="outline"
-              className="text-xs"
-              onClick={() => void copyText("shopify-wh", data.shopify_webhook_url || "")}
-            >
-              {copied === "shopify-wh" ? "Copied" : "Copy"}
-            </Button>
-          </div>
-        ) : null}
-        {partner ? (
-          <div className="grid gap-3 border-b border-primary/5 px-5 py-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Metric label="Carrier quotes (24h)" value={String(partner.rate_quotes_24h ?? 0)} />
-            <Metric
-              label="Last quote"
-              value={partner.last_rate_quote_at ? relativeTime(partner.last_rate_quote_at) : "—"}
-            />
-            <Metric
-              label="Last Shopify book"
-              value={partner.last_book_at ? relativeTime(partner.last_book_at) : "—"}
-            />
-            <Metric
-              label="Last fulfillment"
-              value={partner.last_fulfillment_at ? relativeTime(partner.last_fulfillment_at) : "—"}
-            />
-            <Metric
-              label="Last tracking event"
-              value={
-                partner.last_fulfillment?.last_event_status
-                  ? titleCase(partner.last_fulfillment.last_event_status)
-                  : "—"
+      {/* Dialogs */}
+      <ReasonDialog
+        open={!!reasoned}
+        title={reasonedCopy?.title ?? ""}
+        description={reasonedCopy?.body}
+        confirm={reasonedCopy?.cta ?? ""}
+        tone={reasonedCopy?.danger ? "danger" : "default"}
+        busy={busy}
+        onCancel={() => setReasoned(null)}
+        onConfirm={(r) => void submitReasoned(r)}
+      />
+      <Dialog
+        open={!!confirm}
+        onClose={() => setConfirm(null)}
+        title={confirm?.kind === "revoke" ? `Revoke ${confirm.name}?` : "Turn off this webhook?"}
+        description={
+          confirm?.kind === "revoke"
+            ? "Their system stops working with this key right away."
+            : "We stop sending order updates to this address."
+        }
+        footer={
+          <>
+            <QuietButton onClick={() => setConfirm(null)}>Cancel</QuietButton>
+            <PrimaryAction
+              tone="danger"
+              disabled={busy}
+              onClick={() =>
+                confirm &&
+                void run(
+                  async (t) => {
+                    if (confirm.kind === "revoke") {
+                      await merchants.revokeApiKey(t, id, confirm.keyId);
+                      return "Key revoked";
+                    }
+                    await merchants.disableWebhook(t, id, confirm.hookId);
+                    return "Webhook turned off";
+                  },
+                  () => setConfirm(null)
+                )
               }
-            />
-            <Metric label="Ingress DLQ open" value={String(partner.ingress_dlq_open ?? 0)} />
-            {partner.fulfillment_callback_url ? (
-              <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-muted">Fulfillment callback</span>
-                <code className="max-w-full truncate rounded bg-gray-bg px-1.5 py-0.5 text-[11px]">
-                  {partner.fulfillment_callback_url}
-                </code>
-                <Button
-                  variant="outline"
-                  className="text-xs"
-                  onClick={() => void copyText("fs-url", partner.fulfillment_callback_url || "")}
-                >
-                  {copied === "fs-url" ? "Copied" : "Copy"}
-                </Button>
-              </div>
-            ) : null}
-            {partner.carrier_rates_url ? (
-              <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-muted">CarrierService callback</span>
-                <code className="max-w-full truncate rounded bg-gray-bg px-1.5 py-0.5 text-[11px]">
-                  {partner.carrier_rates_url}
-                </code>
-                <Button
-                  variant="outline"
-                  className="text-xs"
-                  onClick={() => void copyText("carrier-url", partner.carrier_rates_url || "")}
-                >
-                  {copied === "carrier-url" ? "Copied" : "Copy"}
-                </Button>
-                {partner.quote_book_locked ? (
-                  <Badge tone="green">Last book Quote≡Book</Badge>
-                ) : partner.last_book_at ? (
-                  <Badge tone="amber">Last book missing rate quote</Badge>
-                ) : null}
-                {partner.mid_flight_tracking ? (
-                  <Badge tone="green">Mid-flight tracking</Badge>
-                ) : null}
-                {partner.fo_partner_path === "flag_off" || partner.fo_partner_path === "pending" ? (
-                  <Badge tone="slate">FO partner path off</Badge>
-                ) : partner.fo_partner_path === "flag_on" ? (
-                  <Badge tone="green">FO accept live</Badge>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        {canMutate ? (
-          <div className="flex flex-wrap items-end gap-2 border-b border-primary/5 px-5 py-3">
-            <Field label="Shop domain for install URL">
-              <Input
-                className="min-w-[14rem]"
-                value={installShop}
-                onChange={(e) => setInstallShop(e.target.value)}
-                placeholder="store.myshopify.com"
-              />
-            </Field>
-            <Button
-              variant="outline"
-              className="text-xs"
-              disabled={busy === "install-url"}
-              onClick={() => void copyInstallUrl()}
             >
-              {busy === "install-url"
-                ? "…"
-                : copied === "install-url"
-                  ? "Copied install URL"
-                  : "Copy OAuth install URL"}
-            </Button>
-            {!partner?.oauth_configured ? (
-              <span className="text-xs text-amber-700">OAuth not configured on this API</span>
-            ) : null}
-          </div>
-        ) : null}
-        {shops.length === 0 ? (
-          <div className="space-y-2 px-5 py-8 text-center">
-            <p className="text-sm font-medium text-primary">Not connected</p>
-            <p className="text-sm text-muted">
-              Merchant Owner connects the store in the merchant portal (Shopify or Integrations).
-              Support can copy an OAuth install URL above.
-            </p>
-            <a
-              href={shopifyHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-secondary underline"
+              {confirm?.kind === "revoke" ? "Revoke" : "Turn off"}
+            </PrimaryAction>
+          </>
+        }
+      />
+      <Dialog
+        open={!!rate}
+        onClose={() => setRate(null)}
+        title="Rate limit"
+        description="Calls per minute this key may make. 10 to 600."
+        footer={
+          <>
+            <QuietButton onClick={() => setRate(null)}>Cancel</QuietButton>
+            <PrimaryAction
+              disabled={busy || !rate || !(Number(rate.value) >= 10 && Number(rate.value) <= 600)}
+              onClick={() =>
+                rate &&
+                void run(
+                  async (t) => {
+                    await merchants.updateApiKeyRateLimit(
+                      t,
+                      id,
+                      rate.keyId,
+                      Math.round(Number(rate.value))
+                    );
+                    return "Rate limit saved";
+                  },
+                  () => setRate(null)
+                )
+              }
             >
-              Open merchant Shopify setup <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          </div>
-        ) : (
-          <div className="divide-y divide-primary/5">
-            {shops.map((s) => (
-              <div key={s.id} className="flex items-start justify-between gap-3 px-5 py-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-primary">{s.shop_domain}</p>
-                  <p className="text-xs text-muted">
-                    {s.last_webhook_at
-                      ? `Last webhook ${relativeTime(s.last_webhook_at)}`
-                      : "No webhooks yet"}
-                    {s.default_pickup ? ` · Pickup: ${s.default_pickup}` : ""}
-                  </p>
-                  {s.missing_pickup ? (
-                    <p className="mt-1 text-xs text-amber-700">
-                      Missing default pickup — Shopify bookings will fail until set.
-                    </p>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {s.installed ? (
-                      <Badge tone={s.carrier_registered ? "slate" : "amber"}>
-                        {s.carrier_registered
-                          ? "Checkout rates registered"
-                          : "Checkout rates not registered"}
-                      </Badge>
-                    ) : null}
-                    {s.installed ? (
-                      <Badge tone={s.fulfillment_service_registered ? "slate" : "amber"}>
-                        {s.fulfillment_service_registered
-                          ? "Fulfillment service registered"
-                          : "Fulfillment service not registered"}
-                      </Badge>
-                    ) : null}
-                    {s.ingress_paused ? <Badge tone="amber">Ingress paused</Badge> : null}
-                    {s.auto_dispatch === false ? <Badge tone="amber">Hold at BOOKED</Badge> : null}
-                    {s.default_vehicle_class || s.default_package_type ? (
-                      <Badge tone="slate">
-                        {s.default_vehicle_class || "cargo_van"} /{" "}
-                        {s.default_package_type || "looseParcel"}
-                      </Badge>
-                    ) : null}
-                    {canMutate && s.installed ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === "install-url"}
-                        onClick={() => void copyInstallUrl(s.shop_domain)}
-                      >
-                        Copy install URL
-                      </Button>
-                    ) : null}
-                    {canElevate && s.installed ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `reg-${s.id}`}
-                        onClick={() => void reregisterHooks(s.id, s.shop_domain)}
-                      >
-                        {busy === `reg-${s.id}` ? "…" : "Re-register hooks"}
-                      </Button>
-                    ) : null}
-                    {canElevate && s.installed ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `policy-${s.id}`}
-                        onClick={() =>
-                          void editBookingPolicy(
-                            s.id,
-                            s.shop_domain,
-                            s.default_vehicle_class,
-                            s.default_package_type
-                          )
-                        }
-                      >
-                        {busy === `policy-${s.id}` ? "…" : "Booking policy"}
-                      </Button>
-                    ) : null}
-                    {canElevate && s.installed ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `pause-${s.id}`}
-                        onClick={() =>
-                          void toggleIngressPause(s.id, s.shop_domain, Boolean(s.ingress_paused))
-                        }
-                      >
-                        {busy === `pause-${s.id}`
-                          ? "…"
-                          : s.ingress_paused
-                            ? "Resume ingress"
-                            : "Pause ingress"}
-                      </Button>
-                    ) : null}
-                    {canElevate && s.installed ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `auto-${s.id}`}
-                        onClick={() =>
-                          void toggleAutoDispatch(s.id, s.shop_domain, s.auto_dispatch !== false)
-                        }
-                      >
-                        {busy === `auto-${s.id}`
-                          ? "…"
-                          : s.auto_dispatch === false
-                            ? "Enable auto-dispatch"
-                            : "Hold at BOOKED"}
-                      </Button>
-                    ) : null}
-                    {canElevate && s.installed ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs text-red-700"
-                        disabled={busy === `disc-${s.id}`}
-                        onClick={() => void forceDisconnect(s.id, s.shop_domain)}
-                      >
-                        {busy === `disc-${s.id}` ? "…" : "Force-disconnect"}
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-                <Badge tone={s.installed ? "green" : "slate"}>
-                  {s.installed ? "Connected" : "Uninstalled"}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="border-t border-primary/5 px-5 py-3">
-          <Button
-            variant="outline"
-            className="text-xs"
-            disabled={busy === "dlq"}
-            onClick={() => void loadDlq()}
+              Save
+            </PrimaryAction>
+          </>
+        }
+      >
+        <FieldLabel label="Per minute">
+          <input
+            className={inputClass}
+            inputMode="numeric"
+            value={rate?.value ?? ""}
+            onChange={(e) =>
+              rate && setRate({ ...rate, value: e.target.value.replace(/\D/g, "").slice(0, 3) })
+            }
+          />
+        </FieldLabel>
+      </Dialog>
+      <Dialog
+        open={!!policy}
+        onClose={() => setPolicy(null)}
+        title="Booking defaults"
+        description={`Used when a ${policy?.domain ?? ""} order doesn't say which vehicle or package.`}
+        footer={
+          <>
+            <QuietButton onClick={() => setPolicy(null)}>Cancel</QuietButton>
+            <PrimaryAction
+              disabled={busy || !policyReason.trim()}
+              onClick={() =>
+                policy &&
+                void run(
+                  async (t) => {
+                    await merchants.shopifyBookingPolicy(
+                      t,
+                      id,
+                      policy.shopId,
+                      policyPayload(
+                        policy.current,
+                        { vehicle: policy.vehicle, pkg: policy.pkg },
+                        policyReason.trim()
+                      )
+                    );
+                    return "Booking defaults saved";
+                  },
+                  () => {
+                    setPolicy(null);
+                    setPolicyReason("");
+                  }
+                )
+              }
+            >
+              Save
+            </PrimaryAction>
+          </>
+        }
+      >
+        <FieldLabel label="Vehicle">
+          <select
+            className={inputClass}
+            value={policy?.vehicle ?? ""}
+            onChange={(e) => policy && setPolicy({ ...policy, vehicle: e.target.value })}
           >
-            {busy === "dlq" ? "…" : dlqOpen ? "Hide ingress DLQ" : "Show ingress DLQ"}
-          </Button>
-          {dlqOpen ? (
-            <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto text-xs">
-              {dlqRows.length === 0 ? (
-                <li className="text-muted">No DLQ rows.</li>
-              ) : (
-                dlqRows.map((row) => (
-                  <li
-                    key={row.id}
-                    className="flex flex-wrap items-start justify-between gap-2 rounded-lg bg-gray-bg px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium text-primary">
-                        {row.reason_code} · {row.status}
-                      </p>
-                      <p className="text-muted">
-                        {row.shop_domain}
-                        {row.shopify_order_id ? ` · #${row.shopify_order_id}` : ""}
-                        {row.created_at ? ` · ${relativeTime(row.created_at)}` : ""}
-                      </p>
-                      {row.detail ? <p className="mt-0.5 text-muted">{row.detail}</p> : null}
-                    </div>
-                    {canMutate && row.status !== "resolved" ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `replay-${row.id}`}
-                        onClick={() => void replayDlq(row.id)}
-                      >
-                        {busy === `replay-${row.id}` ? "…" : "Replay"}
-                      </Button>
-                    ) : null}
-                  </li>
-                ))
-              )}
-            </ul>
-          ) : null}
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        {/* 3. API keys */}
-        <SectionCard title={`API keys (${apiKeys.length})`}>
-          <div className="divide-y divide-primary/5">
-            {apiKeys.map((k) => {
-              const live = limits.find((l) => l.api_key_id === k.id);
-              return (
-                <div key={k.id} className="space-y-2 px-5 py-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-primary">
-                        {k.name}{" "}
-                        <Badge tone={k.environment === "production" ? "green" : "slate"}>
-                          {titleCase(k.environment)}
-                        </Badge>
-                        {!k.is_active && (
-                          <Badge tone="red" className="ml-1">
-                            Revoked
-                          </Badge>
-                        )}
-                        {live?.throttled ? (
-                          <Badge tone="red" className="ml-1">
-                            Throttled
-                          </Badge>
-                        ) : null}
-                      </p>
-                      <p className="text-xs text-muted">
-                        {k.key_prefix}••• · {k.rate_limit_per_minute}/min · last used{" "}
-                        {relativeTime(k.last_used_at)}
-                      </p>
-                      {(k.scopes || []).length > 0 ? (
-                        <p className="mt-1 flex flex-wrap gap-1">
-                          {k.scopes.map((scope) => (
-                            <Badge key={scope} tone="slate" className="text-[10px]">
-                              {scope}
-                            </Badge>
-                          ))}
-                        </p>
-                      ) : null}
-                    </div>
-                    {k.is_active && canMutate ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === k.id}
-                        onClick={() => void revoke(k.id)}
-                      >
-                        {busy === k.id ? "Revoking…" : "Revoke"}
-                      </Button>
-                    ) : null}
-                  </div>
-                  {k.is_active && canMutate ? (
-                    <div className="flex flex-wrap items-end gap-2">
-                      <Field label="Rate / min">
-                        <Input
-                          type="number"
-                          min={10}
-                          className="w-28"
-                          value={rateEdits[k.id] ?? String(k.rate_limit_per_minute)}
-                          onChange={(e) =>
-                            setRateEdits((prev) => ({ ...prev, [k.id]: e.target.value }))
-                          }
-                        />
-                      </Field>
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `rate-${k.id}`}
-                        onClick={() => void saveRate(k.id)}
-                      >
-                        {busy === `rate-${k.id}` ? "Saving…" : "Save limit"}
-                      </Button>
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-            {apiKeys.length === 0 && (
-              <div className="space-y-2 px-5 py-10 text-center">
-                <p className="text-sm text-muted">No API keys.</p>
-                <p className="text-xs text-muted">
-                  Merchant Owner generates keys at Integrations → API keys (sandbox first, then
-                  production).
-                </p>
-                {canImpersonate && integrationsSeat ? (
-                  <Button
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => setImpersonateOpen(true)}
-                  >
-                    Open Integrations as {integrationsSeat.role_label || "Owner"}
-                  </Button>
-                ) : (
-                  <a
-                    href={keysHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-secondary underline"
-                  >
-                    Open merchant API keys <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        </SectionCard>
-
-        {/* 4. Webhooks */}
-        <SectionCard title={`Webhooks (${webhooks.length})`}>
-          <div className="divide-y divide-primary/5">
-            {webhooks.map((w) => (
-              <div key={w.id} className="space-y-2 px-5 py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-primary">{w.url}</p>
-                    <p className="text-xs text-muted">
-                      <Badge
-                        tone={w.environment === "production" ? "green" : "slate"}
-                        className="mr-1"
-                      >
-                        {titleCase(w.environment || "production")}
-                      </Badge>
-                      {w.events.join(", ") || "all events"}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col gap-1">
-                    <Button
-                      variant="outline"
-                      className="text-xs"
-                      disabled={busy === `del-${w.id}`}
-                      aria-busy={busy === `del-${w.id}`}
-                      onClick={() => void loadDeliveries(w.id)}
-                    >
-                      {openHook === w.id
-                        ? "Hide deliveries"
-                        : busy === `del-${w.id}`
-                          ? "Working…"
-                          : "Deliveries"}
-                    </Button>
-                    {canMutate ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `test-${w.id}`}
-                        onClick={() => void sendTest(w.id)}
-                      >
-                        {busy === `test-${w.id}` ? "Sending…" : "Send test"}
-                      </Button>
-                    ) : null}
-                    {w.is_active && canMutate ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === w.id}
-                        onClick={() => void disableHook(w.id)}
-                      >
-                        {busy === w.id ? "Disabling…" : "Disable"}
-                      </Button>
-                    ) : !w.is_active && canMutate ? (
-                      <Button
-                        variant="outline"
-                        className="text-xs"
-                        disabled={busy === `enable-${w.id}`}
-                        onClick={() => void enableHook(w.id)}
-                      >
-                        {busy === `enable-${w.id}` ? "Enabling…" : "Re-enable"}
-                      </Button>
-                    ) : !w.is_active ? (
-                      <Badge tone="red">Disabled</Badge>
-                    ) : null}
-                  </div>
-                </div>
-                {openHook === w.id && (
-                  <div className="rounded-xl border border-primary/10 bg-gray-bg/40">
-                    {deliveries.length === 0 ? (
-                      <p className="px-3 py-4 text-center text-xs text-muted">No deliveries yet.</p>
-                    ) : (
-                      deliveries.map((d) => (
-                        <div
-                          key={d.id}
-                          className="flex items-center justify-between gap-2 border-t border-primary/5 px-3 py-2 first:border-t-0"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-xs font-medium text-primary">
-                              {deliveryLabel(d)}
-                              {deliveryHttp(d) != null ? ` · HTTP ${deliveryHttp(d)}` : ""} ·
-                              attempt {d.attempt}
-                              {d.event_type ? ` · ${d.event_type}` : ""}
-                            </p>
-                            <p className="truncate text-[11px] text-muted">
-                              {deliveryError(d) || relativeTime(d.created_at)}
-                            </p>
-                          </div>
-                          {deliveryFailed(d) && canMutate && (
-                            <Button
-                              variant="outline"
-                              className="text-xs"
-                              disabled={busy === `retry-${d.id}`}
-                              onClick={() => void retryDelivery(d.id)}
-                            >
-                              {busy === `retry-${d.id}` ? "…" : "Retry"}
-                            </Button>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
+            <option value="">
+              Keep ·{" "}
+              {policy?.current.vehicle
+                ? vehicleClassLabel(policy.current.vehicle)
+                : "merchant settings"}
+            </option>
+            {RETAIL_VEHICLE_OPTIONS.map((v) => (
+              <option key={v} value={v}>
+                {vehicleClassLabel(v)}
+              </option>
             ))}
-            {webhooks.length === 0 && (
-              <div className="space-y-2 px-5 py-10 text-center">
-                <p className="text-sm text-muted">No webhooks.</p>
-                <p className="text-xs text-muted">
-                  Merchant creates HTTPS webhooks in Integrations → Webhooks, then Send test.
-                </p>
-                <a
-                  href={hooksHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-secondary underline"
-                >
-                  Open merchant webhooks <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            )}
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* 5. Usage */}
-      <SectionCard title="API usage (7d)">
-        <div className="grid gap-3 px-5 py-4 sm:grid-cols-3">
-          <Metric label="Total requests" value={String(usage?.total_requests ?? 0)} />
-          <Metric label="Errors" value={String(usage?.error_requests ?? 0)} />
-          <Metric label="Sandbox calls" value={String(usage?.by_environment?.sandbox ?? 0)} />
-        </div>
-        {(usage?.by_path?.length ?? 0) > 0 ? (
-          <div className="border-t border-primary/5 px-5 py-4">
-            <h3 className="text-sm font-semibold text-primary">Top endpoints</h3>
-            <ul className="mt-2 space-y-1 text-sm">
-              {usage!.by_path.slice(0, 5).map((p) => (
-                <li key={p.path} className="flex justify-between gap-4">
-                  <code className="truncate text-xs text-primary">{p.path}</code>
-                  <span className="text-muted">{p.count}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p className="border-t border-primary/5 px-5 py-4 text-sm text-muted">
-            No Partner API traffic in the last 7 days.
-          </p>
-        )}
-      </SectionCard>
-
-      {/* 6. Sandbox read-only */}
-      <SectionCard title="Sandbox">
-        <div className="px-5 py-4 text-sm">
-          <p>
-            Test preference:{" "}
-            <Badge tone={data?.sandbox_mode ? "amber" : "green"}>
-              {data?.sandbox_mode ? "On" : "Off"}
-            </Badge>
-            <span className="ml-2 text-muted">
-              ({data?.booking_env_preference || (data?.sandbox_mode ? "sandbox" : "live")})
-            </span>
-          </p>
-          <p className="mt-2 text-xs text-muted">
-            Portal reminder only — Partner API dry-run is controlled by{" "}
-            <code className="rounded bg-gray-bg px-1">pk_sandbox_</code> vs{" "}
-            <code className="rounded bg-gray-bg px-1">pk_production_</code> keys. Console, simulate,
-            and purge stay in the merchant portal.
-          </p>
-        </div>
-      </SectionCard>
-
-      {/* 7. Docs / go-live */}
-      <SectionCard title="Go-live checklist">
-        <ol className="list-decimal space-y-1 px-5 py-4 pl-9 text-sm text-primary">
-          <li>Create a sandbox API key and sandbox webhook URL in the merchant portal.</li>
-          <li>Book a test shipment or run Sandbox → simulate lifecycle.</li>
-          <li>
-            Verify HMAC: <code className="text-xs">X-Porterchain-Signature</code> + timestamp.
-          </li>
-          <li>Owner mints a production key and production webhook after handlers pass.</li>
-          <li>Connect Shopify (if retail) and set default pickup.</li>
-        </ol>
-        <div className="flex flex-wrap gap-3 border-t border-primary/5 px-5 py-3 text-sm">
-          <a
-            href={docsHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-secondary underline"
+            <option value="none">Use merchant settings</option>
+          </select>
+        </FieldLabel>
+        <FieldLabel label="Package">
+          <select
+            className={inputClass}
+            value={policy?.pkg ?? ""}
+            onChange={(e) => policy && setPolicy({ ...policy, pkg: e.target.value })}
           >
-            Merchant docs <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-          {canImpersonate && integrationsSeat ? (
-            <Button variant="outline" className="text-xs" onClick={() => setImpersonateOpen(true)}>
-              Open Integrations as {integrationsSeat.role_label || "Owner"}
-            </Button>
-          ) : (
-            <a
-              href={keysHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-secondary underline"
+            <option value="">
+              Keep ·{" "}
+              {policy?.current.pkg === "ltlPallet"
+                ? "Pallets"
+                : policy?.current.pkg
+                  ? "Parcels"
+                  : "merchant settings"}
+            </option>
+            <option value="looseParcel">Parcels</option>
+            <option value="ltlPallet">Pallets</option>
+            <option value="none">Use merchant settings</option>
+          </select>
+        </FieldLabel>
+        <FieldLabel label="Reason" hint="Saved to the change history.">
+          <input
+            className={inputClass}
+            value={policyReason}
+            maxLength={255}
+            onChange={(e) => setPolicyReason(e.target.value)}
+          />
+        </FieldLabel>
+      </Dialog>
+      <Dialog
+        open={!!install}
+        onClose={() => setInstall(null)}
+        title="Shopify install link"
+        description="We copy a one-time link. Send it to the store owner; it connects their store to this merchant."
+        footer={
+          <>
+            <QuietButton onClick={() => setInstall(null)}>Cancel</QuietButton>
+            <PrimaryAction
+              disabled={busy || !install?.shop.trim()}
+              onClick={() => install && void sendInstallLink(install.shop)}
             >
-              Merchant Integrations <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
-        </div>
-      </SectionCard>
+              Copy link
+            </PrimaryAction>
+          </>
+        }
+      >
+        <FieldLabel label="Store address" hint="Like their-store.myshopify.com">
+          <input
+            className={inputClass}
+            value={install?.shop ?? ""}
+            onChange={(e) => setInstall({ shop: e.target.value })}
+            placeholder="their-store.myshopify.com"
+          />
+        </FieldLabel>
+      </Dialog>
+      <Dialog
+        open={!!secret}
+        onClose={() => setSecret(null)}
+        title="New key — copy it now"
+        description="Shown once and never stored. Send it to the merchant over a secure channel."
+        footer={<PrimaryAction onClick={() => setSecret(null)}>Done</PrimaryAction>}
+      >
+        <code className="block rounded-2xl bg-primary px-4 py-3 font-mono text-xs break-all text-white">
+          {secret}
+        </code>
+        <QuietButton onClick={() => secret && void copy(secret, "Key")}>Copy key</QuietButton>
+      </Dialog>
+      <Dialog
+        open={!!log}
+        onClose={() => setLog(null)}
+        title="Delivery log"
+        description="Last deliveries to this address."
+      >
+        {log && log.rows.length === 0 ? (
+          <p className="text-sm text-slate-600">Nothing sent yet.</p>
+        ) : (
+          <ul className="-my-2 divide-y divide-primary/5">
+            {(log?.rows ?? []).map((d) => (
+              <li key={d.id} className="flex items-center gap-3 py-2.5 text-sm">
+                <span
+                  className={cn(
+                    "h-2 w-2 shrink-0 rounded-full",
+                    deliveryFailed(d) ? "bg-red-600" : "bg-emerald-600"
+                  )}
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-primary">
+                    {d.event_type ?? "event"}
+                  </span>
+                  <span className="block truncate text-xs text-slate-600">
+                    {deliveryFailed(d)
+                      ? d.error_message ||
+                        d.error ||
+                        `Failed${d.response_status ? ` (${d.response_status})` : ""}`
+                      : "Delivered"}{" "}
+                    · {ago(d.created_at)}
+                  </span>
+                </span>
+                {deliveryFailed(d) && canMutate ? (
+                  <QuietButton
+                    disabled={busy}
+                    onClick={() =>
+                      void run(async (t) => {
+                        await merchants.retryWebhookDelivery(t, id, d.id);
+                        setLog({
+                          hookId: log!.hookId,
+                          rows: await merchants.webhookDeliveries(t, id, log!.hookId),
+                        });
+                        return "Resent";
+                      })
+                    }
+                  >
+                    Resend
+                  </QuietButton>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Dialog>
+      {impersonate && seat ? (
+        <ImpersonateModal
+          open
+          targetType="merchant"
+          targetId={seat.id}
+          targetLabel={seat.email}
+          getApiToken={getApiToken}
+          nextPath="/api?tab=keys"
+          onClose={() => setImpersonate(false)}
+        />
+      ) : null}
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Group({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-primary/10 bg-gray-bg/40 px-3 py-2">
-      <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-0.5 text-lg font-semibold text-primary">{value}</p>
+    <section className="rounded-3xl border border-primary/10 bg-white">
+      <h3 className="flex items-center gap-2 px-5 pt-5 text-[11px] font-semibold tracking-[0.14em] text-slate-600 uppercase sm:px-6">
+        {icon}
+        {title}
+      </h3>
+      <ul className="divide-y divide-primary/5 px-5 pb-2 sm:px-6">{children}</ul>
+    </section>
+  );
+}
+
+function Row({
+  name,
+  st,
+  fix,
+  menu,
+  details,
+}: {
+  name: string;
+  st: Status;
+  fix: ReactNode;
+  menu: MenuItem[];
+  details: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li className="py-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", DOT[st.light])} aria-hidden />
+        <div className="min-w-0 flex-1 basis-48">
+          <p className="truncate text-[15px] font-bold text-primary">{name}</p>
+          <p
+            className={cn(
+              "text-sm",
+              st.light === "red"
+                ? "text-red-700"
+                : st.light === "amber"
+                  ? "text-amber-800"
+                  : "text-slate-600"
+            )}
+          >
+            <span className="sr-only">{WORD[st.light]}: </span>
+            {st.reason}
+            {st.more.length ? (
+              <span className="text-slate-600"> · +{st.more.length} more</span>
+            ) : null}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {fix}
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary"
+          >
+            Details{" "}
+            <ChevronDown className={cn("h-4 w-4 transition", open && "rotate-180")} aria-hidden />
+          </button>
+          <ActionMenu label={`More for ${name}`} items={menu} />
+        </div>
+      </div>
+      {open ? (
+        <div className="mt-4 ml-5 space-y-3 rounded-2xl bg-slate-50 px-4 py-4">
+          {st.more.length ? (
+            <ul className="space-y-1 text-sm text-red-700">
+              {st.more.map((m) => (
+                <li key={m}>{m}</li>
+              ))}
+            </ul>
+          ) : null}
+          {details}
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+function FixButton({
+  primary,
+  children,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { primary: boolean }) {
+  return primary ? (
+    <PrimaryAction {...rest}>{children}</PrimaryAction>
+  ) : (
+    <QuietButton {...rest}>{children}</QuietButton>
+  );
+}
+
+function Fact({ label, value, bad }: { label: string; value: string; bad?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs text-slate-600">{label}</dt>
+      <dd className={cn("font-medium break-words", bad ? "text-red-700" : "text-primary")}>
+        {value}
+      </dd>
     </div>
   );
+}
+
+const ACTION_WORDS: Record<string, string> = {
+  "api_key.revoked": "API key revoked",
+  "api_key.rotated": "API key replaced",
+  "api_key.rate_limit_changed": "API key rate limit changed",
+  "webhook.disabled": "Webhook turned off",
+  "webhook.enabled": "Webhook turned on",
+  "webhook.test": "Webhook test sent",
+  "partner_api.frozen": "All API access frozen",
+  "shopify.force_disconnected": "Shopify store disconnected",
+  "shopify.install_url_copied": "Shopify install link copied",
+  "shopify.webhook_replayed": "Shopify order retried",
+  "shopify.disconnected": "Merchant disconnected their store",
+  "shopify.ingress_paused": "Shopify orders paused",
+  "shopify.ingress_resumed": "Shopify orders resumed",
+};
+function humanAction(a: string): string {
+  return ACTION_WORDS[a] ?? a.replace(/[._]/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
 }

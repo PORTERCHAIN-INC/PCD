@@ -190,7 +190,9 @@ def oauth_scopes(settings: Settings) -> str:
 
 
 def has_returns_scope(granted: str | None) -> bool:
-    return RETURNS_SCOPE in {part.strip() for part in str(granted or "").split(",")}
+    # write_returns includes read_returns (Shopify omits the implied read scope).
+    parts = {part.strip() for part in str(granted or "").split(",")}
+    return RETURNS_SCOPE in parts or "write_returns" in parts
 
 
 def install_url(

@@ -1,5 +1,6 @@
 "use client";
 
+import ConnectionsStatus from "@/components/integrations/ConnectionsStatus";
 import ShopifyConnectCard from "@/components/integrations/ShopifyConnectCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { publicEnv } from "@/lib/env";
@@ -114,18 +115,27 @@ export default function ShopifyAppClient() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 py-4">
-      <div>
-        <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
-        <p className="mt-1 text-sm text-muted">
-          Connect the store. PorterChain uses your pickup address.
-        </p>
-      </div>
+      <h1 className="sr-only">PorterChain for Shopify</h1>
+      <ConnectionsStatus title="PorterChain for Shopify" />
       {errorBanner}
-      <ShopifyConnectCard
-        initialShop={shop}
-        justConnected={justConnected}
-        ratesStatus={justConnected ? ratesStatus : null}
-      />
+      <details
+        open={!shop || justConnected}
+        className="group rounded-3xl border border-primary/10 bg-white"
+      >
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-base font-bold text-primary sm:px-6">
+          Store setup and pickup address
+          <span aria-hidden className="text-slate-500 transition group-open:rotate-180">
+            ⌄
+          </span>
+        </summary>
+        <div className="border-t border-primary/10 p-4 sm:p-6">
+          <ShopifyConnectCard
+            initialShop={shop}
+            justConnected={justConnected}
+            ratesStatus={justConnected ? ratesStatus : null}
+          />
+        </div>
+      </details>
     </div>
   );
 }

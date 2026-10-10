@@ -515,6 +515,8 @@ class ApiKeyResponse(BaseModel):
     is_active: bool
     created_at: datetime
     secret: str | None = None
+    # Rotated keys keep working until this time; past it they read inactive (same as admin).
+    expires_at: datetime | None = None
 
 
 class WebhookCreateRequest(BaseModel):

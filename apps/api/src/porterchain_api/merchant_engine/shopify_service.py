@@ -255,7 +255,7 @@ def set_default_pickup(
     return shop
 
 
-def disconnect_shop(db: Session, ctx: MerchantContext, shop_id: str) -> None:
+def disconnect_shop(db: Session, ctx: MerchantContext, shop_id: str, *, audit: bool = True) -> None:
     shop = (
         db.query(ShopifyShop)
         .filter(ShopifyShop.id == shop_id, ShopifyShop.merchant_id == ctx.merchant.id)
@@ -269,6 +269,10 @@ def disconnect_shop(db: Session, ctx: MerchantContext, shop_id: str) -> None:
     shop.carrier_service_gid = None
     shop.fulfillment_service_gid = None
     shop.location_gid = None
+    if audit:  # merchant self-disconnect was invisible to staff; admin path writes its own row
+        from porterchain_api.merchant_engine.shopify_one_click import audit_disconnect
+
+        audit_disconnect(db, ctx, shop)
     db.commit()
 
 
@@ -563,7 +567,8 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
         raise ValueError("payload_invalid")
 
     shop = _active_shop(db, shop_domain)
-    if action == "shopify_orders_create" and shop and shop.ingress_paused:
+    # A paused store holds every new booking it would create (orders and return pickups).
+    if action in {"shopify_orders_create", "shopify_return_approve"} and shop and shop.ingress_paused:
         if not from_dlq:
             record_ingress_dlq(
                 db,

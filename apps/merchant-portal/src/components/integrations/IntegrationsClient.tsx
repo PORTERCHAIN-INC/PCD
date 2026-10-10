@@ -1,5 +1,6 @@
 "use client";
 
+import ConnectionsStatus from "@/components/integrations/ConnectionsStatus";
 import ShopifyConnectCard from "@/components/integrations/ShopifyConnectCard";
 import Button from "@/components/ui/Button";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
@@ -92,20 +93,27 @@ export default function IntegrationsClient() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">Integrations</h1>
-        <p className="mt-1 text-sm text-muted">
-          Shopify, API keys, and webhooks for this company. Partners call{" "}
-          <code className="rounded bg-gray-bg px-1">/v1/merchant-api</code> with{" "}
-          <code className="rounded bg-gray-bg px-1">X-Api-Key</code>. There is no ERP marketplace.{" "}
-          <a href="/shopify" className="text-secondary underline">
-            Open Shopify setup
-          </a>
-          .
-        </p>
-      </div>
+      <h1 className="sr-only">Integrations</h1>
+      <ConnectionsStatus />
 
-      <ShopifyConnectCard />
+      <details className="group rounded-3xl border border-primary/10 bg-white">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-base font-bold text-primary sm:px-6">
+          Shopify setup
+          <span aria-hidden className="text-slate-500 transition group-open:rotate-180">
+            ⌄
+          </span>
+        </summary>
+        <div className="space-y-3 border-t border-primary/10 p-4 sm:p-6">
+          <ShopifyConnectCard />
+          <p className="text-sm text-slate-600">
+            Partners call <code className="rounded bg-gray-bg px-1">/v1/merchant-api</code> with{" "}
+            <code className="rounded bg-gray-bg px-1">X-Api-Key</code>.{" "}
+            <a href="/shopify" className="font-semibold text-secondary underline">
+              Open Shopify page
+            </a>
+          </p>
+        </div>
+      </details>
 
       {error && !overview ? (
         <div className="space-y-4">

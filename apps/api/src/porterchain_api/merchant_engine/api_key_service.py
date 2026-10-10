@@ -73,7 +73,14 @@ class MerchantApiKeyService:
         )
         if not record:
             return None
-        record.last_used_at = datetime.now(UTC)
+        now = datetime.now(UTC)
+        expires = record.expires_at
+        if expires is not None and (expires if expires.tzinfo else expires.replace(tzinfo=UTC)) <= now:
+            # Rotated key past its grace window: retire it on first use.
+            record.is_active = False
+            db.commit()
+            return None
+        record.last_used_at = now
         db.commit()
         db.refresh(record)
         return record

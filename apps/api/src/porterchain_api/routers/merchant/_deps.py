@@ -202,10 +202,19 @@ def _api_key_out(k, secret: str | None = None) -> ApiKeyResponse:
         scopes=k.scopes,
         environment=k.environment,
         rate_limit_per_minute=k.rate_limit_per_minute,
-        is_active=k.is_active,
+        is_active=bool(k.is_active) and not _expired(getattr(k, "expires_at", None)),
         created_at=k.created_at,
         secret=secret,
+        expires_at=getattr(k, "expires_at", None),
     )
+
+
+def _expired(exp) -> bool:
+    from datetime import UTC, datetime
+
+    if exp is None:
+        return False
+    return (exp if exp.tzinfo else exp.replace(tzinfo=UTC)) <= datetime.now(UTC)
 
 
 def _webhook_out(h, signing_secret: str | None = None) -> WebhookResponse:

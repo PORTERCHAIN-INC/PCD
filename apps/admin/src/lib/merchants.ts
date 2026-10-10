@@ -302,6 +302,20 @@ export type MerchantWebhookDeliveryRow = {
   error?: string | null;
 };
 
+export type ShopHealth = {
+  state: "connected" | "paused" | "disconnected";
+  connected: boolean;
+  paused: boolean;
+  light: "red" | "amber" | "green";
+  reason: string;
+  fix: string | null;
+  problems: Array<{ code: string; text: string; fix: string | null }>;
+  missing_scopes: string[];
+  orders_waiting: number;
+  tracking_failing_orders?: string[];
+  last_order_at: string | null;
+};
+
 export type MerchantApi = {
   api_keys: Array<{
     id: string;
@@ -311,6 +325,8 @@ export type MerchantApi = {
     scopes: string[];
     rate_limit_per_minute: number;
     is_active: boolean;
+    /** Set on a rotated key: stops working after this time. */
+    expires_at?: string | null;
     last_used_at: string | null;
     created_at: string | null;
   }>;
@@ -337,12 +353,15 @@ export type MerchantApi = {
     auto_dispatch?: boolean;
     default_vehicle_class?: string | null;
     default_package_type?: string | null;
+    /** Shared with the merchant portal and watchdog (merchant_engine/shopify_health.py). */
+    health?: ShopHealth;
   }>;
   shopify_connected?: boolean;
   shopify_webhook_url?: string | null;
   sandbox_mode?: boolean;
   booking_env_preference?: string;
   api_keys_count?: number;
+  active_keys?: number;
   sandbox_keys?: number;
   production_keys?: number;
   webhooks_count?: number;
@@ -861,11 +880,16 @@ export const merchants = {
       t
     ),
   shopifyIngressPause: (t: string, id: string, shopId: string, paused: boolean, reason: string) =>
-    adminFetch<{ shop_id: string; shop_domain: string; ingress_paused: boolean }>(
-      `${B}/${id}/shopify/${shopId}/ingress-pause`,
-      t,
-      { method: "POST", body: JSON.stringify({ paused, reason }) }
-    ),
+    adminFetch<{
+      shop_id: string;
+      shop_domain: string;
+      ingress_paused: boolean;
+      released?: number;
+      release_failed?: number;
+    }>(`${B}/${id}/shopify/${shopId}/ingress-pause`, t, {
+      method: "POST",
+      body: JSON.stringify({ paused, reason }),
+    }),
   shopifyAutoDispatch: (t: string, id: string, shopId: string, enabled: boolean, reason: string) =>
     adminFetch<{ shop_id: string; shop_domain: string; auto_dispatch: boolean }>(
       `${B}/${id}/shopify/${shopId}/auto-dispatch`,
