@@ -267,7 +267,7 @@ def test_french_emails(db: Session, settings: Settings) -> None:
     links = service.confirmation_links(db, settings, order, customer)
     assert links["locale"] == "fr" and "/fr/track/" in links["manage_track_url"]
     subject, body, html = render_email("booking_confirmed", {**links, "tracking_number": order.tracking_number})
-    assert subject.startswith("C'est réservé") and '<html lang="fr">' in html and "Suivre et gérer" in html
+    assert subject.startswith("C'est réservé") and '<html lang="fr' in html and "Suivre et gérer" in html
     subject, _, html = render_email("fast_send_again", {"locale": "fr", "send_again_url": "https://x", "nudge": True})
     assert subject == "Comme la dernière fois?" and "Réserver à nouveau" in html
 

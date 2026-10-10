@@ -91,4 +91,6 @@ def booking_confirmed_fast_html(ctx: dict[str, Any], rows: list[tuple[str, str]]
 def _lang(ctx: dict[str, Any], html_doc: str) -> str:
     from porterchain_api.customer_fast.i18n import lang
 
-    return html_doc.replace('<html lang="en">', '<html lang="fr">', 1) if lang(ctx) == "fr" else html_doc
+    if lang(ctx) != "fr":
+        return html_doc
+    return html_doc.replace('<html lang="en-CA">', '<html lang="fr-CA">', 1).replace('<html lang="en">', '<html lang="fr">', 1)

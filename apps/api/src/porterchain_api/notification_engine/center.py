@@ -292,6 +292,7 @@ SAMPLE: dict[str, Any] = {
     "support_email": "support@porterchain.com",
     "reason": "No one home, no safe place",
     "reason_line": " Reason: no one home.",
+    "subject": "Re: your delivery quote",
     "message": "Sample message",
     "title": "Sample title",
     "body": "Sample body",

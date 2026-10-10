@@ -9,5 +9,5 @@ def test_redis_keys_are_namespaced() -> None:
 
 
 def test_all_queues_have_processors() -> None:
-    expected = {"emails", "sms", "push", "dispatch", "routing", "billing", "reports", "webhooks"}
+    expected = {"emails", "sms", "push", "dispatch", "routing", "billing", "reports", "webhooks", "notify_fast", "notify_slow"}
     assert {q.value for q in QueueName} == expected
