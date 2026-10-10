@@ -124,6 +124,9 @@ def record_now(category: str, action: str, **kw: Any) -> None:
 
 # ── automatic mirror of existing audit tables ──────────────────────────────────────
 
+_AUDIT_TABLES = frozenset({"admin_audit_logs", "merchant_audit_logs", "access_audit_logs"})
+
+
 def _category(action: str) -> str:
     a = action.lower()
     for key, cat in (("setting", "settings"), ("pricing", "pricing"), ("price", "pricing"), ("role", "permissions"),
@@ -136,13 +139,10 @@ def _category(action: str) -> str:
 
 
 def _mirror_rows(session: Session) -> list[dict[str, Any]]:
-    from porterchain_api.admin_models import AdminAuditLog
-    from porterchain_api.merchant_models import MerchantAuditLog
-    from porterchain_api.unified_identity_models import AccessAuditLog
 
     rows = []
     for obj in session.new:
-        if isinstance(obj, (AdminAuditLog, MerchantAuditLog, AccessAuditLog)):
+        if getattr(obj, "__tablename__", None) in _AUDIT_TABLES:
             detail = getattr(obj, "payload", None) or getattr(obj, "detail", None) or {}
             rows.append({"at": _now(), "category": _category(obj.action), "action": obj.action,
                          "actor": obj.actor_user_id, "target_type": obj.resource_type, "target_id": obj.resource_id,
@@ -172,12 +172,9 @@ def _after_rollback(session: Session) -> None:
 def _before_flush(session: Session, _ctx: Any, _instances: Any) -> None:
     import uuid as _uuid
 
-    from porterchain_api.admin_models import AdminAuditLog
-    from porterchain_api.merchant_models import MerchantAuditLog
-    from porterchain_api.unified_identity_models import AccessAuditLog
 
     for obj in session.new:  # ids are needed for the source reference
-        if isinstance(obj, (AdminAuditLog, MerchantAuditLog, AccessAuditLog)) and not obj.id:
+        if getattr(obj, "__tablename__", None) in _AUDIT_TABLES and not obj.id:
             obj.id = str(_uuid.uuid4())
     rows = _mirror_rows(session)
     if rows:
