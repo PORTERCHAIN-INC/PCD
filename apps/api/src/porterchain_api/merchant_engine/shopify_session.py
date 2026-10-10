@@ -1,11 +1,14 @@
-"""Managed-install session token → stored offline token.
+"""Embedded app: App Bridge session token → verified shop → stored offline token.
 
-Kept out of shopify_service.py so that module stays inside its line cap.
+Shopify-managed install grants the scopes; the embedded page posts its session
+token here, we token-exchange it once, and a portal seat claims the store with
+the signed link token.
 """
 
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
@@ -17,9 +20,7 @@ from porterchain_api.merchant_models import ShopifyShop
 logger = logging.getLogger(__name__)
 
 
-def ensure_carrier_rates(
-    db: Session, settings: Settings, shop_domain: str, *, rehook: bool = False
-) -> str:
+def ensure_carrier_rates(db: Session, settings: Settings, shop_domain: str, *, rehook: bool = False) -> str:
     """Opening the app on an installed shop re-registers a missing CarrierService.
 
     Returns ``ready`` or the reason Shopify refused (see ``carrier_error_code``).
@@ -34,11 +35,7 @@ def ensure_carrier_rates(
     from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain
 
     shop = normalize_shop_domain(shop_domain)
-    row = (
-        db.query(ShopifyShop)
-        .filter(ShopifyShop.shop_domain == shop, ShopifyShop.uninstalled_at.is_(None))
-        .first()
-    )
+    row = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop, ShopifyShop.uninstalled_at.is_(None)).first()
     if row is None or not getattr(row, "encrypted_access_token", None):
         return "carrier_no_token"
     if rehook:
@@ -50,7 +47,7 @@ def ensure_carrier_rates(
         return "ready"
     try:
         _register_carrier_service(row, settings)
-    except Exception as exc:  # noqa: BLE001 — the page shows the reason instead
+    except Exception as exc:
         logger.warning("shopify_carrier_heal_failed shop=%s", shop, exc_info=True)
         return carrier_error_code(exc)
     return "ready"
@@ -128,8 +125,9 @@ def install_from_session_token(
         apply_signup_policy,
     )
     from porterchain_api.merchant_engine.shopify_tokens import store_token_response
+    from porterchain_api.merchant_engine.shopify_urls import oauth_configured
 
-    if not shopify.oauth_configured(settings):
+    if not oauth_configured(settings):
         raise ValueError("shopify_oauth_not_configured")
     shop = shopify.normalize_shop_domain(shop_domain)
     if not shopify.is_shop_domain(shop):
@@ -142,7 +140,7 @@ def install_from_session_token(
     shop_payload = shop_info.get("shop") if isinstance(shop_info.get("shop"), dict) else {}
     if not isinstance(shop_payload, dict):
         shop_payload = {}
-    merchant = shopify._merchant_for_install(db, None, shop, shop_payload)
+    merchant = shopify._merchant_for_install(db, shop, shop_payload)
     row = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop).first()
     if row and row.merchant_id != merchant.id:
         raise ValueError("shop_already_connected")
@@ -168,3 +166,97 @@ def install_from_session_token(
     db.refresh(row)
     shopify._post_install_hooks(row, settings)
     return row
+
+
+def verify_session_token(token: str, settings: Settings) -> str:
+    """App Bridge session token (HS256, app secret, aud = API key) → shop domain."""
+    import jwt
+
+    from porterchain_api.merchant_engine.shopify_urls import (
+        is_shop_domain,
+        normalize_shop_domain,
+    )
+
+    if not (settings.shopify_api_key and settings.shopify_api_secret):
+        raise ValueError("shopify_oauth_not_configured")
+    try:
+        claims = jwt.decode(
+            token,
+            settings.shopify_api_secret,
+            algorithms=["HS256"],
+            audience=settings.shopify_api_key,
+            leeway=10,
+            options={"require": ["exp", "nbf", "dest", "aud"]},
+        )
+    except jwt.PyJWTError:
+        raise ValueError("session_token_invalid") from None
+    shop = normalize_shop_domain(str(claims.get("dest") or ""))
+    issuer = normalize_shop_domain(str(claims.get("iss") or shop))
+    if not is_shop_domain(shop) or issuer != shop:
+        raise ValueError("session_token_invalid")
+    return shop
+
+
+def open_embedded(
+    db: Session,
+    settings: Settings,
+    session_token: str,
+    on_install: Callable[[Session, ShopifyShop], None] | None = None,
+) -> dict[str, Any]:
+    """Every embedded page load: install on first open, heal rates after, report status.
+
+    ``on_install`` runs once after a fresh install (the router records the CRM lead).
+    """
+    from porterchain_api.merchant_engine.shopify_tokens import token_state_for_open
+    from porterchain_api.merchant_engine.shopify_urls import sign_link_token
+    from porterchain_api.merchant_models import Merchant
+
+    shop = verify_session_token(session_token, settings)
+    token_state = token_state_for_open(db, settings, shop)
+    if token_state:
+        rates = ensure_carrier_rates(db, settings, shop, rehook=token_state == "migrated")
+        row = _active_row(db, shop)
+    else:
+        row = install_from_session_token(db, settings, shop_domain=shop, id_token=session_token)
+        rates = rates_status(row)
+        if on_install:
+            on_install(db, row)
+    merchant = db.get(Merchant, row.merchant_id) if row else None
+    linked = bool(row) and not is_unclaimed_install_merchant(db, row.merchant_id, shop)
+    return {
+        "shop_domain": shop,
+        "rates": rates,
+        "linked": linked,
+        "company_name": merchant.company_name if merchant and linked else None,
+        "link_token": None if linked else sign_link_token(shop, settings),
+    }
+
+
+def link_shop(db: Session, merchant_id: str, settings: Settings, link_token: str) -> ShopifyShop:
+    """A signed-in portal seat claims the store its admin installed (embedded link token)."""
+    from porterchain_api.merchant_engine.shopify_service import default_pickup_address
+    from porterchain_api.merchant_engine.shopify_urls import read_link_token
+
+    shop = read_link_token(link_token, settings)
+    row = _active_row(db, shop)
+    if row is None:
+        raise LookupError("shop_not_connected")
+    if row.merchant_id != merchant_id:
+        if not can_rebind_shop(db, row):
+            raise ValueError("shop_already_connected")
+        logger.info(
+            "shopify_shop_linked shop=%s from=%s to=%s",
+            shop,
+            row.merchant_id,
+            merchant_id,
+        )
+        row.merchant_id = merchant_id
+        pickup = default_pickup_address(db, merchant_id)
+        row.default_pickup_address_id = pickup.id if pickup else None
+        db.commit()
+        db.refresh(row)
+    return row
+
+
+def _active_row(db: Session, shop: str) -> ShopifyShop | None:
+    return db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop, ShopifyShop.uninstalled_at.is_(None)).first()

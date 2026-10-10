@@ -11,7 +11,6 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.shopify_urls import (
-    app_home_url,
     carrier_rates_url,
     fulfillment_callback_prefix,
     fulfillment_service_url,
@@ -236,7 +235,6 @@ def connection_payload(
             "Buyer name, phone, and email are stored for delivery and privacy requests only. "
             "They are not used for marketing."
         ),
-        "app_url": app_home_url(settings),
         "shops": rows,
         "go_live": go_live,
         "shop_lookup": shop_link_status(db, merchant_id, shop_domain) if shop_domain else None,

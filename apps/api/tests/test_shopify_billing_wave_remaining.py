@@ -47,30 +47,9 @@ def test_merchant_for_install_blocks_email_hijack_onto_bound_merchant(db):
     with pytest.raises(ValueError, match="shopify_email_already_bound"):
         _merchant_for_install(
             db,
-            None,
             f"attacker-{suffix}.myshopify.com",
             {"email": owner.email, "name": "Attacker"},
         )
-
-
-def test_merchant_for_install_state_merchant_blocks_other_live_shop(db):
-    suffix = uuid4().hex[:8]
-    a = Merchant(company_name=f"A {suffix}", email=f"a-{suffix}@t.local", status=MerchantStatus.ACTIVE.value)
-    b = Merchant(company_name=f"B {suffix}", email=f"b-{suffix}@t.local", status=MerchantStatus.ACTIVE.value)
-    db.add_all([a, b])
-    db.flush()
-    db.add(
-        ShopifyShop(
-            merchant_id=a.id,
-            shop_domain=f"taken-{suffix}.myshopify.com",
-            encrypted_access_token="enc",
-            installed_at=datetime.now(UTC),
-        )
-    )
-    db.commit()
-
-    with pytest.raises(ValueError, match="shop_already_connected"):
-        _merchant_for_install(db, b.id, f"taken-{suffix}.myshopify.com", {"email": b.email})
 
 
 def test_cycle_generate_creates_invoice_line_with_channel(db):

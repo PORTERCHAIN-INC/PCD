@@ -26,7 +26,8 @@ from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine import shopify_service as shopify
-from porterchain_api.merchant_engine import shopify_webhooks
+from porterchain_api.merchant_engine import shopify_session, shopify_webhooks
+from porterchain_api.merchant_engine.shopify_urls import sign_link_token
 from porterchain_api.merchant_engine.account_ops.connections import watchdog
 from porterchain_api.merchant_engine.shopify_one_click import connection_payload
 from porterchain_api.merchant_models import (
@@ -109,10 +110,10 @@ def _stub_shopify(stack: ExitStack) -> dict[str, MagicMock]:
     """Every outbound Shopify call is a stub; nothing leaves the machine."""
     calls = {
         "exchange": stack.enter_context(patch.object(
-            shopify, "_exchange_token", return_value={"access_token": "tok", "scope": FULL_SCOPES})),
+            shopify_session, "_exchange_session_token", return_value={"access_token": "tok", "scope": FULL_SCOPES})),
         "get": stack.enter_context(patch.object(
             shopify, "_admin_get", side_effect=lambda shop, tok, path, *a, **k: (
-                {"shop": {"id": 42, "email": "owner@shop.test"}} if path.startswith("/shop")
+                {"shop": {"id": 42, "email": f"owner-{shop}@shop.test"}} if path.startswith("/shop")
                 else {"fulfillment_orders": [{"id": 9001}]}))),
         "post": stack.enter_context(patch.object(
             shopify, "_admin_post", return_value={"fulfillment": {"id": 7001}})),
@@ -122,7 +123,6 @@ def _stub_shopify(stack: ExitStack) -> dict[str, MagicMock]:
         "carrier_upd": stack.enter_context(patch(f"{_GQL}.carrier_service_update", return_value="gid://shopify/DeliveryCarrierService/1")),
         "event": stack.enter_context(patch(f"{_GQL}.fulfillment_event_create", return_value={})),
         "tracking": stack.enter_context(patch(f"{_GQL}.fulfillment_tracking_update", return_value={})),
-        "verify": stack.enter_context(patch.object(shopify, "verify_oauth_hmac", return_value=True)),
         "geo": stack.enter_context(patch.object(shopify, "_ensure_coords", side_effect=lambda a: a)),
         "publish": stack.enter_context(patch("porterchain_shared.queue.publisher.get_queue_publisher")),
     }
@@ -167,9 +167,9 @@ def test_install_rate_order_fulfil_track_return_uninstall_redact(db, company):
     with ExitStack() as stack:
         calls = _stub_shopify(stack)
 
-        # 1. install / OAuth links the store to the signed-in company (existing account)
-        shop = shopify.complete_oauth(db, settings, shop_domain=domain, code="c",
-                                      state=shopify.sign_oauth_state(company.id, settings), query_string="x")
+        # 1. managed install from Shopify admin, then the company's portal seat links it
+        shopify_session.install_from_session_token(db, settings, shop_domain=domain, id_token="st")
+        shop = shopify_session.link_shop(db, company.id, settings, sign_link_token(domain, settings))
         assert shop.merchant_id == company.id and shop.carrier_service_gid
         assert shop.scopes == FULL_SCOPES
         st = _agree(db, settings, company.id, shop.id)
@@ -245,8 +245,7 @@ def test_install_rate_order_fulfil_track_return_uninstall_redact(db, company):
         process_privacy_request(db, settings, red["request_id"])
 
         # 10. reconnect by the same company is clean and green again
-        again = shopify.complete_oauth(db, settings, shop_domain=domain, code="c2",
-                                       state=shopify.sign_oauth_state(company.id, settings), query_string="x")
+        again = shopify_session.install_from_session_token(db, settings, shop_domain=domain, id_token="st2")
         assert again.id == shop.id and again.uninstalled_at is None
         assert _agree(db, settings, company.id, shop.id)["state"] == "connected"
 

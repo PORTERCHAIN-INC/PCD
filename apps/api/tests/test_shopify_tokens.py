@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from unittest.mock import patch
-from urllib.parse import parse_qs, urlparse
+from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs
 from uuid import uuid4
 
 import httpx
@@ -15,6 +15,7 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine import shopify_fulfillment_ops as ops
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine.shopify_session import install_from_session_token
 from porterchain_api.merchant_engine import shopify_tokens as tokens
 from porterchain_api.merchant_engine.shopify_admin_graphql import ShopifyAdminError, admin_graphql
 from porterchain_api.merchant_models import Merchant, MerchantUser, ShopifyShop
@@ -132,17 +133,15 @@ def _expiring(db, settings: Settings, minutes_left: float, **fields) -> ShopifyS
 
 def test_every_grant_asks_for_an_expiring_offline_token(monkeypatch) -> None:
     settings = _settings()
-    rec = _Recorder(_pair(), _pair(), _pair(), _pair())
+    rec = _Recorder(_pair(), _pair(), _pair())
     monkeypatch.setattr(tokens, "_token_request", rec)
 
-    shopify._exchange_token("demo.myshopify.com", "auth-code", settings)
     tokens.exchange_id_token("demo.myshopify.com", "id-token", settings)
     tokens.migrate_legacy_token("demo.myshopify.com", "shpat_legacy", settings)
     tokens.refresh_access_token("demo.myshopify.com", "shprt_1", settings)
 
-    code, id_token, migrate, refresh = rec.calls
+    id_token, migrate, refresh = rec.calls
     creds = {"client_id": "cid", "client_secret": "shpss_test"}
-    assert code == {"shop": "demo.myshopify.com", **creds, "code": "auth-code", "expiring": "1"}
     assert id_token == {
         "shop": "demo.myshopify.com",
         **creds,
@@ -216,26 +215,20 @@ def test_store_token_response_keeps_expiry_and_encrypted_refresh_token() -> None
     assert row.scopes == "write_shipping,read_orders"
 
 
-def test_oauth_callback_stores_the_expiring_pair(db, monkeypatch) -> None:
+def test_managed_install_stores_the_expiring_pair(db, monkeypatch) -> None:
     settings = _settings()
-    company = _company(db)
     domain = f"tk-{uuid4().hex[:8]}.myshopify.com"
     rec = _Recorder(_pair(7))
     monkeypatch.setattr(tokens, "_token_request", rec)
     with (
-        patch.object(shopify, "verify_oauth_hmac", return_value=True),
         patch.object(shopify, "_admin_get", return_value={"shop": {"id": 42}}),
         patch("porterchain_api.merchant_engine.shopify_fulfillment_service._register_webhooks"),
         patch(f"{_GQL}.carrier_service_create", return_value=_GID) as create,
     ):
-        row = shopify.complete_oauth(
-            db,
-            settings,
-            shop_domain=domain,
-            code="c",
-            state=shopify.sign_oauth_state(company.id, settings),
-            query_string="x",
+        row = install_from_session_token(
+            db, settings, shop_domain=domain, id_token="session-token"
         )
+    assert rec.calls[0]["subject_token"] == "session-token"
     assert rec.calls[0]["expiring"] == "1"
     assert len(rec.calls) == 1  # fresh token: carrier registration did not refresh
     assert create.call_args.args[1] == "shpat_new_7"
@@ -389,72 +382,20 @@ def test_open_from_admin_with_refused_token_is_unusable(db) -> None:
 # ------------------------------------------------------------- /install
 
 
-def _install(settings: Settings, **extra: str):
-    import hashlib
-    import hmac
-    from unittest.mock import MagicMock
-    from urllib.parse import urlencode
-
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import get_db
-    from porterchain_api.routers.shopify import router
-
-    def _db():
-        yield MagicMock()
-
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_db] = _db
-    pairs = {"shop": "demo.myshopify.com", "timestamp": "1337178173", **extra}
-    message = "&".join(f"{key}={value}" for key, value in sorted(pairs.items()))
-    digest = hmac.new(b"shpss_test", message.encode(), hashlib.sha256).hexdigest()
-    return TestClient(app).get(
-        f"/v1/integrations/shopify/install?{urlencode({**pairs, 'hmac': digest})}",
-        follow_redirects=False,
-    )
-
-
-def test_open_with_unusable_token_goes_through_oauth_not_dead_end() -> None:
-    with (
-        patch("porterchain_api.routers.shopify.token_state_for_open", return_value=""),
-        patch("porterchain_api.routers.shopify.ensure_carrier_rates") as heal,
-    ):
-        res = _install(_settings())
-    assert res.status_code == 302
-    loc = res.headers["location"]
-    assert loc.startswith("https://demo.myshopify.com/admin/oauth/authorize?")
-    assert parse_qs(urlparse(loc).query)["client_id"] == ["cid"]
-    heal.assert_not_called()
-
-
 def test_open_after_migration_reruns_install_hooks() -> None:
+    from porterchain_api.merchant_engine import shopify_session as session
+
+    row = SimpleNamespace(shop_domain="demo.myshopify.com", merchant_id="m1")
     with (
-        patch("porterchain_api.routers.shopify.token_state_for_open", return_value="migrated"),
-        patch("porterchain_api.routers.shopify.ensure_carrier_rates", return_value="ready") as heal,
+        patch.object(session, "verify_session_token", return_value="demo.myshopify.com"),
+        patch(f"{tokens.__name__}.token_state_for_open", return_value="migrated"),
+        patch.object(session, "ensure_carrier_rates", return_value="ready") as heal,
+        patch.object(session, "_active_row", return_value=row),
+        patch.object(session, "is_unclaimed_install_merchant", return_value=False),
     ):
-        res = _install(_settings())
-    assert res.status_code == 302
-    assert res.headers["location"] == (
-        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1&rates=ready"
-    )
+        body = session.open_embedded(MagicMock(), _settings(), "session-token")
+    assert body["rates"] == "ready"
     assert heal.call_args.kwargs == {"rehook": True}
-
-
-def test_open_with_unusable_token_and_id_token_reacquires_by_token_exchange() -> None:
-    installed = SimpleNamespace(shop_domain="demo.myshopify.com", carrier_service_gid=_GID)
-    with (
-        patch("porterchain_api.routers.shopify.token_state_for_open", return_value=""),
-        patch(
-            "porterchain_api.routers.shopify.install_from_session_token", return_value=installed
-        ) as install,
-    ):
-        res = _install(_settings(), id_token="session-token")
-    assert install.call_args.kwargs["id_token"] == "session-token"
-    assert res.headers["location"].endswith("connected=1&rates=ready")
 
 
 # --------------------------------------------------------- error mapping

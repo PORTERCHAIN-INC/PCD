@@ -29,12 +29,9 @@ function setupStatus(goLive: ShopifyGoLive | undefined, pickup: string | null): 
 export default function ShopifyConnectCard({
   initialShop = "",
   justConnected = false,
-  ratesStatus = null,
 }: {
   initialShop?: string;
   justConnected?: boolean;
-  /** `rates` from the install redirect; the reason Shopify refused the carrier, if it did. */
-  ratesStatus?: string | null;
 }) {
   const { getApiToken, orgId, isSignedIn } = useMerchantAuth();
   const [data, setData] = useState<ShopifyConnection | null>(null);
@@ -46,9 +43,7 @@ export default function ShopifyConnectCard({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [carrierError, setCarrierError] = useState<string | null>(
-    ratesStatus && ratesStatus !== "ready" ? ratesStatus : null
-  );
+  const [carrierError, setCarrierError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialShop) setShop((current) => current || initialShop);
@@ -113,7 +108,7 @@ export default function ShopifyConnectCard({
         setBusy(false);
         return;
       }
-      const result = await integrationsApi.shopifyInstallUrl(apiToken, shopDomain, orgId, pickupId);
+      const result = await integrationsApi.shopifyInstallUrl(apiToken, shopDomain, orgId);
       window.location.assign(result.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not start Shopify install");

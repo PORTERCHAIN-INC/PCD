@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.integration_copy import integration_error_message
+from porterchain_api.merchant_engine.shopify_urls import managed_install_url
 from porterchain_api.routers.merchant._deps import (
     MerchantContext,
     Settings,
@@ -18,6 +19,7 @@ from porterchain_api.routers.merchant._deps import (
 )
 from porterchain_api.schemas_merchant import (
     ShopifyConnectRequest,
+    ShopifyLinkRequest,
     ShopifyGoLiveRequest,
     ShopifyPickupRequest,
 )
@@ -40,19 +42,34 @@ def shopify_install_url(
     shop: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     settings: Settings = Depends(get_settings),
-    pickup_address_id: str | None = None,
 ):
+    """Shopify-managed install link; the embedded app then hands back a link token."""
     require_module(ctx, "api_keys")
     try:
-        url = shopify.install_url(
-            shop,
-            settings,
-            merchant_id=ctx.merchant.id,
-            pickup_address_id=pickup_address_id,
-        )
+        url = managed_install_url(shop, settings)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=integration_error_message(str(exc))) from exc
     return {"url": url, "shop_domain": shopify.normalize_shop_domain(shop)}
+
+
+@router.post("/shopify/link")
+def shopify_link(
+    body: ShopifyLinkRequest,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Claim a store installed from Shopify admin (link token from the embedded app)."""
+    require_module(ctx, "api_keys")
+    from porterchain_api.merchant_engine.shopify_session import link_shop
+
+    try:
+        row = link_shop(db, ctx.merchant.id, settings, body.link_token)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=integration_error_message(str(exc))) from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=integration_error_message(str(exc))) from None
+    return shopify.connection_payload(db, ctx.merchant.id, settings) | {"linked_shop_id": row.id}
 
 
 @router.post("/shopify")

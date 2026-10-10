@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
-from urllib.parse import parse_qs, urlparse
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -16,6 +15,8 @@ from porterchain_api.merchant_engine import shopify_fulfillment_ops as ops
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.activation_service import SIGNUP_SOURCE_SHOPIFY
 from porterchain_api.merchant_engine.shopify_admin_graphql import ShopifyAdminError
+from porterchain_api.merchant_engine.shopify_session import link_shop
+from porterchain_api.merchant_engine.shopify_urls import sign_link_token
 from porterchain_api.merchant_models import Merchant, MerchantUser, ShopifyShop
 
 _GQL = "porterchain_api.merchant_engine.shopify_admin_graphql"
@@ -38,111 +39,6 @@ def _settings() -> Settings:
         spicedb_use_memory=True,
         spicedb_required=False,
     )
-
-
-def _qs(url: str) -> dict[str, str]:
-    return {k: v[0] for k, v in parse_qs(urlparse(url).query).items()}
-
-
-# ---------------------------------------------------------------- router (no DB)
-
-
-def _client(settings: Settings):
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import get_db
-    from porterchain_api.routers.shopify import router
-
-    def _db():
-        yield MagicMock()
-
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_db] = _db
-    return TestClient(app)
-
-
-@pytest.mark.parametrize(
-    ("raised", "code"),
-    [
-        (ValueError("shop_already_connected"), "shop_already_connected"),
-        (ValueError("oauth_state_expired"), "oauth_state_expired"),
-        (RuntimeError("shopify down"), "install_failed"),
-    ],
-)
-def test_callback_error_redirects_to_portal_page_not_json(raised, code) -> None:
-    client = _client(_settings())
-    with patch.object(shopify, "complete_oauth", side_effect=raised):
-        res = client.get(
-            "/v1/integrations/shopify/callback",
-            params={"shop": "qhrk0d-5s.myshopify.com", "code": "abc", "state": "s"},
-            follow_redirects=False,
-        )
-    assert res.status_code == 302
-    assert "application/json" not in res.headers.get("content-type", "")
-    loc = res.headers["location"]
-    assert loc.startswith("https://merchant.porterchain.com/shopify?")
-    assert _qs(loc) == {"shop": "qhrk0d-5s.myshopify.com", "error": code}
-
-
-def test_callback_without_code_redirects() -> None:
-    client = _client(_settings())
-    res = client.get(
-        "/v1/integrations/shopify/callback",
-        params={"shop": "qhrk0d-5s.myshopify.com"},
-        follow_redirects=False,
-    )
-    assert res.status_code == 302
-    assert _qs(res.headers["location"])["error"] == "oauth_code_missing"
-
-
-@pytest.mark.parametrize(
-    ("row", "rates"),
-    [
-        (SimpleNamespace(shop_domain="demo.myshopify.com", carrier_service_gid=_GID), "ready"),
-        (
-            SimpleNamespace(
-                shop_domain="demo.myshopify.com",
-                carrier_service_gid=None,
-                install_hooks={"carrier_error": "carrier_plan_unsupported"},
-            ),
-            "carrier_plan_unsupported",
-        ),
-    ],
-)
-def test_callback_success_reports_real_rate_status(row, rates) -> None:
-    client = _client(_settings())
-    with patch.object(shopify, "complete_oauth", return_value=row):
-        res = client.get(
-            "/v1/integrations/shopify/callback",
-            params={"shop": "demo.myshopify.com", "code": "abc"},
-            follow_redirects=False,
-        )
-    assert res.status_code == 302
-    assert _qs(res.headers["location"]) == {
-        "shop": "demo.myshopify.com",
-        "connected": "1",
-        "rates": rates,
-    }
-
-
-def test_install_bad_shop_redirects_not_400() -> None:
-    client = _client(_settings())
-    res = client.get(
-        "/v1/integrations/shopify/install", params={"shop": "not a shop"}, follow_redirects=False
-    )
-    assert res.status_code == 302
-    assert _qs(res.headers["location"]) == {"error": "shop_domain_invalid"}
-
-
-def test_error_code_is_sanitised() -> None:
-    from porterchain_api.merchant_engine.shopify_urls import app_error_url
-
-    url = app_error_url(_settings(), code="<script>Bad Code!", shop_domain="evil")
-    assert _qs(url) == {"shop": "evil.myshopify.com", "error": "scriptbadcode"}
 
 
 # ------------------------------------------------------- carrier registration
@@ -282,33 +178,17 @@ def _shop(db, merchant_id: str, *, token: str = "enc", gid: str | None = None, d
     return row
 
 
-def _oauth(db, settings: Settings, shop_domain: str, merchant_id: str | None):
-    state = shopify.sign_oauth_state(merchant_id, settings)
-    with (
-        patch.object(shopify, "verify_oauth_hmac", return_value=True),
-        patch.object(shopify, "_exchange_token", return_value={"access_token": "new-token", "scope": "write_shipping"}),
-        patch.object(shopify, "_admin_get", return_value={"shop": {"id": 42, "email": "x@shop.test"}}),
-        patch("porterchain_api.merchant_engine.shopify_fulfillment_service._register_webhooks"),
-        patch(f"{_GQL}.carrier_service_update", return_value=_GID) as update,
-        patch(f"{_GQL}.carrier_service_create", return_value=_GID) as create,
-    ):
-        row = shopify.complete_oauth(
-            db, settings, shop_domain=shop_domain, code="c", state=state, query_string="x"
-        )
-    return row, update, create
+def _link(db, settings: Settings, shop_domain: str, merchant_id: str) -> ShopifyShop:
+    """Embedded app hands a link token to a signed-in portal seat."""
+    return link_shop(db, merchant_id, settings, sign_link_token(shop_domain, settings))
 
 
-def test_same_company_reconnect_is_idempotent_and_reregisters_carrier(db) -> None:
+def test_same_company_relink_is_idempotent(db) -> None:
     settings = _settings()
     company = _company(db)
-    shop = _shop(db, company.id, gid="gid://shopify/DeliveryCarrierService/1")
-    row, update, create = _oauth(db, settings, shop.shop_domain, company.id)
-    assert row.id == shop.id
-    assert row.merchant_id == company.id
-    assert shopify._decrypt(row.encrypted_access_token, settings) == "new-token"
-    update.assert_called_once()
-    create.assert_not_called()
-    assert row.carrier_service_gid == _GID
+    shop = _shop(db, company.id, gid=_GID)
+    row = _link(db, settings, shop.shop_domain, company.id)
+    assert row.id == shop.id and row.merchant_id == company.id
     assert shopify.rates_status(row) == "ready"
     assert db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop.shop_domain).count() == 1
 
@@ -319,35 +199,33 @@ def test_other_claimed_company_gets_shop_already_connected(db) -> None:
     other = _company(db)
     shop = _shop(db, owner.id)
     with pytest.raises(ValueError, match="shop_already_connected"):
-        _oauth(db, settings, shop.shop_domain, other.id)
+        _link(db, settings, shop.shop_domain, other.id)
     db.rollback()
     assert db.get(ShopifyShop, shop.id).merchant_id == owner.id
 
 
 def test_unclaimed_install_placeholder_moves_to_signed_in_company(db) -> None:
-    """The review flow: Shopify install made a placeholder; the review login connects."""
+    """Managed install made a placeholder company; the merchant's portal seat claims it."""
     settings = _settings()
     domain = f"rv-{uuid4().hex[:8]}.myshopify.com"
     placeholder = _company(db, claimed=False, placeholder_for=domain)
     review = _company(db)
-    shop = _shop(db, placeholder.id, domain=domain)
-    row, _update, create = _oauth(db, settings, domain, review.id)
+    shop = _shop(db, placeholder.id, domain=domain, gid=_GID)
+    row = _link(db, settings, domain, review.id)
     assert row.id == shop.id
     assert row.merchant_id == review.id
-    create.assert_called_once()
     assert row.carrier_service_gid == _GID
 
 
-def test_uninstalled_shop_can_be_connected_by_another_company(db) -> None:
+def test_uninstalled_store_must_be_reinstalled_before_linking(db) -> None:
     settings = _settings()
     owner = _company(db)
     newcomer = _company(db)
     shop = _shop(db, owner.id, token=None)
     shop.uninstalled_at = datetime.now(UTC)
     db.commit()
-    row, _u, _c = _oauth(db, settings, shop.shop_domain, newcomer.id)
-    assert row.merchant_id == newcomer.id
-    assert row.uninstalled_at is None
+    with pytest.raises(LookupError, match="shop_not_connected"):
+        _link(db, settings, shop.shop_domain, newcomer.id)
 
 
 def test_shop_lookup_tells_signed_in_view_who_holds_the_store(db) -> None:

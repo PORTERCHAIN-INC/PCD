@@ -172,7 +172,6 @@ export type ShopifyConnection = {
   fulfillment_service_enabled?: boolean;
   service_area?: string;
   buyer_data_purpose?: string;
-  app_url?: string;
   shops: ShopifyShopConnection[];
   go_live?: ShopifyGoLive;
   hooks?: {
@@ -425,15 +424,25 @@ export const integrationsApi = {
       { orgId }
     ),
 
-  shopifyInstallUrl: (token: string, shop: string, orgId?: string, pickupAddressId?: string) => {
-    const qs = new URLSearchParams({ shop });
-    if (pickupAddressId) qs.set("pickup_address_id", pickupAddressId);
-    return integrationsFetch<{ url: string; shop_domain: string }>(
-      `/v1/merchant/shopify/install-url?${qs.toString()}`,
+  /** Shopify-managed install link; Shopify opens the embedded app afterwards. */
+  shopifyInstallUrl: (token: string, shop: string, orgId?: string) =>
+    integrationsFetch<{ url: string; shop_domain: string }>(
+      `/v1/merchant/shopify/install-url?${new URLSearchParams({ shop }).toString()}`,
       token,
       { orgId }
-    );
-  },
+    ),
+
+  /** Claim a store installed from Shopify admin (link token from the embedded app). */
+  shopifyLink: (token: string, linkToken: string, orgId?: string) =>
+    integrationsFetch<ShopifyConnection & { linked_shop_id: string }>(
+      "/v1/merchant/shopify/link",
+      token,
+      {
+        method: "POST",
+        body: JSON.stringify({ link_token: linkToken }),
+        orgId,
+      }
+    ),
 
   shopifyConnect: (
     token: string,

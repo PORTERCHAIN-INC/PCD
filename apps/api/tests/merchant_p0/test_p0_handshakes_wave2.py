@@ -75,24 +75,22 @@ def test_hs_fb_merchant_sync_rejects_suspended(db: Session) -> None:
 
 @pytest.mark.merchant_p0
 @pytest.mark.tc_id("HS-SHOP-001")
-def test_hs_shop_install_url_oauth_shape() -> None:
+def test_hs_shop_install_url_managed_shape() -> None:
+    from porterchain_api.merchant_engine.shopify_urls import managed_install_url
+
     settings = Settings(
         _env_file=None,
         jwt_secret="a" * 32,
         shopify_api_key="shp_key_test",
         shopify_api_secret="shp_secret_test",
-        shopify_api_scopes="read_orders,write_shipping",
         porterchain_api_url="http://localhost:8001",
     )
-    url = shopify.install_url("demo-shop.myshopify.com", settings, merchant_id="m-1")
-    assert url.startswith("https://demo-shop.myshopify.com/admin/oauth/authorize?")
-    assert "client_id=shp_key_test" in url
-    assert "state=" in url
+    url = managed_install_url("demo-shop.myshopify.com", settings)
+    assert url == "https://admin.shopify.com/store/demo-shop/oauth/install?client_id=shp_key_test"
     with pytest.raises(ValueError, match="shopify_oauth_not_configured"):
-        shopify.install_url(
+        managed_install_url(
             "demo-shop.myshopify.com",
             Settings(_env_file=None, jwt_secret="a" * 32, shopify_api_key="", shopify_api_secret=""),
-            merchant_id=None,
         )
 
 

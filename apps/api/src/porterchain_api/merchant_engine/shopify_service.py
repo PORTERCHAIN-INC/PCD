@@ -18,7 +18,7 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.booking_validation import BookingValidationError
-from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac, verify_webhook_hmac
+from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
 from porterchain_api.integrations.shopify_orders import (
     customer_slice,
     is_canada_country,
@@ -41,16 +41,10 @@ from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encr
 from porterchain_api.merchant_engine.service_area import assert_ontario_booking
 from porterchain_api.merchant_engine import shopify_tokens as tokens
 from porterchain_api.merchant_engine.shopify_urls import (
-    app_home_url,
-    callback_url,
     carrier_rates_url,
     fulfillment_service_url,
-    install_url,
     is_shop_domain,
     normalize_shop_domain,
-    oauth_configured,
-    read_oauth_state,
-    sign_oauth_state,
     webhook_url,
 )
 from porterchain_api.merchant_models import Merchant, MerchantUser, SavedAddress, ShopifyShop
@@ -286,74 +280,6 @@ def _delete_partner_services(shop: ShopifyShop) -> None:
         logger.warning("shopify_partner_delete_failed shop=%s", shop.shop_domain, exc_info=True)
 
 
-def complete_oauth(
-    db: Session,
-    settings: Settings,
-    *,
-    shop_domain: str,
-    code: str,
-    state: str | None,
-    query_string: str,
-) -> ShopifyShop:
-    if not oauth_configured(settings):
-        raise ValueError("shopify_oauth_not_configured")
-    if not verify_oauth_hmac(query_string, settings.shopify_api_secret):
-        raise ValueError("oauth_hmac_invalid")
-    shop = normalize_shop_domain(shop_domain)
-    if not is_shop_domain(shop):
-        raise ValueError("shop_domain_invalid")
-    oauth_state = read_oauth_state(state, settings)
-    merchant_id = oauth_state.merchant_id
-    token_body = _exchange_token(shop, code, settings)
-    access_token = str(token_body.get("access_token") or "")
-    if not access_token:
-        raise ValueError("oauth_token_missing")
-    shop_info = _admin_get(shop, access_token, "/shop.json", settings) or {}
-    shop_payload = shop_info.get("shop") if isinstance(shop_info.get("shop"), dict) else shop_info
-    merchant = _merchant_for_install(db, merchant_id, shop, shop_payload)
-    row = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop).first()
-    if row and row.merchant_id != merchant.id:
-        if not can_rebind_shop(db, row):
-            raise ValueError("shop_already_connected")
-        logger.info("shopify_shop_rebound shop=%s from=%s to=%s", shop, row.merchant_id, merchant.id)
-        row.default_pickup_address_id = None  # old company's pickup; carrier ids stay
-    if row is None:
-        row = ShopifyShop(merchant_id=merchant.id, shop_domain=shop, auto_dispatch=False)
-        db.add(row)
-    row.merchant_id = merchant.id
-    tokens.store_token_response(row, token_body, settings)  # expiring pair + refresh token
-    # Fallback is what we actually asked for, never the unreleased manifest list.
-    from porterchain_api.merchant_engine.shopify_urls import oauth_scopes
-
-    row.scopes = str(token_body.get("scope") or oauth_scopes(settings))
-    gid = shop_payload.get("id") if isinstance(shop_payload, dict) else None
-    row.shopify_shop_gid = str(gid) if gid else row.shopify_shop_gid
-    row.uninstalled_at = None
-    row.installed_at = datetime.now(UTC)
-    # One-click: bind pickup from signed state, else merchant default warehouse.
-    preferred_pickup = oauth_state.pickup_address_id
-    if preferred_pickup:
-        addr = (
-            db.query(SavedAddress)
-            .filter(
-                SavedAddress.id == preferred_pickup,
-                SavedAddress.merchant_id == merchant.id,
-            )
-            .first()
-        )
-        if addr:
-            row.default_pickup_address_id = addr.id
-    elif not row.default_pickup_address_id:
-        fallback = default_pickup_address(db, merchant.id)
-        if fallback:
-            row.default_pickup_address_id = fallback.id
-    apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_SHOPIFY)
-    db.commit()
-    db.refresh(row)
-    _post_install_hooks(row, settings)
-    return row
-
-
 _PRE_PICKUP = {
     OrderState.BOOKED.value,
     OrderState.DISPATCH_READY.value,
@@ -413,35 +339,16 @@ def capture_cod_transaction(db: Session, settings: Settings, order: Order) -> No
 
 def _merchant_for_install(
     db: Session,
-    merchant_id: str | None,
     shop_domain: str,
     shop_payload: dict[str, Any],
 ) -> Merchant:
-    """Resolve merchant for OAuth install — never steal another merchant's shop.
+    """Company for a managed install — never steal another merchant's shop.
 
-    Portal install always passes signed ``merchant_id`` in state. Public install
-    may omit it: rebind only an already-linked shop domain, else create a new
-    onboarding merchant. Email match is allowed only when that merchant has no
-    other active Shopify shop (blocks email-hijack onto an established account).
+    A store already linked keeps its company. Otherwise the shop email may attach
+    to a company with no other active Shopify store (blocks email hijack onto an
+    established account), else a new onboarding company is created. A portal seat
+    later claims it with the embedded app's link token.
     """
-    if merchant_id:
-        merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
-        if not merchant:
-            raise ValueError("merchant_not_found")
-        # Signed state merchant wins — never fall through to email attach.
-        other = (
-            db.query(ShopifyShop)
-            .filter(
-                ShopifyShop.shop_domain == shop_domain,
-                ShopifyShop.merchant_id != merchant.id,
-                ShopifyShop.uninstalled_at.is_(None),
-            )
-            .first()
-        )
-        if other and not can_rebind_shop(db, other):
-            raise ValueError("shop_already_connected")
-        return merchant
-
     existing_shop = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop_domain).first()
     if existing_shop:
         merchant = db.query(Merchant).filter(Merchant.id == existing_shop.merchant_id).first()
@@ -493,11 +400,6 @@ def _admin_url(shop: str, path: str, settings: Settings) -> str:
     return f"https://{shop}/admin/api/{settings.shopify_api_version}{path}"
 
 
-def _exchange_token(shop: str, code: str, settings: Settings) -> dict[str, Any]:
-    """Authorization code → expiring offline token (``expiring=1``) + refresh token."""
-    return tokens.exchange_authorization_code(shop, code, settings)
-
-
 def _admin_get(shop: str, token: str, path: str, settings: Settings) -> dict[str, Any] | None:
     with httpx.Client(timeout=15.0) as client:
         response = client.get(_admin_url(shop, path, settings), headers=_admin_headers(token))
@@ -547,7 +449,6 @@ from porterchain_api.merchant_engine.booking_validation import BookingValidation
 from porterchain_api.integrations.shopify_orders import order_ids  # noqa: E402, F401
 from porterchain_api.integrations.shopify_orders import shipping_address  # noqa: E402, F401
 from porterchain_api.merchant_engine.service_area import assert_ontario_booking  # noqa: E402, F401
-from porterchain_api.merchant_engine.shopify_urls import install_url  # noqa: E402, F401
 from porterchain_api.integrations.shopify_orders import customer_slice  # noqa: E402, F401
 from porterchain_api.integrations.shopify_orders import is_canada_country  # noqa: E402, F401
 from porterchain_api.integrations.shopify_orders import line_item_slice  # noqa: E402, F401
@@ -555,11 +456,8 @@ from porterchain_api.integrations.shopify_orders import map_shopify_order  # noq
 from porterchain_api.integrations.shopify_orders import porterchain_shipping_selected  # noqa: E402, F401
 from porterchain_api.integrations.shopify_orders import quote_id_from_order  # noqa: E402, F401
 from porterchain_api.integrations.shopify_orders import unpaid_non_cod  # noqa: E402, F401
-from porterchain_api.merchant_engine.shopify_urls import app_home_url  # noqa: E402, F401
-from porterchain_api.merchant_engine.shopify_urls import callback_url  # noqa: E402, F401
 from porterchain_api.merchant_engine.shopify_urls import carrier_rates_url  # noqa: E402, F401
 from porterchain_api.merchant_engine.shopify_urls import fulfillment_service_url  # noqa: E402, F401
-from porterchain_api.merchant_engine.shopify_urls import sign_oauth_state  # noqa: E402, F401
 from porterchain_api.merchant_engine.shopify_urls import webhook_url  # noqa: E402, F401
 from porterchain_api.merchant_engine.shopify_payload_ops import _cancel_shopify_fulfillment  # noqa: E402, F401
 from porterchain_api.merchant_engine.shopify_fulfillment_service import ingest_fulfillment_order_notification  # noqa: E402, F401

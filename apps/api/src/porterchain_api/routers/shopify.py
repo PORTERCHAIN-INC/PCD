@@ -1,26 +1,20 @@
-"""Public Shopify OAuth + webhook ingress."""
+"""Public Shopify ingress: embedded-app session, webhooks, carrier rates."""
 
 from __future__ import annotations
 
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError
-from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine import shopify_webhooks as webhook_ingress
-from porterchain_api.merchant_engine.shopify_session import (
-    ensure_carrier_rates,
-    install_from_session_token,
-)
-from porterchain_api.merchant_engine.shopify_tokens import token_state_for_open
-from porterchain_api.merchant_engine.shopify_urls import app_error_url
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+from porterchain_api.merchant_engine.shopify_session import open_embedded
 from porterchain_api.platform.rate_limit import (
     TRAFFIC_SHOPIFY_CARRIER,
     TRAFFIC_SHOPIFY_WEBHOOK,
@@ -56,126 +50,38 @@ def _enforce_shopify_limit(
     return rate_limit_headers(limit, current)
 
 
-def _error_redirect(
-    settings: Settings, code: str, *, shop: str | None, host: str | None
-) -> RedirectResponse:
-    """Browser install steps end on a portal page with next steps, never raw JSON."""
-    return RedirectResponse(
-        app_error_url(settings, code=code, shop_domain=shop, host=host),
-        status_code=302,
-    )
+def _record_install_lead(db: Session, row) -> None:
+    """First install → CRM lead (linked to an existing lead by email). Never blocks the app."""
+    try:
+        from porterchain_api.collaboration_engine.signup_leads import (
+            record_shopify_install_lead,
+        )
+
+        record_shopify_install_lead(db, shop_domain=row.shop_domain, merchant_id=row.merchant_id)
+    except Exception:
+        db.rollback()
+        logger.exception("shopify_install_lead_failed shop=%s", row.shop_domain)
 
 
-@router.get("/install")
-def shopify_install(
-    request: Request,
-    shop: str = Query(default=""),
-    merchant_id: str | None = Query(default=None),
+@router.post("/session")
+def shopify_embedded_session(
+    authorization: Annotated[str | None, Header()] = None,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-) -> RedirectResponse:
-    # No usable token: start Shopify's OAuth authorize URL. A hand-built
-    # /app/grant link is not an OAuth session, so the bot never leaves it.
-    # A token Shopify accepts means install finished: open the admin app.
-    host = request.query_params.get("host")
-    shopify_initiated = "hmac" in request.query_params
-    if shopify_initiated and not verify_oauth_hmac(request.url.query, settings.shopify_api_secret):
-        return _error_redirect(settings, "oauth_hmac_invalid", shop=shop, host=host)
-    if shopify_initiated:
-        installed = None
-        id_token = (request.query_params.get("id_token") or "").strip()
-        # "" = none stored, refused by Shopify, or refresh expired; "migrated" = a
-        # legacy non-expiring token was just exchanged for an expiring one.
-        token_state = token_state_for_open(db, settings, shop)
-        if id_token and not token_state:
-            try:
-                installed = install_from_session_token(
-                    db,
-                    settings,
-                    shop_domain=shop,
-                    id_token=id_token,
-                )
-            except Exception:
-                db.rollback()
-                logger.exception("shopify_session_install_failed shop=%s", shop)
-        # Only a usable stored token means install already finished. id_token alone
-        # still has to reach the grant screen or the authenticate check fails.
-        if installed is not None or token_state:
-            # Fresh install already ran the hooks; a later open re-registers a
-            # missing CarrierService so "Open app" heals a shop with no rates.
-            rates = (
-                shopify.rates_status(installed)
-                if installed is not None
-                else ensure_carrier_rates(
-                    db, settings, shop, rehook=token_state == "migrated"
-                )
-            )
-            return RedirectResponse(
-                shopify.app_home_url(settings, shop_domain=shop, host=host, rates=rates),
-                status_code=302,
-            )
+) -> dict:
+    """Embedded app load: ``Authorization: Bearer <App Bridge session token>``.
+
+    First open token-exchanges and installs; later opens heal checkout rates.
+    """
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="session_token_missing")
     try:
-        url = shopify.install_url(
-            shop,
-            settings,
-            merchant_id=merchant_id,
-            grant_screen=False,
-        )
+        return open_embedded(db, settings, token, on_install=_record_install_lead)
     except ValueError as exc:
-        return _error_redirect(settings, str(exc), shop=shop, host=host)
-    return RedirectResponse(url, status_code=302)
-
-
-def _record_install_lead(db: Session, connected) -> None:
-    """Shopify install → CRM lead (linked to an existing lead by email)."""
-    try:
-        from porterchain_api.collaboration_engine.signup_leads import record_shopify_install_lead
-
-        record_shopify_install_lead(
-            db, shop_domain=connected.shop_domain, merchant_id=connected.merchant_id
-        )
-    except Exception:  # noqa: BLE001 — never block the install redirect
         db.rollback()
-        logger.exception("shopify_install_lead_failed shop=%s", connected.shop_domain)
-
-
-@router.get("/callback")
-def shopify_callback(
-    request: Request,
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-    shop: str = Query(default=""),
-    code: str = Query(default=""),
-    state: str | None = Query(default=None),
-    host: str | None = Query(default=None),
-) -> RedirectResponse:
-    if not shop or not code:
-        return _error_redirect(settings, "oauth_code_missing", shop=shop, host=host)
-    try:
-        connected = shopify.complete_oauth(
-            db,
-            settings,
-            shop_domain=shop,
-            code=code,
-            state=state,
-            query_string=request.url.query,
-        )
-    except (ValueError, LookupError, PermissionError) as exc:
-        db.rollback()
-        logger.warning("shopify_oauth_callback_refused shop=%s code=%s", shop, exc)
-        return _error_redirect(settings, str(exc), shop=shop, host=host)
-    except Exception:  # noqa: BLE001 — token exchange / Shopify outage
-        db.rollback()
-        logger.exception("shopify_oauth_callback_failed shop=%s", shop)
-        return _error_redirect(settings, "install_failed", shop=shop, host=host)
-    _record_install_lead(db, connected)
-    dest = shopify.app_home_url(
-        settings,
-        shop_domain=connected.shop_domain,
-        host=host,
-        rates=shopify.rates_status(connected),
-    )
-    return RedirectResponse(dest, status_code=302)
+        status = 401 if str(exc) == "session_token_invalid" else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from None
 
 
 @router.post("/webhooks")

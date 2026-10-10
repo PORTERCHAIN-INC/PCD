@@ -13,7 +13,7 @@ const baseSecurityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
 ];
 
-/** Shopify Admin embeds /shopify — must not send X-Frame-Options: DENY there. */
+/** Shopify Admin embeds /shopify-app — must not send X-Frame-Options: DENY there. */
 const shopifyEmbedHeaders = [
   ...baseSecurityHeaders,
   {
@@ -43,10 +43,9 @@ const nextConfig: NextConfig = {
   env: merchantPublicEnv(),
   async headers() {
     return [
-      { source: "/shopify", headers: shopifyEmbedHeaders },
-      { source: "/shopify/:path*", headers: shopifyEmbedHeaders },
-      // Everything except exact /shopify (negative lookahead so DENY is not merged onto embed).
-      { source: "/((?!shopify(?:/.*)?$).*)", headers: defaultSecurityHeaders },
+      { source: "/shopify-app", headers: shopifyEmbedHeaders },
+      // Everything except the embedded app (negative lookahead so DENY is not merged onto it).
+      { source: "/((?!shopify-app$).*)", headers: defaultSecurityHeaders },
       // App subdomains are private tools: never index (Search Console listed sign-in URLs).
       { source: "/(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];

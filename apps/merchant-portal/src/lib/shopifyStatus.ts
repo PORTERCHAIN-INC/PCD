@@ -7,12 +7,16 @@ const INSTALL_ERRORS: Record<string, string> = {
     "This Shopify store is already linked to another PorterChain account. Sign in with the account that installed it, or email support@porterchain.com and we will move it to this account.",
   shopify_email_already_bound:
     "This store's email is already used by a PorterChain account that has another store. Sign in to that account, or email support@porterchain.com.",
-  oauth_state_expired: "The Shopify install link expired. Start the connection again.",
-  oauth_state_invalid: "The Shopify install link was not valid. Start the connection again.",
-  oauth_hmac_invalid:
-    "Shopify could not verify this request. Open PorterChain Delivery from your Shopify admin again.",
-  oauth_code_missing:
-    "Shopify did not finish the authorization. Open PorterChain Delivery from your Shopify admin again.",
+  session_token_missing:
+    "Shopify did not identify this session. Open PorterChain Delivery from your Shopify admin again.",
+  session_token_invalid:
+    "Shopify could not verify this session. Open PorterChain Delivery from your Shopify admin again.",
+  link_token_invalid:
+    "That store link is not valid. Open PorterChain Delivery in Shopify admin and press Link again.",
+  link_token_expired:
+    "That store link expired (15 minutes). Open PorterChain Delivery in Shopify admin and press Link again.",
+  shop_not_connected:
+    "PorterChain is not installed on that store. Install it from Shopify admin first.",
   oauth_token_missing: "Shopify did not return an access token. Try connecting again.",
   shop_domain_invalid: "That does not look like a Shopify store address (store.myshopify.com).",
   shopify_oauth_not_configured:

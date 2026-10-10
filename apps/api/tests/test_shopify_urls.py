@@ -1,12 +1,23 @@
-"""Shopify Partner App URL helpers."""
+"""Shopify embedded app: URLs, managed install link, session token, store link."""
 
 from __future__ import annotations
 
+import time
 import tomllib
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
-from porterchain_api.config import Settings
+import jwt
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from porterchain_api.config import Settings, get_settings
+from porterchain_api.db import get_db
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_session as session
+from porterchain_api.merchant_engine import shopify_urls as urls
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _APP_TOML = _REPO_ROOT / "integrations" / "shopify" / "app.toml"
@@ -21,246 +32,185 @@ def _settings() -> Settings:
         porterchain_api_url="https://api.porterchain.com",
         merchant_portal_url="https://merchant.porterchain.com",
         shopify_api_key="cid",
-        shopify_api_secret="shpss_test",
+        shopify_api_secret="shpss_test_secret_0123456789abcdef",
         fleetbase_dispatch_bridge=False,
     )
 
 
+def _session_token(*, shop: str = "demo.myshopify.com", secret: str = "shpss_test_secret_0123456789abcdef", aud: str = "cid", ttl: int = 60) -> str:
+    now = int(time.time())
+    claims = {
+        "iss": f"https://{shop}/admin",
+        "dest": f"https://{shop}",
+        "aud": aud,
+        "sub": "42",
+        "exp": now + ttl,
+        "nbf": now - 5,
+        "iat": now - 5,
+        "jti": "jti-1",
+        "sid": "sid-1",
+    }
+    return jwt.encode(claims, secret, algorithm="HS256")
+
+
 def test_partner_app_urls() -> None:
     settings = _settings()
-    assert shopify.oauth_configured(settings) is True
+    assert urls.oauth_configured(settings) is True
     assert shopify.webhook_url(settings).endswith("/v1/integrations/shopify/webhooks")
-    assert shopify.callback_url(settings).endswith("/v1/integrations/shopify/callback")
-    assert shopify.carrier_rates_url(settings).endswith(
-        "/v1/integrations/shopify/carrier-service/rates"
-    )
+    assert shopify.carrier_rates_url(settings).endswith("/v1/integrations/shopify/carrier-service/rates")
     assert shopify.fulfillment_service_url(settings).endswith(
         "/v1/integrations/shopify/fs/fulfillment_order_notification"
     )
-    assert shopify.app_home_url(settings) == "https://merchant.porterchain.com/shopify"
-    assert (
-        shopify.app_home_url(settings, shop_domain="Acme.myshopify.com")
-        == "https://merchant.porterchain.com/shopify?shop=acme.myshopify.com&connected=1"
-    )
 
 
-def test_oauth_state_roundtrip_with_pickup() -> None:
+def test_managed_install_url_has_no_oauth_state() -> None:
+    url = urls.managed_install_url("Acme.myshopify.com", _settings())
+    assert url == "https://admin.shopify.com/store/acme/oauth/install?client_id=cid"
+    with pytest.raises(ValueError, match="shop_domain_invalid"):
+        urls.managed_install_url("not a shop!", _settings())
+
+
+def test_link_token_roundtrip_and_expiry() -> None:
     settings = _settings()
-    token = shopify.sign_oauth_state(
-        "merchant-1", settings, pickup_address_id="addr-9"
-    )
-    state = shopify.read_oauth_state(token, settings)
-    assert state.merchant_id == "merchant-1"
-    assert state.pickup_address_id == "addr-9"
+    token = urls.sign_link_token("Demo.myshopify.com", settings)
+    assert urls.read_link_token(token, settings) == "demo.myshopify.com"
+    with pytest.raises(ValueError, match="link_token_invalid"):
+        urls.read_link_token("garbage", settings)
+    with patch.object(urls.time, "time", return_value=time.time() + 3600):
+        with pytest.raises(ValueError, match="link_token_expired"):
+            urls.read_link_token(token, settings)
 
 
-def test_admin_app_url_uses_host_when_present() -> None:
-    import base64
-
-    from porterchain_api.merchant_engine.shopify_urls import shopify_admin_app_url
-
+def test_session_token_verification() -> None:
     settings = _settings()
-    host = base64.urlsafe_b64encode(b"admin.shopify.com/store/demo").decode().rstrip("=")
-    assert (
-        shopify_admin_app_url(settings, "demo.myshopify.com", host=host)
-        == "https://admin.shopify.com/store/demo/apps/cid"
-    )
-
-
-def test_install_url_is_oauth_authorize_not_grant() -> None:
-    settings = _settings()
-    url = shopify.install_url(
-        "xbbf0y-vp.myshopify.com",
-        settings,
-        merchant_id=None,
-    )
-    assert url.startswith("https://xbbf0y-vp.myshopify.com/admin/oauth/authorize?")
-    assert "/app/grant" not in url
-    assert "client_id=cid" in url
-    assert "redirect_uri=" in url
-
-
-def _db_returning(row: object):
-    from unittest.mock import MagicMock
-
-    def _db():
-        db = MagicMock()
-        db.query.return_value.filter.return_value.first.return_value = row
-        yield db
-
-    return _db
-
-
-def test_install_handshake_rejects_bad_hmac_and_redirects_valid() -> None:
-    import hashlib
-    import hmac
-    from urllib.parse import urlencode
-
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import get_db
-    from porterchain_api.routers.shopify import router
-
-    settings = _settings()
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_db] = _db_returning(None)
-    client = TestClient(app)
-
-    bad = client.get(
-        "/v1/integrations/shopify/install",
-        params={"shop": "demo.myshopify.com", "timestamp": "1337178173", "hmac": "00"},
-        follow_redirects=False,
-    )
-    # Browser step: a portal page explains the failure instead of a JSON 401.
-    assert bad.status_code == 302
-    assert bad.headers["location"] == (
-        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&error=oauth_hmac_invalid"
-    )
-
-    pairs = {"shop": "demo.myshopify.com", "timestamp": "1337178173"}
-    message = "&".join(f"{key}={value}" for key, value in sorted(pairs.items()))
-    digest = hmac.new(b"shpss_test", message.encode(), hashlib.sha256).hexdigest()
-    ok = client.get(
-        f"/v1/integrations/shopify/install?{urlencode({**pairs, 'hmac': digest})}",
-        follow_redirects=False,
-    )
-    assert ok.status_code == 302
-    location = ok.headers["location"]
-    assert location.startswith("https://demo.myshopify.com/admin/oauth/authorize?")
-    assert "/app/grant" not in location
-    assert "read_products" not in location
-
-    plain = client.get(
-        "/v1/integrations/shopify/install",
-        params={"shop": "demo.myshopify.com"},
-        follow_redirects=False,
-    )
-    assert plain.status_code == 302
-    assert plain.headers["location"].startswith(
-        "https://demo.myshopify.com/admin/oauth/authorize?"
-    )
-
-
-def test_install_with_token_opens_app_home() -> None:
-    import hashlib
-    import hmac
-    from types import SimpleNamespace
-    from urllib.parse import urlencode
-
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import get_db
-    from porterchain_api.routers.shopify import router
-
-    settings = _settings()
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_db] = _db_returning(
-        SimpleNamespace(encrypted_access_token="enc", carrier_service_gid="gid://shopify/DeliveryCarrierService/1")
-    )
-    client = TestClient(app)
-    pairs = {"shop": "demo.myshopify.com", "timestamp": "1337178173"}
-    message = "&".join(f"{key}={value}" for key, value in sorted(pairs.items()))
-    digest = hmac.new(b"shpss_test", message.encode(), hashlib.sha256).hexdigest()
-    ok = client.get(
-        f"/v1/integrations/shopify/install?{urlencode({**pairs, 'hmac': digest})}",
-        follow_redirects=False,
-    )
-    assert ok.status_code == 302
-    assert ok.headers["location"] == (
-        "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1&rates=ready"
-    )
-
-
-def test_install_with_id_token_opens_app_home_not_grant() -> None:
-    import hashlib
-    import hmac
-    from unittest.mock import patch
-    from urllib.parse import urlencode
-
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-
-    from porterchain_api.config import get_settings
-    from porterchain_api.db import get_db
-    from porterchain_api.routers.shopify import router
-
-    settings = _settings()
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_db] = _db_returning(None)
-    client = TestClient(app)
-    pairs = {
-        "shop": "demo.myshopify.com",
-        "timestamp": "1337178173",
-        "id_token": "session-token",
-    }
-    message = "&".join(f"{key}={value}" for key, value in sorted(pairs.items()))
-    digest = hmac.new(b"shpss_test", message.encode(), hashlib.sha256).hexdigest()
-    with patch(
-        "porterchain_api.routers.shopify.install_from_session_token",
-        side_effect=RuntimeError("exchange down"),
+    assert session.verify_session_token(_session_token(), settings) == "demo.myshopify.com"
+    for bad in (
+        _session_token(secret="wrong_secret_0123456789abcdef_xyz"),
+        _session_token(aud="other-app"),
+        _session_token(ttl=-60),
+        "not-a-jwt",
     ):
-        ok = client.get(
-            f"/v1/integrations/shopify/install?{urlencode({**pairs, 'hmac': digest})}",
-            follow_redirects=False,
+        with pytest.raises(ValueError, match="session_token_invalid"):
+            session.verify_session_token(bad, settings)
+
+
+def _client(db: MagicMock) -> TestClient:
+    from porterchain_api.routers.shopify import router
+
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_settings] = _settings
+    app.dependency_overrides[get_db] = lambda: db
+    return TestClient(app)
+
+
+def test_session_endpoint_rejects_missing_or_forged_token() -> None:
+    client = _client(MagicMock())
+    assert client.post("/v1/integrations/shopify/session").status_code == 401
+    forged = client.post(
+        "/v1/integrations/shopify/session",
+        headers={"Authorization": f"Bearer {_session_token(secret='wrong_secret_0123456789abcdef_xyz')}"},
+    )
+    assert forged.status_code == 401
+    assert forged.json()["detail"] == "session_token_invalid"
+
+
+def test_first_open_installs_then_hands_back_link_token() -> None:
+    db = MagicMock()
+    row = SimpleNamespace(shop_domain="demo.myshopify.com", merchant_id="m-placeholder")
+    with (
+        patch("porterchain_api.merchant_engine.shopify_tokens.token_state_for_open", return_value=""),
+        patch.object(session, "install_from_session_token", return_value=row) as install,
+        patch.object(session, "rates_status", return_value="ready"),
+        patch("porterchain_api.routers.shopify._record_install_lead") as lead,
+        patch.object(session, "is_unclaimed_install_merchant", return_value=True),
+    ):
+        res = _client(db).post(
+            "/v1/integrations/shopify/session",
+            headers={"Authorization": f"Bearer {_session_token()}"},
         )
-    assert ok.status_code == 302
-    assert ok.headers["location"].startswith(
-        "https://demo.myshopify.com/admin/oauth/authorize?"
-    )
-    assert "read_products" not in ok.headers["location"]
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["shop_domain"] == "demo.myshopify.com"
+    assert body["rates"] == "ready" and body["linked"] is False
+    assert urls.read_link_token(body["link_token"], _settings()) == "demo.myshopify.com"
+    install.assert_called_once()
+    lead.assert_called_once()
 
 
-def test_install_url_embeds_pickup_in_state() -> None:
+def test_reopen_heals_rates_and_shows_linked_company() -> None:
+    db = MagicMock()
+    row = SimpleNamespace(shop_domain="demo.myshopify.com", merchant_id="m1")
+    db.get.return_value = SimpleNamespace(company_name="Maple Leaf Supply")
+    with (
+        patch("porterchain_api.merchant_engine.shopify_tokens.token_state_for_open", return_value="valid"),
+        patch.object(session, "ensure_carrier_rates", return_value="ready") as heal,
+        patch.object(session, "_active_row", return_value=row),
+        patch.object(session, "install_from_session_token") as install,
+        patch.object(session, "is_unclaimed_install_merchant", return_value=False),
+    ):
+        body = session.open_embedded(db, _settings(), _session_token())
+    assert body == {
+        "shop_domain": "demo.myshopify.com",
+        "rates": "ready",
+        "linked": True,
+        "company_name": "Maple Leaf Supply",
+        "link_token": None,
+    }
+    heal.assert_called_once()
+    install.assert_not_called()
+
+
+def test_link_shop_moves_placeholder_store_to_signed_in_company() -> None:
     settings = _settings()
-    url = shopify.install_url(
-        "demo.myshopify.com",
-        settings,
-        merchant_id="m-1",
-        pickup_address_id="pickup-1",
+    db = MagicMock()
+    row = SimpleNamespace(
+        shop_domain="demo.myshopify.com", merchant_id="m-placeholder", default_pickup_address_id=None
     )
-    assert "client_id=cid" in url
-    assert "scope=" in url
-    from urllib.parse import parse_qs, urlparse
+    token = urls.sign_link_token("demo.myshopify.com", settings)
+    with (
+        patch.object(session, "_active_row", return_value=row),
+        patch.object(session, "can_rebind_shop", return_value=True),
+        patch.object(shopify, "default_pickup_address", return_value=SimpleNamespace(id="addr-1")),
+    ):
+        out = session.link_shop(db, "m-real", settings, token)
+    assert out.merchant_id == "m-real"
+    assert out.default_pickup_address_id == "addr-1"
+    db.commit.assert_called_once()
 
-    qs = parse_qs(urlparse(url).query)
-    state = shopify.read_oauth_state(qs["state"][0], settings)
-    assert state.merchant_id == "m-1"
-    assert state.pickup_address_id == "pickup-1"
+
+def test_link_shop_refuses_a_store_another_company_uses() -> None:
+    settings = _settings()
+    row = SimpleNamespace(shop_domain="demo.myshopify.com", merchant_id="m-other")
+    token = urls.sign_link_token("demo.myshopify.com", settings)
+    with (
+        patch.object(session, "_active_row", return_value=row),
+        patch.object(session, "can_rebind_shop", return_value=False),
+    ):
+        with pytest.raises(ValueError, match="shop_already_connected"):
+            session.link_shop(MagicMock(), "m-real", settings, token)
+    assert row.merchant_id == "m-other"
 
 
-
-def test_app_toml_matches_runtime_defaults() -> None:
-    """Partners stub must track API defaults; client_id stays empty until publish."""
+def test_app_toml_is_embedded_managed_install() -> None:
+    """Partners manifest tracks API defaults; client_id stays empty in git."""
     settings = _settings()
     raw = tomllib.loads(_APP_TOML.read_text(encoding="utf-8"))
 
     assert raw.get("client_id") == ""
-    assert raw["embedded"] is False
-    assert raw["application_url"] == shopify.app_home_url(settings)
+    assert raw["embedded"] is True
+    assert raw["application_url"] == f"{settings.merchant_portal_url}/shopify-app"
     assert raw["access_scopes"]["scopes"] == settings.shopify_api_scopes
-    assert raw["access_scopes"]["use_legacy_install_flow"] is True
-    assert raw["webhooks"]["api_version"] == settings.shopify_api_version
-    assert settings.shopify_api_version == "2026-10"
+    assert raw["access_scopes"]["use_legacy_install_flow"] is False
+    assert "auth" not in raw  # no OAuth redirect: Shopify manages install
+    assert raw["webhooks"]["api_version"] == settings.shopify_api_version == "2026-10"
 
-    subs = raw["webhooks"]["subscriptions"]
     topics: set[str] = set()
     compliance: set[str] = set()
-    for sub in subs:
+    for sub in raw["webhooks"]["subscriptions"]:
         assert sub["uri"] == shopify.webhook_url(settings)
         topics.update(sub.get("topics") or [])
         compliance.update(sub.get("compliance_topics") or [])
-
     assert {"orders/create", "orders/cancelled", "app/uninstalled"} <= topics
     assert {"customers/data_request", "customers/redact", "shop/redact"} <= compliance
-    # FO topics only when SHOPIFY_FULFILLMENT_SERVICE_ENABLED (default off).
     assert "fulfillment_orders/fulfillment_request_submitted" not in topics

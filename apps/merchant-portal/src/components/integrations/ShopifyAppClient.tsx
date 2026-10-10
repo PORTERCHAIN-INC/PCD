@@ -5,11 +5,12 @@ import ConnectionsStatus, {
 } from "@/components/integrations/ConnectionsStatus";
 import ShopifyConnectCard from "@/components/integrations/ShopifyConnectCard";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { publicEnv } from "@/lib/env";
-import { shopifyInstallError, shopifyRatesProblem } from "@/lib/shopifyStatus";
+import { integrationsApi } from "@/lib/integrations";
+import { shopifyInstallError } from "@/lib/shopifyStatus";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 function normalizeShop(raw: string | null): string {
   if (!raw) return "";
@@ -21,109 +22,61 @@ function normalizeShop(raw: string | null): string {
   return value;
 }
 
+/**
+ * Portal side of the Shopify app. A store installed from Shopify admin arrives
+ * here with `?link=<token>` (from the embedded app) and is claimed for this company.
+ */
 export default function ShopifyAppClient() {
-  const { isLoaded, isSignedIn } = useMerchantAuth();
+  const { isLoaded, isSignedIn, getApiToken, orgId } = useMerchantAuth();
   const status = useConnectionsStatus();
-  const hasStore = (status.data?.shopify.shops.length ?? 0) > 0;
+  const qc = useQueryClient();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const shop = normalizeShop(searchParams.get("shop") ?? searchParams.get("shopify"));
-  const justConnected = searchParams.get("connected") === "1";
-  // `rates` comes from the API redirect: "ready" only when Shopify holds our CarrierService.
-  const ratesStatus = searchParams.get("rates");
-  const ratesProblem = justConnected ? shopifyRatesProblem(ratesStatus) : null;
-  const installError = shopifyInstallError(searchParams.get("error"));
-  const signInHref = shop
-    ? `/sign-in?redirect_url=${encodeURIComponent(`/shopify?shop=${encodeURIComponent(shop)}`)}`
-    : "/sign-in?redirect_url=/shopify";
-  const publicInstallUrl = shop
-    ? `${publicEnv.porterchainApiUrl}/v1/integrations/shopify/install?shop=${encodeURIComponent(shop)}`
-    : null;
+  const shop = normalizeShop(searchParams.get("shop"));
+  const linkToken = searchParams.get("link");
+  const [linked, setLinked] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const linking = useRef(false);
+  const hasStore = (status.data?.shopify.shops.length ?? 0) > 0;
 
-  if (!isLoaded) {
-    return <PageSkeleton rows={3} />;
-  }
+  useEffect(() => {
+    if (!isSignedIn || !orgId || !linkToken || linking.current) return;
+    linking.current = true;
+    void (async () => {
+      try {
+        await integrationsApi.shopifyLink(await getApiToken(), linkToken, orgId);
+        setLinked(true);
+        await qc.invalidateQueries();
+      } catch (e) {
+        const code = e instanceof Error ? e.message : "";
+        setLinkError(shopifyInstallError(code) ?? code);
+      } finally {
+        router.replace("/shopify");
+      }
+    })();
+  }, [isSignedIn, orgId, linkToken, getApiToken, qc, router]);
 
-  const errorBanner = installError ? (
-    <div
-      role="alert"
-      className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-    >
-      <p className="font-medium">The Shopify connection did not finish.</p>
-      <p className="mt-1">{installError}</p>
-    </div>
-  ) : null;
-
-  // After OAuth grant — show app UI immediately (App Store requirement 2.3.3).
-  if (justConnected && !isSignedIn) {
-    const storeName = shop || "Your Shopify store";
-    return (
-      <div className="mx-auto max-w-xl space-y-4 py-8">
-        <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
-        {ratesProblem ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <p className="font-medium">
-              {storeName} is connected, but checkout rates are not live yet.
-            </p>
-            <p className="mt-1">{ratesProblem}</p>
-          </div>
-        ) : (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            {storeName} is connected. PorterChain is registered as a carrier in Shopify, so checkout
-            can request PorterChain delivery rates (Settings → Shipping and delivery).
-          </p>
-        )}
-        <p className="text-sm text-muted">
-          Sign in to the merchant portal to manage pickup, rate readiness, and order sync.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={signInHref}
-            className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-          >
-            Open merchant portal
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="mx-auto max-w-xl space-y-4 py-8">
-        <h1 className="text-2xl font-semibold text-primary">PorterChain for Shopify</h1>
-        {errorBanner}
-        <p className="text-sm text-muted">
-          One-click install connects Shopify rates and order sync
-          {shop ? ` for ${shop}` : ""}. Sign in to finish if you are not already in the merchant
-          portal.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={signInHref}
-            className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-          >
-            Sign in to merchant portal
-          </Link>
-          {publicInstallUrl ? (
-            <a
-              href={publicInstallUrl}
-              className="inline-flex items-center rounded-xl border border-primary/20 px-4 py-2 text-sm font-medium text-primary"
-            >
-              Install / re-authorize app
-            </a>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
+  if (!isLoaded) return <PageSkeleton rows={3} />;
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 py-4">
       <h1 className="sr-only">PorterChain for Shopify</h1>
+      {linked ? (
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          Store linked to this account. Orders that choose PorterChain at checkout now land here.
+        </p>
+      ) : null}
+      {linkError ? (
+        <p
+          role="alert"
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        >
+          {linkError}
+        </p>
+      ) : null}
       <ConnectionsStatus title="PorterChain for Shopify" />
-      {errorBanner}
       <details
-        open={justConnected || (!hasStore && status.isSuccess)}
+        open={linked || (!hasStore && status.isSuccess)}
         className="group rounded-3xl border border-primary/10 bg-white"
       >
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-base font-bold text-primary sm:px-6">
@@ -133,11 +86,7 @@ export default function ShopifyAppClient() {
           </span>
         </summary>
         <div className="border-t border-primary/10 p-4 sm:p-6">
-          <ShopifyConnectCard
-            initialShop={shop}
-            justConnected={justConnected}
-            ratesStatus={justConnected ? ratesStatus : null}
-          />
+          <ShopifyConnectCard initialShop={shop} justConnected={linked} />
         </div>
       </details>
     </div>

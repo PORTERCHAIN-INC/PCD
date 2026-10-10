@@ -1117,6 +1117,10 @@ class MerchantLiveTrackingResponse(BaseModel):
     last_updated: str | None = None
 
 
+class ShopifyLinkRequest(BaseModel):
+    link_token: str = Field(min_length=16, max_length=4096)
+
+
 class ShopifyConnectRequest(BaseModel):
     shop_domain: str
     admin_access_token: str

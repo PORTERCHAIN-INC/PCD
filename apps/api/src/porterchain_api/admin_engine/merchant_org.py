@@ -978,10 +978,10 @@ def force_disconnect_shopify(
 def shopify_install_url_for(
     db: Session, ctx: AdminContext, merchant_id: str, settings, *, shop: str
 ) -> dict:
-    from porterchain_api.merchant_engine.shopify_urls import install_url
+    from porterchain_api.merchant_engine.shopify_urls import managed_install_url
 
     require_merchant(db, merchant_id)
-    url = install_url(shop, settings, merchant_id=merchant_id)
+    url = managed_install_url(shop, settings)
     write_staff_audit(
         db,
         ctx,

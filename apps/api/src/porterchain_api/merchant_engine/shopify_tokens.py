@@ -101,11 +101,6 @@ def _client(settings: Settings) -> dict[str, str]:
     return {"client_id": settings.shopify_api_key, "client_secret": settings.shopify_api_secret}
 
 
-def exchange_authorization_code(shop: str, code: str, settings: Settings) -> dict[str, Any]:
-    """Authorization code grant → expiring offline token + refresh token."""
-    return _token_request(shop, {**_client(settings), "code": code, "expiring": "1"})
-
-
 def exchange_id_token(shop: str, id_token: str, settings: Settings) -> dict[str, Any]:
     """Token exchange (Shopify id_token) → expiring offline token + refresh token."""
     return _token_request(

@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac, verify_webhook_hmac
+from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
 from porterchain_api.integrations.shopify_orders import map_shopify_order
 from porterchain_api.merchant_engine.shopify_service import is_shop_domain, normalize_shop_domain
 from porterchain_api.schemas_merchant import AddressInput
@@ -26,18 +26,6 @@ def test_webhook_hmac_accepts_matching_secret() -> None:
     assert verify_webhook_hmac(body, header, [secret]) is True
     assert verify_webhook_hmac(body, header, ["other"]) is False
     assert verify_webhook_hmac(body, None, [secret]) is False
-
-
-def test_oauth_hmac_sorted_query() -> None:
-    secret = "shpss_oauth"
-    import hashlib
-    import hmac
-
-    message = "shop=acme.myshopify.com&timestamp=1"
-    digest = hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest()
-    query = f"hmac={digest}&shop=acme.myshopify.com&timestamp=1"
-    assert verify_oauth_hmac(query, secret) is True
-    assert verify_oauth_hmac(query, "wrong") is False
 
 
 def test_map_shopify_order_copies_postal_and_weight() -> None:
