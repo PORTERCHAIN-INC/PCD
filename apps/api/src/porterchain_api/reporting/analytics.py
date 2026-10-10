@@ -53,9 +53,25 @@ def _group(rows: list[dict[str, Any]], key: str, limit: int = 15) -> list[dict[s
 
 
 def _vehicle(o: Order) -> str:
+    meta = o.compliance_metadata or {}
+    stamped = (meta.get("analytics") or {}).get("vehicle")
     q = getattr(o, "quote", None)
-    v = getattr(q, "vehicle_class", None) or (o.compliance_metadata or {}).get("vehicle_class")
+    v = stamped or getattr(q, "vehicle_class", None) or meta.get("vehicle_class")
     return str(v or "?")
+
+
+def analytics_stamp(o: Order) -> dict[str, str]:
+    """FSA + vehicle captured at booking (see Order before_insert hook)."""
+    out: dict[str, str] = {}
+    fsa = _fsa(o.dropoff)
+    if fsa != "?":
+        out["fsa"] = fsa
+    meta = o.compliance_metadata or {}
+    q = getattr(o, "quote", None)
+    v = getattr(q, "vehicle_class", None) or meta.get("vehicle_class") or meta.get("vehicle")
+    if v:
+        out["vehicle"] = str(v)
+    return out
 
 
 def _aware(dt: datetime | None) -> datetime | None:
@@ -89,9 +105,13 @@ def forecast_by_fsa(
 
 
 def ops_analytics(
-    db: Session, *, days: int = 30, now: datetime | None = None, target_stops_per_route: int = 30
+    db: Session, *, days: int = 30, now: datetime | None = None, target_stops_per_route: int | None = None
 ) -> dict[str, Any]:
     now = now or datetime.now(UTC)
+    if target_stops_per_route is None:
+        from porterchain_api.admin_engine.platform_settings import finance_number
+
+        target_stops_per_route = max(1, int(finance_number(db, "target_stops_per_route", 30.0)))
     since = now - timedelta(days=max(1, min(days, 366)))
     m = margin_report(db, days=days, now=now, stop_limit=100_000)
     stops = m["stops"]
@@ -102,7 +122,7 @@ def ops_analytics(
     }
     for s in stops:
         o = meta.get(s["order_id"])
-        s["fsa"] = _fsa(o.dropoff) if o else "?"
+        s["fsa"] = (((o.compliance_metadata or {}).get("analytics") or {}).get("fsa") or _fsa(o.dropoff)) if o else "?"
         s["vehicle"] = _vehicle(o) if o else "?"
 
     # On-time: one query for delivered events.
@@ -185,6 +205,7 @@ def ops_analytics(
             "routes": t["routes"],
             "fill_pct": _pct(sum(r["stops"] for r in routes), len(routes) * target_stops_per_route),
             "estimated_cost_share": t["estimated_share"],
+            "target_stops_per_route": target_stops_per_route,
         },
         "margin_by": {
             "merchant": merchant_rows,

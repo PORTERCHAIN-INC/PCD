@@ -256,6 +256,7 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
             {"key": "collect_qst", "effect": "wired"},
             {"key": "margin_floor_pct", "effect": "wired"},
             {"key": "margin_minutes_per_stop", "effect": "wired"},
+            {"key": "target_stops_per_route", "effect": "wired"},
             {"key": "interac_retention_years", "effect": "wired"},
         ],
     },

@@ -413,6 +413,14 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
       effect: "wired",
     },
     {
+      key: "target_stops_per_route",
+      label: "Route capacity (stops per route)",
+      type: "number",
+      min: 1,
+      hint: "Wired — Analytics fill % = stops per route ÷ this",
+      effect: "wired",
+    },
+    {
       key: "interac_retention_years",
       label: "Keep e-Transfer records (years)",
       type: "number",

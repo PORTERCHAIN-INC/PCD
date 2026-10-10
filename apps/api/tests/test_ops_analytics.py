@@ -29,3 +29,17 @@ def test_ops_analytics_shape(db):
     out = ops_analytics(db, days=30)
     assert {"kpis", "margin_by", "drivers", "trend", "forecast"} <= set(out)
     assert set(out["margin_by"]) == {"merchant", "fsa", "vehicle", "route"}
+
+
+def test_new_orders_are_stamped_with_fsa(db):
+    import uuid
+
+    from porterchain_api.booking_models import Order
+
+    tag = uuid.uuid4().hex[:8]
+    o = Order(order_number=f"AS{tag}", tracking_number=f"AT{tag}", amount_cents=100, pickup={},
+              dropoff={"formatted": "1 King St W, Toronto ON M5H 1A1"}, scheduled_at=datetime.now(UTC),
+              compliance_metadata={"vehicle_class": "cargo_van"})
+    db.add(o)
+    db.flush()
+    assert o.compliance_metadata["analytics"] == {"fsa": "M5H", "vehicle": "cargo_van"}

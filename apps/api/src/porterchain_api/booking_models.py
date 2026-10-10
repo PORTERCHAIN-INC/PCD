@@ -590,3 +590,13 @@ class ReorderNudge(Base):
     approved_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+@event.listens_for(Order, "before_insert")
+def _stamp_analytics(_mapper, _conn, order: Order) -> None:  # pragma: no cover - trivial
+    """Record drop FSA + vehicle at booking so analytics never has to guess later."""
+    from porterchain_api.reporting.analytics import analytics_stamp
+
+    stamp = analytics_stamp(order)
+    if stamp:
+        order.compliance_metadata = {**(order.compliance_metadata or {}), "analytics": stamp}
