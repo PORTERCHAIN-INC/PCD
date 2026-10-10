@@ -44,14 +44,33 @@ def save_data_url(order_id: str, data_url: str) -> str:
     m = _DATA_URL.match(data_url or "")
     if not m:
         raise ValueError("pod_photo_must_be_image_data_url")
-    blob = base64.b64decode(m.group(2), validate=False)
+    payload = re.sub(r"\s+", "", m.group(2))
+    if len(payload) > (MAX_BYTES * 4) // 3 + 8:  # reject before decoding
+        raise ValueError("pod_photo_size_invalid")
+    try:
+        blob = base64.b64decode(payload, validate=True)
+    except ValueError as exc:
+        raise ValueError("pod_photo_must_be_image_data_url") from exc
     if not blob or len(blob) > MAX_BYTES:
         raise ValueError("pod_photo_size_invalid")
+    if not _magic_ok(m.group(1), blob):  # declared type must match the real bytes
+        raise ValueError("pod_photo_type_mismatch")
     key = f"{order_id}/{uuid.uuid4().hex}{_EXT[m.group(1)]}"
     p = _path(key)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_bytes(blob)
+    os.chmod(p, 0o600)  # private: API process only
     return PREFIX + key
+
+
+def _magic_ok(mime: str, blob: bytes) -> bool:
+    if mime == "image/jpeg":
+        return blob[:3] == b"\xff\xd8\xff"
+    if mime == "image/png":
+        return blob[:8] == b"\x89PNG\r\n\x1a\n"
+    if mime == "image/webp":
+        return blob[:4] == b"RIFF" and blob[8:12] == b"WEBP"
+    return False
 
 
 def size(ref: str) -> int:

@@ -109,3 +109,21 @@ def test_offboarding_revokes_clerk_sessions(monkeypatch):
     assert calls == ["user_x"]
     ds.revoke_driver_sessions(type("D", (), {"id": "d2", "clerk_user_id": None})(), object())
     assert calls == ["user_x"]
+
+
+def test_pod_upload_magic_bytes(tmp_path, monkeypatch):
+    import base64 as b64
+
+    from porterchain_api.driver_engine import pod_store
+
+    monkeypatch.setenv("POD_MEDIA_DIR", str(tmp_path))
+    oid = "123e4567-e89b-12d3-a456-426614174000"
+    good = b"\xff\xd8\xff\xe0" + b"0" * 100
+    ref = pod_store.save_data_url(oid, "data:image/jpeg;base64," + b64.b64encode(good).decode())
+    assert ref.startswith("pod://")
+    with pytest.raises(ValueError, match="type_mismatch"):
+        pod_store.save_data_url(oid, "data:image/jpeg;base64," + b64.b64encode(b"<svg onload=x>").decode())
+    with pytest.raises(ValueError):
+        pod_store.save_data_url(oid, "data:image/svg+xml;base64,PHN2Zz4=")
+    with pytest.raises(ValueError, match="size"):
+        pod_store.save_data_url(oid, "data:image/png;base64," + "A" * 3_000_000)

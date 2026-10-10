@@ -311,7 +311,9 @@ async def bulk_upload(
 ) -> BulkUploadResponse:
     try:
         require_module(ctx, "bulk")
-        raw = await file.read()
+        raw = await file.read(10 * 1024 * 1024 + 1)
+        if len(raw) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="bulk_file_too_large")
         job = _bulk.upload_file(
             db,
             settings,

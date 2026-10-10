@@ -95,7 +95,7 @@ async def upload_blog_media(
             filename=file.filename or "upload.jpg",
             content=raw,
             content_type=file.content_type,
-            max_bytes=min(document_max_bytes(db), 100 * 1024 * 1024),
+            max_bytes=min(document_max_bytes(db), 10 * 1024 * 1024),
             allowed_ext=imageish,
         )
     except ValueError as exc:

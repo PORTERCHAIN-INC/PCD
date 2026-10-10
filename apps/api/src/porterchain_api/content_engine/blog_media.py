@@ -96,6 +96,12 @@ def save_blog_image(
         raise ValueError("blog_media_invalid_type")
     if content_type and not content_type.startswith("image/"):
         raise ValueError("blog_media_invalid_type")
+    head = content[:12]
+    magic = {".jpg": head[:3] == b"\xff\xd8\xff", ".jpeg": head[:3] == b"\xff\xd8\xff",
+             ".png": head[:8] == b"\x89PNG\r\n\x1a\n", ".gif": head[:6] in (b"GIF87a", b"GIF89a"),
+             ".webp": head[:4] == b"RIFF" and head[8:12] == b"WEBP"}
+    if not magic.get(ext, False):  # real bytes must match the extension (no SVG/HTML)
+        raise ValueError("blog_media_invalid_type")
     safe = f"{uuid.uuid4().hex}{ext}"
     if not _SAFE_NAME.match(safe):
         raise ValueError("blog_media_invalid_name")
