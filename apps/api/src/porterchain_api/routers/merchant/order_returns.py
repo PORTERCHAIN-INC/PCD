@@ -14,7 +14,10 @@ from porterchain_api.routers.merchant._deps import (
     router,
 )
 from porterchain_api.routers.merchant.orders_tracking import _invoke
-from porterchain_api.schemas_merchant import MerchantReturnSummary, MerchantReturnsResponse
+from porterchain_api.schemas_merchant import (
+    MerchantReturnsResponse,
+    MerchantReturnSummary,
+)
 
 Ctx = Annotated[MerchantContext, Depends(get_merchant_context)]
 

@@ -98,7 +98,7 @@ def test_require_module_does_not_bypass_via_portal_admin() -> None:
     # Force shared client to use this memory by patching get_authz_client
     from porterchain_api.authz import client as client_mod
 
-    client_mod._client = client  # noqa: SLF001
+    client_mod._client = client
 
     user = AdminUser(
         id="adm-1",
@@ -203,7 +203,9 @@ def test_bulk_check_matches_serial_checks() -> None:
 
 def test_seat_revoke_clears_nav_and_live_check_immediately() -> None:
     """P5.3: no Check-result cache — seat remove is visible on the next request."""
-    from porterchain_api.auth.principal_resolution_service import PrincipalResolutionService
+    from porterchain_api.auth.principal_resolution_service import (
+        PrincipalResolutionService,
+    )
     from porterchain_api.auth.unified_catalog import UnifiedPermission
     from porterchain_api.authz import client as client_mod
 
@@ -214,10 +216,10 @@ def test_seat_revoke_clears_nav_and_live_check_immediately() -> None:
     org = "org-seat-1"
     writer = TupleWriter(client=client)
     writer.grant_org_member(uid, org, role="ops")
-    client_mod._client = client  # noqa: SLF001
+    client_mod._client = client
 
     svc = PrincipalResolutionService()
-    before = svc._permissions_from_spicedb(uid, {org})  # noqa: SLF001
+    before = svc._permissions_from_spicedb(uid, {org})
     assert UnifiedPermission.MERCHANT_PORTAL_ACCESS in before
     assert client.check(
         resource_type="organization",
@@ -234,7 +236,7 @@ def test_seat_revoke_clears_nav_and_live_check_immediately() -> None:
         permission="portal",
         subject_id=uid,
     )
-    after = svc._permissions_from_spicedb(uid, {org})  # noqa: SLF001
+    after = svc._permissions_from_spicedb(uid, {org})
     assert UnifiedPermission.MERCHANT_PORTAL_ACCESS not in after
 
 
@@ -249,7 +251,7 @@ def test_platform_role_revoke_blocks_require_module_immediately() -> None:
     client.write_relationships(
         [Relationship("platform", PLATFORM_ID, "sales", "user", uid)]
     )
-    client_mod._client = client  # noqa: SLF001
+    client_mod._client = client
 
     user = AdminUser(
         id="adm-revoke",
@@ -275,7 +277,9 @@ def test_account_suspend_rejects_principal_without_ttl_wait() -> None:
     from fastapi import HTTPException
 
     from porterchain_api.auth.identity import AuthenticatedIdentity
-    from porterchain_api.auth.principal_resolution_service import PrincipalResolutionService
+    from porterchain_api.auth.principal_resolution_service import (
+        PrincipalResolutionService,
+    )
     from porterchain_api.auth.unified_catalog import AccountStatus, AuthProvider
     from porterchain_api.user_models import PorterchainUser
 

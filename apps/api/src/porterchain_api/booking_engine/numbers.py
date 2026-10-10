@@ -1,7 +1,7 @@
 """Canonical number generators for booking engine."""
 
-from datetime import UTC, datetime
 import secrets
+from datetime import UTC, datetime
 
 
 def _suffix() -> str:

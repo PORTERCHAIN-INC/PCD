@@ -50,8 +50,8 @@ def ai_usage_summary(db: Session, *, limit: int = 40) -> dict[str, Any]:
 
     from sqlalchemy import case, func
 
-    from porterchain_api.intelligence_engine.nim_client import nim_status
     from porterchain_api.config import get_settings
+    from porterchain_api.intelligence_engine.nim_client import nim_status
 
     since = datetime.now(UTC) - timedelta(hours=24)
     rows = (

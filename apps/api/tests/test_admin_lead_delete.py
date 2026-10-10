@@ -29,7 +29,7 @@ def _bind_authz(client: AuthzClient) -> None:
     from porterchain_api.authz import client as client_mod
 
     reset_authz_client()
-    client_mod._client = client  # noqa: SLF001
+    client_mod._client = client
 
 
 def _admin_ctx(*, role: AdminRole, uid: str) -> AdminContext:

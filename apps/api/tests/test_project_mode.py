@@ -6,16 +6,16 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
-
-from porterchain_api.auth.dev import allow_auth_dev_bypass
-from porterchain_api.config import Settings
-from porterchain_api.routers.admin.settings import settings_project_mode_change
 from porterchain_shared.config.project_mode import (
     ProjectMode,
     normalize_app_env,
     project_mode_for_app_env,
     runtime_posture,
 )
+
+from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.config import Settings
+from porterchain_api.routers.admin.settings import settings_project_mode_change
 
 
 def _settings(**overrides: object) -> Settings:

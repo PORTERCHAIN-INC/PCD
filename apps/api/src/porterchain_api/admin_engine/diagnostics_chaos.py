@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_shared.config.settings import get_platform_settings
+from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import HealthClass, _now_iso
 from porterchain_api.config import Settings
-from porterchain_shared.config.settings import get_platform_settings
-from porterchain_shared.redis_health import ping_redis
 
 # Canonical ids — must match apps/admin/src/lib/diagnostics.ts CHAOS_SCENARIOS.
 CANONICAL_CHAOS_SCENARIOS: tuple[str, ...] = (
@@ -38,8 +38,6 @@ CHAOS_ALIASES: dict[str, str] = {
     "driver_cancels": "driver_reject",
     "driver_offline": "gps_loss",
     "stripe_webhook_failure": "stripe_offline",
-    "fleetbase_offline": "day_plan_offline",
-    "fleetbase_adapter_failure": "day_plan_offline",
 }
 
 

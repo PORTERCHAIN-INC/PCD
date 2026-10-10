@@ -76,7 +76,7 @@ def _pop_challenge(challenge_id: str) -> dict[str, Any] | None:
         client.delete(key)
         data = json.loads(raw)
         return data if isinstance(data, dict) else None
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("staff_webauthn_challenge_pop_failed", exc_info=True)
         return None
 

@@ -8,9 +8,10 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from porterchain_shared.auth.roles import Permission
+
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.domain.merchant_states import MerchantRole
-from porterchain_shared.auth.roles import Permission
 
 
 class AccountStatus(StrEnum):
@@ -456,22 +457,22 @@ def legacy_permissions_for_roles(roles: set[AssignableRole] | set[str]) -> froze
 
 
 __all__ = [
-    "AccountStatus",
-    "OnboardingStatus",
-    "ScopeType",
-    "AuthProvider",
-    "AssignableRole",
-    "UnifiedPermission",
+    "APPLICATION_OR_INVITE_ROLES",
     "INVITE_ONLY_ROLES",
     "OPEN_SIGNUP_ROLES",
-    "APPLICATION_OR_INVITE_ROLES",
     "ROLE_UNIFIED_PERMISSIONS",
+    "AccountStatus",
+    "AssignableRole",
+    "AuthProvider",
+    "OnboardingStatus",
+    "ScopeType",
+    "UnifiedPermission",
     "admin_role_to_assignable",
-    "merchant_role_to_assignable",
     "assignable_to_admin_role",
     "assignable_to_merchant_role",
     "is_invite_only",
-    "may_self_signup",
-    "permissions_for_roles",
     "legacy_permissions_for_roles",
+    "may_self_signup",
+    "merchant_role_to_assignable",
+    "permissions_for_roles",
 ]

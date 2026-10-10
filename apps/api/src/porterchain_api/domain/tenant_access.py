@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from porterchain_api.domain.tenant_context import TenantKind, TenantScope
 from porterchain_api.booking_models import Order
+from porterchain_api.domain.tenant_context import TenantKind, TenantScope
 
 
 class TenantAccessDenied(PermissionError):

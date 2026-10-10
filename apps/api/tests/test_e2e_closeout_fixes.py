@@ -6,13 +6,13 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from porterchain_driver.pod import ProofOfDeliveryService
 
 from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
 from porterchain_api.domain.states import CodStatus, OrderState, can_transition_order
 from porterchain_api.driver_engine.wallet_ledger import record_transaction
 from porterchain_api.schemas_driver import DriverJobsListResponse, DriverNextStop
 from porterchain_api.services.stripe_service import is_dummy_stripe_id
-from porterchain_driver.pod import ProofOfDeliveryService
 
 
 def test_dummy_stripe_ids() -> None:

@@ -1,7 +1,10 @@
 """Unit tests for route-import address hygiene."""
 
 from porterchain_api.merchant_engine.address_normalize import normalize_address
-from porterchain_api.merchant_engine.import_column_mapper import apply_mapping, suggest_mapping
+from porterchain_api.merchant_engine.import_column_mapper import (
+    apply_mapping,
+    suggest_mapping,
+)
 
 
 def test_strips_trailing_unit():

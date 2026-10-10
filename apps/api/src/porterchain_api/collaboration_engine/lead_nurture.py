@@ -106,10 +106,13 @@ def enqueue_nurture_intro_email(
             return False
     base = (website_url or "https://porterchain.com").rstrip("/")
     try:
-        from porterchain_api.config import get_settings
-        from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
         from porterchain_shared.queue.names import QueueName
         from porterchain_shared.queue.publisher import get_queue_publisher
+
+        from porterchain_api.collaboration_engine.lead_consent import (
+            make_unsubscribe_token,
+        )
+        from porterchain_api.config import get_settings
 
         settings = get_settings()
         secret = (settings.jwt_secret or settings.public_ingest_api_key or "").strip()
@@ -199,10 +202,13 @@ def _enqueue_nurture_email(lead: CrmLead, *, website_url: str, campaign: str = "
     base = (website_url or "https://porterchain.com").rstrip("/")
     template = "lead_nurture_d7" if campaign == "d7" else "lead_nurture_d1"
     try:
-        from porterchain_api.config import get_settings
-        from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
         from porterchain_shared.queue.names import QueueName
         from porterchain_shared.queue.publisher import get_queue_publisher
+
+        from porterchain_api.collaboration_engine.lead_consent import (
+            make_unsubscribe_token,
+        )
+        from porterchain_api.config import get_settings
 
         settings = get_settings()
         secret = (settings.jwt_secret or settings.public_ingest_api_key or "").strip()

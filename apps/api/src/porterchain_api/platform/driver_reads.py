@@ -40,11 +40,5 @@ def get_driver_by_clerk(db: Session, clerk_user_id: str) -> Driver | None:
     return db.query(Driver).filter(Driver.clerk_user_id == clerk_user_id).first()
 
 
-def get_driver_by_fleetbase_id(db: Session, fleetbase_id: str) -> Driver | None:
-    if not fleetbase_id:
-        return None
-    return db.query(Driver).filter(Driver.fleetbase_driver_id == str(fleetbase_id)).first()
-
-
 def list_drivers(db: Session) -> list[Driver]:
     return db.query(Driver).all()

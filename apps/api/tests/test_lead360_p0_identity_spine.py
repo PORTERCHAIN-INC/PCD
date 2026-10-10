@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,7 +16,6 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     LeadIngestService,
 )
 from porterchain_api.config import get_settings
-from porterchain_api.crm_models import CrmLead
 from porterchain_api.main import create_app
 
 
@@ -117,13 +117,13 @@ def test_ingest_stamps_visitor_session_id_column(db) -> None:
 
 
 def test_mirror_booking_bidirectional_and_consent(db) -> None:
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     suffix = uuid.uuid4().hex[:8]
     quote_id = str(uuid.uuid4())
     customer_id = str(uuid.uuid4())
     vid = f"book-{suffix}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.add(VisitorSession(id=vid))
     quote = Quote(
         id=quote_id,

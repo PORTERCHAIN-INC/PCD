@@ -11,7 +11,6 @@ export interface DriverProfileBlock {
   service_area?: string | null;
   province?: string | null;
   city?: string | null;
-  fleetbase_driver_id?: string | null;
 }
 
 export interface VerificationStatus {

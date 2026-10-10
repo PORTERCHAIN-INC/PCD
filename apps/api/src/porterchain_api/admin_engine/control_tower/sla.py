@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.control_tower._helpers import now_utc
 from porterchain_api.booking_engine.order_sla import (
     AT_RISK_MINUTES,
     DEFAULT_INSTANT_SLA_HOURS,
@@ -14,8 +15,6 @@ from porterchain_api.booking_engine.order_sla import (
 )
 from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import IN_FLIGHT, WAITING
-
-from porterchain_api.admin_engine.control_tower._helpers import now_utc
 
 
 class SlaMixin:

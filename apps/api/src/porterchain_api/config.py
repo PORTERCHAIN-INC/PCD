@@ -1,14 +1,13 @@
 from functools import lru_cache
 from typing import Self
 
-from pydantic import AliasChoices, Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
 from porterchain_shared.config.project_mode import (
     normalize_app_env,
     runtime_posture_from_settings,
 )
 from porterchain_shared.redis_health import is_local_env
+from pydantic import AliasChoices, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _DEV_JWT_SECRETS = frozenset({"", "dev-sso-secret-change-in-production"})
 
@@ -506,17 +505,6 @@ class Settings(BaseSettings):
         ),
     )
 
-    fleetbase_api_url: str = "http://localhost:8000"
-    fleetbase_api_key: str = ""
-    fleetbase_webhook_secret: str = ""
-    fleetbase_dispatch_bridge: bool = Field(
-        default=False,
-        validation_alias=AliasChoices(
-            "fleetbase_dispatch_bridge",
-            "FLEETBASE_DISPATCH_BRIDGE",
-            "PORTERCHAIN_FLEETBASE_DISPATCH_BRIDGE",
-        ),
-    )
     dispatch_engine: str = Field(
         default="porterchain",
         validation_alias=AliasChoices("dispatch_engine", "DISPATCH_ENGINE"),
@@ -526,14 +514,6 @@ class Settings(BaseSettings):
         default=False,
         validation_alias=AliasChoices("gps_write_ping_table", "GPS_WRITE_PING_TABLE"),
     )
-    fleetbase_default_company_uuid: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "fleetbase_default_company_uuid",
-            "PORTERCHAIN_FLEETBASE_DEFAULT_COMPANY_UUID",
-        ),
-    )
-
     sso_jwt_secret: str = Field(
         default="",
         validation_alias=AliasChoices(
@@ -545,19 +525,6 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(
         default="dev-sso-secret-change-in-production",
         validation_alias=AliasChoices("jwt_secret", "JWT_SECRET"),
-    )
-    fleetbase_console_url: str = ""
-    fleetbase_sso_enabled: bool = False
-    # Leftover request-path Fleetbase GET/orchestrator budget (adapter ops_timeout).
-    fleetbase_ops_timeout: float = Field(
-        default=2.0,
-        validation_alias=AliasChoices("fleetbase_ops_timeout", "FLEETBASE_OPS_TIMEOUT"),
-    )
-    fleetbase_request_timeout: float = Field(
-        default=15.0,
-        validation_alias=AliasChoices(
-            "fleetbase_request_timeout", "FLEETBASE_REQUEST_TIMEOUT"
-        ),
     )
 
     shopify_api_key: str = Field(
@@ -648,6 +615,21 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices(
             "phase2_cuopt_shadow", "PORTERCHAIN_PHASE2_CUOPT_SHADOW"
         ),
+    )
+    # Dispatch Phase 2 — self-hosted NVIDIA cuOpt as an optional second solver (OR-Tools is default
+    # + fallback; the better plan wins). Only numbers leave the box: matrix, demands, capacities.
+    dispatch_cuopt_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("dispatch_cuopt_enabled", "PORTERCHAIN_DISPATCH_CUOPT_ENABLED"),
+    )
+    dispatch_cuopt_url: str = Field(
+        default="http://localhost:5000",
+        validation_alias=AliasChoices("dispatch_cuopt_url", "PORTERCHAIN_DISPATCH_CUOPT_URL"),
+    )
+    # NIM LLM explains plans (suggest-only, PII-free payload). Off → rules-based explanation.
+    dispatch_llm_explain_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("dispatch_llm_explain_enabled", "PORTERCHAIN_DISPATCH_LLM_EXPLAIN"),
     )
     oauth_third_party_enabled: bool = Field(
         default=True,

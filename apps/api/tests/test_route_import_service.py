@@ -7,7 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.merchant_engine.route_import_service import MerchantRouteImportService
+from porterchain_api.merchant_engine.route_import_service import (
+    MerchantRouteImportService,
+)
 
 
 @pytest.fixture

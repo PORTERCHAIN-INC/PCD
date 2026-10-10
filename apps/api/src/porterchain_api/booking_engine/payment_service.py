@@ -3,11 +3,11 @@
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
-from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.booking_models import Customer, Payment, Quote
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import PaymentStatus, QuoteState
-from porterchain_api.booking_models import Customer, Payment, Quote
 from porterchain_api.services.stripe_service import create_checkout_session
 
 
@@ -24,7 +24,9 @@ class PaymentService:
         *,
         checkout_channel: str = "retail",
     ) -> tuple[str | None, Payment]:
-        from porterchain_api.booking_engine.quote_service import revalidate_quote_for_payment
+        from porterchain_api.booking_engine.quote_service import (
+            revalidate_quote_for_payment,
+        )
 
         quote = revalidate_quote_for_payment(db, quote)
 
@@ -51,7 +53,9 @@ class PaymentService:
         checkout_url: str | None = None
         # 100% promo (or other full waive) → $0. Stripe Checkout rejects unit_amount=0.
         if int(quote.amount_cents or 0) <= 0:
-            from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
+            from porterchain_api.booking_engine.confirmation_service import (
+                BookingConfirmationService,
+            )
 
             payment.status = PaymentStatus.PROCESSING.value
             quote.state = QuoteState.PAYMENT_PENDING.value

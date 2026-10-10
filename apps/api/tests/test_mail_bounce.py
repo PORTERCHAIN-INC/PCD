@@ -1,6 +1,9 @@
 """Zepto bounce webhook parsing."""
 
-from porterchain_api.notification_engine.bounce import extract_bounced_addresses, is_bounce_event
+from porterchain_api.notification_engine.bounce import (
+    extract_bounced_addresses,
+    is_bounce_event,
+)
 
 
 def test_zepto_hard_bounce_address() -> None:

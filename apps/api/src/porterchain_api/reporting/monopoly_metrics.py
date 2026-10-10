@@ -5,11 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.merchant_models import Merchant
 from porterchain_api.booking_models import Order
+from porterchain_api.merchant_models import Merchant
 
 ICP_GTA_BOUNDS = {
     "min_lat": 43.58,
@@ -124,7 +123,6 @@ def carrier_pool_legal_model() -> dict[str, Any]:
         "merchant_relationship": "merchant_contracts_with_porterchain_platform",
         "driver_relationship": "porterchain_vetted_independent_operators",
         "docs": "docs/legal/CARRIER_POOL_MODEL.md",
-        "fleetbase_boundary": "execution_dispatch_via_adapter_not_product_surface",
     }
 
 

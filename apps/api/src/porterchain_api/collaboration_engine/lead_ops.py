@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.collaboration_engine.crm_helpers import province_from_postal
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.crm_models import (
     CrmConversation,
@@ -333,7 +334,9 @@ def _enqueue_growth_staff_alert(
         if kind != "sla":
             from porterchain_api.config import get_settings
             from porterchain_api.notification_engine.realtime import anyone_online
-            from porterchain_api.notification_engine.staff_fanout import ops_watch_emails
+            from porterchain_api.notification_engine.staff_fanout import (
+                ops_watch_emails,
+            )
 
             if ops_watch_emails() and not anyone_online("admin"):
                 admin = get_settings().admin_portal_url.rstrip("/")
@@ -364,7 +367,7 @@ def _enqueue_growth_staff_alert(
                 event_type=f"lead.{kind}",
                 correlation_id=correlation,
             )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("lead_growth_staff_alert_failed lead=%s kind=%s", lead.id, kind)
 
 
@@ -662,6 +665,7 @@ def lead_ingest_config_status(settings: Settings) -> dict[str, bool]:
 
 __all__ = [
     "apply_territory_assignment",
+    "escalate_sla_breached_leads",
     "grant_referral_credit",
     "lead_ingest_config_status",
     "list_referral_credits",
@@ -669,7 +673,6 @@ __all__ = [
     "merchant_referral_overview",
     "notify_hot_lead",
     "notify_unassigned_high_priority",
-    "escalate_sla_breached_leads",
     "resolve_merge_candidate",
     "resolve_round_robin_assignee",
     "resolve_territory_assignee",

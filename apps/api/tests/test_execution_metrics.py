@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
@@ -14,10 +14,13 @@ from porterchain_api.admin_engine.execution_metrics import (
     assess_orders_per_week,
     build_execution_metrics_dashboard,
 )
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.booking_models import Order
 
 
 def _seed_order(db: Session) -> None:

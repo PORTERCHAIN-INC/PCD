@@ -804,7 +804,7 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
 
 
 # Recipient experience templates are defined centrally in customer_experience.templates.
-from porterchain_api.customer_experience.templates import CX_TEMPLATE_META, CX_TEMPLATES  # noqa: E402
+from porterchain_api.customer_experience.templates import CX_TEMPLATE_META, CX_TEMPLATES
 
 TEMPLATES.update(CX_TEMPLATES)
 TEMPLATE_META.update(CX_TEMPLATE_META)

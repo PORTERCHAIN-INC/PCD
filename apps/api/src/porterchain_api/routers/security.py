@@ -9,11 +9,11 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.driver import _driver_id_from_token
 from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.auth.driver import _driver_id_from_token
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.schemas_public import SecurityAuditBatch, SecurityAuditEvent
+from porterchain_api.schemas_public import SecurityAuditBatch
 
 logger = logging.getLogger("porterchain.security.audit")
 

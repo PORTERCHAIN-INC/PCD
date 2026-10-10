@@ -17,9 +17,12 @@ from porterchain_api.admin_engine.business_metrics import (
     assess_support_first_response,
 )
 from porterchain_api.admin_models import SupportTicket
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
-from porterchain_api.domain.states import OrderState
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Order, OrderEvent
+from porterchain_api.domain.states import OrderState
 from porterchain_api.support_engine.support_helpers import set_ticket_data
 
 

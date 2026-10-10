@@ -12,17 +12,21 @@ from porterchain_api.admin_engine.control_tower_service import ControlTowerServi
 from porterchain_api.admin_engine.dispatch_suggestions_service import (
     DispatchSuggestionsService,
 )
+from porterchain_api.admin_engine.dispatcher_copilot_service import (
+    DispatcherCopilotService,
+)
 from porterchain_api.admin_engine.live_map_service import LiveMapService
-from porterchain_api.admin_engine.dispatcher_copilot_service import DispatcherCopilotService
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
-from porterchain_api.admin_engine.scheduled_batches_service import ScheduledBatchesService
-from porterchain_api.admin_engine.utilization_service import UtilizationService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
+from porterchain_api.admin_engine.scheduled_batches_service import (
+    ScheduledBatchesService,
+)
+from porterchain_api.admin_engine.utilization_service import UtilizationService
 from porterchain_api.auth.admin import get_admin_context
+from porterchain_api.config import Settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
-from porterchain_api.config import Settings
 from porterchain_api.routers.admin._deps import _order_item, get_settings
 from porterchain_api.schemas_admin import (
     AssignDriverRequest,
@@ -123,13 +127,13 @@ def order_route_geometry(order_id: str, ctx: Ctx, db: Session = Depends(get_db))
 
 @router.get("/orders/{order_id}/playback")
 def order_playback(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Adapter-fed Fleetbase position breadcrumbs for client-side playback."""
+    """Driver position breadcrumbs for client-side playback."""
     return _invoke(ctx, "dispatch_read", _live_map.playback, db, order_id)
 
 
 @router.get("/utilization")
 def utilization(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Shift/staffing snapshot — Fleetbase online + PC shifts + PC order load."""
+    """Shift/staffing snapshot — open shifts + order load."""
     return _invoke(ctx, "dispatch_read", _utilization.snapshot, db)
 
 
@@ -167,7 +171,7 @@ def scheduled_batches(
     day: date | None = Query(None, description="UTC calendar day YYYY-MM-DD"),
     merchant_id: str | None = None,
 ) -> dict:
-    """Merchant pickup batches for a day (PC planning view; not Fleetbase manifests)."""
+    """Merchant pickup batches for a day (planning view)."""
     return _invoke(ctx, "dispatch_read", _batches.list_batches, db, day=day, merchant_id=merchant_id)
 
 
@@ -178,7 +182,7 @@ def manifests(
     scheduled_date: str | None = Query(None, description="YYYY-MM-DD"),
     status: str | None = None,
 ) -> dict:
-    """Committed Fleetbase manifests (adapter → ManifestController)."""
+    """Committed route manifests."""
     return _invoke(
         ctx, "dispatch_read", _batches.list_manifests, db, scheduled_date=scheduled_date, status=status
     )
@@ -292,7 +296,9 @@ def copilot_llm_suggest(
     db: Session = Depends(get_db),
 ) -> dict:
     """Phase-2 LLM ops suggestions via NVIDIA NIM when configured (read-only)."""
-    from porterchain_api.intelligence_engine.copilot_service import suggest_ops_action_committed
+    from porterchain_api.intelligence_engine.copilot_service import (
+        suggest_ops_action_committed,
+    )
 
     def _run():
         flags = {

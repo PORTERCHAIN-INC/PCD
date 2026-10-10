@@ -5,13 +5,15 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.public_address import public_address_snapshot
-from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
-from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
-from porterchain_api.config import Settings
+from porterchain_api.booking_engine.public_tracking_snapshot import (
+    build_public_live_tracking,
+)
 from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
+from porterchain_api.booking_models import Booking, Customer, Invoice, Order, Payment
+from porterchain_api.config import Settings
 from porterchain_api.merchant_engine.organization_sync import public_shipper_branding
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Booking, Customer, Invoice, Order, Payment
 from porterchain_api.schemas import OrderResponse, OrderTrackingResponse
 
 
@@ -54,7 +56,6 @@ class TrackingService:
             scheduled_at=order.scheduled_at,
             pickup=pickup,
             dropoff=dropoff,
-            fleetbase_order_id=order.fleetbase_order_id,
             booking_number=booking.booking_number if booking else None,
             invoice_number=invoice.invoice_number if invoice else None,
             company_name=branding.get("company_name"),
@@ -95,7 +96,6 @@ class TrackingService:
             order_id=order.id,
             tracking_number=order.tracking_number,
             state=order.state,
-            fleetbase_order_id=order.fleetbase_order_id,
             live_tracking=live,
         )
 
@@ -122,7 +122,7 @@ class TrackingService:
         settings: Settings,
         order: Order,
     ) -> dict | None:
-        """Pull raw live GPS/status from Fleetbase via the shared facade."""
+        """Raw live GPS from the assigned driver via the shared facade."""
         return self._facade.fetch_raw(settings, order)
 
     def get_live_snapshot(
@@ -208,7 +208,6 @@ class TrackingService:
             "scheduled_at": order.scheduled_at.isoformat(),
             "pickup": order.pickup,
             "dropoff": order.dropoff,
-            "fleetbase_order_id": order.fleetbase_order_id,
             "created_at": order.created_at.isoformat(),
             "vehicle_class": goods.get("vehicle_class"),
             "booking_mode": goods.get("booking_mode"),

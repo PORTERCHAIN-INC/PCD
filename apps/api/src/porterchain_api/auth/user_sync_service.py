@@ -5,12 +5,19 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from porterchain_shared.auth.principal import AuthPrincipal
+from porterchain_shared.types.user_types import UserType
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.driver_lookups import get_driver, rebind_clerk_by_email as rebind_driver_clerk
-from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.admin_engine.staff_lookups import get_admin_user, rebind_clerk_by_email as rebind_admin_clerk
+from porterchain_api.admin_engine.driver_lookups import get_driver
+from porterchain_api.admin_engine.driver_lookups import (
+    rebind_clerk_by_email as rebind_driver_clerk,
+)
+from porterchain_api.admin_engine.staff_lookups import get_admin_user
+from porterchain_api.admin_engine.staff_lookups import (
+    rebind_clerk_by_email as rebind_admin_clerk,
+)
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.email_identity import (
@@ -20,18 +27,18 @@ from porterchain_api.auth.email_identity import (
 )
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.persona_principal import resolve_persona_principal
+from porterchain_api.booking_models import Customer
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.identity_models import IdentityLink
 from porterchain_api.merchant_engine.lookups import (
     get_merchant,
     get_merchant_user,
+)
+from porterchain_api.merchant_engine.lookups import (
     rebind_clerk_by_email as rebind_merchant_clerk,
 )
-from porterchain_api.booking_models import Customer
 from porterchain_api.user_models import PorterchainUser
-from porterchain_shared.auth.principal import AuthPrincipal
-from porterchain_shared.types.user_types import UserType
 
 
 def _is_pending_clerk_id(clerk_user_id: str | None) -> bool:
@@ -69,16 +76,16 @@ class UserSyncService:
             commit=True,
             skip_unlink=True,
         )
-        self._sync_fleetbase_link_metadata(db, claims, user)
+        self._sync_link_metadata(db, claims, user)
         return user
 
     def get_by_clerk_id(self, db: Session, clerk_user_id: str) -> PorterchainUser | None:
         return db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
 
-    def _sync_fleetbase_link_metadata(
+    def _sync_link_metadata(
         self, db: Session, claims: ClerkClaims, user: PorterchainUser
     ) -> None:
-        """Update Fleetbase SSO metadata on IdentityLink without mis-pointing platform_user_id."""
+        """Refresh IdentityLink metadata without mis-pointing platform_user_id."""
         principal = resolve_persona_principal(db, claims)
         link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == claims.clerk_user_id).first()
         if not link:
@@ -90,8 +97,6 @@ class UserSyncService:
 
         link.user_type = principal.user_type.value
         link.platform_org_id = principal.org_id
-        link.fleetbase_permissions = None
-        link.fleetbase_roles = None
         link.last_synced_at = datetime.now(UTC)
         db.commit()
 
@@ -253,9 +258,7 @@ class UserSyncService:
             if mu:
                 profile["merchant_id"] = mu.merchant_id
                 status = "active"
-                if merchant and merchant.status != MerchantStatus.ACTIVE.value:
-                    status = "inactive"
-                elif not mu.is_active:
+                if merchant and merchant.status != MerchantStatus.ACTIVE.value or not mu.is_active:
                     status = "inactive"
                 return {
                     "role": mu.role,
@@ -338,8 +341,6 @@ class UserSyncService:
                 user_type=principal.user_type.value,
                 platform_user_id=user.id,
                 platform_org_id=principal.org_id,
-                fleetbase_permissions=None,
-                fleetbase_roles=None,
                 provider="clerk",
                 issuer=claims.issuer,
                 subject=claims.clerk_user_id,
@@ -353,8 +354,6 @@ class UserSyncService:
             link.user_type = principal.user_type.value
             link.platform_user_id = user.id
             link.platform_org_id = principal.org_id
-            link.fleetbase_permissions = None
-            link.fleetbase_roles = None
             link.last_synced_at = datetime.now(UTC)
             if claims.issuer:
                 link.issuer = claims.issuer

@@ -3,10 +3,14 @@
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
-from porterchain_api.booking_engine._core import publish_recorded_event, record_domain_event, _event_fields
-from porterchain_api.domain.states import OrderState, can_transition_order
+from porterchain_api.booking_engine._core import (
+    _event_fields,
+    publish_recorded_event,
+    record_domain_event,
+)
 from porterchain_api.booking_engine.row_locks import lock_order
 from porterchain_api.booking_models import Order, OrderEvent
+from porterchain_api.domain.states import OrderState, can_transition_order
 
 
 def transition_to_dispatch_ready(
@@ -18,7 +22,7 @@ def transition_to_dispatch_ready(
     actor_id: str | None = None,
     payload: dict | None = None,
 ) -> Order:
-    """Emit dispatch requested, then transition to DISPATCH_READY (Fleetbase sync follows)."""
+    """Emit dispatch requested, then transition to DISPATCH_READY."""
     requested = _event_fields(
         event_type=E.ORDER_DISPATCH_REQUESTED,
         aggregate_type="order",

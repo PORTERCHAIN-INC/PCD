@@ -13,9 +13,13 @@ from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.quote_service import QuoteService
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer, Quote
-from porterchain_api.schemas_booking import AddressInput, CreateQuoteRequest, ParcelInput
+from porterchain_api.config import Settings
+from porterchain_api.schemas_booking import (
+    AddressInput,
+    CreateQuoteRequest,
+    ParcelInput,
+)
 
 
 class CustomerBookingAdminService:

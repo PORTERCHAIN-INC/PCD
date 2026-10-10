@@ -28,7 +28,6 @@ class IntegrationHealthResponse(BaseModel):
     redis: IntegrationComponent
     queue: IntegrationComponent | None = None
     stripe: IntegrationComponent | None = None
-    fleetbase: IntegrationComponent | None = None
     google_maps: IntegrationComponent | None = None
     firebase: IntegrationComponent | None = None
     clerk: IntegrationComponent | None = None

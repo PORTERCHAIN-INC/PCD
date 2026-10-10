@@ -91,10 +91,6 @@ export const DomainEvents = {
   WEBHOOK_RECEIVED: "webhook.received",
 
   // Retired vendor sync names — kept so old envelopes still deserialize
-  FLEETBASE_ORDER_CREATED: "fleetbase.order_created",
-  FLEETBASE_STATUS_UPDATED: "fleetbase.status_updated",
-  FLEETBASE_POD_RECEIVED: "fleetbase.pod_received",
-  FLEETBASE_SYNC_FAILED: "fleetbase.sync_failed",
 
   // CRM
   LEAD_CREATED: "lead.created",

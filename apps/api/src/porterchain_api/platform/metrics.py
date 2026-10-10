@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from porterchain_api.db import SessionLocal
 from porterchain_shared.config.settings import get_platform_settings
 from porterchain_shared.queue.names import QueueName
 from porterchain_shared.queue.publisher import get_queue_publisher, queue_depths
+
+from porterchain_api.db import SessionLocal
 
 _routing_source_counts: dict[str, int] = {}
 
@@ -26,9 +27,15 @@ def prometheus_metrics() -> str:
 
     db = SessionLocal()
     try:
-        from porterchain_api.admin_engine.business_metrics import assess_business_metrics
-        from porterchain_api.admin_engine.execution_metrics import assess_orders_per_week
-        from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
+        from porterchain_api.admin_engine.business_metrics import (
+            assess_business_metrics,
+        )
+        from porterchain_api.admin_engine.execution_metrics import (
+            assess_orders_per_week,
+        )
+        from porterchain_api.merchant_engine.webhook_delivery_health import (
+            assess_merchant_webhook_delivery,
+        )
         from porterchain_api.notification_engine.sli_metrics import (
             assess_notification_channel_slis,
             prometheus_notification_lines,
@@ -68,9 +75,11 @@ def prometheus_metrics() -> str:
     finally:
         db.close()
 
-    from porterchain_api.platform.rate_limit import prometheus_rate_limit_lines
     from porterchain_api.auth.sli_metrics import prometheus_auth_lines
-    from porterchain_api.merchant_engine.commerce_metrics import prometheus_commerce_lines
+    from porterchain_api.merchant_engine.commerce_metrics import (
+        prometheus_commerce_lines,
+    )
+    from porterchain_api.platform.rate_limit import prometheus_rate_limit_lines
 
     lines.extend(prometheus_rate_limit_lines())
     lines.extend(prometheus_auth_lines())

@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
-from porterchain_api.admin_engine.customer_booking_admin_service import CustomerBookingAdminService
+from porterchain_api.admin_engine.customer_booking_admin_service import (
+    CustomerBookingAdminService,
+)
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings

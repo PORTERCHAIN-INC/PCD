@@ -5,9 +5,12 @@ from typing import Annotated
 from fastapi import Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.platform_settings import document_allowed_types, document_max_bytes
-from porterchain_api.auth.admin import get_admin_context
+from porterchain_api.admin_engine.platform_settings import (
+    document_allowed_types,
+    document_max_bytes,
+)
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
+from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.content_engine.blog_media import save_blog_image
 from porterchain_api.content_engine.blog_preview import make_blog_preview_token
@@ -23,7 +26,6 @@ from porterchain_api.routers.admin._deps import (
     log_admin_audit,
     router,
 )
-
 
 _IMAGE_EXT = frozenset({"jpg", "jpeg", "png", "webp", "gif"})
 

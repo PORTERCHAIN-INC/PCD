@@ -18,13 +18,17 @@ from porterchain_api.auth.modules_catalog import (
     MERCHANT_MODULE_TO_PERMISSION,
     modules_for_permissions,
 )
-from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
+from porterchain_api.auth.unified_catalog import (
+    AccountStatus,
+    AssignableRole,
+    UnifiedPermission,
+)
 from porterchain_api.authz.client import get_authz_client, reset_authz_client
+from porterchain_api.booking_models import Customer
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS as MERCHANT_MODULES
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Customer
 
 
 @pytest.fixture(autouse=True)
@@ -53,7 +57,6 @@ def test_modules_for_permissions_system_all() -> None:
 
 
 def test_ensure_user_writes_driver_spicedb_tuple(db: Session, settings) -> None:
-    from porterchain_api.config import get_settings
     from porterchain_api.authz.client import AuthzClient
 
     reset_authz_client()

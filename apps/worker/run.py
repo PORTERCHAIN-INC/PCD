@@ -22,6 +22,8 @@ _last_notification_retry_at = 0.0
 _last_webhook_retry_at = 0.0
 _last_shopify_sync_retry_at = 0.0
 _last_compliance_expiry_at = 0.0
+_last_job_offer_sweep_at = 0.0
+_last_retention_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
 _last_lead_inbound_email_at = 0.0
@@ -38,6 +40,8 @@ FINANCE_DAILY_INTERVAL_SECONDS = 86400
 NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
 WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
+JOB_OFFER_SWEEP_INTERVAL_SECONDS = 15
+RETENTION_INTERVAL_SECONDS = 24 * 3600
 LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
 LEAD_INBOUND_EMAIL_INTERVAL_SECONDS = 120
@@ -557,6 +561,47 @@ def _drain_shopify_buyer_retention() -> int:
     return int(result.get("wiped", 0))
 
 
+def _drain_job_offer_sweep() -> int:
+    """Expire job offers past their TTL and pass each order to the next driver."""
+    global _last_job_offer_sweep_at
+    now = time.monotonic()
+    if now - _last_job_offer_sweep_at < JOB_OFFER_SWEEP_INTERVAL_SECONDS:
+        return 0
+    _last_job_offer_sweep_at = now
+
+    from porterchain_api.admin_engine.job_offers_service import JobOffersService
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = JobOffersService().sweep(db)
+    if result.get("expired"):
+        logger.info(
+            "job offers: expired=%s passed_on=%s", result.get("expired", 0), result.get("passed_on", 0)
+        )
+    return int(result.get("expired", 0))
+
+
+def _drain_retention() -> int:
+    """Daily: delete GPS pings and redact POD references past the dispatch retention policy."""
+    global _last_retention_at
+    now = time.monotonic()
+    if now - _last_retention_at < RETENTION_INTERVAL_SECONDS:
+        return 0
+    _last_retention_at = now
+
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.dispatch_engine.retention import load_retention
+    from porterchain_api.driver_engine.retention_purge import purge
+
+    with SessionLocal() as db:
+        policy = load_retention(db)
+        if not policy.get("enabled", True):
+            return 0
+        result = purge(db, policy, dry_run=False)
+    logger.info("retention: gps_pings=%s pod_refs=%s", result.get("gps_pings"), result.get("pod_refs"))
+    return int(result.get("gps_pings", 0)) + int(result.get("pod_refs", 0))
+
+
 def _drain_blog_scheduled_publish() -> int:
     """Publish drafts whose scheduled_publish_at has elapsed."""
     global _last_blog_schedule_at
@@ -664,6 +709,8 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_shopify_buyer_retention()
                 processed += _drain_blog_scheduled_publish()
                 processed += _merchant_ops_drain()
+                processed += _drain_job_offer_sweep()
+                processed += _drain_retention()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")

@@ -37,12 +37,12 @@ def sync_authz_after_persona_mutation(db: Session, clerk_user_id: str | None) ->
         from porterchain_api.auth.principal_cache import cache_invalidate
 
         cache_invalidate(user.id)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("authz_sync_principal_cache_invalidate_failed", exc_info=True)
 
     try:
         from porterchain_api.authz.tuples import TupleWriter
 
         TupleWriter().sync_user_from_profiles(db, user)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("authz_sync_after_persona_mutation_failed clerk_subject_present=1")

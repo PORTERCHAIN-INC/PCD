@@ -3,7 +3,10 @@
 from collections.abc import Callable
 from typing import TypeVar
 
-from porterchain_api.merchant_engine.team_service import list_switcher_memberships, serialize_member
+from porterchain_api.merchant_engine.team_service import (
+    list_switcher_memberships,
+    serialize_member,
+)
 from porterchain_api.routers.merchant._deps import (
     Annotated,
     Depends,
@@ -18,11 +21,11 @@ from porterchain_api.routers.merchant._deps import (
     MerchantTwoFactorRequest,
     Query,
     RecipientCreateRequest,
-    RecipientUpdateRequest,
     RecipientResponse,
+    RecipientUpdateRequest,
     SavedAddressCreateRequest,
-    SavedAddressUpdateRequest,
     SavedAddressResponse,
+    SavedAddressUpdateRequest,
     Session,
     TeamInviteRequest,
     TeamMemberResponse,

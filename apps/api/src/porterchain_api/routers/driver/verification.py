@@ -4,7 +4,9 @@ from pydantic import BaseModel, Field
 
 from porterchain_api.db import db_transaction
 from porterchain_api.driver_engine.abstract_service import DriverAbstractService
-from porterchain_api.driver_engine.background_check_service import DriverBackgroundCheckService
+from porterchain_api.driver_engine.background_check_service import (
+    DriverBackgroundCheckService,
+)
 from porterchain_api.driver_engine.verification_service import DriverVerificationService
 from porterchain_api.routers.driver._deps import (
     Annotated,
@@ -16,7 +18,8 @@ from porterchain_api.routers.driver._deps import (
     get_db,
     get_driver_context,
     get_settings,
-    router)
+    router,
+)
 
 _verification = DriverVerificationService()
 _background = DriverBackgroundCheckService()

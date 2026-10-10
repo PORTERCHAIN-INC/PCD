@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from uuid import uuid4
 from unittest.mock import patch
+from uuid import uuid4
 
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.import_column_mapper import (
@@ -11,7 +11,10 @@ from porterchain_api.merchant_engine.import_column_mapper import (
     apply_mapping,
 )
 from porterchain_api.merchant_engine.import_geocode import GeocodeResult
-from porterchain_api.merchant_engine.import_mapping_profiles import get_profile, save_profile
+from porterchain_api.merchant_engine.import_mapping_profiles import (
+    get_profile,
+    save_profile,
+)
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.route_import_service import (
     MerchantRouteImportService,

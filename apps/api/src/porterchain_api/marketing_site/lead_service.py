@@ -20,7 +20,12 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
 )
-from porterchain_api.domain.crm_states import LeadIntentType, LeadPriority, LeadSourceChannel, LeadStatus
+from porterchain_api.domain.crm_states import (
+    LeadIntentType,
+    LeadPriority,
+    LeadSourceChannel,
+    LeadStatus,
+)
 from porterchain_api.marketing_site.schemas import (
     CALCULATOR_VEHICLES,
     INDUSTRIES,

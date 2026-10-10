@@ -18,7 +18,8 @@ from porterchain_api.routers.driver._deps import (
     get_settings,
     require_approved_driver,
     router,
-    svc)
+    svc,
+)
 
 
 @router.post("/push/register")

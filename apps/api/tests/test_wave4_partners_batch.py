@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from porterchain_shared.events.catalog import DomainEventType
+
 from porterchain_api.notification_engine.event_router import _specs_for_event
 from porterchain_api.notification_engine.templates import TEMPLATES
-from porterchain_shared.events.catalog import DomainEventType
 
 
 def test_merchant_approved_routes_staff() -> None:

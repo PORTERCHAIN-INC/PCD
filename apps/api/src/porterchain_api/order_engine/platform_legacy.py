@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_models import Booking, Customer, Invoice, Order, OrderEvent, Payment, Quote
+from porterchain_api.booking_models import (
+    Booking,
+    Customer,
+    Invoice,
+    Order,
+    OrderEvent,
+    Payment,
+    Quote,
+)
 
 
 class OrderPlatformLegacyMixin:

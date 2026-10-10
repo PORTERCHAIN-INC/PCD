@@ -31,7 +31,6 @@ export type DriverRow = {
   vehicle_verified: boolean;
   medical_transport_certified: boolean;
   background_check_status: string;
-  fleetbase_driver_id?: string | null;
   docs_pending_review?: boolean;
   last_active_at: string | null;
   created_at: string;
@@ -53,7 +52,6 @@ export type DriverDetail = DriverRow & {
   ai: DriverAi;
   documents: Record<string, unknown>;
   performance: Record<string, unknown>;
-  fleetbase_driver_id: string | null;
   assignable?: boolean;
   assign_blockers?: string[];
   clerk_linked?: boolean;

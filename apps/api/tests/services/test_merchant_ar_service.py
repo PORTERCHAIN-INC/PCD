@@ -11,13 +11,12 @@ from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.billing_engine.merchant_service import invoice_status
+from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.rbac import MerchantContext, MerchantRole
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Invoice, Order, Payment
-
 
 pytestmark = pytest.mark.usefixtures("db")
 
@@ -43,7 +42,10 @@ def _merchant(db: Session) -> tuple[MerchantContext, Merchant]:
 
 
 def _seed_delivered_order(db: Session, merchant: Merchant) -> Order:
-    from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+    from porterchain_api.booking_engine.numbers import (
+        generate_order_number,
+        generate_tracking_number,
+    )
 
     order = Order(
         order_number=generate_order_number(),

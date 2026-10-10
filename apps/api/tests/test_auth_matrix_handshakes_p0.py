@@ -15,9 +15,12 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.sso_service import SsoService
-from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
+from porterchain_api.auth.unified_catalog import (
+    AccountStatus,
+    AssignableRole,
+    UnifiedPermission,
+)
 from porterchain_api.config import Settings
-from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.notification_engine.principal import (
     get_notification_user,
     resolve_notification_ws_user,

@@ -133,7 +133,9 @@ class _MemoryStore:
 
         if resource_type == "organization":
             # Keep in sync with authz/schema.zed + merchant_engine.rbac MODULE_PERMISSIONS.
-            from porterchain_api.merchant_engine.rbac import organization_permission_roles
+            from porterchain_api.merchant_engine.rbac import (
+                organization_permission_roles,
+            )
 
             roles = {
                 rel
@@ -224,7 +226,7 @@ class AuthzClient:
             self._ensure_schema()
             self._use_memory = False
             logger.info("spicedb_connected endpoint=%s", self.endpoint)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("spicedb_connect_failed endpoint=%s", self.endpoint)
             self._grpc = None
             if self.required:

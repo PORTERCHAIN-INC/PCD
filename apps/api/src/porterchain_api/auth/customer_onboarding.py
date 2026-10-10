@@ -11,8 +11,8 @@ from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.portal_guard import clerk_id_staff_portal
 from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer
+from porterchain_api.config import Settings
 
 
 def evaluate_customer_onboarding(
@@ -34,7 +34,9 @@ def evaluate_customer_onboarding(
     conflict = clerk_id_staff_portal(db, claims.clerk_user_id or "")
     provisioned = customer is not None
 
-    from porterchain_api.admin_engine.platform_settings import portal_enabled as customer_portal_enabled
+    from porterchain_api.admin_engine.platform_settings import (
+        portal_enabled as customer_portal_enabled,
+    )
 
     portal_on = customer_portal_enabled(db)
 

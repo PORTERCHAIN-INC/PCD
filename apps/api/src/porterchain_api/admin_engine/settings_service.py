@@ -12,41 +12,55 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
+from porterchain_pricing.delivery_promise import (
+    default_delivery_promise,
+    normalize_delivery_promise,
+)
+from porterchain_pricing.driver_pay import (
+    default_driver_pay_plan,
+    normalize_driver_pay_plan,
+)
+from porterchain_pricing.price_book import default_price_book, normalize_price_book
+from porterchain_shared.config.settings import PlatformSettings
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.pricing_versioning import bump_price_version
+from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.admin_models import (
+    AdminAuditLog,
+    AdminUser,
+    Driver,
+    SystemConfig,
+    Vehicle,
+)
+from porterchain_api.auth.clerk_registry import (
+    is_clerk_configured,
+)
+from porterchain_api.auth.invitation_service import InvitationService
+from porterchain_api.booking_models import Customer
+from porterchain_api.config import Settings
+from porterchain_api.domain.admin_states import DriverStatus
+from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.pricing_version import (
     PRICING_STORAGE_KEYS,
     SUPER_ADMIN_SETTING_KEYS,
     assert_pricing_editor,
 )
-from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
-from porterchain_api.marketing_site.config import default_marketing_site, normalize_marketing_site
-from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
-from porterchain_pricing.price_book import default_price_book, normalize_price_book
-from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
-from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
-from porterchain_api.auth.clerk_client import ClerkUserSnapshot
-from porterchain_api.auth.clerk_registry import is_clerk_configured, is_clerk_secret_configured
-from porterchain_api.auth.invitation_service import InvitationService
-from porterchain_api.config import Settings
 from porterchain_api.invitation_models import UserInvitation
+from porterchain_api.marketing_site.config import (
+    default_marketing_site,
+    normalize_marketing_site,
+)
 from porterchain_api.merchant_engine.lookups import list_directory_seats
-from porterchain_api.booking_models import Customer
+from porterchain_api.platform.health import readiness
 from porterchain_api.schemas_admin import (
     PlatformUserAuthorizeResponse,
     PlatformUserItem,
     PlatformUsersFacets,
     PlatformUsersResponse,
 )
-from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.platform.health import readiness
-from porterchain_shared.config.settings import PlatformSettings
-
 
 PORTERCHAIN_VERSION = os.environ.get("PORTERCHAIN_VERSION", "3.1.0")
 
@@ -202,8 +216,12 @@ DEFAULTS: dict[str, Any] = {
     "settings_delivery_zones": [],
 }
 
-from porterchain_api.domain.customer_goods import default_customer_pricing, default_vehicle_catalog
 from porterchain_pricing.gta_rate import default_gta_rate_config
+
+from porterchain_api.domain.customer_goods import (
+    default_customer_pricing,
+    default_vehicle_catalog,
+)
 
 DEFAULTS["vehicle_types"] = default_vehicle_catalog()
 DEFAULTS["pricing_customer_distance"] = default_customer_pricing()
@@ -406,12 +424,9 @@ def _apply_user_filters(
     return [i for i in items if matches(i)]
 
 
-from porterchain_api.admin_engine.settings_clerk_merge import (  # noqa: E402
-    _enrich_with_clerk,
-    _mark_not_in_clerk,
+from porterchain_api.admin_engine.settings_clerk_merge import (
     _merge_clerk_directory,
 )
-
 
 
 class AdminSettingsService:
@@ -661,7 +676,9 @@ class AdminSettingsService:
         name: str | None = None,
         reason: str | None = None,
     ) -> PlatformUserAuthorizeResponse:
-        from porterchain_api.admin_engine.platform_user_authorize import authorize_platform_user as _authorize
+        from porterchain_api.admin_engine.platform_user_authorize import (
+            authorize_platform_user as _authorize,
+        )
 
         return _authorize(
             db,
@@ -850,7 +867,9 @@ class AdminSettingsService:
             bump_price_version(db, ctx, source=f"settings:{key}", reason=reason)
         db.commit()
         if key == "settings_booking":
-            from porterchain_api.booking_engine.order_sla import refresh_open_sla_deadlines
+            from porterchain_api.booking_engine.order_sla import (
+                refresh_open_sla_deadlines,
+            )
 
             refresh_open_sla_deadlines(db)
             db.commit()
@@ -881,7 +900,7 @@ class AdminSettingsService:
         return out
 
     def vehicles_overview(self, db: Session) -> dict[str, Any]:
-        """Fleet inventory counts keyed by vehicle class — Porterchain mirror, not Fleetbase."""
+        """Fleet inventory counts keyed by vehicle class — from PorterChain vehicles."""
         fleet_total = (
             db.query(func.count(Vehicle.id)).filter(Vehicle.is_active.is_(True)).scalar() or 0
         )
@@ -934,9 +953,12 @@ class AdminSettingsService:
         *,
         ready: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        from porterchain_api.admin_engine.integration_health import build_integration_health
-        from porterchain_api.intelligence_engine import nim_client
         from porterchain_shared.config.settings import PlatformSettings
+
+        from porterchain_api.admin_engine.integration_health import (
+            build_integration_health,
+        )
+        from porterchain_api.intelligence_engine import nim_client
 
         platform = PlatformSettings()
         return build_integration_health(
@@ -1065,7 +1087,10 @@ class AdminSettingsService:
         return self.set_config(db, ctx, key, payload.get("old"), reason=restore_reason)
 
     def search(self, query: str) -> list[dict[str, str]]:
-        from porterchain_api.admin_engine.settings_bindings import FIELD_SEARCH, SECTION_ALIASES
+        from porterchain_api.admin_engine.settings_bindings import (
+            FIELD_SEARCH,
+            SECTION_ALIASES,
+        )
 
         q = query.lower().strip()
         if not q:

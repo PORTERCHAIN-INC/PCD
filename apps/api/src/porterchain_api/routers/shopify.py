@@ -11,9 +11,9 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.shopify_session import (
     ensure_carrier_rates,
     install_from_session_token,
@@ -163,7 +163,7 @@ def shopify_callback(
         db.rollback()
         logger.warning("shopify_oauth_callback_refused shop=%s code=%s", shop, exc)
         return _error_redirect(settings, str(exc), shop=shop, host=host)
-    except Exception:  # noqa: BLE001 — token exchange / Shopify outage
+    except Exception:
         db.rollback()
         logger.exception("shopify_oauth_callback_failed shop=%s", shop)
         return _error_redirect(settings, "install_failed", shop=shop, host=host)

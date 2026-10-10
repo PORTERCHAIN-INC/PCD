@@ -240,9 +240,6 @@ def _pc_user(
             user_type=workspace,
             platform_user_id=user.id,
             platform_org_id=DEV_ORG if workspace == "merchant" else None,
-            fleetbase_user_uuid=f"fb-local-{workspace}-{user.id[:8]}",
-            fleetbase_roles=["user"],
-            fleetbase_permissions=["read", "write"],
             last_synced_at=NOW,
         )
     )
@@ -726,7 +723,6 @@ def seed_driver(db, admin: AdminUser) -> Driver:
         is_online=False,
         availability="offline",
         wallet_balance_cents=125_50,
-        fleetbase_driver_id="fb-local-driver-marco",
         documents=docs_json,
         performance={"score": 96, "on_time_pct": 98, "completion_pct": 99, "jobs_30d": 0},
     )
@@ -755,7 +751,6 @@ def seed_driver(db, admin: AdminUser) -> Driver:
             make_model="Ford Transit 250",
             capacity_kg=1200.0,
             compliance_expires_at=expires,
-            fleetbase_vehicle_id="fb-local-vehicle-cargo1",
             is_active=True,
         )
     )

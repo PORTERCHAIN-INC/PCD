@@ -188,8 +188,6 @@ class CurrentPrincipal:
         from porterchain_api.auth.user_sync_service import UserSyncService
 
         sc = self.session_context()
-        fleetbase_eligible = False
-
         org_id = next(iter(sorted(self.organization_ids)), None)
         pc_user = UserSyncService().get_by_clerk_id(db, self.auth_subject or "")
         primary_role = sc["roles"][0] if sc["roles"] else None
@@ -210,7 +208,6 @@ class CurrentPrincipal:
             "role": primary_role,
             "status": self.status,
             "profile": pc_user.profile if pc_user else None,
-            "fleetbase_console_eligible": fleetbase_eligible,
         }
 
 
@@ -246,7 +243,7 @@ def _workspaces_for(principal: CurrentPrincipal) -> list[dict]:
 
 
 __all__ = [
-    "RoleAssignmentView",
     "CurrentPrincipal",
+    "RoleAssignmentView",
     "ScopeType",
 ]

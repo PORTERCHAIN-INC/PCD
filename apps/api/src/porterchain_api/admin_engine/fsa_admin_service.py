@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_pricing.components import is_ontario_fsa, normalize_fsa
+from porterchain_pricing.gta150_fsa import is_gta150_fsa
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import PricingFsaRate
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.schemas_pricing import FsaRateBody, FsaRateOut
-from porterchain_pricing.components import is_ontario_fsa, normalize_fsa
-from porterchain_pricing.gta150_fsa import is_gta150_fsa
 
 
 class FsaAdminService:
@@ -212,7 +212,10 @@ class FsaAdminService:
         self, db: Session, *, merchant_id: str | None = None
     ) -> dict[str, object]:
         """GTA150 tile vs priced FSA rows — admin checklist (Phase 1 / 2c)."""
-        from porterchain_pricing.gta150_fsa import gta150_fsa_codes, gta150_registry_meta
+        from porterchain_pricing.gta150_fsa import (
+            gta150_fsa_codes,
+            gta150_registry_meta,
+        )
 
         tile = gta150_fsa_codes()
         q = db.query(PricingFsaRate.dest_fsa).filter(PricingFsaRate.is_active.is_(True))

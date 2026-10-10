@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-from uuid import uuid4
-
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
-from porterchain_api.platform.retired_sync import RetryQueue
 
 
 def _settings() -> Settings:
@@ -20,47 +16,6 @@ def _settings() -> Settings:
         fleetbase_dispatch_bridge=True,
         fleetbase_api_key="test-key",
     )
-
-
-def test_gps_skips_ping_insert_and_enqueues_tracking(db: Session, driver) -> None:
-    from porterchain_driver.location import LocationService
-
-    driver.fleetbase_driver_id = f"fb-{uuid4().hex[:8]}"
-    db.flush()
-    result = LocationService().record_ping(
-        db,
-        driver,
-        lat=43.65,
-        lng=-79.38,
-    )
-    db.flush()
-    assert result["recorded"] is True
-    assert result["ping_id"] is None
-
-    from porterchain_api.driver_models import DriverLocationPing
-
-    leftover = (
-        db.query(DriverLocationPing)
-        .filter(DriverLocationPing.driver_id == driver.id)
-        .count()
-    )
-    assert leftover == 0
-    db.rollback()
-
-
-def test_gps_lww_does_not_write_a_sync_job(db: Session) -> None:
-    assert (
-        RetryQueue.enqueue(
-            db,
-            direction="outbound",
-            kind="tracking",
-            idempotency_key=f"tracking:drv-{uuid4().hex[:8]}",
-            payload={"lat": 1.0, "lng": 1.0},
-            commit=False,
-        )
-        is None
-    )
-    db.rollback()
 
 
 def test_pod_photo_enqueues_without_http(db: Session, driver, dispatch_order) -> None:

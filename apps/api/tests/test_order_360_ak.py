@@ -5,7 +5,10 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from porterchain_api.domain.catalog_labels import order_source_label
-from porterchain_api.order_engine.platform_helpers import ops_timeline_label, shopify_snapshot
+from porterchain_api.order_engine.platform_helpers import (
+    ops_timeline_label,
+    shopify_snapshot,
+)
 
 
 def test_shopify_snapshot_from_metadata() -> None:
@@ -70,12 +73,15 @@ def test_merchant360_timeline_uses_ops_invoices_not_crm(db) -> None:
     from uuid import uuid4
 
     from porterchain_api.admin_engine.merchant360_service import Merchant360Service
-    from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+    from porterchain_api.booking_engine.numbers import (
+        generate_order_number,
+        generate_tracking_number,
+    )
+    from porterchain_api.booking_models import Invoice, Order
     from porterchain_api.crm_models import CrmCompany, CrmInvoice
     from porterchain_api.domain.merchant_states import MerchantStatus
     from porterchain_api.domain.states import OrderState
     from porterchain_api.merchant_models import Merchant
-    from porterchain_api.booking_models import Invoice, Order
 
     suffix = uuid4().hex[:8]
     merchant = Merchant(

@@ -5,12 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, TypeVar
 
+from porterchain_driver import DriverPlatform
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.driver_engine.auth_service import DriverAuthService
 from porterchain_api.driver_engine.offline_executor import DriverOfflineExecutor
-from porterchain_driver import DriverPlatform
 
 T = TypeVar("T")
 

@@ -160,7 +160,6 @@ class E2EValidationReportsMixin:
         lines.append("## Masterrule compliance")
         lines.append("- Architecture topology: locked (§1)")
         lines.append(f"- Dispatch engine: {settings.dispatch_engine or 'porterchain'} (OR-Tools day plan)")
-        lines.append(f"- Fleetbase bridge: {'ON (retire — set false)' if settings.fleetbase_dispatch_bridge else 'off'}")
         lines.append(f"- Stripe webhook signal: {'mock' if settings.stripe_mock else 'live'}")
         lines.append("")
         lines.append(

@@ -18,6 +18,7 @@ from porterchain_api.routers import (
     customers,
     customers_admin,
     customers_admin_360,
+    diagnostics,
     driver,
     drivers_admin,
     drivers_admin_account,
@@ -33,20 +34,19 @@ from porterchain_api.routers import (
     operations,
     orders,
     payments,
-    public_inquiries,
     public_newsletter,
-    public_marketing,
-    zeptomail_webhook,
     email_inbound,
-    public_guide,
-    public_blog,
     pricing_admin,
     pricing_components,
+    public_blog,
+    public_guide,
+    public_inquiries,
+    public_marketing,
     quotes,
-    shopify,
     security,
+    shopify,
     webhooks,
-    diagnostics,
+    zeptomail_webhook,
 )
 
 
@@ -55,14 +55,17 @@ async def lifespan(_app: FastAPI):
     from porterchain_shared.redis_health import require_redis_for_production
 
     settings = get_settings()
-    from porterchain_api.platform.observability import init_observability, instrument_app
+    from porterchain_api.platform.observability import (
+        init_observability,
+        instrument_app,
+    )
 
     init_observability(sentry_dsn=settings.sentry_dsn, app_env=settings.app_env)
     instrument_app(_app, app_env=settings.app_env)
     require_redis_for_production()
     init_db()
-    from porterchain_api.platform.bus import ensure_handlers_registered
     from porterchain_api.notification_engine.realtime import realtime_hub
+    from porterchain_api.platform.bus import ensure_handlers_registered
 
     ensure_handlers_registered()
     await realtime_hub.start()
@@ -158,13 +161,16 @@ def create_app() -> FastAPI:
     app.include_router(diagnostics.router)
     app.include_router(driver.router)
 
+    import logging
+
     from fastapi import HTTPException, Request
     from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
 
-    from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+    from porterchain_api.merchant_engine.booking_validation import (
+        BookingValidationError,
+    )
     from porterchain_api.platform.errors import error_envelope
-    import logging
 
     _logger = logging.getLogger(__name__)
 
@@ -239,6 +245,7 @@ def create_app() -> FastAPI:
     @app.get("/metrics")
     def metrics():
         from fastapi.responses import PlainTextResponse
+
         from porterchain_api.platform.metrics import prometheus_metrics
 
         return PlainTextResponse(prometheus_metrics(), media_type="text/plain; version=0.0.4")

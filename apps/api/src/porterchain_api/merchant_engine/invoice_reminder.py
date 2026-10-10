@@ -6,13 +6,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.invoice_service import InvoiceService
-from porterchain_api.merchant_models import Merchant, MerchantAuditLog
 from porterchain_api.booking_models import Invoice, Order
-from porterchain_shared.events.catalog import DomainEventType
+from porterchain_api.merchant_models import Merchant, MerchantAuditLog
 
 
 def _billing_contacts(merchant: Merchant) -> list[dict[str, Any]]:

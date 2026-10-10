@@ -41,7 +41,9 @@ def enqueue_lead_template_email(
         raise ValueError("invalid_template")
     base = (website_url or "https://porterchain.com").rstrip("/")
     try:
-        from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
+        from porterchain_api.collaboration_engine.lead_consent import (
+            make_unsubscribe_token,
+        )
         from porterchain_api.notification_engine.engine import get_notification_engine
 
         unsub = ""

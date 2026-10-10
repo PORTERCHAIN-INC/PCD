@@ -9,16 +9,18 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Claim, SupportTicket
+from porterchain_api.booking_models import Invoice, Order, OrderEvent
 from porterchain_api.domain.admin_states import ClaimStatus, TicketStatus
 from porterchain_api.domain.states import OrderState
+from porterchain_api.merchant_engine.audit_copy import summarize_audit_action
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-from porterchain_api.merchant_engine.company_file import can_edit_company_file, completeness_payload
+from porterchain_api.merchant_engine.company_file import (
+    can_edit_company_file,
+    completeness_payload,
+)
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
-from porterchain_api.merchant_engine.audit_copy import summarize_audit_action
 from porterchain_api.merchant_models import MerchantAuditLog
-from porterchain_api.booking_models import Invoice, Order, OrderEvent
-
 
 _AWAITING_PICKUP_STATES = (
     OrderState.BOOKED.value,

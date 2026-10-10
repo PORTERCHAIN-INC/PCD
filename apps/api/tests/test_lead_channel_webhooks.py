@@ -73,8 +73,9 @@ def test_google_gbp_event() -> None:
 
 
 def test_meta_webhook_verify_and_ingest(monkeypatch, db):
-    from porterchain_api.config import get_settings
     from fastapi.testclient import TestClient
+
+    from porterchain_api.config import get_settings
     from porterchain_api.main import create_app
 
     monkeypatch.setenv("APP_ENV", "local")

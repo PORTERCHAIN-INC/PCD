@@ -15,11 +15,11 @@ from porterchain_api.auth.dev import (
     is_merchant_dev_subject,
 )
 from porterchain_api.auth.staff_session import STAFF_BEARER_PREFIX, get_session
+from porterchain_api.booking_models import Customer
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Customer
 
 _bearer = HTTPBearer(auto_error=False)
 _PORTAL_OK = {MerchantStatus.ACTIVE.value, MerchantStatus.ONBOARDING.value}

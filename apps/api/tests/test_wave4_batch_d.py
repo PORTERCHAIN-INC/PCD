@@ -8,7 +8,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-from porterchain_api.notification_engine.delivery_service import DeliveryDeferred, DeliveryService
+from porterchain_api.notification_engine.delivery_service import (
+    DeliveryDeferred,
+    DeliveryService,
+)
 
 
 def test_preferred_vehicles_rejects_outside_catalog() -> None:
@@ -71,7 +74,7 @@ def test_convert_company_sets_negotiating_not_active() -> None:
     from porterchain_api.domain.merchant_states import MerchantStatus
 
     class _Svc(CrmContractsMixin):
-        def log_activity(self, *a, **k):  # noqa: ANN001
+        def log_activity(self, *a, **k):
             return None
 
     company = SimpleNamespace(
@@ -122,9 +125,8 @@ def test_sms_disabled_raises_delivery_deferred() -> None:
     ), patch(
         "porterchain_api.notification_engine.delivery_service.render_template",
         return_value=("t", "body"),
-    ):
-        with pytest.raises(DeliveryDeferred, match="sms_disabled"):
-            svc._send_sms("+15551234567", "tpl", {})
+    ), pytest.raises(DeliveryDeferred, match="sms_disabled"):
+        svc._send_sms("+15551234567", "tpl", {})
 
 
 def test_push_log_only_raises_delivery_deferred() -> None:
@@ -161,7 +163,7 @@ def test_customer_ensure_sets_porterchain_user_id() -> None:
         admin=None,
         driver=None,
         customer=customer,
-        active_merchant_users=lambda: [],
+        active_merchant_users=list,
     )
     db = MagicMock()
 

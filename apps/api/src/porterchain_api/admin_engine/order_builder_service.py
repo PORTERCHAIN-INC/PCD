@@ -1,6 +1,6 @@
 """Admin multi-waypoint order builder — creates PC orders with rich stops[].
 
-Persists adapter-shaped compliance_metadata.stops so the P0-2 Fleetbase mapper
+Persists compliance_metadata.stops so the stop model
 emits waypoints. Pricing uses Valhalla/OSRM via resolve_route_distance.
 """
 
@@ -8,24 +8,32 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_pricing import GeoPoint, PricingRequest
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_engine.order_metadata import resolve_order_type
-from porterchain_api.booking_engine.order_transitions import transition_to_dispatch_ready
+from porterchain_api.booking_engine.order_transitions import (
+    transition_to_dispatch_ready,
+)
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import OrderSource, OrderState
-from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError, assert_not_fsa_refused
+from porterchain_api.merchant_engine.booking_validation import (
+    BookingValidationError,
+    MerchantSyncService,
+    assert_not_fsa_refused,
+)
 from porterchain_api.merchant_engine.lookups import get_merchant
-from porterchain_api.booking_models import Order
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_admin import AdminCreateOrderRequest, AdminOrderStopInput
 from porterchain_api.services.routing import resolve_route_distance
-from porterchain_pricing import GeoPoint, PricingRequest
 
 VALID_KINDS = frozenset({"single", "hub_spoke", "multi_pickup_delivery", "scheduled_pickup"})
 
@@ -91,7 +99,7 @@ class OrderBuilderService:
         ctx: AdminContext,
         body: AdminCreateOrderRequest,
     ) -> dict[str, Any]:
-        del settings  # reserved for future Fleetbase sync options
+        del settings
         merchant = get_merchant(db, body.merchant_id)
         if not merchant:
             raise LookupError("merchant_not_found")

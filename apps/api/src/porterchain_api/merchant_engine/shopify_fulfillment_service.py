@@ -14,22 +14,17 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
-from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
-from porterchain_api.booking_models import Order
-from porterchain_api.merchant_models import ShopifyShop
 from porterchain_api.merchant_engine.shopify_urls import (
-    carrier_rates_url,
-    fulfillment_callback_prefix,
     normalize_shop_domain,
-    webhook_url,
 )
+from porterchain_api.merchant_models import ShopifyShop
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +87,7 @@ def ingest_fulfillment_order_notification(
                 "raw_body": raw_body.decode("utf-8"),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("shopify_fo_notification_enqueue_failed shop=%s", shop_domain)
         raise RuntimeError("shopify_enqueue_failed") from exc
     return {"ok": True, "queued": True, "action": action}
@@ -100,19 +95,11 @@ def ingest_fulfillment_order_notification(
 
 
 
-from porterchain_api.merchant_engine.shopify_fulfillment_ops import (  # noqa: E402
-    _order_payload_from_fo,
+from porterchain_api.merchant_engine.shopify_fulfillment_ops import (
     _register_carrier_service,
     _register_fulfillment_service,
     _register_webhooks,
-    _reject_reason,
-    act_on_queued_fo,
-    cancel_shopify_fulfillment,
     carrier_error_code,
-    delete_partner_services,
-    fulfillment_event_status,
-    push_fulfillment,
-    re_register_shop_hooks,
 )
 
 
@@ -126,19 +113,19 @@ def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]
     carrier_error: str | None = None
     try:
         _register_webhooks(shop, settings)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("shopify_webhook_register_failed shop=%s", shop.shop_domain, exc_info=True)
         errors.append(f"webhooks:{exc}")
     try:
         _register_carrier_service(shop, settings)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("shopify_carrier_register_failed shop=%s", shop.shop_domain, exc_info=True)
         errors.append(f"carrier:{exc}")
         carrier_error = carrier_error_code(exc)
     if settings.shopify_fulfillment_service_enabled:
         try:
             _register_fulfillment_service(shop, settings)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "shopify_fulfillment_service_register_failed shop=%s",
                 shop.shop_domain,

@@ -26,6 +26,7 @@ from porterchain_api.auth import clerk_webhook_models  # noqa: F401
 from porterchain_api.billing_engine import models as billing_models  # noqa: F401
 from porterchain_api.notification_engine import models as notification_models  # noqa: F401
 from porterchain_api.intelligence_engine import usage_models as ai_usage_models  # noqa: F401
+from porterchain_api.dispatch_engine import models as dispatch_models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

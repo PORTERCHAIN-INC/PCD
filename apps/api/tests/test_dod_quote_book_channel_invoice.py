@@ -7,7 +7,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
+from porterchain_api.booking_models import Order
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
@@ -16,9 +20,11 @@ from porterchain_api.merchant_engine.commerce_metrics import (
     reset_commerce_events_for_tests,
 )
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.reporting_metrics import channel_for_order_source, spend_by_channel
+from porterchain_api.merchant_engine.reporting_metrics import (
+    channel_for_order_source,
+    spend_by_channel,
+)
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Order
 
 
 def _addr(**extra) -> dict:
@@ -151,7 +157,9 @@ def test_ar_mismatch_metric_on_quote_line_drift():
     }
     reasons = check_invoice_detail_consistency(detail)
     assert "quote_vs_line" in reasons
-    from porterchain_api.merchant_engine.commerce_metrics import prometheus_commerce_lines
+    from porterchain_api.merchant_engine.commerce_metrics import (
+        prometheus_commerce_lines,
+    )
 
     text = "\n".join(prometheus_commerce_lines())
     assert 'kind="ar_mismatch"' in text

@@ -31,7 +31,9 @@ def resolve_principal_cached(
     identity: AuthenticatedIdentity,
 ) -> CurrentPrincipal:
     """Resolve CurrentPrincipal once per request/subject."""
-    from porterchain_api.auth.principal_resolution_service import PrincipalResolutionService
+    from porterchain_api.auth.principal_resolution_service import (
+        PrincipalResolutionService,
+    )
 
     cache: dict[str, CurrentPrincipal] = db.info.setdefault(_PRINCIPAL_CACHE, {})
     key = identity.subject or ""

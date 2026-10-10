@@ -5,22 +5,24 @@ import { Search } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ops, type OpsSearchResult } from "@/lib/operations";
 import { titleCase } from "@/lib/crmFormat";
-import type { OpsToolId, OpsViewId } from "@/components/operations/opsViews";
 
-const VIEW_JUMPS: { id: string; label: string; view: OpsViewId; tool?: OpsToolId }[] = [
-  { id: "desk", label: "Desk", view: "desk" },
-  { id: "board", label: "Dispatch Board", view: "board" },
-  { id: "orders", label: "Active Orders", view: "orders" },
-  { id: "attention", label: "Attention (exceptions / SLA)", view: "attention" },
-  { id: "exceptions", label: "Exceptions", view: "attention" },
-  { id: "sla", label: "SLA Monitor", view: "attention" },
-  { id: "scheduled", label: "Scheduled", view: "tools", tool: "scheduled" },
-  { id: "optimize", label: "Optimize", view: "tools", tool: "optimize" },
-  { id: "utilization", label: "Utilization", view: "tools", tool: "utilization" },
-  { id: "copilot", label: "Copilot", view: "tools", tool: "ai" },
-  { id: "ai", label: "Copilot", view: "tools", tool: "ai" },
-  { id: "queue", label: "Dispatch Queue (Desk)", view: "desk" },
-  { id: "map", label: "Live Map (Desk)", view: "desk" },
+/** Dispatch sections reachable from the palette (⌘K). */
+const VIEW_JUMPS: { id: string; label: string; href: string }[] = [
+  { id: "today", label: "Today", href: "/dispatch/today" },
+  { id: "queue", label: "Unassigned queue", href: "/dispatch/today" },
+  { id: "board", label: "Board", href: "/dispatch/today" },
+  { id: "plan", label: "Plan the day", href: "/dispatch/plan" },
+  { id: "optimize", label: "Optimize route", href: "/dispatch/plan" },
+  { id: "scheduled", label: "Scheduled batches", href: "/dispatch/plan" },
+  { id: "copilot", label: "Copilot", href: "/dispatch/plan" },
+  { id: "live", label: "Live map + ETA", href: "/dispatch/live" },
+  { id: "map", label: "Live map", href: "/dispatch/live" },
+  { id: "exceptions", label: "Exceptions", href: "/dispatch/exceptions" },
+  { id: "sla", label: "Late / at risk", href: "/dispatch/exceptions" },
+  { id: "orders", label: "Orders", href: "/orders" },
+  { id: "fleet", label: "Fleet + capacity", href: "/dispatch/fleet" },
+  { id: "drivers", label: "Drivers", href: "/dispatch/fleet" },
+  { id: "metrics", label: "Metrics", href: "/dispatch/metrics" },
 ];
 
 export function OpsCommandPalette({
@@ -28,7 +30,7 @@ export function OpsCommandPalette({
   onJumpView,
 }: {
   onOpenOrder: (id: string) => void;
-  onJumpView?: (view: OpsViewId, tool?: OpsToolId | null) => void;
+  onJumpView?: (href: string) => void;
 }) {
   const { getApiToken } = useAdminAuth();
   const [open, setOpen] = useState(false);
@@ -98,7 +100,7 @@ export function OpsCommandPalette({
             ) && (
               <div className="mb-2">
                 <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
-                  Control Tower
+                  Dispatch
                 </p>
                 {VIEW_JUMPS.filter(
                   (j) =>
@@ -107,15 +109,15 @@ export function OpsCommandPalette({
                 )
                   .filter(
                     (j, i, arr) =>
-                      arr.findIndex((x) => x.view === j.view && x.tool === j.tool) === i
+                      arr.findIndex((x) => x.href === j.href) === i
                   )
                   .map((j) => (
                     <button
-                      key={`${j.view}-${j.tool ?? ""}-${j.id}`}
+                      key={`${j.href}-${j.id}`}
                       type="button"
                       className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-bg"
                       onClick={() => {
-                        onJumpView(j.view, j.tool ?? null);
+                        onJumpView(j.href);
                         setOpen(false);
                         setQ("");
                       }}

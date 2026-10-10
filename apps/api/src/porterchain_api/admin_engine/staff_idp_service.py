@@ -7,12 +7,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_shared.redis_health import is_local_env
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminUser
-from porterchain_api.auth.invitation_service import INVITABLE_ADMIN_ROLES, pending_clerk_id
+from porterchain_api.auth.invitation_service import (
+    INVITABLE_ADMIN_ROLES,
+    pending_clerk_id,
+)
 from porterchain_api.auth.staff_enrollment import (
     StaffEnrollmentToken,
     consume_enrollment_token,
@@ -22,7 +26,6 @@ from porterchain_api.auth.staff_enrollment import (
 from porterchain_api.auth.staff_mail import send_staff_activate_email
 from porterchain_api.auth.staff_session import StaffSession, create_session
 from porterchain_api.config import Settings
-from porterchain_shared.redis_health import is_local_env
 
 
 def ensure_staff_identity(db: Session, user: AdminUser) -> str:
@@ -299,7 +302,10 @@ class StaffIdpService:
     ) -> dict[str, Any]:
         """Lost-device recovery: wipe passkeys, revoke all sessions, reissue activate link."""
         from porterchain_api.auth.staff_security_events import record_security_event
-        from porterchain_api.auth.staff_session import delete_all_passkeys, revoke_all_for_user
+        from porterchain_api.auth.staff_session import (
+            delete_all_passkeys,
+            revoke_all_for_user,
+        )
 
         user = db.query(AdminUser).filter(AdminUser.id == admin_user_id).first()
         if not user:

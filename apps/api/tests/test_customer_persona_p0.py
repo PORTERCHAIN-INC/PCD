@@ -16,16 +16,27 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
-from porterchain_api.admin_engine.customer_booking_admin_service import CustomerBookingAdminService
-from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext, parse_admin_role
+from porterchain_api.admin_engine.customer_booking_admin_service import (
+    CustomerBookingAdminService,
+)
+from porterchain_api.admin_engine.rbac import (
+    MODULE_PERMISSIONS,
+    AdminContext,
+    parse_admin_role,
+)
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk import get_clerk_claims
 from porterchain_api.booking_engine.booking_service import BookingService
-from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
+from porterchain_api.booking_engine.confirmation_service import (
+    BookingConfirmationService,
+)
 from porterchain_api.booking_engine.customer_service import CustomerService
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.booking_models import Customer, Order
 from porterchain_api.compliance_engine.privacy_service import PrivacyService
@@ -33,7 +44,11 @@ from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.states import OrderState
 from porterchain_api.main import app
-from porterchain_api.schemas import AddressInput, CreateQuoteRequest, WebsitePricingSnapshot
+from porterchain_api.schemas import (
+    AddressInput,
+    CreateQuoteRequest,
+    WebsitePricingSnapshot,
+)
 
 
 def _matrix_require_module(ctx: AdminContext, module: str) -> None:

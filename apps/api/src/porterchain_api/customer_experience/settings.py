@@ -224,8 +224,7 @@ def normalize_cx(raw: Any) -> dict[str, Any]:
     _bool(ra, r_out, "enabled")
     _int(ra, r_out, "max_attempts", 1, 5, "reattempt")
     _int(ra, r_out, "return_to_sender_after", 1, 5, "reattempt")
-    if r_out["return_to_sender_after"] < r_out["max_attempts"]:
-        r_out["return_to_sender_after"] = r_out["max_attempts"]
+    r_out["return_to_sender_after"] = max(r_out["return_to_sender_after"], r_out["max_attempts"])
     return out
 
 

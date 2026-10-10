@@ -11,13 +11,13 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from porterchain_shared.queue.names import QueueName
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_models import Merchant, ShopifyShop
-from porterchain_shared.queue.names import QueueName
 
 
 @pytest.fixture
@@ -125,13 +125,12 @@ def test_hs19_worker_reraises_so_queue_can_retry(webhooks_module) -> None:
     with patch(
         "porterchain_api.merchant_engine.shopify_service.process_queued_webhook",
         side_effect=RuntimeError("hs19_book_failed"),
-    ):
-        with patch("porterchain_api.db.SessionLocal") as session_local:
-            db = MagicMock()
-            session_local.return_value = db
-            with pytest.raises(RuntimeError, match="hs19_book_failed"):
-                webhooks_module.process_webhook(payload)
-            db.rollback.assert_called()
+    ), patch("porterchain_api.db.SessionLocal") as session_local:
+        db = MagicMock()
+        session_local.return_value = db
+        with pytest.raises(RuntimeError, match="hs19_book_failed"):
+            webhooks_module.process_webhook(payload)
+        db.rollback.assert_called()
 
 
 def test_hs19_ingest_enqueue_shape_matches_worker(db: Session, shopify_shop: ShopifyShop) -> None:

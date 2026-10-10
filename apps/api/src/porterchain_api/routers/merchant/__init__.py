@@ -1,6 +1,10 @@
 """Merchant API package — thin sub-routers on shared `router`."""
 
-from porterchain_api.routers.merchant._deps import _order_response, _profile_response, router
+from porterchain_api.routers.merchant._deps import (
+    _order_response,
+    _profile_response,
+    router,
+)
 
 from porterchain_api.routers.merchant import dashboard_booking  # noqa: F401
 from porterchain_api.routers.merchant import route_imports  # noqa: F401

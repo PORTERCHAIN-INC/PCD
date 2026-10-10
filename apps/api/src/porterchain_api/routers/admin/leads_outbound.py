@@ -43,7 +43,9 @@ def leads_agent_activity(
 ) -> dict:
     """Zero-human lead agent board — inbox, welcomed, enrich, awaiting, blocked."""
     require_module(ctx, "crm_read")
-    from porterchain_api.collaboration_engine.lead_agent_activity import lead_agent_activity
+    from porterchain_api.collaboration_engine.lead_agent_activity import (
+        lead_agent_activity,
+    )
 
     return lead_agent_activity(db, lane_limit=lane_limit)
 
@@ -148,7 +150,9 @@ def send_lead_email(
     lead = _crm.get_lead(db, lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="lead_not_found")
-    from porterchain_api.collaboration_engine.lead_outbound_email import enqueue_lead_template_email
+    from porterchain_api.collaboration_engine.lead_outbound_email import (
+        enqueue_lead_template_email,
+    )
 
     try:
         return enqueue_lead_template_email(

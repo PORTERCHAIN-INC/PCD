@@ -3,68 +3,9 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.domain.order_lifecycle import FleetbaseLifecycleTranslator
-
-
-def test_presence_events_classify() -> None:
-    assert FleetbaseLifecycleTranslator.classify("driver.online") == "presence"
-    assert FleetbaseLifecycleTranslator.classify("driver.offline") == "presence"
-    assert FleetbaseLifecycleTranslator.classify("driver.updated") == "presence"
-    assert FleetbaseLifecycleTranslator.classify("order.assigned") == "driver"
-
-
-def test_mirror_driver_presence_retired() -> None:
-    from porterchain_api.platform.retired_sync import WebhookProcessor
-
-    driver = SimpleNamespace(
-        id="d1",
-        fleetbase_driver_id="fb-1",
-        is_online=False,
-        availability="offline",
-    )
-    db = MagicMock()
-    db.query.return_value.filter.return_value.first.return_value = driver
-
-    out = WebhookProcessor()._mirror_driver_presence(
-        db,
-        {"fleetbase_driver_id": "fb-1", "online": True, "event": "driver.online"},
-    )
-    assert out is None
-    assert driver.is_online is False
-    db.commit.assert_not_called()
-
-
-def test_reject_and_rehire_lifecycle() -> None:
-    from porterchain_api.admin_engine.driver_service import AdminDriverService
-
-    svc = AdminDriverService()
-    driver = SimpleNamespace(
-        id="d1",
-        status=DriverStatus.PENDING.value,
-        is_online=True,
-        availability="online",
-        fleetbase_driver_id=None,
-        clerk_user_id="user_x",
-    )
-    db = MagicMock()
-    ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
-
-    svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
-    svc._audit = MagicMock()  # type: ignore[method-assign]
-
-    with (
-        patch("porterchain_api.admin_engine.driver_service.emit_event"),
-        patch("porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"),
-    ):
-        out, warning = svc.reject_driver(db, ctx, "d1", settings=None)
-        assert out.status == DriverStatus.REJECTED.value
-        assert warning is None
-
-        rehined = svc.rehire_driver(db, ctx, "d1")
-        assert rehined.status == DriverStatus.PENDING.value
 
 
 def test_rehire_rejects_approved() -> None:
@@ -89,7 +30,10 @@ def test_rehire_rejects_approved() -> None:
 
 
 def test_customer_dashboard_schema_has_bookings_and_stats() -> None:
-    from porterchain_api.schemas_booking import CustomerDashboardResponse, CustomerRebookResponse
+    from porterchain_api.schemas_booking import (
+        CustomerDashboardResponse,
+        CustomerRebookResponse,
+    )
 
     dash = CustomerDashboardResponse.model_validate(
         {

@@ -50,7 +50,7 @@ def ensure_carrier_rates(
         return "ready"
     try:
         _register_carrier_service(row, settings)
-    except Exception as exc:  # noqa: BLE001 — the page shows the reason instead
+    except Exception as exc:
         logger.warning("shopify_carrier_heal_failed shop=%s", shop, exc_info=True)
         return carrier_error_code(exc)
     return "ready"

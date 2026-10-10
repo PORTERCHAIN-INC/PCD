@@ -8,10 +8,10 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.merchant_engine import reporting_metrics as report_engine
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine import reporting_metrics as report_engine
 
 
 class MerchantReportsService:

@@ -3,22 +3,27 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService, fetch_clerk_snapshots
+from porterchain_api.admin_engine.clerk_directory_service import (
+    fetch_clerk_snapshots,
+)
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.platform.retired_sync import BookingSyncService
-from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
+from porterchain_api.merchant_engine.booking_flow_service import (
+    MerchantBookingFlowService,
+)
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
 from porterchain_api.merchant_engine.settings_service import MerchantSettingsService
 from porterchain_api.notification_engine.delivery_service import DeliveryService
 from porterchain_api.notification_engine.fcm_service import FCMService
-from porterchain_api.schemas import AddressInput, CreateBookingDraftRequest, UpdateBookingDraftRequest
+from porterchain_api.schemas import (
+    AddressInput,
+    CreateBookingDraftRequest,
+    UpdateBookingDraftRequest,
+)
 from porterchain_api.schemas_merchant import AddressInput as MerchantAddressInput
 from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
 
@@ -195,17 +200,6 @@ def test_fetch_clerk_snapshots(mock_configured, mock_client, settings) -> None:
     with patch("porterchain_api.admin_engine.clerk_directory_service.ClerkClient.snapshot", return_value=snap):
         result = fetch_clerk_snapshots(settings, "driver", limit=10)
         assert isinstance(result, dict)
-
-
-@patch.object(BookingSyncService, "__init__", lambda self: None)
-def test_booking_sync_push_order(db, settings, dispatch_order) -> None:
-    settings.fleetbase_dispatch_bridge = True
-    svc = BookingSyncService()
-    svc._bridge = MagicMock()
-    fb_id = svc.push_order(db, settings, dispatch_order)
-    # Enqueue-only: no HTTP; returns existing link (None until drain).
-    assert fb_id is None
-    svc._bridge.sync_order.assert_not_called()
 
 
 def test_merchant_settings_extended(db, merchant_ctx) -> None:

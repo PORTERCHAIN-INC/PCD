@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.billing_engine.invoice_numbering import allocate_invoice_number
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.booking_engine.numbers import (
     generate_booking_number,
     generate_customer_reference,
@@ -15,18 +16,29 @@ from porterchain_api.booking_engine.numbers import (
     generate_receipt_number,
     generate_tracking_number,
 )
+from porterchain_api.booking_engine.order_metadata import (
+    resolve_order_type,
+    retail_order_source,
+)
+from porterchain_api.booking_engine.order_transitions import (
+    transition_to_dispatch_ready,
+)
 from porterchain_api.booking_engine.payment_service import PaymentService
-from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.config import Settings
-from porterchain_api.domain.states import OrderState, QuoteState
-from porterchain_api.booking_models import Booking, Customer, Invoice, Order, Payment, Quote
-from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
-from porterchain_api.booking_engine.order_metadata import resolve_order_type, retail_order_source
 from porterchain_api.booking_engine.row_locks import (
     lock_active_payment,
     lock_order_by_quote,
     lock_quote,
 )
+from porterchain_api.booking_models import (
+    Booking,
+    Customer,
+    Invoice,
+    Order,
+    Payment,
+    Quote,
+)
+from porterchain_api.config import Settings
+from porterchain_api.domain.states import OrderState, QuoteState
 
 
 def _retail_compliance_from_quote(quote: Quote) -> dict | None:
@@ -224,7 +236,9 @@ class BookingConfirmationService:
         )
         db.add(invoice)
         db.flush()
-        from porterchain_api.billing_engine.invoice_document import attach_invoice_document
+        from porterchain_api.billing_engine.invoice_document import (
+            attach_invoice_document,
+        )
         from porterchain_api.booking_engine.stop_sync import dual_write_stops
 
         dual_write_stops(db, order)
@@ -426,7 +440,6 @@ class BookingConfirmationService:
             if isinstance(order.compliance_metadata, dict)
             and isinstance((order.compliance_metadata or {}).get("parcels"), dict)
             else None,
-            "fleetbase_order_id": order.fleetbase_order_id,
         }
 
     @staticmethod

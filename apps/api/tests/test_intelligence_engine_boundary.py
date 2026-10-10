@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from porterchain_api.intelligence_engine import PHASE2_BOUNDARY, phase2_intelligence_enabled
+from porterchain_api.intelligence_engine import (
+    PHASE2_BOUNDARY,
+    phase2_intelligence_enabled,
+)
 from porterchain_api.intelligence_engine.enrichers import (
     explain_dispatch_rationale,
     paraphrase_merchant_actions,
@@ -81,11 +84,14 @@ def test_readonly_tools_reject_unknown_and_extract_merchant_id() -> None:
 
 def test_readonly_tools_and_usage_summary(db) -> None:
     from porterchain_api.intelligence_engine.tools import (
+        gather_ops_tool_context,
         get_merchant_snapshot,
         get_sla_queue,
-        gather_ops_tool_context,
     )
-    from porterchain_api.intelligence_engine.usage import ai_usage_summary, record_ai_usage
+    from porterchain_api.intelligence_engine.usage import (
+        ai_usage_summary,
+        record_ai_usage,
+    )
     from porterchain_api.merchant_models import Merchant
 
     merchant = Merchant(company_name="Tool Co", email="tools@example.com", status="ACTIVE")

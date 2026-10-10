@@ -45,7 +45,9 @@ def assess_deploy_frequency_policy() -> dict:
 def build_execution_metrics_dashboard(db: Session, settings) -> dict:
     del settings
     from porterchain_api.admin_engine.business_metrics import assess_business_metrics
-    from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
+    from porterchain_api.merchant_engine.webhook_delivery_health import (
+        assess_merchant_webhook_delivery,
+    )
 
     business = assess_business_metrics(db)
     return {

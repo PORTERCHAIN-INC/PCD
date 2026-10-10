@@ -11,16 +11,25 @@ import pytest
 
 from porterchain_api.admin_engine.scheduled_batches_service import _pickup_window
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError
-from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
+from porterchain_api.merchant_engine.booking_flow_service import (
+    MerchantBookingFlowService,
+)
 from porterchain_api.merchant_engine.booking_service import (
     MerchantBookingService,
     assert_pickup_window,
 )
-from porterchain_api.merchant_engine.parcel_amend_service import commercial_stops, packages_from_order
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+from porterchain_api.merchant_engine.parcel_amend_service import (
+    commercial_stops,
+    packages_from_order,
+)
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest, RouteImportPackageInput
+from porterchain_api.schemas_merchant import (
+    AddressInput,
+    MerchantBookDeliveryRequest,
+    RouteImportPackageInput,
+)
 
 
 def _ctx(db) -> MerchantContext:

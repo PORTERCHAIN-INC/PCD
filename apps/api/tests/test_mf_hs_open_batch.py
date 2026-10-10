@@ -13,10 +13,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
-from porterchain_api.admin_engine.diagnostics_catalog import TEST_BY_ID, TEST_CATALOG, TEST_IDS
-from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
 from porterchain_shared.config.settings import get_platform_settings
+
+from porterchain_api.admin_engine.diagnostics_catalog import (
+    TEST_BY_ID,
+    TEST_IDS,
+)
+from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -94,7 +97,7 @@ def test_na02_push_health_strip_wires_api_and_operations_page() -> None:
     assert "data.critical_24h" in strip
     assert "data.fcm.credentials_configured" in strip
 
-    ops = (ROOT / "apps/admin/src/components/operations/OpsTowerShell.tsx").read_text(encoding="utf-8")
+    ops = (ROOT / "apps/admin/src/components/dispatch/DispatchShell.tsx").read_text(encoding="utf-8")
     assert "PushHealthStrip" in ops
 
     types = (ROOT / "apps/admin/src/lib/notifications.ts").read_text(encoding="utf-8")

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from porterchain_api.intelligence_engine.assignment_service import recommend_batch_assignment
-from porterchain_api.intelligence_engine.copilot_service import ALLOWED_ACTIONS
 from porterchain_driver.sequence_store import (
     SequenceConflictError,
     apply_run_to_driver,
     rollback_sequence,
 )
+
+from porterchain_api.intelligence_engine.copilot_service import ALLOWED_ACTIONS
 
 
 def test_apply_run_increments_version_and_is_idempotent() -> None:
@@ -120,12 +120,3 @@ def test_nim_phase5_actions_closed_set() -> None:
         "hold_for_out_of_tile",
     ):
         assert action in ALLOWED_ACTIONS
-
-
-def test_assignment_stub_frozen() -> None:
-    out = recommend_batch_assignment(
-        ["o1", "o2"], ["d1"], flags={"intelligence": True}
-    )
-    assert out["status"] == "recommendation_only"
-    assert out["solver"] == "round_robin_stub_frozen"
-    assert out["human_override_required"] is True

@@ -8,13 +8,14 @@ from porterchain_api.routers.driver._deps import (
     DriverProfileResponse,
     Session,
     Settings,
-    driver_profile as map_driver_profile,
     evaluate_driver_onboarding,
     get_db,
     get_driver_context,
     get_settings,
     router,
-    svc)
+    svc,
+)
+from porterchain_api.routers.driver._deps import driver_profile as map_driver_profile
 
 
 @router.get("/me", response_model=DriverProfileResponse)
@@ -35,7 +36,9 @@ def driver_onboarding(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     """Onboarding checklist — portal blocks until ready. Expiry revokes flags first."""
-    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
+    from porterchain_api.driver_engine.compliance_expiry_service import (
+        DriverComplianceExpiryService,
+    )
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     return DriverOnboardingResponse(**evaluate_driver_onboarding(ctx.driver, settings=settings))
@@ -45,7 +48,9 @@ def driver_onboarding(
 def driver_profile(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db)):
-    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
+    from porterchain_api.driver_engine.compliance_expiry_service import (
+        DriverComplianceExpiryService,
+    )
 
     changed = DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     return svc.platform.profile.snapshot(db, ctx.driver)

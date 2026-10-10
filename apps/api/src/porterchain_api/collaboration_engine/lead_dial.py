@@ -229,7 +229,9 @@ def apply_call_disposition(
     if email:
         patch["email"] = email.strip().lower()[:320]
     if phone:
-        from porterchain_api.collaboration_engine.lead_ingest_service import normalize_phone_e164
+        from porterchain_api.collaboration_engine.lead_ingest_service import (
+            normalize_phone_e164,
+        )
 
         norm = normalize_phone_e164(phone)
         if norm:
@@ -248,7 +250,9 @@ def apply_call_disposition(
     lead = crm.update_lead(db, lead.id, patch)
 
     if outcome == "dnc":
-        from porterchain_api.collaboration_engine.lead_suppression import upsert_suppression
+        from porterchain_api.collaboration_engine.lead_suppression import (
+            upsert_suppression,
+        )
 
         upsert_suppression(
             db,

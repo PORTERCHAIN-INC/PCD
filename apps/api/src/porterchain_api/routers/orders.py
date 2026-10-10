@@ -28,7 +28,7 @@ def get_order_live_tracking(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> OrderTrackingResponse:
-    """Live GPS/status from Fleetbase — proxied through Porterchain API."""
+    """Live GPS/status from the assigned driver."""
     result = _tracking.get_order_tracking_response(db, settings, tracking_number)
     if not result:
         raise HTTPException(status_code=404, detail="order_not_found")

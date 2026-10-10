@@ -189,7 +189,7 @@ class ClerkClient:
             res.raise_for_status()
 
     @staticmethod
-    def _parse_ts(value: str | int | float | None) -> datetime | None:
+    def _parse_ts(value: str | float | None) -> datetime | None:
         if value is None:
             return None
         if isinstance(value, (int, float)):

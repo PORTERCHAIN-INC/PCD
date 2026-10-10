@@ -8,10 +8,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from porterchain_api.merchant_engine.package_service import PackageService
-from porterchain_api.merchant_engine.scan_gate_service import PackagesIncomplete, ScanGateService
+from porterchain_api.merchant_engine.scan_gate_service import (
+    PackagesIncomplete,
+    ScanGateService,
+)
 from porterchain_api.reporting.label_service import LabelService
 from porterchain_api.reporting.qr_codec import encode_label_qr
-from porterchain_api.reporting.thermal_pdf import render_thermal_labels
 
 
 def _order_with_three_boxes(order_id: str = "ord-furn") -> SimpleNamespace:

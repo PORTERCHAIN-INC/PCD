@@ -26,7 +26,6 @@ class AuthMeResponse(BaseModel):
     role: str | None = None
     status: str | None = None
     profile: dict | None = None
-    fleetbase_console_eligible: bool = False
     organization_ids: list[str] = Field(default_factory=list)
 
 

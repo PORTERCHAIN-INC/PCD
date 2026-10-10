@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_shared.config.settings import PlatformSettings
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk_registry import is_clerk_configured
 from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
 from porterchain_api.platform.health_status import normalize_check_status
-from porterchain_shared.config.settings import PlatformSettings
 
 
 def build_integration_health(
@@ -76,7 +76,7 @@ def build_integration_health(
             model=nvidia_model or "meta/llama-3.2-11b-vision-instruct",
             phase2_intelligence=bool(settings.phase2_flags.get("intelligence")),
             phase2_ai_dispatch=bool(settings.phase2_flags.get("ai_dispatch")),
-            note="Read-only language assist — never on pay / Valhalla / Fleetbase write path",
+            note="Read-only language assist — never on pay / Valhalla / dispatch write path",
         ),
         "nvidia_cuopt": _entry(
             "shadow" if cuopt_shadow else "disabled",

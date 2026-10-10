@@ -176,7 +176,9 @@ def test_growth_alert_emails_watch_list_only_when_admin_app_is_empty(db, monkeyp
 def test_agent_inbox_lists_unassigned_and_notices(db) -> None:
     from datetime import timedelta
 
-    from porterchain_api.collaboration_engine.lead_agent_activity import lead_agent_activity
+    from porterchain_api.collaboration_engine.lead_agent_activity import (
+        lead_agent_activity,
+    )
 
     suffix = uuid.uuid4().hex[:6]
     quiet = CrmLead(

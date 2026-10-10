@@ -5,11 +5,14 @@ from __future__ import annotations
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.control_tower._helpers import now_utc
 from porterchain_api.admin_models import Driver
 from porterchain_api.booking_models import Order
-from porterchain_api.order_engine.buckets import DELIVERY_ONLY_POOL, DISPATCH_POOL, IN_FLIGHT
-
-from porterchain_api.admin_engine.control_tower._helpers import now_utc
+from porterchain_api.order_engine.buckets import (
+    DELIVERY_ONLY_POOL,
+    DISPATCH_POOL,
+    IN_FLIGHT,
+)
 
 
 class AssignmentMixin:
@@ -28,6 +31,8 @@ class AssignmentMixin:
             .filter(
                 Order.assigned_driver_id.is_(None),
                 Order.state.in_(pool_states),
+                # Sandbox orders cannot be assigned live — keep them off the queue.
+                Order.is_sandbox.is_(False),
             )
             .order_by(Order.scheduled_at.asc())
             .limit(limit)

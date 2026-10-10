@@ -7,11 +7,23 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.e2e_validation_catalog import E2E_MARKER, REVERSE_EXCEPTION_SCENARIOS
-from porterchain_api.admin_engine.e2e_validation_helpers import PICKUP, DROPOFF, StepResult, _website_pricing
-from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
+from porterchain_api.admin_engine.e2e_validation_catalog import (
+    E2E_MARKER,
+    REVERSE_EXCEPTION_SCENARIOS,
+)
+from porterchain_api.admin_engine.e2e_validation_helpers import (
+    DROPOFF,
+    PICKUP,
+    StepResult,
+    _website_pricing,
+)
+from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine.confirmation_service import (
+    BookingConfirmationService,
+)
 from porterchain_api.booking_engine.customer_service import CustomerService
 from porterchain_api.booking_engine.order_transitions import (
     transition_order_state,
@@ -19,12 +31,10 @@ from porterchain_api.booking_engine.order_transitions import (
 )
 from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.quote_service import QuoteService
-from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.booking_models import Order
 from porterchain_api.schemas import CreateQuoteRequest
-from porterchain_shared.events.catalog import DomainEventType
 
 
 class E2EValidationReverseMixin:
@@ -133,7 +143,9 @@ class E2EValidationReverseMixin:
         exceptions: list[dict[str, Any]] = []
         for exc in REVERSE_EXCEPTION_SCENARIOS:
             try:
-                from porterchain_api.admin_engine.claims_service import AdminClaimsService
+                from porterchain_api.admin_engine.claims_service import (
+                    AdminClaimsService,
+                )
 
                 if admin_ctx:
                     c = AdminClaimsService().open_claim(
@@ -155,7 +167,7 @@ class E2EValidationReverseMixin:
     def _ensure_delivered_order(self, db: Session, settings: Settings) -> Order:
         # Forward ends at INVOICED (past DELIVERED). RTS requires DELIVERED→FAILED→RTS,
         # so we only reuse a true DELIVERED row; otherwise synthesize one that still
-        # emits dispatch-ready (Fleetbase) + a customer notification for phase_8.
+        # emits dispatch-ready + a customer notification for phase_8.
         existing = (
             db.query(Order)
             .filter(Order.internal_reference == E2E_MARKER, Order.state == OrderState.DELIVERED.value)
@@ -200,7 +212,7 @@ class E2EValidationReverseMixin:
         order.internal_reference = E2E_MARKER
         db.commit()
 
-        # Emit real dispatch-ready so the worker can enqueue Fleetbase push_order.
+        # Emit real dispatch-ready so the day plan picks the order up.
         transition_to_dispatch_ready(db, order, payload={"e2e_reverse": True, "marker": E2E_MARKER})
         db.refresh(order)
 

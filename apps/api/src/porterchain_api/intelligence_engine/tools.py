@@ -9,7 +9,8 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -99,7 +100,9 @@ def get_sla_queue(db: Session, *, limit: int = 12) -> dict[str, Any]:
 def get_optimize_run(db: Session, run_id: str) -> dict[str, Any]:
     """Slim PorterChain day-plan run for NIM insert/reject narration."""
     del db  # run store is Redis — Session unused but keeps tool signature uniform
-    from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
+    from porterchain_api.admin_engine.orchestrator_ops_service import (
+        OrchestratorOpsService,
+    )
 
     rid = (run_id or "").strip()
     if not rid:

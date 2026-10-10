@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from porterchain_api.intelligence_engine.cuopt_client import (
     _parse_cuopt_response,
     optimize_routing,

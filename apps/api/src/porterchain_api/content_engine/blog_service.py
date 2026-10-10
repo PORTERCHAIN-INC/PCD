@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy.exc import IntegrityError
@@ -181,8 +181,8 @@ class BlogService(BlogAuthorMixin):
         if when is None or status == "published":
             return None
         if when.tzinfo is None:
-            return when.replace(tzinfo=timezone.utc)
-        return when.astimezone(timezone.utc)
+            return when.replace(tzinfo=UTC)
+        return when.astimezone(UTC)
 
     def _commit(self, db: Session) -> None:
         try:
@@ -226,7 +226,7 @@ class BlogService(BlogAuthorMixin):
         self._ensure_unique_slug(db, locale=loc, slug=sl)
         pub_date = published_at
         if st == "published" and pub_date is None:
-            pub_date = datetime.now(timezone.utc).date()
+            pub_date = datetime.now(UTC).date()
         record = BlogPost(
             slug=sl,
             locale=loc,
@@ -307,7 +307,7 @@ class BlogService(BlogAuthorMixin):
             st = self._validate_status(status)
             record.status = st
             if st == "published" and record.published_at is None and published_at is None:
-                record.published_at = datetime.now(timezone.utc).date()
+                record.published_at = datetime.now(UTC).date()
             if st == "published":
                 record.scheduled_publish_at = None
         if featured is not None:
@@ -354,9 +354,9 @@ class BlogService(BlogAuthorMixin):
         self, db: Session, *, now: datetime | None = None, limit: int = 20
     ) -> list[BlogPost]:
         """Flip due draft schedules to published. Returns updated rows."""
-        clock = now or datetime.now(timezone.utc)
+        clock = now or datetime.now(UTC)
         if clock.tzinfo is None:
-            clock = clock.replace(tzinfo=timezone.utc)
+            clock = clock.replace(tzinfo=UTC)
         due = (
             db.query(BlogPost)
             .filter(

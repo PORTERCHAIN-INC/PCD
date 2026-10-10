@@ -19,7 +19,8 @@ from porterchain_api.routers.driver._deps import (
     get_settings,
     require_approved_driver,
     router,
-    svc)
+    svc,
+)
 
 
 def _pod_failure_status(message: str) -> int:
@@ -43,7 +44,7 @@ def navigation_session(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     order_id: str | None = None):
-    """Full navigation session — Fleetbase GPS, OSRM ETA, Valhalla route."""
+    """Full navigation session — last-known GPS, OSRM ETA, Valhalla route."""
     if not order_id:
         jobs = svc.platform.jobs.list_jobs(db, ctx.driver)
         current = jobs.get("current")

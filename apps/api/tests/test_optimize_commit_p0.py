@@ -10,9 +10,10 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
 from porterchain_driver.jobs import JobsService
 from porterchain_driver.sequence_store import SequenceConflictError
+
+from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
 
 
 def test_commit_requires_assignments() -> None:
@@ -93,16 +94,15 @@ def test_commit_sequence_conflict() -> None:
         patch(
             "porterchain_driver.sequence_store.read_sequence",
             return_value={"version": 3},
-        ),
+        ),pytest.raises(SequenceConflictError) as excinfo
     ):
-        with pytest.raises(SequenceConflictError) as excinfo:
-            svc.commit(
-                MagicMock(),
-                assignments=[{"order_id": "order_abc123", "sequence": 1}],
-                run_id="run-cas",
-                pc_driver_id="drv-1",
-                expected_sequence_version=1,
-            )
+        svc.commit(
+            MagicMock(),
+            assignments=[{"order_id": "order_abc123", "sequence": 1}],
+            run_id="run-cas",
+            pc_driver_id="drv-1",
+            expected_sequence_version=1,
+        )
     assert excinfo.value.current_version == 3
     assert excinfo.value.expected_version == 1
 
@@ -157,9 +157,8 @@ def test_optimize_commit_router_maps_conflict_to_409() -> None:
         ops_router,
         "_invoke",
         side_effect=SequenceConflictError(current_version=4, expected_version=1),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            ops_router.optimize_commit(body, ctx, MagicMock())
+    ), pytest.raises(HTTPException) as excinfo:
+        ops_router.optimize_commit(body, ctx, MagicMock())
     assert excinfo.value.status_code == 409
     detail = excinfo.value.detail
     assert detail["code"] == "sequence_version_conflict"

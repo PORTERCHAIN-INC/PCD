@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import SupportTicket
-from porterchain_api.domain.states import OrderState
 from porterchain_api.booking_models import Order, OrderEvent
+from porterchain_api.domain.states import OrderState
 from porterchain_api.order_engine.buckets import DONE_STATES
 from porterchain_api.support_engine.support_helpers import ticket_data
 
@@ -79,7 +78,7 @@ def assess_auto_dispatch(db: Session, *, window_days: int = DEFAULT_WINDOW_DAYS)
             live,
             Order.created_at >= cutoff,
             Order.state.in_(_DISPATCH_PIPELINE_STATES),
-            or_(Order.assigned_driver_id.isnot(None), Order.fleetbase_order_id.isnot(None)),
+            Order.assigned_driver_id.isnot(None),
         )
         .count()
     )

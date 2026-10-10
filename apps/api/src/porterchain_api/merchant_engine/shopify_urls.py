@@ -10,7 +10,10 @@ from dataclasses import dataclass
 from urllib.parse import urlencode
 
 from porterchain_api.config import Settings
-from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
+from porterchain_api.merchant_engine.secrets import (
+    decrypt_signing_secret,
+    encrypt_signing_secret,
+)
 
 _SHOP_RE = r"^[a-z0-9][a-z0-9\-]*\.myshopify\.com$"
 _STATE_TTL_S = 600

@@ -215,7 +215,9 @@ def merchant_rate_card(
     db: Session = Depends(get_db),
 ) -> MerchantRateCardResponse:
     require_module(ctx, "billing")
-    from porterchain_api.merchant_engine.rate_card_view import merchant_rate_card as build_card
+    from porterchain_api.merchant_engine.rate_card_view import (
+        merchant_rate_card as build_card,
+    )
 
     return MerchantRateCardResponse(**build_card(db, ctx.merchant))
 

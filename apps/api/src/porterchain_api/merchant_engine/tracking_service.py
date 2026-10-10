@@ -9,12 +9,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_services.maps.service import MapsService
 from sqlalchemy.orm import Session
 
-from porterchain_api.order_engine.buckets import IN_FLIGHT
-from porterchain_api.config import Settings
-from porterchain_api.reporting.pod_normalize import normalize_pod
 from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
+from porterchain_api.booking_models import Order
+from porterchain_api.config import Settings
 from porterchain_api.merchant_engine.organization_sync import public_shipper_branding
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.tracking_views import (
@@ -29,12 +29,11 @@ from porterchain_api.merchant_engine.tracking_views import (
     merchant_snapshot,
     public_track_url,
     set_cached_eta,
-    tracking_error_message,
     tracking_history,
     vehicle_info,
 )
-from porterchain_api.booking_models import Order
-from porterchain_services.maps.service import MapsService
+from porterchain_api.order_engine.buckets import IN_FLIGHT
+from porterchain_api.reporting.pod_normalize import normalize_pod
 
 IN_FLIGHT_STATES = IN_FLIGHT
 
@@ -46,7 +45,9 @@ _normalize_pod = normalize_pod
 
 class MerchantTrackingService:
     def __init__(self) -> None:
-        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+        from porterchain_api.booking_engine.repositories.order_repository import (
+            OrderRepository,
+        )
 
         self._tracking = TrackingFacade()
         self._maps = MapsService()
@@ -206,8 +207,6 @@ class MerchantTrackingService:
         return merchant_snapshot(payload)
 
     def _fetch_live(self, db: Session, settings: Settings, order: Order) -> dict[str, Any] | None:
-        if not order.fleetbase_order_id:
-            return None
         try:
             return self._tracking.fetch_raw(settings, order)
         except Exception:
@@ -260,9 +259,9 @@ class MerchantTrackingService:
         driver_id = getattr(order, "assigned_driver_id", None)
         if not driver_id:
             return None
-        from porterchain_api.dispatch_engine.ops_mirror import porterchain_driver_pin
+        from porterchain_api.dispatch_engine.driver_pin import driver_pin
 
-        return porterchain_driver_pin(driver_id)
+        return driver_pin(driver_id)
 
     def _eta(
         self,

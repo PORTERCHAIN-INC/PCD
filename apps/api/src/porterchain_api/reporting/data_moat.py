@@ -5,14 +5,14 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_services.maps.service import MapsService
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver, MerchantContract
 from porterchain_api.booking_engine.compliance_metadata import delivery_window_end
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order, OrderEvent
-from porterchain_services.maps.service import MapsService
+from porterchain_api.config import Settings
 
 ON_TIME_GRACE_MINUTES = 30
 
@@ -219,7 +219,7 @@ def _driver_ping_location(driver: Driver | None, live_raw: dict[str, Any] | None
 
 
 def own_ping_eta(db: Session, settings: Settings, order_id: str) -> dict[str, Any] | None:
-    """ETA from Porterchain driver ping + OSRM — not Fleetbase ETA field (§8.2.4)."""
+    """ETA from Porterchain driver ping + OSRM (§8.2.4)."""
     from porterchain_api.booking_engine.tracking_service import TrackingService
 
     order = db.query(Order).filter(Order.id == order_id).first()

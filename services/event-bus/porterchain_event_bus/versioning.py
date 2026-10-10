@@ -43,10 +43,6 @@ EVENT_SCHEMA_VERSIONS: dict[str, int] = {
     "notification.queued": 1,
     "notification.sent": 1,
     "webhook.received": 1,
-    "fleetbase.order_created": 1,
-    "fleetbase.status_updated": 1,
-    "fleetbase.pod_received": 1,
-    "fleetbase.sync_failed": 1,
 }
 
 

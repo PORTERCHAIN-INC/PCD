@@ -640,3 +640,26 @@ export function claimBonus(bonusId: string): Promise<unknown> {
 export function fetchRatings(): Promise<RatingsSummary> {
   return driverFetch(`${DRIVER_API}/ratings`);
 }
+
+// ---------- Dispatch route (committed plan) + stop check-ins ----------
+import type { CheckinEvent, DispatchRoute, StopChecklist } from "./dispatchRoute";
+
+export function fetchDispatchRoute(): Promise<{ route: DispatchRoute | null }> {
+  return driverFetch(`${DRIVER_API}/dispatch/route`);
+}
+
+export function dispatchCheckin(body: {
+  keys: string[];
+  event: CheckinEvent;
+  lat?: number;
+  lng?: number;
+  accuracy_m?: number;
+  note?: string;
+  pod_photo?: string;
+}): Promise<{ ok: boolean; order_state: string; route: DispatchRoute | null }> {
+  return driverFetch(`${DRIVER_API}/dispatch/stops/checkin`, { method: "POST", body: JSON.stringify(body) });
+}
+
+export function fetchDispatchChecklist(orderId: string): Promise<StopChecklist> {
+  return driverFetch(`${DRIVER_API}/dispatch/orders/${encodeURIComponent(orderId)}/checklist`);
+}

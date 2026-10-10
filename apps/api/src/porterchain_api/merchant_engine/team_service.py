@@ -12,11 +12,18 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.email_identity import normalize_email
 from porterchain_api.auth.invitation_service import pending_clerk_id
-from porterchain_api.domain.catalog_labels import merchant_status_label, seat_status_label
+from porterchain_api.domain.catalog_labels import (
+    merchant_status_label,
+    seat_status_label,
+)
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantRole
 from porterchain_api.merchant_engine.audit_copy import serialize_audit_log
 from porterchain_api.merchant_engine.lookups import get_merchant
-from porterchain_api.merchant_engine.rbac import MerchantContext, english_role, permissions_catalog
+from porterchain_api.merchant_engine.rbac import (
+    MerchantContext,
+    english_role,
+    permissions_catalog,
+)
 from porterchain_api.merchant_models import MerchantAuditLog, MerchantUser
 
 
@@ -97,7 +104,9 @@ class MerchantTeamService:
         }
 
     def _sync_team_contacts(self, db: Session, merchant) -> None:
-        from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
+        from porterchain_api.merchant_engine.contacts_service import (
+            MerchantContactsService,
+        )
 
         MerchantContactsService().sync_team_contacts(db, merchant)
 

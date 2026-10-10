@@ -14,17 +14,19 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from porterchain_services.maps.service import OSRM_PUBLIC_DEMO_LAST_RESORT, MapsService
 
 from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
 from porterchain_api.booking_models import Quote, VisitorSession
-from porterchain_api.merchant_engine.route_import_service import MerchantRouteImportService
+from porterchain_api.merchant_engine.route_import_service import (
+    MerchantRouteImportService,
+)
 from porterchain_api.schemas_admin import OptimizeCommitBody, OptimizeRunBody
 from porterchain_api.schemas_booking import (
     CreateQuoteRequest,
     QuoteResponse,
     VisitorTrackingInput,
 )
-from porterchain_services.maps.service import MapsService, OSRM_PUBLIC_DEMO_LAST_RESORT
 
 REPO = Path(__file__).resolve().parents[3]
 API_ENGINES = REPO / "apps" / "api" / "src" / "porterchain_api"

@@ -8,6 +8,18 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_models import Order
+from porterchain_api.config import Settings
+from porterchain_api.merchant_engine.booking_service import MerchantBookingService
+from porterchain_api.merchant_engine.orders_board import (
+    bulk_action as board_bulk_action,
+)
+from porterchain_api.merchant_engine.orders_board import (
+    dashboard_payload,
+    sanitize_merchant_detail,
+    tracking_timeline,
+)
+from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.order_engine import (
     ASSIGNED_STATES,
     DONE_STATES,
@@ -19,16 +31,6 @@ from porterchain_api.order_engine import (
     OrderFilters,
 )
 from porterchain_api.order_engine.platform_service import OrderPlatformService
-from porterchain_api.config import Settings
-from porterchain_api.merchant_engine.booking_service import MerchantBookingService
-from porterchain_api.merchant_engine.orders_board import (
-    bulk_action as board_bulk_action,
-    dashboard_payload,
-    sanitize_merchant_detail,
-    tracking_timeline,
-)
-from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.booking_models import Order
 
 
 @dataclass
@@ -53,7 +55,9 @@ class MerchantOrderFilters:
 
 class MerchantOrdersService:
     def __init__(self) -> None:
-        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
+        from porterchain_api.booking_engine.repositories.order_repository import (
+            OrderRepository,
+        )
 
         self._orders = OrderPlatformService()
         self._booking = MerchantBookingService()
@@ -130,7 +134,9 @@ class MerchantOrdersService:
         vehicle_class: str | None = None,
         settings: Settings | None = None,
     ) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendService
+        from porterchain_api.merchant_engine.parcel_amend_service import (
+            ParcelAmendService,
+        )
 
         order = self._require_owned(db, ctx, order_id)
         return ParcelAmendService().apply(
@@ -145,7 +151,9 @@ class MerchantOrdersService:
         )
 
     def order_tracking(self, db: Session, settings: Settings, ctx: MerchantContext, order_id: str) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
+        from porterchain_api.merchant_engine.tracking_service import (
+            MerchantTrackingService,
+        )
 
         return MerchantTrackingService().live_tracking(db, settings, ctx, order_id)
 
@@ -234,7 +242,9 @@ class MerchantOrdersService:
     ) -> dict[str, Any]:
         """Return pickup: customer address -> merchant, priced by the same engine."""
         from porterchain_api.merchant_engine import return_service as returns
-        from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+        from porterchain_api.merchant_engine.booking_validation import (
+            BookingValidationError,
+        )
 
         original = self._require_owned(db, ctx, order_id)
         returns.assert_can_open_return(db, original)
@@ -276,7 +286,7 @@ class MerchantOrdersService:
     ) -> tuple[Order, dict[str, Any]]:
         """The same POD the portal shows, read through the same scoped path.
 
-        Going through ``get_detail_360`` rather than Fleetbase directly means a
+        Going through ``get_detail_360`` means a
         download can never contain evidence the portal would have withheld.
         """
         order = self._require_owned(db, ctx, order_id)
@@ -317,7 +327,9 @@ class MerchantOrdersService:
     ) -> tuple[bytes, str]:
         """§8.1.13 — merchant-scoped compliance PDF dossier."""
         from porterchain_api.platform.driver_reads import get_driver
-        from porterchain_api.reporting.compliance_dossier import build_compliance_dossier_pdf
+        from porterchain_api.reporting.compliance_dossier import (
+            build_compliance_dossier_pdf,
+        )
 
         order = self._require_owned(db, ctx, order_id)
         events = self._orders.order_timeline(db, order_id)
@@ -332,7 +344,10 @@ class MerchantOrdersService:
         return build_print_preview_pdf(order), f"print-preview-{order.tracking_number}.pdf"
 
     def labels_pdf(self, db: Session, ctx: MerchantContext, order_id: str) -> tuple[bytes, str]:
-        from porterchain_api.reporting.label_service import LabelService, PackagesRequired
+        from porterchain_api.reporting.label_service import (
+            LabelService,
+            PackagesRequired,
+        )
 
         order = self._require_owned(db, ctx, order_id)
         try:
@@ -348,7 +363,10 @@ class MerchantOrdersService:
     def labels_bulk_pdf(
         self, db: Session, ctx: MerchantContext, order_ids: list[str]
     ) -> tuple[bytes, str]:
-        from porterchain_api.reporting.label_service import LabelService, PackagesRequired
+        from porterchain_api.reporting.label_service import (
+            LabelService,
+            PackagesRequired,
+        )
 
         cleaned = [oid.strip() for oid in order_ids if oid and oid.strip()]
         if not cleaned:

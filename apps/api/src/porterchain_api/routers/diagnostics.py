@@ -141,13 +141,6 @@ def day_plan_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _svc.day_plan_monitor(db)
 
 
-@router.get("/fleetbase-sync")
-def fleetbase_sync_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Deprecated alias for ``/day-plan`` (one release)."""
-    _guard(ctx)
-    return _svc.day_plan_monitor(db)
-
-
 @router.get("/merchant-webhook-delivery")
 def merchant_webhook_delivery_monitor(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     _guard(ctx)

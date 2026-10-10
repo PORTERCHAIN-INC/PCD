@@ -296,6 +296,19 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "support_engine->booking_engine:support_engine/support_tickets.py",
         # arch-refactor-baseline freeze (in-progress coupling; shrink later)
         "admin_engine->dispatch_engine:admin_engine/control_tower/assignment.py",
+        # Dispatch Phase 1: admin orchestration over the dispatch domain (same pattern as above).
+        "admin_engine->dispatch_engine:admin_engine/dispatch_board_service.py",
+        "admin_engine->dispatch_engine:admin_engine/job_offers_service.py",
+        "admin_engine->dispatch_engine:admin_engine/fleet_capacity_service.py",
+        # Driver stop check-ins: order transitions via booking API, POD files + live position via driver_engine.
+        "dispatch_engine->booking_engine:dispatch_engine/driver_route.py",
+        "dispatch_engine->driver_engine:dispatch_engine/driver_route.py",
+        # Dispatch Phase 2: fleet plans, partners/legs, retention (admin orchestration).
+        "admin_engine->dispatch_engine:admin_engine/fleet_plan_service.py",
+        "admin_engine->dispatch_engine:admin_engine/logistics_partners_service.py",
+        "admin_engine->driver_engine:admin_engine/logistics_partners_service.py",
+        "admin_engine->intelligence_engine:admin_engine/fleet_plan_service.py",
+        "admin_engine->booking_engine:admin_engine/job_offers_service.py",
         "admin_engine->dispatch_engine:admin_engine/control_tower/scoring.py",
         "admin_engine->dispatch_engine:admin_engine/live_map_service.py",
         "admin_engine->dispatch_engine:admin_engine/operations_service.py",

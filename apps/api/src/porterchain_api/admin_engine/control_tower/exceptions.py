@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.control_tower._helpers import now_utc, transition_path
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.order_transitions import transition_order_state
-from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.booking_models import Customer, Order, OrderException
+from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_models import ShopifyIngressDlq
-from porterchain_shared.events.catalog import DomainEventType
-
-from porterchain_api.admin_engine.control_tower._helpers import now_utc, transition_path
 
 SHOPIFY_DLQ_PREFIX = "shopify-dlq:"
 SHOPIFY_FULFILL_PREFIX = "shopify-fulfill:"
@@ -257,7 +256,9 @@ class ExceptionsMixin:
     def _resolve_shopify_dlq(
         self, db: Session, ctx: AdminContext, dlq_id: str, *, note: str | None
     ) -> dict:
-        from porterchain_api.merchant_engine.shopify_ingress_dlq import mark_dlq_resolved
+        from porterchain_api.merchant_engine.shopify_ingress_dlq import (
+            mark_dlq_resolved,
+        )
 
         row = db.get(ShopifyIngressDlq, dlq_id)
         if not row:

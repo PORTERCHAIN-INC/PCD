@@ -375,14 +375,6 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if did:
             add("driver_alert", "in_app", "driver", did, category="orders")
 
-    elif event_type == DomainEventType.FLEETBASE_STATUS_UPDATED:
-        ctx.setdefault("message", payload.get("status") or payload.get("to_state") or "Status updated")
-        if customer_id:
-            add("tracking_update", "push", "customer", customer_id)
-            add("tracking_update", "in_app", "customer", customer_id)
-        if merchant_id:
-            add("tracking_update", "in_app", "merchant", merchant_id)
-        # Terminal Fleetbase status is visible on ops board — no staff fanout.
 
     return specs
 

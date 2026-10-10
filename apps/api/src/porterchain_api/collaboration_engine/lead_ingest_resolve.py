@@ -20,7 +20,9 @@ from porterchain_api.domain.crm_states import (
 )
 
 if TYPE_CHECKING:
-    from porterchain_api.collaboration_engine.lead_ingest_service import CanonicalLeadEvent
+    from porterchain_api.collaboration_engine.lead_ingest_service import (
+        CanonicalLeadEvent,
+    )
 
 
 class LeadIngestResolveMixin:
@@ -140,7 +142,9 @@ class LeadIngestResolveMixin:
         merged_custom.update({k: v for k, v in custom_fields.items() if v is not None})
         lead.custom_fields = merged_custom
         if consent:
-            from porterchain_api.collaboration_engine.lead_suppression import merge_consent_safe
+            from porterchain_api.collaboration_engine.lead_suppression import (
+                merge_consent_safe,
+            )
 
             lead.consent = merge_consent_safe(
                 lead.consent if isinstance(lead.consent, dict) else {},

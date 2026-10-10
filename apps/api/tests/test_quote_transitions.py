@@ -1,6 +1,10 @@
 """Quote state machine tests."""
 
-from porterchain_api.domain.states import QUOTE_TRANSITIONS, QuoteState, can_transition_quote
+from porterchain_api.domain.states import (
+    QUOTE_TRANSITIONS,
+    QuoteState,
+    can_transition_quote,
+)
 
 
 def test_quote_same_state_allowed() -> None:

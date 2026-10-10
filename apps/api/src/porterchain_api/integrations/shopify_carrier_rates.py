@@ -9,6 +9,7 @@ import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_pricing import GeoPoint, ParcelSpec, PricingRequest
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
@@ -19,18 +20,17 @@ from porterchain_api.merchant_engine.service_area import (
     merchant_coverage_fsas,
     service_area_error,
 )
+from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
 from porterchain_api.merchant_engine.shopify_service import (
     _active_shop,
     _decrypt,
     address_from_saved,
     default_pickup_address,
 )
-from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
 from porterchain_api.merchant_models import Merchant, ShopifyRateQuote, ShopifyShop
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_merchant import AddressInput
 from porterchain_api.services.routing import resolve_route_distance
-from porterchain_pricing import GeoPoint, ParcelSpec, PricingRequest
 
 logger = logging.getLogger(__name__)
 
@@ -379,7 +379,7 @@ def apply_shopify_book_vehicle(merchant: Merchant, body: Any, payload: dict[str,
         from porterchain_api.domain.customer_goods import persist_vehicle_class
 
         return body.model_copy(update={"vehicle_class": persist_vehicle_class(vehicle)})
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception(
             "shopify_book_vehicle_resolve_failed merchant=%s",
             getattr(merchant, "id", None),
@@ -796,12 +796,14 @@ def carrier_service_rates(
             weight_kg=weight_kg,
             items=items,
         )
-    except Exception:  # noqa: BLE001 — checkout must not 500; omit rates
+    except Exception:
         logger.exception(
             "shopify_carrier_pricing_failed shop=%s", getattr(shop, "shop_domain", shop.id)
         )
         try:
-            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
+            from porterchain_api.merchant_engine.commerce_metrics import (
+                note_commerce_event,
+            )
 
             note_commerce_event("shopify_quote", "error")
         except Exception:
@@ -809,7 +811,9 @@ def carrier_service_rates(
         return _empty(shop, "pricing_error")
     finally:
         try:
-            from porterchain_api.merchant_engine.commerce_metrics import note_quote_latency
+            from porterchain_api.merchant_engine.commerce_metrics import (
+                note_quote_latency,
+            )
 
             note_quote_latency((time.perf_counter() - t0) * 1000.0)
         except Exception:
@@ -846,7 +850,7 @@ def carrier_service_rates(
             weight_kg=weight_kg,
         )
         quote_id = quote.id
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception(
             "shopify_carrier_quote_persist_failed shop=%s",
             getattr(shop, "shop_domain", shop.id),

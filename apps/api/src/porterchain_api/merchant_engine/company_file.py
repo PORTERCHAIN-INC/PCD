@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_api.domain.catalog_labels import MERCHANT_STATUS_LABELS, merchant_status_label
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
 from porterchain_api.merchant_models import Merchant

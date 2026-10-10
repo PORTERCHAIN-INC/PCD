@@ -11,10 +11,10 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
 from jwt.algorithms import RSAAlgorithm
+from porterchain_driver.auth_tokens import DRIVER_TOKEN_AUD, decode_driver_token
 
 from porterchain_api.auth import clerk_identity_provider as cip
 from porterchain_api.config import Settings
-from porterchain_driver.auth_tokens import DRIVER_TOKEN_AUD, decode_driver_token
 
 
 def _settings(**overrides: object) -> Settings:

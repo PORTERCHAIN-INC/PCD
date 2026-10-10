@@ -1,7 +1,7 @@
 """Control Tower Optimize — PorterChain one-van day plan.
 
 Maps queue orders to the OR-Tools sequencer (Valhalla matrix). Preview is
-stored in Redis; accept writes ``sequence_store``. No Fleetbase id required.
+stored in Redis; accept writes ``sequence_store``.
 """
 
 from __future__ import annotations
@@ -12,16 +12,16 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+import porterchain_api.user_models as _user_models  # noqa: F401 — Driver.porterchain_user_id FK
 from porterchain_api.admin_models import Driver, Vehicle
-from porterchain_api.domain.admin_states import DriverStatus
+from porterchain_api.booking_models import Order
 from porterchain_api.dispatch_engine.optimize_run_store import (
     STATUS_ERROR,
     STATUS_PENDING,
     STATUS_READY,
     read_optimize_run,
 )
-from porterchain_api.booking_models import Order
-import porterchain_api.user_models as _user_models  # noqa: F401 — Driver.porterchain_user_id FK
+from porterchain_api.domain.admin_states import DriverStatus
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,10 @@ class OrchestratorOpsService:
         offset: int = 0,
     ) -> dict[str, Any]:
         """Queue a one-van PorterChain day-plan preview. Worker runs OR-Tools."""
-        from porterchain_api.dispatch_engine.day_plan import payload_from_orders, queue_one_van
+        from porterchain_api.dispatch_engine.day_plan import (
+            payload_from_orders,
+            queue_one_van,
+        )
         from porterchain_api.platform.last_known import read_last_known
 
         del mode, prior_assignments  # accepted for API compat; day plan uses locked prefix
@@ -268,7 +271,9 @@ class OrchestratorOpsService:
         try:
             pending = queue_one_van(payload)
             if not pc_driver_id and not driver_ids:
-                from porterchain_api.dispatch_engine.optimize_run_store import mark_fleet_optimize_open
+                from porterchain_api.dispatch_engine.optimize_run_store import (
+                    mark_fleet_optimize_open,
+                )
 
                 mark_fleet_optimize_open()
             from porterchain_api.dispatch_engine.optimize_events import emit_enqueued
@@ -308,7 +313,6 @@ class OrchestratorOpsService:
             return {"ok": False, "status": STATUS_ERROR, "error": "run_not_found", "assignments": []}
         if rec.get("status") != STATUS_PENDING:
             return rec
-        # Always the PorterChain sequencer — Fleetbase HTTP path is gone.
         merged = finish_porterchain_run(db, run_id, {**rec, "engine": "porterchain"})
         status = STATUS_READY if merged.get("status") == "ready" or merged.get("ok") else STATUS_ERROR
         if status == STATUS_READY:
@@ -316,7 +320,9 @@ class OrchestratorOpsService:
             merged["status"] = STATUS_READY
         pc_driver_id = merged.get("pc_driver_id") or rec.get("pc_driver_id")
         if not pc_driver_id:
-            from porterchain_api.dispatch_engine.optimize_run_store import clear_fleet_optimize_open
+            from porterchain_api.dispatch_engine.optimize_run_store import (
+                clear_fleet_optimize_open,
+            )
 
             clear_fleet_optimize_open()
         if status == STATUS_READY:
@@ -333,8 +339,11 @@ class OrchestratorOpsService:
                 apply_flag = True
             if pc_driver_id and apply_flag:
                 try:
-                    from porterchain_api.dispatch_engine.optimize_events import emit_applied
                     from porterchain_driver.sequence_store import apply_run_to_driver
+
+                    from porterchain_api.dispatch_engine.optimize_events import (
+                        emit_applied,
+                    )
 
                     waypoints = apply_run_to_driver(str(pc_driver_id), merged)
                     if waypoints:
@@ -430,7 +439,9 @@ class OrchestratorOpsService:
         }
         if rid:
             _write_commit_cache(rid, payload)
-            from porterchain_api.dispatch_engine.optimize_run_store import clear_fleet_optimize_open
+            from porterchain_api.dispatch_engine.optimize_run_store import (
+                clear_fleet_optimize_open,
+            )
 
             clear_fleet_optimize_open()
         if pc_driver_id:

@@ -4,16 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import or_
-from sqlalchemy.orm import Session
-
-from porterchain_api.admin_models import PricingFsaRate
-from porterchain_api.merchant_models import Merchant
-from porterchain_api.pricing_engine.repository import (
-    SqlAlchemyPricingRepository,
-    current_price_version,
-)
-from porterchain_api.domain.catalog_labels import VEHICLE_LABELS
 from porterchain_pricing.policy import (
     MODEL_DISTANCE,
     MODEL_FSA,
@@ -21,6 +11,16 @@ from porterchain_pricing.policy import (
     policy_from_config,
 )
 from porterchain_pricing.types import GeoPoint, PricingRequest
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
+from porterchain_api.admin_models import PricingFsaRate
+from porterchain_api.domain.catalog_labels import VEHICLE_LABELS
+from porterchain_api.merchant_models import Merchant
+from porterchain_api.pricing_engine.repository import (
+    SqlAlchemyPricingRepository,
+    current_price_version,
+)
 
 _WHAT_WINS = {
     MODEL_FSA: "This account is priced on Ontario FSA flat rates.",
@@ -35,7 +35,7 @@ def _policy_for_merchant(merchant: Merchant) -> MerchantPricingPolicy:
     return policy
 
 
-def _cad_to_cents(value: float | int | None) -> int:
+def _cad_to_cents(value: float | None) -> int:
     return int(round(float(value or 0) * 100))
 
 

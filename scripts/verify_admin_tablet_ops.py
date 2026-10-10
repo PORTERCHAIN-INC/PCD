@@ -7,17 +7,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Control Tower owns the ops surface. The route only mounts OpsTowerShell;
-# pressure tiles and horizontal scroll live in the shell, not the page.
+# Dispatch owns the ops surface. Routes only mount DispatchShell; the speed
+# metrics grid and the horizontally scrollable section tabs live in the shell.
 REQUIRED = (
     (ROOT / "apps/admin/src/app/globals.css", ("ops-table-scroll", "ops-touch-target", "768px")),
     (ROOT / "apps/admin/src/components/AdminShell.tsx", ("ops-main",)),
-    (ROOT / "apps/admin/src/components/operations/OpsPressureBar.tsx", ("ops-stat-grid",)),
+    (ROOT / "apps/admin/src/components/dispatch/MetricsBar.tsx", ("grid-cols-2", "lg:grid-cols-6")),
     (
-        ROOT / "apps/admin/src/components/operations/OpsTowerShell.tsx",
-        ("ops-table-scroll", "OpsPressureBar"),
+        ROOT / "apps/admin/src/components/dispatch/DispatchShell.tsx",
+        ("overflow-x-auto", "MetricsBar", "min-h-11"),
     ),
-    (ROOT / "apps/admin/src/app/(ops)/operations/page.tsx", ("OpsTowerShell",)),
+    (ROOT / "apps/admin/src/app/(ops)/dispatch/[view]/page.tsx", ("DispatchShell",)),
 )
 
 
@@ -37,7 +37,7 @@ def main() -> int:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: ops tablet scroll, touch targets, control tower layout")
+    print("  PASS: ops tablet scroll, touch targets, dispatch layout")
     return 0
 
 

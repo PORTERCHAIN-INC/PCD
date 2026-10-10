@@ -13,15 +13,20 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
-from porterchain_api.admin_engine.clerk_directory_service import require_platform_user_type
+from porterchain_api.admin_engine.clerk_directory_service import (
+    require_platform_user_type,
+)
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext, parse_admin_role
+from porterchain_api.admin_engine.rbac import (
+    MODULE_PERMISSIONS,
+    AdminContext,
+    parse_admin_role,
+)
 from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole, DriverStatus
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS as MERCHANT_MODULE_PERMISSIONS
 from porterchain_api.merchant_engine.lookups import (
     get_merchant,
     get_merchant_by_email,
@@ -30,7 +35,13 @@ from porterchain_api.merchant_engine.lookups import (
     seats_for_clerk,
 )
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
-from porterchain_api.merchant_engine.team_service import bind_seat_clerk, ensure_merchant_seat
+from porterchain_api.merchant_engine.rbac import (
+    MODULE_PERMISSIONS as MERCHANT_MODULE_PERMISSIONS,
+)
+from porterchain_api.merchant_engine.team_service import (
+    bind_seat_clerk,
+    ensure_merchant_seat,
+)
 from porterchain_api.schemas_admin import PlatformUserAuthorizeResponse
 
 

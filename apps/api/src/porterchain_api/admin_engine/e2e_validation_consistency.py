@@ -7,10 +7,14 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.e2e_validation_catalog import CONSISTENCY_SURFACES, E2E_MARKER, ValidationStatus
+from porterchain_api.admin_engine.e2e_validation_catalog import (
+    CONSISTENCY_SURFACES,
+    E2E_MARKER,
+    ValidationStatus,
+)
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.booking_models import Order
 from porterchain_api.notification_engine.models import NotificationRecord
 
 
@@ -74,7 +78,9 @@ class E2EValidationConsistencyMixin:
                 admin_order = db.get(Order, order.id)
                 status = "PASS" if admin_order and admin_order.state == canonical_state else "FAIL"
             elif surface == "operations_queue":
-                from porterchain_api.admin_engine.operations_service import AdminOperationsService
+                from porterchain_api.admin_engine.operations_service import (
+                    AdminOperationsService,
+                )
 
                 queue = AdminOperationsService().dispatch_queue(db)
                 in_queue = any(o.id == order.id for o in queue)

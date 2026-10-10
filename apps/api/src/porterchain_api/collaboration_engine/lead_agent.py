@@ -76,11 +76,12 @@ def _mark_welcomed(lead: CrmLead, *, channel: str, detail: dict[str, Any]) -> No
 def _send_email(
     db: Session, lead: CrmLead, *, template_key: str, recipient: str, website_url: str
 ) -> dict[str, Any]:
+    from porterchain_shared.queue.names import QueueName
+    from porterchain_shared.queue.publisher import get_queue_publisher
+
     from porterchain_api.collaboration_engine.lead_consent import make_unsubscribe_token
     from porterchain_api.collaboration_engine.lead_suppression import is_suppressed
     from porterchain_api.config import get_settings
-    from porterchain_shared.queue.names import QueueName
-    from porterchain_shared.queue.publisher import get_queue_publisher
 
     if is_suppressed(db, email=recipient, phone=lead.phone):
         return {"status": "blocked", "reason": "suppressed"}
@@ -141,7 +142,9 @@ def _try_whatsapp(db: Session, lead: CrmLead, action: dict[str, Any]) -> dict[st
     template = str(action.get("template_key") or "lead_welcome")
     if not whatsapp_cloud_configured():
         # P0: return deeplink evidence — no fake sent
-        from porterchain_api.collaboration_engine.lead_nba import lead_next_best_action as _nba
+        from porterchain_api.collaboration_engine.lead_nba import (
+            lead_next_best_action as _nba,
+        )
 
         nba = _nba(db, lead)
         deeplink = next(
@@ -217,10 +220,10 @@ def reply_inbound_whatsapp(
     )
     if inbound_text and len(inbound_text) > 20:
         reply = (
-            f"Thanks for your note — PorterChain here. "
-            f"We help with vehicle + driver capacity across the GTA. "
-            f"Reply with deliveries/month + cities, or book via "
-            f"https://porterchain.com/sign-up?intent=quote&utm_source=wa_agent"
+            "Thanks for your note — PorterChain here. "
+            "We help with vehicle + driver capacity across the GTA. "
+            "Reply with deliveries/month + cities, or book via "
+            "https://porterchain.com/sign-up?intent=quote&utm_source=wa_agent"
         )
 
     result = send_whatsapp_text(phone=phone, body=reply, lead_id=lead.id)
@@ -319,7 +322,9 @@ def run_lead_agent(
             tags.append("needs_enrich")
             lead.tags = tags
         try:
-            from porterchain_api.collaboration_engine.lead_enrich import enrich_lead_email
+            from porterchain_api.collaboration_engine.lead_enrich import (
+                enrich_lead_email,
+            )
 
             er = enrich_lead_email(db, lead)
             out["channels"]["enrich"] = er

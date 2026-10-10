@@ -12,19 +12,32 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_engine.audit import log_admin_audit
-from porterchain_api.admin_engine.clerk_directory_local import create_local_driver, invite_directory_user
+from porterchain_api.admin_engine.clerk_directory_local import (
+    create_local_driver,
+    invite_directory_user,
+)
+from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.clerk_client import ClerkClient
-from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
-from porterchain_api.auth.clerk_registry import ClerkAppKind
-from porterchain_api.auth.portal_guard import is_legacy_shared_clerk_app
+from porterchain_api.auth.clerk_registry import (
+    ClerkAppKind,
+    clerk_client_for_kind,
+    is_clerk_secret_configured,
+)
 from porterchain_api.auth.invitation_service import InvitationService
+from porterchain_api.auth.portal_guard import is_legacy_shared_clerk_app
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.merchant_engine.lookups import get_merchant, get_merchant_user, get_merchant_user_by_email
-from porterchain_api.merchant_engine.team_service import bind_seat_clerk, deactivate_seat
+from porterchain_api.merchant_engine.lookups import (
+    get_merchant,
+    get_merchant_user,
+    get_merchant_user_by_email,
+)
+from porterchain_api.merchant_engine.team_service import (
+    bind_seat_clerk,
+    deactivate_seat,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +125,9 @@ class ClerkDirectoryService:
             raise ValueError("password_create_forbidden_for_retail")
         # Customers: mint local row (+ optional Platform invite) — same path as Customers page.
         if user_type == "customer":
-            from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
+            from porterchain_api.admin_engine.customer_admin_service import (
+                CustomerAdminService,
+            )
 
             row = CustomerAdminService().create_customer(
                 db,
@@ -137,7 +152,9 @@ class ClerkDirectoryService:
             merchant = get_merchant(db, merchant_id)
             if not merchant:
                 raise ValueError("merchant_not_found")
-            from porterchain_api.merchant_engine.team_service import ensure_merchant_seat
+            from porterchain_api.merchant_engine.team_service import (
+                ensure_merchant_seat,
+            )
 
             m_role = role or "merchant_ops"
             mu = ensure_merchant_seat(
@@ -336,7 +353,9 @@ class ClerkDirectoryService:
             if not platform_user_id:
                 raise ValueError("staff_delete_requires_platform_user_id")
             self._deactivate_platform_user(db, user_type, platform_user_id)
-            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+            from porterchain_api.auth.authz_sync import (
+                sync_authz_after_persona_mutation,
+            )
 
             u = db.query(AdminUser).filter(AdminUser.id == platform_user_id).first()
             if u and u.clerk_user_id:
@@ -361,7 +380,9 @@ class ClerkDirectoryService:
                 db, user_type, platform_user_id
             )
             if clerk_for_sync:
-                from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+                from porterchain_api.auth.authz_sync import (
+                    sync_authz_after_persona_mutation,
+                )
 
                 sync_authz_after_persona_mutation(db, clerk_for_sync)
         log_admin_audit(
@@ -439,7 +460,9 @@ class ClerkDirectoryService:
             db.flush()
             return driver.id
         if user_type == "customer":
-            from porterchain_api.admin_engine.merchant_lifecycle import ensure_retail_customer
+            from porterchain_api.admin_engine.merchant_lifecycle import (
+                ensure_retail_customer,
+            )
 
             customer = ensure_retail_customer(
                 db, email=email, phone=None, full_name=name
@@ -450,7 +473,9 @@ class ClerkDirectoryService:
             customer.clerk_user_id = clerk_user_id
             if name and name.strip() and not customer.full_name:
                 customer.full_name = name.strip()[:255]
-            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+            from porterchain_api.auth.authz_sync import (
+                sync_authz_after_persona_mutation,
+            )
 
             sync_authz_after_persona_mutation(db, clerk_user_id)
             return customer.id

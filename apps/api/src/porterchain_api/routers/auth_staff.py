@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
@@ -27,7 +28,7 @@ from porterchain_api.routers.auth import (
     _staff_session_response,
     router,
 )
-from fastapi.responses import JSONResponse
+
 
 @router.get("/staff/enrollment/{token}")
 def peek_staff_enrollment(token: str, request: Request) -> dict:

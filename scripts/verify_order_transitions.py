@@ -54,44 +54,6 @@ _ORDER_STATE_ASSIGN_ALLOWLIST: frozenset[str] = frozenset(
 )
 
 
-def _check_fleetbase_maps() -> list[str]:
-    failures: list[str] = []
-    sys.path.insert(0, str(API_SRC.parent))
-    try:
-        from porterchain_api.domain.order_lifecycle import (  # noqa: WPS433
-            FLEETBASE_EVENT_TO_STATE,
-            FLEETBASE_STATUS_TO_STATE,
-            PORTERCHAIN_STATE_TO_FLEETBASE_STATUS,
-        )
-    except ImportError as exc:
-        return [f"§3.3.1 cannot import lifecycle maps: {exc}"]
-    finally:
-        if str(API_SRC.parent) in sys.path:
-            sys.path.remove(str(API_SRC.parent))
-
-    sys.path.insert(0, str(API_SRC.parent))
-    try:
-        from porterchain_api.domain.states import OrderState  # noqa: WPS433
-    except ImportError as exc:
-        return [f"§3.3.1 cannot import OrderState: {exc}"]
-    finally:
-        if str(API_SRC.parent) in sys.path:
-            sys.path.remove(str(API_SRC.parent))
-
-    valid = {s.value for s in OrderState}
-    for label, mapping in (
-        ("FLEETBASE_EVENT_TO_STATE", FLEETBASE_EVENT_TO_STATE),
-        ("FLEETBASE_STATUS_TO_STATE", FLEETBASE_STATUS_TO_STATE),
-    ):
-        for key, state in mapping.items():
-            if state not in valid:
-                failures.append(f"§3.3.1 {label}[{key!r}] maps to unknown state {state!r}")
-    for state in PORTERCHAIN_STATE_TO_FLEETBASE_STATUS:
-        if state not in valid:
-            failures.append(f"§3.3.1 PORTERCHAIN_STATE_TO_FLEETBASE_STATUS key {state!r} unknown")
-    return failures
-
-
 def _check_canonical_paths() -> list[str]:
     failures: list[str] = []
     sys.path.insert(0, str(API_SRC.parent))
@@ -126,7 +88,7 @@ def _check_single_state_writer() -> list[str]:
 
 
 def main() -> int:
-    failures = _check_fleetbase_maps() + _check_canonical_paths() + _check_single_state_writer()
+    failures = _check_canonical_paths() + _check_single_state_writer()
     if failures:
         print("Order transition guard failed:")
         for item in failures:

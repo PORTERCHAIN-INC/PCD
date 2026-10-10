@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import porterchain_api.crm_models  # noqa: F401 — register crm_leads FK target for Driver
 from porterchain_api.admin_engine.impersonation_service import ImpersonationService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_engine.staff_lookups import ensure_local_super_admin
 from porterchain_api.admin_models import Driver
-import porterchain_api.crm_models  # noqa: F401 — register crm_leads FK target for Driver
 from porterchain_api.auth.impersonation_session import (
     IMP_BEARER_PREFIX,
     bearer_token_for_session,

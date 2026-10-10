@@ -5,8 +5,13 @@ from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
 from porterchain_api.booking_engine.stripe_webhook_service import StripeWebhookService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.driver_engine.background_check_service import DriverBackgroundCheckService
-from porterchain_api.services.stripe_service import StripeSignatureError, construct_webhook_event
+from porterchain_api.driver_engine.background_check_service import (
+    DriverBackgroundCheckService,
+)
+from porterchain_api.services.stripe_service import (
+    StripeSignatureError,
+    construct_webhook_event,
+)
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 _stripe_webhooks = StripeWebhookService()

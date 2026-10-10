@@ -12,9 +12,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_models import Customer, Order
 from porterchain_api.merchant_engine.privacy import (
-    MERCHANT_DELETE_RECEIVED,
     MerchantPrivacyService,
-    merchant_privacy_file,
 )
 
 PRIVACY_ERROR_MESSAGES: dict[str, str] = {

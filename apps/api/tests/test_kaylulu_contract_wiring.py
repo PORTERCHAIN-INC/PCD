@@ -11,6 +11,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from porterchain_pricing.engine import PricingEngine
+from porterchain_pricing.policy import policy_from_config
+from porterchain_pricing.types import PricingContext
 
 from porterchain_api.admin_engine.fsa_admin_service import FsaAdminService
 from porterchain_api.domain.merchant_states import MerchantStatus
@@ -38,9 +41,6 @@ from porterchain_api.schemas_merchant import (
     RouteImportPackageInput,
 )
 from porterchain_api.schemas_pricing import FsaRateBody
-from porterchain_pricing.engine import PricingEngine
-from porterchain_pricing.policy import policy_from_config
-from porterchain_pricing.types import PricingContext
 
 REGISTRY_GAPS = ("L5P", "M7R", "M7A", "M7Y", "L3E", "L3J", "L3W", "N6H", "N6J", "N6K")
 

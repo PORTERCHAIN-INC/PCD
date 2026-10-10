@@ -28,7 +28,7 @@ from porterchain_api.merchant_engine.webhook_delivery_service import (
 )
 from porterchain_api.merchant_models import MerchantWebhook
 
-# Happy path for partner certification (no Fleetbase, no Google ETA).
+# Happy path for partner certification (no live dispatch, no Google ETA).
 SANDBOX_HAPPY_PATH: tuple[tuple[OrderState, str], ...] = (
     (OrderState.DISPATCH_READY, "order.dispatch_ready"),
     (OrderState.DRIVER_ASSIGNED, "order.driver_assigned"),
@@ -97,8 +97,6 @@ def simulate_sandbox_lifecycle(
         raise LookupError("order_not_found")
     if not order_is_sandbox(order):
         raise ValueError("simulator_requires_sandbox_order")
-    if order.fleetbase_order_id:
-        raise ValueError("simulator_refuses_fleetbase_linked_orders")
 
     stop_at = OrderState(until_state) if until_state else OrderState.POD_COMPLETED
     current_idx = _path_index(OrderState(order.state))

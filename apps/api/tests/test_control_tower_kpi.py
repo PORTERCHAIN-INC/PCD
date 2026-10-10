@@ -9,9 +9,12 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.control_tower_service import ControlTowerService
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
-from porterchain_api.domain.states import OrderState
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Order
+from porterchain_api.domain.states import OrderState
 
 
 def _order(state: OrderState = OrderState.IN_TRANSIT, **overrides) -> Order:

@@ -14,9 +14,9 @@ from typing import Any, Literal
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.driver_models import DriverBonus, DriverWalletTransaction
 from porterchain_api.booking_models import Order
 from porterchain_api.driver_engine.wallet_ledger import wallet_balance_cents
+from porterchain_api.driver_models import DriverBonus, DriverWalletTransaction
 
 Period = Literal["today", "week", "month"]
 
@@ -299,7 +299,10 @@ class DriverFinanceService:
             commit=False,
         )
         from porterchain_api.admin_engine.driver_lookups import get_driver
-        from porterchain_api.driver_engine.wallet_ledger import record_transaction, wallet_balance_cents
+        from porterchain_api.driver_engine.wallet_ledger import (
+            record_transaction,
+            wallet_balance_cents,
+        )
 
         driver = get_driver(db, driver_id)
         remaining = wallet_balance_cents(

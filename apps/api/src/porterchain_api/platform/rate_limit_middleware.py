@@ -99,4 +99,4 @@ class PortalRateLimitMiddleware(BaseHTTPMiddleware):
 
 
 # Re-export for tests that imported from this module.
-from porterchain_api.platform.rate_limit import _check_rate  # noqa: E402, F401
+from porterchain_api.platform.rate_limit import _check_rate  # noqa: F401

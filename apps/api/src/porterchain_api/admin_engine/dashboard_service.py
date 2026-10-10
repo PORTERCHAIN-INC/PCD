@@ -13,11 +13,11 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Claim, Driver, SupportTicket
+from porterchain_api.booking_models import Invoice, Order, Payment, Quote
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.states import OrderState, QuoteState
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Invoice, Order, Payment, Quote
 
 PORTERCHAIN_VERSION = os.environ.get("PORTERCHAIN_VERSION", "3.1.0")
 
@@ -133,16 +133,20 @@ class AdminDashboardService:
         """Single payload for the Executive Command Center UI."""
         from datetime import date, timedelta
 
-        from porterchain_api.admin_engine.booking_draft_admin_service import AdminBookingDraftService
+        from porterchain_api.admin_engine.booking_draft_admin_service import (
+            AdminBookingDraftService,
+        )
         from porterchain_api.admin_engine.claims_service import AdminClaimsService
-        from porterchain_api.admin_engine.control_tower_service import ControlTowerService
+        from porterchain_api.admin_engine.control_tower_service import (
+            ControlTowerService,
+        )
+        from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
         from porterchain_api.admin_engine.finance_service import AdminFinanceService
         from porterchain_api.admin_engine.orders_service import AdminOrdersService
         from porterchain_api.admin_engine.settings_service import AdminSettingsService
         from porterchain_api.admin_engine.support_service import AdminSupportService
         from porterchain_api.admin_models import Vehicle
         from porterchain_api.booking_models import Customer
-        from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
         from porterchain_api.crm_models import CrmContract
         from porterchain_api.domain.crm_states import ContractStatus
 
@@ -326,7 +330,7 @@ class AdminDashboardService:
             "drivers": {
                 **drivers,
                 # Online/offline/busy/available removed — live driver state is
-                # Fleetbase-owned; see the Fleetbase console for live capacity.
+                # Live capacity is on Dispatch → Fleet.
             },
             "fleet": {
                 "vehicles_total": vehicles_total,

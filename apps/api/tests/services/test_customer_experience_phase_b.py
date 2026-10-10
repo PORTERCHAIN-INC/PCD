@@ -13,11 +13,21 @@ from uuid import uuid4
 import pytest
 
 import porterchain_api.main  # noqa: F401 — registers every ORM model (FK targets)
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Order, OrderEvent
-from porterchain_api.customer_experience import scheduling, service
-from porterchain_api.customer_experience.events import eta_payload_is_close, process_order_event
-from porterchain_api.customer_experience.links import make_manage_token, manage_url, read_manage_token
+from porterchain_api.customer_experience import service
+from porterchain_api.customer_experience.events import (
+    eta_payload_is_close,
+    process_order_event,
+)
+from porterchain_api.customer_experience.links import (
+    make_manage_token,
+    manage_url,
+    read_manage_token,
+)
 from porterchain_api.customer_experience.notifications import in_quiet_hours, notify
 from porterchain_api.customer_experience.reattempt import CONTRACT_FLAG, record_failure
 from porterchain_api.customer_experience.settings import (
@@ -439,7 +449,10 @@ def test_token_for_other_order_is_rejected(db, merchant_ctx, settings) -> None:
 
 def test_bulky_gate_holds_until_recipient_schedules(db, merchant_ctx, settings, monkeypatch) -> None:
     from porterchain_api.merchant_engine.booking_service import MerchantBookingService
-    from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
+    from porterchain_api.schemas_merchant import (
+        AddressInput,
+        MerchantBookDeliveryRequest,
+    )
 
     merchant_ctx.merchant.payment_terms = "NET_30"
     _set_cx(db, merchant_ctx.merchant, apply_preset(normalize_cx(_all_on()), "furniture"))
@@ -481,7 +494,10 @@ def test_bulky_gate_holds_until_recipient_schedules(db, merchant_ctx, settings, 
 
 def test_default_merchant_booking_still_dispatches(db, merchant_ctx, settings, monkeypatch) -> None:
     from porterchain_api.merchant_engine.booking_service import MerchantBookingService
-    from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
+    from porterchain_api.schemas_merchant import (
+        AddressInput,
+        MerchantBookDeliveryRequest,
+    )
 
     merchant_ctx.merchant.payment_terms = "NET_30"
     db.commit()
