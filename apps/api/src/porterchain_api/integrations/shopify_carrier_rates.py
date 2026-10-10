@@ -97,7 +97,7 @@ def _ensure_geo(addr: AddressInput) -> AddressInput:
         lng=addr.lng,
     )
     if geo.lat is None or geo.lng is None:
-        return addr
+        return _fsa_centroid_fallback(addr)
     return addr.model_copy(
         update={
             "lat": geo.lat,
@@ -105,6 +105,19 @@ def _ensure_geo(addr: AddressInput) -> AddressInput:
             "formatted": geo.formatted or addr.formatted,
         }
     )
+
+
+def _fsa_centroid_fallback(addr: AddressInput) -> AddressInput:
+    """Geocoder miss → the postal area's centroid, never a 0 km (base-price) route."""
+    from porterchain_pricing.gta150_fsa import gta150_fsa_record
+
+    rec = gta150_fsa_record(fsa_from_address(addr))
+    lat = (rec or {}).get("lat", ((rec or {}).get("centroid") or {}).get("lat"))
+    lng = (rec or {}).get("lng", ((rec or {}).get("centroid") or {}).get("lng"))
+    if lat is None or lng is None:
+        return addr
+    logger.info("shopify_geocode_fsa_fallback fsa=%s", fsa_from_address(addr)[:3])
+    return addr.model_copy(update={"lat": float(lat), "lng": float(lng)})
 
 
 def _to_geo(addr: AddressInput) -> GeoPoint:
@@ -769,6 +782,8 @@ def carrier_service_rates(
     if service_area_error("destination", dropoff_raw, merchant_coverage_fsas(db, merchant)):
         return _empty(shop, "dest_out_of_area", dest_fsa=fsa_from_address(dropoff_raw)[:3])
     dropoff = _ensure_geo(dropoff_raw)
+    if dropoff.lat is None or dropoff.lng is None:
+        return _empty(shop, "dropoff_not_geocoded", dest_fsa=fsa_from_address(dropoff_raw)[:3])
 
     pickup, pickup_source, fallback = resolve_shopify_pickup(default_pickup, origin)
     if pickup_source == PICKUP_SOURCE_PORTERCHAIN:

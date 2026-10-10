@@ -5,11 +5,10 @@
  * chunks, no Clerk: the App Bridge session token is the identity.
  */
 
-import {
-  shopifyAdminShippingUrl,
-  shopifyInstallError,
-  shopifyRatesProblem,
-} from "./shopifyStatus.ts";
+import { shopifyInstallError, shopifyRatesProblem } from "./shopifyStatus.ts";
+
+/** App Bridge admin link: navigates the same admin tab (no new tab, no store handle). */
+export const ADMIN_SHIPPING = "shopify://admin/settings/shipping";
 
 export const APP_BRIDGE_SRC = "https://cdn.shopify.com/shopifycloud/app-bridge.js";
 
@@ -51,7 +50,7 @@ export function embeddedAppHtml(opts: {
   const errors = Object.fromEntries(ERROR_CODES.map((c) => [c, shopifyInstallError(c)]));
   errors._default = shopifyInstallError("unknown_code");
   const rates = Object.fromEntries(RATE_CODES.map((c) => [c, shopifyRatesProblem(c)]));
-  const shipping = shopifyAdminShippingUrl("__SHOP__");
+
   return `<!doctype html>
 <html lang="en"><head>
 <meta name="shopify-api-key" content="${esc(opts.apiKey)}" />
@@ -70,15 +69,17 @@ background:#0f2742;color:#fff;text-decoration:none;font-weight:600;font-size:.9r
 <body><main><h1>PorterChain Delivery</h1><div id="app"><p>Connecting your store…</p></div></main>
 <script>
 (function(){
-var API=${js(opts.apiUrl)},PORTAL=${js(opts.portalUrl)},ERR=${js(errors)},RATES=${js(rates)},SHIP=${js(shipping)};
+var API=${js(opts.apiUrl)},PORTAL=${js(opts.portalUrl)},ERR=${js(errors)},RATES=${js(rates)},SHIP=${js(ADMIN_SHIPPING)};
 var app=document.getElementById("app");
 function e(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function openShipping(){try{open(SHIP,"_top")}catch(x){}return false}
+window.openShipping=openShipping;
 function fail(code){app.innerHTML='<p class="box warn" role="alert">'+e(ERR[code]||ERR._default)+"</p>"}
 function bridge(n){return new Promise(function(ok,no){(function t(i){var s=window.shopify;
 if(s&&s.idToken)return ok(s);if(i>50)return no(new Error("session_token_missing"));setTimeout(function(){t(i+1)},100)})(0)})}
 function render(s){var h="",p=RATES[s.rates];
 if(s.rates!=="ready"){h+='<p class="box warn">'+e(p||RATES.carrier_register_failed)+"</p>"}
-else{h+='<div class="box ok"><p>PorterChain is registered as a carrier on '+e(s.shop_domain)+'. Shopify does not switch new carriers on by itself, so add PorterChain to your Canada shipping zone:</p><ol><li>Open Settings → Shipping and delivery.</li><li>Open the shipping profile and the zone that includes Canada (Ontario).</li><li>Click Add rate, then choose “Use carrier or app to calculate rates”.</li><li>Pick PorterChain, select its services, click Done, then Save.</li></ol><a class="btn alt" target="_top" href="'+e(SHIP.replace("__SHOP__",s.shop_domain.replace(/\\.myshopify\\.com$/,"")))+'">Open Shipping and delivery</a></div>'}
+else{h+='<div class="box ok"><p>PorterChain is registered as a carrier on '+e(s.shop_domain)+'. Shopify does not switch new carriers on by itself. If checkout already lists PorterChain for Canada you are done; otherwise:</p><p><strong>Newer admin (“Shipping has moved to Markets”):</strong></p><ol><li>Open Settings → Shipping and delivery → Markets, then the Canada market.</li><li>Under shipping rates, click Add rate → “Use carrier or app to calculate rates”.</li><li>Choose PorterChain (via app), select its services, then Save.</li></ol><p><strong>Older admin:</strong> Settings → Shipping and delivery → your shipping profile → the zone with Canada → Add rate → “Use carrier or app to calculate rates” → PorterChain → Done → Save.</p><a class="btn alt" target="_top" href="'+SHIP+'" onclick="return openShipping()">Open Shipping and delivery</a></div>'}
 h+='<p class="box note">PorterChain delivers in Toronto and up to 150 km around it. Orders shipping farther (other regions, provinces or countries) simply don’t see a PorterChain rate at checkout; your other rates keep working.</p>';
 if(s.linked){h+="<p>Linked to <strong>"+e(s.company_name)+'</strong>. Pickups, orders and invoices live in the PorterChain portal.</p><p><a class="btn" target="_blank" rel="noreferrer" href="'+e(PORTAL)+'/shopify">Open PorterChain portal</a></p>'}
 else{h+='<p>Last step: link this store to your PorterChain account so its orders, pickup address and invoices are yours. New to PorterChain? You can create an account on the next screen.</p><p><a class="btn" target="_blank" rel="noreferrer" href="'+e(PORTAL)+"/shopify?link="+encodeURIComponent(s.link_token||"")+'">Link to my PorterChain account</a></p>'}

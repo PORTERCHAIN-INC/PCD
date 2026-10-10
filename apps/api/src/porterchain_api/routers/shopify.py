@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -65,6 +65,7 @@ def _record_install_lead(db: Session, row) -> None:
 
 @router.post("/session")
 def shopify_embedded_session(
+    background: BackgroundTasks,
     authorization: Annotated[str | None, Header()] = None,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -77,7 +78,9 @@ def shopify_embedded_session(
     if not token:
         raise HTTPException(status_code=401, detail="session_token_missing")
     try:
-        return open_embedded(db, settings, token, on_install=_record_install_lead)
+        return open_embedded(
+            db, settings, token, on_install=_record_install_lead, defer=background.add_task
+        )
     except ValueError as exc:
         db.rollback()
         status = 401 if str(exc) == "session_token_invalid" else 400

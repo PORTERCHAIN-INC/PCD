@@ -155,3 +155,23 @@ def test_open_app_keeps_present_service_without_recreating(db) -> None:
     ):
         assert ensure_carrier_rates(db, settings, shop.shop_domain) == "ready"
     create.assert_not_called()
+
+
+def test_open_with_stored_carrier_answers_fast_and_verifies_in_background(db) -> None:
+    from tests.test_shopify_app_review import _company, _shop
+
+    from porterchain_api.merchant_engine import shopify_session as sess
+
+    settings = _settings()
+    ctx = _company(db)
+    shop = _shop(db, ctx.id, token=shopify._encrypt("tok", settings), gid="gid://shopify/DeliveryCarrierService/1")
+    queued: list = []
+    with (
+        patch.object(sess, "verify_session_token", return_value=shop.shop_domain),
+        patch("porterchain_api.merchant_engine.shopify_tokens.token_state_for_open", return_value="ok"),
+        patch(f"{_GQL}.carrier_service_find") as find,
+    ):
+        out = sess.open_embedded(db, settings, "tok", defer=queued.append)
+    assert out["rates"] == "ready"
+    find.assert_not_called()  # no Shopify round-trip before the page renders
+    assert len(queued) == 1

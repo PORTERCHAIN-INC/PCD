@@ -133,7 +133,7 @@ def _rate_call(payload: dict) -> dict:
         ),
         patch(
             "porterchain_api.integrations.shopify_carrier_rates._ensure_geo",
-            side_effect=lambda a: a,
+            side_effect=lambda a: a if hasattr(a, "lat") and a.lat is not None else (a.model_copy(update={"lat": 43.65, "lng": -79.38}) if hasattr(a, "model_copy") else a),
         ),
         patch(
             "porterchain_api.integrations.shopify_carrier_rates.quote_merchant_rate",

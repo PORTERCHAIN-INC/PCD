@@ -122,6 +122,8 @@ def test_first_open_installs_then_hands_back_link_token() -> None:
         patch("porterchain_api.merchant_engine.shopify_tokens.token_state_for_open", return_value=""),
         patch.object(session, "install_from_session_token", return_value=row) as install,
         patch.object(session, "rates_status", return_value="ready"),
+        patch.object(session, "_active_row", return_value=row),  # background webhook sweep + lead
+        patch("porterchain_api.db.SessionLocal", return_value=MagicMock()),
         patch("porterchain_api.routers.shopify._record_install_lead") as lead,
         patch.object(session, "is_unclaimed_install_merchant", return_value=True),
     ):

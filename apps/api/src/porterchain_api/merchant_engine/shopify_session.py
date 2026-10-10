@@ -143,8 +143,13 @@ def install_from_session_token(
     *,
     shop_domain: str,
     id_token: str,
+    full_hooks: bool = True,
 ) -> ShopifyShop:
-    """Store an offline token from Shopify's post-auth id_token."""
+    """Store an offline token from Shopify's post-auth id_token.
+
+    ``full_hooks=False`` registers only the CarrierService inline (the page shows its
+    status); the caller runs the webhook sweep in the background.
+    """
     from porterchain_api.merchant_engine import shopify_service as shopify
     from porterchain_api.merchant_engine.activation_service import (
         SIGNUP_SOURCE_SHOPIFY,
@@ -190,8 +195,46 @@ def install_from_session_token(
     apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_SHOPIFY)
     db.commit()
     db.refresh(row)
-    shopify._post_install_hooks(row, settings)
+    if full_hooks:
+        shopify._post_install_hooks(row, settings)
+    else:
+        _register_carrier_inline(row, settings)
     return row
+
+
+def _register_carrier_inline(row: ShopifyShop, settings: Settings) -> None:
+    from porterchain_api.merchant_engine.shopify_fulfillment_ops import (
+        _register_carrier_service,
+        carrier_error_code,
+    )
+
+    try:
+        _register_carrier_service(row, settings)
+        row.install_hooks = {"carrier_registered": True, "carrier_error": None}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("shopify_carrier_register_failed shop=%s", row.shop_domain, exc_info=True)
+        row.install_hooks = {"carrier_registered": False, "carrier_error": carrier_error_code(exc)}
+
+
+Defer = Callable[[Callable[[], None]], None]
+
+
+def _in_new_session(fn: Callable[[Session], None]) -> Callable[[], None]:
+    """Background work gets its own DB session (the request's is closed by then)."""
+
+    def run() -> None:
+        from porterchain_api.db import SessionLocal
+
+        db = SessionLocal()
+        try:
+            fn(db)
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            logger.exception("shopify_embedded_background_failed")
+        finally:
+            db.close()
+
+    return run
 
 
 def verify_session_token(token: str, settings: Settings) -> str:
@@ -228,6 +271,7 @@ def open_embedded(
     settings: Settings,
     session_token: str,
     on_install: Callable[[Session, ShopifyShop], None] | None = None,
+    defer: Defer | None = None,
 ) -> dict[str, Any]:
     """Every embedded page load: install on first open, heal rates after, report status.
 
@@ -239,14 +283,36 @@ def open_embedded(
 
     shop = verify_session_token(session_token, settings)
     token_state = token_state_for_open(db, settings, shop)
+    if defer is None:  # inline (tests / scripts): same work, no background
+        def defer(fn: Callable[[], None]) -> None:
+            fn()
+
     if token_state:
-        rates = ensure_carrier_rates(db, settings, shop, rehook=token_state == "migrated")
         row = _active_row(db, shop)
+        if token_state != "migrated" and getattr(row, "carrier_service_gid", None):
+            # Fast path: answer from the stored id; verify it is still on the store later.
+            rates = "ready"
+            defer(_in_new_session(lambda bg: ensure_carrier_rates(bg, settings, shop)))
+        else:
+            rates = ensure_carrier_rates(db, settings, shop, rehook=token_state == "migrated")
+            row = _active_row(db, shop)
     else:
-        row = install_from_session_token(db, settings, shop_domain=shop, id_token=session_token)
+        row = install_from_session_token(
+            db, settings, shop_domain=shop, id_token=session_token, full_hooks=False
+        )
         rates = rates_status(row)
-        if on_install:
-            on_install(db, row)
+
+        def _after_install(bg: Session) -> None:
+            from porterchain_api.merchant_engine import shopify_service as shopify
+
+            bg_row = _active_row(bg, shop)
+            if bg_row is None:
+                return
+            if on_install:
+                on_install(bg, bg_row)
+            shopify._post_install_hooks(bg_row, settings)  # webhooks (+ carrier, idempotent)
+
+        defer(_in_new_session(_after_install))
     merchant = db.get(Merchant, row.merchant_id) if row else None
     linked = bool(row) and not is_unclaimed_install_merchant(db, row.merchant_id, shop)
     return {

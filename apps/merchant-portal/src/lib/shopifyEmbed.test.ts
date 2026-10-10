@@ -37,3 +37,14 @@ test("prod compose passes SHOPIFY_API_KEY (not the secret) to the merchant porta
   assert.match(merchant, /SHOPIFY_API_KEY: \$\{SHOPIFY_API_KEY:-\}/);
   assert.doesNotMatch(merchant, /SHOPIFY_API_SECRET/);
 });
+
+test("Shipping button uses App Bridge admin navigation, no store placeholder", () => {
+  assert.match(html, /shopify:\/\/admin\/settings\/shipping/);
+  assert.doesNotMatch(html, /__SHOP__|__shop__|admin\.shopify\.com\/store/);
+  assert.match(html, /open\(SHIP,"_top"\)/);
+});
+
+test("steps cover the Markets layout first, old zones as fallback", () => {
+  assert.ok(html.indexOf("Shipping has moved to Markets") < html.indexOf("Older admin"));
+  assert.match(html, /PorterChain \(via app\)/);
+});
