@@ -5,9 +5,9 @@ import { orderIdFromPushData } from "./linking";
 import { clearRememberedPushToken, readRememberedPushToken, rememberPushToken } from "./pushToken";
 
 /** Must match FCM `categoryId` / APNs `category` for job_assigned pushes. */
-export const JOB_OFFER_CATEGORY = "job_offer";
-export const JOB_OFFER_ACCEPT = "accept";
-export const JOB_OFFER_DECLINE = "decline";
+const JOB_OFFER_CATEGORY = "job_offer";
+const JOB_OFFER_ACCEPT = "accept";
+const JOB_OFFER_DECLINE = "decline";
 
 function isFcmToken(token: string): boolean {
   return token.includes(":APA91");

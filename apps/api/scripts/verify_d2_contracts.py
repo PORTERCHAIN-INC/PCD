@@ -682,20 +682,18 @@ def main() -> int:
         failures.append("mobile-driver api.ts missing")
     else:
         mobile = DRIVER_MOBILE_API.read_text()
+        # The driver app is field-only (Today / Job / Me). Earnings statements, documents,
+        # inbox history and the knowledge base live on the driver web portal, not in the app.
         required_mobile = (
             "/driver-api/v1",
             "/push/register",
             "/push/unregister",
             "/jobs",
             "/support/hub",
-            "/support/knowledge-base",
-            "/communications/notifications",
-            "/communications/notifications/history",
-            "/communications/offline/retry",
-            "/earnings/statements/",
-            "/download",
             "/offline/sync",
-            "/navigation/route",
+            "/navigation/session",
+            "/emergency",
+            "/pod-complete",
         )
         for required in required_mobile:
             if required not in mobile:

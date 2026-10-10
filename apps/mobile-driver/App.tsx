@@ -1,429 +1,289 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { Alert, BackHandler, StyleSheet, View } from "react-native";
+/**
+ * PorterChain Driver. Five screens: Sign in, Location consent, and three tabs (Today, Job, Me).
+ * App owns navigation and the "run an action" helper; screens own their layout; stop logic
+ * lives in src/stop; data lives in useFieldSession.
+ */
+import { useCallback, useEffect, useState, type ReactElement } from "react";
+import { Alert, BackHandler, Platform, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { colors } from "@porterchain/mobile-theme";
-import {
-  acceptOrder,
-  rejectOrder,
-  arriveStop,
-  fetchPublicHealth,
-  reportException,
-  retryOfflineFailed,
-} from "./src/api";
+import { fetchOnboarding, fetchPublicHealth } from "./src/api";
 import { SessionGate } from "./src/auth/SessionGate";
-import { allowDevAuth } from "./src/config";
-import { completeStopAction } from "./src/hooks/completeStopAction";
-import { useComplianceGate } from "./src/hooks/useComplianceGate";
+import { allowDevAuth, driverPortalUrl } from "./src/config";
+import {
+  readLocationConsent,
+  saveLocationConsent,
+  withdrawLocationConsent,
+  type LocationConsent,
+} from "./src/consent";
+import { isSilentError } from "./src/errorCopy";
+import { canEnterRoute } from "./src/gate";
+import { runHandshake } from "./src/handshake";
 import { useDriverDeepLinks } from "./src/hooks/useDriverDeepLinks";
-import { useEnterRoute } from "./src/hooks/useEnterRoute";
 import { useFieldSession } from "./src/hooks/useFieldSession";
-import { openTurnByTurn } from "./src/maps";
-import { flushOfflineQueues, runOnlineOrQueue } from "./src/offline";
+import { startBackgroundLocation, stopBackgroundLocation } from "./src/location";
+import type { PretripChecks } from "./src/pretrip";
 import { setActiveJobNotification } from "./src/push";
-import { ForceUpdateScreen } from "./src/screens/ForceUpdateScreen";
+import { clearSession, getSessionSnapshot, waitForSignedSession } from "./src/session";
+import { emptyPodDraft, type PodDraft } from "./src/stop/podDraft";
+import { ConsentScreen } from "./src/screens/ConsentScreen";
+import { JobScreen } from "./src/screens/JobScreen";
+import { MeScreen } from "./src/screens/MeScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
-import { FieldShell } from "./src/ui/FieldShell";
+import { TodayScreen } from "./src/screens/TodayScreen";
 import { AppErrorBoundary } from "./src/ui/AppErrorBoundary";
-import { emptyPodDraft, type PodDraft } from "./src/ui/podDraft";
-import { Screen } from "./src/ui/Screen";
-import type { FieldTab, MobileDriverPolicy, Screen as AppScreen } from "./src/types";
+import { TabBar, type TabId } from "./src/ui/kit";
+import { Notice } from "./src/ui/Notice";
+import { color } from "./src/ui/theme";
+import type { MobileDriverPolicy } from "./src/types";
 import { currentAppVersion, isBelowMinVersion } from "./src/version";
 
-// Defer camera / field screens until after Clerk boot — eager imports load ExpoCamera
-// during module eval and can stall clerk-js FAPI callbacks on release builds.
-const DocsScreen = lazy(() =>
-  import("./src/screens/DocsScreen").then((m) => ({ default: m.DocsScreen }))
-);
-const InboxScreen = lazy(() =>
-  import("./src/screens/InboxScreen").then((m) => ({ default: m.InboxScreen }))
-);
-const InviteScreen = lazy(() =>
-  import("./src/screens/InviteScreen").then((m) => ({ default: m.InviteScreen }))
-);
-const JobDetailScreen = lazy(() =>
-  import("./src/screens/JobDetailScreen").then((m) => ({ default: m.JobDetailScreen }))
-);
-const JobsScreen = lazy(() =>
-  import("./src/screens/JobsScreen").then((m) => ({ default: m.JobsScreen }))
-);
-const MoneyScreen = lazy(() =>
-  import("./src/screens/MoneyScreen").then((m) => ({ default: m.MoneyScreen }))
-);
-const MoreScreen = lazy(() =>
-  import("./src/screens/MoreScreen").then((m) => ({ default: m.MoreScreen }))
-);
-const OnboardingScreen = lazy(() =>
-  import("./src/screens/OnboardingScreen").then((m) => ({ default: m.OnboardingScreen }))
-);
-const RouteScreen = lazy(() =>
-  import("./src/screens/RouteScreen").then((m) => ({ default: m.RouteScreen }))
-);
-const SupportScreen = lazy(() =>
-  import("./src/screens/SupportScreen").then((m) => ({ default: m.SupportScreen }))
-);
-
-function LazyFallback() {
-  return (
-    <Screen>
-      <View style={lazyStyles.list} accessibilityRole="progressbar" accessibilityLabel="Loading">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <View key={i} style={lazyStyles.row} />
-        ))}
-      </View>
-    </Screen>
-  );
-}
-
-const lazyStyles = StyleSheet.create({
-  list: { gap: 10, paddingTop: 8 },
-  row: {
-    height: 72,
-    borderRadius: 16,
-    backgroundColor: colors.primary + "0D",
-  },
-});
-
-// Universal / App Link: /auth/driver-invite · /jobs/{id}
-// Background location task must register before App mounts (see index.ts).
+type Blocker = { kind: "update"; policy: MobileDriverPolicy } | { kind: "setup" } | null;
 
 function DriverApp() {
-  const [screen, setScreen] = useState<AppScreen>("sign-in");
-  const [tab, setTab] = useState<FieldTab>("work");
-  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const field = useFieldSession();
+  const { handshake: h, setHandshake, setError } = field;
+  const [signedInView, setSignedInView] = useState(false);
+  const [blocker, setBlocker] = useState<Blocker>(null);
+  const [tab, setTab] = useState<TabId>("today");
+  const [pod, setPod] = useState<PodDraft>(emptyPodDraft());
   const [action, setAction] = useState<string | null>(null);
-  const [navBusy, setNavBusy] = useState(false);
-  const [podDraft, setPodDraft] = useState<PodDraft>(emptyPodDraft());
-  const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
-  const [scanComplete, setScanComplete] = useState(false);
-  const [moneyTick, setMoneyTick] = useState(0);
-  const [updatePolicy, setUpdatePolicy] = useState<MobileDriverPolicy | null>(null);
-  const [updateSoft, setUpdateSoft] = useState(false);
-
-  const {
-    handshake,
-    setHandshake,
-    busy,
-    setBusy,
-    location,
-    offlinePending,
-    offlineNote,
-    setOfflineNote,
-    lastFlush,
-    syncingStopIds,
-    applyFlush,
-    refreshHandshake,
-    refreshOfflineCount,
-    goOnDuty,
-    goOffDuty,
-  } = useFieldSession();
-  useComplianceGate(screen !== "sign-in");
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [consent, setConsent] = useState<LocationConsent>(null);
+  const [consentFor, setConsentFor] = useState<
+    null | { then: "duty"; pretrip: PretripChecks } | { then: "review" }
+  >(null);
+  const [entering, setEntering] = useState(false);
 
   useEffect(() => {
-    const orderId = handshake.currentOrderId;
-    if (!orderId || !handshake.online) {
-      void setActiveJobNotification(null);
-      return;
-    }
-    void setActiveJobNotification({
-      orderId,
-      orderNumber: handshake.currentOrderNumber,
-    });
-  }, [handshake.currentOrderId, handshake.currentOrderNumber, handshake.online]);
+    void readLocationConsent().then(setConsent);
+  }, []);
 
+  // Minimum app version from the server.
   useEffect(() => {
     void fetchPublicHealth()
       .then((health) => {
         const policy = health.mobile?.driver;
-        if (!policy?.min_version) return;
-        if (!isBelowMinVersion(currentAppVersion(), policy.min_version)) return;
-        setUpdatePolicy(policy);
-        setUpdateSoft(!policy.force_update);
-        setScreen("force-update");
+        if (
+          policy?.min_version &&
+          policy.force_update &&
+          isBelowMinVersion(currentAppVersion(), policy.min_version)
+        ) {
+          setBlocker({ kind: "update", policy });
+        }
       })
-      .catch(() => {
-        /* offline / first boot */
-      });
+      .catch(() => undefined);
   }, []);
 
-  const openJob = useCallback((orderId: string) => {
-    setFocusOrderId(orderId);
-    setScreen("job-detail");
-  }, []);
+  // Lock-screen card for the active job.
+  useEffect(() => {
+    void setActiveJobNotification(
+      h.currentOrderId && h.online
+        ? { orderId: h.currentOrderId, orderNumber: h.currentOrderNumber }
+        : null
+    );
+  }, [h.currentOrderId, h.currentOrderNumber, h.online]);
 
-  const onInvite = useCallback((token: string) => {
-    setInviteToken(token);
-    setScreen("invite");
-  }, []);
-
-  const enterRoute = useEnterRoute({
-    location,
-    setBusy,
-    setHandshake,
-    setTab,
-    setScreen,
-  });
+  /** Signed in → handshake → setup check → Today. */
+  const enter = useCallback(() => {
+    void (async () => {
+      setEntering(true);
+      setError(null);
+      try {
+        if (!allowDevAuth()) await waitForSignedSession();
+        const next = await runHandshake(h.location);
+        setHandshake(next);
+        const gate = canEnterRoute(next, getSessionSnapshot().signedIn, allowDevAuth());
+        if (!gate.ok) {
+          setHandshake({ ...next, error: gate.reason });
+          return;
+        }
+        const onboarding = await fetchOnboarding().catch(() => null);
+        if (onboarding && !onboarding.ready && !allowDevAuth()) {
+          setBlocker({ kind: "setup" });
+          return;
+        }
+        setBlocker(null);
+        setInviteToken(null);
+        setSignedInView(true);
+        setTab(next.currentOrderId ? "job" : "today");
+        void field.refreshCounts();
+      } finally {
+        setEntering(false);
+      }
+    })();
+  }, [field.refreshCounts, h.location, setError, setHandshake]);
 
   useDriverDeepLinks({
-    onInvite,
-    onJob: openJob,
-    onPushWithoutJob: enterRoute,
+    onInvite: (token) => {
+      setInviteToken(token);
+      setSignedInView(false);
+    },
+    onJob: () => setTab("job"),
+    onPushWithoutJob: enter,
   });
 
-  // Android hardware back: walk back through our own screens; never exit the app mid-stop.
+  /** Run a driver action: busy state, plain-language errors, then refresh from the server. */
+  const run = useCallback(
+    async (name: string, work: () => Promise<unknown>) => {
+      setAction(name);
+      try {
+        await work();
+      } catch (err) {
+        const code = err instanceof Error ? err.message : name;
+        if (!isSilentError(code)) setError(code);
+      } finally {
+        setAction(null);
+      }
+      await field.refresh();
+    },
+    [field, setError]
+  );
+
+  const startDuty = (pretrip: PretripChecks) => void run("duty", () => field.goOnDuty(pretrip));
+
+  const signOut = async () => {
+    try {
+      await clearSession();
+    } finally {
+      setConsent(null);
+      setPod(emptyPodDraft());
+      setTab("today");
+      setSignedInView(false);
+      setHandshake((prev) => ({ ...prev, online: false, error: null }));
+    }
+  };
+
+  // Android back: close consent, step back to Today, never leave the app mid-stop.
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (screen === "job-detail") {
-        setFocusOrderId(null);
-        setScreen("route");
-        setTab("jobs");
+      if (consentFor) {
+        setConsentFor(null);
         return true;
       }
-      if (screen === "inbox" || screen === "support") {
-        setScreen("route");
-        setTab("more");
-        return true;
-      }
-      if (screen === "route" && tab !== "work") {
-        setTab("work");
-        return true;
-      }
-      if (screen === "route" && handshake.online && handshake.stopId) {
+      if (!signedInView) return false;
+      if (tab === "job" && h.online && h.stopId) {
         Alert.alert(
           "Stop in progress",
-          "Finish or report this stop before leaving. Your work is saved on this phone."
+          "Finish or report this stop first. Your work is saved on this phone."
         );
+        return true;
+      }
+      if (tab !== "today") {
+        setTab("today");
         return true;
       }
       return false;
     });
     return () => sub.remove();
-  }, [screen, tab, handshake.online, handshake.stopId]);
+  }, [consentFor, signedInView, tab, h.online, h.stopId]);
 
-  const runAction = async (name: string, work: () => Promise<unknown>) => {
-    setAction(name);
-    try {
-      await work();
-      await refreshHandshake();
-    } catch (err) {
-      setHandshake((prev) => ({
-        ...prev,
-        error: err instanceof Error ? err.message : name,
-      }));
-    } finally {
-      setAction(null);
-    }
-  };
+  let body: ReactElement;
+  if (blocker?.kind === "update") {
+    const url =
+      Platform.OS === "ios" ? blocker.policy.store_url_ios : blocker.policy.store_url_android;
+    body = (
+      <Notice
+        testID="force-update"
+        title="Update required"
+        body={
+          blocker.policy.message ?? "This version is no longer supported. Update to keep working."
+        }
+        link={url ? { label: "Update the app", url } : undefined}
+      />
+    );
+  } else if (blocker?.kind === "setup") {
+    body = (
+      <Notice
+        testID="setup-needed"
+        title="Finish your setup"
+        body="Upload your licence, insurance and vehicle details on the driver portal. Then come back and tap Check again."
+        link={{ label: "Open driver portal", url: `${driverPortalUrl}/onboarding` }}
+        retry={{ label: "Check again", onPress: enter, busy: entering }}
+      />
+    );
+  } else if (consentFor) {
+    body = (
+      <ConsentScreen
+        busy={action === "duty"}
+        onAgree={() =>
+          void saveLocationConsent().then((saved) => {
+            setConsent(saved);
+            const next = consentFor;
+            setConsentFor(null);
+            if (next.then === "duty") startDuty(next.pretrip);
+            else if (h.online) void startBackgroundLocation();
+          })
+        }
+        onNotNow={() => {
+          const next = consentFor;
+          setConsentFor(null);
+          if (next.then === "duty") startDuty(next.pretrip);
+        }}
+      />
+    );
+  } else if (!signedInView) {
+    body = (
+      <SignInScreen
+        error={h.error}
+        probing={entering}
+        inviteToken={inviteToken}
+        onContinue={enter}
+        onSignOut={signOut}
+      />
+    );
+  } else {
+    const onSync = () => void field.refresh();
+    body = (
+      <View style={{ flex: 1 }}>
+        {tab === "today" ? (
+          <TodayScreen
+            field={field}
+            action={action}
+            onOpenJob={() => setTab("job")}
+            onGoOnDuty={(pretrip) =>
+              consent ? startDuty(pretrip) : setConsentFor({ then: "duty", pretrip })
+            }
+            onGoOffDuty={() => void run("duty", field.goOffDuty)}
+            onSync={onSync}
+          />
+        ) : null}
+        {tab === "job" ? (
+          <JobScreen
+            field={field}
+            action={action}
+            pod={pod}
+            setPod={setPod}
+            run={run}
+            onGoToday={() => setTab("today")}
+            onSync={onSync}
+          />
+        ) : null}
+        {tab === "me" ? (
+          <MeScreen
+            field={field}
+            consent={consent}
+            onReviewConsent={() => setConsentFor({ then: "review" })}
+            onWithdrawConsent={() =>
+              void withdrawLocationConsent().then(() => {
+                setConsent(null);
+                // Background stops now; foreground pings continue while the app is open on duty.
+                void stopBackgroundLocation();
+              })
+            }
+            onSync={onSync}
+            onSignOut={signOut}
+          />
+        ) : null}
+        <TabBar tab={tab} onTab={setTab} jobBadge={Boolean(h.currentOrderId) && tab !== "job"} />
+      </View>
+    );
+  }
 
   return (
-    <Suspense fallback={<LazyFallback />}>
-      {screen === "force-update" && updatePolicy ? (
-        <ForceUpdateScreen
-          policy={updatePolicy}
-          soft={updateSoft}
-          onContinue={
-            updateSoft
-              ? () => {
-                  setUpdatePolicy(null);
-                  setScreen("sign-in");
-                }
-              : undefined
-          }
-        />
-      ) : null}
-      {screen === "invite" ? (
-        <InviteScreen inviteToken={inviteToken} error={handshake.error} onContinue={enterRoute} />
-      ) : null}
-      {screen === "sign-in" ? (
-        <SignInScreen handshake={handshake} probing={busy} onContinue={enterRoute} />
-      ) : null}
-      {screen === "onboarding" ? (
-        <OnboardingScreen
-          allowSkip={allowDevAuth()}
-          onReady={() => {
-            setTab("work");
-            setScreen("route");
-          }}
-          onSkipDev={() => {
-            setTab("work");
-            setScreen("route");
-          }}
-        />
-      ) : null}
-      {screen === "job-detail" && focusOrderId ? (
-        <JobDetailScreen
-          orderId={focusOrderId}
-          onBack={() => {
-            setFocusOrderId(null);
-            setScreen("route");
-            setTab("jobs");
-          }}
-          onOpenWork={() => {
-            setFocusOrderId(null);
-            setTab("work");
-            setScreen("route");
-            void refreshHandshake();
-          }}
-        />
-      ) : null}
-      {screen === "inbox" ? (
-        <InboxScreen
-          onBack={() => {
-            setScreen("route");
-            setTab("more");
-          }}
-          onOpenJob={openJob}
-        />
-      ) : null}
-      {screen === "support" ? (
-        <SupportScreen
-          onBack={() => {
-            setScreen("route");
-            setTab("more");
-          }}
-        />
-      ) : null}
-      {screen === "route" ? (
-        <FieldShell
-          tab={tab}
-          onTab={setTab}
-          badges={{ jobs: handshake.jobsOpen, docs: handshake.pendingDocuments }}
-        >
-          {tab === "work" ? (
-            <RouteScreen
-              handshake={handshake}
-              refreshing={busy}
-              action={action}
-              navBusy={navBusy}
-              podDraft={podDraft}
-              offlinePending={offlinePending}
-              offlineNote={offlineNote}
-              lastFlush={lastFlush}
-              syncingStopIds={syncingStopIds}
-              scanComplete={scanComplete}
-              onDismissOfflineNote={() => setOfflineNote(null)}
-              onPodChange={setPodDraft}
-              onScanCompleteChange={setScanComplete}
-              onRefresh={() => void refreshHandshake()}
-              onDuty={(pretrip) =>
-                void runAction("duty", async () => {
-                  if (handshake.online) {
-                    await goOffDuty();
-                    return;
-                  }
-                  await goOnDuty(handshake.routeId, pretrip);
-                })
-              }
-              onArrive={() =>
-                void runAction("arrive", async () => {
-                  if (!handshake.routeId || !handshake.stopId) throw new Error("no_stop");
-                  await runOnlineOrQueue(
-                    "arrive_stop",
-                    { stop_id: handshake.stopId, route_id: handshake.routeId },
-                    () => arriveStop(handshake.routeId as string, handshake.stopId as string)
-                  );
-                })
-              }
-              onComplete={() =>
-                void runAction("deliver", async () => {
-                  await completeStopAction({
-                    routeId: handshake.routeId,
-                    stopId: handshake.stopId,
-                    nextStopType: handshake.nextStopType,
-                    otpRequired: handshake.otpRequired,
-                    podRequirements: handshake.podRequirements,
-                    podDraft,
-                    setPodDraft,
-                  });
-                  setMoneyTick((n) => n + 1);
-                })
-              }
-              onAccept={() =>
-                void runAction("accept", () => {
-                  if (!handshake.currentOrderId) throw new Error("no_job");
-                  return acceptOrder(handshake.currentOrderId);
-                })
-              }
-              onDecline={() =>
-                void runAction("decline", () => {
-                  if (!handshake.currentOrderId) throw new Error("no_job");
-                  return rejectOrder(handshake.currentOrderId);
-                })
-              }
-              onNavigate={() => {
-                setNavBusy(true);
-                void openTurnByTurn({
-                  navigationUrl: handshake.navigationUrl,
-                  lat: handshake.destLat,
-                  lng: handshake.destLng,
-                  address: handshake.nextStop,
-                })
-                  .catch((err: unknown) => {
-                    setHandshake((prev) => ({
-                      ...prev,
-                      error: err instanceof Error ? err.message : "navigate_failed",
-                    }));
-                  })
-                  .finally(() => setNavBusy(false));
-              }}
-              onException={(reason, notes, photoUrl) =>
-                void runAction("exception", async () => {
-                  if (!handshake.routeId || !handshake.stopId) throw new Error("no_stop");
-                  await reportException(
-                    handshake.routeId,
-                    handshake.stopId,
-                    reason,
-                    notes,
-                    photoUrl
-                  );
-                })
-              }
-              onPhotoError={(message) => {
-                setHandshake((prev) => ({ ...prev, error: message }));
-              }}
-              onFlushOffline={() =>
-                void runAction("flush", async () => {
-                  const result = await flushOfflineQueues();
-                  applyFlush(result);
-                  try {
-                    await retryOfflineFailed();
-                  } catch {
-                    /* server retry optional when queue empty */
-                  }
-                  await refreshOfflineCount();
-                  if (!result.synced && result.queued === 0 && result.gps_flushed === 0) {
-                    throw new Error("nothing_to_sync");
-                  }
-                })
-              }
-            />
-          ) : null}
-          {tab === "jobs" ? (
-            <JobsScreen
-              currentOrderId={handshake.currentOrderId}
-              onOpenWork={() => setTab("work")}
-              onOpenJob={openJob}
-              onSequenceApplied={() => void refreshHandshake()}
-            />
-          ) : null}
-          {tab === "money" ? <MoneyScreen refreshToken={moneyTick} /> : null}
-          {tab === "docs" ? <DocsScreen /> : null}
-          {tab === "more" ? (
-            <MoreScreen
-              handshake={handshake}
-              onOpenInbox={() => setScreen("inbox")}
-              onOpenSupport={() => setScreen("support")}
-              onSignedOut={() => {
-                setPodDraft(emptyPodDraft());
-                setFocusOrderId(null);
-                setTab("work");
-                setScreen("sign-in");
-              }}
-            />
-          ) : null}
-        </FieldShell>
-      ) : null}
+    <View style={{ flex: 1, backgroundColor: color.bg }}>
+      {body}
       <StatusBar style="dark" />
-    </Suspense>
+    </View>
   );
 }
 

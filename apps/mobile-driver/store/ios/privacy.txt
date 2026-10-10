@@ -9,10 +9,10 @@ Data used to provide the app (linked to identity, not used for tracking):
     Precise location — on-duty GPS pings to PorterChain dispatch so the van can be seen on the map.
 
   Photos
-    Proof of delivery and document uploads (licence, insurance, vehicle). User-provided.
+    Proof of delivery photos. User-provided.
 
   User content
-    Support messages, exception notes, pre-trip checks.
+    Stop exception notes, pre-trip checks.
 
   Identifiers
     User ID (Clerk), device push token (APNs).
@@ -27,5 +27,5 @@ Tracking
   No. No third-party advertising SDK. ATT not required.
 
 Third parties
-  Clerk (authentication), Apple (APNs, Map tap-out to Apple Maps), Porterchain API.
+  Clerk (authentication), Apple (APNs, Map tap-out to Apple Maps), Google Firebase Cloud Messaging (Android push), Porterchain API.
   Google Maps is not used as a routing engine in this app.

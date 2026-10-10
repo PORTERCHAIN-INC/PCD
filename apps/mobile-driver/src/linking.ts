@@ -9,7 +9,7 @@ function pathOf(url: string): string {
   return path;
 }
 
-export function parseJobUrl(url: string | null): string | null {
+function parseJobUrl(url: string | null): string | null {
   const link = parseDriverLink(url);
   return link.kind === "job" ? link.orderId : null;
 }

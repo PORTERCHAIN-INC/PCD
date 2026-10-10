@@ -1,7 +1,11 @@
+/**
+ * Field session state: the handshake snapshot, duty + GPS, and the offline outbox counters.
+ * Sync happens automatically on reconnect and on app foreground; "Sync now" is a backup.
+ */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
-import { endShift, probeApi, startShift } from "../api";
+import { endShift, startShift } from "../api";
 import { idleHandshake, runHandshake } from "../handshake";
 import {
   requestLocationAccess,
@@ -13,90 +17,62 @@ import {
   flushOfflineQueues,
   pendingOfflineCount,
   queuedStopIds,
+  readRejected,
   runOnlineOrQueue,
-  type FlushResult,
 } from "../offline";
-import { collectPush } from "../push";
+import { mergeOfflineHandshake } from "../fieldState";
 import { getSessionSnapshot, subscribeSession } from "../session";
-import type { Handshake, LocationState } from "../types";
+import type { Handshake } from "../types";
 
 const OFFLINE_POLL_MS = 30_000;
 
 export function useFieldSession() {
   const [handshake, setHandshake] = useState<Handshake>(idleHandshake());
   const [busy, setBusy] = useState(false);
-  const [location, setLocation] = useState<LocationState>(idleHandshake().location);
-  const [offlinePending, setOfflinePending] = useState(0);
-  const [offlineNote, setOfflineNote] = useState<string | null>(null);
-  const [lastFlush, setLastFlush] = useState<FlushResult | null>(null);
+  const [pending, setPending] = useState(0);
+  const [rejected, setRejected] = useState(0);
   const [syncingStopIds, setSyncingStopIds] = useState<string[]>([]);
   const [signedIn, setSignedIn] = useState(() => getSessionSnapshot().signedIn);
-
   const signedInRef = useRef(signedIn);
   signedInRef.current = signedIn;
+  const locationRef = useRef(handshake.location);
+  locationRef.current = handshake.location;
+
   useEffect(() => subscribeSession(() => setSignedIn(getSessionSnapshot().signedIn)), []);
 
-  const refreshOfflineCount = useCallback(async () => {
-    setOfflinePending(await pendingOfflineCount());
+  const refreshCounts = useCallback(async (serverFailed = 0) => {
+    setPending(await pendingOfflineCount());
     setSyncingStopIds(await queuedStopIds());
+    setRejected((await readRejected()).length + serverFailed);
   }, []);
 
-  const applyFlush = useCallback((flushed: FlushResult) => {
-    setLastFlush(flushed);
-    if (flushed.conflicts_resolved > 0) {
-      setOfflineNote(
-        `${flushed.conflicts_resolved} queued action${flushed.conflicts_resolved === 1 ? "" : "s"} skipped (already applied on server)`
-      );
-    } else if (flushed.failed > 0) {
-      setOfflineNote(
-        `${flushed.failed} offline action${flushed.failed === 1 ? "" : "s"} failed — retry from sync`
-      );
-    } else if (flushed.synced && (flushed.queued > 0 || flushed.gps_flushed > 0)) {
-      setOfflineNote(null);
-    }
+  const apply = useCallback((next: Handshake) => {
+    setHandshake((prev) => mergeOfflineHandshake(prev, next, signedInRef.current));
   }, []);
 
-  /**
-   * Offline, runHandshake returns an empty "idle" handshake (no route, off duty). Applying it
-   * wiped the stop off the screen and stopped GPS mid-route. Keep the last known field state
-   * and only flag the API as down.
-   */
-  const keepFieldStateWhenOffline = useCallback(
-    (next: Handshake) =>
-      (prev: Handshake): Handshake =>
-        next.api === "down" && signedInRef.current && (prev.online || Boolean(prev.routeId))
-          ? {
-              ...prev,
-              api: "down",
-              error: "No connection — your work is saved on this phone and will sync",
-            }
-          : next,
-    []
-  );
-
-  const refreshHandshake = useCallback(async () => {
+  /** Pull the server snapshot, push the outbox, and pull again if anything was sent. */
+  const refresh = useCallback(async () => {
     setBusy(true);
     try {
-      setHandshake(keepFieldStateWhenOffline(await runHandshake(location)));
-      await refreshOfflineCount();
+      apply(await runHandshake(locationRef.current));
       try {
         const flushed = await flushOfflineQueues();
-        applyFlush(flushed);
         if (flushed.queued > 0 || flushed.gps_flushed > 0) {
-          setHandshake(keepFieldStateWhenOffline(await runHandshake(location)));
+          apply(await runHandshake(locationRef.current));
         }
-        await refreshOfflineCount();
+        await refreshCounts(flushed.server_failed);
       } catch {
-        /* keep local queue */
+        await refreshCounts();
       }
     } finally {
       setBusy(false);
     }
-  }, [applyFlush, keepFieldStateWhenOffline, location, refreshOfflineCount]);
+  }, [apply, refreshCounts]);
 
-  // Reliable sync: flush as soon as the phone reconnects or the app returns to the foreground.
-  const refreshRef = useRef(refreshHandshake);
-  refreshRef.current = refreshHandshake;
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
+  // Reliable sync: on reconnect and whenever the app comes back to the foreground.
   useEffect(() => {
     if (!signedIn) return;
     let wasConnected: boolean | null = null;
@@ -108,82 +84,46 @@ export function useFieldSession() {
     const appSub = AppState.addEventListener("change", (next) => {
       if (next === "active") void refreshRef.current();
     });
+    const timer = setInterval(() => void refreshCounts(), OFFLINE_POLL_MS);
     return () => {
       unsubNet();
       appSub.remove();
+      clearInterval(timer);
     };
-  }, [signedIn]);
+  }, [signedIn, refreshCounts]);
 
-  // Full /me handshake only after Clerk is live — unsigned mount used to paint a false auth error.
-  useEffect(() => {
-    if (!signedIn) return;
-    void refreshHandshake();
-  }, [refreshHandshake, signedIn]);
-
-  // Unsigned: probe API + push only (no /me) so the sign-in screen still shows push status.
-  useEffect(() => {
-    if (signedIn) return;
-    let cancelled = false;
-    void (async () => {
-      const next = idleHandshake();
-      next.location = location;
-      try {
-        next.api = (await probeApi()) ? "up" : "down";
-        if (next.api === "down") {
-          next.error = "API unreachable — start Porterchain API on :8001";
-        }
-        next.push = await collectPush().catch(() => next.push);
-      } catch {
-        /* keep idle */
-      }
-      if (!cancelled) setHandshake(next);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [location, signedIn]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      void refreshOfflineCount();
-    }, OFFLINE_POLL_MS);
-    return () => clearInterval(timer);
-  }, [refreshOfflineCount]);
-
+  // GPS follows duty: on duty → pings + background updates; off duty → nothing.
   useEffect(() => {
     if (!handshake.online) {
       void stopBackgroundLocation();
       return;
     }
-    void startBackgroundLocation().then((next) => {
-      setLocation(next);
-      setHandshake((prev) => ({ ...prev, location: next }));
-    });
-    return startLocationLoop(
-      () => handshake.online === true,
-      (next) => {
-        setLocation(next);
-        setHandshake((prev) => ({ ...prev, location: next }));
-      }
-    );
+    const setLocation = (location: Handshake["location"]) =>
+      setHandshake((prev) => ({ ...prev, location }));
+    void startBackgroundLocation().then(setLocation);
+    return startLocationLoop(() => true, setLocation);
   }, [handshake.online]);
 
   const goOnDuty = useCallback(
-    async (routeId: string | null, pretrip?: Record<string, boolean>) => {
+    async (pretrip: Record<string, boolean>) => {
       const access = await requestLocationAccess();
-      setLocation(access);
-      await runOnlineOrQueue("shift_start", { route_id: routeId, pretrip: pretrip ?? null }, () =>
-        startShift(routeId, pretrip)
+      setHandshake((prev) => ({ ...prev, location: access }));
+      await runOnlineOrQueue("shift_start", { route_id: handshake.routeId, pretrip }, () =>
+        startShift(handshake.routeId, pretrip)
       );
-      const bg = await startBackgroundLocation();
-      setLocation(bg);
+      setHandshake((prev) => ({ ...prev, online: true }));
     },
-    []
+    [handshake.routeId]
   );
 
   const goOffDuty = useCallback(async () => {
     await stopBackgroundLocation();
     await endShift();
+    setHandshake((prev) => ({ ...prev, online: false }));
+  }, []);
+
+  const setError = useCallback((error: string | null) => {
+    setHandshake((prev) => ({ ...prev, error }));
   }, []);
 
   return {
@@ -191,17 +131,15 @@ export function useFieldSession() {
     setHandshake,
     busy,
     setBusy,
-    location,
-    setLocation,
-    offlinePending,
-    offlineNote,
-    setOfflineNote,
-    lastFlush,
+    pending,
+    rejected,
     syncingStopIds,
-    refreshHandshake,
-    refreshOfflineCount,
-    applyFlush,
+    refresh,
+    refreshCounts,
     goOnDuty,
     goOffDuty,
+    setError,
   };
 }
+
+export type FieldSession = ReturnType<typeof useFieldSession>;

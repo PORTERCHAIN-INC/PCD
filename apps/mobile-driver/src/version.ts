@@ -2,7 +2,7 @@ import * as Application from "expo-application";
 import Constants from "expo-constants";
 
 /** Compare dotted versions: returns negative if a < b, 0 if equal, positive if a > b. */
-export function compareVersions(a: string, b: string): number {
+function compareVersions(a: string, b: string): number {
   const pa = a
     .replace(/^v/i, "")
     .split(".")

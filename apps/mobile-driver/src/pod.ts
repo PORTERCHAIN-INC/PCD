@@ -36,26 +36,3 @@ export async function capturePodPhotoDataUrl(): Promise<string> {
   }
   return assetToDataUrl(result.assets[0]);
 }
-
-export async function pickDocumentPhotoDataUrl(): Promise<string> {
-  const existing = await ImagePicker.getMediaLibraryPermissionsAsync();
-  let status = existing.status;
-  if (status !== "granted") {
-    const asked = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    status = asked.status;
-  }
-  if (status !== "granted") {
-    return capturePodPhotoDataUrl();
-  }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ["images"],
-    quality: 0.4,
-    base64: true,
-    exif: false,
-  });
-  if (result.canceled || !result.assets?.[0]) {
-    throw new Error("photo_cancelled");
-  }
-  return assetToDataUrl(result.assets[0]);
-}

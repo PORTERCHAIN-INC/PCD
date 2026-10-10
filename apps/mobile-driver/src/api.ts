@@ -2,40 +2,18 @@ import { apiBaseUrl, fetchTimeoutMs } from "./config";
 import { ApiError, NetworkError } from "./netErrors";
 import { requireBearer } from "./session";
 import type {
-  AssignedRoute,
-  BonusRow,
   DriverDashboard,
-  DriverDocument,
   DriverJobs,
   DriverJobDetail,
-  DriverJobSummary,
   DriverMe,
   DriverOnboarding,
-  DriverPerformance,
-  DriverProfile,
-  DriverVehicle,
-  EarningsSnapshot,
-  EmergencyContact,
-  InboxSnapshot,
-  InsuranceStatus,
-  MissingReason,
   NavigationSession,
-  NavigationRoute,
-  OfflineActionRow,
   OfflineStatus,
   OfflineSyncResult,
-  OptimizeResult,
-  PickupChecklist,
   PublicHealthStatus,
-  RatingsSummary,
-  RouteStopRow,
   ScanProgress,
   ShiftSnapshot,
-  StatementDetail,
-  StatementRow,
   SupportHub,
-  TrainingModule,
-  WalletSnapshot,
 } from "./types";
 
 const DRIVER_API = "/driver-api/v1";
@@ -113,11 +91,6 @@ export function fetchPublicHealth(): Promise<PublicHealthStatus> {
   });
 }
 
-export function fetchNavigationRoute(routeId?: string | null): Promise<NavigationRoute> {
-  const q = routeId ? `?route_id=${encodeURIComponent(routeId)}` : "";
-  return driverFetch<NavigationRoute>(`${DRIVER_API}/navigation/route${q}`);
-}
-
 export function fetchMe(): Promise<DriverMe> {
   return driverFetch<DriverMe>(`${DRIVER_API}/me`);
 }
@@ -192,45 +165,6 @@ export function rejectOrder(orderId: string, reason = "unavailable"): Promise<un
   });
 }
 
-export type GpsStatus = {
-  enabled: boolean;
-  message: string;
-  consent_required?: boolean;
-  consent_text?: string;
-};
-
-/** Is live location sharing on for this driver? (PorterChain admin switch) */
-export function fetchGpsStatus(): Promise<GpsStatus> {
-  return driverFetch(`${DRIVER_API}/gps-status`) as Promise<GpsStatus>;
-}
-
-export function sendGpsConsent(accepted: boolean): Promise<GpsStatus> {
-  return driverFetch(`${DRIVER_API}/gps-consent`, {
-    method: "POST",
-    body: JSON.stringify({ accepted, source: "app" }),
-  }) as Promise<GpsStatus>;
-}
-
-export type MonitoringPolicy = {
-  title: string;
-  version: string;
-  date: string;
-  sections: Array<{ heading: string; body?: string; items?: string[] }>;
-  acknowledged: boolean;
-};
-
-/** Ontario ESA electronic monitoring policy (view anytime; acknowledge per version). */
-export function fetchMonitoringPolicy(): Promise<MonitoringPolicy> {
-  return driverFetch(`${DRIVER_API}/monitoring-policy`) as Promise<MonitoringPolicy>;
-}
-
-export function ackMonitoringPolicy(): Promise<MonitoringPolicy> {
-  return driverFetch(`${DRIVER_API}/monitoring-policy/ack`, {
-    method: "POST",
-    body: JSON.stringify({ source: "app" }),
-  }) as Promise<MonitoringPolicy>;
-}
-
 export function pingLocation(
   lat: number,
   lng: number,
@@ -252,26 +186,6 @@ export function pingLocation(
       recorded_at: extras?.recorded_at ?? new Date().toISOString(),
     }),
   });
-}
-
-export function fetchWallet(): Promise<WalletSnapshot> {
-  return driverFetch<WalletSnapshot>(`${DRIVER_API}/wallet`);
-}
-
-export function fetchEarnings(): Promise<EarningsSnapshot> {
-  return driverFetch<EarningsSnapshot>(`${DRIVER_API}/earnings`);
-}
-
-export function fetchStatements(): Promise<{ statements: StatementRow[] }> {
-  return driverFetch(`${DRIVER_API}/earnings/statements`);
-}
-
-export function fetchDocuments(): Promise<{ documents: DriverDocument[] }> {
-  return driverFetch(`${DRIVER_API}/documents`);
-}
-
-export function fetchPerformance(): Promise<DriverPerformance> {
-  return driverFetch<DriverPerformance>(`${DRIVER_API}/performance`);
 }
 
 export function fetchNavigationSession(orderId?: string | null): Promise<NavigationSession> {
@@ -304,13 +218,6 @@ export function podSignature(
   );
 }
 
-export function podBarcode(routeId: string, stopId: string, barcode: string): Promise<unknown> {
-  return driverFetch(
-    `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/pod-barcode`,
-    { method: "POST", body: JSON.stringify({ barcode }) }
-  );
-}
-
 export function podIdCheck(
   routeId: string,
   stopId: string,
@@ -327,12 +234,6 @@ export function podComplete(routeId: string, stopId: string, otp?: string): Prom
     `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/pod-complete`,
     { method: "POST", body: JSON.stringify({ otp: otp ?? null }) }
   );
-}
-
-export function generateOtp(orderId: string): Promise<{ otp: string }> {
-  return driverFetch(`${DRIVER_API}/orders/${encodeURIComponent(orderId)}/otp`, {
-    method: "POST",
-  });
 }
 
 export function queueOffline(
@@ -378,41 +279,8 @@ export function reportException(
   );
 }
 
-export function shiftBreak(): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/shift/break`, { method: "POST" });
-}
-
-export function shiftResume(): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/shift/resume`, { method: "POST" });
-}
-
 export function fetchOnboarding(): Promise<DriverOnboarding> {
   return driverFetch<DriverOnboarding>(`${DRIVER_API}/onboarding`);
-}
-
-export function uploadDocument(
-  docType: string,
-  fileUrl: string,
-  metadata?: Record<string, string>
-): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/documents`, {
-    method: "POST",
-    body: JSON.stringify({ doc_type: docType, file_url: fileUrl, metadata: metadata ?? null }),
-  });
-}
-
-export function uploadVehiclePhoto(
-  fileUrl: string,
-  metadata?: Record<string, string>
-): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/profile/vehicle-photos`, {
-    method: "POST",
-    body: JSON.stringify({
-      doc_type: "vehicle_photo",
-      file_url: fileUrl,
-      metadata: metadata ?? null,
-    }),
-  });
 }
 
 export function fetchJob(orderId: string): Promise<DriverJobDetail> {
@@ -430,29 +298,6 @@ export function scanPackage(
   });
 }
 
-export function fetchPickupChecklist(orderId: string): Promise<PickupChecklist> {
-  return driverFetch<PickupChecklist>(
-    `${DRIVER_API}/orders/${encodeURIComponent(orderId)}/pickup-checklist`
-  );
-}
-
-/** Box not at pickup: photo (camera data URL) + reason. Accounts for the box. */
-export function reportPackageMissing(
-  orderId: string,
-  packageId: string,
-  body: { photo_url: string; reason: MissingReason; notes?: string }
-): Promise<{
-  exception_id: string;
-  package_id: string;
-  status: string;
-  checklist: PickupChecklist;
-}> {
-  return driverFetch(
-    `${DRIVER_API}/orders/${encodeURIComponent(orderId)}/packages/${encodeURIComponent(packageId)}/missing`,
-    { method: "POST", body: JSON.stringify(body) }
-  );
-}
-
 export function codCheckout(orderId: string): Promise<{
   checkout_url: string;
   session_id: string;
@@ -464,88 +309,8 @@ export function codCheckout(orderId: string): Promise<{
   });
 }
 
-export function fetchInbox(): Promise<InboxSnapshot> {
-  return driverFetch<InboxSnapshot>(`${DRIVER_API}/communications/notifications`);
-}
-
-export function fetchInboxHistory(limit = 100): Promise<InboxSnapshot> {
-  return driverFetch<InboxSnapshot>(
-    `${DRIVER_API}/communications/notifications/history?limit=${encodeURIComponent(String(limit))}`
-  );
-}
-
-export function retryOfflineFailed(): Promise<
-  { retried?: number; failed?: number } | OfflineSyncResult
-> {
-  return driverFetch(`${DRIVER_API}/communications/offline/retry`, { method: "POST" });
-}
-
-export function markNotificationRead(notificationId: string): Promise<{ ok: boolean }> {
-  return driverFetch(
-    `${DRIVER_API}/communications/notifications/${encodeURIComponent(notificationId)}/read`,
-    {
-      method: "POST",
-    }
-  );
-}
-
-export function markNotificationArchived(notificationId: string): Promise<{ ok: boolean }> {
-  return driverFetch(
-    `${DRIVER_API}/communications/notifications/${encodeURIComponent(notificationId)}/archive`,
-    { method: "POST" }
-  );
-}
-
-export function markAllNotificationsRead(): Promise<{ ok: boolean; marked?: number }> {
-  return driverFetch(`${DRIVER_API}/communications/notifications/mark-all-read`, {
-    method: "POST",
-  });
-}
-
 export function fetchSupportHub(): Promise<SupportHub> {
   return driverFetch<SupportHub>(`${DRIVER_API}/support/hub`);
-}
-
-export function fetchKnowledgeBase(): Promise<SupportHub["knowledge_base"]> {
-  return driverFetch(`${DRIVER_API}/support/knowledge-base`);
-}
-
-export function createSupportTicket(body: {
-  subject: string;
-  description?: string;
-  order_id?: string;
-  priority?: string;
-}): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/support`, {
-    method: "POST",
-    body: JSON.stringify({ ...body, category: "driver_support" }),
-  });
-}
-
-export function openClaim(body: {
-  order_id: string;
-  claim_type: string;
-  description?: string;
-}): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/support/claims`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-export function updateEmergencyContact(body: {
-  name: string;
-  phone: string;
-  relationship?: string;
-}): Promise<EmergencyContact> {
-  return driverFetch(`${DRIVER_API}/support/emergency-contact`, {
-    method: "PUT",
-    body: JSON.stringify(body),
-  });
-}
-
-export function fetchShift(): Promise<ShiftSnapshot> {
-  return driverFetch<ShiftSnapshot>(`${DRIVER_API}/shift`);
 }
 
 export function setAvailability(
@@ -555,159 +320,4 @@ export function setAvailability(
     method: "POST",
     body: JSON.stringify({ mode }),
   });
-}
-
-export function reportIncident(body: {
-  incident_type: string;
-  description: string;
-  order_id?: string;
-}): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/incidents`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-export function fetchJobsHistory(): Promise<{ history: DriverJobSummary[] }> {
-  return driverFetch(`${DRIVER_API}/jobs/history`);
-}
-
-export function optimizeJobs(): Promise<OptimizeResult> {
-  return driverFetch(`${DRIVER_API}/jobs/optimize`, { method: "POST" });
-}
-
-export function optimizeRunStatus(runId: string): Promise<OptimizeResult> {
-  return driverFetch(`${DRIVER_API}/jobs/optimize/runs/${encodeURIComponent(runId)}`);
-}
-
-export function optimizeAccept(
-  runId: string,
-  expectedVersion?: number | null
-): Promise<OptimizeResult> {
-  const q =
-    expectedVersion != null
-      ? `?expected_version=${encodeURIComponent(String(expectedVersion))}`
-      : "";
-  return driverFetch(`${DRIVER_API}/jobs/optimize/runs/${encodeURIComponent(runId)}/accept${q}`, {
-    method: "POST",
-  });
-}
-
-export function optimizeUndo(): Promise<OptimizeResult> {
-  return driverFetch(`${DRIVER_API}/jobs/optimize/undo`, { method: "POST" });
-}
-
-export function fetchAssignedRoute(): Promise<AssignedRoute | null> {
-  return driverFetch(`${DRIVER_API}/routes/assigned`);
-}
-
-export function startRoute(routeId: string): Promise<AssignedRoute> {
-  return driverFetch(`${DRIVER_API}/routes/${encodeURIComponent(routeId)}/start`, {
-    method: "POST",
-  });
-}
-
-export function fetchRouteStops(routeId: string): Promise<{ stops: RouteStopRow[] }> {
-  return driverFetch(`${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops`);
-}
-
-export function fetchRouteEarnings(routeId: string): Promise<{ earnings_cents: number }> {
-  return driverFetch(`${DRIVER_API}/routes/${encodeURIComponent(routeId)}/earnings`);
-}
-
-export function fetchProfile(): Promise<DriverProfile> {
-  return driverFetch(`${DRIVER_API}/profile`);
-}
-
-export function fetchEarningsToday(): Promise<{ today_cents?: number; amount_cents?: number }> {
-  return driverFetch(`${DRIVER_API}/earnings/today`);
-}
-
-export function fetchStatementDetail(statementId: string): Promise<StatementDetail> {
-  return driverFetch(`${DRIVER_API}/earnings/statements/${encodeURIComponent(statementId)}`);
-}
-
-/** CSV body for Share / save — statement download endpoint. */
-export async function downloadStatementCsv(
-  statementId: string
-): Promise<{ csv: string; filename: string }> {
-  const token = await requireBearer();
-  const res = await fetchWithTimeout(
-    `${apiBaseUrl}${DRIVER_API}/earnings/statements/${encodeURIComponent(statementId)}/download`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "text/csv",
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  const csv = await res.text();
-  if (!res.ok) {
-    throw new Error(detailFromBody(csv, res.status));
-  }
-  const disposition = res.headers.get("Content-Disposition") || "";
-  const match = /filename="?([^"]+)"?/i.exec(disposition);
-  return { csv, filename: match?.[1] || `statement-${statementId}.csv` };
-}
-
-export function fetchVehicle(): Promise<{
-  vehicle: DriverVehicle | null;
-  vehicles: DriverVehicle[];
-}> {
-  return driverFetch(`${DRIVER_API}/vehicle`);
-}
-
-export function fetchInsurance(): Promise<InsuranceStatus> {
-  return driverFetch(`${DRIVER_API}/insurance`);
-}
-
-export function fetchTraining(): Promise<{ modules: TrainingModule[] }> {
-  return driverFetch(`${DRIVER_API}/training`);
-}
-
-export function completeTraining(moduleId: string): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/training/${encodeURIComponent(moduleId)}/complete`, {
-    method: "POST",
-  });
-}
-
-export function fetchBonuses(): Promise<{ bonuses: BonusRow[] }> {
-  return driverFetch(`${DRIVER_API}/bonuses`);
-}
-
-export function claimBonus(bonusId: string): Promise<unknown> {
-  return driverFetch(`${DRIVER_API}/bonuses/${encodeURIComponent(bonusId)}/claim`, {
-    method: "POST",
-  });
-}
-
-export function fetchRatings(): Promise<RatingsSummary> {
-  return driverFetch(`${DRIVER_API}/ratings`);
-}
-
-// ---------- Dispatch route (committed plan) + stop check-ins ----------
-import type { CheckinEvent, DispatchRoute, StopChecklist } from "./dispatchRoute";
-
-export function fetchDispatchRoute(): Promise<{ route: DispatchRoute | null }> {
-  return driverFetch(`${DRIVER_API}/dispatch/route`);
-}
-
-export function dispatchCheckin(body: {
-  keys: string[];
-  event: CheckinEvent;
-  lat?: number;
-  lng?: number;
-  accuracy_m?: number;
-  note?: string;
-  pod_photo?: string;
-}): Promise<{ ok: boolean; order_state: string; route: DispatchRoute | null }> {
-  return driverFetch(`${DRIVER_API}/dispatch/stops/checkin`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-export function fetchDispatchChecklist(orderId: string): Promise<StopChecklist> {
-  return driverFetch(`${DRIVER_API}/dispatch/orders/${encodeURIComponent(orderId)}/checklist`);
 }

@@ -7,14 +7,13 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ActivityIndicator, Text, StyleSheet } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { ClerkProvider, useAuth, useClerk } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import { colors, typography } from "@porterchain/mobile-theme";
 import { allowDevAuth, appEnv, clerkPublishableKey } from "../config";
 import { setSessionSnapshot } from "../session";
-import { PrimaryButton } from "../ui/PrimaryButton";
-import { Screen } from "../ui/Screen";
+import { Body, Button, Muted, Screen } from "../ui/kit";
+import { color } from "../ui/theme";
 
 /** Clerk FAPI should settle well under this on a healthy network. */
 const CLERK_BOOT_TIMEOUT_MS = 15_000;
@@ -45,18 +44,12 @@ function Boot({
   onRetry?: () => void;
 }) {
   return (
-    <Screen testID="clerk-boot">
-      {!timedOut ? <ActivityIndicator color={colors.secondary} /> : null}
-      <Text style={styles.boot}>
-        {timedOut ? "Couldn’t finish starting sign-in." : "Starting Porterchain…"}
-      </Text>
-      {detail ? <Text style={styles.hint}>{detail}</Text> : null}
-      {timedOut ? (
-        <Text style={styles.hint}>
-          Check network, then retry. If this keeps happening, reinstall from TestFlight.
-        </Text>
-      ) : null}
-      {timedOut && onRetry ? <PrimaryButton label="Retry" onPress={onRetry} /> : null}
+    <Screen testID="clerk-boot" scroll={false}>
+      {!timedOut ? <ActivityIndicator size="large" color={color.ink} /> : null}
+      <Body>{timedOut ? "Couldn't start sign-in." : "Starting PorterChain…"}</Body>
+      {detail ? <Muted>{detail}</Muted> : null}
+      {timedOut ? <Muted>Check your connection, then retry.</Muted> : null}
+      {timedOut && onRetry ? <Button tone="primary" label="Retry" onPress={onRetry} /> : null}
     </Screen>
   );
 }
@@ -203,17 +196,3 @@ export function SessionGate({ children }: { children: ReactNode }) {
     </ClerkProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  boot: {
-    ...typography.body,
-    color: colors.muted,
-    textAlign: "center",
-  },
-  hint: {
-    ...typography.caption,
-    color: colors.muted,
-    textAlign: "center",
-    maxWidth: 320,
-  },
-});

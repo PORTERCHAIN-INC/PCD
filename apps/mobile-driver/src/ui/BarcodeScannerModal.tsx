@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Modal, Text, View, StyleSheet } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
-import { colors, radius, spacing, typography } from "@porterchain/mobile-theme";
-import { PrimaryButton } from "./PrimaryButton";
+import { Banner, Body, Button, Title } from "./kit";
+import { color, radius, space } from "./theme";
 
 type Props = {
   visible: boolean;
@@ -19,15 +19,14 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
   }, [visible]);
 
   useEffect(() => {
-    if (visible && permission && !permission.granted) {
+    if (visible && permission && !permission.granted && permission.canAskAgain) {
       void requestPermission();
     }
   }, [visible, permission, requestPermission]);
 
   function handleScan(result: BarcodeScanningResult) {
-    if (locked) return;
     const value = (result.data || "").trim();
-    if (!value) return;
+    if (locked || !value) return;
     setLocked(true);
     onScan(value);
     onClose();
@@ -36,21 +35,23 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.wrap} testID="barcode-scanner">
-        <Text style={styles.title}>Scan barcode</Text>
-        <Text style={styles.lede}>Point at PorterChain label QR or Code128. First read wins.</Text>
+        <Title>Scan label</Title>
+        <Body>Point the camera at the PorterChain label.</Body>
         {!permission?.granted ? (
-          <Text style={styles.warn}>Camera permission required for scanning.</Text>
+          <Banner
+            tone="warn"
+            title="Camera is off"
+            body="Allow camera access in Settings to scan."
+          />
         ) : (
           <CameraView
             style={styles.camera}
             facing="back"
-            barcodeScannerSettings={{
-              barcodeTypes: ["qr", "code128"],
-            }}
+            barcodeScannerSettings={{ barcodeTypes: ["qr", "code128"] }}
             onBarcodeScanned={locked ? undefined : handleScan}
           />
         )}
-        <PrimaryButton tone="ghost" label="Cancel" onPress={onClose} />
+        <Button label="Cancel" onPress={onClose} />
       </View>
     </Modal>
   );
@@ -59,18 +60,10 @@ export function BarcodeScannerModal({ visible, onClose, onScan }: Props) {
 const styles = StyleSheet.create({
   wrap: {
     flex: 1,
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    gap: spacing.md,
-    paddingTop: spacing.xl,
+    backgroundColor: color.surface,
+    padding: space.lg,
+    gap: space.md,
+    paddingTop: space.xxl,
   },
-  title: { ...typography.title, fontSize: 24, color: colors.primary },
-  lede: { ...typography.caption, color: colors.muted },
-  warn: { ...typography.caption, color: colors.danger, fontWeight: "600" },
-  camera: {
-    flex: 1,
-    borderRadius: radius.xl,
-    overflow: "hidden",
-    minHeight: 320,
-  },
+  camera: { flex: 1, borderRadius: radius.lg, overflow: "hidden", minHeight: 320 },
 });
