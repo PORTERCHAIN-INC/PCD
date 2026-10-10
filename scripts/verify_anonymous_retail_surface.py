@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""§1.4.1 — Website anonymous retail surface is quote + track only (book on :3004)."""
+"""§1.4.1 (v2, customer fast-book) — website guest booking is express-only.
+
+Guests book on the website with no account: /book renders ExpressBook (live price →
+/v1/express/checkout → Stripe Checkout). The heavy legacy widget/draft flow stays off the
+website; signed-in customers keep the full portal on :3004.
+"""
 
 from __future__ import annotations
 
@@ -26,11 +31,12 @@ def main() -> int:
     required = (
         ("track/page.tsx", ("TrackLookupForm",)),
         ("track/[tracking]/page.tsx", ("getOrderByTracking",)),
-        ("book/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
-        ("book/continue/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
-        ("book/success/page.tsx", ("portal-book-redirect", "customerPortalBookUrl")),
-        # Legacy /quote is a capacity CTA → sign-up quote (not customer-portal book).
-        ("quote/page.tsx", ('intent: "quote"', "intent=quote", "portal-book-redirect")),
+        ("book/page.tsx", ("ExpressBook",)),
+        ("book/continue/page.tsx", ("/book",)),
+        ("book/success/page.tsx", ("BookSuccess",)),
+        # Legacy /quote → guest express booking.
+        ("quote/page.tsx", ("/book",)),
+        ("email-preferences/page.tsx", ("EmailPreferencesView",)),
     )
     for rel, needles in required:
         path = WEBSITE_APP / rel
@@ -60,8 +66,14 @@ def main() -> int:
     if "createQuote" not in customer_booking or "/v1/quotes" not in customer_booking:
         failures.append("customer portal booking.ts missing createQuote for /v1/quotes")
     website_api = _read(ROOT / "website/src/lib/api.ts")
-    if "createQuote" in website_api:
-        failures.append("website api.ts must not POST /v1/quotes (retail book lives on :3004)")
+    if "/v1/express/checkout" not in website_api:
+        failures.append("website api.ts missing guest /v1/express/checkout")
+    if "/v1/bookings\"" in website_api or "\"/v1/bookings\"" in website_api:
+        failures.append("website must not call Clerk-bound POST /v1/bookings (use /v1/express/checkout)")
+    express = _read(ROOT / "website/src/components/book/ExpressBook.tsx")
+    for needle in ("website", "form_elapsed_ms"):
+        if needle not in express:
+            failures.append(f"ExpressBook missing abuse signal {needle!r} (honeypot / fill time)")
 
     home = _read(WEBSITE_APP / "page.tsx")
     if "BookingWidget" in home:
@@ -72,7 +84,7 @@ def main() -> int:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: website quote+track only; book/checkout → customer portal :3004")
+    print("  PASS: website guest express book + track; no legacy widget; abuse signals present")
     return 0
 
 

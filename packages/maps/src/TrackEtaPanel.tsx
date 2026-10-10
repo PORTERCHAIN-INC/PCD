@@ -18,22 +18,22 @@ export function formatEta(seconds?: number): string {
   return `${hours}h ${minutes % 60}m`;
 }
 
-/** A number without a source is a lie (Step 1 Wave 6). */
+/** A number without a source is a lie (Step 1 Wave 6) — said in customer words, no engine names. */
 export function etaSourceLabel(source?: string | null): string | null {
   switch (source) {
     case "osrm":
-      return "Road remaining (OSRM)";
+      return "Live road ETA";
     case "valhalla":
-      return "Road (Valhalla)";
+      return "Road ETA";
     case "matrix":
     case "routing":
       return "Road network";
     case "scheduled":
       return "Scheduled window";
     case "haversine":
-      return "Straight-line approx — not a road ETA";
+      return "Approximate";
     default:
-      return source ? source.replace(/_/g, " ") : null;
+      return null;
   }
 }
 

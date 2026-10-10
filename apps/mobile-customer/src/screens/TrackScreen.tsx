@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pressable, Text, TextInput, StyleSheet, View } from "react-native";
+import { Linking, Pressable, Text, TextInput, StyleSheet, View } from "react-native";
+import { websiteUrl } from "../config";
 import {
   etaWindowText,
   isEnhancedExperience,
@@ -115,6 +116,15 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
             {enhanced ? statusHeadline(enhanced) : (status ?? order.state)}
           </Text>
           <Text style={styles.meta}>{order.order_number}</Text>
+          <PrimaryButton
+            testID="track-open-live"
+            label="Open live map"
+            onPress={() =>
+              void Linking.openURL(
+                `${websiteUrl}/en/track/${encodeURIComponent(order.tracking_number ?? trimmed)}`
+              )
+            }
+          />
           {enhanced ? (
             <>
               {etaWindowText(enhanced.eta_window) ? (

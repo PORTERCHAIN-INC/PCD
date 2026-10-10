@@ -81,6 +81,7 @@ def test_every_template_has_category_meta(template_key: str) -> None:
         "marketing",
         "security",
         "crm",
+        "reorder",
     }
 
 

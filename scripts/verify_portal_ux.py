@@ -36,8 +36,7 @@ PORTAL_WIRING: dict[str, tuple[str, ...]] = {
         "src/app/loading.tsx",
     ),
     "apps/customer": (
-        "src/app/dashboard/dashboard-client.tsx",
-        "src/app/track/[trackingNumber]/track-order-client.tsx",
+        "src/components/orders/OrdersClient.tsx",
         "src/components/notifications/NotificationsClient.tsx",
         "src/app/loading.tsx",
     ),

@@ -54,7 +54,7 @@ function SuccessContent() {
         <h1 className="text-2xl font-bold text-slate-900">Missing booking reference</h1>
         <p className="mt-2 text-sm text-slate-600">Return to booking and try again.</p>
         <Link
-          href="/book"
+          href="/send"
           className="mt-6 inline-block text-sm font-semibold text-emerald-700 hover:underline"
         >
           Back to book
@@ -81,7 +81,7 @@ function SuccessContent() {
           Payment may still be confirming. Check your dashboard in a few minutes.
         </p>
         <Link
-          href="/dashboard"
+          href="/orders"
           className="mt-6 inline-block text-sm font-semibold text-emerald-700 hover:underline"
         >
           Go to dashboard
@@ -120,7 +120,7 @@ function SuccessContent() {
           </Link>
         ) : null}
         <Link
-          href="/dashboard"
+          href="/orders"
           className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
           Dashboard

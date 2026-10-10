@@ -19,6 +19,8 @@ DEFAULT_CATEGORIES = (
     "marketing",
     "security",
     "crm",
+    # Send-again reminders (CASL implied consent from a purchase; unsubscribe in every email).
+    "reorder",
 )
 
 # Merchant portal event keys → PreferenceService categories (unique mapping).

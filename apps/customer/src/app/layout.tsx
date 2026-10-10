@@ -36,7 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
           afterSignOutUrl="/sign-in"
-          fallbackRedirect="/dashboard"
+          fallbackRedirect="/orders"
         >
           <CustomerQueryProvider>
             <HydrationBoundary state={dehydrate(client)}>

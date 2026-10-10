@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 FLOWS = (
     ROOT / "apps/merchant-portal/src/components/booking/BookDeliveryClient.tsx",
-    ROOT / "apps/customer/src/components/booking/CustomerBookDelivery.tsx",
+    ROOT / "apps/customer/src/components/send/SendClient.tsx",
 )
 
 REQUIRED = (

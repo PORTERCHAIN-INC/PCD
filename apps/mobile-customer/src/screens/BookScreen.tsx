@@ -13,7 +13,12 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
-import { CAPACITY_CLASS_OPTIONS, vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
+import {
+  CAPACITY_CLASS_OPTIONS,
+  MAX_DROPS,
+  bookingText,
+  vehicleLabel as capacityVehicleLabel,
+} from "@porterchain/types";
 import {
   bookingCatalog,
   createQuote,
@@ -211,7 +216,8 @@ export function BookScreen({
   const [liveFare, setLiveFare] = useState<{ amount: string; km: number | null } | null>(null);
   const [pickup, setPickup] = useState<Address>(emptyAddress());
   const [dropoff, setDropoff] = useState<Address>(emptyAddress());
-  const [extraStop, setExtraStop] = useState<Address>(emptyAddress());
+  // Shared rule (@porterchain/types booking): up to MAX_DROPS drops = drop-off + extra stops.
+  const [extraStops, setExtraStops] = useState<Address[]>([]);
   const [pickupManual, setPickupManual] = useState(false);
   const [dropoffManual, setDropoffManual] = useState(false);
   const [stopManual, setStopManual] = useState(false);
@@ -275,8 +281,9 @@ export function BookScreen({
         if (payload.booking_mode === "vehicle" || payload.booking_mode === "parcels")
           setBookingMode(payload.booking_mode);
         if (payload.parcels?.length) setRows(rowsFromSaved(payload.parcels));
-        const extra = payload.additional_stops?.[0];
-        if (extra?.formatted) setExtraStop(extra);
+        setExtraStops(
+          (payload.additional_stops ?? []).filter((x) => x?.formatted).slice(0, MAX_DROPS - 1)
+        );
         if (payload.declared_value_cents)
           setDeclared((payload.declared_value_cents / 100).toFixed(2));
       })
@@ -298,8 +305,9 @@ export function BookScreen({
         if (resumed.booking_mode === "vehicle" || resumed.booking_mode === "parcels")
           setBookingMode(resumed.booking_mode);
         if (resumed.parcels?.length) setRows(rowsFromSaved(resumed.parcels));
-        const extra = resumed.additional_stops?.[0];
-        if (extra?.formatted) setExtraStop(extra);
+        setExtraStops(
+          (resumed.additional_stops ?? []).filter((x) => x?.formatted).slice(0, MAX_DROPS - 1)
+        );
         if (resumed.declared_value_cents)
           setDeclared((resumed.declared_value_cents / 100).toFixed(2));
         setQuote(resumed);
@@ -333,7 +341,9 @@ export function BookScreen({
               weight_lb: row.weight_lb ? Number(row.weight_lb) : undefined,
             })),
       declared_value_cents: parseDeclaredCents(declared),
-      additional_stops: extraStop.formatted.trim() ? [extraStop] : undefined,
+      additional_stops: extraStops.some((x) => x.formatted.trim())
+        ? extraStops.filter((x) => x.formatted.trim()).slice(0, MAX_DROPS - 1)
+        : undefined,
       special_instructions: instructions.trim() || undefined,
       promo_code: promo.trim() || undefined,
       scheduled_at: later && slot ? slot : new Date(Date.now() + 30 * 60_000).toISOString(),
@@ -367,7 +377,7 @@ export function BookScreen({
   }, [
     pickup,
     dropoff,
-    extraStop,
+    extraStops,
     vehicleClass,
     bookingMode,
     rows,
@@ -396,7 +406,7 @@ export function BookScreen({
       );
       return;
     }
-    if (extraStop.formatted.trim() && !addressReady(extraStop)) {
+    if (extraStops.some((x) => x.formatted.trim() && !addressReady(x))) {
       setError(
         stopManual
           ? "Google could not match the extra stop. Clear it or choose a suggestion."
@@ -591,16 +601,31 @@ export function BookScreen({
                     accessoryId={KEYBOARD_BAR}
                     onManualOk={setDropoffManual}
                   />
-                  <AddressField
-                    label="Extra stop (optional)"
-                    value={extraStop}
-                    onChange={(next) => {
-                      setExtraStop(next);
-                      setQuote(null);
-                    }}
-                    accessoryId={KEYBOARD_BAR}
-                    onManualOk={setStopManual}
-                  />
+                  {extraStops.map((stop, i) => (
+                    <AddressField
+                      key={i}
+                      label={`${bookingText("en", "dropN", { n: i + 1 })} (before final drop-off)`}
+                      value={stop}
+                      onChange={(next) => {
+                        setExtraStops((all) => all.map((x, j) => (j === i ? next : x)));
+                        setQuote(null);
+                      }}
+                      accessoryId={KEYBOARD_BAR}
+                      onManualOk={setStopManual}
+                    />
+                  ))}
+                  {extraStops.length < MAX_DROPS - 1 ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => setExtraStops((all) => [...all, emptyAddress()])}
+                    >
+                      <Text style={styles.label}>
+                        + {bookingText("en", "addDrop")} ({extraStops.length + 1}/{MAX_DROPS})
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={styles.label}>{bookingText("en", "dropsLimit")}</Text>
+                  )}
                   <Text style={styles.label}>Vehicle</Text>
                   <View style={styles.chips}>
                     {vehicles.map((item) => (

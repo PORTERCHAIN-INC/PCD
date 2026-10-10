@@ -14,8 +14,10 @@ from porterchain_api.routers import (
     booking_drafts,
     collaboration,
     customer_experience,
+    customer_fast,
     customers,
     customers_admin,
+    customers_admin_360,
     driver,
     drivers_admin,
     drivers_admin_account,
@@ -126,6 +128,7 @@ def create_app() -> FastAPI:
     app.include_router(booking_drafts.router)
     app.include_router(orders.router)
     app.include_router(customer_experience.router)
+    app.include_router(customer_fast.router)
     app.include_router(customers.router)
     app.include_router(payments.router)
     app.include_router(webhooks.router)
@@ -138,6 +141,7 @@ def create_app() -> FastAPI:
     app.include_router(drivers_admin.router)
     app.include_router(drivers_admin_account.router)
     app.include_router(customers_admin.router)
+    app.include_router(customers_admin_360.router)
     app.include_router(notifications_admin.router)
     app.include_router(notifications.router)
     app.include_router(security.router)

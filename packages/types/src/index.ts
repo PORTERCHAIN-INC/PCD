@@ -61,3 +61,23 @@ export {
   statusHeadline,
   stopsAwayText,
 } from "./trackingExperience";
+// One booking module for web + mobile (rules, payload, copy). Pure TS.
+export {
+  BOOKING_COPY,
+  BOOKING_VEHICLES,
+  MAX_DROPS,
+  bookingText,
+  buildQuoteInput,
+  canAddDrop,
+  cleanDrops,
+  contactOk,
+  formatPrice,
+  isAddress,
+  isEmail,
+  isPhone,
+  isVehicle,
+  payBlocker,
+  postalOf,
+  toAddress,
+} from "./booking";
+export type { BookingAddress, BookingDraft, BookingLocale, QuoteInput, VehicleId } from "./booking";

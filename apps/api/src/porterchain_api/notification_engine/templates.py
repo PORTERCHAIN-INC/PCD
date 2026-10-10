@@ -9,6 +9,7 @@ from porterchain_api.notification_engine.email_layout import TAGLINE, build_tran
 TEMPLATE_META: dict[str, dict[str, str]] = {
     "booking_draft_created": {"category": "booking"},
     "booking_confirmed": {"category": "booking"},
+    "fast_send_again": {"category": "reorder"},
     "consignee_tracking": {"category": "tracking"},
     "checkout_recovery": {"category": "booking"},
     "lead_nurture_intro": {"category": "crm"},
@@ -62,6 +63,17 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
 }
 
 TEMPLATES: dict[str, dict[str, str]] = {
+    # Customer fast-book Send-again (CASL CEM, implied consent from a purchase): sender id +
+    # unsubscribe link are mandatory. HTML lives in customer_fast.templates.fast_html.
+    "fast_send_again": {
+        "subject": "Send it again? Same route, one tap",
+        "body": (
+            "Your delivery {tracking_number} was delivered.\n"
+            "Need the same trip again? Book it in one tap: {send_again_url}\n\n"
+            "Sent by PorterChain Logistics Inc., Toronto, ON. "
+            "Stop these reminders: {unsubscribe_url}"
+        ),
+    },
     "booking_draft_created": {
         "subject": "Booking draft saved",
         "body": "Your booking draft is saved. Continue when ready.",
@@ -291,6 +303,12 @@ def _g(ctx: dict[str, Any], *keys: str, default: str = "") -> str:
 
 
 def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) -> str:
+    if template.startswith("fast_"):
+        from porterchain_api.customer_fast.templates import fast_html
+
+        fast = fast_html(template, ctx, subject=subject, body=body)
+        if fast:
+            return fast
     """Build branded HTML for known templates; generic fallback otherwise."""
     order = _g(ctx, "order_number")
     tracking = _g(ctx, "tracking_number")
@@ -346,6 +364,12 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
         )
 
     if template == "booking_confirmed":
+        if ctx.get("manage_track_url"):
+            from porterchain_api.customer_fast.templates import booking_confirmed_fast_html
+
+            return booking_confirmed_fast_html(
+                ctx, [("Tracking", tracking), ("Order", order), ("Invoice", invoice), ("Amount", amount)]
+            )
         return build_transactional_html(
             eyebrow="Booking confirmed",
             headline="Your capacity is reserved",
@@ -611,6 +635,7 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         "source",
         "channel",
         "deep_link",
+        "send_again_url",
     ):
         safe.setdefault(key, "")
     try:
@@ -623,9 +648,18 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         subject = str(context["title"])
     if template == "lead_sla_escalation" and "notice_body" in context:
         body = str(context["notice_body"])
+    manage = context.get("manage_track_url")
+    if template == "booking_confirmed" and isinstance(manage, str) and manage.startswith("http"):
+        body = f"{body}\n\nTrack, receipt and cancel: {manage}"
+        if context.get("account_url"):
+            body = f"{body}\nYour account (no password needed): {context['account_url']}"
     track = context.get("public_track_url")
     if isinstance(track, str) and track.startswith("http") and track not in body:
         body = f"{body}\n\nTrack: {track}"
+    if template in ("booking_confirmed", "fast_send_again"):
+        from porterchain_api.customer_fast.i18n import localize_email
+
+        subject, body = localize_email(template, context, subject, body)
     html_body = _html_for(template, context, subject=subject, body=body)
     return subject, body, html_body
 

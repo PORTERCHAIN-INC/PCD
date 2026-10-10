@@ -25,6 +25,8 @@ _PREFIXES = (
     "/v1/merchant/",
     "/v1/customers/",
     "/v1/delivery-manage/",
+    "/v1/express/",
+    "/v1/email-preferences",
     "/driver-api/",
 )
 _EXEMPT_PREFIXES = (

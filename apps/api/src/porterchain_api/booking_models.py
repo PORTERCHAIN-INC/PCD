@@ -465,3 +465,124 @@ def _stamp_order_sla(_mapper, _connection, target: Order) -> None:
 
 event.listen(Order, "before_insert", _stamp_order_sla)
 event.listen(Order, "before_update", _stamp_order_sla)
+
+
+class CustomerConsent(Base):
+    """Append-only CASL / PIPEDA consent log (express consent proof: what, when, where).
+
+    ``kind``: ``marketing`` (CASL express consent) or ``reorder`` (Send-again reminders under
+    implied consent from a purchase). Latest row per (customer, kind) wins.
+    """
+
+    __tablename__ = "customer_consents"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    customer_id: Mapped[str] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(32), index=True)
+    granted: Mapped[bool] = mapped_column(Boolean, default=False)
+    source: Mapped[str] = mapped_column(String(64))
+    wording: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class OrderRating(Base):
+    """One recipient/customer rating per order (1–5), from the signed tracking link."""
+
+    __tablename__ = "order_ratings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    order_id: Mapped[str] = mapped_column(
+        ForeignKey("orders.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    score: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CustomerAddress(Base):
+    """Customer address book (saved + learned from history). Max a few dozen per customer."""
+
+    __tablename__ = "customer_addresses"
+    __table_args__ = (Index("ix_customer_addresses_customer_key", "customer_id", "address_key", unique=True),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), index=True)
+    address_key: Mapped[str] = mapped_column(String(128))
+    label: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    formatted: Mapped[str] = mapped_column(String(512))
+    postal: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    lat: Mapped[float | None] = mapped_column(nullable=True)
+    lng: Mapped[float | None] = mapped_column(nullable=True)
+    place_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    saved: Mapped[bool] = mapped_column(Boolean, default=False)
+    use_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CustomerNote(Base):
+    """Staff note on a customer (admin Care tab timeline)."""
+
+    __tablename__ = "customer_notes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), index=True)
+    author: Mapped[str] = mapped_column(String(255))
+    body: Mapped[str] = mapped_column(String(2000))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CustomerCredit(Base):
+    """Append-only account-credit ledger (goodwill / service recovery). Balance = sum(amount)."""
+
+    __tablename__ = "customer_credits"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), index=True)
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    currency: Mapped[str] = mapped_column(String(3), default="CAD")
+    reason: Mapped[str] = mapped_column(String(500))
+    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    actor: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PrivacyDeletionJob(Base):
+    """PIPEDA / GDPR erasure: planned automatically, executed only after staff approval."""
+
+    __tablename__ = "privacy_deletion_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    reference: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(24), default="pending_review", index=True)
+    source: Mapped[str] = mapped_column(String(64))
+    plan: Mapped[dict] = mapped_column(JSON, default=dict)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    reviewer: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    review_note: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ReorderNudge(Base):
+    """Rules-drafted 'same as last time?' email. Sent only after staff approval (flag-gated)."""
+
+    __tablename__ = "reorder_nudges"
+    __table_args__ = (Index("ix_reorder_nudges_customer_order", "customer_id", "order_id", unique=True),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), index=True)
+    order_id: Mapped[str] = mapped_column(String(36))
+    status: Mapped[str] = mapped_column(String(16), default="draft", index=True)
+    reason: Mapped[str] = mapped_column(String(255))
+    approved_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -150,3 +150,16 @@ test("Search Console examples map to the agreed destinations", () => {
     }
   }
 });
+
+test("signed track/manage links keep their token through the locale redirect", () => {
+  for (const [src, want] of [
+    ["/track/PC-1/manage", "/en/track/PC-1/manage?t=abc.def"],
+    ["/track/PC-1", "/en/track/PC-1?t=abc.def"],
+  ]) {
+    const res = resolveUrlPolicy(src, "?t=abc.def&from=x");
+    assert.equal(res.action, "redirect");
+    assert.equal((res as { location: string }).location, want);
+  }
+  const book = resolveUrlPolicy("/book", "?quote_id=q1&again=a1");
+  assert.equal((book as { location: string }).location, "/en/book?quote_id=q1&again=a1");
+});

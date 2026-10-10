@@ -189,8 +189,9 @@ def test_arch_admin_customers_pages_and_tabs() -> None:
     lib = (ADMIN_SRC / "lib/customers.ts").read_text(encoding="utf-8")
     assert "Add customer" in list_page
     assert "CustomerCreateModal" in list_page
-    for tab in ("overview", "orders", "care", "billing", "trust", "activity", "tasks"):
-        assert tab in detail
+    # Five tabs (Customers 360): billing→money, trust/activity/tasks→care, consent+DSR→privacy.
+    for tab in ("overview", "orders", "money", "care", "privacy"):
+        assert f'"{tab}"' in detail
     assert "CustomerAddOrderModal" in detail
     assert "Send invite" in detail or "customersApi.invite" in lib
     assert (ADMIN_SRC / "components/customers/CustomerAddOrderModal.tsx").is_file()

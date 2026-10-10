@@ -28,11 +28,15 @@ class BookingService:
         quote_id: str,
         email: str,
         phone: str,
-        clerk_user_id: str,
+        clerk_user_id: str | None,
         anonymous_session_id: str | None,
         consent: dict | None = None,
         checkout_channel: str = "retail",
+        full_name: str | None = None,
     ) -> tuple[Quote, Customer, str | None]:
+        """Start checkout. ``clerk_user_id=None`` is guest (express) checkout: the customer
+        row is created/reused by email with a ``pending`` Clerk id and is merged on first
+        Clerk sign-in (C-14), so no account step blocks payment."""
         quote = db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
             raise LookupError("quote_not_found")
@@ -46,13 +50,20 @@ class BookingService:
         if not (consent.get("terms_accepted") and consent.get("privacy_accepted")):
             raise ValueError("consent_required")
 
-        customer = self._customers.upsert(
-            db,
-            clerk_user_id=clerk_user_id,
-            email=email,
-            phone=phone,
-            visitor_session_id=anonymous_session_id or quote.visitor_session_id,
-        )
+        if clerk_user_id:
+            customer = self._customers.upsert(
+                db,
+                clerk_user_id=clerk_user_id,
+                email=email,
+                phone=phone,
+                visitor_session_id=anonymous_session_id or quote.visitor_session_id,
+            )
+        else:
+            customer = self._customers.ensure_from_email(db, email=email, phone=phone, full_name=full_name)
+            if anonymous_session_id and not customer.visitor_session_id:
+                customer.visitor_session_id = anonymous_session_id
+            db.commit()
+            db.refresh(customer)
         self._customers.merge_anonymous_session(db, quote, customer, anonymous_session_id)
         session_id = anonymous_session_id or quote.visitor_session_id
         if session_id:
@@ -105,23 +116,25 @@ class BookingService:
             visitor_session_id=session_id,
             consent=consent,
         )
-        emit_event(
-            db,
-            event_type=E.CUSTOMER_AUTHENTICATED,
-            aggregate_type="customer",
-            aggregate_id=customer.id,
-            correlation_id=quote.id,
-            actor_type="customer",
-            actor_id=customer.id,
-            payload={"clerk_user_id": clerk_user_id},
-        )
+        if clerk_user_id:
+            emit_event(
+                db,
+                event_type=E.CUSTOMER_AUTHENTICATED,
+                aggregate_type="customer",
+                aggregate_id=customer.id,
+                correlation_id=quote.id,
+                actor_type="customer",
+                actor_id=customer.id,
+                payload={"clerk_user_id": clerk_user_id},
+            )
         self._quotes.accept_quote(db, quote)
-        self._drafts.on_customer_authenticated(
-            db,
-            quote_id=quote.id,
-            customer_id=customer.id,
-            clerk_user_id=clerk_user_id,
-        )
+        if clerk_user_id:
+            self._drafts.on_customer_authenticated(
+                db,
+                quote_id=quote.id,
+                customer_id=customer.id,
+                clerk_user_id=clerk_user_id,
+            )
 
         checkout_url, _payment = self._payments.start_payment(
             db, settings, quote, customer, checkout_channel=checkout_channel

@@ -4,12 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Activity as ActivityIcon,
   ArrowLeft,
-  Bell,
-  ClipboardList,
   Info,
   LifeBuoy,
+  Lock,
   Mail,
   Package,
   Phone,
@@ -18,7 +16,6 @@ import {
   Send,
   Settings as SettingsIcon,
   ShieldAlert,
-  Users,
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -30,7 +27,6 @@ import {
   type CustomerDetail,
 } from "@/lib/customers";
 import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
-import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import {
   CustomerAddOrderModal,
@@ -39,6 +35,16 @@ import {
 import { Badge, Button, EmptyState, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, titleCase } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
+import {
+  BookingLinkButton,
+  KpiStrip,
+  MoneyActions,
+  NotesAndTimeline,
+  PrivacyPanel,
+  SignalBadges,
+  SignalsCard,
+  use360,
+} from "@/components/customers/Customer360";
 import { PageSkeleton, TableSkeleton } from "@porterchain/ui/loading";
 
 /** Mirrors API MODULE_PERMISSIONS["customers"]. */
@@ -50,16 +56,15 @@ const CUSTOMERS_WRITE_ROLES = new Set([
   "compliance",
 ]);
 
-type TabId = "overview" | "orders" | "care" | "billing" | "trust" | "activity" | "tasks";
+/** Five tabs. Billing → Money; Trust + Activity + Tasks → Care; consent + DSR → Privacy. */
+type TabId = "overview" | "orders" | "money" | "care" | "privacy";
 
 const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "overview", label: "Overview", icon: Info },
   { id: "orders", label: "Orders", icon: Package },
+  { id: "money", label: "Money", icon: Receipt },
   { id: "care", label: "Care", icon: LifeBuoy },
-  { id: "billing", label: "Billing", icon: Receipt },
-  { id: "trust", label: "Trust", icon: Bell },
-  { id: "activity", label: "Activity", icon: ActivityIcon },
-  { id: "tasks", label: "Tasks", icon: ClipboardList },
+  { id: "privacy", label: "Privacy", icon: Lock },
 ];
 
 export default function CustomerDetailClient({ id }: { id: string }) {
@@ -82,6 +87,8 @@ export default function CustomerDetailClient({ id }: { id: string }) {
       key: `customer-${id}-${detailVersion}`,
     }
   );
+  const { data: c360 } = use360(id, detailVersion);
+  const refresh = () => setDetailVersion((v) => v + 1);
 
   async function sendInvite() {
     setInviteBusy(true);
@@ -126,7 +133,10 @@ export default function CustomerDetailClient({ id }: { id: string }) {
           </Button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-primary">{data.display_name}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-primary">
+                {data.display_name}
+              </h1>
+              {c360 ? <SignalBadges c={c360} /> : null}
               <Badge tone={data.clerk_linked ? "green" : "slate"}>
                 {data.clerk_linked ? "Clerk linked" : "Orphan row"}
               </Badge>
@@ -177,18 +187,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
               <Plus className="h-4 w-4" /> Add order
             </Button>
           )}
-          <Link
-            href={`/support?customer_id=${data.id}`}
-            className="inline-flex items-center gap-2 rounded-xl border border-primary/15 bg-white px-3.5 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-          >
-            <Users className="h-4 w-4" /> Support tickets
-          </Link>
-          <Link
-            href={`/claims?customer_id=${data.id}`}
-            className="inline-flex items-center gap-2 rounded-xl border border-primary/15 bg-white px-3.5 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-          >
-            Claims
-          </Link>
+          {canWrite ? <BookingLinkButton id={data.id} /> : null}
           {data.clerk_linked && (
             <Link
               href={data.settings_users_href || "/settings?section=users&tab=customer"}
@@ -202,22 +201,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
 
       {createdDraft && <CustomerOrderCreatedBanner result={createdDraft} />}
 
-      <div className="grid gap-3 sm:grid-cols-4">
-        <SectionCard title="Lifetime orders">
-          <p className="p-5 text-2xl font-semibold text-primary">{data.lifetime_orders}</p>
-        </SectionCard>
-        <SectionCard title="Lifetime revenue">
-          <p className="p-5 text-2xl font-semibold text-primary">
-            {money(data.lifetime_revenue_cents)}
-          </p>
-        </SectionCard>
-        <SectionCard title="Open support">
-          <p className="p-5 text-2xl font-semibold text-primary">{data.open_support_tickets}</p>
-        </SectionCard>
-        <SectionCard title="Open claims">
-          <p className="p-5 text-2xl font-semibold text-primary">{data.open_claims ?? 0}</p>
-        </SectionCard>
-      </div>
+      {c360 ? <KpiStrip c={c360} /> : null}
 
       <div className="flex flex-wrap gap-1 rounded-2xl border border-primary/10 bg-white p-1">
         {TABS.map(({ id: tid, label, icon: Icon }) => (
@@ -227,7 +211,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
             onClick={() => setTab(tid)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-              tab === tid ? "bg-secondary text-white" : "text-primary/70 hover:bg-gray-bg"
+              tab === tid ? "bg-primary text-white" : "text-primary/75 hover:bg-gray-bg"
             )}
           >
             <Icon className="h-4 w-4" />
@@ -236,7 +220,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
         ))}
       </div>
 
-      {tab === "overview" && <OverviewTab data={data} onGoto={setTab} />}
+      {tab === "overview" && <OverviewTab data={data} onGoto={setTab} c360={c360} />}
       {tab === "orders" && (
         <OrdersTab
           id={id}
@@ -245,18 +229,27 @@ export default function CustomerDetailClient({ id }: { id: string }) {
           canAddOrder={canWrite && data.privacy_status !== "deletion_hold"}
         />
       )}
-      {tab === "care" && <CareTab id={id} />}
-      {tab === "billing" && <BillingTab id={id} stripeCustomerId={data.stripe_customer_id} />}
-      {tab === "trust" && (
-        <EntityAlertsPanel
-          recipientType="customer"
-          recipientId={data.id}
-          showDevices
-          careHref={`/support?customer_id=${data.id}`}
-        />
+      {tab === "money" && (
+        <div className="space-y-4">
+          {canWrite ? <MoneyActions id={id} onDone={refresh} /> : null}
+          <BillingTab id={id} stripeCustomerId={data.stripe_customer_id} />
+        </div>
       )}
-      {tab === "activity" && <ActivityTimeline entityType="customer" entityId={id} />}
-      {tab === "tasks" && <EntityTasks entityType="customer" entityId={id} />}
+      {tab === "care" && (
+        <div className="space-y-4">
+          <NotesAndTimeline id={id} />
+          <CareTab id={id} />
+          <EntityTasks entityType="customer" entityId={id} />
+          <EntityAlertsPanel
+            recipientType="customer"
+            recipientId={data.id}
+            showDevices
+            careHref={`/support?customer_id=${data.id}`}
+          />
+        </div>
+      )}
+      {tab === "privacy" &&
+        (c360 ? <PrivacyPanel c={c360} onDone={refresh} /> : <PageSkeleton rows={3} />)}
 
       <CustomerAddOrderModal
         customerId={id}
@@ -276,9 +269,18 @@ export default function CustomerDetailClient({ id }: { id: string }) {
   );
 }
 
-function OverviewTab({ data, onGoto }: { data: CustomerDetail; onGoto: (t: TabId) => void }) {
+function OverviewTab({
+  data,
+  onGoto,
+  c360,
+}: {
+  data: CustomerDetail;
+  onGoto: (t: TabId) => void;
+  c360?: import("@/lib/customers").Customer360 | null;
+}) {
   return (
     <div className="space-y-4">
+      {c360 ? <SignalsCard c={c360} /> : null}
       <SectionCard title="Identity">
         <dl className="grid gap-3 p-5 sm:grid-cols-2">
           <div>

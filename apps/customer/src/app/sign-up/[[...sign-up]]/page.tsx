@@ -68,7 +68,7 @@ function SignUpWithClerk() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.replace("/onboarding");
+      router.replace("/send");
     }
   }, [isLoaded, isSignedIn, router]);
 
@@ -97,8 +97,8 @@ function SignUpWithClerk() {
         routing="path"
         path="/sign-up"
         signInUrl="/sign-in"
-        forceRedirectUrl="/onboarding"
-        fallbackRedirectUrl="/onboarding"
+        forceRedirectUrl="/send"
+        fallbackRedirectUrl="/send"
         appearance={porterchainClerkAppearance}
       />
       <PasswordRequirements />

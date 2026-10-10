@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CustomerShell from "@/components/CustomerShell";
+import AddressBook from "@/components/account/AddressBook";
 import { isClerkConfigured } from "@/lib/env";
 import { customerApi } from "@/lib/api";
 
@@ -125,12 +126,12 @@ function AccountBody({
 
   return (
     <CustomerShell>
-      <div className="space-y-6">
+      <div className="mx-auto max-w-3xl space-y-4">
         <header>
-          <h1 className="text-xl font-semibold text-primary sm:text-2xl">Account & care</h1>
-          <p className="mt-1 text-sm text-muted">
-            Support tickets, data export, and deletion requests.
+          <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">
+            Account
           </p>
+          <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-primary">Your account</h1>
         </header>
 
         {message ? (
@@ -144,8 +145,10 @@ function AccountBody({
           </p>
         ) : null}
 
-        <section className="rounded-2xl border border-primary/8 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-primary">Contact support</h2>
+        <AddressBook getToken={getToken} />
+
+        <section className="rounded-3xl border border-primary/10 bg-white p-5">
+          <h2 className="text-lg font-bold text-primary">Contact support</h2>
           <form onSubmit={submitTicket} className="mt-4 space-y-3">
             <label className="block text-sm">
               <span className="text-muted">Subject</span>
@@ -168,7 +171,7 @@ function AccountBody({
             <button
               type="submit"
               disabled={busy}
-              className="rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-2xl border border-primary/20 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-60"
             >
               Submit ticket
             </button>
@@ -188,10 +191,11 @@ function AccountBody({
           ) : null}
         </section>
 
-        <section className="rounded-2xl border border-primary/8 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-primary">Privacy</h2>
-          <p className="mt-1 text-sm text-muted">
-            Download a copy of your account data, or request deletion (legal hold may apply).
+        <section className="rounded-3xl border border-primary/10 bg-white p-5">
+          <h2 className="text-lg font-bold text-primary">Privacy</h2>
+          <p className="mt-1 text-sm text-primary/70">
+            Download your data, or ask us to delete it. A person reviews each request, then it runs
+            automatically.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
