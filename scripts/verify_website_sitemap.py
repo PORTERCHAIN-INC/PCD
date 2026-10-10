@@ -38,7 +38,6 @@ def main() -> int:
     partitions = [
         "static",
         "industry",
-        "service",
         "vehicle",
         "location",
         "resource",

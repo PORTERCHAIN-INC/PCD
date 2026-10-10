@@ -31,7 +31,6 @@ import enMessages from "../../../messages/en.json";
 export type SitemapPartitionId =
   | "static"
   | "industry"
-  | "service"
   | "vehicle"
   | "location"
   | "resource"
@@ -43,7 +42,6 @@ export type SitemapPartitionId =
 export const SITEMAP_PARTITION_IDS: SitemapPartitionId[] = [
   "static",
   "industry",
-  "service",
   "vehicle",
   "location",
   "resource",
@@ -174,11 +172,6 @@ export function buildIndustrySitemapEntries(): SitemapEntry[] {
   return entries;
 }
 
-export function buildServiceSitemapEntries(): SitemapEntry[] {
-  const entries: SitemapEntry[] = [];
-  return entries;
-}
-
 export function buildVehicleSitemapEntries(): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
   for (const locale of routing.locales) {
@@ -297,8 +290,6 @@ export function buildSitemapPartition(
       return buildStaticSitemapEntries();
     case "industry":
       return buildIndustrySitemapEntries();
-    case "service":
-      return buildServiceSitemapEntries();
     case "vehicle":
       return buildVehicleSitemapEntries();
     case "location":

@@ -41,6 +41,12 @@ admin.porterchain.com {
 
 merchant.porterchain.com {
 	import common
+	# Shopify Admin embeds /shopify-app: CSP frame-ancestors (set by the app) allows only
+	# Shopify hosts, so drop the SAMEORIGIN X-Frame-Options there. Every other path keeps it.
+	header /shopify-app* {
+		defer
+		-X-Frame-Options
+	}
 	reverse_proxy merchant:3001
 }
 
