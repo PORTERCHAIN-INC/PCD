@@ -172,7 +172,8 @@ export function DispatchShell({ view }: { view: DispatchView }) {
               </div>
             )}
           </div>
-          {view !== "plan" && (
+          {/* One main action per screen: other views own their action (Apply, Commit, Save); P still plans. */}
+          {view === "today" && (
             <Link
               href="/dispatch/plan"
               aria-keyshortcuts="P"

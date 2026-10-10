@@ -14,9 +14,14 @@ from porterchain_api import crm_models, merchant_models, user_models  # noqa: F4
 from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService
 from porterchain_api.admin_engine.job_offers_service import JobOffersService
 from porterchain_api.admin_models import AdminUser, Driver, Vehicle
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Order, OrderException, Package
-from porterchain_api.dispatch_engine import eta_risk, fleet_capacity as fc, recommend as rc
+from porterchain_api.dispatch_engine import eta_risk
+from porterchain_api.dispatch_engine import fleet_capacity as fc
+from porterchain_api.dispatch_engine import recommend as rc
 from porterchain_api.dispatch_engine.models import DispatchJobOffer
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
@@ -102,11 +107,11 @@ def test_eta_classify() -> None:
 def test_eta_for_before_and_after_pickup() -> None:
     now = datetime(2026, 10, 9, 15, 0, tzinfo=UTC)
     order = SimpleNamespace(state="DRIVER_EN_ROUTE", pickup={"lat": 1, "lng": 1}, dropoff={"lat": 2, "lng": 2})
-    fn = lambda pts, _v: [[0, 300, 0], [0, 0, 600], [0, 0, 0]][: len(pts)]  # noqa: E731
+    fn = lambda pts, _v: [[0, 300, 0], [0, 0, 600], [0, 0, 0]][: len(pts)]
     eta = eta_risk.eta_for(order, (0, 0), now=now, service_fn=lambda _k, _a: 150, matrix_fn=fn)
     assert eta == now + timedelta(seconds=900 + 2 * 150)
     order.state = "IN_TRANSIT"
-    fn2 = lambda pts, _v: [[0, 120], [0, 0]]  # noqa: E731
+    fn2 = lambda pts, _v: [[0, 120], [0, 0]]
     assert eta_risk.eta_for(order, (0, 0), now=now, service_fn=lambda _k, _a: 150, matrix_fn=fn2) == now + timedelta(seconds=120 + 150)
     assert eta_risk.eta_for(order, None, now=now, service_fn=lambda _k, _a: 150, matrix_fn=fn2) is None
 
@@ -235,7 +240,9 @@ def test_exceptions_queue_unifies_sources(db: Session) -> None:
     db.add_all([old, failed, damaged])
     db.commit()
     eta_rows = [{"order_id": "x-late", "order_number": "PC-X", "state": "IN_TRANSIT", "status": "late", "eta": None, "promise": None}]
-    out = DispatchBoardService().exceptions_queue(db, etas_fn=lambda _db: eta_rows)
+    from tests.test_dispatch_phase2 import all_exceptions
+
+    out = all_exceptions(DispatchBoardService(), db, etas_fn=lambda _db: eta_rows)
     by_order = {i["order_id"]: i for i in out["items"]}
     assert by_order[old.id]["kind"] == "unassigned"
     assert by_order[failed.id]["kind"] == "failed"

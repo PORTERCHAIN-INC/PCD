@@ -30,6 +30,8 @@ EXCEPTION_SEVERITY = {
 }
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 UNASSIGNED_ALERT_MIN = 15
+PAGE_SIZE = 50
+MAX_PAGE = 200
 
 
 def _aware(ts: datetime | None) -> datetime | None:
@@ -60,8 +62,14 @@ class DispatchBoardService:
         now: datetime | None = None,
         etas_fn: Callable[[Session], list[dict[str, Any]]] | None = None,
         fixes: Any = None,
+        offset: int = 0,
+        limit: int = PAGE_SIZE,
     ) -> dict[str, Any]:
-        """``fixes``: an ``ExceptionFixesService`` (injectable in tests)."""
+        """Every open problem, worst then newest first; one page carries suggested fixes.
+
+        No per-source cap: counts and ``total`` always cover the whole queue, so a new problem
+        is never hidden behind old ones. ``fixes``: an ``ExceptionFixesService`` (tests).
+        """
         from porterchain_api.admin_engine.exception_fixes_service import ExceptionFixesService, margin_items
         from porterchain_api.booking_models import Order, OrderException
         from porterchain_api.dispatch_engine.fleet_capacity import load_fleet
@@ -74,8 +82,7 @@ class DispatchBoardService:
             db.query(OrderException, Order)
             .join(Order, Order.id == OrderException.order_id)
             .filter(OrderException.status.in_(("open", "acknowledged")), Order.is_sandbox.is_(False))
-            .order_by(OrderException.created_at)
-            .limit(200)
+            .order_by(OrderException.created_at.desc())
             .all()
         )
         for exc, order in open_exc:
@@ -92,14 +99,14 @@ class DispatchBoardService:
                     "age_min": _age_min(exc.created_at, now),
                     "status": exc.status,
                     "exception_id": exc.id,
+                    "driver_id": order.assigned_driver_id,
                 }
             )
 
         state_rows = (
             db.query(Order)
             .filter(Order.is_sandbox.is_(False), Order.state.in_(tuple(STATE_KINDS)))
-            .order_by(Order.updated_at)
-            .limit(200)
+            .order_by(Order.updated_at.desc())
             .all()
         )
         for order in state_rows:
@@ -129,8 +136,7 @@ class DispatchBoardService:
                 Order.state == "DISPATCH_READY",
                 Order.created_at <= cutoff,
             )
-            .order_by(Order.created_at)
-            .limit(100)
+            .order_by(Order.created_at.desc())
             .all()
         )
         for order in waiting:
@@ -181,12 +187,15 @@ class DispatchBoardService:
 
         floor = float(load_fleet(db)["margin_floor_pct"])
         items += [m for m in margin_items(db, now=now, floor_pct=floor) if m["order_id"] not in seen_orders]
-        items.sort(key=lambda i: (SEVERITY_ORDER.get(i["severity"], 9), -(i["age_min"] or 0)))
-        (fixes or ExceptionFixesService()).annotate(db, items, now=now)
+        items.sort(key=lambda i: (SEVERITY_ORDER.get(i["severity"], 9), i["age_min"] if i["age_min"] is not None else -1))
         counts: dict[str, int] = defaultdict(int)
         for i in items:
             counts[i["severity"]] += 1
-        return {"items": items, "counts": dict(counts), "total": len(items), "eta": eta_status}
+        offset, limit = max(offset, 0), min(max(limit, 1), MAX_PAGE)
+        page = items[offset : offset + limit]
+        (fixes or ExceptionFixesService()).annotate(db, page, now=now)
+        return {"items": page, "counts": dict(counts), "total": len(items), "offset": offset, "limit": limit,
+                "eta": eta_status}
 
     # ---------- Metrics ----------
     def metrics(self, db: Session, *, days: int = 7, now: datetime | None = None) -> dict[str, Any]:

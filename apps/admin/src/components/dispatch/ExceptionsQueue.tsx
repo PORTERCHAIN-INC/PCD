@@ -5,7 +5,13 @@ import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ops } from "@/lib/operations";
-import { dispatch, type DispatchExceptionItem, type ExceptionFix } from "@/lib/dispatch";
+import {
+  dispatch,
+  EXCEPTIONS_PAGE,
+  pageLabel,
+  type DispatchExceptionItem,
+  type ExceptionFix,
+} from "@/lib/dispatch";
 
 const SEVERITY_DOT: Record<string, string> = {
   critical: "bg-red-600",
@@ -171,10 +177,17 @@ export function ExceptionsQueue({
   onOpenOrder: (id: string) => void;
   onChanged: () => void;
 }) {
-  const { data, loading, error } = useApiData((t) => dispatch.exceptions(t), [tick], {
-    key: "dispatch-exceptions",
-  });
+  const [offset, setOffset] = useState(0);
+  const { data, loading, error } = useApiData(
+    (t) => dispatch.exceptions(t, offset),
+    [tick, offset],
+    {
+      key: `dispatch-exceptions-${offset}`,
+    }
+  );
   const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const label = pageLabel(offset, items.length, total);
   return (
     <section className="rounded-2xl border border-primary/10 bg-white">
       <header className="flex flex-wrap items-baseline justify-between gap-2 px-4 pt-4 pb-2">
@@ -200,6 +213,29 @@ export function ExceptionsQueue({
           <Row key={i.id} item={i} onOpenOrder={onOpenOrder} onChanged={onChanged} />
         ))}
       </ul>
+      {label ? (
+        <footer className="flex items-center justify-between gap-2 border-t border-primary/5 px-4 py-3 text-sm">
+          <span className="tabular-nums text-muted">{label}</span>
+          <span className="flex gap-2">
+            <button
+              type="button"
+              disabled={offset === 0}
+              onClick={() => setOffset((o) => Math.max(0, o - EXCEPTIONS_PAGE))}
+              className="min-h-11 rounded-xl px-3 font-semibold text-primary disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={offset + items.length >= total}
+              onClick={() => setOffset((o) => o + EXCEPTIONS_PAGE)}
+              className="min-h-11 rounded-xl px-3 font-semibold text-primary disabled:opacity-40"
+            >
+              Next
+            </button>
+          </span>
+        </footer>
+      ) : null}
     </section>
   );
 }

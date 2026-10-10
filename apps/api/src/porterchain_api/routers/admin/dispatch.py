@@ -44,9 +44,15 @@ def dispatch_metrics(ctx: Ctx, db: Session = Depends(get_db), days: int = Query(
 
 
 @router.get(f"{P}/exceptions")
-def dispatch_exceptions(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """One queue: open exceptions, failed/damaged/lost/returns, late/at-risk ETAs, unassigned >15 min."""
-    return _invoke(ctx, "dispatch_read", _board.exceptions_queue, db)
+def dispatch_exceptions(
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+) -> dict:
+    """One queue, worst then newest first: open exceptions, failed/damaged/lost/returns,
+    late/at-risk ETAs, unassigned >15 min. Paged; ``total``/``counts`` cover the whole queue."""
+    return _invoke(ctx, "dispatch_read", _board.exceptions_queue, db, offset=offset, limit=limit)
 
 
 @router.post(f"{P}/exceptions/apply")

@@ -11,16 +11,41 @@ from sqlalchemy.orm import Session
 
 from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService
-from porterchain_api.admin_engine.exception_fixes_service import ExceptionFixesService, next_slot
+from porterchain_api.admin_engine.exception_fixes_service import (
+    ExceptionFixesService,
+    next_slot,
+)
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.booking_models import Order, OrderException
+from porterchain_api.booking_models import OrderException
 from porterchain_api.config import get_settings
-from porterchain_api.dispatch_engine import exception_fixes, fleet_capacity, margin, stop_times, vrp, windows
-from porterchain_api.dispatch_engine.driver_route import PICKUP_KINDS, DriverRouteService
-from porterchain_api.dispatch_engine.models import DispatchFixAction, DispatchStopEvent, DispatchStopTime
+from porterchain_api.dispatch_engine import (
+    exception_fixes,
+    fleet_capacity,
+    margin,
+    stop_times,
+    vrp,
+    windows,
+)
+from porterchain_api.dispatch_engine.driver_route import (
+    PICKUP_KINDS,
+    DriverRouteService,
+)
+from porterchain_api.dispatch_engine.models import (
+    DispatchFixAction,
+    DispatchStopEvent,
+    DispatchStopTime,
+)
 from porterchain_api.dispatch_engine.stop_shapes import StopSpec
 from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
-from tests.test_dispatch_phase2 import S, W, _ctx, _driver, _order, _road
+from tests.test_dispatch_phase2 import (
+    S,
+    W,
+    _ctx,
+    _driver,
+    _order,
+    _road,
+    all_exceptions,
+)
 
 pytestmark = pytest.mark.usefixtures("quiet_pool")
 NOW = datetime(2026, 10, 9, 14, 0, tzinfo=UTC)
@@ -150,6 +175,12 @@ def test_fix_rules() -> None:
     assert [f["action"] for f in failed] == ["reschedule", "contact"]
     assert exception_fixes.suggest({"kind": "unassigned", "type": "UNASSIGNED", "state": "DISPATCH_READY"},
                                    plan_id=None, best_driver=None, next_slot=slot) == []
+    for item in ({"kind": "damaged", "type": "DAMAGED"}, {"kind": "lost", "type": "LOST"},
+                 {"kind": "exception", "type": "PARCEL_DAMAGED"}, {"kind": "claim", "type": "CLAIM_OPEN"},
+                 {"kind": "return", "type": "RETURN_TO_SENDER"}):
+        fixes = exception_fixes.suggest({**item, "state": "DAMAGED"}, plan_id="p", best_driver=best, next_slot=slot)
+        assert [f["action"] for f in fixes] == ["contact"], item  # critical rows always get a next step
+        assert "late" not in fixes[0]["params"]["message"]  # never a "running late" email for a damaged parcel
     assert next_slot(datetime(2026, 10, 10, 15, 0, tzinfo=UTC)).weekday() == 0  # Saturday → Monday 09:00
     assert next_slot(datetime(2026, 10, 9, 11, 0, tzinfo=UTC)).day == 9  # Friday 07:00 Toronto → today 09:00
 
@@ -163,7 +194,7 @@ def test_round4_day_end_to_end(db: Session) -> None:
     o = _order(db, W, S, boxes=2, compliance_metadata={
         "cx": {"schedule": {"window_start": start.isoformat(), "window_end": (start + timedelta(hours=1)).isoformat()}}})
     o.amount_cents = 50  # far under any route cost → margin alert
-    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38), cuopt_fn=lambda p: {})
+    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
     plan = plans.plan(db, actor="t", order_ids=[o.id], driver_ids=[d.id], time_limit_s=1)
     drop = next(s for r in plan["routes"] for s in r["stops"] if s["kind"] == "drop")
     assert drop["eta_s"] >= 3 * 3600 - 120  # waits for the customer's window
@@ -171,7 +202,7 @@ def test_round4_day_end_to_end(db: Session) -> None:
     plans.commit(db, get_settings(), ctx, plan["id"])
 
     gate_svc = ScanGateService()
-    gate = lambda order, phase: gate_svc.scan_progress(db, order, phase=phase)  # noqa: E731
+    gate = lambda order, phase: gate_svc.scan_progress(db, order, phase=phase)
     rs = DriverRouteService()
     route = rs.view(db, d.id)["route"]
     pickup, dropstop = route["stops"][0], route["stops"][1]
@@ -198,7 +229,7 @@ def test_round4_day_end_to_end(db: Session) -> None:
 
     failed = _order(db, W, S, state="FAILED")
     fixes = ExceptionFixesService(recommend_fn=lambda _db, _oid: {"drivers": [], "best_driver_id": None})
-    queue = DispatchBoardService().exceptions_queue(db, etas_fn=lambda _db: [], fixes=fixes)
+    queue = all_exceptions(DispatchBoardService(), db, etas_fn=lambda _db: [], fixes=fixes)
     by_id = {i["id"]: i for i in queue["items"]}
     assert [f["action"] for f in by_id[f"exc:{alert.id}"]["fixes"]] == ["contact"]
     fix = by_id[f"state:{failed.id}"]["fixes"][0]
@@ -217,11 +248,11 @@ def test_margin_alert_on_committed_route(db: Session) -> None:
     d = _driver(db)
     o = _order(db, W, S)
     o.amount_cents = 50
-    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38), cuopt_fn=lambda p: {})
+    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
     plan = plans.plan(db, actor="t", order_ids=[o.id], driver_ids=[d.id], time_limit_s=1)
     plans.commit(db, get_settings(), _ctx(db), plan["id"])
     fixes = ExceptionFixesService(recommend_fn=lambda _db, _oid: {"drivers": [], "best_driver_id": None})
-    queue = DispatchBoardService().exceptions_queue(db, etas_fn=lambda _db: [], fixes=fixes)
+    queue = all_exceptions(DispatchBoardService(), db, etas_fn=lambda _db: [], fixes=fixes)
     item = next(i for i in queue["items"] if i["id"] == f"margin:{o.id}")
     assert item["price_cents"] == 50 and item["cost_cents"] > 50 and item["margin_pct"] < 0
     assert item["fixes"][0]["action"] == "reroute"
