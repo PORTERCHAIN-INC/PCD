@@ -26,6 +26,7 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
             <th className="px-3 py-3">
               <input
                 type="checkbox"
+                aria-label="Select all orders"
                 checked={allSelected}
                 disabled={ids.length === 0}
                 ref={(el) => {
@@ -60,6 +61,7 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
               <td className="px-3 py-3">
                 <input
                   type="checkbox"
+                  aria-label={`Select order ${row.order_number}`}
                   checked={selected.includes(row.order_id)}
                   onChange={(e) => {
                     const id = row.order_id;

@@ -99,7 +99,11 @@ function NavigationPageContent() {
           <PageSkeleton rows={3} />
         </div>
       )}
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-4 text-red-700">
+          {error}
+        </p>
+      )}
 
       {session?.idle && (
         <div className="mt-6 rounded-2xl border border-primary/10 bg-white p-8 text-center shadow-sm">

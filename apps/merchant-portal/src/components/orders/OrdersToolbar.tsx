@@ -55,6 +55,7 @@ export function OrdersToolbar({
           className="min-h-10 min-w-0 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm sm:min-w-[220px] sm:flex-1"
         />
         <select
+          aria-label="Environment"
           value={filters.env ?? "live"}
           onChange={(e) =>
             onChange({
@@ -70,6 +71,7 @@ export function OrdersToolbar({
           <option value="all">All (live + test)</option>
         </select>
         <select
+          aria-label="Status"
           value={filters.state ?? ""}
           onChange={(e) => onChange({ ...filters, state: e.target.value || undefined })}
           className="min-h-10 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm sm:w-auto"
@@ -83,6 +85,7 @@ export function OrdersToolbar({
         </select>
         {canSeeInvoices ? (
           <select
+            aria-label="Invoice status"
             value={filters.invoice_status ?? ""}
             onChange={(e) => onChange({ ...filters, invoice_status: e.target.value || undefined })}
             className="min-h-10 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm sm:w-auto"
@@ -93,6 +96,7 @@ export function OrdersToolbar({
           </select>
         ) : null}
         <select
+          aria-label="Priority"
           value={filters.priority ?? ""}
           onChange={(e) => onChange({ ...filters, priority: e.target.value || undefined })}
           className="min-h-10 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm sm:w-auto"
@@ -130,6 +134,7 @@ export function OrdersToolbar({
 
       <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <select
+          aria-label="Bulk action"
           className="min-h-10 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm sm:w-auto"
           defaultValue=""
           onChange={(e) => {

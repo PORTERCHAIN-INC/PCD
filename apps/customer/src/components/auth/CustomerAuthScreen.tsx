@@ -74,7 +74,7 @@ export function CustomerAuthScreen({
             </div>
           ) : null}
 
-          <p className="mt-8 text-center text-[0.7rem] text-muted/80 sm:text-left">
+          <p className="mt-8 text-center text-xs text-primary/80 sm:text-left">
             <a
               href={publicEnv.websiteUrl || "https://porterchain.com"}
               className="transition-colors hover:text-primary"

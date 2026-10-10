@@ -205,7 +205,11 @@ export default function JobsListClient() {
 
       {loading && !data && <CardListSkeleton count={4} />}
 
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-4 text-red-700">
+          {error}
+        </p>
+      )}
 
       {data && (
         <>
