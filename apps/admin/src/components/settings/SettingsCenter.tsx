@@ -1,6 +1,7 @@
 "use client";
 
 import CarriageTermsPanel from "@/components/settings/CarriageTermsPanel";
+import RoutePricingPanel from "@/components/settings/RoutePricingPanel";
 import { startTransition, useCallback, useEffect, useMemo, useOptimistic, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -456,6 +457,7 @@ function SectionRouter({
   }
 
   if (tab === "carriage") return <CarriageTermsPanel />;
+  if (tab === "route_pricing") return <RoutePricingPanel />;
   if (tab === "lead_ingest") {
     return <LeadIngestPanel />;
   }

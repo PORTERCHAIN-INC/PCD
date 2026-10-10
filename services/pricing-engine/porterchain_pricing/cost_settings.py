@@ -9,6 +9,12 @@ from porterchain_pricing.coverage import default_coverage, normalize_coverage
 from porterchain_pricing.margin import default_margin_estimates, normalize_margin_estimates
 from porterchain_pricing.smart_route import default_smart_pricing, normalize_smart_pricing
 
+#: Admin Settings sections owned by these keys.
+COST_SECTIONS = [
+    {"id": "carriage", "label": "Carriage Terms", "group": "commercial"},
+    {"id": "route_pricing", "label": "Route Pricing", "group": "commercial"},
+]
+
 COST_NORMALIZERS = {
     "pricing_margin_estimates": normalize_margin_estimates,
     "parcel_coverage": normalize_coverage,

@@ -24,7 +24,7 @@ from porterchain_api.domain.pricing_version import (
 )
 from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
 from porterchain_api.marketing_site.config import default_marketing_site, normalize_marketing_site
-from porterchain_pricing.cost_settings import COST_DEFAULTS, COST_NORMALIZERS
+from porterchain_pricing.cost_settings import COST_DEFAULTS, COST_NORMALIZERS, COST_SECTIONS
 from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -61,7 +61,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "vehicles", "label": "Vehicle Classes", "group": "commercial"},
     {"id": "pricing", "label": "Pricing", "group": "commercial"},
     {"id": "coverage", "label": "Coverage", "group": "commercial"},
-    {"id": "carriage", "label": "Carriage Terms", "group": "commercial"},
+    *COST_SECTIONS,  # carriage terms, route pricing
     {"id": "booking", "label": "Booking", "group": "commercial"},
     {"id": "finance", "label": "Finance", "group": "commercial"},
     {"id": "documents", "label": "Documents", "group": "commercial"},

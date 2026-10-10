@@ -15,6 +15,7 @@ export type SimulateQuoteBody = {
   dropoff?: { lat?: number; lng?: number; formatted?: string; postal?: string };
   extra_pickups?: Array<{ formatted?: string; postal?: string }>;
   extra_drops?: Array<{ formatted?: string; postal?: string }>;
+  smart_overrides?: Record<string, unknown> | null;
 };
 
 /** Smart route quote (new engine) shown next to the current price. */

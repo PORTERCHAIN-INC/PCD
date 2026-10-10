@@ -36,6 +36,12 @@ def _geocoded(point: PointInput) -> PointInput:
         address=point.formatted or "", postal=point.postal, lat=None, lng=None
     )
     if geo.lat is None or geo.lng is None:
+        # Postal-only input with no geocoder: fall back to the FSA centroid.
+        from porterchain_api.pricing_engine.smart_pricing import centroid
+
+        c = centroid((point.postal or point.formatted or "").strip().upper()[:3])
+        if c is not None:
+            return point.model_copy(update={"lat": c[0], "lng": c[1]})
         from fastapi import HTTPException
 
         raise HTTPException(status_code=400, detail="address_not_found")
