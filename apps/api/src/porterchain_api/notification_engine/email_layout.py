@@ -7,10 +7,10 @@ from typing import Any
 
 BRAND_NAME = "PorterChain"
 TAGLINE = "Moving commerce on chain"
-PRIMARY = "#0a1628"
-ACCENT = "#2563eb"
+PRIMARY = "#0b1220"
+ACCENT = "#2563eb"  # AA on white for small text
 SURFACE = "#f1f5f9"
-MUTED = "#64748b"
+MUTED = "#475569"  # AA on white and on SURFACE
 BORDER = "#e2e8f0"
 WHITE = "#ffffff"
 
@@ -53,7 +53,7 @@ def _cta(label: str, url: str) -> str:
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
       <tr>
         <td style="border-radius:10px;background:{ACCENT};">
-          <a href="{_esc(url)}"
+          <a href="{_esc(url)}" class="pc-cta"
              style="display:inline-block;padding:14px 22px;font-family:{FONT};font-size:14px;font-weight:700;color:{WHITE};text-decoration:none;letter-spacing:0.01em;">
             {_esc(label)}
           </a>
@@ -61,6 +61,22 @@ def _cta(label: str, url: str) -> str:
       </tr>
     </table>
     """
+
+
+def preheader_html(text: str) -> str:
+    from porterchain_api.notification_engine.receiver_emails import preheader
+
+    return preheader(text)
+
+
+DARK_CSS = (
+    "@media (prefers-color-scheme: dark){"
+    ".pc-canvas{background:#0b1220!important}"
+    ".pc-card{background:#111a2e!important;border-color:#1e293b!important}"
+    ".pc-card td,.pc-card p,.pc-card h1{color:#e2e8f0!important}.pc-card a{color:#93c5fd!important}"
+    ".pc-card a.pc-cta{color:#ffffff!important}.pc-foot{background:#0f172a!important;border-color:#1e293b!important}"
+    "}"
+)
 
 
 def wrap_email(
@@ -73,6 +89,7 @@ def wrap_email(
     cta_label: str = "",
     cta_url: str = "",
     note: str = "",
+    lang: str = "en-CA",
 ) -> str:
     """Full multipart-safe HTML document with PorterChain chrome."""
     note_html = (
@@ -81,21 +98,21 @@ def wrap_email(
         else ""
     )
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="supported-color-schemes" content="light dark" />
   <title>{_esc(headline)}</title>
+  <style>{DARK_CSS}</style>
 </head>
-<body style="margin:0;padding:0;background:{SURFACE};font-family:{FONT};">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-    {_esc(preheader)}
-  </div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{SURFACE};padding:32px 12px;">
+<body class="pc-canvas" style="margin:0;padding:0;background:{SURFACE};font-family:{FONT};">
+  {preheader_html(preheader)}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="pc-canvas" style="background:{SURFACE};padding:32px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:{WHITE};border-radius:16px;overflow:hidden;border:1px solid {BORDER};">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="pc-card" style="max-width:560px;background:{WHITE};border-radius:16px;overflow:hidden;border:1px solid {BORDER};">
           <tr>
             <td style="background:{PRIMARY};padding:28px 32px 24px;">
               <p style="margin:0;font-family:{FONT};font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.65);">
@@ -126,12 +143,12 @@ def wrap_email(
             </td>
           </tr>
           <tr>
-            <td style="padding:20px 32px 28px;background:{SURFACE};border-top:1px solid {BORDER};">
+            <td class="pc-foot" style="padding:20px 32px 28px;background:{SURFACE};border-top:1px solid {BORDER};">
               <p style="margin:0;font-family:{FONT};font-size:12px;color:{MUTED};line-height:1.5;">
                 <strong style="color:{PRIMARY};">{_esc(BRAND_NAME)}</strong>
                 &nbsp;·&nbsp;{_esc(TAGLINE)}
               </p>
-              <p style="margin:8px 0 0;font-family:{FONT};font-size:11px;color:#94a3b8;line-height:1.45;">
+              <p style="margin:8px 0 0;font-family:{FONT};font-size:11px;color:#475569;line-height:1.45;">
                 Transportation capacity network for the Greater Toronto Area.
                 Questions? Reply to this email or visit porterchain.com
               </p>
@@ -156,8 +173,10 @@ def build_transactional_html(
     cta_url: str = "",
     note: str = "",
     preheader: str | None = None,
+    lang: str = "en-CA",
 ) -> str:
     return wrap_email(
+        lang=lang,
         preheader=preheader or lead,
         eyebrow=eyebrow,
         headline=headline,

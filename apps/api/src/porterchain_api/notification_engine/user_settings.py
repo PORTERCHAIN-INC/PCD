@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.notification_engine.models import NotificationDevice, NotificationUserSettings
+from porterchain_api.notification_engine.models import (
+    NotificationDevice,
+    NotificationUserSettings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,26 @@ def is_within_quiet_hours(
         return start <= hour < end
     # Wraps midnight (e.g. 22 → 7)
     return hour >= start or hour < end
+
+
+def quiet_window_end(
+    *,
+    now: datetime | None = None,
+    quiet_start_hour: int,
+    quiet_end_hour: int,
+    timezone: str,
+) -> datetime | None:
+    """When inside quiet hours, the UTC instant they end (top of the end hour); else None."""
+    if not is_within_quiet_hours(
+        now=now, quiet_start_hour=quiet_start_hour, quiet_end_hour=quiet_end_hour, timezone=timezone
+    ):
+        return None
+    tz = _parse_tz(timezone or "America/Toronto")
+    local = (now or datetime.now(tz)).astimezone(tz)
+    end = local.replace(hour=int(quiet_end_hour) % 24, minute=0, second=0, microsecond=0)
+    if end <= local:
+        end = end + timedelta(days=1)
+    return end.astimezone(UTC)
 
 
 class UserSettingsService:
@@ -113,7 +136,12 @@ class UserSettingsService:
         category: str = "operational",
     ) -> bool:
         """Mute push/SMS in quiet hours unless critical/security."""
-        if channel not in QUIET_MUTED_CHANNELS:
+        # Email-first: quiet hours also hold slow-lane email (marketing, nurture, digests);
+        # time-critical and transactional email always goes.
+        if channel == "email":
+            if category not in ("marketing", "crm"):
+                return False
+        elif channel not in QUIET_MUTED_CHANNELS:
             return False
         if priority in ("critical", "high") or category == "security":
             return False
@@ -125,6 +153,32 @@ class UserSettingsService:
             quiet_start_hour=row.quiet_start_hour,
             quiet_end_hour=row.quiet_end_hour,
             timezone=tz,
+        )
+
+    def hold_until(
+        self,
+        db: Session,
+        *,
+        user_role: str,
+        user_id: str,
+        channel: str,
+        priority: str = "normal",
+        category: str = "operational",
+        now: datetime | None = None,
+    ) -> datetime | None:
+        """Quiet hours hold: the time a muted push/SMS should be released, or None to send now."""
+        if not self.should_mute_channel(
+            db, user_role=user_role, user_id=user_id, channel=channel, priority=priority, category=category
+        ):
+            return None
+        row = self.get(db, user_role=user_role, user_id=user_id)
+        if row is None:
+            return None
+        return quiet_window_end(
+            now=now,
+            quiet_start_hour=row.quiet_start_hour,
+            quiet_end_hour=row.quiet_end_hour,
+            timezone=self.resolve_timezone(db, user_role=user_role, user_id=user_id),
         )
 
     def to_dict(self, row: NotificationUserSettings | None, *, timezone_fallback: str) -> dict[str, Any]:

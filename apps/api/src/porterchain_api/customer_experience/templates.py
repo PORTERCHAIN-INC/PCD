@@ -48,6 +48,13 @@ CX_TEMPLATES: dict[str, dict[str, str]] = {
             "{attempt_line}\nTrack: {public_track_url}\n\n" + CASL_FOOTER
         ),
     },
+    "cx_rescheduled": {
+        "subject": "New delivery time set for {tracking_number}",
+        "body": (
+            "Your delivery {tracking_number} from {merchant_name} is now booked for {window_label}.\n"
+            "Track: {public_track_url}\n\n" + CASL_FOOTER
+        ),
+    },
     "cx_schedule_request": {
         "subject": "Choose a delivery time for {tracking_number}",
         "body": (
@@ -74,4 +81,5 @@ CX_PLACEHOLDERS: tuple[str, ...] = (
     "id_line",
     "attempt_line",
     "help_line",
+    "window_label",
 )

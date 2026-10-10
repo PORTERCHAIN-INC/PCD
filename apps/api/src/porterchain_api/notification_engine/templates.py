@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_api.notification_engine.email_layout import TAGLINE, build_transactional_html
+from porterchain_api.notification_engine.email_layout import (
+    TAGLINE,
+    build_transactional_html,
+)
 
 TEMPLATE_META: dict[str, dict[str, str]] = {
     "booking_draft_created": {"category": "booking"},
@@ -62,9 +65,34 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "order_delayed": {"category": "tracking"},
     "sla_breached": {"category": "orders"},
     "delivery_update": {"category": "tracking"},
+    "delivery_failed": {"category": "orders"},
+    "order_rescheduled": {"category": "orders"},
+    "notification_health_alert": {"category": "orders"},
+    "ops_daily_digest": {"category": "orders"},
 }
 
 TEMPLATES: dict[str, dict[str, str]] = {
+    "delivery_failed": {
+        "subject": "Delivery attempt failed: {tracking_number}",
+        "body": "The delivery attempt for {tracking_number} (order {order_number}) failed.{reason_line}",
+    },
+    "order_rescheduled": {
+        "subject": "Delivery rescheduled: {tracking_number}",
+        "body": "The recipient rescheduled {tracking_number} (order {order_number}) to {window_label}.",
+    },
+    "notification_health_alert": {
+        "subject": "Notification delivery is failing",
+        "body": "{message}",
+    },
+    "ops_daily_digest": {
+        "subject": "Ops summary {d_date}: {d_delivered} delivered, {d_failed} failed",
+        "body": (
+            "Yesterday ({d_date}): {d_delivered} delivered, {d_failed} failed ({d_success_pct}% success). "
+            "Exceptions opened: {d_exceptions_opened}; open now: {d_exceptions_open_now}. "
+            "Emails accepted: {d_emails_accepted}, p95 {d_email_p95_ms} ms, bounce {d_bounce_pct}%, "
+            "dead letters {d_dead_letters}."
+        ),
+    },
     "booking_draft_created": {
         "subject": "Booking draft saved",
         "body": "Your booking draft is saved. Continue when ready.",
@@ -522,6 +550,47 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             preheader="Unassigned high-priority lead",
         )
 
+    if template in ("delivery_failed", "order_rescheduled", "notification_health_alert"):
+        eyebrow, headline = {
+            "delivery_failed": ("Failed attempt", f"Delivery attempt failed · {tracking or order}"),
+            "order_rescheduled": ("Rescheduled", f"Recipient rescheduled · {tracking or order}"),
+            "notification_health_alert": ("Ops alert", "Notification delivery is failing"),
+        }[template]
+        return build_transactional_html(
+            eyebrow=eyebrow,
+            headline=headline,
+            lead=body or headline,
+            rows=[
+                ("Order", order),
+                ("Tracking", tracking),
+                ("New window", _g(ctx, "window_label")),
+                ("Reason", _g(ctx, "reason")),
+                ("Dead letters (1h)", _g(ctx, "dead_letter")),
+                ("Failure rate (1h)", _g(ctx, "failure_rate")),
+            ],
+            cta_label="Open in admin" if _g(ctx, "admin_url") else "",
+            cta_url=_g(ctx, "admin_url"),
+            preheader=headline,
+        )
+
+    if template == "ops_daily_digest":
+        return build_transactional_html(
+            eyebrow="Daily ops summary",
+            headline=f"{_g(ctx, 'd_delivered') or '0'} delivered · {_g(ctx, 'd_failed') or '0'} failed",
+            lead=f"Yesterday, {_g(ctx, 'd_date')}. Numbers first; open the Notifications center for detail.",
+            rows=[
+                ("Success rate", f"{_g(ctx, 'd_success_pct')}%" if _g(ctx, "d_success_pct") else "n/a"),
+                ("Exceptions opened", _g(ctx, "d_exceptions_opened") or "0"),
+                ("Exceptions open now", _g(ctx, "d_exceptions_open_now") or "0"),
+                ("Emails accepted", _g(ctx, "d_emails_accepted") or "0"),
+                ("Email p95 latency", f"{_g(ctx, 'd_email_p95_ms')} ms" if _g(ctx, "d_email_p95_ms") else "n/a"),
+                ("Bounce rate", f"{_g(ctx, 'd_bounce_pct')}%" if _g(ctx, "d_bounce_pct") else "n/a"),
+                ("Dead letters", _g(ctx, "d_dead_letters") or "0"),
+            ],
+            note="Sent once a day because an admin approved it. Turn it off in Notifications → Digest.",
+            preheader=f"{_g(ctx, 'd_delivered') or '0'} delivered, {_g(ctx, 'd_failed') or '0'} failed yesterday",
+        )
+
     parcel_mail = {
         "order_booked": ("Booked", "Your delivery is booked"),
         "parcel_picked_up": ("Picked up", "Your parcel has been picked up"),
@@ -584,8 +653,57 @@ def render_template(template: str, context: dict[str, Any]) -> tuple[str, str]:
     return subject, text
 
 
+class _SafeMap(dict):
+    def __missing__(self, key: str) -> str:
+        return ""
+
+
+def _fmt_safe(text: str, values: dict[str, Any]) -> str:
+    try:
+        return text.format_map(_SafeMap(values))
+    except (ValueError, IndexError):
+        return text
+
+
+def _with_copy_override(template: str, context: dict[str, Any]) -> dict[str, Any]:
+    """Admin-edited subject/intro (template manager). Never breaks rendering."""
+    if context.get("copy_subject") or context.get("copy_intro") or context.get("skip_copy_override"):
+        return context
+    try:
+        from porterchain_api.notification_engine.template_copy import active_copy
+
+        lang = str(context.get("lang") or "en")[:2] if context.get("audience") == "receiver" else "en"
+        found = active_copy(template, lang)
+    except Exception:  # noqa: BLE001
+        return context
+    if not found:
+        return context
+    out = dict(context)
+    if found.get("subject"):
+        out["copy_subject"] = found["subject"]
+    if found.get("intro"):
+        out["copy_intro"] = found["intro"]
+    return out
+
+
 def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]:
     """Return (subject, plain_text, html)."""
+    from porterchain_api.notification_engine.receiver_emails import (
+        is_receiver_email,
+        render_receiver_email,
+    )
+
+    context = _with_copy_override(template, context)
+    if is_receiver_email(template, context):
+        return render_receiver_email(template, context)
+    if context.get("audience") == "receiver" and str(context.get("lang") or "")[:2] == "fr":
+        from porterchain_api.notification_engine.customer_fr import (
+            has_french,
+            render_customer_fr,
+        )
+
+        if has_french(template):
+            return render_customer_fr(template, context)
     spec = TEMPLATES.get(template, {"subject": "PorterChain notification", "body": "{message}"})
     safe = {k: ("" if v is None else str(v)) for k, v in context.items()}
     # Ensure HTML format placeholders never KeyError
@@ -627,6 +745,7 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         "source",
         "channel",
         "deep_link",
+        "window_label",
     ):
         safe.setdefault(key, "")
     try:
@@ -635,6 +754,10 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
     except KeyError:
         subject = spec["subject"]
         body = spec["body"]
+    if context.get("copy_subject") and not is_receiver_email(template, context):
+        subject = _fmt_safe(str(context["copy_subject"]), safe)
+    if context.get("copy_intro") and not is_receiver_email(template, context):
+        body = _fmt_safe(str(context["copy_intro"]), safe)
     if template == "lead_sla_escalation" and context.get("title"):
         subject = str(context["title"])
     if template == "lead_sla_escalation" and "notice_body" in context:

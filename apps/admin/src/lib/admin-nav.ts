@@ -186,7 +186,13 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       {
         href: "/notifications",
         label: "Notifications",
-        description: "Alerts, delivery queue, templates",
+        description: "Your alerts inbox",
+        icon: Bell,
+      },
+      {
+        href: "/notifications/delivery",
+        label: "Delivery center",
+        description: "Email log, speed, bounces, templates",
         icon: Bell,
       },
       {
@@ -229,6 +235,7 @@ export const ADMIN_TOP_LEVEL_ROUTES = [
   "/pricing",
   "/support",
   "/notifications",
+  "/notifications/delivery",
   "/system",
   "/settings",
 ] as const;

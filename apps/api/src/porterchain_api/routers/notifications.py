@@ -5,14 +5,27 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from sqlalchemy.orm import Session
 
-from porterchain_api.db import get_db, db_transaction
-from porterchain_api.notification_engine.device_service import DeviceService, InvalidFcmToken
+from porterchain_api.db import db_transaction, get_db
+from porterchain_api.notification_engine.device_service import (
+    DeviceService,
+    InvalidFcmToken,
+)
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.preference_service import PreferenceService
-from porterchain_api.notification_engine.principal import NotificationUser, get_notification_user
+from porterchain_api.notification_engine.principal import (
+    NotificationUser,
+    get_notification_user,
+)
 from porterchain_api.notification_engine.realtime import realtime_hub, touch_online
 from porterchain_api.notification_engine.user_settings import UserSettingsService
 from porterchain_api.schemas_notifications import (
@@ -212,6 +225,33 @@ def update_preference(
     }
 
 
+@router.get("/me/preferences")
+def my_preferences(
+    user: Annotated[NotificationUser, Depends(get_notification_user)],
+    db: Session = Depends(get_db),
+):
+    """Persona-shaped preferences: categories x (email, in-app), quiet hours, language."""
+    from porterchain_api.notification_engine import preferences_view
+
+    with db_transaction(db):
+        return preferences_view.view(db, user_role=user.user_role, user_id=user.user_id)
+
+
+@router.put("/me/preferences")
+def save_my_preferences(
+    body: dict,
+    user: Annotated[NotificationUser, Depends(get_notification_user)],
+    db: Session = Depends(get_db),
+):
+    from porterchain_api.notification_engine import preferences_view
+
+    try:
+        with db_transaction(db):
+            return preferences_view.update(db, user_role=user.user_role, user_id=user.user_id, body=body)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @router.get("/settings")
 def get_user_settings(
     user: Annotated[NotificationUser, Depends(get_notification_user)],
@@ -242,6 +282,63 @@ def update_user_settings(
     return _user_settings.to_dict(row, timezone_fallback=tz)
 
 
+_UNSUB_PAGE = """<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title></head>
+<body style="margin:0;background:#f1f5f9;font-family:Inter,'Segoe UI',Arial,sans-serif;color:#0b1220">
+<main style="max-width:480px;margin:64px auto;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:32px">
+<p style="margin:0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#3b82f6;font-weight:700">PorterChain</p>
+<h1 style="font-size:24px;margin:10px 0 12px">{title}</h1><p style="color:#475569;line-height:1.6">{body}</p>{form}</main></body></html>"""
+
+
+def _unsub_html(title: str, body: str, form: str = "", status_code: int = 200):
+    from fastapi.responses import HTMLResponse
+
+    return HTMLResponse(_UNSUB_PAGE.format(title=title, body=body, form=form), status_code=status_code)
+
+
+@router.get("/unsubscribe", include_in_schema=False)
+def unsubscribe_confirm_page(t: str = Query("", max_length=1024)):
+    """Landing page. GET never changes anything (mail scanners prefetch links)."""
+    from html import escape
+
+    from porterchain_api.config import get_settings
+    from porterchain_api.notification_engine.unsubscribe import read_token
+
+    if not read_token(get_settings().jwt_secret, t):
+        return _unsub_html("Link expired", "This unsubscribe link is invalid or expired. Reply to any email from us and we will remove you.", status_code=400)
+    form = (
+        f'<form method="post" action="?t={escape(t)}"><button type="submit" '
+        'style="margin-top:12px;background:#0b1220;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-weight:700;cursor:pointer">'
+        "Unsubscribe</button></form>"
+    )
+    return _unsub_html("Unsubscribe", "Stop these emails? Delivery and account notices (for example, where your parcel is) still arrive.", form)
+
+
+@router.post("/unsubscribe", include_in_schema=False)
+def unsubscribe_one_click(t: str = Query("", max_length=1024), db: Session = Depends(get_db)):
+    """RFC 8058 one-click (List-Unsubscribe-Post) and the landing page button."""
+    from porterchain_api.config import get_settings
+    from porterchain_api.notification_engine.unsubscribe import (
+        apply_unsubscribe,
+        read_token,
+    )
+
+    data = read_token(get_settings().jwt_secret, t)
+    if not data:
+        return _unsub_html("Link expired", "This unsubscribe link is invalid or expired.", status_code=400)
+    lead = None
+    if data["role"] == "lead":
+        from porterchain_api.crm_models import CrmLead
+
+        lead = db.get(CrmLead, data["user_id"])
+    if lead is not None:
+        from porterchain_api.collaboration_engine.lead_consent import commit_unsubscribe
+
+        commit_unsubscribe(db, lead)  # CASL: flip consent + suppression list
+    else:
+        apply_unsubscribe(db, role=data["role"], user_id=data["user_id"], category=data["category"])
+    return _unsub_html("You're unsubscribed", "You will not get these emails again. Delivery and account notices still arrive.")
+
+
 @router.websocket("/ws")
 async def notifications_ws(
     websocket: WebSocket,
@@ -249,7 +346,9 @@ async def notifications_ws(
     merchant_id: str | None = Query(None),
     portal: str | None = Query(None),
 ):
-    from porterchain_api.notification_engine.principal import resolve_notification_ws_user
+    from porterchain_api.notification_engine.principal import (
+        resolve_notification_ws_user,
+    )
 
     # merchant_id is the websocket twin of X-Merchant-Id — no second selector (BF).
     user = await resolve_notification_ws_user(token, merchant_id=merchant_id, portal=portal)

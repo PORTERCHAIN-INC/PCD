@@ -84,12 +84,28 @@ def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:
             out["email"] = customer.email
             out["contact_email"] = customer.email
 
-    if order.merchant_id:
-        merchant = db.get(Merchant, order.merchant_id)
-        if merchant:
-            out["merchant_name"] = merchant.company_name
-            if merchant.email:
-                out["merchant_email"] = merchant.email
+    merchant = db.get(Merchant, order.merchant_id) if order.merchant_id else None
+    if merchant:
+        out["merchant_name"] = merchant.company_name
+        if merchant.email:
+            out["merchant_email"] = merchant.email
+
+    # Receiver-email language + links (French templates, report-a-problem, privacy).
+    try:
+        from porterchain_api.config import get_settings
+        from porterchain_api.customer_experience.context import recipient_language
+        from porterchain_api.customer_experience.settings import cx_for_merchant
+
+        cfg = cx_for_merchant(merchant)
+        out["lang"] = recipient_language(order, cfg["notifications"].get("language", "auto"))
+        out["website_url"] = get_settings().website_url
+        from porterchain_api.customer_experience.settings import email_brand
+
+        out.update(email_brand(merchant, cfg))
+        if cfg["tracking"].get("support_email"):
+            out["support_email"] = cfg["tracking"]["support_email"]
+    except Exception:  # noqa: BLE001 — English default is fine
+        out.setdefault("lang", "en")
 
     return {k: v for k, v in out.items() if v is not None}
 

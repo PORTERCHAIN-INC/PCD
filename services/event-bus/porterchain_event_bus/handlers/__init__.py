@@ -95,8 +95,14 @@ def _handle_notification_queued(envelope: dict[str, Any]) -> None:
 
     payload = envelope.get("payload", {})
     channel = payload.get("channel", "email")
-    queue_map = {"email": QueueName.EMAILS, "sms": QueueName.SMS, "push": QueueName.PUSH}
-    queue = queue_map.get(channel, QueueName.EMAILS)
+    lane = payload.get("lane")
+    if lane == "fast":
+        queue = QueueName.NOTIFY_FAST
+    elif lane == "slow":
+        queue = QueueName.NOTIFY_SLOW
+    else:
+        queue_map = {"email": QueueName.EMAILS, "sms": QueueName.SMS, "push": QueueName.PUSH}
+        queue = queue_map.get(channel, QueueName.EMAILS)
     get_queue_publisher().enqueue(queue, payload)
 
 

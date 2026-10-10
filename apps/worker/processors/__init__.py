@@ -26,6 +26,8 @@ def process_queue_message(msg: QueueMessage) -> None:
         process_notification({**payload, "channel": "sms"})
     elif queue == QueueName.PUSH:
         process_notification({**payload, "channel": "push"})
+    elif queue in (QueueName.NOTIFY_FAST, QueueName.NOTIFY_SLOW):
+        process_notification({**payload, "channel": payload.get("channel") or "email"})
     elif queue == QueueName.BILLING:
         process_billing(payload)
     elif queue == QueueName.WEBHOOKS:

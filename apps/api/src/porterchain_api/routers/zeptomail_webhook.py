@@ -1,21 +1,19 @@
-"""ZeptoMail bounce and complaint webhook."""
+"""ZeptoMail webhook: per-message delivered / opened / bounced + hard-bounce suppression.
+
+Header: X-PorterChain-Mail-Webhook (HTTP headers are case-insensitive, so the old
+X-Porterchain-Mail-Webhook spelling is the same header).
+"""
 
 from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import Depends
 
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.secret_compare import secrets_match
-from porterchain_api.notification_engine.bounce import (
-    extract_bounced_addresses,
-    is_bounce_event,
-    mark_addresses_bounced,
-)
 
 router = APIRouter(prefix="/v1/public/mail", tags=["mail"])
 
@@ -33,7 +31,12 @@ def zeptomail_event(
         raise HTTPException(status_code=503, detail="mail_webhook_not_configured")
     if not secrets_match(x_porterchain_mail_webhook, secret):
         raise HTTPException(status_code=401, detail="mail_webhook_unauthorized")
-    if not is_bounce_event(body):
-        return {"ok": True, "bounced": 0}
-    marked = mark_addresses_bounced(db, extract_bounced_addresses(body))
-    return {"ok": True, "bounced": marked}
+    from porterchain_api.notification_engine.bounce import (
+        event_kinds,
+        record_tracking_event,
+    )
+
+    if not event_kinds(body):
+        return {"ok": True, "bounced": 0, "messages": 0}
+    result = record_tracking_event(db, body)
+    return {"ok": True, "bounced": result["suppressed"], "messages": result["messages"]}
