@@ -607,3 +607,34 @@ export function removeTeamMember(token: string, userId: string, orgId?: string) 
 export function revokeApiKey(token: string, keyId: string, orgId?: string) {
   return merchantFetch<void>(`/v1/merchant/api-keys/${keyId}`, token, { method: "DELETE", orgId });
 }
+
+export interface RoutePricingStatus {
+  opted_in: boolean;
+  opted_in_at: string | null;
+  dismissed_at: string | null;
+  show_banner: boolean;
+  summary: string;
+  examples: Array<{
+    from_fsa: string;
+    to_fsa: string;
+    old_cents: number;
+    new_cents: number;
+    route_km: number | null;
+  }>;
+}
+
+export function getRoutePricing(token: string, orgId?: string) {
+  return merchantFetch<RoutePricingStatus>("/v1/merchant/pricing/route-pricing", token, { orgId });
+}
+
+export function setRoutePricing(
+  token: string,
+  action: "opt_in" | "opt_out" | "dismiss",
+  orgId?: string
+) {
+  return merchantFetch<RoutePricingStatus>("/v1/merchant/pricing/route-pricing", token, {
+    orgId,
+    method: "POST",
+    body: JSON.stringify({ action }),
+  });
+}

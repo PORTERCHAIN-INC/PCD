@@ -50,6 +50,7 @@ from porterchain_api.routers import (
     pricing_components,
     quotes,
     shopify,
+    shopify_route_pricing,
     security,
     webhooks,
     diagnostics,
@@ -129,6 +130,7 @@ def create_app() -> FastAPI:
     app.include_router(pricing_components.router)
     app.include_router(pricing_admin.router)
     app.include_router(shopify.router)
+    app.include_router(shopify_route_pricing.router)
     app.include_router(public_inquiries.router)
     app.include_router(public_newsletter.router)
     app.include_router(public_marketing.router)

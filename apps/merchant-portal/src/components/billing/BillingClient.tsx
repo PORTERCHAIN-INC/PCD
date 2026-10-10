@@ -4,6 +4,7 @@ import { BillingContactsPanel } from "@/components/billing/BillingContactsPanel"
 import { RateCardPanel } from "@/components/billing/RateCardPanel";
 import Button from "@/components/ui/Button";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
+import RoutePricingBanner from "@/components/pricing/RoutePricingBanner";
 import { billingApi, formatCycle, formatTerms } from "@/lib/billing";
 import { settingsApi } from "@/lib/settings";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -194,6 +195,7 @@ export default function BillingClient() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
+      <RoutePricingBanner getToken={getApiToken} orgId={orgId ?? undefined} setting />
       {error ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {error}

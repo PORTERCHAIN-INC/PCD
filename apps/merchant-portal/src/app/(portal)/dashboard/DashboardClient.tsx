@@ -6,6 +6,7 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { RecentDeliveries } from "@/components/dashboard/RecentDeliveries";
 import CompanyCompletenessBanner from "@/components/onboarding/CompanyCompletenessBanner";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
+import RoutePricingBanner from "@/components/pricing/RoutePricingBanner";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { getDashboard } from "@/lib/api";
 import { hasMerchantModule, merchantPortalJob } from "@/lib/merchant-nav";
@@ -58,6 +59,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <CompanyCompletenessBanner completeness={data.completeness} />
+      <RoutePricingBanner getToken={getApiToken} orgId={orgId ?? undefined} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-primary sm:text-2xl">Home</h1>

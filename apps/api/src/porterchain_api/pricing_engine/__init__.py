@@ -7,4 +7,7 @@ from porterchain_pricing import PricingService
 
 
 def get_pricing_service(db: Session) -> PricingService:
-    return PricingService(repository=SqlAlchemyPricingRepository(db))
+    """Merchant prices go through the route-pricing hook (no-op unless the merchant opted in)."""
+    from porterchain_api.pricing_engine.smart_apply import SmartAwarePricingService
+
+    return SmartAwarePricingService(db, repository=SqlAlchemyPricingRepository(db))

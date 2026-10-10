@@ -153,3 +153,14 @@ def go_live(
             "portal_access": "sign_in_with_shop_email",
         },
     }
+
+
+def merchant_for_shop(db: Session, shop_domain: str):
+    """Linked merchant for an installed shop, or None."""
+    from porterchain_api.merchant_models import Merchant
+
+    try:
+        row = _shop_row(db, shop_domain)
+    except LookupError:
+        return None
+    return db.get(Merchant, row.merchant_id) if row.merchant_id else None
