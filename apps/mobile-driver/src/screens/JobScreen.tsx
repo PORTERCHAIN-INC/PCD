@@ -166,6 +166,33 @@ export function JobScreen({ field, action, pod, setPod, run, onGoToday, onSync }
   }
 
   const kindLabel = view.kind === "pickup" ? "Pickup" : "Drop-off";
+  const policy = h.podRequirements ?? { enforced: true, photo_or_signature: true };
+  const strictPhotoOrSig = Boolean(policy.photo || policy.signature);
+  const proofRows = [
+    ...(policy.photo_or_signature && !strictPhotoOrSig
+      ? [
+          {
+            label: "Photo or signature",
+            done: Boolean(pod.photoUrl || pod.signature),
+            redo: () => doPrimary("photo"),
+          },
+        ]
+      : []),
+    ...(policy.photo
+      ? [{ label: "Photo", done: Boolean(pod.photoUrl), redo: () => doPrimary("photo") }]
+      : []),
+    ...(policy.signature
+      ? [{ label: "Signature", done: Boolean(pod.signature), redo: () => setSheet("signature") }]
+      : []),
+    ...(policy.id_check
+      ? [{ label: "ID checked", done: pod.idNameMatches, redo: () => setSheet("id_check") }]
+      : []),
+    ...(h.otpRequired || policy.otp
+      ? [{ label: "Receiver code", done: Boolean(pod.otp), redo: () => setSheet("otp") }]
+      : []),
+  ];
+  const hasNav =
+    view.step === "arrive" && Boolean(h.navigationUrl || h.destLat != null || h.nextStop);
   const footer = (
     <>
       {view.primary ? (
@@ -198,7 +225,7 @@ export function JobScreen({ field, action, pod, setPod, run, onGoToday, onSync }
           }
         />
       ) : null}
-      {view.step === "arrive" && (h.navigationUrl || h.destLat != null || h.nextStop) ? (
+      {hasNav ? (
         <Button
           label="Navigate"
           hint="Opens your maps app"
@@ -218,13 +245,13 @@ export function JobScreen({ field, action, pod, setPod, run, onGoToday, onSync }
   return (
     <Screen
       testID="screen-job"
-      footer={footer}
+      footer={view.primary || view.step === "offer" || hasNav ? footer : undefined}
       onRefresh={() => void refresh()}
       refreshing={field.busy}
     >
       <SyncBanners
         offline={h.api === "down"}
-        pending={pending}
+        pending={view.step === "syncing" ? 0 : pending}
         rejected={rejected}
         error={h.error}
         onSync={onSync}
@@ -300,27 +327,9 @@ export function JobScreen({ field, action, pod, setPod, run, onGoToday, onSync }
       {view.kind === "delivery" && arrivedOrLater ? (
         <Card testID="proof-card">
           <Label>Proof of delivery</Label>
-          <ProofRow label="Photo" done={Boolean(pod.photoUrl)} onRedo={() => doPrimary("photo")} />
-          <ProofRow
-            label="Signature"
-            done={Boolean(pod.signature)}
-            onRedo={() => setSheet("signature")}
-          />
-          {h.podRequirements?.id_check ? (
-            <ProofRow
-              label="ID checked"
-              done={pod.idNameMatches}
-              onRedo={() => setSheet("id_check")}
-            />
-          ) : null}
-          {h.otpRequired || h.podRequirements?.otp ? (
-            <ProofRow
-              label="Receiver code"
-              done={Boolean(pod.otp)}
-              onRedo={() => setSheet("otp")}
-            />
-          ) : null}
-          <Muted>Photo or signature is enough unless it says otherwise.</Muted>
+          {proofRows.map((row) => (
+            <ProofRow key={row.label} label={row.label} done={row.done} onRedo={row.redo} />
+          ))}
         </Card>
       ) : null}
 
