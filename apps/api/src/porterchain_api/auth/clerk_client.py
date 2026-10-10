@@ -183,6 +183,24 @@ class ClerkClient:
             res = client.post(f"{CLERK_API}/users/{clerk_user_id}/ban", headers=self._headers())
             res.raise_for_status()
 
+    def revoke_sessions(self, clerk_user_id: str) -> int:
+        """Revoke every active Clerk session for this user (signs them out everywhere)."""
+        revoked = 0
+        with httpx.Client(timeout=20.0) as client:
+            res = client.get(f"{CLERK_API}/sessions", headers=self._headers(),
+                             params={"user_id": clerk_user_id, "status": "active", "limit": 100})
+            if res.status_code == 404:
+                return 0
+            res.raise_for_status()
+            body = res.json()
+            rows = body.get("data", []) if isinstance(body, dict) else body
+            for s in rows or []:
+                sid = s.get("id") if isinstance(s, dict) else None
+                if sid:
+                    client.post(f"{CLERK_API}/sessions/{sid}/revoke", headers=self._headers()).raise_for_status()
+                    revoked += 1
+        return revoked
+
     def unban_user(self, clerk_user_id: str) -> None:
         with httpx.Client(timeout=20.0) as client:
             res = client.delete(f"{CLERK_API}/users/{clerk_user_id}/ban", headers=self._headers())

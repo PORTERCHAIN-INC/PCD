@@ -218,6 +218,7 @@ class AdminDriverService(DriverAccountOps):
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        revoke_driver_sessions(driver, settings)
         return driver, None
 
     def deactivate_driver(
@@ -258,6 +259,7 @@ class AdminDriverService(DriverAccountOps):
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        revoke_driver_sessions(driver, settings)
         return driver, None
 
     def rehire_driver(
@@ -428,3 +430,18 @@ class AdminDriverService(DriverAccountOps):
                 payload=payload,
             )
         )
+
+
+def revoke_driver_sessions(driver: Driver, settings: Settings | None) -> None:
+    """Offboarding: sign the driver out of Clerk everywhere (best effort; API access is
+    already blocked by status on every request)."""
+    if not driver.clerk_user_id:
+        return
+    try:
+        from porterchain_api.auth.clerk_registry import clerk_client_for_kind
+        from porterchain_api.config import get_settings
+
+        n = clerk_client_for_kind(settings or get_settings(), "driver").revoke_sessions(driver.clerk_user_id)
+        logger.info("driver_sessions_revoked driver=%s count=%s", driver.id, n)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("driver_session_revoke_failed driver=%s: %s", driver.id, exc)
