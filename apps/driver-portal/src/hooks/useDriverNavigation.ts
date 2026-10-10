@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { driverApi } from "@/lib/api";
+import { driverApi, type GpsStatus } from "@/lib/api";
 import { enqueueGpsPing } from "@/lib/offline-client";
 import type { DriverNavigationSession } from "@/lib/navigation";
 
@@ -35,7 +35,7 @@ export function useDriverNavigation(orderId?: string | null) {
 
   // Live GPS can be switched off by PorterChain (global or per driver): then we never
   // read or send the device position, and tell the driver plainly.
-  const [gps, setGps] = useState<{ enabled: boolean; message: string } | null>(null);
+  const [gps, setGps] = useState<GpsStatus | null>(null);
   useEffect(() => {
     driverApi
       .gpsStatus()
@@ -79,6 +79,7 @@ export function useDriverNavigation(orderId?: string | null) {
     loading: query.isLoading && !query.data,
     deviceLocation,
     gps,
+    acceptGps: () => driverApi.gpsConsent(true).then(setGps),
     refresh: refreshNav,
   };
 }

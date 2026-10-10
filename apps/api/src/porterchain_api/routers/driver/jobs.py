@@ -35,10 +35,15 @@ def location_ping(
     require_approved_driver(ctx)
     from porterchain_api.platform.gps_policy import driver_gps_status
 
-    gps = driver_gps_status(str(ctx.driver.id), db)
+    gps = driver_gps_status(str(ctx.driver.id), db, ctx.driver)
     if not gps["enabled"]:
         # Nothing is stored; the app reads `gps_enabled` and stops sending.
-        return {"accepted": False, "gps_enabled": False, "message": gps["message"]}
+        return {
+            "accepted": False,
+            "gps_enabled": False,
+            "consent_required": gps["consent_required"],
+            "message": gps["message"],
+        }
     with db_transaction(db):
         result = svc.platform.location.record_ping(
             db,
@@ -51,14 +56,6 @@ def location_ping(
             recorded_at=body.recorded_at,
             write_ping_table=settings.gps_write_ping_table)
     return result
-
-
-@router.get("/gps-status")
-def gps_status(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)) -> dict:
-    """Is live location sharing on for me? Plain-language message for the driver."""
-    from porterchain_api.platform.gps_policy import driver_gps_status
-
-    return driver_gps_status(str(ctx.driver.id), db)
 
 
 @router.get("/jobs", response_model=DriverJobsListResponse)

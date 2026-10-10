@@ -33,7 +33,8 @@ function NavigationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order") || undefined;
-  const { session, error, loading, deviceLocation, gps, refresh } = useDriverNavigation(orderId);
+  const { session, error, loading, deviceLocation, gps, acceptGps, refresh } =
+    useDriverNavigation(orderId);
   const [showTraffic, setShowTraffic] = useState(false);
   const [replayPlaying, setReplayPlaying] = useState(false);
   const [replayIndex, setReplayIndex] = useState<number | null>(null);
@@ -73,6 +74,15 @@ function NavigationPageContent() {
         {gps && !gps.enabled && (
           <p role="status" className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
             {gps.message}
+            {gps.consent_required && (
+              <button
+                type="button"
+                className="mt-2 block rounded-md bg-amber-900 px-3 py-1.5 text-white"
+                onClick={() => void acceptGps()}
+              >
+                I agree — share my location on shift
+              </button>
+            )}
           </p>
         )}
       </header>

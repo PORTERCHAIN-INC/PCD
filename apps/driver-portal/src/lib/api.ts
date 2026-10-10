@@ -7,6 +7,8 @@ import type { DriverProfileSnapshot } from "./profile";
 import type { DriverSupportSnapshot } from "./support";
 import type { DriverCommunicationsSnapshot } from "./communications";
 
+export type GpsStatus = { enabled: boolean; message: string; consent_required?: boolean };
+
 export const API_BASE = "/api/driver";
 
 export interface DriverDashboard {
@@ -326,7 +328,12 @@ export const driverApi = {
         ? `/v1/navigation/route?route_id=${encodeURIComponent(routeId)}`
         : "/v1/navigation/route"
     ),
-  gpsStatus: () => driverFetch<{ enabled: boolean; message: string }>("/v1/gps-status"),
+  gpsStatus: () => driverFetch<GpsStatus>("/v1/gps-status"),
+  gpsConsent: (accepted: boolean) =>
+    driverFetch<GpsStatus>("/v1/gps-consent", {
+      method: "POST",
+      body: JSON.stringify({ accepted, source: "portal" }),
+    }),
   postLocation: (body: {
     lat: number;
     lng: number;

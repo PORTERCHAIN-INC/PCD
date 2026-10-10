@@ -7,7 +7,7 @@ import { drivers, type DriverRow } from "@/lib/drivers";
 import { settingsApi } from "@/lib/settings";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 
-type Gps = { enabled: boolean; disabled_driver_ids: string[] };
+type Gps = { enabled: boolean; disabled_driver_ids: string[]; require_consent?: boolean };
 
 export default function DriverGpsPanel() {
   const { getApiToken } = useAdminAuth();
@@ -65,6 +65,22 @@ export default function DriverGpsPanel() {
           className="h-5 w-5"
           checked={gps.enabled}
           onChange={(e) => setGps({ ...gps, enabled: e.target.checked })}
+        />
+      </label>
+
+      <label className="flex items-center justify-between rounded-xl border border-primary/10 p-4">
+        <span>
+          <span className="block font-semibold text-primary">Require driver consent</span>
+          <span className="text-xs text-muted">
+            Drivers must tap &ldquo;I agree&rdquo; (timestamped on their record) before location is
+            collected. A driver who withdraws is never tracked.
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          className="h-5 w-5"
+          checked={!!gps.require_consent}
+          onChange={(e) => setGps({ ...gps, require_consent: e.target.checked })}
         />
       </label>
 

@@ -36,10 +36,7 @@ def _reset():
 
 
 def test_normalize_and_defaults():
-    assert gps_policy.normalize_driver_gps(None) == {
-        "enabled": True,
-        "disabled_driver_ids": [],
-    }
+    assert gps_policy.normalize_driver_gps(None)["require_consent"] is False
     with pytest.raises(ValueError):
         gps_policy.normalize_driver_gps({"disabled_driver_ids": "x"})
 
@@ -157,3 +154,20 @@ def test_snap_uses_locate_and_rejects_far_jumps(monkeypatch):
     assert m.snap((43.5185, -79.8770)) == (43.5186, -79.8772)
     target["r"] = R(43.60, -79.80)  # ~10 km away: keep the original point
     assert m.snap((43.5185, -79.8770)) == (43.5185, -79.8770)
+
+
+def test_consent_record_withdraw_and_require(db):
+    from porterchain_api.platform.gps_policy import driver_gps_status, record_consent
+
+    d = SimpleNamespace(id="d9", documents={})
+    gps_policy.set_policy_cache({"enabled": True})
+    assert driver_gps_status("d9", driver=d)["enabled"] is True  # not required by default
+    gps_policy.set_policy_cache({"enabled": True, "require_consent": True})
+    s = driver_gps_status("d9", driver=d)
+    assert s["enabled"] is False and s["consent_required"] is True and "on shift" in s["consent_text"]
+    record_consent(d, accepted=True)
+    assert driver_gps_status("d9", driver=d)["enabled"] is True and d.documents["gps_consent"]["at"]
+    gps_policy.set_policy_cache({"enabled": True})
+    record_consent(d, accepted=False)  # withdrawal stops collection even when not required
+    assert driver_gps_status("d9", driver=d)["enabled"] is False
+    assert len(d.documents["gps_consent_history"]) == 2

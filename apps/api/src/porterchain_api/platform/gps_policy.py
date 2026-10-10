@@ -21,12 +21,20 @@ DRIVER_MESSAGE_ON = (
     "Location history is deleted after the retention period."
 )
 
+CONSENT_VERSION = "2026-10"
+CONSENT_TEXT = (
+    "I agree that PorterChain collects my device location while I am on shift, to dispatch, "
+    "route and track deliveries and show customers an ETA. Location is not collected off shift, "
+    "live pins are deleted when sharing is turned off, and history is deleted after the retention "
+    "period. I can withdraw by going off shift or contacting dispatch."
+)
+
 _CACHE: dict[str, Any] = {"at": 0.0, "value": None}
 _TTL = 30.0
 
 
 def default_driver_gps() -> dict[str, Any]:
-    return {"enabled": True, "disabled_driver_ids": []}
+    return {"enabled": True, "disabled_driver_ids": [], "require_consent": False}
 
 
 def normalize_driver_gps(raw: Any) -> dict[str, Any]:
@@ -39,6 +47,7 @@ def normalize_driver_gps(raw: Any) -> dict[str, Any]:
     return {
         "enabled": bool(src.get("enabled", True)),
         "disabled_driver_ids": sorted({str(i) for i in ids if i}),
+        "require_consent": bool(src.get("require_consent", False)),
     }
 
 
@@ -78,9 +87,43 @@ def gps_enabled_for(driver_id: str | None, db: Any | None = None) -> bool:
     )
 
 
-def driver_gps_status(driver_id: str, db: Any | None = None) -> dict[str, Any]:
+def consent_of(driver: Any) -> dict[str, Any] | None:
+    rec = ((getattr(driver, "documents", None) or {}).get("gps_consent")) or None
+    return rec if isinstance(rec, dict) and rec.get("version") == CONSENT_VERSION else None
+
+
+def record_consent(driver: Any, *, accepted: bool, source: str = "app") -> dict[str, Any]:
+    """Store the driver's answer (timestamp, version, source) on the driver record."""
+    from datetime import UTC, datetime
+
+    docs = dict(driver.documents or {})
+    rec = {
+        "version": CONSENT_VERSION,
+        "accepted": bool(accepted),
+        "at": datetime.now(UTC).isoformat(),
+        "source": source,
+    }
+    history = list(docs.get("gps_consent_history") or [])[-19:] + [rec]
+    docs["gps_consent"] = rec if accepted else None
+    docs["gps_consent_history"] = history
+    driver.documents = docs
+    return rec
+
+
+def driver_gps_status(driver_id: str, db: Any | None = None, driver: Any | None = None) -> dict[str, Any]:
     on = gps_enabled_for(driver_id, db)
-    return {"enabled": on, "message": DRIVER_MESSAGE_ON if on else DRIVER_MESSAGE_OFF}
+    consent = consent_of(driver) if driver is not None else None
+    hist = ((getattr(driver, "documents", None) or {}).get("gps_consent_history")) or [] if driver is not None else []
+    withdrawn = bool(hist) and hist[-1].get("accepted") is False  # withdrawal always stops collection
+    needs = on and consent is None and (withdrawn or load_policy(db)["require_consent"])
+    return {
+        "enabled": on and not needs,
+        "message": (CONSENT_TEXT if needs else DRIVER_MESSAGE_ON if on else DRIVER_MESSAGE_OFF),
+        "consent_required": bool(needs),
+        "consent": consent,
+        "consent_version": CONSENT_VERSION,
+        "consent_text": CONSENT_TEXT,
+    }
 
 
 def forget_positions(driver_ids: list[str]) -> int:
