@@ -85,7 +85,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
   {
     id: "partners",
-    label: "Partners",
+    label: "Accounts",
     items: [
       {
         href: "/merchants",

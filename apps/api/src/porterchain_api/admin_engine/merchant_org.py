@@ -20,6 +20,9 @@ from porterchain_api.schemas_merchant import RecipientResponse, SavedAddressResp
 ORG_ERROR_MESSAGES: dict[str, str] = {
     "merchant_not_found": "That company was not found.",
     "pricing_super_admin_only": "Only a super admin can change prices.",
+    "merchant_money_edit_forbidden": "Only an admin, super admin or finance can change this merchant's prices, contracts or credit.",
+    "document_read_forbidden": "Only admin, finance or compliance can open merchant documents.",
+    "document_delete_forbidden": "Only admin or compliance can delete merchant documents.",
     "multi_box_not_allowed_on_contract": "Contract-priced merchants bill every box; multi-box stays off.",
     "address_not_found": "That location was not found.",
     "recipient_not_found": "That recipient was not found.",
@@ -458,13 +461,40 @@ def invite_payload(user) -> dict:
 
 def create_linked_contract(db: Session, ctx: AdminContext, merchant_id: str, data: dict):
     from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
+    from porterchain_api.admin_engine.merchant_money_guard import assert_money_editor
 
+    assert_money_editor(ctx)
     require_merchant(db, merchant_id)
     cid = linked_company_id(db, merchant_id)
     if not cid:
         raise ValueError("merchant_has_no_crm_company")
     payload = {**data, "company_id": cid}
-    return CrmSalesService().create_contract(db, ctx, payload)
+    contract = CrmSalesService().create_contract(db, ctx, payload)
+    write_staff_audit(
+        db,
+        ctx,
+        merchant_id,
+        action="contract.created",
+        resource_type="contract",
+        resource_id=getattr(contract, "id", None),
+        payload={"changes": {k: {"old": None, "new": _jsonable(v)} for k, v in data.items()}},
+    )
+    return contract
+
+
+def _jsonable(value):
+    from datetime import date, datetime
+    from decimal import Decimal
+
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, dict):
+        return {k: _jsonable(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_jsonable(v) for v in value]
+    return value
 
 
 def require_detail(db: Session, merchant_id: str) -> dict:
@@ -481,9 +511,24 @@ def pricing_view_for(db: Session, merchant_id: str) -> dict:
 
 
 def merge_pricing_view(db: Session, ctx: AdminContext, merchant_id: str, patch: dict) -> dict:
+    from porterchain_api.admin_engine.merchant_money_guard import assert_money_editor, dict_diff
     from porterchain_api.merchant_engine.rate_card_view import admin_pricing_view
 
-    return admin_pricing_view(db, merge_pricing_config(db, ctx, merchant_id, patch))
+    assert_money_editor(ctx)
+    before = dict(require_merchant(db, merchant_id).pricing_config or {})
+    merchant = merge_pricing_config(db, ctx, merchant_id, patch)
+    changes = dict_diff(before, dict(merchant.pricing_config or {}))
+    if changes:
+        write_staff_audit(
+            db,
+            ctx,
+            merchant_id,
+            action="pricing.merchant.updated",
+            resource_type="pricing",
+            resource_id=merchant_id,
+            payload={"changes": changes},
+        )
+    return admin_pricing_view(db, merchant)
 
 
 def apply_kaylulu_pricing_template(db: Session, ctx: AdminContext, merchant_id: str) -> dict:
@@ -491,6 +536,9 @@ def apply_kaylulu_pricing_template(db: Session, ctx: AdminContext, merchant_id: 
     from porterchain_api.merchant_engine.kaylulu_template import kaylulu_pricing_config
     from porterchain_api.merchant_engine.rate_card_view import admin_pricing_view
 
+    from porterchain_api.admin_engine.merchant_money_guard import assert_money_editor
+
+    assert_money_editor(ctx)
     merchant = require_merchant(db, merchant_id)
     old_config = dict(merchant.pricing_config or {})
     merchant.pricing_config = kaylulu_pricing_config(existing=merchant.pricing_config)
@@ -525,7 +573,7 @@ def clone_pricing_from(
 
     if source_merchant_id == merchant_id:
         raise ValueError("cannot_clone_from_self")
-    # Cloning copies custom prices — same rule as editing them.
+    # Cloning copies custom prices — same rule as editing them (price values stay super admin).
     assert_pricing_editor(ctx)
     target = require_merchant(db, merchant_id)
     source = require_merchant(db, source_merchant_id)
@@ -602,17 +650,35 @@ def list_contracts(db: Session, merchant_id: str) -> list:
     return CrmSalesService().list_contracts(db, company_id=cid) if cid else []
 
 
-def update_linked_contract(db: Session, merchant_id: str, contract_id: str, data: dict):
+def update_linked_contract(
+    db: Session, merchant_id: str, contract_id: str, data: dict, ctx: AdminContext | None = None
+):
     from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
+    from porterchain_api.admin_engine.merchant_money_guard import assert_money_editor
     from porterchain_api.crm_models import CrmContract
 
+    assert_money_editor(ctx)
     cid = linked_company_id(db, merchant_id)
     if not cid:
         raise ValueError("merchant_has_no_crm_company")
     contract = db.get(CrmContract, contract_id)
     if not contract or contract.company_id != cid:
         raise LookupError("contract_not_found")
-    return CrmSalesService().update_contract(db, contract_id, data)
+    before = {k: _jsonable(getattr(contract, k, None)) for k in data}
+    updated = CrmSalesService().update_contract(db, contract_id, data)
+    after = {k: _jsonable(getattr(updated, k, None)) for k in data}
+    changes = {k: {"old": before[k], "new": after[k]} for k in data if before[k] != after[k]}
+    if changes:
+        write_staff_audit(
+            db,
+            ctx,
+            merchant_id,
+            action="contract.updated",
+            resource_type="contract",
+            resource_id=contract_id,
+            payload={"changes": changes},
+        )
+    return updated
 
 def list_activities(db: Session, merchant_id: str) -> list[dict]:
     from porterchain_api.admin_engine.crm_sales_service import CrmSalesService
@@ -901,7 +967,7 @@ def force_disconnect_shopify(
         raise ValueError("reason_required")
 
     seat = admin_merchant_context(db, merchant_id, ctx)
-    disconnect_shop(db, seat, shop_id)
+    disconnect_shop(db, seat, shop_id, audit=False)
     write_staff_audit(
         db,
         ctx,

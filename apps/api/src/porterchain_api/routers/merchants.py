@@ -239,8 +239,9 @@ def get_merchant_pricing(
 def set_merchant_pricing(
     merchant_id: str, body: MerchantPricingRequest, ctx: Ctx, db: Session = Depends(get_db)
 ) -> MerchantPricingResponse:
+    # Module gate is read; assert_money_editor (admin / super admin / finance) is the write gate.
     view = _invoke(
-        ctx, "merchants", merge_pricing_view, db, ctx, merchant_id, body.model_dump(exclude_unset=True)
+        ctx, "merchants_read", merge_pricing_view, db, ctx, merchant_id, body.model_dump(exclude_unset=True)
     )
     return MerchantPricingResponse(**view)
 
@@ -350,13 +351,16 @@ def merchant_api_key_rate_limit(
     def _run() -> dict:
         from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
 
-        rpm = int(body.get("rate_limit_per_minute") or 0)
-        if rpm < 10:
-            raise ValueError("rate_limit_invalid")
-        mctx = admin_merchant_context(db, merchant_id, ctx)
-        return MerchantIntegrationsService().update_api_key_rate_limit(
-            db, mctx, key_id, rate_limit_per_minute=rpm
-        )
+        from porterchain_api.admin_engine.merchant_org import write_staff_audit
+
+        from porterchain_api.merchant_engine.api_key_limits import validate_rate_limit
+
+        rpm = validate_rate_limit(body.get("rate_limit_per_minute"))
+        svc = MerchantIntegrationsService()
+        out = svc.update_api_key_rate_limit(db, admin_merchant_context(db, merchant_id, ctx), key_id, rate_limit_per_minute=rpm)
+        payload = {"rate_limit_per_minute": rpm}
+        write_staff_audit(db, ctx, merchant_id, action="api_key.rate_limit_changed", resource_type="api_key", resource_id=key_id, payload=payload)
+        return out
 
     return _invoke(ctx, "merchants", _run, org=True, copy=org_error_message)
 
@@ -606,7 +610,7 @@ def create_merchant_contract(
     merchant_id: str, body: ContractCreate, ctx: Ctx, db: Session = Depends(get_db)
 ) -> ContractOut:
     contract = _invoke(
-        ctx, "merchants", create_linked_contract, db, ctx, merchant_id, body.model_dump(exclude_unset=True)
+        ctx, "merchants_read", create_linked_contract, db, ctx, merchant_id, body.model_dump(exclude_unset=True)
     )
     return ContractOut.model_validate(contract)
 
@@ -621,12 +625,13 @@ def update_merchant_contract(
 ) -> ContractOut:
     contract = _invoke(
         ctx,
-        "merchants",
+        "merchants_read",
         update_linked_contract,
         db,
         merchant_id,
         contract_id,
         body.model_dump(exclude_unset=True),
+        ctx,
         org=True,
         copy=org_error_message,
     )

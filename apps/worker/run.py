@@ -160,6 +160,13 @@ def _drain_draft_reconciliation() -> int:
     return int(result.get("expired", 0)) + int(result.get("repaired", 0))
 
 
+def _merchant_ops_drain() -> int:
+    """Merchant credit auto-hold + churn/credit staff emails (own interval + flag)."""
+    from processors.merchant_ops import drain_if_due
+
+    return drain_if_due()
+
+
 def _drain_standing_orders() -> int:
     """Materialize due recurring merchant standing orders (§8.1.11)."""
     global _last_standing_orders_at
@@ -498,6 +505,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_lead_soft_archive()
                 processed += _drain_shopify_buyer_retention()
                 processed += _drain_blog_scheduled_publish()
+                processed += _merchant_ops_drain()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")

@@ -205,3 +205,78 @@ def merchant_ledger(db: Session, ctx: MerchantContext) -> list[BillingLedgerEntr
         .limit(200)
         .all()
     )
+
+
+# ── Account ops adapters (credit hold, health v2) ──────────────────────────
+
+
+def ar_snapshot(db: Session, merchant: Any) -> Any:
+    """Delivery AR for one merchant (same cents as Billing)."""
+    from porterchain_api.billing_engine.ar import merchant_ar
+
+    return merchant_ar(db, merchant)
+
+
+def ar_index(db: Session, merchant_ids: list[str]) -> dict[str, Any]:
+    from porterchain_api.billing_engine.ar import merchant_ar_index
+
+    return merchant_ar_index(db, merchant_ids=merchant_ids)
+
+
+def overdue_invoice_rows(db: Session, merchant: Any, *, now: Any) -> list[dict[str, Any]]:
+    """Open delivery invoices past due, oldest first, with days overdue."""
+    from porterchain_api.billing_engine.ar import _latest_payment_by_order
+    from porterchain_api.billing_engine.merchant_service import (
+        effective_payment_terms,
+        invoice_due_date,
+        invoice_status,
+        outstanding_cents,
+    )
+
+    def aware(dt: Any) -> Any:
+        if dt is None:
+            return None
+        return dt if dt.tzinfo else dt.replace(tzinfo=now.tzinfo)
+
+    def row(inv: Any, status: str, terms: Any, kind: str) -> dict[str, Any]:
+        due = aware(getattr(inv, "due_at", None)) or aware(invoice_due_date(inv.created_at, terms))
+        return {
+            "invoice_id": inv.id,
+            "order_id": inv.order_id,
+            "kind": kind,
+            "amount_cents": outstanding_cents(inv, status),
+            "due_at": due.isoformat() if due else None,
+            "days_overdue": max(0, (now - due).days) if due else 0,
+        }
+
+    naive_now = now.replace(tzinfo=None)
+    out: list[dict[str, Any]] = []
+    # Per-order invoices (one per delivery).
+    orders = {
+        o.id: o
+        for o in db.query(Order).filter(Order.merchant_id == merchant.id, Order.is_sandbox.is_(False)).all()
+    }
+    if orders:
+        payments = _latest_payment_by_order(db, list(orders))
+        for inv in db.query(Invoice).filter(Invoice.order_id.in_(list(orders))).all():
+            order = orders.get(inv.order_id or "")
+            terms = effective_payment_terms(order, merchant)
+            status = invoice_status(inv, order, payments.get(inv.order_id or ""), terms=terms, now=naive_now)
+            if status == "overdue":
+                out.append(row(inv, status, terms, "order"))
+    # Billing-cycle invoices (one per period, no single order_id): Interac
+    # e-Transfer is matched by hand, so paid_at / voided_at / status close them.
+    cycle_terms = getattr(merchant, "payment_terms", None)
+    cycle = db.query(Invoice).filter(
+        Invoice.merchant_id == merchant.id,
+        Invoice.order_id.is_(None),
+        Invoice.paid_at.is_(None),
+        Invoice.voided_at.is_(None),
+        Invoice.status.notin_(("paid", "void", "voided", "cancelled", "draft")),
+    )
+    for inv in cycle.all():
+        status = invoice_status(inv, None, None, terms=cycle_terms, now=naive_now)
+        if status == "overdue":
+            out.append(row(inv, status, cycle_terms, "cycle"))
+    out.sort(key=lambda r: -r["days_overdue"])
+    return out

@@ -179,7 +179,7 @@ def _book_from_shopify_payload(
 
     # Shopify marks test checkouts with test=true; never book live capacity for those.
     is_sandbox = bool(payload.get("test")) or bool(payload.get("test_order"))
-    auto_dispatch = bool(getattr(shop, "auto_dispatch", True))
+    auto_dispatch = bool(getattr(shop, "auto_dispatch", False))  # column default; returns used False already
     try:
         order = shopify._booking.create_shipment(
             db,
