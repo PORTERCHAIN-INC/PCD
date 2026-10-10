@@ -30,6 +30,7 @@ EXTRA_SECTIONS = [
     *COST_SECTIONS,
     {"id": "driver_gps", "label": "Driver GPS", "group": "partners"},
     {"id": "future", "label": "Future", "group": "platform"},
+    {"id": "privacy_access", "label": "Privacy Requests", "group": "access"},
 ]
 EXTRA_NORMALIZERS = {**COST_NORMALIZERS, "driver_gps": _save_driver_gps, "future_features": normalize_future}
 

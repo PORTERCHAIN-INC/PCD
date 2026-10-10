@@ -1,6 +1,10 @@
 import pytest
-
-from porterchain_api.platform.future_features import CATALOG, default_future, future_overview, normalize_future
+from porterchain_api.platform.future_features import (
+    CATALOG,
+    default_future,
+    future_overview,
+    normalize_future,
+)
 
 
 def test_all_off_by_default_with_threshold_and_description():

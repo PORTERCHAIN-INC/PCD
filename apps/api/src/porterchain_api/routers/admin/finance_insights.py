@@ -80,6 +80,23 @@ def future_features(
     return future_overview(db)
 
 
+@router.get("/privacy/access-export")
+def privacy_access_export(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    email: str | None = None,
+    phone: str | None = None,
+) -> dict:
+    """PIPEDA access request: all personal data held for one email/phone (read-only)."""
+    require_module(ctx, "settings")
+    from porterchain_api.platform.privacy_access import subject_access_export
+
+    try:
+        return subject_access_export(db, email=email, phone=phone)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @router.get("/finance/tax-report")
 def finance_tax_report(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
