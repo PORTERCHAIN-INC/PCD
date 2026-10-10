@@ -6,7 +6,7 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
@@ -194,3 +194,44 @@ async def shopify_carrier_service_rates(
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+_HTML_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>PorterChain Delivery</title>
+<style>body{{font-family:system-ui,sans-serif;max-width:34rem;margin:4rem auto;padding:0 1rem;color:#0f2742}}
+a{{display:inline-block;margin-top:1rem;padding:.7rem 1.2rem;background:#0f2742;color:#fff;border-radius:.6rem;text-decoration:none}}</style>
+</head><body><h1>PorterChain Delivery</h1><p>{message}</p><a href="{href}">{label}</a></body></html>"""
+
+
+def _browser_page(message: str, href: str, label: str) -> HTMLResponse:
+    import html
+
+    body = _HTML_PAGE.format(
+        message=html.escape(message), href=html.escape(href, quote=True), label=html.escape(label)
+    )
+    return HTMLResponse(body, status_code=200)
+
+
+@router.get("/install", include_in_schema=False)
+@router.get("/callback", include_in_schema=False)
+def shopify_legacy_browser_entry(
+    shop: str | None = None,
+    settings: Settings = Depends(get_settings),
+):
+    """Old OAuth links (earlier released app versions, bookmarks): never a JSON dead end.
+
+    Install is Shopify-managed now; send the browser to the app inside Shopify admin,
+    which installs if needed, re-registers checkout rates and links the store.
+    """
+    from porterchain_api.merchant_engine.shopify_urls import embedded_app_url
+
+    try:
+        return RedirectResponse(embedded_app_url(shop or "", settings), status_code=302)
+    except ValueError:
+        portal = settings.merchant_portal_url.rstrip("/")
+        return _browser_page(
+            "Open PorterChain Delivery from your Shopify admin (Apps > PorterChain Delivery) "
+            "to finish connecting your store.",
+            f"{portal}/shopify",
+            "Go to PorterChain for Shopify",
+        )

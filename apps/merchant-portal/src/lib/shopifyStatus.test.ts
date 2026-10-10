@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  shopifyAdminShippingUrl,
   shopifyAdvisoryTexts,
   shopifyBlockingText,
   shopifyInstallError,
@@ -43,5 +44,19 @@ test("a refused Shopify token asks for re-approval, not the shipping scope", () 
   assert.equal(
     shopifyBlockingText(["token_reauth_required"]),
     "Not live yet: reopen the app from Shopify admin to approve access again."
+  );
+});
+
+test("deep-links to the store's Shipping and delivery settings", () => {
+  assert.equal(
+    shopifyAdminShippingUrl("qhrk0d-5s.myshopify.com"),
+    "https://admin.shopify.com/store/qhrk0d-5s/settings/shipping"
+  );
+});
+
+test("explains Carrier Calculated Shipping when the plan lacks it", () => {
+  assert.match(
+    shopifyRatesProblem("carrier_plan_unsupported") ?? "",
+    /Carrier Calculated Shipping/
   );
 });

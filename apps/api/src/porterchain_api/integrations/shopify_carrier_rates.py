@@ -729,11 +729,13 @@ def carrier_service_rates(
         raise PermissionError("invalid_hmac")
 
     shop = _active_shop(db, shop_domain) if shop_domain else None
+    # Signed by our app but the store is uninstalled / unlinked: checkout gets no
+    # PorterChain option, never an error (Shopify shows 4xx/5xx as rate failures).
     if not shop or not shop.merchant_id:
-        raise LookupError("shop_not_connected")
+        return _empty(shop_domain, "shop_not_connected")
     merchant = db.get(Merchant, shop.merchant_id)
     if not merchant:
-        raise LookupError("merchant_not_found")
+        return _empty(shop, "merchant_not_found")
     if merchant.status != MerchantStatus.ACTIVE.value:
         return _empty(shop, "merchant_inactive", status=merchant.status)
 

@@ -43,7 +43,7 @@ def ensure_carrier_rates(db: Session, settings: Settings, shop_domain: str, *, r
 
         shopify._post_install_hooks(row, settings)  # sets row.install_hooks
         return rates_status(row)
-    if getattr(row, "carrier_service_gid", None):
+    if getattr(row, "carrier_service_gid", None) and _carrier_still_on_store(row, settings):
         return "ready"
     try:
         _register_carrier_service(row, settings)
@@ -51,6 +51,32 @@ def ensure_carrier_rates(db: Session, settings: Settings, shop_domain: str, *, r
         logger.warning("shopify_carrier_heal_failed shop=%s", shop, exc_info=True)
         return carrier_error_code(exc)
     return "ready"
+
+
+def _carrier_still_on_store(row: ShopifyShop, settings: Settings) -> bool:
+    """Stored id is trusted unless Shopify positively says the service is gone.
+
+    A merchant (or a plan change) can delete the CarrierService; then every app open
+    re-registers it. Network / auth errors keep the stored id (never block the page).
+    """
+    from porterchain_api.merchant_engine.shopify_admin_graphql import carrier_service_find
+    from porterchain_api.merchant_engine.shopify_fulfillment_ops import access_token_for
+    from porterchain_api.merchant_engine.shopify_urls import carrier_rates_url
+
+    try:
+        token = access_token_for(row, settings)
+        if not token:
+            return True
+        found = carrier_service_find(
+            row.shop_domain, token, settings, callback_url=carrier_rates_url(settings)
+        )
+    except Exception:  # noqa: BLE001
+        return True
+    if found:
+        return True
+    logger.warning("shopify_carrier_missing_on_store shop=%s", row.shop_domain)
+    row.carrier_service_gid = None
+    return False
 
 
 def is_unclaimed_install_merchant(db: Session, merchant_id: str, shop_domain: str) -> bool:

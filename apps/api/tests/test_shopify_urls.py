@@ -200,7 +200,10 @@ def test_app_toml_is_embedded_managed_install() -> None:
     assert raw.get("client_id") == ""
     assert raw["embedded"] is True
     assert raw["application_url"] == f"{settings.merchant_portal_url}/shopify-app"
-    assert raw["access_scopes"]["scopes"] == settings.shopify_api_scopes
+    # Released scopes only (returns are off): the grant screen asks for nothing unused.
+    from porterchain_api.merchant_engine.shopify_urls import oauth_scopes
+
+    assert set(raw["access_scopes"]["scopes"].split(",")) == set(oauth_scopes(settings).split(","))
     assert raw["access_scopes"]["use_legacy_install_flow"] is False
     assert "auth" not in raw  # no OAuth redirect: Shopify manages install
     assert raw["webhooks"]["api_version"] == settings.shopify_api_version == "2026-10"

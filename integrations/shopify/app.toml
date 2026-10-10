@@ -6,8 +6,8 @@
 # Billing: none. The app is free; deliveries are invoiced by Interac e-Transfer.
 # FO request topics stay out of this file; they register only when
 # SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off).
-# read_returns: release this version in Partners first, then set
-# SHOPIFY_RETURNS_SCOPE_ENABLED=true.
+# read_returns + returns/* topics: add back with SHOPIFY_RETURNS_SCOPE_ENABLED=true
+# (returns are off; requesting an unused scope fails App Store review).
 # API 2026-10: carrier services are no longer auto-added to the General shipping
 # profile; merchants switch PorterChain rates on in Shipping and delivery / Markets.
 # client_id stays empty in git; `shopify app deploy` fills it from the Partners app.
@@ -18,7 +18,7 @@ application_url = "https://merchant.porterchain.com/shopify-app"
 embedded = true
 
 [access_scopes]
-scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders,read_returns"
+scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders"
 use_legacy_install_flow = false
 
 [webhooks]
@@ -33,9 +33,7 @@ api_version = "2026-10"
     "orders/cancelled",
     "orders/delete",
     "refunds/create",
-    "app/uninstalled",
-    "returns/approve",
-    "returns/cancel"
+    "app/uninstalled"
   ]
   uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"
 

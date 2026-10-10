@@ -28,7 +28,7 @@ const INSTALL_ERRORS: Record<string, string> = {
 
 const RATE_STATUS: Record<string, string> = {
   carrier_plan_unsupported:
-    "Shopify did not enable PorterChain checkout rates because this store's plan does not include third-party carrier-calculated shipping. Ask Shopify to enable carrier-calculated shipping for the store, then retry rate setup.",
+    "Shopify says “Carrier Calculated Shipping must be enabled” for this store, so it cannot show app rates yet. It is included on Advanced and Plus plans (and Grow/Basic on yearly billing or with the add-on Shopify Support can enable). Once it is on, reopen PorterChain Delivery here and rates switch on automatically.",
   carrier_scope_missing:
     "PorterChain does not have Shopify's shipping permission yet. Re-open the app from Shopify admin and approve the requested access, then retry.",
   carrier_no_token: "PorterChain is not authorized on this store yet. Connect the store first.",
@@ -80,4 +80,13 @@ export function shopifyAdvisoryTexts(advisories: string[] | undefined): string[]
 export function shopifyBlockingText(blocking: string[] | undefined): string | null {
   const parts = (blocking ?? []).map((code) => BLOCKING[code]).filter(Boolean);
   return parts.length ? `Not live yet: ${parts.join("; ")}.` : null;
+}
+
+/** Shopify admin → Settings → Shipping and delivery for a *.myshopify.com store. */
+export function shopifyAdminShippingUrl(shopDomain: string): string {
+  const handle = shopDomain
+    .trim()
+    .toLowerCase()
+    .replace(/\.myshopify\.com$/, "");
+  return `https://admin.shopify.com/store/${encodeURIComponent(handle)}/settings/shipping`;
 }

@@ -118,3 +118,12 @@ def managed_install_url(shop_domain: str, settings: Settings) -> str:
         raise ValueError("shop_domain_invalid")
     handle = shop.removesuffix(".myshopify.com")
     return f"https://admin.shopify.com/store/{handle}/oauth/install?client_id={settings.shopify_api_key}"
+
+
+def embedded_app_url(shop_domain: str, settings: Settings) -> str:
+    """The app inside Shopify admin (installs first if needed, then opens embedded)."""
+    shop = normalize_shop_domain(shop_domain)
+    if not is_shop_domain(shop) or not settings.shopify_api_key:
+        raise ValueError("shop_domain_invalid")
+    handle = shop.removesuffix(".myshopify.com")
+    return f"https://admin.shopify.com/store/{handle}/apps/{settings.shopify_api_key}"

@@ -477,7 +477,7 @@ def test_spoofed_shop_cannot_use_other_merchant_secret():
             )
 
 
-def test_unknown_shop_rejected_after_hmac():
+def test_unknown_shop_gets_empty_rates_after_hmac():
     db = MagicMock()
     settings = _settings()
     body = b'{"rate":{}}'
@@ -485,15 +485,15 @@ def test_unknown_shop_rejected_after_hmac():
         "porterchain_api.integrations.shopify_carrier_rates._active_shop",
         return_value=None,
     ):
-        with pytest.raises(LookupError, match="shop_not_connected"):
-            carrier_service_rates(
-                db,
-                settings,
-                raw_body=body,
-                hmac_header=_hmac(body, settings.shopify_api_secret),
-                shop_domain="ghost.myshopify.com",
-                payload=_payload(),
-            )
+        result = carrier_service_rates(
+            db,
+            settings,
+            raw_body=body,
+            hmac_header=_hmac(body, settings.shopify_api_secret),
+            shop_domain="ghost.myshopify.com",
+            payload=_payload(),
+        )
+    assert result == {"rates": []}
 
 
 def test_quote_merchant_rate_calls_pricing_service():

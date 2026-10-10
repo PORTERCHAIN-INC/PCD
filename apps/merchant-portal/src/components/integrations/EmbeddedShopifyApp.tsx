@@ -1,7 +1,11 @@
 "use client";
 
 import { publicEnv } from "@/lib/env";
-import { shopifyInstallError, shopifyRatesProblem } from "@/lib/shopifyStatus";
+import {
+  shopifyAdminShippingUrl,
+  shopifyInstallError,
+  shopifyRatesProblem,
+} from "@/lib/shopifyStatus";
 import { useEffect, useState } from "react";
 
 type EmbeddedSession = {
@@ -72,11 +76,33 @@ export default function EmbeddedShopifyApp() {
               {ratesProblem}
             </p>
           ) : (
-            <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              Checkout rates are live for {session.shop_domain}. Make sure PorterChain is switched
-              on in Settings → Shipping and delivery for Canada.
-            </p>
+            <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+              <p>
+                PorterChain is registered as a carrier on {session.shop_domain}. Shopify does not
+                switch new carriers on by itself, so add PorterChain to your Canada shipping zone:
+              </p>
+              <ol className="list-decimal space-y-1 pl-5">
+                <li>Open Settings → Shipping and delivery.</li>
+                <li>
+                  Open the shipping profile and the shipping zone that includes Canada (Ontario).
+                </li>
+                <li>Click Add rate, then choose “Use carrier or app to calculate rates”.</li>
+                <li>Pick PorterChain, select its services, and click Done, then Save.</li>
+              </ol>
+              <a
+                href={shopifyAdminShippingUrl(session.shop_domain)}
+                target="_top"
+                className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 font-semibold"
+              >
+                Open Shipping and delivery
+              </a>
+            </div>
           )}
+          <p className="rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm text-primary">
+            PorterChain delivers in the Greater Toronto Area only. Orders shipping anywhere else
+            (other provinces or countries) simply don&apos;t see a PorterChain rate at checkout;
+            your other rates keep working.
+          </p>
           {session.linked ? (
             <>
               <p className="text-sm text-primary">

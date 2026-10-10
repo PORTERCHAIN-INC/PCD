@@ -325,13 +325,21 @@ export default function ShopifyConnectCard({
       ) : null}
 
       {initialShop && linkedElsewhere && !blockedElsewhere && !connected ? (
-        <p className="mt-4 rounded-xl bg-primary/5 px-3 py-2 text-sm text-primary">
-          PorterChain Delivery is installed on {initialShop} but not linked to this account yet.
-          Connect links it here; Shopify will confirm you manage the store.
-        </p>
+        <div className="mt-4 space-y-2 rounded-xl bg-primary/5 px-3 py-2 text-sm text-primary">
+          <p>
+            PorterChain Delivery is already installed on {initialShop}. To link it to this account,
+            open the app in your Shopify admin and press “Link to my PorterChain account”.
+          </p>
+          <a
+            className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 font-semibold text-white"
+            href={`${publicEnv.porterchainApiUrl}/v1/integrations/shopify/install?shop=${encodeURIComponent(initialShop)}`}
+          >
+            Open in Shopify admin
+          </a>
+        </div>
       ) : null}
 
-      {!connected && !blockedElsewhere ? (
+      {!connected && !blockedElsewhere && !(initialShop && linkedElsewhere) ? (
         <div className="mt-4 space-y-3">
           {initialShop ? (
             <p className="text-sm text-primary">
