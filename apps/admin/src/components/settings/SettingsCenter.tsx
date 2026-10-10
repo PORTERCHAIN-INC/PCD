@@ -3,6 +3,7 @@
 import CarriageTermsPanel from "@/components/settings/CarriageTermsPanel";
 import RoutePricingPanel from "@/components/settings/RoutePricingPanel";
 import DriverGpsPanel from "@/components/settings/DriverGpsPanel";
+import FutureFeaturesPanel from "@/components/settings/FutureFeaturesPanel";
 import { startTransition, useCallback, useEffect, useMemo, useOptimistic, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -482,6 +483,7 @@ function SectionRouter({
   if (tab === "carriage") return <CarriageTermsPanel />;
   if (tab === "route_pricing") return <RoutePricingPanel />;
   if (tab === "driver_gps") return <DriverGpsPanel />;
+  if (tab === "future") return <FutureFeaturesPanel />;
   if (tab === "lead_ingest") {
     return <LeadIngestPanel />;
   }

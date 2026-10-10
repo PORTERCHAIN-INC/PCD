@@ -69,6 +69,17 @@ def ops_analytics(
     return _ops(db, days=days)
 
 
+@router.get("/settings/future")
+def future_features(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)
+) -> dict:
+    """Settings → Future: scoped toggles with parcels/day thresholds and current volume."""
+    require_module(ctx, "settings")
+    from porterchain_api.platform.future_features import future_overview
+
+    return future_overview(db)
+
+
 @router.get("/finance/tax-report")
 def finance_tax_report(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
