@@ -21,10 +21,10 @@ from test_contract_schedule import SCHEDULE_ID, _ctx, _price
 T = terms_of(load_contract_schedule(SCHEDULE_ID))  # Kaylulu inherits the global terms
 
 
-def test_b2_waiting_not_pooled_15_min_blocks():
-    assert waiting_cents(T, pickup_minutes=45, stop_minutes=[15])["total_cents"] == 0
-    # pickup 50 min → 5 over → one 15-min block = $7.50; stop 31 min → 16 over → two blocks = $15
-    w = waiting_cents(T, pickup_minutes=50, stop_minutes=[31, 10])
+def test_b2_waiting_15_free_everywhere_not_pooled_15_min_blocks():
+    assert waiting_cents(T, pickup_minutes=15, stop_minutes=[15])["total_cents"] == 0
+    # pickup 20 min → 5 over → one 15-min block = $7.50; stop 31 min → 16 over → two blocks = $15
+    w = waiting_cents(T, pickup_minutes=20, stop_minutes=[31, 10])
     assert [x["cents"] for x in w["lines"]] == [750, 1500] and w["total_cents"] == 2250
     # unused pickup allowance never offsets a stop
     assert waiting_cents(T, pickup_minutes=0, stop_minutes=[30])["total_cents"] == 750

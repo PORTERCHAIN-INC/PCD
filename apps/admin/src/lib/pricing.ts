@@ -13,6 +13,31 @@ export type SimulateQuoteBody = {
   parcel_count?: number | null;
   pickup?: { lat?: number; lng?: number; formatted?: string; postal?: string };
   dropoff?: { lat?: number; lng?: number; formatted?: string; postal?: string };
+  extra_pickups?: Array<{ formatted?: string; postal?: string }>;
+  extra_drops?: Array<{ formatted?: string; postal?: string }>;
+};
+
+/** Smart route quote (new engine) shown next to the current price. */
+export type SmartQuote = {
+  total_cents: number;
+  current_cents: number | null;
+  shape: string;
+  unit: string;
+  sequence: string[];
+  route_distance: number;
+  drive_minutes: number;
+  lines: Array<{ code: string; label: string; cents: number }>;
+  marginal_stops: Array<{
+    stop: string;
+    kind: string;
+    insertion_km: number;
+    insertion_cents: number;
+  }>;
+  confidence: number;
+  matrix_source: string;
+  notes: string[];
+  custom_quote: boolean;
+  error?: string;
 };
 
 export type SimulateQuoteResult = {
@@ -26,6 +51,7 @@ export type SimulateQuoteResult = {
   items: Array<{ code: string; label: string; amount_cents: number }>;
   metadata: Record<string, unknown>;
   what_won: string;
+  smart?: SmartQuote | null;
   margin?: {
     status: "ok" | "thin" | "below_cost";
     price_cents: number;

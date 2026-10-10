@@ -110,6 +110,10 @@ class SimulateQuoteRequest(BaseModel):
     is_downtown: bool | None = None
     is_upper_zone: bool | None = None
     gta_rate_override: dict[str, Any] | None = None
+    #: Smart route pricing side by side: extra pickups / drops make any shape.
+    extra_pickups: list[PointInput] = Field(default_factory=list)
+    extra_drops: list[PointInput] = Field(default_factory=list)
+    smart_overrides: dict[str, Any] | None = None
 
 
 class SimulateQuoteResponse(BaseModel):
@@ -127,3 +131,6 @@ class SimulateQuoteResponse(BaseModel):
     distance_flag: str | None = None
     coverage: dict[str, Any] | None = None
     liftgate_suggestion: dict[str, Any] | None = None
+    #: Smart route quote for the same stops (old vs new); None when it can't price.
+    smart: dict[str, Any] | None = None
+

@@ -18,7 +18,7 @@ DEFAULT_TERMS: dict[str, Any] = {
     # Global fleet offers liftgate trucks (surcharge in pricing); a contract may set False.
     "liftgate_available": True,
     "waiting": {
-        "pickup_included_minutes": 45,
+        "pickup_included_minutes": 15,  # Ravi 2026-10-10: 15 min free at pickup and each stop
         "stop_included_minutes": 15,
         "cents_per_hour": 3000,
         "increment_minutes": 15,

@@ -8,7 +8,12 @@ import { Button, Input } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import { merchants } from "@/lib/merchants";
-import { pricingApi, type MarginEstimates, type SimulateQuoteResult } from "@/lib/pricing";
+import {
+  pricingApi,
+  type MarginEstimates,
+  type SimulateQuoteResult,
+  type SmartQuote,
+} from "@/lib/pricing";
 import { settingsApi } from "@/lib/settings";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import AdminPage from "@/components/layout/AdminPage";
@@ -88,6 +93,14 @@ export default function PricingCenterClient() {
   const [est, setEst] = useState<MarginEstimates | null>(null);
   const [estMsg, setEstMsg] = useState<string | null>(null);
 
+  const [extraPickups, setExtraPickups] = useState("");
+  const [extraDrops, setExtraDrops] = useState("");
+  const lines = (v: string) =>
+    v
+      .split(/\n|;/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+
   const point = (v: string) =>
     /^[A-Za-z]\d[A-Za-z]\s?\d?[A-Za-z]?\d?$/.test(v.trim())
       ? { postal: v.trim(), formatted: "" }
@@ -105,6 +118,8 @@ export default function PricingCenterClient() {
           parcel_count: Math.max(1, Number(parcels) || 1),
           pickup: point(pickup),
           dropoff: point(drop),
+          extra_pickups: lines(extraPickups).map(point),
+          extra_drops: lines(extraDrops).map(point),
         })
       );
     } catch (e) {
@@ -167,6 +182,24 @@ export default function PricingCenterClient() {
           <label className="text-xs font-medium text-primary/70 lg:col-span-2">
             Drop (address or postal)
             <Input className="mt-1" value={drop} onChange={(e) => setDrop(e.target.value)} />
+          </label>
+          <label className="text-xs font-medium text-primary/70 lg:col-span-2">
+            More pickups (one per line)
+            <textarea
+              className="mt-1 w-full rounded-lg border border-primary/15 p-2 text-sm"
+              rows={2}
+              value={extraPickups}
+              onChange={(e) => setExtraPickups(e.target.value)}
+            />
+          </label>
+          <label className="text-xs font-medium text-primary/70 lg:col-span-2">
+            More drops (one per line)
+            <textarea
+              className="mt-1 w-full rounded-lg border border-primary/15 p-2 text-sm"
+              rows={2}
+              value={extraDrops}
+              onChange={(e) => setExtraDrops(e.target.value)}
+            />
           </label>
           <label className="text-xs font-medium text-primary/70">
             Parcels
@@ -240,6 +273,7 @@ export default function PricingCenterClient() {
                 )}
               </div>
             )}
+            {result.smart && <SmartPanel smart={result.smart} />}
           </div>
         )}
       </section>
@@ -312,5 +346,49 @@ export default function PricingCenterClient() {
         )}
       </section>
     </AdminPage>
+  );
+}
+
+function SmartPanel({ smart }: { smart: SmartQuote }) {
+  if (smart.error) return <p className="text-xs text-muted">Smart route: {smart.error}</p>;
+  const diff = smart.current_cents == null ? null : smart.total_cents - smart.current_cents;
+  return (
+    <div className="rounded-xl border border-primary/10 p-3 text-sm">
+      <p className="font-semibold text-primary">
+        Smart route {formatCents(smart.total_cents)}
+        {diff != null && (
+          <span className="ml-2 text-xs text-muted">
+            vs current {formatCents(smart.current_cents ?? 0)} ({diff >= 0 ? "+" : ""}
+            {formatCents(diff)})
+          </span>
+        )}
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        {smart.shape.replaceAll("_", " ")} · {smart.sequence.join(" → ")} · {smart.route_distance}{" "}
+        {smart.unit} · {Math.round(smart.drive_minutes)} min · {Math.round(smart.confidence * 100)}%
+        sure ({smart.matrix_source})
+      </p>
+      <ul className="mt-2 space-y-0.5 text-xs">
+        {smart.lines.map((l) => (
+          <li key={l.code} className="flex justify-between gap-2">
+            <span>{l.label}</span>
+            <span className="font-mono">{formatCents(l.cents)}</span>
+          </li>
+        ))}
+      </ul>
+      {smart.marginal_stops.length > 0 && (
+        <p className="mt-2 text-xs text-muted">
+          Each extra stop adds:{" "}
+          {smart.marginal_stops
+            .map((m) => `${m.stop} +${m.insertion_km} km (${formatCents(m.insertion_cents)})`)
+            .join(" · ")}
+        </p>
+      )}
+      {smart.notes.map((n) => (
+        <p key={n} className="mt-1 text-xs text-amber-700">
+          {n}
+        </p>
+      ))}
+    </div>
   );
 }

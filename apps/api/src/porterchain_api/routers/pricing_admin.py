@@ -103,6 +103,21 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
     if body.gta_rate_override:
         overrides["gta_rate"] = body.gta_rate_override
     breakdown = service.simulator.simulate(request, overrides=overrides or None)
+    smart = None
+    try:
+        from porterchain_api.pricing_engine.smart_pricing import quote_route
+
+        smart = quote_route(
+            db,
+            pickups=[pickup, *[_geocoded(p).to_geo() for p in body.extra_pickups]],
+            drops=[dropoff, *[_geocoded(d).to_geo() for d in body.extra_drops]],
+            vehicle_class=body.vehicle_class or "cargo_van",
+            merchant_id=body.merchant_id,
+            config_override=body.smart_overrides,
+        )
+        smart["current_cents"] = None  # filled below for the side-by-side
+    except Exception as exc:  # noqa: BLE001 — the side-by-side must never break the simulator
+        smart = {"error": str(getattr(exc, "detail", exc))}
     api = service.to_api_breakdown(breakdown)
     meta = dict(api.get("metadata") or {})
     return SimulateQuoteResponse(
@@ -132,6 +147,7 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
             vehicle_class=body.vehicle_class,
             overrides=estimates,
         ).as_dict(),
+        smart={**smart, "current_cents": int(api["subtotal_cents"])} if smart and "error" not in smart else smart,
         distance_flag=distance_outlier(
             distance_meters,
             (pickup.lat, pickup.lng) if pickup.lat is not None else None,
