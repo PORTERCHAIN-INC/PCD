@@ -117,10 +117,15 @@ test("area FSAs come from the GTA coverage list, are unique and well-formed", ()
       new URL("services/pricing-engine/porterchain_pricing/data/gta150_fsa_registry.json", repo)
     )
   );
-  // 362 = registry boundary FSAs (357) + the 5 downtown non-geographic hub overrides.
+  // 334 = registry FSAs within the 150 km service radius (329) + 5 downtown hub overrides.
   assert.equal(ENTITY_FACTS.coverageFsaCount, GTA150_FSA_CODES.size);
   assert.equal(COVERAGE_FSA_COUNT, GTA150_FSA_CODES.size);
-  assert.equal(GTA150_FSA_CODES.size, registry.fsas.filter((r) => r.active !== false).length + 5);
+  assert.equal(
+    GTA150_FSA_CODES.size,
+    registry.fsas.filter(
+      (r) => r.active !== false && r.distance_km_from_hub <= registry.tile.radius_km
+    ).length + 5
+  );
   const reg = new Map(registry.fsas.map((r) => [r.code, r]));
   const dt = getDeliveryArea("downtown-toronto");
   const meanLat = dt.fsas.reduce((s, c) => s + reg.get(c).lat, 0) / dt.fsas.length;

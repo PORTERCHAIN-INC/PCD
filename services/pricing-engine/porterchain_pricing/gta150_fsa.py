@@ -34,12 +34,28 @@ def load_gta150_registry() -> dict[str, Any]:
     return data
 
 
+def service_radius_km() -> float:
+    """PorterChain serves Toronto + this radius (registry ``tile.radius_km``, 150 km).
+
+    Single source of truth: coverage checks, Shopify rates and the FSA rate card
+    default all read it; nothing else hard-codes the radius.
+    """
+    tile = load_gta150_registry().get("tile") or {}
+    return float(tile.get("radius_km") or 150.0)
+
+
+def _in_radius(row: dict[str, Any]) -> bool:
+    """FSA centroid within the service radius of the Toronto hub (bbox overlap is not enough)."""
+    dist = row.get("distance_km_from_hub")
+    return dist is not None and float(dist) <= service_radius_km()
+
+
 @lru_cache(maxsize=1)
 def gta150_fsa_codes() -> frozenset[str]:
     codes = {
         normalize_fsa(str(row.get("code") or ""))
         for row in load_gta150_registry().get("fsas", [])
-        if isinstance(row, dict) and row.get("active", True)
+        if isinstance(row, dict) and row.get("active", True) and _in_radius(row)
     }
     return frozenset(c for c in codes if c) | _GTA150_HUB_OVERRIDES
 
@@ -56,7 +72,7 @@ def gta150_fsa_record(fsa: str | None) -> dict[str, Any] | None:
         return None
     for row in load_gta150_registry().get("fsas", []):
         if isinstance(row, dict) and normalize_fsa(str(row.get("code") or "")) == code:
-            return dict(row)
+            return dict(row) if _in_radius(row) else None
     if code in _GTA150_HUB_OVERRIDES:
         return {
             "code": code,
@@ -76,4 +92,5 @@ def gta150_registry_meta() -> dict[str, Any]:
         "tile": data.get("tile"),
         "source": data.get("source"),
         "hub_overrides": sorted(_GTA150_HUB_OVERRIDES),
+        "service_radius_km": service_radius_km(),
     }

@@ -11,7 +11,7 @@
 - https://porterchain.com/en/drivers — Vanity → /en/vehicle-partner
 
 ## Key facts
-- Same-day local delivery for businesses in the Greater Toronto Area (about 150 km around downtown Toronto; 362 postal areas / FSAs).
+- Same-day local delivery for businesses in the Greater Toronto Area (about 150 km around downtown Toronto; 334 postal areas / FSAs).
 - Vehicles: sedan/SUV, cargo van, 16 ft box truck, all driven on a standard Ontario G licence.
 - Same-day promise: order by 11 AM, delivered 2-9 PM the same day, Monday-Saturday; each quote shows the exact window.
 - Pricing: per delivery from driving distance and vehicle, base distance included, HST shown; instant price at /en/delivery-cost-calculator.

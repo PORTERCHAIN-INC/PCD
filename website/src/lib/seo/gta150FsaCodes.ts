@@ -1,16 +1,12 @@
 /**
  * Generated from porterchain_pricing.gta150_fsa_codes() — do not hand-edit.
- * Registry version=1 count=362 hub_overrides=M5D, M5K, M5L, M5W, M5X.
+ * Registry version=1 count=334 hub_overrides=M5D, M5K, M5L, M5W, M5X.
  * Regenerate: python scripts/sync_website_gta150_fsa.py
  * CI: python scripts/verify_gta150_fsa_sync.py
  */
 export const GTA150_FSA_CODES = new Set<string>([
-  "K0H",
-  "K0K",
   "K0L",
   "K0M",
-  "K8N",
-  "K8V",
   "K9A",
   "K9H",
   "K9J",
@@ -287,11 +283,8 @@ export const GTA150_FSA_CODES = new Set<string>([
   "N0C",
   "N0E",
   "N0G",
-  "N0H",
   "N0J",
   "N0K",
-  "N0L",
-  "N0M",
   "N1A",
   "N1C",
   "N1E",
@@ -334,7 +327,6 @@ export const GTA150_FSA_CODES = new Set<string>([
   "N3Y",
   "N4B",
   "N4G",
-  "N4K",
   "N4L",
   "N4N",
   "N4S",
@@ -345,27 +337,7 @@ export const GTA150_FSA_CODES = new Set<string>([
   "N4Z",
   "N5A",
   "N5C",
-  "N5H",
-  "N5L",
-  "N5P",
-  "N5R",
-  "N5V",
-  "N5W",
-  "N5X",
-  "N5Y",
-  "N5Z",
-  "N6A",
-  "N6B",
-  "N6C",
-  "N6E",
-  "N6G",
-  "N6L",
-  "N6M",
-  "N6N",
-  "N6P",
-  "P0C",
   "P0E",
-  "P1L",
   "P1P",
 ]);
 

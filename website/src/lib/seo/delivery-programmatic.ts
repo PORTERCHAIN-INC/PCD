@@ -58,12 +58,12 @@ export const DELIVERY_PROMISE_DEFAULT = {
 
 /**
  * Coverage size — the number of GTA postal areas (FSAs) the pricing engine quotes:
- * `porterchain_pricing.gta150_fsa_codes()` = 357 StatCan boundary FSAs + 5 downtown
- * non-geographic FSAs (M5D, M5K, M5L, M5W, M5X) = 362. Must equal `GTA150_FSA_CODES.size`
+ * `porterchain_pricing.gta150_fsa_codes()` = 329 StatCan FSAs whose centroid is within
+ * 150 km of the Toronto hub + 5 downtown non-geographic FSAs (M5D, M5K, M5L, M5W, M5X) = 334. Must equal `GTA150_FSA_CODES.size`
  * (generated list); `delivery-programmatic.test.mjs` and `scripts/verify_gta150_fsa_sync.py`
  * fail if this, /facts, llms.txt or site copy drift.
  */
-export const COVERAGE_FSA_COUNT = 362;
+export const COVERAGE_FSA_COUNT = 334;
 
 export type DistanceBand = "core" | "inner" | "outer";
 

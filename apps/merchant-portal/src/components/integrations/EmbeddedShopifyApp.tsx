@@ -99,9 +99,9 @@ export default function EmbeddedShopifyApp() {
             </div>
           )}
           <p className="rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm text-primary">
-            PorterChain delivers in the Greater Toronto Area only. Orders shipping anywhere else
-            (other provinces or countries) simply don&apos;t see a PorterChain rate at checkout;
-            your other rates keep working.
+            PorterChain delivers in Toronto and up to 150 km around it. Orders shipping farther
+            (other regions, provinces or countries) simply don&apos;t see a PorterChain rate at
+            checkout; your other rates keep working.
           </p>
           {session.linked ? (
             <>

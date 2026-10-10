@@ -46,3 +46,15 @@ def test_service_area_rejects_ottawa() -> None:
     assert "GTA" in err or "tile" in err.lower()
     ok = service_area_error("dropoff", AddressInput(formatted="Toronto", postal="M5V 2T6"))
     assert ok is None
+
+
+def test_service_radius_is_150_km_and_gates_coverage() -> None:
+    from porterchain_pricing.gta150_fsa import service_radius_km
+
+    assert service_radius_km() == 150.0
+    assert is_gta150_fsa("N2G")  # Kitchener ~92 km
+    assert is_gta150_fsa("L4M")  # Barrie ~90 km
+    assert is_gta150_fsa("N5C")  # Ingersoll ~140 km
+    assert not is_gta150_fsa("K8V")  # Trenton ~151 km
+    assert not is_gta150_fsa("K0H")  # bbox-overlap rural FSA, centroid ~244 km
+    assert not is_gta150_fsa("K1P")  # Ottawa

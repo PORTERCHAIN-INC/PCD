@@ -10,7 +10,7 @@ import { GTA150_FSA_CODES } from "@/lib/seo/gta150FsaCodes";
 
 /**
  * Credibility strip — real data only:
- *  - coverage numbers are computed from the generated FSA list (362, same as the pricing engine),
+ *  - coverage numbers are computed from the generated FSA list (334, same as the pricing engine),
  *    the published delivery areas and the instant-price vehicle classes;
  *  - our own brand (PorterChain mark + legal entity) instead of customer logos; customer logos
  *    render only when `MERCHANT_LOGOS` has permissioned entries (none today);

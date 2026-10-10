@@ -30,22 +30,27 @@ _DEFAULT_CARD: dict[str, Any] = {
         {"below_cents": 4000, "step_cents": 100},
         {"below_cents": None, "step_cents": 500},
     ],
-    # Drop FSAs whose centroid is farther than this from the GTA hub are off the card.
-    "radius_km": 70.0,
+    # Drop FSAs whose centroid is farther than this from the Toronto hub are off the
+    # card. Defaults to the service radius (gta150_fsa.service_radius_km); editable.
+    "radius_km": None,
     # Parcel counts shown as columns (the price-book tiers bill them).
     "tier_columns": [5, 10, 20],
 }
 
 
 def default_fsa_card() -> dict[str, Any]:
-    return deepcopy(_DEFAULT_CARD)
+    from porterchain_pricing.gta150_fsa import service_radius_km
+
+    card = deepcopy(_DEFAULT_CARD)
+    card["radius_km"] = service_radius_km()
+    return card
 
 
 def normalize_fsa_card(raw: Any) -> dict[str, Any]:
     """Defaults + `raw`, validated. Raises ValueError('fsa_card_invalid:<key>')."""
     card = default_fsa_card()
     if isinstance(raw, dict):
-        card.update({k: deepcopy(v) for k, v in raw.items() if k in _DEFAULT_CARD})
+        card.update({k: deepcopy(v) for k, v in raw.items() if k in _DEFAULT_CARD and v is not None})
     for key in ("base_cents", "per_km_cents", "per_minute_cents", "minimum_cents"):
         if not isinstance(card[key], int) or card[key] < 0:
             raise ValueError(f"fsa_card_invalid:{key}")

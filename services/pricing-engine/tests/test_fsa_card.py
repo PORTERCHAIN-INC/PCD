@@ -35,3 +35,10 @@ def test_settings_overlay_is_validated() -> None:
         normalize_fsa_card({"base_cents": -1})
     with pytest.raises(ValueError, match="fsa_card_invalid:bands"):
         normalize_fsa_card({"bands": [{"below_cents": 100, "step_cents": 50}]})
+
+
+def test_card_radius_defaults_to_service_radius_and_is_editable() -> None:
+    from porterchain_pricing.fsa_card import default_fsa_card, normalize_fsa_card
+
+    assert default_fsa_card()["radius_km"] == 150.0
+    assert normalize_fsa_card({"radius_km": 90})["radius_km"] == 90
