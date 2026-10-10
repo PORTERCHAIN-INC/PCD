@@ -37,9 +37,9 @@ _TRAFFIC = "lead_webhooks"
 
 
 def _rate_limit_webhook(request: Request) -> None:
-    client = request.client.host if request.client else "unknown"
-    forwarded = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    identity = forwarded or client
+    from porterchain_api.platform.client_ip import client_ip
+
+    identity = client_ip(request)
     key = bucket_key(_TRAFFIC, identity)
     allowed, _current, err = check_fixed_window(key, _LEAD_WEBHOOK_LIMIT)
     if err:

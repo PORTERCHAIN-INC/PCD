@@ -20,12 +20,9 @@ STAFF_AUTH_LIMIT_PER_MINUTE = 20
 def _client_ip(request: Request | None) -> str:
     if request is None:
         return "unknown"
-    forwarded = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    if forwarded:
-        return forwarded
-    if request.client and request.client.host:
-        return request.client.host
-    return "unknown"
+    from porterchain_api.platform.client_ip import client_ip
+
+    return client_ip(request)
 
 
 def enforce_staff_auth_rate(request: Request | None, *, email: str | None = None) -> None:

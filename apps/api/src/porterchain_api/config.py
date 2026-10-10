@@ -302,6 +302,11 @@ class Settings(BaseSettings):
             "meta_wa_template_map_json", "META_WA_TEMPLATE_MAP_JSON"
         ),
     )
+    #: Extra recipients (comma separated) for security alerts; active super admins always get them.
+    security_alert_email: str = Field(
+        default="",
+        validation_alias=AliasChoices("security_alert_email", "SECURITY_ALERT_EMAIL"),
+    )
     #: Lead desk — owner alert email for new high-priority leads ("" = assignee only).
     lead_alert_email: str = Field(
         default="",
@@ -630,6 +635,10 @@ class Settings(BaseSettings):
     portal_rate_limit_per_minute: int = Field(
         default=120,
         validation_alias=AliasChoices("portal_rate_limit_per_minute", "PORTAL_RATE_LIMIT_PER_MINUTE"),
+    )
+    public_rate_limit_per_minute: int = Field(
+        default=120,
+        validation_alias=AliasChoices("public_rate_limit_per_minute", "PUBLIC_RATE_LIMIT_PER_MINUTE"),
     )
     sentry_dsn: str = Field(
         default="",

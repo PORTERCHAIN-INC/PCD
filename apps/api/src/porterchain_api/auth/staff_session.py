@@ -151,12 +151,9 @@ def client_meta_from_request(request: Any | None) -> dict[str, str]:
     """Coarse device honesty for session rows (IP + UA label)."""
     if request is None:
         return {}
-    forwarded = ""
-    try:
-        forwarded = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    except Exception:  # noqa: BLE001
-        forwarded = ""
-    client_ip = forwarded
+    from porterchain_api.platform.client_ip import client_ip as _real_ip
+
+    client_ip = _real_ip(request, default="")
     if not client_ip:
         try:
             client_ip = getattr(getattr(request, "client", None), "host", None) or ""

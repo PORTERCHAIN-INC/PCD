@@ -19,5 +19,52 @@ def test_accepts_public_https():
     assert assert_public_https_url("https://8.8.8.8/x", resolve=False)
 
 
-def test_public_tracking_is_rate_limited():
-    assert any("/v1/orders/PC-1".startswith(p) for p in rl._PREFIXES)
+def test_public_endpoints_are_rate_limited():
+    for path in ("/v1/orders/PC-1", "/v1/quotes", "/v1/public/inquiries", "/v1/auth/staff/login"):
+        assert any(path.startswith(p) for p in rl._PUBLIC_PREFIXES), path
+
+
+class _Req:
+    def __init__(self, peer, xff=None):
+        self.client = type("C", (), {"host": peer})()
+        self.headers = {"x-forwarded-for": xff} if xff else {}
+
+
+def test_client_ip_ignores_spoofed_left_entries():
+    from porterchain_api.platform.client_ip import client_ip, is_trusted_server
+
+    assert client_ip(_Req("172.18.0.5", "1.2.3.4, 203.0.113.9")) == "203.0.113.9"
+    assert client_ip(_Req("172.18.0.5", "203.0.113.9")) == "203.0.113.9"
+    # Direct (non-proxy) peer: header ignored entirely.
+    assert client_ip(_Req("8.8.4.4", "10.0.0.1")) == "8.8.4.4"
+    assert is_trusted_server("172.18.0.1") and not is_trusted_server("8.8.4.4")
+
+
+class _Redis:
+    def __init__(self):
+        self.d = {}
+
+    def incr(self, k):
+        self.d[k] = int(self.d.get(k, 0)) + 1
+        return self.d[k]
+
+    def expire(self, *a):
+        return True
+
+    def set(self, k, v, nx=False, ex=None):
+        if nx and k in self.d:
+            return False
+        self.d[k] = v
+        return True
+
+
+def test_failed_login_alert_once_per_ip(monkeypatch):
+    from porterchain_api.auth import staff_login_alerts as a
+
+    r = _Redis()
+    monkeypatch.setattr(a, "_redis", lambda: r)
+    monkeypatch.setattr(a, "recipients", lambda db, s: ["owner@example.com"])
+    sent = []
+    results = [a.note_failed_login(None, None, client_ip="203.0.113.9", factor="passkey",
+                                   send=lambda to, m: sent.append(to)) for _ in range(8)]
+    assert results.count(True) == 1 and sent == ["owner@example.com"]

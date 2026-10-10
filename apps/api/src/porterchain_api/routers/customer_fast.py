@@ -56,10 +56,9 @@ class TokenRequest(BaseModel):
 
 
 def _ip(request: Request) -> str | None:
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else None
+    from porterchain_api.platform.client_ip import client_ip
+
+    return client_ip(request, default="") or None
 
 
 def _call(fn, *args, **kwargs) -> Any:

@@ -18,12 +18,9 @@ TRAFFIC_MARKETING = "marketing_public"
 
 
 def client_ip(request: Request) -> str:
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        first = forwarded.split(",")[0].strip()
-        if first:
-            return first[:64]
-    return request.client.host if request.client else "unknown"
+    from porterchain_api.platform.client_ip import client_ip as _real_ip
+
+    return _real_ip(request)
 
 
 def enforce_public_limit(request: Request, *, bucket: str, limit: int, app_env: str) -> None:

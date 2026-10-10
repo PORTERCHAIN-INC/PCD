@@ -170,6 +170,11 @@ def staff_login(
         return _staff_session_response(payload, settings)
     except HTTPException as exc:
         note_auth_event(f"staff_login_{factor}", "fail")
+        if exc.status_code in (400, 401, 403):
+            from porterchain_api.auth.staff_login_alerts import note_failed_login
+            from porterchain_api.auth.staff_rate_limit import _client_ip
+
+            note_failed_login(db, settings, client_ip=_client_ip(request), factor=factor)
         raise exc
 
 
