@@ -28,7 +28,8 @@ RUN_EVENTS = frozenset(
     }
 )
 ETA_EVENTS = frozenset({"order.near_delivery", "order.tracking_updated"})
-CX_EVENTS = RUN_EVENTS | ETA_EVENTS
+RESCHEDULE_EVENTS = frozenset({"order.rescheduled"})
+CX_EVENTS = RUN_EVENTS | ETA_EVENTS | RESCHEDULE_EVENTS
 
 
 def _eta_minutes(payload: dict[str, Any]) -> float | None:
@@ -51,11 +52,14 @@ def eta_payload_is_close(payload: dict[str, Any], limit_minutes: int = 120) -> b
 
 
 def process_order_event(db: Session, settings: Any, event_type: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    from porterchain_api.customer_experience.context import merchant_for
     from porterchain_api.customer_experience.notifications import notify
     from porterchain_api.customer_experience.reattempt import record_failure
-    from porterchain_api.customer_experience.route_position import driver_run, stops_ahead
+    from porterchain_api.customer_experience.route_position import (
+        driver_run,
+        stops_ahead,
+    )
     from porterchain_api.customer_experience.settings import cx_for_merchant
-    from porterchain_api.customer_experience.context import merchant_for
 
     order_id = payload.get("order_id")
     if event_type not in CX_EVENTS or not order_id:
@@ -65,6 +69,13 @@ def process_order_event(db: Session, settings: Any, event_type: str, payload: di
         return []
     results: list[dict[str, Any]] = []
     cfg = cx_for_merchant(merchant_for(db, order))
+
+    if event_type in RESCHEDULE_EVENTS:
+        label = str(payload.get("window_label") or "")
+        stamp = f"rescheduled:{payload.get('window_code') or label}"
+        results.append(notify(db, settings, order, "rescheduled", extra={"window_label": label}, dedupe_key=stamp))
+        db.commit()
+        return results
 
     if event_type in ETA_EVENTS:
         minutes = _eta_minutes(payload)
@@ -93,7 +104,9 @@ def process_order_event(db: Session, settings: Any, event_type: str, payload: di
         threshold = cfg["notifications"]["next_stop_threshold"]
         run = driver_run(db, order.assigned_driver_id)
         for other in run:
-            if just_out and other.id == order.id:
+            # The order that just went out gets "out for delivery", never also "next stop"
+            # (a redelivered in_transit event used to send a stray next-stop email).
+            if (just_out or event_type == "order.in_transit") and other.id == order.id:
                 continue
             ahead = stops_ahead(db, other, run=run)
             if ahead is not None and ahead <= threshold:

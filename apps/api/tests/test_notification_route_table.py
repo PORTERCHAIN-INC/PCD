@@ -179,10 +179,14 @@ def test_checkout_abandoned_emails_when_a_recovery_link_exists() -> None:
 
 
 def test_failed_delivery_reaches_customer_merchant_and_ops() -> None:
-    channels = _channels("order.failed")
-    assert ("customer", "email", "exception_opened") in channels
-    assert ("merchant", "in_app", "exception_opened") in channels
-    assert any(item[0] == "admin" for item in channels)
+    for event in ("order.failed", "order.delivery_failed"):
+        channels = _channels(event)
+        assert ("customer", "email", "delivery_failed") in channels
+        assert ("merchant", "in_app", "delivery_failed") in channels
+        assert ("merchant", "email", "delivery_failed") in channels
+        assert ("driver", "in_app", "delivery_failed") in channels
+        assert ("admin", "email", "delivery_failed") in channels
+        assert ("admin", "in_app", "delivery_failed") in channels
 
 
 def test_high_priority_lead_stays_off_the_parcel_router() -> None:

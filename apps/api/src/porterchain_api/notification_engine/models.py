@@ -5,7 +5,17 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -90,9 +100,26 @@ class NotificationRecord(Base):
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     clicked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    #: Provider tracking (ZeptoMail request id / client_reference) and webhook outcome.
+    provider_message_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    delivery_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    bounced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    #: event|correlation|template|channel|recipient. One row per key (unique partial index).
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    #: Cross-path dedupe / rate-limit bucket, e.g. "delivered|<order>|<email>" or "eta|<email>".
+    dedupe_family: Mapped[str | None] = mapped_column(String(160), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_notification_records_idem_col",
+            "idempotency_key",
+            unique=True,
+            postgresql_where=text("idempotency_key IS NOT NULL"),
+        ),
     )
 
 
@@ -128,7 +155,62 @@ class NotificationUserSettings(Base):
     quiet_start_hour: Mapped[int] = mapped_column(Integer, default=22)
     quiet_end_hour: Mapped[int] = mapped_column(Integer, default=7)
     timezone: Mapped[str] = mapped_column(String(64), default="America/Toronto")
+    #: Email language for customer-facing mail ("en" / "fr"); None = auto.
+    language: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    #: CASL express consent for marketing email: when and from where it was given.
+    marketing_consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    marketing_consent_source: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class EmailSuppression(Base):
+    """Addresses we must not email (hard bounce, complaint). Unsuppress keeps the row."""
+
+    __tablename__ = "notification_email_suppressions"
+
+    email: Mapped[str] = mapped_column(String(320), primary_key=True)
+    reason: Mapped[str] = mapped_column(String(32), default="hard_bounce")
+    source: Mapped[str] = mapped_column(String(32), default="zeptomail")
+    active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    bounce_count: Mapped[int] = mapped_column(Integer, default=1)
+    notification_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    released_by: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class NotificationTemplateCopy(Base):
+    """Admin-edited subject / intro per template + language. Append-only versions."""
+
+    __tablename__ = "notification_template_copy"
+    __table_args__ = (UniqueConstraint("template_key", "lang", "version", name="uq_notification_template_copy_ver"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    template_key: Mapped[str] = mapped_column(String(64), index=True)
+    lang: Mapped[str] = mapped_column(String(8), default="en")
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    subject: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    intro: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_by: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class NotificationAdminSetting(Base):
+    """Small JSON settings for the notification center (matrix switches, digest)."""
+
+    __tablename__ = "notification_admin_settings"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_by: Mapped[str | None] = mapped_column(String(320), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

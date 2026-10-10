@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
+
 from porterchain_api.db import SessionLocal
 from porterchain_api.notification_engine.context import (
     deep_link_for,
@@ -12,10 +14,14 @@ from porterchain_api.notification_engine.context import (
     merge_notification_context,
 )
 from porterchain_api.notification_engine.engine import get_notification_engine
-from porterchain_api.notification_engine.preference_service import drop_muted_merchant_specs
+from porterchain_api.notification_engine.preference_service import (
+    drop_muted_merchant_specs,
+)
 from porterchain_api.notification_engine.route_table import specs_for_parcel
-from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
-from porterchain_shared.events.catalog import DomainEventType
+from porterchain_api.notification_engine.staff_fanout import (
+    expand_staff_specs,
+    staff_sentinel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +75,15 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         address: str | None = None,
         category: str | None = None,
         pri: str | None = None,
+        dedupe: str | None = None,
+        dedupe_window: int | None = None,
     ) -> None:
         if not recipient_id:
             return
+        extra: dict[str, Any] = {}
+        if dedupe:
+            extra["dedupe_family"] = dedupe
+            extra["dedupe_window_sec"] = dedupe_window
         specs.append(
             {
                 "template_key": template,
@@ -84,12 +96,15 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
                 "category": category,
                 "priority": pri or priority,
                 "deep_link": deep_link_for(recipient_type, payload),
+                **extra,
             }
         )
 
     def add_staff(template: str, channel: str, topic: str, *, category: str | None = None, pri: str | None = None) -> None:
         add(template, channel, "admin", staff_sentinel(topic), category=category, pri=pri)  # type: ignore[arg-type]
 
+    # One routing table: parcel/delivery moments are owned by route_table; the
+    # branches below cover only events route_table does not claim.
     if specs_for_parcel(event_type, payload, add):
         return specs
 
@@ -103,16 +118,6 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("booking_draft_created", "in_app", "customer", customer_id)
         if email and customer_id:
             add("booking_draft_created", "email", "customer", customer_id, address=email)
-
-    elif event_type == DomainEventType.BOOKING_CONFIRMED:
-        if customer_id:
-            add("booking_confirmed", "in_app", "customer", customer_id)
-            add("booking_confirmed", "push", "customer", customer_id)
-        if email and customer_id:
-            add("booking_confirmed", "email", "customer", customer_id, address=email)
-        if merchant_id:
-            add("booking_confirmed", "in_app", "merchant", merchant_id)
-        # No staff fanout on every booking — drowned admin inbox (2822 staff vs 39 customer).
 
     elif event_type in (DomainEventType.PAYMENT_STARTED, DomainEventType.CHECKOUT_STARTED):
         if customer_id:
@@ -137,16 +142,6 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("payment_failed", "in_app", "customer", customer_id)
         if email and customer_id:
             add("payment_failed", "email", "customer", customer_id, address=email)
-
-    elif event_type in (DomainEventType.ORDER_CREATED, DomainEventType.ORDER_BOOKED):
-        template = "order_created" if event_type == DomainEventType.ORDER_CREATED else "order_booked"
-        if customer_id:
-            add(template, "in_app", "customer", customer_id)
-        if email and customer_id:
-            add(template, "email", "customer", customer_id, address=email)
-        if merchant_id:
-            add(template, "in_app", "merchant", merchant_id)
-        # Ops board already tracks new orders — skip staff in_app spam.
 
     elif event_type == DomainEventType.DRIVER_ASSIGNED:
         if customer_id:
@@ -188,10 +183,6 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if customer_id:
             add("pickup_started", "push", "customer", customer_id)
 
-    elif event_type == DomainEventType.PARCEL_PICKED_UP:
-        if customer_id:
-            add("parcel_picked_up", "push", "customer", customer_id)
-
     elif event_type == DomainEventType.DELIVERY_STARTED:
         if customer_id:
             add("in_transit", "push", "customer", customer_id)
@@ -199,13 +190,6 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
     elif event_type == DomainEventType.ORDER_NEAR_DELIVERY:
         if customer_id:
             add("near_delivery", "push", "customer", customer_id)
-
-    elif event_type == DomainEventType.PARCEL_DELIVERED:
-        if customer_id:
-            add("delivered", "in_app", "customer", customer_id)
-            add("delivered", "push", "customer", customer_id)
-        if driver_id:
-            add("delivered", "in_app", "driver", driver_id)
 
     elif event_type == DomainEventType.PROOF_COMPLETED:
         if driver_id:
@@ -410,6 +394,7 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
             or not payload.get("order_number")
             or not payload.get("tracking_number")
             or "is_sandbox" not in payload
+            or "lang" not in payload
         ):
             payload = merge_notification_context(payload, hydrate_order_context(db, order_id))
 
@@ -422,7 +407,24 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
 
         run_cx_hooks(db, event_type, payload)
 
+        # The CX hook counts failed attempts; give route_table the fresh number so the
+        # fallback missed-delivery email shares the per-attempt dedupe family.
+        if order_id and event_type in ("order.failed", "order.delivery_failed"):
+            from porterchain_api.booking_models import Order
+
+            row = db.get(Order, order_id)
+            meta = row.compliance_metadata if row is not None and isinstance(row.compliance_metadata, dict) else {}
+            cx = meta.get("cx") if isinstance(meta.get("cx"), dict) else {}
+            if cx.get("attempts"):
+                payload["attempts"] = cx["attempts"]
+
         specs = _specs_for_event(event_type, payload)
+        if specs:
+            from porterchain_api.notification_engine.center_settings import (
+                drop_matrix_off,
+            )
+
+            specs = drop_matrix_off(db, event_type, specs)
         if not specs:
             return
         specs = drop_muted_merchant_specs(db, specs)
@@ -453,6 +455,53 @@ def handle_tracking_update(envelope: dict[str, Any]) -> None:
         handle_domain_event(envelope)
 
 
+#: Every domain event the notification router listens to (also drives the admin matrix).
+WATCHED_EVENTS: tuple[str, ...] = (
+    DomainEventType.BOOKING_DRAFT_CREATED,
+    DomainEventType.BOOKING_CONFIRMED,
+    DomainEventType.CHECKOUT_STARTED,
+    DomainEventType.PAYMENT_STARTED,
+    DomainEventType.PAYMENT_SUCCEEDED,
+    DomainEventType.PAYMENT_FAILED,
+    DomainEventType.ORDER_CREATED,
+    DomainEventType.ORDER_BOOKED,
+    "merchant.booking_created",
+    "order.stop_completed",
+    "order.failed",
+    "order.delivery_failed",
+    "order.rescheduled",
+    DomainEventType.CHECKOUT_ABANDONED,
+    DomainEventType.DRIVER_ASSIGNED,
+    DomainEventType.ORDER_CANCELLED,
+    DomainEventType.DRIVER_ACCEPTED,
+    DomainEventType.DRIVER_REJECTED,
+    DomainEventType.DRIVER_ARRIVED_PICKUP,
+    DomainEventType.PARCEL_PICKED_UP,
+    DomainEventType.DELIVERY_STARTED,
+    DomainEventType.ORDER_NEAR_DELIVERY,
+    DomainEventType.PARCEL_DELIVERED,
+    DomainEventType.PROOF_COMPLETED,
+    DomainEventType.INVOICE_GENERATED,
+    DomainEventType.MERCHANT_BILLED,
+    "merchant.invoice_generated",
+    DomainEventType.MERCHANT_APPROVED,
+    DomainEventType.MERCHANT_ACTIVATED,
+    DomainEventType.MERCHANT_SUSPENDED,
+    "merchant.closed",
+    "receipt.generated",
+    DomainEventType.REFUND_ISSUED,
+    DomainEventType.CLAIM_OPENED,
+    DomainEventType.CLAIM_RESOLVED,
+    DomainEventType.SUPPORT_TICKET_CREATED,
+    DomainEventType.FLEETBASE_STATUS_UPDATED,
+    DomainEventType.ORDER_TEMP_EXCURSION,
+    DomainEventType.EXCEPTION_OPENED,
+    DomainEventType.EXCEPTION_RESOLVED,
+    DomainEventType.ORDER_DELAYED,
+    DomainEventType.SLA_BREACHED,
+)
+
+
 def register_notification_handlers() -> None:
     from porterchain_event_bus.registry import get_handler_registry
 
@@ -462,49 +511,7 @@ def register_notification_handlers() -> None:
     _notification_handlers_registered = True
 
     registry = get_handler_registry()
-    watched = [
-        DomainEventType.BOOKING_DRAFT_CREATED,
-        DomainEventType.BOOKING_CONFIRMED,
-        DomainEventType.CHECKOUT_STARTED,
-        DomainEventType.PAYMENT_STARTED,
-        DomainEventType.PAYMENT_SUCCEEDED,
-        DomainEventType.PAYMENT_FAILED,
-        DomainEventType.ORDER_CREATED,
-        DomainEventType.ORDER_BOOKED,
-        "merchant.booking_created",
-        "order.stop_completed",
-        "order.failed",
-        "order.delivery_failed",
-        DomainEventType.CHECKOUT_ABANDONED,
-        DomainEventType.DRIVER_ASSIGNED,
-        DomainEventType.ORDER_CANCELLED,
-        DomainEventType.DRIVER_ACCEPTED,
-        DomainEventType.DRIVER_REJECTED,
-        DomainEventType.DRIVER_ARRIVED_PICKUP,
-        DomainEventType.PARCEL_PICKED_UP,
-        DomainEventType.DELIVERY_STARTED,
-        DomainEventType.ORDER_NEAR_DELIVERY,
-        DomainEventType.PARCEL_DELIVERED,
-        DomainEventType.PROOF_COMPLETED,
-        DomainEventType.INVOICE_GENERATED,
-        DomainEventType.MERCHANT_BILLED,
-        "merchant.invoice_generated",
-        DomainEventType.MERCHANT_APPROVED,
-        DomainEventType.MERCHANT_ACTIVATED,
-        DomainEventType.MERCHANT_SUSPENDED,
-        "merchant.closed",
-        "receipt.generated",
-        DomainEventType.REFUND_ISSUED,
-        DomainEventType.CLAIM_OPENED,
-        DomainEventType.CLAIM_RESOLVED,
-        DomainEventType.SUPPORT_TICKET_CREATED,
-        DomainEventType.FLEETBASE_STATUS_UPDATED,
-        DomainEventType.ORDER_TEMP_EXCURSION,
-        DomainEventType.EXCEPTION_OPENED,
-        DomainEventType.EXCEPTION_RESOLVED,
-        DomainEventType.ORDER_DELAYED,
-        DomainEventType.SLA_BREACHED,
-    ]
+    watched = list(WATCHED_EVENTS)
     for evt in watched:
         registry.subscribe(evt, handle_domain_event)
     for evt in ("driver.emergency", "driver.route_changed"):

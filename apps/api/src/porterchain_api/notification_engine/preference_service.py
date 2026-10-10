@@ -8,6 +8,9 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.notification_engine.models import NotificationPreference
 
+#: Mirrors preferences_view.EMAIL_LOCKED (kept here to avoid an import cycle).
+EMAIL_LOCKED = frozenset({"booking", "tracking", "orders", "payments", "invoices", "claims", "support", "security"})
+
 DEFAULT_CATEGORIES = (
     "booking",
     "tracking",
@@ -68,6 +71,12 @@ class PreferenceService:
             and channel == "push"
             and (priority in ("critical", "high") or category == "security")
         ):
+            return True
+
+        # CASL: transactional email is exempt and locked on (preferences_view.EMAIL_LOCKED).
+        if channel == "email" and category in EMAIL_LOCKED:
+            return True
+        if channel == "in_app" and category == "security":
             return True
 
         pref = (

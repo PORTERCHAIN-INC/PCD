@@ -171,8 +171,10 @@ def proof_of_delivery(db: Session, order: Order, cfg: dict[str, Any], *, with_ph
 def build_experience(db: Session, order: Order, *, with_photos: bool = False) -> dict[str, Any]:
     merchant = merchant_for(db, order)
     cfg = cx_for_merchant(merchant)
-    if not cfg["tracking"]["branded_page"]:
-        # Off by default: the public page keeps rendering exactly as before.
+    if not cfg["tracking"]["branded_page"] and not with_photos:
+        # Off by default: the public page keeps rendering exactly as before. A valid
+        # signed link from a receiver email (with_photos) always gets the full view so
+        # "View proof of delivery" shows the photo/signature.
         return {"enhanced": False, "tracking_number": order.tracking_number}
     from porterchain_api.customer_experience.route_position import stops_ahead
     from porterchain_api.merchant_engine.organization_sync import public_shipper_branding

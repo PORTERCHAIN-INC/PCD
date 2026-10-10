@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import {
   CX_EVENT_LABELS,
+  CX_LANGUAGE_LABELS,
+  type CxLanguage,
   CX_PRESET_LABELS,
+  contrastOnWhite,
   cxCustomerFacingSummary,
   cxValidationError,
   type CustomerExperienceSettings,
@@ -244,9 +247,83 @@ export function CustomerExperienceTab({
             value={form.notifications.next_stop_threshold}
             onChange={(v) => set("notifications", { next_stop_threshold: v })}
           />
+          <NumberField
+            label="Max one 'close by' email per recipient every (min)"
+            min={0}
+            max={240}
+            value={form.notifications.eta_min_interval_minutes}
+            onChange={(v) => set("notifications", { eta_min_interval_minutes: v })}
+          />
+          <label className="block text-sm font-medium text-primary">
+            Email language
+            <select
+              className="mt-1 block rounded-xl border border-primary/15 px-3 py-2 text-sm"
+              value={form.notifications.language}
+              onChange={(e) => set("notifications", { language: e.target.value as CxLanguage })}
+            >
+              {(Object.keys(CX_LANGUAGE_LABELS) as CxLanguage[]).map((lang) => (
+                <option key={lang} value={lang}>
+                  {CX_LANGUAGE_LABELS[lang]}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
+        <fieldset className="space-y-3 rounded-2xl border border-primary/10 p-4">
+          <legend className="px-1 text-sm font-semibold text-primary">Email branding</legend>
+          <div className="flex flex-wrap items-end gap-4">
+            <label className="block text-sm font-medium text-primary">
+              Button colour
+              <span className="mt-1 flex items-center gap-2">
+                <input
+                  type="color"
+                  aria-label="Pick button colour"
+                  className="h-10 w-12 cursor-pointer rounded-lg border border-primary/15"
+                  value={form.notifications.brand_color || "#0b1220"}
+                  onChange={(e) => set("notifications", { brand_color: e.target.value })}
+                />
+                <input
+                  className="w-28 rounded-xl border border-primary/15 px-3 py-2 font-mono text-sm"
+                  placeholder="#0b1220"
+                  value={form.notifications.brand_color ?? ""}
+                  onChange={(e) => set("notifications", { brand_color: e.target.value || null })}
+                />
+              </span>
+            </label>
+            <label className="block min-w-[14rem] flex-1 text-sm font-medium text-primary">
+              Reply-to email
+              <input
+                type="email"
+                className="mt-1 block w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                placeholder="support@yourstore.ca"
+                value={form.notifications.reply_to ?? ""}
+                onChange={(e) => set("notifications", { reply_to: e.target.value || null })}
+              />
+            </label>
+          </div>
+          {form.notifications.brand_color && /^#[0-9a-fA-F]{6}$/.test(form.notifications.brand_color) ? (
+            contrastOnWhite(form.notifications.brand_color) >= 4.5 ? (
+              <p className="text-xs text-muted">
+                Contrast {contrastOnWhite(form.notifications.brand_color).toFixed(1)}:1 — readable. Used for the email button.
+              </p>
+            ) : (
+              <p className="text-xs text-amber-800">
+                Contrast {contrastOnWhite(form.notifications.brand_color).toFixed(1)}:1 is too light for white text. Emails keep the navy button.
+              </p>
+            )
+          ) : null}
+          <label className="block text-sm font-medium text-primary">
+            Logo URL (https)
+            <input
+              className="mt-1 block w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+              placeholder="Leave empty to use the logo from Branding"
+              value={form.notifications.logo_url ?? ""}
+              onChange={(e) => set("notifications", { logo_url: e.target.value || null })}
+            />
+          </label>
+        </fieldset>
         <Toggle
-          label="Quiet hours for SMS (email still sends)"
+          label="Quiet hours for SMS (held until morning, email still sends)"
           checked={form.notifications.quiet_hours.enabled}
           onChange={(v) =>
             set("notifications", { quiet_hours: { ...form.notifications.quiet_hours, enabled: v } })

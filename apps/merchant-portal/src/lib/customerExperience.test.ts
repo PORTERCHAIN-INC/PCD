@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  contrastOnWhite,
   cxCustomerFacingSummary,
   cxValidationError,
   type CustomerExperienceSettings,
@@ -27,9 +28,12 @@ const defaults: CustomerExperienceSettings = {
       delivered: true,
       attempted: true,
       schedule_request: true,
+      rescheduled: true,
     },
     next_stop_threshold: 1,
     eta_minutes: 20,
+    language: "auto",
+    eta_min_interval_minutes: 15,
     quiet_hours: { enabled: true, start: "21:00", end: "08:00", timezone: "America/Toronto" },
   },
   self_service: {
@@ -70,7 +74,7 @@ test("summary lists what recipients will get", () => {
   };
   const lines = cxCustomerFacingSummary(on);
   assert.equal(lines.length, 5);
-  assert.match(lines[1] ?? "", /6 delivery update\(s\) by email \+ sms/);
+  assert.match(lines[1] ?? "", /7 delivery update\(s\) by email \+ sms/);
   assert.match(lines[4] ?? "", /return to sender after 3/);
 });
 
@@ -92,4 +96,20 @@ test("validation mirrors the API", () => {
     bad({ notifications: { ...defaults.notifications, eta_minutes: 2 } }) ?? "",
     /5 and 120/
   );
+});
+
+test("email branding: AA check and validation", () => {
+  assert.ok(contrastOnWhite("#0b1220") > 15);
+  assert.ok(contrastOnWhite("#0f766e") >= 4.5);
+  assert.ok(contrastOnWhite("#fde047") < 4.5);
+  assert.equal(contrastOnWhite("teal"), 0);
+  const base = structuredClone(defaults);
+  base.notifications.reply_to = "not-an-email";
+  assert.match(cxValidationError(base) ?? "", /reply-to/);
+  base.notifications.reply_to = "help@shop.ca";
+  base.notifications.logo_url = "http://x.test/l.png";
+  assert.match(cxValidationError(base) ?? "", /https/);
+  base.notifications.logo_url = "https://x.test/l.png";
+  base.notifications.brand_color = "#0f766e";
+  assert.equal(cxValidationError(base), null);
 });
