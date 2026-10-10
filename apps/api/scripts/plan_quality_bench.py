@@ -113,9 +113,14 @@ def metrics(ev: dict) -> dict:
 
 
 KM_CENTS = {"sedan": 12, "suv": 16, "van": 22, "box_truck": 35}  # example only
-# Ravi's real costs (2026-10-10): driver $27/h, vehicle $0.35/km, van insurance $600/month over 22 x 10 h.
+# Ravi's real costs (2026-10-10): driver $27/h; sedan/SUV $0.20/km + $250/mo insurance; van $0.35/km +
+# $600/mo; box truck = van until decided. Insurance spread over 22 days x 10 h.
 REAL = {"driver_hourly_cents": 2700, "vehicle_cents_per_km": 35, "working_days_per_month": 22,
-        "working_hours_per_day": 10, "insurance_monthly_cents": {"cargo_van": 60000}}
+        "working_hours_per_day": 10,
+        "vehicle_cents_per_km_by_vehicle": {"sedan_suv": 20, "cargo_van": 35, "box_16": 35},
+        "insurance_monthly_cents": {"sedan_suv": 25000, "cargo_van": 60000, "box_16": 60000}}
+# "Before" = what the planner did until today: driver time only, every vehicle the same.
+BEFORE_REAL = "before_real"
 
 
 def manual(problem: vrp.Problem) -> dict[str, list[str]]:
@@ -150,6 +155,9 @@ def _real(problem: vrp.Problem, solver) -> dict:
 
 
 def run(problem: vrp.Problem, mode: str) -> dict:
+    if mode == "before_real":  # old objective (uniform $27/h, no km), scored with real costs
+        flat = dataclasses.replace(problem, vehicles=[dataclasses.replace(v, rank=0) for v in problem.vehicles])
+        return _real(problem, solver=lambda _p: vrp.solve_ortools(flat))
     if mode == "manual_real":
         return _real(problem, solver=manual)
     if mode == "real":
@@ -171,7 +179,7 @@ if __name__ == "__main__":
     out = []
     for name, seed, n, radius in SCENARIOS:
         p = scenario(seed, n, radius, road="--haversine" not in sys.argv)
-        modes = ("manual", "before", "after", "real", "manual_real")
+        modes = ("manual_real", "before_real", "real")
         out.append({"scenario": name, "road": "valhalla" if p.metres and "--haversine" not in sys.argv else "haversine",
                     **{mode: run(p, mode) for mode in modes}})
     print(json.dumps(out, indent=2))

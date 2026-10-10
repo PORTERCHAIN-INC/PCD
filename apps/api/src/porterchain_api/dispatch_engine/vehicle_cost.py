@@ -33,8 +33,27 @@ def insurance_per_hour_cents(estimates: dict[str, Any], vehicle_class: str) -> f
     return monthly / hours if hours > 0 else 0.0
 
 
+def per_class(table: Any, vehicle_class: str) -> int | None:
+    """Look a class up in a per-vehicle table (fleet id first, then the pricing key)."""
+    if not isinstance(table, dict):
+        return None
+    for key in (vehicle_class, PRICING_KEY.get(vehicle_class, "")):
+        if key in table and table[key] is not None:
+            return int(table[key])
+    return None
+
+
+def km_cents(estimates: dict[str, Any], vehicle_class: str) -> int:
+    """Per-km cost: the per-vehicle table when the shared settings carry one, else the flat figure."""
+    flat = estimates.get("vehicle_cents_per_km")
+    for table in (estimates.get("vehicle_cents_per_km_by_vehicle"), flat):
+        if (v := per_class(table, vehicle_class)) is not None:
+            return v
+    return int(flat or 0) if not isinstance(flat, dict) else 0
+
+
 def vehicle_costs(estimates: dict[str, Any], spec: dict[str, Any]) -> tuple[int, int]:
     """``(hourly_cents, km_cents)`` for one fleet vehicle class."""
     hourly = int(estimates.get("driver_hourly_cents") or 2700) + insurance_per_hour_cents(estimates, spec["id"])
-    km = int(spec.get("cost_per_km_cents") or 0) or int(estimates.get("vehicle_cents_per_km") or 0)
+    km = int(spec.get("cost_per_km_cents") or 0) or km_cents(estimates, spec["id"])
     return round(hourly), km

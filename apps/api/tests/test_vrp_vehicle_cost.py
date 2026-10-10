@@ -48,3 +48,13 @@ def test_vehicle_costs_from_shared_margin_estimates():
     assert vehicle_costs(est, {"id": "van"}) == (2973, 35)  # $27 + $600/220 h ≈ $29.73/h
     assert vehicle_costs(est, {"id": "sedan"}) == (2700, 35)
     assert vehicle_costs(est, {"id": "sedan", "cost_per_km_cents": 20}) == (2700, 20)
+
+
+def test_per_vehicle_km_table_wins_over_flat():
+    from porterchain_api.dispatch_engine.vehicle_cost import vehicle_costs
+
+    est = {"driver_hourly_cents": 2700, "vehicle_cents_per_km": 35, "working_days_per_month": 22,
+           "working_hours_per_day": 10, "vehicle_cents_per_km_by_vehicle": {"sedan_suv": 20},
+           "insurance_monthly_cents": {"sedan_suv": 25000, "cargo_van": 60000}}
+    assert vehicle_costs(est, {"id": "suv"}) == (2814, 20)  # $27 + $250/220 h
+    assert vehicle_costs(est, {"id": "van"}) == (2973, 35)
