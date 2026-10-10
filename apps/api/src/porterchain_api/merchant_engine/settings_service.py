@@ -9,7 +9,10 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-from porterchain_api.merchant_engine.company_file import can_edit_company_file, completeness_payload
+from porterchain_api.merchant_engine.company_file import (
+    can_edit_company_file,
+    completeness_payload,
+)
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import MerchantAuditLog, SavedAddress
@@ -60,7 +63,9 @@ class MerchantSettingsService:
         pickups = [
             a for a in self._profile.list_saved_addresses(db, ctx) if a.address_type in ("pickup", "warehouse")
         ]
-        from porterchain_api.compliance_engine.privacy_service import merchant_privacy_file
+        from porterchain_api.compliance_engine.privacy_service import (
+            merchant_privacy_file,
+        )
 
         return {
             "profile": self._serialize_profile(merchant, db),
@@ -103,7 +108,9 @@ class MerchantSettingsService:
             current["channels"] = dict(DEFAULT_NOTIFICATIONS["channels"])
         settings["notifications"] = current
         _save_settings(ctx.merchant, settings)
-        from porterchain_api.notification_engine.preference_service import PreferenceService
+        from porterchain_api.notification_engine.preference_service import (
+            PreferenceService,
+        )
 
         PreferenceService().sync_merchant_portal_prefs(
             db, merchant_id=ctx.merchant.id, portal_prefs=current
@@ -114,7 +121,9 @@ class MerchantSettingsService:
         return current
 
     def quiet_hours(self, db: Session, merchant: Any) -> dict[str, Any]:
-        from porterchain_api.notification_engine.user_settings import UserSettingsService
+        from porterchain_api.notification_engine.user_settings import (
+            UserSettingsService,
+        )
 
         svc = UserSettingsService()
         tz = svc.resolve_timezone(db, user_role="merchant", user_id=merchant.id)
@@ -132,7 +141,9 @@ class MerchantSettingsService:
         current.update(patch)
         settings["branding"] = current
         _save_settings(ctx.merchant, settings)
-        from porterchain_api.merchant_engine.organization_sync import project_merchant_company
+        from porterchain_api.merchant_engine.organization_sync import (
+            project_merchant_company,
+        )
 
         project_merchant_company(db, ctx.merchant)
         self._audit(db, ctx, "settings.branding", current)
@@ -388,7 +399,9 @@ class MerchantSettingsService:
 
     def _serialize_profile(self, merchant, db: Session | None = None) -> dict[str, Any]:
         from porterchain_api.merchant_engine.coverage import coverage_snapshot
-        from porterchain_api.merchant_engine.profile_service import profile_public_fields
+        from porterchain_api.merchant_engine.profile_service import (
+            profile_public_fields,
+        )
 
         extra = profile_public_fields(merchant)
         return {

@@ -3,12 +3,10 @@
 from collections.abc import Callable
 from typing import Annotated, TypeVar
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
-from porterchain_api.auth import staff_webauthn
 from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.customer_onboarding import customer_onboarding_payload
@@ -19,28 +17,10 @@ from porterchain_api.auth.merchant_onboarding import (
     save_merchant_vertical,
 )
 from porterchain_api.auth.sso_service import SsoService
-from porterchain_api.auth.staff_rate_limit import enforce_staff_auth_rate
-from porterchain_api.auth.sli_metrics import note_auth_event
 from porterchain_api.auth.staff_session import (
     STAFF_COOKIE_NAME,
-    assert_recent_step_up,
     attach_session_cookie,
-    authentication_options_for_email,
-    clear_session_cookie,
-    client_meta_from_request,
-    delete_passkey,
-    get_session,
-    list_passkeys,
-    list_sessions_for_user,
-    login_from_body,
-    mark_step_up,
-    passkey_credential_payload,
-    peek_enrollment,
-    revoke_all_for_user,
-    revoke_session,
     session_id_from_authorization,
-    staff_cookie_params,
-    verify_registration_from_body,
 )
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -55,7 +35,7 @@ from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 _sso = SsoService()
 T = TypeVar("T")
-_AUTH_UNAVAILABLE = ("redis", "unavailable", "fleetbase_sso_disabled")
+_AUTH_UNAVAILABLE = ("redis", "unavailable")
 
 
 def _invoke(fn: Callable[..., T], *args: object, **kwargs: object) -> T:
@@ -141,11 +121,6 @@ def customer_onboarding(
     """Customer activation checklist — provisions customers row when allowed."""
     return PortalOnboardingResponse(**customer_onboarding_payload(db, claims, settings))
 
-
-@router.post("/sso/fleetbase", include_in_schema=False)
-def sso_fleetbase() -> None:
-    """Retired with the Fleetbase console — always 404."""
-    raise HTTPException(status_code=404, detail="not_found")
 
 from porterchain_api.routers import auth_staff as _auth_staff  # noqa: F401
 from porterchain_api.routers import auth_staff_sessions as _auth_staff_sessions  # noqa: F401

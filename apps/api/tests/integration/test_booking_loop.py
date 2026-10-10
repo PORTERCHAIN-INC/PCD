@@ -4,17 +4,29 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine.booking_service import BookingService
-from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
+from porterchain_api.booking_engine.confirmation_service import (
+    BookingConfirmationService,
+)
 from porterchain_api.booking_engine.quote_service import QuoteService
+from porterchain_api.booking_models import (
+    Booking,
+    DomainEvent,
+    Invoice,
+    Order,
+    Payment,
+    Quote,
+)
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState, PaymentStatus, QuoteState
-from porterchain_api.booking_models import Booking, DomainEvent, Invoice, Order, Payment, Quote
-from porterchain_api.schemas import AddressInput, CreateQuoteRequest, WebsitePricingSnapshot
+from porterchain_api.schemas import (
+    AddressInput,
+    CreateQuoteRequest,
+    WebsitePricingSnapshot,
+)
 
 
 def _website_pricing() -> WebsitePricingSnapshot:

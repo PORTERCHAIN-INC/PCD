@@ -132,7 +132,10 @@ def resolve_verified_clerk_email(
     if clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_"):
         raise PermissionError(CLERK_EMAIL_REQUIRED)
 
-    from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
+    from porterchain_api.auth.clerk_registry import (
+        fetch_clerk_user,
+        is_clerk_secret_configured,
+    )
 
     if not is_clerk_secret_configured(settings):
         logger.warning("clerk_email_resolve_failed reason=secret_not_configured")
@@ -205,7 +208,10 @@ def delete_email_mismatched_bindings(
     Returns the number of persona rows deleted. Safe to call on every auth sync.
     Does nothing when Clerk email is missing (cannot verify match).
     """
-    from porterchain_api.auth.persona_bundle import invalidate_persona_bundle, load_persona_bundle
+    from porterchain_api.auth.persona_bundle import (
+        invalidate_persona_bundle,
+        load_persona_bundle,
+    )
 
     expected = normalize_email(clerk_email)
     from porterchain_api.auth.dev import is_dev_bypass_subject

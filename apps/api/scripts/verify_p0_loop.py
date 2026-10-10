@@ -204,53 +204,17 @@ def check_stripe_invoice_proof(check: Check, *, prod: bool) -> None:
 
 
 def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
-    """G2/G3 used to score Fleetbase link rate. Fleetbase is retired — assert day plan."""
-    bridge_on = bool(getattr(settings, "fleetbase_dispatch_bridge", False))
+    """G2/G3: dispatch runs on the PorterChain engine and the API is ready."""
     engine = (getattr(settings, "dispatch_engine", None) or "porterchain").strip().lower()
-
-    if bridge_on:
-        check.run(
-            "G2",
-            "Fleetbase dispatch bridge off",
-            False,
-            detail="Set FLEETBASE_DISPATCH_BRIDGE=false — adapter removed",
-        )
-        check.run(
-            "G3",
-            "DISPATCH_ENGINE=porterchain",
-            engine == "porterchain",
-            detail=f"dispatch_engine={engine!r}",
-        )
-        return
-
-    check.run(
-        "G2",
-        "Fleetbase bridge retired",
-        True,
-        detail="bridge disabled; day plan is PorterChain OR-Tools",
-    )
     check.run(
         "G3",
         "DISPATCH_ENGINE=porterchain",
         engine in ("", "porterchain"),
         detail=f"dispatch_engine={engine or 'porterchain'!r}",
     )
-
     if prod:
-        status, body = _http_json(f"{api_url.rstrip('/')}/health/ready")
-        if status != 200:
-            check.run("G2", "API readiness (day plan path)", False, detail=f"HTTP {status}")
-            return
-        checks = body.get("checks", {}) if isinstance(body, dict) else {}
-        # Optional: readiness may still expose a retired fleetbase key as off.
-        fb = checks.get("fleetbase")
-        if fb and fb not in ("bridge_disabled", "removed", "ok", "off"):
-            check.run(
-                "G2",
-                "Readiness does not enable Fleetbase bridge",
-                False,
-                detail=f"checks.fleetbase={fb!r}",
-            )
+        status, _body = _http_json(f"{api_url.rstrip('/')}/health/ready")
+        check.run("G2", "API readiness (day plan path)", status == 200, detail=f"HTTP {status}")
 
 
 def check_g4_g9_e2e(check: Check, settings, *, skip_e2e: bool) -> None:

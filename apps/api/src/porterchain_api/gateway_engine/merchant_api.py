@@ -10,7 +10,11 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.domain.states import OrderSource
-from porterchain_api.merchant_models import Merchant, MerchantApiKey, MerchantApiUsageLog
+from porterchain_api.merchant_models import (
+    Merchant,
+    MerchantApiKey,
+    MerchantApiUsageLog,
+)
 
 DEFAULT_RATE_LIMIT = 60
 DEFAULT_SCOPES = ["shipments:read", "shipments:write"]
@@ -277,7 +281,9 @@ def record_usage(
     status_code: int,
     duration_ms: int,
 ) -> None:
-    from porterchain_api.merchant_engine.api_key_service import record_usage as _record_usage
+    from porterchain_api.merchant_engine.api_key_service import (
+        record_usage as _record_usage,
+    )
 
     _record_usage(
         db,

@@ -8,8 +8,6 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_draft_abandon import (
-    ABANDONED_AFTER_MINUTES,
-    ACTIVE_PRE_CONFIRM,
     is_abandoned,
 )
 from porterchain_api.booking_draft_models import BookingDraft

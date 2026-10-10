@@ -48,7 +48,6 @@ from porterchain_api.db import SessionLocal, init_db
 from porterchain_api.domain.admin_states import AdminRole, DriverStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.driver_models import DriverBonus, DriverLocationPing, DriverWalletTransaction
-from porterchain_api.platform.retired_sync import RetryQueue
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.rbac import MerchantRole
 from porterchain_api.merchant_models import Merchant, MerchantUser
@@ -395,14 +394,6 @@ def seed_ops_data(
             priority="low",
             category="billing",
             merchant_id=merchant.id,
-        )
-        RetryQueue.enqueue(
-            db,
-            direction="outbound",
-            kind="order",
-            order_id=orders[0].id,
-            payload={"order_id": orders[0].id, "seed": True},
-            idempotency_key=f"seed:sync:{orders[0].id}",
         )
         notify.dispatch(
             db,

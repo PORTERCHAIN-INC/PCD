@@ -91,7 +91,6 @@ export interface MerchantOrder {
   dropoff: { formatted?: string };
   internal_reference?: string | null;
   purchase_order_number?: string | null;
-  fleetbase_order_id?: string | null;
   is_sandbox?: boolean;
   created_at: string;
 }

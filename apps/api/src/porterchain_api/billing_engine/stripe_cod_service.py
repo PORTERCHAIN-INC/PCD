@@ -8,9 +8,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import CodStatus
-from porterchain_api.booking_models import Order
 from porterchain_api.services.stripe_service import (
     create_cod_checkout_session,
     create_connect_account_link,
@@ -34,7 +34,9 @@ class StripeCodService:
         settings: Settings,
         merchant: Any,
     ) -> dict[str, str]:
-        from porterchain_api.merchant_engine.cod_connect import persist_connect_account_id
+        from porterchain_api.merchant_engine.cod_connect import (
+            persist_connect_account_id,
+        )
 
         if settings.allow_stripe_mock:
             if not merchant.stripe_connect_account_id:

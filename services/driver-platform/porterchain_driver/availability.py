@@ -13,7 +13,6 @@ class AvailabilityService:
         return {
             "is_online": bool(driver.is_online),
             "availability": driver.availability or "offline",
-            "fleetbase_driver_id": driver.fleetbase_driver_id,
         }
 
     def set_online(
@@ -85,7 +84,6 @@ class AvailabilityService:
             actor_type="driver",
             actor_id=driver.id,
             payload={"reason": reason})
-        fleetbase_order_id = order.fleetbase_order_id
         order.assigned_driver_id = None
         db.flush()
         return {"order_id": order.id, "state": order.state}

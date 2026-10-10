@@ -113,8 +113,6 @@ def sanitize_merchant_detail(
     detail.pop("audit_log", None)
     detail.pop("fraud_risk_score", None)
     detail.pop("smart", None)
-    detail.pop("fleetbase_order_id", None)
-    detail.pop("status_sync", None)
 
     meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
     snap = meta.get("quote") if isinstance(meta.get("quote"), dict) else {}

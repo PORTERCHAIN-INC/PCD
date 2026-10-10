@@ -20,10 +20,10 @@ from porterchain_api.booking_engine import events as BookingEvents
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.numbers import generate_invoice_number
 from porterchain_api.booking_engine.order_transitions import transition_order_state
+from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine import events as MerchantEvents
 from porterchain_api.merchant_engine.lookups import get_merchant
-from porterchain_api.booking_models import Invoice, Order, Payment
 
 ELIGIBLE_STATES = frozenset(
     {
@@ -194,7 +194,9 @@ class MerchantArService:
             db.flush()
 
             from porterchain_api.billing_engine.models import InvoiceLine
-            from porterchain_api.merchant_engine.reporting_metrics import channel_for_order_source
+            from porterchain_api.merchant_engine.reporting_metrics import (
+                channel_for_order_source,
+            )
 
             channel = channel_for_order_source(order.order_source)
             pricing_model = getattr(merchant, "pricing_model", None) or "distance"
@@ -368,7 +370,9 @@ class MerchantArService:
         )
         db.add(entry)
 
-        from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
+        from porterchain_api.merchant_engine.invoice_reminder import (
+            primary_billing_email,
+        )
         from porterchain_api.merchant_engine.lookups import get_merchant
 
         billed = get_merchant(db, invoice.merchant_id or order.merchant_id)

@@ -36,7 +36,9 @@ class DriverBackgroundCheckService:
         bg = (driver.background_check_status or "pending").lower()
         policy_required = True
         if db is not None:
-            from porterchain_api.admin_engine.platform_settings import background_check_required
+            from porterchain_api.admin_engine.platform_settings import (
+                background_check_required,
+            )
 
             policy_required = background_check_required(db)
         return {

@@ -3,19 +3,24 @@
 from __future__ import annotations
 
 import time
+from datetime import UTC
 from typing import Any
 
+from porterchain_shared.config.settings import PlatformSettings
+from porterchain_shared.queue.publisher import queue_depths
+from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import HealthClass, _probe_http
-from porterchain_api.auth.clerk_registry import clerk_jwks_urls, is_clerk_configured, is_clerk_secret_configured
-from porterchain_api.config import Settings
+from porterchain_api.auth.clerk_registry import (
+    clerk_jwks_urls,
+    is_clerk_configured,
+    is_clerk_secret_configured,
+)
 from porterchain_api.booking_models import Order
+from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
-from porterchain_shared.config.settings import PlatformSettings
-from porterchain_shared.queue.publisher import queue_depths
-from porterchain_shared.redis_health import ping_redis
 
 
 class DiagnosticsProbesMixin:
@@ -112,9 +117,11 @@ class DiagnosticsProbesMixin:
         return {"status": status, "warnings": warnings, "version": "billing_engine"}
 
     def _engine_notifications(self, db: Session) -> dict[str, Any]:
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
-        from porterchain_api.notification_engine.admin_service import NotificationAdminService
+        from porterchain_api.notification_engine.admin_service import (
+            NotificationAdminService,
+        )
         from porterchain_api.notification_engine.models import NotificationRecord
 
         dash = NotificationAdminService().dashboard(db)
@@ -123,7 +130,7 @@ class DiagnosticsProbesMixin:
             db.query(NotificationRecord)
             .filter(
                 NotificationRecord.status.in_(["failed", "dead_letter"]),
-                NotificationRecord.created_at >= datetime.now(timezone.utc) - timedelta(hours=24),
+                NotificationRecord.created_at >= datetime.now(UTC) - timedelta(hours=24),
             )
             .count()
         )
@@ -132,7 +139,7 @@ class DiagnosticsProbesMixin:
             .filter(
                 NotificationRecord.status == "dead_letter",
                 NotificationRecord.channel == "push",
-                NotificationRecord.created_at >= datetime.now(timezone.utc) - timedelta(hours=24),
+                NotificationRecord.created_at >= datetime.now(UTC) - timedelta(hours=24),
             )
             .count()
         )
@@ -158,7 +165,9 @@ class DiagnosticsProbesMixin:
             count = 0
         details: dict[str, Any] = {"leads": count}
         if settings is not None:
-            from porterchain_api.collaboration_engine.lead_ops import lead_ingest_config_status
+            from porterchain_api.collaboration_engine.lead_ops import (
+                lead_ingest_config_status,
+            )
 
             details["lead_ingest"] = lead_ingest_config_status(settings)
             configured = sum(1 for v in details["lead_ingest"].values() if v is True)
@@ -184,7 +193,7 @@ class DiagnosticsProbesMixin:
             "details": {
                 "used_for_routing": False,
                 "routing_engine": platform.routing_engine or "valhalla",
-                "note": "Valhalla, then OSRM. Optimization stays inside Fleetbase. Google is not required.",
+                "note": "Valhalla, then OSRM. Optimization is OR-Tools (cuOpt optional). Google is not required.",
             },
         }
 
@@ -312,7 +321,7 @@ class DiagnosticsProbesMixin:
 
     def _probe_websockets(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
         ws_url = f"{settings.porterchain_api_url.rstrip('/')}/v1/orders/ws"
-        warnings = ["Realtime execution GPS streams from Fleetbase SocketCluster (via console); public tracking WS at /v1/orders/ws"]
+        warnings = ["Realtime GPS is the driver app's last-known pin; public tracking WS at /v1/orders/ws"]
         if live:
             warnings.append(f"Endpoint: {ws_url}")
         return {"status": "healthy", "warnings": warnings, "details": {"endpoint": ws_url}}
@@ -331,21 +340,28 @@ class DiagnosticsProbesMixin:
         return {"status": status, "warnings": warnings, "details": {"queue_depths": depths}}
 
     def _probe_scheduled_jobs(self, db: Session) -> dict[str, Any]:
-        from porterchain_api.platform.retired_sync import ErrorQueue
+        """Worker liveness: job offers past expiry that the sweep has not cascaded."""
+        from datetime import UTC, datetime, timedelta
 
-        stats = ErrorQueue.stats(db)
-        pending = stats.get("pending", 0) + stats.get("retrying", 0)
+        from porterchain_api.dispatch_engine.models import DispatchJobOffer
+
+        stale = (
+            db.query(DispatchJobOffer)
+            .filter(DispatchJobOffer.status == "pending",
+                    DispatchJobOffer.expires_at < datetime.now(UTC) - timedelta(minutes=5))
+            .count()
+        )
         return {
-            "status": "healthy" if pending < 500 else "warning",
-            "details": {"fleetbase_retry_pending": pending},
-            "warnings": ["High retry queue"] if pending >= 500 else [],
+            "status": "healthy" if stale == 0 else "warning",
+            "details": {"stale_job_offers": stale},
+            "warnings": ["Worker not sweeping expired job offers"] if stale else [],
         }
 
     def _probe_event_bus(self, platform: PlatformSettings, *, smoke_test: bool = False) -> dict[str, Any]:
         from porterchain_event_bus import get_event_bus
 
         bus = get_event_bus()
-        redis_active = bus._redis_client is not None  # noqa: SLF001
+        redis_active = bus._redis_client is not None
         status: HealthClass = "healthy" if redis_active or platform.app_env == "local" else "warning"
         warnings: list[str] = []
         if not redis_active:

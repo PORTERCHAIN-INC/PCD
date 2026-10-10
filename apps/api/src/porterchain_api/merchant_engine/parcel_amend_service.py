@@ -12,6 +12,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.merchant_engine import events as E
@@ -21,7 +22,6 @@ from porterchain_api.merchant_engine.route_import_service import (
     split_route_quote,
 )
 from porterchain_api.merchant_models import BulkImportJob, Merchant
-from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import WAITING_DISPATCH
 
 logger = logging.getLogger(__name__)
@@ -140,7 +140,9 @@ def commercial_stops(order: Order) -> list[dict[str, Any]]:
             )
         return out
 
-    from porterchain_api.order_engine.platform_detail import resolve_order_additional_stops
+    from porterchain_api.order_engine.platform_detail import (
+        resolve_order_additional_stops,
+    )
 
     pickup = _as_dict(order.pickup)
     dropoff = _as_dict(order.dropoff)

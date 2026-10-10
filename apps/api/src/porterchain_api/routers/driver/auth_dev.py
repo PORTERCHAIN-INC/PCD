@@ -13,7 +13,8 @@ from porterchain_api.routers.driver._deps import router
 from porterchain_api.schemas_driver import (
     DriverDevListItem,
     DriverDevLoginRequest,
-    DriverDevLoginResponse)
+    DriverDevLoginResponse,
+)
 
 _auth = DriverAuthService()
 

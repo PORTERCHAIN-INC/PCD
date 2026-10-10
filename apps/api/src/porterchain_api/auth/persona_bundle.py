@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.dev import is_dev_bypass_subject
-from porterchain_api.merchant_models import MerchantUser
 from porterchain_api.booking_models import Customer
+from porterchain_api.merchant_models import MerchantUser
 
 _CACHE_KEY = "_persona_bundles"
 

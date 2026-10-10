@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from porterchain_pricing import GeoPoint, PricingRequest
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import DomainEvent, Quote
@@ -12,7 +13,6 @@ from porterchain_api.domain.states import QuoteState
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas import AddressInput, CreateQuoteRequest, PricingLineItem
 from porterchain_api.services.routing import resolve_route_distance
-from porterchain_pricing import GeoPoint, PricingRequest
 
 
 def _geo(addr: AddressInput) -> GeoPoint:
@@ -164,8 +164,9 @@ def revalidate_retail_quote(db: Session, quote: Quote) -> Quote:
 
     service = get_pricing_service(db)
     request = _request_from_quote(quote)
-    from porterchain_api.config import get_settings
     from porterchain_shared.redis_health import is_local_env
+
+    from porterchain_api.config import get_settings
 
     if request.routing_source == "haversine" and not is_local_env(get_settings().app_env):
         raise ValueError("route_unavailable")

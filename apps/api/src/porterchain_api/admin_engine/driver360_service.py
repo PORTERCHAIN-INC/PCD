@@ -2,8 +2,7 @@
 
 Per masterrule.md: driver approval, verification, wallet, payouts, support,
 documents and compliance are Porterchain-owned. Operational dispatch/GPS/routes
-belong to Fleetbase and are reached only via the Porterchain API/adapter — this
-service reads the Porterchain order mirror and never calls Fleetbase directly.
+come from shifts and last-known GPS; this service reads PorterChain orders.
 """
 
 from __future__ import annotations
@@ -34,7 +33,9 @@ class Driver360Service:
     # ------------------------------------------------------------------ #
     def _metrics(self, db: Session, driver: Driver) -> dict[str, Any]:
         # D-36: earnings SSOT = DriverFinanceService (wallet txns), not raw DriverPayout sum.
-        from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
+        from porterchain_api.billing_engine.driver_finance_service import (
+            DriverFinanceService,
+        )
 
         return metrics_payload(db, driver, finance=DriverFinanceService().driver_earnings_snapshot(db, driver))
 
@@ -50,7 +51,7 @@ class Driver360Service:
     def _primary_vehicle(self, db: Session, driver_id: str) -> Vehicle | None:
         return (
             db.query(Vehicle)
-            .filter(Vehicle.driver_id == driver_id, Vehicle.is_active == True)  # noqa: E712
+            .filter(Vehicle.driver_id == driver_id, Vehicle.is_active == True)
             .order_by(Vehicle.created_at.asc())
             .first()
         )
@@ -111,7 +112,7 @@ class Driver360Service:
             "approved": approved,
             "pending": pending,
             "suspended": suspended,
-            # "online" count removed — live driver state is Fleetbase-owned.
+            # Live driver state is on Dispatch → Fleet.
             "pending_payout_cents": int(pending_payout),
         }
 
@@ -133,7 +134,11 @@ class Driver360Service:
         limit: int = 50,
         offset: int = 0,
     ) -> dict:
-        from porterchain_api.platform.pagination import MAX_EMBEDDED_LIST_LIMIT, as_page, clamp_page
+        from porterchain_api.platform.pagination import (
+            MAX_EMBEDDED_LIST_LIMIT,
+            as_page,
+            clamp_page,
+        )
 
         limit, offset = clamp_page(limit, offset, max_limit=MAX_EMBEDDED_LIST_LIMIT)
         q = db.query(Order).filter(Order.assigned_driver_id == driver_id)
@@ -211,9 +216,13 @@ class Driver360Service:
         }
 
     def documents(self, db: Session, driver_id: str) -> dict:
-        from porterchain_api.admin_engine.driver360_board import verification_quality_bonus
+        from porterchain_api.admin_engine.driver360_board import (
+            verification_quality_bonus,
+        )
         from porterchain_api.admin_engine.driver_documents import admin_review_files
-        from porterchain_api.driver_engine.verification_sources import verification_sources_payload
+        from porterchain_api.driver_engine.verification_sources import (
+            verification_sources_payload,
+        )
 
         driver = db.get(Driver, driver_id)
         if not driver:

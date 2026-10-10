@@ -117,8 +117,9 @@ def recommend_vehicle(
     package_type: str | None = None,
 ) -> dict[str, Any]:
     """Capacity-first recommendation; preferred_vehicles only soft-rank among eligible (M-23)."""
-    from porterchain_api.domain.customer_goods import persist_vehicle_class
     from porterchain_pricing.catalog import VEHICLE_MINIMUM_CENTS, WEIGHT_THRESHOLD_KG
+
+    from porterchain_api.domain.customer_goods import persist_vehicle_class
 
     preferred = [persist_vehicle_class(v) for v in _vehicle_ids(merchant)]
     candidates: list[str] = []

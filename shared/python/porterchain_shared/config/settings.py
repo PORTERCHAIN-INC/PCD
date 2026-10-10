@@ -33,15 +33,6 @@ class PlatformSettings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_mock: bool = True
 
-    # Retired Fleetbase bridge keys (nullable until later drop — keep off)
-    fleetbase_api_url: str = ""
-    fleetbase_api_key: str = ""
-    fleetbase_dispatch_bridge: bool = False
-    fleetbase_default_company_uuid: str = ""
-    fleetbase_webhook_secret: str = ""
-    fleetbase_console_url: str = ""
-    fleetbase_sso_enabled: bool = False
-
     # Maps / routing
     google_maps_api_key: str = Field(
         default="",

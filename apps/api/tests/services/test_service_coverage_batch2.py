@@ -9,7 +9,6 @@ from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.auth.invitation_service import InvitationService, pending_clerk_id
 from porterchain_api.auth.sso_service import SsoService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.platform.retired_sync import BookingSyncService
 from porterchain_api.merchant_engine.webhook_delivery_service import _hook_matches_event
 from porterchain_api.schemas import AddressInput, CreateBookingDraftRequest
 
@@ -37,11 +36,6 @@ def test_booking_draft_create_and_find(db, settings) -> None:
     found = svc.find_active_draft(db, session_id=session_id)
     assert found is not None
     assert found.id == draft.id
-
-
-def test_booking_sync_retry_queue(db, settings) -> None:
-    result = BookingSyncService().process_retry_queue(db, settings, limit=5)
-    assert isinstance(result, dict)
 
 
 def test_invitation_pending_clerk_id() -> None:

@@ -10,9 +10,9 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import AdminUser, Claim, Driver
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_models import Customer, Order
 from porterchain_api.domain.claims import claim_number
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Customer, Order
 from porterchain_api.support_engine.claims_constants import claim_meta, normalize_status
 
 

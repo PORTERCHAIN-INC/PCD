@@ -1,4 +1,4 @@
-"""Optional NVIDIA NIM language enrichers — never decide money, dispatch, or Fleetbase writes.
+"""Optional NVIDIA NIM language enrichers — never decide money or dispatch.
 
 Risk enums / scores stay rule-based. Fail soft to heuristics when phase2 is off,
 NIM is missing, or the circuit is open.
@@ -19,7 +19,7 @@ _M360_SYSTEM = """You rewrite merchant ops next-actions for PorterChain admins.
 Rules:
 1. Return ONLY JSON: {"suggested_actions":["...","...","..."]}
 2. Keep 2–4 short imperative sentences. Same intent as the input list — paraphrase, do not invent AR amounts, contracts, or API claims.
-3. Never invent payment cents, legal terms, or driver/Fleetbase state.
+3. Never invent payment cents, legal terms, or driver state.
 4. No markdown."""
 
 _ASSIST_SYSTEM = """You polish a customer shipment update for PorterChain.

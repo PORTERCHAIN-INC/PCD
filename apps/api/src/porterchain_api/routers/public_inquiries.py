@@ -4,9 +4,12 @@ import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
+from porterchain_api.booking_engine.visitor_tracking_service import (
+    VisitorTrackingService,
+)
 from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
@@ -20,8 +23,6 @@ from porterchain_api.domain.crm_states import (
     LeadStatus,
 )
 from porterchain_api.routers.public_ingest_auth import verify_public_ingest_key
-from pydantic import BaseModel, Field
-
 from porterchain_api.schemas_public import PublicInquiryCreate, PublicInquiryResponse
 
 
@@ -252,8 +253,12 @@ def lead_engagement(
     x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
 ) -> LeadEngagementResponse:
     """Record ESP open/click and bump lead score (capped)."""
-    from porterchain_api.collaboration_engine.lead_consent import verify_unsubscribe_token
-    from porterchain_api.collaboration_engine.lead_engagement import record_email_engagement
+    from porterchain_api.collaboration_engine.lead_consent import (
+        verify_unsubscribe_token,
+    )
+    from porterchain_api.collaboration_engine.lead_engagement import (
+        record_email_engagement,
+    )
     from porterchain_api.crm_models import CrmLead
 
     kind = (body.kind or "").strip().lower()

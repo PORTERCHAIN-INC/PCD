@@ -5,10 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-
-from sqlalchemy import or_
 
 from porterchain_api.admin_models import Driver, DriverPayout
 from porterchain_api.booking_models import Customer, Invoice, Order, Payment

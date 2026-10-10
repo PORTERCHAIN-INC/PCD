@@ -1,6 +1,6 @@
 """Live GPS board — every on-duty PorterChain driver from Redis last_known.
 
-No Fleetbase id filter. Duty comes from an open DriverShift; the pin comes from
+Duty comes from an open DriverShift; the pin comes from
 ``last_known``. Drivers without a recent pin are omitted (nothing to plot).
 """
 
@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.platform.last_known import read_last_known
 from porterchain_api.driver_models import DriverShift
+from porterchain_api.platform.last_known import read_last_known
 
 SOURCE_LAST_KNOWN = "last_known"
 SOURCE_MISS = "miss"
@@ -82,7 +82,6 @@ def board_pins(db: Session) -> tuple[list[dict[str, Any]], str]:
         pins.append(
             {
                 "id": driver.id,
-                "fleetbase_driver_id": driver.fleetbase_driver_id or "",
                 "name": driver.full_name,
                 "lat": known.lat,
                 "lng": known.lng,

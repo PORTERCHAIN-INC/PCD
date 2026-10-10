@@ -6,7 +6,11 @@ import itertools
 
 import pytest
 
-from porterchain_api.domain.states import ORDER_TRANSITIONS, OrderState, can_transition_order
+from porterchain_api.domain.states import (
+    ORDER_TRANSITIONS,
+    OrderState,
+    can_transition_order,
+)
 
 _TERMINAL_STATES = frozenset(
     {

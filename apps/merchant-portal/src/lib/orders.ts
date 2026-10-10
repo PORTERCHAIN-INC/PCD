@@ -122,7 +122,6 @@ export type OrderDetail = OrderRow & {
   purchase_order_number?: string | null;
   cost_centre?: string | null;
   special_instructions?: string | null;
-  fleetbase_order_id?: string | null;
   customer_phone?: string | null;
   quote_id?: string | null;
   vehicle_class?: string | null;

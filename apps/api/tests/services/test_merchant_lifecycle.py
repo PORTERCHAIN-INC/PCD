@@ -13,14 +13,23 @@ from porterchain_api.admin_engine.merchant_lifecycle import (
 )
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.auth.merchant import portal_access_denied
-from porterchain_api.booking_engine.numbers import generate_invoice_number, generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_invoice_number,
+    generate_order_number,
+    generate_tracking_number,
+)
+from porterchain_api.booking_models import Customer, Invoice, Order
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderState
-from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
+from porterchain_api.merchant_engine.booking_flow_service import (
+    MerchantBookingFlowService,
+)
 from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
-from porterchain_api.merchant_engine.team_service import MerchantTeamService, seat_status
+from porterchain_api.merchant_engine.team_service import (
+    MerchantTeamService,
+    seat_status,
+)
 from porterchain_api.merchant_models import MerchantUser
-from porterchain_api.booking_models import Customer, Invoice, Order
 
 
 def test_portal_access_denied_closed_and_suspended(merchant_ctx) -> None:

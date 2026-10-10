@@ -95,7 +95,6 @@ const paymentSchema = z.object({
 
 export const orderDetailSchema = orderRowSchema.extend({
   special_instructions: z.string().nullable().optional(),
-  fleetbase_order_id: z.string().nullable().optional(),
   customer_phone: z.string().nullable().optional(),
   booking_id: z.string().nullable().optional(),
   booking_draft_id: z.string().nullable().optional(),
@@ -145,7 +144,6 @@ export const orderDetailSchema = orderRowSchema.extend({
   api_activity: z.array(z.record(z.string(), z.unknown())).optional(),
   duplicates: z.array(z.record(z.string(), z.unknown())),
   smart: z.record(z.string(), z.unknown()),
-  status_sync: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type OrderDetail = z.infer<typeof orderDetailSchema>;

@@ -7,9 +7,9 @@ import io
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState, PaymentTerms
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Invoice, Order, Payment
 
 NET_TERMS_DAYS: dict[str, int] = {
     PaymentTerms.IMMEDIATE.value: 0,

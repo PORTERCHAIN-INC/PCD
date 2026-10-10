@@ -9,11 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 INTEL_FILES = (
     "features.py",
-    "eta_service.py",
-    "dispatch_scorer.py",
     "copilot_service.py",
     "monitoring.py",
-    "assignment_service.py",
     "pricing_model.py",
     "forecast_service.py",
 )

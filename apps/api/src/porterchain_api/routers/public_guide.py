@@ -8,7 +8,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
+from porterchain_api.booking_engine.visitor_tracking_service import (
+    VisitorTrackingService,
+)
 from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -94,12 +96,13 @@ def upsert_guide_lead(
     if visitor_key:
         external_ids["visitor_session"] = visitor_key[:64]
 
+    import uuid
+
     from porterchain_api.collaboration_engine.lead_ingest_service import (
         CanonicalLeadEvent,
         LeadIngestService,
     )
     from porterchain_api.domain.crm_states import LeadIntentType, LeadSourceChannel
-    import uuid
 
     result = LeadIngestService().ingest(
         db,

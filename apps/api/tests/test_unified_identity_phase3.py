@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from porterchain_api.auth.current_principal import CurrentPrincipal
-from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
+from porterchain_api.auth.unified_catalog import (
+    AccountStatus,
+    AssignableRole,
+    UnifiedPermission,
+)
 
 
 def test_current_principal_has_permission() -> None:

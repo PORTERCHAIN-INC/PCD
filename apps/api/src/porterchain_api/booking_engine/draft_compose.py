@@ -11,7 +11,7 @@ from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_models import Booking, Customer, Order, Payment, Quote
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
-from porterchain_api.domain.states import BOOKING_DRAFT_TERMINAL, BookingDraftState
+from porterchain_api.domain.states import BookingDraftState
 from porterchain_api.schemas import CreateBookingDraftRequest, UpdateBookingDraftRequest
 
 

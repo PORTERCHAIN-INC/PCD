@@ -5,12 +5,15 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import ClerkClaims
 from porterchain_api.auth.clerk_client import ClerkClient
-from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
+from porterchain_api.auth.clerk_registry import (
+    fetch_clerk_user,
+    is_clerk_secret_configured,
+)
 from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
 from porterchain_api.booking_engine import CustomerService
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer
+from porterchain_api.config import Settings
 from porterchain_api.user_models import PorterchainUser
 
 _customers = CustomerService()
@@ -22,7 +25,10 @@ def resolve_customer_contact(
     settings: Settings,
 ) -> tuple[str | None, str | None]:
     """Resolve Clerk-attested email (JWT / verified Backend). Phone may use DB fallback."""
-    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+    from porterchain_api.auth.email_identity import (
+        normalize_email,
+        resolve_verified_clerk_email,
+    )
 
     email = normalize_email(claims.email)
     phone = claims.phone
@@ -93,7 +99,10 @@ def require_customer(
             raise HTTPException(status_code=403, detail=detail) from exc
         raise
 
-    from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
+    from porterchain_api.auth.dependencies import (
+        assert_self_scope,
+        resolve_principal_for_claims,
+    )
 
     # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
     if not is_dev_bypass_subject(claims.clerk_user_id):

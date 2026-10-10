@@ -18,10 +18,11 @@ from sqlalchemy.orm import Session
 from porterchain_api.collaboration_engine.crm_activity import CrmActivityMixin
 from porterchain_api.collaboration_engine.crm_helpers import CrmActor, _actor, _now
 from porterchain_api.collaboration_engine.crm_leads import CrmLeadsMixin
-from porterchain_api.collaboration_engine.lead_ingest_resolve import LeadIngestResolveMixin
+from porterchain_api.collaboration_engine.lead_ingest_resolve import (
+    LeadIngestResolveMixin,
+)
 from porterchain_api.crm_models import (
     CrmLead,
-    CrmLeadIdentity,
     CrmLeadIngestEvent,
 )
 from porterchain_api.domain.crm_states import (
@@ -144,7 +145,9 @@ class LeadIngestService(LeadIngestResolveMixin):
             custom.setdefault("message", event.message)
 
         now = _now()
-        from porterchain_api.collaboration_engine.lead_ops import sla_minutes_for_channel
+        from porterchain_api.collaboration_engine.lead_ops import (
+            sla_minutes_for_channel,
+        )
 
         sla_mins = sla_minutes_for_channel(channel)
         # Explicit per-event override only when adapters set a non-default value.
@@ -178,7 +181,9 @@ class LeadIngestService(LeadIngestResolveMixin):
             soft = None
             if not event.quiet:
                 soft = self._soft_company_match(db, event.company_name, email)
-            from porterchain_api.collaboration_engine.lead_suppression import apply_consent_for_ingest
+            from porterchain_api.collaboration_engine.lead_suppression import (
+                apply_consent_for_ingest,
+            )
 
             consent_bag = apply_consent_for_ingest(
                 db,
@@ -243,7 +248,9 @@ class LeadIngestService(LeadIngestResolveMixin):
         db.add(ingest)
 
         if not event.quiet and not lead.assigned_to:
-            from porterchain_api.collaboration_engine.lead_ops import apply_territory_assignment
+            from porterchain_api.collaboration_engine.lead_ops import (
+                apply_territory_assignment,
+            )
 
             apply_territory_assignment(db, lead)
 
@@ -270,7 +277,9 @@ class LeadIngestService(LeadIngestResolveMixin):
             )
             # Zero-human agent — email welcome when consent holds (idempotent tag).
             try:
-                from porterchain_api.collaboration_engine.lead_agent import run_lead_agent
+                from porterchain_api.collaboration_engine.lead_agent import (
+                    run_lead_agent,
+                )
 
                 run_lead_agent(db, lead, trigger="ingest", website_url=website)
             except Exception:

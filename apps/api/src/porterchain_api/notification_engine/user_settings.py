@@ -9,7 +9,10 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.notification_engine.models import NotificationDevice, NotificationUserSettings
+from porterchain_api.notification_engine.models import (
+    NotificationDevice,
+    NotificationUserSettings,
+)
 
 logger = logging.getLogger(__name__)
 

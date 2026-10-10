@@ -2,7 +2,7 @@
 
 Driver approval, verification, wallet, payouts, documents, support and
 compliance are Porterchain business logic (masterrule.md). Reads the Porterchain
-order mirror; Fleetbase sync stays inside the driver service / adapter layer.
+PorterChain orders.
 """
 
 from typing import Annotated
@@ -18,6 +18,7 @@ from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.auth.driver_admin_action import run_admin_driver_action
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import (
     DEFAULT_LIST_LIMIT,
@@ -25,13 +26,12 @@ from porterchain_api.platform.pagination import (
     MAX_EMBEDDED_LIST_LIMIT,
     MAX_LIST_LIMIT,
 )
-from porterchain_api.config import Settings, get_settings
 from porterchain_api.schemas_admin import (
+    DriverActionRequest,
     DriverCreateRequest,
     DriverDocumentInput,
-    DriverRejectRequest,
-    DriverActionRequest,
     DriverPayoutCreateRequest,
+    DriverRejectRequest,
     DriverVerifyRequest,
 )
 from porterchain_api.schemas_crm import ActivityOut, TaskOut

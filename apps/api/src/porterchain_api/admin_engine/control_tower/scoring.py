@@ -23,9 +23,15 @@ from porterchain_api.admin_engine.dispatch_suggestions_service import (
     score_candidate,
 )
 from porterchain_api.admin_models import Driver
-from porterchain_api.booking_engine.compliance_metadata import requires_medical_certified
+from porterchain_api.booking_engine.compliance_metadata import (
+    requires_medical_certified,
+)
 from porterchain_api.booking_models import Order
-from porterchain_api.domain.customer_goods import canonical_vehicle_id, persist_vehicle_class, vehicle_classes_match
+from porterchain_api.domain.customer_goods import (
+    canonical_vehicle_id,
+    persist_vehicle_class,
+    vehicle_classes_match,
+)
 
 logger = logging.getLogger(__name__)
 

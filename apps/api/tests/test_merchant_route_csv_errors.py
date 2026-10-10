@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from uuid import uuid4
 from unittest.mock import patch
+from uuid import uuid4
 
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.import_geocode import GeocodeResult

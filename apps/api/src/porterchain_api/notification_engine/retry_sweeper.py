@@ -6,11 +6,11 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.notification_engine.models import NotificationRecord
-from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 

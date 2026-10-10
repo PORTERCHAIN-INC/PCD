@@ -6,7 +6,6 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from porterchain_driver import pod_policy
 from porterchain_driver.pod import ProofOfDeliveryService
 from porterchain_driver.pod_policy import DriverOffDuty, PodMissing
@@ -215,7 +214,10 @@ def test_id_check_validates_and_stores_no_identifiers() -> None:
 
 
 def test_route_detail_mapping() -> None:
-    from porterchain_api.routers.driver.navigation_pod import _pod_failure_detail, _pod_failure_status
+    from porterchain_api.routers.driver.navigation_pod import (
+        _pod_failure_detail,
+        _pod_failure_status,
+    )
 
     assert _pod_failure_status("pod_required:id_check") == 409
     assert _pod_failure_detail("pod_required:id_check")["missing"] == ["id_check"]

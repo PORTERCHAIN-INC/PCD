@@ -6,7 +6,10 @@ import uuid
 from unittest.mock import patch
 
 from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.merchant_onboarding import evaluate_merchant_onboarding, resolve_merchant_contact
+from porterchain_api.auth.merchant_onboarding import (
+    evaluate_merchant_onboarding,
+    resolve_merchant_contact,
+)
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
 

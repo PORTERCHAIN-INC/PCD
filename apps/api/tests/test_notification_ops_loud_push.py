@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from porterchain_shared.events.catalog import DomainEventType
 
 from porterchain_api.notification_engine.event_router import _specs_for_event
 from porterchain_api.notification_engine.fcm_service import (
@@ -15,8 +16,6 @@ from porterchain_api.notification_engine.fcm_service import (
     resolve_channel_id,
 )
 from porterchain_api.notification_engine.preference_service import PreferenceService
-from porterchain_shared.events.catalog import DomainEventType
-
 
 STAFF_PUSH_EVENTS = {
     DomainEventType.DRIVER_REJECTED,
@@ -205,7 +204,10 @@ def test_staff_push_fanout_device_aware_email_fallback(db) -> None:
 
     from porterchain_api.admin_models import AdminUser
     from porterchain_api.notification_engine.device_service import DeviceService
-    from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
+    from porterchain_api.notification_engine.staff_fanout import (
+        expand_staff_specs,
+        staff_sentinel,
+    )
 
     with_device = AdminUser(
         clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
@@ -303,7 +305,9 @@ def test_staff_contact_uses_admin_phone(db) -> None:
 
 
 def test_push_health_snapshot(db) -> None:
-    from porterchain_api.notification_engine.admin_service import NotificationAdminService
+    from porterchain_api.notification_engine.admin_service import (
+        NotificationAdminService,
+    )
 
     snap = NotificationAdminService().push_health(db)
     assert snap["tone"] in ("ok", "warn", "danger")

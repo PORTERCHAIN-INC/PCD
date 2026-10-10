@@ -12,12 +12,21 @@ from porterchain_api.admin_models import AdminAuditLog, Claim, Driver, SupportTi
 from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_engine.invoice_service import public_document_url
+from porterchain_api.booking_models import (
+    Booking,
+    Customer,
+    DomainEvent,
+    Invoice,
+    Order,
+    OrderException,
+    Payment,
+    Quote,
+)
 from porterchain_api.config import Settings
-from porterchain_api.reporting.pod_normalize import normalize_pod
-from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Booking, Customer, DomainEvent, Invoice, Order, OrderException, Payment, Quote
 from porterchain_api.domain.customer_goods import booked_capacity_class
+from porterchain_api.merchant_models import Merchant
 from porterchain_api.order_engine.platform_helpers import ops_timeline_label
+from porterchain_api.reporting.pod_normalize import normalize_pod
 
 
 def resolve_order_additional_stops(order: Order, quote: Quote | None = None) -> list[Any]:
@@ -122,45 +131,11 @@ class OrderPlatformDetailMixin:
         except Exception:
             live_tracking = None
 
-        fb_status = (live_tracking or {}).get("status")
-        fb_mapped = None
         proofs: list[dict[str, Any]] = []
         if isinstance(live_raw, dict):
             raw_proofs = live_raw.get("proofs")
             if isinstance(raw_proofs, list):
                 proofs = [p for p in raw_proofs if isinstance(p, dict)]
-        if fb_mapped is None and fb_status:
-            try:
-                from porterchain_api.domain.status_translator import StatusTranslator
-
-                mapped = StatusTranslator.to_state(status=str(fb_status))
-                fb_mapped = mapped.value if mapped else None
-            except Exception:
-                fb_mapped = None
-        pc_upper = str(order.state).upper()
-        fb_mapped_upper = str(fb_mapped).upper() if fb_mapped else None
-        fb_status_l = str(fb_status).lower() if fb_status else ""
-        aligned: bool | None
-        if not fb_mapped_upper and not fb_status_l:
-            aligned = None
-        elif fb_mapped_upper == pc_upper:
-            aligned = True
-        elif pc_upper in {"POD_COMPLETED", "INVOICED", "CLOSED"} and (
-            fb_mapped_upper in {"DELIVERED", "POD_COMPLETED"}
-            or fb_status_l in {"completed", "delivered"}
-        ):
-            # Commercial post-delivery vs Fleetbase execution complete = expected, not drift.
-            aligned = True
-        else:
-            aligned = False
-        status_sync = {
-            "pc_state": order.state,
-            "fleetbase_order_id": order.fleetbase_order_id,
-            "fleetbase_status": fb_status,
-            "fleetbase_mapped_state": fb_mapped,
-            "status_aligned": aligned,
-            "truth": "Live from Fleetbase" if fb_status else "PC commercial only",
-        }
 
         timeline = []
         for ev in events:
@@ -218,7 +193,9 @@ class OrderPlatformDetailMixin:
         meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
         quote_snap = meta.get("quote") if isinstance(meta.get("quote"), dict) else {}
         quote_amount = quote.amount_cents if quote else quote_snap.get("amount_cents")
-        from porterchain_api.merchant_engine.quote_snapshot import sanitize_pricing_breakdown
+        from porterchain_api.merchant_engine.quote_snapshot import (
+            sanitize_pricing_breakdown,
+        )
 
         pricing_breakdown = sanitize_pricing_breakdown(quote.pricing_breakdown if quote else None)
         if not pricing_breakdown and quote_snap:
@@ -328,9 +305,9 @@ class OrderPlatformDetailMixin:
         api_activity: list[dict[str, Any]] = []
         for item in timeline:
             et = str(item.get("event_type", ""))
-            if any(et.startswith(p) for p in ("payment.", "notification.", "fleetbase.", "invoice.", "dispatch.", "order.")):
+            if any(et.startswith(p) for p in ("payment.", "notification.", "invoice.", "dispatch.", "order.")):
                 automation.append(item)
-            if any(k in et for k in ("stripe", "fleetbase", "webhook", "api")):
+            if any(k in et for k in ("stripe", "webhook", "api")):
                 api_activity.append(item)
         for le in ledger_entries:
             api_activity.append(
@@ -346,7 +323,7 @@ class OrderPlatformDetailMixin:
 
         communications = self._order_communications(db, order_id)
 
-        # Live driver status (online/GPS) is Fleetbase-owned; here we only
+        # Live driver status (online/GPS) is on Dispatch; here we only
         # reflect the commercial assignment state of this order.
         driver_status = "assigned" if driver else "unassigned"
         vehicle_status = "assigned" if vehicle and order.assigned_driver_id else "available"
@@ -365,8 +342,6 @@ class OrderPlatformDetailMixin:
         return {
             **row,
             "special_instructions": order.special_instructions,
-            "fleetbase_order_id": order.fleetbase_order_id,
-            "status_sync": status_sync,
             "customer_phone": customer.phone if customer else None,
             "booking_id": booking.id if booking else None,
             "booking_draft_id": booking_draft.id if booking_draft else None,

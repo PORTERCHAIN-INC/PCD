@@ -6,15 +6,22 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Claim
-from porterchain_api.booking_engine._core import emit_event, publish_recorded_event, _event_fields
+from porterchain_api.booking_engine._core import (
+    _event_fields,
+    emit_event,
+    publish_recorded_event,
+)
 from porterchain_api.booking_models import Customer, Order
 from porterchain_api.domain.claims import CLAIM_TYPES, claim_number
-from porterchain_api.support_engine.claims_constants import CLAIM_STATUSES, set_claim_meta
+from porterchain_api.support_engine.claims_constants import (
+    CLAIM_STATUSES,
+    set_claim_meta,
+)
 from porterchain_api.support_engine.support_helpers import SupportActor
-from porterchain_shared.events.catalog import DomainEventType
 
 
 class ClaimsMutationsMixin:
@@ -39,7 +46,9 @@ class ClaimsMutationsMixin:
         db.add(claim)
         db.flush()
         order = db.query(Order).filter(Order.id == order_id).first()
-        from porterchain_api.admin_engine.platform_settings import investigation_sla_hours
+        from porterchain_api.admin_engine.platform_settings import (
+            investigation_sla_hours,
+        )
 
         due_at = datetime.now(UTC) + timedelta(hours=investigation_sla_hours(db))
         # D-31: snapshot assignee at open so reassignment doesn't drop care history.
@@ -312,7 +321,9 @@ class ClaimsMutationsMixin:
         claim = self.get_claim(db, claim_id)
         if not claim:
             raise LookupError("claim_not_found")
-        from porterchain_api.admin_engine.platform_settings import max_compensation_cents
+        from porterchain_api.admin_engine.platform_settings import (
+            max_compensation_cents,
+        )
 
         approved = compensation.get("approved_amount_cents")
         if approved is not None:

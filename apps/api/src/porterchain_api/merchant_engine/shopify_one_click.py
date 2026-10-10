@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -242,8 +241,13 @@ def go_live(
     pickup_address_id: str | None = None,
 ) -> dict[str, Any]:
     """One action after OAuth: bind pickup (if needed) and re-register Shopify hooks."""
-    from porterchain_api.merchant_engine.shopify_fulfillment_service import re_register_shop_hooks
-    from porterchain_api.merchant_engine.shopify_service import default_pickup_address, set_default_pickup
+    from porterchain_api.merchant_engine.shopify_fulfillment_service import (
+        re_register_shop_hooks,
+    )
+    from porterchain_api.merchant_engine.shopify_service import (
+        default_pickup_address,
+        set_default_pickup,
+    )
 
     q = db.query(ShopifyShop).filter(ShopifyShop.merchant_id == ctx.merchant.id)
     if shop_id:

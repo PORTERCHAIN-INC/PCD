@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.booking_models import Customer
 from porterchain_api.domain.crm_states import CompanyMerchantStatus
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.offboard import (
@@ -14,7 +15,6 @@ from porterchain_api.merchant_engine.offboard import (
     outstanding_cents,
 )
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Customer
 
 
 def assert_can_offboard(
@@ -33,7 +33,9 @@ def assert_can_offboard(
 
 
 def deactivate_access(db: Session, merchant: Merchant) -> None:
-    from porterchain_api.merchant_engine.lifecycle import deactivate_access as persist_deactivate
+    from porterchain_api.merchant_engine.lifecycle import (
+        deactivate_access as persist_deactivate,
+    )
 
     persist_deactivate(db, merchant)
 
@@ -438,7 +440,10 @@ def complete_onboarding(
 def ops_invoices(db: Session, merchant: Merchant):
     from datetime import date as date_cls
 
-    from porterchain_api.billing_engine.merchant_service import invoice_status, invoice_total_cents
+    from porterchain_api.billing_engine.merchant_service import (
+        invoice_status,
+        invoice_total_cents,
+    )
     from porterchain_api.booking_models import Invoice, Order, Payment
     from porterchain_api.schemas_crm import InvoiceOut
 

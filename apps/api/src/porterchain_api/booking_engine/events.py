@@ -42,9 +42,3 @@ VISITOR_SESSION_STARTED = "visitor.session_started"
 SESSION_MERGED = "visitor.session_merged"
 
 # Lead events live in platform (collaboration emits without importing booking_engine).
-from porterchain_api.platform.lead_events import (  # noqa: E402
-    LEAD_CREATED,
-    LEAD_ENGAGEMENT,
-    LEAD_MERGED,
-    LEAD_WHATSAPP_BLOCKED,
-)

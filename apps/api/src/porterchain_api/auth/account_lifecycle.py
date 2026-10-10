@@ -1,6 +1,6 @@
 """Shared account activation helpers — single place for pending→active flips.
 
-Approve/authorize routes keep role-specific side effects (Fleetbase, org ACTIVE);
+Approve/authorize routes keep role-specific side effects (org ACTIVE);
 this module owns the porterchain_users status transition used after persona
 provisioning so login prepare and admin authorize do not diverge.
 """

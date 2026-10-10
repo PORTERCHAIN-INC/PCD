@@ -14,7 +14,10 @@ from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyServic
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
+from porterchain_api.merchant_engine.secrets import (
+    decrypt_signing_secret,
+    encrypt_signing_secret,
+)
 from porterchain_api.merchant_engine.webhook_delivery_service import (
     deliver_webhook_payload,
     log_delivery,
@@ -94,7 +97,9 @@ class MerchantIntegrationsService:
         deliver_webhooks: bool = True,
         until_state: str | None = None,
     ) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.sandbox_simulator import simulate_sandbox_lifecycle
+        from porterchain_api.merchant_engine.sandbox_simulator import (
+            simulate_sandbox_lifecycle,
+        )
 
         return simulate_sandbox_lifecycle(
             db,
@@ -112,7 +117,7 @@ class MerchantIntegrationsService:
         *,
         confirm: str,
     ) -> dict[str, Any]:
-        """Cancel merchant-owned sandbox orders that never reached Fleetbase."""
+        """Cancel merchant-owned open sandbox orders."""
         from porterchain_api.booking_models import Order
         from porterchain_api.domain.states import OrderState
 
@@ -123,7 +128,6 @@ class MerchantIntegrationsService:
             .filter(
                 Order.merchant_id == ctx.merchant.id,
                 Order.is_sandbox.is_(True),
-                Order.fleetbase_order_id.is_(None),
                 Order.state.notin_(
                     (
                         OrderState.CANCELLED.value,
@@ -500,7 +504,9 @@ class MerchantIntegrationsService:
         ctx: MerchantContext,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
-        from porterchain_api.integrations.netsuite_adapter import map_netsuite_fulfillment
+        from porterchain_api.integrations.netsuite_adapter import (
+            map_netsuite_fulfillment,
+        )
 
         body = map_netsuite_fulfillment(payload)
         is_sandbox = bool(payload.get("is_sandbox") or payload.get("sandbox"))

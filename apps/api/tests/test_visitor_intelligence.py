@@ -5,7 +5,10 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from porterchain_api.collaboration_engine.crm_leads import CrmLeadsMixin
-from porterchain_api.domain.visitor_intent import behavioral_score_boost, compute_intent_score
+from porterchain_api.domain.visitor_intent import (
+    behavioral_score_boost,
+    compute_intent_score,
+)
 
 
 def test_compute_intent_score_quote_path() -> None:

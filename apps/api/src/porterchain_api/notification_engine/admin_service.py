@@ -44,12 +44,13 @@ class NotificationAdminService:
 
     def push_health(self, db: Session) -> dict[str, Any]:
         """Ops Control Tower strip — FCM readiness + staff/driver device reach."""
+        from porterchain_shared.config.settings import get_platform_settings
+
         from porterchain_api.notification_engine.fcm_service import (
             firebase_credentials_configured,
             firebase_production_ready,
             firebase_sdk_available,
         )
-        from porterchain_shared.config.settings import get_platform_settings
 
         settings = get_platform_settings()
         ready, reason = firebase_production_ready()
@@ -235,7 +236,9 @@ class NotificationAdminService:
             PreferenceService,
             _default_channel_flags,
         )
-        from porterchain_api.notification_engine.user_settings import UserSettingsService
+        from porterchain_api.notification_engine.user_settings import (
+            UserSettingsService,
+        )
 
         recent = self.list_records(
             db, recipient_type=role, recipient_id=entity_id, limit=limit
@@ -313,7 +316,10 @@ class NotificationAdminService:
 
     def _care_counts(self, db: Session, role: str, entity_id: str) -> dict[str, int]:
         from porterchain_api.booking_models import Order, OrderException
-        from porterchain_api.notification_engine.care_reads import open_claim_count_for_driver, open_ticket_count
+        from porterchain_api.notification_engine.care_reads import (
+            open_claim_count_for_driver,
+            open_ticket_count,
+        )
 
         open_exc = 0
         open_support = 0

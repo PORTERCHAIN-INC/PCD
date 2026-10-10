@@ -8,10 +8,10 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from porterchain_api.driver_engine.last_known import LastKnown
 from porterchain_driver.navigation import assert_driver_inside_stop
 from porterchain_driver.shift import PRETRIP_ITEMS, require_pretrip
+
+from porterchain_api.driver_engine.last_known import LastKnown
 
 
 def _all_pretrip() -> dict[str, bool]:
@@ -66,10 +66,9 @@ def test_arrive_fail_closed_when_outside_stop() -> None:
         patch(
             "porterchain_api.driver_engine.last_known.read_last_known",
             return_value=_known(43.85, -79.38),
-        ),
+        ),pytest.raises(ValueError, match="not_at_stop")
     ):
-        with pytest.raises(ValueError, match="not_at_stop"):
-            assert_driver_inside_stop("drv-1", _order(), "ord-1-dropoff")
+        assert_driver_inside_stop("drv-1", _order(), "ord-1-dropoff")
 
 
 def test_arrive_ok_inside_stop_circle() -> None:

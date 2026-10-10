@@ -12,13 +12,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from porterchain_services.maps.polyline import decode_polyline
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.dispatch_suggestions_service import _coords
 from porterchain_api.admin_models import Driver
 from porterchain_api.booking_models import Order
-from porterchain_api.dispatch_engine import gps_board, ops_mirror
-from porterchain_services.maps.polyline import decode_polyline
+from porterchain_api.dispatch_engine import gps_board
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,9 @@ DENSITY_CELL = 0.01
 
 
 def _density_cells(orders: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], str]:
-    from porterchain_api.spatial.h3_index import cell as h3_cell, cell_center
     from porterchain_api.spatial.h3_index import DENSITY_RESOLUTION as H3_DENSITY_RES
+    from porterchain_api.spatial.h3_index import cell as h3_cell
+    from porterchain_api.spatial.h3_index import cell_center
 
     buckets: dict[str, dict[str, Any]] = {}
     fallback: dict[tuple[int, int], dict[str, Any]] = {}
@@ -191,23 +192,12 @@ class LiveMapService:
         drivers_out, drivers_source = gps_board.board_pins(db)
 
         density, density_source = _density_cells(out_orders)
-        zones, zones_source = ops_mirror.read_zones()
-        if zones_source != ops_mirror.SOURCE_MIRROR or not zones:
-            zones = []
-            zones_source = (
-                ops_mirror.SOURCE_UNAVAILABLE
-                if zones_source == ops_mirror.SOURCE_UNAVAILABLE
-                else ops_mirror.SOURCE_MISS
-            )
-
         return {
             "drivers": drivers_out,
             "orders": out_orders,
             "drivers_source": drivers_source,
             "density": density,
             "density_source": density_source,
-            "zones": zones,
-            "zones_source": zones_source,
         }
 
     def playback(self, db: Session, order_id: str) -> dict[str, Any]:
@@ -218,7 +208,6 @@ class LiveMapService:
 
         return {
             "order_id": order_id,
-            "fleetbase_order_id": order.fleetbase_order_id,
             "points": [],
             "source": "none",
             "message": "No driver GPS yet",

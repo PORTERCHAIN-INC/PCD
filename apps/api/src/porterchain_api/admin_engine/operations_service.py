@@ -1,17 +1,19 @@
-"""Dispatch operations — queue, assignment via Fleetbase bridge."""
+"""Dispatch operations — queue and assignment."""
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine import events as E
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, Driver
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.compliance_metadata import requires_medical_certified
-from porterchain_api.admin_engine import events as E
+from porterchain_api.booking_engine.compliance_metadata import (
+    requires_medical_certified,
+)
 from porterchain_api.booking_engine.order_transitions import transition_order_state
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
-from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import dispatch_queue_sort_key
 
 
@@ -46,23 +48,26 @@ class AdminOperationsService:
         order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
         db.commit()
         db.refresh(order)
-        from porterchain_api.dispatch_engine.optimize_run_store import fleet_optimize_open
+        from porterchain_api.dispatch_engine.optimize_run_store import (
+            fleet_optimize_open,
+        )
 
         if not fleet_optimize_open():
             self._enqueue_driver_book_optimize(db, driver_id, insert_order_id=order.id)
         return order
 
     @staticmethod
-    def _enqueue_driver_book_optimize(  # fleetbase-first:ok — queues day plan, does not sequence locally
+    def _enqueue_driver_book_optimize(
         db: Session,
         driver_id: str,
         *,
         insert_order_id: str | None = None,
     ) -> None:
-        """Phase 1d/1b: best-effort Fleetbase re-sequence for a driver's book."""
+        """Best-effort re-sequence of a driver's book after assignment."""
         try:
-            from porterchain_api.user_models import Driver
             from porterchain_driver.jobs import JobsService
+
+            from porterchain_api.user_models import Driver
 
             driver = db.query(Driver).filter(Driver.id == driver_id).first()
             if driver is not None:
@@ -90,7 +95,9 @@ class AdminOperationsService:
         if driver.status != DriverStatus.APPROVED.value:
             raise ValueError("driver_not_approved")
         # D-27: hard-gate verification beyond medical (license / insurance / background).
-        from porterchain_api.admin_engine.control_tower.scoring import driver_verification_gap
+        from porterchain_api.admin_engine.control_tower.scoring import (
+            driver_verification_gap,
+        )
 
         gap = driver_verification_gap(driver)
         if gap:

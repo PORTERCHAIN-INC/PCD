@@ -5,14 +5,18 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from porterchain_pricing.types import PricingRequest
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
 from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.schemas_pricing import PointInput, SimulateQuoteRequest, SimulateQuoteResponse
-from porterchain_pricing.types import PricingRequest
+from porterchain_api.schemas_pricing import (
+    PointInput,
+    SimulateQuoteRequest,
+    SimulateQuoteResponse,
+)
 
 router = APIRouter(prefix="/v1/pricing", tags=["pricing"])
 

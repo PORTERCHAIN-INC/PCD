@@ -2,9 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import get_clerk_user_id
-from porterchain_api.booking_engine import BookingConfirmationService, BookingService, QuoteService
-from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.auth.dev import allow_auth_dev_bypass
+from porterchain_api.booking_engine import (
+    BookingConfirmationService,
+    BookingService,
+    QuoteService,
+)
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.schemas import (
@@ -75,10 +79,13 @@ def get_booking_confirmation(
 @router.get("/booking-catalog")
 def get_booking_catalog(db: Session = Depends(get_db)) -> dict:
     """Public retail vehicles and parcel presets. Prices stay on POST /quotes."""
+    from porterchain_pricing.gta_rate import (
+        customer_gta_from_dict,
+        normalize_vehicle_type,
+    )
+
     from porterchain_api.admin_engine.settings_service import AdminSettingsService
     from porterchain_api.domain.customer_goods import presets_from_card
-
-    from porterchain_pricing.gta_rate import customer_gta_from_dict, normalize_vehicle_type
 
     svc = AdminSettingsService()
     catalog = svc.get_config_value(db, "vehicle_types")
@@ -235,7 +242,9 @@ def sync_checkout_confirmation(
     settings: Settings = Depends(get_settings),
 ) -> BookingConfirmationStatusResponse:
     """Poll Stripe for a completed checkout when webhooks are not configured (local dev)."""
-    from porterchain_api.booking_engine.stripe_webhook_service import StripeWebhookService
+    from porterchain_api.booking_engine.stripe_webhook_service import (
+        StripeWebhookService,
+    )
 
     if settings.stripe_secret:
         StripeWebhookService().sync_checkout_session(db, settings, body.quote_id)

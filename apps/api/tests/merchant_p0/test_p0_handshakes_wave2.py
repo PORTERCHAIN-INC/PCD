@@ -7,26 +7,24 @@ those stay the deep suites. This pack wires SSOT IDs for the merchant matrix wav
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from porterchain_shared.config.settings import PlatformSettings
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_probes import DiagnosticsProbesMixin
 from porterchain_api.auth.merchant import portal_access_denied
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.platform.retired_sync import BookingSyncService
+from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.booking_validation import (
     BookingValidationError,
     MerchantSyncService,
 )
-from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_models import Merchant
-from porterchain_shared.config.settings import PlatformSettings
 
 from . import REPO_ROOT
 
@@ -63,28 +61,6 @@ def test_hs_clerk_portal_denies_suspended_and_closed(db: Session) -> None:
     assert portal_access_denied(_merchant(db, status=MerchantStatus.PENDING.value)) == "merchant_not_active"
     assert portal_access_denied(_merchant(db, status=MerchantStatus.ACTIVE.value)) is None
     assert portal_access_denied(_merchant(db, status=MerchantStatus.ONBOARDING.value)) is None
-
-
-@pytest.mark.merchant_p0
-@pytest.mark.tc_id("HS-FB-001")
-def test_hs_fb_push_order_enqueues_retry_queue(db: Session, dispatch_order) -> None:
-    """Merchant-originated Fleetbase sync is enqueue-only (no adapter HTTP in push_order)."""
-    settings = Settings(
-        _env_file=None,
-        app_env="local",
-        stripe_mock=True,
-        jwt_secret="a" * 32,
-        fleetbase_dispatch_bridge=True,
-    )
-    # Tag as merchant channel for handshake clarity.
-    dispatch_order.order_source = "MERCHANT"
-    svc = BookingSyncService()
-    with patch.object(svc, "_bridge") as bridge:
-        result = svc.push_order(db, settings, dispatch_order, commit=False)
-        db.flush()
-        bridge.sync_order.assert_not_called()
-    assert result is None
-    db.rollback()
 
 
 @pytest.mark.merchant_p0

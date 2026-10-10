@@ -6,15 +6,19 @@ import inspect
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from porterchain_api.admin_engine.control_tower.assignment import AssignmentMixin
-from porterchain_api.admin_engine.dispatch_suggestions_service import DispatchSuggestionsService
-from porterchain_api.config import Settings
-from porterchain_api.merchant_engine.route_import_service import MerchantRouteImportService
-from porterchain_api.platform.health import readiness
-from porterchain_api.platform.metrics import note_routing_source, prometheus_metrics
+from porterchain_driver.navigation import NavigationService
 from porterchain_event_bus.bus import STREAM_READ_COUNT
 from porterchain_services.maps.service import HTTP_TIMEOUT_S, MapsService
-from porterchain_driver.navigation import NavigationService
+
+from porterchain_api.admin_engine.dispatch_suggestions_service import (
+    DispatchSuggestionsService,
+)
+from porterchain_api.config import Settings
+from porterchain_api.merchant_engine.route_import_service import (
+    MerchantRouteImportService,
+)
+from porterchain_api.platform.health import readiness
+from porterchain_api.platform.metrics import note_routing_source, prometheus_metrics
 
 
 def test_optimize_run_handler_enqueues_without_solver():
@@ -27,9 +31,10 @@ def test_optimize_run_handler_enqueues_without_solver():
 
 
 def test_driver_optimize_handler_enqueues_without_tsp():
-    from porterchain_api.routers.driver import jobs as jobs_router
     from porterchain_driver.jobs import JobsService
     from porterchain_driver.route_optimizer import DriverRouteOptimizer
+
+    from porterchain_api.routers.driver import jobs as jobs_router
 
     src = inspect.getsource(jobs_router.optimize_jobs)
     assert "optimize_route" in src
@@ -104,18 +109,6 @@ def test_suggestions_cold_cache_returns_pending_without_compute():
     assert out["drivers"] == []
     enqueue.assert_called_once_with("ord-1")
     compute.assert_not_called()
-
-
-def test_assignable_drivers_never_calls_adapter():
-    mixin = AssignmentMixin()
-    db = MagicMock()
-    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
-    db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
-    with patch(
-        "porterchain_api.dispatch_engine.ops_mirror.online_map_from_mirror",
-        return_value={},
-    ):
-        assert mixin.assignable_drivers(db) == []
 
 
 def test_navigation_session_source_has_no_fetch_route():

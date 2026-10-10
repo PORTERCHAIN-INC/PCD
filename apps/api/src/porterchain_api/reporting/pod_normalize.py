@@ -1,4 +1,4 @@
-"""Normalize Fleetbase POD proofs into a gallery-friendly shape.
+"""Normalize POD proofs into a gallery-friendly shape.
 
 Every POD surface — admin order 360, merchant 360, merchant live tracking —
 reads this one function, so the galleries cannot disagree about what the driver
@@ -42,8 +42,7 @@ def normalize_pod(proofs: list[dict[str, Any]] | None) -> dict[str, Any]:
         normalized = {
             "id": proof.get("id")
             or proof.get("uuid")
-            or proof.get("proof_id")
-            or proof.get("fleetbase_proof_id"),
+            or proof.get("proof_id"),
             "type": raw_type,
             "url": proof.get("url") or proof.get("file_url") or proof.get("photo_url"),
             "captured_at": proof.get("captured_at") or proof.get("created_at"),

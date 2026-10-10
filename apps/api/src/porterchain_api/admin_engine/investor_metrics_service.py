@@ -10,9 +10,9 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_models import Order
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Order
 from porterchain_api.reporting.data_moat import margin_intelligence
 
 TARGETS = {

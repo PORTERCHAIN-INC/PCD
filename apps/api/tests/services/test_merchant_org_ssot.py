@@ -5,7 +5,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from porterchain_api.crm_models import CrmCompany
-from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
+from porterchain_api.merchant_engine.booking_flow_service import (
+    MerchantBookingFlowService,
+)
 from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
 from porterchain_api.merchant_engine.organization_sync import project_merchant_company
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService

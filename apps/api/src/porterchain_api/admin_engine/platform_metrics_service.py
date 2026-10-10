@@ -8,9 +8,13 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.domain.states import OrderSource
-from porterchain_api.merchant_models import Merchant, MerchantApiKey, MerchantWebhookDelivery
 from porterchain_api.booking_models import Order
+from porterchain_api.domain.states import OrderSource
+from porterchain_api.merchant_models import (
+    Merchant,
+    MerchantApiKey,
+    MerchantWebhookDelivery,
+)
 
 TARGETS = {
     "active_api_keys": 10,

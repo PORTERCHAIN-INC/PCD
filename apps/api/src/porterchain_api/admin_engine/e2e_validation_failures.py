@@ -8,7 +8,10 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.e2e_validation_catalog import FAILURE_SCENARIOS, ValidationStatus
+from porterchain_api.admin_engine.e2e_validation_catalog import (
+    FAILURE_SCENARIOS,
+    ValidationStatus,
+)
 from porterchain_api.admin_engine.e2e_validation_helpers import StepResult
 from porterchain_api.auth.clerk_registry import is_clerk_configured
 from porterchain_api.config import Settings
@@ -20,8 +23,6 @@ class E2EValidationFailuresMixin:
         results: list[dict[str, Any]] = []
         chaos_map = {
             "day_plan_offline": "day_plan_offline",
-            "fleetbase_offline": "day_plan_offline",
-            "fleetbase_adapter_failure": "day_plan_offline",
             "stripe_offline": "stripe_offline",
             "clerk_offline": "clerk_offline",
             "firebase_failure": "firebase_offline",

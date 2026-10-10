@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import asyncio
+import json
 from unittest.mock import MagicMock, patch
 
 from porterchain_api.notification_engine.realtime import RealtimeHub
@@ -52,7 +52,7 @@ def test_pubsub_message_from_other_instance_delivers_locally() -> None:
             }
         )
         data = json.loads(message)
-        await hub._broadcast_local(data["user_role"], data["user_id"], data["payload"])  # noqa: SLF001
+        await hub._broadcast_local(data["user_role"], data["user_id"], data["payload"])
         return ws
 
     ws = asyncio.run(scenario())

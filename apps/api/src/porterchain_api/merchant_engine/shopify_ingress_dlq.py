@@ -28,7 +28,7 @@ REASON_BOOKING = "booking_rejected"
 
 
 def _is_booking_validation_error(exc: BaseException) -> bool:
-    """Duck-type Fleetbase BookingValidationError without a cross-engine import."""
+    """Duck-type BookingValidationError without a cross-engine import."""
     return type(exc).__name__ == "BookingValidationError"
 
 
@@ -115,7 +115,7 @@ def record_ingress_dlq(
     db.add(row)
     try:
         purge_stale_dlq_bodies(db)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("shopify_dlq_purge_failed")
     db.commit()
     db.refresh(row)

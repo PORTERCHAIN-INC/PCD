@@ -25,7 +25,9 @@ class OrderPlatformService(
     """Unified order platform service composed from domain mixins."""
 
     def __init__(self) -> None:
-        from porterchain_api.admin_engine.control_tower_service import ControlTowerService
+        from porterchain_api.admin_engine.control_tower_service import (
+            ControlTowerService,
+        )
         from porterchain_api.booking_engine.tracking_service import TrackingService
 
         self._tower = ControlTowerService()

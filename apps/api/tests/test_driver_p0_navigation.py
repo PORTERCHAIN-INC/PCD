@@ -9,11 +9,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from porterchain_api.main import app
 from porterchain_driver.navigation import NavigationService
 from porterchain_driver.pod import ProofOfDeliveryService
 from porterchain_services.maps.service import MapsService
+
+from porterchain_api.main import app
 
 
 @pytest.mark.driver_p0

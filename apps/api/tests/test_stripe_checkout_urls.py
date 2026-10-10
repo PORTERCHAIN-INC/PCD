@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer, Quote
+from porterchain_api.config import Settings
 from porterchain_api.services.stripe_service import create_checkout_session
 
 

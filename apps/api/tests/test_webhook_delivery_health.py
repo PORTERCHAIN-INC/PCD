@@ -11,7 +11,11 @@ from porterchain_api.merchant_engine.webhook_delivery_health import (
     assess_merchant_webhook_delivery,
     build_merchant_webhook_delivery_alerts,
 )
-from porterchain_api.merchant_models import Merchant, MerchantWebhook, MerchantWebhookDelivery
+from porterchain_api.merchant_models import (
+    Merchant,
+    MerchantWebhook,
+    MerchantWebhookDelivery,
+)
 
 
 def _seed_delivery(

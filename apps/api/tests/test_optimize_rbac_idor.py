@@ -10,16 +10,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
+from porterchain_driver.jobs import JobsService
 
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.authz.client import AuthzClient, Relationship, reset_authz_client
 from porterchain_api.authz.tuples import PLATFORM_ID
-from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.dispatch_engine.optimize_events import assert_driver_scoped
+from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.routers import operations as ops_router
 from porterchain_api.schemas_admin import OptimizeCommitBody, OptimizeRunBody
-from porterchain_driver.jobs import JobsService
 
 
 @pytest.fixture(autouse=True)
@@ -47,7 +47,7 @@ def _ctx(role: AdminRole, uid: str, *, porterchain_user_id: str) -> AdminContext
 def _bind_client(client: AuthzClient) -> None:
     from porterchain_api.authz import client as client_mod
 
-    client_mod._client = client  # noqa: SLF001
+    client_mod._client = client
 
 
 def test_sales_forbidden_on_dispatch_and_dispatch_read() -> None:
@@ -97,9 +97,8 @@ def test_optimize_pool_router_maps_forbidden_to_403() -> None:
         ops_router,
         "require_module",
         side_effect=PermissionError("admin_forbidden:dispatch_read"),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            ops_router.optimize_pool(ctx, MagicMock())
+    ), pytest.raises(HTTPException) as excinfo:
+        ops_router.optimize_pool(ctx, MagicMock())
     assert excinfo.value.status_code == 403
     assert "dispatch_read" in str(excinfo.value.detail)
 
@@ -111,9 +110,8 @@ def test_optimize_run_router_requires_dispatch_not_read() -> None:
         ops_router,
         "require_module",
         side_effect=PermissionError("admin_forbidden:dispatch"),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            ops_router.optimize_run(body, ctx, MagicMock())
+    ), pytest.raises(HTTPException) as excinfo:
+        ops_router.optimize_run(body, ctx, MagicMock())
     assert excinfo.value.status_code == 403
     assert "dispatch" in str(excinfo.value.detail)
 
@@ -125,9 +123,8 @@ def test_optimize_commit_router_requires_dispatch() -> None:
         ops_router,
         "require_module",
         side_effect=PermissionError("admin_forbidden:dispatch"),
-    ):
-        with pytest.raises(HTTPException) as excinfo:
-            ops_router.optimize_commit(body, ctx, MagicMock())
+    ), pytest.raises(HTTPException) as excinfo:
+        ops_router.optimize_commit(body, ctx, MagicMock())
     assert excinfo.value.status_code == 403
 
 

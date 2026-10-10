@@ -6,6 +6,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
@@ -13,7 +14,6 @@ from porterchain_api.notification_engine.models import NotificationRecord
 from porterchain_api.notification_engine.preference_service import PreferenceService
 from porterchain_api.notification_engine.realtime import realtime_hub
 from porterchain_api.notification_engine.templates import render_email, template_meta
-from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +122,9 @@ class NotificationEngine:
             logger.debug("notification suppressed by preference: %s/%s/%s", recipient_type, cat, channel)
             return None
 
-        from porterchain_api.notification_engine.user_settings import UserSettingsService
+        from porterchain_api.notification_engine.user_settings import (
+            UserSettingsService,
+        )
 
         if UserSettingsService().should_mute_channel(
             db,

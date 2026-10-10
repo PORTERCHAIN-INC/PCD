@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Any, Sequence
+from typing import Any
 
 from porterchain_api.admin_models import Driver
-from porterchain_api.merchant_models import Merchant
 from porterchain_api.booking_models import Order
+from porterchain_api.merchant_models import Merchant
 
 
 def _pdf_escape(text: str) -> str:

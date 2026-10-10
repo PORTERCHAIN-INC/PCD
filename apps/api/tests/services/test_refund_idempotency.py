@@ -6,7 +6,10 @@ from datetime import UTC, datetime
 
 from porterchain_api.admin_engine.finance_service import AdminFinanceService
 from porterchain_api.billing_engine.models import BillingLedgerEntry
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState
 

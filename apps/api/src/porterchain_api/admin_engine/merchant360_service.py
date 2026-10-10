@@ -3,7 +3,7 @@
 Per masterrule.md: merchants, CRM, invoices, contracts, billing are Porterchain
 business logic. This service reads only Porterchain-owned data (Merchant, Order,
 CRM company/contacts/contracts/invoices/activities/tasks, merchant sub-models).
-Operational order data is the Porterchain mirror — Fleetbase is never called here.
+Operational order data comes from PorterChain orders.
 """
 
 from __future__ import annotations
@@ -32,11 +32,11 @@ from porterchain_api.admin_engine.settings_service import (
     _invite_status,
     _latest_invitations,
 )
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.crm_models import CrmCompany
 from porterchain_api.domain.catalog_labels import invite_status_label, seat_status_label
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Order
 
 
 class Merchant360Service:
@@ -78,7 +78,10 @@ class Merchant360Service:
         onboarding: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         from porterchain_api.merchant_engine.coverage import profile_service_area
-        from porterchain_api.merchant_engine.organization_sync import branding_logo_url, industry_of
+        from porterchain_api.merchant_engine.organization_sync import (
+            branding_logo_url,
+            industry_of,
+        )
 
         return row_payload(
             self,
@@ -137,7 +140,9 @@ class Merchant360Service:
 
         Raises on Clerk directory failure so Admin can surface the error (M-4).
         """
-        from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
+        from porterchain_api.admin_engine.clerk_directory_service import (
+            fetch_clerk_snapshots,
+        )
 
         try:
             snaps = fetch_clerk_snapshots(settings, "merchant", limit=500)
@@ -175,8 +180,13 @@ class Merchant360Service:
             return None
         from porterchain_api.config import get_settings
         from porterchain_api.merchant_engine.coverage import coverage_snapshot
-        from porterchain_api.merchant_engine.organization_sync import tax_legal_snapshot, website_of
-        from porterchain_api.merchant_engine.profile_service import profile_public_fields
+        from porterchain_api.merchant_engine.organization_sync import (
+            tax_legal_snapshot,
+            website_of,
+        )
+        from porterchain_api.merchant_engine.profile_service import (
+            profile_public_fields,
+        )
 
         return detail_payload(
             self,
@@ -198,7 +208,11 @@ class Merchant360Service:
         limit: int = 50,
         offset: int = 0,
     ) -> dict:
-        from porterchain_api.platform.pagination import MAX_EMBEDDED_LIST_LIMIT, as_page, clamp_page
+        from porterchain_api.platform.pagination import (
+            MAX_EMBEDDED_LIST_LIMIT,
+            as_page,
+            clamp_page,
+        )
 
         limit, offset = clamp_page(limit, offset, max_limit=MAX_EMBEDDED_LIST_LIMIT)
         q = db.query(Order).filter(Order.merchant_id == merchant_id)

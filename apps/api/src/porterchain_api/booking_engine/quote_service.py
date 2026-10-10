@@ -7,19 +7,21 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.booking_engine.repositories.quote_repository import QuoteRepository
+from porterchain_api.booking_engine.visitor_tracking_service import (
+    VisitorTrackingService,
+)
+from porterchain_api.booking_models import Quote
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import QuoteState
-from porterchain_api.booking_models import Quote
 from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem
 from porterchain_api.pricing_engine.quote_bridge import (
     _request_from_quote_body,
     expire_quote_if_needed,
     revalidate_retail_quote,
 )
+from porterchain_api.schemas import CreateQuoteRequest, PricingLineItem
 
 
 def _assert_in_coverage(db: Session, ends: tuple[tuple[str, Any, Any], ...]) -> None:
@@ -154,10 +156,18 @@ class QuoteService:
         }
 
     def _price_body(self, db: Session, settings: Settings, body: CreateQuoteRequest) -> dict[str, Any]:
+        from porterchain_pricing.gta_rate import (
+            customer_gta_from_dict,
+            normalize_vehicle_type,
+        )
+
         from porterchain_api.admin_engine.settings_service import AdminSettingsService
-        from porterchain_api.domain.customer_goods import parcels_payload, presets_from_card, resolve_load
+        from porterchain_api.domain.customer_goods import (
+            parcels_payload,
+            presets_from_card,
+            resolve_load,
+        )
         from porterchain_api.domain.retail_vehicles import enabled_retail_vehicle_ids
-        from porterchain_pricing.gta_rate import customer_gta_from_dict, normalize_vehicle_type
 
         settings_svc = AdminSettingsService()
         catalog = settings_svc.get_config_value(db, "vehicle_types")

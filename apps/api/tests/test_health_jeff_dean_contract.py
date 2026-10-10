@@ -10,7 +10,10 @@ from porterchain_api.admin_engine.e2e_validation_catalog import SYSTEM_CHAIN
 from porterchain_api.admin_engine.e2e_validation_service import E2EValidationService
 from porterchain_api.config import Settings
 from porterchain_api.platform.health_status import normalize_check_status
-from porterchain_api.schemas_health import HealthDashboardResponse, IntegrationHealthResponse
+from porterchain_api.schemas_health import (
+    HealthDashboardResponse,
+    IntegrationHealthResponse,
+)
 
 
 @pytest.mark.parametrize(

@@ -144,7 +144,6 @@ class OrderResponse(BaseModel):
     scheduled_at: datetime
     pickup: dict[str, Any]
     dropoff: dict[str, Any]
-    fleetbase_order_id: str | None = None
     booking_number: str | None = None
     invoice_number: str | None = None
     company_name: str | None = None
@@ -161,7 +160,6 @@ class OrderTrackingResponse(BaseModel):
     order_id: str
     tracking_number: str
     state: str
-    fleetbase_order_id: str | None = None
     live_tracking: dict[str, Any] | None = None
 
 
@@ -188,7 +186,6 @@ class BookingConfirmationResponse(BaseModel):
     vehicle_class: str | None = None
     booking_mode: str | None = None
     parcels: list[dict[str, Any]] | None = None
-    fleetbase_order_id: str | None = None
     dashboard_url: str = "http://localhost:3004/dashboard"
 
 

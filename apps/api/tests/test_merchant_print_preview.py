@@ -8,18 +8,27 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 
 from porterchain_api.auth.merchant import get_merchant_context
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
+from porterchain_api.booking_models import Order
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.main import app
-from porterchain_api.merchant_engine.orders_service import MerchantOrdersService, print_error_message
+from porterchain_api.merchant_engine.orders_service import (
+    MerchantOrdersService,
+    print_error_message,
+)
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.toronto import format_datetime_toronto
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.booking_models import Order
-from porterchain_api.reporting.order_documents import build_pickup_list_pdf, build_print_preview_pdf
+from porterchain_api.reporting.order_documents import (
+    build_pickup_list_pdf,
+    build_print_preview_pdf,
+)
 
 
 def _addr() -> dict:

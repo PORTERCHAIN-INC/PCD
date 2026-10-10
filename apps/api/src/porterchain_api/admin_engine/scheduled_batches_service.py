@@ -14,9 +14,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_models import Order
 from porterchain_api.domain.states import OrderType
 from porterchain_api.merchant_models import Merchant
-from porterchain_api.booking_models import Order
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,6 @@ def _order_row(order: Order) -> dict[str, Any]:
         "stop_count": _stop_count(order),
         "order_kind": meta.get("order_kind"),
         "amount_cents": order.amount_cents,
-        "fleetbase_order_id": order.fleetbase_order_id,
         "pickup_window_start": win_start,
         "pickup_window_end": win_end,
     }

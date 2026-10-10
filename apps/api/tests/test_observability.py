@@ -1,6 +1,9 @@
 """Observability bootstrap tests."""
 
-from porterchain_api.platform.observability import bind_request_context, init_observability
+from porterchain_api.platform.observability import (
+    bind_request_context,
+    init_observability,
+)
 
 
 def test_bind_request_context_does_not_raise_without_sentry() -> None:

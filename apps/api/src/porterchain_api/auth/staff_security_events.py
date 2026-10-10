@@ -80,7 +80,7 @@ def record_security_event(
         client.lpush(key, json.dumps(payload))
         client.ltrim(key, 0, EVENTS_MAX - 1)
         client.expire(key, 60 * 60 * 24 * 90)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("staff_security_event_record_failed", exc_info=True)
 
 

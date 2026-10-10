@@ -8,7 +8,13 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.routers.drivers_admin import Ctx, _drivers, _invoke, _mutated, _vehicle
+from porterchain_api.routers.drivers_admin import (
+    Ctx,
+    _drivers,
+    _invoke,
+    _mutated,
+    _vehicle,
+)
 from porterchain_api.schemas_admin import (
     DriverDocumentDecisionRequest,
     DriverProfilePatch,
@@ -52,7 +58,7 @@ def attach_driver_vehicle(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    """D-29: attach vehicle and sync Fleetbase when bridge enabled."""
+    """D-29: attach vehicle."""
     vehicle = _invoke(
         ctx,
         "drivers",
@@ -77,7 +83,7 @@ def deactivate_driver_vehicle(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    """D-29: deactivate vehicle and push inactive state to Fleetbase."""
+    """D-29: deactivate vehicle."""
     return _vehicle(
         _invoke(ctx, "drivers", _drivers.deactivate_vehicle, db, ctx, driver_id, vehicle_id, settings=settings)
     )

@@ -22,8 +22,14 @@ from sqlalchemy.orm import Session, object_session
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from porterchain_api.config import Settings
-from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
-from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain, oauth_configured
+from porterchain_api.merchant_engine.secrets import (
+    decrypt_signing_secret,
+    encrypt_signing_secret,
+)
+from porterchain_api.merchant_engine.shopify_urls import (
+    normalize_shop_domain,
+    oauth_configured,
+)
 from porterchain_api.merchant_models import ShopifyShop
 
 logger = logging.getLogger(__name__)

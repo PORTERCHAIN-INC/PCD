@@ -17,7 +17,12 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
-from porterchain_api.customer_experience.context import consignee_contacts, cx_meta, merchant_for, update_cx_meta
+from porterchain_api.customer_experience.context import (
+    consignee_contacts,
+    cx_meta,
+    merchant_for,
+    update_cx_meta,
+)
 from porterchain_api.customer_experience.settings import cx_for_merchant
 from porterchain_api.customer_experience.templates import CX_PLACEHOLDERS
 
@@ -69,7 +74,9 @@ def build_context(
     extra: dict[str, Any] | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
-    from porterchain_api.merchant_engine.shopify_fulfillment_ops import public_tracking_url
+    from porterchain_api.merchant_engine.shopify_fulfillment_ops import (
+        public_tracking_url,
+    )
 
     extra = dict(extra or {})
     track = public_tracking_url(settings, order.tracking_number)

@@ -34,7 +34,9 @@ _OPEN_CLAIMS = frozenset({
 
 class CustomerAdminService:
     def create_customer(self, db: Session, ctx, settings, **kwargs: Any) -> dict[str, Any]:
-        from porterchain_api.admin_engine.customer_admin_mutations import create_customer
+        from porterchain_api.admin_engine.customer_admin_mutations import (
+            create_customer,
+        )
 
         return create_customer(db, ctx, settings, **kwargs)
 

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from porterchain_pricing.types import GeoPoint, PricingRequest
+
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.merchant_engine.rate_card_view import merchant_rate_card
 from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
-from porterchain_pricing.types import GeoPoint, PricingRequest
 
 
 def test_settings_rate_card_write_reaches_quotes(db, admin_ctx, merchant_ctx) -> None:

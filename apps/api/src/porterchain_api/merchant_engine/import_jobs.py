@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from porterchain_services.maps.sequence import optimize_drop_order_with_source
 from sqlalchemy.orm import Session
 
 from porterchain_api.domain.customer_goods import persist_vehicle_class
@@ -15,7 +16,6 @@ from porterchain_api.merchant_engine.import_quote import (
 )
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import BulkImportJob, Merchant, MerchantUser
-from porterchain_services.maps.sequence import optimize_drop_order_with_source
 
 
 def _owner_ctx(db: Session, job: BulkImportJob) -> MerchantContext | None:

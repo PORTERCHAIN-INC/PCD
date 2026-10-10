@@ -9,7 +9,9 @@ import pytest
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.gateway_engine.merchant_api import ERP_READINESS
 from porterchain_api.merchant_engine.integration_copy import integration_error_message
-from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
+from porterchain_api.merchant_engine.integrations_service import (
+    MerchantIntegrationsService,
+)
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.shopify_service import connect_custom_app
 from porterchain_api.merchant_models import Merchant, MerchantUser, SavedAddress

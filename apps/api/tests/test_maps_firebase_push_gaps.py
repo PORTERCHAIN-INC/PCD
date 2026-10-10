@@ -143,7 +143,9 @@ def test_gap01_web_push_exposes_playwright_test_hook() -> None:
 
 
 def test_gap04_push_health_contract_keys(db) -> None:
-    from porterchain_api.notification_engine.admin_service import NotificationAdminService
+    from porterchain_api.notification_engine.admin_service import (
+        NotificationAdminService,
+    )
 
     snap = NotificationAdminService().push_health(db)
     assert snap["tone"] in ("ok", "warn", "danger")
@@ -179,7 +181,9 @@ def test_gap04_push_health_contract_keys(db) -> None:
 
 
 def test_gap04_push_health_warns_when_no_admin_devices(db) -> None:
-    from porterchain_api.notification_engine.admin_service import NotificationAdminService
+    from porterchain_api.notification_engine.admin_service import (
+        NotificationAdminService,
+    )
 
     snap = NotificationAdminService().push_health(db)
     if snap["devices"]["admin_users"] == 0:
@@ -249,7 +253,7 @@ def test_gap06_canonical_chaos_matches_admin_ts() -> None:
     from porterchain_api.admin_engine.diagnostics_chaos import CANONICAL_CHAOS_SCENARIOS
 
     ts = (ROOT / "apps/admin/src/lib/diagnostics.ts").read_text(encoding="utf-8")
-    block = re.search(r"CHAOS_SCENARIOS\s*=\s*\[(.*?)]\s*as const", ts, re.S)
+    block = re.search(r"CHAOS_SCENARIOS\s*=\s*\[(.*?)]\s*as const", ts, re.DOTALL)
     assert block, "CHAOS_SCENARIOS not found in diagnostics.ts"
     admin_ids = re.findall(r'"([a-z0-9_]+)"', block.group(1))
     assert tuple(admin_ids) == CANONICAL_CHAOS_SCENARIOS

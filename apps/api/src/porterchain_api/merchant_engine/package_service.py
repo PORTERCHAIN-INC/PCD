@@ -2,22 +2,26 @@
 
 Cutover: after PACKAGES_JSON_CUTOVER, merchant cargo still may arrive in request
 JSON once, but is immediately synced to the table and re-projected onto stops
-for Fleetbase. Readers (labels/scans) always prefer the table.
+for stop payloads. Readers (labels/scans) always prefer the table.
 """
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
-from typing import Any, Sequence
+from typing import Any
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
-from porterchain_api.merchant_engine.stop_cargo import expand_item_boxes, meaningful_packages
+from porterchain_api.merchant_engine.stop_cargo import (
+    expand_item_boxes,
+    meaningful_packages,
+)
 
 # After this date, prolonged JSON+table dual SoT is anti-Dean — table wins;
-# stops[].packages exists only as a derived Fleetbase payload cache.
+# stops[].packages exists only as a derived payload cache.
 PACKAGES_JSON_CUTOVER = date(2026, 9, 26)
 
 
@@ -316,7 +320,7 @@ class PackageService:
                     db.delete(row)
 
         db.flush()
-        # Always project table → JSON so Fleetbase entities stay aligned (SoT = table).
+        # Always project table → JSON (SoT = table).
         self.project_packages_onto_stops(order, kept)
         if not dual_write_json_enabled():
             # Post-cutover: strip free-form cargo keys that aren't projected packages.

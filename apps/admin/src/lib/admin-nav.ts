@@ -1,9 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  AlertTriangle,
   Banknote,
   Bell,
   Building2,
   Calculator,
+  Gauge,
   CalendarDays,
   ClipboardList,
   Headphones,
@@ -12,6 +14,8 @@ import {
   Newspaper,
   Package,
   Phone,
+  Radio,
+  Route,
   Settings,
   Shield,
   Truck,
@@ -61,26 +65,15 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
   {
     id: "operations",
-    label: "Operations",
+    label: "Dispatch",
     items: [
-      {
-        href: "/operations",
-        label: "Control Tower",
-        description: "Dispatch board, SLA monitor, exceptions",
-        icon: Zap,
-      },
-      {
-        href: "/orders",
-        label: "Orders",
-        description: "Active deliveries and history",
-        icon: Package,
-      },
-      {
-        href: "/booking-drafts",
-        label: "Booking Drafts",
-        description: "Retail checkout drafts (ops recovery)",
-        icon: ClipboardList,
-      },
+      { href: "/dispatch/today", label: "Today", description: "Unassigned, exceptions, board", icon: Zap },
+      { href: "/dispatch/plan", label: "Plan", description: "Sequence the day, check fill, commit", icon: Route },
+      { href: "/dispatch/live", label: "Live", description: "Map and ETAs vs promise", icon: Radio },
+      { href: "/dispatch/exceptions", label: "Exceptions", description: "One queue, worst first", icon: AlertTriangle },
+      { href: "/orders", label: "Orders", description: "Active deliveries and history", icon: Package },
+      { href: "/dispatch/fleet", label: "Fleet", description: "Drivers, vehicles, capacity", icon: Truck },
+      { href: "/dispatch/metrics", label: "Metrics", description: "Speed, on-time, cost per stop", icon: Gauge },
     ],
   },
   {
@@ -94,12 +87,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Building2,
       },
       {
-        href: "/drivers",
-        label: "Drivers",
-        description: "Capacity partners and compliance",
-        icon: Truck,
-      },
-      {
         href: "/customers",
         label: "Customers",
         description: "Retail customers and booking history",
@@ -111,6 +98,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "growth",
     label: "Growth",
     items: [
+      {
+        href: "/booking-drafts",
+        label: "Booking Drafts",
+        description: "Retail checkout drafts (ops recovery)",
+        icon: ClipboardList,
+      },
       {
         href: "/leads",
         label: "Lead Workspace",
@@ -228,12 +221,16 @@ export const ALL_ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
 /** Top-level ops pages that must stay in the nav (redirects / nested details excluded). */
 export const ADMIN_TOP_LEVEL_ROUTES = [
   "/dashboard",
-  "/operations",
+  "/dispatch/today",
+  "/dispatch/plan",
+  "/dispatch/live",
+  "/dispatch/exceptions",
   "/orders",
+  "/dispatch/fleet",
+  "/dispatch/metrics",
   "/booking-drafts",
   "/claims",
   "/merchants",
-  "/drivers",
   "/customers",
   "/leads",
   "/leads/today",
@@ -260,6 +257,8 @@ function splitHref(href: string): { path: string; params: URLSearchParams } {
 /** Pathname match; when href has query params, they must match `search` (e.g. "?source=…"). */
 export function isNavActive(pathname: string, href: string, search = ""): boolean {
   const { path, params } = splitHref(href);
+  // Driver detail pages live under Dispatch → Fleet.
+  if (path === "/dispatch/fleet" && pathname.startsWith("/drivers/")) return true;
   const pathMatch = pathname === path || pathname.startsWith(`${path}/`);
   if (!pathMatch) return false;
 

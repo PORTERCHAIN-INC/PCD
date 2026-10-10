@@ -136,6 +136,5 @@ def test_auth_06_invite_existing_driver_requires_clerk() -> None:
     with patch(
         "porterchain_api.auth.invitation_service.is_clerk_secret_configured",
         return_value=False,
-    ):
-        with pytest.raises(RuntimeError, match="clerk_not_configured"):
-            InvitationService().invite_existing_driver(MagicMock(), None, settings, driver)
+    ), pytest.raises(RuntimeError, match="clerk_not_configured"):
+        InvitationService().invite_existing_driver(MagicMock(), None, settings, driver)

@@ -1,6 +1,6 @@
 """Compatibility shim — Redis last-known GPS lives in platform."""
 
-from porterchain_api.platform.last_known import *  # noqa: F403
+from porterchain_api.platform.last_known import *
 from porterchain_api.platform.last_known import (  # noqa: F401
     LastKnown,
     accumulate_shift_mileage,

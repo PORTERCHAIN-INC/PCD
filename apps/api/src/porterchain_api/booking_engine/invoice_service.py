@@ -10,10 +10,13 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.numbers import generate_invoice_number, generate_receipt_number
+from porterchain_api.booking_engine.numbers import (
+    generate_invoice_number,
+    generate_receipt_number,
+)
 from porterchain_api.booking_engine.order_transitions import transition_order_state
-from porterchain_api.domain.states import OrderState, PaymentStatus
 from porterchain_api.booking_models import Customer, Invoice, Order, Payment
+from porterchain_api.domain.states import OrderState, PaymentStatus
 
 logger = logging.getLogger(__name__)
 
@@ -99,10 +102,14 @@ class InvoiceService:
             if receipt_url and not existing.stripe_receipt_url:
                 existing.stripe_receipt_url = receipt_url
             if not existing.receipt_number:
-                from porterchain_api.admin_engine.platform_settings import receipt_number_prefix
+                from porterchain_api.admin_engine.platform_settings import (
+                    receipt_number_prefix,
+                )
 
                 existing.receipt_number = generate_receipt_number(prefix=receipt_number_prefix(db))
-            from porterchain_api.billing_engine.invoice_document import attach_invoice_document
+            from porterchain_api.billing_engine.invoice_document import (
+                attach_invoice_document,
+            )
 
             attach_invoice_document(db, existing, order, payment)
             self._fold_paid_addons(db, order)
@@ -130,7 +137,9 @@ class InvoiceService:
         )
         db.add(invoice)
         db.flush()
-        from porterchain_api.billing_engine.invoice_document import attach_invoice_document
+        from porterchain_api.billing_engine.invoice_document import (
+            attach_invoice_document,
+        )
 
         attach_invoice_document(db, invoice, order, payment)
 
@@ -195,7 +204,9 @@ class InvoiceService:
         from porterchain_api.merchant_engine.lookups import get_merchant
 
         merchant = get_merchant(db, order.merchant_id)
-        from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
+        from porterchain_api.merchant_engine.invoice_reminder import (
+            primary_billing_email,
+        )
 
         billing_email = primary_billing_email(merchant) if merchant else None
         links = _receipt_links(invoice, payment)
@@ -260,7 +271,10 @@ class InvoiceService:
         ]
 
     def detail_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> dict[str, Any]:
-        from porterchain_api.billing_engine.merchant_service import invoice_status, outstanding_cents
+        from porterchain_api.billing_engine.merchant_service import (
+            invoice_status,
+            outstanding_cents,
+        )
         from porterchain_api.billing_engine.models import InvoiceLine
         from porterchain_api.merchant_engine.lookups import get_merchant
 
@@ -377,7 +391,9 @@ class InvoiceService:
         )
         # Synchronous delivery path (Mailpit / SMTP) — do not wait on Redis worker.
         try:
-            from porterchain_api.notification_engine.event_router import handle_domain_event
+            from porterchain_api.notification_engine.event_router import (
+                handle_domain_event,
+            )
 
             handle_domain_event(
                 {

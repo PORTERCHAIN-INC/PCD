@@ -27,6 +27,7 @@ from porterchain_api.routers.auth import (
     router,
 )
 
+
 @router.get("/staff/sessions")
 async def staff_list_sessions(
     request: Request,
@@ -50,9 +51,10 @@ async def staff_security_status(
     settings: Settings = Depends(get_settings),
 ):
     """Passkey gate + recent security events for Account → Security / soft banner."""
+    from porterchain_shared.config.project_mode import runtime_posture_from_settings
+
     from porterchain_api.auth.admin import get_admin_context
     from porterchain_api.auth.staff_security_events import list_security_events
-    from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
     passkeys = list_passkeys(db, ctx.user.id)
@@ -85,7 +87,6 @@ async def staff_revoke_session(
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
     session = None
-    from porterchain_api.auth.staff_session import get_session
 
     session = get_session(session_id, touch=False)
     if session is None or session.admin_user_id != ctx.user.id:

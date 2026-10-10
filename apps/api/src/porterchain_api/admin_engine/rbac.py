@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from porterchain_api.admin_models import AdminUser
-from porterchain_api.domain.admin_states import AdminRole, PORTAL_ROLE_MAP
+from porterchain_api.domain.admin_states import PORTAL_ROLE_MAP, AdminRole
 
 
 @dataclass(frozen=True)

@@ -10,9 +10,12 @@ from porterchain_api.admin_engine.scheduled_batches_service import (
     _pickup_window,
     _stop_count,
 )
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
-from porterchain_api.domain.states import OrderState, OrderType
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Order
+from porterchain_api.domain.states import OrderState, OrderType
 
 
 def _order(**overrides) -> Order:

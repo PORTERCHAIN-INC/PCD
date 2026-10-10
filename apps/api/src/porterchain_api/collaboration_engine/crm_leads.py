@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from sqlalchemy import String, and_, case, cast, func, or_
 from sqlalchemy.orm import Session
@@ -86,7 +85,10 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             )
         if has_open_draft:
             from porterchain_api.booking_draft_models import BookingDraft
-            from porterchain_api.domain.states import BOOKING_DRAFT_TERMINAL, BookingDraftState
+            from porterchain_api.domain.states import (
+                BOOKING_DRAFT_TERMINAL,
+                BookingDraftState,
+            )
 
             terminal = {s.value for s in BOOKING_DRAFT_TERMINAL}
             open_session_ids = (

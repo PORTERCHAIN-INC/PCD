@@ -2,37 +2,23 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.crm_helpers import CrmActor
+from porterchain_api.collaboration_engine.crm_helpers import (
+    CrmActor,
+    _actor,
+)
 from porterchain_api.config import Settings
 from porterchain_api.crm_models import (
-    CrmActivity,
     CrmCompany,
     CrmContact,
     CrmContract,
-    CrmDeal,
-    CrmInvoice,
-    CrmLead,
-    CrmQuotation,
-    CrmSalesTask,
 )
 from porterchain_api.domain.crm_states import (
-    PIPELINE_STAGES,
-    STAGE_PROBABILITY,
     CompanyMerchantStatus,
-    ContractStatus,
-    DealStage,
-    LeadStatus,
-    QuotationStatus,
-    TaskStatus,
 )
-from porterchain_api.db_json import json_text, json_text_lower
-from porterchain_api.collaboration_engine.crm_helpers import _actor, _now, _today, _to_int
 
 
 class CrmContractsMixin:
@@ -87,14 +73,16 @@ class CrmContractsMixin:
 
         primary = (
             db.query(CrmContact)
-            .filter(CrmContact.company_id == company.id, CrmContact.is_primary == True)  # noqa: E712
+            .filter(CrmContact.company_id == company.id, CrmContact.is_primary == True)
             .first()
         )
         email = (primary.email if primary else None) or company.email or ""
         prefs = [company.preferred_vehicle] if company.preferred_vehicle else []
         # Prefer catalog-valid prefs only (M-6); drop unknown class rather than fail convert.
         try:
-            from porterchain_api.domain.retail_vehicles import validate_preferred_vehicles
+            from porterchain_api.domain.retail_vehicles import (
+                validate_preferred_vehicles,
+            )
 
             prefs = validate_preferred_vehicles(db, prefs)
         except ValueError:
@@ -130,7 +118,9 @@ class CrmContractsMixin:
         invitation_email = email
         if email:
             from porterchain_api.domain.merchant_states import MerchantRole
-            from porterchain_api.merchant_engine.team_service import ensure_merchant_seat
+            from porterchain_api.merchant_engine.team_service import (
+                ensure_merchant_seat,
+            )
 
             try:
                 ensure_merchant_seat(

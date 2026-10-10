@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from sqlalchemy.orm import Session
 
 from porterchain_api.platform.driver_reads import (

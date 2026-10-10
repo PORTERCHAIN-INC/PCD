@@ -2,24 +2,30 @@
 
 from fastapi.responses import RedirectResponse, Response
 
-from porterchain_api.reporting.label_service import PackagesRequired
 from porterchain_api.admin_engine.orders_service import build_admin_order_filters
-from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendError, parcel_amend_http
-from porterchain_api.reporting.pod_export import PodFetchFailed, PodUnavailable, pod_error_message
-from porterchain_api.schemas_merchant import OrderParcelsPatchRequest, OrderParcelsPatchResponse
+from porterchain_api.merchant_engine.parcel_amend_service import (
+    ParcelAmendError,
+    parcel_amend_http,
+)
+from porterchain_api.reporting.label_service import PackagesRequired
+from porterchain_api.reporting.pod_export import (
+    PodFetchFailed,
+    PodUnavailable,
+    pod_error_message,
+)
 from porterchain_api.routers.admin._deps import (
     AdminContext,
+    AdminCreateOrderRequest,
+    AdminCreateOrderResponse,
     Annotated,
     Depends,
     HTTPException,
-    AdminCreateOrderRequest,
-    AdminCreateOrderResponse,
     OrderBulkRequest,
-    OrderTemperatureRequest,
     OrderDashboardResponse,
     OrderDetail360Response,
     OrderListItem,
     OrderListPage,
+    OrderTemperatureRequest,
     Query,
     Session,
     Settings,
@@ -29,6 +35,10 @@ from porterchain_api.routers.admin._deps import (
     get_settings,
     require_module,
     router,
+)
+from porterchain_api.schemas_merchant import (
+    OrderParcelsPatchRequest,
+    OrderParcelsPatchResponse,
 )
 
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
@@ -128,7 +138,7 @@ def create_order(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> AdminCreateOrderResponse:
-    """Multi-waypoint order builder — persists rich compliance_metadata.stops for Fleetbase."""
+    """Multi-waypoint order builder — persists rich compliance_metadata.stops."""
     return AdminCreateOrderResponse(**_invoke(ctx, "orders_write", _orders.create_built, db, settings, ctx, body))
 
 
@@ -283,7 +293,7 @@ def order_labels_pdf(order_id: str, ctx: Ctx, db: Session = Depends(get_db)):
 
 @router.get("/orders/{order_id}/manifest.pdf")
 def order_manifest_pdf(order_id: str, ctx: Ctx, db: Session = Depends(get_db)):
-    """Single-order pickup list PDF (not a Fleetbase vehicle manifest)."""
+    """Single-order pickup list PDF."""
     pdf, filename = _invoke(ctx, "orders_read", _orders.manifest_pdf_required, db, order_id)
     return _attachment(pdf, filename)
 
@@ -336,8 +346,10 @@ def order_shopify_release(
     ctx: Ctx,
     db: Session = Depends(get_db),
 ) -> dict:
-    """Release a held Shopify BOOKED order to Fleetbase (DISPATCH_READY)."""
-    from porterchain_api.admin_engine.shopify_control_service import release_shopify_order_to_dispatch
+    """Release a held Shopify BOOKED order to dispatch (DISPATCH_READY)."""
+    from porterchain_api.admin_engine.shopify_control_service import (
+        release_shopify_order_to_dispatch,
+    )
 
     return _invoke(ctx, "orders_write", release_shopify_order_to_dispatch, db, ctx, order_id)
 
@@ -350,7 +362,9 @@ def order_shopify_repush_fulfillment(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     """Manually re-push Shopify fulfillment / tracking for a Shopify order."""
-    from porterchain_api.admin_engine.shopify_control_service import repush_shopify_fulfillment
+    from porterchain_api.admin_engine.shopify_control_service import (
+        repush_shopify_fulfillment,
+    )
 
     try:
         require_module(ctx, "orders_write")

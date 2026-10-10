@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from porterchain_shared.config.settings import get_platform_settings
+from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -25,8 +27,6 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
 from porterchain_api.admin_engine.settings_service import PORTERCHAIN_VERSION
 from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
-from porterchain_shared.config.settings import get_platform_settings
-from porterchain_shared.redis_health import ping_redis
 
 _HEALTH_CACHE: dict[str, Any] | None = None
 _HEALTH_CACHE_AT: float = 0.0
@@ -45,8 +45,11 @@ class DiagnosticsHealthMixin:
             from porterchain_api.auth.sli_metrics import auth_events_snapshot
 
             cached["auth_sli"] = auth_events_snapshot()
+            from porterchain_shared.config.project_mode import (
+                runtime_posture_from_settings,
+            )
+
             from porterchain_api.auth.staff_session import staff_cookie_params
-            from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
             posture = runtime_posture_from_settings(settings)
             cookie = staff_cookie_params(settings)
@@ -64,9 +67,10 @@ class DiagnosticsHealthMixin:
         _HEALTH_CACHE = payload
         _HEALTH_CACHE_AT = now
         out = dict(payload)
+        from porterchain_shared.config.project_mode import runtime_posture_from_settings
+
         from porterchain_api.auth.sli_metrics import auth_events_snapshot
         from porterchain_api.auth.staff_session import staff_cookie_params
-        from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
         posture = runtime_posture_from_settings(settings)
         cookie = staff_cookie_params(settings)
@@ -298,7 +302,8 @@ class DiagnosticsHealthMixin:
             repo / "website" / "src",
             repo / "apps" / "driver-portal" / "src",
         ]
-        forbidden = (":8000", "fleetbase_api", "FLEETBASE_API")
+        # UIs talk to the PorterChain API only — never to routing/solver/cache services.
+        forbidden = ("VALHALLA_URL", "valhalla:8002", "CUOPT", "redis://")
         hits: list[str] = []
         for root in scan_roots:
             if not root.exists():
@@ -310,11 +315,11 @@ class DiagnosticsHealthMixin:
                     except OSError:
                         continue
                     for needle in forbidden:
-                        if needle in text and "NEXT_PUBLIC_FLEETBASE" not in text:
+                        if needle in text:
                             rel = path.relative_to(repo)
                             if "system-links" in str(rel) or "diagnostics" in str(rel):
                                 continue
                             hits.append(f"{rel}: references {needle}")
-        logs = hits[:10] if hits else ["No direct Fleetbase HTTP patterns in UI sources"]
+        logs = hits[:10] if hits else ["No direct internal-service calls in UI sources"]
         status: HealthClass = "healthy" if not hits else "warning"
         return {"status": status, "violations": hits, "logs": logs, "scanned_roots": [str(r) for r in scan_roots if r.exists()]}

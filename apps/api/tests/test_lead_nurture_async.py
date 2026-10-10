@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 from porterchain_api.collaboration_engine.lead_ingest_jobs import (
     canonical_event_to_dict,
-    process_queued_lead_ingest,
 )
 from porterchain_api.collaboration_engine.lead_ingest_service import CanonicalLeadEvent
 from porterchain_api.collaboration_engine.lead_nurture import (
@@ -164,7 +163,9 @@ def test_queued_lead_ingest_roundtrip(db) -> None:
         create=True,
     ):
         # Simpler: ingest via service directly using serialized dict
-        from porterchain_api.collaboration_engine.lead_ingest_service import LeadIngestService
+        from porterchain_api.collaboration_engine.lead_ingest_service import (
+            LeadIngestService,
+        )
 
         raw = payload["events"][0]
         result = LeadIngestService().ingest(

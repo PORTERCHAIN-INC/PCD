@@ -6,7 +6,9 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 from porterchain_api.domain.catalog_labels import quote_line_label
-from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
+from porterchain_api.merchant_engine.booking_flow_service import (
+    MerchantBookingFlowService,
+)
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.quote_snapshot import (

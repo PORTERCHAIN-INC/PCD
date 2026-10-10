@@ -38,7 +38,12 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     LeadIngestService,
 )
 from porterchain_api.collaboration_engine.lead_nurture import apply_nurture_after_ingest
-from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLead, CrmSalesTask
+from porterchain_api.crm_models import (
+    CrmConversation,
+    CrmConversationMessage,
+    CrmLead,
+    CrmSalesTask,
+)
 from porterchain_api.db import get_db
 from porterchain_api.domain.crm_states import LeadStatus
 from porterchain_api.main import app
@@ -336,11 +341,7 @@ def _forbidden_hits(path: Path) -> list[str]:
     for needle in _FORBIDDEN_IMPORT_SUBSTRINGS:
         if needle in text:
             # Allow comments about "Google lead webhook" / "google_ads" channel / "google_business"
-            if needle in ("google.maps", "googlemaps", "distance_matrix", "directions_api"):
-                hits.append(needle)
-            elif needle == "firebase":
-                hits.append(needle)
-            elif needle in ("valhalla", "osrm", "vroom", "cuopt", "fleetbase", "socketcluster", "shopify"):
+            if needle in ("google.maps", "googlemaps", "distance_matrix", "directions_api") or needle == "firebase" or needle in ("valhalla", "osrm", "vroom", "cuopt", "fleetbase", "socketcluster", "shopify"):
                 hits.append(needle)
     return hits
 
@@ -588,7 +589,9 @@ class TestDetailPageApi:
 
 class TestLeadIngestSettingsPanelApi:
     def test_lead_ingest_settings_get_shape(self, admin_client) -> None:
-        from porterchain_api.admin_engine.lead_ingest_settings import lead_ingest_settings_status
+        from porterchain_api.admin_engine.lead_ingest_settings import (
+            lead_ingest_settings_status,
+        )
         from porterchain_api.config import get_settings
 
         status = lead_ingest_settings_status(get_settings())

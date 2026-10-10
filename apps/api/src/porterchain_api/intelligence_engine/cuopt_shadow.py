@@ -95,7 +95,7 @@ def run_cuopt_shadow(
                 error=reason[:500],
                 meta={"location_count": len(points)},
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.debug("cuopt usage ledger skip", exc_info=True)
         return {
             "status": "unavailable",
@@ -151,7 +151,7 @@ def run_cuopt_shadow(
                 "locations": len(points),
             },
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("cuopt usage ledger skip", exc_info=True)
     return report
 

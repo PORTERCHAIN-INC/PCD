@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from porterchain_api.admin_engine.control_tower.scoring import driver_verification_gap
 from porterchain_api.admin_engine.driver360_board import (
     health_score,
     verification_quality_bonus,
     verification_score,
 )
-from porterchain_api.admin_engine.control_tower.scoring import driver_verification_gap
 from porterchain_api.admin_models import Driver
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.driver_engine.verification_sources import (

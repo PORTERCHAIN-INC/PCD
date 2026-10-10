@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
+
 from porterchain_api.db import SessionLocal
 from porterchain_api.notification_engine.context import (
     deep_link_for,
@@ -12,10 +14,14 @@ from porterchain_api.notification_engine.context import (
     merge_notification_context,
 )
 from porterchain_api.notification_engine.engine import get_notification_engine
-from porterchain_api.notification_engine.preference_service import drop_muted_merchant_specs
+from porterchain_api.notification_engine.preference_service import (
+    drop_muted_merchant_specs,
+)
 from porterchain_api.notification_engine.route_table import specs_for_parcel
-from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
-from porterchain_shared.events.catalog import DomainEventType
+from porterchain_api.notification_engine.staff_fanout import (
+    expand_staff_specs,
+    staff_sentinel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -377,14 +383,6 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if did:
             add("driver_alert", "in_app", "driver", did, category="orders")
 
-    elif event_type == DomainEventType.FLEETBASE_STATUS_UPDATED:
-        ctx.setdefault("message", payload.get("status") or payload.get("to_state") or "Status updated")
-        if customer_id:
-            add("tracking_update", "push", "customer", customer_id)
-            add("tracking_update", "in_app", "customer", customer_id)
-        if merchant_id:
-            add("tracking_update", "in_app", "merchant", merchant_id)
-        # Terminal Fleetbase status is visible on ops board — no staff fanout.
 
     return specs
 
@@ -498,7 +496,6 @@ def register_notification_handlers() -> None:
         DomainEventType.CLAIM_OPENED,
         DomainEventType.CLAIM_RESOLVED,
         DomainEventType.SUPPORT_TICKET_CREATED,
-        DomainEventType.FLEETBASE_STATUS_UPDATED,
         DomainEventType.ORDER_TEMP_EXCURSION,
         DomainEventType.EXCEPTION_OPENED,
         DomainEventType.EXCEPTION_RESOLVED,

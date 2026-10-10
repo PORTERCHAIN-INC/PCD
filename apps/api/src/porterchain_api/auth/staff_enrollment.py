@@ -11,7 +11,6 @@ import logging
 import secrets
 import time
 from dataclasses import dataclass
-from typing import Any
 
 from porterchain_api.auth.staff_session import _client
 
@@ -54,7 +53,7 @@ def create_enrollment_token(
             max(60, ttl_seconds),
             json.dumps(payload),
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("staff_enrollment_create_failed")
         return None
     return StaffEnrollmentToken(
@@ -84,7 +83,7 @@ def peek_enrollment_token(token: str) -> StaffEnrollmentToken | None:
             role=str(data["role"]),
             expires_at=int(data["expires_at"]),
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("staff_enrollment_peek_failed", exc_info=True)
         return None
 
@@ -112,6 +111,6 @@ def consume_enrollment_token(token: str) -> StaffEnrollmentToken | None:
             role=str(data["role"]),
             expires_at=expires_at,
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("staff_enrollment_consume_failed", exc_info=True)
         return None

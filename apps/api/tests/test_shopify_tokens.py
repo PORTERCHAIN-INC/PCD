@@ -16,7 +16,10 @@ from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine import shopify_fulfillment_ops as ops
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine import shopify_tokens as tokens
-from porterchain_api.merchant_engine.shopify_admin_graphql import ShopifyAdminError, admin_graphql
+from porterchain_api.merchant_engine.shopify_admin_graphql import (
+    ShopifyAdminError,
+    admin_graphql,
+)
 from porterchain_api.merchant_models import Merchant, MerchantUser, ShopifyShop
 
 _REAL_TOKEN_REQUEST = tokens._token_request  # conftest stubs it per test

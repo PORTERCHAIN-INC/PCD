@@ -7,9 +7,6 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from porterchain_api.admin_engine.live_map_service import _density_cells
-from porterchain_api.merchant_engine.import_route_optimize import optimize_drop_order_with_source
 from porterchain_driver.next_stop import NextStopResolver
 from porterchain_driver.route_optimizer import DriverRouteOptimizer
 from porterchain_pricing.components import LocationSurchargeService
@@ -17,6 +14,11 @@ from porterchain_pricing.gta_rate import is_downtown_point, is_upper_zone_point
 from porterchain_pricing.types import GeoPoint
 from porterchain_pricing.zone import DEFAULT_ZONES, ZoneService
 from porterchain_services.maps.service import MapsService
+
+from porterchain_api.admin_engine.live_map_service import _density_cells
+from porterchain_api.merchant_engine.import_route_optimize import (
+    optimize_drop_order_with_source,
+)
 
 
 class TestH3Density:

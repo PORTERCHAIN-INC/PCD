@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_api.notification_engine.email_layout import TAGLINE, build_transactional_html
+from porterchain_api.notification_engine.email_layout import (
+    TAGLINE,
+    build_transactional_html,
+)
 
 TEMPLATE_META: dict[str, dict[str, str]] = {
     "booking_draft_created": {"category": "booking"},
@@ -631,7 +634,7 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
 
 
 # Recipient experience templates are defined centrally in customer_experience.templates.
-from porterchain_api.customer_experience.templates import CX_TEMPLATE_META, CX_TEMPLATES  # noqa: E402
+from porterchain_api.customer_experience.templates import CX_TEMPLATE_META, CX_TEMPLATES
 
 TEMPLATES.update(CX_TEMPLATES)
 TEMPLATE_META.update(CX_TEMPLATE_META)

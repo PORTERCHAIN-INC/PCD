@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import func
+from porterchain_shared.config.settings import get_platform_settings
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import (
@@ -14,9 +14,8 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
     _now_iso,
 )
 from porterchain_api.auth.clerk_registry import is_clerk_configured
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import DomainEvent
-from porterchain_shared.config.settings import get_platform_settings
+from porterchain_api.config import Settings
 
 
 class DiagnosticsWorkflowsMixin:
@@ -138,7 +137,7 @@ class DiagnosticsWorkflowsMixin:
             "checked_at": _now_iso(),
         }
     def day_plan_monitor(self, db: Session) -> dict[str, Any]:
-        """Day-plan scorecard surface (replaces retired Fleetbase sync monitor)."""
+        """Day-plan scorecard surface."""
         del db
         return {
             "engine": "porterchain",
@@ -153,12 +152,10 @@ class DiagnosticsWorkflowsMixin:
             "checked_at": _now_iso(),
         }
 
-    def fleetbase_sync_monitor(self, db: Session) -> dict[str, Any]:
-        """Deprecated alias — same payload as ``day_plan_monitor``."""
-        return self.day_plan_monitor(db)
-
     def merchant_webhook_delivery_monitor(self, db: Session) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
+        from porterchain_api.merchant_engine.webhook_delivery_health import (
+            assess_merchant_webhook_delivery,
+        )
         from porterchain_api.merchant_models import MerchantWebhookDelivery
 
         slo = assess_merchant_webhook_delivery(db)
@@ -189,7 +186,9 @@ class DiagnosticsWorkflowsMixin:
         }
 
     def execution_metrics_dashboard(self, db: Session) -> dict[str, Any]:
-        from porterchain_api.admin_engine.execution_metrics import build_execution_metrics_dashboard
+        from porterchain_api.admin_engine.execution_metrics import (
+            build_execution_metrics_dashboard,
+        )
         from porterchain_api.config import get_settings
 
         settings = get_settings()

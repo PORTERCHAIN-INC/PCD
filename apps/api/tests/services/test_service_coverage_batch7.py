@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import clerk_kind_for_user_type
+from porterchain_api.admin_engine.clerk_directory_service import (
+    clerk_kind_for_user_type,
+)
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
-from porterchain_api.merchant_engine.webhook_delivery_service import _hook_matches_event, _sign_payload
+from porterchain_api.merchant_engine.webhook_delivery_service import (
+    _hook_matches_event,
+    _sign_payload,
+)
 
 
 def test_clerk_kind_for_user_type() -> None:

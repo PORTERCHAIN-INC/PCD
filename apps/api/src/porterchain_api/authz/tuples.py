@@ -6,18 +6,21 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.driver_lookups import (
     get_driver_by_clerk,
     stamp_driver_porterchain_user_id,
 )
+from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.staff_lookups import stamp_admin_porterchain_user_id
 from porterchain_api.authz.client import AuthzClient, Relationship, get_authz_client
 from porterchain_api.authz.platform_roles import relation_for_admin_role
+from porterchain_api.booking_models import Customer
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantRole
-from porterchain_api.merchant_engine.lookups import active_seats_for_clerk, seats_for_clerk
-from porterchain_api.booking_models import Customer
+from porterchain_api.merchant_engine.lookups import (
+    active_seats_for_clerk,
+    seats_for_clerk,
+)
 from porterchain_api.user_models import PorterchainUser
 
 logger = logging.getLogger("porterchain.authz")
@@ -141,12 +144,12 @@ class TupleWriter:
         # Memory store: also wipe any leftover subject edges.
         client = self.client
         mem = getattr(client, "_memory", None)
-        if mem is not None and (client._use_memory or client._grpc is None):  # noqa: SLF001
+        if mem is not None and (client._use_memory or client._grpc is None):
             with mem.lock:
                 mem.relationships = {
                     t for t in mem.relationships if not (t[3] == "user" and t[4] == user.id)
                 }
-            return client._memory.zed_token  # noqa: SLF001
+            return client._memory.zed_token
 
         if not to_delete:
             return None

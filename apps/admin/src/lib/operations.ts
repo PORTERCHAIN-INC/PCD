@@ -139,7 +139,6 @@ export type LiveMapOrder = {
 };
 export type LiveMapDriver = {
   id: string;
-  fleetbase_driver_id: string;
   name: string;
   lat: number;
   lng: number;
@@ -183,7 +182,6 @@ export type PlaybackPoint = {
 };
 export type OrderPlayback = {
   order_id: string;
-  fleetbase_order_id?: string | null;
   points: PlaybackPoint[];
   source: string;
   message?: string;
@@ -191,7 +189,6 @@ export type OrderPlayback = {
 export type UtilizationDriver = {
   id: string;
   name: string;
-  fleetbase_driver_id: string | null;
   online: boolean;
   on_shift: boolean;
   on_break: boolean;
@@ -249,7 +246,6 @@ export type ScheduledBatchOrder = {
   stop_count: number;
   order_kind?: string | null;
   amount_cents: number;
-  fleetbase_order_id: string | null;
   pickup_window_start?: string | null;
   pickup_window_end?: string | null;
 };
@@ -379,7 +375,6 @@ export type OptimizePool = {
     tracking_number: string;
     state: string;
     order_source?: string;
-    fleetbase_order_id: string | null;
     merchant_id?: string | null;
     scheduled_at?: string | null;
     weight_kg?: number | null;

@@ -5,14 +5,27 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from sqlalchemy.orm import Session
 
-from porterchain_api.db import get_db, db_transaction
-from porterchain_api.notification_engine.device_service import DeviceService, InvalidFcmToken
+from porterchain_api.db import db_transaction, get_db
+from porterchain_api.notification_engine.device_service import (
+    DeviceService,
+    InvalidFcmToken,
+)
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.preference_service import PreferenceService
-from porterchain_api.notification_engine.principal import NotificationUser, get_notification_user
+from porterchain_api.notification_engine.principal import (
+    NotificationUser,
+    get_notification_user,
+)
 from porterchain_api.notification_engine.realtime import realtime_hub, touch_online
 from porterchain_api.notification_engine.user_settings import UserSettingsService
 from porterchain_api.schemas_notifications import (
@@ -249,7 +262,9 @@ async def notifications_ws(
     merchant_id: str | None = Query(None),
     portal: str | None = Query(None),
 ):
-    from porterchain_api.notification_engine.principal import resolve_notification_ws_user
+    from porterchain_api.notification_engine.principal import (
+        resolve_notification_ws_user,
+    )
 
     # merchant_id is the websocket twin of X-Merchant-Id — no second selector (BF).
     user = await resolve_notification_ws_user(token, merchant_id=merchant_id, portal=portal)

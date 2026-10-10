@@ -97,7 +97,10 @@ def list_jobs(
 
 
 def job_payload(job: BulkImportJob, order: Any | None = None) -> dict[str, Any]:
-    from porterchain_api.merchant_engine.parcel_amend_service import commercial_stops, parcel_amendable
+    from porterchain_api.merchant_engine.parcel_amend_service import (
+        commercial_stops,
+        parcel_amendable,
+    )
 
     cfg = dict(job.job_config or {})
     quote = cfg.get("quote")

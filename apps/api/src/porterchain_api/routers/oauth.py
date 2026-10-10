@@ -7,6 +7,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
+from porterchain_shared.redis_client import get_redis_client
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.merchant import get_merchant_context
@@ -22,7 +23,6 @@ from porterchain_api.schemas_oauth import (
     OAuthTokenRequest,
     OAuthTokenResponse,
 )
-from porterchain_shared.redis_client import get_redis_client
 
 router = APIRouter(prefix="/v1/oauth", tags=["oauth"])
 _oauth = OAuthService()

@@ -14,7 +14,9 @@ from porterchain_api.domain.catalog_labels import (
     seat_status_label,
 )
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.merchant_engine.company_file import merchant_status_label as company_file_label
+from porterchain_api.merchant_engine.company_file import (
+    merchant_status_label as company_file_label,
+)
 from porterchain_api.merchant_engine.team_service import seat_status, serialize_member
 
 

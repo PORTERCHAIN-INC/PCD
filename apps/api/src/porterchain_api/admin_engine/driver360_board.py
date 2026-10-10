@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
-from typing import Any, Callable
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_models import Claim, Driver, DriverPayout, SupportTicket, Vehicle
+from porterchain_api.admin_models import (
+    Claim,
+    Driver,
+    DriverPayout,
+    SupportTicket,
+    Vehicle,
+)
 from porterchain_api.booking_models import Order, OrderException
 from porterchain_api.crm_models import CrmActivity, CrmSalesTask
 
@@ -126,7 +133,9 @@ def ai_payload(
     maintenance = "low"
     alert_days = 30
     if db is not None:
-        from porterchain_api.admin_engine.platform_settings import document_expiry_alert_days
+        from porterchain_api.admin_engine.platform_settings import (
+            document_expiry_alert_days,
+        )
 
         alert_days = document_expiry_alert_days(db)
     soon = _now().date() + timedelta(days=alert_days)
@@ -288,7 +297,6 @@ def driver_row(svc: Any, db: Session, driver: Driver, *, light: bool = False) ->
         "vehicle_verified": driver.vehicle_verified,
         "medical_transport_certified": bool(driver.medical_transport_certified),
         "background_check_status": driver.background_check_status,
-        "fleetbase_driver_id": driver.fleetbase_driver_id,
         "docs_pending_review": _docs_pending_review(docs),
         "last_active_at": metrics["last_active_at"],
         "created_at": driver.created_at,
@@ -321,7 +329,6 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
             "ai": ai,
             "documents": _redact_data_urls(driver.documents or {}),
             "performance": driver.performance or {},
-            "fleetbase_driver_id": driver.fleetbase_driver_id,
             "dispatch": _driver_profile_status(db, driver.id),
             "assignable": len(blockers) == 0,
             "assign_blockers": blockers,

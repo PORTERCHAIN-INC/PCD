@@ -74,7 +74,7 @@ def test_two_merchants_different_engine_prices():
     merchant_a = _active_merchant(id="merchant-a")
     merchant_b = _active_merchant(id="merchant-b")
 
-    def get_merchant(model, mid):  # noqa: ARG001
+    def get_merchant(model, mid):
         return merchant_a if mid == "merchant-a" else merchant_b
 
     db.get.side_effect = get_merchant
@@ -160,7 +160,7 @@ def test_destination_affects_quote_call():
     )
     seen: list[str] = []
 
-    def fake_quote(_db, _merchant, *, pickup, dropoff, weight_kg, **_kw):  # noqa: ARG001
+    def fake_quote(_db, _merchant, *, pickup, dropoff, weight_kg, **_kw):
         seen.append(dropoff.postal or "")
         return 5200, {"final_cents": 5200}
 
@@ -332,16 +332,15 @@ def test_invalid_hmac_rejected():
     with patch(
         "porterchain_api.integrations.shopify_carrier_rates._active_shop",
         return_value=shop,
-    ):
-        with pytest.raises(PermissionError, match="invalid_hmac"):
-            carrier_service_rates(
-                db,
-                settings,
-                raw_body=b'{"rate":{}}',
-                hmac_header="not-a-valid-hmac",
-                shop_domain="acme.myshopify.com",
-                payload=_payload(),
-            )
+    ), pytest.raises(PermissionError, match="invalid_hmac"):
+        carrier_service_rates(
+            db,
+            settings,
+            raw_body=b'{"rate":{}}',
+            hmac_header="not-a-valid-hmac",
+            shop_domain="acme.myshopify.com",
+            payload=_payload(),
+        )
 
 
 def test_missing_hmac_rejected_when_secret_configured():
@@ -351,16 +350,15 @@ def test_missing_hmac_rejected_when_secret_configured():
     with patch(
         "porterchain_api.integrations.shopify_carrier_rates._active_shop",
         return_value=shop,
-    ):
-        with pytest.raises(PermissionError, match="invalid_hmac"):
-            carrier_service_rates(
-                db,
-                settings,
-                raw_body=b'{"rate":{}}',
-                hmac_header=None,
-                shop_domain="acme.myshopify.com",
-                payload=_payload(),
-            )
+    ), pytest.raises(PermissionError, match="invalid_hmac"):
+        carrier_service_rates(
+            db,
+            settings,
+            raw_body=b'{"rate":{}}',
+            hmac_header=None,
+            shop_domain="acme.myshopify.com",
+            payload=_payload(),
+        )
 
 
 def test_hmac_not_configured_rejected():
@@ -370,16 +368,15 @@ def test_hmac_not_configured_rejected():
     with patch(
         "porterchain_api.integrations.shopify_carrier_rates._active_shop",
         return_value=shop,
-    ):
-        with pytest.raises(PermissionError, match="hmac_not_configured"):
-            carrier_service_rates(
-                db,
-                settings,
-                raw_body=b"{}",
-                hmac_header=None,
-                shop_domain="acme.myshopify.com",
-                payload=_payload(),
-            )
+    ), pytest.raises(PermissionError, match="hmac_not_configured"):
+        carrier_service_rates(
+            db,
+            settings,
+            raw_body=b"{}",
+            hmac_header=None,
+            shop_domain="acme.myshopify.com",
+            payload=_payload(),
+        )
 
 
 def test_shop_webhook_secret_accepted_without_app_secret():
@@ -464,17 +461,16 @@ def test_spoofed_shop_cannot_use_other_merchant_secret():
         patch(
             "porterchain_api.integrations.shopify_carrier_rates._decrypt",
             return_value="victim_shop_secret",
-        ),
+        ),pytest.raises(PermissionError, match="invalid_hmac")
     ):
-        with pytest.raises(PermissionError, match="invalid_hmac"):
-            carrier_service_rates(
-                db,
-                settings,
-                raw_body=body,
-                hmac_header=attacker_header,
-                shop_domain="victim.myshopify.com",
-                payload=_payload(),
-            )
+        carrier_service_rates(
+            db,
+            settings,
+            raw_body=body,
+            hmac_header=attacker_header,
+            shop_domain="victim.myshopify.com",
+            payload=_payload(),
+        )
 
 
 def test_unknown_shop_rejected_after_hmac():
@@ -484,16 +480,15 @@ def test_unknown_shop_rejected_after_hmac():
     with patch(
         "porterchain_api.integrations.shopify_carrier_rates._active_shop",
         return_value=None,
-    ):
-        with pytest.raises(LookupError, match="shop_not_connected"):
-            carrier_service_rates(
-                db,
-                settings,
-                raw_body=body,
-                hmac_header=_hmac(body, settings.shopify_api_secret),
-                shop_domain="ghost.myshopify.com",
-                payload=_payload(),
-            )
+    ), pytest.raises(LookupError, match="shop_not_connected"):
+        carrier_service_rates(
+            db,
+            settings,
+            raw_body=body,
+            hmac_header=_hmac(body, settings.shopify_api_secret),
+            shop_domain="ghost.myshopify.com",
+            payload=_payload(),
+        )
 
 
 def test_quote_merchant_rate_calls_pricing_service():

@@ -9,6 +9,7 @@ from porterchain_api.admin_models import Driver
 from porterchain_api.crm_models import CrmLead
 from porterchain_api.domain.admin_states import DriverStatus
 
+
 def test_provision_pending_from_lead_is_idempotent(db, admin_ctx):
     lead = CrmLead(
         company_name="Lane Partner",

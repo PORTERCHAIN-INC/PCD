@@ -86,7 +86,6 @@ class ProfileService:
             "service_area": docs.get("service_area"),
             "province": address.get("province") or docs.get("province"),
             "city": address.get("city") or docs.get("city"),
-            "fleetbase_driver_id": driver.fleetbase_driver_id,
         }
 
     def _license_block(self, driver: Any, docs: dict) -> dict[str, Any]:

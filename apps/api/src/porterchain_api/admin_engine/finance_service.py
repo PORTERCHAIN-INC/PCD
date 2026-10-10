@@ -1,7 +1,7 @@
 """Finance Center — Application Service (masterrule §11).
 
 Financial truth lives in Porterchain (invoices, payments, ledger, payouts).
-Settlement writes go through billing_engine.SettlementService — never Fleetbase.
+Settlement writes go through billing_engine.SettlementService.
 """
 
 from __future__ import annotations
@@ -18,14 +18,31 @@ from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog
 from porterchain_api.billing_engine.ar import aging_bucket
 from porterchain_api.billing_engine.merchant_service import effective_payment_terms
-from porterchain_api.billing_engine.merchant_service import invoice_due_date as merchant_invoice_due_date
-from porterchain_api.billing_engine.merchant_service import invoice_status as merchant_invoice_status
-from porterchain_api.billing_engine.merchant_service import outstanding_cents as merchant_outstanding_cents
+from porterchain_api.billing_engine.merchant_service import (
+    invoice_due_date as merchant_invoice_due_date,
+)
+from porterchain_api.billing_engine.merchant_service import (
+    invoice_status as merchant_invoice_status,
+)
+from porterchain_api.billing_engine.merchant_service import (
+    outstanding_cents as merchant_outstanding_cents,
+)
 from porterchain_api.billing_engine.models import BillingLedgerEntry
+from porterchain_api.booking_models import (
+    Booking,
+    Customer,
+    DomainEvent,
+    Invoice,
+    Order,
+    Payment,
+    Quote,
+)
 from porterchain_api.merchant_engine.invoice_reminder import primary_ap_contact
-from porterchain_api.merchant_engine.lookups import credit_limit_cents_sum, get_merchant, company_names
-from porterchain_api.booking_models import Booking, Customer, DomainEvent, Invoice, Order, Payment, Quote
-
+from porterchain_api.merchant_engine.lookups import (
+    company_names,
+    credit_limit_cents_sum,
+    get_merchant,
+)
 
 INVOICE_STATUSES = frozenset({
     "draft",
@@ -236,7 +253,11 @@ class AdminFinanceService:
         return q
 
     def list_invoices_page(self, db: Session, filters: FinanceFilters) -> dict[str, Any]:
-        from porterchain_api.platform.pagination import MAX_LIST_LIMIT, as_page, clamp_page
+        from porterchain_api.platform.pagination import (
+            MAX_LIST_LIMIT,
+            as_page,
+            clamp_page,
+        )
 
         limit, offset = clamp_page(filters.limit, filters.offset)
         q = self._invoice_query(db, filters)

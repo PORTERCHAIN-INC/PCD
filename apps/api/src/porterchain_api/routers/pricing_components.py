@@ -14,13 +14,22 @@ prices still come from `/v1/quotes` and `/v1/merchant/booking/preview`.
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from porterchain_pricing.components import (
+    DistanceRateService,
+    FsaRateService,
+    LocationSurchargeService,
+    SizeWeightService,
+    StopFeeService,
+)
+from porterchain_pricing.components.size_weight import config_from_rate_card
+from porterchain_pricing.gta_rate import gta_rate_config_from_dict
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_engine.fsa_admin_service import FsaAdminService
+from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
-from porterchain_api.admin_engine.fsa_admin_service import FsaAdminService
-from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
 from porterchain_api.schemas_pricing import (
     ComponentResponse,
@@ -33,15 +42,6 @@ from porterchain_api.schemas_pricing import (
     SizeWeightRequest,
     StopsRequest,
 )
-from porterchain_pricing.components import (
-    DistanceRateService,
-    FsaRateService,
-    LocationSurchargeService,
-    SizeWeightService,
-    StopFeeService,
-)
-from porterchain_pricing.components.size_weight import config_from_rate_card
-from porterchain_pricing.gta_rate import gta_rate_config_from_dict
 
 router = APIRouter(prefix="/v1/pricing/components", tags=["pricing-components"])
 

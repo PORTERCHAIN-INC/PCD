@@ -8,8 +8,8 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.billing_engine.models import BillingLedgerEntry
-from porterchain_api.db import SessionLocal
 from porterchain_api.booking_models import Payment
+from porterchain_api.db import SessionLocal
 
 logger = logging.getLogger(__name__)
 

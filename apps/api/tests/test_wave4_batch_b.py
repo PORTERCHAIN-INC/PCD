@@ -21,7 +21,7 @@ def test_invoice_total_zero_safe() -> None:
 
 
 class _Claims(ClaimsQueryMixin):
-    def _row(self, db, claim):  # noqa: ANN001
+    def _row(self, db, claim):
         return {
             "id": claim.id,
             "priority": "normal",

@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from porterchain_api.booking_engine.quote_service import revalidate_quote_for_payment
 from porterchain_api.domain.states import OrderState, QuoteState
 from porterchain_api.integrations.shopify_carrier_rates import (
     _request_hash,
@@ -15,7 +16,6 @@ from porterchain_api.integrations.shopify_carrier_rates import (
     pickup_from_rate_quote,
     quote_usable_for_order,
 )
-from porterchain_api.booking_engine.quote_service import revalidate_quote_for_payment
 from porterchain_api.pricing_engine.quote_bridge import revalidate_retail_quote
 from porterchain_api.schemas_merchant import AddressInput
 
@@ -290,10 +290,9 @@ def test_revalidate_retail_quote_rejects_price_change():
         patch(
             "porterchain_api.pricing_engine.quote_bridge._request_from_quote",
             return_value=SimpleNamespace(routing_source="valhalla"),
-        ),
+        ),pytest.raises(ValueError) as exc
     ):
-        with pytest.raises(ValueError) as exc:
-            revalidate_retail_quote(db, quote)
+        revalidate_retail_quote(db, quote)
     assert str(exc.value) == "quote_price_changed:5600"
     assert quote.amount_cents == 5600
 
@@ -364,7 +363,7 @@ def test_website_fsa_list_matches_engine_including_hub_overrides():
 
     text = (_repo_root() / "website/src/lib/seo/gta150FsaCodes.ts").read_text(encoding="utf-8")
     assert "Auto-synced" not in text
-    block = re.search(r"GTA150_FSA_CODES\s*=\s*new Set<string>\(\[(.*?)\]\)", text, re.S)
+    block = re.search(r"GTA150_FSA_CODES\s*=\s*new Set<string>\(\[(.*?)\]\)", text, re.DOTALL)
     assert block
     got = set(re.findall(r'"([A-Z]\d[A-Z])"', block.group(1)))
     assert got == set(gta150_fsa_codes())

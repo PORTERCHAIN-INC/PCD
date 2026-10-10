@@ -18,11 +18,11 @@ from porterchain_api.db import get_db
 # Re-export for existing imports
 __all__ = [
     "ClerkClaims",
-    "verify_clerk_token",
+    "_sync_and_ensure",
     "get_clerk_claims",
     "get_clerk_user_id",
     "get_optional_clerk_user_id",
-    "_sync_and_ensure",
+    "verify_clerk_token",
 ]
 
 

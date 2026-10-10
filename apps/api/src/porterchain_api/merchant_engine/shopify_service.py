@@ -4,32 +4,21 @@ from __future__ import annotations
 
 import json
 import logging
-import secrets
-import time
 from datetime import UTC, datetime
 from typing import Any
-from urllib.parse import urlencode
 
 import httpx
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError
-from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac, verify_webhook_hmac
-from porterchain_api.integrations.shopify_orders import (
-    customer_slice,
-    is_canada_country,
-    line_item_slice,
-    map_shopify_order,
-    order_ids,
-    porterchain_shipping_selected,
-    quote_id_from_order,
-    shipping_address,
-    unpaid_non_cod,
+from porterchain_api.integrations.shopify_hmac import (
+    verify_oauth_hmac,
+    verify_webhook_hmac,
 )
+from porterchain_api.merchant_engine import shopify_tokens as tokens
 from porterchain_api.merchant_engine.activation_service import (
     SIGNUP_SOURCE_SHOPIFY,
     apply_signup_policy,
@@ -37,31 +26,31 @@ from porterchain_api.merchant_engine.activation_service import (
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.import_geocode import geocode_stop
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
-from porterchain_api.merchant_engine.service_area import assert_ontario_booking
-from porterchain_api.merchant_engine import shopify_tokens as tokens
-from porterchain_api.merchant_engine.shopify_urls import (
-    app_home_url,
-    callback_url,
-    carrier_rates_url,
-    fulfillment_service_url,
-    install_url,
-    is_shop_domain,
-    normalize_shop_domain,
-    oauth_configured,
-    read_oauth_state,
-    sign_oauth_state,
-    webhook_url,
+from porterchain_api.merchant_engine.secrets import (
+    decrypt_signing_secret,
+    encrypt_signing_secret,
 )
-from porterchain_api.merchant_models import Merchant, MerchantUser, SavedAddress, ShopifyShop
-from porterchain_api.booking_models import Order
-from porterchain_api.schemas_merchant import AddressInput
-
 from porterchain_api.merchant_engine.shopify_one_click import (  # noqa: F401
     connection_payload,
     go_live,
 )
-from porterchain_api.merchant_engine.shopify_session import can_rebind_shop, rates_status  # noqa: F401
+from porterchain_api.merchant_engine.shopify_session import (  # noqa: F401
+    can_rebind_shop,
+    rates_status,
+)
+from porterchain_api.merchant_engine.shopify_urls import (
+    is_shop_domain,
+    normalize_shop_domain,
+    oauth_configured,
+    read_oauth_state,
+)
+from porterchain_api.merchant_models import (
+    Merchant,
+    MerchantUser,
+    SavedAddress,
+    ShopifyShop,
+)
+from porterchain_api.schemas_merchant import AddressInput
 
 logger = logging.getLogger(__name__)
 
@@ -276,10 +265,12 @@ def _delete_partner_services(shop: ShopifyShop) -> None:
     """Drop CarrierService and FulfillmentService while the token is still valid."""
     try:
         from porterchain_api.config import get_settings
-        from porterchain_api.merchant_engine.shopify_fulfillment_service import delete_partner_services
+        from porterchain_api.merchant_engine.shopify_fulfillment_service import (
+            delete_partner_services,
+        )
 
         delete_partner_services(shop, get_settings())
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning("shopify_partner_delete_failed shop=%s", shop.shop_domain, exc_info=True)
 
 
@@ -513,7 +504,7 @@ def ingest_webhook(
                 "raw_body": raw_body.decode("utf-8"),
             },
         )
-    except Exception as exc:  # noqa: BLE001 — Shopify must not get 200 if job was dropped
+    except Exception as exc:
         logger.exception("shopify_webhook_enqueue_failed shop=%s topic=%s", shop_domain, topic_name)
         raise RuntimeError("shopify_enqueue_failed") from exc
     _remember_webhook(shop, webhook_id)
@@ -597,7 +588,9 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
         if action in {"shopify_fo_request", "shopify_fo_cancel_request"}:
             if not settings.shopify_fulfillment_service_enabled:
                 return {"ok": True, "skipped": "fo_flag_off", "action": action}
-            from porterchain_api.merchant_engine.shopify_fulfillment_service import act_on_queued_fo
+            from porterchain_api.merchant_engine.shopify_fulfillment_service import (
+                act_on_queued_fo,
+            )
 
             return act_on_queued_fo(
                 db,
@@ -607,7 +600,7 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
                 body=body,
             )
         raise ValueError(f"unknown_shopify_action:{action}")
-    except Exception as exc:  # noqa: BLE001 — persist DLQ then re-raise for worker visibility
+    except Exception as exc:
         if action in {
             "shopify_orders_create",
             "shopify_orders_updated",
@@ -630,15 +623,14 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
                         status="open",
                         payload=body,
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     logger.exception("shopify_dlq_record_failed shop=%s", shop_domain)
         raise
 
 
-from porterchain_api.merchant_engine.shopify_payload_ops import (  # noqa: E402
+from porterchain_api.merchant_engine.shopify_payload_ops import (
     _book_from_shopify_payload,
     _cancel_from_shopify_payload,
-    _cancel_shopify_fulfillment,
     _return_from_shopify_payload,
     _sync_fulfillment_order,
     _update_from_shopify_payload,
@@ -812,11 +804,7 @@ def _admin_post(
 
 
 # Re-exports — fulfillment / FO live in shopify_fulfillment_service (ENG-G2 LOC).
-from porterchain_api.merchant_engine.shopify_fulfillment_service import (  # noqa: E402
-    ingest_fulfillment_order_notification,
-    push_fulfillment,
-)
-from porterchain_api.merchant_engine import shopify_fulfillment_service as _fo  # noqa: E402
+from porterchain_api.merchant_engine import shopify_fulfillment_service as _fo
 
 
 def _post_install_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, Any]:

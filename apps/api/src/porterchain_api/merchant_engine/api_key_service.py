@@ -12,7 +12,11 @@ from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.secrets import encrypt_signing_secret
-from porterchain_api.merchant_models import MerchantApiKey, MerchantAuditLog, MerchantWebhook
+from porterchain_api.merchant_models import (
+    MerchantApiKey,
+    MerchantAuditLog,
+    MerchantWebhook,
+)
 
 
 class MerchantApiKeyService:

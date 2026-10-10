@@ -188,7 +188,9 @@ class DispatcherCopilotService:
         driver_id: str,
         modified: bool = False,
     ) -> dict[str, Any]:
-        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+        from porterchain_api.admin_engine.operations_service import (
+            AdminOperationsService,
+        )
 
         if not driver_id:
             raise ValueError("driver_id_required")
@@ -204,7 +206,7 @@ class DispatcherCopilotService:
         except ValueError as exc:
             raise ValueError(str(exc)) from exc
 
-        # Fleetbase assign is enqueued once via order.driver_assigned (no in-request HTTP).
+        # Assignment side effects fan out once via order.driver_assigned.
 
         emit_event(
             db,

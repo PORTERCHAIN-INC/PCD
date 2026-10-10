@@ -6,24 +6,54 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.merchant360_service import Merchant360Service
-from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-from porterchain_api.merchant_engine.standing_order_service import MerchantStandingOrderService
-from porterchain_api.merchant_engine.privacy import MerchantPrivacyService
 from porterchain_api.admin_engine.merchant_org import (
-    activate_users_payload, activate_webhook, after_admin_write, admin_merchant_context,
+    activate_users_payload,
+    admin_merchant_context,
+    after_admin_write,
     complete_onboarding_payload,
-    create_address, create_contact, create_linked_contract, create_recipient,
-    create_with_onboarding, delete_address, delete_billing_contact,
-    delete_contact, delete_recipient, generate_cycle_ar, list_activities,
-    list_billing_contacts, list_contacts, list_contracts, list_tasks, merge_pricing_view,
-    org_error_message, patch_billing_contact, preview_cycle_ar, pricing_view_for, raise_org_http,
-    require_detail, reserve_owner_seat, reserve_team_seat, save_billing_contact, set_default_address, subsidiaries_payload, team_member_payload,
-    timeline_for, update_address, update_contact, update_linked_contract, update_recipient,
+    create_address,
+    create_contact,
+    create_linked_contract,
+    create_recipient,
+    create_with_onboarding,
+    delete_address,
+    delete_billing_contact,
+    delete_contact,
+    delete_recipient,
+    generate_cycle_ar,
+    list_activities,
+    list_billing_contacts,
+    list_contacts,
+    list_contracts,
+    list_tasks,
+    merge_pricing_view,
+    org_error_message,
+    patch_billing_contact,
+    preview_cycle_ar,
+    pricing_view_for,
+    raise_org_http,
+    require_detail,
+    reserve_owner_seat,
+    reserve_team_seat,
+    save_billing_contact,
+    set_default_address,
+    subsidiaries_payload,
+    team_member_payload,
+    timeline_for,
+    update_address,
+    update_contact,
+    update_linked_contract,
+    update_recipient,
 )
+from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from porterchain_api.merchant_engine.privacy import MerchantPrivacyService
+from porterchain_api.merchant_engine.standing_order_service import (
+    MerchantStandingOrderService,
+)
 from porterchain_api.platform.pagination import (
     DEFAULT_LIST_LIMIT,
     DEFAULT_PAGE_SIZE,
@@ -285,7 +315,9 @@ def deactivate_merchant_standing_order(
 @router.get("/{merchant_id}/statement")
 def merchant_statement(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     def _run() -> dict:
-        from porterchain_api.merchant_engine.billing_service import MerchantBillingService
+        from porterchain_api.merchant_engine.billing_service import (
+            MerchantBillingService,
+        )
 
         mctx = admin_merchant_context(db, merchant_id, ctx)
         return MerchantBillingService().statement_summary(db, mctx)
@@ -296,7 +328,9 @@ def merchant_statement(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)
 @router.get("/{merchant_id}/credit-notes")
 def merchant_credit_notes(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> list[dict]:
     def _run() -> list[dict]:
-        from porterchain_api.merchant_engine.billing_service import MerchantBillingService
+        from porterchain_api.merchant_engine.billing_service import (
+            MerchantBillingService,
+        )
 
         mctx = admin_merchant_context(db, merchant_id, ctx)
         return MerchantBillingService().list_credit_notes(db, mctx)
@@ -312,7 +346,9 @@ def merchant_webhook_deliveries(
     db: Session = Depends(get_db),
 ) -> list[dict]:
     def _run() -> list[dict]:
-        from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
+        from porterchain_api.merchant_engine.integrations_service import (
+            MerchantIntegrationsService,
+        )
 
         mctx = admin_merchant_context(db, merchant_id, ctx)
         return MerchantIntegrationsService().webhook_history(db, mctx, webhook_id)
@@ -329,7 +365,9 @@ def merchant_webhook_delivery_retry(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     def _run() -> dict:
-        from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
+        from porterchain_api.merchant_engine.integrations_service import (
+            MerchantIntegrationsService,
+        )
 
         mctx = admin_merchant_context(db, merchant_id, ctx)
         return MerchantIntegrationsService().retry_delivery(
@@ -348,7 +386,9 @@ def merchant_api_key_rate_limit(
     db: Session = Depends(get_db),
 ) -> dict:
     def _run() -> dict:
-        from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
+        from porterchain_api.merchant_engine.integrations_service import (
+            MerchantIntegrationsService,
+        )
 
         rpm = int(body.get("rate_limit_per_minute") or 0)
         if rpm < 10:

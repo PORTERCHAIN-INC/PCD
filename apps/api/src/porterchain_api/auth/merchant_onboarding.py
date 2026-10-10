@@ -13,8 +13,8 @@ from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
 from porterchain_api.config import Settings
-from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.catalog_labels import onboarding_step_status_label
+from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_engine.company_file import (
     can_edit_company_file,
     company_file_missing,
@@ -24,17 +24,21 @@ from porterchain_api.merchant_engine.company_file import (
     signup_url,
 )
 from porterchain_api.merchant_engine.organization_sync import branding_logo_url
-from porterchain_api.merchant_engine.rbac import MerchantContext, english_role, parse_merchant_role
+from porterchain_api.merchant_engine.portal_signup import (
+    link_or_create_portal_merchant,
+    resolve_seat,
+    save_vertical,
+)
+from porterchain_api.merchant_engine.rbac import (
+    MerchantContext,
+    english_role,
+    parse_merchant_role,
+)
 from porterchain_api.merchant_engine.verticals import (
     MERCHANT_VERTICAL_SLUGS,
     VERTICAL_INDUSTRY,
     VERTICAL_LABELS,
     is_valid_merchant_vertical,
-)
-from porterchain_api.merchant_engine.portal_signup import (
-    link_or_create_portal_merchant,
-    resolve_seat,
-    save_vertical,
 )
 from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 
@@ -48,7 +52,10 @@ def resolve_merchant_contact(
 ) -> str | None:
     """Resolve Clerk-attested email only (JWT or verified Backend primary). Never DB."""
     _ = db
-    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+    from porterchain_api.auth.email_identity import (
+        normalize_email,
+        resolve_verified_clerk_email,
+    )
 
     email = normalize_email(claims.email)
     if email:
@@ -305,7 +312,9 @@ def save_merchant_vertical(
         )
 
     if attribution:
-        from porterchain_api.marketing_site.signup_attribution import stamp_signup_attribution
+        from porterchain_api.marketing_site.signup_attribution import (
+            stamp_signup_attribution,
+        )
 
         stamp_signup_attribution(merchant, attribution)
     save_vertical(db, merchant, vertical, VERTICAL_INDUSTRY.get(vertical))

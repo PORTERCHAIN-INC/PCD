@@ -2,6 +2,30 @@
 
 from __future__ import annotations
 
+from porterchain_pricing.gta_rate import (
+    customer_gta_from_dict,
+    default_customer_distance_dict,
+    default_gta_rate_config,
+    gta_rate_config_from_dict,
+    merge_merchant_gta_overlay,
+)
+from porterchain_pricing.policy import MODEL_DISTANCE, MODEL_FSA, policy_from_config
+from porterchain_pricing.rate_card import (
+    default_rate_card,
+    merge_merchant_overlay,
+    rate_card_from_dict,
+)
+from porterchain_pricing.types import (
+    ContractRecord,
+    FsaRateRecord,
+    FuelConfig,
+    PricingContext,
+    PricingRequest,
+    PromotionRecord,
+    TariffRecord,
+    TaxConfig,
+    ZoneRecord,
+)
 from sqlalchemy import inspect, or_
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
@@ -15,28 +39,8 @@ from porterchain_api.admin_models import (
     SystemConfig,
 )
 from porterchain_api.db import engine
-from porterchain_api.merchant_models import Merchant
 from porterchain_api.domain.pricing_version import VERSION_KEY, format_version
-from porterchain_pricing.gta_rate import (
-    customer_gta_from_dict,
-    default_customer_distance_dict,
-    default_gta_rate_config,
-    gta_rate_config_from_dict,
-    merge_merchant_gta_overlay,
-)
-from porterchain_pricing.policy import MODEL_DISTANCE, MODEL_FSA, policy_from_config
-from porterchain_pricing.rate_card import default_rate_card, merge_merchant_overlay, rate_card_from_dict
-from porterchain_pricing.types import (
-    ContractRecord,
-    FsaRateRecord,
-    FuelConfig,
-    PricingContext,
-    PricingRequest,
-    PromotionRecord,
-    TariffRecord,
-    TaxConfig,
-    ZoneRecord,
-)
+from porterchain_api.merchant_models import Merchant
 
 
 class SqlAlchemyPricingRepository:

@@ -11,7 +11,8 @@ from porterchain_api.routers.driver._deps import (
     get_db,
     get_driver_context,
     router,
-    svc)
+    svc,
+)
 
 
 @router.get("/vehicle")

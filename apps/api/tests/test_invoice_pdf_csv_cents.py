@@ -6,9 +6,9 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from porterchain_api.booking_models import Order
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.reporting.order_documents import build_invoice_pdf
-from porterchain_api.booking_models import Order
 
 
 def test_build_invoice_pdf_embeds_detail_cents():

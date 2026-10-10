@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.booking_engine.order_transitions import transition_order_state
+from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.booking_models import Order
 from porterchain_api.merchant_engine.toronto import parse_toronto_day_bound
 from porterchain_api.order_engine.filters import AdminOrderFilters, OrderFilters
 from porterchain_api.order_engine.platform_service import OrderPlatformService
@@ -184,7 +184,10 @@ class AdminOrdersService(OrderPlatformService):
 
     def labels_bulk_pdf(self, db: Session, order_ids: list[str]) -> tuple[bytes, str] | None:
         from porterchain_api.merchant_engine.lookups import company_name
-        from porterchain_api.reporting.label_service import LabelService, PackagesRequired
+        from porterchain_api.reporting.label_service import (
+            LabelService,
+            PackagesRequired,
+        )
 
         cleaned = [oid.strip() for oid in order_ids if oid and oid.strip()]
         if not cleaned or len(cleaned) > 100:
@@ -270,7 +273,9 @@ class AdminOrdersService(OrderPlatformService):
         settings: Settings | None = None,
     ) -> dict:
         from porterchain_api.merchant_engine.lookups import get_merchant
-        from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendService
+        from porterchain_api.merchant_engine.parcel_amend_service import (
+            ParcelAmendService,
+        )
 
         order = self.get_order(db, order_id)
         if not order:
@@ -302,7 +307,7 @@ class AdminOrdersService(OrderPlatformService):
         if not order:
             raise LookupError("order_not_found")
         target = OrderState(to_state)
-        # Only CANCELLED fans out to Fleetbase via ORDER_CANCELLED subscribers.
+        # Only CANCELLED fans out via ORDER_CANCELLED subscribers.
         event_type = (
             "order.cancelled" if target == OrderState.CANCELLED else "order.admin_override"
         )
@@ -326,7 +331,9 @@ class AdminOrdersService(OrderPlatformService):
         *,
         driver_id: str | None = None,
     ) -> list[dict[str, str]]:
-        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+        from porterchain_api.admin_engine.operations_service import (
+            AdminOperationsService,
+        )
 
         ops = AdminOperationsService()
         results: list[dict[str, str]] = []
@@ -386,7 +393,9 @@ class AdminOrdersService(OrderPlatformService):
         return self.require_pdf(self.labels_bulk_pdf(db, order_ids))
 
     def create_built(self, db: Session, settings: Settings, ctx: AdminContext, body) -> dict:
-        from porterchain_api.admin_engine.order_builder_service import OrderBuilderService
+        from porterchain_api.admin_engine.order_builder_service import (
+            OrderBuilderService,
+        )
 
         return OrderBuilderService().create(db, settings, ctx, body)
 
@@ -400,7 +409,9 @@ class AdminOrdersService(OrderPlatformService):
     def record_admin_temperature(
         self, db: Session, settings: Settings, ctx: AdminContext, order_id: str, celsius: float
     ) -> dict:
-        from porterchain_api.booking_engine.medical_compliance import MedicalComplianceService
+        from porterchain_api.booking_engine.medical_compliance import (
+            MedicalComplianceService,
+        )
 
         return MedicalComplianceService().record_temperature(
             db, settings, order_id, celsius=celsius, actor_type="admin", actor_id=ctx.user.id

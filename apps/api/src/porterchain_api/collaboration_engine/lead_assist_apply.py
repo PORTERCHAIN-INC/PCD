@@ -8,7 +8,12 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.collaboration_engine.crm_service import CrmSalesService
-from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLead, CrmSalesTask
+from porterchain_api.crm_models import (
+    CrmConversation,
+    CrmConversationMessage,
+    CrmLead,
+    CrmSalesTask,
+)
 
 
 class LeadAssistBlocked(Exception):

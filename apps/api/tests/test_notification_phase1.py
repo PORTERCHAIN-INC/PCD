@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import uuid
 
+from porterchain_shared.events.catalog import DomainEventType
+
 from porterchain_api.admin_models import AdminUser
-from porterchain_api.notification_engine.context import hydrate_order_context, merge_notification_context
+from porterchain_api.notification_engine.context import (
+    hydrate_order_context,
+    merge_notification_context,
+)
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.event_router import _specs_for_event
 from porterchain_api.notification_engine.staff_fanout import (
@@ -13,7 +18,6 @@ from porterchain_api.notification_engine.staff_fanout import (
     roles_for_topic,
     staff_sentinel,
 )
-from porterchain_shared.events.catalog import DomainEventType
 
 
 def test_roles_for_topic_ops_includes_dispatcher() -> None:
@@ -52,21 +56,6 @@ def test_driver_assigned_specs_include_customer_when_hydrated() -> None:
     # Ops already sees assignment on the board. Do not also page staff.
     assert all(s["recipient_id"] != staff_sentinel("ops") for s in specs)
     assert all(s["recipient_id"] != "system" for s in specs)
-
-
-def test_fleetbase_status_specs_need_customer_id() -> None:
-    thin = _specs_for_event(DomainEventType.FLEETBASE_STATUS_UPDATED, {"status": "IN_TRANSIT"})
-    assert thin == []
-    covered = _specs_for_event(
-        DomainEventType.FLEETBASE_STATUS_UPDATED,
-        {"customer_id": "c1", "status": "IN_TRANSIT", "to_state": "IN_TRANSIT"},
-    )
-    assert covered == []
-    rich = _specs_for_event(
-        DomainEventType.FLEETBASE_STATUS_UPDATED,
-        {"customer_id": "c1", "status": "AT_WAREHOUSE", "to_state": "AT_WAREHOUSE"},
-    )
-    assert any(s["channel"] == "push" and s["recipient_type"] == "customer" for s in rich)
 
 
 def test_exception_opened_specs() -> None:

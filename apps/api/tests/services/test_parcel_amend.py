@@ -7,7 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
+from porterchain_api.booking_models import Order
 from porterchain_api.domain.merchant_states import BulkImportStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.parcel_amend_service import (
@@ -18,8 +22,9 @@ from porterchain_api.merchant_engine.parcel_amend_service import (
     commercial_stops,
     parcel_amendable,
 )
-from porterchain_api.merchant_engine.route_import_service import MerchantRouteImportService
-from porterchain_api.booking_models import Order
+from porterchain_api.merchant_engine.route_import_service import (
+    MerchantRouteImportService,
+)
 
 
 def _stop(seq: int, kind: str, formatted: str, lat: float, lng: float, *, weight: float = 2) -> dict:

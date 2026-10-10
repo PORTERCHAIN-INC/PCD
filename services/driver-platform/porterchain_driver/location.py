@@ -81,8 +81,7 @@ class LocationService:
                 recorded_at=stamp,
                 accuracy_m=accuracy_m,
                 heading=heading,
-                speed_mps=speed_mps,
-                fleetbase_driver_id=getattr(driver, "fleetbase_driver_id", None))
+                speed_mps=speed_mps)
             shift_id = _active_shift_id(db, driver.id)
             if shift_id:
                 accumulate_shift_mileage(

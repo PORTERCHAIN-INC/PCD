@@ -41,7 +41,7 @@ class DriverBonus(Base):
 
 
 class DriverLocationPing(Base):
-    """DEPRECATED as live-GPS SoT — Fleetbase owns positions.
+    """DEPRECATED as live-GPS SoT — last-known Redis is the registry.
 
     Rows may still be written for nav fallbacks; never treat as execution authority.
     Follow-up: stop INSERT → FB last-known → drop table (Dean slice, evidence-gated).

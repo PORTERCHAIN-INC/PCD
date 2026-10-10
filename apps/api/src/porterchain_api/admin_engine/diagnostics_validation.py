@@ -5,6 +5,9 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from porterchain_shared.config.settings import get_platform_settings
+from porterchain_shared.queue.publisher import queue_depths
+from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
@@ -20,11 +23,8 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
     _probe_http,
     _test_result,
 )
-from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order
-from porterchain_shared.config.settings import get_platform_settings
-from porterchain_shared.queue.publisher import queue_depths
-from porterchain_shared.redis_health import ping_redis
+from porterchain_api.config import Settings
 
 
 class DiagnosticsValidationMixin:
@@ -92,7 +92,7 @@ class DiagnosticsValidationMixin:
                     or probe.get("warnings", [])
                     or [f"Valhalla probe OK ({host or 'configured'})"]
                 )
-            elif test_id in ("dispatch", "vroom", "fleetbase", "fleetbase_adapter", "fleetbase_console"):
+            elif test_id in ("dispatch", "vroom"):
                 probe = self._probe_day_plan(settings, live=True)
                 status = probe["status"]
                 details = probe.get("details", {}) or {}
@@ -147,8 +147,12 @@ class DiagnosticsValidationMixin:
             elif test_id == "notification_engine":
                 from datetime import UTC, datetime, timedelta
 
-                from porterchain_api.notification_engine.admin_service import NotificationAdminService
-                from porterchain_api.notification_engine.models import NotificationRecord
+                from porterchain_api.notification_engine.admin_service import (
+                    NotificationAdminService,
+                )
+                from porterchain_api.notification_engine.models import (
+                    NotificationRecord,
+                )
 
                 dash = NotificationAdminService().dashboard(db)
                 cutoff = datetime.now(UTC) - timedelta(hours=24)
@@ -304,7 +308,7 @@ class DiagnosticsValidationMixin:
         violations.append(
             {
                 "type": "policy",
-                "message": "Direct Fleetbase calls from UI forbidden — verify via code review (masterrule §3)",
+                "message": "UIs call the PorterChain API only — no direct routing/solver/cache calls (masterrule §3)",
                 "severity": "info",
             }
         )

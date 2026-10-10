@@ -13,13 +13,17 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_pricing.components.fsa import (
+    fsa_from_point,
+    is_ontario_fsa,
+    normalize_fsa,
+)
+from porterchain_pricing.gta150_fsa import is_gta150_fsa
+from porterchain_pricing.types import GeoPoint
 from sqlalchemy.orm import Session
 
 from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
-from porterchain_pricing.components.fsa import fsa_from_point, is_ontario_fsa, normalize_fsa
-from porterchain_pricing.gta150_fsa import is_gta150_fsa
-from porterchain_pricing.types import GeoPoint
 
 
 def fsa_from_address(addr: AddressInput | None) -> str:

@@ -51,11 +51,14 @@ def eta_payload_is_close(payload: dict[str, Any], limit_minutes: int = 120) -> b
 
 
 def process_order_event(db: Session, settings: Any, event_type: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    from porterchain_api.customer_experience.context import merchant_for
     from porterchain_api.customer_experience.notifications import notify
     from porterchain_api.customer_experience.reattempt import record_failure
-    from porterchain_api.customer_experience.route_position import driver_run, stops_ahead
+    from porterchain_api.customer_experience.route_position import (
+        driver_run,
+        stops_ahead,
+    )
     from porterchain_api.customer_experience.settings import cx_for_merchant
-    from porterchain_api.customer_experience.context import merchant_for
 
     order_id = payload.get("order_id")
     if event_type not in CX_EVENTS or not order_id:

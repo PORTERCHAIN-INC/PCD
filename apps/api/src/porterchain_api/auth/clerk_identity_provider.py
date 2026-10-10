@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import HTTPException
 import httpx
 import jwt
+from fastapi import HTTPException
 from jwt import PyJWK, PyJWTError
 
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk_registry import clerk_jwks_urls
-from porterchain_api.auth.dev import allow_auth_dev_bypass, dev_claims_for, resolve_dev_portal
+from porterchain_api.auth.dev import (
+    allow_auth_dev_bypass,
+    dev_claims_for,
+    resolve_dev_portal,
+)
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.config import Settings
 
@@ -156,7 +160,9 @@ async def verify_clerk_token(
             _enforce_token_policy(payload, settings)
             claims = _claims_from_payload(payload, clerk_app=clerk_app)
             # Default Clerk session JWTs omit email — resolve verified primary via Backend API.
-            from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
+            from porterchain_api.auth.email_identity import (
+                enrich_claims_with_verified_email,
+            )
 
             return enrich_claims_with_verified_email(claims, settings)
         except HTTPException:

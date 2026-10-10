@@ -164,7 +164,9 @@ def test_carrier_input_is_active_with_service_discovery() -> None:
     settings = _settings()
     with patch(f"{_GQL}.admin_graphql") as gql:
         gql.return_value = {"carrierServiceCreate": {"carrierService": {"id": _GID}, "userErrors": []}}
-        from porterchain_api.merchant_engine.shopify_admin_graphql import carrier_service_create
+        from porterchain_api.merchant_engine.shopify_admin_graphql import (
+            carrier_service_create,
+        )
 
         assert carrier_service_create("demo.myshopify.com", "tok", settings, callback_url=_CALLBACK) == _GID
     variables = gql.call_args.args[4]

@@ -193,7 +193,7 @@ export default function OrderDetailView({
                 <Meta label="Draft #" value={detail.booking_draft_number || "—"} mono />
                 <Meta
                   label="Status"
-                  value={String(detail.status_sync?.pc_state ?? detail.state ?? "—")}
+                  value={String(detail.state ?? "—")}
                 />
                 <Meta label="Driver" value={detail.driver_name || "Unassigned"} />
                 <Meta label="Vehicle" value={detail.vehicle_label || "—"} />

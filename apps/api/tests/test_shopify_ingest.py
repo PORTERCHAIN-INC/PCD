@@ -2,9 +2,15 @@
 
 from datetime import UTC, datetime
 
-from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac, verify_webhook_hmac
+from porterchain_api.integrations.shopify_hmac import (
+    verify_oauth_hmac,
+    verify_webhook_hmac,
+)
 from porterchain_api.integrations.shopify_orders import map_shopify_order
-from porterchain_api.merchant_engine.shopify_service import is_shop_domain, normalize_shop_domain
+from porterchain_api.merchant_engine.shopify_service import (
+    is_shop_domain,
+    normalize_shop_domain,
+)
 from porterchain_api.schemas_merchant import AddressInput
 
 

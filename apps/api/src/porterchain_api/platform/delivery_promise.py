@@ -36,6 +36,6 @@ def checkout_promise(
         if not cfg:
             return None
         return compute_delivery_promise(cfg, now=now or datetime.now(UTC), dest_fsa=dest_fsa)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning("delivery_promise_unavailable", exc_info=True)
         return None

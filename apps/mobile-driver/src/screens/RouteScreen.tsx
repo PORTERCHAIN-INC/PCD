@@ -11,6 +11,7 @@ import { Screen, DEV_MENU_GUTTER } from "../ui/Screen";
 import { StatusRail } from "../ui/StatusRail";
 import { PodCapture, type PodDraft } from "../ui/PodCapture";
 import { FieldOpsPanel } from "../ui/FieldOpsPanel";
+import { DispatchStopPanel } from "../ui/DispatchStopPanel";
 import { RouteControls } from "../ui/RouteControls";
 import { ENFORCE_DROP_POD, podMissing } from "../hooks/completeStopAction";
 import { capturePodPhotoDataUrl } from "../pod";
@@ -122,6 +123,7 @@ export function RouteScreen({
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        <DispatchStopPanel />
         <View style={styles.identity}>
           <Text style={styles.hello}>Hello, {name}</Text>
           <Text style={[styles.duty, handshake.online ? styles.on : styles.off]}>{duty}</Text>

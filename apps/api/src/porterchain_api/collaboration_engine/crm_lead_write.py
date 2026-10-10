@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from sqlalchemy.orm import Session
 
 from porterchain_api.collaboration_engine.crm_helpers import CrmActor, _actor, _now
@@ -121,7 +119,9 @@ class CrmLeadWriteMixin:
         db.refresh(lead)
         if "status" in data and data["status"] != prev_status:
             if data["status"] in ("converted", "unqualified"):
-                from porterchain_api.collaboration_engine.lead_scoring import clear_score_priors_cache
+                from porterchain_api.collaboration_engine.lead_scoring import (
+                    clear_score_priors_cache,
+                )
 
                 clear_score_priors_cache()
             self.log_activity(

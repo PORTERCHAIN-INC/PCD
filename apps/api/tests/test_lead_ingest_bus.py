@@ -11,7 +11,11 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     normalize_phone_e164,
 )
 from porterchain_api.crm_models import CrmLead, CrmLeadIdentity
-from porterchain_api.domain.crm_states import LeadIdentityKind, LeadSourceChannel, channel_for_source
+from porterchain_api.domain.crm_states import (
+    LeadIdentityKind,
+    LeadSourceChannel,
+    channel_for_source,
+)
 
 
 def test_normalize_phone_nanp() -> None:
