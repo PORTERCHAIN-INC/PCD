@@ -451,24 +451,23 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
             {toast.text}
           </p>
         ) : null}
+        {!shops.length && !keys.length && !hooks.length ? (
+          <div className="mt-4 border-t border-primary/10 pt-4">
+            <Empty
+              icon={<PlugZap className="h-6 w-6" aria-hidden />}
+              title="Nothing connected yet"
+              hint="The merchant connects Shopify or creates API keys from their portal. You can send them a Shopify install link."
+              action={
+                canMutate ? (
+                  <PrimaryAction onClick={() => setInstall({ shop: "" })}>
+                    Send Shopify install link
+                  </PrimaryAction>
+                ) : undefined
+              }
+            />
+          </div>
+        ) : null}
       </Panel>
-
-      {!shops.length && !keys.length && !hooks.length ? (
-        <Panel>
-          <Empty
-            icon={<PlugZap className="h-6 w-6" aria-hidden />}
-            title="Nothing connected yet"
-            hint="The merchant connects Shopify or creates API keys from their portal. You can send them a Shopify install link."
-            action={
-              canMutate ? (
-                <PrimaryAction onClick={() => setInstall({ shop: "" })}>
-                  Send Shopify install link
-                </PrimaryAction>
-              ) : undefined
-            }
-          />
-        </Panel>
-      ) : null}
 
       {shops.length > 0 && (
         <Group icon={<ShoppingBag className="h-4 w-4" aria-hidden />} title="Shopify">

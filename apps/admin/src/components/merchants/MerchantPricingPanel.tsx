@@ -145,9 +145,11 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted">
-          Overrides the platform defaults for this merchant only. Merchant-scoped contract tariffs,
-          when present, still take precedence over FSA and Distance here.
+        <p
+          className="text-sm text-muted"
+          title="Merchant-scoped contract tariffs, when present, still take precedence over FSA and Distance here."
+        >
+          This merchant&apos;s overrides. Contracts win when present.
         </p>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Button
@@ -164,60 +166,6 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
       </div>
 
       {message && <p className="text-sm text-secondary">{message}</p>}
-
-      <SectionCard title="Templates">
-        <div className="space-y-4 p-5 text-sm">
-          <div>
-            <p className="font-medium text-primary">Kaylulu commercial schedule</p>
-            <p className="mt-1 text-xs text-muted">
-              Loads PDF schedule (T1–T3 mins, Milton pickup, compact, fsa_miss=refuse) and A3
-              handling tiers (Standard / Tier 1–2 / Tier 3 custom). Does not overwrite FSA flats.
-            </p>
-            <Button
-              variant="outline"
-              className="mt-2 text-xs"
-              disabled={templateBusy !== null}
-              onClick={() => void applyKaylulu()}
-            >
-              {templateBusy === "kaylulu" ? "Applying…" : "Apply Kaylulu template"}
-            </Button>
-          </div>
-          <div className="border-t border-primary/5 pt-4">
-            <p className="font-medium text-primary">Clone from another merchant</p>
-            <p className="mt-1 text-xs text-muted">
-              Copies pricing model, schedule, size tiers, and surcharges. Optionally replace FSA
-              rows too.
-            </p>
-            <div className="mt-2 flex flex-wrap items-end gap-2">
-              <label className="text-xs text-muted">
-                Source merchant id
-                <input
-                  className="mt-1 block w-72 rounded-lg border border-primary/15 bg-white px-3 py-2 text-sm text-primary"
-                  value={cloneSourceId}
-                  onChange={(e) => setCloneSourceId(e.target.value)}
-                  placeholder="uuid"
-                />
-              </label>
-              <label className="flex items-center gap-2 text-xs text-primary">
-                <input
-                  type="checkbox"
-                  checked={cloneIncludeFsa}
-                  onChange={(e) => setCloneIncludeFsa(e.target.checked)}
-                />
-                Include FSA rows
-              </label>
-              <Button
-                variant="outline"
-                className="text-xs"
-                disabled={templateBusy !== null}
-                onClick={() => void cloneFrom()}
-              >
-                {templateBusy === "clone" ? "Cloning…" : "Clone pricing"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
 
       {data?.card && (
         <SectionCard title="What this merchant sees">
@@ -339,6 +287,62 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
         </Link>
         .
       </p>
+      <details className="rounded-2xl border border-primary/10 bg-white">
+        <summary className="cursor-pointer px-5 py-3 text-sm font-semibold text-primary">
+          Templates · apply Kaylulu or clone another merchant
+        </summary>
+        <div className="space-y-4 p-5 text-sm">
+          <div>
+            <p className="font-medium text-primary">Kaylulu commercial schedule</p>
+            <p className="mt-1 text-xs text-muted">
+              Loads PDF schedule (T1–T3 mins, Milton pickup, compact, fsa_miss=refuse) and A3
+              handling tiers (Standard / Tier 1–2 / Tier 3 custom). Does not overwrite FSA flats.
+            </p>
+            <Button
+              variant="outline"
+              className="mt-2 text-xs"
+              disabled={templateBusy !== null}
+              onClick={() => void applyKaylulu()}
+            >
+              {templateBusy === "kaylulu" ? "Applying…" : "Apply Kaylulu template"}
+            </Button>
+          </div>
+          <div className="border-t border-primary/5 pt-4">
+            <p className="font-medium text-primary">Clone from another merchant</p>
+            <p className="mt-1 text-xs text-muted">
+              Copies pricing model, schedule, size tiers, and surcharges. Optionally replace FSA
+              rows too.
+            </p>
+            <div className="mt-2 flex flex-wrap items-end gap-2">
+              <label className="text-xs text-muted">
+                Source merchant id
+                <input
+                  className="mt-1 block w-72 rounded-lg border border-primary/15 bg-white px-3 py-2 text-sm text-primary"
+                  value={cloneSourceId}
+                  onChange={(e) => setCloneSourceId(e.target.value)}
+                  placeholder="uuid"
+                />
+              </label>
+              <label className="flex items-center gap-2 text-xs text-primary">
+                <input
+                  type="checkbox"
+                  checked={cloneIncludeFsa}
+                  onChange={(e) => setCloneIncludeFsa(e.target.checked)}
+                />
+                Include FSA rows
+              </label>
+              <Button
+                variant="outline"
+                className="text-xs"
+                disabled={templateBusy !== null}
+                onClick={() => void cloneFrom()}
+              >
+                {templateBusy === "clone" ? "Cloning…" : "Clone pricing"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
   );
 }

@@ -109,28 +109,30 @@ export function MerchantHero({
         <Num label="Revenue · 30 d" value={cad(revenue30dCents)} hint={`${orders30d} orders`} />
       </dl>
 
-      <div className="flex flex-col gap-4 rounded-3xl bg-primary px-5 py-5 text-white sm:flex-row sm:items-center sm:px-6">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold tracking-[0.18em] text-white/70 uppercase">
-            Next action
-          </p>
-          <p className="mt-1 text-lg font-bold sm:text-xl">{h.next_action}</p>
-          {ops.needs_labels.length > 0 ? (
-            <p className="mt-1 text-sm text-white/75">{ops.needs_labels.join(" · ")}</p>
+      {(target || ops.needs_labels.length > 0) && (
+        <div className="flex flex-col gap-4 rounded-3xl bg-primary px-5 py-5 text-white sm:flex-row sm:items-center sm:px-6">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-white/70 uppercase">
+              Next action
+            </p>
+            <p className="mt-1 text-lg font-bold sm:text-xl">{h.next_action}</p>
+            {ops.needs_labels.length > 0 ? (
+              <p className="mt-1 text-sm text-white/75">{ops.needs_labels.join(" · ")}</p>
+            ) : null}
+          </div>
+          {target ? (
+            <button
+              type="button"
+              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-bold shadow-sm hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
+              // Inline colour: an unlayered `button { color }` rule in the shared CSS beats utilities here.
+              style={{ color: "var(--primary, #0a1628)" }}
+              onClick={() => onGo(target.tab, target.panel)}
+            >
+              Do it now <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
           ) : null}
         </div>
-        {target ? (
-          <button
-            type="button"
-            className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-bold shadow-sm hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
-            // Inline colour: an unlayered `button { color }` rule in the shared CSS beats utilities here.
-            style={{ color: "var(--primary, #0a1628)" }}
-            onClick={() => onGo(target.tab, target.panel)}
-          >
-            Do it now <ArrowRight className="h-4 w-4" aria-hidden />
-          </button>
-        ) : null}
-      </div>
+      )}
     </div>
   );
 }

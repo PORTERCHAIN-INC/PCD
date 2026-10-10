@@ -1,5 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  MapPin,
+  Route,
+  ScrollText,
   Activity,
   Building2,
   Car,
@@ -75,6 +78,9 @@ export const SECTION_ICONS: Record<string, LucideIcon> = {
   vehicles: Car,
   pricing: Tags,
   coverage: Globe,
+  carriage: ScrollText,
+  route_pricing: Route,
+  driver_gps: MapPin,
   booking: Package,
   finance: CreditCard,
   documents: FileText,
@@ -105,6 +111,9 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
     "API rate limits from Doppler/env. Staff sessions from IdP; portal passwords from Clerk.",
   vehicles:
     "Quote vehicle catalog. Enabled flags gate retail quotes. Physical fleet is PorterChain.",
+  carriage: "Conditions of Carriage — waiting, returns, claims, coverage; contracts override.",
+  driver_gps: "Live driver GPS — global switch and per-driver overrides.",
+  route_pricing: "Smart route coefficients with a live current-vs-new preview.",
   pricing: "GTA matrix, FSA, liftgate/weight card, tax, and fuel — quotes use these immediately.",
   coverage:
     "Active service cities gate retail quotes (empty = unrestricted). Zones remain ops notes.",

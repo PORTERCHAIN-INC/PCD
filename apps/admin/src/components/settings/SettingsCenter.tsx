@@ -2,10 +2,19 @@
 
 import CarriageTermsPanel from "@/components/settings/CarriageTermsPanel";
 import RoutePricingPanel from "@/components/settings/RoutePricingPanel";
+import DriverGpsPanel from "@/components/settings/DriverGpsPanel";
 import { startTransition, useCallback, useEffect, useMemo, useOptimistic, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Download, RefreshCw, Search, Settings2, Upload } from "lucide-react";
+import {
+  AlertTriangle,
+  Download,
+  MoreHorizontal,
+  RefreshCw,
+  Search,
+  Settings2,
+  Upload,
+} from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import AdminPage from "@/components/layout/AdminPage";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -90,6 +99,7 @@ export default function SettingsCenter() {
 
   const [tab, setTab] = useState(() => resolveSection(searchParams.get("section")));
   const [search, setSearch] = useState("");
+  const [navOpen, setNavOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -249,34 +259,41 @@ export default function SettingsCenter() {
 
   return (
     <AdminPage>
-      <div className="relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-white via-white to-secondary/5 px-4 py-5 shadow-sm sm:px-6 sm:py-6">
-        <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10">
-              <Settings2 className="h-6 w-6 text-secondary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-primary">Settings</h1>
-              <p className="text-sm text-muted">
-                Commercial catalog, access, and connection status
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void refetch()}>
-              <RefreshCw className="h-4 w-4" /> Refresh
-            </Button>
-            <Button variant="outline" onClick={() => void handleExport()}>
-              <Download className="h-4 w-4" /> Export
-            </Button>
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4" /> Import
-            </Button>
-          </div>
+      <header className="flex flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">
+            Administration
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-primary">Settings</h1>
         </div>
-      </div>
-
-      <MasterruleCallout />
+        <details className="relative">
+          <summary
+            className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-primary/10 bg-white text-primary"
+            aria-label="More settings actions"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </summary>
+          <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl border border-primary/10 bg-white p-2 shadow-xl">
+            {[
+              { label: "Refresh", icon: RefreshCw, run: () => void refetch() },
+              { label: "Export configuration", icon: Download, run: () => void handleExport() },
+              { label: "Import configuration", icon: Upload, run: () => setImportOpen(true) },
+            ].map((m) => (
+              <button
+                key={m.label}
+                type="button"
+                onClick={m.run}
+                className="flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-left text-sm text-primary hover:bg-primary/5"
+              >
+                <m.icon className="h-4 w-4" /> {m.label}
+              </button>
+            ))}
+            <div className="mt-2 border-t border-primary/10 px-1 pt-2 text-xs">
+              <MasterruleCallout />
+            </div>
+          </div>
+        </details>
+      </header>
 
       {toast && (
         <p className="rounded-xl border border-secondary/20 bg-secondary/5 px-3 py-2 text-sm text-primary">
@@ -323,7 +340,7 @@ export default function SettingsCenter() {
           }}
           onFocus={() => setSearchActive(true)}
           onBlur={() => window.setTimeout(() => setSearchActive(false), 150)}
-          placeholder="Search settings — SLA, downtown, vehicles, dispatch…"
+          placeholder="Search every setting — SLA, downtown, liftgate, waiting time…"
           className="w-full rounded-xl border border-primary/10 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
         />
         {searchActive && search.length >= 2 && (
@@ -370,26 +387,32 @@ export default function SettingsCenter() {
         </aside>
 
         <main className="min-w-0 flex-1">
-          <select
-            value={tab}
-            onChange={(e) => selectTab(e.target.value)}
-            className="mb-4 min-h-11 w-full rounded-xl border border-primary/10 bg-white px-3 py-2.5 text-sm lg:hidden"
+          <button
+            type="button"
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((v) => !v)}
+            className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-primary/10 bg-white px-3 text-left text-sm font-semibold text-primary lg:hidden"
           >
-            {paintCenter?.sections.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-
-          <div className="mb-4 flex items-center gap-2 text-xs text-muted lg:hidden">
             <ActiveIcon className="h-4 w-4 text-secondary" />
-            {activeSection?.label ?? tab}
-          </div>
+            <span className="flex-1 truncate">{activeSection?.label ?? tab}</span>
+            <span className="text-xs font-medium text-muted">{navOpen ? "Close" : "Sections"}</span>
+          </button>
+          {navOpen && paintCenter?.sections && (
+            <div className="mb-3 rounded-2xl border border-primary/10 bg-white p-3 lg:hidden">
+              <SettingsSidebar
+                sections={paintCenter.sections}
+                activeId={tab}
+                onSelect={(id) => {
+                  setNavOpen(false);
+                  selectTab(id);
+                }}
+              />
+            </div>
+          )}
 
           <div
             key={tab}
-            className="min-w-0 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-4 shadow-sm sm:p-5 md:p-6 lg:p-8"
+            className="min-w-0 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-4 sm:p-6"
           >
             <SectionRouter
               tab={tab}
@@ -458,6 +481,7 @@ function SectionRouter({
 
   if (tab === "carriage") return <CarriageTermsPanel />;
   if (tab === "route_pricing") return <RoutePricingPanel />;
+  if (tab === "driver_gps") return <DriverGpsPanel />;
   if (tab === "lead_ingest") {
     return <LeadIngestPanel />;
   }
