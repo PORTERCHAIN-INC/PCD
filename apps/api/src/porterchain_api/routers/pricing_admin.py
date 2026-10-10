@@ -12,6 +12,7 @@ from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_pricing import PointInput, SimulateQuoteRequest, SimulateQuoteResponse
+from porterchain_pricing.margin import distance_outlier, margin_check
 from porterchain_pricing.types import PricingRequest
 
 router = APIRouter(prefix="/v1/pricing", tags=["pricing"])
@@ -44,12 +45,14 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
     pickup = (body.pickup or _DEFAULT_PICKUP).to_geo()
     dropoff = (body.dropoff or _DEFAULT_DROPOFF).to_geo()
     distance_meters = body.distance_meters
+    route_seconds = None
     if not body.use_typed_distance and pickup.lat is not None and dropoff.lat is not None:
         from porterchain_api.services.routing import resolve_route_distance
 
         routed, _seconds, _source = resolve_route_distance(pickup, dropoff)
         if routed is not None:
             distance_meters = routed
+            route_seconds = _seconds
     channel = "merchant" if body.merchant_id else (body.channel or "retail")
     request = PricingRequest(
         pickup=pickup,
@@ -85,4 +88,16 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
         items=list(api.get("items") or []),
         metadata=meta,
         what_won=_what_won(meta),
+        margin=margin_check(
+            int(api["subtotal_cents"]),
+            distance_meters,
+            duration_seconds=route_seconds,
+            pickups=body.total_pickups or 1,
+            drops=body.total_drops or 1,
+        ).as_dict(),
+        distance_flag=distance_outlier(
+            distance_meters,
+            (pickup.lat, pickup.lng) if pickup.lat is not None else None,
+            (dropoff.lat, dropoff.lng) if dropoff.lat is not None else None,
+        ),
     )

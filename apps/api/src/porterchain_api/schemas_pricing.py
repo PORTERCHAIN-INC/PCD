@@ -120,3 +120,5 @@ class SimulateQuoteResponse(BaseModel):
     items: list[dict[str, Any]]
     metadata: dict[str, Any]
     what_won: str
+    margin: dict[str, Any] | None = None
+    distance_flag: str | None = None
