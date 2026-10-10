@@ -120,6 +120,15 @@ def merge_consent_safe(
     inc = dict(incoming or {})
     if not inc:
         return base
+    if (
+        inc.get("method") == "form_checkbox"
+        and inc.get("marketing") is False
+        and base.get("marketing") is True
+    ):
+        # An unticked box on a later form is not a withdrawal of earlier consent.
+        inc.pop("marketing", None)
+        for key in ("text", "text_version", "legal_basis", "captured_at", "source"):
+            inc.pop(key, None)
 
     upgrading = base.get("marketing") is False and inc.get("marketing") is True
     suppressed = is_suppressed(db, email=email, phone=phone)

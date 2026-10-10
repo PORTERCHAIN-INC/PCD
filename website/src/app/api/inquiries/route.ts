@@ -6,14 +6,19 @@ export async function POST(request: Request) {
     const body = await request.json();
     const apiKey = (process.env.PUBLIC_INGEST_API_KEY ?? "").trim();
     const apiBase = getPorterchainApiBase();
+    // Per-IP rate limit + CASL evidence need the visitor's IP, not this server's.
+    const forwardedFor =
+      request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "";
 
     const res = await fetch(`${apiBase}/v1/public/inquiries`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(apiKey ? { "X-Ingest-Key": apiKey } : {}),
+        ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
       },
       body: JSON.stringify(body),
+      cache: "no-store",
     });
 
     if (!res.ok) {

@@ -186,9 +186,10 @@ export default function LeadsTodayClient() {
     <AdminPage>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Today Dial</h1>
-          <p className="text-sm text-muted">
-            Ready · follow-ups · interested — outbound vendor packs
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary">Call list</h1>
+          <p className="text-sm text-slate-600">
+            Who to call today: ready, follow-ups and interested
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

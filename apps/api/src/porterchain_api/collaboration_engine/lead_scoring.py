@@ -67,7 +67,7 @@ def compute_score_priors(db: Session) -> ScorePriors:
             CrmLead.decision_status,
         )
         .filter(
-            (CrmLead.status.in_(("converted", "unqualified")))
+            (CrmLead.status.in_(("won", "lost")))
             | (CrmLead.decision_status.in_(("converted", "lost")))
         )
         .all()
@@ -83,8 +83,8 @@ def compute_score_priors(db: Session) -> ScorePriors:
     total = 0
 
     for channel, intent_type, source, status, decision_status in leads:
-        pos = status == "converted" or decision_status == "converted"
-        neg = status == "unqualified" or decision_status == "lost"
+        pos = status == "won" or decision_status == "converted"
+        neg = status == "lost" or decision_status == "lost"
         if not pos and not neg:
             continue
         total += 1

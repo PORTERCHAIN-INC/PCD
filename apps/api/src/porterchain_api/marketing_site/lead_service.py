@@ -15,7 +15,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.lead_consent import casl_evidence
+from porterchain_api.collaboration_engine.lead_consent import form_consent_evidence
 from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
@@ -86,7 +86,12 @@ def validate_lead(body: CalculatorLeadRequest) -> dict[str, Any]:
 
 
 def submit_calculator_lead(
-    db: Session, body: CalculatorLeadRequest, *, min_fill_seconds: int = 2, auto_outreach: bool = False
+    db: Session,
+    body: CalculatorLeadRequest,
+    *,
+    min_fill_seconds: int = 2,
+    auto_outreach: bool = False,
+    ip: str | None = None,
 ) -> dict[str, Any]:
     if is_probably_bot(body, min_fill_seconds=min_fill_seconds):
         logger.info("calculator lead dropped (spam signal)")
@@ -112,11 +117,12 @@ def submit_calculator_lead(
         }.items()
         if v not in (None, "")
     }
-    consent = casl_evidence(
-        {"marketing": bool(body.marketing_consent)},
+    consent = form_consent_evidence(
+        marketing=bool(body.marketing_consent),
         source=SOURCE,
-        actor="lead",
-        force_marketing=bool(body.marketing_consent),
+        ip=ip,
+        locale=getattr(body, "locale", None),
+        page=(body.source_page or body.landing_page or None),
     )
     external_ids = {"visitor_session": custom_fields["visitor_id"]} if custom_fields.get("visitor_id") else {}
     result = _ingest.ingest(
@@ -131,7 +137,8 @@ def submit_calculator_lead(
             email=clean["email"],
             phone=clean["phone"],
             intent_type=LeadIntentType.MERCHANT.value,
-            priority=LeadPriority.MEDIUM.value,
+            # A visitor who priced a lane and left contact details is a hot lead.
+            priority=LeadPriority.HIGH.value,
             status=LeadStatus.NEW.value,
             tags=["calculator", clean["industry"]],
             custom_fields=custom_fields,

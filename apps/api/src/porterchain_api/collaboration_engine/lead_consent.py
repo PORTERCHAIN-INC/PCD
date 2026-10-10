@@ -11,6 +11,21 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 CASL_TEXT_VERSION = "casl_v1_marketing"
+# Express-consent checkbox shown (unchecked) on every website form. The server
+# records this canonical wording, never text supplied by the browser.
+CASL_FORM_TEXT_VERSION = "casl_v2_form_marketing"
+CASL_FORM_TEXT = {
+    "en": (
+        "Yes, send me PorterChain delivery news, offers and tips by email. "
+        "I can unsubscribe at any time. PorterChain Logistics Inc., Toronto ON, sales@porterchain.com"
+    ),
+    "fr": (
+        "Oui, envoyez-moi par courriel les nouvelles, offres et conseils de livraison de PorterChain. "
+        "Je peux me désabonner en tout temps. PorterChain Logistics Inc., Toronto ON, sales@porterchain.com"
+    ),
+}
+# Cookie-banner (CMP) choices govern cookies/tags only — never CASL email consent.
+CMP_SOURCES = frozenset({"website_cmp", "cmp", "cookie_banner"})
 _BOOL_KEYS = ("marketing", "sms", "whatsapp", "analytics", "experience")
 LEGAL_BASIS_VALUES = frozenset({"consent", "legitimate_interest", "contract"})
 
@@ -29,6 +44,13 @@ def casl_evidence(
     ``legal_basis`` maps GDPR Art.6 / PIPEDA purpose: consent | legitimate_interest | contract.
     """
     data = dict(raw or {})
+    if str(data.get("source") or "").strip().lower() in CMP_SOURCES:
+        # A cookie-banner "marketing" toggle is not express consent to email.
+        data.pop("marketing", None)
+        data.pop("sms", None)
+        data.pop("whatsapp", None)
+        data.pop("source", None)
+        data.pop("text_version", None)
     out: dict[str, Any] = {}
     for key in _BOOL_KEYS:
         if key in data:
@@ -58,6 +80,42 @@ def casl_evidence(
     elif out.get("terms_accepted") or out.get("privacy_accepted"):
         out.setdefault("legal_basis", "contract")
 
+    return out
+
+
+def form_consent_evidence(
+    *,
+    marketing: bool,
+    source: str,
+    ip: str | None = None,
+    locale: str | None = None,
+    page: str | None = None,
+    contact_consent: bool | None = None,
+) -> dict[str, Any]:
+    """Consent bag from an explicit, unchecked-by-default form checkbox.
+
+    Records the canonical text + version, timestamp, IP and page so the CASL
+    evidence stands on its own. ``marketing`` False is stored explicitly.
+    """
+    loc = "fr" if (locale or "").lower().startswith("fr") else "en"
+    out: dict[str, Any] = {
+        "marketing": bool(marketing),
+        "source": source,
+        "actor": "lead",
+        "method": "form_checkbox",
+        "text_version": CASL_FORM_TEXT_VERSION,
+        "captured_at": datetime.now(UTC).isoformat(),
+        "locale": loc,
+    }
+    if marketing:
+        out["text"] = CASL_FORM_TEXT[loc]
+        out["legal_basis"] = "consent"
+    if ip:
+        out["ip"] = str(ip)[:64]
+    if page:
+        out["page"] = str(page)[:512]
+    if contact_consent is not None:
+        out["contact_consent"] = bool(contact_consent)
     return out
 
 
@@ -118,7 +176,11 @@ def commit_unsubscribe(db: Session, lead: Any) -> None:
 
 
 __all__ = [
+    "CASL_FORM_TEXT",
+    "CASL_FORM_TEXT_VERSION",
     "CASL_TEXT_VERSION",
+    "CMP_SOURCES",
+    "form_consent_evidence",
     "LEGAL_BASIS_VALUES",
     "apply_unsubscribe",
     "casl_evidence",

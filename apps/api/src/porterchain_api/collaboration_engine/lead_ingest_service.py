@@ -55,6 +55,17 @@ def normalize_phone_e164(phone: str | None, *, default_region: str = "CA") -> st
     return f"+{digits}"
 
 
+# Providers whose external_event_id is a real message id (thread idempotency).
+_THREADED_PROVIDERS = frozenset(
+    {
+        "meta_messaging_whatsapp_business_account",
+        "meta_messaging_page",
+        "meta_messaging_instagram",
+        "email_inbound",
+    }
+)
+
+
 @dataclass
 class CanonicalLeadEvent:
     channel: str
@@ -137,6 +148,7 @@ class LeadIngestService(LeadIngestResolveMixin):
         merged = False
 
         custom = dict(event.custom_fields or {})
+        custom.pop("message_meta", None)
         for k, v in (event.attribution or {}).items():
             if v is not None and v != "":
                 custom.setdefault(k, v)
@@ -221,7 +233,22 @@ class LeadIngestService(LeadIngestResolveMixin):
         self._stamp_visitor_spine(lead, event)
 
         if event.seed_conversation and event.message:
-            self._seed_message(db, lead, channel=channel, body=event.message)
+            self._seed_message(
+                db,
+                lead,
+                channel=channel,
+                body=event.message,
+                external_message_id=(
+                    event.external_event_id if event.provider in _THREADED_PROVIDERS else None
+                ),
+                metadata=event.custom_fields.get("message_meta") if event.custom_fields else None,
+            )
+            if not event.quiet:
+                # Unified inbox: a person wrote to us and is waiting on a human.
+                lead.awaiting_reply = True
+                lead.last_inbound_at = now
+                if lead.status == LeadStatus.ARCHIVED.value:
+                    lead.status = LeadStatus.NEW.value
 
         evt_id = str(uuid.uuid4())
         ingest = CrmLeadIngestEvent(
@@ -253,6 +280,9 @@ class LeadIngestService(LeadIngestResolveMixin):
             )
 
             notify_unassigned_high_priority(db, lead)
+            from porterchain_api.collaboration_engine.lead_ops import notify_hot_lead
+
+            notify_hot_lead(db, lead, created=created)
 
         if created and not event.quiet and not event.skip_outreach:
             from porterchain_api.collaboration_engine.lead_nurture import (

@@ -17,6 +17,9 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "lead_outbound_followup": {"category": "crm"},
     "lead_outbound_quote_invite": {"category": "crm"},
     "lead_sla_escalation": {"category": "crm"},
+    "lead_new_hot": {"category": "crm"},
+    "lead_staff_reply": {"category": "crm"},
+    "newsletter_confirm": {"category": "crm"},
     "quote_created": {"category": "booking"},
     "order_created": {"category": "orders"},
     "order_booked": {"category": "orders"},
@@ -134,6 +137,19 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "{quote_url}\n\n"
             "Unsubscribe: {unsubscribe_url}\n"
             "— PorterChain"
+        ),
+    },
+    "lead_new_hot": {
+        "subject": "{title}",
+        "body": "{message}\nSource: {source} / {channel}\n{quick_actions}\nOpen: {deep_link}",
+    },
+    "lead_staff_reply": {"subject": "{subject}", "body": "{message}"},
+    "newsletter_confirm": {
+        "subject": "Confirm your PorterChain newsletter subscription",
+        "body": (
+            "Please confirm you want PorterChain delivery news by email:\n{confirm_url}\n\n"
+            "If you didn't ask for this, ignore this email and you won't hear from us.\n"
+            "PorterChain Logistics Inc., Toronto ON"
         ),
     },
     "lead_sla_escalation": {

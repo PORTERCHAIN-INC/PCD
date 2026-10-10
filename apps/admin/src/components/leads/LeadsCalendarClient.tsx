@@ -95,8 +95,9 @@ export default function LeadsCalendarClient() {
           >
             <ArrowLeft className="h-4 w-4" /> Back to leads
           </Link>
-          <h1 className="text-2xl font-bold text-primary">Lead calendar</h1>
-          <p className="text-sm text-muted">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary">Calendar</h1>
+          <p className="text-sm text-slate-600">
             Calls and meetings — each item opens Lead 360 for that lead.
           </p>
         </div>

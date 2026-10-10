@@ -18,7 +18,8 @@ export default async function LeadAttributionPage({
     <div className="space-y-6 p-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Lead attribution</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary">Attribution</h1>
           <p className="text-sm text-slate-600">
             Where leads come from: source, industry, postal area (FSA) and UTM campaign.
           </p>

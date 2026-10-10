@@ -97,6 +97,7 @@ export const DomainEvents = {
 
   // CRM
   LEAD_CREATED: "lead.created",
+  NEWSLETTER_CONFIRM_REQUESTED: "newsletter.confirm_requested",
 } as const;
 
 export type DomainEventName = (typeof DomainEvents)[keyof typeof DomainEvents];

@@ -39,7 +39,7 @@
     "emailPlaceholder": "Courriel professionnel",
     "subscribe": "S'abonner",
     "subscribing": "Inscription…",
-    "subscribed": "Inscription confirmée. Merci.",
+    "subscribed": "Presque terminé — cliquez sur le lien reçu par courriel pour confirmer.",
     "newsletterError": "Impossible de s'inscrire. Réessayez."
   },
   "category": {

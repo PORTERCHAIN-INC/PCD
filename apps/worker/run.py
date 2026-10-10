@@ -21,6 +21,7 @@ _last_shopify_sync_retry_at = 0.0
 _last_compliance_expiry_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
+_last_lead_inbound_email_at = 0.0
 _last_lead_archive_at = 0.0
 _last_shopify_retention_at = 0.0
 _last_lead_agent_at = 0.0
@@ -33,6 +34,7 @@ WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
+LEAD_INBOUND_EMAIL_INTERVAL_SECONDS = 120
 LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS = 86400
 SHOPIFY_RETENTION_INTERVAL_SECONDS = 86400
 LEAD_AGENT_INTERVAL_SECONDS = 180
@@ -332,6 +334,41 @@ def _drain_lead_sla_escalation() -> int:
     return int(result.get("notified", 0))
 
 
+def _drain_lead_inbound_email() -> int:
+    """Zoho sales@ IMAP → lead threads (only when LEAD_INBOUND_IMAP_ENABLED)."""
+    global _last_lead_inbound_email_at
+    now = time.monotonic()
+    if now - _last_lead_inbound_email_at < LEAD_INBOUND_EMAIL_INTERVAL_SECONDS:
+        return 0
+    _last_lead_inbound_email_at = now
+
+    from porterchain_api.collaboration_engine.lead_email_inbound import (
+        imap_configured,
+        poll_imap_once,
+    )
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+
+    settings = get_settings()
+    if not imap_configured(settings):
+        return 0
+    try:
+        with SessionLocal() as db:
+            result = poll_imap_once(db, settings, limit=25)
+    except Exception:  # noqa: BLE001 — mailbox outage must not stop the worker
+        logger.exception("lead inbound email poll failed")
+        return 0
+    if result.get("fetched"):
+        logger.info(
+            "lead inbound email: fetched=%s ingested=%s skipped=%s failed=%s",
+            result.get("fetched", 0),
+            result.get("ingested", 0),
+            result.get("skipped", 0),
+            result.get("failed", 0),
+        )
+    return int(result.get("ingested", 0))
+
+
 def _drain_delivery_sla() -> int:
     """Emit order.delayed and sla.breached once when an open order misses its promise."""
     global _last_delivery_sla_at
@@ -494,6 +531,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_lead_nurture()
                 processed += _drain_lead_agent()
                 processed += _drain_lead_sla_escalation()
+                processed += _drain_lead_inbound_email()
                 processed += _drain_delivery_sla()
                 processed += _drain_lead_soft_archive()
                 processed += _drain_shopify_buyer_retention()

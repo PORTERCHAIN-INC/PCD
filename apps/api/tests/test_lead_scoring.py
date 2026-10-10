@@ -104,4 +104,5 @@ def test_crm_score_lead_writes_breakdown():
     score = CrmLeadsMixin.score_lead(obj)  # type: ignore[arg-type]
     assert 0 <= score <= 100
     assert isinstance(obj.custom_fields, dict)
-    assert obj.custom_fields.get("_score", {}).get("method") == "heuristic"
+    assert obj.custom_fields.get("_score", {}).get("method") == "fit-v1"
+    assert obj.custom_fields["_score"]["reasons"]

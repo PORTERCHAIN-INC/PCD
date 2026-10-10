@@ -13,7 +13,7 @@ from porterchain_api.db import get_db
 from porterchain_api.marketing_site.config import get_marketing_site, public_marketing_config
 from porterchain_api.marketing_site.estimate_service import estimate_price
 from porterchain_api.marketing_site.lead_service import submit_calculator_lead
-from porterchain_api.marketing_site.rate_limit import enforce_public_limit
+from porterchain_api.marketing_site.rate_limit import client_ip, enforce_public_limit
 from porterchain_api.routers.public_ingest_auth import verify_public_ingest_key
 from porterchain_api.marketing_site.schemas import (
     CalculatorLeadRequest,
@@ -80,6 +80,7 @@ def post_calculator_lead(
             body,
             min_fill_seconds=int(cfg["min_fill_seconds"]),
             auto_outreach=bool(cfg.get("auto_outreach")),
+            ip=client_ip(request),
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

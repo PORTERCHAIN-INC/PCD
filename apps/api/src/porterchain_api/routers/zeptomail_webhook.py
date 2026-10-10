@@ -10,6 +10,7 @@ from fastapi import Depends
 
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
+from porterchain_api.platform.secret_compare import secrets_match
 from porterchain_api.notification_engine.bounce import (
     extract_bounced_addresses,
     is_bounce_event,
@@ -27,7 +28,10 @@ def zeptomail_event(
 ) -> dict[str, int | bool]:
     settings = get_settings()
     secret = (getattr(settings, "zeptomail_webhook_secret", None) or "").strip()
-    if secret and (x_porterchain_mail_webhook or "").strip() != secret:
+    if not secret:
+        # Fail closed: an unset secret must not let anyone mark addresses bounced.
+        raise HTTPException(status_code=503, detail="mail_webhook_not_configured")
+    if not secrets_match(x_porterchain_mail_webhook, secret):
         raise HTTPException(status_code=401, detail="mail_webhook_unauthorized")
     if not is_bounce_event(body):
         return {"ok": True, "bounced": 0}

@@ -116,7 +116,7 @@ def test_convert_merchant_and_retail_and_driver_branches(db) -> None:
     assert out.get("company_id")
     assert out.get("deal_id")
     db.refresh(merchant_lead)
-    assert merchant_lead.status == "converted"
+    assert merchant_lead.status == "won"
 
     retail = CrmLead(
         company_name=f"Retail {suffix}",
@@ -143,7 +143,7 @@ def test_convert_merchant_and_retail_and_driver_branches(db) -> None:
     )
     db.refresh(retail)
     assert retail.intent_type == "retail_customer"
-    assert retail.status == "converted"
+    assert retail.status == "won"
 
     driver = CrmLead(
         company_name=f"Driver {suffix}",
@@ -264,7 +264,7 @@ def test_e2e_smoke_inquiry_assist_convert(db) -> None:
     converted = crm.convert_lead(db, ctx, lead.id, create_deal=True)
     assert converted.get("company_id")
     db.refresh(lead)
-    assert lead.status == "converted"
+    assert lead.status == "won"
     assert lead.company_id == converted["company_id"]
 
 

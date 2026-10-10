@@ -102,7 +102,8 @@ def test_agent_vendor_no_whatsapp_blast(db) -> None:
     )
     db.add(lead)
     db.commit()
-    result = run_lead_agent(db, lead, trigger="test")
+    # force=True exercises the gates; auto-send itself is off by default now.
+    result = run_lead_agent(db, lead, trigger="test", force=True)
     enrich = result["channels"]["enrich"]
     assert enrich["status"] in ("queued", "skipped", "not_found", "no_website") or enrich.get(
         "reason"

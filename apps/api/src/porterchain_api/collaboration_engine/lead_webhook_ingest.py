@@ -54,7 +54,8 @@ def process_inbound_lead_events(
             elif result.merged:
                 merged += 1
             ch = (event.channel or "").lower()
-            if ch == "whatsapp" or (event.source or "").lower() == "whatsapp":
+            wa_on = bool(getattr(settings, "whatsapp_cloud_enabled", False))
+            if wa_on and (ch == "whatsapp" or (event.source or "").lower() == "whatsapp"):
                 from porterchain_api.collaboration_engine.lead_agent import (
                     maybe_auto_reply_after_ingest,
                 )

@@ -51,6 +51,7 @@ export const LOCALE_APP_SECTIONS = new Set([
   "industry",
   "integrations",
   "login",
+  "newsletter",
   "onboarding-education",
   "page-not-found",
   "pickup-truck-delivery",

@@ -234,7 +234,12 @@ class TestAdminLeadsFilesystem:
         nav = (ADMIN_SRC / "lib/admin-nav.ts").read_text(encoding="utf-8")
         assert 'href: "/leads"' in nav
         assert 'href: "/leads/pipeline"' in nav
-        assert 'href: "/leads/calendar"' in nav
+        # Sales nav is lean (Inbox / Pipeline / Call list); Calendar, Lead Agent and
+        # Attribution stay one click away in the Inbox "More" menu.
+        assert 'href: "/leads/today"' in nav
+        inbox = (ADMIN_SRC / "components/leads/LeadsListClient.tsx").read_text(encoding="utf-8")
+        for href in ('href="/leads/calendar"', 'href="/leads/agent"'):
+            assert href in inbox
         assert "DRIVER_LEAD_SOURCE" in nav
         assert "website_driver_partner" in nav
 
@@ -565,7 +570,7 @@ class TestDetailPageApi:
             json={"status": "contacted", "internal_notes": f"note-{s}"},
         )
         assert patched.status_code == 200
-        assert patched.json()["status"] == "contacted"
+        assert patched.json()["status"] == "replied"  # legacy name normalized
 
     def test_convert_and_referral_credits_endpoint(self, admin_client, db) -> None:
         s = _suffix()

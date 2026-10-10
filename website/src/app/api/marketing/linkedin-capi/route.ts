@@ -14,14 +14,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
 
-  const webhook = (process.env.MARKETING_EVENT_WEBHOOK_URL ?? "").trim();
-  if (webhook) {
-    await fetch(webhook, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source: "linkedin_capi_stub", payload }),
-    }).catch(() => undefined);
-  }
-
-  return NextResponse.json({ ok: true, forwarded: Boolean(webhook) });
+  // Stub: never relay arbitrary JSON to third-party URLs (was an open relay).
+  void payload;
+  return NextResponse.json({ ok: true, forwarded: false });
 }

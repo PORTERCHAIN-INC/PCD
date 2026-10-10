@@ -68,3 +68,22 @@ def _no_live_shopify_token_calls(monkeypatch):
         raise shopify_tokens.ShopifyTokenError(None, "tests_offline")
 
     monkeypatch.setattr(shopify_tokens, "_token_request", _offline)
+
+
+@pytest.fixture(autouse=True)
+def _reset_public_form_rate_limits():
+    """Public form limits are per IP; every TestClient shares one IP.
+
+    Clear the marketing buckets before each test so unrelated tests don't
+    trip each other's 3-per-minute window. Tests of the limiter itself
+    monkeypatch ``check_fixed_window`` directly.
+    """
+    try:
+        from porterchain_shared.redis_client import get_redis_client
+
+        client = get_redis_client()
+        for key in client.scan_iter("porterchain:ratelimit:marketing_public:*", count=500):
+            client.delete(key)
+    except Exception:  # noqa: BLE001 — Redis optional for unit tests
+        pass
+    yield

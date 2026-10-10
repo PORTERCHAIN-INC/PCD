@@ -2,37 +2,26 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, time, timedelta
-from typing import Any
-
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.crm_helpers import CrmActor
-from porterchain_api.config import Settings
-from porterchain_api.crm_models import (
-    CrmActivity,
-    CrmCompany,
-    CrmContact,
-    CrmContract,
-    CrmDeal,
-    CrmInvoice,
-    CrmLead,
-    CrmQuotation,
-    CrmSalesTask,
+from porterchain_api.collaboration_engine.crm_helpers import (
+    CrmActor,
+    _actor,
+    _now,
 )
+from porterchain_api.crm_models import (
+    CrmCompany,
+    CrmDeal,
+    CrmLead,
+)
+from porterchain_api.db_json import json_text_lower
 from porterchain_api.domain.crm_states import (
     PIPELINE_STAGES,
     STAGE_PROBABILITY,
-    ContractStatus,
     DealStage,
     LeadStatus,
-    QuotationStatus,
-    TaskStatus,
 )
-from porterchain_api.db_json import json_text, json_text_lower
-from porterchain_api.collaboration_engine.crm_helpers import _actor, _now, _today, _to_int
-
 
 
 class CrmDealsMixin:
@@ -78,18 +67,21 @@ class CrmDealsMixin:
         return columns
 
     # Lead status → pipeline column for the unified acquisition board.
+    # Five-stage lead pipeline → board column. (The old dict listed enum aliases
+    # that now share a value, so "replied" silently landed in one column and
+    # "quoted" fell back to Prospecting.)
     LEAD_STATUS_TO_STAGE = {
         LeadStatus.NEW.value: DealStage.PROSPECTING.value,
-        LeadStatus.CONTACTED.value: DealStage.PROSPECTING.value,
-        LeadStatus.QUALIFIED.value: DealStage.QUALIFIED.value,
-        LeadStatus.NURTURING.value: DealStage.QUALIFIED.value,
-        LeadStatus.UNQUALIFIED.value: DealStage.LOST.value,
+        LeadStatus.REPLIED.value: DealStage.QUALIFIED.value,
+        LeadStatus.QUOTED.value: DealStage.QUOTE_SENT.value,
+        LeadStatus.LOST.value: DealStage.LOST.value,
     }
     # Reverse: dropping a lead into one of these columns just updates its status.
     STAGE_TO_LEAD_STATUS = {
-        DealStage.PROSPECTING.value: LeadStatus.CONTACTED.value,
-        DealStage.QUALIFIED.value: LeadStatus.QUALIFIED.value,
-        DealStage.LOST.value: LeadStatus.UNQUALIFIED.value,
+        DealStage.PROSPECTING.value: LeadStatus.NEW.value,
+        DealStage.QUALIFIED.value: LeadStatus.REPLIED.value,
+        DealStage.QUOTE_SENT.value: LeadStatus.QUOTED.value,
+        DealStage.LOST.value: LeadStatus.LOST.value,
     }
     LEAD_CARD_CAP = 50
 
@@ -171,6 +163,8 @@ class CrmDealsMixin:
             leads_q = db.query(CrmLead).filter(
                 CrmLead.status != LeadStatus.CONVERTED.value,
                 CrmLead.status != LeadStatus.ARCHIVED.value,
+                # Driver applicants are not sales opportunities.
+                func.coalesce(CrmLead.intent_type, "") != "driver_partner",
             )
             if min_value_cents:
                 leads_q = leads_q.filter(
@@ -214,8 +208,7 @@ class CrmDealsMixin:
                             and lead.sla_first_response_due_at < _now()
                             and lead.status == LeadStatus.NEW.value
                         ),
-                        "nurture": lead.status == LeadStatus.NURTURING.value
-                        or any("nurture" in str(t).lower() for t in (lead.tags or [])),
+                        "nurture": any("nurture" in str(t).lower() for t in (lead.tags or [])),
                     }
                 )
             else:

@@ -105,3 +105,4 @@ class DomainEventType(StrEnum):
 
     # CRM
     LEAD_CREATED = "lead.created"
+    NEWSLETTER_CONFIRM_REQUESTED = "newsletter.confirm_requested"

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Mail, ArrowRight } from "lucide-react";
-import { submitInquiry } from "@/lib/submit-inquiry";
+import { subscribeNewsletter } from "@/lib/submit-inquiry";
+import MarketingConsentCheckbox from "@/components/forms/MarketingConsentCheckbox";
+import { useFormGuard } from "@/components/forms/useFormGuard";
 
 /** The only interactive part of the footer — kept as a small client island. */
 export default function FooterNewsletter() {
@@ -12,6 +14,9 @@ export default function FooterNewsletter() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
+  const locale = useLocale();
+  const { guardFields, honeypotField } = useFormGuard();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,13 +25,11 @@ export default function FooterNewsletter() {
     setLoading(true);
     setError(null);
     try {
-      await submitInquiry({
+      await subscribeNewsletter({
         email: value,
-        source: "website",
         source_page: "/footer-newsletter",
-        form: "newsletter",
-        inquiry_type: "newsletter",
-        message: "Newsletter subscription from site footer",
+        locale,
+        ...guardFields(),
       });
       setDone(true);
       setEmail("");
@@ -45,7 +48,7 @@ export default function FooterNewsletter() {
       </div>
       <form
         onSubmit={onSubmit}
-        className="flex w-full max-w-md flex-col gap-2 sm:w-auto sm:flex-row"
+        className="relative flex w-full max-w-md flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap"
         suppressHydrationWarning
       >
         {done ? (
@@ -75,6 +78,16 @@ export default function FooterNewsletter() {
               {loading ? t("subscribing") : t("subscribe")}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
+            {honeypotField}
+            <div className="w-full sm:basis-full">
+              <MarketingConsentCheckbox
+                id="footer-newsletter-consent"
+                tone="dark"
+                required
+                checked={consent}
+                onChange={setConsent}
+              />
+            </div>
           </>
         )}
         {error ? (

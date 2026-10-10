@@ -153,7 +153,8 @@ class TestLeadsUnit:
 
     def test_enum_values_stable(self) -> None:
         assert LeadStatus.NEW.value == "new"
-        assert LeadStatus.CONVERTED.value == "converted"
+        assert LeadStatus.CONVERTED.value == "won"  # legacy alias
+        assert [s.value for s in LeadStatus] == ["new", "replied", "quoted", "won", "lost", "archived"]
         assert LeadPriority.URGENT.value == "urgent"
         assert LeadIntentType.DRIVER_PARTNER.value == "driver_partner"
         assert LeadDecisionStatus.READY_TO_CONVERT.value == "ready_to_convert"
@@ -197,7 +198,7 @@ class TestLeadsService:
         updated = crm.update_lead(
             db, lead.id, {"status": LeadStatus.CONTACTED.value, "decision_status": "researching"}
         )
-        assert updated.status == "contacted"
+        assert updated.status == "replied"
         assert updated.decision_status == "researching"
 
     def test_list_filters_status_channel_search_unassigned(self, db, crm) -> None:
@@ -340,7 +341,7 @@ class TestLeadsApi:
             json={"status": "contacted", "decision_status": "questions_open"},
         )
         assert patched.status_code == 200
-        assert patched.json()["status"] == "contacted"
+        assert patched.json()["status"] == "replied"
         assert patched.json()["decision_status"] == "questions_open"
 
         missing = admin_client.get(f"/v1/admin/leads/{uuid.uuid4()}")
@@ -448,7 +449,7 @@ class TestLeadsApi:
         assert body["outcome"] == "merchant"
         refreshed = db.get(CrmLead, lead.id)
         assert refreshed is not None
-        assert refreshed.status == "converted"
+        assert refreshed.status == "won"
 
     def test_convert_driver_partner_queues_task(self, admin_client, db) -> None:
         s = _suffix()

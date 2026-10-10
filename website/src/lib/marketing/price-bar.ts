@@ -9,6 +9,7 @@ const HIDDEN_HEADS = new Set([
   "sign-up",
   "quote",
   "book",
+  "newsletter",
   "unsubscribe",
 ]);
 

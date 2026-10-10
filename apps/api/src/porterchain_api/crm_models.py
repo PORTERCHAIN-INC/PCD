@@ -9,7 +9,19 @@ active Porterchain merchant.
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -172,6 +184,18 @@ class CrmLead(Base):
     )
     last_touch_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     consent: Mapped[dict] = mapped_column(JSONB, default=dict)
+    # Unified inbox: inbound message waiting on staff; first staff response time.
+    awaiting_reply: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", index=True)
+    last_inbound_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    first_response_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    # Pipeline (New → Replied → Quoted → Won / Lost) timestamps + one-tap lost reason.
+    quoted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    won_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lost_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lost_reason: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    # Pre-pipeline status kept for an exact migration downgrade.
+    legacy_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     # Flexible storage so any CSV column / ad-hoc attribute can live on a lead.
     custom_fields: Mapped[dict] = mapped_column(JSONB, default=dict)
@@ -441,6 +465,14 @@ class CrmConversationMessage(Base):
     """Single message in a CRM conversation thread."""
 
     __tablename__ = "crm_conversation_messages"
+    __table_args__ = (
+        Index(
+            "uq_crm_conv_msg_external_id",
+            "external_message_id",
+            unique=True,
+            postgresql_where=text("external_message_id IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     conversation_id: Mapped[str] = mapped_column(
@@ -451,6 +483,8 @@ class CrmConversationMessage(Base):
     actor_type: Mapped[str] = mapped_column(String(32), default="prospect")
     actor_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     external_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    channel: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    delivery_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -488,3 +522,27 @@ class CrmSuppression(Base):
     source: Mapped[str] = mapped_column(String(64), default="unsubscribe")
     lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MarketingSubscriber(Base):
+    """Newsletter subscriber (double opt-in). Kept apart from sales leads."""
+
+    __tablename__ = "marketing_subscribers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    confirm_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    source: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    source_page: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    locale: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    consent: Mapped[dict] = mapped_column(JSONB, default=dict)
+    attribution: Mapped[dict] = mapped_column(JSONB, default=dict)
+    lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    confirm_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    unsubscribed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
