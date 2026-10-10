@@ -336,10 +336,12 @@ class DeliveryService:
             from_name = f"{from_name} (TEST)"
 
         from porterchain_api.notification_engine.unsubscribe import (
+            casl_footer,
             list_unsubscribe_headers,
         )
 
         extra_headers = list_unsubscribe_headers(settings, context)
+        text_body, html_body = casl_footer(settings, context, text_body, html_body, extra_headers)
 
         transport = settings.resolve_mail_transport()
         if transport == "https":

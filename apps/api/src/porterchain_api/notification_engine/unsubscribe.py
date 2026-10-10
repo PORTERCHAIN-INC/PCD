@@ -81,6 +81,37 @@ def list_unsubscribe_headers(settings: Any, context: dict[str, Any]) -> dict[str
     }
 
 
+SENDER_IDENTITY = "PorterChain Logistics Inc., Toronto, ON, Canada"
+
+
+def casl_footer(
+    settings: Any, context: dict[str, Any], text_body: str, html_body: str | None, headers: dict[str, str]
+) -> tuple[str, str | None]:
+    """CASL s.6 / GDPR Art. 21: every commercial email carries sender identity and a working,
+    visible unsubscribe in the body (headers alone are not enough). Idempotent."""
+    if not needs_unsubscribe(str(context.get("category") or "")):
+        return text_body, html_body
+    link = ""
+    raw = headers.get("List-Unsubscribe", "")
+    if raw.startswith("<http"):
+        link = raw[1 : raw.index(">")]
+    if not link:
+        mailbox = str(getattr(settings, "unsubscribe_mailbox", "") or "unsubscribe@porterchain.com")
+        link = f"mailto:{mailbox}?subject=unsubscribe"
+    identity = str(getattr(settings, "casl_sender_identity", "") or SENDER_IDENTITY)
+    lower = (text_body or "").lower()
+    if "unsubscribe" not in lower and "stop these" not in lower and "abmelden" not in lower:
+        text_body = f"{text_body}\n\n—\n{identity}\nUnsubscribe: {link}"
+    elif identity.split(",")[0].lower() not in lower:
+        text_body = f"{text_body}\n{identity}"
+    if html_body is not None and "unsubscribe" not in html_body.lower():
+        html_body = (
+            f"{html_body}<p style=\"font-size:12px;color:#666\">{identity}<br>"
+            f"<a href=\"{link}\">Unsubscribe</a></p>"
+        )
+    return text_body, html_body
+
+
 def apply_unsubscribe(db: Session, *, role: str, user_id: str, category: str) -> None:
     """Turn email off for that category. (Leads are handled by the router: CASL consent.)"""
     from porterchain_api.notification_engine.preference_service import PreferenceService
