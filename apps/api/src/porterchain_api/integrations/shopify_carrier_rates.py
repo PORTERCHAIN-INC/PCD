@@ -782,8 +782,6 @@ def carrier_service_rates(
     if service_area_error("destination", dropoff_raw, merchant_coverage_fsas(db, merchant)):
         return _empty(shop, "dest_out_of_area", dest_fsa=fsa_from_address(dropoff_raw)[:3])
     dropoff = _ensure_geo(dropoff_raw)
-    if dropoff.lat is None or dropoff.lng is None:
-        return _empty(shop, "dropoff_not_geocoded", dest_fsa=fsa_from_address(dropoff_raw)[:3])
 
     pickup, pickup_source, fallback = resolve_shopify_pickup(default_pickup, origin)
     if pickup_source == PICKUP_SOURCE_PORTERCHAIN:
