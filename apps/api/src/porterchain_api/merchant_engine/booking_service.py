@@ -183,6 +183,9 @@ class MerchantBookingService:
             requires_liftgate=body.requires_liftgate,
             parcel_count=parcel_count,
             parcels=parcels,
+            declared_value_cents=getattr(body, "declared_value_cents", None),
+            coverage_upgrade=getattr(body, "coverage_upgrade", None),
+            item_category=getattr(body, "item_category", None),
         )
 
     def find_by_idempotency_key(
@@ -257,6 +260,11 @@ class MerchantBookingService:
         dropoff = body.dropoff
         pricing_request = self.build_pricing_request(ctx, body)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
+        if (breakdown.metadata.get("coverage") or {}).get("over_max"):
+            raise BookingValidationError(
+                "declared_value_over_max",
+                "Declared value is above the $25,000 coverage maximum. Contact us to arrange cover.",
+            )
         assert_not_fsa_refused(breakdown)
         amount_cents = breakdown.final_cents
 

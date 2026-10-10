@@ -36,6 +36,11 @@ class MerchantBookDeliveryRequest(BaseModel):
         default=False,
         description="Liftgate required at delivery — adds construction surcharge (§8.1.7)",
     )
+    declared_value_cents: int | None = Field(default=None, ge=0, description="Declared value of the goods (cents)")
+    coverage_upgrade: bool | None = Field(
+        default=None, description="Upgrade cover to $25,000 (+$10). None = merchant default."
+    )
+    item_category: str | None = Field(default=None, description="Item category, e.g. electronics")
     custodian_name: str | None = Field(default=None, description="Medical chain-of-custody custodian (§8.1.2)")
     specimen_id: str | None = Field(default=None, description="Medical specimen / requisition ID (§8.1.2)")
     seal_number: str | None = Field(default=None, description="Tamper seal number (§8.1.2)")

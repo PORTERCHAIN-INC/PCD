@@ -14,6 +14,7 @@ from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_pricing import PointInput, SimulateQuoteRequest, SimulateQuoteResponse
 from porterchain_api.pricing_engine.margin_settings import load_margin_estimates
 from porterchain_pricing.margin import distance_outlier, margin_check
+from porterchain_pricing.suggest import suggest_liftgate
 from porterchain_pricing.types import PricingRequest
 
 router = APIRouter(prefix="/v1/pricing", tags=["pricing"])
@@ -92,8 +93,12 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
         requires_liftgate=body.requires_liftgate,
         is_downtown=body.is_downtown,
         is_upper_zone=body.is_upper_zone,
+        declared_value_cents=body.declared_value_cents,
+        coverage_upgrade=body.coverage_upgrade,
+        item_category=body.item_category,
     )
     service = get_pricing_service(db)
+    estimates = load_margin_estimates(db)
     overrides = {}
     if body.gta_rate_override:
         overrides["gta_rate"] = body.gta_rate_override
@@ -111,6 +116,13 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
         items=list(api.get("items") or []),
         metadata=meta,
         what_won=_what_won(meta),
+        coverage=meta.get("coverage"),
+        liftgate_suggestion=None
+        if body.requires_liftgate
+        else suggest_liftgate(
+            weight_kg=body.weight_kg,
+            threshold_kg=float(estimates.get("liftgate_weight_kg") or 70),
+        ),
         margin=margin_check(
             int(api["subtotal_cents"]),
             distance_meters,
@@ -118,7 +130,7 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
             pickups=body.total_pickups or 1,
             drops=body.total_drops or 1,
             vehicle_class=body.vehicle_class,
-            overrides=load_margin_estimates(db),
+            overrides=estimates,
         ).as_dict(),
         distance_flag=distance_outlier(
             distance_meters,

@@ -104,6 +104,9 @@ class SimulateQuoteRequest(BaseModel):
     dimensions: dict[str, float] | str | None = None
     parcel_count: int = Field(default=1, ge=1)
     requires_liftgate: bool = False
+    declared_value_cents: int | None = Field(default=None, ge=0)
+    coverage_upgrade: bool | None = None
+    item_category: str | None = None
     is_downtown: bool | None = None
     is_upper_zone: bool | None = None
     gta_rate_override: dict[str, Any] | None = None
@@ -122,3 +125,5 @@ class SimulateQuoteResponse(BaseModel):
     what_won: str
     margin: dict[str, Any] | None = None
     distance_flag: str | None = None
+    coverage: dict[str, Any] | None = None
+    liftgate_suggestion: dict[str, Any] | None = None

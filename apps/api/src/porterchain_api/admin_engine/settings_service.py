@@ -24,7 +24,7 @@ from porterchain_api.domain.pricing_version import (
 )
 from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
 from porterchain_api.marketing_site.config import default_marketing_site, normalize_marketing_site
-from porterchain_pricing.margin import default_margin_estimates, normalize_margin_estimates
+from porterchain_pricing.cost_settings import COST_DEFAULTS, COST_NORMALIZERS
 from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -101,8 +101,8 @@ CONFIG_KEYS = {
     # Per-merchant FSA rate card formula (base, km, minute, downtown, bands).
     "pricing_fsa_card": "pricing_fsa_card",
     "driver_pay": "driver_pay_plan",
-    # Margin guard cost inputs (speed, stop minutes, return share, $/km, thin %).
-    "pricing_margin_estimates": "pricing_margin_estimates",
+    "pricing_margin_estimates": "pricing_margin_estimates",  # cost inputs (margin + planner)
+    "parcel_coverage": "parcel_coverage",  # declared-value cover tiers
     # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
     "delivery_promise": "delivery_promise",
     # Website marketing switches (hero A/B flag, calculator limits). A/B off by default.
@@ -190,7 +190,7 @@ DEFAULTS: dict[str, Any] = {
         "current_fuel_price_cents": 158,
     },
     "pricing_rate_card": {
-        "liftgate_cents": 4500,
+        "liftgate_cents": 5000,
         "extra_stop_cents": 0,
         "weight_threshold_kg": 50.0,
         "weight_cents_per_kg": 0,
@@ -217,7 +217,8 @@ DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
 DEFAULTS["pricing_book"] = default_price_book()
 DEFAULTS["pricing_fsa_card"] = default_fsa_card()
 DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
-DEFAULTS["pricing_margin_estimates"] = default_margin_estimates()
+DEFAULTS.update(COST_DEFAULTS())
+_NORMALIZERS = COST_NORMALIZERS
 DEFAULTS["delivery_promise"] = default_delivery_promise()
 DEFAULTS["marketing_site"] = default_marketing_site()
 
@@ -705,9 +706,9 @@ class AdminSettingsService:
                 return normalize_price_book(value)
             except ValueError:
                 return value
-        if key == "pricing_margin_estimates":
+        if key in _NORMALIZERS:
             try:
-                return normalize_margin_estimates(value)
+                return _NORMALIZERS[key](value)
             except ValueError:
                 return value
         if key == "driver_pay_plan":
@@ -810,8 +811,8 @@ class AdminSettingsService:
             value = normalize_fsa_card(value)
         if key == "driver_pay_plan":
             value = normalize_driver_pay_plan(value)
-        if key == "pricing_margin_estimates":
-            value = normalize_margin_estimates(value)
+        if key in _NORMALIZERS:
+            value = _NORMALIZERS[key](value)
         if key == "delivery_promise":
             value = normalize_delivery_promise(value)
         if key == "marketing_site":

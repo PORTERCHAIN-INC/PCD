@@ -135,6 +135,11 @@ class MerchantBookingFlowService:
 
         pricing_request = self._booking.build_pricing_request(ctx, body, vehicle_class=vehicle_class)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
+        if (breakdown.metadata.get("coverage") or {}).get("over_max"):
+            raise BookingValidationError(
+                "declared_value_over_max",
+                "Declared value is above the $25,000 coverage maximum. Contact us to arrange cover.",
+            )
         try:
             assert_not_fsa_refused(breakdown)
             validated = self._sync.validate_booking(db, ctx.merchant, amount_cents=breakdown.final_cents)
@@ -215,6 +220,9 @@ class MerchantBookingFlowService:
                 "scheduled_at": body.scheduled_at.isoformat() if body.scheduled_at else None,
                 "site_access_notes": body.site_access_notes,
                 "requires_liftgate": body.requires_liftgate,
+                "declared_value_cents": getattr(body, "declared_value_cents", None),
+                "coverage_upgrade": getattr(body, "coverage_upgrade", None),
+                "item_category": getattr(body, "item_category", None),
                 "otp_required": body.otp_required,
                 "custodian_name": body.custodian_name,
                 "specimen_id": body.specimen_id,
@@ -296,6 +304,9 @@ class MerchantBookingFlowService:
             special_instructions=draft.special_instructions,
             site_access_notes=extract_site_access_notes(draft.dropoff) or meta.get("site_access_notes"),
             requires_liftgate=bool(meta.get("requires_liftgate")),
+            declared_value_cents=meta.get("declared_value_cents"),
+            coverage_upgrade=meta.get("coverage_upgrade"),
+            item_category=meta.get("item_category"),
             otp_required=bool(meta.get("otp_required")),
             custodian_name=meta.get("custodian_name"),
             specimen_id=meta.get("specimen_id"),

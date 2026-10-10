@@ -27,7 +27,7 @@ def _req(**kwargs) -> PricingRequest:
 def test_default_rate_card_matches_catalog_floor():
     card = default_rate_card()
     assert card.vehicle("sedan").per_km_cents == 100
-    assert card.liftgate_cents == 4500
+    assert card.liftgate_cents == 5000
 
 
 def test_retail_uses_gta_matrix_not_rate_card_per_km():

@@ -27,12 +27,22 @@ DEFAULTS: dict[str, Any] = {
 
 #: Fixed insurance per vehicle type, cents per month (Ravi: van $600; others editable).
 DEFAULT_INSURANCE: dict[str, int] = {
-    "sedan_suv": 0,
-    "pickup": 0,
+    "sedan_suv": 25000,
+    "pickup": 25000,
     "cargo_van": 60000,
     "sprinter_van": 60000,
-    "box_16": 0,
-    "box_20": 0,
+    "box_16": 60000,
+    "box_20": 60000,
+}
+
+#: Internal vehicle cost per km (cost, not price). Box trucks cost the same as vans.
+DEFAULT_KM_CENTS: dict[str, int] = {
+    "sedan_suv": 20,
+    "pickup": 20,
+    "cargo_van": 35,
+    "sprinter_van": 35,
+    "box_16": 35,
+    "box_20": 35,
 }
 
 
@@ -68,23 +78,36 @@ _BOUNDS: dict[str, tuple[float, float]] = {
 
 
 def default_margin_estimates() -> dict[str, Any]:
-    return {"schema": 1, **DEFAULTS, "insurance_monthly_cents": dict(DEFAULT_INSURANCE)}
+    return {
+        "schema": 1,
+        **DEFAULTS,
+        "insurance_monthly_cents": dict(DEFAULT_INSURANCE),
+        "vehicle_cents_per_km_by_vehicle": dict(DEFAULT_KM_CENTS),
+        "liftgate_weight_kg": 70.0,
+    }
 
 
 def normalize_margin_estimates(raw: Any) -> dict[str, Any]:
     """Validate the admin-editable estimates (Settings → pricing_margin_estimates)."""
     out = default_margin_estimates()
     src = raw if isinstance(raw, dict) else {}
-    ins = src.get("insurance_monthly_cents")
-    if isinstance(ins, dict):
-        for vk, vv in ins.items():
+    for table, hi in (("insurance_monthly_cents", 10_000_000), ("vehicle_cents_per_km_by_vehicle", 10_000)):
+        rows = src.get(table)
+        if not isinstance(rows, dict):
+            continue
+        for vk, vv in rows.items():
             try:
                 cents = int(vv)
             except (TypeError, ValueError) as exc:
-                raise ValueError(f"margin_invalid:insurance:{vk}") from exc
-            if not 0 <= cents <= 10_000_000:
-                raise ValueError(f"margin_invalid:insurance:{vk}")
-            out["insurance_monthly_cents"][str(vk)] = cents
+                raise ValueError(f"margin_invalid:{table}:{vk}") from exc
+            if not 0 <= cents <= hi:
+                raise ValueError(f"margin_invalid:{table}:{vk}")
+            out[table][str(vk)] = cents
+    if src.get("liftgate_weight_kg") is not None:
+        kg = float(src["liftgate_weight_kg"])
+        if not 1 <= kg <= 2000:
+            raise ValueError("margin_invalid:liftgate_weight_kg")
+        out["liftgate_weight_kg"] = kg
     for key, value in src.items():
         if key not in DEFAULTS or value is None:
             continue
@@ -102,10 +125,18 @@ def normalize_margin_estimates(raw: Any) -> dict[str, Any]:
 def _cfg(overrides: dict[str, Any] | None) -> dict[str, Any]:
     cfg = dict(DEFAULTS)
     cfg["insurance_monthly_cents"] = dict(DEFAULT_INSURANCE)
+    cfg["vehicle_cents_per_km_by_vehicle"] = dict(DEFAULT_KM_CENTS)
     for k, v in (overrides or {}).items():
         if k in cfg and v is not None:
             cfg[k] = dict(v) if isinstance(v, dict) else v
     return cfg
+
+
+def km_cents_for(vehicle_class: str | None, overrides: dict[str, Any] | None = None) -> int:
+    """Internal per-km cost for a vehicle class (falls back to ``vehicle_cents_per_km``)."""
+    c = _cfg(overrides)
+    table = c.get("vehicle_cents_per_km_by_vehicle") or {}
+    return int(table.get(vehicle_class or "", c["vehicle_cents_per_km"]))
 
 
 def insurance_cents_per_hour(vehicle_class: str | None, overrides: dict[str, Any] | None = None) -> float:
@@ -121,6 +152,7 @@ def estimate_cost(
     duration_seconds: float | None = None,
     pickups: int = 1,
     drops: int = 1,
+    vehicle_class: str | None = None,
     overrides: dict[str, Any] | None = None,
 ) -> tuple[int, float, int, int]:
     """Return (cost_cents, driver_minutes, labour_cents, vehicle_cents)."""
@@ -130,7 +162,8 @@ def estimate_cost(
     drive_min *= 1.0 + float(c["deadhead_factor"])
     minutes = drive_min + max(pickups, 1) * float(c["pickup_minutes"]) + max(drops, 1) * float(c["drop_minutes"])
     labour = round(minutes / 60.0 * int(c["driver_hourly_cents"]))
-    vehicle = round(km * (1.0 + float(c["deadhead_factor"])) * int(c["vehicle_cents_per_km"]))
+    per_km = km_cents_for(vehicle_class, overrides) if vehicle_class else int(c["vehicle_cents_per_km"])
+    vehicle = round(km * (1.0 + float(c["deadhead_factor"])) * per_km)
     return labour + vehicle, round(minutes, 1), labour, vehicle
 
 
@@ -146,7 +179,12 @@ def margin_check(
 ) -> MarginResult:
     c = _cfg(overrides)
     cost, minutes, labour, vehicle = estimate_cost(
-        distance_meters, duration_seconds=duration_seconds, pickups=pickups, drops=drops, overrides=overrides
+        distance_meters,
+        duration_seconds=duration_seconds,
+        pickups=pickups,
+        drops=drops,
+        vehicle_class=vehicle_class,
+        overrides=overrides,
     )
     insurance = round(insurance_cents_per_hour(vehicle_class, overrides) * minutes / 60.0)
     cost += insurance

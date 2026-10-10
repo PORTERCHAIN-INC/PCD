@@ -209,6 +209,8 @@ class PricingEngine:
         if request.channel == "merchant" and request.requires_liftgate and card.liftgate_cents:
             breakdown.add_item("liftgate", "Liftgate service", card.liftgate_cents)
 
+        self._apply_coverage(request, ctx, breakdown)
+
         wait_rate = int(card.wait_cents_per_minute or 0)
         wait_minutes = float(request.wait_minutes or 0)
         if wait_rate > 0 and wait_minutes > 0:
@@ -644,6 +646,33 @@ class PricingEngine:
             (distance_cents + stops_q.total_cents + location_q.total_cents) / 100.0, 2
         )
         breakdown.metadata["base_km_limit"] = gta_cfg.base_km_limit
+
+    def _apply_coverage(self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown) -> None:
+        """Declared-value cover: free tier always; opt-in upgrade adds one line."""
+        from porterchain_pricing.coverage import charge_cents, coverage_label, normalize_coverage, recommend
+
+        try:
+            cfg = normalize_coverage(ctx.coverage)
+        except ValueError:
+            cfg = normalize_coverage(None)
+        upgrade = request.coverage_upgrade
+        if upgrade is None:
+            mcfg = ctx.merchant_pricing_config or {}
+            upgrade = bool(mcfg.get("coverage_upgrade_default", False))
+        rec = recommend(request.declared_value_cents, request.item_category, cfg)
+        cents = charge_cents(bool(upgrade), request.parcel_count, cfg)
+        if cents:
+            unit = " per parcel" if cfg["unit"] == "parcel" else ""
+            breakdown.add_item("coverage_upgrade", coverage_label(True, cfg) + unit, cents)
+        breakdown.metadata["coverage"] = {
+            "tier": "upgrade" if upgrade else "included",
+            "covered_up_to_cents": cfg["upgrade_cents"] if upgrade else cfg["included_cents"],
+            "charge_cents": cents,
+            "declared_value_cents": request.declared_value_cents,
+            "recommended": rec["tier"],
+            "reason": rec["reason"],
+            "over_max": rec["tier"] == "over_max",
+        }
 
     def _apply_origin_pickup(
         self,

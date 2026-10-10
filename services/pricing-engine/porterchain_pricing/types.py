@@ -70,6 +70,10 @@ class PricingRequest:
     referral_credit_cents: int = 0
     volume_units: int = 1
     requires_liftgate: bool = False
+    #: Opt-in coverage upgrade. None = merchant default (Shopify checkout can't opt in).
+    coverage_upgrade: bool | None = None
+    #: Item category for the coverage recommendation (electronics, jewelry, …).
+    item_category: str | None = None
     # GTA matrix inputs (optional — inferred from stops/geo when omitted)
     total_pickups: int | None = None
     total_drops: int | None = None
@@ -251,3 +255,5 @@ class PricingContext:
     price_book: dict[str, Any] | None = None
     #: Pricing settings version id stamped on every quote (e.g. "pv-3").
     price_version: str | None = None
+    #: Raw ``system_config.parcel_coverage``; None = built-in defaults.
+    coverage: dict[str, Any] | None = None
