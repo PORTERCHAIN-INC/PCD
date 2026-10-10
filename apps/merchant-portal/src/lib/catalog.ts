@@ -1,6 +1,9 @@
 /** English words. Capacity class IDs are snake (SoT1). */
 
-import { CAPACITY_CLASS_OPTIONS, vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
+import {
+  CAPACITY_CLASS_OPTIONS,
+  vehicleLabel as capacityVehicleLabel,
+} from "@porterchain/types/capacity";
 
 export const VEHICLE_OPTIONS = CAPACITY_CLASS_OPTIONS;
 

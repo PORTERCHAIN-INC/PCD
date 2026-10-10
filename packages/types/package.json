@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./blog": "./src/blog.ts",
-    "./booking": "./src/booking.ts"
+    "./booking": "./src/booking.ts",
+    "./capacity": "./src/capacity.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",
