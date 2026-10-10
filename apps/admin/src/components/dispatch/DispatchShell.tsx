@@ -9,7 +9,6 @@ import { cn } from "@porterchain/ui/utils";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import AdminPage from "@/components/layout/AdminPage";
 import { Order360Drawer } from "@/components/orders/Order360Drawer";
-import { OpsCommandPalette } from "@/components/operations/OpsCommandPalette";
 import { FleetPlanPanel } from "@/components/dispatch/FleetPlanPanel";
 import { PartnersPanel } from "@/components/dispatch/PartnersPanel";
 import { PartnerJobsPanel } from "@/components/dispatch/PartnerJobsPanel";
@@ -357,7 +356,6 @@ export function DispatchShell({ view }: { view: DispatchView }) {
           openOrder(id);
         }}
       />
-      <OpsCommandPalette onOpenOrder={openOrder} onJumpView={(href) => router.push(href)} />
     </AdminPage>
   );
 }

@@ -12,7 +12,8 @@
     "./quote-lines": "./src/quote-lines.tsx",
     "./view-transition": "./src/view-transition.tsx",
     "./header-dropdown": "./src/header-dropdown.tsx",
-    "./nav-dropdown": "./src/nav-dropdown.tsx"
+    "./nav-dropdown": "./src/nav-dropdown.tsx",
+    "./app-nav": "./src/app-nav.tsx"
   },
   "dependencies": {
     "date-fns": "^4.4.0",

@@ -75,6 +75,7 @@ export const idleHandshake = (): Handshake => ({
   walletCents: null,
   todayEarningsCents: null,
   pendingDocuments: null,
+  jobsOpen: null,
   performanceScore: null,
   navigationUrl: null,
   destLat: null,
@@ -149,6 +150,7 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
     next.walletCents = dash.wallet_balance_cents ?? me.wallet_balance_cents ?? null;
     next.todayEarningsCents = dash.todays_earnings_cents ?? null;
     next.pendingDocuments = dash.pending_documents ?? null;
+    next.jobsOpen = (jobs.current ? 1 : 0) + (jobs.upcoming?.length ?? 0);
     next.performanceScore = dash.performance_score ?? null;
     next.routeId = jobs.route_id ?? dash.active_route_id ?? null;
     next.stopId = jobs.next_stop?.stop_id ?? null;

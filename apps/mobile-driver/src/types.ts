@@ -95,6 +95,8 @@ export type Handshake = {
   walletCents: number | null;
   todayEarningsCents: number | null;
   pendingDocuments: number | null;
+  /** Current + upcoming jobs (Jobs tab badge). */
+  jobsOpen: number | null;
   performanceScore: number | null;
   navigationUrl: string | null;
   destLat: number | null;

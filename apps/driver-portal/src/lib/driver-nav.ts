@@ -1,16 +1,19 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Award,
-  Bell,
   Briefcase,
+  Car,
   Clock,
+  FileText,
   GraduationCap,
   LayoutDashboard,
   LifeBuoy,
   Navigation,
   Route,
+  Siren,
+  TrendingUp,
   User,
   Wallet,
+  Banknote,
 } from "lucide-react";
 
 export type DriverNavItem = {
@@ -18,6 +21,7 @@ export type DriverNavItem = {
   label: string;
   description?: string;
   icon: LucideIcon;
+  badgeKey?: "jobs";
 };
 
 export type DriverNavGroup = {
@@ -26,92 +30,105 @@ export type DriverNavGroup = {
   items: DriverNavItem[];
 };
 
+/**
+ * Ordered by a driver's day: today → jobs → route → navigate → shift, then pay, then me.
+ * Alerts live on the bell (no duplicate item); extra pages stay reachable via ⌘K.
+ */
 export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
   {
     id: "home",
-    label: "Home",
+    label: "",
     items: [
       {
         href: "/dashboard",
-        label: "Dashboard",
-        description: "KPIs, assignment, and quick actions",
+        label: "Today",
+        description: "Shift, next stop, earnings",
         icon: LayoutDashboard,
-      },
-    ],
-  },
-  {
-    id: "operations",
-    label: "Operations",
-    items: [
-      {
-        href: "/route",
-        label: "Route",
-        description: "Today's stops, one tap at a time",
-        icon: Route,
       },
       {
         href: "/jobs",
         label: "Jobs",
-        description: "Active deliveries and history",
+        description: "Current and upcoming jobs",
         icon: Briefcase,
+        badgeKey: "jobs",
       },
+      { href: "/route", label: "Route", description: "Stops in order", icon: Route },
       {
         href: "/navigation",
-        label: "Navigation",
-        description: "Maps, routes, and GPS",
+        label: "Navigate",
+        description: "Turn-by-turn to next stop",
         icon: Navigation,
       },
-      {
-        href: "/shift",
-        label: "Shift",
-        description: "Start, break, and availability",
-        icon: Clock,
-      },
-      {
-        href: "/communications",
-        label: "Alerts",
-        description: "Push, inbox, and offline sync",
-        icon: Bell,
-      },
+      { href: "/shift", label: "Shift", description: "Clock in, breaks, end of day", icon: Clock },
     ],
   },
   {
     id: "finance",
-    label: "Finance",
+    label: "Pay",
     items: [
-      { href: "/earnings", label: "Earnings", description: "Statements and payouts", icon: Award },
-      { href: "/wallet", label: "Wallet", description: "Balance and transactions", icon: Wallet },
       {
-        href: "/performance",
-        label: "Performance",
-        description: "Ratings and metrics",
-        icon: Award,
+        href: "/earnings",
+        label: "Earnings",
+        description: "Statements and payouts",
+        icon: Banknote,
       },
+      { href: "/wallet", label: "Wallet", description: "Balance and transactions", icon: Wallet },
     ],
   },
   {
     id: "account",
-    label: "Account",
+    label: "Me",
     items: [
       {
-        href: "/profile",
-        label: "Profile",
-        description: "License, vehicle, documents",
-        icon: User,
+        href: "/performance",
+        label: "Performance",
+        description: "On-time, ratings, tier",
+        icon: TrendingUp,
+      },
+      {
+        href: "/vehicle",
+        label: "Vehicle",
+        description: "Vehicle, photos, capabilities",
+        icon: Car,
+      },
+      {
+        href: "/documents",
+        label: "Documents",
+        description: "Licence, insurance, expiry",
+        icon: FileText,
       },
       {
         href: "/training",
         label: "Training",
-        description: "Modules and compliance",
+        description: "Courses and certificates",
         icon: GraduationCap,
       },
+      { href: "/profile", label: "Profile", description: "Contact, bank, preferences", icon: User },
+      { href: "/support", label: "Support", description: "Help and tickets", icon: LifeBuoy },
       {
-        href: "/support",
-        label: "Support",
-        description: "Tickets, claims, and SOS",
-        icon: LifeBuoy,
+        href: "/emergency",
+        label: "Emergency",
+        description: "Incident, roadside, SOS",
+        icon: Siren,
       },
     ],
+  },
+];
+
+export const DRIVER_PALETTE_EXTRA = [
+  {
+    href: "/communications",
+    label: "Alerts & messages",
+    group: "Me",
+    keywords: "notifications bell",
+  },
+  { href: "/stops", label: "Stops", group: "Today" },
+  { href: "/insurance", label: "Insurance", group: "Me" },
+  {
+    href: "/monitoring-policy",
+    label: "GPS monitoring policy",
+    group: "Me",
+    keywords: "privacy location",
   },
 ];
 

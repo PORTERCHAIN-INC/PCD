@@ -252,7 +252,11 @@ function DriverApp() {
         />
       ) : null}
       {screen === "route" ? (
-        <FieldShell tab={tab} onTab={setTab}>
+        <FieldShell
+          tab={tab}
+          onTab={setTab}
+          badges={{ jobs: handshake.jobsOpen, docs: handshake.pendingDocuments }}
+        >
           {tab === "work" ? (
             <RouteScreen
               handshake={handshake}

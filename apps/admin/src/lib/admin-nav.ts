@@ -26,6 +26,9 @@ import {
   CreditCard,
   FileText,
   Wallet,
+  KanbanSquare,
+  MailCheck,
+  PenLine,
 } from "lucide-react";
 
 export type AdminNavItem = {
@@ -33,7 +36,11 @@ export type AdminNavItem = {
   label: string;
   description?: string;
   icon: LucideIcon;
+  /** Live "needs action" count shown as a badge (see useAdminNavBadges). */
+  badgeKey?: AdminBadgeKey;
 };
+
+export type AdminBadgeKey = "exceptions" | "leads" | "calls" | "cash" | "tickets";
 
 export type AdminNavGroup = {
   id: string;
@@ -93,6 +100,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Exceptions",
         description: "One queue, worst first",
         icon: AlertTriangle,
+        badgeKey: "exceptions",
       },
       {
         href: "/orders",
@@ -134,7 +142,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/booking-drafts",
-        label: "Booking Drafts",
+        label: "Booking drafts",
         description: "Retail checkout drafts (ops recovery)",
         icon: ClipboardList,
       },
@@ -143,18 +151,20 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Inbox",
         description: "Every lead, answered in under 5 minutes",
         icon: UserPlus,
+        badgeKey: "leads",
       },
       {
         href: "/leads/pipeline",
         label: "Pipeline",
         description: "New → Replied → Quoted → Won / Lost",
-        icon: LayoutDashboard,
+        icon: KanbanSquare,
       },
       {
         href: "/leads/today",
         label: "Call list",
         description: "Who to phone today",
         icon: Phone,
+        badgeKey: "calls",
       },
     ],
   },
@@ -167,6 +177,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Cash",
         description: "Who owes us, e-Transfers to match, reminders",
         icon: Wallet,
+        badgeKey: "cash",
       },
       {
         href: "/finance/invoices",
@@ -206,9 +217,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/support",
-        label: "Support Tickets",
+        label: "Tickets",
         description: "Customer helpdesk and SLA",
         icon: Headphones,
+        badgeKey: "tickets",
       },
       {
         href: "/claims",
@@ -224,7 +236,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/blog",
-        label: "Website Blog",
+        label: "Blog",
         description: "Marketing content (EN / FR)",
         icon: Newspaper,
       },
@@ -232,7 +244,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         href: "/blog/authors",
         label: "Blog authors",
         description: "CMS author profiles for /authors",
-        icon: Users,
+        icon: PenLine,
       },
       {
         href: "/notifications",
@@ -244,7 +256,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         href: "/notifications/delivery",
         label: "Delivery center",
         description: "Email log, speed, bounces, templates",
-        icon: Bell,
+        icon: MailCheck,
       },
       {
         href: "/system",
@@ -354,3 +366,56 @@ export function activeNavLabel(pathname: string, search = ""): string | null {
   const item = ranked.find((i) => isNavActive(pathname, i.href, search));
   return item?.label ?? null;
 }
+
+/**
+ * Role-aware nav: hide what a role can't use (the API still enforces access).
+ * super_admin sees everything; admin sees everything except System diagnostics.
+ */
+const ROLE_GROUPS: Record<string, string[] | "all"> = {
+  super_admin: "all",
+  admin: "all",
+  operations_manager: "all",
+  read_only: "all",
+  auditor: "all",
+  dispatcher: ["dashboard", "operations", "partners", "support"],
+  fleet_manager: ["dashboard", "operations", "partners", "support"],
+  sales: ["dashboard", "partners", "growth", "support"],
+  merchant_success: ["dashboard", "partners", "growth", "support"],
+  support: ["dashboard", "operations", "partners", "support"],
+  customer_support: ["dashboard", "operations", "partners", "support"],
+  finance: ["dashboard", "partners", "finance"],
+  developer: ["dashboard", "administration"],
+};
+const SUPER_ONLY = new Set(["/system"]);
+const READ_ONLY_HIDDEN = new Set(["/system", "/settings", "/blog", "/blog/authors"]);
+
+export function adminNavForRole(role: string | null | undefined): AdminNavGroup[] {
+  const r = (role ?? "").toLowerCase();
+  const allowed = ROLE_GROUPS[r] ?? "all";
+  return ADMIN_NAV_GROUPS.filter((g) => allowed === "all" || allowed.includes(g.id))
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((i) => {
+        if (SUPER_ONLY.has(i.href) && r && r !== "super_admin" && r !== "developer") return false;
+        if ((r === "read_only" || r === "auditor") && READ_ONLY_HIDDEN.has(i.href)) return false;
+        return true;
+      }),
+    }))
+    .filter((g) => g.items.length > 0);
+}
+
+/** Pages reachable only via palette (no sidebar slot) so every route stays findable. */
+export const ADMIN_PALETTE_EXTRA: {
+  href: string;
+  label: string;
+  group: string;
+  keywords?: string;
+}[] = [
+  { href: "/leads/agent", label: "Lead agent", group: "Sales", keywords: "ai auto reply" },
+  { href: "/leads/calendar", label: "Sales calendar", group: "Sales", keywords: "meetings" },
+  { href: "/leads/attribution", label: "Attribution", group: "Sales", keywords: "utm campaigns" },
+  { href: "/system-health", label: "System health", group: "Administration" },
+  { href: "/system-tests", label: "System tests", group: "Administration" },
+  { href: "/inbox", label: "Inbox (messages)", group: "Support" },
+  { href: "/account", label: "My account & security", group: "Account", keywords: "passkey mfa" },
+];

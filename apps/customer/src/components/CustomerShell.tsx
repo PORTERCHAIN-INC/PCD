@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { ListOrdered, Send, UserRound } from "lucide-react";
+import { ListOrdered, Search, Send, UserRound } from "lucide-react";
+import { CommandPalette, type PaletteEntry } from "@porterchain/ui/app-nav";
 import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import { cn } from "@/lib/utils";
 import { isClerkConfigured } from "@/lib/env";
@@ -12,10 +13,20 @@ import NotificationBell from "@/components/nav/NotificationBell";
 
 /** Three things, in the order customers need them: Send, Orders, Account. */
 const NAV = [
-  { href: "/send", label: "Send" },
-  { href: "/orders", label: "Orders" },
-  { href: "/account", label: "Account" },
+  { href: "/send", label: "Send", icon: Send },
+  { href: "/orders", label: "Orders", icon: ListOrdered },
+  { href: "/account", label: "Account", icon: UserRound },
 ] as const;
+
+/** ⌘K: every customer page, including ones without a tab. */
+const PALETTE: PaletteEntry[] = [
+  { href: "/send", label: "Send a delivery", group: "Go to", keywords: "book quote" },
+  { href: "/orders", label: "My orders", group: "Go to", keywords: "history" },
+  { href: "/track", label: "Track a delivery", group: "Go to", keywords: "tracking number" },
+  { href: "/invoices", label: "Invoices & receipts", group: "Account", keywords: "billing pay" },
+  { href: "/notifications", label: "Notifications", group: "Account" },
+  { href: "/account", label: "Account & addresses", group: "Account", keywords: "profile privacy" },
+];
 
 const MOBILE_TABS = [
   { href: "/orders", label: "Orders", icon: ListOrdered },
@@ -31,6 +42,18 @@ const CustomerShellContext = createContext(false);
 export default function CustomerShell({ children }: { children: React.ReactNode }) {
   const nested = useContext(CustomerShellContext);
   const pathname = usePathname();
+  const router = useRouter();
+  const [cmdk, setCmdk] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCmdk((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   if (nested) return children;
 
   return (
@@ -53,17 +76,26 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
               <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
                 {NAV.map((item) => {
                   const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
-                        "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        "relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                         active
                           ? "bg-primary text-white"
                           : "text-primary/70 hover:bg-white hover:text-primary"
                       )}
                     >
+                      {active ? (
+                        <span
+                          className="absolute inset-x-3 -bottom-1 h-0.5 rounded bg-secondary"
+                          aria-hidden
+                        />
+                      ) : null}
+                      <Icon className="h-4 w-4" aria-hidden />
                       {item.label}
                     </Link>
                   );
@@ -71,6 +103,17 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
               </nav>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setCmdk(true)}
+                aria-label="Search (Ctrl or Command K)"
+                className="flex h-9 items-center gap-2 rounded-xl border border-primary/10 px-2.5 text-sm text-muted hover:border-primary/25"
+              >
+                <Search className="h-4 w-4" aria-hidden />
+                <kbd className="hidden rounded border border-primary/15 px-1.5 text-[10px] sm:inline">
+                  ⌘K
+                </kbd>
+              </button>
               <NotificationBell />
               {isClerkConfigured() ? (
                 <UserButton
@@ -129,6 +172,12 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
           </ul>
         </nav>
       </div>
+      <CommandPalette
+        entries={PALETTE}
+        open={cmdk}
+        onClose={() => setCmdk(false)}
+        onSelect={(href) => router.push(href as never)}
+      />
     </CustomerShellContext.Provider>
   );
 }

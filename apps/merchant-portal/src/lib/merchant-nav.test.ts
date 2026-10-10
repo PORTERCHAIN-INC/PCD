@@ -5,6 +5,7 @@ import { forbiddenModuleMessage, moduleLabel } from "./catalog.ts";
 import {
   filterNavGroupsByModules,
   hasMerchantModule,
+  MERCHANT_PALETTE_EXTRA,
   merchantPortalJob,
   requiredNavModule,
 } from "./merchant-nav.ts";
@@ -43,7 +44,7 @@ test("dispatcher book module shows request capacity", () => {
   assert.ok(hrefs.includes("/routes"));
   assert.equal(
     groups.flatMap((g) => g.items).find((i) => i.href === "/book")?.label,
-    "Request capacity"
+    "Book delivery"
   );
 });
 
@@ -57,6 +58,23 @@ test("direct URLs resolve to the same page keys as the API", () => {
   assert.equal(hasMerchantModule(["orders"], "billing"), false);
 });
 
+test("nav has no duplicate hrefs", () => {
+  const all = filterNavGroupsByModules([
+    "dashboard",
+    "book",
+    "routes",
+    "orders",
+    "tracking",
+    "support",
+    "billing",
+    "reports",
+    "api_keys",
+    "users",
+    "settings",
+  ]).flatMap((g) => g.items.map((i) => i.href));
+  assert.equal(new Set(all).size, all.length);
+});
+
 test("module copy never shows internal keys", () => {
   assert.equal(moduleLabel("billing"), "Billing");
   assert.equal(forbiddenModuleMessage("users"), "Ask your owner for Manager access.");
@@ -65,10 +83,10 @@ test("module copy never shows internal keys", () => {
   assert.ok(!moduleLabel("api_keys").includes("_"));
 });
 
-test("inbox is the alerts feed, not settings prefs", () => {
+test("inbox lives on the bell + ⌘K (no duplicate nav item), gated by support", () => {
   const groups = filterNavGroupsByModules(["dashboard", "orders", "tracking", "support"]);
-  const inbox = groups.flatMap((g) => g.items).find((i) => i.href === "/notifications");
-  assert.equal(inbox?.label, "Inbox");
+  assert.ok(!groups.flatMap((g) => g.items).some((i) => i.href === "/notifications"));
+  assert.ok(MERCHANT_PALETTE_EXTRA.some((e) => e.href === "/notifications"));
   assert.equal(requiredNavModule("/notifications"), "support");
   assert.equal(requiredNavModule("/help"), "support");
   assert.equal(moduleLabel("support"), "Inbox");

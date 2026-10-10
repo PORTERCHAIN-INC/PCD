@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
-  Bell,
   CreditCard,
   Key,
   LayoutDashboard,
@@ -11,6 +10,7 @@ import {
   PackagePlus,
   Settings,
   Share2,
+  Store,
   Truck,
   Users,
 } from "lucide-react";
@@ -20,6 +20,7 @@ export type MerchantNavItem = {
   label: string;
   description?: string;
   icon: LucideIcon;
+  badgeKey?: "invoices" | "tickets";
 };
 
 export type MerchantNavGroup = {
@@ -28,34 +29,26 @@ export type MerchantNavGroup = {
   items: MerchantNavItem[];
 };
 
+/**
+ * Ordered by daily use: book → orders → track, then money, then setup.
+ * Inbox lives on the bell (no duplicate nav item); /notifications and /bulk stay in ⌘K.
+ */
 export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
   {
     id: "home",
-    label: "Home",
+    label: "",
     items: [
       {
         href: "/dashboard",
-        label: "Overview",
-        description: "KPIs, activity, and quick actions",
+        label: "Home",
+        description: "Today, spend, what needs you",
         icon: LayoutDashboard,
       },
-    ],
-  },
-  {
-    id: "operations",
-    label: "Operations",
-    items: [
       {
         href: "/book",
-        label: "Request capacity",
+        label: "Book delivery",
         description: "Quote and book a vehicle and driver",
         icon: PackagePlus,
-      },
-      {
-        href: "/routes",
-        label: "Route Planner",
-        description: "Multi-stop routes, CSV, recurring",
-        icon: MapPinned,
       },
       {
         href: "/orders",
@@ -64,43 +57,43 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
         icon: Package,
       },
       { href: "/track", label: "Track", description: "Live tracking and timeline", icon: Truck },
-      { href: "/help", label: "Help", description: "Tickets and claims", icon: LifeBuoy },
+      {
+        href: "/routes",
+        label: "Routes",
+        description: "Multi-stop routes, CSV, recurring",
+        icon: MapPinned,
+      },
     ],
   },
   {
     id: "finance",
-    label: "Finance",
+    label: "Money",
     items: [
       {
         href: "/billing",
         label: "Billing",
         description: "Invoices, statements, credits",
         icon: CreditCard,
+        badgeKey: "invoices",
       },
       { href: "/reports", label: "Reports", description: "Analytics and exports", icon: BarChart3 },
     ],
   },
   {
     id: "account",
-    label: "Account",
+    label: "Setup",
     items: [
-      {
-        href: "/notifications",
-        label: "Inbox",
-        description: "Alerts and delivery updates",
-        icon: Bell,
-      },
-      {
-        href: "/api",
-        label: "Integrations",
-        description: "Shopify, API keys, webhooks",
-        icon: Key,
-      },
       {
         href: "/shopify",
         label: "Shopify",
         description: "Connect store, pickup, order sync",
-        icon: Package,
+        icon: Store,
+      },
+      {
+        href: "/api",
+        label: "API & webhooks",
+        description: "API keys, webhooks, other integrations",
+        icon: Key,
       },
       {
         href: "/team",
@@ -109,19 +102,41 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
         icon: Users,
       },
       {
+        href: "/settings",
+        label: "Settings",
+        description: "Company, locations, tax, branding",
+        icon: Settings,
+      },
+      {
         href: "/referrals",
         label: "Referrals",
         description: "Share link and earn account credit",
         icon: Share2,
       },
       {
-        href: "/settings",
-        label: "Settings",
-        description: "Company, locations, tax, branding",
-        icon: Settings,
+        href: "/help",
+        label: "Help",
+        description: "Tickets and claims",
+        icon: LifeBuoy,
+        badgeKey: "tickets",
       },
     ],
   },
+];
+
+/** Reachable via ⌘K (and the bell) without a sidebar slot. */
+export const MERCHANT_PALETTE_EXTRA = [
+  {
+    href: "/notifications",
+    label: "Inbox & alerts",
+    group: "Account",
+    keywords: "notifications bell",
+  },
+  { href: "/bulk", label: "Bulk upload (CSV)", group: "Orders", keywords: "import csv" },
+  { href: "/settings?tab=locations", label: "Settings › Locations", group: "Settings" },
+  { href: "/settings?tab=branding", label: "Settings › Branding", group: "Settings" },
+  { href: "/settings?tab=tax", label: "Settings › Tax", group: "Settings" },
+  { href: "/billing?tab=cod", label: "Billing › COD", group: "Money" },
 ];
 
 export const ALL_MERCHANT_NAV_ITEMS = MERCHANT_NAV_GROUPS.flatMap((g) => g.items);
@@ -136,7 +151,6 @@ export const NAV_MODULE_BY_HREF: Record<string, string> = {
   "/help": "support",
   "/billing": "billing",
   "/reports": "reports",
-  "/notifications": "support",
   "/api": "api_keys",
   "/shopify": "api_keys",
   "/team": "users",
@@ -147,6 +161,7 @@ export const NAV_MODULE_BY_HREF: Record<string, string> = {
 const EXTRA_ROUTE_MODULES: Record<string, string> = {
   "/book": "book",
   "/bulk": "bulk",
+  "/notifications": "support",
 };
 
 export function hasMerchantModule(modules: string[] | undefined, key: string): boolean {
