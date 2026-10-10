@@ -48,7 +48,7 @@ def cache_get(user_id: str) -> dict[str, Any] | None:
             return None
         data = json.loads(raw)
         return data if isinstance(data, dict) else None
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("principal_cache_get_failed", exc_info=True)
         return None
 
@@ -62,7 +62,7 @@ def cache_set(user_id: str, payload: dict[str, Any]) -> None:
         return
     try:
         client.setex(f"{_CACHE_PREFIX}{user_id}", ttl, json.dumps(payload, default=str))
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("principal_cache_set_failed", exc_info=True)
 
 
@@ -74,5 +74,5 @@ def cache_invalidate(user_id: str) -> None:
         return
     try:
         client.delete(f"{_CACHE_PREFIX}{user_id}")
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("principal_cache_invalidate_failed", exc_info=True)

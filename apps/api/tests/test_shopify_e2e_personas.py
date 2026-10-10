@@ -156,7 +156,10 @@ def _queue(db, settings, shop_domain: str, topic: str, body: dict, calls) -> dic
 def test_install_rate_order_fulfil_track_return_uninstall_redact(db, company):
     from porterchain_api.integrations.shopify_carrier_rates import carrier_service_rates
     from porterchain_api.merchant_engine.shopify_fulfillment_ops import push_fulfillment
-    from porterchain_api.merchant_engine.shopify_privacy import open_privacy_request, process_privacy_request
+    from porterchain_api.merchant_engine.shopify_privacy import (
+        open_privacy_request,
+        process_privacy_request,
+    )
 
     settings = _settings()
     domain = f"e2e-{uuid4().hex[:8]}.myshopify.com"
@@ -370,3 +373,16 @@ def test_merchant_persona_permissions():
     from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS
 
     assert MODULE_PERMISSIONS["api_keys"] == frozenset({MerchantRole.OWNER, MerchantRole.ADMIN})
+
+
+def test_merchant_key_list_marks_rotated_key_past_grace_inactive():
+    from datetime import timedelta
+    from types import SimpleNamespace
+
+    from porterchain_api.routers.merchant._deps import _api_key_out
+
+    base = dict(id="k", name="n", key_prefix="pk", scopes=[], environment="production",
+                rate_limit_per_minute=60, is_active=True, created_at=datetime.now(UTC))
+    old = _api_key_out(SimpleNamespace(**base, expires_at=datetime.now(UTC) - timedelta(hours=1)))
+    grace = _api_key_out(SimpleNamespace(**base, expires_at=datetime.now(UTC) + timedelta(days=3)))
+    assert old.is_active is False and grace.is_active is True and grace.expires_at

@@ -1,8 +1,7 @@
 """Parcel route table: one booked mail, pickup and delivery mail, no address means no email."""
 
-from porterchain_shared.events.catalog import DomainEventType
-
 from porterchain_api.notification_engine.event_router import _specs_for_event
+from porterchain_shared.events.catalog import DomainEventType
 
 
 def _payload(**extra: object) -> dict:

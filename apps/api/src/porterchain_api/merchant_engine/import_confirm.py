@@ -156,7 +156,7 @@ def confirm_import(
             job.job_config = cfg
             db.commit()
             db.refresh(job)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.debug("auto-save mapping profile skipped", exc_info=True)
 
     return job

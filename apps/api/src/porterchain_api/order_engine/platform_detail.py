@@ -12,21 +12,12 @@ from porterchain_api.admin_models import AdminAuditLog, Claim, Driver, SupportTi
 from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_engine.invoice_service import public_document_url
-from porterchain_api.booking_models import (
-    Booking,
-    Customer,
-    DomainEvent,
-    Invoice,
-    Order,
-    OrderException,
-    Payment,
-    Quote,
-)
 from porterchain_api.config import Settings
-from porterchain_api.domain.customer_goods import booked_capacity_class
-from porterchain_api.merchant_models import Merchant
-from porterchain_api.order_engine.platform_helpers import ops_timeline_label
 from porterchain_api.reporting.pod_normalize import normalize_pod
+from porterchain_api.merchant_models import Merchant
+from porterchain_api.booking_models import Booking, Customer, DomainEvent, Invoice, Order, OrderException, Payment, Quote
+from porterchain_api.domain.customer_goods import booked_capacity_class
+from porterchain_api.order_engine.platform_helpers import ops_timeline_label
 
 
 def resolve_order_additional_stops(order: Order, quote: Quote | None = None) -> list[Any]:
@@ -131,6 +122,8 @@ class OrderPlatformDetailMixin:
         except Exception:
             live_tracking = None
 
+        fb_status = (live_tracking or {}).get("status")
+        fb_mapped = None
         proofs: list[dict[str, Any]] = []
         if isinstance(live_raw, dict):
             raw_proofs = live_raw.get("proofs")
@@ -193,9 +186,7 @@ class OrderPlatformDetailMixin:
         meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
         quote_snap = meta.get("quote") if isinstance(meta.get("quote"), dict) else {}
         quote_amount = quote.amount_cents if quote else quote_snap.get("amount_cents")
-        from porterchain_api.merchant_engine.quote_snapshot import (
-            sanitize_pricing_breakdown,
-        )
+        from porterchain_api.merchant_engine.quote_snapshot import sanitize_pricing_breakdown
 
         pricing_breakdown = sanitize_pricing_breakdown(quote.pricing_breakdown if quote else None)
         if not pricing_breakdown and quote_snap:

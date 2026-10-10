@@ -68,7 +68,7 @@ def read_manage_token(
         if str(exc) == "link_invalid":
             raise
         raise ValueError("link_invalid") from exc
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — malformed base64/json
         raise ValueError("link_invalid") from exc
     if not isinstance(payload, dict) or not payload.get("o") or not payload.get("t"):
         raise ValueError("link_invalid")

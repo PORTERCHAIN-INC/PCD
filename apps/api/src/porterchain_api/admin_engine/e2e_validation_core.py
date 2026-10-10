@@ -11,15 +11,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
-from porterchain_api.admin_engine.e2e_validation_catalog import (
-    DEFAULT_MERCHANT_BULK_COUNT,
-    E2E_MARKER,
-    ValidationStatus,
-)
+from porterchain_api.admin_engine.e2e_validation_catalog import DEFAULT_MERCHANT_BULK_COUNT, E2E_MARKER, ValidationStatus
 from porterchain_api.admin_engine.e2e_validation_helpers import StepResult, _now_iso
 from porterchain_api.auth.clerk_registry import is_clerk_configured
-from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import Order
 
 logger = logging.getLogger(__name__)
 

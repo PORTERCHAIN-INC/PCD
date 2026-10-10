@@ -26,7 +26,7 @@ def touch_online(role: str, user_id: str, *, seconds: int = _ONLINE_TTL_SECONDS)
             seconds,
             "1",
         )
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("presence touch failed", exc_info=True)
 
 
@@ -90,13 +90,13 @@ class RealtimeHub:
             try:
                 await self._pubsub.unsubscribe(self._channel)
                 await self._pubsub.close()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.debug("failed to close notification realtime pubsub", exc_info=True)
             self._pubsub = None
         if self._redis:
             try:
                 await self._redis.aclose()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.debug("failed to close notification realtime redis", exc_info=True)
             self._redis = None
 
@@ -146,7 +146,7 @@ class RealtimeHub:
         message = self._encode_message(user_role, user_id, payload, local_delivered=local_delivered)
         try:
             await self._redis.publish(self._channel, message)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.debug("failed to publish notification realtime event", exc_info=True)
 
     def _publish_sync(
@@ -164,7 +164,7 @@ class RealtimeHub:
                 self._channel,
                 self._encode_message(user_role, user_id, payload, local_delivered=local_delivered),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.debug("failed to publish notification realtime event from sync context", exc_info=True)
 
     def _encode_message(
@@ -203,7 +203,7 @@ class RealtimeHub:
                     await self._broadcast_local(user_role, user_id, payload)
             except asyncio.CancelledError:
                 raise
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.debug("invalid notification realtime pubsub message", exc_info=True)
 
     def broadcast_sync(self, user_role: str, user_id: str, payload: dict[str, Any]) -> None:

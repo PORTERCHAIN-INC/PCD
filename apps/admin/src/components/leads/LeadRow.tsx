@@ -59,7 +59,11 @@ export function formatDuration(mins: number): string {
 
 function ago(iso: string, now: number): string {
   const m = Math.max(0, Math.floor((now - Date.parse(iso)) / 60_000));
-  return m < 60 ? `${m}m ago` : m < 2880 ? `${Math.floor(m / 60)}h ago` : `${Math.floor(m / 1440)}d ago`;
+  return m < 60
+    ? `${m}m ago`
+    : m < 2880
+      ? `${Math.floor(m / 60)}h ago`
+      : `${Math.floor(m / 1440)}d ago`;
 }
 
 export function scoreTone(score: number): string {
@@ -152,7 +156,10 @@ export default function LeadRow({
       <div className="w-16 shrink-0 text-right sm:w-24">
         {wait != null ? (
           <span
-            className={cn("text-sm font-semibold tabular-nums", late ? "text-red-700" : "text-slate-600")}
+            className={cn(
+              "text-sm font-semibold tabular-nums",
+              late ? "text-red-700" : "text-slate-600"
+            )}
             title={late ? "Over the 5-minute reply target" : "Waiting on us"}
           >
             {formatDuration(wait)}
@@ -162,7 +169,10 @@ export default function LeadRow({
         )}
       </div>
       <span
-        className={cn("w-10 shrink-0 text-right text-2xl font-extrabold tabular-nums", scoreTone(lead.lead_score))}
+        className={cn(
+          "w-10 shrink-0 text-right text-2xl font-extrabold tabular-nums",
+          scoreTone(lead.lead_score)
+        )}
         title="Fit score"
       >
         {lead.lead_score}

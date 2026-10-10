@@ -9,12 +9,10 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.booking_engine.confirmation_service import (
-    BookingConfirmationService,
-)
-from porterchain_api.booking_models import Booking, Order, Payment, Quote
+from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import BookingDraftState
+from porterchain_api.booking_models import Booking, Order, Payment, Quote
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +68,7 @@ class BookingDraftReconciliationService:
             .all()
         )
         for order in rows:
-            draft = self._drafts._raw_by_quote_id(db, order.quote_id)
+            draft = self._drafts._raw_by_quote_id(db, order.quote_id)  # noqa: SLF001
             if not draft:
                 continue
             if draft.state == BookingDraftState.BOOKING_CONFIRMED.value:

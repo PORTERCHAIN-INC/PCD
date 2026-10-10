@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
 from porterchain_api.merchant_engine.dashboard_service import MerchantDashboardService
-from porterchain_api.merchant_engine.integrations_service import (
-    MerchantIntegrationsService,
-)
+from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
@@ -16,6 +13,7 @@ from porterchain_api.merchant_engine.settings_service import MerchantSettingsSer
 from porterchain_api.merchant_engine.team_service import MerchantTeamService
 from porterchain_api.merchant_engine.template_service import MerchantTemplateService
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
+from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
 from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 
 

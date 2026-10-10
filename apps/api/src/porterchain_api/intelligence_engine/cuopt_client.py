@@ -13,6 +13,7 @@ import time
 from typing import Any
 
 import httpx
+
 from porterchain_shared.config.settings import get_platform_settings
 
 logger = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ def optimize_routing(
 
     try:
         payload = resp.json()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         _record_failure()
         raise RuntimeError("nvidia_cuopt_bad_json") from exc
 

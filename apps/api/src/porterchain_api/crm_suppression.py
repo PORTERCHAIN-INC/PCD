@@ -30,7 +30,7 @@ def normalize_phone(value: str | None) -> str | None:
 
 
 def hash_contact(kind: str, normalized: str) -> str:
-    return hashlib.sha256(f"{kind}:{normalized}".encode()).hexdigest()
+    return hashlib.sha256(f"{kind}:{normalized}".encode("utf-8")).hexdigest()
 
 
 def is_suppressed(

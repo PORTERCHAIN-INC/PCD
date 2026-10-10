@@ -3,20 +3,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
-from typing import Any
+from typing import Any, Callable
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_models import (
-    Claim,
-    Driver,
-    DriverPayout,
-    SupportTicket,
-    Vehicle,
-)
+from porterchain_api.admin_models import Claim, Driver, DriverPayout, SupportTicket, Vehicle
 from porterchain_api.booking_models import Order, OrderException
 from porterchain_api.crm_models import CrmActivity, CrmSalesTask
 
@@ -133,9 +126,7 @@ def ai_payload(
     maintenance = "low"
     alert_days = 30
     if db is not None:
-        from porterchain_api.admin_engine.platform_settings import (
-            document_expiry_alert_days,
-        )
+        from porterchain_api.admin_engine.platform_settings import document_expiry_alert_days
 
         alert_days = document_expiry_alert_days(db)
     soon = _now().date() + timedelta(days=alert_days)

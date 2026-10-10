@@ -42,9 +42,9 @@ redis.call('HSET', key,
   'h3', ARGV[8],
   'version', tostring(ver)
 )
-redis.call('EXPIRE', key, tonumber(ARGV[9]))
+redis.call('EXPIRE', key, tonumber(ARGV[10]))
 pcall(function()
-  redis.call('GEOADD', geo_key, ARGV[3], ARGV[2], ARGV[10])
+  redis.call('GEOADD', geo_key, ARGV[3], ARGV[2], ARGV[11])
 end)
 return ver
 """

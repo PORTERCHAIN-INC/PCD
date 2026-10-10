@@ -6,24 +6,16 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.merchant_api import (
-    MerchantApiKeyContext,
-    get_merchant_api_context,
-)
+from porterchain_api.auth.merchant_api import MerchantApiKeyContext, get_merchant_api_context
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.states import OrderSource
 from porterchain_api.gateway_engine.merchant_api import CHANNEL_ORDER_SOURCES
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.rate_card_view import merchant_rate_card
-from porterchain_api.merchant_engine.service_area import (
-    assert_ontario_booking,
-    merchant_coverage_fsas,
-)
+from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
 from porterchain_api.routers.merchant._deps import _order_response
 from porterchain_api.schemas_merchant import (

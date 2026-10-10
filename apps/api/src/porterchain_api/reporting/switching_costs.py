@@ -9,19 +9,12 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import MerchantContract, PricingTariff
-from porterchain_api.booking_models import Order
 from porterchain_api.gateway_engine import merchant_api as gateway
+from porterchain_api.merchant_engine.reporting_metrics import ON_TIME_GRACE_MINUTES, score_on_time
 from porterchain_api.merchant_engine.audit_copy import serialize_audit_log
 from porterchain_api.merchant_engine.rbac import permissions_catalog
-from porterchain_api.merchant_engine.reporting_metrics import (
-    score_on_time,
-)
-from porterchain_api.merchant_models import (
-    Merchant,
-    MerchantApiKey,
-    MerchantAuditLog,
-    MerchantWebhook,
-)
+from porterchain_api.merchant_models import Merchant, MerchantApiKey, MerchantAuditLog, MerchantWebhook
+from porterchain_api.booking_models import Order
 
 
 def _month_bounds(offset_months: int, *, reference: datetime | None = None) -> tuple[datetime, datetime, str]:
@@ -162,3 +155,6 @@ def rbac_and_audit_snapshot(db: Session, merchant_id: str, *, limit: int = 50) -
         ),
         "recent_audit_logs": [serialize_audit_log(row, include_payload=True) for row in logs],
     }
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.merchant_engine.reporting_metrics import ON_TIME_GRACE_MINUTES  # noqa: E402, F401

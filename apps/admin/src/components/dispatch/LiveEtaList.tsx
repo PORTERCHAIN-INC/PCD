@@ -18,11 +18,21 @@ const TEXT: Record<string, string> = {
 };
 
 function hhmm(iso: string | null): string {
-  return iso ? new Date(iso).toLocaleTimeString("en-CA", { hour: "2-digit", minute: "2-digit" }) : "—";
+  return iso
+    ? new Date(iso).toLocaleTimeString("en-CA", { hour: "2-digit", minute: "2-digit" })
+    : "—";
 }
 
-export function LiveEtaList({ tick, onOpenOrder }: { tick: number; onOpenOrder: (id: string) => void }) {
-  const { data, loading, error } = useApiData((t) => dispatch.liveEta(t), [tick], { key: "dispatch-live-eta" });
+export function LiveEtaList({
+  tick,
+  onOpenOrder,
+}: {
+  tick: number;
+  onOpenOrder: (id: string) => void;
+}) {
+  const { data, loading, error } = useApiData((t) => dispatch.liveEta(t), [tick], {
+    key: "dispatch-live-eta",
+  });
   const items = data?.items ?? [];
   return (
     <section className="rounded-2xl border border-primary/10 bg-white">
@@ -44,14 +54,20 @@ export function LiveEtaList({ tick, onOpenOrder }: { tick: number; onOpenOrder: 
               className="flex w-full items-center gap-3 px-4 py-3 text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-primary">{r.order_number}</span>
+                <span className="block truncate text-sm font-semibold text-primary">
+                  {r.order_number}
+                </span>
                 <span className="block truncate text-xs text-muted">
                   {r.state.replaceAll("_", " ").toLowerCase()} · promise {hhmm(r.promise)}
                 </span>
               </span>
               <span className="text-right">
-                <span className="block text-sm font-semibold tabular-nums text-primary">ETA {hhmm(r.eta)}</span>
-                <span className={cn("block text-xs font-medium", TONE[r.status])}>{TEXT[r.status]}</span>
+                <span className="block text-sm font-semibold tabular-nums text-primary">
+                  ETA {hhmm(r.eta)}
+                </span>
+                <span className={cn("block text-xs font-medium", TONE[r.status])}>
+                  {TEXT[r.status]}
+                </span>
               </span>
             </button>
           </li>

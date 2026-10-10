@@ -373,10 +373,12 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
       type: "select",
       effect: "wired",
       hint: "Wired — used when a delivery address has no province or postal code",
-      options: ["ON", "QC", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE", "YT", "NT", "NU"].map((p) => ({
-        value: p,
-        label: p,
-      })),
+      options: ["ON", "QC", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE", "YT", "NT", "NU"].map(
+        (p) => ({
+          value: p,
+          label: p,
+        })
+      ),
     },
     {
       key: "collect_qst",

@@ -3,9 +3,7 @@
 from fastapi import Body, Query, Response
 
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.admin_engine.logistics_partners_service import (
-    LogisticsPartnersService,
-)
+from porterchain_api.admin_engine.logistics_partners_service import LogisticsPartnersService
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,

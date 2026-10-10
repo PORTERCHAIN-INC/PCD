@@ -29,6 +29,7 @@ class StopSpec:
     label: str = ""
     boxes: int = 0
     kg: float = 0.0
+    m3: float = 0.0
     service_s: int = 300
     window_start_s: int | None = None
     window_end_s: int | None = None
@@ -89,8 +90,11 @@ def shape_label(n_pickups: int, n_drops: int, *, returning: bool) -> str:
     return f"return {a}→{b}" if returning else f"{a}→{b}"
 
 
-def order_stops(order: Any, *, boxes: int = 0, kg: float = 0.0) -> OrderStops:
-    """Expand one order into stops + pickup→drop pairs (load split evenly over pairs)."""
+def order_stops(order: Any, *, boxes: int = 0, kg: float = 0.0, m3: float = 0.0) -> OrderStops:
+    """Expand one order into stops + pickup→drop pairs (load split evenly over pairs).
+
+    Windows and learned service times are applied by the caller (``fleet_plan_service``).
+    """
     oid = str(order.id)
     pickups = _points(getattr(order, "pickup", None))
     drops = _points(getattr(order, "dropoff", None))
@@ -118,6 +122,7 @@ def order_stops(order: Any, *, boxes: int = 0, kg: float = 0.0) -> OrderStops:
     n = len(pair_idx)
     b_each, b_rem = divmod(max(int(boxes), 0), n)
     kg_each = round(float(kg or 0) / n, 3)
+    m3_each = round(float(m3 or 0) / n, 4)
     pk, dk = ("return_pickup", "return_drop") if returning else ("pickup", "drop")
     for k, (i, j) in enumerate(pair_idx):
         p, d = pickups[i], drops[j]
@@ -126,12 +131,12 @@ def order_stops(order: Any, *, boxes: int = 0, kg: float = 0.0) -> OrderStops:
         b = b_each + (1 if k < b_rem else 0)
         ps = StopSpec(
             key=f"{oid}:p{i}:{k}", order_id=oid, kind=pk, lat=pl[0], lng=pl[1], fsa=fsa(_postal(p)),
-            label=str(p.get("formatted") or ""), boxes=b, kg=kg_each,
+            label=str(p.get("formatted") or ""), boxes=b, kg=kg_each, m3=m3_each,
             service_s=int(p.get("service_s") or 300),
         )
         ds = StopSpec(
             key=f"{oid}:d{j}:{k}", order_id=oid, kind=str(d.get("kind") or dk) if d.get("kind") in KINDS else dk,
-            lat=dl[0], lng=dl[1], fsa=fsa(_postal(d)), label=str(d.get("formatted") or ""), boxes=b, kg=kg_each,
+            lat=dl[0], lng=dl[1], fsa=fsa(_postal(d)), label=str(d.get("formatted") or ""), boxes=b, kg=kg_each, m3=m3_each,
             service_s=int(d.get("service_s") or 300), partner_id=d.get("partner_id"),
         )
         out.stops += [ps, ds]

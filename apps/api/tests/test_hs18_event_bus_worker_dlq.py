@@ -5,12 +5,9 @@ from __future__ import annotations
 from uuid import uuid4
 
 import pytest
+
 from porterchain_event_bus.bus import EventBus
-from porterchain_event_bus.dlq import (
-    DLQ_STREAM_KEY,
-    InMemoryDeadLetterQueue,
-    RedisDeadLetterQueue,
-)
+from porterchain_event_bus.dlq import DLQ_STREAM_KEY, InMemoryDeadLetterQueue, RedisDeadLetterQueue
 from porterchain_event_bus.envelope import build_envelope
 from porterchain_event_bus.idempotency import InMemoryIdempotencyStore
 from porterchain_event_bus.registry import HandlerRegistry
@@ -174,7 +171,7 @@ def test_hs18_live_redis_publish_and_worker_style_consume() -> None:
     from porterchain_event_bus.bus import STREAM_KEY
 
     bus = get_event_bus()
-    if bus._redis_client is None:
+    if bus._redis_client is None:  # noqa: SLF001
         pytest.skip("EventBus not on Redis")
 
     envelope = build_envelope(

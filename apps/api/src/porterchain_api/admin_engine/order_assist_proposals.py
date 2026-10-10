@@ -59,7 +59,7 @@ def assign_proposals(svc: Any, db: Session, order: Order) -> list[dict[str, Any]
         eta_bit = ""
     elif eta_src in {"valhalla", "osrm", "matrix", "routing"}:
         eta_bit = f" · {round(float(eta_min))}m road"
-    elif eta_src == "haversine":  # label only, no distance math
+    elif eta_src == "haversine":  # dispatch-guard:ok — label only, no distance math
         eta_bit = " · no road ETA"
     else:
         eta_bit = f" · ~{eta_min} min"

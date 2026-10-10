@@ -6,8 +6,10 @@
 
 import uuid
 from datetime import datetime
+
 from decimal import Decimal
 
+from sqlalchemy import event
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -19,7 +21,6 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
-    event,
     func,
     text,
 )
@@ -27,13 +28,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
-from porterchain_api.domain.states import (
-    OrderSource,
-    OrderState,
-    OrderType,
-    PaymentTerms,
-    QuoteState,
-)
+from porterchain_api.domain.states import OrderSource, OrderState, OrderType, PaymentTerms, QuoteState
 
 
 def _uuid() -> str:

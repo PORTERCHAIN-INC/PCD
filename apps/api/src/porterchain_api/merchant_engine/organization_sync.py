@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import re
 from datetime import UTC, datetime
 from typing import Any, Literal
 from urllib.parse import urlparse
+import re
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.merchant_models import Merchant
+
 
 ActorKind = Literal["merchant", "admin"]
 

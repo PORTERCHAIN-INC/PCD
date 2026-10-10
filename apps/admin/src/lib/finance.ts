@@ -339,8 +339,13 @@ export const financeApi = {
       body: JSON.stringify(body),
     }),
   interacQueue: async (token: string, status: string = "open") => {
-    const raw = await adminFetch<unknown>(`${B}/interac?status=${encodeURIComponent(status)}`, token);
-    return z.object({ inbox_enabled: z.boolean(), items: z.array(interacTransferSchema) }).parse(raw);
+    const raw = await adminFetch<unknown>(
+      `${B}/interac?status=${encodeURIComponent(status)}`,
+      token
+    );
+    return z
+      .object({ inbox_enabled: z.boolean(), items: z.array(interacTransferSchema) })
+      .parse(raw);
   },
   interacApprove: (token: string, id: string, body: { invoice_id?: string; note?: string } = {}) =>
     adminFetch<InteracTransfer>(`${B}/interac/${id}/approve`, token, {

@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-
-from porterchain_services.maps.service import MapsService
 
 from porterchain_api.admin_engine.control_tower.scoring import (
     WINDOW_MISS_PENALTY,
@@ -13,6 +11,7 @@ from porterchain_api.admin_engine.control_tower.scoring import (
     required_skills,
     window_penalty,
 )
+from porterchain_services.maps.service import MapsService
 
 
 def _verified(**kwargs):

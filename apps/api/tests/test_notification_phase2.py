@@ -6,6 +6,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from porterchain_api.notification_engine.engine import get_notification_engine
+from porterchain_api.notification_engine.models import NotificationRecord
 from porterchain_api.notification_engine.preference_service import PreferenceService
 from porterchain_api.notification_engine.retry_sweeper import sweep_notification_retries
 

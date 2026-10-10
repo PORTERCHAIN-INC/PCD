@@ -1,9 +1,5 @@
 """merchant routes — privacy export / delete requests (§11.1.8)."""
 
-from porterchain_api.merchant_engine.shopify_privacy import (
-    export_for_merchant,
-    list_requests,
-)
 from porterchain_api.routers.merchant._deps import (
     Annotated,
     Depends,
@@ -18,6 +14,7 @@ from porterchain_api.routers.merchant._deps import (
     require_module,
     router,
 )
+from porterchain_api.merchant_engine.shopify_privacy import export_for_merchant, list_requests
 from porterchain_api.schemas_merchant import PrivacyDeleteRequest
 
 

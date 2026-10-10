@@ -45,7 +45,9 @@ function readRecent(): string[] {
 }
 function rememberRecent(addresses: string[]) {
   try {
-    const merged = [...addresses, ...readRecent()].filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 6);
+    const merged = [...addresses, ...readRecent()]
+      .filter((v, i, a) => v && a.indexOf(v) === i)
+      .slice(0, 6);
     localStorage.setItem(RECENT_KEY, JSON.stringify(merged));
   } catch {
     /* private mode */
@@ -68,13 +70,16 @@ export default function ExpressBook({
   againToken?: string;
 }) {
   const locale = (useLocale() === "fr" ? "fr" : "en") as BookingLocale;
-  const tx = (key: BookingCopyKey, vars?: Record<string, string | number>) => bookingText(locale, key, vars);
+  const tx = (key: BookingCopyKey, vars?: Record<string, string | number>) =>
+    bookingText(locale, key, vars);
   const router = useRouter();
   const startedAt = useRef<number>(0);
   const [mode, setMode] = useState<Mode>(quoteId || againToken ? "locked" : "form");
   const [pickup, setPickup] = useState(initialPickup);
   const [drops, setDrops] = useState<string[]>([initialDropoff]);
-  const [vehicle, setVehicle] = useState<VehicleId>(isVehicle(initialVehicle) ? initialVehicle : "sedan_suv");
+  const [vehicle, setVehicle] = useState<VehicleId>(
+    isVehicle(initialVehicle) ? initialVehicle : "sedan_suv"
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -119,7 +124,10 @@ export default function ExpressBook({
     }
   }, [againToken, quoteId, locale]);
 
-  const quoteInput = useMemo(() => buildQuoteInput({ pickup, drops, vehicle }), [pickup, drops, vehicle]);
+  const quoteInput = useMemo(
+    () => buildQuoteInput({ pickup, drops, vehicle }),
+    [pickup, drops, vehicle]
+  );
 
   // Live price as they type (debounced). Does not create a quote.
   useEffect(() => {
@@ -145,7 +153,10 @@ export default function ExpressBook({
 
   const amount = locked?.amount_cents ?? price?.amount_cents ?? null;
   const hasTrip = mode === "locked" ? Boolean(locked) : Boolean(quoteInput);
-  const blocker = payBlocker({ pickup, drops, vehicle, name, email, phone }, amount !== null && hasTrip);
+  const blocker = payBlocker(
+    { pickup, drops, vehicle, name, email, phone },
+    amount !== null && hasTrip
+  );
 
   async function pay(event: React.FormEvent) {
     event.preventDefault();
@@ -158,7 +169,9 @@ export default function ExpressBook({
     try {
       const sessionId = getOrCreateVisitorId();
       const quote =
-        mode === "locked" && locked ? locked : await fastCreateQuote({ ...quoteInput!, anonymous_session_id: sessionId });
+        mode === "locked" && locked
+          ? locked
+          : await fastCreateQuote({ ...quoteInput!, anonymous_session_id: sessionId });
       const res = await expressCheckout({
         quote_id: quote.quote_id,
         name: name.trim(),
@@ -214,15 +227,28 @@ export default function ExpressBook({
     ) : null;
 
   return (
-    <form onSubmit={pay} noValidate className="mx-auto w-full max-w-xl pb-40 sm:pb-12" aria-labelledby="book-title">
-      <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">{tx("eyebrow")}</p>
-      <h1 id="book-title" className="mt-2 text-4xl font-extrabold tracking-tight text-primary sm:text-5xl">
+    <form
+      onSubmit={pay}
+      noValidate
+      className="mx-auto w-full max-w-xl pb-40 sm:pb-12"
+      aria-labelledby="book-title"
+    >
+      <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">
+        {tx("eyebrow")}
+      </p>
+      <h1
+        id="book-title"
+        className="mt-2 text-4xl font-extrabold tracking-tight text-primary sm:text-5xl"
+      >
         {tx("title")}
       </h1>
       <p className="mt-3 text-base text-primary/75">{tx("lead")}</p>
 
       {notice ? (
-        <p role="status" className="mt-6 rounded-2xl bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
+        <p
+          role="status"
+          className="mt-6 rounded-2xl bg-primary/5 px-4 py-3 text-sm font-medium text-primary"
+        >
           {notice}
         </p>
       ) : null}
@@ -252,7 +278,9 @@ export default function ExpressBook({
                   <input
                     className={field}
                     value={drop}
-                    onChange={(e) => setDrops((d) => d.map((x, j) => (j === i ? e.target.value : x)))}
+                    onChange={(e) =>
+                      setDrops((d) => d.map((x, j) => (j === i ? e.target.value : x)))
+                    }
                     onFocus={() => setFocus(i)}
                     onBlur={() => setFocus(null)}
                     placeholder={tx("placeholder")}
@@ -280,7 +308,10 @@ export default function ExpressBook({
               onClick={() => setDrops((d) => [...d, ""])}
               className="text-sm font-bold text-primary underline underline-offset-4"
             >
-              + {tx("addDrop")} <span className="font-medium text-primary/65">({drops.length}/{MAX_DROPS})</span>
+              + {tx("addDrop")}{" "}
+              <span className="font-medium text-primary/65">
+                ({drops.length}/{MAX_DROPS})
+              </span>
             </button>
           ) : (
             <p className="text-sm text-primary/70">{tx("dropsLimit")}</p>
@@ -307,7 +338,9 @@ export default function ExpressBook({
                     className="sr-only"
                   />
                   <span className="block text-base font-bold">{v.label[locale]}</span>
-                  <span className={`block text-xs ${vehicle === v.id ? "text-white/85" : "text-primary/65"}`}>
+                  <span
+                    className={`block text-xs ${vehicle === v.id ? "text-white/85" : "text-primary/65"}`}
+                  >
                     {v.hint[locale]}
                   </span>
                 </label>
@@ -358,7 +391,13 @@ export default function ExpressBook({
       <div className="mt-8 space-y-5">
         <label className={labelCls}>
           {tx("name")}
-          <input className={field} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+          <input
+            className={field}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+            required
+          />
         </label>
         <div className="grid gap-5 sm:grid-cols-2">
           <label className={labelCls}>
@@ -390,7 +429,13 @@ export default function ExpressBook({
         <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
           <label>
             Website
-            <input tabIndex={-1} autoComplete="off" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
+            <input
+              tabIndex={-1}
+              autoComplete="off"
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+            />
           </label>
         </div>
         <label className="flex items-start gap-3 text-sm text-primary/85">
@@ -407,7 +452,10 @@ export default function ExpressBook({
       </div>
 
       {error ? (
-        <p role="alert" className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+        <p
+          role="alert"
+          className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+        >
           {error}
         </p>
       ) : null}
@@ -422,7 +470,11 @@ export default function ExpressBook({
             className="flex w-full items-center justify-between rounded-2xl bg-primary px-6 py-4 text-left text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:opacity-60"
           >
             <span className="text-base font-bold">{busy ? tx("paying") : tx("pay")}</span>
-            <span className="text-2xl font-extrabold tabular-nums" aria-live="polite" data-testid="express-price">
+            <span
+              className="text-2xl font-extrabold tabular-nums"
+              aria-live="polite"
+              data-testid="express-price"
+            >
               {amount !== null ? formatPrice(amount, locale) : pricing ? "…" : "—"}
             </span>
           </button>

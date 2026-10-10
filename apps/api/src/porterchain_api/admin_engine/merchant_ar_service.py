@@ -22,10 +22,10 @@ from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.billing_engine.invoice_numbering import allocate_invoice_number, ensure_payment_reference
 from porterchain_api.billing_engine.merchant_credit import add_merchant_credit
 from porterchain_api.booking_engine.order_transitions import transition_order_state
-from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine import events as MerchantEvents
 from porterchain_api.merchant_engine.lookups import get_merchant
+from porterchain_api.booking_models import Invoice, Order, Payment
 
 ELIGIBLE_STATES = frozenset(
     {
@@ -492,3 +492,6 @@ def is_cycle_billed(db: Session, order: Order) -> bool:
     from porterchain_api.admin_engine.merchant_ar_cycles import is_cycle_billed as _impl
 
     return _impl(db, order)
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.booking_engine.numbers import generate_invoice_number  # noqa: E402, F401

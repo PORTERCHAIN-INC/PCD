@@ -173,9 +173,10 @@ def test_require_customer_portal_ready_raises_with_blockers() -> None:
         patch(
             "porterchain_api.admin_engine.platform_settings.portal_enabled",
             return_value=True,
-        ),pytest.raises(PermissionError, match="customer_onboarding_blocked:")
+        ),
     ):
-        require_customer_portal_ready(db, _claims(email=None), customer, email=None)
+        with pytest.raises(PermissionError, match="customer_onboarding_blocked:"):
+            require_customer_portal_ready(db, _claims(email=None), customer, email=None)
 
 
 def test_require_customer_portal_ready_passes_when_ready() -> None:

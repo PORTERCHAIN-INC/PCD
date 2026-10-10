@@ -243,7 +243,7 @@ def _workspaces_for(principal: CurrentPrincipal) -> list[dict]:
 
 
 __all__ = [
-    "CurrentPrincipal",
     "RoleAssignmentView",
+    "CurrentPrincipal",
     "ScopeType",
 ]

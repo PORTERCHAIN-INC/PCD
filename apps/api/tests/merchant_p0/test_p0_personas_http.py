@@ -17,11 +17,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.main import app
-from porterchain_api.merchant_engine.rbac import (
-    MODULE_PERMISSIONS,
-    MerchantContext,
-    modules_for_role,
-)
+from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS, MerchantContext, modules_for_role
 from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.routers.merchant._deps import get_db, get_merchant_context
 

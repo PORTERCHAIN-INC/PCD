@@ -17,12 +17,9 @@ from porterchain_api.admin_engine.business_metrics import (
     assess_support_first_response,
 )
 from porterchain_api.admin_models import SupportTicket
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Order, OrderEvent
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.domain.states import OrderState
+from porterchain_api.booking_models import Order, OrderEvent
 from porterchain_api.support_engine.support_helpers import set_ticket_data
 
 
@@ -42,7 +39,6 @@ def test_assess_auto_dispatch_counts_assigned(db: Session) -> None:
         order_number=generate_order_number(),
         tracking_number=generate_tracking_number(),
         state=OrderState.DRIVER_ASSIGNED.value,
-        fleetbase_order_id=f"fb_{uuid4().hex[:12]}",
         amount_cents=3200,
         currency="cad",
         pickup=_addr(),
@@ -64,7 +60,6 @@ def test_assess_auto_dispatch_excludes_sandbox(db: Session) -> None:
         order_number=generate_order_number(),
         tracking_number=generate_tracking_number(),
         state=OrderState.DRIVER_ASSIGNED.value,
-        fleetbase_order_id=f"fb_{uuid4().hex[:12]}",
         amount_cents=3200,
         currency="cad",
         pickup=_addr(),

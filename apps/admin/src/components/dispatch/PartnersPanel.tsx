@@ -6,7 +6,8 @@ import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { dispatch, money, type LogisticsPartner } from "@/lib/dispatch";
 
-const IN = "w-full min-w-0 rounded-lg border border-primary/15 bg-white px-2 py-1.5 text-sm text-primary";
+const IN =
+  "w-full min-w-0 rounded-lg border border-primary/15 bg-white px-2 py-1.5 text-sm text-primary";
 const KIND_LABEL: Record<LogisticsPartner["kind"], string> = {
   warehouse: "Warehouse",
   ftl: "FTL",
@@ -30,7 +31,9 @@ const EMPTY: LogisticsPartner = {
 
 export function PartnersPanel({ tick }: { tick: number }) {
   const { getApiToken } = useAdminAuth();
-  const { data, refetch } = useApiData((t) => dispatch.partners(t), [tick], { key: "dispatch-partners" });
+  const { data, refetch } = useApiData((t) => dispatch.partners(t), [tick], {
+    key: "dispatch-partners",
+  });
   const [draft, setDraft] = useState<LogisticsPartner | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const items = data?.items ?? [];
@@ -49,11 +52,16 @@ export function PartnersPanel({ tick }: { tick: number }) {
   };
 
   return (
-    <section className="rounded-2xl border border-primary/10 bg-white p-4" data-testid="dispatch-partners">
+    <section
+      className="rounded-2xl border border-primary/10 bg-white p-4"
+      data-testid="dispatch-partners"
+    >
       <header className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h2 className="text-base font-semibold text-primary">Partners</h2>
-          <p className="text-xs text-muted">Warehouses, FTL/LTL linehaul and 3PL final mile. Used for out-of-area legs.</p>
+          <p className="text-xs text-muted">
+            Warehouses, FTL/LTL linehaul and 3PL final mile. Used for out-of-area legs.
+          </p>
         </div>
         <button
           type="button"
@@ -65,7 +73,9 @@ export function PartnersPanel({ tick }: { tick: number }) {
       </header>
 
       {items.length === 0 && !draft && (
-        <p className="mt-3 text-sm text-muted">No partners yet — every order runs as a local van leg.</p>
+        <p className="mt-3 text-sm text-muted">
+          No partners yet — every order runs as a local van leg.
+        </p>
       )}
       {items.length > 0 && (
         <ul className="mt-3 divide-y divide-primary/5">
@@ -82,7 +92,11 @@ export function PartnersPanel({ tick }: { tick: number }) {
                 {p.fsa_coverage.length ? ` · ${p.fsa_coverage.join(" ")}` : ""}
                 {p.active ? "" : " · off"}
               </span>
-              <button type="button" className="text-xs font-medium text-secondary" onClick={() => setDraft({ ...p })}>
+              <button
+                type="button"
+                className="text-xs font-medium text-secondary"
+                onClick={() => setDraft({ ...p })}
+              >
                 Edit
               </button>
             </li>
@@ -94,14 +108,20 @@ export function PartnersPanel({ tick }: { tick: number }) {
         <div className="mt-3 grid gap-3 rounded-xl bg-primary/[0.03] p-3 sm:grid-cols-4">
           <label className="text-xs text-muted sm:col-span-2">
             Name
-            <input className={IN} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+            <input
+              className={IN}
+              value={draft.name}
+              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+            />
           </label>
           <label className="text-xs text-muted">
             Type
             <select
               className={IN}
               value={draft.kind}
-              onChange={(e) => setDraft({ ...draft, kind: e.target.value as LogisticsPartner["kind"] })}
+              onChange={(e) =>
+                setDraft({ ...draft, kind: e.target.value as LogisticsPartner["kind"] })
+              }
             >
               {Object.entries(KIND_LABEL).map(([k, l]) => (
                 <option key={k} value={k}>
@@ -127,7 +147,12 @@ export function PartnersPanel({ tick }: { tick: number }) {
                   type="number"
                   step="0.0001"
                   value={draft.lat ?? ""}
-                  onChange={(e) => setDraft({ ...draft, lat: e.target.value === "" ? null : Number(e.target.value) })}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      lat: e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
                 />
               </label>
               <label className="text-xs text-muted">
@@ -137,7 +162,12 @@ export function PartnersPanel({ tick }: { tick: number }) {
                   type="number"
                   step="0.0001"
                   value={draft.lng ?? ""}
-                  onChange={(e) => setDraft({ ...draft, lng: e.target.value === "" ? null : Number(e.target.value) })}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      lng: e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
                 />
               </label>
             </>
@@ -150,7 +180,12 @@ export function PartnersPanel({ tick }: { tick: number }) {
                   type="number"
                   step="0.01"
                   value={draft.rate_per_kg_cents / 100}
-                  onChange={(e) => setDraft({ ...draft, rate_per_kg_cents: Math.round(Number(e.target.value) * 100) })}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      rate_per_kg_cents: Math.round(Number(e.target.value) * 100),
+                    })
+                  }
                 />
               </label>
               <label className="text-xs text-muted">
@@ -159,7 +194,12 @@ export function PartnersPanel({ tick }: { tick: number }) {
                   className={IN}
                   type="number"
                   value={draft.min_charge_cents / 100}
-                  onChange={(e) => setDraft({ ...draft, min_charge_cents: Math.round(Number(e.target.value) * 100) })}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      min_charge_cents: Math.round(Number(e.target.value) * 100),
+                    })
+                  }
                 />
               </label>
             </>
@@ -181,7 +221,13 @@ export function PartnersPanel({ tick }: { tick: number }) {
               placeholder="K1 K2 H3"
               value={draft.fsa_coverage.join(" ")}
               onChange={(e) =>
-                setDraft({ ...draft, fsa_coverage: e.target.value.toUpperCase().split(/[\s,]+/).filter(Boolean) })
+                setDraft({
+                  ...draft,
+                  fsa_coverage: e.target.value
+                    .toUpperCase()
+                    .split(/[\s,]+/)
+                    .filter(Boolean),
+                })
               }
             />
           </label>
@@ -194,7 +240,11 @@ export function PartnersPanel({ tick }: { tick: number }) {
             >
               Save partner
             </button>
-            <button type="button" onClick={() => setDraft(null)} className="min-h-10 px-3 text-sm text-muted">
+            <button
+              type="button"
+              onClick={() => setDraft(null)}
+              className="min-h-10 px-3 text-sm text-muted"
+            >
               Cancel
             </button>
             {msg && <span className="text-sm text-muted">{msg}</span>}

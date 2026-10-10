@@ -76,7 +76,13 @@ describe("LeadsPage (merchant inbox)", () => {
       win_rate_by_channel: [{ channel: "whatsapp", leads: 4, won: 2, lost: 1, win_rate: 66.7 }],
     });
     speed.mockResolvedValue({ generated_at: new Date().toISOString(), windows: [win(7), win(30)] });
-    weeklySummary.mockResolvedValue({ won: 2, lost: 1, win_rate: 66.7, by_channel: [], lost_reasons: [{ reason: "price", count: 1 }] });
+    weeklySummary.mockResolvedValue({
+      won: 2,
+      lost: 1,
+      win_rate: 66.7,
+      by_channel: [],
+      lost_reasons: [{ reason: "price", count: 1 }],
+    });
   });
 
   it("shows the speed strip first: median reply, answered < 5 min, win rate by channel", async () => {
@@ -126,7 +132,9 @@ describe("LeadsPage (merchant inbox)", () => {
     expect(firstFilters?.view).toBe("now");
     expect(screen.getByRole("tab", { name: "Now" })).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("tab", { name: "Waiting" }));
-    await waitFor(() => expect((list.mock.calls.at(-1)?.[1] as { view?: string }).view).toBe("waiting"));
+    await waitFor(() =>
+      expect((list.mock.calls.at(-1)?.[1] as { view?: string }).view).toBe("waiting")
+    );
     expect(screen.getByRole("button", { name: /^driver applicants$/i })).toBeInTheDocument();
   });
 

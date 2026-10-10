@@ -5,10 +5,7 @@ Paths stay under /v1/admin/operations/dispatch/* next to the Control Tower API.
 
 from fastapi import Body, Query
 
-from porterchain_api.admin_engine.dispatch_board_service import (
-    DispatchBoardService,
-    recommend,
-)
+from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService, recommend
 from porterchain_api.admin_engine.job_offers_service import JobOffersService
 from porterchain_api.routers.admin._deps import (
     AdminContext,
@@ -50,6 +47,22 @@ def dispatch_metrics(ctx: Ctx, db: Session = Depends(get_db), days: int = Query(
 def dispatch_exceptions(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     """One queue: open exceptions, failed/damaged/lost/returns, late/at-risk ETAs, unassigned >15 min."""
     return _invoke(ctx, "dispatch_read", _board.exceptions_queue, db)
+
+
+@router.post(f"{P}/exceptions/apply")
+def dispatch_exception_apply(ctx: Ctx, db: Session = Depends(get_db), body: dict = Body(...)) -> dict:
+    """Apply one suggested fix an admin approved: ``{item_id, order_id, action, params}``.
+
+    action: reroute (drafts a re-plan) | reassign | reschedule | contact (order.delayed notice).
+    """
+    from porterchain_api.admin_engine.exception_fixes_service import ExceptionFixesService
+    from porterchain_api.config import get_settings
+
+    return _invoke(
+        ctx, "dispatch", ExceptionFixesService().apply, db, get_settings(), ctx,
+        item_id=str(body.get("item_id") or ""), order_id=str(body.get("order_id") or ""),
+        action=str(body.get("action") or ""), params=body.get("params") if isinstance(body.get("params"), dict) else {},
+    )
 
 
 @router.get(f"{P}/live-eta")

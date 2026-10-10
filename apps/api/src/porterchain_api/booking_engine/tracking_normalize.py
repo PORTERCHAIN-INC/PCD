@@ -9,13 +9,13 @@ from __future__ import annotations
 from typing import Any
 
 from porterchain_api.booking_engine.tracking_translator import TrackingTranslator
-from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import Order
 
 
 class TrackingFacade:
     def fetch_raw(self, settings: Settings, order: Order) -> dict[str, Any] | None:
-        """Tracker-shaped payload from the assigned driver's last-known GPS."""
+        """Build a tracker-shaped payload from last_known, else ops mirror."""
         del settings
         known = self._last_known_for_order(order)
         if known is not None:

@@ -6,8 +6,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-from porterchain_shared.config.settings import get_platform_settings
-from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -27,6 +25,8 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
 from porterchain_api.admin_engine.settings_service import PORTERCHAIN_VERSION
 from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
+from porterchain_shared.config.settings import get_platform_settings
+from porterchain_shared.redis_health import ping_redis
 
 _HEALTH_CACHE: dict[str, Any] | None = None
 _HEALTH_CACHE_AT: float = 0.0
@@ -45,11 +45,8 @@ class DiagnosticsHealthMixin:
             from porterchain_api.auth.sli_metrics import auth_events_snapshot
 
             cached["auth_sli"] = auth_events_snapshot()
-            from porterchain_shared.config.project_mode import (
-                runtime_posture_from_settings,
-            )
-
             from porterchain_api.auth.staff_session import staff_cookie_params
+            from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
             posture = runtime_posture_from_settings(settings)
             cookie = staff_cookie_params(settings)
@@ -67,10 +64,9 @@ class DiagnosticsHealthMixin:
         _HEALTH_CACHE = payload
         _HEALTH_CACHE_AT = now
         out = dict(payload)
-        from porterchain_shared.config.project_mode import runtime_posture_from_settings
-
         from porterchain_api.auth.sli_metrics import auth_events_snapshot
         from porterchain_api.auth.staff_session import staff_cookie_params
+        from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
         posture = runtime_posture_from_settings(settings)
         cookie = staff_cookie_params(settings)

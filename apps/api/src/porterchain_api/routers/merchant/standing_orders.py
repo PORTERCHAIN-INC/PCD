@@ -1,8 +1,6 @@
 """merchant routes — recurring standing orders (§8.1.11)."""
 
-from porterchain_api.merchant_engine.standing_order_service import (
-    standing_error_message,
-)
+from porterchain_api.merchant_engine.standing_order_service import standing_error_message
 from porterchain_api.routers.merchant._deps import (
     Annotated,
     Depends,

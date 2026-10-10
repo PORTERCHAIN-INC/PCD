@@ -2,24 +2,38 @@
 
 from __future__ import annotations
 
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.crm_helpers import (
-    CrmActor,
-    _actor,
-)
+from porterchain_api.collaboration_engine.crm_helpers import CrmActor
+from porterchain_api.config import Settings
 from porterchain_api.crm_models import (
+    CrmActivity,
     CrmCompany,
+    CrmContact,
+    CrmContract,
+    CrmDeal,
     CrmInvoice,
     CrmLead,
+    CrmQuotation,
+    CrmSalesTask,
 )
-from porterchain_api.db_json import json_text
 from porterchain_api.domain.crm_states import (
+    PIPELINE_STAGES,
+    STAGE_PROBABILITY,
     CompanyMerchantStatus,
+    ContractStatus,
+    DealStage,
+    LeadStatus,
+    QuotationStatus,
+    TaskStatus,
 )
+from porterchain_api.db_json import json_text, json_text_lower
+from porterchain_api.collaboration_engine.crm_helpers import _actor, _today, _to_int
+
 
 
 class CrmCompaniesMixin:
@@ -116,9 +130,7 @@ class CrmCompaniesMixin:
             setattr(company, key, value)
         if company.merchant_id and tax_patch:
             from porterchain_api.merchant_engine.lookups import get_merchant
-            from porterchain_api.merchant_engine.organization_sync import (
-                apply_tax_legal,
-            )
+            from porterchain_api.merchant_engine.organization_sync import apply_tax_legal
 
             merchant = get_merchant(db, company.merchant_id)
             if merchant is not None:
@@ -245,3 +257,24 @@ class CrmCompaniesMixin:
         db.commit()
         return {"companies_created": created, "leads_linked": linked}
 
+# Re-exports kept for existing importers (integration).
+from datetime import date  # noqa: E402, F401
+from datetime import datetime  # noqa: E402, F401
+from datetime import time  # noqa: E402, F401
+from porterchain_api.config import Settings  # noqa: E402, F401
+from porterchain_api.crm_models import CrmActivity  # noqa: E402, F401
+from porterchain_api.crm_models import CrmContact  # noqa: E402, F401
+from porterchain_api.crm_models import CrmContract  # noqa: E402, F401
+from porterchain_api.crm_models import CrmDeal  # noqa: E402, F401
+from porterchain_api.crm_models import CrmQuotation  # noqa: E402, F401
+from porterchain_api.crm_models import CrmSalesTask  # noqa: E402, F401
+from porterchain_api.domain.crm_states import PIPELINE_STAGES  # noqa: E402, F401
+from porterchain_api.domain.crm_states import STAGE_PROBABILITY  # noqa: E402, F401
+from porterchain_api.domain.crm_states import ContractStatus  # noqa: E402, F401
+from porterchain_api.domain.crm_states import DealStage  # noqa: E402, F401
+from porterchain_api.domain.crm_states import LeadStatus  # noqa: E402, F401
+from porterchain_api.domain.crm_states import QuotationStatus  # noqa: E402, F401
+from porterchain_api.domain.crm_states import TaskStatus  # noqa: E402, F401
+from porterchain_api.db_json import json_text_lower  # noqa: E402, F401
+from porterchain_api.collaboration_engine.crm_helpers import _today  # noqa: E402, F401
+from porterchain_api.collaboration_engine.crm_helpers import _to_int  # noqa: E402, F401

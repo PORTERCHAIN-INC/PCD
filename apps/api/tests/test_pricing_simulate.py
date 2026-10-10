@@ -6,7 +6,6 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
-from porterchain_pricing.types import GeoPoint, PricingRequest
 
 from porterchain_api.admin_engine.finance_service import AdminFinanceService
 from porterchain_api.admin_engine.rbac import AdminContext, parse_admin_role
@@ -23,6 +22,7 @@ from porterchain_api.domain.states import OrderState
 from porterchain_api.main import app
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.pricing_engine import get_pricing_service
+from porterchain_pricing.types import GeoPoint, PricingRequest
 
 
 @pytest.fixture

@@ -69,10 +69,7 @@ async def get_driver_context(
 def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
     """When self-scoped driver assignments exist, driver.id must match."""
     from porterchain_api.auth.claims import ClerkClaims
-    from porterchain_api.auth.dependencies import (
-        assert_self_scope,
-        resolve_principal_for_claims,
-    )
+    from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
     if not driver.clerk_user_id:
         return

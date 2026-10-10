@@ -7,13 +7,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from porterchain_shared.events.catalog import CATALOG_VERSION, DomainEventType
-
 from porterchain_api.dispatch_engine.optimize_events import (
     DEFAULT_OPTIMIZE_ENGINE,
     assert_driver_scoped,
     foreign_order_ids,
 )
+from porterchain_shared.events.catalog import CATALOG_VERSION, DomainEventType
 
 FIXTURE = Path(__file__).parent / "fixtures" / "gta150_golden_optimize.json"
 
@@ -75,9 +74,7 @@ def test_golden_fixture_driver_scoped_contract() -> None:
 
 
 def test_enqueue_emits_optimize_enqueued() -> None:
-    from porterchain_api.admin_engine.orchestrator_ops_service import (
-        OrchestratorOpsService,
-    )
+    from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
     from porterchain_api.dispatch_engine.optimize_run_store import STATUS_PENDING
 
     emitted: list[tuple] = []

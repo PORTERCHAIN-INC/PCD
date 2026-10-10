@@ -124,11 +124,11 @@ def main() -> int:
         if needle.lower() not in idor.lower():
             failures.append(f"B.12 IDOR test missing {needle!r}")
 
-    slo_script = ROOT / "scripts/verify_fleetbase_sync_slo.py"
+    slo_script = ROOT / "scripts/verify_day_plan_scorecard.py"
     if slo_script.is_file():
         proc = subprocess.run([sys.executable, str(slo_script)], cwd=ROOT, capture_output=True, text=True)
         if proc.returncode != 0:
-            failures.append("B.6 day-plan scorecard guard (verify_fleetbase_sync_slo) failed")
+            failures.append("B.6 day-plan scorecard guard (verify_day_plan_scorecard) failed")
             if proc.stdout:
                 failures.append(proc.stdout.strip()[:400])
 

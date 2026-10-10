@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLead
 from porterchain_api.domain.crm_states import LeadDecisionStatus
 
+
 _LEAD_ASSIST_SYSTEM = """You assist PorterChain sales staff closing merchant capacity deals.
 Rules:
 1. Return ONLY JSON: {"summary":string,"draft_reply":string,"suggested_decision_status":string,"next_questions":[string],"risks":[string]}

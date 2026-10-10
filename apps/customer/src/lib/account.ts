@@ -33,7 +33,8 @@ export interface SavedAddress {
   use_count: number;
 }
 
-export type ProblemKind = "late" | "damaged" | "missing" | "wrong_address" | "return" | "billing" | "other";
+export type ProblemKind =
+  "late" | "damaged" | "missing" | "wrong_address" | "return" | "billing" | "other";
 
 async function call<T>(token: string, path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -48,7 +49,9 @@ async function call<T>(token: string, path: string, init?: RequestInit): Promise
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const detail = body?.detail;
-    throw new Error(typeof detail === "string" ? detail : detail?.message || "Something went wrong. Try again.");
+    throw new Error(
+      typeof detail === "string" ? detail : detail?.message || "Something went wrong. Try again."
+    );
   }
   return res.json();
 }
@@ -59,9 +62,14 @@ export const accountApi = {
   suggestions: (t: string, q = "") =>
     call<SavedAddress[]>(t, `/v1/customers/me/address-suggestions?q=${encodeURIComponent(q)}`),
   saveAddress: (t: string, body: { formatted: string; label?: string | null }) =>
-    call<SavedAddress>(t, "/v1/customers/me/addresses", { method: "POST", body: JSON.stringify(body) }),
+    call<SavedAddress>(t, "/v1/customers/me/addresses", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   deleteAddress: (t: string, id: string) =>
-    call<{ ok: boolean }>(t, `/v1/customers/me/addresses/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    call<{ ok: boolean }>(t, `/v1/customers/me/addresses/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
   reportProblem: (t: string, tracking: string, kind: ProblemKind, details: string) =>
     call<{ status: string; reply_within_hours: number }>(
       t,

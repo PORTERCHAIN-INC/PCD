@@ -6,57 +6,50 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.merchant import (
-    MerchantSeats,
-    get_merchant_context,
-    get_merchant_seats,
-)
-from porterchain_api.booking_models import Order
-from porterchain_api.compliance_engine.privacy_service import PrivacyService
+from porterchain_api.auth.merchant import MerchantSeats, get_merchant_context, get_merchant_seats
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from porterchain_api.compliance_engine.privacy_service import PrivacyService
 from porterchain_api.merchant_engine.api_key_service import MerchantApiKeyService
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
-from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
+from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
 from porterchain_api.merchant_engine.dashboard_service import MerchantDashboardService
-from porterchain_api.merchant_engine.integrations_service import (
-    MerchantIntegrationsService,
-)
-from porterchain_api.merchant_engine.orders_service import (
-    MerchantOrderFilters,
-    MerchantOrdersService,
-)
+from porterchain_api.merchant_engine.orders_service import MerchantOrderFilters, MerchantOrdersService
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
-from porterchain_api.merchant_engine.rbac import MerchantContext, forbidden_message
-from porterchain_api.merchant_engine.rbac import require_module as _require_module
+from porterchain_api.merchant_engine.rbac import MerchantContext, forbidden_message, require_module as _require_module
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
 from porterchain_api.merchant_engine.settings_service import MerchantSettingsService
-from porterchain_api.merchant_engine.standing_order_service import (
-    MerchantStandingOrderService,
-)
-from porterchain_api.merchant_engine.support_bridge_service import (
-    MerchantSupportBridgeService,
-)
+from porterchain_api.merchant_engine.standing_order_service import MerchantStandingOrderService
+from porterchain_api.merchant_engine.support_bridge_service import MerchantSupportBridgeService
+from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
 from porterchain_api.merchant_engine.team_service import MerchantTeamService
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
+from porterchain_api.booking_models import Order
 from porterchain_api.schemas_admin import OrderListItem, OrderListPage
 from porterchain_api.schemas_merchant import (
     ApiKeyCreateRequest,
     ApiKeyResponse,
-    BillingContactRequest,
     BillingStatementResponse,
     BulkUploadResponse,
+    BillingContactRequest,
+    BillingContactPatchRequest,
     BusinessDocumentRequest,
+    MerchantBrandingRequest,
+    MerchantContactCreateRequest,
+    MerchantContactResponse,
+    MerchantContactUpdateRequest,
+    MerchantClaimOpenRequest,
+    MerchantNotificationsRequest,
+    MerchantSupportTicketRequest,
+    MerchantTrackingEmailRequest,
+    MerchantTrackingEmailResponse,
+    MerchantTwoFactorRequest,
+    WarehouseRequest,
     InvoiceDetailResponse,
     InvoiceListItem,
-    MerchantApiKeyRateLimitRequest,
-    MerchantBillingHistoryItem,
-    MerchantBillingOverviewResponse,
     MerchantBookDeliveryRequest,
     MerchantBookingConfirmRequest,
     MerchantBookingConfirmResponse,
@@ -64,50 +57,44 @@ from porterchain_api.schemas_merchant import (
     MerchantBookingPreviewResponse,
     MerchantBookingTemplateCreateRequest,
     MerchantBookingTemplateResponse,
-    MerchantBrandingRequest,
-    MerchantClaimOpenRequest,
+    MerchantStandingOrderCreateRequest,
+    MerchantStandingOrderResponse,
     MerchantConsoleRequest,
-    MerchantContactCreateRequest,
-    MerchantContactResponse,
-    MerchantContactUpdateRequest,
-    MerchantContractPricingResponse,
-    MerchantCreditNoteItem,
-    MerchantDashboardResponse,
+    MerchantApiKeyRateLimitRequest,
+    MerchantSandboxRequest,
     MerchantLiveTrackingResponse,
     MerchantMultiParcelRequest,
     MerchantMultiParcelResponse,
-    MerchantNotificationsRequest,
-    MerchantOrder360Response,
+    MerchantTrackingDashboardResponse,
+    MerchantBillingOverviewResponse,
+    MerchantBillingHistoryItem,
+    MerchantContractPricingResponse,
+    MerchantCreditNoteItem,
+    MerchantDashboardResponse,
+    MerchantPaymentItem,
+    MerchantStatementDetailResponse,
+    MerchantTaxSummaryResponse,
     MerchantOrderBulkRequest,
     MerchantOrderResponse,
+    MerchantOrder360Response,
     MerchantOrdersDashboardResponse,
-    MerchantPaymentItem,
     MerchantProfileResponse,
     MerchantProfileUpdateRequest,
     MerchantRateCardResponse,
-    MerchantReportSaveRequest,
-    MerchantReportScheduleRequest,
-    MerchantSandboxRequest,
-    MerchantStandingOrderCreateRequest,
-    MerchantStandingOrderResponse,
-    MerchantStatementDetailResponse,
-    MerchantSupportTicketRequest,
-    MerchantTaxSummaryResponse,
-    MerchantTrackingDashboardResponse,
-    MerchantTrackingEmailRequest,
-    MerchantTrackingEmailResponse,
-    MerchantTwoFactorRequest,
     OrderTrackingResponse,
     RecipientCreateRequest,
+    RecipientUpdateRequest,
     RecipientResponse,
+    MerchantReportSaveRequest,
+    MerchantReportScheduleRequest,
     ReportSummaryResponse,
     SavedAddressCreateRequest,
+    SavedAddressUpdateRequest,
     SavedAddressResponse,
     TeamInviteRequest,
     TeamMemberResponse,
     TeamMemberUpdateRequest,
     TeamRoleUpdateRequest,
-    WarehouseRequest,
     WebhookCreateRequest,
     WebhookResponse,
     WebhookUpdateRequest,
@@ -215,10 +202,19 @@ def _api_key_out(k, secret: str | None = None) -> ApiKeyResponse:
         scopes=k.scopes,
         environment=k.environment,
         rate_limit_per_minute=k.rate_limit_per_minute,
-        is_active=k.is_active,
+        is_active=bool(k.is_active) and not _expired(getattr(k, "expires_at", None)),
         created_at=k.created_at,
         secret=secret,
+        expires_at=getattr(k, "expires_at", None),
     )
+
+
+def _expired(exp) -> bool:
+    from datetime import UTC, datetime
+
+    if exp is None:
+        return False
+    return (exp if exp.tzinfo else exp.replace(tzinfo=UTC)) <= datetime.now(UTC)
 
 
 def _webhook_out(h, signing_secret: str | None = None) -> WebhookResponse:
@@ -261,7 +257,6 @@ __all__ = [
     "HTTPException",
     "InvoiceDetailResponse",
     "InvoiceListItem",
-    "MerchantApiKeyRateLimitRequest",
     "MerchantBillingHistoryItem",
     "MerchantBillingOverviewResponse",
     "MerchantBookDeliveryRequest",
@@ -271,6 +266,8 @@ __all__ = [
     "MerchantBookingPreviewResponse",
     "MerchantBookingTemplateCreateRequest",
     "MerchantBookingTemplateResponse",
+    "MerchantStandingOrderCreateRequest",
+    "MerchantStandingOrderResponse",
     "MerchantBrandingRequest",
     "MerchantClaimOpenRequest",
     "MerchantConsoleRequest",
@@ -295,17 +292,16 @@ __all__ = [
     "MerchantProfileUpdateRequest",
     "MerchantRateCardResponse",
     "MerchantReportSaveRequest",
+    "MerchantSeats",
     "MerchantReportScheduleRequest",
     "MerchantSandboxRequest",
-    "MerchantSeats",
-    "MerchantStandingOrderCreateRequest",
-    "MerchantStandingOrderResponse",
+    "MerchantApiKeyRateLimitRequest",
     "MerchantStatementDetailResponse",
     "MerchantSupportTicketRequest",
-    "MerchantTaxSummaryResponse",
-    "MerchantTrackingDashboardResponse",
     "MerchantTrackingEmailRequest",
     "MerchantTrackingEmailResponse",
+    "MerchantTaxSummaryResponse",
+    "MerchantTrackingDashboardResponse",
     "MerchantTwoFactorRequest",
     "Order",
     "OrderListItem",
@@ -327,6 +323,7 @@ __all__ = [
     "TeamRoleUpdateRequest",
     "UploadFile",
     "WarehouseRequest",
+    "_webhook_out",
     "WebhookCreateRequest",
     "WebhookResponse",
     "WebhookUpdateRequest",
@@ -342,17 +339,16 @@ __all__ = [
     "_integrations",
     "_order_response",
     "_orders",
-    "_privacy",
     "_profile",
     "_profile_response",
+    "_privacy",
     "_reports",
-    "_saved_address_out",
     "_settings",
+    "_saved_address_out",
     "_standing_orders",
     "_support",
     "_team",
     "_tracking",
-    "_webhook_out",
     "get_db",
     "get_merchant_context",
     "get_merchant_seats",
@@ -361,3 +357,7 @@ __all__ = [
     "router",
 ]
 
+# Re-exports kept for existing importers (integration).
+from porterchain_api.schemas_merchant import BillingContactPatchRequest  # noqa: E402, F401
+from porterchain_api.schemas_merchant import RecipientUpdateRequest  # noqa: E402, F401
+from porterchain_api.schemas_merchant import SavedAddressUpdateRequest  # noqa: E402, F401

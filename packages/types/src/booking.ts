@@ -15,9 +15,21 @@ export const BOOKING_VEHICLES: ReadonlyArray<{
   label: Record<BookingLocale, string>;
   hint: Record<BookingLocale, string>;
 }> = [
-  { id: "sedan_suv", label: { en: "Car", fr: "Auto" }, hint: { en: "Bags, boxes", fr: "Sacs, boîtes" } },
-  { id: "cargo_van", label: { en: "Van", fr: "Fourgon" }, hint: { en: "Cartons, parts", fr: "Cartons, pièces" } },
-  { id: "box_16", label: { en: "Truck", fr: "Camion" }, hint: { en: "Pallets, bulky", fr: "Palettes, volumineux" } },
+  {
+    id: "sedan_suv",
+    label: { en: "Car", fr: "Auto" },
+    hint: { en: "Bags, boxes", fr: "Sacs, boîtes" },
+  },
+  {
+    id: "cargo_van",
+    label: { en: "Van", fr: "Fourgon" },
+    hint: { en: "Cartons, parts", fr: "Cartons, pièces" },
+  },
+  {
+    id: "box_16",
+    label: { en: "Truck", fr: "Camion" },
+    hint: { en: "Pallets, bulky", fr: "Palettes, volumineux" },
+  },
 ];
 
 export interface BookingAddress {
@@ -80,7 +92,10 @@ export function toAddress(text: string): BookingAddress {
 
 /** Normalise drops: trim, drop blanks, cap at MAX_DROPS. */
 export function cleanDrops(drops: string[]): string[] {
-  return drops.map((d) => (d || "").trim()).filter(Boolean).slice(0, MAX_DROPS);
+  return drops
+    .map((d) => (d || "").trim())
+    .filter(Boolean)
+    .slice(0, MAX_DROPS);
 }
 
 export function canAddDrop(drops: string[]): boolean {
@@ -132,11 +147,13 @@ export const BOOKING_COPY = {
     name: "Your name",
     email: "Email",
     phone: "Phone",
-    marketing: "Yes, PorterChain Logistics Inc. may email me delivery tips and offers. I can unsubscribe at any time.",
+    marketing:
+      "Yes, PorterChain Logistics Inc. may email me delivery tips and offers. I can unsubscribe at any time.",
     optional: "(Optional)",
     pay: "Book & pay",
     paying: "Starting secure payment…",
-    legal: "Incl. HST. By booking you agree to the Terms and Privacy Policy and confirm no dangerous goods.",
+    legal:
+      "Incl. HST. By booking you agree to the Terms and Privacy Policy and confirm no dangerous goods.",
     terms: "Terms",
     privacy: "Privacy Policy",
     needTrip: "Add each address with its postal code to see your price.",
@@ -163,11 +180,13 @@ export const BOOKING_COPY = {
     name: "Votre nom",
     email: "Courriel",
     phone: "Téléphone",
-    marketing: "Oui, PorterChain Logistics Inc. peut m'envoyer des conseils et des offres par courriel. Je peux me désabonner en tout temps.",
+    marketing:
+      "Oui, PorterChain Logistics Inc. peut m'envoyer des conseils et des offres par courriel. Je peux me désabonner en tout temps.",
     optional: "(Facultatif)",
     pay: "Réserver et payer",
     paying: "Ouverture du paiement sécurisé…",
-    legal: "TVH incluse. En réservant, vous acceptez les Conditions et la Politique de confidentialité et confirmez l'absence de marchandises dangereuses.",
+    legal:
+      "TVH incluse. En réservant, vous acceptez les Conditions et la Politique de confidentialité et confirmez l'absence de marchandises dangereuses.",
     terms: "Conditions",
     privacy: "Politique de confidentialité",
     needTrip: "Ajoutez chaque adresse avec son code postal pour voir votre prix.",
@@ -181,7 +200,11 @@ export const BOOKING_COPY = {
   },
 } as const;
 
-export function bookingText(locale: BookingLocale, key: BookingCopyKey, vars: Record<string, string | number> = {}): string {
+export function bookingText(
+  locale: BookingLocale,
+  key: BookingCopyKey,
+  vars: Record<string, string | number> = {}
+): string {
   const table = BOOKING_COPY[locale] ?? BOOKING_COPY.en;
   let text: string = table[key] ?? BOOKING_COPY.en[key];
   for (const [k, v] of Object.entries(vars)) text = text.replace(`{${k}}`, String(v));

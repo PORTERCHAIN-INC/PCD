@@ -1,12 +1,11 @@
-"""Dispatch board read models: one Exceptions queue and the speed metrics bar."""
+"""Dispatch board read models: one Exceptions queue (with suggested fixes) and the speed metrics bar."""
 
 from __future__ import annotations
 
 import statistics
 from collections import defaultdict
-from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
-from typing import Any
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable
 
 from sqlalchemy.orm import Session
 
@@ -26,6 +25,8 @@ EXCEPTION_SEVERITY = {
     "FAILED_DELIVERY": "high",
     "CUSTOMER_UNAVAILABLE": "high",
     "WRONG_ADDRESS": "high",
+    "package_missing": "high",
+    "package_short_at_drop": "high",
 }
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 UNASSIGNED_ALERT_MIN = 15
@@ -34,7 +35,7 @@ UNASSIGNED_ALERT_MIN = 15
 def _aware(ts: datetime | None) -> datetime | None:
     if ts is None:
         return None
-    return ts if ts.tzinfo else ts.replace(tzinfo=UTC)
+    return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
 
 
 def _age_min(ts: datetime | None, now: datetime) -> int | None:
@@ -44,9 +45,7 @@ def _age_min(ts: datetime | None, now: datetime) -> int | None:
 
 def recommend(db: Session, order_id: str, **kw: Any) -> dict[str, Any]:
     """Recommendation with the admin verification gate applied."""
-    from porterchain_api.admin_engine.control_tower.scoring import (
-        driver_verification_gap,
-    )
+    from porterchain_api.admin_engine.control_tower.scoring import driver_verification_gap
     from porterchain_api.dispatch_engine.recommend import recommend_for_order
 
     return recommend_for_order(db, order_id, gap_fn=driver_verification_gap, **kw)
@@ -60,10 +59,14 @@ class DispatchBoardService:
         *,
         now: datetime | None = None,
         etas_fn: Callable[[Session], list[dict[str, Any]]] | None = None,
+        fixes: Any = None,
     ) -> dict[str, Any]:
+        """``fixes``: an ``ExceptionFixesService`` (injectable in tests)."""
+        from porterchain_api.admin_engine.exception_fixes_service import ExceptionFixesService, margin_items
         from porterchain_api.booking_models import Order, OrderException
+        from porterchain_api.dispatch_engine.fleet_capacity import load_fleet
 
-        now = now or datetime.now(UTC)
+        now = now or datetime.now(timezone.utc)
         items: list[dict[str, Any]] = []
         seen_orders: set[str] = set()
 
@@ -176,7 +179,10 @@ class DispatchBoardService:
                 }
             )
 
+        floor = float(load_fleet(db)["margin_floor_pct"])
+        items += [m for m in margin_items(db, now=now, floor_pct=floor) if m["order_id"] not in seen_orders]
         items.sort(key=lambda i: (SEVERITY_ORDER.get(i["severity"], 9), -(i["age_min"] or 0)))
+        (fixes or ExceptionFixesService()).annotate(db, items, now=now)
         counts: dict[str, int] = defaultdict(int)
         for i in items:
             counts[i["severity"]] += 1
@@ -195,7 +201,7 @@ class DispatchBoardService:
         )
         from porterchain_api.driver_models import DriverShift
 
-        now = now or datetime.now(UTC)
+        now = now or datetime.now(timezone.utc)
         days = max(1, min(int(days), 90))
         since = now - timedelta(days=days)
         fleet = load_fleet(db)

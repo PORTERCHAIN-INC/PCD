@@ -47,9 +47,7 @@ def convert_lead_with_outcome(
 
     lead = crm.get_lead(db, lead_id) or lead
 
-    from porterchain_api.collaboration_engine.lead_scoring import (
-        clear_score_priors_cache,
-    )
+    from porterchain_api.collaboration_engine.lead_scoring import clear_score_priors_cache
 
     clear_score_priors_cache()
 
@@ -70,9 +68,7 @@ def convert_lead_with_outcome(
                 "status": credit.status,
             }
 
-    from porterchain_api.collaboration_engine.lead_capi import (
-        emit_lead_conversion_events,
-    )
+    from porterchain_api.collaboration_engine.lead_capi import emit_lead_conversion_events
 
     out["capi"] = emit_lead_conversion_events(
         db, lead, event_name="LeadConverted", settings=settings

@@ -40,27 +40,5 @@ def test_jwt_secret_custom_allowed_in_production() -> None:
     assert settings.jwt_secret == secret
 
 
-def test_fleetbase_bridge_disabled_without_secrets_in_production() -> None:
-    settings = Settings(
-        app_env="production",
-        jwt_secret="a" * 64,
-        fleetbase_dispatch_bridge=False,
-        **_LEGACY_CLERK_PROD,
-    )
-    assert settings.fleetbase_dispatch_bridge is False
 
 
-def test_production_boots_without_fleetbase_secrets() -> None:
-    settings = Settings(
-        _env_file=None,
-        app_env="production",
-        jwt_secret="a" * 64,
-        fleetbase_dispatch_bridge=True,
-        fleetbase_api_key="",
-        fleetbase_webhook_secret="",
-        fleetbase_default_company_uuid="",
-        clerk_secret_key=_LEGACY_CLERK_PROD["clerk_secret_key"],
-        clerk_jwks_url=_LEGACY_CLERK_PROD["clerk_jwks_url"],
-    )
-    assert settings.fleetbase_dispatch_bridge is True
-    assert settings.fleetbase_sso_enabled is False

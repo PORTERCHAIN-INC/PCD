@@ -247,4 +247,4 @@ def _pack(
     }
 
 
-__all__ = ["_WELCOME_TAG", "lead_next_best_action", "resolve_contacts"]
+__all__ = ["lead_next_best_action", "resolve_contacts", "_WELCOME_TAG"]

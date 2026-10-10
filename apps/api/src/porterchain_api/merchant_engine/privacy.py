@@ -6,15 +6,11 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_models import Order
-from porterchain_api.merchant_engine.audit_copy import (
-    serialize_audit_log,
-    summarize_audit_action,
-)
+from porterchain_api.merchant_engine.audit_copy import serialize_audit_log, summarize_audit_action
 from porterchain_api.merchant_models import (
     Merchant,
     MerchantApiKey,
@@ -24,6 +20,7 @@ from porterchain_api.merchant_models import (
     MerchantWebhook,
     SavedAddress,
 )
+from porterchain_shared.events.catalog import DomainEventType
 
 MERCHANT_DELETE_RECEIVED = (
     "Deletion request received. PorterChain will confirm identity and any legal holds "
@@ -310,9 +307,7 @@ class MerchantPrivacyService:
                 },
             )
         )
-        from porterchain_api.merchant_engine.organization_sync import (
-            project_merchant_company,
-        )
+        from porterchain_api.merchant_engine.organization_sync import project_merchant_company
 
         project_merchant_company(db, merchant)
         db.commit()

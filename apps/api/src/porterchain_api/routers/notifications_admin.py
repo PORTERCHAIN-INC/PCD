@@ -5,10 +5,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from porterchain_api.notification_engine.admin_service import NotificationAdminService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
-from porterchain_api.notification_engine.admin_service import NotificationAdminService
 from porterchain_api.schemas_notifications import BroadcastRequest, SendTestRequest
 
 router = APIRouter(prefix="/v1/admin/notifications", tags=["notifications-admin"])

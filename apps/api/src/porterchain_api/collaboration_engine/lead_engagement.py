@@ -62,10 +62,7 @@ def apply_email_engagement(
         lead.lead_score = min(100, int(lead.lead_score or 0) + delta)
 
     try:
-        from porterchain_api.platform.lead_events import (
-            LEAD_ENGAGEMENT,
-            emit_lead_event,
-        )
+        from porterchain_api.platform.lead_events import LEAD_ENGAGEMENT, emit_lead_event
 
         emit_lead_event(
             db,

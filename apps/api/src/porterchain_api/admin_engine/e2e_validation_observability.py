@@ -6,8 +6,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_models import DomainEvent, OrderEvent
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import DomainEvent, OrderEvent
 
 
 class E2EValidationObservabilityMixin:

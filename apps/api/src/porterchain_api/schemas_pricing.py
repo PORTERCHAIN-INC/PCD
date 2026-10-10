@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_pricing.types import GeoPoint
 from pydantic import BaseModel, Field
+
+from porterchain_pricing.types import GeoPoint
 
 
 class PointInput(BaseModel):

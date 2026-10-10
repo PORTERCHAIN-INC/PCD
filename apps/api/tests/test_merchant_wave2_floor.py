@@ -8,14 +8,8 @@ from uuid import uuid4
 
 from porterchain_api.domain.catalog_labels import order_state_label, vehicle_label
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.merchant_engine.consignee_notify import (
-    consignee_error_message,
-    resolve_consignee_email,
-)
-from porterchain_api.merchant_engine.quote_snapshot import (
-    merchant_quote_picture,
-    sanitize_pricing_breakdown,
-)
+from porterchain_api.merchant_engine.consignee_notify import consignee_error_message, resolve_consignee_email
+from porterchain_api.merchant_engine.quote_snapshot import merchant_quote_picture, sanitize_pricing_breakdown
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.toronto import parse_toronto_day_bound
 from porterchain_api.merchant_models import Merchant, MerchantRecipient, MerchantUser
@@ -164,12 +158,9 @@ def test_book_stores_consignee_for_the_booked_notice(db, settings) -> None:
 
 
 def test_display_state_on_order_row(db) -> None:
-    from porterchain_api.booking_engine.numbers import (
-        generate_order_number,
-        generate_tracking_number,
-    )
-    from porterchain_api.booking_models import Order
+    from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
     from porterchain_api.domain.states import OrderState
+    from porterchain_api.booking_models import Order
     from porterchain_api.order_engine.platform_helpers import OrderPlatformHelpersMixin
 
     order = Order(

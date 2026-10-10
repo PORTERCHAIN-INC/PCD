@@ -11,9 +11,7 @@ from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryS
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
 from porterchain_api.booking_engine.public_address import public_address_snapshot
-from porterchain_api.booking_engine.public_tracking_snapshot import (
-    build_public_live_tracking,
-)
+from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
 from porterchain_api.compliance_engine.privacy_service import PrivacyService
 
 

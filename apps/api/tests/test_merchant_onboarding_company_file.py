@@ -13,10 +13,7 @@ from porterchain_api.auth.merchant_onboarding import (
     save_merchant_company_file,
 )
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.merchant_engine.company_file import (
-    company_file_missing,
-    merchant_status_label,
-)
+from porterchain_api.merchant_engine.company_file import company_file_missing, merchant_status_label
 from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 

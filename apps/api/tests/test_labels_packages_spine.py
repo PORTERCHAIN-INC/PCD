@@ -7,20 +7,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from porterchain_api.merchant_engine.stop_cargo import (
-    cargo_dims_for_pricing,
-    cargo_rollup,
-)
-from porterchain_api.reporting.qr_codec import (
-    InvalidLabelQr,
-    decode_label_qr,
-    encode_label_qr,
-)
-from porterchain_api.reporting.thermal_pdf import (
-    LABEL_HEIGHT,
-    LABEL_WIDTH,
-    render_thermal_labels,
-)
+from porterchain_api.merchant_engine.stop_cargo import cargo_dims_for_pricing, cargo_rollup
+from porterchain_api.reporting.qr_codec import InvalidLabelQr, decode_label_qr, encode_label_qr
+from porterchain_api.reporting.thermal_pdf import LABEL_HEIGHT, LABEL_WIDTH, render_thermal_labels
 
 
 def test_qr_codec_round_trip():
@@ -105,10 +94,7 @@ def test_thermal_code128_renders_for_suffix() -> None:
 
 
 def test_weight_only_body_seeds_pickup_package():
-    from porterchain_api.merchant_engine.stop_cargo import (
-        book_stops_for_request,
-        packages_from_stops,
-    )
+    from porterchain_api.merchant_engine.stop_cargo import book_stops_for_request, packages_from_stops
 
     pickup = SimpleNamespace(formatted="123 Main St", lat=43.6, lng=-79.3, city=None, postal=None, name=None, phone=None, notes=None)
     dropoff = SimpleNamespace(formatted="456 Queen St", lat=43.65, lng=-79.39, city=None, postal=None, name=None, phone=None, notes=None)
@@ -143,8 +129,8 @@ def test_cargo_dims_pass_through():
                 }
             )
         ],
-        pickup=SimpleNamespace(model_dump=dict, formatted="A", lat=1, lng=2),
-        dropoff=SimpleNamespace(model_dump=dict, formatted="B", lat=3, lng=4),
+        pickup=SimpleNamespace(model_dump=lambda: {}, formatted="A", lat=1, lng=2),
+        dropoff=SimpleNamespace(model_dump=lambda: {}, formatted="B", lat=3, lng=4),
         additional_stops=None,
         pickup_window_start=None,
         pickup_window_end=None,

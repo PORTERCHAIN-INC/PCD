@@ -6,12 +6,12 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from porterchain_driver.availability import AvailabilityService
 
 from porterchain_api.driver_engine.api_service import DriverApiService
 from porterchain_api.driver_engine.offline_executor import DriverOfflineExecutor
 from porterchain_api.main import app
 from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+from porterchain_driver.availability import AvailabilityService
 
 
 @pytest.mark.driver_p0

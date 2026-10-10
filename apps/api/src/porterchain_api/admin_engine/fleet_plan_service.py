@@ -7,9 +7,8 @@ solves the same problem; both are scored by ``vrp.evaluate`` and the better plan
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
-from typing import Any
+from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
@@ -22,6 +21,7 @@ PICKED = {"PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"}
 DONE = {"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED", "CANCELLED", "RETURN_TO_SENDER"}
 POOL = ("BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "FAILED")
 MAX_ORDERS = 300
+CUSTOMER_DROPS = {"drop", "return_drop"}  # a hub/partner handoff never inherits the customer's window
 Matrix = Callable[[list[tuple[float, float]]], list[list[int]] | None]
 
 
@@ -94,30 +94,55 @@ class FleetPlanService:
         return v
 
     def _stops(self, db: Session, orders: list[Any]) -> tuple[list[StopSpec], list[tuple[str, str]], list[dict], dict]:
-        from porterchain_api.dispatch_engine.fleet_capacity import order_load
-
+        """Orders → stops with load (kg, m³, boxes), time windows and learned service times."""
+        from porterchain_api.dispatch_engine import stop_times, windows
+        from porterchain_api.dispatch_engine.fleet_capacity import load_fleet, order_load
+        origin = _now()
+        times = stop_times.load(db, int(float(load_fleet(db)["service_minutes_per_stop"]) * 60))
         stops: list[StopSpec] = []
         pairs: list[tuple[str, str]] = []
         skipped: list[dict] = []
         shapes: dict[str, int] = {}
         for o in orders:
             load = order_load(o)
-            os_ = order_stops(self._hub_override(db, o), boxes=load.boxes, kg=load.kg)
+            view = self._hub_override(db, o)
+            os_ = order_stops(view, boxes=load.boxes, kg=load.kg, m3=load.m3)
             shapes[os_.shape] = shapes.get(os_.shape, 0) + 1
             if os_.skipped:
                 skipped.append({"order_id": o.id, "order_number": o.order_number, "reason": os_.skipped})
                 continue
+            drop_win = windows.drop_window(o)
+            for st, point in zip(os_.stops, self._points_for(view, os_.stops)):
+                win = windows.point_window(point)
+                if win == (None, None) and st.kind in CUSTOMER_DROPS:
+                    win = drop_win
+                st.window_start_s, st.window_end_s = windows.to_offsets(win, origin)
+                if not point.get("service_s"):
+                    st.service_s = times.seconds(st.kind, fsa=st.fsa, place=stop_times.place_key(st.lat, st.lng))
             stops += os_.stops
             pairs += os_.pairs
         return stops, pairs, skipped, shapes
 
+    @staticmethod
+    def _points_for(order: Any, stops: list[StopSpec]) -> list[dict[str, Any]]:
+        """The raw pickup/drop point dict behind each stop key (``<id>:p<i>:<k>`` / ``:d<j>:``)."""
+        def pts(raw: Any) -> list[dict[str, Any]]:
+            if not isinstance(raw, dict):
+                return []
+            inner = raw.get("stops")
+            return [p for p in inner if isinstance(p, dict)] if isinstance(inner, list) and inner else [raw]
+
+        side = {"p": pts(order.pickup), "d": pts(order.dropoff)}
+        out = []
+        for st in stops:
+            tag = st.key.split(":")[1]
+            group, i = tag[0], int(tag[1:])
+            out.append(side[group][i] if i < len(side[group]) else {})
+        return out
+
     def _vehicles(self, db: Session, fleet: dict[str, Any], only: list[str] | None = None) -> list[vrp.Vehicle]:
         from porterchain_api.admin_models import Driver, Vehicle
-        from porterchain_api.dispatch_engine.fleet_capacity import (
-            RANK,
-            canonical_class,
-            vehicle_by_id,
-        )
+        from porterchain_api.dispatch_engine.fleet_capacity import RANK, canonical_class, vehicle_by_id
         from porterchain_api.dispatch_engine.legs import TORONTO
 
         q = db.query(Driver).filter(Driver.status == "APPROVED")
@@ -136,6 +161,7 @@ class FleetPlanService:
             out.append(vrp.Vehicle(
                 id=f"v-{d.id}", driver_id=d.id, vehicle_class=spec["id"],
                 cap_kg=float(spec["max_kg"]) * cap, cap_boxes=int(spec["max_boxes"] * cap),
+                cap_m3=float(spec["max_m3"]) * cap,
                 start=self.position_fn(d.id) or TORONTO, hourly_cents=int(fleet.get("hourly_cost_cents") or 2700),
             ))
         return out
@@ -186,6 +212,7 @@ class FleetPlanService:
             **meta, "cost_cents": plan_eval["cost_cents"], "vehicles_used": plan_eval["vehicles_used"],
             "dropped": plan_eval["dropped"], "feasible": plan_eval["feasible"],
             "violations": plan_eval["violations"], "compare": plan_eval.get("compare", {}),
+            "late_stops": plan_eval.get("late_stops", []),
         }
         plan = DispatchPlan(
             service_date=datetime.now(TZ).date(), status="draft", solver=plan_eval.get("solver", "ortools"),
@@ -306,9 +333,7 @@ class FleetPlanService:
 
     def commit(self, db: Session, settings: Any, ctx: Any, plan_id: str) -> dict:
         """Admin-approved: assign each route's orders to its driver through the normal path."""
-        from porterchain_api.admin_engine.operations_service import (
-            AdminOperationsService,
-        )
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
         from porterchain_api.booking_models import Order
         from porterchain_api.dispatch_engine.models import DispatchPlan, DispatchRoute
 
@@ -349,11 +374,7 @@ class FleetPlanService:
     def explain(self, db: Session, plan_id: str) -> dict:
         from porterchain_api.config import get_settings
         from porterchain_api.dispatch_engine.models import DispatchRoute
-        from porterchain_api.dispatch_engine.plan_explain import (
-            llm_explain,
-            redact,
-            rules_explain,
-        )
+        from porterchain_api.dispatch_engine.plan_explain import llm_explain, redact, rules_explain
 
         data = self.get(db, plan_id)
         routes = db.query(DispatchRoute).filter(DispatchRoute.plan_id == plan_id).all()
@@ -368,10 +389,7 @@ class FleetPlanService:
         out = rules_explain(summary)
         if get_settings().dispatch_llm_explain_enabled:
             try:
-                from porterchain_api.intelligence_engine.nim_client import (
-                    chat_completion,
-                    nim_configured,
-                )
+                from porterchain_api.intelligence_engine.nim_client import chat_completion, nim_configured
 
                 if nim_configured():
                     out = llm_explain(summary, chat_completion) | {"rules": out}

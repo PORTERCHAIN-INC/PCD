@@ -12,8 +12,7 @@ from porterchain_api.routers.driver._deps import (
     get_driver_context,
     require_approved_driver,
     router,
-    svc,
-)
+    svc)
 
 
 def _route_svc():
@@ -22,13 +21,36 @@ def _route_svc():
     return DriverRouteService()
 
 
+def _scan_gate(db: Session):
+    from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+    gate = ScanGateService()
+    return lambda order, phase: gate.scan_progress(db, order, phase=phase)
+
+
+def _with_scans(db: Session, view: dict) -> dict:
+    """Per stop: boxes scanned / required for that stop's phase (read-only rollup)."""
+    from porterchain_api.dispatch_engine.driver_route import PICKUP_KINDS
+    from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+    route = view.get("route")
+    if not route:
+        return view
+    progress = ScanGateService().progress_by_order_ids(db, list({s["order_id"] for s in route["stops"]}))
+    for s in route["stops"]:
+        p = progress.get(s["order_id"], {})
+        phase = "scan_pickup" if s["kind"] in PICKUP_KINDS else "scan_delivery" if s["needs_pod"] else None
+        s["scan"] = p.get(phase) if phase else None
+    return view
+
+
 @router.get("/dispatch/route")
 def dispatch_route(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db)):
     """Today's committed route: grouped stops in order, status per stop, next stop index."""
     require_approved_driver(ctx)
-    return _route_svc().view(db, ctx.driver.id)
+    return _with_scans(db, _route_svc().view(db, ctx.driver.id))
 
 
 @router.post("/dispatch/stops/checkin")
@@ -36,9 +58,11 @@ def dispatch_checkin(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
     body: dict = Body(...)):
-    """``{keys, event: arrived|picked_up|delivered|failed, lat, lng, accuracy_m, note, pod_photo}``.
+    """``{keys, event, lat, lng, accuracy_m, note, pod_photo, client_id, short_reason}``.
 
-    Delivered at a customer drop needs a POD photo (already captured or sent here as a data URL).
+    ``event``: arrived | picked_up | delivered | failed. Picked up / delivered need every box
+    scanned; at a drop, ``short_reason`` confirms a short delivery and raises the missing-item
+    alert. A customer drop needs a POD photo. ``client_id`` makes an offline replay a no-op.
     """
     require_approved_driver(ctx)
 
@@ -47,12 +71,16 @@ def dispatch_checkin(
         return float(v) if isinstance(v, (int, float)) else None
 
     try:
-        return _route_svc().check_in(
+        out = _route_svc().check_in(
             db, ctx.driver, keys=[str(k) for k in body.get("keys") or []], event=str(body.get("event") or ""),
             lat=num("lat"), lng=num("lng"), accuracy_m=num("accuracy_m"),
             note=str(body["note"]) if body.get("note") else None,
             pod_photo=str(body["pod_photo"]) if body.get("pod_photo") else None,
+            client_id=str(body["client_id"])[:64] if body.get("client_id") else None,
+            short_reason=str(body["short_reason"]) if body.get("short_reason") else None,
+            scan_gate=_scan_gate(db),
         )
+        return _with_scans(db, out)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except PermissionError as exc:

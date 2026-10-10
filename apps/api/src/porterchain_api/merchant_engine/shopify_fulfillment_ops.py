@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
+from porterchain_api.merchant_models import Merchant, ShopifyShop
 from porterchain_api.merchant_engine.shopify_tokens import (
     TOKEN_REAUTH_REQUIRED,
     access_token_for,
@@ -24,7 +25,6 @@ from porterchain_api.merchant_engine.shopify_urls import (
     fulfillment_callback_prefix,
     webhook_url,
 )
-from porterchain_api.merchant_models import Merchant, ShopifyShop
 
 logger = logging.getLogger(__name__)
 
@@ -203,19 +203,19 @@ def re_register_shop_hooks(shop: ShopifyShop, settings: Settings) -> dict[str, A
     carrier_error: str | None = None
     try:
         _register_webhooks(shop, settings)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning("shopify_webhook_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
         errors.append(f"webhooks:{exc}")
     try:
         _register_carrier_service(shop, settings)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning("shopify_carrier_reregister_failed shop=%s", shop.shop_domain, exc_info=True)
         errors.append(f"carrier:{exc}")
         carrier_error = carrier_error_code(exc)
     if settings.shopify_fulfillment_service_enabled:
         try:
             _register_fulfillment_service(shop, settings)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "shopify_fulfillment_service_reregister_failed shop=%s",
                 shop.shop_domain,
@@ -302,9 +302,7 @@ def _register_returns_webhooks(
     if not has_returns_scope(getattr(shop, "scopes", None)):
         return []
     try:
-        from porterchain_api.merchant_engine.shopify_admin_graphql import (
-            webhook_subscriptions_ensure,
-        )
+        from porterchain_api.merchant_engine.shopify_admin_graphql import webhook_subscriptions_ensure
 
         webhook_subscriptions_ensure(
             shop.shop_domain, token, settings, topics=list(RETURNS_WEBHOOK_TOPICS), uri=address
@@ -480,7 +478,7 @@ def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None
         return
     except ShopifyAdminError:
         logger.info("shopify_fs_graphql_fallback shop=%s", shop.shop_domain)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.info("shopify_fs_graphql_fallback shop=%s", shop.shop_domain, exc_info=True)
     resp = _helpers()._admin_post(
         shop.shop_domain,
@@ -587,7 +585,7 @@ def _push_tracking(
         return True
     except ShopifyAdminError:
         logger.info("shopify_tracking_graphql_fallback shop=%s", shop.shop_domain)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.info("shopify_tracking_graphql_fallback shop=%s", shop.shop_domain, exc_info=True)
     resp = _helpers()._admin_post(
         shop.shop_domain,
@@ -608,9 +606,7 @@ def _create_fulfillment_graphql(
     tracking_info: dict[str, str],
 ) -> str | None:
     try:
-        from porterchain_api.merchant_engine.shopify_admin_graphql import (
-            fulfillment_create,
-        )
+        from porterchain_api.merchant_engine.shopify_admin_graphql import fulfillment_create
 
         return fulfillment_create(
             shop.shop_domain,
@@ -680,9 +676,7 @@ def _push_reverse_tracking(
     if not reverse_id:
         return
     try:
-        from porterchain_api.merchant_engine.shopify_admin_graphql import (
-            reverse_delivery_shipping_update,
-        )
+        from porterchain_api.merchant_engine.shopify_admin_graphql import reverse_delivery_shipping_update
 
         reverse_delivery_shipping_update(
             shop.shop_domain,
@@ -715,9 +709,7 @@ def _emit_fulfillment_event(
         # Idempotent: a replayed lifecycle event must not stack duplicate buyer updates.
         return
     try:
-        from porterchain_api.merchant_engine.shopify_admin_graphql import (
-            fulfillment_event_create,
-        )
+        from porterchain_api.merchant_engine.shopify_admin_graphql import fulfillment_event_create
 
         dropoff = order.dropoff if isinstance(order.dropoff, dict) else {}
         lat = _coord(dropoff.get("lat"))
@@ -870,7 +862,7 @@ def sweep_fulfillment_retries(
             if after == retry:
                 # Nothing to push any more (e.g. cancelled before a fulfillment existed).
                 _clear_sync_retry(db, order)
-        except Exception:
+        except Exception:  # noqa: BLE001
             db.rollback()
             logger.warning("shopify_fulfillment_retry_failed order=%s", order.id, exc_info=True)
     return {"due": len(due), "retried": retried}
@@ -910,7 +902,7 @@ def delete_partner_services(shop: ShopifyShop, settings: Settings) -> None:
             )
         except ShopifyAdminError:
             logger.info("shopify_carrier_delete_skipped shop=%s", shop.shop_domain)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.info("shopify_carrier_delete_skipped shop=%s", shop.shop_domain, exc_info=True)
     if shop.fulfillment_service_gid:
         try:
@@ -922,7 +914,7 @@ def delete_partner_services(shop: ShopifyShop, settings: Settings) -> None:
             )
         except ShopifyAdminError:
             logger.info("shopify_fs_delete_skipped shop=%s", shop.shop_domain)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.info("shopify_fs_delete_skipped shop=%s", shop.shop_domain, exc_info=True)
 
 
@@ -959,9 +951,7 @@ def _act_on_fulfillment_requests(
         fulfillment_order_close,
         reject_fulfillment_request,
     )
-    from porterchain_api.merchant_engine.shopify_service import (
-        _book_from_shopify_payload,
-    )
+    from porterchain_api.merchant_engine.shopify_service import _book_from_shopify_payload
 
     try:
         nodes = assigned_fulfillment_orders(
@@ -1102,9 +1092,7 @@ def _reject_reason(
     if method in {"PICK_UP", "PICKUP_POINT", "NONE"}:
         return "PorterChain delivers shipping orders only."
     if method == "LOCAL":
-        from porterchain_api.integrations.shopify_orders import (
-            porterchain_shipping_selected,
-        )
+        from porterchain_api.integrations.shopify_orders import porterchain_shipping_selected
 
         lines = payload.get("shipping_lines")
         if not isinstance(lines, list) or not lines or not porterchain_shipping_selected(payload):

@@ -14,12 +14,7 @@ from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
 from porterchain_api.auth.current_principal import CurrentPrincipal
-from porterchain_api.auth.sso_service import SsoService
-from porterchain_api.auth.unified_catalog import (
-    AccountStatus,
-    AssignableRole,
-    UnifiedPermission,
-)
+from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
 from porterchain_api.config import Settings
 from porterchain_api.notification_engine.principal import (
     get_notification_user,
@@ -195,19 +190,5 @@ def test_hs_fcm_001_register_push_invalid_token_400() -> None:
 # ── HS-FB — Fleetbase SSO retired (always refuse) ────────────────────────────
 
 
-def test_hs_fb_004_sso_disabled_raises() -> None:
-    with pytest.raises(ValueError, match="fleetbase_sso_disabled"):
-        SsoService().exchange_fleetbase_session_for_principal(
-            MagicMock(),
-            _settings(fleetbase_sso_enabled=False),
-            _current(),
-        )
 
 
-def test_hs_fb_sso_retired_even_when_flag_true() -> None:
-    with pytest.raises(ValueError, match="fleetbase_sso_disabled"):
-        SsoService().exchange_fleetbase_session_for_principal(
-            MagicMock(),
-            _settings(fleetbase_sso_enabled=True),
-            _current(),
-        )

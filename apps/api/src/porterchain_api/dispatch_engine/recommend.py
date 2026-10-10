@@ -13,15 +13,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 from porterchain_api.dispatch_engine.fleet_capacity import (
     RANK,
     Load,
     canonical_class,
     fill_ratio,
+    ft3,
     load_fleet,
     order_load,
     smallest_fitting,
@@ -245,7 +245,7 @@ def recommend_for_order(
     return {
         "order_id": order.id,
         "order_number": order.order_number,
-        "load": {"kg": load.kg, "m3": load.m3, "boxes": load.boxes},
+        "load": {"kg": load.kg, "m3": load.m3, "ft3": ft3(load.m3), "boxes": load.boxes},
         "vehicle": None
         if vehicle is None
         else {

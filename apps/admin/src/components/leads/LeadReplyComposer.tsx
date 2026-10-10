@@ -71,7 +71,8 @@ export default function LeadReplyComposer({
     setAutoDrafted(true);
     void (async () => {
       try {
-        const ch = lead.channel === "whatsapp" || (!lead.email && lead.phone) ? "whatsapp" : "email";
+        const ch =
+          lead.channel === "whatsapp" || (!lead.email && lead.phone) ? "whatsapp" : "email";
         const d = await leadsApi.draft(await getApiToken(), lead.id, ch, false);
         setBody((cur) => (cur.trim() ? cur : d.body));
         if (d.subject) setSubject(d.subject);
@@ -139,7 +140,10 @@ export default function LeadReplyComposer({
           ...(tab === "email" ? { subject: subject.trim() || undefined } : {}),
           ...(attachQuote ? { attach_quote: true } : {}),
         });
-        setResult({ ok: true, text: `${attachQuote ? "Quote sent" : "Sent"} to ${out.to ?? "lead"}.` });
+        setResult({
+          ok: true,
+          text: `${attachQuote ? "Quote sent" : "Sent"} to ${out.to ?? "lead"}.`,
+        });
         setAttachQuote(false);
       }
       setBody("");
@@ -199,7 +203,6 @@ export default function LeadReplyComposer({
           <p className="text-xs font-semibold text-red-700">Awaiting your reply</p>
         ) : null}
       </div>
-
 
       {tab === "email" ? (
         <div className="space-y-2">
@@ -299,7 +302,8 @@ export default function LeadReplyComposer({
           {tab !== "call" && status && !status.enabled ? (
             <>
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
-              {tab === "email" ? "Email" : "WhatsApp"} sending is off · {replyDisabledReason(status.reason)}
+              {tab === "email" ? "Email" : "WhatsApp"} sending is off ·{" "}
+              {replyDisabledReason(status.reason)}
             </>
           ) : tab === "call" ? (
             "Logged to the timeline; a live conversation counts as the first reply."

@@ -12,7 +12,8 @@
     "lint": "eslint",
     "test:e2e": "playwright test",
     "test:e2e:p0": "playwright test e2e/auth.p0.spec.ts e2e/pages.p0.spec.ts e2e/push.p0.spec.ts --grep @p0",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "test": "vitest run"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.14",
@@ -42,6 +43,7 @@
     "eslint": "^10.6.0",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4.3.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "4.1.11"
   }
 }

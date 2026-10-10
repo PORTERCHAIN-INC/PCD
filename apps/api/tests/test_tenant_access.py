@@ -2,14 +2,9 @@
 
 import pytest
 
-from porterchain_api.booking_models import Order
-from porterchain_api.domain.tenant_access import (
-    TenantAccessDenied,
-    assert_order_visible,
-    customer_owns_order,
-    merchant_owns_order,
-)
+from porterchain_api.domain.tenant_access import TenantAccessDenied, assert_order_visible, customer_owns_order, merchant_owns_order
 from porterchain_api.domain.tenant_context import TenantScope
+from porterchain_api.booking_models import Order
 
 
 def _order(*, merchant_id: str | None = None, customer_id: str | None = None) -> Order:

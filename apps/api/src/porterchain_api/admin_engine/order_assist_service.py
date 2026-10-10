@@ -11,24 +11,20 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.dispatch_suggestions_service import (
-    DispatchSuggestionsService,
-)
+from porterchain_api.admin_engine.dispatch_suggestions_service import DispatchSuggestionsService
 from porterchain_api.admin_engine.order_assist_proposals import (
     assign_proposals,
     exception_proposals,
     late_and_money,
     playbooks,
-)
-from porterchain_api.admin_engine.order_assist_proposals import (
     proposal_id as _pid,
 )
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.invoice_service import InvoiceService
-from porterchain_api.booking_models import Customer, Order, OrderException
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
+from porterchain_api.booking_models import Customer, Order, OrderException
 
 
 class OrderAssistService:
@@ -242,9 +238,7 @@ class OrderAssistService:
             driver_id = payload.get("driver_id")
             if not driver_id:
                 raise ValueError("driver_id_required")
-            from porterchain_api.admin_engine.operations_service import (
-                AdminOperationsService,
-            )
+            from porterchain_api.admin_engine.operations_service import AdminOperationsService
 
             AdminOperationsService().assign_driver(db, settings, ctx, order_id, driver_id)
             return {"assigned_driver_id": driver_id}
@@ -281,9 +275,7 @@ class OrderAssistService:
         )
         if not exc:
             raise ValueError("no_open_exception")
-        from porterchain_api.admin_engine.control_tower.service import (
-            ControlTowerService,
-        )
+        from porterchain_api.admin_engine.control_tower.service import ControlTowerService
 
         return ControlTowerService().retry_exception_dispatch(db, ctx, exc.id)
 

@@ -301,14 +301,17 @@ export function CustomerExperienceTab({
               />
             </label>
           </div>
-          {form.notifications.brand_color && /^#[0-9a-fA-F]{6}$/.test(form.notifications.brand_color) ? (
+          {form.notifications.brand_color &&
+          /^#[0-9a-fA-F]{6}$/.test(form.notifications.brand_color) ? (
             contrastOnWhite(form.notifications.brand_color) >= 4.5 ? (
               <p className="text-xs text-muted">
-                Contrast {contrastOnWhite(form.notifications.brand_color).toFixed(1)}:1 — readable. Used for the email button.
+                Contrast {contrastOnWhite(form.notifications.brand_color).toFixed(1)}:1 — readable.
+                Used for the email button.
               </p>
             ) : (
               <p className="text-xs text-amber-800">
-                Contrast {contrastOnWhite(form.notifications.brand_color).toFixed(1)}:1 is too light for white text. Emails keep the navy button.
+                Contrast {contrastOnWhite(form.notifications.brand_color).toFixed(1)}:1 is too light
+                for white text. Emails keep the navy button.
               </p>
             )
           ) : null}

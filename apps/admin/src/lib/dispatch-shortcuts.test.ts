@@ -16,7 +16,9 @@ describe("dispatch shortcuts", () => {
 
   it("ignores keys while typing", () => {
     expect(isTypingTarget({ tagName: "INPUT" } as unknown as EventTarget)).toBe(true);
-    expect(isTypingTarget({ tagName: "DIV", isContentEditable: false } as unknown as EventTarget)).toBe(false);
+    expect(
+      isTypingTarget({ tagName: "DIV", isContentEditable: false } as unknown as EventTarget)
+    ).toBe(false);
     expect(isTypingTarget(null)).toBe(false);
   });
 });

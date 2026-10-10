@@ -5,9 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from porterchain_api.booking_engine.visitor_tracking_service import (
-    VisitorTrackingService,
-)
+from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 
 
 def test_merge_to_customer_persists_fk() -> None:
@@ -33,3 +31,30 @@ def test_merge_to_customer_missing_session_still_emits() -> None:
     db.commit.assert_called()
 
 
+def test_suspend_driver_stays_on_porterchain() -> None:
+    from porterchain_api.admin_engine.driver_service import AdminDriverService
+    from porterchain_api.domain.admin_states import DriverStatus
+
+    svc = AdminDriverService()
+    driver = SimpleNamespace(
+        id="d1",
+        status="APPROVED",
+        is_online=True,
+        availability="idle",
+        clerk_user_id="user_x",
+    )
+    db = MagicMock()
+    ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
+    settings = SimpleNamespace()
+
+    svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
+    svc._audit = MagicMock()  # type: ignore[method-assign]
+
+    with (
+        patch("porterchain_api.admin_engine.driver_service.emit_event"),
+        patch("porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"),
+    ):
+        out, warning = svc.suspend_driver(db, ctx, "d1", settings)
+
+    assert out.status == DriverStatus.SUSPENDED.value
+    assert warning is None

@@ -82,9 +82,7 @@ def test_dev_bypass_prefers_seeded_marco(db) -> None:
 def test_expired_insurance_clears_ready(db, settings) -> None:
     from datetime import UTC, datetime, timedelta
 
-    from porterchain_api.driver_engine.compliance_expiry_service import (
-        DriverComplianceExpiryService,
-    )
+    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
     settings.driver_abstract_verification_enabled = False
     past = (datetime.now(UTC) - timedelta(days=1)).isoformat()

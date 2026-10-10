@@ -8,13 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
-from porterchain_api.routers.drivers_admin import (
-    Ctx,
-    _drivers,
-    _invoke,
-    _mutated,
-    _vehicle,
-)
+from porterchain_api.routers.drivers_admin import Ctx, _drivers, _invoke, _mutated, _vehicle
 from porterchain_api.schemas_admin import (
     DriverDocumentDecisionRequest,
     DriverProfilePatch,

@@ -7,12 +7,8 @@ from uuid import uuid4
 
 import pytest
 
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.tracking_service import TrackingService
-from porterchain_api.booking_models import Order
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.organization_sync import (
@@ -24,6 +20,7 @@ from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.settings_service import MerchantSettingsService
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.booking_models import Order
 
 
 def test_sanitize_logo_url_https_only() -> None:

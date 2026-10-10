@@ -7,16 +7,16 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from porterchain_shared.queue.publisher import queue_depths
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import _now_iso
 from porterchain_api.admin_engine.diagnostics_timeline import ControlTowerTimeline
 from porterchain_api.auth.clerk_registry import is_clerk_configured
-from porterchain_api.booking_models import DomainEvent
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import DomainEvent
 from porterchain_api.platform.health import readiness
+from porterchain_shared.queue.publisher import queue_depths
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +97,7 @@ class DiagnosticsReportsMixin:
 
         # Enterprise E2E reports (phases 1–10)
         try:
-            from porterchain_api.admin_engine.e2e_validation_service import (
-                E2EValidationService,
-            )
+            from porterchain_api.admin_engine.e2e_validation_service import E2EValidationService
 
             e2e = E2EValidationService()
             e2e_result = e2e.run_full(db, settings, write_files=False, cleanup=True)

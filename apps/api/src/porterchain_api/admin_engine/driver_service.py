@@ -16,12 +16,13 @@ from porterchain_api.auth.invitation_service import InvitationService
 
 if TYPE_CHECKING:
     from porterchain_api.schemas_admin import DriverCreateRequest, DriverDocumentInput
-from porterchain_api.admin_engine import events as E
 from porterchain_api.admin_models import AdminAuditLog, Driver, DriverPayout, Vehicle
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.config import Settings
-from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.customer_goods import persist_vehicle_class
+from porterchain_api.admin_engine import events as E
+from porterchain_api.domain.admin_states import DriverStatus
+from porterchain_api.config import Settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +151,7 @@ class AdminDriverService(DriverAccountOps):
         driver_id: str,
         body: DriverDocumentInput,
     ) -> Driver:
-        from porterchain_api.admin_engine.driver_documents import (
-            add_document as apply_add,
-        )
+        from porterchain_api.admin_engine.driver_documents import add_document as apply_add
 
         return apply_add(self, db, ctx, driver_id, body)
 
@@ -301,9 +300,7 @@ class AdminDriverService(DriverAccountOps):
         vehicle_verified: bool | None = None,
         background_check_status: str | None = None,
     ) -> Driver:
-        from porterchain_api.admin_engine.driver_documents import (
-            update_verification as apply_verify,
-        )
+        from porterchain_api.admin_engine.driver_documents import update_verification as apply_verify
 
         return apply_verify(
             self,

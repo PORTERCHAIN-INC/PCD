@@ -16,7 +16,10 @@ export default function AddressBook({ getToken }: { getToken: () => Promise<stri
     const t = await getToken();
     if (!t) return;
     setItems(await accountApi.addresses(t).catch(() => []));
-    accountApi.preferencesLink(t).then((r) => setPrefsUrl(r.url)).catch(() => undefined);
+    accountApi
+      .preferencesLink(t)
+      .then((r) => setPrefsUrl(r.url))
+      .catch(() => undefined);
   }
   useEffect(() => {
     void load();
@@ -48,9 +51,14 @@ export default function AddressBook({ getToken }: { getToken: () => Promise<stri
 
   return (
     <>
-      <section className="rounded-3xl border border-primary/10 bg-white p-5" data-testid="address-book">
+      <section
+        className="rounded-3xl border border-primary/10 bg-white p-5"
+        data-testid="address-book"
+      >
         <h2 className="text-lg font-bold text-primary">Addresses</h2>
-        <p className="mt-1 text-sm text-primary/70">Saved places fill in automatically when you send.</p>
+        <p className="mt-1 text-sm text-primary/70">
+          Saved places fill in automatically when you send.
+        </p>
         <ul className="mt-4 divide-y divide-primary/10">
           {items.map((a) => (
             <li key={a.id} className="flex items-center justify-between gap-3 py-3">
@@ -59,16 +67,24 @@ export default function AddressBook({ getToken }: { getToken: () => Promise<stri
                   {a.label ? <span className="mr-2 text-secondary">{a.label}</span> : null}
                   {a.formatted}
                 </p>
-                <p className="text-xs text-primary/65">{a.saved ? "Saved" : `Used ${a.use_count}×`}</p>
+                <p className="text-xs text-primary/65">
+                  {a.saved ? "Saved" : `Used ${a.use_count}×`}
+                </p>
               </div>
               {a.saved ? (
-                <button type="button" onClick={() => void remove(a.id)} className="text-sm font-semibold text-primary/70 underline underline-offset-4">
+                <button
+                  type="button"
+                  onClick={() => void remove(a.id)}
+                  className="text-sm font-semibold text-primary/70 underline underline-offset-4"
+                >
                   Remove
                 </button>
               ) : null}
             </li>
           ))}
-          {items.length === 0 ? <li className="py-3 text-sm text-primary/70">No addresses yet.</li> : null}
+          {items.length === 0 ? (
+            <li className="py-3 text-sm text-primary/70">No addresses yet.</li>
+          ) : null}
         </ul>
         <form onSubmit={save} className="mt-4 grid gap-2 sm:grid-cols-[8rem_1fr_auto]">
           <input
@@ -86,17 +102,30 @@ export default function AddressBook({ getToken }: { getToken: () => Promise<stri
             aria-label="Address"
             className="rounded-2xl border border-primary/15 px-4 py-3 text-sm text-primary outline-none focus:border-primary"
           />
-          <button type="submit" disabled={busy || formatted.trim().length < 5} className="rounded-2xl border border-primary/20 px-4 py-3 text-sm font-bold text-primary disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={busy || formatted.trim().length < 5}
+            className="rounded-2xl border border-primary/20 px-4 py-3 text-sm font-bold text-primary disabled:opacity-50"
+          >
             Save
           </button>
         </form>
-        {error ? <p role="alert" className="mt-2 text-sm text-red-800">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="mt-2 text-sm text-red-800">
+            {error}
+          </p>
+        ) : null}
       </section>
       <section className="rounded-3xl border border-primary/10 bg-white p-5">
         <h2 className="text-lg font-bold text-primary">Email</h2>
-        <p className="mt-1 text-sm text-primary/70">Choose which emails you get. Delivery updates stay on by default.</p>
+        <p className="mt-1 text-sm text-primary/70">
+          Choose which emails you get. Delivery updates stay on by default.
+        </p>
         {prefsUrl ? (
-          <a href={prefsUrl} className="mt-3 inline-flex text-sm font-bold text-primary underline underline-offset-4">
+          <a
+            href={prefsUrl}
+            className="mt-3 inline-flex text-sm font-bold text-primary underline underline-offset-4"
+          >
             Email preferences
           </a>
         ) : null}

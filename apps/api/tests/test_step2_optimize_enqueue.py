@@ -5,11 +5,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from porterchain_api.merchant_engine.route_import_service import MerchantRouteImportService
 from porterchain_driver.jobs import JobsService
-
-from porterchain_api.merchant_engine.route_import_service import (
-    MerchantRouteImportService,
-)
 
 
 def test_driver_optimize_route_queues_one_van() -> None:

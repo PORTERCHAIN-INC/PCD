@@ -37,7 +37,9 @@ export function MetricsBar({ tick, days = 7 }: { tick: number; days?: number }) 
     >
       {tiles(data).map((t) => (
         <div key={t.label} className="px-4 py-3" style={{ backgroundColor: "var(--primary)" }}>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-white/70">{t.label}</p>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-white/70">
+            {t.label}
+          </p>
           <p className="mt-0.5 text-2xl font-semibold tabular-nums text-white">{t.value}</p>
           <p className="text-[11px] text-white/60">{t.hint}</p>
         </div>

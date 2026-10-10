@@ -6,10 +6,7 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from porterchain_services.maps.date_time import (
-    attach_date_time,
-    format_valhalla_date_time,
-)
+from porterchain_services.maps.date_time import attach_date_time, format_valhalla_date_time
 
 
 def test_format_valhalla_date_time_departure() -> None:

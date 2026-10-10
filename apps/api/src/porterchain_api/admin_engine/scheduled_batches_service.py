@@ -14,9 +14,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_models import Order
 from porterchain_api.domain.states import OrderType
 from porterchain_api.merchant_models import Merchant
+from porterchain_api.booking_models import Order
 
 logger = logging.getLogger(__name__)
 

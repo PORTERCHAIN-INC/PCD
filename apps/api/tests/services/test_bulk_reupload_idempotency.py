@@ -5,10 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from porterchain_api.domain.merchant_states import BulkImportStatus
-from porterchain_api.merchant_engine.bulk_service import (
-    MerchantBulkService,
-    row_fingerprint,
-)
+from porterchain_api.merchant_engine.bulk_service import MerchantBulkService, row_fingerprint
 
 
 def _csv(scheduled: str, ref: str = "") -> str:

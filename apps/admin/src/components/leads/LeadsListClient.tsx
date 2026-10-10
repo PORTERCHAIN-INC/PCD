@@ -26,9 +26,7 @@ import {
   MoreMenu,
   useTriageKeys,
 } from "@/components/leads/LeadDeskBits";
-import {
-  useNow,
-} from "@/components/leads/LeadInboxBits";
+import { useNow } from "@/components/leads/LeadInboxBits";
 import {
   LEAD_CHANNELS,
   LEAD_DECISION_STATUSES,
@@ -73,7 +71,9 @@ export default function LeadsListClient() {
   const [filters, setFilters] = useState<LeadFilters>(() => {
     const base: LeadFilters = { sort: "smart" };
     // Driver applicants live in their own view; the sales inbox hides them.
-    base.view = viewFromUrl ?? (sourceFromUrl === DRIVER_LEAD_SOURCE ? undefined : sourceFromUrl ? "buyers" : "now");
+    base.view =
+      viewFromUrl ??
+      (sourceFromUrl === DRIVER_LEAD_SOURCE ? undefined : sourceFromUrl ? "buyers" : "now");
     if (sourceFromUrl) base.source = sourceFromUrl;
     if (priorityFromUrl) base.priority = priorityFromUrl;
     if (statusFromUrl) base.status = statusFromUrl;
@@ -106,8 +106,7 @@ export default function LeadsListClient() {
         status: statusFromUrl ?? f.status,
         has_phone:
           hasPhoneFromUrl === "true" ? true : hasPhoneFromUrl === "false" ? false : undefined,
-        view:
-          viewFromUrl ?? (sourceFromUrl === DRIVER_LEAD_SOURCE ? undefined : (f.view ?? "now")),
+        view: viewFromUrl ?? (sourceFromUrl === DRIVER_LEAD_SOURCE ? undefined : (f.view ?? "now")),
       };
       return next;
     });
@@ -201,7 +200,12 @@ export default function LeadsListClient() {
     },
     [rowIds]
   );
-  const cursor = useTriageKeys({ count: allRows.length, searchRef, onOpen: openAt, onToggle: toggleAt });
+  const cursor = useTriageKeys({
+    count: allRows.length,
+    searchRef,
+    onOpen: openAt,
+    onToggle: toggleAt,
+  });
 
   return (
     <AdminPage>
@@ -223,282 +227,286 @@ export default function LeadsListClient() {
             </Link>
           ) : null}
           <MoreMenu>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Views</p>
-          <div className="flex flex-wrap gap-1.5">
-            {(
-              [
-                { href: "/leads", label: "All", source: undefined },
-                {
-                  href: "/leads?source=website_business",
-                  label: "Merchant",
-                  source: "website_business",
-                },
-                {
-                  href: "/leads?view=drivers",
-                  label: "Driver applicants",
-                  source: "__drivers__",
-                },
-                {
-                  href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
-                  label: "Contact",
-                  source: WEBSITE_CONTACT_LEAD_SOURCE,
-                },
-                {
-                  href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
-                  label: "Newsletter",
-                  source: WEBSITE_NEWSLETTER_LEAD_SOURCE,
-                },
-                {
-                  href: "/leads?source=vendor_import&priority=high&has_phone=true&status=new",
-                  label: "Call queue",
-                  source: "vendor_import",
-                },
-                {
-                  href: "/leads/today",
-                  label: "Today",
-                  source: "__today__",
-                },
-                {
-                  href: "/leads/agent",
-                  label: "Lead Agent",
-                  source: "__agent__",
-                },
-              ] as const
-            ).map((chip) => {
-              const active =
-                chip.source === "__today__" || chip.source === "__agent__"
-                  ? false
-                  : chip.source === "__drivers__"
-                    ? viewFromUrl === "drivers"
-                    : !viewFromUrl && (sourceFromUrl ?? undefined) === chip.source;
-              return (
-                <Link
-                  key={chip.label}
-                  href={chip.href}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 text-xs font-medium",
-                    active
-                      ? "border-secondary bg-secondary/10 text-secondary"
-                      : chip.source === "__agent__"
-                        ? "border-secondary/40 bg-secondary/5 text-secondary hover:bg-secondary/10"
-                        : "border-primary/10 text-muted hover:bg-slate-50"
-                  )}
-                >
-                  {chip.label}
-                </Link>
-              );
-            })}
-            <Link
-              href="/settings?section=lead_ingest"
-              className="rounded-full border border-primary/10 px-2.5 py-1 text-xs font-medium text-muted hover:bg-slate-50"
-            >
-              Ingest settings
-            </Link>
-            <button
-              type="button"
-              onClick={() =>
-                setFilters((f) => ({
-                  ...f,
-                  sort: (f.sort ?? "smart") === "smart" ? "created_at" : "smart",
-                }))
-              }
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium",
-                (filters.sort ?? "smart") === "smart"
-                  ? "border-secondary bg-secondary/10 text-secondary"
-                  : "border-primary/10 text-muted hover:bg-slate-50"
-              )}
-              title="SLA breached → priority → score → newest"
-              aria-label="Toggle smart triage sort"
-              aria-pressed={(filters.sort ?? "smart") === "smart"}
-            >
-              {(filters.sort ?? "smart") === "smart" ? "Smart triage" : "Newest first"}
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setFilters((f) => ({
-                  ...f,
-                  status: f.status === "archived" ? undefined : "archived",
-                  include_archived: f.status === "archived" ? undefined : true,
-                }))
-              }
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                filters.status === "archived"
-                  ? "border-slate-400 bg-slate-100 text-slate-800"
-                  : "border-primary/10 text-muted hover:bg-slate-50"
-              )}
-              aria-label="Toggle archived leads"
-              aria-pressed={filters.status === "archived"}
-            >
-              Archived
-            </button>
-          </div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Actions</p>
-        <div className="flex flex-wrap items-center gap-2">
-          {!isDriverInbox ? (
-            <>
-              <button
-                type="button"
-                onClick={async () => {
-                  await leadsApi.rescore(await getApiToken());
-                  void refetch();
-                }}
-                className="inline-flex items-center rounded-xl border border-primary/15 px-3 py-2 text-sm font-medium text-primary hover:bg-slate-50"
-              >
-                Rescore open leads
-              </button>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Views
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  { href: "/leads", label: "All", source: undefined },
+                  {
+                    href: "/leads?source=website_business",
+                    label: "Merchant",
+                    source: "website_business",
+                  },
+                  {
+                    href: "/leads?view=drivers",
+                    label: "Driver applicants",
+                    source: "__drivers__",
+                  },
+                  {
+                    href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
+                    label: "Contact",
+                    source: WEBSITE_CONTACT_LEAD_SOURCE,
+                  },
+                  {
+                    href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
+                    label: "Newsletter",
+                    source: WEBSITE_NEWSLETTER_LEAD_SOURCE,
+                  },
+                  {
+                    href: "/leads?source=vendor_import&priority=high&has_phone=true&status=new",
+                    label: "Call queue",
+                    source: "vendor_import",
+                  },
+                  {
+                    href: "/leads/today",
+                    label: "Today",
+                    source: "__today__",
+                  },
+                  {
+                    href: "/leads/agent",
+                    label: "Lead Agent",
+                    source: "__agent__",
+                  },
+                ] as const
+              ).map((chip) => {
+                const active =
+                  chip.source === "__today__" || chip.source === "__agent__"
+                    ? false
+                    : chip.source === "__drivers__"
+                      ? viewFromUrl === "drivers"
+                      : !viewFromUrl && (sourceFromUrl ?? undefined) === chip.source;
+                return (
+                  <Link
+                    key={chip.label}
+                    href={chip.href}
+                    className={cn(
+                      "rounded-full border px-2.5 py-1 text-xs font-medium",
+                      active
+                        ? "border-secondary bg-secondary/10 text-secondary"
+                        : chip.source === "__agent__"
+                          ? "border-secondary/40 bg-secondary/5 text-secondary hover:bg-secondary/10"
+                          : "border-primary/10 text-muted hover:bg-slate-50"
+                    )}
+                  >
+                    {chip.label}
+                  </Link>
+                );
+              })}
               <Link
-                href="/leads/agent"
-                className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-                aria-label="Open Lead Agent activity"
+                href="/settings?section=lead_ingest"
+                className="rounded-full border border-primary/10 px-2.5 py-1 text-xs font-medium text-muted hover:bg-slate-50"
               >
-                Lead Agent
+                Ingest settings
               </Link>
               <button
                 type="button"
-                onClick={() => setShowCapture(true)}
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-                aria-label="Add lead"
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    sort: (f.sort ?? "smart") === "smart" ? "created_at" : "smart",
+                  }))
+                }
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs font-medium",
+                  (filters.sort ?? "smart") === "smart"
+                    ? "border-secondary bg-secondary/10 text-secondary"
+                    : "border-primary/10 text-muted hover:bg-slate-50"
+                )}
+                title="SLA breached → priority → score → newest"
+                aria-label="Toggle smart triage sort"
+                aria-pressed={(filters.sort ?? "smart") === "smart"}
               >
-                Add lead
+                {(filters.sort ?? "smart") === "smart" ? "Smart triage" : "Newest first"}
               </button>
               <button
                 type="button"
                 onClick={() =>
                   setFilters((f) => ({
                     ...f,
-                    merge_candidates: f.merge_candidates ? undefined : true,
+                    status: f.status === "archived" ? undefined : "archived",
+                    include_archived: f.status === "archived" ? undefined : true,
                   }))
                 }
                 className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                  filters.merge_candidates
-                    ? "border-amber-300 bg-amber-50 text-amber-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
+                  "rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                  filters.status === "archived"
+                    ? "border-slate-400 bg-slate-100 text-slate-800"
+                    : "border-primary/10 text-muted hover:bg-slate-50"
                 )}
-                aria-label="Toggle merge candidate queue"
-                aria-pressed={Boolean(filters.merge_candidates)}
+                aria-label="Toggle archived leads"
+                aria-pressed={filters.status === "archived"}
               >
-                Merge queue
+                Archived
               </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    sla_breached: f.sla_breached ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                  filters.sla_breached
-                    ? "border-red-300 bg-red-50 text-red-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-                aria-label="Toggle SLA-breached leads"
-                aria-pressed={Boolean(filters.sla_breached)}
-              >
-                SLA breach
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    unassigned: f.unassigned ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                  filters.unassigned
-                    ? "border-sky-300 bg-sky-50 text-sky-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-                aria-label="Toggle unassigned leads"
-                aria-pressed={Boolean(filters.unassigned)}
-              >
-                Unassigned
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    has_open_draft: f.has_open_draft ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
-                  filters.has_open_draft
-                    ? "border-violet-300 bg-violet-50 text-violet-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-              >
-                Open draft
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    nurture_scheduled: f.nurture_scheduled ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
-                  filters.nurture_scheduled
-                    ? "border-teal-300 bg-teal-50 text-teal-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-              >
-                Nurture
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    has_abandoned: f.has_abandoned ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
-                  filters.has_abandoned
-                    ? "border-orange-300 bg-orange-50 text-orange-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-              >
-                Abandoned checkout
-              </button>
-              <Link
-                href="/leads/pipeline"
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-              >
-                Pipeline
-              </Link>
-              <Link
-                href="/leads/calendar"
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-              >
-                Calendar
-              </Link>
-              <Link
-                href="/leads/attribution"
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-              >
-                Attribution
-              </Link>
-            </>
-          ) : null}
-          <Button variant="outline" onClick={() => void downloadCsv()} disabled={exporting}>
-            {exporting ? "Exporting…" : "Export CSV"}
-          </Button>
-          <Button variant="outline" onClick={() => void refetch()}>
-            <RefreshCw className="h-4 w-4" /> Refresh
-          </Button>
-        </div>
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Actions
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {!isDriverInbox ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await leadsApi.rescore(await getApiToken());
+                      void refetch();
+                    }}
+                    className="inline-flex items-center rounded-xl border border-primary/15 px-3 py-2 text-sm font-medium text-primary hover:bg-slate-50"
+                  >
+                    Rescore open leads
+                  </button>
+                  <Link
+                    href="/leads/agent"
+                    className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+                    aria-label="Open Lead Agent activity"
+                  >
+                    Lead Agent
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setShowCapture(true)}
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                    aria-label="Add lead"
+                  >
+                    Add lead
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        merge_candidates: f.merge_candidates ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                      filters.merge_candidates
+                        ? "border-amber-300 bg-amber-50 text-amber-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                    aria-label="Toggle merge candidate queue"
+                    aria-pressed={Boolean(filters.merge_candidates)}
+                  >
+                    Merge queue
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        sla_breached: f.sla_breached ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                      filters.sla_breached
+                        ? "border-red-300 bg-red-50 text-red-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                    aria-label="Toggle SLA-breached leads"
+                    aria-pressed={Boolean(filters.sla_breached)}
+                  >
+                    SLA breach
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        unassigned: f.unassigned ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                      filters.unassigned
+                        ? "border-sky-300 bg-sky-50 text-sky-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                    aria-label="Toggle unassigned leads"
+                    aria-pressed={Boolean(filters.unassigned)}
+                  >
+                    Unassigned
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        has_open_draft: f.has_open_draft ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                      filters.has_open_draft
+                        ? "border-violet-300 bg-violet-50 text-violet-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                  >
+                    Open draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        nurture_scheduled: f.nurture_scheduled ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                      filters.nurture_scheduled
+                        ? "border-teal-300 bg-teal-50 text-teal-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                  >
+                    Nurture
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        has_abandoned: f.has_abandoned ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                      filters.has_abandoned
+                        ? "border-orange-300 bg-orange-50 text-orange-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                  >
+                    Abandoned checkout
+                  </button>
+                  <Link
+                    href="/leads/pipeline"
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                  >
+                    Pipeline
+                  </Link>
+                  <Link
+                    href="/leads/calendar"
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                  >
+                    Calendar
+                  </Link>
+                  <Link
+                    href="/leads/attribution"
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                  >
+                    Attribution
+                  </Link>
+                </>
+              ) : null}
+              <Button variant="outline" onClick={() => void downloadCsv()} disabled={exporting}>
+                {exporting ? "Exporting…" : "Export CSV"}
+              </Button>
+              <Button variant="outline" onClick={() => void refetch()}>
+                <RefreshCw className="h-4 w-4" /> Refresh
+              </Button>
+            </div>
           </MoreMenu>
         </div>
       </header>
@@ -657,7 +665,11 @@ export default function LeadsListClient() {
       <div className="rounded-3xl border border-primary/10 bg-white p-4 sm:p-6">
         <div className="mb-2 flex flex-wrap items-center gap-3">
           {!isDriverInbox ? (
-            <div role="tablist" aria-label="Inbox view" className="flex rounded-full bg-slate-100 p-1">
+            <div
+              role="tablist"
+              aria-label="Inbox view"
+              className="flex rounded-full bg-slate-100 p-1"
+            >
               {VIEW_TABS.map((t) => (
                 <button
                   key={t.key}
@@ -666,11 +678,19 @@ export default function LeadsListClient() {
                   aria-selected={currentView === t.key}
                   onClick={() => {
                     setSelected([]);
-                    setFilters((f) => ({ ...f, view: t.key, awaiting_reply: undefined, priority: undefined, status: undefined }));
+                    setFilters((f) => ({
+                      ...f,
+                      view: t.key,
+                      awaiting_reply: undefined,
+                      priority: undefined,
+                      status: undefined,
+                    }));
                   }}
                   className={cn(
                     "rounded-full px-4 py-1.5 text-sm font-bold",
-                    currentView === t.key ? "bg-white text-primary shadow-sm" : "text-slate-600 hover:text-primary"
+                    currentView === t.key
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-slate-600 hover:text-primary"
                   )}
                 >
                   {t.label}
@@ -690,7 +710,9 @@ export default function LeadsListClient() {
         </div>
         <div className="mb-3">
           <Disclosure label="Filters" count={activeFilterCount}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Saved views</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Saved views
+            </p>
             <LeadSavedViews
               filters={filters}
               onApply={(next) => {
@@ -698,121 +720,127 @@ export default function LeadsListClient() {
                 setFilters(next);
               }}
             />
-        {!isDriverInbox ? (
-          <div className="mb-3 flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setFilters((f) => ({ ...f, source: undefined, channel: undefined }))}
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium",
-                !filters.source && !filters.channel
-                  ? "border-secondary bg-secondary/10 text-secondary"
-                  : "border-primary/10 text-muted hover:bg-slate-50"
-              )}
-            >
-              All sources
-            </button>
-            {LEAD_CHANNELS.map((ch) => (
-              <button
-                key={ch}
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    channel: f.channel === ch ? undefined : ch,
-                    source: undefined,
-                  }))
-                }
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-xs font-medium capitalize",
-                  filters.channel === ch
-                    ? "border-secondary bg-secondary/10 text-secondary"
-                    : "border-primary/10 text-muted hover:bg-slate-50"
-                )}
+            {!isDriverInbox ? (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((f) => ({ ...f, source: undefined, channel: undefined }))
+                  }
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-medium",
+                    !filters.source && !filters.channel
+                      ? "border-secondary bg-secondary/10 text-secondary"
+                      : "border-primary/10 text-muted hover:bg-slate-50"
+                  )}
+                >
+                  All sources
+                </button>
+                {LEAD_CHANNELS.map((ch) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        channel: f.channel === ch ? undefined : ch,
+                        source: undefined,
+                      }))
+                    }
+                    className={cn(
+                      "rounded-full border px-2.5 py-1 text-xs font-medium capitalize",
+                      filters.channel === ch
+                        ? "border-secondary bg-secondary/10 text-secondary"
+                        : "border-primary/10 text-muted hover:bg-slate-50"
+                    )}
+                  >
+                    {ch.replace(/_/g, " ")}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <select
+                value={filters.status ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
               >
-                {ch.replace(/_/g, " ")}
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <div className="mb-4 flex flex-wrap gap-2">
-          <select
-            value={filters.status ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All statuses</option>
-            {LEAD_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.decision_status ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, decision_status: e.target.value || undefined }))
-            }
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All decisions</option>
-            {LEAD_DECISION_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.channel ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All channels</option>
-            {LEAD_CHANNELS.map((s) => (
-              <option key={s} value={s}>
-                {sourceLabel(s)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.intent_type ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, intent_type: e.target.value || undefined }))
-            }
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All intents</option>
-            {LEAD_INTENT_TYPES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.priority ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All priorities</option>
-            {LEAD_PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.source ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All sources</option>
-            {LEAD_SOURCES.map((s) => (
-              <option key={s} value={s}>
-                {sourceLabel(s)}
-              </option>
-            ))}
-          </select>
-        </div>
+                <option value="">All statuses</option>
+                {LEAD_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.decision_status ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, decision_status: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All decisions</option>
+                {LEAD_DECISION_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.channel ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, channel: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All channels</option>
+                {LEAD_CHANNELS.map((s) => (
+                  <option key={s} value={s}>
+                    {sourceLabel(s)}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.intent_type ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, intent_type: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All intents</option>
+                {LEAD_INTENT_TYPES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.priority ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, priority: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All priorities</option>
+                {LEAD_PRIORITIES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.source ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value || undefined }))}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All sources</option>
+                {LEAD_SOURCES.map((s) => (
+                  <option key={s} value={s}>
+                    {sourceLabel(s)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </Disclosure>
         </div>
 
@@ -920,7 +948,8 @@ export default function LeadsListClient() {
       </div>
 
       <p className="hidden text-center text-xs text-slate-500 md:block">
-        <Kbd>j</Kbd>/<Kbd>k</Kbd> move · <Kbd>Enter</Kbd> open · <Kbd>x</Kbd> select · <Kbd>/</Kbd> search
+        <Kbd>j</Kbd>/<Kbd>k</Kbd> move · <Kbd>Enter</Kbd> open · <Kbd>x</Kbd> select · <Kbd>/</Kbd>{" "}
+        search
       </p>
 
       {referralCredits.length > 0 ? (

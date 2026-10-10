@@ -8,10 +8,7 @@ from typing import Any
 from sqlalchemy import String, cast, func, or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.lead_nba import (
-    _WELCOME_TAG,
-    lead_next_best_action,
-)
+from porterchain_api.collaboration_engine.lead_nba import _WELCOME_TAG, lead_next_best_action
 from porterchain_api.crm_models import CrmLead
 from porterchain_api.domain.crm_states import LeadStatus
 

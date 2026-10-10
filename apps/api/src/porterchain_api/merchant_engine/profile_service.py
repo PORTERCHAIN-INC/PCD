@@ -187,9 +187,7 @@ class MerchantProfileService:
     def _bind_shopify_pickups(self, db: Session, record: SavedAddress) -> None:
         if record.address_type not in ("pickup", "warehouse"):
             return
-        from porterchain_api.merchant_engine.shopify_one_click import (
-            bind_merchant_shop_pickups,
-        )
+        from porterchain_api.merchant_engine.shopify_one_click import bind_merchant_shop_pickups
 
         bind_merchant_shop_pickups(db, record.merchant_id)
 

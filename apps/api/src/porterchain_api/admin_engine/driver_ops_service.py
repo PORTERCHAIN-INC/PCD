@@ -4,12 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_driver.field_admin import (
-    PARCEL_STATUSES,
-    parcel_rows,
-    perform,
-    set_parcel_status,
-)
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import commit_admin_audit
@@ -18,6 +12,7 @@ from porterchain_api.admin_models import Driver
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
+from porterchain_driver.field_admin import PARCEL_STATUSES, parcel_rows, perform, set_parcel_status
 
 _ROUTE_STATES = {
     "DRIVER_ASSIGNED",
@@ -108,9 +103,7 @@ class AdminDriverOpsService:
         perform(db, settings, driver, order, action)
         db.refresh(order)
         if override:
-            from porterchain_api.platform.delivery_override_events import (
-                emit_delivery_override,
-            )
+            from porterchain_api.platform.delivery_override_events import emit_delivery_override
 
             emit_delivery_override(
                 db, order_id=order.id, admin_user_id=str(ctx.user.id), context=override_context

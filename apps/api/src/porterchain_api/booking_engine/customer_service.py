@@ -5,9 +5,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.visitor_tracking_service import (
-    VisitorTrackingService,
-)
+from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 from porterchain_api.booking_models import Customer, Lead, Quote
 
 
@@ -30,11 +28,7 @@ class CustomerService:
         visitor_session_id: str | None = None,
         full_name: str | None = None,
     ) -> Customer:
-        from porterchain_api.auth.email_identity import (
-            EMAIL_CLERK_MISMATCH,
-            emails_match,
-            normalize_email,
-        )
+        from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match, normalize_email
         from porterchain_api.auth.portal_guard import clerk_id_staff_portal
 
         conflict = clerk_id_staff_portal(db, clerk_user_id)
@@ -199,9 +193,7 @@ class CustomerService:
         consent: dict | None = None,
     ) -> Lead:
         # C-24: upsert by quote — booking retries must not spawn duplicate leads.
-        from porterchain_api.booking_engine.crm_lead_mirror import (
-            mirror_booking_lead_to_crm,
-        )
+        from porterchain_api.booking_engine.crm_lead_mirror import mirror_booking_lead_to_crm
 
         existing = db.query(Lead).filter(Lead.quote_id == quote_id).first()
         if existing:
@@ -275,11 +267,7 @@ class CustomerService:
         if conflict:
             raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
 
-        from porterchain_api.auth.email_identity import (
-            EMAIL_CLERK_MISMATCH,
-            emails_match,
-            normalize_email,
-        )
+        from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match, normalize_email
 
         existing = self.get_by_clerk(db, clerk_user_id)
         if existing:
@@ -341,9 +329,7 @@ class CustomerService:
         )
 
     def rebook_payload(self, db: Session, customer_id: str, order_id: str) -> dict:
-        from porterchain_api.booking_engine.repositories.order_repository import (
-            OrderRepository,
-        )
+        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
         from porterchain_api.booking_models import Quote
 
         order = OrderRepository().get_for_customer(db, customer_id, order_id)

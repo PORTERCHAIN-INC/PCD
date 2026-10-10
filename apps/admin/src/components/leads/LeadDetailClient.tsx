@@ -266,7 +266,10 @@ export function LeadDetailView({ id }: { id: string }) {
   return (
     <AdminPage>
       <header className="space-y-3">
-        <Link href="/leads" className="inline-flex items-center gap-2 text-sm font-semibold text-secondary">
+        <Link
+          href="/leads"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-secondary"
+        >
           <ArrowLeft className="h-4 w-4" /> Inbox
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -301,43 +304,43 @@ export function LeadDetailView({ id }: { id: string }) {
               Convert
             </p>
             <div className="flex flex-wrap gap-2">
-          {lead.status !== "won" ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => void handleConvert(false, "merchant")}
-                disabled={converting}
-              >
-                {converting ? "Converting…" : "Convert to company"}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => void handleConvert(true, "merchant")}
-                disabled={converting}
-              >
-                {converting ? "Converting…" : "Convert → merchant"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => void handleConvert(false, "retail_customer")}
-                disabled={converting}
-              >
-                → customer
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => void handleConvert(false, "driver_partner")}
-                disabled={converting}
-              >
-                → driver partner
-              </Button>
-            </>
-          ) : null}
-          {canDelete ? (
-            <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
-              <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
-            </Button>
-          ) : null}
+              {lead.status !== "won" ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleConvert(false, "merchant")}
+                    disabled={converting}
+                  >
+                    {converting ? "Converting…" : "Convert to company"}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => void handleConvert(true, "merchant")}
+                    disabled={converting}
+                  >
+                    {converting ? "Converting…" : "Convert → merchant"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleConvert(false, "retail_customer")}
+                    disabled={converting}
+                  >
+                    → customer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleConvert(false, "driver_partner")}
+                    disabled={converting}
+                  >
+                    → driver partner
+                  </Button>
+                </>
+              ) : null}
+              {canDelete ? (
+                <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
+                  <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+                </Button>
+              ) : null}
             </div>
             <p className="text-xs text-slate-500">
               Decision: {(lead.decision_status ?? "new").replace(/_/g, " ")}

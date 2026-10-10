@@ -20,12 +20,7 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
 )
-from porterchain_api.domain.crm_states import (
-    LeadIntentType,
-    LeadPriority,
-    LeadSourceChannel,
-    LeadStatus,
-)
+from porterchain_api.domain.crm_states import LeadIntentType, LeadPriority, LeadSourceChannel, LeadStatus
 from porterchain_api.marketing_site.schemas import (
     CALCULATOR_VEHICLES,
     INDUSTRIES,
@@ -166,3 +161,6 @@ def submit_calculator_lead(
         lead.service_area = clean["pickup_fsa"]
     db.commit()
     return {"status": "received", "created": result.created, "lead_id": lead.id}
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.collaboration_engine.lead_consent import casl_evidence  # noqa: E402, F401

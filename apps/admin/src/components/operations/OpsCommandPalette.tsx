@@ -107,10 +107,7 @@ export function OpsCommandPalette({
                     j.id.includes(q.trim().toLowerCase()) ||
                     j.label.toLowerCase().includes(q.trim().toLowerCase())
                 )
-                  .filter(
-                    (j, i, arr) =>
-                      arr.findIndex((x) => x.href === j.href) === i
-                  )
+                  .filter((j, i, arr) => arr.findIndex((x) => x.href === j.href) === i)
                   .map((j) => (
                     <button
                       key={`${j.href}-${j.id}`}

@@ -11,9 +11,7 @@ from sqlalchemy.orm import Session
 from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.admin_engine.logistics_partners_service import (
-    LogisticsPartnersService,
-)
+from porterchain_api.admin_engine.logistics_partners_service import LogisticsPartnersService
 from porterchain_api.booking_models import Order
 from porterchain_api.dispatch_engine import driver_route, retention
 from porterchain_api.dispatch_engine.driver_route import DriverRouteService
@@ -22,6 +20,8 @@ from porterchain_api.driver_engine import pod_store
 from porterchain_api.driver_engine.retention_purge import purge
 from porterchain_api.driver_models import DriverStopMeta
 from tests.test_dispatch_phase2 import B, M, S, W, _ctx, _driver, _order, _road
+
+pytestmark = pytest.mark.usefixtures("quiet_pool")
 
 PHOTO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwg"
 

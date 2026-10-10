@@ -177,9 +177,7 @@ def build_experience(db: Session, order: Order, *, with_photos: bool = False) ->
         # "View proof of delivery" shows the photo/signature.
         return {"enhanced": False, "tracking_number": order.tracking_number}
     from porterchain_api.customer_experience.route_position import stops_ahead
-    from porterchain_api.merchant_engine.organization_sync import (
-        public_shipper_branding,
-    )
+    from porterchain_api.merchant_engine.organization_sync import public_shipper_branding
 
     meta = cx_meta(order)
     rules = cfg["delivery_rules"]

@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def put_blog_media_object(
     host = cfg["endpoint"].removeprefix("https://").removeprefix("http://")
     url = f"{cfg['endpoint']}{path}"
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     amz_date = now.strftime("%Y%m%dT%H%M%SZ")
     datestamp = now.strftime("%Y%m%d")
     payload_hash = hashlib.sha256(content).hexdigest()
@@ -153,3 +153,6 @@ def put_blog_media_object(
         logger.exception("blog_media_s3_http_error")
         raise ValueError("blog_media_s3_upload_failed") from exc
     return key
+
+# Re-exports kept for existing importers (integration).
+from datetime import timezone  # noqa: E402, F401

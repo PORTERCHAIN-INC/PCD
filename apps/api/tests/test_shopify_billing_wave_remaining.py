@@ -4,19 +4,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
-from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
-from porterchain_api.billing_engine.models import InvoiceLine
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Order
-from porterchain_api.domain.merchant_states import MerchantStatus
+from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.commerce_metrics import (
     note_commerce_event,
@@ -24,7 +17,12 @@ from porterchain_api.merchant_engine.commerce_metrics import (
     reset_commerce_events_for_tests,
 )
 from porterchain_api.merchant_engine.shopify_service import _merchant_for_install
-from porterchain_api.merchant_models import Merchant, ShopifyShop
+from porterchain_api.merchant_models import Merchant, MerchantUser, ShopifyShop
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_models import Order
+from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.billing_engine.models import InvoiceLine
 
 
 def test_merchant_for_install_blocks_email_hijack_onto_bound_merchant(db):

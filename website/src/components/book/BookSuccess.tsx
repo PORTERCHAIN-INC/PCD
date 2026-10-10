@@ -75,7 +75,9 @@ export default function BookSuccess({ quoteId }: { quoteId: string }) {
   if (!data) {
     return (
       <div className="mx-auto max-w-xl" role="status" aria-live="polite">
-        <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">{c.received}</p>
+        <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">
+          {c.received}
+        </p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-primary">{c.confirming}</h1>
         <p className="mt-3 text-primary/75">{c.seconds}</p>
       </div>
@@ -84,16 +86,25 @@ export default function BookSuccess({ quoteId }: { quoteId: string }) {
 
   return (
     <div className="mx-auto max-w-xl">
-      <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-emerald-800">{c.booked}</p>
-      <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-primary sm:text-5xl">{c.title}</h1>
+      <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-emerald-800">
+        {c.booked}
+      </p>
+      <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-primary sm:text-5xl">
+        {c.title}
+      </h1>
       <p className="mt-3 text-base text-primary/75">{c.lead}</p>
       <div className="mt-8 rounded-3xl bg-primary p-6 text-white">
         <p className="text-xs font-semibold uppercase tracking-wide text-white/75">{c.tracking}</p>
-        <p className="mt-1 font-mono text-3xl font-bold tracking-tight" data-testid="success-tracking">
+        <p
+          className="mt-1 font-mono text-3xl font-bold tracking-tight"
+          data-testid="success-tracking"
+        >
           {data.tracking_number}
         </p>
         {data.amount_cents != null ? (
-          <p className="mt-2 text-sm text-white/85">{c.paid(formatPrice(data.amount_cents, locale))}</p>
+          <p className="mt-2 text-sm text-white/85">
+            {c.paid(formatPrice(data.amount_cents, locale))}
+          </p>
         ) : null}
         {seconds != null ? (
           <p className="mt-1 text-sm text-white/85" data-testid="success-seconds">

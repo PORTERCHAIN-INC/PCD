@@ -18,9 +18,16 @@ import CustomerShell from "@/components/CustomerShell";
 import { publicEnv } from "@/lib/env";
 import PortalAuth, { type PortalAuthValue } from "@/components/auth/PortalAuth";
 import { accountApi, type SavedAddress } from "@/lib/account";
-import { createQuote, getQuote, mockCompleteCheckout, previewQuote, startBooking } from "@/lib/booking";
+import {
+  createQuote,
+  getQuote,
+  mockCompleteCheckout,
+  previewQuote,
+  startBooking,
+} from "@/lib/booking";
 
-const tx = (key: BookingCopyKey, vars?: Record<string, string | number>) => bookingText("en", key, vars);
+const tx = (key: BookingCopyKey, vars?: Record<string, string | number>) =>
+  bookingText("en", key, vars);
 const field =
   "mt-1.5 block w-full rounded-2xl border border-primary/15 bg-white px-4 py-3.5 text-base text-primary placeholder:text-primary/45 outline-none focus:border-primary focus:ring-2 focus:ring-primary/15";
 const labelCls = "block text-[13px] font-semibold uppercase tracking-wide text-primary/70";
@@ -84,7 +91,10 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
       .catch(() => setError(tx("expired")));
   }, [resumeId]);
 
-  const input = useMemo(() => buildQuoteInput({ pickup, drops, vehicle }), [pickup, drops, vehicle]);
+  const input = useMemo(
+    () => buildQuoteInput({ pickup, drops, vehicle }),
+    [pickup, drops, vehicle]
+  );
 
   useEffect(() => {
     if (!input) {
@@ -115,7 +125,9 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
     try {
       const token = await auth.getToken();
       if (!token) throw new Error("Sign in again to continue.");
-      const quoteId = resumed ?? (await createQuote({ ...input!, booking_mode: "vehicle", schedule_mode: "now" })).quote_id;
+      const quoteId =
+        resumed ??
+        (await createQuote({ ...input!, booking_mode: "vehicle", schedule_mode: "now" })).quote_id;
       localStorage.setItem(PHONE_KEY, phone.trim());
       const booking = await startBooking(token, {
         quote_id: quoteId,
@@ -163,7 +175,12 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
     ) : null;
 
   return (
-    <form onSubmit={pay} noValidate className="mx-auto w-full max-w-xl pb-44 md:pb-10" aria-labelledby="send-title">
+    <form
+      onSubmit={pay}
+      noValidate
+      className="mx-auto w-full max-w-xl pb-44 md:pb-10"
+      aria-labelledby="send-title"
+    >
       <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">Send</p>
       <h1 id="send-title" className="mt-2 text-4xl font-extrabold tracking-tight text-primary">
         Where to?
@@ -187,13 +204,21 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         {drops.map((d, i) => (
           <div key={i}>
             <div className="flex items-end">
-              <div className={`${labelCls} w-full`} onFocus={() => setFocus(i)} onBlur={() => setFocus(null)}>
-                <label htmlFor={`send-drop-${i}`}>{drops.length > 1 ? tx("dropN", { n: i + 1 }) : tx("drop")}</label>
+              <div
+                className={`${labelCls} w-full`}
+                onFocus={() => setFocus(i)}
+                onBlur={() => setFocus(null)}
+              >
+                <label htmlFor={`send-drop-${i}`}>
+                  {drops.length > 1 ? tx("dropN", { n: i + 1 }) : tx("drop")}
+                </label>
                 <AddressAutocompleteInput
                   id={`send-drop-${i}`}
                   value={d}
                   onChange={(v) => setDrops((x) => x.map((y, j) => (j === i ? v : y)))}
-                  onPlaceSelect={(a) => setDrops((x) => x.map((y, j) => (j === i ? a.formatted : y)))}
+                  onPlaceSelect={(a) =>
+                    setDrops((x) => x.map((y, j) => (j === i ? a.formatted : y)))
+                  }
                   placeholder={tx("placeholder")}
                   apiKey={publicEnv.googleMapsApiKey}
                   className={field}
@@ -220,7 +245,10 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             data-testid="send-add-drop"
             className="text-sm font-bold text-primary underline underline-offset-4"
           >
-            + {tx("addDrop")} <span className="font-medium text-primary/65">({drops.length}/{MAX_DROPS})</span>
+            + {tx("addDrop")}{" "}
+            <span className="font-medium text-primary/65">
+              ({drops.length}/{MAX_DROPS})
+            </span>
           </button>
         ) : (
           <p className="text-sm text-primary/70">{tx("dropsLimit")}</p>
@@ -236,11 +264,17 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
                 aria-current={vehicle === v.id ? "true" : undefined}
                 onClick={() => setVehicle(v.id)}
                 className={`rounded-2xl border px-3 py-3 text-center focus-visible:ring-2 focus-visible:ring-secondary ${
-                  vehicle === v.id ? "border-primary bg-primary text-white" : "border-primary/15 bg-white text-primary"
+                  vehicle === v.id
+                    ? "border-primary bg-primary text-white"
+                    : "border-primary/15 bg-white text-primary"
                 }`}
               >
                 <span className="block text-base font-bold">{v.label.en}</span>
-                <span className={`block text-xs ${vehicle === v.id ? "text-white/85" : "text-primary/65"}`}>{v.hint.en}</span>
+                <span
+                  className={`block text-xs ${vehicle === v.id ? "text-white/85" : "text-primary/65"}`}
+                >
+                  {v.hint.en}
+                </span>
               </button>
             ))}
           </div>
@@ -248,13 +282,23 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         {!auth.phone ? (
           <label className={labelCls}>
             {tx("phone")}
-            <input type="tel" inputMode="tel" className={field} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+            <input
+              type="tel"
+              inputMode="tel"
+              className={field}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
+            />
           </label>
         ) : null}
       </div>
 
       {error ? (
-        <p role="alert" className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+        <p
+          role="alert"
+          className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+        >
           {error}
         </p>
       ) : null}
@@ -268,11 +312,17 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             className="flex w-full items-center justify-between rounded-2xl bg-primary px-6 py-4 text-white shadow-lg shadow-primary/20 focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 disabled:opacity-60"
           >
             <span className="text-base font-bold">{busy ? tx("paying") : tx("pay")}</span>
-            <span className="text-2xl font-extrabold tabular-nums" aria-live="polite" data-testid="send-price">
+            <span
+              className="text-2xl font-extrabold tabular-nums"
+              aria-live="polite"
+              data-testid="send-price"
+            >
               {amount !== null ? formatPrice(amount) : pricing ? "…" : "—"}
             </span>
           </button>
-          <p className="mt-2 text-center text-xs text-primary/70">Incl. HST. Card, Apple Pay or Google Pay.</p>
+          <p className="mt-2 text-center text-xs text-primary/70">
+            Incl. HST. Card, Apple Pay or Google Pay.
+          </p>
         </div>
       </div>
     </form>

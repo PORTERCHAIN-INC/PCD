@@ -59,9 +59,7 @@ class DriverVerificationService:
         if not settings.stripe_secret:
             raise RuntimeError("stripe_not_configured")
 
-        from porterchain_api.services.stripe_service import (
-            create_identity_verification_session,
-        )
+        from porterchain_api.services.stripe_service import create_identity_verification_session
 
         session = create_identity_verification_session(
             settings,

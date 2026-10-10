@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from porterchain_api.merchant_engine.route_import_service import (
-    KIND_ROUTE_V1,
-    MerchantRouteImportService,
-)
+from porterchain_api.merchant_engine.route_import_service import KIND_ROUTE_V1, MerchantRouteImportService
 
 
 def test_idempotency_returns_existing_job():

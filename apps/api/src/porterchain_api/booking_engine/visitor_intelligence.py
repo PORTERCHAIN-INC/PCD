@@ -6,14 +6,10 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.visitor_tracking_service import (
-    VisitorTrackingService,
-)
-from porterchain_api.booking_models import Quote, VisitorSession
+from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 from porterchain_api.crm_models import CrmLead
-from porterchain_api.domain.visitor_intent import (
-    behavioral_score_boost as domain_behavioral_boost,
-)
+from porterchain_api.domain.visitor_intent import behavioral_score_boost as domain_behavioral_boost
+from porterchain_api.booking_models import Quote, VisitorSession
 
 
 class VisitorIntelligenceService:

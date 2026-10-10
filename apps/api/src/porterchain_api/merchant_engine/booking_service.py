@@ -3,38 +3,30 @@
 from collections.abc import Callable
 from typing import TypeVar
 
-from porterchain_pricing import GeoPoint, PricingRequest
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_engine.order_metadata import resolve_order_type
-from porterchain_api.booking_engine.order_transitions import (
-    transition_order_state,
-    transition_to_dispatch_ready,
-)
 from porterchain_api.booking_engine.site_access import enrich_dropoff
-from porterchain_api.booking_models import Customer, Order
+from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
 from porterchain_api.config import Settings
-from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.domain.states import OrderSource, OrderState
+from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
+from porterchain_api.domain.states import OrderState, OrderSource
 from porterchain_api.merchant_engine import events as E
-from porterchain_api.merchant_engine.booking_validation import (
-    BookingValidationError,
-    MerchantSyncService,
-    assert_not_fsa_refused,
-)
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.service_area import (
-    assert_ontario_booking,
-    merchant_coverage_fsas,
-)
+from porterchain_api.booking_models import Customer, Order
+from porterchain_api.pricing_engine import get_pricing_service
+from porterchain_api.schemas import AddressInput
+from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
+from porterchain_api.booking_engine.order_metadata import resolve_order_type
+from porterchain_api.services.routing import resolve_route_distance
+from porterchain_pricing import GeoPoint, PricingRequest
+from porterchain_api.domain.merchant_states import MerchantStatus
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError, assert_not_fsa_refused
+from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_engine.stop_cargo import (
     book_stops_for_request,
     cargo_rollup,
@@ -44,10 +36,7 @@ from porterchain_api.merchant_engine.stop_cargo import (
     parse_dt,
     pickup_stop,
 )
-from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.schemas import AddressInput
-from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
-from porterchain_api.services.routing import resolve_route_distance
+
 
 T = TypeVar("T")
 
@@ -277,9 +266,7 @@ class MerchantBookingService:
 
         pricing = get_pricing_service(db)
         api_breakdown = pricing.to_api_breakdown(breakdown)
-        from porterchain_api.merchant_engine.quote_snapshot import (
-            merchant_quote_picture,
-        )
+        from porterchain_api.merchant_engine.quote_snapshot import merchant_quote_picture
 
         snapshot = merchant_quote_picture(
             api_breakdown,
@@ -289,9 +276,7 @@ class MerchantBookingService:
             if isinstance(breakdown.metadata, dict)
             else None,
         )
-        from porterchain_api.merchant_engine.consignee_notify import (
-            resolve_consignee_email,
-        )
+        from porterchain_api.merchant_engine.consignee_notify import resolve_consignee_email
 
         consignee_email = resolve_consignee_email(db, ctx, body)
 
@@ -426,9 +411,7 @@ class MerchantBookingService:
             )
         db.refresh(order)
         if consignee_email:
-            from porterchain_api.merchant_engine.consignee_notify import (
-                send_consignee_tracking_safe,
-            )
+            from porterchain_api.merchant_engine.consignee_notify import send_consignee_tracking_safe
 
             send_consignee_tracking_safe(
                 db,
@@ -442,9 +425,7 @@ class MerchantBookingService:
         return order
 
     def cancel_order(self, db: Session, ctx: MerchantContext, order: Order, settings: Settings | None = None) -> Order:
-        from porterchain_api.merchant_engine.cancel_policy import (
-            assert_merchant_can_cancel,
-        )
+        from porterchain_api.merchant_engine.cancel_policy import assert_merchant_can_cancel
 
         if order.merchant_id != ctx.merchant.id:
             raise PermissionError("order_not_owned")

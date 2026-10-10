@@ -5,9 +5,6 @@ Authorization Checks use SpiceDB via CurrentPrincipal — not this helper.
 
 from __future__ import annotations
 
-from porterchain_shared.auth.principal import AuthPrincipal
-from porterchain_shared.auth.roles import PlatformRole
-from porterchain_shared.types.user_types import UserType
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
@@ -17,6 +14,9 @@ from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
+from porterchain_shared.auth.principal import AuthPrincipal
+from porterchain_shared.auth.roles import PlatformRole
+from porterchain_shared.types.user_types import UserType
 
 _ADMIN_PLATFORM: dict[AdminRole, PlatformRole] = {
     AdminRole.SUPER_ADMIN: PlatformRole.SUPER_ADMIN,

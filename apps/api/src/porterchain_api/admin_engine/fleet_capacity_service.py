@@ -15,10 +15,7 @@ def fleet_get(db: Session) -> dict[str, Any]:
 
 def fleet_put(db: Session, ctx: Any, raw: dict[str, Any]) -> dict[str, Any]:
     from porterchain_api.admin_models import AdminAuditLog, SystemConfig
-    from porterchain_api.dispatch_engine.fleet_capacity import (
-        STORAGE_KEY,
-        normalize_fleet,
-    )
+    from porterchain_api.dispatch_engine.fleet_capacity import STORAGE_KEY, normalize_fleet
 
     role = getattr(getattr(ctx, "role", None), "value", str(getattr(ctx, "role", "")))
     if role not in {"super_admin", "admin"}:

@@ -12,6 +12,8 @@ export type ApiKeyRecord = {
   is_active: boolean;
   created_at: string;
   secret?: string | null;
+  /** Rotated key: keeps working until this time. */
+  expires_at?: string | null;
 };
 
 export type WebhookRecord = {
@@ -121,6 +123,21 @@ export type ShopifyShopConnection = {
   has_webhook_secret: boolean;
   carrier_registered?: boolean;
   fulfillment_service_registered?: boolean;
+  /** Same object staff see in admin (API: merchant_engine/shopify_health.py). */
+  health?: ShopHealth;
+};
+
+export type ShopHealth = {
+  state: "connected" | "paused" | "disconnected";
+  connected: boolean;
+  paused: boolean;
+  light: "red" | "amber" | "green";
+  reason: string;
+  fix: string | null;
+  problems: Array<{ code: string; text: string; fix: string | null }>;
+  missing_scopes: string[];
+  orders_waiting: number;
+  last_order_at: string | null;
 };
 
 export type ShopifyGoLive = {
@@ -362,7 +379,6 @@ export const integrationsApi = {
       token,
       { method: "POST", orgId }
     ),
-
 
   erp: (token: string, orgId?: string) =>
     integrationsFetch<{ platforms: ErpPlatform[] }>("/v1/merchant/integrations/erp", token, {

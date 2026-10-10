@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
-from typing import Annotated
+from typing import Annotated, Callable
 
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -44,7 +43,7 @@ def require_relation(
                 permission=permission,
                 subject_id=principal.user_id,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.exception("spicedb_check_failed")
             settings_required = True
             try:
@@ -72,7 +71,7 @@ def require_relation(
                 )
             )
             db.commit()
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception("access_audit_write_failed")
             try:
                 db.rollback()
@@ -114,6 +113,6 @@ def check_or_raise(
                 )
             )
             db.commit()
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception("access_audit_write_failed")
     raise HTTPException(status_code=403, detail="forbidden")

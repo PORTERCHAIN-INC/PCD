@@ -133,7 +133,9 @@ export default function CustomerDetailClient({ id }: { id: string }) {
           </Button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-3xl font-extrabold tracking-tight text-primary">{data.display_name}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-primary">
+                {data.display_name}
+              </h1>
               {c360 ? <SignalBadges c={c360} /> : null}
               <Badge tone={data.clerk_linked ? "green" : "slate"}>
                 {data.clerk_linked ? "Clerk linked" : "Orphan row"}

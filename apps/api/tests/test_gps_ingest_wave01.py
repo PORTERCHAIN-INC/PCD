@@ -3,18 +3,23 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_models import Driver
+from porterchain_api.db import SessionLocal, db_transaction
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.driver_engine.last_known import (
     LastKnown,
     parse_recorded_at,
+    read_last_known,
+    write_last_known,
 )
 from porterchain_api.driver_models import DriverLocationPing
 
@@ -24,6 +29,26 @@ class _FakeRedis:
         self.hashes: dict[str, dict[str, str]] = {}
         self.kv: dict[str, str] = {}
 
+    def eval(self, _script: str, _numkeys: int, *args: str) -> int:
+        key = args[0]
+        new_epoch = float(args[2])
+        current = self.hashes.get(key, {})
+        old = current.get("recorded_at_epoch")
+        if old and float(old) >= new_epoch:
+            return 0
+        ver = int(float(current.get("version") or 0)) + 1
+        self.hashes[key] = {
+            "lat": args[3],
+            "lng": args[4],
+            "recorded_at": args[5],
+            "recorded_at_epoch": args[2],
+            "accuracy_m": args[6],
+            "heading": args[7],
+            "speed_mps": args[8],
+            "h3": args[9],
+            "version": str(ver),
+        }
+        return ver
 
     def hgetall(self, key: str) -> dict[str, str]:
         return dict(self.hashes.get(key, {}))
@@ -121,3 +146,68 @@ def test_offline_gps_buffer_keeps_latest_only() -> None:
     assert "buffer.length > 500" not in src
     assert "JSON.stringify([stamped])" in src
     assert "gpsBuffer[gpsBuffer.length - 1]" in src
+
+
+def test_last_known_cas_rejects_stale_ping() -> None:
+    redis = _FakeRedis()
+    first = write_last_known(
+        driver_id="drv-1",
+        lat=43.65,
+        lng=-79.38,
+        recorded_at="2026-09-14T12:00:25Z",
+        client=redis,
+    )
+    assert first is not None
+    assert first.version == 1
+    stale = write_last_known(
+        driver_id="drv-1",
+        lat=43.0,
+        lng=-79.0,
+        recorded_at="2026-09-14T12:00:00Z",
+        client=redis,
+    )
+    assert stale is None
+    known = read_last_known("drv-1", client=redis)
+    assert known is not None
+    assert known.lat == 43.65
+    newer = write_last_known(
+        driver_id="drv-1",
+        lat=43.7,
+        lng=-79.4,
+        recorded_at="2026-09-14T12:00:50Z",
+        client=redis,
+    )
+    assert newer is not None
+    assert newer.version == 2
+    assert read_last_known("drv-1", client=redis).lat == 43.7
+
+
+def test_record_ping_survives_commit(db: Session, driver: Driver) -> None:
+    from unittest.mock import MagicMock
+
+    from porterchain_api.config import Settings
+    from porterchain_driver.location import LocationService
+
+    db.flush()
+    settings = Settings(
+        _env_file=None,
+        app_env="local",
+        stripe_mock=True,
+        jwt_secret="test-jwt",
+    )
+    with db_transaction(db):
+        result = LocationService().record_ping(
+            db, driver, lat=43.65, lng=-79.38
+        )
+    assert result["recorded"] is True
+    assert result["ping_id"] is None
+    other = SessionLocal()
+    try:
+        leftover = (
+            other.query(DriverLocationPing)
+            .filter(DriverLocationPing.driver_id == driver.id)
+            .count()
+        )
+        assert leftover == 0
+    finally:
+        other.close()

@@ -27,14 +27,20 @@ import { LiveEtaList } from "@/components/dispatch/LiveEtaList";
 import { FleetCapacityEditor } from "@/components/dispatch/FleetCapacityEditor";
 import { useApiData } from "@/hooks/useApiData";
 import { dispatch, type DispatchView } from "@/lib/dispatch";
-import { FLEET_SECTIONS, type FleetSection, isTypingTarget, shortcutFor } from "@/lib/dispatch-shortcuts";
+import {
+  FLEET_SECTIONS,
+  type FleetSection,
+  isTypingTarget,
+  shortcutFor,
+} from "@/lib/dispatch-shortcuts";
 
 const LiveMapPanel = dynamic(
   () => import("@/components/operations/LiveMapPanel").then((m) => ({ default: m.LiveMapPanel })),
   { loading: () => <PageSkeleton rows={3} />, ssr: false }
 );
 const OrderBuilderModal = dynamic(
-  () => import("@/components/orders/OrderBuilderModal").then((m) => ({ default: m.OrderBuilderModal })),
+  () =>
+    import("@/components/orders/OrderBuilderModal").then((m) => ({ default: m.OrderBuilderModal })),
   { loading: () => <PageSkeleton rows={3} />, ssr: false }
 );
 const DriversListClient = dynamic(() => import("@/components/drivers/DriversListClient"), {
@@ -72,7 +78,9 @@ export function DispatchShell({ view }: { view: DispatchView }) {
   const [menu, setMenu] = useState(false);
   const [help, setHelp] = useState(false);
   const [fleetSection, setFleetSection] = useState<FleetSection>("drivers");
-  const { data: exc } = useApiData((t) => dispatch.exceptions(t), [tick], { key: "dispatch-exceptions" });
+  const { data: exc } = useApiData((t) => dispatch.exceptions(t), [tick], {
+    key: "dispatch-exceptions",
+  });
   const excTotal = exc?.total ?? 0;
 
   // Dispatcher keyboard: 1–7 tabs · P plan · N new order · R refresh · ? help · Esc close.
@@ -112,7 +120,9 @@ export function DispatchShell({ view }: { view: DispatchView }) {
     <AdminPage className="dispatch !space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Dispatch</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">
+            Dispatch
+          </p>
           <h1 className="text-3xl font-bold tracking-tight text-primary">{title}</h1>
           <p className="text-sm text-muted">{SUBTITLE[view]}</p>
         </div>
@@ -128,11 +138,19 @@ export function DispatchShell({ view }: { view: DispatchView }) {
               <MoreHorizontal className="h-5 w-5" aria-hidden />
             </button>
             {menu && (
-              <div role="menu" className="absolute left-0 z-30 mt-1 w-56 rounded-xl border border-primary/10 bg-white p-1 shadow-xl sm:left-auto sm:right-0">
+              <div
+                role="menu"
+                className="absolute left-0 z-30 mt-1 w-56 rounded-xl border border-primary/10 bg-white p-1 shadow-xl sm:left-auto sm:right-0"
+              >
                 {[
                   { label: "New order", key: "N", icon: Plus, run: () => setBuilderOpen(true) },
                   { label: "Refresh", key: "R", icon: RefreshCw, run: refresh },
-                  { label: "Keyboard shortcuts", key: "?", icon: Keyboard, run: () => setHelp(true) },
+                  {
+                    label: "Keyboard shortcuts",
+                    key: "?",
+                    icon: Keyboard,
+                    run: () => setHelp(true),
+                  },
                 ].map((m) => (
                   <button
                     key={m.label}
@@ -146,7 +164,9 @@ export function DispatchShell({ view }: { view: DispatchView }) {
                   >
                     <m.icon className="h-4 w-4" aria-hidden />
                     <span className="flex-1">{m.label}</span>
-                    <kbd className="rounded border border-primary/15 px-1.5 text-[11px] text-muted">{m.key}</kbd>
+                    <kbd className="rounded border border-primary/15 px-1.5 text-[11px] text-muted">
+                      {m.key}
+                    </kbd>
                   </button>
                 ))}
               </div>
@@ -198,7 +218,9 @@ export function DispatchShell({ view }: { view: DispatchView }) {
         </ul>
       </nav>
 
-      {(view === "today" || view === "metrics") && <MetricsBar tick={tick} days={view === "metrics" ? days : 7} />}
+      {(view === "today" || view === "metrics") && (
+        <MetricsBar tick={tick} days={view === "metrics" ? days : 7} />
+      )}
 
       {view === "today" && (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -240,11 +262,17 @@ export function DispatchShell({ view }: { view: DispatchView }) {
         </div>
       )}
 
-      {view === "exceptions" && <ExceptionsQueue tick={tick} onOpenOrder={openOrder} onChanged={refresh} />}
+      {view === "exceptions" && (
+        <ExceptionsQueue tick={tick} onOpenOrder={openOrder} onChanged={refresh} />
+      )}
 
       {view === "fleet" && (
         <div className="space-y-4">
-          <div className="inline-flex rounded-full border border-primary/10 bg-white p-1" role="tablist" aria-label="Fleet">
+          <div
+            className="inline-flex rounded-full border border-primary/10 bg-white p-1"
+            role="tablist"
+            aria-label="Fleet"
+          >
             {FLEET_SECTIONS.map((f) => (
               <button
                 key={f.id}
@@ -300,8 +328,17 @@ export function DispatchShell({ view }: { view: DispatchView }) {
       )}
 
       {help && (
-        <div role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 p-4" onClick={() => setHelp(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keyboard shortcuts"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 p-4"
+          onClick={() => setHelp(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="text-lg font-bold text-primary">Keyboard</p>
             <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               {[
@@ -314,7 +351,11 @@ export function DispatchShell({ view }: { view: DispatchView }) {
                 ["Esc", "Close"],
               ].map(([k, v]) => (
                 <div key={k} className="contents">
-                  <dt><kbd className="rounded-md border border-primary/15 bg-primary/[0.03] px-2 py-0.5 font-mono text-xs text-primary">{k}</kbd></dt>
+                  <dt>
+                    <kbd className="rounded-md border border-primary/15 bg-primary/[0.03] px-2 py-0.5 font-mono text-xs text-primary">
+                      {k}
+                    </kbd>
+                  </dt>
                   <dd className="text-primary/80">{v}</dd>
                 </div>
               ))}
@@ -323,7 +364,11 @@ export function DispatchShell({ view }: { view: DispatchView }) {
         </div>
       )}
 
-      <Order360Drawer orderId={drawerOrderId} onClose={() => setDrawerOrderId(null)} onChanged={refresh} />
+      <Order360Drawer
+        orderId={drawerOrderId}
+        onClose={() => setDrawerOrderId(null)}
+        onChanged={refresh}
+      />
       <OrderBuilderModal
         open={builderOpen}
         onClose={() => setBuilderOpen(false)}
@@ -332,10 +377,7 @@ export function DispatchShell({ view }: { view: DispatchView }) {
           openOrder(id);
         }}
       />
-      <OpsCommandPalette
-        onOpenOrder={openOrder}
-        onJumpView={(href) => router.push(href)}
-      />
+      <OpsCommandPalette onOpenOrder={openOrder} onJumpView={(href) => router.push(href)} />
     </AdminPage>
   );
 }

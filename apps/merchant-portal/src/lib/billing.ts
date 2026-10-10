@@ -315,7 +315,12 @@ export const billingApi = {
 
   /** Account statement PDF: balance, PC codes, e-Transfer instructions, open invoices. */
   downloadStatementPdf: (token: string, orgId?: string) =>
-    billingDownload("/v1/merchant/billing/statement.pdf", token, orgId, "porterchain-statement.pdf"),
+    billingDownload(
+      "/v1/merchant/billing/statement.pdf",
+      token,
+      orgId,
+      "porterchain-statement.pdf"
+    ),
 
   downloadHistoryCsv: (token: string, orgId?: string) =>
     billingDownload("/v1/merchant/billing/export/history.csv", token, orgId, "billing-history.csv"),

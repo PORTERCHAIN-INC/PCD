@@ -18,6 +18,16 @@ export interface RouteStop {
   needs_pod: boolean;
   notes: string | null;
   eta_s: number;
+  /** Boxes scanned for this stop's phase (pickup or delivery); null at hubs/handoffs. */
+  scan: ScanProgress | null;
+}
+
+export interface ScanProgress {
+  scanned: number;
+  required: number;
+  complete: boolean;
+  missing_suffixes: string[];
+  reported_missing?: number;
 }
 
 export interface DriverDispatchRoute {
@@ -35,7 +45,13 @@ export interface ChecklistItem {
   box_count: number;
   counts_as: number;
   rule: string | null;
-  boxes: { package_id: string; box_index: number; scanned: boolean; missing: boolean }[];
+  boxes: {
+    package_id: string;
+    box_index: number;
+    tracking_suffix: string;
+    scanned: boolean;
+    missing: boolean;
+  }[];
 }
 
 export interface StopChecklist {
@@ -66,6 +82,30 @@ export function primaryAction(stop: RouteStop): { event: CheckinEvent; label: st
   return isPickup(stop.kind)
     ? { event: "picked_up", label: "Picked up" }
     : { event: "delivered", label: "Delivered" };
+}
+
+/**
+ * Offline: apply a queued check-in to the local route so the driver moves on at once.
+ * The server's answer replaces this view when the queue syncs.
+ */
+export function applyLocal(
+  route: DriverDispatchRoute,
+  keys: string[],
+  event: CheckinEvent
+): DriverDispatchRoute {
+  const key = keys.join(",");
+  const stops = route.stops.map((s): RouteStop => {
+    if (s.keys.join(",") !== key) return s;
+    if (event === "arrived") return { ...s, status: "arrived" };
+    return { ...s, status: event === "failed" ? "failed" : "done" };
+  });
+  const next = stops.findIndex((s) => s.status === "pending" || s.status === "arrived");
+  return {
+    ...route,
+    stops,
+    next_index: next === -1 ? null : next,
+    done: stops.filter((s) => s.status === "done" || s.status === "failed").length,
+  };
 }
 
 /** Items to confirm: a multi-box item counts as one item; every box still has to be on the van. */
@@ -106,13 +146,16 @@ export async function photoToDataUrl(file: File, max = 1280, quality = 0.6): Pro
   return c.toDataURL("image/jpeg", quality);
 }
 
-export function currentPosition(timeoutMs = 5000): Promise<{ lat: number; lng: number; accuracy_m: number } | null> {
+export function currentPosition(
+  timeoutMs = 5000
+): Promise<{ lat: number; lng: number; accuracy_m: number } | null> {
   if (typeof navigator === "undefined" || !navigator.geolocation) return Promise.resolve(null);
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy_m: p.coords.accuracy }),
+      (p) =>
+        resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy_m: p.coords.accuracy }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 30_000 },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 30_000 }
     );
   });
 }

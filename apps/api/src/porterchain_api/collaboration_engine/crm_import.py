@@ -6,8 +6,10 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.crm_helpers import CrmActor, _to_int
+from porterchain_api.collaboration_engine.crm_helpers import CrmActor
 from porterchain_api.domain.crm_states import DealStage
+from porterchain_api.collaboration_engine.crm_helpers import _to_int
+
 
 
 class CrmImportMixin:

@@ -5,19 +5,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from porterchain_shared.auth.principal import AuthPrincipal
-from porterchain_shared.types.user_types import UserType
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.driver_lookups import get_driver
-from porterchain_api.admin_engine.driver_lookups import (
-    rebind_clerk_by_email as rebind_driver_clerk,
-)
-from porterchain_api.admin_engine.staff_lookups import get_admin_user
-from porterchain_api.admin_engine.staff_lookups import (
-    rebind_clerk_by_email as rebind_admin_clerk,
-)
+from porterchain_api.admin_engine.driver_lookups import get_driver, rebind_clerk_by_email as rebind_driver_clerk
+from porterchain_api.admin_engine.rbac import parse_admin_role
+from porterchain_api.admin_engine.staff_lookups import get_admin_user, rebind_clerk_by_email as rebind_admin_clerk
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.email_identity import (
@@ -27,18 +20,18 @@ from porterchain_api.auth.email_identity import (
 )
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.persona_principal import resolve_persona_principal
-from porterchain_api.booking_models import Customer
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.identity_models import IdentityLink
 from porterchain_api.merchant_engine.lookups import (
     get_merchant,
     get_merchant_user,
-)
-from porterchain_api.merchant_engine.lookups import (
     rebind_clerk_by_email as rebind_merchant_clerk,
 )
+from porterchain_api.booking_models import Customer
 from porterchain_api.user_models import PorterchainUser
+from porterchain_shared.auth.principal import AuthPrincipal
+from porterchain_shared.types.user_types import UserType
 
 
 def _is_pending_clerk_id(clerk_user_id: str | None) -> bool:
@@ -258,7 +251,9 @@ class UserSyncService:
             if mu:
                 profile["merchant_id"] = mu.merchant_id
                 status = "active"
-                if merchant and merchant.status != MerchantStatus.ACTIVE.value or not mu.is_active:
+                if merchant and merchant.status != MerchantStatus.ACTIVE.value:
+                    status = "inactive"
+                elif not mu.is_active:
                     status = "inactive"
                 return {
                     "role": mu.role,
@@ -361,3 +356,6 @@ class UserSyncService:
             link.provider = link.provider or "clerk"
 
         return link
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.admin_engine.rbac import parse_admin_role  # noqa: E402, F401

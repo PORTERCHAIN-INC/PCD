@@ -7,9 +7,7 @@ from types import SimpleNamespace
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.crm_models import CrmCompany
 from porterchain_api.domain.catalog_labels import vehicle_label
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
 from porterchain_api.merchant_engine.coverage import (
     COVERAGE_NOTE,

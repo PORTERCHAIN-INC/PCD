@@ -25,7 +25,7 @@ def test_api_docs_gate(app_env: str, flag: bool, expected: bool) -> None:
 
 
 def test_production_app_has_no_docs_routes(monkeypatch) -> None:
-    from porterchain_api import main
+    import porterchain_api.main as main
 
     real = main.get_settings()
     fake = real.model_copy(update={"app_env": "production", "api_docs_enabled": False})

@@ -6,9 +6,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from porterchain_shared.config.settings import PlatformSettings
 
 from porterchain_api.notification_engine.delivery_service import DeliveryService
+from porterchain_shared.config.settings import PlatformSettings
 
 
 def test_resolve_mail_transport_auto_zeptomail_prod() -> None:

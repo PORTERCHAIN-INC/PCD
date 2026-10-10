@@ -119,9 +119,7 @@ def build_context(
     extra: dict[str, Any] | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
-    from porterchain_api.merchant_engine.shopify_fulfillment_ops import (
-        public_tracking_url,
-    )
+    from porterchain_api.merchant_engine.shopify_fulfillment_ops import public_tracking_url
 
     extra = dict(extra or {})
     track = public_tracking_url(settings, order.tracking_number)

@@ -7,12 +7,10 @@ from porterchain_api.support_engine.support_context import SupportContextMixin
 from porterchain_api.support_engine.support_dashboard import SupportDashboardMixin
 from porterchain_api.support_engine.support_helpers import SupportFilters
 from porterchain_api.support_engine.support_kb import SupportKbMixin
-from porterchain_api.support_engine.support_ticket_actions import (
-    SupportTicketActionsMixin,
-)
+from porterchain_api.support_engine.support_ticket_actions import SupportTicketActionsMixin
 from porterchain_api.support_engine.support_tickets import SupportTicketsMixin
 
-__all__ = ["TICKET_CATEGORIES", "AdminSupportService", "SupportFilters", "ticket_number"]
+__all__ = ["AdminSupportService", "SupportFilters", "TICKET_CATEGORIES", "ticket_number"]
 
 
 class AdminSupportService(

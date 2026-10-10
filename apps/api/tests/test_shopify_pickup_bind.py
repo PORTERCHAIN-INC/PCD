@@ -11,12 +11,7 @@ from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.shopify_service import default_pickup_address
-from porterchain_api.merchant_models import (
-    Merchant,
-    MerchantUser,
-    SavedAddress,
-    ShopifyShop,
-)
+from porterchain_api.merchant_models import Merchant, MerchantUser, SavedAddress, ShopifyShop
 
 
 def _merchant(db) -> MerchantContext:

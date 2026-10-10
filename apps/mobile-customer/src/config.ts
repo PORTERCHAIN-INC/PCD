@@ -25,7 +25,9 @@ export const apiBaseUrl = trimSlash(
 );
 
 /** Public website: the one tracking page (map, photo, rating, receipt, cancel, report a problem). */
-export const websiteUrl = trimSlash(process.env.EXPO_PUBLIC_WEBSITE_URL ?? "https://porterchain.com");
+export const websiteUrl = trimSlash(
+  process.env.EXPO_PUBLIC_WEBSITE_URL ?? "https://porterchain.com"
+);
 
 export const fetchTimeoutMs = 12_000;
 export const appVersion = "1.0.0";

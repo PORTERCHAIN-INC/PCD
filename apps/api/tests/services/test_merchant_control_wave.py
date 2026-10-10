@@ -6,29 +6,16 @@ from datetime import UTC, datetime
 
 import pytest
 
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Order
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-from porterchain_api.merchant_engine.booking_service import (
-    MerchantBookingService,
-    _canonical_vehicle,
-)
-from porterchain_api.merchant_engine.orders_service import (
-    MerchantOrderFilters,
-    MerchantOrdersService,
-)
+from porterchain_api.merchant_engine.booking_service import MerchantBookingService, _canonical_vehicle
+from porterchain_api.merchant_engine.orders_service import MerchantOrderFilters, MerchantOrdersService
 from porterchain_api.merchant_engine.rate_card_view import merchant_rate_card
 from porterchain_api.merchant_engine.rbac import english_role, forbidden_message
-from porterchain_api.merchant_engine.team_service import (
-    MerchantTeamService,
-    seat_status,
-    serialize_member,
-)
+from porterchain_api.merchant_engine.team_service import MerchantTeamService, seat_status, serialize_member
 from porterchain_api.merchant_models import MerchantUser
+from porterchain_api.booking_models import Order
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 
 
@@ -309,9 +296,7 @@ def test_sandbox_simulator_advances_to_delivered(db, settings, merchant_ctx, mon
     order = MerchantBookingService().create_shipment(
         db, settings, merchant_ctx, _on_body(), sandbox=True
     )
-    from porterchain_api.merchant_engine.sandbox_simulator import (
-        simulate_sandbox_lifecycle,
-    )
+    from porterchain_api.merchant_engine.sandbox_simulator import simulate_sandbox_lifecycle
 
     result = simulate_sandbox_lifecycle(
         db,
@@ -331,9 +316,7 @@ def test_sandbox_simulator_advances_to_delivered(db, settings, merchant_ctx, mon
 
 def test_owner_required_to_disable_sandbox_preference(db, merchant_ctx) -> None:
     from porterchain_api.domain.merchant_states import MerchantRole
-    from porterchain_api.merchant_engine.integrations_service import (
-        MerchantIntegrationsService,
-    )
+    from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
     from porterchain_api.merchant_engine.rbac import MerchantContext
 
     svc = MerchantIntegrationsService()

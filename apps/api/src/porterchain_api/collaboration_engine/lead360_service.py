@@ -20,6 +20,7 @@ from porterchain_api.crm_models import (
 )
 from porterchain_api.platform import visitor_insight
 
+
 _TASK_LIMIT = 50
 _ACTIVITY_LIMIT = 50
 _DRAFT_LIMIT = 20
@@ -98,9 +99,7 @@ class Lead360Service:
         score = self._score_breakdown(lead)
         nurture_tags = [t for t in (lead.tags or []) if "nurture" in str(t).lower()]
         from porterchain_api.collaboration_engine.lead_suppression import is_suppressed
-        from porterchain_api.collaboration_engine.lead_whatsapp_gate import (
-            whatsapp_outbound_status,
-        )
+        from porterchain_api.collaboration_engine.lead_whatsapp_gate import whatsapp_outbound_status
 
         do_not_contact = is_suppressed(db, email=lead.email, phone=lead.phone)
         whatsapp_status = whatsapp_outbound_status(lead)

@@ -12,20 +12,11 @@ from porterchain_api.merchant_engine.import_column_mapper import (
     adapt_mapping_to_headers,
     apply_mapping,
 )
-from porterchain_api.merchant_engine.import_errors import (
-    route_row_error,
-    stop_sheet_row,
-)
+from porterchain_api.merchant_engine.import_errors import route_row_error, stop_sheet_row
 from porterchain_api.merchant_engine.import_geocode import geocode_stop
-from porterchain_api.merchant_engine.import_mapping_profiles import (
-    get_profile,
-    save_profile,
-)
+from porterchain_api.merchant_engine.import_mapping_profiles import get_profile, save_profile
 from porterchain_api.merchant_engine.import_quote import split_route_quote
-from porterchain_api.merchant_engine.import_rows import (
-    packages_clean,
-    write_legacy_cargo_cfg,
-)
+from porterchain_api.merchant_engine.import_rows import packages_clean, write_legacy_cargo_cfg
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import BulkImportJob
 

@@ -41,7 +41,7 @@ def send_staff_activate_email(settings: Settings, *, email: str, token: str) -> 
                 getattr(log, "error", None),
             )
         return ok
-    except Exception:
+    except Exception:  # noqa: BLE001 — auth flow must not fail on SMTP blips
         logger.exception("staff_activate_email_failed email=%s", email)
         return False
 
@@ -69,7 +69,7 @@ def send_staff_new_login_email(
             }
         )
         return getattr(log, "status", None) == "sent"
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.exception("staff_new_login_email_failed email=%s", email)
         return False
 

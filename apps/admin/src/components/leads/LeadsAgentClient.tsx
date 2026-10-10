@@ -180,12 +180,14 @@ export default function LeadsAgentClient() {
     <AdminPage>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">
+            Sales
+          </p>
           <h1 className="text-3xl font-extrabold tracking-tight text-primary">Lead Agent</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
             Inbox holds every unassigned lead and the growth notices that stay inside PorterChain.
-            The other tabs show what the welcome agent drafted, skipped, or still needs. Auto-send is off
-            by default (LEAD_AGENT_AUTO_SEND) — replies wait for you to press Send.
+            The other tabs show what the welcome agent drafted, skipped, or still needs. Auto-send
+            is off by default (LEAD_AGENT_AUTO_SEND) — replies wait for you to press Send.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

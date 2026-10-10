@@ -7,8 +7,7 @@ routers. New code should prefer require_authenticated / require_permission.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
-from typing import Annotated
+from typing import Annotated, Callable
 
 from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -22,10 +21,7 @@ from porterchain_api.auth.clerk_identity_provider import (
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.dev import DEV_PORTAL_HEADER, allow_auth_dev_bypass
 from porterchain_api.auth.identity import AuthenticatedIdentity
-from porterchain_api.auth.prepare import (
-    prepare_user_from_claims,
-    resolve_principal_cached,
-)
+from porterchain_api.auth.prepare import prepare_user_from_claims, resolve_principal_cached
 from porterchain_api.auth.unified_catalog import UnifiedPermission
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -66,7 +62,7 @@ def _record_denial(
             )
         )
         db.commit()
-    except Exception:
+    except Exception:  # noqa: BLE001 — never fail the request on audit write
         logger.exception("access_audit_write_failed")
         try:
             db.rollback()
@@ -220,7 +216,7 @@ def assert_organization_scope(principal: CurrentPrincipal, organization_id: str,
             permission="portal",
             subject_id=principal.user_id,
         )
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.exception(
             "spicedb_org_check_failed user_id=%s org=%s", principal.user_id, organization_id
         )
@@ -253,7 +249,7 @@ def assert_organization_scope(principal: CurrentPrincipal, organization_id: str,
                         principal.user_id,
                         organization_id,
                     )
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception(
                 "spicedb_org_scope_heal_failed user_id=%s org=%s",
                 principal.user_id,
@@ -294,7 +290,7 @@ def assert_self_scope(principal: CurrentPrincipal, profile_id: str, db: Session)
             ]
         )
         allowed = any(results)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.exception("spicedb_self_check_failed user_id=%s profile=%s", principal.user_id, profile_id)
         allowed = False
 

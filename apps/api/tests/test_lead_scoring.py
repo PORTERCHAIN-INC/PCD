@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from porterchain_api.collaboration_engine.crm_leads import CrmLeadsMixin
 from porterchain_api.collaboration_engine.lead_scoring import (
     MIN_SAMPLES,
     ScorePriors,
@@ -13,6 +12,7 @@ from porterchain_api.collaboration_engine.lead_scoring import (
     predictive_score,
     score_breakdown,
 )
+from porterchain_api.collaboration_engine.crm_leads import CrmLeadsMixin
 
 
 def _lead(**kwargs):

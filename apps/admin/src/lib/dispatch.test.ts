@@ -58,9 +58,12 @@ describe("Dispatch nav", () => {
 describe("phase 2 plan helpers", () => {
   it("summarises the pickup/drop mix of a route", async () => {
     const { routeMix } = await import("./dispatch");
-    const s = (kind: string) => ({ key: kind + Math.random(), order_id: "o", kind, fsa: "M5H", eta_s: 0 }) as never;
+    const s = (kind: string) =>
+      ({ key: kind + Math.random(), order_id: "o", kind, fsa: "M5H", eta_s: 0 }) as never;
     expect(routeMix([s("pickup"), s("drop"), s("drop"), s("drop")])).toBe("1 pickup · 3 drops");
-    expect(routeMix([s("return_pickup"), s("pickup"), s("return_drop")])).toBe("2 pickups · 1 drop");
+    expect(routeMix([s("return_pickup"), s("pickup"), s("return_drop")])).toBe(
+      "2 pickups · 1 drop"
+    );
   });
   it("formats minutes", async () => {
     const { minutes } = await import("./dispatch");
@@ -69,17 +72,32 @@ describe("phase 2 plan helpers", () => {
   });
   it("labels every stop kind", async () => {
     const { STOP_KIND_LABEL } = await import("./dispatch");
-    expect(Object.keys(STOP_KIND_LABEL).sort()).toEqual(
-      ["drop", "handoff", "hub", "pickup", "return_drop", "return_pickup"]
-    );
+    expect(Object.keys(STOP_KIND_LABEL).sort()).toEqual([
+      "drop",
+      "handoff",
+      "hub",
+      "pickup",
+      "return_drop",
+      "return_pickup",
+    ]);
   });
 });
 
 describe("groupStops", () => {
   it("merges consecutive split stops of one order at one place", async () => {
     const { groupStops } = await import("./dispatch");
-    const st = (key: string, kind: string, eta_s: number) => ({ key, order_id: key.split(":")[0], kind, fsa: "M5H", eta_s }) as never;
-    const g = groupStops([st("a:p0:0", "pickup", 60), st("a:p0:1", "pickup", 120), st("a:d0:0", "drop", 600), st("b:p0:0", "pickup", 900)]);
-    expect(g.map((x) => [x.kind, x.count, x.eta_s])).toEqual([["pickup", 2, 120], ["drop", 1, 600], ["pickup", 1, 900]]);
+    const st = (key: string, kind: string, eta_s: number) =>
+      ({ key, order_id: key.split(":")[0], kind, fsa: "M5H", eta_s }) as never;
+    const g = groupStops([
+      st("a:p0:0", "pickup", 60),
+      st("a:p0:1", "pickup", 120),
+      st("a:d0:0", "drop", 600),
+      st("b:p0:0", "pickup", 900),
+    ]);
+    expect(g.map((x) => [x.kind, x.count, x.eta_s])).toEqual([
+      ["pickup", 2, 120],
+      ["drop", 1, 600],
+      ["pickup", 1, 900],
+    ]);
   });
 });

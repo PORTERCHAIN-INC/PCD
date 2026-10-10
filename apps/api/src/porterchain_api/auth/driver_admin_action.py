@@ -34,12 +34,9 @@ def run_admin_driver_action(
     email_text = message or "Message from Porterchain operations."
 
     if action_type == "push":
+        from porterchain_api.notification_engine.fcm_service import firebase_credentials_configured
         from porterchain_driver.platform import DriverPlatform
         from porterchain_shared.config.settings import get_platform_settings
-
-        from porterchain_api.notification_engine.fcm_service import (
-            firebase_credentials_configured,
-        )
 
         ps = get_platform_settings()
         if not getattr(ps, "push_enabled", True):
@@ -66,9 +63,8 @@ def run_admin_driver_action(
             context={"message": email_text},
         )
     elif action_type == "sms" and driver.phone:
-        from porterchain_shared.config.settings import get_platform_settings
-
         from porterchain_api.notification_engine.engine import get_notification_engine
+        from porterchain_shared.config.settings import get_platform_settings
 
         ps = get_platform_settings()
         if not getattr(ps, "sms_enabled", False):

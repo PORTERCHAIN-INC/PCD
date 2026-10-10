@@ -9,31 +9,31 @@ from typing import Any
 _UNIT_PATTERNS = [
     re.compile(
         r"^(?P<unit>(?:unit|suite|apt|apartment|floor|fl|#)\s*[\w\-]+)\s*[-,]?\s*(?P<rest>.+)$",
-        re.IGNORECASE,
+        re.I,
     ),
     re.compile(
         r"^(?P<rest>.+?)[,\s]+(?P<unit>(?:unit|suite|apt|apartment|floor|fl|#)\s*[\w\-]+)\s*$",
-        re.IGNORECASE,
+        re.I,
     ),
     # street + unit + city/province tail: "100 King St W Unit 1200, Toronto, ON"
     re.compile(
         r"^(?P<rest>.+?)\s+(?P<unit>(?:unit|suite|apt|apartment|floor|fl|#)\s*[\w\-]+)\s*,\s*(?P<tail>.+)$",
-        re.IGNORECASE,
+        re.I,
     ),
     re.compile(r"^(?P<unit>\d+)\s*[-–]\s*(?P<rest>\d+\s+.+)$"),
 ]
 
 _POSTAL_CA = re.compile(
     r"\b([ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z])\s?(\d[ABCEGHJ-NPRSTV-Z]\d)\b",
-    re.IGNORECASE,
+    re.I,
 )
 
 _ABBREV = (
-    (re.compile(r"\bSt\.?\b", re.IGNORECASE), "Street"),
-    (re.compile(r"\bAve\.?\b", re.IGNORECASE), "Avenue"),
-    (re.compile(r"\bRd\.?\b", re.IGNORECASE), "Road"),
-    (re.compile(r"\bBlvd\.?\b", re.IGNORECASE), "Boulevard"),
-    (re.compile(r"\bDr\.?\b", re.IGNORECASE), "Drive"),
+    (re.compile(r"\bSt\.?\b", re.I), "Street"),
+    (re.compile(r"\bAve\.?\b", re.I), "Avenue"),
+    (re.compile(r"\bRd\.?\b", re.I), "Road"),
+    (re.compile(r"\bBlvd\.?\b", re.I), "Boulevard"),
+    (re.compile(r"\bDr\.?\b", re.I), "Drive"),
 )
 
 # Longest-first so "richmond hill" wins over "richmond".
@@ -122,7 +122,7 @@ def _extract_city(street: str) -> tuple[str, str | None]:
     """Pull a known Ontario city out of a freeform one-cell address."""
     for city in _ON_CITIES:
         # Word boundary so "ton" does not match inside "eton".
-        pat = re.compile(rf"(^|[\s,]){re.escape(city)}([\s,]|$)", re.IGNORECASE)
+        pat = re.compile(rf"(^|[\s,]){re.escape(city)}([\s,]|$)", re.I)
         m = pat.search(street)
         if not m:
             continue
@@ -196,7 +196,7 @@ def normalize_address(
         if not re.match(
             r"^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\s?\d[ABCEGHJ-NPRSTV-Z]\d$",
             postal_final,
-            re.IGNORECASE,
+            re.I,
         ):
             issues.append("address.postal_invalid")
 

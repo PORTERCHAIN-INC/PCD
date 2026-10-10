@@ -115,7 +115,7 @@ def record_ingress_dlq(
     db.add(row)
     try:
         purge_stale_dlq_bodies(db)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.exception("shopify_dlq_purge_failed")
     db.commit()
     db.refresh(row)

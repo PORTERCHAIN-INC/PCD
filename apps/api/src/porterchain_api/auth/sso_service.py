@@ -4,9 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from porterchain_shared.auth.principal import AuthPrincipal
-from porterchain_shared.auth.roles import PlatformRole
-from porterchain_shared.types.user_types import UserType
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.staff_lookups import get_admin_user
@@ -16,7 +13,11 @@ from porterchain_api.auth.identity_links import (
     upsert_sso_link,
 )
 from porterchain_api.auth.persona_bundle import load_persona_bundle
+from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.domain.admin_states import AdminRole
+from porterchain_shared.auth.principal import AuthPrincipal
+from porterchain_shared.auth.roles import PlatformRole
+from porterchain_shared.types.user_types import UserType
 
 logger = logging.getLogger(__name__)
 
@@ -102,3 +103,6 @@ class SsoService:
             "org_id": principal.org_id,
             "email": principal.email,
         }
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.config import Settings  # noqa: E402, F401

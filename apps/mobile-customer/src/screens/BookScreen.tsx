@@ -281,7 +281,9 @@ export function BookScreen({
         if (payload.booking_mode === "vehicle" || payload.booking_mode === "parcels")
           setBookingMode(payload.booking_mode);
         if (payload.parcels?.length) setRows(rowsFromSaved(payload.parcels));
-        setExtraStops((payload.additional_stops ?? []).filter((x) => x?.formatted).slice(0, MAX_DROPS - 1));
+        setExtraStops(
+          (payload.additional_stops ?? []).filter((x) => x?.formatted).slice(0, MAX_DROPS - 1)
+        );
         if (payload.declared_value_cents)
           setDeclared((payload.declared_value_cents / 100).toFixed(2));
       })
@@ -303,7 +305,9 @@ export function BookScreen({
         if (resumed.booking_mode === "vehicle" || resumed.booking_mode === "parcels")
           setBookingMode(resumed.booking_mode);
         if (resumed.parcels?.length) setRows(rowsFromSaved(resumed.parcels));
-        setExtraStops((resumed.additional_stops ?? []).filter((x) => x?.formatted).slice(0, MAX_DROPS - 1));
+        setExtraStops(
+          (resumed.additional_stops ?? []).filter((x) => x?.formatted).slice(0, MAX_DROPS - 1)
+        );
         if (resumed.declared_value_cents)
           setDeclared((resumed.declared_value_cents / 100).toFixed(2));
         setQuote(resumed);

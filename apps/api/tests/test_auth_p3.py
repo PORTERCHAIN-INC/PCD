@@ -108,6 +108,8 @@ def test_authz_client_works_inside_running_asyncio_loop() -> None:
     """Regression: authzed Client used aio channel under uvicorn → empty perms → customer."""
     import asyncio
 
+    from porterchain_api.authz.client import AuthzClient, Relationship
+    from porterchain_api.authz.tuples import PLATFORM_ID
 
     async def _run() -> None:
         # Force a fresh client path similar to API process (loop already running).
@@ -118,9 +120,9 @@ def test_authz_client_works_inside_running_asyncio_loop() -> None:
             preshared_key="porterchain-spicedb-dev-key",
             use_memory=False,
         )
-        if client._use_memory:
+        if client._use_memory:  # noqa: SLF001
             pytest.skip("SpiceDB not reachable")
-        assert type(client._grpc).__name__ == "InsecureClient"
+        assert type(client._grpc).__name__ == "InsecureClient"  # noqa: SLF001
         uid = "loop-regression-user"
         client.write_relationships(
             [Relationship("platform", PLATFORM_ID, "super_admin", "user", uid)]

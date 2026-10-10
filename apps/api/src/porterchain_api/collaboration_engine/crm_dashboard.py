@@ -2,25 +2,27 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, time
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.collaboration_engine.crm_helpers import (
-    _today,
-)
+from porterchain_api.config import Settings
 from porterchain_api.crm_models import (
+    CrmActivity,
     CrmCompany,
+    CrmContact,
     CrmContract,
     CrmDeal,
+    CrmInvoice,
     CrmLead,
     CrmQuotation,
     CrmSalesTask,
 )
 from porterchain_api.domain.crm_states import (
     PIPELINE_STAGES,
+    STAGE_PROBABILITY,
     CompanyMerchantStatus,
     ContractStatus,
     DealStage,
@@ -28,6 +30,11 @@ from porterchain_api.domain.crm_states import (
     QuotationStatus,
     TaskStatus,
 )
+from porterchain_api.merchant_models import Merchant
+from porterchain_api.domain.merchant_states import MerchantStatus
+from porterchain_api.db_json import json_text, json_text_lower
+from porterchain_api.collaboration_engine.crm_helpers import _actor, _now, _today, _to_int
+
 
 
 class CrmDashboardMixin:
@@ -171,3 +178,17 @@ class CrmDashboardMixin:
             "pipeline_by_stage": pipeline_by_stage,
         }
 
+# Re-exports kept for existing importers (integration).
+from datetime import date  # noqa: E402, F401
+from porterchain_api.config import Settings  # noqa: E402, F401
+from porterchain_api.crm_models import CrmActivity  # noqa: E402, F401
+from porterchain_api.crm_models import CrmContact  # noqa: E402, F401
+from porterchain_api.crm_models import CrmInvoice  # noqa: E402, F401
+from porterchain_api.domain.crm_states import STAGE_PROBABILITY  # noqa: E402, F401
+from porterchain_api.merchant_models import Merchant  # noqa: E402, F401
+from porterchain_api.domain.merchant_states import MerchantStatus  # noqa: E402, F401
+from porterchain_api.db_json import json_text  # noqa: E402, F401
+from porterchain_api.db_json import json_text_lower  # noqa: E402, F401
+from porterchain_api.collaboration_engine.crm_helpers import _actor  # noqa: E402, F401
+from porterchain_api.collaboration_engine.crm_helpers import _now  # noqa: E402, F401
+from porterchain_api.collaboration_engine.crm_helpers import _to_int  # noqa: E402, F401

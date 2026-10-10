@@ -20,7 +20,6 @@ from porterchain_api.merchant_models import (
     MerchantApiKey,
     MerchantWebhook,
     MerchantWebhookDelivery,
-    ShopifyIngressDlq,
     ShopifyShop,
 )
 
@@ -40,7 +39,9 @@ def _scope_set(raw: str | None) -> set[str]:
 
 def missing_scopes(granted: str | None, required: str) -> list[str]:
     """Required scopes not granted. A write_X grant implies read_X (Shopify rule)."""
-    from porterchain_api.merchant_engine.shopify_health import missing_scopes as _missing
+    from porterchain_api.merchant_engine.shopify_health import (
+        missing_scopes as _missing,
+    )
 
     return _missing(granted, required)
 

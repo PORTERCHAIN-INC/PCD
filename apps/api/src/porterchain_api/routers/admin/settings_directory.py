@@ -14,8 +14,8 @@ from porterchain_api.routers.admin._deps import (
     PlatformUserCreateRequest,
     PlatformUserDeleteRequest,
     PlatformUserInviteRequest,
-    PlatformUsersResponse,
     PlatformUserUpdateRequest,
+    PlatformUsersResponse,
     StaffEnrollResponse,
     StaffInviteRequest,
     StaffItem,
@@ -23,6 +23,7 @@ from porterchain_api.routers.admin._deps import (
     _clerk_directory,
     _settings,
     get_admin_context,
+    require_module,
     router,
 )
 from porterchain_api.routers.admin.settings import (
@@ -32,7 +33,6 @@ from porterchain_api.routers.admin.settings import (
     _staff_item,
     _step_up,
 )
-
 
 @router.get("/settings/staff", response_model=list[StaffItem])
 def list_staff(
@@ -289,3 +289,5 @@ def update_staff_role(
     )
     return _staff_item(u)
 
+# Re-exports kept for existing importers (integration).
+from porterchain_api.routers.admin._deps import require_module  # noqa: E402, F401

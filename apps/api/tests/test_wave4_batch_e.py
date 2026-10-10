@@ -11,9 +11,7 @@ from porterchain_api.admin_engine.control_tower.scoring import (
     driver_verification_gap,
     hard_filter_driver,
 )
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 
 
 def test_recommend_vehicle_prefs_cannot_downgrade_weight() -> None:

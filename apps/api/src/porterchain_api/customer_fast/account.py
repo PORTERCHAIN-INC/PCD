@@ -265,3 +265,12 @@ def report_problem_owner(db: Session, customer: Customer, tracking_number: str, 
     if order is None:
         raise ValueError("order_not_found")
     return report_problem(db, customer_id=customer.id, order=order, kind=kind, details=details)
+
+
+def ensure_customer(db: Any, claims: Any, settings: Any) -> Any:
+    """Resolve (and first-time provision) the signed-in customer; the UoW commits here, not in the router."""
+    from porterchain_api.auth.customer import require_customer
+
+    customer = require_customer(db, claims, settings)
+    db.commit()
+    return customer

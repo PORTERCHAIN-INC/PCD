@@ -23,8 +23,7 @@ from porterchain_api.routers.driver._deps import (
     route_response,
     router,
     stop_response,
-    svc,
-)
+    svc)
 
 
 @router.post("/location")
@@ -234,9 +233,8 @@ def deliverstop_response(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    from porterchain_driver.pod_policy import DriverOffDuty, PodMissing
-
     from porterchain_api.merchant_engine.scan_gate_service import PackagesIncomplete
+    from porterchain_driver.pod_policy import DriverOffDuty, PodMissing
 
     try:
         with db_transaction(db):
@@ -268,8 +266,7 @@ def scan_order_package(
     require_approved_driver(ctx)
     from porterchain_api.merchant_engine.scan_gate_service import (
         PackagesIncomplete,
-        ScanGateService,
-    )
+        ScanGateService)
 
     try:
         order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)

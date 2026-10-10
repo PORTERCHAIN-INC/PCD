@@ -2,19 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantUser
-from porterchain_api.reporting.data_moat import (
-    dwell_time_dataset,
-    network_sla_benchmark,
-)
-from porterchain_api.reporting.switching_costs import (
-    integration_depth,
-    sla_history_12mo,
-)
+from porterchain_api.reporting.data_moat import dwell_time_dataset, network_sla_benchmark
+from porterchain_api.reporting.switching_costs import integration_depth, sla_history_12mo
 
 
 def _merchant_ctx(db):

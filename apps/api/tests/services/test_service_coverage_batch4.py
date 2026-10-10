@@ -9,19 +9,13 @@ from porterchain_api.admin_engine.finance_service import AdminFinanceService
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
 from porterchain_api.booking_engine.booking_service import BookingService
-from porterchain_api.booking_engine.confirmation_service import (
-    BookingConfirmationService,
-)
 from porterchain_api.booking_engine.quote_service import QuoteService
-from porterchain_api.booking_models import Customer, Invoice
 from porterchain_api.driver_engine.auth_service import DriverAuthService
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
-from porterchain_api.schemas import (
-    AddressInput,
-    CreateQuoteRequest,
-    WebsitePricingSnapshot,
-)
+from porterchain_api.booking_models import Customer, Invoice
+from porterchain_api.schemas import AddressInput, CreateQuoteRequest, WebsitePricingSnapshot
 
 
 def _pricing() -> WebsitePricingSnapshot:
@@ -114,6 +108,7 @@ def test_merchant_tracking_live(db, settings, merchant_ctx, dispatch_order) -> N
     assert snap is not None
 
 
+import pytest
 
 
 def test_driver_auth_link_clerk_service_loads() -> None:

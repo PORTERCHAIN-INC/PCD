@@ -16,7 +16,10 @@ export function legacyOperationsTarget(view?: string | null, tool?: string | nul
   if (v === "orders") return "/orders";
   if (["attention", "exceptions", "sla"].includes(v)) return "/dispatch/exceptions";
   if (v === "map") return "/dispatch/live";
-  if (["optimize", "scheduled"].includes(v) || ["optimize", "scheduled", "ai", "copilot"].includes(t))
+  if (
+    ["optimize", "scheduled"].includes(v) ||
+    ["optimize", "scheduled", "ai", "copilot"].includes(t)
+  )
     return "/dispatch/plan";
   if (v === "utilization" || t === "utilization") return "/dispatch/fleet";
   if (["ai", "copilot"].includes(v)) return "/dispatch/plan";
@@ -50,6 +53,18 @@ export type DispatchExceptionItem = {
   exception_id?: string;
   eta?: string | null;
   promise?: string | null;
+  price_cents?: number;
+  cost_cents?: number;
+  margin_pct?: number | null;
+  floor_pct?: number;
+  fixes?: ExceptionFix[];
+};
+
+export type ExceptionFix = {
+  action: "reroute" | "reassign" | "reschedule" | "contact";
+  label: string;
+  why: string;
+  params: Record<string, string>;
 };
 
 export type DispatchExceptions = {
@@ -75,7 +90,7 @@ export type RecommendDriver = {
 export type Recommendation = {
   order_id: string;
   order_number: string;
-  load: { kg: number; m3: number; boxes: number };
+  load: { kg: number; m3: number; ft3: number; boxes: number };
   vehicle: { id: string; label: string; fill_pct: number } | null;
   vehicle_reason: string;
   matrix: "valhalla" | "unavailable";
@@ -110,6 +125,8 @@ export type FleetVehicle = {
   label: string;
   max_kg: number;
   max_m3: number;
+  /** Shown/edited in cubic feet; the API stores m³. Sending max_ft3 wins over max_m3. */
+  max_ft3: number;
   max_boxes: number;
   cost_per_km_cents: number;
   enabled: boolean;
@@ -122,9 +139,10 @@ export type FleetCapacity = {
   offer_ttl_seconds: number;
   service_minutes_per_stop: number;
   at_risk_minutes: number;
+  /** Lowest margin a stop may run at before the Exceptions queue flags it. */
+  margin_floor_pct: number;
   vehicles: FleetVehicle[];
 };
-
 
 export type PlanStop = {
   key: string;
@@ -147,7 +165,12 @@ export type PlanRoute = {
   stops: PlanStop[];
 };
 
-export type SolverResult = { cost_cents?: number; feasible?: boolean; dropped?: number; status?: string };
+export type SolverResult = {
+  cost_cents?: number;
+  feasible?: boolean;
+  dropped?: number;
+  status?: string;
+};
 
 export type FleetPlan = {
   id: string;
@@ -167,6 +190,8 @@ export type FleetPlan = {
     cost_cents?: number;
     vehicles_used?: number;
     dropped?: string[];
+    /** Stops the plan reaches after the customer's window closes. */
+    late_stops?: string[];
     feasible?: boolean;
     compare?: Record<string, SolverResult>;
     kind?: "plan" | "replan";
@@ -210,7 +235,8 @@ export type RetentionRun = {
   pod_before?: string;
 };
 
-export type LegStatus = "planned" | "requested" | "accepted" | "picked_up" | "delivered" | "cancelled";
+export type LegStatus =
+  "planned" | "requested" | "accepted" | "picked_up" | "delivered" | "cancelled";
 
 export type PartnerLeg = {
   id: string;
@@ -229,7 +255,13 @@ export type PartnerLeg = {
   has_draft: boolean;
 };
 
-export type PartnerEmailDraft = { to: string | null; subject: string; body: string; attachment: string; status: string };
+export type PartnerEmailDraft = {
+  to: string | null;
+  subject: string;
+  body: string;
+  attachment: string;
+  status: string;
+};
 
 export const LEG_STATUS_LABEL: Record<LegStatus, string> = {
   planned: "Planned",
@@ -262,7 +294,12 @@ export function groupStops(stops: PlanStop[]): (PlanStop & { count: number })[] 
   for (const s of stops) {
     const last = out[out.length - 1];
     const place = (k: string) => k.split(":")[1];
-    if (last && last.order_id === s.order_id && last.kind === s.kind && place(last.key) === place(s.key)) {
+    if (
+      last &&
+      last.order_id === s.order_id &&
+      last.kind === s.kind &&
+      place(last.key) === place(s.key)
+    ) {
       last.count += 1;
       last.eta_s = s.eta_s;
     } else {
@@ -282,6 +319,21 @@ const J = { "Content-Type": "application/json" };
 export const dispatch = {
   metrics: (t: string, days = 7) => adminFetch<DispatchMetrics>(`${B}/metrics?days=${days}`, t),
   exceptions: (t: string) => adminFetch<DispatchExceptions>(`${B}/exceptions`, t),
+  applyFix: (t: string, item: DispatchExceptionItem, fix: ExceptionFix) =>
+    adminFetch<{ ok: boolean; action: string; result: Record<string, unknown> }>(
+      `${B}/exceptions/apply`,
+      t,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          item_id: item.id,
+          order_id: item.order_id,
+          action: fix.action,
+          params: fix.params,
+        }),
+        headers: J,
+      }
+    ),
   liveEta: (t: string) => adminFetch<{ items: LiveEta[] }>(`${B}/live-eta`, t),
   recommend: (t: string, orderId: string) =>
     adminFetch<Recommendation>(`${B}/orders/${encodeURIComponent(orderId)}/recommend`, t),
@@ -302,24 +354,36 @@ export const dispatch = {
     }),
   latestPlan: (t: string) => adminFetch<{ plan: FleetPlan | null }>(`${B}/plans/latest`, t),
   planDay: (t: string, body: { order_ids?: string[]; time_limit_s?: number } = {}) =>
-    adminFetch<FleetPlan>(`${B}/plans`, t, { method: "POST", body: JSON.stringify(body), headers: J }),
+    adminFetch<FleetPlan>(`${B}/plans`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: J,
+    }),
   replan: (t: string, id: string) =>
     adminFetch<FleetPlan>(`${B}/plans/${encodeURIComponent(id)}/replan`, t, { method: "POST" }),
   commitPlan: (t: string, id: string) =>
     adminFetch<FleetPlan>(`${B}/plans/${encodeURIComponent(id)}/commit`, t, { method: "POST" }),
   explainPlan: (t: string, id: string) =>
-    adminFetch<PlanExplanation>(`${B}/plans/${encodeURIComponent(id)}/explain`, t, { method: "POST" }),
+    adminFetch<PlanExplanation>(`${B}/plans/${encodeURIComponent(id)}/explain`, t, {
+      method: "POST",
+    }),
   partners: (t: string) => adminFetch<{ items: LogisticsPartner[] }>(`${B}/partners`, t),
   savePartner: (t: string, body: LogisticsPartner) =>
-    adminFetch<LogisticsPartner>(body.id ? `${B}/partners/${encodeURIComponent(body.id)}` : `${B}/partners`, t, {
-      method: body.id ? "PUT" : "POST",
-      body: JSON.stringify(body),
-      headers: J,
-    }),
+    adminFetch<LogisticsPartner>(
+      body.id ? `${B}/partners/${encodeURIComponent(body.id)}` : `${B}/partners`,
+      t,
+      {
+        method: body.id ? "PUT" : "POST",
+        body: JSON.stringify(body),
+        headers: J,
+      }
+    ),
   partnerLegs: (t: string, status?: LegStatus) =>
     adminFetch<{ items: PartnerLeg[] }>(`${B}/partner-legs${status ? `?status=${status}` : ""}`, t),
   draftPartnerLeg: (t: string, id: string) =>
-    adminFetch<PartnerEmailDraft>(`${B}/partner-legs/${encodeURIComponent(id)}/draft`, t, { method: "POST" }),
+    adminFetch<PartnerEmailDraft>(`${B}/partner-legs/${encodeURIComponent(id)}/draft`, t, {
+      method: "POST",
+    }),
   setPartnerLegStatus: (t: string, id: string, status: LegStatus, note?: string) =>
     adminFetch<PartnerLeg>(`${B}/partner-legs/${encodeURIComponent(id)}/status`, t, {
       method: "POST",
@@ -330,7 +394,11 @@ export const dispatch = {
   partnerLegPdfPath: (id: string) => `${B}/partner-legs/${encodeURIComponent(id)}/job-sheet.pdf`,
   retention: (t: string) => adminFetch<Retention>(`${B}/retention`, t),
   saveRetention: (t: string, body: Retention) =>
-    adminFetch<Retention>(`${B}/retention`, t, { method: "PUT", body: JSON.stringify(body), headers: J }),
+    adminFetch<Retention>(`${B}/retention`, t, {
+      method: "PUT",
+      body: JSON.stringify(body),
+      headers: J,
+    }),
   runRetention: (t: string, dryRun: boolean) =>
     adminFetch<RetentionRun>(`${B}/retention/run?dry_run=${dryRun}`, t, { method: "POST" }),
 };

@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
 from porterchain_api.admin_engine.finance_service import AdminFinanceService
 from porterchain_api.auth.claims import ClerkClaims
@@ -13,9 +15,7 @@ from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-from porterchain_api.merchant_engine.webhook_delivery_service import (
-    deliver_merchant_fanout,
-)
+from porterchain_api.merchant_engine.webhook_delivery_service import deliver_merchant_fanout
 
 
 @patch("porterchain_api.admin_engine.clerk_directory_service.clerk_client_for_kind")

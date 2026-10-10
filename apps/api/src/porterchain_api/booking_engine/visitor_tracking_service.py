@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_models import VisitorSession
 from porterchain_api.domain.visitor_intent import compute_intent_score
+from porterchain_api.booking_models import VisitorSession
 
 
 def _merge_signals(existing: dict | None, patch: dict[str, Any]) -> dict[str, Any]:

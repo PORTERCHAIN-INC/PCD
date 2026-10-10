@@ -24,6 +24,7 @@ _last_shopify_sync_retry_at = 0.0
 _last_compliance_expiry_at = 0.0
 _last_job_offer_sweep_at = 0.0
 _last_retention_at = 0.0
+_last_stop_times_at = 0.0
 _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
 _last_lead_inbound_email_at = 0.0
@@ -42,6 +43,7 @@ WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
 JOB_OFFER_SWEEP_INTERVAL_SECONDS = 15
 RETENTION_INTERVAL_SECONDS = 24 * 3600
+STOP_TIMES_INTERVAL_SECONDS = 24 * 3600
 LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
 LEAD_INBOUND_EMAIL_INTERVAL_SECONDS = 120
@@ -602,6 +604,23 @@ def _drain_retention() -> int:
     return int(result.get("gps_pings", 0)) + int(result.get("pod_refs", 0))
 
 
+def _drain_stop_time_learning() -> int:
+    """Nightly: relearn median time on site per place/FSA from driver check-ins."""
+    global _last_stop_times_at
+    now = time.monotonic()
+    if now - _last_stop_times_at < STOP_TIMES_INTERVAL_SECONDS:
+        return 0
+    _last_stop_times_at = now
+
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.dispatch_engine.stop_times import learn
+
+    with SessionLocal() as db:
+        result = learn(db)
+    logger.info("stop times: measured=%s written=%s", result["stops_measured"], result["keys_written"])
+    return int(result["keys_written"])
+
+
 def _drain_blog_scheduled_publish() -> int:
     """Publish drafts whose scheduled_publish_at has elapsed."""
     global _last_blog_schedule_at
@@ -711,6 +730,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _merchant_ops_drain()
                 processed += _drain_job_offer_sweep()
                 processed += _drain_retention()
+                processed += _drain_stop_time_learning()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")

@@ -4,13 +4,8 @@ from __future__ import annotations
 
 import uuid
 
-from porterchain_shared.events.catalog import DomainEventType
-
 from porterchain_api.admin_models import AdminUser
-from porterchain_api.notification_engine.context import (
-    hydrate_order_context,
-    merge_notification_context,
-)
+from porterchain_api.notification_engine.context import hydrate_order_context, merge_notification_context
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.event_router import _specs_for_event
 from porterchain_api.notification_engine.staff_fanout import (
@@ -18,6 +13,7 @@ from porterchain_api.notification_engine.staff_fanout import (
     roles_for_topic,
     staff_sentinel,
 )
+from porterchain_shared.events.catalog import DomainEventType
 
 
 def test_roles_for_topic_ops_includes_dispatcher() -> None:

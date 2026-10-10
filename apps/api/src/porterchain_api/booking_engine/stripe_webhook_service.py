@@ -5,21 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from porterchain_event_bus import get_event_bus
-from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine import (
-    BookingConfirmationService,
-    BookingService,
-    PaymentService,
-)
+from porterchain_api.booking_engine import BookingConfirmationService, BookingService, PaymentService
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.row_locks import (
-    lock_active_payment,
-    lock_payment,
-    lock_quote,
-)
+from porterchain_api.booking_engine.row_locks import lock_active_payment, lock_payment, lock_quote
 from porterchain_api.booking_engine.stripe_webhook_idempotency import (
     claim_stripe_event,
     complete_stripe_event,
@@ -29,7 +19,10 @@ from porterchain_api.platform.stripe_money import HANDLED_EVENTS as STRIPE_MONEY
 from porterchain_api.platform.stripe_money import handle_stripe_money_event
 from porterchain_api.booking_models import Invoice, Order, Payment, Quote
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import Invoice, Order, Payment, Quote
 from porterchain_api.services.stripe_service import handle_checkout_completed
+from porterchain_event_bus import get_event_bus
+from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
@@ -106,9 +99,7 @@ class StripeWebhookService:
             raise
 
     def _handle_identity_verification_session(self, db: Session, session_obj: dict[str, Any]) -> None:
-        from porterchain_api.driver_engine.verification_service import (
-            DriverVerificationService,
-        )
+        from porterchain_api.driver_engine.verification_service import DriverVerificationService
 
         DriverVerificationService().apply_stripe_identity_event(db, session_obj)
 
@@ -140,7 +131,7 @@ class StripeWebhookService:
         )
         try:
             shopify_svc.capture_cod_transaction(db, settings, order)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception("shopify_cod_capture_failed order=%s", order.id)
 
     def _handle_checkout_completed(self, db: Session, settings: Settings, session: dict[str, Any]) -> None:
@@ -186,9 +177,7 @@ class StripeWebhookService:
         self, db: Session, session: dict[str, Any], meta: dict[str, Any]
     ) -> None:
         from porterchain_api.billing_engine.models import BillingLedgerEntry
-        from porterchain_api.merchant_engine.billing_service import (
-            MerchantBillingService,
-        )
+        from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 
         payment = None
         if meta.get("payment_id"):

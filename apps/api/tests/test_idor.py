@@ -9,17 +9,14 @@ import pytest
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.customer_service import CustomerService
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
-from porterchain_api.booking_models import Customer, Order
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.orders_service import MerchantOrdersService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.booking_models import Customer, Order
 
 
 def _addr() -> dict:

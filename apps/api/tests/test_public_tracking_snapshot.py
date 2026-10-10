@@ -6,10 +6,7 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 from porterchain_services.maps.polyline import encode_polyline
-
-from porterchain_api.booking_engine.public_tracking_snapshot import (
-    build_public_live_tracking,
-)
+from porterchain_api.booking_engine.public_tracking_snapshot import build_public_live_tracking
 from porterchain_api.booking_models import Order
 
 

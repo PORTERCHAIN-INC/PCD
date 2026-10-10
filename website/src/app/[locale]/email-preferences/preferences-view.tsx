@@ -22,9 +22,18 @@ const COPY = {
     forEmail: (e: string) => `For ${e}`,
     badLink: "This link is not valid. Use the link in your latest email.",
     rows: {
-      tracking: ["Delivery updates", "Booked, out for delivery, delivered with photo, and any problem. Recommended."],
-      reorder: ["Send-again reminders", "One email after a delivery with a one-tap link to book the same trip."],
-      marketing: ["Tips and offers", "Occasional news and offers from PorterChain Logistics Inc. Only with your consent."],
+      tracking: [
+        "Delivery updates",
+        "Booked, out for delivery, delivered with photo, and any problem. Recommended.",
+      ],
+      reorder: [
+        "Send-again reminders",
+        "One email after a delivery with a one-tap link to book the same trip.",
+      ],
+      marketing: [
+        "Tips and offers",
+        "Occasional news and offers from PorterChain Logistics Inc. Only with your consent.",
+      ],
     } as Record<Key, [string, string]>,
     consentGiven: (d: string) => `Consent given ${d}`,
     toggled: (t: string, on: boolean) => `${t} ${on ? "turned on" : "turned off"}.`,
@@ -34,15 +43,19 @@ const COPY = {
     dataTitle: "Your data",
     dataBody1: "Download a copy of your data from your",
     account: "account",
-    dataBody2: "(sign-in link sent to this email). Under PIPEDA and GDPR you can also ask us to delete it. See our",
+    dataBody2:
+      "(sign-in link sent to this email). Under PIPEDA and GDPR you can also ask us to delete it. See our",
     policy: "privacy policy",
-    requested: "Deletion requested. A person reviews it, then it runs automatically. We email you when it is complete.",
+    requested:
+      "Deletion requested. A person reviews it, then it runs automatically. We email you when it is complete.",
     deleteQ: "Delete your PorterChain data?",
-    deleteSub: "We keep only what the law requires (tax records, without your name or address). Open deliveries finish first.",
+    deleteSub:
+      "We keep only what the law requires (tax records, without your name or address). Open deliveries finish first.",
     yesDelete: "Yes, delete my data",
     keep: "Keep it",
     requestDelete: "Request deletion of my data",
-    deleteDone: (ref: string, days: number) => `Request ${ref} received. Completed within ${days} days; we email you when done.`,
+    deleteDone: (ref: string, days: number) =>
+      `Request ${ref} received. Completed within ${days} days; we email you when done.`,
     dateLocale: "en-CA",
   },
   fr: {
@@ -51,9 +64,18 @@ const COPY = {
     forEmail: (e: string) => `Pour ${e}`,
     badLink: "Ce lien n'est pas valide. Utilisez le lien de votre dernier courriel.",
     rows: {
-      tracking: ["Suivi des livraisons", "Réservée, en route, livrée avec photo, et tout problème. Recommandé."],
-      reorder: ["Rappels « Réserver à nouveau »", "Un courriel après une livraison avec un lien pour refaire le même trajet."],
-      marketing: ["Conseils et offres", "Nouvelles et offres occasionnelles de PorterChain Logistics Inc. Seulement avec votre consentement."],
+      tracking: [
+        "Suivi des livraisons",
+        "Réservée, en route, livrée avec photo, et tout problème. Recommandé.",
+      ],
+      reorder: [
+        "Rappels « Réserver à nouveau »",
+        "Un courriel après une livraison avec un lien pour refaire le même trajet.",
+      ],
+      marketing: [
+        "Conseils et offres",
+        "Nouvelles et offres occasionnelles de PorterChain Logistics Inc. Seulement avec votre consentement.",
+      ],
     } as Record<Key, [string, string]>,
     consentGiven: (d: string) => `Consentement donné le ${d}`,
     toggled: (t: string, on: boolean) => `${t} : ${on ? "activé" : "désactivé"}.`,
@@ -63,15 +85,19 @@ const COPY = {
     dataTitle: "Vos données",
     dataBody1: "Téléchargez une copie de vos données depuis votre",
     account: "compte",
-    dataBody2: "(lien de connexion envoyé à ce courriel). En vertu de la LPRPDE et du RGPD, vous pouvez aussi demander leur suppression. Voir notre",
+    dataBody2:
+      "(lien de connexion envoyé à ce courriel). En vertu de la LPRPDE et du RGPD, vous pouvez aussi demander leur suppression. Voir notre",
     policy: "politique de confidentialité",
-    requested: "Suppression demandée. Une personne la vérifie, puis elle s'exécute automatiquement. Nous vous écrirons une fois terminée.",
+    requested:
+      "Suppression demandée. Une personne la vérifie, puis elle s'exécute automatiquement. Nous vous écrirons une fois terminée.",
     deleteQ: "Supprimer vos données PorterChain?",
-    deleteSub: "Nous gardons seulement ce que la loi exige (dossiers fiscaux, sans nom ni adresse). Les livraisons en cours se terminent d'abord.",
+    deleteSub:
+      "Nous gardons seulement ce que la loi exige (dossiers fiscaux, sans nom ni adresse). Les livraisons en cours se terminent d'abord.",
     yesDelete: "Oui, supprimer mes données",
     keep: "Les garder",
     requestDelete: "Demander la suppression de mes données",
-    deleteDone: (ref: string, days: number) => `Demande ${ref} reçue. Traitée d'ici ${days} jours; nous vous écrirons une fois terminée.`,
+    deleteDone: (ref: string, days: number) =>
+      `Demande ${ref} reçue. Traitée d'ici ${days} jours; nous vous écrirons une fois terminée.`,
     dateLocale: "fr-CA",
   },
 };
@@ -122,17 +148,25 @@ export default function EmailPreferencesView() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">{c.eyebrow}</p>
+      <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">
+        {c.eyebrow}
+      </p>
       <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-primary">{c.title}</h1>
       {prefs ? <p className="mt-3 text-primary/75">{c.forEmail(prefs.email)}</p> : null}
 
       {notice ? (
-        <p role="status" className="mt-6 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
+        <p
+          role="status"
+          className="mt-6 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900"
+        >
           {notice}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+        <p
+          role="alert"
+          className="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+        >
           {error}
         </p>
       ) : null}
@@ -150,7 +184,9 @@ export default function EmailPreferencesView() {
                     <p className="mt-1 text-sm text-primary/75">{body}</p>
                     {key === "marketing" && prefs.marketing_consent_at ? (
                       <p className="mt-1 text-xs text-primary/70">
-                        {c.consentGiven(new Date(prefs.marketing_consent_at).toLocaleDateString(c.dateLocale))}
+                        {c.consentGiven(
+                          new Date(prefs.marketing_consent_at).toLocaleDateString(c.dateLocale)
+                        )}
                       </p>
                     ) : null}
                   </div>
@@ -161,7 +197,12 @@ export default function EmailPreferencesView() {
                     aria-label={title}
                     disabled={busy}
                     data-testid={`pref-${key}`}
-                    onClick={() => void run(() => saveEmailPreferences(token, { [key]: !on }), c.toggled(title, !on))}
+                    onClick={() =>
+                      void run(
+                        () => saveEmailPreferences(token, { [key]: !on }),
+                        c.toggled(title, !on)
+                      )
+                    }
                     className={`relative mt-1 h-8 w-14 shrink-0 rounded-full transition ${on ? "bg-primary" : "bg-primary/25"}`}
                   >
                     <span
@@ -172,7 +213,9 @@ export default function EmailPreferencesView() {
               );
             })}
           </ul>
-          {prefs.preferences.marketing === false ? <p className="mt-3 text-xs text-primary/70">{c.casl}</p> : null}
+          {prefs.preferences.marketing === false ? (
+            <p className="mt-3 text-xs text-primary/70">{c.casl}</p>
+          ) : null}
 
           <button
             type="button"
@@ -198,7 +241,10 @@ export default function EmailPreferencesView() {
               .
             </p>
             {prefs.deletion_requested ? (
-              <p className="mt-4 rounded-2xl bg-primary/5 px-4 py-3 text-sm text-primary" role="status">
+              <p
+                className="mt-4 rounded-2xl bg-primary/5 px-4 py-3 text-sm text-primary"
+                role="status"
+              >
                 {c.requested}
               </p>
             ) : confirmDelete ? (

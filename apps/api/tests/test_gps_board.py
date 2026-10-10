@@ -11,12 +11,11 @@ from porterchain_api.dispatch_engine import gps_board
 from porterchain_api.driver_engine.last_known import LastKnown
 
 
-def test_board_pins_includes_driver_without_fleetbase_id():
+def test_board_pins_includes_on_shift_driver():
     driver_id = str(uuid4())
     driver = SimpleNamespace(
         id=driver_id,
         full_name="Ada Driver",
-        fleetbase_driver_id=None,
         is_online=True,
         availability="online",
         status="APPROVED",
@@ -54,7 +53,6 @@ def test_board_pins_includes_driver_without_fleetbase_id():
     assert source == "last_known"
     assert len(pins) == 1
     assert pins[0]["id"] == driver_id
-    assert pins[0]["fleetbase_driver_id"] == ""
     assert pins[0]["lat"] == 43.65
     assert pins[0]["gps_source"] == "last_known"
 
@@ -64,7 +62,6 @@ def test_board_pins_skips_when_no_last_known():
     driver = SimpleNamespace(
         id=driver_id,
         full_name="No Pin",
-        fleetbase_driver_id=None,
         is_online=True,
         availability="online",
         status="APPROVED",

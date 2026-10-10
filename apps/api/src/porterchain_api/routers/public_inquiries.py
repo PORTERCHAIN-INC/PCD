@@ -6,9 +6,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.visitor_tracking_service import (
-    VisitorTrackingService,
-)
+from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
 from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
@@ -310,12 +308,8 @@ def lead_engagement(
     x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
 ) -> LeadEngagementResponse:
     """Record ESP open/click and bump lead score (capped)."""
-    from porterchain_api.collaboration_engine.lead_consent import (
-        verify_unsubscribe_token,
-    )
-    from porterchain_api.collaboration_engine.lead_engagement import (
-        record_email_engagement,
-    )
+    from porterchain_api.collaboration_engine.lead_consent import verify_unsubscribe_token
+    from porterchain_api.collaboration_engine.lead_engagement import record_email_engagement
     from porterchain_api.crm_models import CrmLead
 
     kind = (body.kind or "").strip().lower()

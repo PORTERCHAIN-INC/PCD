@@ -9,12 +9,12 @@ from porterchain_api.admin_engine.finance_service import AdminFinanceService
 from porterchain_api.admin_engine.merchant360_service import Merchant360Service
 from porterchain_api.billing_engine.ar import merchant_ar
 from porterchain_api.billing_engine.models import BillingLedgerEntry
-from porterchain_api.booking_models import Invoice, Order
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.booking_models import Invoice, Order
 
 UNINVOICED_CENTS = 22_500
 INVOICED_CENTS = 40_000
@@ -130,9 +130,7 @@ def test_admin_360_and_merchant_billing_quote_the_same_cents(db) -> None:
 
 
 def test_merchant_dashboard_shows_the_same_number(db) -> None:
-    from porterchain_api.merchant_engine.dashboard_service import (
-        MerchantDashboardService,
-    )
+    from porterchain_api.merchant_engine.dashboard_service import MerchantDashboardService
 
     merchant, ctx = _books(db)
     ar = merchant_ar(db, merchant)

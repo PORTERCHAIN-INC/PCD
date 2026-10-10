@@ -8,23 +8,24 @@ is the PC order book — never invent GPS math.
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver
-from porterchain_api.booking_models import Order
 from porterchain_api.driver_models import DriverShift
+from porterchain_api.booking_models import Order
 from porterchain_api.order_engine.buckets import IN_FLIGHT, WAITING
 
 logger = logging.getLogger(__name__)
 
 
 def _now_utc() -> datetime:
+    from datetime import timezone
 
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 def _minutes_between(start: datetime | None, end: datetime | None) -> int:

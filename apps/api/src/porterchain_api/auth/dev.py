@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_shared.config.project_mode import ProjectMode, project_mode_for_app_env
-
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.config import Settings
+from porterchain_shared.config.project_mode import ProjectMode, project_mode_for_app_env
 
 DEV_BYPASS_DRIVER_EMAIL = "marco@porterchain.com"
 DEV_STAFF_EMAIL = "admin@porterchain.com"

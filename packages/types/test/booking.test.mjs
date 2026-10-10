@@ -30,7 +30,10 @@ test("single drop builds pickup + dropoff only", () => {
 test("multi drop: last is the drop-off, the rest are stops in order", () => {
   const q = buildQuoteInput({ pickup: A, drops: [C, B], vehicle: "cargo_van" }, 0);
   assert.equal(q.dropoff.formatted, B);
-  assert.deepEqual(q.additional_stops.map((s) => s.formatted), [C]);
+  assert.deepEqual(
+    q.additional_stops.map((s) => s.formatted),
+    [C]
+  );
 });
 
 test("drops are capped at five and incomplete trips give no quote", () => {
@@ -49,5 +52,8 @@ test("pay blocker order: trip then contact", () => {
   const draft = { pickup: A, drops: [B], vehicle: "sedan_suv", name: "", email: "", phone: "" };
   assert.equal(payBlocker(draft, false), "needTrip");
   assert.equal(payBlocker(draft, true), "needContact");
-  assert.equal(payBlocker({ ...draft, name: "Al", email: "a@b.ca", phone: "4165550199" }, true), null);
+  assert.equal(
+    payBlocker({ ...draft, name: "Al", email: "a@b.ca", phone: "4165550199" }, true),
+    null
+  );
 });

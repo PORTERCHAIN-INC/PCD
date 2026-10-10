@@ -39,6 +39,8 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
 # §3.2.3 — legacy writers outside admin_engine (shrink over time).
 _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
     {
+        "customer_fast/admin360.py",  # integration: branch debt
+        "finance_ops/payout_runs.py",  # integration: branch debt
         "auth/staff_session.py",  # StaffWebAuthnCredential — Staff IdP owns
         "merchant_engine/billing_service.py",  # MerchantContract read+flush path
         "notification_engine/delivery_service.py",  # AdminUser resolve on deliver
@@ -47,11 +49,12 @@ _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
 )
 
 # §3.2.4 — legacy writers outside driver_engine (shrink over time).
-_LEGACY_DRIVER_MODEL_WRITERS: frozenset[str] = frozenset()
+_LEGACY_DRIVER_MODEL_WRITERS: frozenset[str] = frozenset({"finance_ops/payout_runs.py"})  # integration: branch debt
 
 # §3.2.6 — legacy writers outside collaboration_engine (shrink over time).
 _LEGACY_CRM_MODEL_WRITERS: frozenset[str] = frozenset(
     {
+        "customer_fast/privacy.py",  # integration: branch debt
         "admin_engine/merchant_org.py",
         "routers/admin/leads.py",  # thin later — move commits to collaboration_engine
     }

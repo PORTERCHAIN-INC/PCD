@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 
 from porterchain_api.dispatch_engine.stop_shapes import PICKUP_KINDS
-from porterchain_api.dispatch_engine.vrp import Problem
+from porterchain_api.dispatch_engine.vrp import HORIZON_S, Problem
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ def build_payload(problem: Problem) -> dict[str, Any]:
     task_of = {st.key: i for i, st in enumerate(problem.stops)}
     kg = [int(math.ceil(st.kg * 10)) * (1 if st.kind in PICKUP_KINDS else -1) for st in problem.stops]
     boxes = [st.boxes * (1 if st.kind in PICKUP_KINDS else -1) for st in problem.stops]
+    litres = [int(math.ceil(st.m3 * 1000)) * (1 if st.kind in PICKUP_KINDS else -1) for st in problem.stops]
     payload: dict[str, Any] = {
         "cost_matrix_data": {"data": {"0": matrix}},
         "travel_time_matrix_data": {"data": {"0": matrix}},
@@ -37,13 +38,16 @@ def build_payload(problem: Problem) -> dict[str, Any]:
             "capacities": [
                 [max(0, int(veh.cap_kg * 10) - int(math.ceil(veh.onboard_kg * 10))) for veh in problem.vehicles],
                 [max(0, veh.cap_boxes - veh.onboard_boxes) for veh in problem.vehicles],
+                [max(0, int(veh.cap_m3 * 1000) - int(math.ceil(veh.onboard_m3 * 1000))) for veh in problem.vehicles],
             ],
             "vehicle_max_times": [int(veh.max_route_s) for veh in problem.vehicles],
             "vehicle_fixed_costs": [int(veh.fixed_s) for veh in problem.vehicles],
         },
         "task_data": {
             "task_locations": [1 + v + i for i in range(s)],
-            "demand": [kg, boxes],
+            "demand": [kg, boxes, litres],
+            # cuOpt windows are hard: send only the opening; lateness is scored by vrp.evaluate.
+            "task_time_windows": [[st.window_start_s or 0, HORIZON_S] for st in problem.stops],
             "pickup_and_delivery_pairs": [[task_of[p], task_of[d]] for p, d in problem.pairs],
             "service_times": [st.service_s for st in problem.stops],
         },

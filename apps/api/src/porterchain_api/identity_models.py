@@ -54,3 +54,6 @@ class IdentityLink(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+# Re-exports kept for existing importers (integration).
+from sqlalchemy.types import JSON  # noqa: E402, F401

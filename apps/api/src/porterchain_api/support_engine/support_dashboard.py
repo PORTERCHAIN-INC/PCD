@@ -9,11 +9,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import AdminUser, SupportTicket
 from porterchain_api.domain.support import ticket_number
-from porterchain_api.support_engine.support_helpers import (
-    OPEN_STATUSES,
-    normalize_status,
-    ticket_data,
-)
+from porterchain_api.support_engine.support_helpers import OPEN_STATUSES, normalize_status, ticket_data
 
 
 class SupportDashboardMixin:

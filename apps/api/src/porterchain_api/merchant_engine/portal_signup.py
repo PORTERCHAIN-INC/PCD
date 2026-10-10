@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.auth.email_identity import normalize_email
 from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
-from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantRole
+from porterchain_api.domain.merchant_states import MerchantRole, PORTAL_OPEN_STATUSES
 from porterchain_api.merchant_engine.activation_service import (
     SIGNUP_SOURCE_PORTAL,
     apply_signup_policy,
@@ -21,10 +21,7 @@ from porterchain_api.merchant_engine.lookups import (
     seats_for_clerk,
 )
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
-from porterchain_api.merchant_engine.team_service import (
-    bind_seat_clerk,
-    ensure_merchant_seat,
-)
+from porterchain_api.merchant_engine.team_service import bind_seat_clerk, ensure_merchant_seat
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
 

@@ -7,9 +7,7 @@ from typing import Annotated
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.visitor_intelligence import (
-    VisitorIntelligenceService,
-)
+from porterchain_api.booking_engine.visitor_intelligence import VisitorIntelligenceService
 from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.routers.admin._deps import (
     AdminContext,

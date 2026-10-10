@@ -87,3 +87,20 @@ def _reset_public_form_rate_limits():
     except Exception:  # noqa: BLE001 — Redis optional for unit tests
         pass
     yield
+
+
+@pytest.fixture
+def quiet_pool(db_url: str):
+    """Day-plan tests see only their own drivers/orders: park leftovers from earlier runs."""
+    from porterchain_api.admin_models import Driver
+    from porterchain_api.booking_models import Order
+
+    init_db()
+    s = SessionLocal()
+    try:
+        s.query(Driver).filter(Driver.is_online.is_(True)).update({Driver.is_online: False}, synchronize_session=False)
+        s.query(Order).filter(Order.assigned_driver_id.is_(None), Order.state == "DISPATCH_READY").update(
+            {Order.state: "CANCELLED"}, synchronize_session=False)
+        s.commit()
+    finally:
+        s.close()

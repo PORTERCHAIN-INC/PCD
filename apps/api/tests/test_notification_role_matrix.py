@@ -5,11 +5,11 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from porterchain_shared.events.catalog import DomainEventType
 
 from porterchain_api.notification_engine.engine import get_notification_engine
 from porterchain_api.notification_engine.event_router import _specs_for_event
 from porterchain_api.notification_engine.templates import TEMPLATE_META, TEMPLATES
+from porterchain_shared.events.catalog import DomainEventType
 
 USER_TYPES = ("admin", "merchant", "driver", "customer")
 
@@ -181,3 +181,45 @@ def test_no_system_recipient_in_staff_specs() -> None:
     assert all(not str(s["recipient_id"]).startswith("__staff:") for s in quiet)
     quiet_assign = _specs_for_event(DomainEventType.DRIVER_ASSIGNED, EVENT_PAYLOAD)
     assert all(not str(s["recipient_id"]).startswith("__staff:") for s in quiet_assign)
+
+
+@pytest.mark.parametrize(
+    "event_type,expected_roles",
+    [
+        (DomainEventType.BOOKING_DRAFT_CREATED, {"customer"}),
+        (DomainEventType.BOOKING_CONFIRMED, {"customer", "merchant"}),
+        (DomainEventType.PAYMENT_STARTED, {"customer"}),
+        (DomainEventType.PAYMENT_SUCCEEDED, {"customer", "merchant"}),
+        (DomainEventType.PAYMENT_FAILED, {"customer"}),
+        (DomainEventType.ORDER_CREATED, {"customer", "merchant"}),
+        (DomainEventType.ORDER_BOOKED, {"customer", "merchant"}),
+        (DomainEventType.DRIVER_ASSIGNED, {"customer", "driver", "merchant"}),
+        (DomainEventType.DRIVER_ACCEPTED, {"driver"}),
+        (DomainEventType.DRIVER_REJECTED, {"admin"}),
+        (DomainEventType.DRIVER_ARRIVED_PICKUP, {"customer"}),
+        (DomainEventType.PARCEL_PICKED_UP, {"customer", "merchant"}),
+        (DomainEventType.DELIVERY_STARTED, {"customer"}),
+        (DomainEventType.ORDER_NEAR_DELIVERY, {"customer"}),
+        (DomainEventType.PARCEL_DELIVERED, {"customer", "driver", "merchant"}),
+        (DomainEventType.PROOF_COMPLETED, {"driver"}),
+        (DomainEventType.INVOICE_GENERATED, {"customer", "merchant"}),
+        (DomainEventType.MERCHANT_BILLED, {"merchant"}),
+        (DomainEventType.REFUND_ISSUED, {"customer"}),
+        (DomainEventType.CLAIM_OPENED, {"customer", "driver", "admin"}),
+        (DomainEventType.CLAIM_RESOLVED, {"customer", "driver", "admin"}),
+        (DomainEventType.SUPPORT_TICKET_CREATED, {"customer", "driver", "admin"}),
+        (DomainEventType.ORDER_TEMP_EXCURSION, {"admin", "merchant"}),
+        (DomainEventType.EXCEPTION_OPENED, {"customer", "merchant", "admin"}),
+        (DomainEventType.ORDER_DELAYED, {"customer", "merchant", "admin"}),
+        (DomainEventType.SLA_BREACHED, {"customer", "merchant", "admin"}),
+        ("driver.emergency", {"admin"}),
+        ("driver.route_changed", {"driver"}),
+        ("incident.reported", {"driver", "admin"}),
+        ("driver.shift_started", {"driver"}),
+        ("driver.shift_ended", {"driver"}),
+        ("driver.break_started", {"driver"}),
+        ("driver.break_resumed", {"driver"}),
+    ],
+)
+def test_event_router_roles(event_type: str, expected_roles: set[str]) -> None:
+    assert _expected_roles_for_event(event_type) == expected_roles

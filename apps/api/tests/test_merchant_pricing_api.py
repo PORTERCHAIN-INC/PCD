@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from porterchain_pricing.types import GeoPoint, PricingRequest
 
 from porterchain_api.admin_engine.rbac import AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminUser
@@ -13,6 +12,7 @@ from porterchain_api.db import get_db
 from porterchain_api.main import app
 from porterchain_api.merchant_models import Merchant, MerchantAuditLog
 from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
+from porterchain_pricing.types import GeoPoint, PricingRequest
 
 
 @pytest.fixture

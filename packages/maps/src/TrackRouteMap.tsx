@@ -133,13 +133,23 @@ export function RouteCard({
       <ol className="relative space-y-6 pl-7">
         <span aria-hidden className="absolute bottom-3 left-[7px] top-3 w-px bg-primary/20" />
         <li className="relative">
-          <span aria-hidden className="absolute -left-7 top-1 h-3.5 w-3.5 rounded-full border-2 border-primary bg-white" />
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/70">Pickup</p>
+          <span
+            aria-hidden
+            className="absolute -left-7 top-1 h-3.5 w-3.5 rounded-full border-2 border-primary bg-white"
+          />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/70">
+            Pickup
+          </p>
           <p className="mt-0.5 text-base font-semibold text-primary">{areaLabel(pickup)}</p>
         </li>
         <li className="relative">
-          <span aria-hidden className="absolute -left-7 top-1 h-3.5 w-3.5 rounded-full bg-primary" />
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/70">Drop-off</p>
+          <span
+            aria-hidden
+            className="absolute -left-7 top-1 h-3.5 w-3.5 rounded-full bg-primary"
+          />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/70">
+            Drop-off
+          </p>
           <p className="mt-0.5 text-base font-semibold text-primary">{areaLabel(dropoff)}</p>
         </li>
       </ol>

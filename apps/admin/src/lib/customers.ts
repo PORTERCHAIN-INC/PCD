@@ -264,7 +264,12 @@ export type Customer360 = {
   privacy: { status: string; jobs: PrivacyJob[] };
 };
 
-export type ConsentRow = { granted: boolean; basis: string; at: string | null; source: string | null };
+export type ConsentRow = {
+  granted: boolean;
+  basis: string;
+  at: string | null;
+  source: string | null;
+};
 
 export type PrivacyJob = {
   id: string;
@@ -286,9 +291,22 @@ export type PrivacyJob = {
   created_at: string | null;
 };
 
-export type TimelineItem = { at: string | null; kind: string; title: string; detail: string; ref: string };
+export type TimelineItem = {
+  at: string | null;
+  kind: string;
+  title: string;
+  detail: string;
+  ref: string;
+};
 
-export type BookingLinkDraft = { sent: false; to: string; subject: string; body: string; link: string; note: string };
+export type BookingLinkDraft = {
+  sent: false;
+  to: string;
+  subject: string;
+  body: string;
+  link: string;
+  note: string;
+};
 
 const A = "/v1/admin";
 
@@ -296,13 +314,22 @@ export const customer360Api = {
   overview: (t: string, id: string) => adminFetch<Customer360>(`${B}/${id}/360`, t),
   timeline: (t: string, id: string) => adminFetch<TimelineItem[]>(`${B}/${id}/timeline`, t),
   addNote: (t: string, id: string, body: string) =>
-    adminFetch<{ id: string }>(`${B}/${id}/notes`, t, { method: "POST", body: JSON.stringify({ body }) }),
+    adminFetch<{ id: string }>(`${B}/${id}/notes`, t, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
   credit: (t: string, id: string, amount_cents: number, reason: string) =>
     adminFetch<{ balance_cents: number }>(`${B}/${id}/credit`, t, {
       method: "POST",
       body: JSON.stringify({ amount_cents, reason }),
     }),
-  refund: (t: string, id: string, tracking_number: string, amount_cents: number | null, reason: string) =>
+  refund: (
+    t: string,
+    id: string,
+    tracking_number: string,
+    amount_cents: number | null,
+    reason: string
+  ) =>
     adminFetch<{ refund: { status: string; amount_cents: number }; refunded_total_cents: number }>(
       `${B}/${id}/refund`,
       t,
@@ -311,7 +338,10 @@ export const customer360Api = {
   bookingLinkDraft: (t: string, id: string) =>
     adminFetch<BookingLinkDraft>(`${B}/${id}/booking-link-draft`, t, { method: "POST" }),
   privacyJobs: (t: string, status?: string) =>
-    adminFetch<PrivacyJob[]>(`${A}/customer-care/privacy-jobs${status ? `?status=${status}` : ""}`, t),
+    adminFetch<PrivacyJob[]>(
+      `${A}/customer-care/privacy-jobs${status ? `?status=${status}` : ""}`,
+      t
+    ),
   approveJob: (t: string, jobId: string, note: string) =>
     adminFetch<PrivacyJob>(`${A}/customer-care/privacy-jobs/${jobId}/approve`, t, {
       method: "POST",
@@ -323,11 +353,21 @@ export const customer360Api = {
       body: JSON.stringify({ note }),
     }),
   nudges: (t: string) =>
-    adminFetch<{ enabled: boolean; nudges: Array<{ id: string; email: string | null; name: string | null; last_tracking: string | null; reason: string; created_at: string | null }> }>(
-      `${A}/customer-care/nudges`,
-      t
-    ),
-  draftNudges: (t: string) => adminFetch<{ drafted: number; enabled: boolean }>(`${A}/customer-care/nudges/draft`, t, { method: "POST" }),
+    adminFetch<{
+      enabled: boolean;
+      nudges: Array<{
+        id: string;
+        email: string | null;
+        name: string | null;
+        last_tracking: string | null;
+        reason: string;
+        created_at: string | null;
+      }>;
+    }>(`${A}/customer-care/nudges`, t),
+  draftNudges: (t: string) =>
+    adminFetch<{ drafted: number; enabled: boolean }>(`${A}/customer-care/nudges/draft`, t, {
+      method: "POST",
+    }),
   decideNudges: (t: string, ids: string[], approve: boolean) =>
     adminFetch<{ decided: number }>(`${A}/customer-care/nudges/decide`, t, {
       method: "POST",

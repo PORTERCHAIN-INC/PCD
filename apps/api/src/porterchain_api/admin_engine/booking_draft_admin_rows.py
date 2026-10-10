@@ -8,6 +8,8 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_draft_abandon import (
+    ABANDONED_AFTER_MINUTES,
+    ACTIVE_PRE_CONFIRM,
     is_abandoned,
 )
 from porterchain_api.booking_draft_models import BookingDraft
@@ -72,3 +74,7 @@ def draft_row(db: Session, draft: BookingDraft, now: datetime, *, merchant: Any 
         "booking_id": draft.booking_id,
         "order_id": draft.order_id,
     }
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.booking_draft_abandon import ACTIVE_PRE_CONFIRM  # noqa: E402, F401
+from porterchain_api.booking_draft_abandon import ABANDONED_AFTER_MINUTES  # noqa: E402, F401

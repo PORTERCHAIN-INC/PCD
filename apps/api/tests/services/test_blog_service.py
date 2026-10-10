@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -238,8 +238,8 @@ def test_scheduled_publish_due(db: Session) -> None:
     from datetime import timedelta
 
     svc = BlogService()
-    past = datetime.now(UTC) - timedelta(minutes=5)
-    future = datetime.now(UTC) + timedelta(hours=2)
+    past = datetime.now(timezone.utc) - timedelta(minutes=5)
+    future = datetime.now(timezone.utc) + timedelta(hours=2)
     due = _create(db, slug=_slug("due"), status="draft")
     waiting = _create(db, slug=_slug("wait"), status="draft")
     svc.update_post(db, due.id, scheduled_publish_at=past)

@@ -120,7 +120,10 @@ export default function TrackActions({
 
   if (!actions) {
     return error ? (
-      <p role="alert" className="mb-8 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+      <p
+        role="alert"
+        className="mb-8 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+      >
         {error}
       </p>
     ) : null;
@@ -139,17 +142,26 @@ export default function TrackActions({
   }
 
   const doCancel = () =>
-    run(() => cancelOrder(tracking, token), (a) => {
-      setActions(a);
-      setConfirming(false);
-    });
-  const submitRating = (value = score) => run(() => rateOrder(tracking, token, value, comment), setActions);
+    run(
+      () => cancelOrder(tracking, token),
+      (a) => {
+        setActions(a);
+        setConfirming(false);
+      }
+    );
+  const submitRating = (value = score) =>
+    run(() => rateOrder(tracking, token, value, comment), setActions);
   const doRate = async (value: number) => {
     setScore(value);
     if (value >= 4) await submitRating(value);
   };
   const sendProblem = () =>
-    kind ? run(() => reportProblem(tracking, token, kind, details), (r) => setProblemSent(r.reply_within_hours)) : undefined;
+    kind
+      ? run(
+          () => reportProblem(tracking, token, kind, details),
+          (r) => setProblemSent(r.reply_within_hours)
+        )
+      : undefined;
 
   const refund = actions.refund;
   const cancelled = actions.state === "CANCELLED";
@@ -171,7 +183,9 @@ export default function TrackActions({
                 onClick={() => void doRate(n)}
                 data-testid={`rate-${n}`}
                 className={`h-12 w-12 rounded-2xl text-2xl transition ${
-                  score >= n ? "bg-primary text-amber-300" : "bg-primary/5 text-primary/45 hover:bg-primary/10"
+                  score >= n
+                    ? "bg-primary text-amber-300"
+                    : "bg-primary/5 text-primary/45 hover:bg-primary/10"
                 }`}
               >
                 ★
@@ -203,7 +217,10 @@ export default function TrackActions({
         </div>
       ) : null}
       {actions.rating ? (
-        <p className="rounded-3xl bg-primary/5 px-5 py-4 text-sm font-medium text-primary" role="status">
+        <p
+          className="rounded-3xl bg-primary/5 px-5 py-4 text-sm font-medium text-primary"
+          role="status"
+        >
           {c.thanks(actions.rating.score)}
           {actions.rating.score <= 3 ? c.followUp : ""}
         </p>
@@ -237,7 +254,11 @@ export default function TrackActions({
       </div>
 
       {cancelled ? (
-        <p className="rounded-3xl bg-primary/5 px-5 py-4 text-sm text-primary" role="status" data-testid="cancelled">
+        <p
+          className="rounded-3xl bg-primary/5 px-5 py-4 text-sm text-primary"
+          role="status"
+          data-testid="cancelled"
+        >
           {c.cancelled} {refund?.status === "refunded" ? c.refunded : refund ? c.refunding : ""}
         </p>
       ) : actions.can_cancel && confirming ? (
@@ -266,11 +287,18 @@ export default function TrackActions({
       ) : null}
 
       {problemSent !== null ? (
-        <p className="rounded-3xl bg-primary/5 px-5 py-4 text-sm font-medium text-primary" role="status" data-testid="problem-sent">
+        <p
+          className="rounded-3xl bg-primary/5 px-5 py-4 text-sm font-medium text-primary"
+          role="status"
+          data-testid="problem-sent"
+        >
           {c.sent(problemSent)}
         </p>
       ) : problemOpen ? (
-        <div className="rounded-3xl border border-primary/10 bg-white p-5" data-testid="problem-panel">
+        <div
+          className="rounded-3xl border border-primary/10 bg-white p-5"
+          data-testid="problem-panel"
+        >
           <p className="text-lg font-bold text-primary">{c.problemTitle}</p>
           <div className="mt-3 flex flex-wrap gap-2" role="radiogroup">
             {(Object.keys(c.kinds) as ProblemKind[]).map((k) => (
@@ -282,7 +310,9 @@ export default function TrackActions({
                 onClick={() => setKind(k)}
                 data-testid={`problem-${k}`}
                 className={`rounded-full border px-3.5 py-2 text-sm font-semibold ${
-                  kind === k ? "border-primary bg-primary text-white" : "border-primary/15 text-primary"
+                  kind === k
+                    ? "border-primary bg-primary text-white"
+                    : "border-primary/15 text-primary"
                 }`}
               >
                 {c.kinds[k]}
@@ -345,7 +375,10 @@ export default function TrackActions({
       ) : null}
 
       {error ? (
-        <p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+        <p
+          role="alert"
+          className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+        >
           {error}
         </p>
       ) : null}

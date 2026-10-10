@@ -4,7 +4,13 @@ import { hasClerkSessionHint } from "@porterchain/auth/clerkEdgeSession";
 import { NextResponse } from "next/server";
 
 // /track only redirects to the public website tracking page (signed link when signed in).
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/impersonate(.*)", "/track(.*)", "/welcome(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/impersonate(.*)",
+  "/track(.*)",
+  "/welcome(.*)",
+]);
 
 const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
 

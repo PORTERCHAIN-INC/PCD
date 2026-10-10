@@ -6,20 +6,14 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
-from porterchain_api.booking_models import Order
+from porterchain_api.support_engine.claims_service import AdminClaimsService, ClaimFilters
+from porterchain_api.support_engine.support_service import AdminSupportService, SupportFilters
 from porterchain_api.domain.claims import CLAIM_TYPES
 from porterchain_api.domain.support import TICKET_CATEGORIES
+from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import MerchantAuditLog
-from porterchain_api.support_engine.claims_service import (
-    AdminClaimsService,
-    ClaimFilters,
-)
-from porterchain_api.support_engine.support_service import (
-    AdminSupportService,
-    SupportFilters,
-)
+from porterchain_api.booking_models import Order
 
 _CLAIM_ERRORS = {
     "order_not_found": "That order was not found.",
@@ -66,7 +60,7 @@ class MerchantSupportBridgeService:
         ticket = self._support.get_ticket(db, ticket_id)
         if not ticket or ticket.merchant_id != ctx.merchant.id:
             raise LookupError("ticket_not_found")
-        row = self._support._row(db, ticket)
+        row = self._support._row(db, ticket)  # noqa: SLF001 — orchestration only
         data = ticket.ticket_data or {}
         return {
             **row,
@@ -149,7 +143,7 @@ class MerchantSupportBridgeService:
         claim = self._claims.get_claim(db, claim_id)
         if not claim:
             raise LookupError("claim_not_found")
-        row = self._claims._row(db, claim)
+        row = self._claims._row(db, claim)  # noqa: SLF001
         if row.get("merchant_id") != ctx.merchant.id:
             raise LookupError("claim_not_found")
         ev = claim.evidence or {}

@@ -28,8 +28,14 @@ export type DispatchRoute = {
 };
 
 export type StopChecklist = {
-  items: { item_key: string | null; label: string; box_count: number; counts_as: number; rule: string | null;
-    boxes: { package_id: string }[] }[];
+  items: {
+    item_key: string | null;
+    label: string;
+    box_count: number;
+    counts_as: number;
+    rule: string | null;
+    boxes: { package_id: string }[];
+  }[];
   item_count: number;
   box_count: number;
 };
@@ -48,11 +54,20 @@ export const isPickup = (k: RouteStopKind) => k === "pickup" || k === "return_pi
 export function primaryAction(stop: DispatchStop): { event: CheckinEvent; label: string } | null {
   if (stop.status === "done" || stop.status === "failed") return null;
   if (stop.status === "pending") return { event: "arrived", label: "Arrived" };
-  return isPickup(stop.kind) ? { event: "picked_up", label: "Picked up" } : { event: "delivered", label: "Delivered" };
+  return isPickup(stop.kind)
+    ? { event: "picked_up", label: "Picked up" }
+    : { event: "delivered", label: "Delivered" };
 }
 
 export function itemCount(list: StopChecklist | null): number {
   return list ? list.items.reduce((n, it) => n + (it.counts_as || 1), 0) : 0;
 }
 
-export const FAIL_REASONS = ["Nobody home", "Address wrong", "Refused", "Damaged", "Closed", "Unsafe"];
+export const FAIL_REASONS = [
+  "Nobody home",
+  "Address wrong",
+  "Refused",
+  "Damaged",
+  "Closed",
+  "Unsafe",
+];

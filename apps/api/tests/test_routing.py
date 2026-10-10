@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from porterchain_pricing import GeoPoint
-
 from porterchain_api.services.routing import resolve_route_distance
+from porterchain_pricing import GeoPoint
 
 
 def test_resolve_route_distance_returns_haversine_when_coords_missing() -> None:

@@ -9,13 +9,10 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Order
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.states import OrderSource
+from porterchain_api.booking_models import Order
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.routers.merchant_api import _resolve_order_source
 

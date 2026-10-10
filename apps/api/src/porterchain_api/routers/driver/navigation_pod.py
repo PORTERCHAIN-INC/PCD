@@ -19,8 +19,7 @@ from porterchain_api.routers.driver._deps import (
     get_settings,
     require_approved_driver,
     router,
-    svc,
-)
+    svc)
 
 
 def _pod_failure_status(message: str) -> int:

@@ -2,25 +2,25 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+from unittest.mock import patch
+from uuid import uuid4
+
+import pytest
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.control_tower_service import ControlTowerService
-from porterchain_api.admin_engine.dashboard_service import (
-    AdminDashboardService,
-    _chart_trends,
-)
-from porterchain_api.admin_engine.finance_service import (
-    AdminFinanceService,
-    FinanceFilters,
-)
+from porterchain_api.admin_engine.dashboard_service import AdminDashboardService, _chart_trends
+from porterchain_api.admin_engine.finance_service import AdminFinanceService, FinanceFilters
 from porterchain_api.admin_engine.merchant360_service import Merchant360Service
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orders_service import AdminOrdersService
-from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
-from porterchain_api.booking_models import Order
-from porterchain_api.domain.states import OrderState
+from porterchain_api.admin_engine.control_tower_service import ControlTowerService
 from porterchain_api.notification_engine.admin_service import NotificationAdminService
+from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.domain.states import OrderState
+from porterchain_api.merchant_models import Merchant
+from porterchain_api.booking_models import Order
 
 
 def test_chart_trends_normalizes_dict_shape() -> None:

@@ -482,7 +482,13 @@ export type SpeedWindow = {
   quote_to_booking_pct: number | null;
   booked: number;
   booking_to_repeat_pct: number | null;
-  win_rate_by_channel: { channel: string; leads: number; won: number; lost: number; win_rate: number | null }[];
+  win_rate_by_channel: {
+    channel: string;
+    leads: number;
+    won: number;
+    lost: number;
+    win_rate: number | null;
+  }[];
 };
 
 export type LeadSpeed = { generated_at: string; windows: SpeedWindow[] };
@@ -522,7 +528,9 @@ export const leadsApi = {
   },
 
   async quote(token: string, leadId: string): Promise<LeadQuote> {
-    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/quote`, token, { timeoutMs: 30_000 });
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/quote`, token, {
+      timeoutMs: 30_000,
+    });
   },
 
   async fitScore(token: string, leadId: string): Promise<LeadFitScore> {

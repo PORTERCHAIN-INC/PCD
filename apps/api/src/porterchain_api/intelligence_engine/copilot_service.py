@@ -118,9 +118,8 @@ def suggest_ops_action(
         except Exception as exc:  # noqa: BLE001
             logger.warning("NIM copilot failed, falling back to stub: %s", exc)
             if db is not None:
-                from porterchain_shared.config.settings import get_platform_settings
-
                 from porterchain_api.intelligence_engine.usage import record_ai_usage
+                from porterchain_shared.config.settings import get_platform_settings
 
                 settings = get_platform_settings()
                 record_ai_usage(

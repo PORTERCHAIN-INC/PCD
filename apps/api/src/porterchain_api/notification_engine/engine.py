@@ -15,6 +15,7 @@ from porterchain_api.notification_engine.models import NotificationRecord
 from porterchain_api.notification_engine.preference_service import PreferenceService
 from porterchain_api.notification_engine.realtime import realtime_hub
 from porterchain_api.notification_engine.templates import render_email, template_meta
+from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
@@ -162,9 +163,7 @@ class NotificationEngine:
             logger.debug("notification suppressed by preference: %s/%s/%s", recipient_type, cat, channel)
             return None
 
-        from porterchain_api.notification_engine.user_settings import (
-            UserSettingsService,
-        )
+        from porterchain_api.notification_engine.user_settings import UserSettingsService
 
         # Quiet hours hold, never drop: park the row and let the sweeper release it.
         quiet_until = UserSettingsService().hold_until(

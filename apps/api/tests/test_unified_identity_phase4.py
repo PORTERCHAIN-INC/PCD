@@ -12,7 +12,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.clerk_webhook_idempotency import claim_clerk_event
 from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
 from porterchain_api.auth.clerk_webhook_verify import (
     ClerkWebhookSignatureError,
@@ -20,12 +20,9 @@ from porterchain_api.auth.clerk_webhook_verify import (
 )
 from porterchain_api.auth.ensure_user_service import EnsureUserService
 from porterchain_api.auth.identity import AuthenticatedIdentity
-from porterchain_api.auth.unified_catalog import (
-    AccountStatus,
-    AssignableRole,
-    is_invite_only,
-)
+from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, is_invite_only
 from porterchain_api.auth.user_sync_service import UserSyncService
+from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.config import Settings
 from porterchain_api.user_models import PorterchainUser
 

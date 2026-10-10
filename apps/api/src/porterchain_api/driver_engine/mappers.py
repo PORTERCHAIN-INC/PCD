@@ -4,15 +4,8 @@ from __future__ import annotations
 
 from porterchain_api.admin_models import Driver
 from porterchain_api.config import Settings
-from porterchain_api.driver_engine.rbac import (
-    DriverContext,
-    require_fully_onboarded_driver,
-)
-from porterchain_api.schemas_driver import (
-    DriverProfileResponse,
-    RouteResponse,
-    StopResponse,
-)
+from porterchain_api.driver_engine.rbac import DriverContext, require_fully_onboarded_driver
+from porterchain_api.schemas_driver import DriverProfileResponse, RouteResponse, StopResponse
 
 
 def driver_profile(driver: Driver, *, wallet_cents: int | None = None) -> DriverProfileResponse:

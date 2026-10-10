@@ -209,7 +209,9 @@ describe("LeadDetailView", () => {
     const user = userEvent.setup();
     renderWithProviders(<LeadDetailView id="lead-1" />);
     await user.click(await screen.findByRole("button", { name: "Price" }));
-    await waitFor(() => expect(markLost).toHaveBeenCalledWith(expect.anything(), "lead-1", "price"));
+    await waitFor(() =>
+      expect(markLost).toHaveBeenCalledWith(expect.anything(), "lead-1", "price")
+    );
   });
 
   it("renders company, convert actions, assist, and delete for super_admin", async () => {

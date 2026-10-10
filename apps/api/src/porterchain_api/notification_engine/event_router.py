@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from porterchain_shared.events.catalog import DomainEventType
-
 from porterchain_api.db import SessionLocal
 from porterchain_api.notification_engine.context import (
     deep_link_for,
@@ -14,14 +12,10 @@ from porterchain_api.notification_engine.context import (
     merge_notification_context,
 )
 from porterchain_api.notification_engine.engine import get_notification_engine
-from porterchain_api.notification_engine.preference_service import (
-    drop_muted_merchant_specs,
-)
+from porterchain_api.notification_engine.preference_service import drop_muted_merchant_specs
 from porterchain_api.notification_engine.route_table import specs_for_parcel
-from porterchain_api.notification_engine.staff_fanout import (
-    expand_staff_specs,
-    staff_sentinel,
-)
+from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
+from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 

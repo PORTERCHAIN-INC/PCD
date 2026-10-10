@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.control_tower._helpers import now_utc
 from porterchain_api.booking_models import DomainEvent, Order
 from porterchain_api.order_engine.buckets import HIGH_PRIORITY_CENTS, IN_FLIGHT, WAITING
+
+from porterchain_api.admin_engine.control_tower._helpers import now_utc
 
 
 class EventsMixin:

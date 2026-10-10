@@ -124,7 +124,9 @@ export async function driverLogout(): Promise<void> {
 
 export const driverApi = {
   dispatchRoute: () =>
-    driverFetch<{ route: import("@/lib/dispatch-route").DriverDispatchRoute | null }>("/v1/dispatch/route"),
+    driverFetch<{ route: import("@/lib/dispatch-route").DriverDispatchRoute | null }>(
+      "/v1/dispatch/route"
+    ),
   dispatchCheckin: (body: {
     keys: string[];
     event: import("@/lib/dispatch-route").CheckinEvent;
@@ -133,13 +135,18 @@ export const driverApi = {
     accuracy_m?: number;
     note?: string;
     pod_photo?: string;
+    client_id?: string;
+    short_reason?: string;
   }) =>
-    driverFetch<{ ok: boolean; order_state: string; route: import("@/lib/dispatch-route").DriverDispatchRoute | null }>(
-      "/v1/dispatch/stops/checkin",
-      { method: "POST", body: JSON.stringify(body) }
-    ),
+    driverFetch<{
+      ok: boolean;
+      order_state: string;
+      route: import("@/lib/dispatch-route").DriverDispatchRoute | null;
+    }>("/v1/dispatch/stops/checkin", { method: "POST", body: JSON.stringify(body) }),
   dispatchChecklist: (orderId: string) =>
-    driverFetch<import("@/lib/dispatch-route").StopChecklist>(`/v1/dispatch/orders/${orderId}/checklist`),
+    driverFetch<import("@/lib/dispatch-route").StopChecklist>(
+      `/v1/dispatch/orders/${orderId}/checklist`
+    ),
   onboarding: () =>
     driverFetch<import("@/lib/onboarding").DriverOnboardingStatus>("/v1/onboarding"),
   dashboard: () => driverFetch<DriverDashboard>("/v1/dashboard"),

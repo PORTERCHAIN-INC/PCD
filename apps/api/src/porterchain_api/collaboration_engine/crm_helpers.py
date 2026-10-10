@@ -66,12 +66,12 @@ def _to_int(value: Any) -> int | None:
 
 
 __all__ = [
-    "_POSTAL_PROVINCE",
     "CrmActor",
     "CrmActorUser",
-    "_actor",
-    "_now",
-    "_to_int",
-    "_today",
     "province_from_postal",
+    "_now",
+    "_today",
+    "_actor",
+    "_to_int",
+    "_POSTAL_PROVINCE",
 ]

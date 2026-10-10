@@ -35,13 +35,8 @@ def test_accept_assignment_enqueues_driver_optimize() -> None:
 
 
 def test_execute_queued_run_applies_sequence_for_pc_driver() -> None:
-    from porterchain_api.admin_engine.orchestrator_ops_service import (
-        OrchestratorOpsService,
-    )
-    from porterchain_api.dispatch_engine.optimize_run_store import (
-        STATUS_PENDING,
-        STATUS_READY,
-    )
+    from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
+    from porterchain_api.dispatch_engine.optimize_run_store import STATUS_PENDING, STATUS_READY
 
     pending = {
         "run_id": "run-1",

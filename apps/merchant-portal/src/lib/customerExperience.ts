@@ -124,9 +124,12 @@ export function cxValidationError(s: CustomerExperienceSettings): string | null 
     return "The 'minutes away' alert must be between 5 and 120 minutes.";
   }
   const n = s.notifications;
-  if (n.brand_color && !/^#[0-9a-fA-F]{6}$/.test(n.brand_color)) return "Brand colour must look like #0f766e.";
-  if (n.logo_url && !n.logo_url.startsWith("https://")) return "The logo link must start with https://";
-  if (n.reply_to && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(n.reply_to)) return "The reply-to email does not look valid.";
+  if (n.brand_color && !/^#[0-9a-fA-F]{6}$/.test(n.brand_color))
+    return "Brand colour must look like #0f766e.";
+  if (n.logo_url && !n.logo_url.startsWith("https://"))
+    return "The logo link must start with https://";
+  if (n.reply_to && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(n.reply_to))
+    return "The reply-to email does not look valid.";
   if (n.eta_min_interval_minutes < 0 || n.eta_min_interval_minutes > 240) {
     return "The 'close by' limit must be between 0 and 240 minutes.";
   }

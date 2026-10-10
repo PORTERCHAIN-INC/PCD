@@ -12,9 +12,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from porterchain_api.dispatch_engine.stop_shapes import PICKUP_KINDS, StopSpec
+from porterchain_api.dispatch_engine.stop_times import place_key
 
 DROP_PENALTY = 1_000_000  # seconds-equivalent; dropping a pair is always worse than driving
 HORIZON_S = 14 * 3600
+LATE_PENALTY = 100  # cost per second past a window close (an hour late ≈ 100 h of driving)
 
 
 @dataclass
@@ -25,11 +27,13 @@ class Vehicle:
     cap_kg: float
     cap_boxes: int
     start: tuple[float, float]
+    cap_m3: float = 1000.0  # effectively unbounded when the class has no volume limit
     hourly_cents: int = 2700
     fixed_s: int = 1800  # discourages opening another vehicle for a tiny gain
     max_route_s: int = 10 * 3600
     onboard_kg: float = 0.0  # re-plan: already loaded (pickup done)
     onboard_boxes: int = 0
+    onboard_m3: float = 0.0
     must_deliver: list[str] = field(default_factory=list)  # re-plan: drop keys locked to this vehicle
 
 
@@ -52,7 +56,7 @@ def points(problem_vehicles: list[Vehicle], stops: list[StopSpec]) -> list[tuple
 
 # ---------------------------------------------------------------- evaluation
 def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
-    """Score a plan: feasibility, seconds, peak fill, cost; dropped pairs counted."""
+    """Score a plan: feasibility, seconds (waiting for windows), peak fill, cost, late stops."""
     idx = problem.index()
     by_key = {s.key: s for s in problem.stops}
     pair_of = {d: p for p, d in problem.pairs}
@@ -60,46 +64,56 @@ def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
     out_routes: list[dict[str, Any]] = []
     total_cost = 0
     violations: list[str] = []
+    late: list[str] = []
     for vi, veh in enumerate(problem.vehicles):
         keys = [k for k in routes.get(veh.id, []) if k in by_key]
         if not keys and not veh.must_deliver:
             continue
         seconds, at = 0, vi
-        kg, boxes = veh.onboard_kg, veh.onboard_boxes
-        peak_kg, peak_boxes = kg, boxes
+        kg, boxes, m3 = veh.onboard_kg, veh.onboard_boxes, veh.onboard_m3
+        peak_kg, peak_boxes, peak_m3 = kg, boxes, m3
         seen: set[str] = set()
         seq: list[dict[str, Any]] = []
         for k in keys:
             s = by_key[k]
-            seconds += problem.matrix[at][idx[k]] + s.service_s
+            arrive = seconds + problem.matrix[at][idx[k]]
+            if s.window_start_s is not None and arrive < s.window_start_s:
+                arrive = s.window_start_s  # wait for the window to open
+            if s.window_end_s is not None and arrive > s.window_end_s:
+                late.append(k)
+            seconds = arrive + s.service_s
             at = idx[k]
             if s.kind in PICKUP_KINDS:
                 kg += s.kg
                 boxes += s.boxes
+                m3 += s.m3
             else:
                 p = pair_of.get(k)
                 if p and p not in seen and p in by_key and k not in veh.must_deliver:
                     violations.append(f"{veh.id}: drop before pickup {k}")
                 kg -= s.kg
                 boxes -= s.boxes
-            peak_kg, peak_boxes = max(peak_kg, kg), max(peak_boxes, boxes)
+                m3 -= s.m3
+            peak_kg, peak_boxes, peak_m3 = max(peak_kg, kg), max(peak_boxes, boxes), max(peak_m3, m3)
             seen.add(k)
-            seq.append({"key": k, "order_id": s.order_id, "kind": s.kind, "fsa": s.fsa, "eta_s": seconds})
+            seq.append({"key": k, "order_id": s.order_id, "kind": s.kind, "fsa": s.fsa, "place": place_key(s.lat, s.lng),
+                        "eta_s": arrive, "service_s": s.service_s})
         for d in veh.must_deliver:
             if d not in seen:
                 violations.append(f"{veh.id}: onboard drop {d} missing")
-        if peak_kg > veh.cap_kg + 1e-6 or peak_boxes > veh.cap_boxes:
+        if peak_kg > veh.cap_kg + 1e-6 or peak_boxes > veh.cap_boxes or peak_m3 > veh.cap_m3 + 1e-6:
             violations.append(f"{veh.id}: over capacity")
         if seconds > veh.max_route_s:
             violations.append(f"{veh.id}: route too long")
-        fill = max(peak_kg / veh.cap_kg if veh.cap_kg else 0, peak_boxes / veh.cap_boxes if veh.cap_boxes else 0)
+        fill = max(peak_kg / veh.cap_kg if veh.cap_kg else 0, peak_boxes / veh.cap_boxes if veh.cap_boxes else 0,
+                   peak_m3 / veh.cap_m3 if veh.cap_m3 else 0)
         cost = int(round(seconds / 3600 * veh.hourly_cents))
         total_cost += cost
         served |= seen
         out_routes.append({
             "vehicle_id": veh.id, "driver_id": veh.driver_id, "vehicle_class": veh.vehicle_class,
             "stops": seq, "seconds": seconds, "fill_pct": round(fill * 100, 1),
-            "peak_kg": round(peak_kg, 1), "peak_boxes": peak_boxes, "cost_cents": cost,
+            "peak_kg": round(peak_kg, 1), "peak_boxes": peak_boxes, "peak_m3": round(peak_m3, 3), "cost_cents": cost,
         })
     dropped = [p for p, d in problem.pairs if p not in served or d not in served]
     return {
@@ -109,14 +123,15 @@ def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
         "vehicles_used": len(out_routes),
         "feasible": not violations,
         "violations": violations,
+        "late_stops": late,
         "score": (len(dropped), 0 if not violations else 1, total_cost),
     }
 
 
 def better(a: dict[str, Any], b: dict[str, Any]) -> bool:
-    """True when plan ``a`` beats ``b``: feasible, fewer dropped pairs, then lower cost."""
-    ka = (0 if a.get("feasible") else 1, len(a.get("dropped", [])), a.get("cost_cents", 0))
-    kb = (0 if b.get("feasible") else 1, len(b.get("dropped", [])), b.get("cost_cents", 0))
+    """True when plan ``a`` beats ``b``: feasible, fewer dropped pairs, fewer late stops, then lower cost."""
+    ka = (0 if a.get("feasible") else 1, len(a.get("dropped", [])), len(a.get("late_stops", [])), a.get("cost_cents", 0))
+    kb = (0 if b.get("feasible") else 1, len(b.get("dropped", [])), len(b.get("late_stops", [])), b.get("cost_cents", 0))
     return ka < kb
 
 
@@ -158,15 +173,18 @@ def solve_ortools(problem: Problem) -> dict[str, list[str]]:
 
     node_of = {st.key: 1 + v + i for i, st in enumerate(problem.stops)}
     for i, st in enumerate(problem.stops):
-        if st.window_start_s is not None or st.window_end_s is not None:
-            lo = max(0, st.window_start_s or 0)
-            hi = min(HORIZON_S, st.window_end_s if st.window_end_s is not None else HORIZON_S)
-            if lo <= hi:
-                time_dim.CumulVar(manager.NodeToIndex(1 + v + i)).SetRange(lo, hi)
+        # Window opens: hard (the van waits). Window closes: soft, so a late stop is
+        # still served (and scored late) instead of being dropped from the day.
+        node = manager.NodeToIndex(1 + v + i)
+        if st.window_start_s:
+            time_dim.CumulVar(node).SetMin(min(int(st.window_start_s), HORIZON_S))
+        if st.window_end_s is not None:
+            time_dim.SetCumulVarSoftUpperBound(node, min(int(st.window_end_s), HORIZON_S), LATE_PENALTY)
 
     for name, attr, cap_attr, onboard_attr, scale in (
         ("kg", "kg", "cap_kg", "onboard_kg", 10),
         ("boxes", "boxes", "cap_boxes", "onboard_boxes", 1),
+        ("litres", "m3", "cap_m3", "onboard_m3", 1000),
     ):
         demand = [0] * n
         for i, st in enumerate(problem.stops):
@@ -237,13 +255,14 @@ def replan_problem(
     locked: set[str] = set()
     for veh in problem.vehicles:
         nv = Vehicle(**{**veh.__dict__, "start": positions.get(veh.id, veh.start), "must_deliver": [],
-                        "onboard_kg": 0.0, "onboard_boxes": 0})
+                        "onboard_kg": 0.0, "onboard_boxes": 0, "onboard_m3": 0.0})
         route = routes.get(veh.id, [])
         for p, d in problem.pairs:
             if p in done_keys and d not in done_keys and p in route:
                 nv.must_deliver.append(d)
                 nv.onboard_kg += by_key[d].kg
                 nv.onboard_boxes += by_key[d].boxes
+                nv.onboard_m3 += by_key[d].m3
                 locked.add(d)
         vehicles.append(nv)
     stops = [s for s in problem.stops if s.key not in done_keys]

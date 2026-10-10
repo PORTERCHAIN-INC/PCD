@@ -1,4 +1,4 @@
-"""Public-safe last-known driver pin for booking/merchant readers (no driver_engine import, D2)."""
+"""Public-safe last-known driver pin for booking/merchant readers (position + timestamp only)."""
 
 from __future__ import annotations
 

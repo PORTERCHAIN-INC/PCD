@@ -17,7 +17,7 @@ OPTIMIZE_STATES = frozenset(
 SCAN_CAP = 400
 
 
-def build_optimize_pool(
+def build_optimize_pool(  # dispatch-guard:ok — eligibility list, not local sequencing
     db: Session,
     *,
     limit: int,

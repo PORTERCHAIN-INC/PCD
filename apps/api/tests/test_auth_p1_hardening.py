@@ -9,15 +9,8 @@ from fastapi import HTTPException
 
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.current_principal import CurrentPrincipal
-from porterchain_api.auth.dependencies import (
-    assert_organization_scope,
-    assert_self_scope,
-)
-from porterchain_api.auth.unified_catalog import (
-    AccountStatus,
-    AssignableRole,
-    UnifiedPermission,
-)
+from porterchain_api.auth.dependencies import assert_organization_scope, assert_self_scope
+from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
 from porterchain_api.authz.client import AuthzClient, Relationship, reset_authz_client
 from porterchain_api.authz.tuples import PLATFORM_ID, TupleWriter
 from porterchain_api.user_models import PorterchainUser

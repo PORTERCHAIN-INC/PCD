@@ -11,10 +11,7 @@ from fastapi import HTTPException
 from porterchain_api.admin_engine.platform_user_authorize import authorize_platform_user
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, permissions_catalog
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.clerk_config_audit import (
-    audit_clerk_settings,
-    resolve_clerk_runtime_mode,
-)
+from porterchain_api.auth.clerk_config_audit import audit_clerk_settings, resolve_clerk_runtime_mode
 from porterchain_api.auth.staff_session import (
     STAFF_BEARER_PREFIX,
     bearer_token_for_session,
@@ -22,9 +19,7 @@ from porterchain_api.auth.staff_session import (
 )
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
-from porterchain_api.merchant_engine.rbac import (
-    permissions_catalog as merchant_permissions_catalog,
-)
+from porterchain_api.merchant_engine.rbac import permissions_catalog as merchant_permissions_catalog
 
 
 def test_admin_permissions_catalog_covers_all_roles() -> None:
@@ -154,8 +149,8 @@ def test_notification_principal_accepts_staff_session() -> None:
 
 
 def test_get_admin_context_accepts_staff_session() -> None:
-    from porterchain_api.admin_models import AdminUser
     from porterchain_api.auth.staff_session import StaffSession
+    from porterchain_api.admin_models import AdminUser
 
     async def _run() -> None:
         request = MagicMock()
@@ -328,6 +323,8 @@ def test_ensure_staff_identity_prefers_existing_staff_subject(db) -> None:
 
 
 def test_staff_session_index_and_revoke_all() -> None:
+    import json
+    import time
 
     from porterchain_api.auth import staff_session as ss
 

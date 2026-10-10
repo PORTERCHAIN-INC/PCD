@@ -5,13 +5,12 @@ These are dock documents. Do not title them “shipping label”.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Sequence
 
-from porterchain_api.booking_models import Order
 from porterchain_api.domain.catalog_labels import order_state_label
 from porterchain_api.merchant_engine.toronto import format_datetime_toronto
+from porterchain_api.booking_models import Order
 from porterchain_api.reporting.compliance_dossier import render_compliance_pdf
 
 _PREVIEW_NOTE = "Print preview for your dock — not a carrier shipping label."
@@ -134,11 +133,11 @@ def render_branded_invoice_pdf(
 ) -> bytes:
     """Multi-page PorterChain invoice. Amount labels stay plain text so cents checks can read them."""
     import io
+
     from pathlib import Path
 
     from reportlab.lib.colors import HexColor, white
     from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import inch
     from reportlab.lib.utils import ImageReader
     from reportlab.platypus import (
@@ -150,6 +149,7 @@ def render_branded_invoice_pdf(
         Table,
         TableStyle,
     )
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.platypus.flowables import Flowable
 
     navy = HexColor("#0a1628")
@@ -510,9 +510,7 @@ def pdf_for_invoice_record(db: Any, invoice: Any, *, lines: Sequence[dict[str, A
     from porterchain_api.billing_engine.models import InvoiceLine
     from porterchain_api.booking_models import Customer, Order, Payment
     from porterchain_api.merchant_engine.lookups import get_merchant
-    from porterchain_api.merchant_engine.reporting_metrics import (
-        channel_for_order_source,
-    )
+    from porterchain_api.merchant_engine.reporting_metrics import channel_for_order_source
 
     order = db.get(Order, invoice.order_id) if getattr(invoice, "order_id", None) else None
     if order is None:

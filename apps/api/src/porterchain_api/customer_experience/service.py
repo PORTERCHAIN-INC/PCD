@@ -18,10 +18,7 @@ from porterchain_api.customer_experience.settings import (
     merge_patch,
     normalize_cx,
 )
-from porterchain_api.customer_experience.tracking_view import (
-    build_experience,
-    proof_of_delivery,
-)
+from porterchain_api.customer_experience.tracking_view import build_experience, proof_of_delivery
 
 ERROR_STATUS: dict[str, int] = {
     "order_not_found": 404,
@@ -97,11 +94,7 @@ def merchant_settings(merchant: Any) -> dict[str, Any]:
 
 
 def update_merchant_settings(db: Session, ctx: Any, body: dict[str, Any]) -> dict[str, Any]:
-    from porterchain_api.merchant_engine.settings_service import (
-        MerchantSettingsService,
-        _save_settings,
-        _settings_bucket,
-    )
+    from porterchain_api.merchant_engine.settings_service import MerchantSettingsService, _save_settings, _settings_bucket
 
     current = cx_for_merchant(ctx.merchant)
     preset = body.pop("preset", None) if isinstance(body, dict) else None

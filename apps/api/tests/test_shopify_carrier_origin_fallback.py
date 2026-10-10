@@ -258,10 +258,7 @@ def test_resolve_shopify_pickup_shared_rule():
 
 def test_pickup_from_rate_quote_rejects_expired():
     from datetime import UTC, datetime, timedelta
-
-    from porterchain_api.integrations.shopify_carrier_rates import (
-        pickup_from_rate_quote,
-    )
+    from porterchain_api.integrations.shopify_carrier_rates import pickup_from_rate_quote
 
     expired = SimpleNamespace(
         expires_at=datetime.now(UTC) - timedelta(minutes=1),

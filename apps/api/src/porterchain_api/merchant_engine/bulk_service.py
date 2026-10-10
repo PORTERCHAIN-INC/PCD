@@ -16,9 +16,7 @@ from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus
 from porterchain_api.domain.states import OrderSource
 from porterchain_api.merchant_engine import events as E
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import BulkImportJob

@@ -197,7 +197,7 @@ def _index_add(client, *, admin_user_id: str, session_id: str, ttl: int) -> None
 def _index_remove(client, *, admin_user_id: str, session_id: str) -> None:
     try:
         client.srem(_user_index_key(admin_user_id), session_id)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("staff_session_index_remove_failed", exc_info=True)
 
 
@@ -241,7 +241,7 @@ def create_session(
         )
         _index_add(client, admin_user_id=admin_user_id, session_id=session.session_id, ttl=ABSOLUTE_MAX_SECONDS)
         return session
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.exception("staff_session_create_failed")
         return None
 
@@ -277,7 +277,7 @@ def get_session(session_id: str, *, touch: bool = True) -> StaffSession | None:
             client.setex(key, remaining, json.dumps(updated.to_dict()))
             return updated
         return session
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("staff_session_get_failed", exc_info=True)
         return None
 
@@ -303,7 +303,7 @@ def revoke_session(session_id: str) -> bool:
         if admin_user_id:
             _index_remove(client, admin_user_id=admin_user_id, session_id=session_id)
         return deleted
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("staff_session_revoke_failed", exc_info=True)
         return False
 
@@ -317,7 +317,7 @@ def revoke_all_for_user(admin_user_id: str, *, except_session_id: str | None = N
         return 0
     try:
         members = client.smembers(_user_index_key(admin_user_id)) or set()
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("staff_session_list_index_failed", exc_info=True)
         return 0
     revoked = 0
@@ -534,7 +534,7 @@ def mark_step_up(session_id: str) -> StaffSession | None:
             json.dumps(updated.to_dict()),
         )
         return updated
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("staff_session_step_up_failed", exc_info=True)
         return None
 

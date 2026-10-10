@@ -1,7 +1,7 @@
 [project]
 name = "porterchain-services"
 version = "0.1.0"
-description = "Porterchain internal service layer — gateway, fleetbase, stripe, maps, notifications"
+description = "Porterchain internal service layer — gateway, stripe, maps, notifications"
 requires-python = ">=3.12"
 dependencies = [
   "httpx>=0.28.0",

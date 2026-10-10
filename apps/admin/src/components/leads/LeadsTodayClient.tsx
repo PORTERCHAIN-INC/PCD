@@ -186,7 +186,9 @@ export default function LeadsTodayClient() {
     <AdminPage>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">
+            Sales
+          </p>
           <h1 className="text-3xl font-extrabold tracking-tight text-primary">Call list</h1>
           <p className="text-sm text-slate-600">
             Who to call today: ready, follow-ups and interested

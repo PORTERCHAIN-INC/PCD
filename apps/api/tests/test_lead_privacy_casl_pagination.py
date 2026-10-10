@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -16,21 +16,12 @@ from porterchain_api.collaboration_engine.lead_consent import (
     verify_unsubscribe_token,
 )
 from porterchain_api.collaboration_engine.lead_ops import escalate_sla_breached_leads
-from porterchain_api.collaboration_engine.lead_privacy import (
-    LeadPrivacyError,
-    LeadPrivacyService,
-)
+from porterchain_api.collaboration_engine.lead_privacy import LeadPrivacyError, LeadPrivacyService
 from porterchain_api.crm_models import CrmLead
 from porterchain_api.domain.crm_states import LeadStatus
-from porterchain_api.notification_engine.staff_fanout import (
-    roles_for_topic,
-    staff_sentinel,
-)
+from porterchain_api.notification_engine.staff_fanout import roles_for_topic, staff_sentinel
 from porterchain_api.platform.pagination import as_page, clamp_page
-from porterchain_api.routers.public_inquiries import (
-    LeadUnsubscribeRequest,
-    unsubscribe_lead,
-)
+from porterchain_api.routers.public_inquiries import LeadUnsubscribeRequest, unsubscribe_lead
 
 
 def test_casl_evidence_and_unsubscribe_token_roundtrip() -> None:
@@ -165,15 +156,13 @@ def test_escalate_sla_breached_leads(db) -> None:
 
 
 def test_suppression_blocks_nurture_and_merge_resurrection(db) -> None:
-    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
-    from porterchain_api.collaboration_engine.lead_nurture import (
-        enqueue_nurture_intro_email,
-    )
+    from porterchain_api.collaboration_engine.lead_nurture import enqueue_nurture_intro_email
     from porterchain_api.collaboration_engine.lead_suppression import (
         is_suppressed,
         merge_consent_safe,
         upsert_suppression,
     )
+    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
 
     email = f"dnc-{uuid.uuid4().hex[:6]}@t.test"
     lead = CrmLead(
@@ -216,9 +205,7 @@ def test_suppression_blocks_nurture_and_merge_resurrection(db) -> None:
 
 
 def test_soft_archive_stale_leads(db) -> None:
-    from porterchain_api.collaboration_engine.lead_retention import (
-        soft_archive_stale_leads,
-    )
+    from porterchain_api.collaboration_engine.lead_retention import soft_archive_stale_leads
 
     old = datetime.now(UTC) - timedelta(days=800)
     lead = CrmLead(
@@ -260,9 +247,7 @@ def test_build_lead_assist_contract(db) -> None:
 
 
 def test_email_engagement_bumps_score(db) -> None:
-    from porterchain_api.collaboration_engine.lead_engagement import (
-        apply_email_engagement,
-    )
+    from porterchain_api.collaboration_engine.lead_engagement import apply_email_engagement
 
     lead = CrmLead(
         company_name=f"Eng {uuid.uuid4().hex[:6]}",

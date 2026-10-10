@@ -15,37 +15,27 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from porterchain_pricing import GeoPoint
-from porterchain_services.maps.service import MapsService
-from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.customer_booking_admin_service import (
-    CustomerBookingAdminService,
-)
-from porterchain_api.admin_engine.rbac import (
-    MODULE_PERMISSIONS,
-    AdminContext,
-    parse_admin_role,
-)
+from porterchain_api.admin_engine.customer_booking_admin_service import CustomerBookingAdminService
+from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.booking_engine.booking_service import BookingService
-from porterchain_api.booking_engine.confirmation_service import (
-    BookingConfirmationService,
-)
+from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.quote_service import QuoteService
-from porterchain_api.booking_models import Customer, DomainEvent, Stop
+from porterchain_api.booking_models import Customer, DomainEvent, Order, Stop
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from porterchain_api.domain.states import OrderState
 from porterchain_api.main import app
 from porterchain_api.notification_engine.event_router import _specs_for_event
-from porterchain_api.schemas import (
-    AddressInput,
-    CreateQuoteRequest,
-    WebsitePricingSnapshot,
-)
+from porterchain_api.schemas import AddressInput, CreateQuoteRequest, WebsitePricingSnapshot
 from porterchain_api.services.routing import resolve_route_distance
+from porterchain_pricing import GeoPoint
+from porterchain_services.maps.service import MapsService
+from porterchain_shared.events.catalog import DomainEventType
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CUSTOMER_SRC = REPO_ROOT / "apps" / "customer" / "src"

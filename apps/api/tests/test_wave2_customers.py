@@ -116,13 +116,14 @@ def test_upsert_rejects_email_mismatch_on_bound_customer() -> None:
         return_value=None,
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",
-    ), pytest.raises(ValueError, match=EMAIL_CLERK_MISMATCH):
-        CustomerService().upsert(
-            db,
-            clerk_user_id="user_1",
-            email="other@example.com",
-            phone=None,
-        )
+    ):
+        with pytest.raises(ValueError, match=EMAIL_CLERK_MISMATCH):
+            CustomerService().upsert(
+                db,
+                clerk_user_id="user_1",
+                email="other@example.com",
+                phone=None,
+            )
 
 
 def test_upsert_merges_orphan_by_email() -> None:

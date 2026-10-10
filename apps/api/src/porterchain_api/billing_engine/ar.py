@@ -21,9 +21,9 @@ from porterchain_api.billing_engine.merchant_service import (
     outstanding_cents,
 )
 from porterchain_api.billing_engine.models import BillingLedgerEntry
-from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_models import Merchant
+from porterchain_api.booking_models import Invoice, Order, Payment
 
 CREDIT_NOTE_KIND = "credit_note"
 

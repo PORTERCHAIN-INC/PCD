@@ -13,9 +13,23 @@ export type PortalAuthValue = {
 };
 
 /** One place that hands pages a token: Clerk in prod, the local `dev` bearer otherwise. */
-export default function PortalAuth({ children }: { children: (auth: PortalAuthValue) => ReactNode }) {
+export default function PortalAuth({
+  children,
+}: {
+  children: (auth: PortalAuthValue) => ReactNode;
+}) {
   if (!isClerkConfigured()) {
-    return <>{children({ ready: true, getToken: async () => "dev", userId: "dev_clerk_user", email: "", phone: "" })}</>;
+    return (
+      <>
+        {children({
+          ready: true,
+          getToken: async () => "dev",
+          userId: "dev_clerk_user",
+          email: "",
+          phone: "",
+        })}
+      </>
+    );
   }
   return <ClerkAuth>{children}</ClerkAuth>;
 }

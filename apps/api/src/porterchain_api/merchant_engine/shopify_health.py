@@ -97,7 +97,9 @@ def shop_health(
 
     now = now or datetime.now(UTC)
     if pickup_set is None:
-        from porterchain_api.merchant_engine.shopify_service import default_pickup_address
+        from porterchain_api.merchant_engine.shopify_service import (
+            default_pickup_address,
+        )
 
         pickup_set = default_pickup_address(db, shop.merchant_id, shop=shop) is not None
     connected = is_connected(shop)

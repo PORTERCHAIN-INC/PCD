@@ -117,9 +117,7 @@ def test_marketing_config_validation():
 
 
 def test_marketing_site_is_a_writable_admin_setting(db):
-    from porterchain_api.admin_engine.settings_bindings import (
-        resolve_writable_config_key,
-    )
+    from porterchain_api.admin_engine.settings_bindings import resolve_writable_config_key
     from porterchain_api.admin_engine.settings_service import AdminSettingsService
 
     assert resolve_writable_config_key("marketing_site") == "marketing_site"
@@ -301,9 +299,7 @@ def test_lead_rate_limit_applies(client, monkeypatch):
 
 
 def test_lead_ingest_outreach_default_unchanged():
-    from porterchain_api.collaboration_engine.lead_ingest_service import (
-        CanonicalLeadEvent,
-    )
+    from porterchain_api.collaboration_engine.lead_ingest_service import CanonicalLeadEvent
 
     evt = CanonicalLeadEvent(channel="website", source="website_contact", provider="x", external_event_id="1", company_name="A")
     assert evt.skip_outreach is False
@@ -316,7 +312,7 @@ def test_lead_attribution_summary_groups_by_source_industry_fsa(client, db):
     body = _lead_body(industry="construction", pickup_fsa="L4K", utm_source="newsletter-x")
     assert client.post("/v1/public/calculator-leads", json=body).status_code == 202
     out = lead_attribution_summary(db, days=1)
-    keys = lambda rows: {r["key"] for r in rows}
+    keys = lambda rows: {r["key"] for r in rows}  # noqa: E731
     assert "website_calculator" in keys(out["by_source"])
     assert "construction" in keys(out["by_industry"])
     assert "L4K" in keys(out["by_fsa"])

@@ -18,8 +18,7 @@ from porterchain_api.routers.driver._deps import (
     guard_portal_ready,
     require_approved_driver,
     router,
-    svc,
-)
+    svc)
 
 
 @router.get("/dashboard", response_model=DriverDashboardResponse)
@@ -27,9 +26,7 @@ def dashboard(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
-    from porterchain_api.driver_engine.compliance_expiry_service import (
-        DriverComplianceExpiryService,
-    )
+    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     guard_portal_ready(ctx, settings)
@@ -187,9 +184,7 @@ def start_shift(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
-    from porterchain_api.driver_engine.compliance_expiry_service import (
-        DriverComplianceExpiryService,
-    )
+    from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     guard_portal_ready(ctx, settings)

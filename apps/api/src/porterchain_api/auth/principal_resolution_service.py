@@ -137,7 +137,7 @@ class PrincipalResolutionService:
                 subject_id=user_id,
             ):
                 perms.add(UnifiedPermission.CUSTOMER_PORTAL_ACCESS)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception("spicedb_permission_lookup_failed user_id=%s", user_id)
         return frozenset(perms)
 

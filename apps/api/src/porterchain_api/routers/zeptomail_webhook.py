@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from sqlalchemy.orm import Session
+from fastapi import Depends
 
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
@@ -40,3 +41,8 @@ def zeptomail_event(
         return {"ok": True, "bounced": 0, "messages": 0}
     result = record_tracking_event(db, body)
     return {"ok": True, "bounced": result["suppressed"], "messages": result["messages"]}
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.notification_engine.bounce import extract_bounced_addresses  # noqa: E402, F401
+from porterchain_api.notification_engine.bounce import is_bounce_event  # noqa: E402, F401
+from porterchain_api.notification_engine.bounce import mark_addresses_bounced  # noqa: E402, F401

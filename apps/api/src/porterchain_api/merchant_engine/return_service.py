@@ -86,10 +86,7 @@ def return_body(original: Order, *, reference: str | None = None, purchase_order
     """Booking request for a pickup at the original drop-off, back to the original pickup."""
     from porterchain_api.merchant_engine.booking_service import _canonical_vehicle
     from porterchain_api.merchant_engine.stop_cargo import packages_from_stops
-    from porterchain_api.schemas_merchant import (
-        MerchantBookDeliveryRequest,
-        RouteImportPackageInput,
-    )
+    from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest, RouteImportPackageInput
 
     meta = _meta(original)
     stops = meta.get("stops") if isinstance(meta.get("stops"), list) else []
@@ -142,9 +139,7 @@ def create_return_order(
     )
 
     if booking is None:
-        from porterchain_api.merchant_engine.booking_service import (
-            MerchantBookingService,
-        )
+        from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 
         booking = MerchantBookingService()
     body = return_body(original, reference=reference, purchase_order=purchase_order)

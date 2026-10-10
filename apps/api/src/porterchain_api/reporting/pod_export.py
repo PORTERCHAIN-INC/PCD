@@ -31,8 +31,8 @@ FETCH_TIMEOUT_SECONDS = 20.0
 def _max_artifact_bytes() -> int:
     """Resolve download cap from platform Documents settings when DB is reachable."""
     try:
-        from porterchain_api.admin_engine.platform_settings import document_max_bytes
         from porterchain_api.db import SessionLocal
+        from porterchain_api.admin_engine.platform_settings import document_max_bytes
 
         db = SessionLocal()
         try:

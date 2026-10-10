@@ -17,17 +17,10 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_models import Address, Order, Stop
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
-from porterchain_api.merchant_engine.secrets import (
-    decrypt_signing_secret,
-    encrypt_signing_secret,
-)
+from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
 from porterchain_api.merchant_engine.shopify_tokens import clear_tokens
 from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain
-from porterchain_api.merchant_models import (
-    ShopifyDataSubjectRequest,
-    ShopifyIngressDlq,
-    ShopifyShop,
-)
+from porterchain_api.merchant_models import ShopifyDataSubjectRequest, ShopifyIngressDlq, ShopifyShop
 
 logger = logging.getLogger(__name__)
 
@@ -170,7 +163,7 @@ def accept_and_enqueue(
                 QueueName.WEBHOOKS,
                 {"action": "shopify_privacy", "request_id": request_id},
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.exception("shopify_privacy_enqueue_failed")
             raise RuntimeError("shopify_enqueue_failed") from exc
     remember()

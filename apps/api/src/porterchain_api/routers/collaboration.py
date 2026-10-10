@@ -5,17 +5,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.collaboration_engine import CrmSalesService
 from porterchain_api.db import get_db
-from porterchain_api.schemas_crm import (
-    ActivityCreate,
-    ActivityOut,
-    TaskCreate,
-    TaskOut,
-    TaskUpdate,
-)
+from porterchain_api.schemas_crm import ActivityCreate, ActivityOut, TaskCreate, TaskOut, TaskUpdate
 
 router = APIRouter(prefix="/v1/admin/collaboration", tags=["collaboration"])
 

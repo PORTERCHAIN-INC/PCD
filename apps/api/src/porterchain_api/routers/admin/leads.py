@@ -1,29 +1,21 @@
 """Admin CRM leads — list, detail, status updates, appointment calendar."""
 
-import uuid
 from typing import Annotated
+import uuid
 
 from fastapi import HTTPException, Query
-from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from porterchain_api.collaboration_engine import CrmSalesService
-from porterchain_api.collaboration_engine.lead_channel_adapters import (
-    event_from_referral,
-)
+from porterchain_api.collaboration_engine.lead_channel_adapters import event_from_referral
 from porterchain_api.collaboration_engine.lead_ingest_service import (
     CanonicalLeadEvent,
     LeadIngestService,
 )
 from porterchain_api.config import Settings, get_settings
-from porterchain_api.crm_models import (
-    CrmConversation,
-    CrmConversationMessage,
-    CrmLeadIdentity,
-)
+from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLeadIdentity
 from porterchain_api.domain.crm_states import channel_for_source
 from porterchain_api.merchant_engine.lookups import get_merchant
-from porterchain_api.platform.pagination import as_page, clamp_page
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Depends,
@@ -33,12 +25,14 @@ from porterchain_api.routers.admin._deps import (
     require_module,
     router,
 )
+from porterchain_api.platform.pagination import as_page, clamp_page
 from porterchain_api.schemas_crm import (
     LeadConvertRequest,
     LeadCreate,
     LeadOut,
     LeadUpdate,
 )
+from pydantic import BaseModel, Field
 
 _crm = CrmSalesService()
 _ingest = LeadIngestService()
@@ -157,10 +151,7 @@ def create_lead_manual(
         raise HTTPException(status_code=400, detail="email_or_phone_required")
     source = data.get("source") or "manual"
     channel = data.get("channel") or channel_for_source(source)
-    from porterchain_api.collaboration_engine.lead_consent import (
-        LEGAL_BASIS_VALUES,
-        casl_evidence,
-    )
+    from porterchain_api.collaboration_engine.lead_consent import LEGAL_BASIS_VALUES, casl_evidence
 
     raw_consent = dict(data.get("consent") or {})
     if raw_consent.get("marketing") is True:
@@ -560,10 +551,7 @@ def erase_lead_privacy(
         require_module(ctx, "system:all")
     except PermissionError as exc:
         _perm(exc)
-    from porterchain_api.collaboration_engine.lead_privacy import (
-        LeadPrivacyError,
-        LeadPrivacyService,
-    )
+    from porterchain_api.collaboration_engine.lead_privacy import LeadPrivacyError, LeadPrivacyService
     from porterchain_api.crm_models import CrmLead
 
     lead = db.get(CrmLead, lead_id)

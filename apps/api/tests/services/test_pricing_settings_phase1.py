@@ -8,7 +8,6 @@ from __future__ import annotations
 from uuid import uuid4
 
 import pytest
-from porterchain_pricing import GeoPoint, ParcelSpec, PricingRequest
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.merchant_org import (
@@ -22,23 +21,19 @@ from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.admin_models import AdminAuditLog, AdminUser
 from porterchain_api.booking_models import DomainEvent, OrderException, Package
 from porterchain_api.domain.admin_states import AdminRole
-from porterchain_api.domain.pricing_version import SUPER_ADMIN_ONLY
 from porterchain_api.integrations.shopify_carrier_rates import (
     item_boxes,
     packages_from_items,
     parcels_from_items,
 )
 from porterchain_api.merchant_engine.package_service import PackageService
-from porterchain_api.merchant_engine.scan_gate_service import (
-    PackagesIncomplete,
-    ScanGateService,
-)
+from porterchain_api.merchant_engine.scan_gate_service import PackagesIncomplete, ScanGateService
 from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.pricing_engine.repository import (
-    current_price_version as current_version,
-)
+from porterchain_api.domain.pricing_version import SUPER_ADMIN_ONLY
+from porterchain_api.pricing_engine.repository import current_price_version as current_version
 from porterchain_api.reporting.label_service import LabelService
 from porterchain_api.reporting.qr_codec import encode_label_qr
+from porterchain_pricing import GeoPoint, ParcelSpec, PricingRequest
 
 IN = 2.54
 

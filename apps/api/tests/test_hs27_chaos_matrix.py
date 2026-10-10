@@ -13,8 +13,8 @@ from porterchain_api.config import Settings
 
 
 def test_hs27_admin_chaos_list_matches_api() -> None:
-    import re
     from pathlib import Path
+    import re
 
     admin = Path(__file__).resolve().parents[2] / "admin/src/lib/diagnostics.ts"
     text = admin.read_text(encoding="utf-8")

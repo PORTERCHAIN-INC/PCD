@@ -5,11 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Order
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.rbac import MerchantContext
@@ -21,6 +17,7 @@ from porterchain_api.merchant_engine.reporting_metrics import (
 )
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.booking_models import Order
 
 
 def _addr(**extra) -> dict:

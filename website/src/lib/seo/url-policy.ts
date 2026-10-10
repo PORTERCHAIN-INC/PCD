@@ -356,7 +356,14 @@ function pickIndexable(locale: PolicyLocale, candidates: string[]): string | nul
 }
 
 /** Query params worth keeping across a legacy redirect. */
-const FUNCTIONAL_QUERY_KEYS = new Set(["t", "quote_id", "again", "pickup", "dropoff", "session_id"]);
+const FUNCTIONAL_QUERY_KEYS = new Set([
+  "t",
+  "quote_id",
+  "again",
+  "pickup",
+  "dropoff",
+  "session_id",
+]);
 
 function carriedQuery(search: string): string {
   const params = new URLSearchParams(search);

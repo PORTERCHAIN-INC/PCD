@@ -6,7 +6,7 @@ import re
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_models import Driver

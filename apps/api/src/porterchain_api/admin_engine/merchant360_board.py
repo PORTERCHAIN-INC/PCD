@@ -77,7 +77,7 @@ def metrics_payload(
 
     api_connected = (
         db.query(MerchantApiKey)
-        .filter(MerchantApiKey.merchant_id == merchant.id, MerchantApiKey.is_active == True)
+        .filter(MerchantApiKey.merchant_id == merchant.id, MerchantApiKey.is_active == True)  # noqa: E712
         .count()
         > 0
     )
@@ -173,9 +173,7 @@ def ai_insights(
     }
     if db is None:
         return insights
-    from porterchain_api.intelligence_engine.enrichers import (
-        paraphrase_merchant_actions,
-    )
+    from porterchain_api.intelligence_engine.enrichers import paraphrase_merchant_actions
 
     return paraphrase_merchant_actions(insights, flags=flags, db=db)
 
@@ -198,7 +196,7 @@ def row_payload(
     if company:
         primary = (
             db.query(CrmContact)
-            .filter(CrmContact.company_id == company.id, CrmContact.is_primary == True)
+            .filter(CrmContact.company_id == company.id, CrmContact.is_primary == True)  # noqa: E712
             .first()
         )
     address = (company.address if company else None) or merchant.billing_address or {}

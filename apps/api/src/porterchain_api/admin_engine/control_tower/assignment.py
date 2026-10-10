@@ -5,14 +5,11 @@ from __future__ import annotations
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.control_tower._helpers import now_utc
 from porterchain_api.admin_models import Driver
 from porterchain_api.booking_models import Order
-from porterchain_api.order_engine.buckets import (
-    DELIVERY_ONLY_POOL,
-    DISPATCH_POOL,
-    IN_FLIGHT,
-)
+from porterchain_api.order_engine.buckets import DELIVERY_ONLY_POOL, DISPATCH_POOL, IN_FLIGHT
+
+from porterchain_api.admin_engine.control_tower._helpers import now_utc
 
 
 class AssignmentMixin:

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from fastapi import HTTPException, Request
 
-from porterchain_api.auth.sli_metrics import note_auth_event
 from porterchain_api.platform.rate_limit import (
     bucket_key,
     check_fixed_window,
     incr_rate_limit_unavailable,
     incr_rate_limited,
 )
+from porterchain_api.auth.sli_metrics import note_auth_event
 
 TRAFFIC_STAFF_AUTH = "staff_auth"
 # Per IP (and optionally email) — keep low; magic-link + passkey are cheap to spray.

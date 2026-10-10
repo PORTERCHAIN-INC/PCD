@@ -128,7 +128,9 @@ function AccountBody({
     <CustomerShell>
       <div className="mx-auto max-w-3xl space-y-4">
         <header>
-          <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">Account</p>
+          <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">
+            Account
+          </p>
           <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-primary">Your account</h1>
         </header>
 
@@ -192,7 +194,8 @@ function AccountBody({
         <section className="rounded-3xl border border-primary/10 bg-white p-5">
           <h2 className="text-lg font-bold text-primary">Privacy</h2>
           <p className="mt-1 text-sm text-primary/70">
-            Download your data, or ask us to delete it. A person reviews each request, then it runs automatically.
+            Download your data, or ask us to delete it. A person reviews each request, then it runs
+            automatically.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button

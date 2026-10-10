@@ -9,34 +9,25 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
 from porterchain_api.booking_engine.site_access import (
     dropoff_address_fields,
     enrich_dropoff,
     extract_site_access_notes,
 )
-from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.states import BookingDraftState
+from porterchain_api.merchant_engine.booking_validation import BookingValidationError, MerchantSyncService, assert_not_fsa_refused
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
-from porterchain_api.merchant_engine.booking_validation import (
-    BookingValidationError,
-    MerchantSyncService,
-    assert_not_fsa_refused,
-)
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.template_service import MerchantTemplateService
 from porterchain_api.merchant_models import MerchantBookingTemplate, MerchantRecipient
+from porterchain_api.booking_models import Order
 from porterchain_api.pricing_engine import get_pricing_service
-from porterchain_api.schemas import (
-    AddressInput,
-    CreateBookingDraftRequest,
-)
-from porterchain_api.schemas_merchant import (
-    MerchantBookDeliveryRequest,
-    RouteImportPackageInput,
-)
+from porterchain_api.schemas import AddressInput, CreateBookingDraftRequest, UpdateBookingDraftRequest
+from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest, RouteImportPackageInput
 
 
 class MerchantBookingFlowService:
@@ -104,9 +95,7 @@ class MerchantBookingFlowService:
         weight_kg: float | None = None,
         package_type: str | None = None,
     ) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.coverage import (
-            recommend_vehicle as coverage_recommend,
-        )
+        from porterchain_api.merchant_engine.coverage import recommend_vehicle as coverage_recommend
 
         return coverage_recommend(ctx.merchant, weight_kg=weight_kg, package_type=package_type)
 
@@ -122,13 +111,10 @@ class MerchantBookingFlowService:
             return {"valid": False, "address_errors": address_errors}
 
         try:
+            from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
             from porterchain_api.merchant_engine.booking_service import (
                 _assert_credit_headroom,
                 assert_pickup_window,
-            )
-            from porterchain_api.merchant_engine.service_area import (
-                assert_ontario_booking,
-                merchant_coverage_fsas,
             )
             from porterchain_api.merchant_engine.stop_cargo import cargo_rollup
 
@@ -162,9 +148,7 @@ class MerchantBookingFlowService:
             }
 
         pricing = get_pricing_service(db)
-        from porterchain_api.merchant_engine.quote_snapshot import (
-            sanitize_pricing_breakdown,
-        )
+        from porterchain_api.merchant_engine.quote_snapshot import sanitize_pricing_breakdown
 
         meta = breakdown.metadata if isinstance(breakdown.metadata, dict) else {}
         routing_source = meta.get("routing_source")
@@ -264,9 +248,7 @@ class MerchantBookingFlowService:
         if not draft:
             return None
         meta = (draft.pricing_breakdown or {}).get("_merchant", {})
-        from porterchain_api.merchant_engine.quote_snapshot import (
-            sanitize_pricing_breakdown,
-        )
+        from porterchain_api.merchant_engine.quote_snapshot import sanitize_pricing_breakdown
 
         return {
             "draft_id": draft.id,
@@ -430,9 +412,7 @@ class MerchantBookingFlowService:
     @staticmethod
     def _confirm_payload(settings: Settings, order: Order, preview: dict[str, Any]) -> dict[str, Any]:
         from porterchain_api.domain.sandbox import order_is_sandbox
-        from porterchain_api.merchant_engine.consignee_notify import (
-            consignee_email_from_order,
-        )
+        from porterchain_api.merchant_engine.consignee_notify import consignee_email_from_order
         from porterchain_api.merchant_engine.tracking_service import public_track_url
 
         email = consignee_email_from_order(order)
@@ -549,3 +529,7 @@ class MerchantBookingFlowService:
 
     def list_recipients(self, db: Session, ctx: MerchantContext):
         return self._profile.list_recipients(db, ctx)
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata  # noqa: E402, F401
+from porterchain_api.schemas import UpdateBookingDraftRequest  # noqa: E402, F401

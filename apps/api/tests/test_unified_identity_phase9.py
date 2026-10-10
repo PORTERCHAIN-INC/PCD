@@ -31,10 +31,7 @@ from porterchain_api.auth.dependencies import (
     require_all_permissions,
     require_permission,
 )
-from porterchain_api.auth.identity_fk_backfill import (
-    PROFILE_TARGETS,
-    _is_skippable_clerk_id,
-)
+from porterchain_api.auth.identity_fk_backfill import PROFILE_TARGETS, _is_skippable_clerk_id
 from porterchain_api.auth.unified_catalog import (
     AssignableRole,
     UnifiedPermission,
@@ -43,6 +40,7 @@ from porterchain_api.auth.unified_catalog import (
     permissions_for_roles,
 )
 from porterchain_api.config import Settings
+
 
 # --- Matrix checklist (asserted by test_phase9_matrix_inventory) ---
 

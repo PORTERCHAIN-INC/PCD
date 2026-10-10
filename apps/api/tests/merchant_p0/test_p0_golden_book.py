@@ -15,9 +15,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.schemas_merchant import (

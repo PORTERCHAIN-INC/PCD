@@ -25,4 +25,4 @@ class AdminClaimsService(
     """Unified claims service composed from domain mixins."""
 
 
-__all__ = ["CLAIM_TYPES", "AdminClaimsService", "ClaimFilters", "claim_number"]
+__all__ = ["AdminClaimsService", "ClaimFilters", "CLAIM_TYPES", "claim_number"]

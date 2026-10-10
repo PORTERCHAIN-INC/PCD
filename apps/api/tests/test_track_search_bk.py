@@ -9,12 +9,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from porterchain_api.auth.merchant import get_merchant_context
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
-from porterchain_api.booking_models import Order
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
@@ -27,6 +23,7 @@ from porterchain_api.merchant_engine.tracking_service import (
     tracking_error_message,
 )
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.booking_models import Order
 
 
 def _addr(street: str = "1 King St W, Toronto") -> dict:

@@ -43,9 +43,7 @@ def admin_graphql(
             json={"query": query, "variables": variables or {}},
         )
     if response.status_code >= 400:
-        from porterchain_api.merchant_engine.shopify_tokens import (
-            token_rejection_reason,
-        )
+        from porterchain_api.merchant_engine.shopify_tokens import token_rejection_reason
 
         # 403 is both "missing scope" and "non-expiring token refused": keep which one.
         reason = token_rejection_reason(response.status_code, response.text)

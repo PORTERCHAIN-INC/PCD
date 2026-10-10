@@ -2,30 +2,24 @@
 
 from fastapi.responses import RedirectResponse, Response
 
-from porterchain_api.admin_engine.orders_service import build_admin_order_filters
-from porterchain_api.merchant_engine.parcel_amend_service import (
-    ParcelAmendError,
-    parcel_amend_http,
-)
 from porterchain_api.reporting.label_service import PackagesRequired
-from porterchain_api.reporting.pod_export import (
-    PodFetchFailed,
-    PodUnavailable,
-    pod_error_message,
-)
+from porterchain_api.admin_engine.orders_service import build_admin_order_filters
+from porterchain_api.merchant_engine.parcel_amend_service import ParcelAmendError, parcel_amend_http
+from porterchain_api.reporting.pod_export import PodFetchFailed, PodUnavailable, pod_error_message
+from porterchain_api.schemas_merchant import OrderParcelsPatchRequest, OrderParcelsPatchResponse
 from porterchain_api.routers.admin._deps import (
     AdminContext,
-    AdminCreateOrderRequest,
-    AdminCreateOrderResponse,
     Annotated,
     Depends,
     HTTPException,
+    AdminCreateOrderRequest,
+    AdminCreateOrderResponse,
     OrderBulkRequest,
+    OrderTemperatureRequest,
     OrderDashboardResponse,
     OrderDetail360Response,
     OrderListItem,
     OrderListPage,
-    OrderTemperatureRequest,
     Query,
     Session,
     Settings,
@@ -35,10 +29,6 @@ from porterchain_api.routers.admin._deps import (
     get_settings,
     require_module,
     router,
-)
-from porterchain_api.schemas_merchant import (
-    OrderParcelsPatchRequest,
-    OrderParcelsPatchResponse,
 )
 
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
@@ -362,9 +352,7 @@ def order_shopify_repush_fulfillment(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     """Manually re-push Shopify fulfillment / tracking for a Shopify order."""
-    from porterchain_api.admin_engine.shopify_control_service import (
-        repush_shopify_fulfillment,
-    )
+    from porterchain_api.admin_engine.shopify_control_service import repush_shopify_fulfillment
 
     try:
         require_module(ctx, "orders_write")

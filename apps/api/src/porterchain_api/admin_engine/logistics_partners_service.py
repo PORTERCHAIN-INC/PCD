@@ -158,20 +158,14 @@ class LogisticsPartnersService:
         return leg, order, partner
 
     def job_sheet_pdf(self, db: Session, leg_id: str) -> tuple[bytes, str]:
-        from porterchain_api.admin_engine.partner_job_sheet import (
-            render_pdf,
-            sheet_facts,
-        )
+        from porterchain_api.admin_engine.partner_job_sheet import render_pdf, sheet_facts
 
         leg, order, partner = self._leg(db, leg_id)
         return render_pdf(sheet_facts(order, leg, partner)), f"job-sheet-{order.order_number}.pdf"
 
     def draft_request(self, db: Session, ctx: Any, leg_id: str) -> dict[str, Any]:
         """Build (never send) the partner email; stored on the leg for the admin to copy."""
-        from porterchain_api.admin_engine.partner_job_sheet import (
-            email_draft,
-            sheet_facts,
-        )
+        from porterchain_api.admin_engine.partner_job_sheet import email_draft, sheet_facts
 
         leg, order, partner = self._leg(db, leg_id)
         draft = email_draft(sheet_facts(order, leg, partner), partner.contact_email if partner else None)
@@ -204,10 +198,7 @@ class LogisticsPartnersService:
 
     def retention_put(self, db: Session, ctx: Any, raw: dict[str, Any]) -> dict[str, Any]:
         from porterchain_api.admin_models import SystemConfig
-        from porterchain_api.dispatch_engine.retention import (
-            STORAGE_KEY,
-            normalize_retention,
-        )
+        from porterchain_api.dispatch_engine.retention import STORAGE_KEY, normalize_retention
 
         role = getattr(getattr(ctx, "role", None), "value", str(getattr(ctx, "role", "")))
         if role not in {"super_admin", "admin"}:

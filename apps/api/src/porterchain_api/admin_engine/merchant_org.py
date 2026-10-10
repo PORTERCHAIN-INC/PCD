@@ -5,20 +5,15 @@ from __future__ import annotations
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.pricing_versioning import bump_price_version
+from porterchain_api.merchant_engine.offboard import billing_context
 from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
+from porterchain_api.merchant_models import Merchant, MerchantRecipient, MerchantUser, SavedAddress
+from porterchain_api.admin_engine.pricing_versioning import bump_price_version
 from porterchain_api.domain.pricing_version import (
     SUPER_ADMIN_ONLY,
     assert_pricing_editor,
     is_super_admin,
-)
-from porterchain_api.merchant_engine.offboard import billing_context
-from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
-from porterchain_api.merchant_models import (
-    Merchant,
-    MerchantRecipient,
-    MerchantUser,
-    SavedAddress,
 )
 from porterchain_api.schemas_merchant import RecipientResponse, SavedAddressResponse
 
@@ -150,9 +145,7 @@ def after_admin_write(db: Session, ctx: AdminContext, merchant_id: str, writer, 
 
 def validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
     """M-6: preferred vehicles must be ⊆ enabled retail catalog."""
-    from porterchain_api.domain.retail_vehicles import (
-        validate_preferred_vehicles as _validate,
-    )
+    from porterchain_api.domain.retail_vehicles import validate_preferred_vehicles as _validate
 
     return _validate(db, preferred)
 
@@ -1013,9 +1006,7 @@ def test_webhook(
     *,
     encryption_key: str,
 ) -> dict:
-    from porterchain_api.merchant_engine.integrations_service import (
-        MerchantIntegrationsService,
-    )
+    from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
 
     seat = admin_merchant_context(db, merchant_id, ctx)
     result = MerchantIntegrationsService().test_webhook(

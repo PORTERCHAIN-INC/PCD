@@ -26,7 +26,7 @@ PREDICTIVE_WEIGHT = 0.35
 _PRIOR_TTL_SEC = 300.0
 
 _cache_at: float = 0.0
-_cache_priors: ScorePriors | None = None
+_cache_priors: "ScorePriors | None" = None
 
 
 @dataclass(frozen=True)

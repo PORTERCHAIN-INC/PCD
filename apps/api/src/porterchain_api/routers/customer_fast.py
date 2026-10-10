@@ -219,11 +219,9 @@ class AddressRequest(BaseModel):
 
 
 def _me(db: Session, claims: ClerkClaims, settings: Settings):
-    from porterchain_api.auth.customer import require_customer
+    from porterchain_api.customer_fast.account import ensure_customer
 
-    customer = require_customer(db, claims, settings)
-    db.commit()
-    return customer
+    return ensure_customer(db, claims, settings)
 
 
 @router.get("/customers/me/deliveries")

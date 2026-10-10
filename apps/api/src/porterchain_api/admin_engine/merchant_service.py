@@ -6,28 +6,19 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog
-from porterchain_api.auth.clerk_registry import (
-    clerk_client_for_kind,
-    is_clerk_secret_configured,
-)
+from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.lifecycle import merge_profile, set_status
 from porterchain_api.merchant_engine.lookups import (
     get_merchant as lookup_merchant,
-)
-from porterchain_api.merchant_engine.lookups import (
     get_merchant_by_email,
     get_merchant_user_by_email,
     get_seat,
     get_seat_by_clerk,
-    seats_for_merchant,
-)
-from porterchain_api.merchant_engine.lookups import (
     list_merchants as lookup_list_merchants,
-)
-from porterchain_api.merchant_engine.lookups import (
     list_subsidiaries as lookup_subsidiaries,
+    seats_for_merchant,
 )
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
 from porterchain_api.merchant_engine.team_service import (
@@ -180,9 +171,7 @@ class AdminMerchantService:
         return merchant
 
     def approve_merchant(self, db: Session, ctx: AdminContext, merchant_id: str) -> Any:
-        from porterchain_api.admin_engine.merchant_lifecycle import (
-            approve_merchant as approve_compose,
-        )
+        from porterchain_api.admin_engine.merchant_lifecycle import approve_merchant as approve_compose
 
         merchant = approve_compose(self, db, ctx, merchant_id)
         db.commit()
@@ -191,9 +180,7 @@ class AdminMerchantService:
         return merchant
 
     def suspend_merchant(self, db: Session, ctx: AdminContext, merchant_id: str) -> Any:
-        from porterchain_api.admin_engine.merchant_lifecycle import (
-            suspend_merchant as suspend_compose,
-        )
+        from porterchain_api.admin_engine.merchant_lifecycle import suspend_merchant as suspend_compose
 
         merchant = suspend_compose(self, db, ctx, merchant_id)
         db.commit()
@@ -213,9 +200,7 @@ class AdminMerchantService:
         return merchant
 
     def reopen_merchant(self, db: Session, ctx: AdminContext, merchant_id: str) -> Any:
-        from porterchain_api.admin_engine.merchant_lifecycle import (
-            reopen_merchant as reopen_compose,
-        )
+        from porterchain_api.admin_engine.merchant_lifecycle import reopen_merchant as reopen_compose
 
         merchant = reopen_compose(self, db, ctx, merchant_id)
         db.commit()
@@ -231,9 +216,7 @@ class AdminMerchantService:
         *,
         reason: str,
     ) -> Any:
-        from porterchain_api.admin_engine.merchant_lifecycle import (
-            close_merchant as close_merchant_compose,
-        )
+        from porterchain_api.admin_engine.merchant_lifecycle import close_merchant as close_merchant_compose
 
         merchant = close_merchant_compose(self, db, ctx, merchant_id, reason=reason)
         db.commit()
@@ -250,9 +233,7 @@ class AdminMerchantService:
         owner_email: str | None = None,
         write_off_ar: bool = False,
     ) -> dict:
-        from porterchain_api.admin_engine.merchant_lifecycle import (
-            convert_to_customer as convert_compose,
-        )
+        from porterchain_api.admin_engine.merchant_lifecycle import convert_to_customer as convert_compose
 
         result = convert_compose(
             self, db, ctx, merchant_id, owner_email_value=owner_email, write_off_ar=write_off_ar
@@ -421,9 +402,7 @@ class AdminMerchantService:
         *,
         email: str | None = None,
     ) -> Any:
-        from porterchain_api.admin_engine.merchant_lifecycle import (
-            complete_onboarding as complete_compose,
-        )
+        from porterchain_api.admin_engine.merchant_lifecycle import complete_onboarding as complete_compose
 
         merchant, err = complete_compose(self, db, ctx, settings, merchant_id, email=email)
         db.commit()
@@ -465,9 +444,7 @@ class AdminMerchantService:
 
     @staticmethod
     def _validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
-        from porterchain_api.admin_engine.merchant_org import (
-            validate_preferred_vehicles,
-        )
+        from porterchain_api.admin_engine.merchant_org import validate_preferred_vehicles
 
         return validate_preferred_vehicles(db, preferred)
 

@@ -4,7 +4,7 @@ Keeps existing imports and D2 contract path checks working while the
 implementation lives in the control_tower package.
 """
 
-from porterchain_api.admin_engine.control_tower import (
+from porterchain_api.admin_engine.control_tower import (  # noqa: F401
     BOARD_COLUMN_TARGET,
     BOARD_EXECUTION_COLUMNS,
     CARD_CAP,

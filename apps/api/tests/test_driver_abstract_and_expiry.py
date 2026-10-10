@@ -12,9 +12,7 @@ from porterchain_api.admin_models import Driver
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.driver_engine.abstract_service import DriverAbstractService
-from porterchain_api.driver_engine.compliance_expiry_service import (
-    DriverComplianceExpiryService,
-)
+from porterchain_api.driver_engine.compliance_expiry_service import DriverComplianceExpiryService
 
 
 def _driver(db: Session) -> Driver:

@@ -18,11 +18,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, OrderEvent
-from porterchain_api.customer_experience.context import (
-    cx_meta,
-    merchant_for,
-    update_cx_meta,
-)
+from porterchain_api.customer_experience.context import cx_meta, merchant_for, update_cx_meta
 from porterchain_api.customer_experience.settings import cx_for_merchant
 
 logger = logging.getLogger(__name__)
@@ -34,9 +30,7 @@ CONTRACT_FLAG = "contract_failed_delivery_rules_not_modelled"
 def price_leg(db: Session, order: Order, merchant: Any, *, leg: str) -> dict[str, Any]:
     """Quote a re-attempt (pickup -> drop-off again) or return (drop-off -> pickup)."""
     try:
-        from porterchain_api.merchant_engine.booking_service import (
-            MerchantBookingService,
-        )
+        from porterchain_api.merchant_engine.booking_service import MerchantBookingService
         from porterchain_api.merchant_engine.return_service import return_body
         from porterchain_api.pricing_engine import get_pricing_service
 
@@ -111,9 +105,7 @@ def record_failure(db: Session, order: Order) -> dict[str, Any] | None:
     )
     db.flush()
     if decision["action"] == "return_to_sender":
-        from porterchain_api.booking_engine.order_transitions import (
-            transition_order_state,
-        )
+        from porterchain_api.booking_engine.order_transitions import transition_order_state
         from porterchain_api.domain.states import OrderState
 
         transition_order_state(

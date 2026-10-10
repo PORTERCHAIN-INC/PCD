@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings
+from porterchain_shared.redis_health import ping_redis
 
 
 def _routing_health() -> str:
@@ -46,8 +46,8 @@ def _routing_health() -> str:
 def _queue_health() -> dict:
     """Report Redis queue depths and worker heartbeat (DD-04)."""
     try:
-        from porterchain_shared.queue.names import QueueName
         from porterchain_shared.redis_client import get_redis_client
+        from porterchain_shared.queue.names import QueueName
 
         client = get_redis_client()
         depths = {q.value: int(client.llen(q.redis_key)) for q in QueueName}
@@ -77,10 +77,7 @@ def readiness(db: Session, settings: Settings) -> dict:
     checks["redis"] = "ok" if ping_redis() else "unavailable"
     checks["routing"] = _routing_health()
     try:
-        from porterchain_api.auth.clerk_registry import (
-            clerk_configuration_mode,
-            clerk_health_checks,
-        )
+        from porterchain_api.auth.clerk_registry import clerk_configuration_mode, clerk_health_checks
 
         clerk_apps = clerk_health_checks(settings)
         clerk_mode = clerk_configuration_mode(settings)
@@ -100,12 +97,11 @@ def readiness(db: Session, settings: Settings) -> dict:
     checks["dispatch"] = "porterchain"
 
     try:
-        from porterchain_shared.config.settings import get_platform_settings
-
         from porterchain_api.notification_engine.fcm_service import (
             firebase_production_ready,
             firebase_sdk_available,
         )
+        from porterchain_shared.config.settings import get_platform_settings
 
         platform = get_platform_settings()
         if not platform.push_enabled:
@@ -136,9 +132,7 @@ def readiness(db: Session, settings: Settings) -> dict:
     }
 
     try:
-        from porterchain_api.merchant_engine.webhook_delivery_health import (
-            assess_merchant_webhook_delivery,
-        )
+        from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery
 
         merchant_webhooks = assess_merchant_webhook_delivery(db)
         checks["merchant_webhook_delivery"] = (

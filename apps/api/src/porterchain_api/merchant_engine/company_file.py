@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from porterchain_api.domain.catalog_labels import MERCHANT_STATUS_LABELS, merchant_status_label
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.rbac import parse_merchant_role
 from porterchain_api.merchant_models import Merchant
@@ -88,3 +89,7 @@ def completeness_payload(merchant: Merchant | None, *, can_edit: bool) -> dict[s
 def signup_url(merchant_portal_url: str | None) -> str:
     base = (merchant_portal_url or "http://localhost:3001").rstrip("/")
     return f"{base}/sign-up"
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.domain.catalog_labels import merchant_status_label  # noqa: E402, F401
+from porterchain_api.domain.catalog_labels import MERCHANT_STATUS_LABELS  # noqa: E402, F401

@@ -7,8 +7,8 @@ no PorterChain VROOM client, admin action channel stubs.
 
 from __future__ import annotations
 
-import ast
 import asyncio
+import ast
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch

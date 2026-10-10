@@ -34,8 +34,8 @@ from porterchain_api.booking_engine.order_sla import (
     resolve_sla_deadline,
 )
 from porterchain_api.booking_engine.order_transitions import transition_order_state
-from porterchain_api.booking_models import Order, OrderException
 from porterchain_api.domain.states import OrderState
+from porterchain_api.booking_models import Order, OrderException
 from porterchain_api.order_engine.buckets import (
     BOARD_COLUMNS,
     DELIVERY_LEG,

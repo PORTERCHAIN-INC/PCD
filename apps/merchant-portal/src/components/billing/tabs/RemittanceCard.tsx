@@ -65,8 +65,8 @@ export function RemittanceCard({
         </li>
       </ol>
       <p className="mt-6 text-xs leading-relaxed text-white/80">
-        Pay to {remittance.payee.replace(/\.$/, "")}. Part payments are applied; anything extra becomes credit on your
-        next invoice.
+        Pay to {remittance.payee.replace(/\.$/, "")}. Part payments are applied; anything extra
+        becomes credit on your next invoice.
         {remittance.advice_email ? ` Receipts go to ${remittance.advice_email}.` : ""}
       </p>
     </section>

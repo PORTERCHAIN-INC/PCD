@@ -17,10 +17,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.auth.clerk_client import ClerkInviteResult
-from porterchain_api.auth.clerk_registry import (
-    clerk_client_for_kind,
-    is_clerk_secret_configured,
-)
+from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.invitation_models import UserInvitation
@@ -126,9 +123,7 @@ class InvitationService:
         clerk_result = clerk.invite_user(normalized, redirect_url=redirect, public_metadata=metadata)
         if clerk_result.clerk_user_id:
             customer.clerk_user_id = clerk_result.clerk_user_id
-            from porterchain_api.auth.authz_sync import (
-                sync_authz_after_persona_mutation,
-            )
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
             sync_authz_after_persona_mutation(db, clerk_result.clerk_user_id)
         invitation = self._record_invitation(

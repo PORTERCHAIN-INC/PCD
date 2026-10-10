@@ -1,11 +1,11 @@
 """Backward-compatible re-export — prefer `support_engine.claims_service`."""
 
-from porterchain_api.support_engine.claims_service import *
+from porterchain_api.support_engine.claims_service import *  # noqa: F403
 from porterchain_api.support_engine.claims_service import (
-    CLAIM_TYPES,
     AdminClaimsService,
     ClaimFilters,
+    CLAIM_TYPES,
     claim_number,
 )
 
-__all__ = ["CLAIM_TYPES", "AdminClaimsService", "ClaimFilters", "claim_number"]
+__all__ = ["AdminClaimsService", "ClaimFilters", "CLAIM_TYPES", "claim_number"]

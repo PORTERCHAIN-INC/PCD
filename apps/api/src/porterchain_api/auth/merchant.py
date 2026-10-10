@@ -6,12 +6,8 @@ from typing import Annotated, Any
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
+from porterchain_api.auth.dev import allow_auth_dev_bypass, is_dev_bypass_subject, is_merchant_dev_subject
 from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
-from porterchain_api.auth.dev import (
-    allow_auth_dev_bypass,
-    is_dev_bypass_subject,
-    is_merchant_dev_subject,
-)
 from porterchain_api.auth.email_identity import (
     CLERK_EMAIL_REQUIRED,
     CLERK_EMAIL_UNVERIFIED,
@@ -24,10 +20,7 @@ from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantStatus
 from porterchain_api.merchant_engine.lookups import get_merchant, seats_for_clerk
-from porterchain_api.merchant_engine.portal_signup import (
-    claim_pending_seats_for_clerk,
-    first_open_seat,
-)
+from porterchain_api.merchant_engine.portal_signup import claim_pending_seats_for_clerk, first_open_seat
 from porterchain_api.merchant_engine.provision import ensure_dev_merchant_seat
 from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
 
@@ -96,10 +89,7 @@ def get_merchant_context(
     # SpiceDB ReBAC: organization#portal required — fail closed when unprovisioned.
     # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
     if not is_dev_bypass_subject(claims.clerk_user_id):
-        from porterchain_api.auth.dependencies import (
-            assert_organization_scope,
-            resolve_principal_for_claims,
-        )
+        from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
 
         principal = resolve_principal_for_claims(db, claims)
         if not principal:

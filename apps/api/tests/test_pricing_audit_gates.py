@@ -11,19 +11,11 @@ import pytest
 
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_models import (
-    Merchant,
-    MerchantUser,
-    SavedAddress,
-    ShopifyRateQuote,
-    ShopifyShop,
-)
+from porterchain_api.merchant_models import Merchant, MerchantUser, SavedAddress, ShopifyRateQuote, ShopifyShop
 from porterchain_api.schemas import AddressInput, CreateQuoteRequest
 from porterchain_api.schemas_merchant import AddressInput as MerchantAddressInput
 from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
@@ -139,10 +131,7 @@ def test_preview_returns_fsa_refused(db, settings):
 
 def test_admin_order_builder_raises_fsa_refused(db, settings):
     from porterchain_api.admin_engine.order_builder_service import OrderBuilderService
-    from porterchain_api.schemas_admin import (
-        AdminCreateOrderRequest,
-        AdminOrderStopInput,
-    )
+    from porterchain_api.schemas_admin import AdminCreateOrderRequest, AdminOrderStopInput
 
     ctx = _merchant_ctx(db)
     db.commit()
@@ -193,8 +182,9 @@ def test_retail_dropoff_outside_service_area(db, settings):
     with patch(
         "porterchain_api.admin_engine.platform_settings.address_in_coverage",
         side_effect=lambda db, **kw: "M5X" in (kw.get("postal") or "").upper(),
-    ), pytest.raises(ValueError) as exc:
-        QuoteService()._price_body(db, settings, body)
+    ):
+        with pytest.raises(ValueError) as exc:
+            QuoteService()._price_body(db, settings, body)
     assert str(exc.value) == "dropoff_outside_service_area"
 
 

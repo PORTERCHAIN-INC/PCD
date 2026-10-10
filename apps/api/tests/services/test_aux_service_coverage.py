@@ -7,16 +7,14 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 from porterchain_api.billing_engine.settlement_service import SettlementService
+from porterchain_api.booking_engine.draft_reconciliation_service import BookingDraftReconciliationService
 from porterchain_api.booking_draft_models import BookingDraft
-from porterchain_api.booking_engine.draft_reconciliation_service import (
-    BookingDraftReconciliationService,
-)
 from porterchain_api.domain.states import BookingDraftState
 from porterchain_api.driver_engine.api_service import DriverApiService
 from porterchain_api.driver_engine.auth_service import DriverAuthService
 from porterchain_api.driver_engine.onboarding_service import evaluate_driver_onboarding
-from porterchain_api.notification_engine.device_service import DeviceService
 from porterchain_api.notification_engine.preference_service import PreferenceService
+from porterchain_api.notification_engine.device_service import DeviceService
 from porterchain_api.services.stripe_service import handle_checkout_completed
 
 

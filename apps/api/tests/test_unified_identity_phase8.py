@@ -5,13 +5,13 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.auth.identity_fk_backfill import (
     PROFILE_TARGETS,
     BackfillAction,
     _is_skippable_clerk_id,
     resolve_porterchain_user_id,
 )
+from porterchain_api.admin_models import AdminUser, Driver
 from porterchain_api.booking_models import Customer
 from porterchain_api.invitation_models import UserInvitation
 from porterchain_api.merchant_models import MerchantUser

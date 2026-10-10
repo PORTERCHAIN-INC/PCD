@@ -9,10 +9,7 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.merchant_api import (
-    MerchantApiKeyContext,
-    get_merchant_api_context,
-)
+from porterchain_api.auth.merchant_api import MerchantApiKeyContext, get_merchant_api_context
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus

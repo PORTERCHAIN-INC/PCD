@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from porterchain_driver.next_stop import NextStopResolver, mask_phone
 from porterchain_driver.stop_exceptions import (
     MAX_DELIVERY_ATTEMPTS,
@@ -40,7 +41,7 @@ def _order() -> SimpleNamespace:
 
 def _svc_order(order: SimpleNamespace) -> StopsService:
     svc = StopsService()
-    svc._order_for_stop = MagicMock(return_value=order)
+    svc._order_for_stop = MagicMock(return_value=order)  # noqa: SLF001
     return svc
 
 

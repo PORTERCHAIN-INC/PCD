@@ -5,7 +5,7 @@ import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ops } from "@/lib/operations";
-import { dispatch, type DispatchExceptionItem } from "@/lib/dispatch";
+import { dispatch, type DispatchExceptionItem, type ExceptionFix } from "@/lib/dispatch";
 
 const SEVERITY_DOT: Record<string, string> = {
   critical: "bg-red-600",
@@ -23,12 +23,20 @@ const LABEL: Record<string, string> = {
   lost: "Lost",
   return: "Return to sender",
   claim: "Claim open",
+  margin: "Below margin floor",
 };
+
+const money = (c: number) => `$${(c / 100).toFixed(2)}`;
 
 function label(i: DispatchExceptionItem): string {
   if (i.kind === "exception") {
     if (i.type === "DRIVER_TIMEOUT") return "No driver accepted";
-    return i.type.toLowerCase().replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());
+    if (i.type === "package_short_at_drop") return "Short delivery — box missing at drop";
+    if (i.type === "package_missing") return "Box missing at pickup";
+    return i.type
+      .toLowerCase()
+      .replaceAll("_", " ")
+      .replace(/^\w/, (c) => c.toUpperCase());
   }
   return LABEL[i.kind] ?? i.type;
 }
@@ -45,7 +53,14 @@ function Row({
   const { getApiToken } = useAdminAuth();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const canOffer = item.kind === "unassigned" || item.type === "DRIVER_TIMEOUT";
+  const [confirm, setConfirm] = useState<ExceptionFix | null>(null);
+  const [top, ...more] = item.fixes ?? [];
+  const canOffer = !top && (item.kind === "unassigned" || item.type === "DRIVER_TIMEOUT");
+  const apply = (fix: ExceptionFix) =>
+    run(
+      (t) => dispatch.applyFix(t, item, fix),
+      fix.action === "reroute" ? "Re-plan drafted — commit it on Plan" : "Applied"
+    );
 
   const run = async (fn: (t: string) => Promise<unknown>, done: string) => {
     setBusy(true);
@@ -62,7 +77,10 @@ function Row({
 
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
-      <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", SEVERITY_DOT[item.severity])} aria-hidden />
+      <span
+        className={cn("h-2.5 w-2.5 shrink-0 rounded-full", SEVERITY_DOT[item.severity])}
+        aria-hidden
+      />
       <span className="sr-only">{item.severity}</span>
       <button
         type="button"
@@ -73,10 +91,51 @@ function Row({
         <span className="block truncate text-xs text-muted">
           {item.order_number} · {item.state.replaceAll("_", " ").toLowerCase()}
           {item.age_min != null ? ` · ${item.age_min}m` : ""}
-          {item.eta ? ` · ETA ${new Date(item.eta).toLocaleTimeString("en-CA", { hour: "2-digit", minute: "2-digit" })}` : ""}
+          {item.eta
+            ? ` · ETA ${new Date(item.eta).toLocaleTimeString("en-CA", { hour: "2-digit", minute: "2-digit" })}`
+            : ""}
+          {item.kind === "margin" && item.price_cents != null && item.cost_cents != null
+            ? ` · ${money(item.price_cents)} price · ${money(item.cost_cents)} cost · ${item.margin_pct}% vs ${item.floor_pct}% floor`
+            : ""}
         </span>
+        {top && (
+          <span className="mt-0.5 block truncate text-xs text-secondary">
+            Suggested: {top.label} — {top.why}
+          </span>
+        )}
       </button>
       <div className="flex shrink-0 gap-2">
+        {top && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => (confirm === top ? apply(top) : setConfirm(top))}
+            className="min-h-10 rounded-xl bg-secondary px-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {confirm === top ? "Confirm" : "Apply"}
+          </button>
+        )}
+        {more.length > 0 && (
+          <details className="relative">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center rounded-xl border border-primary/15 px-3 text-sm font-medium text-primary">
+              More
+            </summary>
+            <div className="absolute right-0 z-10 mt-1 w-60 rounded-xl border border-primary/10 bg-white p-1 shadow-lg">
+              {more.map((f) => (
+                <button
+                  key={f.action}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => (confirm === f ? apply(f) : setConfirm(f))}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-primary hover:bg-primary/5"
+                >
+                  {confirm === f ? `Confirm: ${f.label}` : f.label}
+                  <span className="block text-xs text-muted">{f.why}</span>
+                </button>
+              ))}
+            </div>
+          </details>
+        )}
         {canOffer && (
           <button
             type="button"
@@ -127,7 +186,9 @@ export function ExceptionsQueue({
         </span>
       </header>
       {data?.eta === "unavailable" && (
-        <p className="px-4 pb-2 text-xs text-amber-800">Live ETAs unavailable — late/at-risk not checked.</p>
+        <p className="px-4 pb-2 text-xs text-amber-800">
+          Live ETAs unavailable — late/at-risk not checked.
+        </p>
       )}
       {error && <p className="px-4 pb-3 text-sm text-red-700">{error}</p>}
       {loading && !data ? <p className="px-4 pb-4 text-sm text-muted">Loading…</p> : null}

@@ -5,15 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from porterchain_api.merchant_engine.address_normalize import (
-    compose_raw_from_parts,
-    normalize_address,
-)
-from porterchain_api.merchant_engine.stop_cargo import (
-    clean_packages,
-    legacy_cargo,
-    write_legacy_cargo,
-)
+from porterchain_api.merchant_engine.address_normalize import compose_raw_from_parts, normalize_address
+from porterchain_api.merchant_engine.stop_cargo import clean_packages, legacy_cargo, write_legacy_cargo
 
 _KG_PER_LB = 0.45359237
 _CM_PER_IN = 2.54

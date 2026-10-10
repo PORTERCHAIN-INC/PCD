@@ -8,11 +8,7 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 
 from porterchain_api.auth.merchant import get_merchant_context
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Invoice, Order
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
@@ -26,6 +22,7 @@ from porterchain_api.merchant_engine.billing_pack import (
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import Merchant, MerchantUser
+from porterchain_api.booking_models import Invoice, Order
 
 
 def test_billing_copy() -> None:

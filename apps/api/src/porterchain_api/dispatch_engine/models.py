@@ -1,21 +1,11 @@
-"""Dispatch-owned tables: job offers, fleet plans/routes, partners and order legs."""
+"""Dispatch-owned tables: job offers, plans/routes, partners, legs, check-ins, stop times, fixes."""
 
 from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import (
-    Boolean,
-    Date,
-    DateTime,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    func,
-)
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -144,4 +134,36 @@ class DispatchStopEvent(Base):
     lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     accuracy_m: Mapped[float | None] = mapped_column(Float, nullable=True)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Offline driver apps send a client id per queued action; a replay is a no-op.
+    client_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
+class DispatchStopTime(Base):
+    """Learned service time (median seconds on site) per FSA or exact place, per pickup/drop."""
+
+    __tablename__ = "dispatch_stop_times"
+    __table_args__ = (UniqueConstraint("scope", "scope_key", "kind", name="uq_dispatch_stop_times_key"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    scope: Mapped[str] = mapped_column(String(8))  # fsa | place
+    scope_key: Mapped[str] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String(8))  # pickup | drop
+    median_s: Mapped[int] = mapped_column(Integer)
+    samples: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class DispatchFixAction(Base):
+    """An exception fix an admin approved and applied (audit of one-click fixes)."""
+
+    __tablename__ = "dispatch_fix_actions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    item_id: Mapped[str] = mapped_column(String(96), index=True)
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
+    action: Mapped[str] = mapped_column(String(16))  # reroute | reassign | reschedule | contact
+    params: Mapped[dict] = mapped_column(JSON, default=dict)
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    approved_by: Mapped[str] = mapped_column(String(128))
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

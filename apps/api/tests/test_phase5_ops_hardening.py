@@ -4,13 +4,12 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from porterchain_api.intelligence_engine.copilot_service import ALLOWED_ACTIONS
 from porterchain_driver.sequence_store import (
     SequenceConflictError,
     apply_run_to_driver,
     rollback_sequence,
 )
-
-from porterchain_api.intelligence_engine.copilot_service import ALLOWED_ACTIONS
 
 
 def test_apply_run_increments_version_and_is_idempotent() -> None:

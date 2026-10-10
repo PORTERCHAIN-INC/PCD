@@ -299,8 +299,8 @@ class ScanGateService:
         the delivery count. Opens a `package_missing` exception and raises
         `incident.reported` (ops alert), like a stop exception.
         """
-        from porterchain_api.booking_models import OrderException
         from porterchain_api.platform.package_events import emit_package_missing
+        from porterchain_api.booking_models import OrderException
 
         photo = (photo_url or "").strip()
         if not photo:

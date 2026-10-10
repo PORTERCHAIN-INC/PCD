@@ -44,7 +44,9 @@ export default function LeadsPipelineClient() {
           >
             <ArrowLeft className="h-4 w-4" /> Back to inbox
           </Link>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary">
+            Sales
+          </p>
           <h1 className="text-3xl font-extrabold tracking-tight text-primary">Pipeline</h1>
           <p className="text-sm text-slate-600">Leads and deals by stage, highest score first</p>
         </div>
@@ -65,7 +67,10 @@ export default function LeadsPipelineClient() {
       {isLoading ? (
         <InboxSkeleton />
       ) : columns.every((c) => c.count === 0) ? (
-        <EmptyState title="Pipeline is empty" hint="Leads appear here as soon as they arrive; reply or quote to move them along." />
+        <EmptyState
+          title="Pipeline is empty"
+          hint="Leads appear here as soon as they arrive; reply or quote to move them along."
+        />
       ) : (
         <div className="mt-6 flex snap-x gap-3 overflow-x-auto pb-4">
           {columns.map((col) => (
@@ -105,7 +110,12 @@ export default function LeadsPipelineClient() {
                       {card.sla_breached ? <Badge tone="red">SLA</Badge> : null}
                     </div>
                     {card.type === "lead" && typeof card.score === "number" ? (
-                      <p className={cn("mt-1 text-lg font-extrabold tabular-nums", scoreTone(card.score))}>
+                      <p
+                        className={cn(
+                          "mt-1 text-lg font-extrabold tabular-nums",
+                          scoreTone(card.score)
+                        )}
+                      >
                         {card.score}
                       </p>
                     ) : card.secondary ? (

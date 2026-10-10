@@ -7,12 +7,12 @@ those stay the deep suites. This pack wires SSOT IDs for the merchant matrix wav
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from porterchain_shared.config.settings import PlatformSettings
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_probes import DiagnosticsProbesMixin
@@ -24,7 +24,9 @@ from porterchain_api.merchant_engine.booking_validation import (
     BookingValidationError,
     MerchantSyncService,
 )
+from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_models import Merchant
+from porterchain_shared.config.settings import PlatformSettings
 
 from . import REPO_ROOT
 

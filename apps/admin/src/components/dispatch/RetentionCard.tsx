@@ -5,7 +5,8 @@ import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { dispatch, type Retention, type RetentionRun } from "@/lib/dispatch";
 
-const NUM = "w-full min-w-0 rounded-lg border border-primary/15 bg-white px-2 py-1.5 text-sm tabular-nums text-primary";
+const NUM =
+  "w-full min-w-0 rounded-lg border border-primary/15 bg-white px-2 py-1.5 text-sm tabular-nums text-primary";
 
 export function RetentionCard({ tick }: { tick: number }) {
   const { getApiToken } = useAdminAuth();
@@ -30,11 +31,14 @@ export function RetentionCard({ tick }: { tick: number }) {
   };
 
   return (
-    <section className="rounded-2xl border border-primary/10 bg-white p-4" data-testid="dispatch-retention">
+    <section
+      className="rounded-2xl border border-primary/10 bg-white p-4"
+      data-testid="dispatch-retention"
+    >
       <h2 className="text-base font-semibold text-primary">Data retention</h2>
       <p className="text-xs text-muted">
-        GPS breadcrumbs are deleted after the limit. Proof-of-delivery references are redacted after the claims window.
-        Runs daily.
+        GPS breadcrumbs are deleted after the limit. Proof-of-delivery references are redacted after
+        the claims window. Runs daily.
       </p>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <label className="text-xs text-muted">
@@ -60,7 +64,11 @@ export function RetentionCard({ tick }: { tick: number }) {
           />
         </label>
         <label className="flex items-end gap-2 text-xs text-muted">
-          <input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={draft.enabled}
+            onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })}
+          />
           Daily purge on
         </label>
       </div>
@@ -76,7 +84,10 @@ export function RetentionCard({ tick }: { tick: number }) {
         <button
           type="button"
           onClick={() =>
-            act(async (t) => setRun(await dispatch.runRetention(t, true)), "Dry run — nothing deleted")
+            act(
+              async (t) => setRun(await dispatch.runRetention(t, true)),
+              "Dry run — nothing deleted"
+            )
           }
           className="min-h-10 rounded-xl border border-primary/15 px-3 text-sm font-medium text-primary"
         >
@@ -87,10 +98,13 @@ export function RetentionCard({ tick }: { tick: number }) {
       {run && (
         <p className="mt-2 text-sm text-primary" data-testid="retention-preview">
           {run.dry_run ? "Preview: " : "Purged: "}
-          <b className="tabular-nums">{run.gps_pings}</b> GPS ping(s), <b className="tabular-nums">{run.pod_refs}</b> POD
-          reference(s) and <b className="tabular-nums">{run.pod_files ?? 0}</b> photo file(s) (
+          <b className="tabular-nums">{run.gps_pings}</b> GPS ping(s),{" "}
+          <b className="tabular-nums">{run.pod_refs}</b> POD reference(s) and{" "}
+          <b className="tabular-nums">{run.pod_files ?? 0}</b> photo file(s) (
           {((run.pod_file_bytes ?? 0) / 1_000_000).toFixed(1)} MB) past the limits
-          {run.dry_run ? " — nothing deleted." : ` — ${run.pod_files_deleted ?? 0} file(s) deleted.`}
+          {run.dry_run
+            ? " — nothing deleted."
+            : ` — ${run.pod_files_deleted ?? 0} file(s) deleted.`}
         </p>
       )}
     </section>

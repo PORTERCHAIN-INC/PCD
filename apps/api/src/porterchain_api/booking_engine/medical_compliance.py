@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
@@ -12,8 +11,9 @@ from porterchain_api.booking_engine.compliance_metadata import (
     append_temperature_reading,
     is_temperature_excursion,
 )
-from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import Order
+from porterchain_shared.events.catalog import DomainEventType
 
 
 class MedicalComplianceService:

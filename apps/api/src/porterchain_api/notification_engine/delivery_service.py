@@ -9,21 +9,17 @@ from datetime import UTC, datetime
 from email.message import EmailMessage
 from typing import Any
 
-from porterchain_shared.config.settings import get_platform_settings
-
-from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.db import SessionLocal
+from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.notification_engine.device_service import DeviceService
-from porterchain_api.notification_engine.fcm_service import FCMService
 from porterchain_api.notification_engine.internal_inbox_mail import (
     normalize_recipient,
     record_internal_inbox_skip,
 )
-from porterchain_api.notification_engine.models import (
-    NotificationDeliveryLog,
-    NotificationRecord,
-)
+from porterchain_api.notification_engine.fcm_service import FCMService
+from porterchain_api.notification_engine.models import NotificationDeliveryLog, NotificationRecord
 from porterchain_api.notification_engine.templates import render_email, render_template
+from porterchain_shared.config.settings import get_platform_settings
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +67,7 @@ class DeliveryService:
                 {**context, "is_sandbox": True},
             )
         if channel == "email" and template == "lead_sla_escalation":
-            from porterchain_api.notification_engine.staff_fanout import (
-                ops_watch_emails,
-            )
+            from porterchain_api.notification_engine.staff_fanout import ops_watch_emails
 
             address = (recipient or "").strip().lower()
             watch = ops_watch_emails()
@@ -188,12 +182,8 @@ class DeliveryService:
                 db.close()
 
         from porterchain_api.notification_engine.engine import get_notification_engine
-        from porterchain_api.notification_engine.preference_service import (
-            PreferenceService,
-        )
-        from porterchain_api.notification_engine.user_settings import (
-            UserSettingsService,
-        )
+        from porterchain_api.notification_engine.preference_service import PreferenceService
+        from porterchain_api.notification_engine.user_settings import UserSettingsService
 
         prefs = PreferenceService()
         quiet = UserSettingsService()
@@ -254,7 +244,7 @@ class DeliveryService:
                     )
                     return
             db.rollback()
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception("channel fallback failed")
             db.rollback()
         finally:

@@ -14,8 +14,7 @@ from porterchain_api.routers.driver._deps import (
     get_settings,
     require_approved_driver,
     router,
-    svc,
-)
+    svc)
 
 _NOT_WAITING = "This job is no longer waiting to be accepted."
 

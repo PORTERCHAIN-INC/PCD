@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_shared.config.settings import PlatformSettings
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk_registry import is_clerk_configured
 from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
 from porterchain_api.platform.health_status import normalize_check_status
+from porterchain_shared.config.settings import PlatformSettings
 
 
 def build_integration_health(

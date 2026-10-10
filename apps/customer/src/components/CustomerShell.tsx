@@ -52,9 +52,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
               </Link>
               <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
                 {NAV.map((item) => {
-                  const active =
-                    pathname === item.href ||
-                    pathname.startsWith(`${item.href}/`);
+                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
                   return (
                     <Link
                       key={item.href}
@@ -98,9 +96,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
         >
           <ul className="mx-auto grid max-w-md grid-cols-3 items-end gap-1">
             {MOBILE_TABS.map((tab) => {
-              const active =
-                pathname === tab.href ||
-                pathname.startsWith(`${tab.href}/`);
+              const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
               const Icon = tab.icon;
               if ("primary" in tab && tab.primary) {
                 return (
@@ -124,10 +120,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
                       active ? "text-primary" : "text-primary/60"
                     )}
                   >
-                    <Icon
-                      className="h-5 w-5"
-                      strokeWidth={active ? 2.4 : 2}
-                    />
+                    <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
                     {tab.label}
                   </Link>
                 </li>

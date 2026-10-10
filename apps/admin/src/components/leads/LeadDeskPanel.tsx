@@ -50,7 +50,13 @@ export default function LeadDeskPanel({
     setError("");
     try {
       const d = await leadsApi.draft(await getApiToken(), lead.id, preferred, true);
-      onPrefill({ channel: d.channel, subject: d.subject, body: d.body, attachQuote: d.with_quote, nonce: Date.now() });
+      onPrefill({
+        channel: d.channel,
+        subject: d.subject,
+        body: d.body,
+        attachQuote: d.with_quote,
+        nonce: Date.now(),
+      });
       document.getElementById("lead-reply")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "draft_failed");
@@ -99,7 +105,9 @@ export default function LeadDeskPanel({
                   <Send className="h-4 w-4" aria-hidden />
                   {busy === "quote" ? "Preparing…" : "Send quote"}
                 </button>
-                <span className="text-xs text-slate-300">Fills the reply with price + booking link. You press Send.</span>
+                <span className="text-xs text-slate-300">
+                  Fills the reply with price + booking link. You press Send.
+                </span>
               </div>
             </>
           ) : (
@@ -110,9 +118,14 @@ export default function LeadDeskPanel({
         </section>
 
         {/* Fit score */}
-        <section aria-label="Lead score" className="rounded-3xl border border-primary/10 bg-white p-6 lg:col-span-2">
+        <section
+          aria-label="Lead score"
+          className="rounded-3xl border border-primary/10 bg-white p-6 lg:col-span-2"
+        >
           <div className="flex items-baseline justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Fit score</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Fit score
+            </p>
             <p className={cn("text-4xl font-extrabold tabular-nums", tone)}>
               {s}
               <span className="text-base font-semibold text-slate-500">/100</span>
@@ -184,7 +197,8 @@ export function LostReasonMenu({ lead }: { lead: Lead }) {
   if (lead.status === "lost") {
     return (
       <span className="text-xs font-semibold text-slate-600">
-        Lost · {LOST_REASONS.find((r) => r.key === lead.lost_reason)?.label ?? lead.lost_reason ?? "—"}
+        Lost ·{" "}
+        {LOST_REASONS.find((r) => r.key === lead.lost_reason)?.label ?? lead.lost_reason ?? "—"}
       </span>
     );
   }

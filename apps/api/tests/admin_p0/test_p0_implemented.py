@@ -13,7 +13,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from porterchain_api.main import app
-
 from . import REPO_ROOT, case_by_id, cases
 
 ADMIN_SRC = REPO_ROOT / "apps" / "admin" / "src"
@@ -72,7 +71,7 @@ def test_ui_mer_003_no_hard_delete_merchant_route() -> None:
 @pytest.mark.tc_id("UI-PRC-002")
 def test_ui_prc_002_no_google_distance_matrix_in_quote_pricing() -> None:
     """Quote/pricing distance must not call Google Distance Matrix."""
-    private = re.compile(r"google\.maps\.DistanceMatrix|distancematrix|maps/api/distancematrix", re.IGNORECASE)
+    private = re.compile(r"google\.maps\.DistanceMatrix|distancematrix|maps/api/distancematrix", re.I)
     hits: list[str] = []
     for engine in ("pricing_engine", "booking_engine", "admin_engine"):
         root = API_SRC / engine
@@ -102,7 +101,7 @@ def test_ui_sys_008_admin_ui_no_direct_fleetbase_http() -> None:
     """
     import_re = re.compile(
         r"""(?:^|\n)\s*(?:from|import)\s+['"](?:@?socketcluster(?:-client)?|fleetbase-js|@fleetbase/)""",
-        re.IGNORECASE,
+        re.I,
     )
     url_re = re.compile(r"https?://[^\s\"']*fleetbase\.[a-z]+|socketcluster://", re.IGNORECASE)
     hits: list[str] = []
@@ -220,7 +219,7 @@ def test_db_009_no_floating_postgres_latest() -> None:
             if "node_modules" in path.parts:
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
-            if re.search(r"postgres(?:ql)?[:/][^\s\"']*latest", text, re.IGNORECASE) or "postgres:alpine" in text:
+            if re.search(r"postgres(?:ql)?[:/][^\s\"']*latest", text, re.I) or "postgres:alpine" in text:
                 hits.append(str(path.relative_to(REPO_ROOT)))
     assert hits == [], f"floating postgres tags: {sorted(set(hits))}"
 
@@ -242,7 +241,7 @@ def test_arc_002_mailpit_not_mailhog() -> None:
         for path in INFRA.rglob("*compose*.yml"):
             compose_blob += path.read_text(encoding="utf-8", errors="ignore")
     # Allow docs saying "not Mailhog"; forbid mailhog image/service pins.
-    if re.search(r"image:\s*[^\n]*mailhog", compose_blob, re.IGNORECASE):
+    if re.search(r"image:\s*[^\n]*mailhog", compose_blob, re.I):
         pytest.fail("Mailhog image still pinned in compose")
     if "mailpit" in compose_blob.lower() or "axllent/mailpit" in compose_blob.lower():
         return

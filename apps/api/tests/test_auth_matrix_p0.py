@@ -166,8 +166,9 @@ def test_dr_auth_005_driver_portal_requires_provisioning() -> None:
     with patch(
         "porterchain_api.auth.portal_guard.load_persona_bundle",
         return_value=_persona(customer=True),
-    ), pytest.raises(HTTPException) as exc:
-        assert_clerk_id_exclusive(db, claims, portal="driver", settings=_settings())
+    ):
+        with pytest.raises(HTTPException) as exc:
+            assert_clerk_id_exclusive(db, claims, portal="driver", settings=_settings())
     assert exc.value.status_code == 403
     assert exc.value.detail == "driver_user_not_provisioned"
 

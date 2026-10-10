@@ -1,12 +1,12 @@
 from datetime import date, datetime
 from typing import Annotated, Any, Literal
 
+from pydantic import BaseModel, Field, field_validator
 from porterchain_pricing.policy import (
     COMPACT_DEFAULT_PARCELS_PER_STOP,
     COMPACT_DEFAULT_ROUTE_MINIMUM_CENTS,
     CompactSchedule,
 )
-from pydantic import BaseModel, Field, field_validator
 
 BlogTag = Annotated[str, Field(max_length=40)]
 
@@ -517,6 +517,7 @@ class OrderDetail360Response(OrderListItem):
     api_activity: list[dict[str, Any]] = Field(default_factory=list)
     duplicates: list[dict[str, Any]] = Field(default_factory=list)
     smart: dict[str, Any] = Field(default_factory=dict)
+    status_sync: dict[str, Any] = Field(default_factory=dict)
 
 
 class AssignDriverRequest(BaseModel):

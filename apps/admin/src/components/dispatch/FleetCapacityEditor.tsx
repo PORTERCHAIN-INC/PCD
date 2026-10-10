@@ -5,7 +5,8 @@ import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { dispatch, type FleetCapacity, type FleetVehicle } from "@/lib/dispatch";
 
-const NUM = "w-full min-w-0 rounded-lg border border-primary/15 bg-white px-2 py-1.5 text-sm tabular-nums text-primary";
+const NUM =
+  "w-full min-w-0 rounded-lg border border-primary/15 bg-white px-2 py-1.5 text-sm tabular-nums text-primary";
 
 export function FleetCapacityEditor({ tick }: { tick: number }) {
   const { getApiToken } = useAdminAuth();
@@ -21,7 +22,10 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
   if (!draft) return <p className="text-sm text-muted">Loading fleet…</p>;
 
   const setVehicle = (i: number, patch: Partial<FleetVehicle>) =>
-    setDraft({ ...draft, vehicles: draft.vehicles.map((v, j) => (j === i ? { ...v, ...patch } : v)) });
+    setDraft({
+      ...draft,
+      vehicles: draft.vehicles.map((v, j) => (j === i ? { ...v, ...patch } : v)),
+    });
 
   const save = async () => {
     setState("Saving…");
@@ -38,10 +42,11 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
       <header className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-semibold text-primary">Vehicle capacity</h2>
         <p className="text-xs text-muted">
-          Recommendation picks the smallest vehicle at or under {Math.round(draft.max_fill * 100)}% full.
+          Smallest vehicle at or under {Math.round(draft.max_fill * 100)}% full by weight, volume
+          and boxes.
         </p>
       </header>
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <label className="text-xs text-muted">
           Driver cost $/hr
           <input
@@ -50,7 +55,9 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
             min={0}
             step={0.5}
             value={draft.hourly_cost_cents / 100}
-            onChange={(e) => setDraft({ ...draft, hourly_cost_cents: Math.round(Number(e.target.value) * 100) })}
+            onChange={(e) =>
+              setDraft({ ...draft, hourly_cost_cents: Math.round(Number(e.target.value) * 100) })
+            }
           />
         </label>
         <label className="text-xs text-muted">
@@ -84,6 +91,17 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
             onChange={(e) => setDraft({ ...draft, at_risk_minutes: Number(e.target.value) })}
           />
         </label>
+        <label className="text-xs text-muted">
+          Margin floor %
+          <input
+            className={NUM}
+            type="number"
+            min={0}
+            max={90}
+            value={draft.margin_floor_pct}
+            onChange={(e) => setDraft({ ...draft, margin_floor_pct: Number(e.target.value) })}
+          />
+        </label>
       </div>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[520px] text-sm">
@@ -91,7 +109,7 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
             <tr className="text-left text-xs text-muted">
               <th className="py-1.5 pr-2 font-medium">Vehicle</th>
               <th className="py-1.5 pr-2 font-medium">Max kg</th>
-              <th className="py-1.5 pr-2 font-medium">Max m³</th>
+              <th className="py-1.5 pr-2 font-medium">Max ft³</th>
               <th className="py-1.5 pr-2 font-medium">Max boxes</th>
               <th className="py-1.5 font-medium">On</th>
             </tr>
@@ -101,16 +119,44 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
               <tr key={v.id} className="border-t border-primary/5">
                 <td className="py-2 pr-2 font-medium text-primary">{v.label}</td>
                 <td className="py-2 pr-2">
-                  <input aria-label={`${v.label} max kg`} className={NUM} type="number" min={1} value={v.max_kg} onChange={(e) => setVehicle(i, { max_kg: Number(e.target.value) })} />
+                  <input
+                    aria-label={`${v.label} max kg`}
+                    className={NUM}
+                    type="number"
+                    min={1}
+                    value={v.max_kg}
+                    onChange={(e) => setVehicle(i, { max_kg: Number(e.target.value) })}
+                  />
                 </td>
                 <td className="py-2 pr-2">
-                  <input aria-label={`${v.label} max cubic metres`} className={NUM} type="number" min={0.1} step={0.1} value={v.max_m3} onChange={(e) => setVehicle(i, { max_m3: Number(e.target.value) })} />
+                  <input
+                    aria-label={`${v.label} max cubic feet`}
+                    className={NUM}
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={v.max_ft3}
+                    onChange={(e) => setVehicle(i, { max_ft3: Number(e.target.value) })}
+                  />
                 </td>
                 <td className="py-2 pr-2">
-                  <input aria-label={`${v.label} max boxes`} className={NUM} type="number" min={1} value={v.max_boxes} onChange={(e) => setVehicle(i, { max_boxes: Number(e.target.value) })} />
+                  <input
+                    aria-label={`${v.label} max boxes`}
+                    className={NUM}
+                    type="number"
+                    min={1}
+                    value={v.max_boxes}
+                    onChange={(e) => setVehicle(i, { max_boxes: Number(e.target.value) })}
+                  />
                 </td>
                 <td className="py-2">
-                  <input aria-label={`${v.label} enabled`} type="checkbox" className="h-5 w-5 accent-[var(--secondary)]" checked={v.enabled} onChange={(e) => setVehicle(i, { enabled: e.target.checked })} />
+                  <input
+                    aria-label={`${v.label} enabled`}
+                    type="checkbox"
+                    className="h-5 w-5 accent-[var(--secondary)]"
+                    checked={v.enabled}
+                    onChange={(e) => setVehicle(i, { enabled: e.target.checked })}
+                  />
                 </td>
               </tr>
             ))}
@@ -118,7 +164,11 @@ export function FleetCapacityEditor({ tick }: { tick: number }) {
         </table>
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <button type="button" onClick={save} className="min-h-10 rounded-xl border border-primary/15 px-4 text-sm font-semibold text-primary">
+        <button
+          type="button"
+          onClick={save}
+          className="min-h-10 rounded-xl border border-primary/15 px-4 text-sm font-semibold text-primary"
+        >
           Save capacity
         </button>
         {state && <span className="text-xs text-muted">{state}</span>}

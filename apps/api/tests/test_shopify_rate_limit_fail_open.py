@@ -34,17 +34,18 @@ def test_webhook_fail_open_when_redis_down_still_requires_hmac(db) -> None:
     with patch(
         "porterchain_api.routers.shopify.check_fixed_window",
         return_value=(False, 0, "redis down"),
-    ), patch("porterchain_api.routers.shopify.incr_rate_limit_unavailable") as bump:
-        res = client.post(
-            "/v1/integrations/shopify/webhooks",
-            content=b'{"id":1}',
-            headers={
-                "X-Shopify-Shop-Domain": "acme.myshopify.com",
-                "X-Shopify-Topic": "orders/create",
-                "X-Shopify-Hmac-Sha256": "bad",
-                "Content-Type": "application/json",
-            },
-        )
+    ):
+        with patch("porterchain_api.routers.shopify.incr_rate_limit_unavailable") as bump:
+            res = client.post(
+                "/v1/integrations/shopify/webhooks",
+                content=b'{"id":1}',
+                headers={
+                    "X-Shopify-Shop-Domain": "acme.myshopify.com",
+                    "X-Shopify-Topic": "orders/create",
+                    "X-Shopify-Hmac-Sha256": "bad",
+                    "Content-Type": "application/json",
+                },
+            )
     assert res.status_code == 401
     bump.assert_called()
 

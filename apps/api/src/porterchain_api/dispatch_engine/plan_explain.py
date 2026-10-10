@@ -12,12 +12,12 @@ import json
 import re
 from typing import Any
 
-_EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[a-z]{2,}", re.IGNORECASE)
+_EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[a-z]{2,}", re.I)
 _PHONE = re.compile(r"(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}")
-_POSTAL = re.compile(r"\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b", re.IGNORECASE)
-_STREET = re.compile(r"\b\d{1,5}\s+[A-Za-z][A-Za-z .'-]{2,}\b(?:St|Ave|Rd|Dr|Blvd|Cres|Ct|Way|Lane|Ln|Pkwy)\b", re.IGNORECASE)
-_UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
-_ORDER_NO = re.compile(r"\b(?:ORD|PC)-\d{8}-[0-9A-F]+\b", re.IGNORECASE)
+_POSTAL = re.compile(r"\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b", re.I)
+_STREET = re.compile(r"\b\d{1,5}\s+[A-Za-z][A-Za-z .'-]{2,}\b(?:St|Ave|Rd|Dr|Blvd|Cres|Ct|Way|Lane|Ln|Pkwy)\b", re.I)
+_UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
+_ORDER_NO = re.compile(r"\b(?:ORD|PC)-\d{8}-[0-9A-F]+\b", re.I)
 
 
 class PiiLeak(ValueError):

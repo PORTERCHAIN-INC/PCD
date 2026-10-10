@@ -18,8 +18,8 @@ class TrackingTranslator:
         return {
             "state": None,
             "location": {"lat": lat, "lng": lng} if (lat is not None and lng is not None) else None,
-            "eta": raw.get("eta"),
-            "distance_remaining_m": raw.get("distance_remaining"),
-            "last_updated": raw.get("recorded_at") or raw.get("last_updated"),
+            "eta": raw.get("eta") or raw.get("estimated_arrival"),
+            "distance_remaining_m": raw.get("distance") or raw.get("distance_remaining"),
+            "last_updated": raw.get("updated_at") or raw.get("last_updated"),
             "activity": [],
         }

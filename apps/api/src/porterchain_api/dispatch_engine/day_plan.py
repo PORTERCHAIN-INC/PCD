@@ -219,10 +219,7 @@ def queue_one_van(payload: dict[str, Any]) -> dict[str, Any]:
     """Store one van's stops and let the worker search. This does not search."""
     from uuid import uuid4
 
-    from porterchain_api.dispatch_engine.optimize_run_store import (
-        enqueue_optimize_job,
-        write_optimize_run,
-    )
+    from porterchain_api.dispatch_engine.optimize_run_store import enqueue_optimize_job, write_optimize_run
 
     run_id = str(uuid4())
     rec = {

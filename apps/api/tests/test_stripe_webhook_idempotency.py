@@ -11,13 +11,9 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_engine.booking_service import BookingService
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.booking_engine.stripe_webhook_service import StripeWebhookService
-from porterchain_api.booking_models import DomainEvent, Order, Payment
 from porterchain_api.config import Settings
-from porterchain_api.schemas import (
-    AddressInput,
-    CreateQuoteRequest,
-    WebsitePricingSnapshot,
-)
+from porterchain_api.booking_models import DomainEvent, Order, Payment
+from porterchain_api.schemas import AddressInput, CreateQuoteRequest, WebsitePricingSnapshot
 
 
 def _setup_quote(db: Session, settings: Settings):

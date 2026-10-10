@@ -58,7 +58,7 @@
     "validate:golden-rules": "python3 scripts/verify_golden_rules.py && python3 scripts/verify_engineering_gates.py && python3 scripts/verify_load_query_plan.py && python3 scripts/verify_dispatch_worker.py && python3 scripts/verify_stripe_webhook_idempotency_table.py",
     "validate:masterrule-layer": "python3 scripts/verify_masterrule_layer_audit.py",
     "validate:gta150-fsa": "python3 scripts/verify_gta150_fsa_sync.py",
-    "validate:architecture": "python3 scripts/verify_no_ops_spatial_math.py && python3 scripts/verify_architecture_boundaries.py && python3 scripts/openapi_census.py && python3 scripts/verify_vendor_leaves.py && python3 scripts/verify_model_ownership.py && python3 scripts/verify_api_stateless.py && python3 scripts/verify_db_pool.py && python3 scripts/verify_fleetbase_sync_slo.py && python3 scripts/verify_managed_postgres.py && python3 scripts/verify_masterrule_layer_audit.py && python3 scripts/verify_integrations_matrix.py && python3 scripts/verify_api_readme_openapi.py && python3 scripts/verify_doc_pointer_stubs.py && pnpm validate:gta150-fsa",
+    "validate:architecture": "python3 scripts/verify_no_ops_spatial_math.py && python3 scripts/verify_architecture_boundaries.py && python3 scripts/openapi_census.py && python3 scripts/verify_vendor_leaves.py && python3 scripts/verify_model_ownership.py && python3 scripts/verify_api_stateless.py && python3 scripts/verify_db_pool.py && python3 scripts/verify_day_plan_scorecard.py && python3 scripts/verify_managed_postgres.py && python3 scripts/verify_masterrule_layer_audit.py && python3 scripts/verify_integrations_matrix.py && python3 scripts/verify_api_readme_openapi.py && python3 scripts/verify_doc_pointer_stubs.py && pnpm validate:gta150-fsa",
     "validate:integrations-matrix": "python3 scripts/verify_integrations_matrix.py",
     "validate:ci": "bash scripts/run-ci-gates.sh",
     "validate:precommit": "pnpm format:check && pnpm validate:d2",
@@ -118,7 +118,7 @@
     "load:booking": "k6 run tests/load/booking.js",
     "load:webhooks": "k6 run tests/load/webhooks.js",
     "prepare": "husky",
-    "validate:fleetbase-first": "python3 scripts/verify_no_ops_spatial_math.py",
+    "validate:dispatch-guard": "python3 scripts/verify_no_ops_spatial_math.py",
     "validate:dispatch-spatial": "python3 scripts/verify_no_ops_spatial_math.py",
     "validate:website-sitemap-live": "python3 scripts/verify_sitemap_indexable.py"
   },

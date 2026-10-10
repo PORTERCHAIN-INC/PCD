@@ -12,21 +12,17 @@ from porterchain_api.admin_engine.control_tower_service import ControlTowerServi
 from porterchain_api.admin_engine.dispatch_suggestions_service import (
     DispatchSuggestionsService,
 )
-from porterchain_api.admin_engine.dispatcher_copilot_service import (
-    DispatcherCopilotService,
-)
 from porterchain_api.admin_engine.live_map_service import LiveMapService
+from porterchain_api.admin_engine.dispatcher_copilot_service import DispatcherCopilotService
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
-from porterchain_api.admin_engine.rbac import AdminContext, require_module
-from porterchain_api.admin_engine.scheduled_batches_service import (
-    ScheduledBatchesService,
-)
+from porterchain_api.admin_engine.scheduled_batches_service import ScheduledBatchesService
 from porterchain_api.admin_engine.utilization_service import UtilizationService
+from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.config import Settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
+from porterchain_api.config import Settings
 from porterchain_api.routers.admin._deps import _order_item, get_settings
 from porterchain_api.schemas_admin import (
     AssignDriverRequest,
@@ -296,9 +292,7 @@ def copilot_llm_suggest(
     db: Session = Depends(get_db),
 ) -> dict:
     """Phase-2 LLM ops suggestions via NVIDIA NIM when configured (read-only)."""
-    from porterchain_api.intelligence_engine.copilot_service import (
-        suggest_ops_action_committed,
-    )
+    from porterchain_api.intelligence_engine.copilot_service import suggest_ops_action_committed
 
     def _run():
         flags = {

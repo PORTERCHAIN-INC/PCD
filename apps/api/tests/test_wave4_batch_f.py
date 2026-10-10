@@ -9,10 +9,7 @@ import pytest
 
 from porterchain_api.admin_engine.control_tower.scoring import hard_filter_driver
 from porterchain_api.domain.merchant_states import MerchantRole
-from porterchain_api.merchant_engine.team_service import (
-    assert_not_last_owner,
-    ensure_merchant_seat,
-)
+from porterchain_api.merchant_engine.team_service import assert_not_last_owner, ensure_merchant_seat
 
 
 def test_ensure_seat_rejects_invalid_role() -> None:
@@ -104,9 +101,7 @@ def test_rebook_uses_quote_vehicle() -> None:
 
 
 def test_assign_customer_reference_retries_collision() -> None:
-    from porterchain_api.booking_engine.confirmation_service import (
-        BookingConfirmationService,
-    )
+    from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
 
     customer = SimpleNamespace(id="c1", customer_reference=None)
     db = MagicMock()

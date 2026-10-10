@@ -9,13 +9,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.auth.account_lifecycle import activate_pending_user
 from porterchain_api.auth.email_identity import (
     emails_match,
     normalize_email,
     unlink_email_mismatched_bindings,
 )
 from porterchain_api.auth.identity import AuthenticatedIdentity
+from porterchain_api.auth.account_lifecycle import activate_pending_user
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.unified_catalog import (
     AccountStatus,
@@ -80,7 +80,7 @@ class EnsureUserService:
                 TupleWriter().sync_user_from_profiles(db, user)
                 if commit:
                     db.commit()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.exception("spicedb_tuple_sync_failed user_id=%s", user.id)
         try:
             from porterchain_api.auth.principal_cache import cache_invalidate
@@ -128,7 +128,7 @@ class EnsureUserService:
                 from porterchain_api.authz.tuples import TupleWriter
 
                 TupleWriter().revoke_all_for_user(db, user)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.exception("spicedb_revoke_on_deactivate_failed user_id=%s", user.id)
         for link in db.query(IdentityLink).filter(IdentityLink.clerk_user_id == clerk_user_id).all():
             link.is_current = False

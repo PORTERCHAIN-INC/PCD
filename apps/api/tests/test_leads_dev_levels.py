@@ -35,12 +35,8 @@ from porterchain_api.domain.crm_states import (
 from porterchain_api.main import app
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.routers.admin import leads as leads_mod
-from porterchain_api.schemas_crm import (
-    LeadConvertRequest,
-    LeadCreate,
-    LeadOut,
-    LeadUpdate,
-)
+from porterchain_api.schemas_crm import LeadConvertRequest, LeadCreate, LeadOut, LeadUpdate
+
 
 # --------------------------------------------------------------------------- #
 # Fixtures

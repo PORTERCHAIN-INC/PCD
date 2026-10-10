@@ -2,13 +2,17 @@
 
 Check-ins are stored per plan stop key with GPS, move the order through the normal
 state machine (walking intermediate states), refresh the driver's live position (ETA),
-and feed re-planning (finished stop keys).
+and feed re-planning (finished stop keys) and learned stop times.
+
+Offline apps queue actions with a ``client_id``; replaying one is a no-op. Picked up /
+delivered need every box scanned (``scan_gate``) unless the driver reports a short drop,
+which opens a ``package_short_at_drop`` exception (the missing-item alert).
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Callable
 
 from sqlalchemy.orm import Session
 
@@ -19,6 +23,8 @@ DONE_EVENTS = {"picked_up", "delivered"}
 CHAIN = ["DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP", "PICKED_UP",
          "IN_TRANSIT", "AT_DESTINATION", "DELIVERED"]
 POD_KINDS = {"drop", "return_drop"}
+#: ``(order, "pickup" | "delivery") -> {"complete", "missing_suffixes", "scanned", "required"}``
+ScanGate = Callable[[Any, str], dict[str, Any]]
 
 
 def place(key: str) -> str:
@@ -138,11 +144,14 @@ class DriverRouteService:
 
     def check_in(self, db: Session, driver: Any, *, keys: list[str], event: str, lat: float | None = None,
                  lng: float | None = None, accuracy_m: float | None = None, note: str | None = None,
-                 pod_photo: str | None = None, now: datetime | None = None) -> dict[str, Any]:
+                 pod_photo: str | None = None, client_id: str | None = None, short_reason: str | None = None,
+                 scan_gate: ScanGate | None = None, now: datetime | None = None) -> dict[str, Any]:
         from porterchain_api.booking_models import Order
         from porterchain_api.dispatch_engine.models import DispatchStopEvent
 
         now = now or datetime.now(UTC)
+        if client_id and db.query(DispatchStopEvent.id).filter(DispatchStopEvent.client_id == client_id).first():
+            return {"ok": True, "replayed": True, "moved": [], **self.view(db, driver.id)}
         route = self.current_route(db, driver.id)
         if route is None:
             raise LookupError("no_committed_route")
@@ -160,16 +169,24 @@ class DriverRouteService:
         if order is None or order.assigned_driver_id != driver.id:
             raise PermissionError("order_not_assigned_to_driver")
 
+        if event in DONE_EVENTS and scan_gate is not None and stop["kind"] in PICKUP_KINDS | POD_KINDS:
+            phase = "pickup" if stop["kind"] in PICKUP_KINDS else "delivery"
+            progress = scan_gate(order, phase)
+            if not progress.get("complete"):
+                if phase == "pickup" or not short_reason:
+                    raise PermissionError(f"scan_required:{phase}:" + ",".join(progress.get("missing_suffixes") or []))
+                self._short_alert(db, order, driver.id, progress, short_reason)
         if event == "delivered" and stop["kind"] in POD_KINDS and not self._has_photo(db, order.id):
             if not pod_photo:
                 raise PermissionError("pod_required:photo")
         if pod_photo:
             self._save_pod(db, order.id, driver.id, pod_photo)
 
-        for k in keys:
+        for i, k in enumerate(keys):
             db.add(DispatchStopEvent(route_id=route.id, stop_key=k, order_id=order.id, driver_id=driver.id,
                                      event=event, lat=lat, lng=lng, accuracy_m=accuracy_m,
-                                     note=(note or None) and note[:500], at=now))
+                                     note=(note or None) and note[:500], at=now,
+                                     client_id=(client_id if i == 0 else f"{client_id}:{i}") if client_id else None))
         db.flush()
         moved = self._advance(db, route, order, stop["kind"], event, driver.id, keys)
         if lat is not None and lng is not None:
@@ -179,9 +196,7 @@ class DriverRouteService:
 
     def _advance(self, db: Session, route: Any, order: Any, kind: str, event: str, driver_id: str,
                  keys: list[str]) -> list[str]:
-        from porterchain_api.booking_engine.order_transitions import (
-            transition_order_state,
-        )
+        from porterchain_api.booking_engine.order_transitions import transition_order_state
         from porterchain_api.domain.states import OrderState
 
         payload = {"route_id": route.id, "stop_keys": keys, "source": "dispatch_checkin"}
@@ -208,6 +223,18 @@ class DriverRouteService:
         if all_done(DROP_KINDS, "delivered"):
             return walk_to(db, order, "DELIVERED", driver_id=driver_id, payload=payload)
         return walk_to(db, order, "AT_DESTINATION", driver_id=driver_id, payload=payload)
+
+    @staticmethod
+    def _short_alert(db: Session, order: Any, driver_id: str, progress: dict[str, Any], reason: str) -> None:
+        from porterchain_api.booking_models import OrderException
+
+        db.add(OrderException(
+            order_id=order.id, type="package_short_at_drop", status="open", reported_by_type="driver",
+            reported_by_id=driver_id,
+            evidence={"phase": "delivery", "missing_suffixes": progress.get("missing_suffixes") or [],
+                      "scanned": progress.get("scanned"), "required": progress.get("required"),
+                      "reason": reason.strip()[:200]},
+        ))
 
     @staticmethod
     def _has_photo(db: Session, order_id: str) -> bool:

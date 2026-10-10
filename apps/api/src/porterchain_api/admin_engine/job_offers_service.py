@@ -13,7 +13,7 @@ drives the driver push exactly as a manual assign does.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -25,11 +25,11 @@ OPEN = "pending"
 
 
 def _now() -> datetime:
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 def _aware(ts: datetime) -> datetime:
-    return ts if ts.tzinfo else ts.replace(tzinfo=UTC)
+    return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
 
 
 def serialize(o: DispatchJobOffer, *, now: datetime | None = None) -> dict[str, Any]:
@@ -216,14 +216,10 @@ class JobOffersService:
 
     @staticmethod
     def _assign(db: Session, offer: DispatchJobOffer) -> None:
-        from porterchain_api.admin_engine.operations_service import (
-            AdminOperationsService,
-        )
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
         from porterchain_api.admin_engine.rbac import AdminContext
         from porterchain_api.admin_models import AdminUser
-        from porterchain_api.booking_engine.order_transitions import (
-            transition_order_state,
-        )
+        from porterchain_api.booking_engine.order_transitions import transition_order_state
         from porterchain_api.booking_models import Order
         from porterchain_api.domain.admin_states import AdminRole
         from porterchain_api.domain.states import OrderState

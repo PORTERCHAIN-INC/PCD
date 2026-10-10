@@ -8,22 +8,25 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from porterchain_api.admin_models import MerchantContract
 from porterchain_api.billing_engine.ar import MerchantAr, merchant_ar
 from porterchain_api.billing_engine.merchant_service import (
     BILLING_CYCLES,
     billing_period_bounds,
+    build_tax_summary,
     effective_payment_terms,
     invoice_status,
     merchant_uses_stripe,
     net_terms_days,
     outstanding_cents,
+    rows_to_csv,
     serialize_invoice_row,
 )
 from porterchain_api.billing_engine.models import BillingLedgerEntry
-from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState
-from porterchain_api.merchant_engine import reporting_metrics as report_engine
 from porterchain_api.merchant_engine.rbac import MerchantContext
+from porterchain_api.booking_models import Invoice, Order, Payment
+from porterchain_api.merchant_engine import reporting_metrics as report_engine
 
 
 class MerchantBillingService:
@@ -200,13 +203,15 @@ class MerchantBillingService:
 
     def invoice_detail(self, db: Session, ctx: MerchantContext, invoice_id: str) -> dict[str, Any]:
         """Full merchant SOT for one invoice: lines, channel, pricing_model, quote, payability."""
+        from datetime import UTC, datetime
 
         from porterchain_api.billing_engine.ar import aging_bucket
+        from porterchain_api.billing_engine.models import InvoiceLine
         from porterchain_api.billing_engine.merchant_service import (
             invoice_due_date,
             invoice_total_cents,
         )
-        from porterchain_api.billing_engine.models import InvoiceLine
+        from porterchain_api.merchant_models import ShopifyRateQuote
 
         row = (
             db.query(Invoice, Order)
@@ -301,9 +306,7 @@ class MerchantBillingService:
             "amount_paid_cents": int(getattr(inv, "amount_paid_cents", 0) or 0),
         }
         try:
-            from porterchain_api.merchant_engine.commerce_metrics import (
-                check_invoice_detail_consistency,
-            )
+            from porterchain_api.merchant_engine.commerce_metrics import check_invoice_detail_consistency
 
             mismatches = check_invoice_detail_consistency(detail)
             detail["ar_consistency"] = {"ok": not mismatches, "reasons": mismatches}
@@ -314,9 +317,7 @@ class MerchantBillingService:
     def _channel_for_order(self, order: Order | None) -> str | None:
         if not order:
             return None
-        from porterchain_api.merchant_engine.reporting_metrics import (
-            channel_for_order_source,
-        )
+        from porterchain_api.merchant_engine.reporting_metrics import channel_for_order_source
 
         return channel_for_order_source(order.order_source)
 
@@ -411,9 +412,7 @@ class MerchantBillingService:
         invoice_id: str,
     ) -> dict[str, Any]:
         """Create Stripe Checkout for an open invoice (amount locked server-side)."""
-        from porterchain_api.services.stripe_service import (
-            create_invoice_checkout_session,
-        )
+        from porterchain_api.services.stripe_service import create_invoice_checkout_session
 
         row = (
             db.query(Invoice, Order)
@@ -438,9 +437,7 @@ class MerchantBillingService:
             raise ValueError("invoice_not_payable")
 
         try:
-            from porterchain_api.merchant_engine.commerce_metrics import (
-                note_commerce_event,
-            )
+            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
 
             note_commerce_event("invoice_pay", "started")
             note_commerce_event("invoice_pay", "pay_started")  # ops-1 alias
@@ -478,9 +475,7 @@ class MerchantBillingService:
             )
             db.commit()
             try:
-                from porterchain_api.merchant_engine.commerce_metrics import (
-                    note_commerce_event,
-                )
+                from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
 
                 note_commerce_event("invoice_pay", "succeeded_mock")
             except Exception:
@@ -510,9 +505,7 @@ class MerchantBillingService:
         pay.stripe_checkout_session_id = session_id
         db.commit()
         try:
-            from porterchain_api.merchant_engine.commerce_metrics import (
-                note_commerce_event,
-            )
+            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
 
             note_commerce_event("invoice_pay", "checkout_created")
         except Exception:
@@ -536,9 +529,7 @@ class MerchantBillingService:
         """One Checkout for all open invoices (server-locked sum)."""
         from uuid import uuid4
 
-        from porterchain_api.services.stripe_service import (
-            create_invoice_checkout_session,
-        )
+        from porterchain_api.services.stripe_service import create_invoice_checkout_session
 
         open_rows = [
             r
@@ -767,9 +758,7 @@ class MerchantBillingService:
             )
         # Receipt email to billing contact (Mailpit locally).
         try:
-            from porterchain_api.merchant_engine.invoice_reminder import (
-                primary_billing_email,
-            )
+            from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
             from porterchain_api.merchant_models import Merchant
             from porterchain_api.platform.receipt_notify import emit_receipt_generated
 
@@ -801,9 +790,7 @@ class MerchantBillingService:
         except Exception:
             pass
         try:
-            from porterchain_api.merchant_engine.commerce_metrics import (
-                note_commerce_event,
-            )
+            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
 
             note_commerce_event("invoice_pay", "settled")
             note_commerce_event("invoice_pay", "succeeded")  # ops-1 alias
@@ -811,58 +798,42 @@ class MerchantBillingService:
             pass
 
     def list_payments(self, db: Session, ctx: MerchantContext) -> list[dict[str, Any]]:
-        from porterchain_api.merchant_engine.billing_views import (
-            list_payments as _list_payments,
-        )
+        from porterchain_api.merchant_engine.billing_views import list_payments as _list_payments
 
         return _list_payments(self, db, ctx)
 
     def list_credit_notes(self, db: Session, ctx: MerchantContext) -> list[dict[str, Any]]:
-        from porterchain_api.merchant_engine.billing_views import (
-            list_credit_notes as _list_credit_notes,
-        )
+        from porterchain_api.merchant_engine.billing_views import list_credit_notes as _list_credit_notes
 
         return _list_credit_notes(self, db, ctx)
 
     def billing_history(self, db: Session, ctx: MerchantContext) -> list[dict[str, Any]]:
-        from porterchain_api.merchant_engine.billing_views import (
-            billing_history as _billing_history,
-        )
+        from porterchain_api.merchant_engine.billing_views import billing_history as _billing_history
 
         return _billing_history(self, db, ctx)
 
     def tax_summary(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.billing_views import (
-            tax_summary as _tax_summary,
-        )
+        from porterchain_api.merchant_engine.billing_views import tax_summary as _tax_summary
 
         return _tax_summary(self, db, ctx)
 
     def contract_pricing(self, db: Session, ctx: MerchantContext) -> dict[str, Any]:
-        from porterchain_api.merchant_engine.billing_views import (
-            contract_pricing as _contract_pricing,
-        )
+        from porterchain_api.merchant_engine.billing_views import contract_pricing as _contract_pricing
 
         return _contract_pricing(self, db, ctx)
 
     def export_invoices_csv(self, db: Session, ctx: MerchantContext) -> str:
-        from porterchain_api.merchant_engine.billing_views import (
-            export_invoices_csv as _export,
-        )
+        from porterchain_api.merchant_engine.billing_views import export_invoices_csv as _export
 
         return _export(self, db, ctx)
 
     def export_statement_csv(self, db: Session, ctx: MerchantContext) -> str:
-        from porterchain_api.merchant_engine.billing_views import (
-            export_statement_csv as _export,
-        )
+        from porterchain_api.merchant_engine.billing_views import export_statement_csv as _export
 
         return _export(self, db, ctx)
 
     def export_history_csv(self, db: Session, ctx: MerchantContext) -> str:
-        from porterchain_api.merchant_engine.billing_views import (
-            export_history_csv as _export,
-        )
+        from porterchain_api.merchant_engine.billing_views import export_history_csv as _export
 
         return _export(self, db, ctx)
 
@@ -881,3 +852,8 @@ class MerchantBillingService:
 
     def outstanding_balance(self, db: Session, ctx: MerchantContext) -> int:
         return self._ar(db, ctx).outstanding_cents
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.admin_models import MerchantContract  # noqa: E402, F401
+from porterchain_api.billing_engine.merchant_service import build_tax_summary  # noqa: E402, F401
+from porterchain_api.billing_engine.merchant_service import rows_to_csv  # noqa: E402, F401

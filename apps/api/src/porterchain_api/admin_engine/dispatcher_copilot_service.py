@@ -188,9 +188,7 @@ class DispatcherCopilotService:
         driver_id: str,
         modified: bool = False,
     ) -> dict[str, Any]:
-        from porterchain_api.admin_engine.operations_service import (
-            AdminOperationsService,
-        )
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
 
         if not driver_id:
             raise ValueError("driver_id_required")

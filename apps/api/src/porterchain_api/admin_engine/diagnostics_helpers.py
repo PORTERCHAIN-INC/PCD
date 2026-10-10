@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 

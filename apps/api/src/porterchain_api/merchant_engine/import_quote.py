@@ -6,21 +6,18 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from porterchain_pricing import GeoPoint, PricingRequest
-from porterchain_services.maps.route_helpers import multi_stop_route_from_valhalla
-from porterchain_services.maps.service import MapsService
 from sqlalchemy.orm import Session
 
-from porterchain_api.merchant_engine.import_errors import (
-    route_row_error,
-    stop_sheet_row,
-)
+from porterchain_api.merchant_engine.import_errors import route_row_error, stop_sheet_row
 from porterchain_api.merchant_engine.import_geocode import GeocodeResult, geocode_stop
 from porterchain_api.merchant_engine.import_rows import packages_clean
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.service_area import assert_ontario_stop
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.services.routing import resolve_route_distance
+from porterchain_pricing import GeoPoint, PricingRequest
+from porterchain_services.maps.route_helpers import multi_stop_route_from_valhalla
+from porterchain_services.maps.service import MapsService
 
 logger = logging.getLogger(__name__)
 
@@ -199,7 +196,7 @@ def quote_if_ready(
             distance = int(route_geometry["distance_meters"])
             duration_seconds = int(route_geometry.get("duration_seconds") or 0) or duration_seconds
             routing_source = "valhalla"
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.debug("multi-stop Valhalla preview unavailable", exc_info=True)
 
     if scheduled_at:

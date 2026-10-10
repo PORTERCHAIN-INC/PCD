@@ -7,10 +7,7 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.e2e_validation_catalog import (
-    NOTIFICATION_AUDIENCES,
-    ValidationStatus,
-)
+from porterchain_api.admin_engine.e2e_validation_catalog import NOTIFICATION_AUDIENCES, ValidationStatus
 from porterchain_api.admin_engine.e2e_validation_helpers import StepResult
 from porterchain_api.config import Settings
 from porterchain_api.notification_engine.models import NotificationRecord

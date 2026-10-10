@@ -1,13 +1,14 @@
 from functools import lru_cache
 from typing import Self
 
+from pydantic import AliasChoices, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from porterchain_shared.config.project_mode import (
     normalize_app_env,
     runtime_posture_from_settings,
 )
 from porterchain_shared.redis_health import is_local_env
-from pydantic import AliasChoices, Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _DEV_JWT_SECRETS = frozenset({"", "dev-sso-secret-change-in-production"})
 

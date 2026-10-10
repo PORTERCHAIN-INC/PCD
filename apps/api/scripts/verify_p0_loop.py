@@ -212,6 +212,7 @@ def check_g2_g3(check: Check, settings, *, prod: bool, api_url: str) -> None:
         engine in ("", "porterchain"),
         detail=f"dispatch_engine={engine or 'porterchain'!r}",
     )
+
     if prod:
         status, _body = _http_json(f"{api_url.rstrip('/')}/health/ready")
         check.run("G2", "API readiness (day plan path)", status == 200, detail=f"HTTP {status}")

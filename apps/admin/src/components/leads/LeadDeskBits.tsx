@@ -11,12 +11,18 @@ import { LOST_REASONS, leadsApi, type SpeedWindow } from "@/lib/leads";
 
 const fmtPct = (v: number | null) => (v == null ? "—" : `${Math.round(v)}%`);
 const fmtMin = (v: number | null) =>
-  v == null ? "—" : v < 60 ? `${v < 10 ? v.toFixed(1) : Math.round(v)}m` : `${(v / 60).toFixed(1)}h`;
+  v == null
+    ? "—"
+    : v < 60
+      ? `${v < 10 ? v.toFixed(1) : Math.round(v)}m`
+      : `${(v / 60).toFixed(1)}h`;
 
 function Metric({ label, value, goal }: { label: string; value: string; goal?: boolean }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-300">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-300">
+        {label}
+      </p>
       <p
         className={cn(
           "mt-1 text-2xl font-extrabold tabular-nums tracking-tight sm:text-3xl",
@@ -53,9 +59,14 @@ export function LeadSpeedStrip() {
     >
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm font-semibold text-white">
-          Speed <span className="font-normal text-slate-300">· goal: every lead answered in 5 min</span>
+          Speed{" "}
+          <span className="font-normal text-slate-300">· goal: every lead answered in 5 min</span>
         </p>
-        <div role="group" aria-label="Window" className="flex rounded-full bg-white/10 p-0.5 text-xs font-semibold">
+        <div
+          role="group"
+          aria-label="Window"
+          className="flex rounded-full bg-white/10 p-0.5 text-xs font-semibold"
+        >
           {([7, 30] as const).map((d) => (
             <button
               key={d}
@@ -92,7 +103,9 @@ export function LeadSpeedStrip() {
               <ul className="mt-1.5 space-y-0.5 text-sm">
                 {top.map((c) => (
                   <li key={c.channel} className="flex justify-between gap-3 tabular-nums">
-                    <span className="truncate capitalize text-slate-200">{c.channel.replace(/_/g, " ")}</span>
+                    <span className="truncate capitalize text-slate-200">
+                      {c.channel.replace(/_/g, " ")}
+                    </span>
                     <span className="font-bold text-white">{fmtPct(c.win_rate)}</span>
                   </li>
                 ))}
@@ -109,7 +122,8 @@ export function LeadSpeedStrip() {
           <span className="font-semibold text-white">{weekly.lost} lost</span>
           {weekly.lost_reasons[0] ? (
             <>
-              {" "}· top loss reason{" "}
+              {" "}
+              · top loss reason{" "}
               <span className="font-semibold text-white">
                 {LOST_REASONS.find((r) => r.key === weekly.lost_reasons[0].reason)?.label ??
                   weekly.lost_reasons[0].reason}
@@ -117,7 +131,13 @@ export function LeadSpeedStrip() {
             </>
           ) : null}
           {weekly.by_channel.length ? (
-            <> · {weekly.by_channel.map((c) => `${c.channel.replace(/_/g, " ")} ${c.won}/${c.won + c.lost}`).join(", ")}</>
+            <>
+              {" "}
+              ·{" "}
+              {weekly.by_channel
+                .map((c) => `${c.channel.replace(/_/g, " ")} ${c.won}/${c.won + c.lost}`)
+                .join(", ")}
+            </>
           ) : null}
         </p>
       ) : null}
@@ -159,13 +179,23 @@ export function MoreMenu({ label = "More", children }: { label?: string; childre
 }
 
 /** Collapsible block for advanced filters. */
-export function Disclosure({ label, count, children }: { label: string; count?: number; children: ReactNode }) {
+export function Disclosure({
+  label,
+  count,
+  children,
+}: {
+  label: string;
+  count?: number;
+  children: ReactNode;
+}) {
   return (
     <details className="group">
       <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-primary/15 px-3.5 py-1.5 text-sm font-semibold text-primary hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
         {label}
         {count ? (
-          <span className="rounded-full bg-secondary px-1.5 text-[11px] font-bold text-white">{count}</span>
+          <span className="rounded-full bg-secondary px-1.5 text-[11px] font-bold text-white">
+            {count}
+          </span>
         ) : null}
         <ChevronDown className="h-4 w-4 transition group-open:rotate-180" aria-hidden />
       </summary>
@@ -175,7 +205,15 @@ export function Disclosure({ label, count, children }: { label: string; count?: 
 }
 
 /** Designed empty state — never a blank box. */
-export function EmptyState({ title, hint, action }: { title: string; hint: string; action?: ReactNode }) {
+export function EmptyState({
+  title,
+  hint,
+  action,
+}: {
+  title: string;
+  hint: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-16 text-center" role="status">
       <span className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">

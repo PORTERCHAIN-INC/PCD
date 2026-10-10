@@ -7,13 +7,12 @@ from datetime import datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-from porterchain_shared.events.catalog import DomainEventType
-
 from porterchain_api.notification_engine.event_router import _specs_for_event
 from porterchain_api.notification_engine.user_settings import (
     UserSettingsService,
     is_within_quiet_hours,
 )
+from porterchain_shared.events.catalog import DomainEventType
 
 
 def test_quiet_hours_wraps_midnight() -> None:

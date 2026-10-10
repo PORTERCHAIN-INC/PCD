@@ -194,7 +194,11 @@ function Detail({ id, onClose }: { id: string; onClose: () => void }) {
     : [];
   return (
     <>
-      <div aria-hidden="true" onClick={onClose} className="fixed inset-0 z-[60] cursor-default bg-slate-950/30" />
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        className="fixed inset-0 z-[60] cursor-default bg-slate-950/30"
+      />
       <aside
         aria-label="Message detail"
         role="dialog"

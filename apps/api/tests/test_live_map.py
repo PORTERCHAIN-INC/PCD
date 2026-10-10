@@ -9,23 +9,22 @@ always deleted in finally.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from unittest.mock import patch
 from uuid import uuid4
 
 import httpx
 import pytest
-from porterchain_services.maps.service import MapsService
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.live_map_service import (
     LiveMapService,
     order_stop_points,
 )
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
+from porterchain_api.admin_models import Driver
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_models import Order
 from porterchain_api.domain.states import OrderState
+from porterchain_services.maps.service import MapsService
 
 # Guarantees the fixture sits inside snapshot()'s order_by(scheduled_at).limit(200).
 _EARLY = datetime(2000, 1, 1, tzinfo=UTC)
@@ -196,3 +195,135 @@ class TestRouteGeometry:
 
         with pytest.raises(LookupError):
             LiveMapService(adapter=None, maps=_DownMaps()).route_geometry(db, str(uuid4()))
+
+
+class TestSnapshot:
+    def test_on_duty_driver_pin_and_order(self, db: Session):
+        from porterchain_api.driver_engine.last_known import LastKnown
+        from porterchain_api.driver_models import DriverShift
+
+        driver = Driver(
+            id=str(uuid4()),
+            status="APPROVED",
+            email=f"{uuid4()}@test.dev",
+            full_name="Ada Driver",
+            is_online=True,
+        )
+        shift = DriverShift(
+            id=str(uuid4()),
+            driver_id=driver.id,
+            status="active",
+            started_at=datetime.now(UTC),
+        )
+        order = _order(assigned_driver_id=driver.id)
+        db.add_all([driver, shift, order])
+        db.commit()
+        known = LastKnown(
+            driver_id=driver.id,
+            lat=43.65,
+            lng=-79.38,
+            recorded_at=datetime.now(UTC),
+        )
+        pin = {
+            "id": driver.id,
+            "name": driver.full_name,
+            "lat": 43.65,
+            "lng": -79.38,
+            "online": True,
+            "on_break": False,
+            "gps_source": "last_known",
+            "recorded_at": known.recorded_at.isoformat(),
+            "accuracy_m": None,
+            "heading": None,
+            "h3": None,
+        }
+        try:
+            with (
+                            patch(
+                    "porterchain_api.admin_engine.live_map_service.gps_board.board_pins",
+                    return_value=([pin], "last_known"),
+                ),
+            ):
+                snap = LiveMapService().snapshot(db)
+
+            assert snap["drivers_source"] == "last_known"
+            match = [d for d in snap["drivers"] if d["id"] == driver.id]
+            assert match and match[0]["name"] == "Ada Driver"
+            assert match[0]["online"] is True
+
+            tracked = [o for o in snap["orders"] if o["id"] == order.id]
+            assert tracked, "fixture order missing from snapshot (ACTIVE_LIMIT / scheduled_at)"
+            assert tracked[0]["driver"] == "Ada Driver"
+            assert len(tracked[0]["stops"]) == 2
+        finally:
+            _cleanup(db, order, shift, driver)
+
+    def test_no_shift_returns_orders_only(self, db: Session):
+        order = _order()
+        db.add(order)
+        db.commit()
+        try:
+            with patch(
+                "porterchain_api.admin_engine.live_map_service.gps_board.board_pins",
+                return_value=([], "miss"),
+            ):
+                snap = LiveMapService().snapshot(db)
+            assert snap["drivers"] == []
+            assert snap["drivers_source"] == "miss"
+            assert any(o["id"] == order.id for o in snap["orders"])
+        finally:
+            _cleanup(db, order)
+
+    def test_last_known_pin_for_on_duty_driver(self, db: Session):
+        from porterchain_api.driver_engine.last_known import LastKnown
+        from porterchain_api.driver_models import DriverShift
+
+        driver = Driver(
+            id=str(uuid4()),
+            status="APPROVED",
+            email=f"{uuid4()}@test.dev",
+            full_name="Last Known",
+            is_online=True,
+        )
+        shift = DriverShift(
+            id=str(uuid4()),
+            driver_id=driver.id,
+            status="active",
+            started_at=datetime.now(UTC),
+        )
+        db.add_all([driver, shift])
+        db.commit()
+        known = LastKnown(
+            driver_id=driver.id,
+            lat=43.65,
+            lng=-79.38,
+            recorded_at=datetime.now(UTC),
+        )
+        pin = {
+            "id": driver.id,
+            "name": driver.full_name,
+            "lat": 43.65,
+            "lng": -79.38,
+            "online": True,
+            "on_break": False,
+            "gps_source": "last_known",
+            "recorded_at": known.recorded_at.isoformat(),
+            "accuracy_m": None,
+            "heading": None,
+            "h3": None,
+        }
+        try:
+            with (
+                            patch(
+                    "porterchain_api.admin_engine.live_map_service.gps_board.board_pins",
+                    return_value=([pin], "last_known"),
+                ),
+            ):
+                snap = LiveMapService().snapshot(db)
+            assert snap["drivers_source"] == "last_known"
+            match = [d for d in snap["drivers"] if d["id"] == driver.id]
+            assert match and match[0]["lat"] == 43.65
+            assert match[0]["gps_source"] == "last_known"
+            assert match[0]["recorded_at"]
+        finally:
+            _cleanup(db, shift, driver)

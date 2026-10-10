@@ -7,20 +7,12 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_models import (
-    AdminUser,
-    Claim,
-    Driver,
-    SupportTicket,
-    SystemConfig,
-)
+from porterchain_api.admin_models import AdminUser, Claim, Driver, SupportTicket, SystemConfig
 from porterchain_api.booking_models import Booking, Customer, Invoice, Order, Payment
 from porterchain_api.domain.support import ticket_number
 from porterchain_api.merchant_engine.lookups import get_merchant
 from porterchain_api.platform.admin_audit import log_admin_audit
-from porterchain_api.platform.invoice_status import (
-    invoice_status as merchant_invoice_status,
-)
+from porterchain_api.platform.invoice_status import invoice_status as merchant_invoice_status
 from porterchain_api.support_engine.support_helpers import (
     DEFAULT_SLA,
     SupportActor,

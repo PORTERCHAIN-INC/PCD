@@ -5,23 +5,31 @@ from typing import TypeVar
 
 from fastapi import Header, Request
 
-from porterchain_api.admin_engine.settings_bindings import (
-    bindings_payload,
-    resolve_writable_config_key,
-)
+from porterchain_api.admin_engine.settings_bindings import bindings_payload, resolve_writable_config_key
 from porterchain_api.admin_engine.settings_service import SETTINGS_SECTIONS
 from porterchain_api.admin_engine.staff_idp_service import StaffIdpService
+from porterchain_api.schemas_health import IntegrationHealthResponse
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
     Depends,
     HTTPException,
+    PlatformUserAuthorizeRequest,
+    PlatformUserAuthorizeResponse,
+    PlatformUserCreateRequest,
+    PlatformUserDeleteRequest,
+    PlatformUserUpdateRequest,
+    PlatformUsersResponse,
     Query,
     Session,
     Settings,
     SettingsConfigUpdateRequest,
     SettingsImportRequest,
+    StaffEnrollResponse,
+    StaffInviteRequest,
     StaffItem,
+    StaffRoleUpdateRequest,
+    _clerk_directory,
     _settings,
     get_admin_context,
     get_db,
@@ -29,7 +37,6 @@ from porterchain_api.routers.admin._deps import (
     require_module,
     router,
 )
-from porterchain_api.schemas_health import IntegrationHealthResponse
 
 _staff_idp = StaffIdpService()
 T = TypeVar("T")
@@ -270,9 +277,7 @@ def settings_lead_ingest_get(
     settings: Settings = Depends(get_settings),
 ):
     """Lead webhook / CAPI / territory status — secret values never returned."""
-    from porterchain_api.admin_engine.lead_ingest_settings import (
-        lead_ingest_settings_status,
-    )
+    from porterchain_api.admin_engine.lead_ingest_settings import lead_ingest_settings_status
 
     return _invoke(ctx, lead_ingest_settings_status, settings)
 
@@ -287,9 +292,19 @@ def settings_lead_ingest_put(
     authorization: Annotated[str | None, Header()] = None,
 ):
     """Write lead secrets/config to Doppler and refresh this process env."""
-    from porterchain_api.admin_engine.lead_ingest_settings import (
-        update_lead_ingest_settings,
-    )
+    from porterchain_api.admin_engine.lead_ingest_settings import update_lead_ingest_settings
 
     _step_up(request, authorization, settings)
     return _invoke(ctx, update_lead_ingest_settings, db, ctx, body, settings=settings)
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.routers.admin._deps import PlatformUserAuthorizeRequest  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import PlatformUserAuthorizeResponse  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import PlatformUserCreateRequest  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import PlatformUserDeleteRequest  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import PlatformUserUpdateRequest  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import PlatformUsersResponse  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import StaffEnrollResponse  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import StaffInviteRequest  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import StaffRoleUpdateRequest  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import _clerk_directory  # noqa: E402, F401

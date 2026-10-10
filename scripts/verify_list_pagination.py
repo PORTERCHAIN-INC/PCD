@@ -77,6 +77,11 @@ _LEGACY_UNPAGINATED_LISTS: frozenset[str] = frozenset(
         # Bounded author directories (small catalog, not unbounded ops lists).
         "admin/blog_authors.py:list_blog_authors",
         "public_blog.py:list_public_authors",
+        # Customer round 2 (bounded server-side: address book <=30, top suggestions, last 50 events).
+        "customer_fast.py:get_my_addresses",
+        "customer_fast.py:get_my_address_suggestions",
+        "customers_admin_360.py:get_timeline",
+        "customers_admin_360.py:get_privacy_jobs",
     }
 )
 

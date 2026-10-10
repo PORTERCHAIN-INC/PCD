@@ -77,7 +77,9 @@ function RecommendRow({
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold text-primary">
               {order.order_number}
-              {order.merchant ? <span className="font-normal text-muted"> · {order.merchant}</span> : null}
+              {order.merchant ? (
+                <span className="font-normal text-muted"> · {order.merchant}</span>
+              ) : null}
             </span>
             <span className="block truncate text-xs text-muted">
               {order.pickup ?? "—"} → {order.dropoff ?? "—"}
@@ -111,11 +113,13 @@ function RecommendRow({
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 <span className="inline-flex items-center gap-1.5 font-semibold text-primary">
                   <Truck className="h-4 w-4" />
-                  {rec.vehicle ? `${rec.vehicle.label} · ${Math.round(rec.vehicle.fill_pct)}% full` : "No vehicle fits"}
+                  {rec.vehicle
+                    ? `${rec.vehicle.label} · ${Math.round(rec.vehicle.fill_pct)}% full`
+                    : "No vehicle fits"}
                 </span>
                 <span className="text-xs text-muted">{rec.vehicle_reason}</span>
                 <span className="text-xs text-muted">
-                  {rec.load.kg} kg · {rec.load.m3} m³ · {rec.load.boxes} box
+                  {rec.load.kg} kg · {rec.load.ft3} ft³ · {rec.load.boxes} box
                 </span>
               </div>
               {rec.matrix !== "valhalla" && (
@@ -125,8 +129,16 @@ function RecommendRow({
               )}
               <ol className="divide-y divide-primary/5 rounded-xl border border-primary/10">
                 {rec.drivers.slice(0, 5).map((d) => (
-                  <li key={d.driver_id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-sm">
-                    <span className={cn("font-medium", d.blocked ? "text-muted line-through" : "text-primary")}>
+                  <li
+                    key={d.driver_id}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-sm"
+                  >
+                    <span
+                      className={cn(
+                        "font-medium",
+                        d.blocked ? "text-muted line-through" : "text-primary"
+                      )}
+                    >
                       {d.name}
                     </span>
                     {d.driver_id === best?.driver_id && (
@@ -139,8 +151,12 @@ function RecommendRow({
                         ? d.blocked.replaceAll("_", " ")
                         : [
                             d.vehicle_class,
-                            d.insertion_minutes != null ? `+${Math.round(d.insertion_minutes)} min` : null,
-                            d.fill_after_pct != null ? `${Math.round(d.fill_after_pct)}% full` : null,
+                            d.insertion_minutes != null
+                              ? `+${Math.round(d.insertion_minutes)} min`
+                              : null,
+                            d.fill_after_pct != null
+                              ? `${Math.round(d.fill_after_pct)}% full`
+                              : null,
                             d.active_jobs ? `${d.active_jobs} active` : null,
                           ]
                             .filter(Boolean)
@@ -179,7 +195,9 @@ export function TodayPanel({
   onOpenOrder: (id: string) => void;
   onChanged: () => void;
 }) {
-  const { data, loading, error } = useApiData((t) => ops.queue(t), [tick], { key: "dispatch-today-queue" });
+  const { data, loading, error } = useApiData((t) => ops.queue(t), [tick], {
+    key: "dispatch-today-queue",
+  });
   const rows = data ?? [];
   return (
     <section className="rounded-2xl border border-primary/10 bg-white">

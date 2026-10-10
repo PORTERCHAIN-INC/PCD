@@ -9,12 +9,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from porterchain_services.maps.service import MapsService
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
-from porterchain_api.booking_models import Order
+from porterchain_api.order_engine.buckets import IN_FLIGHT
 from porterchain_api.config import Settings
+from porterchain_api.reporting.pod_normalize import normalize_pod
+from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
 from porterchain_api.merchant_engine.organization_sync import public_shipper_branding
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.tracking_views import (
@@ -29,11 +29,12 @@ from porterchain_api.merchant_engine.tracking_views import (
     merchant_snapshot,
     public_track_url,
     set_cached_eta,
+    tracking_error_message,
     tracking_history,
     vehicle_info,
 )
-from porterchain_api.order_engine.buckets import IN_FLIGHT
-from porterchain_api.reporting.pod_normalize import normalize_pod
+from porterchain_api.booking_models import Order
+from porterchain_services.maps.service import MapsService
 
 IN_FLIGHT_STATES = IN_FLIGHT
 
@@ -45,9 +46,7 @@ _normalize_pod = normalize_pod
 
 class MerchantTrackingService:
     def __init__(self) -> None:
-        from porterchain_api.booking_engine.repositories.order_repository import (
-            OrderRepository,
-        )
+        from porterchain_api.booking_engine.repositories.order_repository import OrderRepository
 
         self._tracking = TrackingFacade()
         self._maps = MapsService()
@@ -389,3 +388,6 @@ class MerchantTrackingService:
     @staticmethod
     def _format_eta_label(seconds: int) -> str:
         return format_eta_label(seconds)
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.merchant_engine.tracking_views import tracking_error_message  # noqa: E402, F401

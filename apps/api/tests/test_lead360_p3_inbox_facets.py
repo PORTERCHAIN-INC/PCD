@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from porterchain_api.booking_draft_models import BookingDraft
 from porterchain_api.booking_models import AbandonedCheckout, VisitorSession
@@ -21,7 +21,7 @@ def test_list_leads_has_open_draft_and_nurture_filters(db) -> None:
         session_id=vid,
         state=BookingDraftState.DRAFT.value,
         current_step="details",
-        expires_at=datetime.now(UTC) + timedelta(days=1),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=1),
     )
     db.add(draft)
     db.flush()
@@ -94,7 +94,7 @@ def test_list_leads_has_abandoned_filter(db) -> None:
 def test_pipeline_board_lead_card_flags(db) -> None:
     svc = CrmSalesService()
     suffix = uuid.uuid4().hex[:8]
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     lead = CrmLead(
         company_name=f"Pipe Co {suffix}",
         email=f"pipe-{suffix}@acme.test",

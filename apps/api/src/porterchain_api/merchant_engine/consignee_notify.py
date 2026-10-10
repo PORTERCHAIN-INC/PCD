@@ -8,11 +8,11 @@ from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.tracking_service import public_track_url
 from porterchain_api.merchant_models import MerchantRecipient
+from porterchain_api.booking_models import Order
 from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
 
 logger = logging.getLogger(__name__)
@@ -83,9 +83,7 @@ def send_consignee_tracking(
     if order_is_sandbox(order):
         raise ValueError("sandbox_orders_have_no_public_track")
     url = public_track_url(settings, order.tracking_number, is_sandbox=False)
-    from porterchain_api.notification_engine.orchestrator import (
-        NotificationOrchestrator,
-    )
+    from porterchain_api.notification_engine.orchestrator import NotificationOrchestrator
 
     NotificationOrchestrator().send_consignee_tracking(
         db,
@@ -112,5 +110,5 @@ def send_consignee_tracking_safe(
         # (create_shipment commits right after this call).
         with db.begin_nested():
             send_consignee_tracking(db, settings, order, email, merchant_name=merchant_name)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.exception("consignee tracking email failed for order %s", order.id)

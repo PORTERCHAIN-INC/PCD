@@ -120,7 +120,9 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
             testID="track-open-live"
             label="Open live map"
             onPress={() =>
-              void Linking.openURL(`${websiteUrl}/en/track/${encodeURIComponent(order.tracking_number ?? trimmed)}`)
+              void Linking.openURL(
+                `${websiteUrl}/en/track/${encodeURIComponent(order.tracking_number ?? trimmed)}`
+              )
             }
           />
           {enhanced ? (

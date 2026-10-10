@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -39,9 +40,11 @@ def _go_live_status(
     *,
     shops: list[ShopifyShop],
 ) -> dict[str, Any]:
+    from porterchain_api.merchant_engine.shopify_health import (
+        is_connected,
+        missing_scopes,
+    )
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
-
-    from porterchain_api.merchant_engine.shopify_health import is_connected, missing_scopes
     from porterchain_api.merchant_engine.shopify_urls import oauth_scopes
 
     connected = [s for s in shops if is_connected(s)]
@@ -249,13 +252,8 @@ def go_live(
     pickup_address_id: str | None = None,
 ) -> dict[str, Any]:
     """One action after OAuth: bind pickup (if needed) and re-register Shopify hooks."""
-    from porterchain_api.merchant_engine.shopify_fulfillment_service import (
-        re_register_shop_hooks,
-    )
-    from porterchain_api.merchant_engine.shopify_service import (
-        default_pickup_address,
-        set_default_pickup,
-    )
+    from porterchain_api.merchant_engine.shopify_fulfillment_service import re_register_shop_hooks
+    from porterchain_api.merchant_engine.shopify_service import default_pickup_address, set_default_pickup
 
     q = db.query(ShopifyShop).filter(ShopifyShop.merchant_id == ctx.merchant.id)
     if shop_id:
@@ -284,3 +282,23 @@ def go_live(
     payload = connection_payload(db, ctx.merchant.id, settings)
     payload["hooks"] = hooks
     return payload
+
+
+def audit_disconnect(db: Session, ctx: Any, shop: ShopifyShop) -> None:
+    """Merchant removed their store: leave a row staff can see in Connection history."""
+    from porterchain_api.merchant_models import MerchantAuditLog
+
+    db.add(
+        MerchantAuditLog(
+            merchant_id=ctx.merchant.id,
+            actor_user_id=getattr(ctx.user, "id", None),
+            action="shopify.disconnected",
+            resource_type="shopify_shop",
+            resource_id=shop.id,
+            payload={"shop_domain": shop.shop_domain},
+        )
+    )
+
+
+# Re-exports kept for existing importers (integration).
+from datetime import datetime  # noqa: E402, F401

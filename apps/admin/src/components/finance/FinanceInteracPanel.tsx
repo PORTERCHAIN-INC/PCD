@@ -241,8 +241,8 @@ export default function FinanceInteracPanel() {
                 {suspicious ? (
                   <p className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
                     <ShieldAlert className="h-4 w-4 shrink-0" />
-                    Not verified as Interac{t.auth_detail ? ` (${t.auth_detail})` : ""}. Check your bank before doing
-                    anything.
+                    Not verified as Interac{t.auth_detail ? ` (${t.auth_detail})` : ""}. Check your
+                    bank before doing anything.
                   </p>
                 ) : null}
 

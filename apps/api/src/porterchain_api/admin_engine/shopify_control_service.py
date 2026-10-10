@@ -9,9 +9,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.booking_engine.order_transitions import (
-    transition_to_dispatch_ready,
-)
+from porterchain_api.booking_engine.order_transitions import transition_to_dispatch_ready
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
@@ -140,7 +138,7 @@ def set_booking_policy(
         require_merchant,
         write_staff_audit,
     )
-    from porterchain_api.domain.catalog_labels import PACKAGE_LABELS
+    from porterchain_api.domain.catalog_labels import PACKAGE_LABELS, VEHICLE_LABELS
 
     require_integrations_elevated(ctx)
     require_merchant(db, merchant_id)
@@ -149,10 +147,7 @@ def set_booking_policy(
         raise ValueError("reason_required")
     shop = _require_shop(db, merchant_id, shop_id)
     if default_vehicle_class is not None:
-        from porterchain_api.domain.customer_goods import (
-            CATALOG_VEHICLE_IDS,
-            persist_vehicle_class,
-        )
+        from porterchain_api.domain.customer_goods import CATALOG_VEHICLE_IDS, persist_vehicle_class
 
         if not (default_vehicle_class or "").strip():
             shop.default_vehicle_class = None
@@ -203,9 +198,7 @@ def reregister_shop_hooks(
         require_merchant,
         write_staff_audit,
     )
-    from porterchain_api.merchant_engine.shopify_fulfillment_service import (
-        re_register_shop_hooks,
-    )
+    from porterchain_api.merchant_engine.shopify_fulfillment_service import re_register_shop_hooks
 
     require_integrations_elevated(ctx)
     require_merchant(db, merchant_id)
@@ -239,10 +232,7 @@ def list_merchant_ingress_dlq(
     limit: int = 50,
 ) -> dict[str, Any]:
     from porterchain_api.admin_engine.merchant_org import require_merchant
-    from porterchain_api.merchant_engine.shopify_ingress_dlq import (
-        dlq_row_payload,
-        list_ingress_dlq,
-    )
+    from porterchain_api.merchant_engine.shopify_ingress_dlq import dlq_row_payload, list_ingress_dlq
 
     require_merchant(db, merchant_id)
     rows = list_ingress_dlq(db, merchant_id, status=status, limit=limit)
@@ -256,10 +246,7 @@ def replay_ingress_dlq(
     dlq_id: str,
     settings: Settings,
 ) -> dict[str, Any]:
-    from porterchain_api.admin_engine.merchant_org import (
-        require_merchant,
-        write_staff_audit,
-    )
+    from porterchain_api.admin_engine.merchant_org import require_merchant, write_staff_audit
     from porterchain_api.merchant_engine.shopify_ingress_dlq import mark_dlq_resolved
     from porterchain_api.merchant_engine.shopify_service import process_queued_webhook
 
@@ -400,9 +387,7 @@ def repush_shopify_fulfillment(
     settings: Settings,
 ) -> dict[str, Any]:
     from porterchain_api.admin_engine.merchant_org import write_staff_audit
-    from porterchain_api.merchant_engine.shopify_fulfillment_service import (
-        push_fulfillment,
-    )
+    from porterchain_api.merchant_engine.shopify_fulfillment_service import push_fulfillment
 
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -421,7 +406,7 @@ def repush_shopify_fulfillment(
         order.compliance_metadata = extra
         db.commit()
         db.refresh(order)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         extra = dict(order.compliance_metadata or {})
         shopify_meta = dict(extra.get("shopify") or {})
         shopify_meta["last_fulfillment_error"] = str(exc)[:2000]

@@ -53,7 +53,7 @@ def test_chat_completion_success_with_retry(monkeypatch) -> None:
         def __exit__(self, *a):
             return False
 
-        def post(self, url, headers=None, json=None):
+        def post(self, url, headers=None, json=None):  # noqa: A002
             del json  # request body unused in mock
             calls["n"] += 1
             if calls["n"] == 1:

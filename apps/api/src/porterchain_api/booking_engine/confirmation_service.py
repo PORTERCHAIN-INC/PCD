@@ -16,29 +16,18 @@ from porterchain_api.booking_engine.numbers import (
     generate_receipt_number,
     generate_tracking_number,
 )
-from porterchain_api.booking_engine.order_metadata import (
-    resolve_order_type,
-    retail_order_source,
-)
-from porterchain_api.booking_engine.order_transitions import (
-    transition_to_dispatch_ready,
-)
 from porterchain_api.booking_engine.payment_service import PaymentService
+from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
+from porterchain_api.config import Settings
+from porterchain_api.domain.states import OrderState, QuoteState
+from porterchain_api.booking_models import Booking, Customer, Invoice, Order, Payment, Quote
+from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
+from porterchain_api.booking_engine.order_metadata import resolve_order_type, retail_order_source
 from porterchain_api.booking_engine.row_locks import (
     lock_active_payment,
     lock_order_by_quote,
     lock_quote,
 )
-from porterchain_api.booking_models import (
-    Booking,
-    Customer,
-    Invoice,
-    Order,
-    Payment,
-    Quote,
-)
-from porterchain_api.config import Settings
-from porterchain_api.domain.states import OrderState, QuoteState
 
 
 def _retail_compliance_from_quote(quote: Quote) -> dict | None:
@@ -236,9 +225,7 @@ class BookingConfirmationService:
         )
         db.add(invoice)
         db.flush()
-        from porterchain_api.billing_engine.invoice_document import (
-            attach_invoice_document,
-        )
+        from porterchain_api.billing_engine.invoice_document import attach_invoice_document
         from porterchain_api.booking_engine.stop_sync import dual_write_stops
 
         dual_write_stops(db, order)
@@ -475,3 +462,7 @@ class BookingConfirmationService:
         return self.complete_payment_and_create_order(
             db, settings, quote, stripe_payment_intent_id="mock_pi"
         )
+
+# Re-exports kept for existing importers (integration).
+from porterchain_api.booking_engine.order_transitions import transition_order_state  # noqa: E402, F401
+from porterchain_api.booking_engine.numbers import generate_invoice_number  # noqa: E402, F401

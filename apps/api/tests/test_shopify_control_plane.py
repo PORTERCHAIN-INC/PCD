@@ -15,17 +15,17 @@ from porterchain_api.admin_engine.shopify_control_service import (
     set_auto_dispatch,
     set_ingress_paused,
 )
-from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
+from porterchain_api.booking_models import Order
 from porterchain_api.merchant_engine import shopify_service as shopify
 from porterchain_api.merchant_engine.shopify_ingress_dlq import (
     REASON_INGRESS_PAUSED,
     REASON_MISSING_PICKUP,
     list_ingress_dlq,
 )
-from porterchain_api.merchant_models import Merchant, ShopifyShop
+from porterchain_api.merchant_models import Merchant, ShopifyIngressDlq, ShopifyShop
 
 
 def _settings(**overrides) -> Settings:
@@ -287,16 +287,15 @@ def test_control_tower_lists_shopify_dlq(db: Session, shopify_shop: ShopifyShop)
         detail="default_pickup_required",
         status="open",
     )
-    items = ControlTowerService().exceptions(db, limit=50)
+    # Open order exceptions pile up in the shared test DB and are listed first; leave room for the DLQ row.
+    items = ControlTowerService().exceptions(db, limit=1000)
     shopify_items = [i for i in items if str(i.get("id", "")).startswith("shopify-dlq:")]
     assert shopify_items
     assert any(i["type"] == "shopify.ingress.missing_pickup" for i in shopify_items)
 
 
 def test_push_fulfillment_records_silent_error(db: Session, shopify_shop: ShopifyShop) -> None:
-    from porterchain_api.merchant_engine.shopify_fulfillment_service import (
-        push_fulfillment,
-    )
+    from porterchain_api.merchant_engine.shopify_fulfillment_service import push_fulfillment
 
     suffix = uuid4().hex[:8]
     order = Order(

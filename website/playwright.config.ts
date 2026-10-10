@@ -39,7 +39,7 @@ const chromiumExecutable = resolveChromiumExecutable();
  *   pnpm --filter @porterchain/website test:e2e:install
  *   WEBSITE_RUN_LIVE=1 pnpm --filter @porterchain/website test:e2e:p0
  *
- * Needs: website on :3000 (next dev). No Fleetbase. Book UX is on customer :3004.
+ * Needs: website on :3000 (next dev). Book UX is on customer :3004.
  */
 export default defineConfig({
   testDir: "./e2e",

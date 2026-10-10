@@ -7,18 +7,14 @@ for stop payloads. Readers (labels/scans) always prefer the table.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Sequence
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
-from porterchain_api.merchant_engine.stop_cargo import (
-    expand_item_boxes,
-    meaningful_packages,
-)
+from porterchain_api.merchant_engine.stop_cargo import expand_item_boxes, meaningful_packages
 
 # After this date, prolonged JSON+table dual SoT is anti-Dean — table wins;
 # stops[].packages exists only as a derived payload cache.

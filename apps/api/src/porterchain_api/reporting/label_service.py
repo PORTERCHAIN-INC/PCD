@@ -2,18 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
+from typing import Any, Sequence
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
 from porterchain_api.domain.sandbox import order_is_sandbox
-from porterchain_api.merchant_engine.package_service import (
-    PackageService,
-    item_box_line,
-    item_ordinals,
-)
+from porterchain_api.merchant_engine.package_service import PackageService, item_box_line, item_ordinals
 from porterchain_api.reporting.qr_codec import encode_label_qr
 from porterchain_api.reporting.thermal_pdf import render_thermal_labels
 

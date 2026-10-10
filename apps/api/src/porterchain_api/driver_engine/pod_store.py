@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 PREFIX = "pod://"
-_DATA_URL = re.compile(r"^data:(image/(?:jpeg|png|webp));base64,(.+)$", re.DOTALL)
+_DATA_URL = re.compile(r"^data:(image/(?:jpeg|png|webp));base64,(.+)$", re.S)
 _EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 _KEY = re.compile(r"^[0-9a-f-]{36}/[0-9a-f]{32}\.(?:jpg|png|webp)$")
 MAX_BYTES = 2_000_000
@@ -60,15 +60,6 @@ def size(ref: str) -> int:
     except ValueError:
         return 0
     return p.stat().st_size if p.exists() else 0
-
-
-def read(ref: str) -> bytes | None:
-    """Bytes behind a ``pod://`` ref, or None when missing/invalid."""
-    try:
-        p = _path(ref[len(PREFIX):])
-    except ValueError:
-        return None
-    return p.read_bytes() if p.exists() else None
 
 
 def delete(ref: str) -> bool:

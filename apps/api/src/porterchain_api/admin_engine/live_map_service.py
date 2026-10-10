@@ -12,13 +12,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from porterchain_services.maps.polyline import decode_polyline
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.dispatch_suggestions_service import _coords
 from porterchain_api.admin_models import Driver
 from porterchain_api.booking_models import Order
 from porterchain_api.dispatch_engine import gps_board
+from porterchain_services.maps.polyline import decode_polyline
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +28,8 @@ DENSITY_CELL = 0.01
 
 
 def _density_cells(orders: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], str]:
+    from porterchain_api.spatial.h3_index import cell as h3_cell, cell_center
     from porterchain_api.spatial.h3_index import DENSITY_RESOLUTION as H3_DENSITY_RES
-    from porterchain_api.spatial.h3_index import cell as h3_cell
-    from porterchain_api.spatial.h3_index import cell_center
 
     buckets: dict[str, dict[str, Any]] = {}
     fallback: dict[tuple[int, int], dict[str, Any]] = {}

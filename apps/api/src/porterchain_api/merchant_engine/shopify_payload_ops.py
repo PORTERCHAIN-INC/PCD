@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
-from porterchain_api.domain.states import OrderSource
+from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.integrations.shopify_orders import (
     customer_slice,
     is_canada_country,
@@ -25,11 +25,9 @@ from porterchain_api.integrations.shopify_orders import (
     unpaid_non_cod,
 )
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine.import_geocode import geocode_stop
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.service_area import (
-    assert_ontario_booking,
-    merchant_coverage_fsas,
-)
+from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_models import Merchant, ShopifyShop
 from porterchain_api.schemas_merchant import AddressInput
 
@@ -78,7 +76,7 @@ def _rate_quote_for_order(
             dropoff_postal=drop_postal,
             weight_kg=body.weight_kg,
         )
-    except Exception:
+    except Exception:  # noqa: BLE001 — booking must not fail on quote lookup
         logger.exception("shopify_book_quote_lookup_failed shop=%s", shop.shop_domain)
         return None
 
@@ -137,9 +135,7 @@ def _book_from_shopify_payload(
     pickup_row = shopify.default_pickup_address(db, shop.merchant_id, shop=shop)
     if not pickup_row:
         raise RuntimeError("default_pickup_required")
-    from porterchain_api.merchant_engine.shopify_one_click import (
-        ensure_shop_pickup_bound,
-    )
+    from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
 
     shop = ensure_shop_pickup_bound(db, shop, address=pickup_row)
     pickup = shopify._ensure_coords(shopify.address_from_saved(pickup_row))
@@ -159,9 +155,7 @@ def _book_from_shopify_payload(
     merchant = db.query(Merchant).filter(Merchant.id == shop.merchant_id).first()
     if not merchant or merchant.status != MerchantStatus.ACTIVE.value:
         raise RuntimeError("merchant_not_active")
-    from porterchain_api.integrations.shopify_carrier_rates import (
-        apply_shopify_book_vehicle,
-    )
+    from porterchain_api.integrations.shopify_carrier_rates import apply_shopify_book_vehicle
 
     body = apply_shopify_book_vehicle(merchant, body, payload)
     quote_pickup, pickup_source, rate_quote = _resolve_book_pickup(
@@ -363,9 +357,7 @@ def _update_from_shopify_payload(
     pickup_row = shopify.default_pickup_address(db, shop.merchant_id, shop=shop)
     if not pickup_row:
         raise RuntimeError("default_pickup_required")
-    from porterchain_api.merchant_engine.shopify_one_click import (
-        ensure_shop_pickup_bound,
-    )
+    from porterchain_api.merchant_engine.shopify_one_click import ensure_shop_pickup_bound
 
     ensure_shop_pickup_bound(db, shop, address=pickup_row)
     pickup = shopify._ensure_coords(shopify.address_from_saved(pickup_row))
@@ -376,9 +368,7 @@ def _update_from_shopify_payload(
     merchant = db.query(Merchant).filter(Merchant.id == shop.merchant_id).first()
     if not merchant or merchant.status != MerchantStatus.ACTIVE.value:
         raise RuntimeError("merchant_not_active")
-    from porterchain_api.integrations.shopify_carrier_rates import (
-        apply_shopify_book_vehicle,
-    )
+    from porterchain_api.integrations.shopify_carrier_rates import apply_shopify_book_vehicle
 
     body = apply_shopify_book_vehicle(merchant, body, payload)
     try:
@@ -400,9 +390,7 @@ def _update_from_shopify_payload(
 
     can_reprice = existing.state in shopify._PRE_PICKUP and not _order_has_invoice(db, existing)
     if can_reprice:
-        from porterchain_api.integrations.shopify_carrier_rates import (
-            quote_merchant_rate,
-        )
+        from porterchain_api.integrations.shopify_carrier_rates import quote_merchant_rate
 
         line_items = (
             payload.get("line_items") if isinstance(payload.get("line_items"), list) else []
@@ -417,7 +405,7 @@ def _update_from_shopify_payload(
                 items=line_items,
                 vehicle_class=getattr(body, "vehicle_class", None),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 — keep prior price; never abort the webhook
             logger.exception(
                 "shopify_update_reprice_failed order=%s shop=%s", existing.id, shop.shop_domain
             )
@@ -580,10 +568,7 @@ def _return_from_shopify_payload(
     existing = shopify._booking.find_by_idempotency_key(db, ctx, key)
     if existing:
         return {"ok": True, "order_id": existing.id, "replayed": True}
-    from porterchain_api.merchant_engine.return_service import (
-        SOURCE_SHOPIFY,
-        create_return_order,
-    )
+    from porterchain_api.merchant_engine.return_service import SOURCE_SHOPIFY, create_return_order
 
     try:
         order = create_return_order(
@@ -637,9 +622,7 @@ def _push_reverse_delivery(
     if not token or not order.tracking_number:
         return
     try:
-        from porterchain_api.merchant_engine.shopify_admin_graphql import (
-            reverse_delivery_create,
-        )
+        from porterchain_api.merchant_engine.shopify_admin_graphql import reverse_delivery_create
 
         delivery_id = reverse_delivery_create(
             shop.shop_domain,
@@ -654,17 +637,18 @@ def _push_reverse_delivery(
         if delivery_id:
             _note_shopify(order, reverse_delivery_id=delivery_id)
             db.commit()
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.warning("shopify_reverse_delivery_failed order=%s", order.id, exc_info=True)
 
 
 def _cancel_shopify_fulfillment(db: Session, settings: Settings, order: Order) -> None:
     try:
-        from porterchain_api.merchant_engine.shopify_fulfillment_service import (
-            cancel_shopify_fulfillment,
-        )
+        from porterchain_api.merchant_engine.shopify_fulfillment_service import cancel_shopify_fulfillment
 
         cancel_shopify_fulfillment(db, settings, order)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.warning("shopify_fulfillment_cancel_failed order=%s", order.id, exc_info=True)
 
+# Re-exports kept for existing importers (integration).
+from porterchain_api.merchant_engine.import_geocode import geocode_stop  # noqa: E402, F401
+from porterchain_api.domain.states import OrderState  # noqa: E402, F401

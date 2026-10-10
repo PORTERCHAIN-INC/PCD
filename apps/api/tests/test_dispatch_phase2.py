@@ -12,26 +12,17 @@ from sqlalchemy.orm import Session
 from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_engine.control_tower.service import ControlTowerService
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.admin_engine.logistics_partners_service import (
-    LogisticsPartnersService,
-)
+from porterchain_api.admin_engine.logistics_partners_service import LogisticsPartnersService
 from porterchain_api.admin_models import AdminUser, Driver, Vehicle
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_models import Order, Package
-from porterchain_api.dispatch_engine import (
-    cuopt_solver,
-    legs,
-    plan_explain,
-    retention,
-    vrp,
-)
+from porterchain_api.dispatch_engine import cuopt_solver, legs, plan_explain, retention, vrp
 from porterchain_api.dispatch_engine.models import OrderLeg
 from porterchain_api.dispatch_engine.stop_shapes import StopSpec, fsa, order_stops
 from porterchain_api.driver_engine.retention_purge import purge
 from porterchain_api.driver_models import DriverLocationPing, DriverStopMeta
+
+pytestmark = pytest.mark.usefixtures("quiet_pool")
 
 W = {"lat": 43.6467, "lng": -79.3832, "postal": "M5H 2N2", "formatted": "100 Wellington St W"}
 S = {"lat": 43.7615, "lng": -79.4111, "postal": "M2N 5Y7", "formatted": "2 Sheppard Ave E"}

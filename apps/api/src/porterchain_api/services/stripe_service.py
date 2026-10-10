@@ -1,7 +1,6 @@
-from porterchain_services.stripe import sdk as stripe_sdk
-
-from porterchain_api.booking_models import Customer, Quote
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import Customer, Quote
+from porterchain_services.stripe import sdk as stripe_sdk
 
 StripeSignatureError = stripe_sdk.StripeSdkSignatureError
 

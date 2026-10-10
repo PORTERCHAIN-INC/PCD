@@ -10,6 +10,7 @@ import time
 from typing import Any
 
 import httpx
+
 from porterchain_shared.config.settings import get_platform_settings
 
 logger = logging.getLogger(__name__)

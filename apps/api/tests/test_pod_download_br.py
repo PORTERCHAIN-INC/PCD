@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from porterchain_api.reporting.pod_normalize import normalize_pod, proof_slug
 from porterchain_api.reporting.pod_export import (
     PodFetchFailed,
     PodUnavailable,
@@ -20,7 +21,6 @@ from porterchain_api.reporting.pod_export import (
     list_artifacts,
     pod_error_message,
 )
-from porterchain_api.reporting.pod_normalize import normalize_pod, proof_slug
 
 PNG_BYTES = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8AAAwAB/wFeuwPQAAAAAElFTkSuQmCC"
@@ -254,8 +254,8 @@ def test_an_unknown_code_still_reads_as_english() -> None:
 
 
 def _order(db, merchant_id: str):
-    from porterchain_api.booking_models import Order
     from porterchain_api.domain.states import OrderState
+    from porterchain_api.booking_models import Order
 
     order = Order(
         merchant_id=merchant_id,

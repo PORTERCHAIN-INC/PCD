@@ -7,36 +7,23 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.e2e_validation_catalog import (
-    E2E_MARKER,
-    ValidationStatus,
-)
-from porterchain_api.admin_engine.e2e_validation_helpers import (
-    DROPOFF,
-    PICKUP,
-    StepResult,
-    _website_pricing,
-)
-from porterchain_api.booking_engine import events as BookingEvents
-from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.confirmation_service import (
-    BookingConfirmationService,
-)
+from porterchain_api.admin_engine.e2e_validation_catalog import E2E_MARKER, ValidationStatus
+from porterchain_api.admin_engine.e2e_validation_helpers import PICKUP, DROPOFF, StepResult, _website_pricing
+from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
 from porterchain_api.booking_engine.customer_service import CustomerService
-from porterchain_api.booking_engine.order_transitions import (
-    transition_order_state,
-    transition_to_dispatch_ready,
-)
+from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
 from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.quote_service import QuoteService
-from porterchain_api.booking_models import Order, Payment
+from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.booking_engine import events as BookingEvents
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
+from porterchain_api.booking_models import Order, Payment
 from porterchain_api.notification_engine.engine import NotificationEngine
 from porterchain_api.schemas import CreateBookingDraftRequest, CreateQuoteRequest
+from porterchain_shared.events.catalog import DomainEventType
 
 
 class E2EValidationForwardMixin:

@@ -10,21 +10,16 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
-from porterchain_api.booking_models import Order
-from porterchain_api.merchant_engine.booking_flow_service import (
-    MerchantBookingFlowService,
-)
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.routers.merchant.dashboard_booking import booking_multi
+from porterchain_api.booking_models import Order
 from porterchain_api.schemas_merchant import (
     AddressInput,
     MerchantBookDeliveryRequest,
     MerchantMultiParcelRequest,
 )
+from porterchain_api.routers.merchant.dashboard_booking import booking_multi
 
 PICKUP = {"formatted": "100 King St W, Toronto", "lat": 43.6488, "lng": -79.3817}
 DROPS = (

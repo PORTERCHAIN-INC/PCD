@@ -22,10 +22,7 @@ from porterchain_api.auth.clerk_registry import (
     clerk_configuration_mode,
 )
 from porterchain_api.auth.dev import allow_auth_dev_bypass
-from porterchain_api.auth.invitation_service import (
-    OPEN_SIGNUP_USER_TYPES,
-    InvitationService,
-)
+from porterchain_api.auth.invitation_service import InvitationService, OPEN_SIGNUP_USER_TYPES
 from porterchain_api.auth.portal_guard import (
     assert_clerk_id_exclusive,
     is_legacy_shared_clerk_app,

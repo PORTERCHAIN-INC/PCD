@@ -5,10 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_models import Order
 from porterchain_api.merchant_models import Merchant
+from porterchain_api.booking_models import Order
 
 ICP_GTA_BOUNDS = {
     "min_lat": 43.58,
@@ -134,3 +135,6 @@ def monopoly_snapshot(db: Session, *, window_days: int = 30) -> dict[str, Any]:
         "white_label": white_label_adoption(db),
         "carrier_pool_legal": carrier_pool_legal_model(),
     }
+
+# Re-exports kept for existing importers (integration).
+from sqlalchemy import func  # noqa: E402, F401

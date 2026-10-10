@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
-from typing import Any
+from typing import Any, Iterable
 
 from porterchain_shared.events.catalog import DomainEventType
 

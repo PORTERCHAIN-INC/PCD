@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from porterchain_api.auth.unified_catalog import (
-    INVITE_ONLY_ROLES,
     AssignableRole,
+    INVITE_ONLY_ROLES,
     UnifiedPermission,
     admin_role_to_assignable,
     is_invite_only,

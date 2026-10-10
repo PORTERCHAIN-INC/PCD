@@ -13,6 +13,7 @@ from porterchain_api.order_engine.buckets import HIGH_PRIORITY_CENTS, WORK_QUEUE
 from porterchain_api.order_engine.filters import OrderFilters
 from porterchain_api.platform.pagination import as_page, clamp_page
 
+
 _INVOICED_STATES = ("INVOICED", "CLOSED")
 
 

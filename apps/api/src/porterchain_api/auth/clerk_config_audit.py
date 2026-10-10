@@ -9,8 +9,6 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 from urllib.parse import urlparse
 
-from porterchain_shared.redis_health import is_local_env
-
 from porterchain_api.auth.clerk_registry import (
     ALL_CLERK_APP_KINDS,
     clerk_app_configs,
@@ -18,6 +16,7 @@ from porterchain_api.auth.clerk_registry import (
     is_divergent_enterprise_clerk,
 )
 from porterchain_api.config import Settings
+from porterchain_shared.redis_health import is_local_env
 
 AuditStatus = Literal[
     "ok",

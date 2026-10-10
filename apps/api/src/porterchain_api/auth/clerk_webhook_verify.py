@@ -40,10 +40,11 @@ def verify_clerk_webhook_signature(
         raise ClerkWebhookSignatureError("timestamp_out_of_tolerance")
 
     raw_secret = secret.strip()
-    raw_secret = raw_secret.removeprefix("whsec_")
+    if raw_secret.startswith("whsec_"):
+        raw_secret = raw_secret[len("whsec_") :]
     try:
         key = base64.b64decode(raw_secret)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise ClerkWebhookSignatureError("invalid_signing_secret") from exc
 
     signed_content = f"{svix_id}.{svix_timestamp}.{payload.decode('utf-8')}".encode()

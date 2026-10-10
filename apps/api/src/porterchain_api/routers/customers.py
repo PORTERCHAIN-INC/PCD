@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.customer import require_customer
 from porterchain_api.auth.customer_onboarding import require_customer_portal_ready
 from porterchain_api.booking_engine import CustomerService

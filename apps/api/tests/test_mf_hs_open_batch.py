@@ -13,13 +13,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from porterchain_shared.config.settings import get_platform_settings
 
-from porterchain_api.admin_engine.diagnostics_catalog import (
-    TEST_BY_ID,
-    TEST_IDS,
-)
+from porterchain_api.admin_engine.diagnostics_catalog import TEST_BY_ID, TEST_CATALOG, TEST_IDS
 from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
+from porterchain_shared.config.settings import get_platform_settings
 
 ROOT = Path(__file__).resolve().parents[3]
 

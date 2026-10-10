@@ -14,14 +14,9 @@ from porterchain_api import crm_models, merchant_models, user_models  # noqa: F4
 from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService
 from porterchain_api.admin_engine.job_offers_service import JobOffersService
 from porterchain_api.admin_models import AdminUser, Driver, Vehicle
-from porterchain_api.booking_engine.numbers import (
-    generate_order_number,
-    generate_tracking_number,
-)
+from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_models import Order, OrderException, Package
-from porterchain_api.dispatch_engine import eta_risk
-from porterchain_api.dispatch_engine import fleet_capacity as fc
-from porterchain_api.dispatch_engine import recommend as rc
+from porterchain_api.dispatch_engine import eta_risk, fleet_capacity as fc, recommend as rc
 from porterchain_api.dispatch_engine.models import DispatchJobOffer
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
@@ -107,13 +102,13 @@ def test_eta_classify() -> None:
 def test_eta_for_before_and_after_pickup() -> None:
     now = datetime(2026, 10, 9, 15, 0, tzinfo=UTC)
     order = SimpleNamespace(state="DRIVER_EN_ROUTE", pickup={"lat": 1, "lng": 1}, dropoff={"lat": 2, "lng": 2})
-    fn = lambda pts, _v: [[0, 300, 0], [0, 0, 600], [0, 0, 0]][: len(pts)]
-    eta = eta_risk.eta_for(order, (0, 0), now=now, service_minutes=5, matrix_fn=fn)
-    assert eta == now + timedelta(seconds=900, minutes=10)
+    fn = lambda pts, _v: [[0, 300, 0], [0, 0, 600], [0, 0, 0]][: len(pts)]  # noqa: E731
+    eta = eta_risk.eta_for(order, (0, 0), now=now, service_fn=lambda _k, _a: 150, matrix_fn=fn)
+    assert eta == now + timedelta(seconds=900 + 2 * 150)
     order.state = "IN_TRANSIT"
-    fn2 = lambda pts, _v: [[0, 120], [0, 0]]
-    assert eta_risk.eta_for(order, (0, 0), now=now, service_minutes=5, matrix_fn=fn2) == now + timedelta(seconds=120, minutes=5)
-    assert eta_risk.eta_for(order, None, now=now, service_minutes=5, matrix_fn=fn2) is None
+    fn2 = lambda pts, _v: [[0, 120], [0, 0]]  # noqa: E731
+    assert eta_risk.eta_for(order, (0, 0), now=now, service_fn=lambda _k, _a: 150, matrix_fn=fn2) == now + timedelta(seconds=120 + 150)
+    assert eta_risk.eta_for(order, None, now=now, service_fn=lambda _k, _a: 150, matrix_fn=fn2) is None
 
 
 # ---------- DB ----------

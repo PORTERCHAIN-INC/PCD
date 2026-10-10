@@ -4,21 +4,14 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from porterchain_api.booking_engine.numbers import generate_invoice_number, generate_order_number, generate_tracking_number
 from porterchain_api.billing_engine.credit_notes import issue_credit_note
 from porterchain_api.billing_engine.invoice_document import attach_invoice_document
 from porterchain_api.billing_engine.models import CreditNote, InvoiceLine
-from porterchain_api.booking_engine.numbers import (
-    generate_invoice_number,
-    generate_order_number,
-    generate_tracking_number,
-)
 from porterchain_api.booking_engine.stop_sync import dual_write_stops
 from porterchain_api.booking_models import Invoice, Order, Payment, Stop
 from porterchain_api.domain.states import OrderState, PaymentStatus
-from porterchain_api.driver_engine.wallet_ledger import (
-    record_transaction,
-    wallet_balance_cents,
-)
+from porterchain_api.driver_engine.wallet_ledger import record_transaction, wallet_balance_cents
 from porterchain_api.driver_models import DriverWalletTransaction
 
 

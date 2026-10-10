@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
@@ -21,6 +20,7 @@ from porterchain_api.support_engine.support_helpers import (
     normalize_status,
     ticket_data,
 )
+from porterchain_shared.events.catalog import DomainEventType
 
 
 class SupportTicketsMixin:

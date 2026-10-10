@@ -5,16 +5,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from porterchain_services.maps.service import MapsService
-
 from porterchain_api.booking_engine.public_address import public_address_snapshot
+from porterchain_api.dispatch_engine.nav_geometry_cache import read_nav_geometry, write_nav_geometry
 from porterchain_api.booking_engine.tracking_normalize import TrackingFacade
 from porterchain_api.booking_models import Order
-from porterchain_api.dispatch_engine.nav_geometry_cache import (
-    read_nav_geometry,
-    write_nav_geometry,
-)
 from porterchain_api.order_engine.buckets import IN_FLIGHT
+from porterchain_services.maps.service import MapsService
 
 DELIVERED_STATES = frozenset({"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"})
 

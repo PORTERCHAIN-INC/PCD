@@ -9,9 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.merchant import get_merchant_context
-from porterchain_api.collaboration_engine.lead_channel_adapters import (
-    event_from_referral,
-)
+from porterchain_api.collaboration_engine.lead_channel_adapters import event_from_referral
 from porterchain_api.collaboration_engine.lead_ingest_service import LeadIngestService
 from porterchain_api.collaboration_engine.lead_ops import merchant_referral_overview
 from porterchain_api.config import Settings, get_settings

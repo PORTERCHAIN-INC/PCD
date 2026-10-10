@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.driver_models import DriverShift
 from porterchain_api.platform.last_known import read_last_known
+from porterchain_api.driver_models import DriverShift
 
 SOURCE_LAST_KNOWN = "last_known"
 SOURCE_MISS = "miss"

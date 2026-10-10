@@ -6,10 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 from porterchain_api.booking_models import Quote
 from porterchain_api.domain.states import QuoteState
-from porterchain_api.pricing_engine.quote_bridge import (
-    _promo_code_from_quote,
-    _request_from_quote,
-)
+from porterchain_api.pricing_engine.quote_bridge import _promo_code_from_quote, _request_from_quote
 
 
 def _quote(**kwargs) -> Quote:

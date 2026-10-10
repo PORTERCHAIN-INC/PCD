@@ -181,13 +181,10 @@ def test_checkout_promise_never_raises() -> None:
 
 
 def _carrier_call(promise):
-    import base64
-    import hashlib
-    import hmac
-    import json
-
-    from porterchain_api.domain.merchant_states import MerchantStatus
     from porterchain_api.integrations import shopify_carrier_rates as mod
+    from porterchain_api.domain.merchant_states import MerchantStatus
+
+    import base64, hashlib, hmac, json
 
     db = MagicMock()
     db.get.return_value = SimpleNamespace(id="m1", status=MerchantStatus.ACTIVE.value)

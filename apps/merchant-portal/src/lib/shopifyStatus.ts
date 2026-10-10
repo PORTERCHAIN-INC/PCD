@@ -55,6 +55,8 @@ const BLOCKING: Record<string, string> = {
   rate_card_required: "a rate card is needed before checkout can show prices",
   shop_not_connected: "connect the store",
   oauth_not_configured: "Shopify connections are temporarily unavailable",
+  scopes_missing: "reopen the app from Shopify admin and approve the requested permissions",
+  orders_paused: "PorterChain has paused new orders from this store — contact support",
 };
 
 const ADVISORIES: Record<string, string> = {

@@ -179,12 +179,10 @@ def test_inbox_and_websocket_share_one_company_selector(db) -> None:
     inbox = _resolve_merchant_recipient(db, settings, clerk_id, working.id)
     assert inbox is not None and inbox.user_id == working.id
 
+    from porterchain_api.notification_engine.principal import resolve_notification_ws_user
+
     # The websocket takes the same company id under the same name — no org_id.
     import inspect
-
-    from porterchain_api.notification_engine.principal import (
-        resolve_notification_ws_user,
-    )
 
     params = inspect.signature(resolve_notification_ws_user).parameters
     assert "merchant_id" in params
@@ -222,8 +220,6 @@ def test_websocket_rejects_a_company_without_a_seat(db) -> None:
 
 
 async def _no_ws_user(merchant_id: str):
-    from porterchain_api.notification_engine.principal import (
-        resolve_notification_ws_user,
-    )
+    from porterchain_api.notification_engine.principal import resolve_notification_ws_user
 
     return await resolve_notification_ws_user("", merchant_id=merchant_id)

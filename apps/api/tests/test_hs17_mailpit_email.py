@@ -12,10 +12,7 @@ from uuid import uuid4
 
 import pytest
 
-from porterchain_api.notification_engine.delivery_service import (
-    DeliveryDeferred,
-    DeliveryService,
-)
+from porterchain_api.notification_engine.delivery_service import DeliveryDeferred, DeliveryService
 
 
 def test_hs17_local_smtp_hardcodes_mailpit_not_mailhog() -> None:
@@ -34,15 +31,15 @@ def test_hs17_repo_has_no_mailhog_compose_dependency() -> None:
         if any(p in path.parts for p in ("node_modules", ".venv", "graphify-out", ".git")):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
-        if re.search(r"image:\s*[^\n]*mailhog", text, re.IGNORECASE):
+        if re.search(r"image:\s*[^\n]*mailhog", text, re.I):
             offenders.append(str(path.relative_to(root)))
-        if re.search(r"^\s+mailhog\s*:", text, re.IGNORECASE | re.MULTILINE):
+        if re.search(r"^\s+mailhog\s*:", text, re.I | re.M):
             offenders.append(str(path.relative_to(root)))
     for path in root.rglob("*.yaml"):
         if any(p in path.parts for p in ("node_modules", ".venv", "graphify-out", ".git")):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
-        if re.search(r"image:\s*[^\n]*mailhog", text, re.IGNORECASE):
+        if re.search(r"image:\s*[^\n]*mailhog", text, re.I):
             offenders.append(str(path.relative_to(root)))
     assert not offenders, f"Mailhog still pinned: {offenders[:12]}"
 

@@ -9,12 +9,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.crm_models import (
-    CrmConversation,
-    CrmConversationMessage,
-    CrmLead,
-    CrmLeadIdentity,
-)
+from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLead, CrmLeadIdentity
 from porterchain_api.domain.crm_states import LeadStatus
 
 logger = logging.getLogger(__name__)
@@ -253,9 +248,7 @@ class LeadPrivacyService:
 
         prior_email = lead.email
         prior_phone = lead.phone
-        from porterchain_api.collaboration_engine.lead_suppression import (
-            upsert_suppression,
-        )
+        from porterchain_api.collaboration_engine.lead_suppression import upsert_suppression
 
         upsert_suppression(
             db,
@@ -315,9 +308,9 @@ class LeadPrivacyService:
 
 __all__ = [
     "LEAD_ROPA",
-    "PRIVACY_DELETE_REQUESTED_TAG",
-    "PRIVACY_ERASED_TAG",
     "LeadPrivacyError",
     "LeadPrivacyService",
+    "PRIVACY_DELETE_REQUESTED_TAG",
+    "PRIVACY_ERASED_TAG",
     "lead_ropa_inventory",
 ]

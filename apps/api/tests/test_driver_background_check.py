@@ -8,15 +8,13 @@ import json
 from uuid import uuid4
 
 import pytest
-from porterchain_services.checkr.client import verify_webhook_signature
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
-from porterchain_api.driver_engine.background_check_service import (
-    DriverBackgroundCheckService,
-)
+from porterchain_api.driver_engine.background_check_service import DriverBackgroundCheckService
+from porterchain_services.checkr.client import verify_webhook_signature
 
 
 def _driver(db: Session, *, license_verified: bool = True) -> Driver:

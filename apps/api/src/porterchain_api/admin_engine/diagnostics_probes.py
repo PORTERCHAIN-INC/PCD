@@ -3,24 +3,19 @@
 from __future__ import annotations
 
 import time
-from datetime import UTC
 from typing import Any
 
-from porterchain_shared.config.settings import PlatformSettings
-from porterchain_shared.queue.publisher import queue_depths
-from porterchain_shared.redis_health import ping_redis
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import HealthClass, _probe_http
-from porterchain_api.auth.clerk_registry import (
-    clerk_jwks_urls,
-    is_clerk_configured,
-    is_clerk_secret_configured,
-)
-from porterchain_api.booking_models import Order
+from porterchain_api.auth.clerk_registry import clerk_jwks_urls, is_clerk_configured, is_clerk_secret_configured
 from porterchain_api.config import Settings
+from porterchain_api.booking_models import Order
 from porterchain_api.platform.health import readiness
+from porterchain_shared.config.settings import PlatformSettings
+from porterchain_shared.queue.publisher import queue_depths
+from porterchain_shared.redis_health import ping_redis
 
 
 class DiagnosticsProbesMixin:
@@ -117,11 +112,9 @@ class DiagnosticsProbesMixin:
         return {"status": status, "warnings": warnings, "version": "billing_engine"}
 
     def _engine_notifications(self, db: Session) -> dict[str, Any]:
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
 
-        from porterchain_api.notification_engine.admin_service import (
-            NotificationAdminService,
-        )
+        from porterchain_api.notification_engine.admin_service import NotificationAdminService
         from porterchain_api.notification_engine.models import NotificationRecord
 
         dash = NotificationAdminService().dashboard(db)
@@ -130,7 +123,7 @@ class DiagnosticsProbesMixin:
             db.query(NotificationRecord)
             .filter(
                 NotificationRecord.status.in_(["failed", "dead_letter"]),
-                NotificationRecord.created_at >= datetime.now(UTC) - timedelta(hours=24),
+                NotificationRecord.created_at >= datetime.now(timezone.utc) - timedelta(hours=24),
             )
             .count()
         )
@@ -139,7 +132,7 @@ class DiagnosticsProbesMixin:
             .filter(
                 NotificationRecord.status == "dead_letter",
                 NotificationRecord.channel == "push",
-                NotificationRecord.created_at >= datetime.now(UTC) - timedelta(hours=24),
+                NotificationRecord.created_at >= datetime.now(timezone.utc) - timedelta(hours=24),
             )
             .count()
         )
@@ -165,9 +158,7 @@ class DiagnosticsProbesMixin:
             count = 0
         details: dict[str, Any] = {"leads": count}
         if settings is not None:
-            from porterchain_api.collaboration_engine.lead_ops import (
-                lead_ingest_config_status,
-            )
+            from porterchain_api.collaboration_engine.lead_ops import lead_ingest_config_status
 
             details["lead_ingest"] = lead_ingest_config_status(settings)
             configured = sum(1 for v in details["lead_ingest"].values() if v is True)
@@ -361,7 +352,7 @@ class DiagnosticsProbesMixin:
         from porterchain_event_bus import get_event_bus
 
         bus = get_event_bus()
-        redis_active = bus._redis_client is not None
+        redis_active = bus._redis_client is not None  # noqa: SLF001
         status: HealthClass = "healthy" if redis_active or platform.app_env == "local" else "warning"
         warnings: list[str] = []
         if not redis_active:

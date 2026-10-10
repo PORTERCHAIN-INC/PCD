@@ -9,20 +9,13 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.e2e_validation_catalog import E2E_MARKER
-from porterchain_api.admin_engine.e2e_validation_helpers import (
-    DROPOFF,
-    PICKUP,
-    StepResult,
-)
-from porterchain_api.booking_engine.order_transitions import (
-    transition_order_state,
-    transition_to_dispatch_ready,
-)
-from porterchain_api.booking_models import Order
+from porterchain_api.admin_engine.e2e_validation_helpers import PICKUP, DROPOFF, StepResult
+from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
-from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
+from porterchain_api.merchant_engine.booking_service import MerchantBookingService
+from porterchain_api.booking_models import Order
 from porterchain_api.schemas_merchant import AddressInput as MerchantAddressInput
 from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
 
@@ -94,9 +87,7 @@ class E2EValidationMerchantMixin:
             return {"job_id": job.id, "valid_rows": job.valid_rows, "total_rows": job.total_rows}
 
         def do_contract_pricing():
-            from porterchain_api.merchant_engine.billing_service import (
-                MerchantBillingService,
-            )
+            from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 
             if not merchant_ctx.merchant:
                 return "WARNING"
@@ -203,9 +194,7 @@ class E2EValidationMerchantMixin:
         def do_billing_run():
             if not order_ids:
                 return "FAIL"
-            from porterchain_api.admin_engine.merchant_ar_service import (
-                MerchantArService,
-            )
+            from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
             from porterchain_api.booking_models import Invoice
 
             admin_ctx = self._resolve_admin_context(db)
@@ -229,14 +218,10 @@ class E2EValidationMerchantMixin:
             return "FAIL"
 
         def do_invoice_assert():
-            from porterchain_api.booking_models import Invoice, Order
-            from porterchain_api.merchant_engine.billing_service import (
-                MerchantBillingService,
-            )
-            from porterchain_api.merchant_engine.commerce_metrics import (
-                check_invoice_detail_consistency,
-            )
             from porterchain_api.platform.invoice_lines import ensure_invoice_line
+            from porterchain_api.booking_models import Invoice, Order
+            from porterchain_api.merchant_engine.billing_service import MerchantBillingService
+            from porterchain_api.merchant_engine.commerce_metrics import check_invoice_detail_consistency
 
             if not order_ids:
                 return "FAIL"
@@ -270,9 +255,7 @@ class E2EValidationMerchantMixin:
             }
 
         def do_reports_channel():
-            from porterchain_api.merchant_engine.reporting_metrics import (
-                spend_by_channel,
-            )
+            from porterchain_api.merchant_engine.reporting_metrics import spend_by_channel
 
             rows = spend_by_channel(db, merchant_ctx.merchant.id)
             attributed = sum(int(r.get("orders") or 0) for r in rows)
@@ -285,9 +268,7 @@ class E2EValidationMerchantMixin:
             }
 
         def do_statement_ar():
-            from porterchain_api.merchant_engine.billing_service import (
-                MerchantBillingService,
-            )
+            from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 
             svc = MerchantBillingService()
             summary = svc.statement_summary(db, merchant_ctx)

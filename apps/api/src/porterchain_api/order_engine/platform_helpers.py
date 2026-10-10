@@ -8,17 +8,9 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_models import Driver, Vehicle
-from porterchain_api.booking_models import (
-    Booking,
-    Customer,
-    Invoice,
-    Order,
-    OrderEvent,
-    Payment,
-    Quote,
-)
-from porterchain_api.domain.catalog_labels import order_source_label, order_state_label
 from porterchain_api.merchant_models import Merchant
+from porterchain_api.booking_models import Booking, Customer, Invoice, Order, OrderEvent, Payment, Quote
+from porterchain_api.domain.catalog_labels import order_source_label, order_state_label
 
 
 def shopify_snapshot(order: Order) -> dict[str, Any] | None:
@@ -107,7 +99,7 @@ class OrderPlatformHelpersMixin:
             return None
         return (
             db.query(Vehicle)
-            .filter(Vehicle.driver_id == driver_id, Vehicle.is_active == True)
+            .filter(Vehicle.driver_id == driver_id, Vehicle.is_active == True)  # noqa: E712
             .first()
         )
 

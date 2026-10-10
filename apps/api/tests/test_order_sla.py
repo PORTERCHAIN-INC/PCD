@@ -5,10 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
-from porterchain_api.booking_engine.order_sla import (
-    order_sla_status,
-    resolve_sla_deadline,
-)
+from porterchain_api.booking_engine.order_sla import order_sla_status, resolve_sla_deadline
 
 
 def test_asap_parcel_not_breached_immediately():

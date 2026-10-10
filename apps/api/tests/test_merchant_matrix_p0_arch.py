@@ -54,7 +54,7 @@ def test_neg_arch_001_portal_never_imports_fleetbase_or_socketcluster() -> None:
     hits: list[str] = []
     import_re = re.compile(
         r"""(?m)^\s*(?:import|from)\s+['"]?(?:@?socketcluster|socketcluster-client|fleetbase(?:[-/]|\s|$))""",
-        re.IGNORECASE,
+        re.I,
     )
     url_re = re.compile(r"https?://[^\s\"']*fleetbase|socketcluster://", re.IGNORECASE)
     for path in _iter_ts(MERCHANT_PORTAL):
@@ -67,7 +67,7 @@ def test_neg_arch_001_portal_never_imports_fleetbase_or_socketcluster() -> None:
 def test_neg_arch_002_engines_do_not_call_private_valhalla_osrm() -> None:
     """NEG-ARCH-002 — engines use MapsService public API only."""
     hits: list[str] = []
-    private = re.compile(r"_valhalla_|_osrm_|google\.maps\.DistanceMatrix|distancematrix", re.IGNORECASE)
+    private = re.compile(r"_valhalla_|_osrm_|google\.maps\.DistanceMatrix|distancematrix", re.I)
     for engine in ("merchant_engine", "pricing_engine", "booking_engine", "admin_engine"):
         root = API_SRC / engine
         if not root.is_dir():
@@ -133,7 +133,7 @@ def test_neg_arch_006_firebase_not_used_as_merchant_auth() -> None:
     hits: list[str] = []
     auth_markers = re.compile(
         r"""from\s+['"]firebase/auth['"]|firebase/auth|getAuth\(|FirebaseAuth|signInWithEmailAndPassword""",
-        re.IGNORECASE,
+        re.I,
     )
     for path in _iter_ts(MERCHANT_PORTAL):
         text = path.read_text(encoding="utf-8", errors="ignore")

@@ -196,7 +196,8 @@ async function fastFetch<T>(path: string, init?: RequestInit & { token?: string 
           ? detail.message
           : "Something went wrong. Try again.";
     const err = new Error(message) as FastApiError;
-    err.code = detail && typeof detail === "object" && !Array.isArray(detail) ? (detail.code ?? null) : null;
+    err.code =
+      detail && typeof detail === "object" && !Array.isArray(detail) ? (detail.code ?? null) : null;
     err.status = response.status;
     throw err;
   }
@@ -391,7 +392,8 @@ export function requestDataDeletion(token: string) {
   );
 }
 
-export type ProblemKind = "late" | "damaged" | "missing" | "wrong_address" | "return" | "billing" | "other";
+export type ProblemKind =
+  "late" | "damaged" | "missing" | "wrong_address" | "return" | "billing" | "other";
 
 /** Report a problem / request a return from the signed tracking page (opens a ticket). */
 export function reportProblem(tracking: string, token: string, kind: ProblemKind, details: string) {

@@ -657,7 +657,10 @@ export function dispatchCheckin(body: {
   note?: string;
   pod_photo?: string;
 }): Promise<{ ok: boolean; order_state: string; route: DispatchRoute | null }> {
-  return driverFetch(`${DRIVER_API}/dispatch/stops/checkin`, { method: "POST", body: JSON.stringify(body) });
+  return driverFetch(`${DRIVER_API}/dispatch/stops/checkin`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function fetchDispatchChecklist(orderId: string): Promise<StopChecklist> {

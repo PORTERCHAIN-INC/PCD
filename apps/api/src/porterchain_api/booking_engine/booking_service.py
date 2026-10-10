@@ -8,9 +8,9 @@ from porterchain_api.booking_engine.booking_draft_service import BookingDraftSer
 from porterchain_api.booking_engine.customer_service import CustomerService
 from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.quote_service import QuoteService
-from porterchain_api.booking_models import Customer, Quote
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import QuoteState
+from porterchain_api.booking_models import Customer, Quote
 
 
 class BookingService:

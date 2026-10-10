@@ -29,19 +29,33 @@ const KIND_DOT: Record<string, string> = {
 const BTN =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-50";
 
-function RouteCard({ r, index, onOpenOrder }: { r: PlanRoute; index: number; onOpenOrder: (id: string) => void }) {
+function RouteCard({
+  r,
+  index,
+  onOpenOrder,
+}: {
+  r: PlanRoute;
+  index: number;
+  onOpenOrder: (id: string) => void;
+}) {
   const fill = Math.min(100, Math.max(0, r.fill_pct));
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-primary/10 bg-white" data-testid="plan-route">
+    <article
+      className="flex min-w-0 flex-col rounded-2xl border border-primary/10 bg-white"
+      data-testid="plan-route"
+    >
       <header className="border-b border-primary/10 p-4">
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="text-base font-semibold text-primary">
             R{index + 1} · <span className="capitalize">{r.vehicle_class.replace("_", " ")}</span>
           </h3>
-          <span className="text-sm font-semibold tabular-nums text-primary">{money(r.cost_cents)}</span>
+          <span className="text-sm font-semibold tabular-nums text-primary">
+            {money(r.cost_cents)}
+          </span>
         </div>
         <p className="mt-0.5 truncate text-xs text-muted">
-          {r.driver_name ?? "Unassigned vehicle"} · {groupStops(r.stops).length} stops · {routeMix(r.stops)} · {minutes(r.seconds)}
+          {r.driver_name ?? "Unassigned vehicle"} · {groupStops(r.stops).length} stops ·{" "}
+          {routeMix(r.stops)} · {minutes(r.seconds)}
         </p>
         <div className="mt-2 flex items-center gap-2" aria-label={`Fill ${fill}%`}>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-primary/10">
@@ -57,7 +71,10 @@ function RouteCard({ r, index, onOpenOrder }: { r: PlanRoute; index: number; onO
         {groupStops(r.stops).map((s, i) => (
           <li key={s.key} className="flex items-center gap-3 px-4 py-2">
             <span className="w-5 text-right text-xs tabular-nums text-muted">{i + 1}</span>
-            <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", KIND_DOT[s.kind] ?? "bg-primary")} aria-hidden />
+            <span
+              className={cn("h-2.5 w-2.5 shrink-0 rounded-full", KIND_DOT[s.kind] ?? "bg-primary")}
+              aria-hidden
+            />
             <button
               type="button"
               onClick={() => onOpenOrder(s.order_id)}
@@ -67,7 +84,10 @@ function RouteCard({ r, index, onOpenOrder }: { r: PlanRoute; index: number; onO
                 {STOP_KIND_LABEL[s.kind]}
                 {s.count > 1 ? ` ×${s.count}` : ""}
               </span>
-              <span className="text-muted"> · {s.fsa ?? "—"} · {s.order_number ?? s.order_id.slice(0, 8)}</span>
+              <span className="text-muted">
+                {" "}
+                · {s.fsa ?? "—"} · {s.order_number ?? s.order_id.slice(0, 8)}
+              </span>
             </button>
             <span className="text-xs tabular-nums text-muted">+{minutes(s.eta_s)}</span>
           </li>
@@ -96,7 +116,9 @@ export function FleetPlanPanel({
   onCommitted: () => void;
 }) {
   const { getApiToken } = useAdminAuth();
-  const { data, refetch } = useApiData((t) => dispatch.latestPlan(t), [tick], { key: "dispatch-plan-latest" });
+  const { data, refetch } = useApiData((t) => dispatch.latestPlan(t), [tick], {
+    key: "dispatch-plan-latest",
+  });
   const [override, setOverride] = useState<FleetPlan | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -132,7 +154,12 @@ export function FleetPlanPanel({
   const commit = async () => {
     if (!plan) return;
     const n = plan.routes.filter((r) => r.driver_id).length;
-    if (!window.confirm(`Assign ${n} route(s) to their drivers now? Drivers are notified through the normal assign flow.`)) return;
+    if (
+      !window.confirm(
+        `Assign ${n} route(s) to their drivers now? Drivers are notified through the normal assign flow.`
+      )
+    )
+      return;
     await run("Commit", (t) => dispatch.commitPlan(t, plan.id));
     onCommitted();
   };
@@ -151,7 +178,10 @@ export function FleetPlanPanel({
           onClick={() => run("Plan", (t) => dispatch.planDay(t))}
           data-dispatch-shortcut="plan"
           aria-keyshortcuts="P"
-          className={cn(BTN, draft ? "border border-primary/15 bg-white text-primary" : "text-white")}
+          className={cn(
+            BTN,
+            draft ? "border border-primary/15 bg-white text-primary" : "text-white"
+          )}
           style={draft ? undefined : { backgroundColor: "var(--primary)" }}
         >
           <Route className="h-4 w-4" />
@@ -187,7 +217,9 @@ export function FleetPlanPanel({
             className={cn(BTN, "ml-auto bg-secondary text-white")}
           >
             <CheckCircle2 className="h-4 w-4" />
-            {busy === "Commit" ? "Assigning…" : `Commit ${plan?.routes.length ?? 0} route${plan?.routes.length === 1 ? "" : "s"}`}
+            {busy === "Commit"
+              ? "Assigning…"
+              : `Commit ${plan?.routes.length ?? 0} route${plan?.routes.length === 1 ? "" : "s"}`}
           </button>
         )}
       </div>
@@ -198,7 +230,8 @@ export function FleetPlanPanel({
         <div className="rounded-2xl border border-dashed border-primary/20 bg-white p-8 text-center">
           <p className="text-base font-semibold text-primary">No plan yet today</p>
           <p className="mt-1 text-sm text-muted">
-            One tap sequences every waiting order across every online vehicle — pickups before drops, under 85% full.
+            One tap sequences every waiting order across every online vehicle — pickups before
+            drops, under 85% full.
           </p>
         </div>
       )}
@@ -216,16 +249,23 @@ export function FleetPlanPanel({
                 {plan.solver === "cuopt" ? "NVIDIA cuOpt" : "OR-Tools"}
                 {compare.length > 1 &&
                   ` · ${compare
-                    .map(([k, v]) => `${k === "cuopt" ? "cuOpt" : "OR-Tools"} ${v.status ?? money(v.cost_cents)}`)
+                    .map(
+                      ([k, v]) =>
+                        `${k === "cuopt" ? "cuOpt" : "OR-Tools"} ${v.status ?? money(v.cost_cents)}`
+                    )
                     .join(" vs ")}`}
               </p>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-5">
+            <div className="mt-3 grid grid-cols-3 gap-4 sm:grid-cols-6">
               <Stat label="Vehicles" value={String(s.vehicles_used ?? plan.routes.length)} />
               <Stat label="Stops" value={String(stops)} />
               <Stat label="Orders" value={String(s.orders ?? 0)} />
               <Stat label="Cost" value={money(s.cost_cents ?? 0)} />
-              <Stat label="Unplanned" value={String((s.dropped?.length ?? 0) + (s.skipped?.length ?? 0))} />
+              <Stat
+                label="Unplanned"
+                value={String((s.dropped?.length ?? 0) + (s.skipped?.length ?? 0))}
+              />
+              <Stat label="Late vs window" value={String(s.late_stops?.length ?? 0)} />
             </div>
             {s.shapes && Object.keys(s.shapes).length > 0 && (
               <ul className="mt-3 flex flex-wrap gap-1.5">
@@ -241,14 +281,21 @@ export function FleetPlanPanel({
           {s.commit && (
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
               Assigned {s.commit.assigned} order(s)
-              {s.commit.skipped.length ? ` · ${s.commit.skipped.length} skipped (${s.commit.skipped[0].reason})` : ""}.
+              {s.commit.skipped.length
+                ? ` · ${s.commit.skipped.length} skipped (${s.commit.skipped[0].reason})`
+                : ""}
+              .
             </p>
           )}
 
           {why && (
-            <div className="rounded-2xl border border-secondary/25 bg-secondary/5 p-4" data-testid="plan-explain">
+            <div
+              className="rounded-2xl border border-secondary/25 bg-secondary/5 p-4"
+              data-testid="plan-explain"
+            >
               <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                {why.source === "nvidia_nim" ? "NVIDIA NIM · anonymised" : "Rules"} · suggestions only
+                {why.source === "nvidia_nim" ? "NVIDIA NIM · anonymised" : "Rules"} · suggestions
+                only
               </p>
               <ul className="mt-2 space-y-1 text-sm text-primary">
                 {why.explanation.map((l) => (
@@ -278,7 +325,11 @@ export function FleetPlanPanel({
               <ul className="mt-1 space-y-1 text-sm text-amber-900">
                 {s.skipped.map((x) => (
                   <li key={x.order_id}>
-                    <button type="button" className="hover:underline" onClick={() => onOpenOrder(x.order_id)}>
+                    <button
+                      type="button"
+                      className="hover:underline"
+                      onClick={() => onOpenOrder(x.order_id)}
+                    >
                       {x.order_number}
                     </button>{" "}
                     — {x.reason}

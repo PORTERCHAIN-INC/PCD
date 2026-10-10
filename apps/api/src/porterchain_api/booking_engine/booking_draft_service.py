@@ -5,19 +5,17 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_draft_models import BookingDraft, BookingDraftAudit
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.repositories.booking_draft_repository import (
-    BookingDraftRepository,
-)
-from porterchain_api.booking_models import Booking, Customer, Order, Quote
+from porterchain_api.booking_engine.repositories.booking_draft_repository import BookingDraftRepository
+from porterchain_api.booking_draft_models import BookingDraft, BookingDraftAudit
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import (
     BOOKING_DRAFT_TERMINAL,
     BookingDraftState,
     can_transition_booking_draft,
 )
+from porterchain_api.booking_models import Booking, Customer, Order, Quote
 from porterchain_api.schemas import CreateBookingDraftRequest, UpdateBookingDraftRequest
 
 
@@ -181,9 +179,7 @@ class BookingDraftService:
         settings: Settings,
         body: CreateBookingDraftRequest,
     ) -> BookingDraft:
-        from porterchain_api.booking_engine.draft_compose import (
-            create_or_update_draft as _create,
-        )
+        from porterchain_api.booking_engine.draft_compose import create_or_update_draft as _create
 
         return _create(self, db, settings, body)
 
@@ -213,9 +209,7 @@ class BookingDraftService:
         customer_id: str,
         quote_id: str | None = None,
     ) -> BookingDraft | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            merge_session_to_customer as _merge,
-        )
+        from porterchain_api.booking_engine.draft_compose import merge_session_to_customer as _merge
 
         return _merge(self, db, session_id=session_id, customer_id=customer_id, quote_id=quote_id)
 
@@ -227,9 +221,7 @@ class BookingDraftService:
         customer_id: str,
         clerk_user_id: str,
     ) -> BookingDraft | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            on_customer_authenticated as _auth,
-        )
+        from porterchain_api.booking_engine.draft_compose import on_customer_authenticated as _auth
 
         return _auth(self, db, quote_id=quote_id, customer_id=customer_id, clerk_user_id=clerk_user_id)
 
@@ -241,9 +233,7 @@ class BookingDraftService:
         stripe_session_id: str | None = None,
         settings: Settings | None = None,
     ) -> BookingDraft | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            on_payment_started as _started,
-        )
+        from porterchain_api.booking_engine.draft_compose import on_payment_started as _started
 
         return _started(self, db, quote, stripe_session_id=stripe_session_id, settings=settings)
 
@@ -254,9 +244,7 @@ class BookingDraftService:
         *,
         reason: str,
     ) -> BookingDraft | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            on_payment_failed as _failed,
-        )
+        from porterchain_api.booking_engine.draft_compose import on_payment_failed as _failed
 
         return _failed(self, db, quote_id, reason=reason)
 
@@ -268,9 +256,7 @@ class BookingDraftService:
         order_id: str | None = None,
         booking_id: str | None = None,
     ) -> BookingDraft | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            on_payment_completed as _completed,
-        )
+        from porterchain_api.booking_engine.draft_compose import on_payment_completed as _completed
 
         return _completed(self, db, quote, order_id=order_id, booking_id=booking_id)
 
@@ -281,9 +267,7 @@ class BookingDraftService:
         booking: Booking,
         order: Order,
     ) -> BookingDraft | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            on_booking_confirmed as _confirmed,
-        )
+        from porterchain_api.booking_engine.draft_compose import on_booking_confirmed as _confirmed
 
         return _confirmed(self, db, quote, booking, order)
 
@@ -416,15 +400,11 @@ class BookingDraftService:
         return self.restore_draft(db, draft)
 
     def payment_status_for_draft(self, db: Session, draft: BookingDraft) -> str | None:
-        from porterchain_api.booking_engine.draft_compose import (
-            payment_status_for_draft as _status,
-        )
+        from porterchain_api.booking_engine.draft_compose import payment_status_for_draft as _status
 
         return _status(db, draft)
 
     def draft_to_dict(self, db: Session, draft: BookingDraft) -> dict[str, Any]:
-        from porterchain_api.booking_engine.draft_compose import (
-            draft_to_dict as _as_dict,
-        )
+        from porterchain_api.booking_engine.draft_compose import draft_to_dict as _as_dict
 
         return _as_dict(db, draft)

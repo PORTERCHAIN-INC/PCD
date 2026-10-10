@@ -10,10 +10,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.merchant_lifecycle import ensure_retail_customer
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.auth.clerk_registry import (
-    clerk_client_for_kind,
-    is_clerk_secret_configured,
-)
+from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
 from porterchain_api.auth.email_identity import normalize_email
 from porterchain_api.booking_models import Customer
 from porterchain_api.config import Settings
@@ -86,9 +83,7 @@ def create_customer(
                     "customer_id": customer.id,
                 },
             )
-            from porterchain_api.auth.authz_sync import (
-                sync_authz_after_persona_mutation,
-            )
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
             sync_authz_after_persona_mutation(db, clerk_id)
             clerk_action = "linked_existing_clerk"
