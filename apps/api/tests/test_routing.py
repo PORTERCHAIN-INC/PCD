@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from unittest.mock import MagicMock, patch
 
 from porterchain_api.services.routing import resolve_route_distance
@@ -45,3 +47,12 @@ def test_resolve_route_distance_falls_back_to_haversine(mock_maps_cls: MagicMock
     assert meters is not None
     assert seconds is None
     assert source == "haversine"
+
+
+@pytest.fixture(autouse=True)
+def _clear_route_cache():
+    from porterchain_api.services.routing import route_cache_clear
+
+    route_cache_clear()
+    yield
+    route_cache_clear()

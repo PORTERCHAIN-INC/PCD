@@ -30,9 +30,10 @@ from porterchain_api.customer_experience.settings import (
 )
 from porterchain_api.customer_experience.tracking_view import build_experience
 from porterchain_api.notification_engine.models import NotificationRecord
+# Future dates: a hold is only "held" while hold_until is after the real clock.
 
-NOON_ET = datetime(2026, 10, 9, 16, 0, tzinfo=UTC)  # 12:00 America/Toronto
-LATE_ET = datetime(2026, 10, 10, 2, 30, tzinfo=UTC)  # 22:30 America/Toronto
+NOON_ET = datetime(2036, 10, 9, 16, 0, tzinfo=UTC)  # 12:00 America/Toronto
+LATE_ET = datetime(2036, 10, 10, 2, 30, tzinfo=UTC)  # 22:30 America/Toronto
 
 
 @pytest.fixture(autouse=True)
@@ -319,7 +320,7 @@ def test_quiet_hours_hold_sms_but_not_email(db, merchant_ctx, settings) -> None:
     rows = {r.channel: r for r in _records(db, order)}
     assert rows["email"].status == "queued"
     assert rows["sms"].status == "held"
-    assert rows["sms"].next_retry_at == datetime(2026, 10, 10, 12, 0, tzinfo=UTC)  # 08:00 ET
+    assert rows["sms"].next_retry_at == datetime(2036, 10, 10, 12, 0, tzinfo=UTC)  # 08:00 ET
 
 
 def test_sandbox_orders_never_notify(db, merchant_ctx, settings) -> None:
