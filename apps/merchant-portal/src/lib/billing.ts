@@ -32,6 +32,8 @@ export type BillingOverview = {
   available_credit_cents?: number | null;
   headroom_cents?: number | null;
   credits_applied_cents?: number;
+  /** Overpayment credit carried to the next invoice. */
+  credit_balance_cents?: number;
   glossary?: Array<{ term: string; meaning: string }>;
   remittance?: {
     payee: string;
@@ -42,6 +44,11 @@ export type BillingOverview = {
     credits_applied_cents: number;
     net_terms_days: number;
     instructions: string;
+    /** Merchants pay by Interac e-Transfer only. */
+    method?: "interac" | string;
+    etransfer_email?: string | null;
+    /** PC-XXXXX codes to type in the e-Transfer message. */
+    open_references?: string[];
   } | null;
   outstanding_balance_cents: number;
   outstanding_invoices_cents: number;
@@ -305,6 +312,10 @@ export const billingApi = {
 
   downloadStatementCsv: (token: string, orgId?: string) =>
     billingDownload("/v1/merchant/billing/export/statement.csv", token, orgId, "statement.csv"),
+
+  /** Account statement PDF: balance, PC codes, e-Transfer instructions, open invoices. */
+  downloadStatementPdf: (token: string, orgId?: string) =>
+    billingDownload("/v1/merchant/billing/statement.pdf", token, orgId, "porterchain-statement.pdf"),
 
   downloadHistoryCsv: (token: string, orgId?: string) =>
     billingDownload("/v1/merchant/billing/export/history.csv", token, orgId, "billing-history.csv"),

@@ -9,6 +9,7 @@ import { QuoteLines } from "@porterchain/ui/quote-lines";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import {
   INVOICE_STATUS_STYLES,
+  OFFLINE_PAYMENT_METHODS,
   PAYMENT_STATUS_STYLES,
   financeApi,
   type InvoiceDetail,
@@ -19,14 +20,16 @@ import { Button } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import AdminPage from "@/components/layout/AdminPage";
+import { FinanceNav } from "@/components/finance/FinanceShell";
 
 type Props = { detail: InvoiceDetail | null; loading: boolean };
 
 export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
   const { getApiToken } = useAdminAuth();
   const qc = useQueryClient();
-  const [method, setMethod] = useState("wire");
+  const [method, setMethod] = useState("interac");
   const [reference, setReference] = useState("");
+  const [amount, setAmount] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
 
@@ -58,11 +61,19 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
         financeApi.recordPayment(token, detail.invoice_id, {
           method,
           reference: reference || undefined,
+          amount_cents: amount.trim() ? Math.round(Number(amount) * 100) : undefined,
         })
       );
     },
-    onSuccess: async () => {
-      setMsg("Payment recorded.");
+    onSuccess: async (res) => {
+      setAmount("");
+      setMsg(
+        res.excess_cents
+          ? `Paid. ${formatCents(res.excess_cents)} extra kept as credit for the next invoice.`
+          : res.balance_cents
+            ? `Partial payment recorded. ${formatCents(res.balance_cents)} still owing.`
+            : "Payment recorded."
+      );
       await qc.invalidateQueries({ queryKey: ["finance-invoice", detail?.invoice_id] });
       await qc.invalidateQueries({ queryKey: ["finance-invoices"] });
       await qc.invalidateQueries({ queryKey: ["finance-collections"] });
@@ -98,14 +109,17 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
 
   return (
     <AdminPage>
+      <FinanceNav />
       <div>
         <Link
-          href="/finance"
+          href="/finance/invoices"
           className="mb-2 inline-flex items-center gap-1 text-sm text-muted hover:text-secondary"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to finance
+          <ArrowLeft className="h-4 w-4" /> All invoices
         </Link>
-        <h1 className="font-mono text-2xl font-bold text-primary">{detail.invoice_number}</h1>
+        <h1 className="font-mono text-3xl font-bold tracking-tight text-primary">
+          {detail.invoice_number}
+        </h1>
         <span
           className={cn(
             "mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold capitalize",
@@ -120,12 +134,25 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
         <div className="rounded-2xl border border-primary/10 bg-white p-6">
           <h2 className="mb-3 font-semibold">Invoice</h2>
           <Row label="Amount" value={formatCents(detail.amount_cents)} />
-          <Row label="Outstanding" value={formatCents(detail.outstanding_cents)} />
           <Row label="Tax" value={formatCents(detail.tax_cents)} />
+          {detail.amount_paid_cents ? (
+            <Row label="Paid" value={formatCents(detail.amount_paid_cents)} />
+          ) : null}
+          <Row label="Outstanding" value={formatCents(detail.outstanding_cents)} />
+          {detail.payment_reference ? (
+            <Row label="e-Transfer reference" value={detail.payment_reference} mono />
+          ) : null}
+          {detail.billing_kind === "cycle" ? (
+            <Row label="Deliveries" value={String(detail.order_count)} />
+          ) : null}
           <Row label="Merchant" value={detail.merchant_name || "—"} />
           <Row label="Customer" value={detail.customer_email || "—"} />
-          <Row label="Order" value={detail.order_number || "—"} mono />
-          <Row label="Tracking" value={detail.tracking_number || "—"} mono />
+          {detail.order_id ? (
+            <>
+              <Row label="Order" value={detail.order_number || "—"} mono />
+              <Row label="Tracking" value={detail.tracking_number || "—"} mono />
+            </>
+          ) : null}
           <Row label="Terms" value={detail.payment_terms} />
           {hostedPdf ? (
             <a
@@ -190,15 +217,25 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
               </Button>
               <p className="text-sm font-medium text-primary">Record offline payment</p>
               <select
+                aria-label="Payment method"
                 className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
                 value={method}
                 onChange={(e) => setMethod(e.target.value)}
               >
-                <option value="wire">Wire</option>
-                <option value="ach">ACH</option>
-                <option value="cheque">Cheque</option>
-                <option value="other">Other</option>
+                {OFFLINE_PAYMENT_METHODS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
               </select>
+              <input
+                aria-label="Amount received"
+                inputMode="decimal"
+                className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
+                placeholder={`Amount received (default ${formatCents(detail.outstanding_cents)})`}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+              />
               <input
                 className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
                 placeholder="Reference (optional)"
@@ -208,13 +245,56 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
               <Button disabled={payMut.isPending} onClick={() => payMut.mutate()}>
                 {payMut.isPending
                   ? "Recording…"
-                  : `Record ${formatCents(detail.outstanding_cents)}`}
+                  : `Record ${amount.trim() ? formatCents(Math.round(Number(amount) * 100)) : formatCents(detail.outstanding_cents)}`}
               </Button>
               {msg && <p className="text-xs text-secondary">{msg}</p>}
             </div>
           )}
         </div>
       </div>
+
+      {detail.lines.length > 1 || detail.offline_payments.length ? (
+        <div className="grid gap-6 md:grid-cols-2">
+          {detail.lines.length > 1 ? (
+            <div className="rounded-2xl border border-primary/10 bg-white p-6">
+              <h2 className="mb-3 font-semibold">Deliveries on this invoice</h2>
+              <ul className="divide-y divide-primary/5 text-sm">
+                {detail.lines.map((ln, i) => (
+                  <li key={ln.order_id ?? i} className="flex justify-between gap-4 py-2">
+                    {ln.order_id ? (
+                      <Link
+                        href={`/orders/${ln.order_id}`}
+                        className="font-mono text-xs text-secondary hover:underline"
+                      >
+                        {ln.order_number || ln.order_id}
+                      </Link>
+                    ) : (
+                      <span className="text-muted">{ln.description}</span>
+                    )}
+                    <span className="text-primary">{formatCents(ln.amount_cents)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {detail.offline_payments.length ? (
+            <div className="rounded-2xl border border-primary/10 bg-white p-6">
+              <h2 className="mb-3 font-semibold">Payments received</h2>
+              <ul className="divide-y divide-primary/5 text-sm">
+                {detail.offline_payments.map((p) => (
+                  <li key={p.payment_id} className="flex justify-between gap-4 py-2">
+                    <span className="text-muted">
+                      {(p.method || "—").replace("interac", "Interac")}{" "}
+                      {p.reference ? `· ${p.reference}` : ""}
+                    </span>
+                    <span className="text-primary">{formatCents(p.amount_cents)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {(detail.pricing_breakdown || detail.pricing_model) && (
         <div className="rounded-2xl border border-primary/10 bg-white p-6">

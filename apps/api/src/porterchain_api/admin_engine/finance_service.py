@@ -23,7 +23,8 @@ from porterchain_api.billing_engine.merchant_service import invoice_status as me
 from porterchain_api.billing_engine.merchant_service import outstanding_cents as merchant_outstanding_cents
 from porterchain_api.billing_engine.models import BillingLedgerEntry
 from porterchain_api.merchant_engine.invoice_reminder import primary_ap_contact
-from porterchain_api.merchant_engine.lookups import credit_limit_cents_sum, get_merchant, company_names
+from porterchain_api.merchant_engine.lookups import get_merchant, company_names
+from porterchain_api.billing_engine.invoice_extras import invoice_detail_extras, invoice_ledger_filter, invoice_payment_fields
 from porterchain_api.booking_models import Booking, Customer, DomainEvent, Invoice, Order, Payment, Quote
 
 
@@ -32,7 +33,7 @@ INVOICE_STATUSES = frozenset({
     "pending",
     "sent",
     "paid",
-    "partially_paid",
+    "partially_paid", "partial",
     "overdue",
     "cancelled",
     "void",
@@ -67,13 +68,10 @@ class AdminFinanceService:
         n = self._now()
         return datetime(n.year, n.month, 1)
 
-    def _payment_for_order(self, db: Session, order_id: str) -> Payment | None:
-        return (
-            db.query(Payment)
-            .filter(Payment.order_id == order_id)
-            .order_by(Payment.created_at.desc())
-            .first()
-        )
+    def _payment_for_order(self, db: Session, order_id: str | None) -> Payment | None:
+        if not order_id:  # cycle invoices: never match NULL-order (offline) payments
+            return None
+        return db.query(Payment).filter(Payment.order_id == order_id).order_by(Payment.created_at.desc()).first()
 
     def _invoice_status(
         self,
@@ -94,9 +92,6 @@ class AdminFinanceService:
 
     def _outstanding_cents(self, invoice: Invoice, status: str) -> int:
         return merchant_outstanding_cents(invoice, status)
-
-    def _credit_limit_cents_sum(self, db: Session) -> int:
-        return int(credit_limit_cents_sum(db))
 
     def _company_names(self, db: Session) -> dict[str, str]:
         return company_names(db)
@@ -144,7 +139,7 @@ class AdminFinanceService:
             if invoice.customer_id
             else None
         )
-        booking = db.query(Booking).filter(Booking.order_id == invoice.order_id).first()
+        booking = db.query(Booking).filter(Booking.order_id == invoice.order_id).first() if invoice.order_id else None
         payment = self._payment_for_order(db, invoice.order_id)
         mid = invoice.merchant_id or (order.merchant_id if order else None)
         merchant = get_merchant(db, mid)
@@ -175,6 +170,7 @@ class AdminFinanceService:
             "tax_cents": invoice.tax_cents,
             "fees_cents": invoice.fees_cents,
             "outstanding_cents": outstanding,
+            **invoice_payment_fields(db, invoice),
             "currency": invoice.currency,
             "payment_terms": terms,
             "due_date": due_date,
@@ -276,7 +272,7 @@ class AdminFinanceService:
         )
         ledger = (
             db.query(BillingLedgerEntry)
-            .filter(BillingLedgerEntry.order_id == invoice.order_id)
+            .filter(invoice_ledger_filter(invoice))
             .order_by(BillingLedgerEntry.created_at.asc())
             .all()
         )
@@ -324,6 +320,7 @@ class AdminFinanceService:
 
         return {
             **row,
+            **invoice_detail_extras(db, invoice),
             "quote_id": quote_id,
             "quote_amount_cents": quote.amount_cents if quote else None,
             "pricing_breakdown": pricing_breakdown,
@@ -438,7 +435,7 @@ class AdminFinanceService:
         invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
         if not invoice:
             raise LookupError("invoice_not_found")
-        order = db.query(Order).filter(Order.id == invoice.order_id).first()
+        order = db.query(Order).filter(Order.id == invoice.order_id).first() if invoice.order_id else None
         mid = invoice.merchant_id or (order.merchant_id if order else None)
         if not mid:
             raise ValueError("invoice_not_merchant")
@@ -464,6 +461,8 @@ class AdminFinanceService:
         return result
 
     def find_duplicate_invoices(self, db: Session, invoice: Invoice) -> list[dict[str, Any]]:
+        if not invoice.order_id:  # cycle invoices: NULL would match every other cycle invoice
+            return []
         return [
             {"invoice_id": o.id, "invoice_number": o.invoice_number, "order_id": o.order_id}
             for o in db.query(Invoice)

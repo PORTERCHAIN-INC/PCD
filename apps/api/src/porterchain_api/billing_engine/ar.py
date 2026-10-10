@@ -136,6 +136,24 @@ def merchant_ar_index(
             overdue[mid] = overdue.get(mid, 0) + cents
             overdue_counts[mid] = overdue_counts.get(mid, 0) + 1
 
+    # Consolidated cycle invoices: one invoice, many orders as lines.
+    from porterchain_api.billing_engine.models import InvoiceLine
+
+    for line in db.query(InvoiceLine).filter(InvoiceLine.order_id.in_(order_ids)).all():
+        invoiced_order_ids.add(str(line.order_id))
+    cycle_q = db.query(Invoice).filter(Invoice.billing_kind == "cycle", Invoice.merchant_id.in_(found_ids))
+    for inv in cycle_q.all():
+        mid = str(inv.merchant_id)
+        status = invoice_status(inv, None, None, terms=effective_payment_terms(None, merchants.get(mid)))
+        cents = outstanding_cents(inv, status)
+        if cents <= 0:
+            continue
+        invoiced[mid] = invoiced.get(mid, 0) + cents
+        open_counts[mid] = open_counts.get(mid, 0) + 1
+        if status == "overdue":
+            overdue[mid] = overdue.get(mid, 0) + cents
+            overdue_counts[mid] = overdue_counts.get(mid, 0) + 1
+
     uninvoiced: dict[str, int] = {}
     for order in orders:
         if order.id in invoiced_order_ids or order.state in _NOT_BILLABLE:
@@ -161,6 +179,27 @@ def merchant_ar_index(
         if mid not in merchants:
             continue
         credits[mid] = credits.get(mid, 0) + int(entry.amount_cents or 0)
+
+    # Unapplied overpayment credit (Interac overpaid) nets against what they owe.
+    from sqlalchemy import func
+
+    from porterchain_api.billing_engine.merchant_credit import CREDIT_ADDED, CREDIT_APPLIED
+
+    credit_net: dict[str, int] = {}
+    for mid, kind, total in (
+        db.query(BillingLedgerEntry.merchant_id, BillingLedgerEntry.kind, func.sum(BillingLedgerEntry.amount_cents))
+        .filter(
+            BillingLedgerEntry.kind.in_((CREDIT_ADDED, CREDIT_APPLIED)),
+            BillingLedgerEntry.merchant_id.in_(found_ids),
+        )
+        .group_by(BillingLedgerEntry.merchant_id, BillingLedgerEntry.kind)
+        .all()
+    ):
+        sign = 1 if kind == CREDIT_ADDED else -1
+        credit_net[str(mid)] = credit_net.get(str(mid), 0) + sign * int(total or 0)
+    for mid, extra in credit_net.items():
+        if extra > 0:
+            credits[mid] = credits.get(mid, 0) + extra
 
     return {
         mid: MerchantAr(

@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.billing_engine.invoice_numbering import allocate_invoice_number
 from porterchain_api.booking_engine.numbers import (
     generate_booking_number,
     generate_customer_reference,
-    generate_invoice_number,
     generate_order_number,
     generate_payment_reference,
     generate_receipt_number,
@@ -200,14 +200,14 @@ class BookingConfirmationService:
         from porterchain_api.admin_engine.platform_settings import (
             invoice_number_prefix,
             receipt_number_prefix,
-            tax_cents_for_amount,
         )
+        from porterchain_api.platform.merchant_billing import charged_tax_split
 
         resolved_tax = (
-            tax_cents if tax_cents is not None else tax_cents_for_amount(db, int(order.amount_cents or 0))
+            tax_cents if tax_cents is not None else charged_tax_split(db, order, int(order.amount_cents or 0)).tax_cents
         )
         invoice = Invoice(
-            invoice_number=generate_invoice_number(prefix=invoice_number_prefix(db)),
+            invoice_number=allocate_invoice_number(db, prefix=invoice_number_prefix(db)),
             receipt_number=generate_receipt_number(prefix=receipt_number_prefix(db)),
             order_id=order.id,
             customer_id=quote.customer_id,

@@ -15,6 +15,9 @@ logger = logging.getLogger("porterchain.worker")
 _running = True
 _last_draft_reconcile_at = 0.0
 _last_standing_orders_at = 0.0
+_last_interac_inbox_at = 0.0
+_last_billing_cycle_at = 0.0
+_last_finance_daily_at = 0.0
 _last_notification_retry_at = 0.0
 _last_webhook_retry_at = 0.0
 _last_shopify_sync_retry_at = 0.0
@@ -28,6 +31,9 @@ _last_blog_schedule_at = 0.0
 _last_delivery_sla_at = 0.0
 DRAFT_RECONCILE_INTERVAL_SECONDS = 300
 STANDING_ORDERS_INTERVAL_SECONDS = 300
+INTERAC_INBOX_INTERVAL_SECONDS = 300
+BILLING_CYCLE_INTERVAL_SECONDS = 3600
+FINANCE_DAILY_INTERVAL_SECONDS = 86400
 NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
 WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
@@ -158,6 +164,77 @@ def _drain_draft_reconciliation() -> int:
     if result.get("expired") or result.get("repaired"):
         logger.info("draft reconciliation: %s", result)
     return int(result.get("expired", 0)) + int(result.get("repaired", 0))
+
+
+def _drain_interac_inbox() -> int:
+    """Read-only pull of Interac e-Transfer emails into the review queue (flagged)."""
+    global _last_interac_inbox_at
+    now = time.monotonic()
+    if now - _last_interac_inbox_at < INTERAC_INBOX_INTERVAL_SECONDS:
+        return 0
+    _last_interac_inbox_at = now
+
+    from porterchain_api.billing_engine.interac.imap_reader import fetch_and_ingest, imap_configured
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+
+    settings = get_settings()
+    if not imap_configured(settings):
+        return 0
+    try:
+        with SessionLocal() as db:
+            result = fetch_and_ingest(db, settings)
+    except Exception as exc:  # noqa: BLE001 - never log credentials
+        logger.warning("interac inbox pull failed: %s", type(exc).__name__)
+        return 0
+    return int(result.get("queued", 0))
+
+
+def _drain_billing_cycle() -> int:
+    """Create due merchant cycle invoices (flag BILLING_CYCLE_AUTORUN_ENABLED). Idempotent."""
+    global _last_billing_cycle_at
+    now = time.monotonic()
+    if now - _last_billing_cycle_at < BILLING_CYCLE_INTERVAL_SECONDS:
+        return 0
+    _last_billing_cycle_at = now
+
+    from porterchain_api.config import get_settings
+
+    if not get_settings().billing_cycle_autorun_enabled:
+        return 0
+    from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = MerchantArService().run_due_cycles(db)
+    if result.get("invoiced") or result.get("failed"):
+        logger.info(
+            "billing cycle run: processed=%s invoiced=%s failed=%s",
+            result.get("processed", 0),
+            result.get("invoiced", 0),
+            result.get("failed", 0),
+        )
+    return int(result.get("invoiced", 0))
+
+
+def _drain_finance_daily() -> int:
+    """Daily, no sends: queue overdue reminder *drafts* for admin approval and purge
+    Interac records past retention (7 years)."""
+    global _last_finance_daily_at
+    now = time.monotonic()
+    if now - _last_finance_daily_at < FINANCE_DAILY_INTERVAL_SECONDS:
+        return 0
+    _last_finance_daily_at = now
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.finance_ops.reminders import queue_drafts
+    from porterchain_api.finance_ops.retention import purge_expired_interac
+
+    with SessionLocal() as db:
+        drafts = queue_drafts(db)
+        purged = purge_expired_interac(db)
+    if drafts.get("created") or purged.get("deleted"):
+        logger.info("finance daily: drafts=%s purged=%s", drafts, purged)
+    return int(drafts.get("created", 0))
 
 
 def _drain_standing_orders() -> int:
@@ -487,6 +564,9 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_queues(publisher, timeout_seconds=0)
                 processed += _drain_draft_reconciliation()
                 processed += _drain_standing_orders()
+                processed += _drain_interac_inbox()
+                processed += _drain_billing_cycle()
+                processed += _drain_finance_daily()
                 processed += _drain_notification_retries()
                 processed += _drain_merchant_webhook_retries()
                 processed += _drain_shopify_fulfillment_retries()

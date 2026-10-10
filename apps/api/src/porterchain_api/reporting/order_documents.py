@@ -129,6 +129,7 @@ def render_branded_invoice_pdf(
     issuer_name: str = "PorterChain",
     issuer_legal_name: str = "Porterchain Logistics Inc.",
     support_email: str = "support@porterchain.com",
+    compliance: dict[str, Any] | None = None,
 ) -> bytes:
     """Multi-page PorterChain invoice. Amount labels stay plain text so cents checks can read them."""
     import io
@@ -265,32 +266,62 @@ def render_branded_invoice_pdf(
         leading=13,
     )
 
+    comp = dict(compliance or {})
     story: list[Any] = [Spacer(1, 8)]
-    meta = [
-        f"Receipt: {receipt_number or '—'}",
-        f"Status: {status or order_status or '—'}",
-        f"Issued: {issued_at or '—'}",
-        f"Due: {due_date or '—'}",
-        f"Terms: {payment_terms or '—'}",
-        f"Order: {order_number or '—'}",
-        f"Tracking: {tracking_number or '—'}",
-    ]
+    if comp.get("supplier_tax_number"):
+        # CRA: supplier name + GST/HST registration number on every invoice of $100+.
+        story.append(
+            LiteralBlock(
+                [
+                    f"{issuer_legal_name}",
+                    *( [str(comp["issuer_address"])] if comp.get("issuer_address") else [] ),
+                    f"GST/HST Reg. No.: {comp['supplier_tax_number']}",
+                ],
+                size=9,
+                leading=13,
+            )
+        )
+        story.append(Spacer(1, 6))
+    is_cycle = bool(comp.get("billing_period"))
+    if is_cycle:
+        # One invoice for many deliveries: no single order/route; dates as YYYY-MM-DD.
+        meta = [
+            f"Status: {status or '—'}",
+            f"Issued: {(issued_at or '—')[:10]}",
+            f"Due: {(due_date or '—')[:10]}",
+            f"Terms: {payment_terms or '—'}",
+        ]
+    else:
+        meta = [
+            f"Receipt: {receipt_number or '—'}",
+            f"Status: {status or order_status or '—'}",
+            f"Issued: {issued_at or '—'}",
+            f"Due: {due_date or '—'}",
+            f"Terms: {payment_terms or '—'}",
+            f"Order: {order_number or '—'}",
+            f"Tracking: {tracking_number or '—'}",
+        ]
+    if comp.get("billing_period"):
+        meta.append(f"Billing period: {comp['billing_period']}")
+    if comp.get("payment_reference"):
+        meta.append(f"Payment reference: {comp['payment_reference']}")
     story.append(LiteralBlock(meta, size=9, leading=13))
     story.append(Spacer(1, 10))
     story.append(Paragraph("Bill to", label))
     story.append(LiteralBlock(bill_lines, size=10, leading=14))
     story.append(Spacer(1, 8))
-    story.append(Paragraph("Route", label))
-    story.append(
-        LiteralBlock(
-            [
-                f"Pickup: {pickup or '—'}",
-                f"Delivery: {delivery or '—'}",
-            ],
-            size=9,
-            leading=12,
+    if not is_cycle:
+        story.append(Paragraph("Route", label))
+        story.append(
+            LiteralBlock(
+                [
+                    f"Pickup: {pickup or '—'}",
+                    f"Delivery: {delivery or '—'}",
+                ],
+                size=9,
+                leading=12,
+            )
         )
-    )
     story.append(Spacer(1, 12))
 
     header = [
@@ -322,7 +353,7 @@ def render_branded_invoice_pdf(
                 Paragraph(amount, body),
             ]
         )
-    table = Table(table_rows, colWidths=[3.6 * inch, 1.6 * inch, 1.4 * inch], repeatRows=1)
+    table = Table(table_rows, colWidths=[3.2 * inch, 2.0 * inch, 1.4 * inch], repeatRows=1)
     table.setStyle(
         TableStyle(
             [
@@ -350,14 +381,28 @@ def render_branded_invoice_pdf(
         LiteralBlock(
             [
                 f"Amount: {amount}",
-                f"Tax: {tax}",
+                f"Tax: {tax}" + (f" ({comp['tax_label']})" if comp.get("tax_label") else ""),
                 f"Fees: {fees}",
+                *([f"Paid: {_money(int(comp['amount_paid_cents']), currency)}"] if comp.get("amount_paid_cents") else []),
                 f"Outstanding: {due_amount}",
             ],
             size=11,
             leading=16,
         )
     )
+    owing = outstanding_cents if outstanding_cents is not None else amount_cents
+    if comp.get("payment_reference") and comp.get("etransfer_email") and int(owing or 0) > 0:
+        story.append(Spacer(1, 14))
+        story.append(Paragraph("How to pay — Interac e-Transfer", label))
+        rows = [
+            f"Send to: {comp['etransfer_email']}",
+            f"Amount: {due_amount}",
+            f"Message: {comp['payment_reference']}  (required — this is how we match your payment)",
+        ]
+        if comp.get("autodeposit"):
+            rows.append("Autodeposit is on: no security question needed.")
+        rows.append("Partial payments are applied; overpayments become credit on your next invoice.")
+        story.append(LiteralBlock(rows, size=10, leading=14))
     doc.build(story)
     return buf.getvalue()
 
@@ -384,6 +429,7 @@ def build_invoice_pdf(
     issuer_name: str | None = None,
     issuer_legal_name: str | None = None,
     support_email: str | None = None,
+    compliance: dict[str, Any] | None = None,
 ) -> bytes:
     """Commercial invoice. Amounts must match GET invoice detail."""
     return render_branded_invoice_pdf(
@@ -411,7 +457,48 @@ def build_invoice_pdf(
         issuer_name=issuer_name or "PorterChain",
         issuer_legal_name=issuer_legal_name or "Porterchain Logistics Inc.",
         support_email=support_email or "support@porterchain.com",
+        compliance=compliance,
     )
+
+
+def _province_tax_label(db: Any, province: str | None) -> str | None:
+    if not province:
+        return None
+    from porterchain_api.admin_engine.platform_settings import collect_qst
+    from porterchain_pricing.tax.provinces import PROVINCES
+
+    prov = PROVINCES.get(province)
+    return f"{prov.label(collect_qst=collect_qst(db))} ({province})" if prov else None
+
+
+def invoice_compliance(db: Any, invoice: Any) -> dict[str, Any]:
+    """CRA + Interac fields for an invoice PDF (supplier GST/HST #, tax label, e-Transfer)."""
+    from porterchain_api.admin_engine.platform_settings import (
+        etransfer_autodeposit,
+        etransfer_recipient_email,
+        finance_settings,
+        supplier_gst_hst_number,
+        tax_label,
+    )
+
+    is_b2b = bool(getattr(invoice, "merchant_id", None)) and not getattr(invoice, "customer_id", None)
+    start = getattr(invoice, "billing_period_start", None)
+    end = getattr(invoice, "billing_period_end", None)
+    period = None
+    if start and end and getattr(invoice, "billing_kind", "order") == "cycle":
+        from datetime import timedelta
+
+        period = f"{start.date().isoformat()} to {(end - timedelta(seconds=1)).date().isoformat()}"
+    return {
+        "supplier_tax_number": supplier_gst_hst_number(db),
+        "issuer_address": str(finance_settings(db).get("business_address") or "").strip() or None,
+        "tax_label": _province_tax_label(db, getattr(invoice, "tax_province", None)) or tax_label(db),
+        "payment_reference": getattr(invoice, "payment_reference", None) if is_b2b else None,
+        "etransfer_email": etransfer_recipient_email(db) if is_b2b else None,
+        "autodeposit": etransfer_autodeposit(db),
+        "amount_paid_cents": int(getattr(invoice, "amount_paid_cents", 0) or 0),
+        "billing_period": period,
+    }
 
 
 def pdf_for_invoice_record(db: Any, invoice: Any, *, lines: Sequence[dict[str, Any]] | None = None) -> tuple[bytes, str]:
@@ -520,6 +607,7 @@ def pdf_for_invoice_record(db: Any, invoice: Any, *, lines: Sequence[dict[str, A
         issuer_name=issuer_name,
         issuer_legal_name=legal,
         support_email=support,
+        compliance=invoice_compliance(db, invoice),
     )
     return pdf, f"invoice-{invoice.invoice_number}.pdf"
 
@@ -620,6 +708,7 @@ def pdf_for_merchant_invoice(
         issuer_name=issuer_name,
         issuer_legal_name=legal,
         support_email=support,
+        compliance=invoice_compliance(db, inv) if inv is not None else None,
     )
     return pdf, f"invoice-{detail['invoice_number']}.pdf"
 
