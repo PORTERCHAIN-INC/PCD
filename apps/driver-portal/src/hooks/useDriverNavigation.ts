@@ -33,8 +33,18 @@ export function useDriverNavigation(orderId?: string | null) {
     return () => window.removeEventListener("pc:sequence-applied", onSequence);
   }, []);
 
+  // Live GPS can be switched off by PorterChain (global or per driver): then we never
+  // read or send the device position, and tell the driver plainly.
+  const [gps, setGps] = useState<{ enabled: boolean; message: string } | null>(null);
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    driverApi
+      .gpsStatus()
+      .then(setGps)
+      .catch(() => setGps({ enabled: true, message: "" }));
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation || !gps?.enabled) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -61,13 +71,14 @@ export function useDriverNavigation(orderId?: string | null) {
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [gps?.enabled]);
 
   return {
     session: query.data ?? null,
     error: query.error instanceof Error ? query.error.message : "",
     loading: query.isLoading && !query.data,
     deviceLocation,
+    gps,
     refresh: refreshNav,
   };
 }

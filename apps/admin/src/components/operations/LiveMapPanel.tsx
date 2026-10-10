@@ -26,6 +26,20 @@ function LiveMapInner({
   const [selected, setSelected] = useState<string | null>(null);
   const [showDensity, setShowDensity] = useState(true);
   const [showZones, setShowZones] = useState(true);
+  const [showArea, setShowArea] = useState(false);
+  const [trackDriver, setTrackDriver] = useState<string | null>(null);
+  const { data: area } = useApiData((t) => ops.serviceArea(t), [showArea], {
+    key: "ops-service-area",
+    enabled: showArea,
+  });
+  const { data: track } = useApiData(
+    (t) => ops.driverTrack(t, trackDriver ?? ""),
+    [trackDriver, tick],
+    {
+      key: "ops-driver-track",
+      enabled: !!trackDriver,
+    }
+  );
   const { data: geometry } = useApiData((t) => ops.routeGeometry(t, selected ?? ""), [selected], {
     key: "ops-route-geometry",
     enabled: !!selected,
@@ -71,24 +85,41 @@ function LiveMapInner({
     return out;
   }, [orders, drivers, selected]);
 
-  const lines = useMemo(
-    () =>
-      (geometry?.path?.length ?? 0) > 1
-        ? [{ id: "route", path: geometry!.path, color: MAP_COLORS.route }]
-        : [],
-    [geometry]
-  );
-  const areas = useMemo(
-    () =>
-      showZones
-        ? (data?.zones ?? []).map((z) => ({
-            id: String(z.id ?? z.name),
-            path: z.path,
-            color: z.color || MAP_COLORS.zone,
-          }))
-        : [],
-    [data, showZones]
-  );
+  const lines = useMemo(() => {
+    const out: Array<{
+      id: string;
+      path: [number, number][];
+      color: string;
+      width?: number;
+      opacity?: number;
+    }> = [];
+    if ((geometry?.path?.length ?? 0) > 1)
+      out.push({ id: "route", path: geometry!.path, color: MAP_COLORS.route });
+    // Driver trail snapped to roads (Valhalla map-matching), drawn under the route.
+    if ((track?.path?.length ?? 0) > 1)
+      out.push({
+        id: "track",
+        path: track!.path,
+        color: MAP_COLORS.driver,
+        width: 4,
+        opacity: 0.7,
+      });
+    return out;
+  }, [geometry, track]);
+  const areas = useMemo(() => {
+    const out = showZones
+      ? (data?.zones ?? []).map((z) => ({
+          id: String(z.id ?? z.name),
+          path: z.path,
+          color: z.color || MAP_COLORS.zone,
+        }))
+      : [];
+    if (showArea)
+      (area?.areas ?? []).forEach((a, i) =>
+        out.push({ id: `area-${a.minutes}-${i}`, path: a.path, color: MAP_COLORS.zone })
+      );
+    return out;
+  }, [data, showZones, showArea, area]);
   const heat = useMemo(() => (showDensity ? (data?.density ?? []) : []), [data, showDensity]);
 
   if (loading && !data) {
@@ -138,6 +169,19 @@ function LiveMapInner({
             !LIVE_GPS.has(data.zones_source) &&
             data.zones_source !== "miss" && <span className="text-amber-700">(none)</span>}
         </label>
+        <label className="flex items-center gap-1.5 text-muted">
+          <input
+            type="checkbox"
+            checked={showArea}
+            onChange={(e) => setShowArea(e.target.checked)}
+          />
+          Service area (30/60/90 min)
+        </label>
+        {trackDriver && (
+          <button className="text-muted underline" onClick={() => setTrackDriver(null)}>
+            Hide trail{track ? ` (${track.source === "raw" ? "raw GPS" : "road-matched"})` : ""}
+          </button>
+        )}
         <span className="ml-auto text-muted">
           {orders.length} orders · {drivers.length} drivers
         </span>
@@ -155,7 +199,9 @@ function LiveMapInner({
           lines={lines}
           areas={areas}
           heat={heat}
-          onPointClick={(id) => !id.startsWith("driver:") && setSelected(id)}
+          onPointClick={(id) =>
+            id.startsWith("driver:") ? setTrackDriver(id.slice(7)) : setSelected(id)
+          }
         />
 
         {selectedOrder && (

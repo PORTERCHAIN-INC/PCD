@@ -335,6 +335,18 @@ export const ops = {
   driverSuggestions: (t: string, orderId: string) =>
     adminFetch<DriverSuggestions>(`${B}/orders/${orderId}/driver-suggestions`, t),
   liveMap: (t: string) => adminFetch<LiveMapSnapshot>(`${B}/live-map`, t),
+  driverTrack: (t: string, driverId: string, minutes = 60) =>
+    adminFetch<{
+      path: [number, number][];
+      source: string;
+      gps_enabled: boolean;
+      distance_m: number | null;
+    }>(`${B}/drivers/${driverId}/track?minutes=${minutes}`, t),
+  serviceArea: (t: string) =>
+    adminFetch<{ areas: Array<{ minutes: number; path: [number, number][] }>; source: string }>(
+      `${B}/service-area`,
+      t
+    ),
   routeGeometry: (t: string, orderId: string) =>
     adminFetch<RouteGeometry>(`${B}/orders/${orderId}/route-geometry`, t),
   playback: (t: string, orderId: string) =>

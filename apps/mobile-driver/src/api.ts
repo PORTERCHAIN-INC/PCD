@@ -186,6 +186,11 @@ export function rejectOrder(orderId: string, reason = "unavailable"): Promise<un
   });
 }
 
+/** Is live location sharing on for this driver? (PorterChain admin switch) */
+export function fetchGpsStatus(): Promise<{ enabled: boolean; message: string }> {
+  return driverFetch(`${DRIVER_API}/gps-status`) as Promise<{ enabled: boolean; message: string }>;
+}
+
 export function pingLocation(
   lat: number,
   lng: number,

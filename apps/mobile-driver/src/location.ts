@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { pingLocation, setAvailability } from "./api";
+import { fetchGpsStatus, pingLocation, setAvailability } from "./api";
 import { locationPingMs } from "./config";
 import { humanFieldCopy } from "./fieldCopy";
 import { enqueueGpsPing } from "./offline";
@@ -10,6 +10,28 @@ import type { LocationState } from "./types";
 export const STALE_LOCATION_MS = 5 * 60_000;
 
 let lastSuccessfulPingAt = 0;
+/** Set when PorterChain has switched live GPS off for this driver. */
+let gpsOffMessage: string | null = null;
+
+export function gpsDisabledMessage(): string | null {
+  return gpsOffMessage;
+}
+
+/** Ask the server whether live GPS is on; stops background updates when it is off. */
+export async function refreshGpsPolicy(): Promise<boolean> {
+  try {
+    const s = await fetchGpsStatus();
+    gpsOffMessage = s.enabled ? null : s.message;
+  } catch {
+    /* keep the last known policy */
+  }
+  if (gpsOffMessage) await stopBackgroundLocation();
+  return gpsOffMessage == null;
+}
+
+function gpsOffState(): LocationState {
+  return { kind: "idle", detail: gpsOffMessage ?? "Live location sharing is off" };
+}
 let softOfflineArmed = false;
 
 export function idleLocation(): LocationState {
@@ -66,6 +88,7 @@ export async function requestLocationAccess(): Promise<LocationState> {
 }
 
 export async function sendLocationPing(): Promise<LocationState> {
+  if (gpsOffMessage) return gpsOffState();
   const access = await requestLocationAccess();
   if (access.kind !== "granted") return access;
   try {
@@ -74,10 +97,20 @@ export async function sendLocationPing(): Promise<LocationState> {
       accuracy: Location.Accuracy.Balanced,
     });
     try {
-      await pingLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, {
-        heading: pos.coords.heading,
-        speed_mps: pos.coords.speed,
-      });
+      const res = (await pingLocation(
+        pos.coords.latitude,
+        pos.coords.longitude,
+        pos.coords.accuracy,
+        {
+          heading: pos.coords.heading,
+          speed_mps: pos.coords.speed,
+        }
+      )) as { gps_enabled?: boolean; message?: string } | null;
+      if (res && res.gps_enabled === false) {
+        gpsOffMessage = res.message ?? "Live location sharing is off";
+        await stopBackgroundLocation();
+        return gpsOffState();
+      }
       markLocationPingSuccess();
       return { kind: "granted", detail: "Location ping sent to PorterChain dispatch" };
     } catch {
@@ -100,7 +133,7 @@ export async function sendLocationPing(): Promise<LocationState> {
 
 /** Signal soft-offline once when GPS goes stale while on duty. */
 export async function maybeSoftOfflineOnStale(online: boolean): Promise<LocationState | null> {
-  if (!online || softOfflineArmed || !isLocationStale()) return null;
+  if (!online || softOfflineArmed || gpsOffMessage || !isLocationStale()) return null;
   softOfflineArmed = true;
   try {
     await setAvailability("offline");
@@ -115,6 +148,7 @@ export async function maybeSoftOfflineOnStale(online: boolean): Promise<Location
 }
 
 export async function startBackgroundLocation(): Promise<LocationState> {
+  if (!(await refreshGpsPolicy())) return gpsOffState();
   const access = await requestLocationAccess();
   if (access.kind !== "granted") return access;
   try {

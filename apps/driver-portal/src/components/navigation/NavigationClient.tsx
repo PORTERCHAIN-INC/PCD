@@ -33,7 +33,7 @@ function NavigationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order") || undefined;
-  const { session, error, loading, deviceLocation, refresh } = useDriverNavigation(orderId);
+  const { session, error, loading, deviceLocation, gps, refresh } = useDriverNavigation(orderId);
   const [showTraffic, setShowTraffic] = useState(false);
   const [replayPlaying, setReplayPlaying] = useState(false);
   const [replayIndex, setReplayIndex] = useState<number | null>(null);
@@ -70,6 +70,11 @@ function NavigationPageContent() {
         <p className="mt-1 text-xs text-[var(--muted)]">
           Live GPS · remaining ETA · planned corridor · map display
         </p>
+        {gps && !gps.enabled && (
+          <p role="status" className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+            {gps.message}
+          </p>
+        )}
       </header>
 
       {!isGoogleMapsConfigured() && (

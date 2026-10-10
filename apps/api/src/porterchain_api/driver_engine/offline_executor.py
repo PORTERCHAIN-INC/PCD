@@ -27,6 +27,10 @@ class DriverOfflineExecutor:
             )
             return
         if action == "location":
+            from porterchain_api.platform.gps_policy import gps_enabled_for
+
+            if not gps_enabled_for(str(driver.id), db):
+                return  # live GPS off: buffered pings are dropped, never stored
             self._platform.location.record_ping(
                 db,
                 driver,

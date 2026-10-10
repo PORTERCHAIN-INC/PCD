@@ -326,6 +326,7 @@ export const driverApi = {
         ? `/v1/navigation/route?route_id=${encodeURIComponent(routeId)}`
         : "/v1/navigation/route"
     ),
+  gpsStatus: () => driverFetch<{ enabled: boolean; message: string }>("/v1/gps-status"),
   postLocation: (body: {
     lat: number;
     lng: number;

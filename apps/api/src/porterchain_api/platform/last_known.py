@@ -182,6 +182,10 @@ def write_last_known(
 def read_last_known(driver_id: str, *, client: Any | None = None) -> LastKnown | None:
     if not driver_id:
         return None
+    from porterchain_api.platform.gps_policy import gps_enabled_for
+
+    if not gps_enabled_for(driver_id):
+        return None  # live GPS off: no position anywhere (admin Live, tracking, ETA)
     redis_client = client if client is not None else _client()
     if redis_client is None:
         return None

@@ -390,6 +390,56 @@ class MapsService(BaseService):
             return None
         return data if isinstance(data, dict) else None
 
+    def map_match(
+        self, points: list[tuple[float, float]], *, vehicle_class: str | None = None
+    ) -> dict[str, Any] | None:
+        """Snap a noisy GPS trace to roads: Valhalla trace_route, OSRM /match fallback.
+
+        Returns ``{"path": [[lat, lng], ...], "distance_m": int, "source": str}`` or None.
+        """
+        if len(points) < 2:
+            return None
+        if self.settings.valhalla_url:
+            url = f"{self.settings.valhalla_url.rstrip('/')}/trace_route"
+            body = {
+                "shape": [{"lat": p[0], "lon": p[1]} for p in points],
+                "costing": self._resolve_costing(costing=None, vehicle_class=vehicle_class),
+                "shape_match": "map_snap",
+                "units": "kilometers",
+            }
+            try:
+                r = self._client().post(url, json=body)
+                if r.status_code < 400:
+                    from porterchain_services.maps.polyline import decode_polyline
+
+                    trip = (r.json() or {}).get("trip") or {}
+                    path: list[list[float]] = []
+                    for leg in trip.get("legs") or []:
+                        shape = leg.get("shape") or ""
+                        path.extend([lat, lng] for lat, lng in decode_polyline(shape, precision=6))
+                    if len(path) >= 2:
+                        km = float((trip.get("summary") or {}).get("length") or 0)
+                        return {"path": path, "distance_m": int(km * 1000), "source": "valhalla"}
+            except httpx.HTTPError as exc:
+                logger.warning("Valhalla trace_route unreachable: %s", exc)
+        base = self._osrm_base()
+        if base:
+            coords = ";".join(f"{p[1]},{p[0]}" for p in points[:100])
+            try:
+                r = self._client().get(
+                    f"{base}/match/v1/driving/{coords}",
+                    params={"geometries": "geojson", "overview": "full", "tidy": "true"},
+                )
+                data = r.json() if r.status_code < 400 else {}
+                legs = data.get("matchings") or []
+                if legs:
+                    path = [[c[1], c[0]] for m in legs for c in m["geometry"]["coordinates"]]
+                    dist = sum(float(m.get("distance") or 0) for m in legs)
+                    return {"path": path, "distance_m": int(dist), "source": "osrm"}
+            except (httpx.HTTPError, ValueError, KeyError) as exc:
+                logger.warning("OSRM match failed: %s", exc)
+        return None
+
     def _valhalla_route(
         self,
         origin: tuple[float, float],

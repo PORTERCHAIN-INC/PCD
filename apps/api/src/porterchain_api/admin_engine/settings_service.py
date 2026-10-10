@@ -24,7 +24,7 @@ from porterchain_api.domain.pricing_version import (
 )
 from porterchain_pricing.delivery_promise import default_delivery_promise, normalize_delivery_promise
 from porterchain_api.marketing_site.config import default_marketing_site, normalize_marketing_site
-from porterchain_pricing.cost_settings import COST_DEFAULTS, COST_NORMALIZERS, COST_SECTIONS
+from porterchain_api.admin_engine.settings_extra import EXTRA_DEFAULTS, EXTRA_NORMALIZERS, EXTRA_SECTIONS
 from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_driver_pay_plan
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -61,7 +61,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "vehicles", "label": "Vehicle Classes", "group": "commercial"},
     {"id": "pricing", "label": "Pricing", "group": "commercial"},
     {"id": "coverage", "label": "Coverage", "group": "commercial"},
-    *COST_SECTIONS,  # carriage terms, route pricing
+    *EXTRA_SECTIONS,  # carriage terms, route pricing, driver GPS
     {"id": "booking", "label": "Booking", "group": "commercial"},
     {"id": "finance", "label": "Finance", "group": "commercial"},
     {"id": "documents", "label": "Documents", "group": "commercial"},
@@ -102,7 +102,7 @@ CONFIG_KEYS = {
     # Per-merchant FSA rate card formula (base, km, minute, downtown, bands).
     "pricing_fsa_card": "pricing_fsa_card",
     "driver_pay": "driver_pay_plan",
-    **{k: k for k in COST_NORMALIZERS},  # margin cost inputs, parcel coverage, carriage terms
+    **{k: k for k in EXTRA_NORMALIZERS},  # margin cost inputs, parcel coverage, carriage terms
     # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
     "delivery_promise": "delivery_promise",
     # Website marketing switches (hero A/B flag, calculator limits). A/B off by default.
@@ -217,8 +217,8 @@ DEFAULTS["pricing_gta_rate"] = default_gta_rate_config().to_dict()
 DEFAULTS["pricing_book"] = default_price_book()
 DEFAULTS["pricing_fsa_card"] = default_fsa_card()
 DEFAULTS["driver_pay_plan"] = default_driver_pay_plan()
-DEFAULTS.update(COST_DEFAULTS())
-_NORMALIZERS = COST_NORMALIZERS
+DEFAULTS.update(EXTRA_DEFAULTS())
+_NORMALIZERS = EXTRA_NORMALIZERS
 DEFAULTS["delivery_promise"] = default_delivery_promise()
 DEFAULTS["marketing_site"] = default_marketing_site()
 

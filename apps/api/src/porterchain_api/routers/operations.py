@@ -407,3 +407,6 @@ def assign_driver(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _order_item(order)
+
+
+from porterchain_api.routers import operations_maps  # noqa: E402,F401  (registers map routes)
