@@ -144,6 +144,9 @@ class FleetPlanService:
 
         q = db.query(Driver).filter(Driver.status == "APPROVED")
         q = q.filter(Driver.id.in_(only)) if only else q.filter(Driver.is_online.is_(True))
+        from porterchain_api.dispatch_engine.vehicle_cost import load_estimates, vehicle_costs
+
+        estimates = load_estimates(db)
         out: list[vrp.Vehicle] = []
         cap = float(fleet.get("max_fill") or 0.85)
         for d in q.limit(100).all():
@@ -159,8 +162,8 @@ class FleetPlanService:
                 id=f"v-{d.id}", driver_id=d.id, vehicle_class=spec["id"],
                 cap_kg=float(spec["max_kg"]) * cap, cap_boxes=int(spec["max_boxes"] * cap),
                 cap_m3=float(spec["max_m3"]) * cap,
-                start=self.position_fn(d.id) or TORONTO, hourly_cents=int(fleet.get("hourly_cost_cents") or 2700),
-                rank=RANK.get(spec["id"], 0), km_cents=int(spec.get("cost_per_km_cents") or 0),
+                start=self.position_fn(d.id) or TORONTO, rank=RANK.get(spec["id"], 0),
+                **dict(zip(("hourly_cents", "km_cents"), vehicle_costs(estimates, spec), strict=True)),
             ))
         return out
 

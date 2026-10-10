@@ -112,7 +112,10 @@ def metrics(ev: dict) -> dict:
     }
 
 
-KM_CENTS = {"sedan": 12, "suv": 16, "van": 22, "box_truck": 35}  # example only; fleet default is 0 (gas on driver)
+KM_CENTS = {"sedan": 12, "suv": 16, "van": 22, "box_truck": 35}  # example only
+# Ravi's real costs (2026-10-10): driver $27/h, vehicle $0.35/km, van insurance $600/month over 22 x 10 h.
+REAL = {"driver_hourly_cents": 2700, "vehicle_cents_per_km": 35, "working_days_per_month": 22,
+        "working_hours_per_day": 10, "insurance_monthly_cents": {"cargo_van": 60000}}
 
 
 def manual(problem: vrp.Problem) -> dict[str, list[str]]:
@@ -136,7 +139,21 @@ def manual(problem: vrp.Problem) -> dict[str, list[str]]:
     return {k: r for k, r in routes.items() if r}
 
 
+def _real(problem: vrp.Problem, solver) -> dict:
+    """Score (and solve) with Ravi's real cost numbers."""
+    from porterchain_api.dispatch_engine.vehicle_cost import vehicle_costs
+
+    vehicles = [dataclasses.replace(v, **dict(zip(("hourly_cents", "km_cents"),
+                vehicle_costs(REAL, {"id": v.vehicle_class}), strict=True))) for v in problem.vehicles]
+    problem = dataclasses.replace(problem, vehicles=vehicles)
+    return metrics(vrp.evaluate(problem, solver(problem)))
+
+
 def run(problem: vrp.Problem, mode: str) -> dict:
+    if mode == "manual_real":
+        return _real(problem, solver=manual)
+    if mode == "real":
+        return _real(problem, solver=vrp.solve_ortools)
     if mode == "manual":
         return metrics(vrp.evaluate(problem, manual(problem)))
     if mode == "before":
@@ -154,7 +171,7 @@ if __name__ == "__main__":
     out = []
     for name, seed, n, radius in SCENARIOS:
         p = scenario(seed, n, radius, road="--haversine" not in sys.argv)
-        modes = ("manual", "before", "after", "per_km")
+        modes = ("manual", "before", "after", "real", "manual_real")
         out.append({"scenario": name, "road": "valhalla" if p.metres and "--haversine" not in sys.argv else "haversine",
                     **{mode: run(p, mode) for mode in modes}})
     print(json.dumps(out, indent=2))

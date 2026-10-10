@@ -38,3 +38,13 @@ def test_arc_cost_is_reference_seconds():
     assert vrp.arc_cost(600, 0, v) == 600
     assert vrp.arc_cost(0, 1000, vrp.Vehicle(**{**v.__dict__, "km_cents": 27})) == 36
     assert vrp.fixed_cost(_veh("t", "box_truck", 3)) == 1800 + 3 * vrp.RIGHT_SIZE_S
+
+
+def test_vehicle_costs_from_shared_margin_estimates():
+    from porterchain_api.dispatch_engine.vehicle_cost import vehicle_costs
+
+    est = {"driver_hourly_cents": 2700, "vehicle_cents_per_km": 35, "working_days_per_month": 22,
+           "working_hours_per_day": 10, "insurance_monthly_cents": {"cargo_van": 60000}}
+    assert vehicle_costs(est, {"id": "van"}) == (2973, 35)  # $27 + $600/220 h ≈ $29.73/h
+    assert vehicle_costs(est, {"id": "sedan"}) == (2700, 35)
+    assert vehicle_costs(est, {"id": "sedan", "cost_per_km_cents": 20}) == (2700, 20)
