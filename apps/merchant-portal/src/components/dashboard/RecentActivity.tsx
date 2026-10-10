@@ -7,13 +7,13 @@ interface RecentActivityProps {
 
 export function RecentActivity({ items }: RecentActivityProps) {
   return (
-    <section className="rounded-2xl border border-primary/10 bg-white p-6">
+    <section className="rounded-2xl border border-primary/10 bg-white p-5">
       <h2 className="text-lg font-semibold text-primary">Recent Activity</h2>
       <ul className="mt-4 space-y-3">
         {items.length === 0 ? (
           <li className="text-sm text-muted">No recent activity.</li>
         ) : (
-          items.map((item) => (
+          items.slice(0, 5).map((item) => (
             <li
               key={`${item.kind}-${item.id}`}
               className="flex gap-3 border-b border-primary/5 pb-3 last:border-0"
@@ -32,6 +32,24 @@ export function RecentActivity({ items }: RecentActivityProps) {
           ))
         )}
       </ul>
+      {items.length > 5 && (
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer py-2 font-semibold text-secondary">
+            Show {items.length - 5} more
+          </summary>
+          <ul className="space-y-2">
+            {items.slice(5).map((item) => (
+              <li
+                key={`${item.kind}-${item.id}`}
+                className="border-b border-primary/5 py-2 last:border-0"
+              >
+                <p className="font-medium text-primary">{item.title}</p>
+                <p className="text-xs text-muted">{formatDate(item.occurred_at)}</p>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }

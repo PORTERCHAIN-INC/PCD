@@ -70,7 +70,7 @@ export type OrderRow = {
   is_sandbox?: boolean;
 };
 
-export const ORDER_PAGE_SIZE = 50;
+export const ORDER_PAGE_SIZE = 25;
 
 export type OrderListPage = {
   items: OrderRow[];

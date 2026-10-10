@@ -204,7 +204,7 @@ function CompanyAuditCard({
         <p className="mt-4 text-sm text-muted">No activity yet.</p>
       ) : (
         <ul className="mt-4 space-y-2 text-sm">
-          {rows.map((row) => (
+          {rows.slice(0, 6).map((row) => (
             <li key={row.id} className="flex justify-between gap-4 border-b border-primary/5 py-2">
               <span className="font-medium text-primary">{row.summary}</span>
               <span className="shrink-0 text-xs text-muted">
@@ -213,6 +213,26 @@ function CompanyAuditCard({
             </li>
           ))}
         </ul>
+      )}
+      {!error && rows.length > 6 && (
+        <details className="text-sm">
+          <summary className="cursor-pointer py-2 font-semibold text-secondary">
+            Show {rows.length - 6} more
+          </summary>
+          <ul className="space-y-2">
+            {rows.slice(6).map((row) => (
+              <li
+                key={row.id}
+                className="flex justify-between gap-4 border-b border-primary/5 py-2"
+              >
+                <span className="font-medium text-primary">{row.summary}</span>
+                <span className="shrink-0 text-xs text-muted">
+                  {row.created_at ? formatDate(row.created_at) : "—"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
     </section>
   );
