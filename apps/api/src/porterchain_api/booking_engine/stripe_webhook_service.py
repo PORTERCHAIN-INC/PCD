@@ -17,9 +17,8 @@ from porterchain_api.booking_engine.stripe_webhook_idempotency import (
 )
 from porterchain_api.platform.stripe_money import HANDLED_EVENTS as STRIPE_MONEY_EVENTS
 from porterchain_api.platform.stripe_money import handle_stripe_money_event
-from porterchain_api.booking_models import Invoice, Order, Payment, Quote
+from porterchain_api.booking_models import Order, Quote
 from porterchain_api.config import Settings
-from porterchain_api.booking_models import Invoice, Order, Payment, Quote
 from porterchain_api.services.stripe_service import handle_checkout_completed
 from porterchain_event_bus import get_event_bus
 from porterchain_shared.events.catalog import DomainEventType
@@ -144,9 +143,6 @@ class StripeWebhookService:
             if meta.get("payment_id"):
                 merge_additional_payment(db, meta["payment_id"])
             return
-        if meta.get("invoice_id"):
-            self._handle_invoice_checkout_completed(db, session, meta)
-            return
         if not meta.get("quote_id"):
             return
         quote = lock_quote(db, meta["quote_id"])
@@ -172,75 +168,6 @@ class StripeWebhookService:
             transaction_id=meta.get("transaction_id"),
             tax_cents=meta.get("tax_cents"),
         )
-
-    def _handle_invoice_checkout_completed(
-        self, db: Session, session: dict[str, Any], meta: dict[str, Any]
-    ) -> None:
-        from porterchain_api.billing_engine.models import BillingLedgerEntry
-        from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-
-        payment = None
-        if meta.get("payment_id"):
-            payment = lock_payment(db, meta["payment_id"])
-        invoice_id = meta.get("invoice_id")
-
-        # Pay-all batch: payment_id → ledger metadata.invoice_ids
-        if payment and (invoice_id in (None, "", "batch") or payment.payment_reference == "pay_all"):
-            batch = (
-                db.query(BillingLedgerEntry)
-                .filter(
-                    BillingLedgerEntry.payment_id == payment.id,
-                    BillingLedgerEntry.kind == "merchant_invoice_pay_batch",
-                )
-                .first()
-            )
-            ids = list((batch.metadata_json or {}).get("invoice_ids") or []) if batch else []
-            merchant_id = meta.get("merchant_id") or (batch.merchant_id if batch else None)
-            if ids and merchant_id:
-                MerchantBillingService()._settle_invoice_batch(
-                    db,
-                    merchant_id,
-                    [str(i) for i in ids],
-                    payment=payment,
-                    stripe_payment_intent_id=meta.get("payment_intent"),
-                    receipt_url=meta.get("receipt_url"),
-                    session_id=session.get("id"),
-                )
-                db.commit()
-            return
-
-        if not invoice_id:
-            return
-        invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
-        if not invoice:
-            return
-        if payment is None:
-            payment = (
-                db.query(Payment)
-                .filter(Payment.invoice_id == invoice_id, Payment.status == "PENDING")
-                .order_by(Payment.created_at.desc())
-                .first()
-            )
-        if payment is None:
-            return
-        if meta.get("merchant_id") and invoice.merchant_id and meta["merchant_id"] != invoice.merchant_id:
-            logger.warning(
-                "invoice_checkout_merchant_mismatch invoice=%s meta=%s",
-                invoice_id,
-                meta.get("merchant_id"),
-            )
-            return
-        order = db.query(Order).filter(Order.id == invoice.order_id).first() if invoice.order_id else None
-        MerchantBillingService()._settle_invoice_payment(
-            db,
-            invoice=invoice,
-            order=order,
-            payment=payment,
-            stripe_payment_intent_id=meta.get("payment_intent"),
-            receipt_url=meta.get("receipt_url"),
-            session_id=session.get("id"),
-        )
-        db.commit()
 
     def _handle_checkout_expired(self, db: Session, session: dict[str, Any]) -> None:
         meta = session.get("metadata") or {}

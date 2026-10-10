@@ -96,7 +96,6 @@ export type MerchantDetail = MerchantRow & {
   available_credit_cents?: number | null;
   billing_cycle?: string;
   phone?: string | null;
-  stripe_enabled?: boolean;
   cod_enabled?: boolean;
   stripe_connect_account_id?: string | null;
   documents?: Array<{
@@ -686,7 +685,6 @@ export const merchants = {
       tax_exempt?: boolean;
       tax_region?: string;
       billing_address?: Record<string, unknown>;
-      stripe_enabled?: boolean;
       cod_enabled?: boolean;
       support_tier?: "standard" | "priority" | "enterprise";
       parent_merchant_id?: string | null;
@@ -1043,7 +1041,6 @@ export const merchants = {
       payment_terms: string;
       billing_cycle: string;
       net_terms_days: number;
-      stripe_enabled: boolean;
       outstanding_balance_cents: number;
       outstanding_invoices_cents: number;
       uninvoiced_orders_cents: number;

@@ -8,7 +8,6 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from porterchain_api.domain.states import OrderState, PaymentTerms
-from porterchain_api.merchant_models import Merchant
 from porterchain_api.booking_models import Invoice, Order, Payment
 
 NET_TERMS_DAYS: dict[str, int] = {
@@ -22,19 +21,6 @@ NET_TERMS_DAYS: dict[str, int] = {
 }
 
 BILLING_CYCLES = ("WEEKLY", "BIWEEKLY", "MONTHLY", "CUSTOM")
-
-
-def merchant_uses_stripe(merchant: Merchant) -> bool:
-    """Contract / net-terms merchants skip Stripe unless explicitly configured."""
-    if getattr(merchant, "stripe_enabled", False) is True:
-        return True
-    profile = merchant.profile if isinstance(merchant.profile, dict) else {}
-    if profile.get("stripe_enabled") is True:
-        return True
-    if profile.get("stripe_checkout") is True:
-        return True
-    terms = (merchant.payment_terms or "").upper()
-    return terms in ("IMMEDIATE", "STRIPE", "CREDIT_CARD")
 
 
 def net_terms_days(terms: str | None) -> int:
@@ -162,7 +148,6 @@ def serialize_invoice_row(
     payment: Payment | None,
     *,
     terms: str | None = None,
-    include_stripe: bool = False,
 ) -> dict[str, Any]:
     status = invoice_status(invoice, order, payment, terms=terms)
     due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
@@ -191,7 +176,7 @@ def serialize_invoice_row(
         "amount_paid_cents": int(getattr(invoice, "amount_paid_cents", 0) or 0),
         "billing_kind": getattr(invoice, "billing_kind", None) or "order",
     }
-    if include_stripe and invoice.stripe_receipt_url:
+    if invoice.stripe_receipt_url:
         row["stripe_receipt_url"] = invoice.stripe_receipt_url
     return row
 

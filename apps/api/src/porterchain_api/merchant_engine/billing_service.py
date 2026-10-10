@@ -16,7 +16,6 @@ from porterchain_api.billing_engine.merchant_service import (
     build_tax_summary,
     effective_payment_terms,
     invoice_status,
-    merchant_uses_stripe,
     net_terms_days,
     outstanding_cents,
     rows_to_csv,
@@ -79,7 +78,6 @@ class MerchantBillingService:
             "payment_terms": merchant.payment_terms,
             "billing_cycle": merchant.billing_cycle,
             "net_terms_days": net_terms_days(merchant.payment_terms),
-            "stripe_enabled": merchant_uses_stripe(merchant),
             "outstanding_balance_cents": ar.outstanding_cents,
             "outstanding_invoices_cents": ar.invoiced_cents,
             "uninvoiced_orders_cents": ar.uninvoiced_cents,
@@ -188,7 +186,6 @@ class MerchantBillingService:
     def list_invoices_enriched(self, db: Session, ctx: MerchantContext) -> list[dict]:
         rows = self._merchant_invoices(db, ctx)
         result: list[dict] = []
-        include_stripe = merchant_uses_stripe(ctx.merchant)
         for inv, order in rows:
             payment = self._payment_for_order(db, inv.order_id) if inv.order_id else None
             row = serialize_invoice_row(
@@ -196,7 +193,6 @@ class MerchantBillingService:
                 order,
                 payment,
                 terms=effective_payment_terms(order, ctx.merchant),
-                include_stripe=include_stripe,
             )
             result.append(row)
         return result
@@ -282,7 +278,6 @@ class MerchantBillingService:
             ]
             line_sum = invoice_total_cents(inv)
 
-        payable = outstanding > 0 and status not in ("paid", "void", "cancelled")
         detail = {
             "invoice_id": inv.id,
             "invoice_number": inv.invoice_number,
@@ -297,8 +292,6 @@ class MerchantBillingService:
             "currency": inv.currency or "cad",
             "created_at": inv.created_at,
             "pdf_url": inv.pdf_url,
-            "pay_url": f"/v1/merchant/billing/invoices/{inv.id}/pay" if payable else None,
-            "payable": payable,
             "lines": lines,
             "lines_total_cents": line_sum,
             "remittance_memo": getattr(inv, "payment_reference", None) or inv.invoice_number,
@@ -403,399 +396,6 @@ class MerchantBillingService:
             actor_type="merchant_user",
             actor_id=ctx.user.id,
         )
-
-    def start_invoice_pay(
-        self,
-        db: Session,
-        settings: Any,
-        ctx: MerchantContext,
-        invoice_id: str,
-    ) -> dict[str, Any]:
-        """Create Stripe Checkout for an open invoice (amount locked server-side)."""
-        from porterchain_api.services.stripe_service import create_invoice_checkout_session
-
-        row = (
-            db.query(Invoice, Order)
-            .outerjoin(Order, Invoice.order_id == Order.id)
-            .filter(Invoice.id == invoice_id)
-            .first()
-        )
-        if not row:
-            raise LookupError("invoice_not_found")
-        inv, order = row
-        merchant_id = inv.merchant_id or (order.merchant_id if order else None)
-        if merchant_id != ctx.merchant.id:
-            raise LookupError("invoice_not_found")
-
-        payment = self._payment_for_order(db, inv.order_id) if inv.order_id else None
-        terms = effective_payment_terms(order, ctx.merchant) if order else ctx.merchant.payment_terms
-        status = invoice_status(inv, order, payment, terms=terms)
-        due = outstanding_cents(inv, status)
-        if due <= 0:
-            raise ValueError("nothing_outstanding")
-        if status in ("paid", "void", "cancelled"):
-            raise ValueError("invoice_not_payable")
-
-        try:
-            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
-
-            note_commerce_event("invoice_pay", "started")
-            note_commerce_event("invoice_pay", "pay_started")  # ops-1 alias
-        except Exception:
-            pass
-
-        pay = Payment(
-            quote_id=None,
-            order_id=inv.order_id,
-            customer_id=inv.customer_id,
-            invoice_id=inv.id,
-            status="PENDING",
-            amount_cents=due,
-            currency=inv.currency or "cad",
-            payment_method="stripe",
-        )
-        if not pay.id:
-            from uuid import uuid4
-
-            pay.id = str(uuid4())
-        db.add(pay)
-        db.flush()
-
-        if getattr(settings, "allow_stripe_mock", False) and not getattr(
-            settings, "stripe_secret", None
-        ):
-            self._settle_invoice_payment(
-                db,
-                invoice=inv,
-                order=order,
-                payment=pay,
-                stripe_payment_intent_id=f"pi_mock_{pay.id[:8]}",
-                receipt_url=None,
-                session_id=f"cs_mock_{pay.id[:8]}",
-            )
-            db.commit()
-            try:
-                from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
-
-                note_commerce_event("invoice_pay", "succeeded_mock")
-            except Exception:
-                pass
-            return {
-                "invoice_id": inv.id,
-                "amount_cents": due,
-                "currency": (inv.currency or "cad").upper(),
-                "pay_url": None,
-                "paid": True,
-                "mock": True,
-            }
-
-        if not getattr(settings, "stripe_secret", None):
-            raise RuntimeError("stripe_not_configured")
-
-        url, session_id = create_invoice_checkout_session(
-            settings,
-            amount_cents=due,
-            currency=inv.currency or "cad",
-            invoice_id=inv.id,
-            invoice_number=inv.invoice_number,
-            merchant_id=ctx.merchant.id,
-            payment_id=pay.id,
-            customer_email=ctx.merchant.email,
-        )
-        pay.stripe_checkout_session_id = session_id
-        db.commit()
-        try:
-            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
-
-            note_commerce_event("invoice_pay", "checkout_created")
-        except Exception:
-            pass
-        return {
-            "invoice_id": inv.id,
-            "amount_cents": due,
-            "currency": (inv.currency or "cad").upper(),
-            "pay_url": url,
-            "session_id": session_id,
-            "paid": False,
-            "mock": False,
-        }
-
-    def start_pay_outstanding(
-        self,
-        db: Session,
-        settings: Any,
-        ctx: MerchantContext,
-    ) -> dict[str, Any]:
-        """One Checkout for all open invoices (server-locked sum)."""
-        from uuid import uuid4
-
-        from porterchain_api.services.stripe_service import create_invoice_checkout_session
-
-        open_rows = [
-            r
-            for r in self.list_invoices_enriched(db, ctx)
-            if int(r.get("outstanding_cents") or 0) > 0
-            and r.get("status") not in ("paid", "void", "cancelled")
-        ]
-        if not open_rows:
-            raise ValueError("nothing_outstanding")
-        total = sum(int(r["outstanding_cents"]) for r in open_rows)
-        invoice_ids = [str(r["invoice_id"]) for r in open_rows]
-        currency = (open_rows[0].get("currency") or "cad").lower()
-
-        pay = Payment(
-            quote_id=None,
-            order_id=None,
-            customer_id=None,
-            invoice_id=None,
-            status="PENDING",
-            amount_cents=total,
-            currency=currency,
-            payment_method="stripe",
-            payment_reference="pay_all",
-        )
-        pay.id = str(uuid4())
-        db.add(pay)
-        db.flush()
-
-        # Stash invoice set on a ledger draft row for webhook reconciliation.
-        batch = BillingLedgerEntry(
-            kind="merchant_invoice_pay_batch",
-            payment_id=pay.id,
-            merchant_id=ctx.merchant.id,
-            amount_cents=total,
-            currency=currency,
-            status="pending",
-            metadata_json={"invoice_ids": invoice_ids},
-        )
-        db.add(batch)
-        db.flush()
-
-        if getattr(settings, "allow_stripe_mock", False) and not getattr(
-            settings, "stripe_secret", None
-        ):
-            self._settle_invoice_batch(
-                db,
-                ctx.merchant.id,
-                invoice_ids,
-                payment=pay,
-                stripe_payment_intent_id=f"pi_mock_batch_{pay.id[:8]}",
-                receipt_url=None,
-                session_id=f"cs_mock_batch_{pay.id[:8]}",
-            )
-            db.commit()
-            return {
-                "amount_cents": total,
-                "currency": currency.upper(),
-                "invoice_ids": invoice_ids,
-                "pay_url": None,
-                "paid": True,
-                "mock": True,
-            }
-
-        if not getattr(settings, "stripe_secret", None):
-            raise RuntimeError("stripe_not_configured")
-
-        url, session_id = create_invoice_checkout_session(
-            settings,
-            amount_cents=total,
-            currency=currency,
-            invoice_id="batch",
-            invoice_number=f"BATCH-{len(invoice_ids)}",
-            merchant_id=ctx.merchant.id,
-            payment_id=pay.id,
-            customer_email=ctx.merchant.email,
-        )
-        # Overwrite metadata mentally: webhook uses payment_id → batch ledger.
-        pay.stripe_checkout_session_id = session_id
-        batch.metadata_json = {
-            **dict(batch.metadata_json or {}),
-            "session_id": session_id,
-            "invoice_ids": invoice_ids,
-        }
-        db.commit()
-        return {
-            "amount_cents": total,
-            "currency": currency.upper(),
-            "invoice_ids": invoice_ids,
-            "pay_url": url,
-            "session_id": session_id,
-            "paid": False,
-            "mock": False,
-        }
-
-    def _settle_invoice_batch(
-        self,
-        db: Session,
-        merchant_id: str,
-        invoice_ids: list[str],
-        *,
-        payment: Payment,
-        stripe_payment_intent_id: str | None,
-        receipt_url: str | None,
-        session_id: str | None,
-    ) -> None:
-        if payment.status == "SUCCEEDED":
-            return
-        payment.status = "SUCCEEDED"
-        payment.stripe_payment_intent_id = stripe_payment_intent_id or payment.stripe_payment_intent_id
-        payment.receipt_url = receipt_url or payment.receipt_url
-        if session_id:
-            payment.stripe_checkout_session_id = session_id
-        payment.transaction_id = stripe_payment_intent_id or payment.transaction_id
-        for iid in invoice_ids:
-            row = (
-                db.query(Invoice, Order)
-                .outerjoin(Order, Invoice.order_id == Order.id)
-                .filter(Invoice.id == iid)
-                .first()
-            )
-            if not row:
-                continue
-            inv, order = row
-            mid = inv.merchant_id or (order.merchant_id if order else None)
-            if mid != merchant_id:
-                continue
-            child = Payment(
-                quote_id=None,
-                order_id=inv.order_id,
-                customer_id=inv.customer_id,
-                invoice_id=inv.id,
-                status="SUCCEEDED",
-                amount_cents=int(inv.amount_cents or 0) + int(inv.fees_cents or 0),
-                currency=inv.currency or payment.currency,
-                payment_method="stripe",
-                stripe_payment_intent_id=stripe_payment_intent_id,
-                stripe_checkout_session_id=session_id,
-                receipt_url=receipt_url,
-                transaction_id=stripe_payment_intent_id,
-            )
-            from uuid import uuid4
-
-            child.id = str(uuid4())
-            db.add(child)
-            inv.status = "paid"
-            db.add(
-                BillingLedgerEntry(
-                    kind="merchant_stripe_invoice_payment",
-                    payment_id=child.id,
-                    invoice_id=inv.id,
-                    order_id=inv.order_id,
-                    merchant_id=merchant_id,
-                    amount_cents=child.amount_cents,
-                    currency=child.currency,
-                    status="recorded",
-                    metadata_json={
-                        "batch_payment_id": payment.id,
-                        "invoice_id": inv.id,
-                    },
-                )
-            )
-        for entry in (
-            db.query(BillingLedgerEntry)
-            .filter(
-                BillingLedgerEntry.payment_id == payment.id,
-                BillingLedgerEntry.kind == "merchant_invoice_pay_batch",
-            )
-            .all()
-        ):
-            entry.status = "recorded"
-
-    def _settle_invoice_payment(
-        self,
-        db: Session,
-        *,
-        invoice: Invoice,
-        order: Order | None,
-        payment: Payment,
-        stripe_payment_intent_id: str | None,
-        receipt_url: str | None,
-        session_id: str | None = None,
-    ) -> None:
-        if payment.status == "SUCCEEDED":
-            return
-        payment.status = "SUCCEEDED"
-        payment.stripe_payment_intent_id = stripe_payment_intent_id or payment.stripe_payment_intent_id
-        payment.receipt_url = receipt_url or payment.receipt_url
-        if session_id:
-            payment.stripe_checkout_session_id = session_id
-        payment.transaction_id = stripe_payment_intent_id or payment.transaction_id
-        invoice.status = "paid"
-        entry = BillingLedgerEntry(
-            kind="merchant_stripe_invoice_payment",
-            payment_id=payment.id,
-            order_id=order.id if order else invoice.order_id,
-            merchant_id=invoice.merchant_id or (order.merchant_id if order else None),
-            amount_cents=payment.amount_cents,
-            currency=payment.currency,
-            status="recorded",
-            metadata_json={
-                "invoice_id": invoice.id,
-                "invoice_number": invoice.invoice_number,
-                "stripe_payment_intent_id": stripe_payment_intent_id,
-                "session_id": session_id,
-            },
-        )
-        db.add(entry)
-        merchant_id = invoice.merchant_id or (order.merchant_id if order else None)
-        if merchant_id:
-            from porterchain_api.merchant_models import MerchantAuditLog
-
-            db.add(
-                MerchantAuditLog(
-                    merchant_id=merchant_id,
-                    actor_user_id=None,
-                    action="invoice.paid_stripe",
-                    resource_type="invoice",
-                    resource_id=invoice.id,
-                    payload={
-                        "invoice_number": invoice.invoice_number,
-                        "amount_cents": payment.amount_cents,
-                        "session_id": session_id,
-                        "stripe_payment_intent_id": stripe_payment_intent_id,
-                    },
-                )
-            )
-        # Receipt email to billing contact (Mailpit locally).
-        try:
-            from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
-            from porterchain_api.merchant_models import Merchant
-            from porterchain_api.platform.receipt_notify import emit_receipt_generated
-
-            merchant = db.get(Merchant, merchant_id) if merchant_id else None
-            to_email = primary_billing_email(merchant) if merchant else None
-            amount_display = f"${(payment.amount_cents or 0) / 100:.2f} {(payment.currency or 'cad').upper()}"
-            payload = {
-                "invoice_id": invoice.id,
-                "invoice_number": invoice.invoice_number,
-                "order_id": order.id if order else invoice.order_id,
-                "order_number": order.order_number if order else None,
-                "tracking_number": order.tracking_number if order else None,
-                "merchant_id": merchant_id,
-                "merchant_name": merchant.company_name if merchant else None,
-                "email": to_email or (merchant.email if merchant else None),
-                "merchant_email": to_email or (merchant.email if merchant else None),
-                "amount_cents": payment.amount_cents,
-                "amount_display": amount_display,
-                "currency": payment.currency or "cad",
-                "receipt_url": receipt_url or payment.receipt_url,
-                "receipt_number": getattr(invoice, "receipt_number", None),
-            }
-            emit_receipt_generated(
-                db,
-                invoice_id=invoice.id,
-                correlation_id=order.id if order else invoice.id,
-                payload=payload,
-            )
-        except Exception:
-            pass
-        try:
-            from porterchain_api.merchant_engine.commerce_metrics import note_commerce_event
-
-            note_commerce_event("invoice_pay", "settled")
-            note_commerce_event("invoice_pay", "succeeded")  # ops-1 alias
-        except Exception:
-            pass
 
     def list_payments(self, db: Session, ctx: MerchantContext) -> list[dict[str, Any]]:
         from porterchain_api.merchant_engine.billing_views import list_payments as _list_payments

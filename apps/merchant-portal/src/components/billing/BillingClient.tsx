@@ -4,11 +4,10 @@ import { BillingContactsPanel } from "@/components/billing/BillingContactsPanel"
 import { RateCardPanel } from "@/components/billing/RateCardPanel";
 import Button from "@/components/ui/Button";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { billingApi, formatCycle, formatTerms, type BillingOverview } from "@/lib/billing";
-import { settingsApi, type BillingContact } from "@/lib/settings";
-import Link from "next/link";
+import { billingApi, formatCycle, formatTerms } from "@/lib/billing";
+import { settingsApi } from "@/lib/settings";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import dynamic from "next/dynamic";
@@ -180,7 +179,6 @@ export default function BillingClient() {
   const credits = creditsQuery.data ?? [];
   const history = historyQuery.data ?? [];
   const contacts = contactsQuery.data ?? [];
-  const loading = overviewQuery.isLoading;
   const error =
     actionError ||
     (overviewQuery.error instanceof Error
@@ -284,27 +282,13 @@ export default function BillingClient() {
         </nav>
       )}
 
-      {tab === "overview" && (
-        <OverviewTab
-          overview={overview}
-          orgId={orgId}
-          getToken={getApiToken}
-          onPaid={refreshBilling}
-        />
-      )}
+      {tab === "overview" && <OverviewTab overview={overview} />}
       {tab === "invoices" && (
-        <InvoicesTab
-          invoices={invoices}
-          orgId={orgId}
-          getToken={getApiToken}
-          onPaid={refreshBilling}
-        />
+        <InvoicesTab invoices={invoices} orgId={orgId} getToken={getApiToken} />
       )}
       {tab === "statement" && statement && <StatementTab statement={statement} />}
       {tab === "statement" && !statement && statementQuery.isLoading && <PageSkeleton rows={3} />}
-      {tab === "payments" && (
-        <PaymentsTab payments={payments} stripeEnabled={overview.stripe_enabled} />
-      )}
+      {tab === "payments" && <PaymentsTab payments={payments} />}
       {tab === "credits" && <CreditsTab credits={credits} />}
       {tab === "history" && <HistoryTab history={history} />}
       {tab === "tax" && <TaxTab overview={overview} />}

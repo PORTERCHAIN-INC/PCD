@@ -4,17 +4,11 @@ import { type PaymentRow } from "@/lib/billing";
 import { formatCents, formatDate } from "@/lib/utils";
 import { StatusBadge } from "./shared";
 
-export function PaymentsTab({
-  payments,
-  stripeEnabled,
-}: {
-  payments: PaymentRow[];
-  stripeEnabled: boolean;
-}) {
+export function PaymentsTab({ payments }: { payments: PaymentRow[] }) {
   if (!payments.length) {
     return (
       <p className="text-sm text-muted">
-        No payments recorded{stripeEnabled ? "" : " — contract merchants settle on net terms"}.
+        No payments recorded yet. Interac e-Transfers show here once matched.
       </p>
     );
   }

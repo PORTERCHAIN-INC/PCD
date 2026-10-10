@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Button from "@/components/ui/Button";
-import { billingApi, type BillingOverview } from "@/lib/billing";
+import { type BillingOverview } from "@/lib/billing";
 import { formatCents } from "@/lib/utils";
 
 /** "Oct 1"; period ends are exclusive, so show the day before. */
@@ -25,43 +23,10 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 }
 
 /** One number first (what you owe), then how to pay it. Everything else is one tap away. */
-export function OverviewTab({
-  overview,
-  orgId,
-  getToken,
-  onPaid,
-}: {
-  overview: BillingOverview;
-  orgId?: string;
-  getToken: () => Promise<string>;
-  onPaid?: () => void;
-}) {
+export function OverviewTab({ overview }: { overview: BillingOverview }) {
   const cp = overview.contract_pricing;
-  const [payingAll, setPayingAll] = useState(false);
-  const [payNotice, setPayNotice] = useState<string | null>(null);
   const overdue = overview.overdue_cents ?? 0;
   const credit = overview.credit_balance_cents ?? 0;
-  const canCardPay = overview.stripe_enabled && overview.outstanding_invoices_cents > 0;
-
-  async function payAll() {
-    setPayingAll(true);
-    setPayNotice(null);
-    try {
-      const result = await billingApi.payOutstanding(await getToken(), orgId);
-      if (result.pay_url) {
-        window.location.href = result.pay_url;
-        return;
-      }
-      if (result.paid) {
-        setPayNotice("All open invoices paid.");
-        onPaid?.();
-      }
-    } catch (e) {
-      setPayNotice(e instanceof Error ? e.message : "Could not start payment");
-    } finally {
-      setPayingAll(false);
-    }
-  }
 
   return (
     <div className="space-y-8">
@@ -109,16 +74,6 @@ export function OverviewTab({
             hint={`${overview.monthly_orders} deliveries`}
           />
         </div>
-        {canCardPay ? (
-          <div className="mt-6">
-            <Button size="sm" variant="outline" disabled={payingAll} onClick={() => void payAll()}>
-              {payingAll
-                ? "Opening…"
-                : `Pay ${formatCents(overview.outstanding_invoices_cents)} by card`}
-            </Button>
-            {payNotice ? <p className="mt-2 text-sm text-muted">{payNotice}</p> : null}
-          </div>
-        ) : null}
       </section>
 
       {overview.remittance ? <RemittanceCard remittance={overview.remittance} /> : null}

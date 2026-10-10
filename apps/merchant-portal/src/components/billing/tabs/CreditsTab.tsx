@@ -1,7 +1,7 @@
 "use client";
 
 import { type CreditNoteRow } from "@/lib/billing";
-import { formatCents, formatDate } from "@/lib/utils";
+import { formatCents } from "@/lib/utils";
 
 export function CreditsTab({ credits }: { credits: CreditNoteRow[] }) {
   if (!credits.length) {

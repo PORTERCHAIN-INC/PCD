@@ -1,7 +1,7 @@
 "use client";
 
 import { type StatementDetail } from "@/lib/billing";
-import { formatCents, formatDate } from "@/lib/utils";
+import { formatCents } from "@/lib/utils";
 import { Kpi, StatusBadge } from "./shared";
 
 export function StatementTab({ statement }: { statement: StatementDetail }) {

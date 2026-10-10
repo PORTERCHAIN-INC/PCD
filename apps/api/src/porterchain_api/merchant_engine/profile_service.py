@@ -73,7 +73,6 @@ class MerchantProfileService:
         if body.industry is not None:
             merchant.industry = body.industry.strip() or None
             profile.pop("industry", None)
-        profile.pop("stripe_enabled", None)
         profile.pop("hst_number", None)
         profile.pop("business_number", None)
         profile.pop("legal_name", None)

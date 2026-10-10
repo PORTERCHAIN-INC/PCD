@@ -53,7 +53,6 @@ class Merchant(Base):
     business_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     website: Mapped[str | None] = mapped_column(String(512), nullable=True)
     industry: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    stripe_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     billing_address: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     profile: Mapped[dict] = mapped_column(JSON, default=dict)
     pricing_config: Mapped[dict] = mapped_column(JSON, default=dict)

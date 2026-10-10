@@ -117,33 +117,3 @@ def test_require_customer_maps_identity_conflict() -> None:
             require_customer(db, claims, settings)
     assert ei.value.status_code == 403
     assert "identity_conflict" in str(ei.value.detail)
-
-
-def test_stripe_enabled_writes_profile() -> None:
-    from porterchain_api.admin_engine.merchant_service import AdminMerchantService
-
-    svc = AdminMerchantService()
-    merchant = SimpleNamespace(
-        id="m1",
-        payment_terms="NET_30",
-        credit_limit_cents=0,
-        pricing_config={},
-        billing_cycle="MONTHLY",
-        preferred_vehicles=[],
-        parent_merchant_id=None,
-        profile={},
-        company_name="Acme",
-        phone=None,
-        hst_number=None,
-        stripe_enabled=False,
-        website=None,
-        industry=None,
-    )
-    db = MagicMock()
-    ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
-    svc._get_or_raise = MagicMock(return_value=merchant)  # type: ignore[method-assign]
-    svc._audit = MagicMock()  # type: ignore[method-assign]
-
-    svc.update_merchant_terms(db, ctx, "m1", stripe_enabled=True)
-    assert merchant.stripe_enabled is True
-    assert "stripe_enabled" not in (merchant.profile or {})

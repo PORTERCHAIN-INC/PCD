@@ -104,7 +104,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
   const [bn, setBn] = useState(m.business_number ?? "");
   const [taxExempt, setTaxExempt] = useState(Boolean(m.tax_exempt));
   const [taxRegion, setTaxRegion] = useState(m.tax_region || "ON");
-  const [stripeOn, setStripeOn] = useState(Boolean(m.stripe_enabled));
   const [codOn, setCodOn] = useState(Boolean(m.cod_enabled));
   const [prefs, setPrefs] = useState<string[]>(m.preferred_vehicles ?? []);
   const [serviceArea, setServiceArea] = useState(() => serviceAreaFromMerchant(m));
@@ -129,7 +128,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
     setBn(m.business_number ?? "");
     setTaxExempt(Boolean(m.tax_exempt));
     setTaxRegion(m.tax_region || "ON");
-    setStripeOn(Boolean(m.stripe_enabled));
     setCodOn(Boolean(m.cod_enabled));
     setPrefs(m.preferred_vehicles ?? []);
     setServiceArea(serviceAreaFromMerchant(m));
@@ -162,7 +160,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
           .filter(Boolean),
         service_area: serviceArea.trim(),
         phone: phone.trim(),
-        stripe_enabled: stripeOn,
         cod_enabled: codOn,
         billing_address: billing.formatted.trim()
           ? {
@@ -282,14 +279,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
             />
           </Field>
           <div className="col-span-2 space-y-3">
-            <label className="flex items-center gap-2 text-sm text-primary">
-              <input
-                type="checkbox"
-                checked={stripeOn}
-                onChange={(e) => setStripeOn(e.target.checked)}
-              />
-              Stripe checkout enabled (card / IMMEDIATE path)
-            </label>
             <label className="flex items-center gap-2 text-sm text-primary">
               <input type="checkbox" checked={codOn} onChange={(e) => setCodOn(e.target.checked)} />
               Cash on delivery (requires Stripe Connect on the merchant billing page)

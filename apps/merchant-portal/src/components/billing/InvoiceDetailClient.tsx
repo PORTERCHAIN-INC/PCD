@@ -6,15 +6,13 @@ import { billingApi, STATUS_STYLES } from "@/lib/billing";
 import { invoiceStatusLabel } from "@/lib/catalog";
 import { formatCents, formatDate } from "@/lib/utils";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const invoice_id = invoiceId;
   const { getApiToken, orgId, isLoaded, isSignedIn, session } = useMerchantAuth();
-  const qc = useQueryClient();
-  const [paying, setPaying] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -32,30 +30,6 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
 
   const error =
     queryError instanceof Error ? queryError.message : queryError ? "Invoice not found" : null;
-
-  async function payNow() {
-    if (!detail?.payable) return;
-    setPaying(true);
-    setNotice(null);
-    try {
-      const token = await getApiToken();
-      const result = await billingApi.payInvoice(token, detail.invoice_id, orgId);
-      if (result.pay_url) {
-        window.location.href = result.pay_url;
-        return;
-      }
-      if (result.paid) {
-        setNotice("Invoice paid.");
-        await qc.invalidateQueries({
-          queryKey: ["merchant-invoice", orgId ?? null, invoice_id],
-        });
-      }
-    } catch (e) {
-      setNotice(e instanceof Error ? e.message : "Could not start payment");
-    } finally {
-      setPaying(false);
-    }
-  }
 
   async function downloadPdf() {
     if (!detail) return;
@@ -217,11 +191,6 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
             <Button variant="outline" size="sm" onClick={() => window.print()}>
               Print
             </Button>
-            {detail.payable && (
-              <Button size="sm" disabled={paying} onClick={() => void payNow()}>
-                {paying ? "Opening…" : "Pay now"}
-              </Button>
-            )}
           </div>
         </div>
       </div>

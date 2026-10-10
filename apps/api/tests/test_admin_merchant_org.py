@@ -273,18 +273,17 @@ def test_admin_ar_preview_on_merchant_file(client, merchant):
     assert generated.json()["skipped_count"] >= 0
 
 
-def test_admin_stripe_column_and_cod_round_trip(client, merchant):
+def test_admin_cod_round_trip(client, merchant):
     patched = client.patch(
         f"/v1/admin/merchants/{merchant.id}",
-        json={"stripe_enabled": True, "cod_enabled": True},
+        json={"cod_enabled": True},
     )
     assert patched.status_code == 200, patched.text
     body = patched.json()
-    assert body["stripe_enabled"] is True
     assert body["cod_enabled"] is True
 
     again = client.get(f"/v1/admin/merchants/{merchant.id}")
     assert again.status_code == 200, again.text
     detail = again.json()
-    assert detail["stripe_enabled"] is True
+    assert "stripe_enabled" not in detail
     assert detail["cod_enabled"] is True

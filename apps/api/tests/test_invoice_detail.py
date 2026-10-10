@@ -6,7 +6,6 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from porterchain_api.merchant_engine.billing_service import MerchantBillingService
 
@@ -78,55 +77,9 @@ def test_invoice_detail_includes_channel_and_quote():
     ):
         detail = svc.invoice_detail(db, ctx, "inv1")
 
-    assert detail["payable"] is True
-    assert detail["pay_url"]
+    assert "pay_url" not in detail  # merchants pay by Interac e-Transfer only
     assert detail["lines"][0]["channel"] == "shopify"
     assert detail["lines"][0]["pricing_model"] == "fsa"
     assert detail["lines"][0]["rate_quote_id"] == "q1"
     assert detail["lines"][0]["quote_breakdown"]["final_cents"] == 6100
 
-
-def test_pay_outstanding_mock():
-    db = MagicMock()
-    settings = SimpleNamespace(
-        allow_stripe_mock=True, stripe_secret="", merchant_portal_url="http://localhost:3001"
-    )
-    merchant = SimpleNamespace(id="m1", email="a@b.c", payment_terms="NET_30")
-    ctx = SimpleNamespace(merchant=merchant, user=SimpleNamespace(id="u1"))
-    svc = MerchantBillingService()
-    with (
-        patch.object(
-            svc,
-            "list_invoices_enriched",
-            return_value=[
-                {
-                    "invoice_id": "inv1",
-                    "outstanding_cents": 1000,
-                    "status": "sent",
-                    "currency": "cad",
-                },
-                {
-                    "invoice_id": "inv2",
-                    "outstanding_cents": 2500,
-                    "status": "overdue",
-                    "currency": "cad",
-                },
-            ],
-        ),
-        patch.object(svc, "_settle_invoice_batch") as settle,
-    ):
-        out = svc.start_pay_outstanding(db, settings, ctx)
-    assert out["paid"] is True
-    assert out["amount_cents"] == 3500
-    assert out["invoice_ids"] == ["inv1", "inv2"]
-    settle.assert_called_once()
-
-
-def test_pay_outstanding_nothing_due():
-    db = MagicMock()
-    settings = SimpleNamespace(allow_stripe_mock=True, stripe_secret="")
-    ctx = SimpleNamespace(merchant=SimpleNamespace(id="m1"), user=SimpleNamespace(id="u1"))
-    svc = MerchantBillingService()
-    with patch.object(svc, "list_invoices_enriched", return_value=[]):
-        with pytest.raises(ValueError, match="nothing_outstanding"):
-            svc.start_pay_outstanding(db, settings, ctx)

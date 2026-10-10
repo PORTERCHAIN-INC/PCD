@@ -389,11 +389,6 @@ def detail_payload(
             "coverage": coverage,
             "pricing_config": merchant.pricing_config or {},
             "profile": merchant.profile or {},
-            "stripe_enabled": bool(getattr(merchant, "stripe_enabled", False))
-            or (
-                isinstance(merchant.profile, dict)
-                and bool((merchant.profile or {}).get("stripe_enabled"))
-            ),
             "cod_enabled": bool(getattr(merchant, "cod_enabled", False)),
             "stripe_connect_account_id": getattr(merchant, "stripe_connect_account_id", None),
             "documents": list(

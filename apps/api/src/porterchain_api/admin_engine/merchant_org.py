@@ -176,7 +176,6 @@ def apply_merchant_terms(
     tax_exempt: bool | None = None,
     tax_region: str | None = None,
     billing_address: dict | None = None,
-    stripe_enabled: bool | None = None,
     cod_enabled: bool | None = None,
 ):
     from porterchain_api.admin_engine.merchant_lifecycle import require_billing_cycle
@@ -241,13 +240,11 @@ def apply_merchant_terms(
         merchant.phone = phone.strip() or None
     if billing_address is not None:
         merchant.billing_address = billing_address
-    if website is not None or industry is not None or stripe_enabled is not None:
+    if website is not None or industry is not None:
         if website is not None:
             merchant.website = website.strip() or None
         if industry is not None:
             merchant.industry = industry.strip() or None
-        if stripe_enabled is not None:
-            merchant.stripe_enabled = bool(stripe_enabled)
         profile = dict(merchant.profile or {})
         profile.pop("website", None)
         profile.pop("industry", None)
@@ -290,7 +287,6 @@ def apply_merchant_terms(
             "preferred_vehicles": preferred_vehicles,
             "delivery_zones": delivery_zones,
             "service_area": service_area,
-            "stripe_enabled": stripe_enabled,
             "cod_enabled": cod_enabled,
         },
     )

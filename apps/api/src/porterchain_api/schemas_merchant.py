@@ -688,8 +688,6 @@ class InvoiceDetailResponse(BaseModel):
     currency: str
     created_at: datetime
     pdf_url: str | None = None
-    pay_url: str | None = None
-    payable: bool = False
     lines: list[InvoiceDetailLine] = Field(default_factory=list)
     remittance_memo: str | None = None
 
@@ -784,7 +782,6 @@ class BillingStatementResponse(BaseModel):
     payment_terms: str
     billing_cycle: str = "MONTHLY"
     net_terms_days: int = 30
-    stripe_enabled: bool = False
     outstanding_balance_cents: int
     outstanding_invoices_cents: int = 0
     uninvoiced_orders_cents: int = 0

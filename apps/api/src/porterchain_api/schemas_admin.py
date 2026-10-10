@@ -154,7 +154,6 @@ class MerchantUpdateRequest(BaseModel):
     tax_exempt: bool | None = None
     tax_region: str | None = None
     billing_address: dict[str, Any] | None = None
-    stripe_enabled: bool | None = None
     cod_enabled: bool | None = None
 
 

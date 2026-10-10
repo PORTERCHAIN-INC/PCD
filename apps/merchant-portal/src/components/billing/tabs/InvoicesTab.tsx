@@ -2,24 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Button from "@/components/ui/Button";
 import { billingApi, type InvoiceRow } from "@/lib/billing";
 import { formatCents, formatDate } from "@/lib/utils";
-import { StatusBadge, INVOICE_KEYS } from "./shared";
+import { StatusBadge } from "./shared";
 
 export function InvoicesTab({
   invoices,
   orgId,
   getToken,
-  onPaid,
 }: {
   invoices: InvoiceRow[];
   orgId?: string;
   getToken: () => Promise<string>;
-  onPaid?: () => void;
 }) {
   const [remindingId, setRemindingId] = useState<string | null>(null);
-  const [payingId, setPayingId] = useState<string | null>(null);
   const [pdfId, setPdfId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -52,27 +48,6 @@ export function InvoicesTab({
       setNotice(e instanceof Error ? e.message : "Could not send reminder");
     } finally {
       setRemindingId(null);
-    }
-  }
-
-  async function payNow(invoiceId: string) {
-    setPayingId(invoiceId);
-    setNotice(null);
-    try {
-      const token = await getToken();
-      const result = await billingApi.payInvoice(token, invoiceId, orgId);
-      if (result.pay_url) {
-        window.location.href = result.pay_url;
-        return;
-      }
-      if (result.paid) {
-        setNotice("Invoice paid.");
-        onPaid?.();
-      }
-    } catch (e) {
-      setNotice(e instanceof Error ? e.message : "Could not start payment");
-    } finally {
-      setPayingId(null);
     }
   }
 
@@ -134,16 +109,6 @@ export function InvoicesTab({
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap items-center gap-3">
-                    {inv.outstanding_cents > 0 && inv.status !== "paid" && (
-                      <button
-                        type="button"
-                        className="text-xs font-semibold text-primary hover:underline disabled:opacity-40"
-                        disabled={payingId === inv.invoice_id}
-                        onClick={() => void payNow(inv.invoice_id)}
-                      >
-                        {payingId === inv.invoice_id ? "Opening…" : "Pay now"}
-                      </button>
-                    )}
                     {inv.outstanding_cents > 0 && inv.status !== "paid" && (
                       <button
                         type="button"

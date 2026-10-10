@@ -27,7 +27,6 @@ export type BillingOverview = {
   billing_cycle: string;
   billing_cycles_available: string[];
   net_terms_days: number;
-  stripe_enabled: boolean;
   credit_limit_cents?: number | null;
   available_credit_cents?: number | null;
   headroom_cents?: number | null;
@@ -118,8 +117,6 @@ export type InvoiceDetail = {
   currency: string;
   created_at: string;
   pdf_url?: string | null;
-  pay_url?: string | null;
-  payable: boolean;
   remittance_memo?: string | null;
   lines: InvoiceDetailLine[];
   lines_total_cents?: number;
@@ -272,34 +269,6 @@ export const billingApi = {
       pay_url?: string | null;
       last_reminded_at: string | null;
     }>(`/v1/merchant/billing/invoices/${invoiceId}/remind`, token, {
-      method: "POST",
-      orgId,
-    }),
-
-  payInvoice: (token: string, invoiceId: string, orgId?: string) =>
-    billingFetch<{
-      invoice_id: string;
-      amount_cents: number;
-      currency: string;
-      pay_url: string | null;
-      paid: boolean;
-      mock?: boolean;
-      session_id?: string;
-    }>(`/v1/merchant/billing/invoices/${invoiceId}/pay`, token, {
-      method: "POST",
-      orgId,
-    }),
-
-  payOutstanding: (token: string, orgId?: string) =>
-    billingFetch<{
-      amount_cents: number;
-      currency: string;
-      invoice_ids: string[];
-      pay_url: string | null;
-      paid: boolean;
-      mock?: boolean;
-      session_id?: string;
-    }>("/v1/merchant/billing/pay-outstanding", token, {
       method: "POST",
       orgId,
     }),

@@ -103,56 +103,6 @@ def create_checkout_session(
     return session.url, session.id
 
 
-def create_invoice_checkout_session(
-    settings: Settings,
-    *,
-    amount_cents: int,
-    currency: str,
-    invoice_id: str,
-    invoice_number: str,
-    merchant_id: str,
-    payment_id: str,
-    customer_email: str | None,
-) -> tuple[str, str]:
-    """Stripe Checkout for merchant AR invoice pay (server-locked amount)."""
-    stripe_sdk.configure(settings.stripe_secret)
-    base = settings.merchant_portal_url.rstrip("/")
-    success_url = f"{base}/billing?paid=1&invoice_id={invoice_id}"
-    cancel_url = f"{base}/billing?cancelled=1&invoice_id={invoice_id}"
-    metadata = {
-        "invoice_id": invoice_id,
-        "invoice_number": invoice_number,
-        "merchant_id": merchant_id,
-        "payment_id": payment_id,
-        "checkout_channel": "merchant_invoice",
-    }
-    session_kwargs: dict = {
-        "mode": "payment",
-        "line_items": [
-            {
-                "price_data": {
-                    "currency": (currency or "cad").lower(),
-                    "unit_amount": int(amount_cents),
-                    "product_data": {
-                        "name": f"PorterChain invoice {invoice_number}",
-                        "description": f"Invoice {invoice_number}",
-                    },
-                },
-                "quantity": 1,
-            }
-        ],
-        "success_url": success_url,
-        "cancel_url": cancel_url,
-        "metadata": metadata,
-        "payment_intent_data": {"metadata": metadata},
-    }
-    if customer_email:
-        session_kwargs["customer_email"] = customer_email
-    session = stripe_sdk.create_checkout_session(**session_kwargs)
-    if not session.url:
-        raise RuntimeError("stripe_session_missing_url")
-    return session.url, session.id
-
 
 def handle_checkout_completed(settings: Settings, session: dict) -> dict | None:
     metadata = session.get("metadata") or {}

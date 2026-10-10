@@ -125,45 +125,6 @@ def remind_invoice(
         raise HTTPException(status_code=400, detail=billing_error_message(str(exc))) from None
 
 
-@router.post("/billing/invoices/{invoice_id}/pay")
-def pay_invoice(
-    invoice_id: str,
-    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict:
-    """Start Stripe Checkout for this invoice — amount locked server-side."""
-    require_module(ctx, "invoices")
-    from porterchain_api.merchant_engine.billing_pack import billing_error_message
-
-    try:
-        return _billing.start_invoice_pay(db, settings, ctx, invoice_id)
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail=billing_error_message(str(exc))) from None
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=billing_error_message(str(exc))) from None
-    except RuntimeError as exc:
-        raise HTTPException(status_code=503, detail=billing_error_message(str(exc))) from None
-
-
-@router.post("/billing/pay-outstanding")
-def pay_outstanding(
-    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict:
-    """One Checkout covering every open invoice (server-locked sum)."""
-    require_module(ctx, "invoices")
-    from porterchain_api.merchant_engine.billing_pack import billing_error_message
-
-    try:
-        return _billing.start_pay_outstanding(db, settings, ctx)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=billing_error_message(str(exc))) from None
-    except RuntimeError as exc:
-        raise HTTPException(status_code=503, detail=billing_error_message(str(exc))) from None
-
-
 @router.get("/billing/payments", response_model=list[MerchantPaymentItem])
 def list_billing_payments(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],

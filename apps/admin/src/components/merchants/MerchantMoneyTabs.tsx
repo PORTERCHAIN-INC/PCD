@@ -73,8 +73,8 @@ export function StatementTab({ id }: { id: string }) {
           <Metric label="Period spend" value={money(data.monthly_spend_cents)} />
         </div>
         <p className="text-xs text-muted">
-          Stripe checkout {data.stripe_enabled ? "enabled" : "off"} for this company. Detailed line
-          CSV stays on the merchant portal Billing → Statement export.
+          Invoices are paid by Interac e-Transfer. Detailed line CSV stays on the merchant portal
+          Billing → Statement export.
         </p>
       </div>
     </SectionCard>

@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_models import MerchantContract
 from porterchain_api.billing_engine.merchant_service import (
     build_tax_summary,
-    merchant_uses_stripe,
     rows_to_csv,
 )
 from porterchain_api.billing_engine.models import BillingLedgerEntry
@@ -27,7 +26,6 @@ def list_payments(svc: Any, db: Session, ctx: MerchantContext) -> list[dict[str,
         .limit(200)
         .all()
     )
-    include_stripe = merchant_uses_stripe(ctx.merchant)
     out: list[dict[str, Any]] = []
     for pay, order in rows:
         item = {
@@ -43,7 +41,7 @@ def list_payments(svc: Any, db: Session, ctx: MerchantContext) -> list[dict[str,
             "payment_reference": pay.payment_reference,
             "created_at": pay.created_at.isoformat() if pay.created_at else None,
         }
-        if include_stripe and pay.receipt_url:
+        if pay.receipt_url:
             item["receipt_url"] = pay.receipt_url
         out.append(item)
     return out
