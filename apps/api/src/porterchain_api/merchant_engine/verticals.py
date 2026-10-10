@@ -1,26 +1,33 @@
-"""Merchant vertical slugs — aligned with website `SOLUTION_VERTICAL_SLUGS` (§8.1.12)."""
+"""Merchant vertical slugs — a subset of website `SOLUTION_VERTICAL_SLUGS` (§8.1.12).
+
+Every merchant type maps to one slug: labs and pharmacies are medical, plumbing and
+electrical dealers are construction, traders are wholesale, warehouses are 3pl.
+"""
 
 from __future__ import annotations
 
 MERCHANT_VERTICAL_SLUGS: tuple[str, ...] = (
-    "construction",
-    "medical",
-    "food-beverage",
     "wholesale",
+    "medical",
+    "construction",
+    "3pl",
+    "food-beverage",
 )
 
 VERTICAL_LABELS: dict[str, str] = {
-    "construction": "Construction & industrial supply",
-    "medical": "Medical & pharmacy",
+    "wholesale": "Shopify store, e-commerce or trader",
+    "medical": "Pharmacy, lab or medical",
+    "construction": "Construction, plumbing or electrical supply",
+    "3pl": "Warehouse or 3PL",
     "food-beverage": "Food & beverage",
-    "wholesale": "Wholesale & e-commerce fulfillment",
 }
 
 VERTICAL_INDUSTRY: dict[str, str] = {
-    "construction": "construction-materials",
-    "medical": "pharmacy-medical",
-    "food-beverage": "coffee-roasters",
     "wholesale": "ecommerce",
+    "medical": "pharmacy-medical",
+    "construction": "construction-materials",
+    "3pl": "ecommerce",
+    "food-beverage": "coffee-roasters",
 }
 
 

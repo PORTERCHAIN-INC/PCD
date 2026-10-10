@@ -7,13 +7,8 @@ from porterchain_api.merchant_engine.verticals import (
 )
 
 
-def test_vertical_slugs_match_website():
-    assert set(MERCHANT_VERTICAL_SLUGS) == {
-        "construction",
-        "medical",
-        "food-beverage",
-        "wholesale",
-    }
+def test_vertical_slugs_are_website_solution_slugs():
+    assert set(MERCHANT_VERTICAL_SLUGS) == {"construction", "medical", "food-beverage", "wholesale", "3pl"}
 
 
 def test_industry_mapping_present():

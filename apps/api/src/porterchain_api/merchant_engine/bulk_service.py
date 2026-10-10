@@ -18,6 +18,7 @@ from porterchain_api.domain.states import OrderSource
 from porterchain_api.merchant_engine import events as E
 from porterchain_api.merchant_engine.booking_flow_service import MerchantBookingFlowService
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
+from porterchain_api.merchant_engine.import_geocode import geocode_stop
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_models import BulkImportJob
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
@@ -244,6 +245,16 @@ class MerchantBulkService:
             if settings is not None:
                 quote = self._flow.preview(db, settings, ctx, body)
                 if not quote.get("valid"):
+                    if quote.get("address_errors"):
+                        errors.append(
+                            {
+                                "row": i,
+                                "error": "address_not_found",
+                                "message": "We could not find this address. Add the postal code or lat/lng columns.",
+                                "details": quote["address_errors"],
+                            }
+                        )
+                        continue
                     errors.append(
                         {
                             "row": i,
@@ -293,10 +304,17 @@ class MerchantBulkService:
         return job
 
     def _address_from_row(self, row: dict[str, Any], *, prefix: str) -> AddressInput:
+        """CSV rows usually carry text addresses only; geocode them so the row can be priced."""
         lat_raw = row.get(f"{prefix}_lat")
         lng_raw = row.get(f"{prefix}_lng")
         lat = float(lat_raw) if lat_raw else None
         lng = float(lng_raw) if lng_raw else None
+        if lat is None or lng is None:
+            geo = geocode_stop(address=row[prefix], source="csv")
+            if geo.lat is not None and geo.lng is not None:
+                return AddressInput(
+                    formatted=geo.formatted or row[prefix], lat=geo.lat, lng=geo.lng, postal=geo.postal
+                )
         return AddressInput(formatted=row[prefix], lat=lat, lng=lng)
 
     def confirm_bulk(

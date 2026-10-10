@@ -52,6 +52,8 @@ def get_merchant_api_context(
     if record is None and authorization and authorization.lower().startswith("bearer "):
         token = authorization.split(" ", 1)[1].strip()
         payload = _oauth.resolve_bearer_token(token)
+        # A raw API key sent as a Bearer token is accepted like X-Api-Key.
+        x_api_key = x_api_key or (None if payload else token)
         if payload:
             merchant = db.query(Merchant).filter(Merchant.id == payload.get("merchant_id")).first()
             if not merchant:
