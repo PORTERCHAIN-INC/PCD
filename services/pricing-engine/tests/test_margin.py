@@ -21,3 +21,14 @@ def test_outliers():
     assert distance_outlier(68000, TOR, HAM) is None
     assert distance_outlier(400000, TOR, HAM) == "road_over_3x_straight_line"
     assert distance_outlier(1000, TOR, None) == "missing_coordinates"
+
+
+def test_insurance_spread_per_hour():
+    from porterchain_pricing.margin import insurance_cents_per_hour
+
+    assert round(insurance_cents_per_hour("cargo_van"), 2) == round(60000 / 220, 2)
+    r = margin_check(10000, 0, vehicle_class="cargo_van")  # 18 min
+    assert r.insurance_cents == round(60000 / 220 * 18 / 60) and "insurance" in r.explain
+    assert margin_check(10000, 0, vehicle_class="sedan_suv").insurance_cents == 0
+    over = {"insurance_monthly_cents": {"sedan_suv": 22000}, "working_days_per_month": 20, "working_hours_per_day": 11}
+    assert margin_check(10000, 0, vehicle_class="sedan_suv", overrides=over).insurance_cents == round(100 * 18 / 60)

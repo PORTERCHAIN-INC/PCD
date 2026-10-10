@@ -101,7 +101,7 @@ CONFIG_KEYS = {
     # Per-merchant FSA rate card formula (base, km, minute, downtown, bands).
     "pricing_fsa_card": "pricing_fsa_card",
     "driver_pay": "driver_pay_plan",
-    # Margin guard cost ESTIMATES (speed, stop minutes, return share, $/km, thin %).
+    # Margin guard cost inputs (speed, stop minutes, return share, $/km, thin %).
     "pricing_margin_estimates": "pricing_margin_estimates",
     # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
     "delivery_promise": "delivery_promise",

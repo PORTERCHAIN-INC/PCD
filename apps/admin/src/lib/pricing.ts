@@ -35,12 +35,13 @@ export type SimulateQuoteResult = {
     driver_minutes: number;
     labour_cents: number;
     vehicle_cents: number;
+    insurance_cents?: number;
     explain: string;
   } | null;
   distance_flag?: string | null;
 };
 
-/** Admin-editable ESTIMATES behind the margin check (Settings key pricing_margin_estimates). */
+/** Admin-editable cost inputs behind the margin check (Settings key pricing_margin_estimates). */
 export type MarginEstimates = {
   driver_hourly_cents: number;
   avg_speed_kmh: number;
@@ -49,6 +50,9 @@ export type MarginEstimates = {
   deadhead_factor: number;
   vehicle_cents_per_km: number;
   thin_margin_pct: number;
+  working_days_per_month: number;
+  working_hours_per_day: number;
+  insurance_monthly_cents: Record<string, number>;
 };
 
 export const pricingApi = {

@@ -35,13 +35,17 @@ const MARGIN_LABEL: Record<string, string> = {
 };
 
 /** label, key, unit, scale (display = stored / scale) */
-const ESTIMATE_FIELDS: Array<[string, keyof MarginEstimates, string, number]> = [
+const ESTIMATE_FIELDS: Array<
+  [string, Exclude<keyof MarginEstimates, "insurance_monthly_cents">, string, number]
+> = [
   ["Average speed", "avg_speed_kmh", "km/h", 1],
   ["Minutes per pickup", "pickup_minutes", "min", 1],
   ["Minutes per drop", "drop_minutes", "min", 1],
   ["Unpaid return share", "deadhead_factor", "%", 0.01],
   ["Vehicle cost", "vehicle_cents_per_km", "$/km", 100],
   ["Thin margin below", "thin_margin_pct", "%", 1],
+  ["Working days / month", "working_days_per_month", "days", 1],
+  ["Working hours / day", "working_hours_per_day", "h", 1],
 ];
 
 const field = "mt-1 w-full rounded-lg border border-primary/15 px-3 py-2 text-sm";
@@ -126,7 +130,7 @@ export default function PricingCenterClient() {
     try {
       const token = await getApiToken();
       await withStaffStepUp(token, () =>
-        settingsApi.updateConfig(token, "pricing_margin_estimates", est, "Margin estimates")
+        settingsApi.updateConfig(token, "pricing_margin_estimates", est, "Margin cost inputs")
       );
       setEstMsg("Saved");
     } catch (e) {
@@ -227,9 +231,6 @@ export default function PricingCenterClient() {
               <div className={`rounded-xl border p-3 text-sm ${MARGIN_TONE[m.status]}`}>
                 <p className="font-semibold">
                   {MARGIN_LABEL[m.status]} · {m.margin_pct}%
-                  <span className="ml-2 rounded bg-white/60 px-1.5 py-0.5 text-[10px] font-medium uppercase">
-                    estimate
-                  </span>
                 </p>
                 <p className="mt-1">{m.explain}</p>
                 {result.distance_flag && (
@@ -249,13 +250,13 @@ export default function PricingCenterClient() {
           className="text-sm font-semibold text-primary"
           onClick={() => void openEstimates()}
         >
-          Cost estimates behind the margin check {showEst ? "▾" : "▸"}
+          Cost inputs behind the margin check {showEst ? "▾" : "▸"}
         </button>
         {showEst && (
           <div className="mt-3">
             <p className="text-xs text-muted">
-              These are estimates, not your rates. Driver pay ($27/h) comes from the driver pay
-              plan. Changing these never changes a price.
+              Your real costs. Driver pay ($27/h) comes from the driver pay plan; insurance is
+              spread per hour over working days × hours. Changing these never changes a price.
             </p>
             {est ? (
               <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -277,9 +278,29 @@ export default function PricingCenterClient() {
                     />
                   </label>
                 ))}
+                {VEHICLES.map(([vid, vlabel]) => (
+                  <label key={vid} className="text-xs font-medium text-primary/70">
+                    {vlabel} insurance ($/month)
+                    <Input
+                      className="mt-1"
+                      type="number"
+                      min="0"
+                      value={String((est.insurance_monthly_cents?.[vid] ?? 0) / 100)}
+                      onChange={(e) =>
+                        setEst({
+                          ...est,
+                          insurance_monthly_cents: {
+                            ...est.insurance_monthly_cents,
+                            [vid]: Math.round(Number(e.target.value) * 100),
+                          },
+                        })
+                      }
+                    />
+                  </label>
+                ))}
                 <div className="col-span-2 flex items-center gap-3 sm:col-span-3 lg:col-span-6">
                   <Button variant="primary" onClick={() => void saveEstimates()}>
-                    Save estimates
+                    Save costs
                   </Button>
                   {estMsg && <span className="text-xs text-muted">{estMsg}</span>}
                 </div>

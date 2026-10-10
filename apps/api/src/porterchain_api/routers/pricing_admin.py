@@ -117,6 +117,7 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
             duration_seconds=route_seconds,
             pickups=body.total_pickups or 1,
             drops=body.total_drops or 1,
+            vehicle_class=body.vehicle_class,
             overrides=load_margin_estimates(db),
         ).as_dict(),
         distance_flag=distance_outlier(

@@ -15,12 +15,24 @@ from typing import Any
 
 DEFAULTS: dict[str, Any] = {
     "driver_hourly_cents": 2700,      # decided: $27/h
-    "avg_speed_kmh": 40.0,            # assumption when no routed duration
-    "pickup_minutes": 10.0,           # assumption
-    "drop_minutes": 8.0,              # assumption
-    "deadhead_factor": 0.5,           # assumption: half the return leg is unpaid
-    "vehicle_cents_per_km": 35,       # assumption: fuel + wear, cargo van
+    "avg_speed_kmh": 40.0,            # when no routed duration
+    "pickup_minutes": 10.0,
+    "drop_minutes": 8.0,
+    "deadhead_factor": 0.5,           # half the return leg counted
+    "vehicle_cents_per_km": 35,       # fuel + wear
     "thin_margin_pct": 15.0,          # warn below this margin
+    "working_days_per_month": 22,     # insurance spread
+    "working_hours_per_day": 10,      # insurance spread
+}
+
+#: Fixed insurance per vehicle type, cents per month (Ravi: van $600; others editable).
+DEFAULT_INSURANCE: dict[str, int] = {
+    "sedan_suv": 0,
+    "pickup": 0,
+    "cargo_van": 60000,
+    "sprinter_van": 60000,
+    "box_16": 0,
+    "box_20": 0,
 }
 
 
@@ -35,6 +47,8 @@ class MarginResult:
     labour_cents: int
     vehicle_cents: int
     explain: str
+    insurance_cents: int = 0
+    vehicle_class: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -48,17 +62,30 @@ _BOUNDS: dict[str, tuple[float, float]] = {
     "deadhead_factor": (0, 1),
     "vehicle_cents_per_km": (0, 1000),
     "thin_margin_pct": (0, 90),
+    "working_days_per_month": (1, 31),
+    "working_hours_per_day": (1, 24),
 }
 
 
 def default_margin_estimates() -> dict[str, Any]:
-    return {"schema": 1, **DEFAULTS}
+    return {"schema": 1, **DEFAULTS, "insurance_monthly_cents": dict(DEFAULT_INSURANCE)}
 
 
 def normalize_margin_estimates(raw: Any) -> dict[str, Any]:
     """Validate the admin-editable estimates (Settings → pricing_margin_estimates)."""
     out = default_margin_estimates()
-    for key, value in (raw if isinstance(raw, dict) else {}).items():
+    src = raw if isinstance(raw, dict) else {}
+    ins = src.get("insurance_monthly_cents")
+    if isinstance(ins, dict):
+        for vk, vv in ins.items():
+            try:
+                cents = int(vv)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"margin_invalid:insurance:{vk}") from exc
+            if not 0 <= cents <= 10_000_000:
+                raise ValueError(f"margin_invalid:insurance:{vk}")
+            out["insurance_monthly_cents"][str(vk)] = cents
+    for key, value in src.items():
         if key not in DEFAULTS or value is None:
             continue
         try:
@@ -74,10 +101,18 @@ def normalize_margin_estimates(raw: Any) -> dict[str, Any]:
 
 def _cfg(overrides: dict[str, Any] | None) -> dict[str, Any]:
     cfg = dict(DEFAULTS)
+    cfg["insurance_monthly_cents"] = dict(DEFAULT_INSURANCE)
     for k, v in (overrides or {}).items():
         if k in cfg and v is not None:
-            cfg[k] = v
+            cfg[k] = dict(v) if isinstance(v, dict) else v
     return cfg
+
+
+def insurance_cents_per_hour(vehicle_class: str | None, overrides: dict[str, Any] | None = None) -> float:
+    c = _cfg(overrides)
+    monthly = int((c["insurance_monthly_cents"] or {}).get(vehicle_class or "", 0))
+    hours = float(c["working_days_per_month"]) * float(c["working_hours_per_day"])
+    return monthly / hours if hours > 0 else 0.0
 
 
 def estimate_cost(
@@ -106,20 +141,26 @@ def margin_check(
     duration_seconds: float | None = None,
     pickups: int = 1,
     drops: int = 1,
+    vehicle_class: str | None = None,
     overrides: dict[str, Any] | None = None,
 ) -> MarginResult:
     c = _cfg(overrides)
     cost, minutes, labour, vehicle = estimate_cost(
         distance_meters, duration_seconds=duration_seconds, pickups=pickups, drops=drops, overrides=overrides
     )
+    insurance = round(insurance_cents_per_hour(vehicle_class, overrides) * minutes / 60.0)
+    cost += insurance
     margin = int(price_cents) - cost
     pct = round(margin / price_cents * 100.0, 1) if price_cents > 0 else -100.0
     status = "below_cost" if margin < 0 else ("thin" if pct < float(c["thin_margin_pct"]) else "ok")
     explain = (
-        f"Cost ≈ ${cost / 100:.2f}: {minutes:.0f} driver min at ${int(c['driver_hourly_cents']) / 100:.2f}/h "
-        f"(${labour / 100:.2f}) + vehicle ${vehicle / 100:.2f}. Margin ${margin / 100:.2f} ({pct}%)."
+        f"Cost ${cost / 100:.2f}: {minutes:.0f} driver min at ${int(c['driver_hourly_cents']) / 100:.2f}/h "
+        f"(${labour / 100:.2f}) + vehicle ${vehicle / 100:.2f} + insurance ${insurance / 100:.2f}. "
+        f"Margin ${margin / 100:.2f} ({pct}%)."
     )
-    return MarginResult(status, int(price_cents), cost, margin, pct, minutes, labour, vehicle, explain)
+    return MarginResult(
+        status, int(price_cents), cost, margin, pct, minutes, labour, vehicle, explain, insurance, vehicle_class
+    )
 
 
 def haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
