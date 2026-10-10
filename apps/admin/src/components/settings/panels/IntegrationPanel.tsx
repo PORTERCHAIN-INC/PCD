@@ -125,6 +125,7 @@ export default function IntegrationPanel({
       </div>
 
       <SettingsCard
+        collapsed
         title="Why can’t I edit keys here?"
         description="Silicon Valley security practice"
       >
@@ -138,6 +139,7 @@ export default function IntegrationPanel({
 
       {sectionId === "channels" && (
         <SettingsCard
+          collapsed
           title="Staff push alert budget"
           description="Jeff Dean bar — loud only for irreversible ops risk. Inbox for everything else."
         >
@@ -191,6 +193,7 @@ export default function IntegrationPanel({
       )}
 
       <SettingsCard
+        collapsed
         title="Connection details"
         description="Non-sensitive configuration visible to operators"
       >
@@ -210,7 +213,7 @@ export default function IntegrationPanel({
         )}
       </SettingsCard>
 
-      <SettingsCard title="Architecture notes">
+      <SettingsCard collapsed title="Architecture notes">
         <ul className="space-y-2 text-sm text-primary/80">
           {bullets.map((b) => (
             <li key={b} className="flex gap-2">

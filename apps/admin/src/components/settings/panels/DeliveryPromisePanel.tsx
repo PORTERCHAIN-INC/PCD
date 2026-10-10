@@ -227,6 +227,7 @@ export default function DeliveryPromisePanel({ data, saving, onSave }: Props) {
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="FSA tiers"
         description="Destination FSA prefixes (e.g. L9, K0A) that cannot get same-day and/or add delivery days. Most specific prefix wins."
       >
@@ -304,6 +305,7 @@ export default function DeliveryPromisePanel({ data, saving, onSave }: Props) {
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="What buyers see"
         description="Service name and description on the Shopify checkout line. Use {cutoff}, {start}, {end}, {weekday}."
       >

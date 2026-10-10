@@ -23,6 +23,7 @@ function money(cents: number): string {
 export default function LeadsPipelineClient() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
   const [search, setSearch] = useState("");
+  const [openCols, setOpenCols] = useState<Set<string>>(new Set());
 
   const {
     data: columns = [],
@@ -86,7 +87,7 @@ export default function LeadsPipelineClient() {
               </div>
               <p className="mb-3 text-xs text-muted">{money(col.value_cents)}</p>
               <ul className="space-y-2">
-                {col.cards.map((card) => (
+                {(openCols.has(col.stage) ? col.cards : col.cards.slice(0, 6)).map((card) => (
                   <li
                     key={`${card.type}-${card.id}`}
                     className="rounded-xl border border-primary/10 bg-white p-3 shadow-sm"
@@ -130,6 +131,22 @@ export default function LeadsPipelineClient() {
                   <li className="text-xs text-muted">+{col.hidden} more leads</li>
                 ) : null}
               </ul>
+              {col.cards.length > 6 && (
+                <button
+                  type="button"
+                  className="mt-2 w-full py-2 text-xs font-semibold text-secondary hover:underline"
+                  onClick={() =>
+                    setOpenCols((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(col.stage)) next.delete(col.stage);
+                      else next.add(col.stage);
+                      return next;
+                    })
+                  }
+                >
+                  {openCols.has(col.stage) ? "Show less" : `Show ${col.cards.length - 6} more`}
+                </button>
+              )}
             </div>
           ))}
         </div>

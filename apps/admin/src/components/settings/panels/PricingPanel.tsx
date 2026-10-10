@@ -398,6 +398,7 @@ export default function PricingPanel({
           <FsaRatesCard vehicleCatalog={catalog} />
 
           <SettingsCard
+            collapsed
             title="Liftgate, extra stop, and weight"
             description="Platform defaults on every quote. Dollars here, cents in the API. Driver payout stays off this screen."
           >
@@ -465,7 +466,11 @@ export default function PricingPanel({
             </div>
           </SettingsCard>
 
-          <SettingsCard title="Tax (HST)" description="Wired into pricing engine tax config">
+          <SettingsCard
+            collapsed
+            title="Tax (HST)"
+            description="Wired into pricing engine tax config"
+          >
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="HST %">
                 <Input
@@ -481,7 +486,11 @@ export default function PricingPanel({
             </div>
           </SettingsCard>
 
-          <SettingsCard title="Fuel surcharge" description="Wired into pricing engine fuel config">
+          <SettingsCard
+            collapsed
+            title="Fuel surcharge"
+            description="Wired into pricing engine fuel config"
+          >
             <div className="grid gap-3 sm:grid-cols-3">
               <Field label="Surcharge %">
                 <Input

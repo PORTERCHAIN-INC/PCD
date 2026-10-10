@@ -24,13 +24,13 @@ export default function SettingsSidebar({ sections, activeId, onSelect }: Props)
   }, {});
 
   return (
-    <nav className="space-y-6" aria-label="Settings sections">
+    <nav className="space-y-4" aria-label="Settings sections">
       {SETTINGS_GROUP_ORDER.map((groupId) => {
         const items = groups[groupId];
         if (!items?.length) return null;
         return (
           <div key={groupId}>
-            <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted">
+            <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-muted">
               {SETTINGS_GROUP_LABELS[groupId as SettingsGroupId] ?? groupId}
             </p>
             <ul className="space-y-0.5">
@@ -44,9 +44,9 @@ export default function SettingsSidebar({ sections, activeId, onSelect }: Props)
                       onClick={() => onSelect(s.id)}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition-colors",
+                        "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
                         active
-                          ? "bg-secondary text-white shadow-sm shadow-secondary/25"
+                          ? "bg-primary text-white"
                           : "text-primary/70 hover:bg-gray-bg hover:text-primary"
                       )}
                     >

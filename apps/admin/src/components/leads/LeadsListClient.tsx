@@ -125,7 +125,7 @@ export default function LeadsListClient() {
     queryFn: async () =>
       leadsApi.list(await getApiToken(), {
         ...listFilters,
-        limit: listFilters.limit ?? 50,
+        limit: listFilters.limit ?? 25,
         offset: 0,
       }),
   });
@@ -925,10 +925,10 @@ export default function LeadsListClient() {
                     void (async () => {
                       setLoadingMore(true);
                       try {
-                        const nextOffset = (page?.limit ?? 50) + loadOffset;
+                        const nextOffset = (page?.limit ?? 25) + loadOffset;
                         const more = await leadsApi.list(await getApiToken(), {
                           ...listFilters,
-                          limit: page?.limit ?? 50,
+                          limit: page?.limit ?? 25,
                           offset: nextOffset,
                         });
                         setExtra((prev) => [...prev, ...more.items]);

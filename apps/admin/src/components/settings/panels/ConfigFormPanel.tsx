@@ -124,6 +124,7 @@ export default function ConfigFormPanel({
 
       {sectionId === "booking" && envRuntime && (
         <SettingsCard
+          collapsed
           title="Quote & draft TTL (environment)"
           description="Runtime uses Doppler/env — not SystemConfig. Shown read-only."
         >
@@ -143,7 +144,11 @@ export default function ConfigFormPanel({
         </SettingsCard>
       )}
 
-      <SettingsCard title="Configuration" description="Changes are audited with actor and reason">
+      <SettingsCard
+        collapsed
+        title="Configuration"
+        description="Changes are audited with actor and reason"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           {schema.map((field) => (
             <ConfigField

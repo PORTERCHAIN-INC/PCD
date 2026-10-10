@@ -1,5 +1,6 @@
 "use client";
 
+import { useShowMore } from "@/components/layout/ShowMore";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
@@ -283,6 +284,7 @@ export default function CashClient() {
   );
 
   const b = board.data;
+  const holdPage = useShowMore(b?.credit_holds.items ?? [], 10);
   return (
     <FinanceShell
       title="Cash"
@@ -385,7 +387,7 @@ export default function CashClient() {
           <Empty>No merchant is on hold.</Empty>
         ) : (
           <ul className="divide-y divide-primary/10">
-            {b.credit_holds.items.map((h) => (
+            {holdPage.visible.map((h) => (
               <li
                 key={h.merchant_id}
                 className="flex flex-wrap items-center justify-between gap-2 py-3"
@@ -401,6 +403,7 @@ export default function CashClient() {
                 </span>
               </li>
             ))}
+            {holdPage.more}
           </ul>
         )}
       </Section>

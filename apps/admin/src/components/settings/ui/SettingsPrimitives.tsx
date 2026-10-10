@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, ChevronDown, Info, XCircle } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { healthTone } from "@/lib/settings";
 
@@ -41,11 +41,13 @@ export function SettingsPageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-primary/10 pb-5">
-      <div className="min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+      <div className="min-w-0 flex-1">
         <h2 className="text-xl font-bold tracking-tight text-primary">{title}</h2>
         {description && (
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">{description}</p>
+          <p className="mt-0.5 line-clamp-2 max-w-2xl text-sm text-muted" title={description}>
+            {description}
+          </p>
         )}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -59,31 +61,58 @@ export function SettingsCard({
   action,
   children,
   className,
+  collapsed,
 }: {
   title?: string;
   description?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** Start folded: secondary cards stay one line until opened (progressive disclosure). */
+  collapsed?: boolean;
 }) {
+  const [open, setOpen] = useState(!collapsed);
   return (
-    <div
+    <section
       className={cn(
-        "min-w-0 overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-sm",
+        "min-w-0 overflow-hidden rounded-2xl border border-primary/10 bg-white",
         className
       )}
     >
       {(title || action) && (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-primary/10 px-4 py-4 sm:px-5">
-          <div className="min-w-0">
-            {title && <h3 className="text-sm font-semibold text-primary">{title}</h3>}
-            {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
-          </div>
-          {action && <div className="shrink-0">{action}</div>}
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-between gap-3 px-4 py-3",
+            open && "border-b border-primary/10"
+          )}
+        >
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          >
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 text-muted transition-transform",
+                !open && "-rotate-90"
+              )}
+              aria-hidden
+            />
+            <span className="min-w-0">
+              {title && <span className="block text-sm font-semibold text-primary">{title}</span>}
+              {description && (
+                <span className="block truncate text-xs text-muted" title={description}>
+                  {description}
+                </span>
+              )}
+            </span>
+          </button>
+          {action && open && <div className="shrink-0">{action}</div>}
         </div>
       )}
-      <div className="min-w-0 p-4 sm:p-5">{children}</div>
-    </div>
+      {open && <div className="min-w-0 p-4">{children}</div>}
+    </section>
   );
 }
 
@@ -132,7 +161,7 @@ export function Toggle({
   const id = `toggle-${label.replace(/\W+/g, "-").toLowerCase()}`;
   return (
     <div
-      className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-primary/10 bg-white px-4 py-3 shadow-sm"
+      className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-primary/10 bg-white px-4 py-2.5"
       onClick={() => onChange(!checked)}
     >
       <div className="min-w-0 flex-1">
@@ -181,7 +210,7 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "rounded-2xl border px-4 py-3",
+        "rounded-xl border px-3 py-2.5",
         tone === "default" && "border-primary/10 bg-white",
         tone === "success" && "border-green-200 bg-green-50/80",
         tone === "warning" && "border-amber-200 bg-amber-50/80",

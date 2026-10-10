@@ -182,7 +182,7 @@ export default function LeadIngestPanel() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {okMsg ? <p className="text-sm text-emerald-700">{okMsg}</p> : null}
 
-      <SettingsCard title="Webhook & CAPI secrets">
+      <SettingsCard collapsed title="Webhook & CAPI secrets">
         <ul className="space-y-4">
           {SECRET_META.map((row) => {
             const st = data?.secrets[row.key];
@@ -221,7 +221,7 @@ export default function LeadIngestPanel() {
         </ul>
       </SettingsCard>
 
-      <SettingsCard title="Visible config">
+      <SettingsCard collapsed title="Visible config">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
             <span className="text-muted">Meta pixel ID</span>

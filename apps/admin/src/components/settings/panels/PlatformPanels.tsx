@@ -1,5 +1,6 @@
 "use client";
 
+import { useShowMore } from "@/components/layout/ShowMore";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,6 +35,7 @@ export function AuditPanel() {
     queryFn: async () => settingsApi.audit(await getApiToken()),
   });
 
+  const auditPage = useShowMore(logs, 15);
   return (
     <div className="min-w-0 max-w-full space-y-6">
       <SettingsPageHeader title="Audit log" description={SECTION_DESCRIPTIONS.audit} />
@@ -46,7 +48,7 @@ export function AuditPanel() {
           <PageSkeleton rows={3} />
         ) : (
           <div className="min-w-0 space-y-3">
-            {logs.map((log, i) => (
+            {auditPage.visible.map((log, i) => (
               <AuditRow
                 key={log.id ?? `${log.action}-${log.created_at}-${i}`}
                 log={log}
@@ -56,6 +58,7 @@ export function AuditPanel() {
                 }}
               />
             ))}
+            {auditPage.more}
             {!logs.length && (
               <p className="py-6 text-center text-sm text-muted">No settings audit entries yet</p>
             )}
@@ -163,6 +166,7 @@ export function PlatformPanel({
 
       {variant === "backup" && (
         <SettingsCard
+          collapsed
           title="Configuration export"
           description="Exports SystemConfig rows — not database dumps"
         >

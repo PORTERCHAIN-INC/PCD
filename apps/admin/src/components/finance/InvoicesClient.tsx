@@ -41,7 +41,7 @@ export default function InvoicesClient() {
     queryKey: ["finance-invoices", JSON.stringify(filters), offset],
     enabled,
     queryFn: async () =>
-      financeApi.invoices(await getApiToken(), { ...filters, limit: 50, offset }),
+      financeApi.invoices(await getApiToken(), { ...filters, limit: 25, offset }),
   });
 
   async function exportGl() {
@@ -134,7 +134,7 @@ export default function InvoicesClient() {
             <FinanceInvoicesGrid rows={page.data?.items ?? []} hideToolbar />
             <ListPager
               total={page.data?.total ?? 0}
-              limit={page.data?.limit ?? 50}
+              limit={page.data?.limit ?? 25}
               offset={offset}
               onPage={setOffset}
             />

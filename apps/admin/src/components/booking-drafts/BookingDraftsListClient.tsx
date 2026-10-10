@@ -13,6 +13,7 @@ import { Badge, Button } from "@/components/crm/primitives";
 import { SavedPresetsControl } from "@/components/crm/SavedPresetsControl";
 import { bookingDraftsApi, DRAFT_STATES, type DraftFilters } from "@/lib/booking-drafts";
 import AdminPage from "@/components/layout/AdminPage";
+import { useShowMore } from "@/components/layout/ShowMore";
 
 const FILTERS_KEY = "porterchain.booking-drafts.saved-filters";
 
@@ -75,6 +76,7 @@ export default function BookingDraftsListClient() {
     [selected, getApiToken, qc]
   );
 
+  const draftPage = useShowMore(rows, 25);
   const advanced = [
     filters.merchant_id,
     filters.booking_type,
@@ -286,7 +288,14 @@ export default function BookingDraftsListClient() {
               <PageSkeleton rows={3} />
             </div>
           ) : (
-            <BookingDraftsGrid rows={rows} selected={selected} onSelect={setSelected} />
+            <>
+              <BookingDraftsGrid
+                rows={draftPage.visible}
+                selected={selected}
+                onSelect={setSelected}
+              />
+              {draftPage.more}
+            </>
           )}
         </div>
       </section>

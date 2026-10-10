@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useShowMore } from "@/components/layout/ShowMore";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Inbox, RefreshCw, ShieldAlert } from "lucide-react";
@@ -96,6 +97,7 @@ export default function FinanceInteracPanel() {
   });
 
   const items = data?.items ?? [];
+  const page = useShowMore(items, 5);
   const waitingCents =
     view === "open"
       ? items.reduce((s, t) => s + (t.status === "suspicious" ? 0 : t.amount_cents), 0)
@@ -162,7 +164,7 @@ export default function FinanceInteracPanel() {
         />
       ) : (
         <ul className="space-y-3">
-          {items.map((t) => {
+          {page.visible.map((t) => {
             const suspicious = !t.auth_ok || t.status === "suspicious";
             const open = ["proposed", "needs_review", "suspicious"].includes(t.status);
             const target = pick[t.id]?.trim() || t.invoice_id;
@@ -288,6 +290,7 @@ export default function FinanceInteracPanel() {
               </li>
             );
           })}
+          {page.more ? <li>{page.more}</li> : null}
         </ul>
       )}
       <div className="sr-only" aria-live="polite">

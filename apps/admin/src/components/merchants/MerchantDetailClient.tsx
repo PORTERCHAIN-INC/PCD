@@ -330,7 +330,12 @@ export default function MerchantDetailClient({ id }: { id: string }) {
         <ArrowLeft className="h-4 w-4" aria-hidden /> Merchants
       </Link>
 
-      <section className="min-w-0 space-y-7 rounded-[2rem] border border-primary/10 bg-white p-5 sm:p-8">
+      <section
+        className={cn(
+          "min-w-0 rounded-[2rem] border border-primary/10 bg-white",
+          route.tab === "overview" ? "space-y-7 p-5 sm:p-8" : "p-4 sm:p-5"
+        )}
+      >
         <header className="flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/[0.05] text-primary sm:h-14 sm:w-14">
             {m.logo_url ? (
@@ -346,7 +351,12 @@ export default function MerchantDetailClient({ id }: { id: string }) {
               {ops ? ` · ${ops.owner.name ?? "No owner"}` : ""}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h1 className="min-w-0 text-2xl font-extrabold tracking-tight text-primary sm:text-4xl">
+              <h1
+                className={cn(
+                  "min-w-0 text-2xl font-extrabold tracking-tight text-primary",
+                  route.tab === "overview" && "sm:text-4xl"
+                )}
+              >
                 {m.company_name}
               </h1>
               {statusPill}
@@ -371,12 +381,14 @@ export default function MerchantDetailClient({ id }: { id: string }) {
             />
           </div>
         </header>
-        <MerchantHero
-          ops={ops ?? undefined}
-          revenue30dCents={m.metrics.monthly_revenue_cents}
-          orders30d={m.metrics.monthly_orders}
-          onGo={(t, p) => go(t as TabId, p)}
-        />
+        {route.tab === "overview" ? (
+          <MerchantHero
+            ops={ops ?? undefined}
+            revenue30dCents={m.metrics.monthly_revenue_cents}
+            orders30d={m.metrics.monthly_orders}
+            onGo={(t, p) => go(t as TabId, p)}
+          />
+        ) : null}
       </section>
 
       {toast && (

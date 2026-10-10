@@ -246,6 +246,7 @@ export default function CustomerPricingPanel({
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="Vehicle rates"
         description="Delete hides that vehicle from customer quotes. It does not change merchant prices."
       >
@@ -334,6 +335,7 @@ export default function CustomerPricingPanel({
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="Parcel presets"
         description="Inches and pounds. The server converts once. Other cannot be deleted."
       >

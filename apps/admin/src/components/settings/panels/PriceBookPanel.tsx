@@ -231,6 +231,7 @@ export default function PriceBookPanel({
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="Retail single price"
         description="Off by default. One price for a retail delivery."
       >
@@ -251,6 +252,7 @@ export default function PriceBookPanel({
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="Dedicated vehicle"
         description="Off by default. Booked by the hour or half-day block."
       >
@@ -299,6 +301,7 @@ export default function PriceBookPanel({
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="Driver pay plan"
         description="Config only — payouts are not wired to this yet. $27/h and the 4 h block are decided."
       >

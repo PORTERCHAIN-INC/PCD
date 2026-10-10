@@ -1,5 +1,6 @@
 "use client";
 
+import { useShowMore } from "@/components/layout/ShowMore";
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { AlertCircle, Mail, ShieldAlert } from "lucide-react";
@@ -39,6 +40,7 @@ export function UserDirectoryTable({
   rowActions?: (user: PlatformUser) => ReactNode;
   onMutate: () => void;
 }) {
+  const userPage = useShowMore(users, 25);
   const cols = DIRECTORY_COLUMNS[tab];
   const [manageUser, setManageUser] = useState<PlatformUser | null>(null);
 
@@ -64,7 +66,7 @@ export function UserDirectoryTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-primary/5">
-            {users.map((u) => (
+            {userPage.visible.map((u) => (
               <tr key={`${u.user_type}-${u.id}`} className="group">
                 <td className="py-3 pr-4">
                   <div className="flex items-center gap-3">
@@ -177,6 +179,7 @@ export function UserDirectoryTable({
             ))}
           </tbody>
         </table>
+        {userPage.more}
         {!users.length && (
           <p className="py-8 text-center text-sm text-muted">No users match the current filters.</p>
         )}

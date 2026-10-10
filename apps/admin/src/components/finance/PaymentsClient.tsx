@@ -37,7 +37,7 @@ export default function PaymentsClient() {
   const payments = useQuery({
     queryKey: ["finance-payments", offset],
     enabled,
-    queryFn: async () => financeApi.payments(await getApiToken(), undefined, { limit: 50, offset }),
+    queryFn: async () => financeApi.payments(await getApiToken(), undefined, { limit: 25, offset }),
   });
 
   const s = stripe.data;
@@ -188,7 +188,7 @@ export default function PaymentsClient() {
             <FinancePaymentsGrid rows={payments.data?.items ?? []} />
             <ListPager
               total={payments.data?.total ?? 0}
-              limit={payments.data?.limit ?? 50}
+              limit={payments.data?.limit ?? 25}
               offset={offset}
               onPage={setOffset}
             />

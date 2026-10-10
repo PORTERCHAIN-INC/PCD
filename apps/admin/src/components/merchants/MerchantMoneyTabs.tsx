@@ -272,6 +272,7 @@ export function CreditNotesTab({ id }: { id: string }) {
 }
 
 export function ContractsTab({ id }: { id: string }) {
+  const [creating, setCreating] = useState(false);
   const { getApiToken } = useAdminAuth();
   const { data, refetch } = useApiData((t) => merchants.contracts(t, id), [id], {
     key: `merchant-contracts-${id}`,
@@ -323,38 +324,45 @@ export function ContractsTab({ id }: { id: string }) {
 
   return (
     <div className="space-y-5">
-      <SectionCard title="New contract">
-        <div className="grid grid-cols-2 gap-4 p-5">
-          <Field label="Net terms">
-            <Select value={terms} onChange={(e) => setTerms(e.target.value)}>
-              {TERMS.map((t) => (
-                <option key={t} value={t}>
-                  {titleCase(t)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Value ($)">
-            <Input
-              type="number"
-              step="0.01"
-              value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
-            />
-          </Field>
-          <div className="col-span-2 flex items-center gap-3">
-            <Button onClick={() => void createContract()} disabled={busy}>
-              {busy ? "Creating…" : "Create contract"}
-            </Button>
-            {error && <span className="text-sm text-red-600">{error}</span>}
+      <SectionCard
+        title="Contracts"
+        action={
+          <Button variant={creating ? "outline" : "primary"} onClick={() => setCreating((v) => !v)}>
+            {creating ? "Close" : "New contract"}
+          </Button>
+        }
+      >
+        {(creating || !data?.length) && (
+          <div className="grid grid-cols-2 gap-4 border-b border-primary/10 bg-primary/[0.02] p-5">
+            <Field label="Net terms">
+              <Select value={terms} onChange={(e) => setTerms(e.target.value)}>
+                {TERMS.map((t) => (
+                  <option key={t} value={t}>
+                    {titleCase(t)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Value ($)">
+              <Input
+                type="number"
+                step="0.01"
+                value={value}
+                onChange={(e) => setValue(Number(e.target.value))}
+              />
+            </Field>
+            <div className="col-span-2 flex items-center gap-3">
+              <Button onClick={() => void createContract()} disabled={busy}>
+                {busy ? "Creating…" : "Create contract"}
+              </Button>
+              {error && <span className="text-sm text-red-600">{error}</span>}
+            </div>
+            <p className="col-span-2 text-xs text-muted">
+              Requires a linked CRM company (convert lead → merchant). Draft contract is created for
+              that company.
+            </p>
           </div>
-          <p className="col-span-2 text-xs text-muted">
-            Requires a linked CRM company (convert lead → merchant). Draft contract is created for
-            that company.
-          </p>
-        </div>
-      </SectionCard>
-      <SectionCard title="Contracts">
+        )}
         <div className="divide-y divide-primary/5">
           {(data ?? []).map((c) => (
             <div key={c.id} className="px-5 py-3">

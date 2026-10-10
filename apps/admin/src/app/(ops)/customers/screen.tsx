@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
+import { useShowMore } from "@/components/layout/ShowMore";
 import { useRouter } from "next/navigation";
 import { Link2, Search, ShieldAlert, TrendingUp, UserPlus, UserX, Users } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -65,6 +66,7 @@ export default function CustomersPage() {
   });
 
   const rows = useMemo(() => data ?? [], [data]);
+  const rowPage = useShowMore(rows, 25);
 
   return (
     <AdminPage>
@@ -189,7 +191,7 @@ export default function CustomersPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((c) => (
+                {rowPage.visible.map((c) => (
                   <tr key={c.id} className="border-b border-primary/5 hover:bg-gray-bg/40">
                     <td className="px-4 py-3">
                       <Link href={`/customers/${c.id}`} className="flex items-start gap-2">
@@ -225,6 +227,7 @@ export default function CustomersPage() {
                 ))}
               </tbody>
             </table>
+            {rowPage.more}
           </div>
         )}
       </SectionCard>

@@ -81,6 +81,7 @@ export default function DashboardPanel({
 
       {dash.project_mode ? (
         <SettingsCard
+          collapsed
           title="Project mode (boot-time)"
           description="Deploy property — change APP_ENV in Doppler or env/.env, then restart. This process cannot switch itself."
         >
@@ -150,6 +151,7 @@ export default function DashboardPanel({
       </SettingsCard>
 
       <SettingsCard
+        collapsed
         title="Recent configuration changes"
         description="Audit trail for settings updates — full history in Audit section"
       >
