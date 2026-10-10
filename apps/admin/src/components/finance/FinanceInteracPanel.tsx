@@ -218,6 +218,7 @@ export default function FinanceInteracPanel() {
                       {t.match_note ? (
                         <span className="text-xs text-gray-700">
                           · {NOTE_LABEL[t.match_note] ?? t.match_note}
+                          {t.confidence ? ` · ${Math.round(t.confidence * 100)}% sure` : ""}
                         </span>
                       ) : null}
                     </dd>

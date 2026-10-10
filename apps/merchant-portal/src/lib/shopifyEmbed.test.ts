@@ -48,3 +48,17 @@ test("steps cover the Markets layout first, old zones as fallback", () => {
   assert.ok(html.indexOf("Shipping has moved to Markets") < html.indexOf("Older admin"));
   assert.match(html, /PorterChain \(via app\)/);
 });
+
+test("4-click flag off adds nothing; on adds Confirm pickup + Go live", () => {
+  const on = embeddedAppHtml({
+    apiKey: "k",
+    apiUrl: "https://a",
+    portalUrl: "https://p",
+    fourClick: true,
+  });
+  const off = embeddedAppHtml({ apiKey: "k", apiUrl: "https://a", portalUrl: "https://p" });
+  assert.doesNotMatch(off, /__pcOnboard|Go live/);
+  assert.match(on, /Confirm pickup/);
+  assert.match(on, /Go live/);
+  assert.ok(on.indexOf("__pcOnboard=") < on.lastIndexOf("window.__pcOnboard(s,render)"));
+});

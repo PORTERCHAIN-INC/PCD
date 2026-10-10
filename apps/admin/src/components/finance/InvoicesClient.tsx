@@ -14,6 +14,9 @@ const FinanceInvoicesGrid = dynamic(() => import("@/components/finance/FinanceIn
   ssr: false,
   loading: () => <TableSkeleton rows={6} />,
 });
+const FinanceArSummary = dynamic(() => import("@/components/finance/FinanceArSummary"), {
+  ssr: false,
+});
 const FinanceMerchantArPanel = dynamic(
   () => import("@/components/finance/FinanceMerchantArPanel"),
   {
@@ -73,6 +76,8 @@ export default function InvoicesClient() {
       ) : (
         <PageSkeleton rows={2} />
       )}
+
+      <FinanceArSummary />
 
       <Section
         title="All invoices"

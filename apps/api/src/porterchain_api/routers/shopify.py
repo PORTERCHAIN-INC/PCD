@@ -238,3 +238,62 @@ def shopify_legacy_browser_entry(
             f"{portal}/shopify",
             "Go to PorterChain for Shopify",
         )
+
+
+def _onboarding_shop(authorization: str | None, settings: Settings) -> str:
+    """Flag gate + App Bridge session token → shop domain. 404 when the flag is off."""
+    if not settings.shopify_four_click_onboarding_enabled:
+        raise HTTPException(status_code=404, detail="not_found")
+    from porterchain_api.merchant_engine.shopify_session import verify_session_token
+
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="session_token_missing")
+    try:
+        return verify_session_token(token, settings)
+    except ValueError:
+        raise HTTPException(status_code=401, detail="session_token_invalid") from None
+
+
+@router.get("/onboarding")
+def shopify_onboarding_prefill(
+    authorization: Annotated[str | None, Header()] = None,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Click 3: prefilled pickup address (store address from Shopify)."""
+    from porterchain_api.merchant_engine.shopify_onboarding import prefill
+
+    shop = _onboarding_shop(authorization, settings)
+    try:
+        return prefill(db, settings, shop)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from None
+
+
+@router.post("/onboarding/go-live")
+def shopify_onboarding_go_live(
+    body: dict,
+    authorization: Annotated[str | None, Header()] = None,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Click 4: save pickup, FSA card, carrier, Markets step + deep link."""
+    from porterchain_api.merchant_engine.shopify_onboarding import go_live
+
+    shop = _onboarding_shop(authorization, settings)
+    try:
+        from porterchain_api.pricing_engine import fsa_rate_card
+
+        return go_live(
+            db,
+            settings,
+            shop,
+            dict(body.get("address") or {}),
+            generate_card=lambda s, mid: fsa_rate_card.generate(s, mid, force=True),
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from None
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from None

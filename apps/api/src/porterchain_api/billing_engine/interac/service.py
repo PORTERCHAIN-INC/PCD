@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.platform.admin_audit import log_admin_audit
 from porterchain_api.billing_engine.interac.auth import verify_interac_sender
-from porterchain_api.billing_engine.interac.matcher import propose_match
+from porterchain_api.billing_engine.interac.matcher import MatchProposal, propose_match, score
 from porterchain_api.billing_engine.interac.parser import NotInteracEmail, parse_interac_email
 from porterchain_api.billing_engine.models import InteracTransfer
 
@@ -69,7 +69,7 @@ def ingest_message(db: Session, msg: Message, *, authserv_id: str) -> InteracTra
         row.match_method = proposal.method
         row.match_note = proposal.note
         # Exact matches are "proposed" (one click). Partial/over/unmatched need a human look.
-        row.status = "proposed" if proposal.invoice_id and proposal.note == "exact" else "needs_review"
+        row.status = "proposed" if proposal.invoice_id and proposal.confidence >= 0.9 else "needs_review"
     db.add(row)
     db.flush()
     log_admin_audit(
@@ -114,6 +114,11 @@ def transfer_row(db: Session, t: InteracTransfer) -> dict[str, Any]:
         "merchant_name": merchant_display_name(db, t.merchant_id),
         "match_method": t.match_method,
         "match_note": t.match_note,
+        "confidence": score(
+            MatchProposal(method=t.match_method, note=t.match_note or "unmatched")
+        ).confidence
+        if t.invoice_id or t.merchant_id
+        else 0.0,
         "payment_id": t.payment_id,
         "reviewed_by": t.reviewed_by,
         "reviewed_at": t.reviewed_at,

@@ -40,6 +40,38 @@ class MarginResult:
         return asdict(self)
 
 
+_BOUNDS: dict[str, tuple[float, float]] = {
+    "driver_hourly_cents": (0, 100000),
+    "avg_speed_kmh": (5, 120),
+    "pickup_minutes": (0, 240),
+    "drop_minutes": (0, 240),
+    "deadhead_factor": (0, 1),
+    "vehicle_cents_per_km": (0, 1000),
+    "thin_margin_pct": (0, 90),
+}
+
+
+def default_margin_estimates() -> dict[str, Any]:
+    return {"schema": 1, **DEFAULTS}
+
+
+def normalize_margin_estimates(raw: Any) -> dict[str, Any]:
+    """Validate the admin-editable estimates (Settings → pricing_margin_estimates)."""
+    out = default_margin_estimates()
+    for key, value in (raw if isinstance(raw, dict) else {}).items():
+        if key not in DEFAULTS or value is None:
+            continue
+        try:
+            num = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"margin_invalid:{key}") from exc
+        lo, hi = _BOUNDS[key]
+        if not lo <= num <= hi:
+            raise ValueError(f"margin_invalid:{key}")
+        out[key] = int(num) if isinstance(DEFAULTS[key], int) else num
+    return out
+
+
 def _cfg(overrides: dict[str, Any] | None) -> dict[str, Any]:
     cfg = dict(DEFAULTS)
     for k, v in (overrides or {}).items():

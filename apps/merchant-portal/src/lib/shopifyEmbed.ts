@@ -46,6 +46,8 @@ export function embeddedAppHtml(opts: {
   apiKey: string;
   apiUrl: string;
   portalUrl: string;
+  /** 4-click onboarding (confirm pickup → Go live). Off: page is byte-identical to the reviewed one. */
+  fourClick?: boolean;
 }): string {
   const errors = Object.fromEntries(ERROR_CODES.map((c) => [c, shopifyInstallError(c)]));
   errors._default = shopifyInstallError("unknown_code");
@@ -66,7 +68,7 @@ main{max-width:36rem;margin:0 auto;padding:2rem 1rem}h1{font-size:1.5rem;margin:
 background:#0f2742;color:#fff;text-decoration:none;font-weight:600;font-size:.9rem}
 .btn.alt{background:#fff;color:#0f2742;border:1px solid #a7f3d0}small{color:#64748b}ol{padding-left:1.2rem}
 </style></head>
-<body><main><h1>PorterChain Delivery</h1><div id="app"><p>Connecting your store…</p></div></main>
+<body><main><h1>PorterChain Delivery</h1><div id="app"><p>Connecting your store…</p></div></main>${opts.fourClick ? fourClickJs(opts.apiUrl) : ""}
 <script>
 (function(){
 var API=${js(opts.apiUrl)},PORTAL=${js(opts.portalUrl)},ERR=${js(errors)},RATES=${js(rates)},SHIP=${js(ADMIN_SHIPPING)};
@@ -87,7 +89,29 @@ h+="<p><small>The app is free. Deliveries are invoiced monthly and paid by Inter
 bridge().then(function(b){return b.idToken()}).then(function(tok){
 return fetch(API+"/v1/integrations/shopify/session",{method:"POST",headers:{Authorization:"Bearer "+tok}})})
 .then(function(r){return r.json().catch(function(){return{}}).then(function(b){if(!r.ok)throw new Error(b.code||b.detail||"install_failed");return b})})
-.then(render).catch(function(x){fail(x&&x.message||"install_failed")});
+.then(${opts.fourClick ? "function(s){return window.__pcOnboard(s,render)}" : "render"}).catch(function(x){fail(x&&x.message||"install_failed")});
 })();
 </script></body></html>`;
 }
+
+/** Steps 3–4 for the flagged flow. Runs before the main script resolves (defines window.__pcOnboard). */
+const fourClickJs = (apiUrl: string) => `
+<script>
+(function(){
+window.__pcApi=${js(apiUrl)};var app=document.getElementById("app");
+function e(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function call(path,opt){return window.shopify.idToken().then(function(t){opt=opt||{};opt.headers={Authorization:"Bearer "+t,"Content-Type":"application/json"};
+return fetch(window.__pcApi+path,opt)}).then(function(r){return r.json().catch(function(){return{}}).then(function(b){if(!r.ok)throw new Error(b.detail||"install_failed");return b})})}
+window.__pcOnboard=function(s,orig){return call("/v1/integrations/shopify/onboarding").then(function(p){
+if(p.source==="saved")return orig(s);
+app.innerHTML='<p class="box note"><strong>Step 3 of 4.</strong> Confirm where we pick up your orders.</p><label for="pa"><small>Pickup address</small></label><input id="pa" style="width:100%;box-sizing:border-box;padding:.6rem;border:1px solid #cbd5e1;border-radius:.6rem;margin:.3rem 0 1rem" value="'+e(p.address.formatted)+'"/><button class="btn" id="go">Confirm pickup</button>';
+document.getElementById("go").onclick=function(){var a=p.address;a.formatted=document.getElementById("pa").value;
+if(a.formatted!==p.address.formatted){a.lat=null;a.lng=null}
+app.innerHTML='<p class="box note"><strong>Step 4 of 4.</strong> Pickup: '+e(a.formatted)+'</p><button class="btn" id="live">Go live</button>';
+document.getElementById("live").onclick=function(){this.disabled=true;this.textContent="Going live…";
+call("/v1/integrations/shopify/onboarding/go-live",{method:"POST",body:JSON.stringify({address:a})}).then(function(r){
+app.innerHTML='<div class="box ok"><p><strong>'+(r.live?"You’re live.":"Almost there.")+'</strong> Pickup saved, rate card '+e(r.rate_card)+'.</p><p>Last step in Shopify:</p><ol>'+r.next_step.steps.map(function(x){return"<li>"+e(x)+"</li>"}).join("")+'</ol><a class="btn" target="_top" href="'+r.next_step.deep_link+'">Open Shipping and delivery</a></div><p><small>Invoices and orders: sign in to the PorterChain portal with '+e(r.account.email)+' — no separate signup.</small></p>'
+}).catch(function(x){app.innerHTML='<p class="box warn">'+e(x.message)+'</p>'})}}
+}).catch(function(){return orig(s)})};
+})();
+</script>`;

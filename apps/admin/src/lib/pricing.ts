@@ -10,6 +10,7 @@ export type SimulateQuoteBody = {
   total_drops?: number;
   weight_kg?: number | null;
   requires_liftgate?: boolean;
+  parcel_count?: number | null;
   pickup?: { lat?: number; lng?: number; formatted?: string; postal?: string };
   dropoff?: { lat?: number; lng?: number; formatted?: string; postal?: string };
 };
@@ -25,6 +26,29 @@ export type SimulateQuoteResult = {
   items: Array<{ code: string; label: string; amount_cents: number }>;
   metadata: Record<string, unknown>;
   what_won: string;
+  margin?: {
+    status: "ok" | "thin" | "below_cost";
+    price_cents: number;
+    cost_cents: number;
+    margin_cents: number;
+    margin_pct: number;
+    driver_minutes: number;
+    labour_cents: number;
+    vehicle_cents: number;
+    explain: string;
+  } | null;
+  distance_flag?: string | null;
+};
+
+/** Admin-editable ESTIMATES behind the margin check (Settings key pricing_margin_estimates). */
+export type MarginEstimates = {
+  driver_hourly_cents: number;
+  avg_speed_kmh: number;
+  pickup_minutes: number;
+  drop_minutes: number;
+  deadhead_factor: number;
+  vehicle_cents_per_km: number;
+  thin_margin_pct: number;
 };
 
 export const pricingApi = {

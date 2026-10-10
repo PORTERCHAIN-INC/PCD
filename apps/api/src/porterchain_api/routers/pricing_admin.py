@@ -12,6 +12,7 @@ from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
 from porterchain_api.pricing_engine import get_pricing_service
 from porterchain_api.schemas_pricing import PointInput, SimulateQuoteRequest, SimulateQuoteResponse
+from porterchain_api.pricing_engine.margin_settings import load_margin_estimates
 from porterchain_pricing.margin import distance_outlier, margin_check
 from porterchain_pricing.types import PricingRequest
 
@@ -22,6 +23,28 @@ DbDep = Annotated[Session, Depends(get_db)]
 
 _DEFAULT_PICKUP = PointInput(lat=43.65, lng=-79.38, formatted="Toronto, ON", postal="M5V 1A1")
 _DEFAULT_DROPOFF = PointInput(lat=43.70, lng=-79.40, formatted="North York, ON", postal="M2N 1A1")
+
+
+def _geocoded(point: PointInput) -> PointInput:
+    """Any typed address or postal code works: geocode when coordinates are missing."""
+    if point.lat is not None and point.lng is not None:
+        return point
+    from porterchain_api.merchant_engine.import_geocode import geocode_stop
+
+    geo = geocode_stop(
+        address=point.formatted or "", postal=point.postal, lat=None, lng=None
+    )
+    if geo.lat is None or geo.lng is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail="address_not_found")
+    return point.model_copy(
+        update={
+            "lat": geo.lat,
+            "lng": geo.lng,
+            "formatted": geo.formatted or point.formatted,
+        }
+    )
 
 
 def _what_won(meta: dict) -> str:
@@ -42,8 +65,8 @@ def _what_won(meta: dict) -> str:
 @router.post("/simulate", response_model=SimulateQuoteResponse)
 def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> SimulateQuoteResponse:
     """Preview a full quote with live merchant overlays (no persistence)."""
-    pickup = (body.pickup or _DEFAULT_PICKUP).to_geo()
-    dropoff = (body.dropoff or _DEFAULT_DROPOFF).to_geo()
+    pickup = _geocoded(body.pickup or _DEFAULT_PICKUP).to_geo()
+    dropoff = _geocoded(body.dropoff or _DEFAULT_DROPOFF).to_geo()
     distance_meters = body.distance_meters
     route_seconds = None
     if not body.use_typed_distance and pickup.lat is not None and dropoff.lat is not None:
@@ -94,6 +117,7 @@ def simulate_quote(body: SimulateQuoteRequest, _: AdminDep, db: DbDep) -> Simula
             duration_seconds=route_seconds,
             pickups=body.total_pickups or 1,
             drops=body.total_drops or 1,
+            overrides=load_margin_estimates(db),
         ).as_dict(),
         distance_flag=distance_outlier(
             distance_meters,

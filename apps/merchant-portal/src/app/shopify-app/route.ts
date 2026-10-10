@@ -9,6 +9,7 @@ export function GET(): Response {
     apiKey: shopifyApiKey(),
     apiUrl: publicEnv.porterchainApiUrl,
     portalUrl: publicEnv.siteUrl,
+    fourClick: process.env.SHOPIFY_FOUR_CLICK_ONBOARDING_ENABLED === "true",
   });
   return new Response(html, {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },

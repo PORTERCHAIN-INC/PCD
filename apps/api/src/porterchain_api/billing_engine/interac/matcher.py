@@ -27,6 +27,9 @@ class MatchProposal:
     method: str | None = None  # reference | sender_amount
     note: str = "unmatched"  # exact | partial | over | unmatched | ambiguous | merchant_only | settled
     candidates: list[str] = field(default_factory=list)
+    confidence: float = (
+        0.0  # 0..1 — how sure the auto-match is (one-click confirm when high)
+    )
 
 
 def _open_invoice_rows(db: Session, merchant_id: str | None = None):
@@ -82,7 +85,33 @@ def _merchants_matching(db: Session, sender_name: str | None, sender_email: str 
     return ids
 
 
-def propose_match(
+_CONFIDENCE = {
+    ("reference", "exact"): 0.99,
+    ("reference", "partial"): 0.8,
+    ("reference", "over"): 0.75,
+    ("reference", "settled"): 0.5,
+    ("sender_amount", "exact"): 0.92,
+    ("amount_only", "exact"): 0.6,
+    ("sender_amount", "ambiguous"): 0.4,
+}
+
+
+def score(p: MatchProposal) -> MatchProposal:
+    if p.confidence:
+        return p
+    if p.note == "merchant_only":
+        p.confidence = 0.3
+    else:
+        p.confidence = _CONFIDENCE.get((p.method or "", p.note), 0.0)
+    return p
+
+
+def propose_match(*args, **kwargs) -> MatchProposal:
+    """Reference → sender+amount → unique amount across all open invoices; scored 0..1."""
+    return score(_propose(*args, **kwargs))
+
+
+def _propose(
     db: Session,
     *,
     amount_cents: int,
@@ -120,4 +149,14 @@ def propose_match(
         return MatchProposal(
             merchant_id=mid, note="merchant_only", candidates=[inv.id for inv, _ in open_rows][:10]
         )
+    if not merchant_ids:
+        # 3) Unknown sender: a single open invoice with this exact amount is a medium-confidence guess.
+        exact_any = [inv for inv, out in _open_invoice_rows(db) if out == amount_cents]
+        if len(exact_any) == 1:
+            return MatchProposal(
+                invoice_id=exact_any[0].id,
+                merchant_id=exact_any[0].merchant_id,
+                method="amount_only",
+                note="exact",
+            )
     return MatchProposal(note="unmatched" if not merchant_ids else "ambiguous_sender")

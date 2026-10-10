@@ -213,6 +213,7 @@ export const interacTransferSchema = z.object({
   merchant_name: z.string().nullable().optional(),
   match_method: z.string().nullable().optional(),
   match_note: z.string().nullable().optional(),
+  confidence: z.number().nullable().optional(),
   payment_id: z.string().nullable().optional(),
   reviewed_by: z.string().nullable().optional(),
   reviewed_at: z.string().nullable().optional(),
@@ -338,6 +339,7 @@ export const financeApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  arSummary: (token: string) => adminFetch<ArSummary>(`${B}/ar-summary`, token),
   interacQueue: async (token: string, status: string = "open") => {
     const raw = await adminFetch<unknown>(
       `${B}/interac?status=${encodeURIComponent(status)}`,
@@ -476,3 +478,24 @@ export function exportGlCsv(rows: Array<Record<string, unknown>>, filename = "ge
   a.click();
   URL.revokeObjectURL(url);
 }
+
+export type ArSummary = {
+  owed_cents: number;
+  overdue_cents: number;
+  items: Array<{
+    merchant_id: string;
+    name: string;
+    outstanding_cents: number;
+    overdue_cents: number;
+    uninvoiced_cents: number;
+    overdue_invoice_count: number;
+    action: "send_reminder" | "invoice_now" | "none";
+  }>;
+  dunning_drafts: Array<{
+    merchant_id: string;
+    to: string | null;
+    tone: string;
+    subject: string;
+    body: string;
+  }>;
+};

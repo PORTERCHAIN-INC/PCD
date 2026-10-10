@@ -107,3 +107,15 @@ def finance_interac_sync(
         return fetch_and_ingest(db, settings)
     except Exception as exc:  # noqa: BLE001 - surface IMAP errors without leaking creds
         raise HTTPException(status_code=502, detail=f"imap_error:{type(exc).__name__}") from exc
+
+
+@router.get("/finance/ar-summary")
+def finance_ar_summary(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    """What's owed, what's overdue, one action per merchant, and reminder DRAFTS (never sent)."""
+    require_module(ctx, "finance_read")
+    from porterchain_api.billing_engine.dunning import ar_summary
+
+    return ar_summary(db)
