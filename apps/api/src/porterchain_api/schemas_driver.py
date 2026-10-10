@@ -36,7 +36,6 @@ class DriverProfileResponse(BaseModel):
     license_verified: bool
     insurance_verified: bool
     vehicle_verified: bool
-    fleetbase_driver_id: str | None
 
 
 class DriverDashboardResponse(BaseModel):

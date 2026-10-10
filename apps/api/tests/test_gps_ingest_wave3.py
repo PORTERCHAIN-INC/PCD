@@ -3,18 +3,17 @@
 from __future__ import annotations
 
 import inspect
-import sys
-from datetime import UTC, datetime, timedelta
-from pathlib import Path
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
-from porterchain_api.admin_engine.control_tower.scoring import compute_ranked_suggestions
+from porterchain_api.admin_engine.control_tower.scoring import (
+    compute_ranked_suggestions,
+)
 from porterchain_api.driver_engine.last_known import LastKnown, write_last_known
-from porterchain_api.dispatch_engine import ops_mirror
 from porterchain_api.spatial.h3_index import cell, pick_nearby
 
 pytest.importorskip("h3")
@@ -55,8 +54,7 @@ class _FakeLastKnownRedis:
             "accuracy_m": args[6],
             "heading": args[7],
             "speed_mps": args[8],
-            "fleetbase_driver_id": args[9],
-            "h3": args[10],
+            "h3": args[9],
             "version": str(ver),
         }
         return ver
@@ -71,7 +69,6 @@ def _driver(**kwargs):
         full_name="Driver",
         status="APPROVED",
         rating=4.0,
-        fleetbase_driver_id=f"fb-{uuid4().hex[:8]}",
         is_online=True,
         availability="online",
         license_verified=True,
@@ -103,76 +100,6 @@ class TestH3Neighborhood:
         assert "far" not in chosen
 
 
-class TestLastKnownH3:
-    def test_write_stores_h3_cell(self):
-        redis = _FakeLastKnownRedis()
-        stored = write_last_known(
-            driver_id="drv-h3",
-            lat=NEAR[0],
-            lng=NEAR[1],
-            recorded_at=datetime.now(UTC),
-            fleetbase_driver_id="fb-h3",
-            client=redis,
-        )
-        assert stored is not None
-        assert stored.h3
-        assert stored.h3 == cell(*NEAR)
-
-
-class TestOpsMirrorPerDriver:
-    def test_driver_by_fleetbase_id_prefers_per_driver_key(self):
-        fake = _KvRedis()
-        with patch.object(ops_mirror, "_client", return_value=fake):
-            ops_mirror.write_drivers(
-                [{"id": "fb-1", "online": False, "location": {"lat": 1.0, "lng": 1.0}}]
-            )
-            ops_mirror.overlay_driver_location(
-                "fb-1",
-                lat=43.65,
-                lng=-79.38,
-                recorded_at=datetime.now(UTC),
-            )
-            row = ops_mirror.driver_by_fleetbase_id("fb-1")
-        assert row is not None
-        loc = row.get("location") or {}
-        assert loc.get("lat") == 43.65
-        assert loc.get("lng") == -79.38
-        assert row.get("location_source") == "ingest"
-
-    def test_roster_write_does_not_clobber_newer_ingest(self):
-        fake = _KvRedis()
-        stamp = datetime.now(UTC)
-        with patch.object(ops_mirror, "_client", return_value=fake):
-            ops_mirror.overlay_driver_location(
-                "fb-keep",
-                lat=43.65,
-                lng=-79.38,
-                recorded_at=stamp,
-            )
-            ops_mirror.write_drivers(
-                [{"id": "fb-keep", "online": True, "location": {"lat": 0.1, "lng": 0.1}}]
-            )
-            row = ops_mirror.driver_by_fleetbase_id("fb-keep")
-        assert row is not None
-        loc = row.get("location") or {}
-        assert loc.get("lat") == 43.65
-        assert row.get("online") is True
-
-
-class TestOpsMirrorRefreshSkip:
-    """Retired — Fleetbase ops-mirror refresh was deleted with the adapter."""
-
-    def test_ops_mirror_refresh_module_gone(self):
-        import importlib.util
-
-        assert (
-            importlib.util.find_spec(
-                "porterchain_api.dispatch_engine.ops_mirror_refresh"
-            )
-            is None
-        )
-
-
 class TestScoringNoFleetbaseHttp:
     def test_source_has_no_adapter_http(self):
         src = inspect.getsource(compute_ranked_suggestions)
@@ -180,6 +107,23 @@ class TestScoringNoFleetbaseHttp:
         assert "adapter.list_drivers" not in src
         assert "adapter.drivers.get" not in src
 
+
+class TestLastKnownH3Cell:
+    def test_write_stores_h3_cell(self):
+        redis = _FakeLastKnownRedis()
+        stored = write_last_known(
+            driver_id="drv-h3",
+            lat=NEAR[0],
+            lng=NEAR[1],
+            recorded_at=datetime.now(UTC),
+            client=redis,
+        )
+        assert stored is not None
+        assert stored.h3
+        assert stored.h3 == cell(*NEAR)
+
+
+class TestScoringH3Neighbors:
     def test_matrix_only_includes_h3_neighbors(self):
         pickup = {"lat": PICKUP[0], "lng": PICKUP[1]}
         order = SimpleNamespace(
@@ -189,8 +133,6 @@ class TestScoringNoFleetbaseHttp:
             compliance_metadata={},
             quote=None,
         )
-        near = _driver(id="near", rating=3.0, fleetbase_driver_id="fb-near")
-        far = _driver(id="far", rating=5.0, fleetbase_driver_id="fb-far")
         db = MagicMock()
         db.get.return_value = order
         q = MagicMock()
@@ -199,6 +141,8 @@ class TestScoringNoFleetbaseHttp:
         q.order_by.return_value = q
         q.limit.return_value = q
         q.group_by.return_value = q
+        near = _driver(id="near", rating=3.0)
+        far = _driver(id="far", rating=5.0)
         q.all.side_effect = [[far, near], []]
 
         known = {
@@ -207,7 +151,6 @@ class TestScoringNoFleetbaseHttp:
                 lat=NEAR[0],
                 lng=NEAR[1],
                 recorded_at=datetime.now(UTC),
-                fleetbase_driver_id="fb-near",
                 h3=cell(*NEAR),
             ),
             "far": LastKnown(
@@ -215,7 +158,6 @@ class TestScoringNoFleetbaseHttp:
                 lat=FAR[0],
                 lng=FAR[1],
                 recorded_at=datetime.now(UTC),
-                fleetbase_driver_id="fb-far",
                 h3=cell(*FAR),
             ),
         }
@@ -228,19 +170,9 @@ class TestScoringNoFleetbaseHttp:
                 "porterchain_api.driver_engine.last_known.read_last_known",
                 side_effect=lambda did, **_k: known.get(did),
             ),
-            patch.object(ops_mirror, "online_map_from_mirror", return_value={}),
-            patch.object(ops_mirror, "driver_by_fleetbase_id", return_value=None),
         ):
             result = compute_ranked_suggestions(db, "ord-h3", maps=maps)
 
         assert result.get("drivers") is not None
         sources = maps.matrix_durations.call_args[0][0]
         assert sources == [NEAR]
-
-
-class TestWorkerInterval:
-    def test_worker_does_not_drain_fleetbase(self):
-        text = (Path(__file__).resolve().parents[2] / "worker" / "run.py").read_text()
-        assert "_drain_fleetbase_retry_queue" not in text
-        assert "_refresh_fleetbase_ops_mirror" not in text
-        assert "OPS_MIRROR_INTERVAL_SECONDS" not in text

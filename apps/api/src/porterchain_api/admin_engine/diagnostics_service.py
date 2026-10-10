@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from porterchain_api.admin_engine.diagnostics_catalog import TEST_CATALOG, TEST_IDS
 from porterchain_api.admin_engine.diagnostics_chaos import DiagnosticsChaosMixin
+from porterchain_api.admin_engine.diagnostics_dispatch_probes import (
+    DiagnosticsDispatchProbesMixin,
+)
 from porterchain_api.admin_engine.diagnostics_health import DiagnosticsHealthMixin
 from porterchain_api.admin_engine.diagnostics_helpers import (
     EVENT_CONSUMERS,
@@ -18,7 +21,6 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
     _run_probe_batch,
     _test_result,
 )
-from porterchain_api.admin_engine.diagnostics_fleetbase_probes import DiagnosticsFleetbaseProbesMixin
 from porterchain_api.admin_engine.diagnostics_probes import DiagnosticsProbesMixin
 from porterchain_api.admin_engine.diagnostics_reports import DiagnosticsReportsMixin
 from porterchain_api.admin_engine.diagnostics_timeline import ControlTowerTimeline
@@ -32,11 +34,11 @@ class AdminDiagnosticsService(
     DiagnosticsValidationMixin,
     DiagnosticsWorkflowsMixin,
     DiagnosticsChaosMixin,
-    DiagnosticsFleetbaseProbesMixin,
+    DiagnosticsDispatchProbesMixin,
     DiagnosticsProbesMixin,
     DiagnosticsReportsMixin,
 ):
-    """Validation & diagnostics — reuses settings health, fleetbase sync, event bus, and probes."""
+    """Validation & diagnostics — reuses settings health, day plan, event bus, and probes."""
 
     def __init__(self) -> None:
         self._settings_svc = AdminSettingsService()

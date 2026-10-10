@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-CANDIDATE_CAP = 6  # max live Fleetbase position lookups (legacy sync path / matrix seed)
+CANDIDATE_CAP = 6  # max driver positions fed into the road matrix
 NO_POSITION_ETA_MIN = 180.0
 LOAD_PENALTY_MIN = 8.0
 OFFLINE_PENALTY_MIN = 12.0
@@ -40,7 +40,7 @@ def _coords(addr: dict | None) -> tuple[float, float] | None:
 
 
 def _driver_location(payload: dict[str, Any] | None) -> tuple[float, float] | None:
-    """Best-effort parse of a Fleetbase driver resource into (lat, lng)."""
+    """Best-effort parse of a driver location payload into (lat, lng)."""
     if not payload:
         return None
     body = payload.get("driver") if isinstance(payload.get("driver"), dict) else payload

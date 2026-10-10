@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Dispatch spatial guard — ban hand-rolled math in the admin ops layer.
 
-Implements .cursor/rules/fleetbase-first-policy.mdc rule 3: admin_engine and
+Implements the dispatch rule: admin_engine and
 admin routers must never compute dispatch distance, nearest-driver ranking,
 matrices, or waypoint sequencing locally. Road cost is Valhalla/OSRM.
 Day sequencing is OR-Tools only in dispatch_engine — not in admin_engine.
@@ -96,7 +96,7 @@ def main() -> int:
             rel = py.relative_to(ROOT)
             for lineno, line in enumerate(py.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
                 stripped = line.strip()
-                if "fleetbase-first:ok" in stripped:
+                if "dispatch-guard:ok" in stripped:
                     continue
                 if stripped.startswith("#"):
                     continue
@@ -112,7 +112,7 @@ def main() -> int:
             rel = py.relative_to(ROOT)
             for lineno, line in enumerate(py.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
                 stripped = line.strip()
-                if "fleetbase-first:ok" in stripped or stripped.startswith("#"):
+                if "dispatch-guard:ok" in stripped or stripped.startswith("#"):
                     continue
                 for pattern, why in _BANNED_HTTP:
                     if pattern.search(line):
@@ -194,7 +194,7 @@ def main() -> int:
             rel = path.relative_to(ROOT)
             for lineno, line in enumerate(path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
                 stripped = line.strip()
-                if "fleetbase-first:ok" in stripped or stripped.startswith("#") or stripped.startswith("//"):
+                if "dispatch-guard:ok" in stripped or stripped.startswith("#") or stripped.startswith("//"):
                     continue
                 if _GOOGLE_DM.search(line):
                     failures.append(

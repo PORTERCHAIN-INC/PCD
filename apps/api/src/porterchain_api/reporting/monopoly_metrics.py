@@ -124,7 +124,6 @@ def carrier_pool_legal_model() -> dict[str, Any]:
         "merchant_relationship": "merchant_contracts_with_porterchain_platform",
         "driver_relationship": "porterchain_vetted_independent_operators",
         "docs": "docs/legal/CARRIER_POOL_MODEL.md",
-        "fleetbase_boundary": "execution_dispatch_via_adapter_not_product_surface",
     }
 
 

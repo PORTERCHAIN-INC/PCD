@@ -41,16 +41,12 @@ def upsert_sso_link(
     platform_org_id: str | None,
     provider: str,
     issuer: str | None,
-    fleetbase_permissions: list[str] | None = None,
-    fleetbase_roles: list[str] | None = None,
 ) -> IdentityLink:
     def _sync(link: IdentityLink) -> IdentityLink:
         link.email = email or link.email
         link.user_type = user_type
         link.platform_user_id = platform_user_id
         link.platform_org_id = platform_org_id
-        link.fleetbase_permissions = fleetbase_permissions
-        link.fleetbase_roles = fleetbase_roles
         link.last_synced_at = datetime.now(UTC)
         if issuer:
             link.issuer = issuer
@@ -66,8 +62,6 @@ def upsert_sso_link(
             user_type=user_type,
             platform_user_id=platform_user_id,
             platform_org_id=platform_org_id,
-            fleetbase_permissions=fleetbase_permissions,
-            fleetbase_roles=fleetbase_roles,
             provider=provider,
             issuer=issuer,
             subject=subject,

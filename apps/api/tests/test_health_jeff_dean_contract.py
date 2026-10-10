@@ -146,8 +146,7 @@ def test_health_dashboard_statuses_are_triad_and_system_chain_ids() -> None:
     svc = E2EValidationService()
     with patch.object(svc._diagnostics, "architecture_validation", return_value={"missing_apis": []}):
         with patch.object(svc._diagnostics, "health_dashboard", return_value=payload):
-            with patch.object(svc._diagnostics, "fleetbase_sync_monitor", return_value={}):
-                result = svc.phase_1_system_layer(db, settings)
+            result = svc.phase_1_system_layer(db, settings)
 
     assert result["phase"] == 1
     assert result["overall"] in ("PASS", "WARNING", "FAIL", "BLOCKER")

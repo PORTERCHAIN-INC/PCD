@@ -28,7 +28,7 @@ REASON_BOOKING = "booking_rejected"
 
 
 def _is_booking_validation_error(exc: BaseException) -> bool:
-    """Duck-type Fleetbase BookingValidationError without a cross-engine import."""
+    """Duck-type BookingValidationError without a cross-engine import."""
     return type(exc).__name__ == "BookingValidationError"
 
 

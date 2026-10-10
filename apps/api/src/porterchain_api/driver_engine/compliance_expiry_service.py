@@ -1,7 +1,7 @@
 """Driver compliance expiry — revoke verification flags when docs lapse.
 
 Called lazily from profile reads and periodically from the worker sweep.
-Does not touch Fleetbase online state (mirror only).
+Does not touch the driver's online state.
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-export type DataOwnership = "porterchain" | "fleetbase";
+export type DataOwnership = "porterchain";
 
 export const PORTERCHAIN_OWNED = [
   "users",
@@ -26,6 +26,3 @@ export const PORTERCHAIN_OWNED = [
   "tracking",
   "proof_of_delivery",
 ] as const;
-
-/** Empty. Dispatch, GPS, and proof belong to PorterChain. */
-export const FLEETBASE_OWNED = [] as const;

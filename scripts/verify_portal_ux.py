@@ -43,7 +43,7 @@ PORTAL_WIRING: dict[str, tuple[str, ...]] = {
     ),
     "apps/admin": (
         "src/app/(ops)/loading.tsx",
-        "src/components/operations/OpsTowerFallback.tsx",
+        "src/components/dispatch/DispatchShell.tsx",
     ),
 }
 

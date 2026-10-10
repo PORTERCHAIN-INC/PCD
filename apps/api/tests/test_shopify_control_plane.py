@@ -287,7 +287,8 @@ def test_control_tower_lists_shopify_dlq(db: Session, shopify_shop: ShopifyShop)
         detail="default_pickup_required",
         status="open",
     )
-    items = ControlTowerService().exceptions(db, limit=50)
+    # Open order exceptions pile up in the shared test DB and are listed first; leave room for the DLQ row.
+    items = ControlTowerService().exceptions(db, limit=1000)
     shopify_items = [i for i in items if str(i.get("id", "")).startswith("shopify-dlq:")]
     assert shopify_items
     assert any(i["type"] == "shopify.ingress.missing_pickup" for i in shopify_items)

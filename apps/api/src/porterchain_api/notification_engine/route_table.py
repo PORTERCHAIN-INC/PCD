@@ -10,17 +10,6 @@ from typing import Any
 
 from porterchain_shared.events.catalog import DomainEventType
 
-# Fleetbase echoes these. The driver (or proof) path already notifies.
-_FLEETBASE_COVERED_STATES = frozenset(
-    {
-        "AT_PICKUP",
-        "PICKED_UP",
-        "IN_TRANSIT",
-        "AT_DESTINATION",
-        "DELIVERED",
-        "POD_COMPLETED",
-    }
-)
 
 def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool:
     """Apply the parcel table. Return True when this event is owned here."""
@@ -176,9 +165,3 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
         add("exception_opened", "push", "admin", ops, category="orders", pri="high")
         add("exception_opened", "email", "admin", ops, category="orders", pri="high")
         return True
-
-    if event_type == DomainEventType.FLEETBASE_STATUS_UPDATED:
-        state = str(payload.get("to_state") or payload.get("status") or "").upper()
-        if state in _FLEETBASE_COVERED_STATES:
-            return True
-        return False

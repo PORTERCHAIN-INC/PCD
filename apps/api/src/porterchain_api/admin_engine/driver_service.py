@@ -115,7 +115,7 @@ class AdminDriverService(DriverAccountOps):
         return driver
 
     def provision_pending_from_lead(self, db: Session, ctx: AdminContext, lead) -> Driver:
-        """Idempotent PENDING driver. No Clerk invite and no Fleetbase enqueue."""
+        """Idempotent PENDING driver. No Clerk invite."""
         existing = db.query(Driver).filter(Driver.crm_lead_id == lead.id).first()
         if existing:
             return existing

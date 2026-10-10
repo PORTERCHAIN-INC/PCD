@@ -39,8 +39,7 @@ redis.call('HSET', key,
   'accuracy_m', ARGV[5],
   'heading', ARGV[6],
   'speed_mps', ARGV[7],
-  'fleetbase_driver_id', ARGV[8],
-  'h3', ARGV[9],
+  'h3', ARGV[8],
   'version', tostring(ver)
 )
 redis.call('EXPIRE', key, tonumber(ARGV[10]))
@@ -61,7 +60,6 @@ class LastKnown:
     accuracy_m: float | None = None
     heading: float | None = None
     speed_mps: float | None = None
-    fleetbase_driver_id: str | None = None
     h3: str | None = None
 
 
@@ -122,7 +120,6 @@ def write_last_known(
     accuracy_m: float | None = None,
     heading: float | None = None,
     speed_mps: float | None = None,
-    fleetbase_driver_id: str | None = None,
     h3: str | None = None,
     client: Any | None = None,
 ) -> LastKnown | None:
@@ -155,7 +152,6 @@ def write_last_known(
             _blank(accuracy_m),
             _blank(heading),
             _blank(speed_mps),
-            _blank(fleetbase_driver_id),
             _blank(cell_id),
             str(TTL_SECONDS),
             driver_id,
@@ -178,23 +174,8 @@ def write_last_known(
         accuracy_m=accuracy_m,
         heading=heading,
         speed_mps=speed_mps,
-        fleetbase_driver_id=fleetbase_driver_id,
         h3=cell_id,
     )
-    if fleetbase_driver_id:
-        try:
-            from porterchain_api.dispatch_engine import ops_mirror
-
-            ops_mirror.overlay_driver_location(
-                fleetbase_driver_id,
-                lat=float(lat),
-                lng=float(lng),
-                recorded_at=stamp,
-            )
-        except Exception:
-            logger.debug(
-                "gps last-known overlay failed driver=%s", driver_id, exc_info=True
-            )
     return stored
 
 
@@ -222,7 +203,6 @@ def read_last_known(driver_id: str, *, client: Any | None = None) -> LastKnown |
         version = int(float(version_raw))
     except (TypeError, ValueError):
         version = 1
-    fb = data.get("fleetbase_driver_id") or None
     h3 = data.get("h3") or None
     return LastKnown(
         driver_id=driver_id,
@@ -233,7 +213,6 @@ def read_last_known(driver_id: str, *, client: Any | None = None) -> LastKnown |
         accuracy_m=_float_or_none(data.get("accuracy_m")),
         heading=_float_or_none(data.get("heading")),
         speed_mps=_float_or_none(data.get("speed_mps")),
-        fleetbase_driver_id=None if fb == "" else fb,
         h3=None if h3 == "" else h3,
     )
 

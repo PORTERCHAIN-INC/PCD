@@ -145,7 +145,6 @@ class UtilizationService:
                 {
                     "id": d.id,
                     "name": d.full_name,
-                    "fleetbase_driver_id": d.fleetbase_driver_id,
                     "online": online,
                     "on_shift": on_shift,
                     "on_break": on_break,

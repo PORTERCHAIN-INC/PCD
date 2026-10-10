@@ -70,7 +70,6 @@ export type OrderLiveTracking = {
   order_id: string;
   tracking_number: string;
   state: string;
-  fleetbase_order_id?: string | null;
   live_tracking?: {
     pickup?: AddressPayload;
     dropoff?: AddressPayload;

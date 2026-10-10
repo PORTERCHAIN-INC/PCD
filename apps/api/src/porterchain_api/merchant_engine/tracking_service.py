@@ -206,8 +206,6 @@ class MerchantTrackingService:
         return merchant_snapshot(payload)
 
     def _fetch_live(self, db: Session, settings: Settings, order: Order) -> dict[str, Any] | None:
-        if not order.fleetbase_order_id:
-            return None
         try:
             return self._tracking.fetch_raw(settings, order)
         except Exception:
@@ -260,9 +258,9 @@ class MerchantTrackingService:
         driver_id = getattr(order, "assigned_driver_id", None)
         if not driver_id:
             return None
-        from porterchain_api.dispatch_engine.ops_mirror import porterchain_driver_pin
+        from porterchain_api.dispatch_engine.driver_pin import driver_pin
 
-        return porterchain_driver_pin(driver_id)
+        return driver_pin(driver_id)
 
     def _eta(
         self,

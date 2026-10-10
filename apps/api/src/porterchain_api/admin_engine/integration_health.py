@@ -76,7 +76,7 @@ def build_integration_health(
             model=nvidia_model or "meta/llama-3.2-11b-vision-instruct",
             phase2_intelligence=bool(settings.phase2_flags.get("intelligence")),
             phase2_ai_dispatch=bool(settings.phase2_flags.get("ai_dispatch")),
-            note="Read-only language assist — never on pay / Valhalla / Fleetbase write path",
+            note="Read-only language assist — never on pay / Valhalla / dispatch write path",
         ),
         "nvidia_cuopt": _entry(
             "shadow" if cuopt_shadow else "disabled",

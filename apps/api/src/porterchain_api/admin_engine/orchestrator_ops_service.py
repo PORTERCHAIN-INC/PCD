@@ -1,7 +1,7 @@
 """Control Tower Optimize — PorterChain one-van day plan.
 
 Maps queue orders to the OR-Tools sequencer (Valhalla matrix). Preview is
-stored in Redis; accept writes ``sequence_store``. No Fleetbase id required.
+stored in Redis; accept writes ``sequence_store``.
 """
 
 from __future__ import annotations
@@ -308,7 +308,6 @@ class OrchestratorOpsService:
             return {"ok": False, "status": STATUS_ERROR, "error": "run_not_found", "assignments": []}
         if rec.get("status") != STATUS_PENDING:
             return rec
-        # Always the PorterChain sequencer — Fleetbase HTTP path is gone.
         merged = finish_porterchain_run(db, run_id, {**rec, "engine": "porterchain"})
         status = STATUS_READY if merged.get("status") == "ready" or merged.get("ok") else STATUS_ERROR
         if status == STATUS_READY:

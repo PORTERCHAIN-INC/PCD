@@ -204,7 +204,7 @@ class DispatcherCopilotService:
         except ValueError as exc:
             raise ValueError(str(exc)) from exc
 
-        # Fleetbase assign is enqueued once via order.driver_assigned (no in-request HTTP).
+        # Assignment side effects fan out once via order.driver_assigned.
 
         emit_event(
             db,

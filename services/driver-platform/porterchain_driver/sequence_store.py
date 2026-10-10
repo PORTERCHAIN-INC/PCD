@@ -176,7 +176,7 @@ def apply_run_to_driver(
             )
             if k in metrics
         },
-        "source": "fleetbase_optimize",
+        "source": "day_plan_optimize",
         "version": current_version + 1,
         "previous": previous_snapshot,
     }

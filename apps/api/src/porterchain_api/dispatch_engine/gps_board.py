@@ -1,6 +1,6 @@
 """Live GPS board — every on-duty PorterChain driver from Redis last_known.
 
-No Fleetbase id filter. Duty comes from an open DriverShift; the pin comes from
+Duty comes from an open DriverShift; the pin comes from
 ``last_known``. Drivers without a recent pin are omitted (nothing to plot).
 """
 
@@ -82,7 +82,6 @@ def board_pins(db: Session) -> tuple[list[dict[str, Any]], str]:
         pins.append(
             {
                 "id": driver.id,
-                "fleetbase_driver_id": driver.fleetbase_driver_id or "",
                 "name": driver.full_name,
                 "lat": known.lat,
                 "lng": known.lng,

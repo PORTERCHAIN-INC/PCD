@@ -870,7 +870,7 @@ class AdminSettingsService:
         return out
 
     def vehicles_overview(self, db: Session) -> dict[str, Any]:
-        """Fleet inventory counts keyed by vehicle class — Porterchain mirror, not Fleetbase."""
+        """Fleet inventory counts keyed by vehicle class — from PorterChain vehicles."""
         fleet_total = (
             db.query(func.count(Vehicle.id)).filter(Vehicle.is_active.is_(True)).scalar() or 0
         )

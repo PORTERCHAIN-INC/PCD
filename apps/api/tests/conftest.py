@@ -68,3 +68,20 @@ def _no_live_shopify_token_calls(monkeypatch):
         raise shopify_tokens.ShopifyTokenError(None, "tests_offline")
 
     monkeypatch.setattr(shopify_tokens, "_token_request", _offline)
+
+
+@pytest.fixture
+def quiet_pool(db_url: str):
+    """Day-plan tests see only their own drivers/orders: park leftovers from earlier runs."""
+    from porterchain_api.admin_models import Driver
+    from porterchain_api.booking_models import Order
+
+    init_db()
+    s = SessionLocal()
+    try:
+        s.query(Driver).filter(Driver.is_online.is_(True)).update({Driver.is_online: False}, synchronize_session=False)
+        s.query(Order).filter(Order.assigned_driver_id.is_(None), Order.state == "DISPATCH_READY").update(
+            {Order.state: "CANCELLED"}, synchronize_session=False)
+        s.commit()
+    finally:
+        s.close()

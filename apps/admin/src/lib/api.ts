@@ -125,7 +125,6 @@ export type OrderDetail = {
   pickup: Record<string, unknown>;
   dropoff: Record<string, unknown>;
   special_instructions: string | null;
-  fleetbase_order_id: string | null;
   assigned_driver_id: string | null;
   customer_id: string | null;
   customer_email: string | null;

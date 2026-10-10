@@ -12,7 +12,6 @@ PYTHONPATH=src "$PY" scripts/verify_d2_contracts.py
 cd "$ROOT"
 "$PY" scripts/verify_repositories.py
 "$PY" scripts/verify_order_transitions.py
-"$PY" scripts/verify_fleetbase_event_handlers.py
 "$PY" scripts/verify_notification_catalog.py
 "$PY" scripts/verify_event_catalog.py
 "$PY" scripts/verify_shared_kernel.py

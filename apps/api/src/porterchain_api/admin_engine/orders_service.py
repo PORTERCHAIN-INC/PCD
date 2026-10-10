@@ -302,7 +302,7 @@ class AdminOrdersService(OrderPlatformService):
         if not order:
             raise LookupError("order_not_found")
         target = OrderState(to_state)
-        # Only CANCELLED fans out to Fleetbase via ORDER_CANCELLED subscribers.
+        # Only CANCELLED fans out via ORDER_CANCELLED subscribers.
         event_type = (
             "order.cancelled" if target == OrderState.CANCELLED else "order.admin_override"
         )

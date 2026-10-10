@@ -33,7 +33,7 @@ test.describe(`website money loop @p0`, () => {
   test(`W-UI-003 ${tcId("W-UI-003")} /book → customer portal book`, async ({ page }) => {
     await page.goto(`/${LOCALE}/book`, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/book(?:\?|$)/);
-    expect(page.url()).not.toMatch(/:8000|fleetbase/i);
+    expect(page.url()).not.toMatch(/:8000/);
     const onPortalBook = page.url().includes("/book") && !page.url().includes(`/${LOCALE}/book`);
     const stillMarketingBook = page.url().includes(`/${LOCALE}/book`);
     expect(
@@ -97,7 +97,7 @@ test.describe(`website money loop @p0`, () => {
     }
   });
 
-  test(`W-SPA-002 ${tcId("W-SPA-002")} no Fleetbase :8000 navigations`, async ({ page }) => {
+  test(`W-SPA-002 ${tcId("W-SPA-002")} no :8000 navigations`, async ({ page }) => {
     const bad: string[] = [];
     page.on("request", (req) => {
       const u = req.url();

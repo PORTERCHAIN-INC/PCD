@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Navigation,
+  Route,
   User,
   Wallet,
 } from "lucide-react";
@@ -42,6 +43,12 @@ export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
     id: "operations",
     label: "Operations",
     items: [
+      {
+        href: "/route",
+        label: "Route",
+        description: "Today's stops, one tap at a time",
+        icon: Route,
+      },
       {
         href: "/jobs",
         label: "Jobs",

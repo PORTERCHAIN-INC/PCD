@@ -138,7 +138,7 @@ class DiagnosticsWorkflowsMixin:
             "checked_at": _now_iso(),
         }
     def day_plan_monitor(self, db: Session) -> dict[str, Any]:
-        """Day-plan scorecard surface (replaces retired Fleetbase sync monitor)."""
+        """Day-plan scorecard surface."""
         del db
         return {
             "engine": "porterchain",
@@ -152,10 +152,6 @@ class DiagnosticsWorkflowsMixin:
             "alerts": [],
             "checked_at": _now_iso(),
         }
-
-    def fleetbase_sync_monitor(self, db: Session) -> dict[str, Any]:
-        """Deprecated alias — same payload as ``day_plan_monitor``."""
-        return self.day_plan_monitor(db)
 
     def merchant_webhook_delivery_monitor(self, db: Session) -> dict[str, Any]:
         from porterchain_api.merchant_engine.webhook_delivery_health import assess_merchant_webhook_delivery

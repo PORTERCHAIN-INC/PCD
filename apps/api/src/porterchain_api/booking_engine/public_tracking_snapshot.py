@@ -99,9 +99,9 @@ def build_public_live_tracking(
     dropoff_coords = _coords_from_address(dropoff_raw)
     driver_loc = translated.get("location")
     if not driver_loc and getattr(order, "assigned_driver_id", None):
-        from porterchain_api.dispatch_engine.ops_mirror import porterchain_driver_pin
+        from porterchain_api.dispatch_engine.driver_pin import driver_pin
 
-        driver_loc = porterchain_driver_pin(order.assigned_driver_id)
+        driver_loc = driver_pin(order.assigned_driver_id)
 
     eta: dict[str, Any] | None = None
     if order.state not in DELIVERED_STATES:

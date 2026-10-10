@@ -106,18 +106,6 @@ def test_suggestions_cold_cache_returns_pending_without_compute():
     compute.assert_not_called()
 
 
-def test_assignable_drivers_never_calls_adapter():
-    mixin = AssignmentMixin()
-    db = MagicMock()
-    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
-    db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
-    with patch(
-        "porterchain_api.dispatch_engine.ops_mirror.online_map_from_mirror",
-        return_value={},
-    ):
-        assert mixin.assignable_drivers(db) == []
-
-
 def test_navigation_session_source_has_no_fetch_route():
     src = inspect.getsource(NavigationService.session)
     assert "fetch_route" not in src
@@ -243,3 +231,11 @@ def test_optimize_import_dispatch_uses_job_id():
     with patch.object(dispatch, "_optimize_import") as opt:
         dispatch.process_dispatch({"action": "optimize_import", "job_id": "job-opt"})
         opt.assert_called_once_with("job-opt")
+
+
+def test_assignable_drivers_empty_pool():
+    mixin = AssignmentMixin()
+    db = MagicMock()
+    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+    db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
+    assert mixin.assignable_drivers(db) == []

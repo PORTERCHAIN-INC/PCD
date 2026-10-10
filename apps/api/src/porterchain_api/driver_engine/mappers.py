@@ -22,7 +22,6 @@ def driver_profile(driver: Driver, *, wallet_cents: int | None = None) -> Driver
         license_verified=driver.license_verified,
         insurance_verified=driver.insurance_verified,
         vehicle_verified=driver.vehicle_verified,
-        fleetbase_driver_id=driver.fleetbase_driver_id,
     )
 
 

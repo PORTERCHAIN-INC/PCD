@@ -175,7 +175,6 @@ class Order(Base):
     cod_amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     cod_status: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     cod_stripe_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    fleetbase_order_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     assigned_driver_id: Mapped[str | None] = mapped_column(
         ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -185,7 +184,7 @@ class Order(Base):
     internal_reference: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # Caller-supplied dedupe key for programmatic creates (Idempotency-Key header).
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    # Test bookings: no Fleetbase dispatch, no credit/COD, sandbox webhook fanout only.
+    # Test bookings: no live dispatch, no credit/COD, sandbox webhook fanout only.
     is_sandbox: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     purchase_order_number: Mapped[str | None] = mapped_column(String(128), nullable=True)
     cost_centre: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -248,8 +247,6 @@ class Package(Base):
     barcode: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
     label_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     signature_required: Mapped[bool] = mapped_column(default=False)
-    fleetbase_entity_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
-    fleetbase_proof_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -417,7 +414,7 @@ class StripeWebhookEvent(Base):
 
 
 class Address(Base):
-    """Shared stop/consignee address — commercial geography, not Fleetbase."""
+    """Shared stop/consignee address — commercial geography."""
 
     __tablename__ = "addresses"
 
@@ -437,7 +434,7 @@ class Address(Base):
 
 
 class Stop(Base):
-    """Pickup / drop / extra stop on an order. Execution pointer lives on fleetbase_stop_id."""
+    """Pickup / drop / extra stop on an order."""
 
     __tablename__ = "stops"
     __table_args__ = (Index("ix_stops_order_sequence", "order_id", "sequence"),)
@@ -450,7 +447,6 @@ class Stop(Base):
     window_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     window_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
-    fleetbase_stop_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     order: Mapped[Order] = relationship(back_populates="stops")

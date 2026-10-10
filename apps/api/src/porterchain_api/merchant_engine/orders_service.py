@@ -276,7 +276,7 @@ class MerchantOrdersService:
     ) -> tuple[Order, dict[str, Any]]:
         """The same POD the portal shows, read through the same scoped path.
 
-        Going through ``get_detail_360`` rather than Fleetbase directly means a
+        Going through ``get_detail_360`` means a
         download can never contain evidence the portal would have withheld.
         """
         order = self._require_owned(db, ctx, order_id)

@@ -216,9 +216,6 @@ def _normalize_action(raw: str) -> str | None:
     if slug in ALLOWED_ACTIONS:
         return slug
     aliases = {
-        "review_fleetbase_console": "review_day_plan",
-        "check_fleetbase": "review_day_plan",
-        "open_fleetbase": "review_day_plan",
         "review_day_plan": "review_day_plan",
         "reassign": "reassign_candidate",
         "reassign_driver": "reassign_candidate",
@@ -226,7 +223,6 @@ def _normalize_action(raw: str) -> str | None:
         "escalate": "escalate_ops_lead",
         "pod": "verify_pod_exception",
         "sync_retry": "retry_day_plan",
-        "retry_fleetbase_sync": "retry_day_plan",
     }
     mapped = aliases.get(slug)
     return mapped if mapped in ALLOWED_ACTIONS else None

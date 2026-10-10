@@ -64,6 +64,7 @@ pnpm-debug.log*
 
 # Blog CMS uploaded media (local / API disk store)
 apps/api/data/blog-media/
+apps/api/data/pod-media/
 
 # Local Valhalla GTA extract + built tiles (not full Ontario)
 infrastructure/docker/valhalla/data/

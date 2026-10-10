@@ -12,7 +12,6 @@ from porterchain_api.platform.driver_reads import (
     get_driver,
     get_driver_by_clerk,
     get_driver_by_email,
-    get_driver_by_fleetbase_id,
     list_approved_drivers,
     list_drivers,
 )
@@ -23,7 +22,6 @@ __all__ = [
     "get_driver",
     "get_driver_by_clerk",
     "get_driver_by_email",
-    "get_driver_by_fleetbase_id",
     "list_approved_drivers",
     "list_drivers",
     "persist_presence",

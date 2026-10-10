@@ -28,6 +28,8 @@ class AssignmentMixin:
             .filter(
                 Order.assigned_driver_id.is_(None),
                 Order.state.in_(pool_states),
+                # Sandbox orders cannot be assigned live — keep them off the queue.
+                Order.is_sandbox.is_(False),
             )
             .order_by(Order.scheduled_at.asc())
             .limit(limit)

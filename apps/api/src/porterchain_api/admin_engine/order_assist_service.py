@@ -1,7 +1,7 @@
 """Order 360 scoped assist — propose-only; writes require explicit Confirm.
 
 Rules-based (no silent LLM writes). Uses existing assign / exception / invoice /
-notification / claims APIs. Never advances Accept→Delivered (Fleetbase-owned).
+notification / claims APIs. Never advances Accept→Delivered (driver check-ins own that).
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class OrderAssistService:
             "contract": {
                 "mode": "propose_confirm",
                 "writes_require_confirm": True,
-                "fleetbase_execution_blocked": True,
+                "execution_blocked": True,
                 "note": "Agent may propose assign/exception/message; Confirm runs existing APIs only.",
             },
             "proposals": proposals,

@@ -1,6 +1,6 @@
 """Admin multi-waypoint order builder — creates PC orders with rich stops[].
 
-Persists adapter-shaped compliance_metadata.stops so the P0-2 Fleetbase mapper
+Persists compliance_metadata.stops so the stop model
 emits waypoints. Pricing uses Valhalla/OSRM via resolve_route_distance.
 """
 
@@ -91,7 +91,7 @@ class OrderBuilderService:
         ctx: AdminContext,
         body: AdminCreateOrderRequest,
     ) -> dict[str, Any]:
-        del settings  # reserved for future Fleetbase sync options
+        del settings
         merchant = get_merchant(db, body.merchant_id)
         if not merchant:
             raise LookupError("merchant_not_found")

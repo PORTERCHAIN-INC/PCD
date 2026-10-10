@@ -180,7 +180,6 @@ def _order_detail(detail: dict) -> OrderDetailResponse:
         pickup=order.pickup,
         dropoff=order.dropoff,
         special_instructions=order.special_instructions,
-        fleetbase_order_id=order.fleetbase_order_id,
         assigned_driver_id=order.assigned_driver_id,
         customer_id=order.customer_id,
         customer_email=customer.email if customer else None,

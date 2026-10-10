@@ -103,7 +103,7 @@ def test_ui_sys_008_admin_ui_no_direct_fleetbase_http() -> None:
         r"""(?:^|\n)\s*(?:from|import)\s+['"](?:@?socketcluster(?:-client)?|fleetbase-js|@fleetbase/)""",
         re.I,
     )
-    url_re = re.compile(r"https?://[^\s\"']*fleetbase\.[a-z]+|socketcluster://", re.I)
+    url_re = re.compile(r"https?://[^\s\"']*fleetbase\.[a-z]+|socketcluster://", re.IGNORECASE)
     hits: list[str] = []
     for path, text in _iter_text(ADMIN_SRC, (".ts", ".tsx", ".js", ".jsx")):
         if import_re.search(text) or url_re.search(text):

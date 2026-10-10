@@ -27,7 +27,6 @@ class AdminUser(Base):
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(String(32), default="read_only")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    fleetbase_user_uuid: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     webauthn_credentials: Mapped[list["StaffWebAuthnCredential"]] = relationship(
@@ -81,7 +80,6 @@ class Driver(Base):
     is_online: Mapped[bool] = mapped_column(Boolean, default=False)
     availability: Mapped[str] = mapped_column(String(32), default="offline")
     wallet_balance_cents: Mapped[int] = mapped_column(Integer, default=0)
-    fleetbase_driver_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     documents: Mapped[dict] = mapped_column(JSON, default=dict)
     performance: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -103,7 +101,6 @@ class Vehicle(Base):
     make_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
     capacity_kg: Mapped[float | None] = mapped_column(nullable=True)
     compliance_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    fleetbase_vehicle_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

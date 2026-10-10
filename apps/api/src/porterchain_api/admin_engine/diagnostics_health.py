@@ -298,7 +298,8 @@ class DiagnosticsHealthMixin:
             repo / "website" / "src",
             repo / "apps" / "driver-portal" / "src",
         ]
-        forbidden = (":8000", "fleetbase_api", "FLEETBASE_API")
+        # UIs talk to the PorterChain API only — never to routing/solver/cache services.
+        forbidden = ("VALHALLA_URL", "valhalla:8002", "CUOPT", "redis://")
         hits: list[str] = []
         for root in scan_roots:
             if not root.exists():
@@ -310,11 +311,11 @@ class DiagnosticsHealthMixin:
                     except OSError:
                         continue
                     for needle in forbidden:
-                        if needle in text and "NEXT_PUBLIC_FLEETBASE" not in text:
+                        if needle in text:
                             rel = path.relative_to(repo)
                             if "system-links" in str(rel) or "diagnostics" in str(rel):
                                 continue
                             hits.append(f"{rel}: references {needle}")
-        logs = hits[:10] if hits else ["No direct Fleetbase HTTP patterns in UI sources"]
+        logs = hits[:10] if hits else ["No direct internal-service calls in UI sources"]
         status: HealthClass = "healthy" if not hits else "warning"
         return {"status": status, "violations": hits, "logs": logs, "scanned_roots": [str(r) for r in scan_roots if r.exists()]}

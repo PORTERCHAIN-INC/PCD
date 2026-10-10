@@ -4,11 +4,9 @@ This is not the compliance dossier. That is a PDF *about* the shipment (stream
 P). This is the evidence itself — the photos and the signature — so a merchant
 can attach it to their own customer's invoice or to a damage claim.
 
-Fleetbase stores POD media and serves it from its own URLs, and a browser
-cannot save a cross-origin file: the HTML ``download`` attribute is ignored off
-origin, so the link merely opens the image in a tab. The API therefore fetches
-the bytes itself and returns them as an attachment. Nothing is re-stored here —
-Fleetbase stays the owner of POD media.
+POD photos live in the private ``pod_store`` (``pod://`` refs); older proofs may be
+data URLs or http(s) URLs. The API reads the bytes itself and returns them as an
+attachment. Nothing is re-stored here.
 """
 
 from __future__ import annotations
@@ -98,12 +96,11 @@ def pod_error_message(code: str) -> str:
 class PodArtifact:
     """One downloadable piece of proof."""
 
-    #: Stable, client-facing handle: the Fleetbase proof id when there is one,
-    #: else its position in the gallery ("photo-1").
+    #: Stable, client-facing handle: its position in the gallery ("photo-1").
     slug: str
     kind: str
     label: str
-    #: Where Fleetbase serves the media. ``None`` for text-only evidence.
+    #: ``pod://`` ref, data URL or http(s) URL. ``None`` for text-only evidence.
     url: str | None = None
     #: A typed signature or a verification code: the text *is* the evidence.
     text: str | None = None
@@ -187,14 +184,21 @@ def _decode_data_url(url: str) -> tuple[bytes, str]:
 
 
 def _fetch_url(url: str) -> tuple[bytes, str]:
-    """Read Fleetbase-hosted media.
+    """Read POD media from the private store, a data URL or an http(s) URL.
 
-    The URL comes from Fleetbase's own proofs response, never from the caller,
-    but the scheme is still checked: a bad upstream value must not turn this
-    into a fetch of something that is not an HTTP resource.
+    The value comes from stored proofs, never from the caller, but the scheme is
+    still checked so a bad stored value cannot fetch a non-HTTP resource.
     """
     import httpx
 
+    from porterchain_api.driver_engine import pod_store
+
+    if pod_store.is_ref(url):
+        blob = pod_store.read(url)
+        if blob is None:
+            raise PodUnavailable("pod_artifact_unreadable")
+        ext = url.rsplit(".", 1)[-1]
+        return blob, {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext, "application/octet-stream")
     if url.startswith("data:"):
         return _decode_data_url(url)
     if urlparse(url).scheme not in ("http", "https"):
@@ -207,7 +211,7 @@ def _fetch_url(url: str) -> tuple[bytes, str]:
             payload = response.content
             media_type = response.headers.get("content-type", "application/octet-stream")
     except httpx.HTTPError as exc:
-        # Fleetbase or its CDN is unreachable. That is not a missing POD.
+        # The media host is unreachable. That is not a missing POD.
         raise PodFetchFailed("pod_media_unavailable") from exc
 
     if len(payload) > _max_artifact_bytes():

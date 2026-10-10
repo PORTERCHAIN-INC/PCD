@@ -38,8 +38,6 @@ CHAOS_ALIASES: dict[str, str] = {
     "driver_cancels": "driver_reject",
     "driver_offline": "gps_loss",
     "stripe_webhook_failure": "stripe_offline",
-    "fleetbase_offline": "day_plan_offline",
-    "fleetbase_adapter_failure": "day_plan_offline",
 }
 
 

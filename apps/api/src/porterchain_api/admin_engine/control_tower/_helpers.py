@@ -27,8 +27,8 @@ BOARD_COLUMN_TARGET: dict[str, str] = {
     "damaged": "DAMAGED",
 }
 
-# Execution columns are driven by Fleetbase dispatch + webhooks. Admin board may
-# only mark commercial exceptions; forward dispatch progress belongs to Fleetbase.
+# Execution columns move with driver check-ins. The admin board may only mark
+# commercial exceptions; forward progress comes from the driver app.
 BOARD_EXECUTION_COLUMNS = frozenset(
     {
         "waiting_dispatch",

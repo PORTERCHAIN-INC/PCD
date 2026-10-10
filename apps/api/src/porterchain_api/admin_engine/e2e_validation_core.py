@@ -122,34 +122,6 @@ class E2EValidationCoreMixin:
                     }
                 )
 
-        if settings.fleetbase_dispatch_bridge:
-            fixes.append(
-                {
-                    "fix": "fleetbase_dispatch_bridge_on",
-                    "action": "Set FLEETBASE_DISPATCH_BRIDGE=false — Fleetbase adapter is retired",
-                    "applied": "documented",
-                }
-            )
-
-        try:
-            from porterchain_api.platform.retired_sync import ErrorQueue
-
-            dead = ErrorQueue.list_dead(db, limit=5)
-            requeued = 0
-            for job in dead:
-                if ErrorQueue.requeue(db, job.id):
-                    requeued += 1
-            if requeued:
-                fixes.append(
-                    {
-                        "fix": "retired_sync_retry_requeue",
-                        "action": f"Re-queued {requeued} dead retired-sync job(s)",
-                        "applied": "yes",
-                    }
-                )
-        except Exception as exc:  # noqa: BLE001
-            logger.debug("auto_fix requeue skipped: %s", exc)
-
         return fixes
 
     def _trace(self, kind: str, name: str, status: str, **extra: Any) -> None:
@@ -266,8 +238,6 @@ class E2EValidationCoreMixin:
     def _failure_layer(self, scenario: str) -> str:
         mapping = {
             "stripe_webhook_failure": "billing_engine",
-            "fleetbase_offline": "dispatch_engine",
-            "fleetbase_adapter_failure": "dispatch_engine",
             "day_plan_offline": "dispatch_engine",
             "google_maps_failure": "integrations",
             "authentication_failed": "auth",

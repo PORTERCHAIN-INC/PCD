@@ -9,7 +9,6 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.schema import Index
-from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
 
@@ -19,7 +18,7 @@ def _uuid() -> str:
 
 
 class IdentityLink(Base):
-    """Maps IdP subject → Porterchain user (+ optional Fleetbase bridge fields)."""
+    """Maps IdP subject → Porterchain user."""
 
     __tablename__ = "identity_links"
     __table_args__ = (
@@ -50,9 +49,6 @@ class IdentityLink(Base):
         String(36), ForeignKey("porterchain_users.id"), index=True
     )
     platform_org_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    fleetbase_user_uuid: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
-    fleetbase_roles: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    fleetbase_permissions: Mapped[list | None] = mapped_column(JSON, nullable=True)
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

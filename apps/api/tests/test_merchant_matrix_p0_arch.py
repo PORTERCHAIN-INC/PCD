@@ -56,7 +56,7 @@ def test_neg_arch_001_portal_never_imports_fleetbase_or_socketcluster() -> None:
         r"""(?m)^\s*(?:import|from)\s+['"]?(?:@?socketcluster|socketcluster-client|fleetbase(?:[-/]|\s|$))""",
         re.I,
     )
-    url_re = re.compile(r"https?://[^\s\"']*fleetbase|socketcluster://", re.I)
+    url_re = re.compile(r"https?://[^\s\"']*fleetbase|socketcluster://", re.IGNORECASE)
     for path in _iter_ts(MERCHANT_PORTAL):
         text = path.read_text(encoding="utf-8", errors="ignore")
         if import_re.search(text) or url_re.search(text):

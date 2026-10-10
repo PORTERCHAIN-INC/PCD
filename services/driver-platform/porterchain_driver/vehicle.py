@@ -71,7 +71,6 @@ class DriverVehicleProfileService:
             "make_model": vehicle.make_model,
             "capacity_kg": vehicle.capacity_kg,
             "compliance_expires_at": vehicle.compliance_expires_at.isoformat() if vehicle.compliance_expires_at else None,
-            "fleetbase_vehicle_id": vehicle.fleetbase_vehicle_id,
             "is_active": vehicle.is_active,
         }
 

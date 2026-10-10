@@ -283,7 +283,7 @@ class ShopifyShop(Base):
     last_webhook_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Soft pause: accept webhooks but do not book capacity (≠ force-disconnect).
     ingress_paused: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    # When False, book stays BOOKED until admin Release to Fleetbase.
+    # When False, book stays BOOKED until an admin releases it to dispatch.
     # New shops default False (ops release); set True only after onboarding is green.
     auto_dispatch: Mapped[bool] = mapped_column(Boolean, default=False)
     default_vehicle_class: Mapped[str | None] = mapped_column(String(64), nullable=True)

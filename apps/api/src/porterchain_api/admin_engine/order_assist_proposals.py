@@ -59,7 +59,7 @@ def assign_proposals(svc: Any, db: Session, order: Order) -> list[dict[str, Any]
         eta_bit = ""
     elif eta_src in {"valhalla", "osrm", "matrix", "routing"}:
         eta_bit = f" · {round(float(eta_min))}m road"
-    elif eta_src == "haversine":  # fleetbase-first:ok — label only, no distance math
+    elif eta_src == "haversine":  # dispatch-guard:ok — label only, no distance math
         eta_bit = " · no road ETA"
     else:
         eta_bit = f" · ~{eta_min} min"
@@ -141,10 +141,6 @@ def late_and_money(db: Session, order: Order) -> list[dict[str, Any]]:
             late_bits.append(f"Scheduled {age_h:.1f}h ago — likely at risk.")
         elif age_h > 2:
             late_bits.append(f"Scheduled {age_h:.1f}h ago — monitor ETA.")
-    if order.fleetbase_order_id:
-        late_bits.append(f"Execution truth is Fleetbase `{order.fleetbase_order_id}`.")
-    else:
-        late_bits.append("No Fleetbase order id yet — sync/assign may be incomplete.")
     if not order.assigned_driver_id and order.state in WAITING_ASSIGN:
         late_bits.append("Unassigned — primary delay cause is waiting dispatch.")
     out.append(
@@ -169,7 +165,7 @@ def late_and_money(db: Session, order: Order) -> list[dict[str, Any]]:
     elif order.state == OrderState.POD_COMPLETED.value:
         money_bits.append("POD complete — Generate invoice is ready.")
     elif order.state in {OrderState.DELIVERED.value}:
-        money_bits.append("Delivered — wait for POD then invoice, or check Fleetbase POD.")
+        money_bits.append("Delivered — wait for POD then invoice.")
     else:
         money_bits.append("No invoice yet (expected until POD_COMPLETED).")
     out.append(

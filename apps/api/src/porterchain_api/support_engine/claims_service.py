@@ -1,7 +1,7 @@
 """Enterprise claims management — Application Service (masterrule §3).
 
 Claims are Porterchain business objects; logistics execution context comes from
-the order mirror and Fleetbase sync — never direct Fleetbase HTTP from here.
+PorterChain orders.
 """
 
 from __future__ import annotations

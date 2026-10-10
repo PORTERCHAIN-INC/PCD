@@ -442,7 +442,6 @@ class OrderDetailResponse(BaseModel):
     pickup: dict[str, Any]
     dropoff: dict[str, Any]
     special_instructions: str | None = None
-    fleetbase_order_id: str | None = None
     assigned_driver_id: str | None = None
     # Customer
     customer_id: str | None = None
@@ -470,7 +469,6 @@ class OrderDetailResponse(BaseModel):
 
 class OrderDetail360Response(OrderListItem):
     special_instructions: str | None = None
-    fleetbase_order_id: str | None = None
     customer_phone: str | None = None
     booking_id: str | None = None
     booking_draft_id: str | None = None

@@ -2,7 +2,7 @@
 
 Driver approval, verification, wallet, payouts, documents, support and
 compliance are Porterchain business logic (masterrule.md). Reads the Porterchain
-order mirror; Fleetbase sync stays inside the driver service / adapter layer.
+PorterChain orders.
 """
 
 from typing import Annotated

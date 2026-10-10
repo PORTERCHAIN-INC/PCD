@@ -55,7 +55,7 @@ from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 _sso = SsoService()
 T = TypeVar("T")
-_AUTH_UNAVAILABLE = ("redis", "unavailable", "fleetbase_sso_disabled")
+_AUTH_UNAVAILABLE = ("redis", "unavailable")
 
 
 def _invoke(fn: Callable[..., T], *args: object, **kwargs: object) -> T:
@@ -141,11 +141,6 @@ def customer_onboarding(
     """Customer activation checklist — provisions customers row when allowed."""
     return PortalOnboardingResponse(**customer_onboarding_payload(db, claims, settings))
 
-
-@router.post("/sso/fleetbase", include_in_schema=False)
-def sso_fleetbase() -> None:
-    """Retired with the Fleetbase console — always 404."""
-    raise HTTPException(status_code=404, detail="not_found")
 
 from porterchain_api.routers import auth_staff as _auth_staff  # noqa: F401
 from porterchain_api.routers import auth_staff_sessions as _auth_staff_sessions  # noqa: F401

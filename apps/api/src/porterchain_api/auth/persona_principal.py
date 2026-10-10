@@ -1,4 +1,4 @@
-"""Resolve Clerk subject → AuthPrincipal from persona tables (Fleetbase SSO only).
+"""Resolve Clerk subject → AuthPrincipal from persona tables.
 
 Authorization Checks use SpiceDB via CurrentPrincipal — not this helper.
 """

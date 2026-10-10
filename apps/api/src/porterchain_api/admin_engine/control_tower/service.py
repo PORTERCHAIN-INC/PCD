@@ -2,8 +2,7 @@
 
 Per masterrule.md: order state machine, exceptions, claims, support, SLA and
 notifications are Porterchain business logic. Dispatch/GPS/routes are executed
-in Fleetbase and reached only via the Porterchain API + Fleetbase adapter.
-This service reads the Porterchain order mirror; it never calls Fleetbase.
+in PorterChain dispatch. This service reads orders, shifts and last-known GPS.
 """
 
 from __future__ import annotations
@@ -182,8 +181,8 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
             "high_priority_orders": high_priority,
             "failed_deliveries": count(FAILED_STATES),
             "completed_today": completed_today,
-            # Driver online/GPS state is Fleetbase-owned (fleetbase-first policy).
-            "vehicles_active": db.query(func.count(Vehicle.id)).filter(Vehicle.is_active == True).scalar() or 0,  # noqa: E712
+            # Driver online/GPS comes from open shifts + last-known GPS.
+            "vehicles_active": db.query(func.count(Vehicle.id)).filter(Vehicle.is_active == True).scalar() or 0,
             "open_claims": db.query(func.count(Claim.id)).filter(Claim.status == "open").scalar() or 0,
             "support_tickets": db.query(func.count(SupportTicket.id)).filter(SupportTicket.status == "open").scalar() or 0,
             "open_exceptions": open_exceptions,
@@ -212,7 +211,7 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
 
     @staticmethod
     def _stop_progress(o: Order) -> tuple[int, int]:
-        """(stops_done, stop_count) — order-state heuristic until Fleetbase waypoint status syncs."""
+        """(stops_done, stop_count) — derived from order state."""
         meta = o.compliance_metadata or {}
         rich = meta.get("stops")
         if isinstance(rich, list) and rich:
@@ -290,7 +289,12 @@ class ControlTowerService(AssignmentMixin, ExceptionsMixin, SlaMixin, EventsMixi
         hours = self._instant_sla_hours(db)
         columns = []
         for key, states in BOARD_COLUMNS:
-            q = db.query(Order).filter(Order.state.in_(states)).order_by(Order.scheduled_at.asc())
+            q = (
+                db.query(Order)
+                # Sandbox orders never run live — keep them off the Today board and its counts.
+                .filter(Order.state.in_(states), Order.is_sandbox.is_(False))
+                .order_by(Order.scheduled_at.asc())
+            )
             total = q.count()
             cards = [
                 self._order_card(o, merchants, drivers, now, instant_sla_hours=hours)

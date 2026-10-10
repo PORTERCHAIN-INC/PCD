@@ -54,7 +54,6 @@ class TrackingService:
             scheduled_at=order.scheduled_at,
             pickup=pickup,
             dropoff=dropoff,
-            fleetbase_order_id=order.fleetbase_order_id,
             booking_number=booking.booking_number if booking else None,
             invoice_number=invoice.invoice_number if invoice else None,
             company_name=branding.get("company_name"),
@@ -95,7 +94,6 @@ class TrackingService:
             order_id=order.id,
             tracking_number=order.tracking_number,
             state=order.state,
-            fleetbase_order_id=order.fleetbase_order_id,
             live_tracking=live,
         )
 
@@ -122,7 +120,7 @@ class TrackingService:
         settings: Settings,
         order: Order,
     ) -> dict | None:
-        """Pull raw live GPS/status from Fleetbase via the shared facade."""
+        """Raw live GPS from the assigned driver via the shared facade."""
         return self._facade.fetch_raw(settings, order)
 
     def get_live_snapshot(
@@ -208,7 +206,6 @@ class TrackingService:
             "scheduled_at": order.scheduled_at.isoformat(),
             "pickup": order.pickup,
             "dropoff": order.dropoff,
-            "fleetbase_order_id": order.fleetbase_order_id,
             "created_at": order.created_at.isoformat(),
             "vehicle_class": goods.get("vehicle_class"),
             "booking_mode": goods.get("booking_mode"),

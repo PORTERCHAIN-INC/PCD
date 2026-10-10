@@ -1,4 +1,4 @@
-"""Dispatch operations — queue, assignment via Fleetbase bridge."""
+"""Dispatch operations — queue and assignment."""
 
 from sqlalchemy.orm import Session
 
@@ -53,13 +53,13 @@ class AdminOperationsService:
         return order
 
     @staticmethod
-    def _enqueue_driver_book_optimize(  # fleetbase-first:ok — queues day plan, does not sequence locally
+    def _enqueue_driver_book_optimize(  # dispatch-guard:ok — queues the day plan, no local sequencing
         db: Session,
         driver_id: str,
         *,
         insert_order_id: str | None = None,
     ) -> None:
-        """Phase 1d/1b: best-effort Fleetbase re-sequence for a driver's book."""
+        """Best-effort re-sequence of a driver's book after assignment."""
         try:
             from porterchain_api.user_models import Driver
             from porterchain_driver.jobs import JobsService

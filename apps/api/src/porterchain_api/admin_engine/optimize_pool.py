@@ -17,7 +17,7 @@ OPTIMIZE_STATES = frozenset(
 SCAN_CAP = 400
 
 
-def build_optimize_pool(  # fleetbase-first:ok — eligibility list, not local sequencing
+def build_optimize_pool(  # dispatch-guard:ok — eligibility list, not local sequencing
     db: Session,
     *,
     limit: int,
@@ -84,11 +84,11 @@ def build_optimize_pool(  # fleetbase-first:ok — eligibility list, not local s
                 "tracking_number": order.tracking_number,
                 "state": order.state,
                 "order_source": order.order_source,
-                "fleetbase_order_id": order.fleetbase_order_id,
                 "assigned_driver_id": getattr(order, "assigned_driver_id", None),
                 "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
                 "merchant_id": order.merchant_id,
-                "weight_kg": float(order.weight_kg) if order.weight_kg is not None else None,
+                # Order has no weight column — total the package weights (was an AttributeError 500).
+                "weight_kg": sum(float(p.weight_kg or 0) for p in (order.packages or [])) or None,
             }
             for order in page
         ],

@@ -18,7 +18,7 @@ def transition_to_dispatch_ready(
     actor_id: str | None = None,
     payload: dict | None = None,
 ) -> Order:
-    """Emit dispatch requested, then transition to DISPATCH_READY (Fleetbase sync follows)."""
+    """Emit dispatch requested, then transition to DISPATCH_READY."""
     requested = _event_fields(
         event_type=E.ORDER_DISPATCH_REQUESTED,
         aggregate_type="order",

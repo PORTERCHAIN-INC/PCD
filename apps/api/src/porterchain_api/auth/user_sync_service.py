@@ -69,16 +69,16 @@ class UserSyncService:
             commit=True,
             skip_unlink=True,
         )
-        self._sync_fleetbase_link_metadata(db, claims, user)
+        self._sync_link_metadata(db, claims, user)
         return user
 
     def get_by_clerk_id(self, db: Session, clerk_user_id: str) -> PorterchainUser | None:
         return db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
 
-    def _sync_fleetbase_link_metadata(
+    def _sync_link_metadata(
         self, db: Session, claims: ClerkClaims, user: PorterchainUser
     ) -> None:
-        """Update Fleetbase SSO metadata on IdentityLink without mis-pointing platform_user_id."""
+        """Refresh IdentityLink metadata without mis-pointing platform_user_id."""
         principal = resolve_persona_principal(db, claims)
         link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == claims.clerk_user_id).first()
         if not link:
@@ -90,8 +90,6 @@ class UserSyncService:
 
         link.user_type = principal.user_type.value
         link.platform_org_id = principal.org_id
-        link.fleetbase_permissions = None
-        link.fleetbase_roles = None
         link.last_synced_at = datetime.now(UTC)
         db.commit()
 
@@ -338,8 +336,6 @@ class UserSyncService:
                 user_type=principal.user_type.value,
                 platform_user_id=user.id,
                 platform_org_id=principal.org_id,
-                fleetbase_permissions=None,
-                fleetbase_roles=None,
                 provider="clerk",
                 issuer=claims.issuer,
                 subject=claims.clerk_user_id,
@@ -353,8 +349,6 @@ class UserSyncService:
             link.user_type = principal.user_type.value
             link.platform_user_id = user.id
             link.platform_org_id = principal.org_id
-            link.fleetbase_permissions = None
-            link.fleetbase_roles = None
             link.last_synced_at = datetime.now(UTC)
             if claims.issuer:
                 link.issuer = claims.issuer

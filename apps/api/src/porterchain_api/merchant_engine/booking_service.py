@@ -246,7 +246,7 @@ class MerchantBookingService:
         amount_cents = breakdown.final_cents
 
         # WORKFLOW: validate merchant → pricing → contract → payment terms
-        # before an order is generated. A merchant never reaches Fleetbase directly.
+        # before an order is generated.
         validated = MerchantSyncService().validate_booking(db, ctx.merchant, amount_cents=amount_cents)
 
         pricing = get_pricing_service(db)
@@ -423,7 +423,7 @@ class MerchantBookingService:
             actor_type="merchant",
             actor_id=ctx.user.id,
         )
-        # Fleetbase cancel is enqueued once via order.cancelled (no in-request HTTP).
+        # Cancel side effects fan out once via order.cancelled.
         return result
 
     def duplicate_order(self, db: Session, settings: Settings, ctx: MerchantContext, order: Order) -> Order:

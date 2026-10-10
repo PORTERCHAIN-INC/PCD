@@ -128,7 +128,7 @@ def create_order(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> AdminCreateOrderResponse:
-    """Multi-waypoint order builder — persists rich compliance_metadata.stops for Fleetbase."""
+    """Multi-waypoint order builder — persists rich compliance_metadata.stops."""
     return AdminCreateOrderResponse(**_invoke(ctx, "orders_write", _orders.create_built, db, settings, ctx, body))
 
 
@@ -283,7 +283,7 @@ def order_labels_pdf(order_id: str, ctx: Ctx, db: Session = Depends(get_db)):
 
 @router.get("/orders/{order_id}/manifest.pdf")
 def order_manifest_pdf(order_id: str, ctx: Ctx, db: Session = Depends(get_db)):
-    """Single-order pickup list PDF (not a Fleetbase vehicle manifest)."""
+    """Single-order pickup list PDF."""
     pdf, filename = _invoke(ctx, "orders_read", _orders.manifest_pdf_required, db, order_id)
     return _attachment(pdf, filename)
 
@@ -336,8 +336,10 @@ def order_shopify_release(
     ctx: Ctx,
     db: Session = Depends(get_db),
 ) -> dict:
-    """Release a held Shopify BOOKED order to Fleetbase (DISPATCH_READY)."""
-    from porterchain_api.admin_engine.shopify_control_service import release_shopify_order_to_dispatch
+    """Release a held Shopify BOOKED order to dispatch (DISPATCH_READY)."""
+    from porterchain_api.admin_engine.shopify_control_service import (
+        release_shopify_order_to_dispatch,
+    )
 
     return _invoke(ctx, "orders_write", release_shopify_order_to_dispatch, db, ctx, order_id)
 

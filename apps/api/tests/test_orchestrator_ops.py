@@ -1,4 +1,4 @@
-"""Orchestrator ops service — fleetbase id resolution helpers."""
+"""Orchestrator ops service helpers."""
 
 from __future__ import annotations
 
@@ -26,7 +26,5 @@ def test_order_factory_fields_for_pool():
         pickup={"formatted": "A"},
         dropoff={"formatted": "B"},
         scheduled_at=datetime.now(UTC).replace(tzinfo=None),
-        fleetbase_order_id="order_abc",
     )
-    assert o.fleetbase_order_id == "order_abc"
     assert o.state in OPTIMIZE_STATES

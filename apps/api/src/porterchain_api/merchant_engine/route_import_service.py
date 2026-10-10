@@ -1,6 +1,6 @@
 """Route import orchestration — ingest → map → quote → confirm.
 
-Quote math lives in import_quote; Fleetbase stop payload in import_confirm;
+Quote math lives in import_quote; stop payload in import_confirm;
 worker apply_* in import_jobs. This module owns job CRUD and HTTP-shaped responses.
 """
 

@@ -112,7 +112,7 @@ class MerchantIntegrationsService:
         *,
         confirm: str,
     ) -> dict[str, Any]:
-        """Cancel merchant-owned sandbox orders that never reached Fleetbase."""
+        """Cancel merchant-owned open sandbox orders."""
         from porterchain_api.booking_models import Order
         from porterchain_api.domain.states import OrderState
 
@@ -123,7 +123,6 @@ class MerchantIntegrationsService:
             .filter(
                 Order.merchant_id == ctx.merchant.id,
                 Order.is_sandbox.is_(True),
-                Order.fleetbase_order_id.is_(None),
                 Order.state.notin_(
                     (
                         OrderState.CANCELLED.value,

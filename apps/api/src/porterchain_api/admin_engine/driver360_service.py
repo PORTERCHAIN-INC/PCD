@@ -2,8 +2,7 @@
 
 Per masterrule.md: driver approval, verification, wallet, payouts, support,
 documents and compliance are Porterchain-owned. Operational dispatch/GPS/routes
-belong to Fleetbase and are reached only via the Porterchain API/adapter — this
-service reads the Porterchain order mirror and never calls Fleetbase directly.
+come from shifts and last-known GPS; this service reads PorterChain orders.
 """
 
 from __future__ import annotations
@@ -111,7 +110,7 @@ class Driver360Service:
             "approved": approved,
             "pending": pending,
             "suspended": suspended,
-            # "online" count removed — live driver state is Fleetbase-owned.
+            # Live driver state is on Dispatch → Fleet.
             "pending_payout_cents": int(pending_payout),
         }
 

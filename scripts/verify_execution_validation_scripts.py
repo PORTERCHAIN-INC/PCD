@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "package.json"
 NIGHTLY = ROOT / ".github/workflows/nightly-e2e.yml"
 E2E_SCRIPT = ROOT / "apps/api/scripts/run_e2e_validation.py"
-DAY_PLAN_SLO = ROOT / "scripts/verify_fleetbase_sync_slo.py"
+DAY_PLAN_SLO = ROOT / "scripts/verify_day_plan_scorecard.py"
 SEQUENCER = ROOT / "apps/api/src/porterchain_api/dispatch_engine/sequencer.py"
 
 
@@ -34,7 +34,7 @@ def main() -> int:
         failures.append("§5.2 missing run_e2e_validation.py")
 
     if not DAY_PLAN_SLO.is_file():
-        failures.append("§5.2 missing day-plan scorecard guard (verify_fleetbase_sync_slo.py)")
+        failures.append("§5.2 missing day-plan scorecard guard (verify_day_plan_scorecard.py)")
     if not SEQUENCER.is_file():
         failures.append("§5.2 missing dispatch_engine/sequencer.py")
 

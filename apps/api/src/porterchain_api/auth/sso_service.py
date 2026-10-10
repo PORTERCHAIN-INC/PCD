@@ -1,4 +1,4 @@
-"""SSO — Porterchain JWT for portal sessions (Fleetbase console SSO retired)."""
+"""SSO — Porterchain JWT for portal sessions ."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from porterchain_api.auth.identity_links import (
     upsert_sso_link,
 )
 from porterchain_api.auth.persona_bundle import load_persona_bundle
-from porterchain_api.config import Settings
+from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_shared.auth.principal import AuthPrincipal
 from porterchain_shared.auth.roles import PlatformRole
@@ -44,7 +44,7 @@ class SsoService:
     def auth_principal_from_current(
         self, db: Session, current: CurrentPrincipal
     ) -> AuthPrincipal | None:
-        """Build Fleetbase AuthPrincipal from session CurrentPrincipal (staff or Clerk)."""
+        """Build AuthPrincipal from session CurrentPrincipal (staff or Clerk)."""
         admin_id = current.legacy_profile_ids.get("admin_user_id")
         admin = get_admin_user(db, admin_id) if admin_id else None
         if not admin and current.auth_subject:
@@ -92,19 +92,7 @@ class SsoService:
             platform_org_id=principal.org_id,
             provider=provider,
             issuer=issuer,
-            fleetbase_permissions=None,
-            fleetbase_roles=None,
         )
-
-    def exchange_fleetbase_session_for_principal(
-        self,
-        db: Session,
-        settings: Settings,
-        current: CurrentPrincipal,
-    ) -> dict:
-        """Retired — Fleetbase console SSO is gone. Always refuse."""
-        del db, settings, current
-        raise ValueError("fleetbase_sso_disabled")
 
     def session_payload(self, principal: AuthPrincipal) -> dict:
         return {

@@ -41,23 +41,20 @@ def test_suspend_driver_stays_on_porterchain() -> None:
         status="APPROVED",
         is_online=True,
         availability="idle",
-        fleetbase_driver_id="fb-1",
         clerk_user_id="user_x",
     )
     db = MagicMock()
     ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
-    settings = SimpleNamespace(fleetbase_dispatch_bridge=True)
+    settings = SimpleNamespace()
 
     svc._get_or_raise = MagicMock(return_value=driver)  # type: ignore[method-assign]
     svc._audit = MagicMock()  # type: ignore[method-assign]
 
     with (
         patch("porterchain_api.admin_engine.driver_service.emit_event"),
-        patch("porterchain_api.platform.retired_sync.RetryQueue.enqueue") as enq,
         patch("porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"),
     ):
         out, warning = svc.suspend_driver(db, ctx, "d1", settings)
 
     assert out.status == DriverStatus.SUSPENDED.value
     assert warning is None
-    enq.assert_not_called()

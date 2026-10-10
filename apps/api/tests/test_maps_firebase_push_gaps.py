@@ -255,48 +255,13 @@ def test_gap06_canonical_chaos_matches_admin_ts() -> None:
     assert tuple(admin_ids) == CANONICAL_CHAOS_SCENARIOS
 
 
-def test_gap06_failure_scenario_aliases_resolve() -> None:
-    from porterchain_api.admin_engine.diagnostics_chaos import (
-        CANONICAL_CHAOS_SCENARIOS,
-        CHAOS_ALIASES,
-        resolve_chaos_scenario,
-    )
-    from porterchain_api.admin_engine.e2e_validation_catalog import FAILURE_SCENARIOS
-
-    for name in (
-        "day_plan_offline",
-        "google_maps_failure",
-        "osrm_failure",
-        "valhalla_failure",
-        "redis_restart",
-        "postgresql_restart",
-        "websocket_failure",
-        "vehicle_breakdown",
-    ):
-        assert name in FAILURE_SCENARIOS
-        assert resolve_chaos_scenario(name) == name
-        assert name in CANONICAL_CHAOS_SCENARIOS
-
-    assert resolve_chaos_scenario("fleetbase_offline") == "day_plan_offline"
-    assert resolve_chaos_scenario("fleetbase_adapter_failure") == "day_plan_offline"
-    assert "fleetbase_offline" in FAILURE_SCENARIOS
-    assert "fleetbase_adapter_failure" in FAILURE_SCENARIOS
-
-    for failure_name, canonical in CHAOS_ALIASES.items():
-        assert failure_name in FAILURE_SCENARIOS
-        assert resolve_chaos_scenario(failure_name) == canonical
-        assert canonical in CANONICAL_CHAOS_SCENARIOS
-
-    assert resolve_chaos_scenario("firebase_failure") == "firebase_offline"
-    assert resolve_chaos_scenario("driver_rejects") == "driver_reject"
-    assert resolve_chaos_scenario("notification_failure") == "firebase_offline"
 
 
 def test_gap06_chaos_test_accepts_failure_aliases(db, settings) -> None:
     from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
 
     svc = AdminDiagnosticsService()
-    for alias in ("firebase_failure", "driver_rejects", "fleetbase_adapter_failure"):
+    for alias in ("firebase_failure", "driver_rejects"):
         out = svc.chaos_test(alias, db, settings)
         assert "Unknown scenario" not in " ".join(out.get("logs") or [])
         assert out.get("canonical_scenario")

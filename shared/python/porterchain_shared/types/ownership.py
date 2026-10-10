@@ -5,8 +5,6 @@ from enum import StrEnum
 
 class DataOwnership(StrEnum):
     PORTERCHAIN = "porterchain"
-    # Kept for older imports. Empty FLEETBASE_OWNED below.
-    FLEETBASE = "fleetbase"
 
 
 PORTERCHAIN_OWNED: frozenset[str] = frozenset(
@@ -37,6 +35,3 @@ PORTERCHAIN_OWNED: frozenset[str] = frozenset(
         "proof_of_delivery",
     }
 )
-
-# Kept so older imports still load. Dispatch, GPS, and proof are PorterChain.
-FLEETBASE_OWNED: frozenset[str] = frozenset()

@@ -73,7 +73,7 @@ def test_parse_suggestions_allowlist_and_sort() -> None:
     raw = """{
       "suggestions": [
         {"action": "reassign", "rationale": "Nearby spare", "priority": "p2", "confidence": 0.4},
-        {"action": "review_fleetbase_console", "rationale": "Confirm GPS", "priority": "p0", "confidence": 0.9},
+        {"action": "review_day_plan", "rationale": "Confirm GPS", "priority": "p0", "confidence": 0.9},
         {"action": "hack_stripe", "rationale": "nope", "priority": "p0", "confidence": 0.99}
       ]
     }"""

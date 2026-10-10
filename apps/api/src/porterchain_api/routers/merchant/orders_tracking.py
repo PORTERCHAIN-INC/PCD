@@ -153,7 +153,7 @@ def list_orders(
 
 @router.get("/orders/pickup-list.pdf")
 def merchant_pickup_list_pdf(ctx: Ctx, db: Session = Depends(get_db), ids: list[str] = Query(default_factory=list)):
-    """Dock pickup list — not a Fleetbase manifest or carrier label."""
+    """Dock pickup list — not a carrier label."""
     pdf, filename = _invoke(ctx, "orders", _orders.pickup_list_pdf, db, ctx, ids)
     return _attachment(pdf, filename, "application/pdf")
 

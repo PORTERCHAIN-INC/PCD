@@ -155,7 +155,7 @@ class E2EValidationReverseMixin:
     def _ensure_delivered_order(self, db: Session, settings: Settings) -> Order:
         # Forward ends at INVOICED (past DELIVERED). RTS requires DELIVERED→FAILED→RTS,
         # so we only reuse a true DELIVERED row; otherwise synthesize one that still
-        # emits dispatch-ready (Fleetbase) + a customer notification for phase_8.
+        # emits dispatch-ready + a customer notification for phase_8.
         existing = (
             db.query(Order)
             .filter(Order.internal_reference == E2E_MARKER, Order.state == OrderState.DELIVERED.value)
@@ -200,7 +200,7 @@ class E2EValidationReverseMixin:
         order.internal_reference = E2E_MARKER
         db.commit()
 
-        # Emit real dispatch-ready so the worker can enqueue Fleetbase push_order.
+        # Emit real dispatch-ready so the day plan picks the order up.
         transition_to_dispatch_ready(db, order, payload={"e2e_reverse": True, "marker": E2E_MARKER})
         db.refresh(order)
 

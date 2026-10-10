@@ -6,7 +6,9 @@ import inspect
 from pathlib import Path
 
 from porterchain_api.admin_engine.diagnostics_catalog import TEST_CATALOG, TEST_IDS
-from porterchain_api.admin_engine.diagnostics_fleetbase_probes import DiagnosticsFleetbaseProbesMixin
+from porterchain_api.admin_engine.diagnostics_dispatch_probes import (
+    DiagnosticsDispatchProbesMixin,
+)
 from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
 from porterchain_api.config import Settings
 
@@ -20,7 +22,7 @@ def test_hs26_catalog_covers_expected_ids() -> None:
 
 
 def test_hs26_probe_day_plan_never_hits_vroom_http_port() -> None:
-    src = inspect.getsource(DiagnosticsFleetbaseProbesMixin._probe_day_plan)
+    src = inspect.getsource(DiagnosticsDispatchProbesMixin._probe_day_plan)
     assert "127.0.0.1:8030" not in src
     assert "8030/health" not in src
     assert "httpx" not in src
@@ -28,7 +30,7 @@ def test_hs26_probe_day_plan_never_hits_vroom_http_port() -> None:
 
 
 def test_hs26_probe_source_file_has_no_direct_sidecar() -> None:
-    path = Path(inspect.getfile(DiagnosticsFleetbaseProbesMixin))
+    path = Path(inspect.getfile(DiagnosticsDispatchProbesMixin))
     text = path.read_text(encoding="utf-8")
     assert "http://127.0.0.1:8030" not in text
 

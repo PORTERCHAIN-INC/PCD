@@ -306,8 +306,6 @@ class NavigationService:
         }
 
     def _fetch_live(self, db: Session, settings: Settings, order: Any) -> dict[str, Any] | None:
-        if not order.fleetbase_order_id:
-            return None
         try:
             return self._tracking.get_live_tracking(db, settings, order)
         except Exception:
@@ -491,7 +489,6 @@ class NavigationService:
             "AT_DESTINATION")
         return {
             "order_state": order_state,
-            "fleetbase_status": translated.get("fleetbase_status"),
             "label": order_state.replace("_", " ").title(),
             "in_transit": in_flight,
             "delivered": order_state in ("DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"),

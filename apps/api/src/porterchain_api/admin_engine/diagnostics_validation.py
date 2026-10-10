@@ -92,7 +92,7 @@ class DiagnosticsValidationMixin:
                     or probe.get("warnings", [])
                     or [f"Valhalla probe OK ({host or 'configured'})"]
                 )
-            elif test_id in ("dispatch", "vroom", "fleetbase", "fleetbase_adapter", "fleetbase_console"):
+            elif test_id in ("dispatch", "vroom"):
                 probe = self._probe_day_plan(settings, live=True)
                 status = probe["status"]
                 details = probe.get("details", {}) or {}
@@ -304,7 +304,7 @@ class DiagnosticsValidationMixin:
         violations.append(
             {
                 "type": "policy",
-                "message": "Direct Fleetbase calls from UI forbidden — verify via code review (masterrule §3)",
+                "message": "UIs call the PorterChain API only — no direct routing/solver/cache calls (masterrule §3)",
                 "severity": "info",
             }
         )

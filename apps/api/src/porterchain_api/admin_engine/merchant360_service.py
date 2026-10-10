@@ -3,7 +3,7 @@
 Per masterrule.md: merchants, CRM, invoices, contracts, billing are Porterchain
 business logic. This service reads only Porterchain-owned data (Merchant, Order,
 CRM company/contacts/contracts/invoices/activities/tasks, merchant sub-models).
-Operational order data is the Porterchain mirror — Fleetbase is never called here.
+Operational order data comes from PorterChain orders.
 """
 
 from __future__ import annotations

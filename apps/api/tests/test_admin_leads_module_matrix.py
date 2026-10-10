@@ -336,11 +336,7 @@ def _forbidden_hits(path: Path) -> list[str]:
     for needle in _FORBIDDEN_IMPORT_SUBSTRINGS:
         if needle in text:
             # Allow comments about "Google lead webhook" / "google_ads" channel / "google_business"
-            if needle in ("google.maps", "googlemaps", "distance_matrix", "directions_api"):
-                hits.append(needle)
-            elif needle == "firebase":
-                hits.append(needle)
-            elif needle in ("valhalla", "osrm", "vroom", "cuopt", "fleetbase", "socketcluster", "shopify"):
+            if needle in ("google.maps", "googlemaps", "distance_matrix", "directions_api") or needle == "firebase" or needle in ("valhalla", "osrm", "vroom", "cuopt", "fleetbase", "socketcluster", "shopify"):
                 hits.append(needle)
     return hits
 

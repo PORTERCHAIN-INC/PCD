@@ -22,8 +22,6 @@ _TRACKING_ERRORS = {
 }
 
 _REPLAY_SOURCE_ALIASES = {
-    "fleetbase": "live",
-    "fleetbase_activity": "activity",
     "last_known": "live",
     "osrm": "eta",
     "valhalla": "route",
@@ -96,8 +94,6 @@ def merchant_replay_frame(frame: Any) -> Any:
 
 def merchant_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
     payload["display_state"] = order_state_label(str(payload.get("state") or ""))
-    payload.pop("fleetbase", None)
-    payload.pop("fleetbase_order_id", None)
     payload.pop("live", None)
     eta = payload.get("eta")
     if isinstance(eta, dict):
@@ -107,13 +103,8 @@ def merchant_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
         cleaned = {k: v for k, v in route.items() if k != "source"}
         cleaned.setdefault("polyline_encoding", "google")
         payload["optimized_route"] = cleaned
-    for key in ("driver", "vehicle"):
-        block = payload.get(key)
-        if isinstance(block, dict):
-            block.pop("fleetbase", None)
     status = payload.get("delivery_status")
     if isinstance(status, dict):
-        status.pop("fleetbase_status", None)
         status["label"] = order_state_label(str(status.get("order_state") or payload.get("state") or ""))
     replay = payload.get("replay")
     if isinstance(replay, list):

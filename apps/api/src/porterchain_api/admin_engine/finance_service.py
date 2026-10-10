@@ -1,7 +1,7 @@
 """Finance Center — Application Service (masterrule §11).
 
 Financial truth lives in Porterchain (invoices, payments, ledger, payouts).
-Settlement writes go through billing_engine.SettlementService — never Fleetbase.
+Settlement writes go through billing_engine.SettlementService.
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 """Order print-preview / pickup-list PDFs — commercial dock sheets, not carrier labels.
 
-Fleetbase has no merchant label API. Do not title these “shipping label”.
+These are dock documents. Do not title them “shipping label”.
 """
 
 from __future__ import annotations
@@ -630,7 +630,7 @@ def build_pickup_list_pdf(
     merchant_name: str | None = None,
     driver_name: str | None = None,
 ) -> bytes:
-    """Dock list for one or more orders — not a Fleetbase vehicle manifest."""
+    """Dock list for one or more orders."""
     exported = datetime.now(UTC)
     header = [
         f"Company: {merchant_name or '—'}",

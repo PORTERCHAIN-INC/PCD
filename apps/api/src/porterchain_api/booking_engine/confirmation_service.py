@@ -399,7 +399,6 @@ class BookingConfirmationService:
             if isinstance(order.compliance_metadata, dict)
             and isinstance((order.compliance_metadata or {}).get("parcels"), dict)
             else None,
-            "fleetbase_order_id": order.fleetbase_order_id,
         }
 
     @staticmethod

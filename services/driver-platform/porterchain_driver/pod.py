@@ -56,7 +56,13 @@ class ProofOfDeliveryService:
         file_url: str,
     ) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
-        self._record_pod(db, order.id, driver.id, "photo", file_url)
+        value = file_url
+        if file_url.startswith("data:"):
+            # Store the image as a private file (was truncated to 500 chars and lost).
+            from porterchain_api.driver_engine.pod_store import save_data_url
+
+            value = save_data_url(order.id, file_url)
+        self._record_pod(db, order.id, driver.id, "photo", value)
         return PodCaptureResult(success=True, proof_type="photo", proof_id=order.id)
 
     def capture_signature(

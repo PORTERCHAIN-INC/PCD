@@ -326,7 +326,7 @@ class AdminDashboardService:
             "drivers": {
                 **drivers,
                 # Online/offline/busy/available removed — live driver state is
-                # Fleetbase-owned; see the Fleetbase console for live capacity.
+                # Live capacity is on Dispatch → Fleet.
             },
             "fleet": {
                 "vehicles_total": vehicles_total,

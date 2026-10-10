@@ -11,6 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_models import Driver
 from porterchain_api.db import SessionLocal, db_transaction
 from porterchain_api.domain.admin_states import DriverStatus
@@ -21,8 +22,6 @@ from porterchain_api.driver_engine.last_known import (
     write_last_known,
 )
 from porterchain_api.driver_models import DriverLocationPing
-from porterchain_api.platform.retired_sync import BookingSyncService
-from porterchain_api.platform.retired_sync import RetryQueue, _find_inflight
 
 
 class _FakeRedis:
@@ -46,8 +45,7 @@ class _FakeRedis:
             "accuracy_m": args[6],
             "heading": args[7],
             "speed_mps": args[8],
-            "fleetbase_driver_id": args[9],
-            "h3": args[10],
+            "h3": args[9],
             "version": str(ver),
         }
         return ver
@@ -100,87 +98,6 @@ def test_parse_recorded_at_treats_z_and_offset_as_utc() -> None:
     assert older < a
 
 
-def test_last_known_cas_rejects_stale_ping() -> None:
-    redis = _FakeRedis()
-    first = write_last_known(
-        driver_id="drv-1",
-        lat=43.65,
-        lng=-79.38,
-        recorded_at="2026-09-14T12:00:25Z",
-        fleetbase_driver_id="fb-1",
-        client=redis,
-    )
-    assert first is not None
-    assert first.version == 1
-    stale = write_last_known(
-        driver_id="drv-1",
-        lat=43.0,
-        lng=-79.0,
-        recorded_at="2026-09-14T12:00:00Z",
-        client=redis,
-    )
-    assert stale is None
-    known = read_last_known("drv-1", client=redis)
-    assert known is not None
-    assert known.lat == 43.65
-    newer = write_last_known(
-        driver_id="drv-1",
-        lat=43.7,
-        lng=-79.4,
-        recorded_at="2026-09-14T12:00:50Z",
-        client=redis,
-    )
-    assert newer is not None
-    assert newer.version == 2
-    assert read_last_known("drv-1", client=redis).lat == 43.7
-
-
-def test_record_ping_survives_commit(db: Session, driver: Driver) -> None:
-    from unittest.mock import MagicMock
-
-    from porterchain_api.config import Settings
-    from porterchain_driver.location import LocationService
-
-    driver.fleetbase_driver_id = f"fb-{uuid4().hex[:8]}"
-    db.flush()
-    settings = Settings(
-        _env_file=None,
-        app_env="local",
-        stripe_mock=True,
-        jwt_secret="test-jwt",
-    )
-    with db_transaction(db):
-        result = LocationService().record_ping(
-            db, driver, lat=43.65, lng=-79.38
-        )
-    assert result["recorded"] is True
-    assert result["ping_id"] is None
-    other = SessionLocal()
-    try:
-        leftover = (
-            other.query(DriverLocationPing)
-            .filter(DriverLocationPing.driver_id == driver.id)
-            .count()
-        )
-        assert leftover == 0
-    finally:
-        other.close()
-
-
-def test_sync_queue_does_not_persist(db: Session) -> None:
-    assert (
-        RetryQueue.enqueue(
-            db,
-            direction="outbound",
-            kind="tracking",
-            idempotency_key="tracking:gone",
-            payload={"lat": 1.0, "lng": 1.0},
-            commit=False,
-        )
-        is None
-    )
-
-
 def test_write_ping_table_flag_still_inserts(db: Session, driver: Driver) -> None:
     from porterchain_driver.location import LocationService
 
@@ -229,3 +146,68 @@ def test_offline_gps_buffer_keeps_latest_only() -> None:
     assert "buffer.length > 500" not in src
     assert "JSON.stringify([stamped])" in src
     assert "gpsBuffer[gpsBuffer.length - 1]" in src
+
+
+def test_last_known_cas_rejects_stale_ping() -> None:
+    redis = _FakeRedis()
+    first = write_last_known(
+        driver_id="drv-1",
+        lat=43.65,
+        lng=-79.38,
+        recorded_at="2026-09-14T12:00:25Z",
+        client=redis,
+    )
+    assert first is not None
+    assert first.version == 1
+    stale = write_last_known(
+        driver_id="drv-1",
+        lat=43.0,
+        lng=-79.0,
+        recorded_at="2026-09-14T12:00:00Z",
+        client=redis,
+    )
+    assert stale is None
+    known = read_last_known("drv-1", client=redis)
+    assert known is not None
+    assert known.lat == 43.65
+    newer = write_last_known(
+        driver_id="drv-1",
+        lat=43.7,
+        lng=-79.4,
+        recorded_at="2026-09-14T12:00:50Z",
+        client=redis,
+    )
+    assert newer is not None
+    assert newer.version == 2
+    assert read_last_known("drv-1", client=redis).lat == 43.7
+
+
+def test_record_ping_survives_commit(db: Session, driver: Driver) -> None:
+    from unittest.mock import MagicMock
+
+    from porterchain_api.config import Settings
+    from porterchain_driver.location import LocationService
+
+    db.flush()
+    settings = Settings(
+        _env_file=None,
+        app_env="local",
+        stripe_mock=True,
+        jwt_secret="test-jwt",
+    )
+    with db_transaction(db):
+        result = LocationService().record_ping(
+            db, driver, lat=43.65, lng=-79.38
+        )
+    assert result["recorded"] is True
+    assert result["ping_id"] is None
+    other = SessionLocal()
+    try:
+        leftover = (
+            other.query(DriverLocationPing)
+            .filter(DriverLocationPing.driver_id == driver.id)
+            .count()
+        )
+        assert leftover == 0
+    finally:
+        other.close()

@@ -123,13 +123,13 @@ def order_route_geometry(order_id: str, ctx: Ctx, db: Session = Depends(get_db))
 
 @router.get("/orders/{order_id}/playback")
 def order_playback(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Adapter-fed Fleetbase position breadcrumbs for client-side playback."""
+    """Driver position breadcrumbs for client-side playback."""
     return _invoke(ctx, "dispatch_read", _live_map.playback, db, order_id)
 
 
 @router.get("/utilization")
 def utilization(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Shift/staffing snapshot — Fleetbase online + PC shifts + PC order load."""
+    """Shift/staffing snapshot — open shifts + order load."""
     return _invoke(ctx, "dispatch_read", _utilization.snapshot, db)
 
 
@@ -167,7 +167,7 @@ def scheduled_batches(
     day: date | None = Query(None, description="UTC calendar day YYYY-MM-DD"),
     merchant_id: str | None = None,
 ) -> dict:
-    """Merchant pickup batches for a day (PC planning view; not Fleetbase manifests)."""
+    """Merchant pickup batches for a day (planning view)."""
     return _invoke(ctx, "dispatch_read", _batches.list_batches, db, day=day, merchant_id=merchant_id)
 
 
@@ -178,7 +178,7 @@ def manifests(
     scheduled_date: str | None = Query(None, description="YYYY-MM-DD"),
     status: str | None = None,
 ) -> dict:
-    """Committed Fleetbase manifests (adapter → ManifestController)."""
+    """Committed route manifests."""
     return _invoke(
         ctx, "dispatch_read", _batches.list_manifests, db, scheduled_date=scheduled_date, status=status
     )

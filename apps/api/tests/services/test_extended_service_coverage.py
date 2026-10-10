@@ -18,7 +18,6 @@ from porterchain_api.billing_engine.driver_finance_service import DriverFinanceS
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.collaboration_engine.crm_service import CrmSalesService
 from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
-from porterchain_api.platform.retired_sync import WebhookIngressService
 from porterchain_api.merchant_engine.tracking_service import MerchantTrackingService
 from porterchain_api.notification_engine.fcm_service import FCMService, firebase_sdk_available
 from porterchain_api.booking_models import Invoice
@@ -103,12 +102,6 @@ def test_merchant_sync_validate(db, merchant_ctx) -> None:
     db.commit()
     result = MerchantSyncService().validate_booking(db, merchant_ctx.merchant, amount_cents=1000)
     assert result.payment_terms == "NET_30"
-
-
-def test_webhook_ingress_removed(db, settings) -> None:
-    settings.fleetbase_dispatch_bridge = False
-    result = WebhookIngressService().accept(db, settings, raw_body=b"{}", signature=None)
-    assert result is None
 
 
 def test_merchant_tracking_by_number(db, settings, merchant_ctx, dispatch_order) -> None:

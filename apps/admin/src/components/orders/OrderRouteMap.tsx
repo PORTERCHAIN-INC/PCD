@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AdvancedMarker, Map, Polyline } from "@vis.gl/react-google-maps";
 import { Pause, Play } from "lucide-react";
-import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
-import { isGoogleMapsConfigured } from "@/lib/maps";
+import { OsmMap, type MapLine, type MapPoint } from "@/components/maps/OsmMap";
+import { MAP_COLORS } from "@/components/maps/mapColors";
 import { useApiData } from "@/hooks/useApiData";
 import { ops } from "@/lib/operations";
-
-const FALLBACK_CENTER = { lat: 43.6532, lng: -79.3832 };
 
 function RouteMapInner({ orderId }: { orderId: string }) {
   const { data } = useApiData((t) => ops.routeGeometry(t, orderId), [orderId], {
@@ -18,9 +15,8 @@ function RouteMapInner({ orderId }: { orderId: string }) {
     key: "ops-playback",
   });
 
-  const path = useMemo(() => (data?.path ?? []).map(([lat, lng]) => ({ lat, lng })), [data]);
   const trail = useMemo(
-    () => (playback?.points ?? []).map((p) => ({ lat: p.lat, lng: p.lng })),
+    () => (playback?.points ?? []).map((p) => [p.lat, p.lng] as [number, number]),
     [playback]
   );
   const [cursor, setCursor] = useState(0);
@@ -45,9 +41,32 @@ function RouteMapInner({ orderId }: { orderId: string }) {
     return () => window.clearInterval(id);
   }, [playing, trail.length]);
 
-  const center = trail[0] ?? path[0] ?? FALLBACK_CENTER;
-  const visibleTrail = trail.slice(0, Math.max(1, cursor + 1));
-  const tip = trail[cursor];
+  const points = useMemo<MapPoint[]>(() => {
+    const out: MapPoint[] = (data?.stops ?? []).map((s, i) => ({
+      id: `stop-${i}`,
+      lat: s.lat,
+      lng: s.lng,
+      title: s.label,
+      color:
+        s.kind === "pickup"
+          ? MAP_COLORS.pickup
+          : s.kind === "dropoff"
+            ? MAP_COLORS.drop
+            : MAP_COLORS.via,
+    }));
+    const tip = trail[cursor];
+    if (tip) out.push({ id: "tip", lat: tip[0], lng: tip[1], color: MAP_COLORS.trail, size: 7 });
+    return out;
+  }, [data, trail, cursor]);
+  const lines = useMemo<MapLine[]>(() => {
+    const out: MapLine[] = [];
+    if ((data?.path?.length ?? 0) > 1)
+      out.push({ id: "route", path: data!.path, color: MAP_COLORS.route, opacity: 0.45 });
+    const shown = trail.slice(0, Math.max(1, cursor + 1));
+    if (shown.length > 1)
+      out.push({ id: "trail", path: shown, color: MAP_COLORS.trail, width: 3, opacity: 0.95 });
+    return out;
+  }, [data, trail, cursor]);
 
   if (!data) {
     return <div className="h-52 animate-pulse rounded-xl bg-gray-bg" />;
@@ -56,50 +75,12 @@ function RouteMapInner({ orderId }: { orderId: string }) {
   return (
     <div className="space-y-2">
       <div className="relative overflow-hidden rounded-xl border border-primary/10">
-        <Map
-          defaultCenter={center}
-          defaultZoom={11}
-          gestureHandling="greedy"
-          disableDefaultUI
-          mapId="admin-order-route"
-          style={{ height: 208 }}
-        >
-          {data.stops.map((s, i) => (
-            <AdvancedMarker key={i} position={{ lat: s.lat, lng: s.lng }} title={s.label}>
-              <div
-                className={
-                  s.kind === "pickup"
-                    ? "rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white"
-                    : s.kind === "dropoff"
-                      ? "rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white"
-                      : "h-3 w-3 rounded-full border-2 border-white bg-amber-500 shadow"
-                }
-              >
-                {s.kind === "pickup" ? "P" : s.kind === "dropoff" ? "D" : null}
-              </div>
-            </AdvancedMarker>
-          ))}
-          {path.length > 1 && (
-            <Polyline path={path} strokeColor="#7c3aed" strokeWeight={4} strokeOpacity={0.45} />
-          )}
-          {visibleTrail.length > 1 && (
-            <Polyline
-              path={visibleTrail}
-              strokeColor="#0ea5e9"
-              strokeWeight={3}
-              strokeOpacity={0.95}
-            />
-          )}
-          {tip && (
-            <AdvancedMarker position={tip} title="Playback">
-              <div className="h-3.5 w-3.5 rounded-full border-2 border-white bg-sky-500 shadow" />
-            </AdvancedMarker>
-          )}
-        </Map>
+        <OsmMap label="Order route map" points={points} lines={lines} className="h-52 w-full" />
         <span className="absolute bottom-2 right-2 rounded-md bg-white/90 px-2 py-0.5 text-[10px] text-muted shadow">
           {data.source === "valhalla" || data.source === "osrm"
             ? `Road route (${data.source})`
             : "Direct line (not a road ETA)"}
+          {" · © OpenStreetMap"}
           {data.distance_meters != null && ` · ${(data.distance_meters / 1000).toFixed(1)} km`}
           {(data.source === "valhalla" || data.source === "osrm") &&
             data.duration_seconds != null &&
@@ -144,10 +125,5 @@ function RouteMapInner({ orderId }: { orderId: string }) {
 }
 
 export function OrderRouteMap({ orderId }: { orderId: string }) {
-  if (!isGoogleMapsConfigured()) return null;
-  return (
-    <GoogleMapsProvider>
-      <RouteMapInner orderId={orderId} />
-    </GoogleMapsProvider>
-  );
+  return <RouteMapInner orderId={orderId} />;
 }

@@ -184,7 +184,7 @@ class DiagnosticsProbesMixin:
             "details": {
                 "used_for_routing": False,
                 "routing_engine": platform.routing_engine or "valhalla",
-                "note": "Valhalla, then OSRM. Optimization stays inside Fleetbase. Google is not required.",
+                "note": "Valhalla, then OSRM. Optimization is OR-Tools (cuOpt optional). Google is not required.",
             },
         }
 
@@ -312,7 +312,7 @@ class DiagnosticsProbesMixin:
 
     def _probe_websockets(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
         ws_url = f"{settings.porterchain_api_url.rstrip('/')}/v1/orders/ws"
-        warnings = ["Realtime execution GPS streams from Fleetbase SocketCluster (via console); public tracking WS at /v1/orders/ws"]
+        warnings = ["Realtime GPS is the driver app's last-known pin; public tracking WS at /v1/orders/ws"]
         if live:
             warnings.append(f"Endpoint: {ws_url}")
         return {"status": "healthy", "warnings": warnings, "details": {"endpoint": ws_url}}
@@ -331,14 +331,21 @@ class DiagnosticsProbesMixin:
         return {"status": status, "warnings": warnings, "details": {"queue_depths": depths}}
 
     def _probe_scheduled_jobs(self, db: Session) -> dict[str, Any]:
-        from porterchain_api.platform.retired_sync import ErrorQueue
+        """Worker liveness: job offers past expiry that the sweep has not cascaded."""
+        from datetime import UTC, datetime, timedelta
 
-        stats = ErrorQueue.stats(db)
-        pending = stats.get("pending", 0) + stats.get("retrying", 0)
+        from porterchain_api.dispatch_engine.models import DispatchJobOffer
+
+        stale = (
+            db.query(DispatchJobOffer)
+            .filter(DispatchJobOffer.status == "pending",
+                    DispatchJobOffer.expires_at < datetime.now(UTC) - timedelta(minutes=5))
+            .count()
+        )
         return {
-            "status": "healthy" if pending < 500 else "warning",
-            "details": {"fleetbase_retry_pending": pending},
-            "warnings": ["High retry queue"] if pending >= 500 else [],
+            "status": "healthy" if stale == 0 else "warning",
+            "details": {"stale_job_offers": stale},
+            "warnings": ["Worker not sweeping expired job offers"] if stale else [],
         }
 
     def _probe_event_bus(self, platform: PlatformSettings, *, smoke_test: bool = False) -> dict[str, Any]:

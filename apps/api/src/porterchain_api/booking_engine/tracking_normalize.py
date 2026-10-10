@@ -1,18 +1,15 @@
 """TrackingFacade — single normalize path for live order tracking.
 
 Every portal (admin, merchant, customer, public website) reads live tracking
-through this facade. Prefer the assigned driver's Redis ``last_known`` pin.
-Ops-mirror tracker payloads are a legacy fallback when a Fleetbase order id
-still has mirrored data.
+through this facade: the assigned driver's Redis ``last_known`` pin.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from porterchain_api.config import Settings
-from porterchain_api.dispatch_engine import ops_mirror
 from porterchain_api.booking_engine.tracking_translator import TrackingTranslator
+from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order
 
 
@@ -31,10 +28,7 @@ class TrackingFacade:
                 "source": "last_known",
                 "driver_id": known.driver_id,
             }
-        if not order.fleetbase_order_id:
-            return None
-        payload, _source = ops_mirror.read_tracking(order.fleetbase_order_id)
-        return payload
+        return None
 
     @staticmethod
     def _last_known_for_order(order: Order) -> Any:
