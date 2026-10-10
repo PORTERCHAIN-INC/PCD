@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import maplibregl, { type GeoJSONSource, type LngLatLike, type Map as MlMap } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
+import type { GeoJSONSource, LngLatLike, MapLayerMouseEvent, Map as MlMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 /** OpenStreetMap raster tiles (no API key). Point NEXT_PUBLIC_MAP_TILE_URL at self-hosted tiles in production. */
@@ -176,7 +177,7 @@ export function OsmMap({
           "circle-stroke-width": 2,
         },
       });
-      m.on("click", "points", (e) => {
+      m.on("click", "points", (e: MapLayerMouseEvent) => {
         const id = e.features?.[0]?.properties?.id;
         if (id && click.current) click.current(String(id));
       });
