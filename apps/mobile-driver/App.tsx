@@ -13,6 +13,7 @@ import {
 import { SessionGate } from "./src/auth/SessionGate";
 import { allowDevAuth } from "./src/config";
 import { completeStopAction } from "./src/hooks/completeStopAction";
+import { useComplianceGate } from "./src/hooks/useComplianceGate";
 import { useDriverDeepLinks } from "./src/hooks/useDriverDeepLinks";
 import { useEnterRoute } from "./src/hooks/useEnterRoute";
 import { useFieldSession } from "./src/hooks/useFieldSession";
@@ -114,6 +115,7 @@ function DriverApp() {
     goOnDuty,
     goOffDuty,
   } = useFieldSession();
+  useComplianceGate(screen !== "sign-in");
 
   useEffect(() => {
     const orderId = handshake.currentOrderId;

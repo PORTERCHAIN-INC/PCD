@@ -7,7 +7,22 @@ import type { DriverProfileSnapshot } from "./profile";
 import type { DriverSupportSnapshot } from "./support";
 import type { DriverCommunicationsSnapshot } from "./communications";
 
-export type GpsStatus = { enabled: boolean; message: string; consent_required?: boolean };
+export type GpsStatus = {
+  enabled: boolean;
+  message: string;
+  consent_required?: boolean;
+  consent_text?: string;
+  policy_url?: string;
+};
+
+export type MonitoringPolicy = {
+  title: string;
+  version: string;
+  date: string;
+  sections: Array<{ heading: string; body?: string; items?: string[] }>;
+  acknowledged: boolean;
+  acknowledgment: { version: string; at: string; source: string } | null;
+};
 
 export const API_BASE = "/api/driver";
 
@@ -329,6 +344,12 @@ export const driverApi = {
         : "/v1/navigation/route"
     ),
   gpsStatus: () => driverFetch<GpsStatus>("/v1/gps-status"),
+  monitoringPolicy: () => driverFetch<MonitoringPolicy>("/v1/monitoring-policy"),
+  ackMonitoringPolicy: () =>
+    driverFetch<MonitoringPolicy>("/v1/monitoring-policy/ack", {
+      method: "POST",
+      body: JSON.stringify({ source: "portal" }),
+    }),
   gpsConsent: (accepted: boolean) =>
     driverFetch<GpsStatus>("/v1/gps-consent", {
       method: "POST",

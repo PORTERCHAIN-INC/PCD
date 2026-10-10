@@ -186,9 +186,43 @@ export function rejectOrder(orderId: string, reason = "unavailable"): Promise<un
   });
 }
 
+export type GpsStatus = {
+  enabled: boolean;
+  message: string;
+  consent_required?: boolean;
+  consent_text?: string;
+};
+
 /** Is live location sharing on for this driver? (PorterChain admin switch) */
-export function fetchGpsStatus(): Promise<{ enabled: boolean; message: string }> {
-  return driverFetch(`${DRIVER_API}/gps-status`) as Promise<{ enabled: boolean; message: string }>;
+export function fetchGpsStatus(): Promise<GpsStatus> {
+  return driverFetch(`${DRIVER_API}/gps-status`) as Promise<GpsStatus>;
+}
+
+export function sendGpsConsent(accepted: boolean): Promise<GpsStatus> {
+  return driverFetch(`${DRIVER_API}/gps-consent`, {
+    method: "POST",
+    body: JSON.stringify({ accepted, source: "app" }),
+  }) as Promise<GpsStatus>;
+}
+
+export type MonitoringPolicy = {
+  title: string;
+  version: string;
+  date: string;
+  sections: Array<{ heading: string; body?: string; items?: string[] }>;
+  acknowledged: boolean;
+};
+
+/** Ontario ESA electronic monitoring policy (view anytime; acknowledge per version). */
+export function fetchMonitoringPolicy(): Promise<MonitoringPolicy> {
+  return driverFetch(`${DRIVER_API}/monitoring-policy`) as Promise<MonitoringPolicy>;
+}
+
+export function ackMonitoringPolicy(): Promise<MonitoringPolicy> {
+  return driverFetch(`${DRIVER_API}/monitoring-policy/ack`, {
+    method: "POST",
+    body: JSON.stringify({ source: "app" }),
+  }) as Promise<MonitoringPolicy>;
 }
 
 export function pingLocation(

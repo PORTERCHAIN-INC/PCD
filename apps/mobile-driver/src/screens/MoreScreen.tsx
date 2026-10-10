@@ -11,6 +11,7 @@ import {
   shiftResume,
 } from "../api";
 import { fieldWarning, humanFieldCopy } from "../fieldCopy";
+import { showMonitoringPolicy } from "../hooks/useComplianceGate";
 import { clearSession } from "../session";
 import { Card, CardTitle, Kpi } from "../ui/Card";
 import { PrimaryButton } from "../ui/PrimaryButton";
@@ -216,6 +217,11 @@ export function MoreScreen({ handshake, onOpenInbox, onOpenSupport, onSignedOut 
         </Card>
         <Card>
           <CardTitle>Account</CardTitle>
+          <PrimaryButton
+            tone="ghost"
+            label="Electronic monitoring policy"
+            onPress={showMonitoringPolicy}
+          />
           <PrimaryButton
             tone="ghost"
             label={signingOut ? "Signing out…" : "Sign out"}

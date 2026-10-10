@@ -83,6 +83,11 @@ function NavigationPageContent() {
                 I agree — share my location on shift
               </button>
             )}
+            {gps.consent_required && (
+              <a href="/monitoring-policy" className="mt-2 block font-semibold underline">
+                Read the Electronic Monitoring Policy
+              </a>
+            )}
           </p>
         )}
       </header>

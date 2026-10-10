@@ -34,7 +34,7 @@ _TTL = 30.0
 
 
 def default_driver_gps() -> dict[str, Any]:
-    return {"enabled": True, "disabled_driver_ids": [], "require_consent": False}
+    return {"enabled": True, "disabled_driver_ids": [], "require_consent": True}
 
 
 def normalize_driver_gps(raw: Any) -> dict[str, Any]:
@@ -47,7 +47,7 @@ def normalize_driver_gps(raw: Any) -> dict[str, Any]:
     return {
         "enabled": bool(src.get("enabled", True)),
         "disabled_driver_ids": sorted({str(i) for i in ids if i}),
-        "require_consent": bool(src.get("require_consent", False)),
+        "require_consent": bool(src.get("require_consent", True)),
     }
 
 
@@ -123,6 +123,7 @@ def driver_gps_status(driver_id: str, db: Any | None = None, driver: Any | None 
         "consent": consent,
         "consent_version": CONSENT_VERSION,
         "consent_text": CONSENT_TEXT,
+        "policy_url": "/monitoring-policy",  # Ontario ESA electronic monitoring policy
     }
 
 

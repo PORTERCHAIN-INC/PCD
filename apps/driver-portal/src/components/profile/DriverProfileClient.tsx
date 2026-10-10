@@ -425,6 +425,14 @@ export default function DriverProfileClient() {
                 </a>
               </div>
             )}
+            <div className="pt-2">
+              <a
+                href="/monitoring-policy"
+                className="text-sm font-semibold text-[var(--secondary)] underline"
+              >
+                Electronic monitoring policy
+              </a>
+            </div>
             {snap.contract.notes && (
               <p className="mt-2 text-xs text-[var(--muted)]">{snap.contract.notes}</p>
             )}

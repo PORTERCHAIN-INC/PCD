@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import DriverShell from "@/components/DriverShell";
+import DriverComplianceGate from "@/components/compliance/DriverComplianceGate";
 
 const BARE = ["/login", "/onboarding", "/impersonate"];
 
@@ -10,5 +11,10 @@ export default function DriverFrame({ children }: { children: React.ReactNode })
   if (BARE.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
     return children;
   }
-  return <DriverShell>{children}</DriverShell>;
+  return (
+    <DriverShell>
+      <DriverComplianceGate />
+      {children}
+    </DriverShell>
+  );
 }

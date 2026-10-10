@@ -39,3 +39,25 @@ def gps_consent(
     if not accepted:
         forget_positions([str(ctx.driver.id)])
     return driver_gps_status(str(ctx.driver.id), db, ctx.driver)
+
+
+@router.get("/monitoring-policy")
+def monitoring_policy(ctx: Annotated[DriverContext, Depends(get_driver_context)]) -> dict:
+    """Ontario ESA electronic monitoring policy + whether I have acknowledged this version."""
+    from porterchain_api.platform.monitoring_policy import driver_view
+
+    return driver_view(ctx.driver)
+
+
+@router.post("/monitoring-policy/ack")
+def monitoring_policy_ack(
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db),
+    body: dict | None = None,
+) -> dict:
+    """Record a timestamped, versioned acknowledgment on the driver record."""
+    from porterchain_api.platform.monitoring_policy import acknowledge, driver_view
+
+    with db_transaction(db):
+        acknowledge(ctx.driver, source=str((body or {}).get("source") or "portal"))
+    return driver_view(ctx.driver)

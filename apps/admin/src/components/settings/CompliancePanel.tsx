@@ -246,6 +246,31 @@ export default function CompliancePanel() {
       <Card title="DPIA — driver GPS">
         <p className="text-xs leading-relaxed">{o.dpia_gps}</p>
       </Card>
+      {o.monitoring_policy ? (
+        <Card title="Electronic monitoring policy (Ontario ESA)">
+          <p className="text-xs text-muted">
+            Version {o.monitoring_policy.version} · effective {o.monitoring_policy.date} ·{" "}
+            {o.monitoring_policy.acknowledged}/{o.monitoring_policy.drivers} drivers acknowledged
+            {o.monitoring_policy.pending ? ` · ${o.monitoring_policy.pending} pending` : ""}
+          </p>
+          <details className="mt-2 text-xs leading-relaxed">
+            <summary className="cursor-pointer font-semibold">Read policy</summary>
+            {o.monitoring_policy.sections.map((sec: O) => (
+              <div key={sec.heading} className="mt-2">
+                <p className="font-semibold">{sec.heading}</p>
+                {sec.body ? <p>{sec.body}</p> : null}
+                {sec.items ? (
+                  <ul className="list-disc pl-4">
+                    {sec.items.map((i: string) => (
+                      <li key={i}>{i}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ))}
+          </details>
+        </Card>
+      ) : null}
     </div>
   );
 }

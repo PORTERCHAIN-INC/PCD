@@ -1,5 +1,6 @@
 "use client";
 
+import MonitoringPolicyView from "@/components/compliance/MonitoringPolicyView";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -91,7 +92,8 @@ export default function DriverOnboardingView({
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main className="mx-auto max-w-3xl space-y-4 px-4 py-8">
+        <MonitoringPolicyView compact />
         <div className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50">
