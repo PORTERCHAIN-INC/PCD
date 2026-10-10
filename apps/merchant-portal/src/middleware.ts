@@ -2,7 +2,6 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { hasClerkSessionHint } from "@porterchain/auth/clerkEdgeSession";
 import { NextResponse } from "next/server";
-import { EMBEDDED_HEADER } from "@/lib/shopifyEmbed";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -22,12 +21,6 @@ export default clerkMiddleware(
   async (auth, req) => {
     // Local: API Bearer `dev` — do not send the browser through Clerk.
     if (clerkDevBypassEnabled()) return;
-    if (req.nextUrl.pathname.startsWith("/shopify-app")) {
-      // Root layout puts App Bridge first in <head> only for the embedded app.
-      const headers = new Headers(req.headers);
-      headers.set(EMBEDDED_HEADER, "1");
-      return NextResponse.next({ request: { headers } });
-    }
     if (isPublicRoute(req)) return;
     if (req.cookies.get("pc_imp_bearer")?.value?.startsWith("pc_imp_")) return;
 

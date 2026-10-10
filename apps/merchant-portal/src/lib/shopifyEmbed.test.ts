@@ -2,10 +2,25 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { APP_BRIDGE_SRC, shopifyApiKey } from "./shopifyEmbed.ts";
+import { APP_BRIDGE_SRC, embeddedAppHtml, shopifyApiKey } from "./shopifyEmbed.ts";
 
-test("App Bridge loads from Shopify's CDN", () => {
-  assert.equal(APP_BRIDGE_SRC, "https://cdn.shopify.com/shopifycloud/app-bridge.js");
+const html = embeddedAppHtml({
+  apiKey: "85df9348abc",
+  apiUrl: "https://api.porterchain.com",
+  portalUrl: "https://merchant.porterchain.com",
+});
+
+test("api-key meta then App Bridge are the first things in <head>", () => {
+  const head = html.slice(html.indexOf("<head>") + 6, html.indexOf("</head>")).trim();
+  assert.ok(head.startsWith('<meta name="shopify-api-key" content="85df9348abc" />'));
+  const firstScript = head.match(/<script[^>]*>/)?.[0];
+  assert.equal(firstScript, `<script src="${APP_BRIDGE_SRC}">`);
+  assert.doesNotMatch(firstScript ?? "", /async|defer|type=/);
+});
+
+test("page states the 150 km service area and posts the session token", () => {
+  assert.match(html, /Toronto and up to 150 km/);
+  assert.match(html, /\/v1\/integrations\/shopify\/session/);
 });
 
 test("api key is read at request time from SHOPIFY_API_KEY", () => {
@@ -13,7 +28,7 @@ test("api key is read at request time from SHOPIFY_API_KEY", () => {
   assert.equal(shopifyApiKey(), "abc123");
 });
 
-test("prod compose passes SHOPIFY_API_KEY to the merchant portal", () => {
+test("prod compose passes SHOPIFY_API_KEY (not the secret) to the merchant portal", () => {
   const compose = readFileSync(
     new URL("../../../../infrastructure/deploy/docker-compose.prod.yml", import.meta.url),
     "utf8"
