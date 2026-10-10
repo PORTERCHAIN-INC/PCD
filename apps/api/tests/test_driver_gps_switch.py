@@ -36,7 +36,7 @@ def _reset():
 
 
 def test_normalize_and_defaults():
-    assert gps_policy.normalize_driver_gps(None)["require_consent"] is False
+    assert gps_policy.normalize_driver_gps(None)["require_consent"] is True
     with pytest.raises(ValueError):
         gps_policy.normalize_driver_gps({"disabled_driver_ids": "x"})
 
@@ -91,7 +91,7 @@ def test_saving_off_forgets_pins(monkeypatch):
 
 
 def test_track_is_empty_when_off_and_matched_when_on(db):
-    from porterchain_api.admin_engine.maps_extras import driver_track
+    from porterchain_api.platform.maps_extras import driver_track
 
     gps_policy.set_policy_cache({"enabled": False})
     assert driver_track(db, "d1")["path"] == []
@@ -108,7 +108,7 @@ def test_track_is_empty_when_off_and_matched_when_on(db):
 
 
 def test_service_area_parses_isochrone():
-    from porterchain_api.admin_engine import maps_extras
+    from porterchain_api.platform import maps_extras
 
     maps_extras._AREA_CACHE.clear()
 
@@ -161,13 +161,15 @@ def test_consent_record_withdraw_and_require(db):
 
     d = SimpleNamespace(id="d9", documents={})
     gps_policy.set_policy_cache({"enabled": True})
-    assert driver_gps_status("d9", driver=d)["enabled"] is True  # not required by default
+    assert driver_gps_status("d9", driver=d)["consent_required"] is True  # required by default
+    gps_policy.set_policy_cache({"enabled": True, "require_consent": False})
+    assert driver_gps_status("d9", driver=d)["enabled"] is True
     gps_policy.set_policy_cache({"enabled": True, "require_consent": True})
     s = driver_gps_status("d9", driver=d)
     assert s["enabled"] is False and s["consent_required"] is True and "on shift" in s["consent_text"]
     record_consent(d, accepted=True)
     assert driver_gps_status("d9", driver=d)["enabled"] is True and d.documents["gps_consent"]["at"]
-    gps_policy.set_policy_cache({"enabled": True})
+    gps_policy.set_policy_cache({"enabled": True, "require_consent": False})
     record_consent(d, accepted=False)  # withdrawal stops collection even when not required
     assert driver_gps_status("d9", driver=d)["enabled"] is False
     assert len(d.documents["gps_consent_history"]) == 2

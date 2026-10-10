@@ -1,4 +1,4 @@
-"""Self-hosted map extras: map-matched driver track and the service-area isochrone."""
+"""Self-hosted map extras: map-matched driver track (breadcrumb history; GPS-policy gated) and the service-area isochrone."""
 
 from __future__ import annotations
 
