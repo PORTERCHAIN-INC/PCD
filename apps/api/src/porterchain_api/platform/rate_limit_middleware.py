@@ -28,6 +28,8 @@ _PREFIXES = (
     "/v1/express/",
     "/v1/email-preferences",
     "/driver-api/",
+    # Public, unauthenticated reads: per-IP cap stops tracking-number enumeration.
+    "/v1/orders/",
 )
 _EXEMPT_PREFIXES = (
     "/health",

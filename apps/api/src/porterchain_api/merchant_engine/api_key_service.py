@@ -106,6 +106,9 @@ class MerchantApiKeyService:
         env = (environment or "sandbox").lower()
         if env not in {"sandbox", "production"}:
             raise ValueError("invalid_webhook_environment")
+        from porterchain_api.platform.outbound_url import assert_public_https_url
+
+        assert_public_https_url(url)  # SSRF: public https only (raises ValueError)
         secret = secrets.token_urlsafe(24)
         record = MerchantWebhook(
             merchant_id=ctx.merchant.id,

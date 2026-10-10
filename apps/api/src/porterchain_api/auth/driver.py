@@ -60,7 +60,7 @@ async def get_driver_context(
     driver = db.query(Driver).filter(Driver.id == driver_id).first()
     if not driver:
         raise HTTPException(status_code=404, detail="driver_not_found")
-    if driver.status == DriverStatus.SUSPENDED.value:
+    if driver.status in (DriverStatus.SUSPENDED.value, DriverStatus.REJECTED.value):
         raise HTTPException(status_code=403, detail="driver_suspended")
     _assert_driver_self_scope(db, driver)
     return DriverContext(driver=driver)

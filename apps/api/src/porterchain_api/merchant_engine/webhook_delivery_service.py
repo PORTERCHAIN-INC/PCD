@@ -101,8 +101,14 @@ def deliver_webhook_payload(
         "X-Porterchain-Signature": signature,
         "X-Porterchain-Timestamp": str(timestamp),
     }
+    from porterchain_api.platform.outbound_url import UnsafeUrl, assert_public_https_url
+
     try:
-        response = httpx.post(url, content=body_bytes, headers=headers, timeout=15.0)
+        assert_public_https_url(url)  # re-check at send time (DNS rebinding)
+    except UnsafeUrl as exc:
+        return None, "", str(exc)
+    try:
+        response = httpx.post(url, content=body_bytes, headers=headers, timeout=15.0, follow_redirects=False)
         return response.status_code, response.text[:2000], None
     except httpx.HTTPError as exc:
         return None, "", str(exc)
