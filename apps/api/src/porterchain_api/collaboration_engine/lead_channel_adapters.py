@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import re
 import uuid
 from typing import Any
 
@@ -108,6 +109,84 @@ def _meta_leadgen_event(value: dict[str, Any], *, entry_id: str) -> CanonicalLea
     )
 
 
+_PREFILL_UTM = re.compile(r"(utm_(?:source|medium|campaign|term|content))=([^&\s]+)")
+_PREFILL_PAGE = re.compile(r"(?:^|\s)page=(\S+)")
+_PREFILL_CLAIM = re.compile(r"(?:^|\s)(?:claim|vid|visitor)=([A-Za-z0-9_-]{6,64})")
+
+
+def parse_prefill_tags(body: str) -> dict[str, str]:
+    """Read the website's wa.me prefill tags (utm_*, page=, claim=<visitor id>)."""
+    out: dict[str, str] = {}
+    text = body or ""
+    for key, value in _PREFILL_UTM.findall(text):
+        out[key] = value[:128]
+    page = _PREFILL_PAGE.search(text)
+    if page:
+        out["landing_page"] = page.group(1)[:512]
+    claim = _PREFILL_CLAIM.search(text)
+    if claim:
+        out["visitor_claim"] = claim.group(1)
+    return out
+
+
+def whatsapp_message_body(msg: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    """Readable text + metadata for every WhatsApp Cloud message type.
+
+    Media is not downloaded (ids expire; fetch via Graph when needed) — the
+    thread shows a placeholder with the caption and keeps the media id.
+    """
+    mtype = str(msg.get("type") or "")
+    meta: dict[str, Any] = {"wa_type": mtype}
+    if mtype == "text":
+        return str((msg.get("text") or {}).get("body") or ""), meta
+    if mtype == "button":
+        return str((msg.get("button") or {}).get("text") or ""), meta
+    if mtype == "interactive":
+        inter = msg.get("interactive") or {}
+        reply = inter.get("button_reply") or inter.get("list_reply") or {}
+        meta["reply_id"] = reply.get("id")
+        title = str(reply.get("title") or "")
+        desc = str(reply.get("description") or "")
+        return (f"{title} — {desc}" if desc else title) or "[interactive reply]", meta
+    if mtype in ("image", "document", "video", "audio", "sticker"):
+        media = msg.get(mtype) or {}
+        meta.update(
+            {
+                "media_id": media.get("id"),
+                "mime_type": media.get("mime_type"),
+                "filename": media.get("filename"),
+            }
+        )
+        label = {"audio": "voice note"}.get(mtype, mtype)
+        name = media.get("filename")
+        caption = str(media.get("caption") or "").strip()
+        head = f"[{label}{': ' + str(name) if name else ''}]"
+        return f"{head} {caption}".strip(), meta
+    if mtype == "location":
+        loc = msg.get("location") or {}
+        meta.update(
+            {
+                "latitude": loc.get("latitude"),
+                "longitude": loc.get("longitude"),
+                "name": loc.get("name"),
+                "address": loc.get("address"),
+            }
+        )
+        label = ", ".join(str(x) for x in (loc.get("name"), loc.get("address")) if x)
+        coords = f"{loc.get('latitude')},{loc.get('longitude')}"
+        return f"[location] {label} ({coords})".strip(), meta
+    if mtype == "contacts":
+        names = [
+            str(((c.get("name") or {}).get("formatted_name")) or "")
+            for c in (msg.get("contacts") or [])
+        ]
+        return f"[contact card] {', '.join(n for n in names if n)}".strip(), meta
+    if mtype in ("reaction", "unsupported", "system", "ephemeral"):
+        return "", meta  # nothing a human needs to answer
+    return f"[{mtype or 'message'}]", meta
+
+
+
 def _messaging_events(value: dict[str, Any], *, object_type: str) -> list[CanonicalLeadEvent]:
     events: list[CanonicalLeadEvent] = []
     contacts = {c.get("wa_id"): c for c in (value.get("contacts") or []) if c.get("wa_id")}
@@ -116,11 +195,10 @@ def _messaging_events(value: dict[str, Any], *, object_type: str) -> list[Canoni
         contact = contacts.get(wa_id) or {}
         profile = (contact.get("profile") or {}) if isinstance(contact, dict) else {}
         name = str(profile.get("name") or wa_id or "WhatsApp contact")
-        body = ""
-        if msg.get("type") == "text":
-            body = str((msg.get("text") or {}).get("body") or "")
-        elif msg.get("type") == "button":
-            body = str((msg.get("button") or {}).get("text") or "")
+        body, meta = whatsapp_message_body(msg)
+        if not body:
+            continue
+        prefill = parse_prefill_tags(body)
         mid = str(msg.get("id") or uuid.uuid4())
         channel = (
             LeadSourceChannel.WHATSAPP.value
@@ -146,7 +224,20 @@ def _messaging_events(value: dict[str, Any], *, object_type: str) -> list[Canoni
                 priority=LeadPriority.HIGH.value,
                 message=body or None,
                 tags=["meta", "dm", source],
-                custom_fields={"meta_message_type": msg.get("type"), "wa_id": wa_id},
+                custom_fields={
+                    "meta_message_type": msg.get("type"),
+                    "wa_id": wa_id,
+                    **{k: v for k, v in prefill.items() if k != "visitor_claim"},
+                    **(
+                        {"wa_visitor_claim": prefill["visitor_claim"]}
+                        if prefill.get("visitor_claim")
+                        else {}
+                    ),
+                    "message_meta": meta,
+                },
+                attribution={
+                    k: v for k, v in prefill.items() if k.startswith("utm_") and v
+                },
                 external_ids=ext,
                 seed_conversation=True,
             )

@@ -25,7 +25,7 @@ _AGENT_CF = "lead_agent"
 def _agent_enabled() -> bool:
     from porterchain_api.config import get_settings
 
-    return bool(getattr(get_settings(), "lead_agent_auto_send", True))
+    return bool(getattr(get_settings(), "lead_agent_auto_send", False))
 
 
 def _set_cf(lead: CrmLead, patch: dict[str, Any]) -> None:

@@ -236,9 +236,11 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("lead_sla_minutes_json", "LEAD_SLA_MINUTES_JSON"),
     )
-    #: Zero-human lead agent: auto-enqueue welcome email/WhatsApp when gates pass.
+    #: Lead agent auto-send (welcome email / WhatsApp auto-reply / nurture steps).
+    #: OFF by default since 2026-10: replies are drafted instantly and wait for a
+    #: staff "Send". Set LEAD_AGENT_AUTO_SEND=true only as a deliberate opt-in.
     lead_agent_auto_send: bool = Field(
-        default=True,
+        default=False,
         validation_alias=AliasChoices("lead_agent_auto_send", "LEAD_AGENT_AUTO_SEND"),
     )
     #: Meta WhatsApp Cloud — System User token (whatsapp_business_messaging).
@@ -261,6 +263,85 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices(
             "meta_wa_template_map_json", "META_WA_TEMPLATE_MAP_JSON"
+        ),
+    )
+    #: Lead desk — owner alert email for new high-priority leads ("" = assignee only).
+    lead_alert_email: str = Field(
+        default="",
+        validation_alias=AliasChoices("lead_alert_email", "LEAD_ALERT_EMAIL"),
+    )
+    #: SMS alert to LEAD_ALERT_SMS_TO — only when this is true AND Twilio is configured.
+    lead_alert_sms_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("lead_alert_sms_enabled", "LEAD_ALERT_SMS_ENABLED"),
+    )
+    lead_alert_sms_to: str = Field(
+        default="",
+        validation_alias=AliasChoices("lead_alert_sms_to", "LEAD_ALERT_SMS_TO"),
+    )
+    #: Optional LLM polish for drafts / score notes (needs NVIDIA NIM key). Rules work without it.
+    lead_ai_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("lead_ai_enabled", "LEAD_AI_ENABLED"),
+    )
+    #: Unified lead inbox — WhatsApp Cloud replies/inbound are OFF until this is true
+    #: (and META_WA_ACCESS_TOKEN + META_WA_PHONE_NUMBER_ID are set).
+    whatsapp_cloud_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("whatsapp_cloud_enabled", "WHATSAPP_CLOUD_ENABLED"),
+    )
+    #: Lead reply email: "" (disabled) | "zeptomail" (HTTPS API, SMTP_PASSWORD token)
+    #: | "zoho_smtp" (Zoho Mail SMTP with an app password).
+    lead_reply_email_transport: str = Field(
+        default="",
+        validation_alias=AliasChoices("lead_reply_email_transport", "LEAD_REPLY_EMAIL_TRANSPORT"),
+    )
+    lead_reply_from: str = Field(
+        default="sales@porterchain.com",
+        validation_alias=AliasChoices("lead_reply_from", "LEAD_REPLY_FROM"),
+    )
+    lead_reply_from_name: str = Field(
+        default="PorterChain Sales",
+        validation_alias=AliasChoices("lead_reply_from_name", "LEAD_REPLY_FROM_NAME"),
+    )
+    zoho_smtp_host: str = Field(
+        default="smtp.zoho.com",
+        validation_alias=AliasChoices("zoho_smtp_host", "ZOHO_SMTP_HOST"),
+    )
+    zoho_smtp_port: int = Field(
+        default=465, validation_alias=AliasChoices("zoho_smtp_port", "ZOHO_SMTP_PORT")
+    )
+    #: Zoho mailbox login (e.g. sales@porterchain.com) — shared by SMTP + IMAP.
+    zoho_mail_user: str = Field(
+        default="", validation_alias=AliasChoices("zoho_mail_user", "ZOHO_MAIL_USER")
+    )
+    #: Zoho *app-specific* password (never the account password). Secret store only.
+    zoho_mail_app_password: str = Field(
+        default="",
+        validation_alias=AliasChoices("zoho_mail_app_password", "ZOHO_MAIL_APP_PASSWORD"),
+    )
+    #: Inbound email → lead threads by polling the Zoho mailbox over IMAP (worker).
+    lead_inbound_imap_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("lead_inbound_imap_enabled", "LEAD_INBOUND_IMAP_ENABLED"),
+    )
+    zoho_imap_host: str = Field(
+        default="imap.zoho.com",
+        validation_alias=AliasChoices("zoho_imap_host", "ZOHO_IMAP_HOST"),
+    )
+    zoho_imap_folder: str = Field(
+        default="INBOX", validation_alias=AliasChoices("zoho_imap_folder", "ZOHO_IMAP_FOLDER")
+    )
+    #: HMAC secret for POST /v1/public/mail/inbound (forwarder / parse webhook).
+    lead_inbound_email_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices("lead_inbound_email_secret", "LEAD_INBOUND_EMAIL_SECRET"),
+    )
+    #: Unknown senders writing to sales@ create a new lead (else: only thread to existing).
+    lead_inbound_email_create_leads: bool = Field(
+        default=True,
+        validation_alias=AliasChoices(
+            "lead_inbound_email_create_leads", "LEAD_INBOUND_EMAIL_CREATE_LEADS"
         ),
     )
     #: Referral credit (cents) granted when a referred lead converts to merchant.

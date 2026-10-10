@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_draft_models import BookingDraft
@@ -60,6 +61,85 @@ def _apply_spine(
         lead.consent = c
 
 
+def _retail_display_name(db: Session, *, customer_id: str | None, email: str) -> str:
+    """Retail lead label: the customer's name, else their email — never an address."""
+    from porterchain_api.booking_models import Customer
+
+    customer = db.get(Customer, customer_id) if customer_id else None
+    name = (getattr(customer, "full_name", None) or "").strip()
+    if name:
+        return name[:255]
+    return (email or "Retail customer").strip()[:255]
+
+
+def mark_booking_lead_converted(
+    db: Session,
+    *,
+    quote_id: str,
+    order_id: str,
+    customer_id: str | None = None,
+    email: str | None = None,
+) -> CrmLead | None:
+    """Paid website booking → CRM lead converted + linked to the order. Flush only.
+
+    Idempotent; also repairs the legacy pickup-address company name.
+    """
+    from porterchain_api.collaboration_engine.crm_helpers import _now
+    from porterchain_api.domain.crm_states import LeadDecisionStatus
+
+    quote_id_expr = json_text(CrmLead.custom_fields, "quote_id")
+    lead = (
+        db.query(CrmLead)
+        .filter((CrmLead.quote_id == quote_id) | (quote_id_expr == quote_id))
+        .first()
+    )
+    if lead is None and (email or "").strip():
+        # Quoted/replied sales lead who booked through the link → that lead is Won.
+        lead = (
+            db.query(CrmLead)
+            .filter(
+                func.lower(CrmLead.email) == email.strip().lower(),
+                CrmLead.status.in_(("new", "replied", "quoted")),
+            )
+            .order_by(CrmLead.created_at.desc())
+            .first()
+        )
+    if lead is None:
+        return None
+    now = _now()
+    from porterchain_api.collaboration_engine.lead_pipeline import mark_won
+
+    mark_won(lead, order_id=order_id)
+    lead.order_id = order_id
+    lead.status = LeadStatus.WON.value
+    lead.decision_status = LeadDecisionStatus.CONVERTED.value
+    lead.awaiting_reply = False
+    lead.sla_first_response_due_at = None
+    lead.last_touch_at = now
+    fields = dict(lead.custom_fields or {})
+    fields["stage"] = "paid"
+    fields["order_id"] = order_id
+    pickup_label = None
+    pickup = fields.get("pickup")
+    if isinstance(pickup, dict):
+        pickup_label = pickup.get("formatted_address") or pickup.get("address")
+    if (
+        not lead.company_name
+        or lead.company_name == pickup_label
+        or str(lead.company_name).startswith("Retail booking")
+    ):
+        lead.company_name = _retail_display_name(
+            db, customer_id=customer_id or fields.get("customer_id"), email=email or lead.email or ""
+        )
+    lead.custom_fields = fields
+    tags = [t for t in (lead.tags or []) if t != "booking_started"]
+    if "paid" not in tags:
+        tags.append("paid")
+    lead.tags = tags
+    db.flush()
+    return lead
+
+
 def mirror_booking_lead_to_crm(
     db: Session,
     *,
@@ -109,13 +189,7 @@ def mirror_booking_lead_to_crm(
 
     pickup = (quote.pickup or {}) if quote else {}
     dropoff = (quote.dropoff or {}) if quote else {}
-    company_name = (
-        pickup.get("formatted_address")
-        or pickup.get("address")
-        or f"Retail booking ({quote.vehicle_class or 'delivery'})"
-        if quote
-        else "Retail booking"
-    )
+    company_name = _retail_display_name(db, customer_id=customer_id, email=email)
 
     external_ids: dict[str, str] = {}
     if visitor_key:

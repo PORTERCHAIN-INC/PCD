@@ -113,6 +113,14 @@ class LeadOut(_ORM):
     quote_id: str | None = None
     visitor_session_id: str | None = None
     booking_draft_id: str | None = None
+    awaiting_reply: bool = False
+    last_inbound_at: datetime | None = None
+    first_response_at: datetime | None = None
+    order_id: str | None = None
+    quoted_at: datetime | None = None
+    won_at: datetime | None = None
+    lost_at: datetime | None = None
+    lost_reason: str | None = None
     created_at: datetime
     updated_at: datetime
 

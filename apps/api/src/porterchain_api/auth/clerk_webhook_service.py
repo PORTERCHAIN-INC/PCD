@@ -85,6 +85,8 @@ class ClerkWebhookService:
             self._dispatch(db, settings, event_type=event_type, data=data)
             complete_clerk_event(db, clerk_event_id=event_id)
             db.commit()
+            if event_type == "user.created" and _is_driver_signup(data):
+                _record_driver_signup(db, data)
             return {"status": "ok"}
         except Exception:
             db.rollback()
@@ -120,6 +122,39 @@ class ClerkWebhookService:
             issuer=issuer,
             commit=False,
         )
+
+
+def _is_driver_signup(data: dict[str, Any]) -> bool:
+    """Driver app / portal sign-ups tag Clerk metadata with user_type=driver."""
+    for key in ("public_metadata", "unsafe_metadata"):
+        meta = data.get(key) if isinstance(data.get(key), dict) else {}
+        if str(meta.get("user_type") or meta.get("role") or "").lower() == "driver":
+            return True
+    return False
+
+
+def _record_driver_signup(db: Session, data: dict[str, Any]) -> None:
+    """Driver self-sign-up → 'Driver applicants' view (best-effort)."""
+    try:
+        from porterchain_api.collaboration_engine.signup_leads import record_signup_lead
+
+        email, _ = _primary_email(data)
+        name = " ".join(
+            str(data.get(k) or "").strip() for k in ("first_name", "last_name")
+        ).strip()
+        record_signup_lead(
+            db,
+            kind="driver_signup",
+            external_id=str(data.get("id") or ""),
+            email=email,
+            contact_name=name or None,
+            company_name=name or None,
+            phone=_primary_phone(data),
+            extra={"clerk_user_id": data.get("id")},
+        )
+    except Exception:  # noqa: BLE001
+        db.rollback()
+        logger.exception("driver_signup_lead_failed")
 
 
 def _primary_email(data: dict[str, Any]) -> tuple[str | None, bool]:

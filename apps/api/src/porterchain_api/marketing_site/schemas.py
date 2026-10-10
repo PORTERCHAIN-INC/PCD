@@ -71,6 +71,7 @@ class CalculatorLeadRequest(BaseModel):
     source_page: str | None = Field(default=None, max_length=200)
     visitor_id: str | None = Field(default=None, max_length=64)
     hero_variant: str | None = Field(default=None, max_length=16)
+    locale: str | None = Field(default=None, max_length=8)
 
 
 class CalculatorLeadResponse(BaseModel):

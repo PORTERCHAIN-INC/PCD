@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
 import { adminFetch } from "@/lib/api";
 import type { Lead } from "@/lib/crm";
 
@@ -61,14 +62,17 @@ export type LeadAgentActivity = {
   generated_at: string;
 };
 
-export const LEAD_STATUSES = [
-  "new",
-  "contacted",
-  "qualified",
-  "unqualified",
-  "nurturing",
-  "converted",
-  "archived",
+/** Five-stage pipeline (+ archived = hidden). Old names are mapped server-side. */
+export const LEAD_STATUSES = ["new", "replied", "quoted", "won", "lost", "archived"] as const;
+
+export const LOST_REASONS = [
+  { key: "price", label: "Price" },
+  { key: "timing", label: "Timing" },
+  { key: "no_response", label: "No response" },
+  { key: "competitor", label: "Went with a competitor" },
+  { key: "out_of_area", label: "Out of area" },
+  { key: "not_a_fit", label: "Not a fit" },
+  { key: "other", label: "Other" },
 ] as const;
 
 export const LEAD_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
@@ -89,6 +93,10 @@ export const LEAD_CHANNELS = [
   "manual",
   "capacity_guide",
   "website_booking",
+  "email",
+  "app_install",
+  "merchant_signup",
+  "driver_signup",
   "other",
 ] as const;
 
@@ -154,6 +162,10 @@ export type LeadFilters = {
   city?: string;
   tag?: string;
   has_phone?: boolean;
+  /** Unified inbox: someone wrote in and is waiting on us. */
+  awaiting_reply?: boolean;
+  /** "buyers" hides driver applicants; "drivers" shows only them. */
+  view?: "now" | "waiting" | "buyers" | "drivers";
   limit?: number;
   offset?: number;
 };
@@ -196,6 +208,14 @@ const leadSchema = z.object({
   quote_id: z.string().nullable().optional(),
   visitor_session_id: z.string().nullable().optional(),
   booking_draft_id: z.string().nullable().optional(),
+  awaiting_reply: z.boolean().optional().default(false),
+  last_inbound_at: z.string().nullable().optional(),
+  first_response_at: z.string().nullable().optional(),
+  quoted_at: z.string().nullable().optional(),
+  won_at: z.string().nullable().optional(),
+  lost_at: z.string().nullable().optional(),
+  lost_reason: z.string().nullable().optional(),
+  order_id: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -296,6 +316,8 @@ export function buildLeadFiltersQuery(filters: LeadFilters): string {
   if (filters.tag) params.set("tag", filters.tag);
   if (filters.has_phone === true) params.set("has_phone", "true");
   if (filters.has_phone === false) params.set("has_phone", "false");
+  if (filters.awaiting_reply) params.set("awaiting_reply", "true");
+  if (filters.view) params.set("view", filters.view);
   if (filters.search) params.set("search", filters.search);
   if (filters.limit != null) params.set("limit", String(filters.limit));
   if (filters.offset != null) params.set("offset", String(filters.offset));
@@ -337,7 +359,245 @@ export type LeadMetrics = {
   };
 };
 
+export type ReplyChannelStatus = {
+  enabled: boolean;
+  reason: string | null;
+  transport?: string | null;
+  from?: string;
+  in_service_window?: boolean;
+  window_closes_at?: string | null;
+};
+
+export type ReplyChannels = {
+  email: ReplyChannelStatus;
+  whatsapp: ReplyChannelStatus;
+  call_outcomes: string[];
+};
+
+export type BulkLeadUpdate = {
+  lead_ids: string[];
+  assigned_to?: string;
+  unassign?: boolean;
+  status?: string;
+  priority?: string;
+};
+
+export type LogCallInput = {
+  direction: "inbound" | "outbound";
+  outcome: string;
+  notes?: string;
+  duration_minutes?: number;
+  follow_up_at?: string;
+};
+
+/** Human copy for a disabled reply channel (composer explains *why*). */
+export function replyDisabledReason(reason: string | null | undefined): string {
+  switch (reason) {
+    case "email_reply_transport_not_configured":
+      return "Email replies are off — set LEAD_REPLY_EMAIL_TRANSPORT (zeptomail or zoho_smtp).";
+    case "zeptomail_token_missing":
+      return "ZeptoMail token missing on the API.";
+    case "zoho_smtp_credentials_missing":
+      return "Zoho SMTP needs ZOHO_MAIL_USER + ZOHO_MAIL_APP_PASSWORD.";
+    case "whatsapp_cloud_disabled":
+      return "WhatsApp Cloud API is off (WHATSAPP_CLOUD_ENABLED=false). Reply from the WhatsApp Business app.";
+    case "whatsapp_cloud_not_configured":
+      return "WhatsApp Cloud API token / phone number id not set.";
+    case "lead_has_no_whatsapp_number":
+      return "This lead has no WhatsApp number.";
+    case "outside_24h_service_window":
+      return "Outside WhatsApp's 24-hour window — the lead has to message first (or use a template).";
+    case "lead_has_no_email":
+      return "This lead has no email address.";
+    case "suppressed":
+      return "Do-not-contact: this lead unsubscribed or is suppressed.";
+    default:
+      return reason ? reason.replace(/_/g, " ") : "Not available.";
+  }
+}
+
+/** Minutes until (positive) or since (negative) the first-response SLA. */
+export function slaMinutesLeft(lead: Pick<Lead, "sla_first_response_due_at">, now = Date.now()) {
+  if (!lead.sla_first_response_due_at) return null;
+  const due = new Date(lead.sla_first_response_due_at).getTime();
+  if (Number.isNaN(due)) return null;
+  return Math.round((due - now) / 60_000);
+}
+
+export function formatSla(minutes: number): string {
+  const abs = Math.abs(minutes);
+  const text = abs >= 60 ? `${Math.floor(abs / 60)}h ${abs % 60}m` : `${abs}m`;
+  return minutes >= 0 ? `${text} left` : `${text} over`;
+}
+
+export type LeadQuote =
+  | { available: false; reason: string }
+  | {
+      available: true;
+      amount_cents: number;
+      amount_display: string;
+      pricing: "retail" | "merchant";
+      vehicle_class: string;
+      vehicle_label: string;
+      pickup_fsa: string;
+      dropoff_fsa: string;
+      parcel_count: number;
+      distance_km: number | null;
+      lines: { label: string; amount_cents: number }[];
+      tax_cents: number;
+      booking_url: string;
+      note: string;
+    };
+
+export type LeadFitScore = {
+  score: number;
+  reasons: { label: string; points: number }[];
+  version: string;
+};
+
+export type LeadDraft = {
+  channel: "email" | "whatsapp";
+  subject: string | null;
+  body: string;
+  template: string;
+  with_quote: boolean;
+  source: "template" | "template+ai";
+};
+
+export type ReplyPrefill = {
+  channel: "email" | "whatsapp";
+  subject?: string | null;
+  body: string;
+  attachQuote: boolean;
+  nonce: number;
+};
+
+export type SpeedWindow = {
+  days: number;
+  leads: number;
+  answered: number;
+  median_first_reply_minutes: number | null;
+  answered_within_5m_pct: number | null;
+  quoted: number;
+  quote_to_booking_pct: number | null;
+  booked: number;
+  booking_to_repeat_pct: number | null;
+  win_rate_by_channel: { channel: string; leads: number; won: number; lost: number; win_rate: number | null }[];
+};
+
+export type LeadSpeed = { generated_at: string; windows: SpeedWindow[] };
+
+export type LeadWeeklySummary = {
+  won: number;
+  lost: number;
+  win_rate: number | null;
+  by_channel: { channel: string; won: number; lost: number; win_rate: number | null }[];
+  lost_reasons: { reason: string; count: number }[];
+};
+
+/** Digits for tel:/wa.me (10-digit NANP → 1 prefix). */
+export function dialDigits(phone: string | null | undefined): string {
+  const d = String(phone ?? "").replace(/\D/g, "");
+  return d.length === 10 ? `1${d}` : d;
+}
+
 export const leadsApi = {
+  async replyChannels(token: string, leadId?: string): Promise<ReplyChannels> {
+    const path = leadId
+      ? `/v1/admin/leads/${encodeURIComponent(leadId)}/reply-channels`
+      : "/v1/admin/leads/reply-channels";
+    return adminFetch<ReplyChannels>(path, token);
+  },
+
+  async reply(
+    token: string,
+    leadId: string,
+    body: { channel: "email" | "whatsapp"; body: string; subject?: string; attach_quote?: boolean }
+  ): Promise<{ id: string; channel: string; status: string; to?: string }> {
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/reply`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+      timeoutMs: 45_000,
+    });
+  },
+
+  async quote(token: string, leadId: string): Promise<LeadQuote> {
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/quote`, token, { timeoutMs: 30_000 });
+  },
+
+  async fitScore(token: string, leadId: string): Promise<LeadFitScore> {
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/score`, token);
+  },
+
+  /** Template draft (optional AI polish). Only fills the composer — never sends. */
+  async draft(
+    token: string,
+    leadId: string,
+    channel: "email" | "whatsapp",
+    withQuote: boolean
+  ): Promise<LeadDraft> {
+    const q = new URLSearchParams({ channel, with_quote: String(withQuote) });
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/draft?${q}`, token, {
+      timeoutMs: 30_000,
+    });
+  },
+
+  async rescore(token: string): Promise<{ rescored: number }> {
+    return adminFetch(`/v1/admin/leads/rescore`, token, { method: "POST", timeoutMs: 60_000 });
+  },
+
+  async markLost(token: string, leadId: string, reason: string): Promise<{ status: string }> {
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/lost`, token, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  async speed(token: string): Promise<LeadSpeed> {
+    return adminFetch("/v1/admin/leads/speed", token);
+  },
+
+  async weeklySummary(token: string): Promise<LeadWeeklySummary> {
+    return adminFetch("/v1/admin/leads/weekly-summary", token);
+  },
+
+  async logCall(
+    token: string,
+    leadId: string,
+    body: LogCallInput
+  ): Promise<{ id: string; status: string; task_id: string | null }> {
+    return adminFetch(`/v1/admin/leads/${encodeURIComponent(leadId)}/log-call`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  async bulkUpdate(
+    token: string,
+    body: BulkLeadUpdate
+  ): Promise<{ updated: number; missing: number }> {
+    return adminFetch("/v1/admin/leads/bulk", token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  /** CSV of the current filter, or of `ids` when given. Returns a Blob to download. */
+  async exportCsv(token: string, filters: LeadFilters, ids?: string[]): Promise<Blob> {
+    const params = new URLSearchParams(
+      buildLeadFiltersQuery({ ...filters, limit: undefined, offset: undefined }).slice(1)
+    );
+    params.delete("sort");
+    for (const id of ids ?? []) params.append("ids", id);
+    const bearer = token && token !== STAFF_COOKIE_TOKEN ? token : STAFF_COOKIE_TOKEN;
+    const res = await fetch(`/api/porterchain/v1/admin/leads/export.csv?${params.toString()}`, {
+      credentials: "include",
+      headers: { Authorization: `Bearer ${bearer}` },
+    });
+    if (!res.ok) throw new Error(`export_failed_${res.status}`);
+    return res.blob();
+  },
+
   async list(
     token: string,
     filters: LeadFilters = {}
@@ -752,11 +1012,10 @@ export function leadMessage(lead: Lead): string | null {
 
 export const STATUS_TONES: Record<string, string> = {
   new: "sky",
-  contacted: "blue",
-  qualified: "green",
-  unqualified: "slate",
-  nurturing: "violet",
-  converted: "teal",
+  replied: "blue",
+  quoted: "violet",
+  won: "green",
+  lost: "slate",
   archived: "slate",
 };
 

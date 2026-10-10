@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 from porterchain_api.crm_models import CrmConversation, CrmConversationMessage, CrmLead
 from porterchain_api.domain.crm_states import LeadDecisionStatus
 
-
 _LEAD_ASSIST_SYSTEM = """You assist PorterChain sales staff closing merchant capacity deals.
 Rules:
 1. Return ONLY JSON: {"summary":string,"draft_reply":string,"suggested_decision_status":string,"next_questions":[string],"risks":[string]}
@@ -198,6 +197,7 @@ def build_lead_assist(
         _parse_json_object,
         _phase2_ready,
     )
+    from porterchain_api.intelligence_engine.privacy import redact
 
     if not _phase2_ready(flags or {}) or not _can_call_nim(db):
         return base
@@ -206,10 +206,10 @@ def build_lead_assist(
         db,
         feature="lead_assist",
         system=_LEAD_ASSIST_SYSTEM,
-        user=json.dumps(
+        # Minimised payload: no contact name, emails/phones redacted.
+        user=redact(json.dumps(
             {
                 "company_name": lead.company_name,
-                "contact": lead.primary_contact_name,
                 "channel": lead.channel,
                 "source": lead.source,
                 "intent_type": lead.intent_type,
@@ -219,7 +219,7 @@ def build_lead_assist(
                 "thread": messages[-12:],
                 "estimated_deliveries_per_month": lead.estimated_deliveries_per_month,
             }
-        ),
+        )),
         max_tokens=500,
         actor_type="staff",
         actor_id=actor_id,

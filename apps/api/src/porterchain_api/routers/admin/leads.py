@@ -66,6 +66,8 @@ def list_leads(
     city: str | None = None,
     tag: str | None = None,
     has_phone: bool | None = None,
+    awaiting_reply: bool | None = None,
+    view: str | None = None,
     include_archived: bool = False,
     sort: str = "smart",
     limit: int | None = None,
@@ -91,6 +93,8 @@ def list_leads(
         city=city,
         tag=tag,
         has_phone=has_phone,
+        awaiting_reply=awaiting_reply,
+        view=view,
         include_archived=include_archived,
         sort=sort,
     )

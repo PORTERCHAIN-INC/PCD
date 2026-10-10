@@ -1,5 +1,6 @@
 "use client";
 
+import MarketingConsentCheckbox from "@/components/forms/MarketingConsentCheckbox";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import {
@@ -385,18 +386,11 @@ export default function PriceCalculator() {
                 />
               </label>
             </div>
-            <label className="flex items-start gap-3 text-sm text-primary">
-              <input
-                type="checkbox"
-                className="mt-1 h-4 w-4"
-                checked={form.marketingConsent}
-                onChange={(e) => set("marketingConsent", e.target.checked)}
-              />
-              <span>
-                Yes, PorterChain Logistics Inc. may email me delivery tips and offers. I can
-                unsubscribe at any time. <span className="text-muted">(Optional)</span>
-              </span>
-            </label>
+            <MarketingConsentCheckbox
+              id="calculator-marketing-consent"
+              checked={form.marketingConsent}
+              onChange={(v) => set("marketingConsent", v)}
+            />
             <p className="text-xs text-muted">
               We use these details to reply to this request. See our{" "}
               <Link href="/privacy" className="underline">

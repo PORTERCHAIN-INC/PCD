@@ -321,7 +321,13 @@ class Lead360Service:
             "predictive": raw.get("predictive"),
             "method": raw.get("method"),
             "priors_n": raw.get("priors_n"),
+            "reasons": raw.get("reasons") or [],
         }
 
 
 __all__ = ["Lead360Service"]
+
+
+def staff_user_exists(db: Session, user_id: str) -> bool:
+    """Read-only check used before (bulk) assigning leads to a staff member."""
+    return bool(user_id) and db.get(AdminUser, user_id) is not None

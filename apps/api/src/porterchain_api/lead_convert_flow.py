@@ -88,7 +88,7 @@ def convert_lead_with_outcome(
             {
                 "intent_type": "retail_customer",
                 "decision_status": "converted",
-                "status": "converted",
+                "status": "won",
             },
         )
         crm.log_activity(
@@ -107,7 +107,7 @@ def convert_lead_with_outcome(
             {
                 "intent_type": "driver_partner",
                 "decision_status": "converted",
-                "status": "converted",
+                "status": "won",
                 "tags": list({*(lead.tags or []), "driver_partner_converted"}),
             },
         )

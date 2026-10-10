@@ -170,3 +170,19 @@ class MerchantContactsService:
                 payload=payload,
             )
         )
+
+
+def record_portal_signup_lead(
+    db: Session, *, merchant_id: str, email: str | None, company_name: str | None
+) -> None:
+    """Merchant portal sign-up → CRM lead (dedup-linked). Writes live in collaboration_engine."""
+    from porterchain_api.collaboration_engine.signup_leads import record_signup_lead
+
+    record_signup_lead(
+        db,
+        kind="merchant_signup",
+        external_id=merchant_id,
+        email=email,
+        company_name=company_name,
+        extra={"merchant_id": merchant_id},
+    )

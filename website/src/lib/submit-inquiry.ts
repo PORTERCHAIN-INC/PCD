@@ -1,4 +1,3 @@
-import { readStoredConsent } from "@/lib/marketing/consent";
 import { getOrCreateVisitorId, QUOTE_INTENT_KEY } from "@/lib/visitor-tracking";
 
 export type InquiryPayload = {
@@ -17,17 +16,14 @@ export type InquiryPayload = {
   utm_medium?: string;
   referred_by_merchant_id?: string;
   visitor_id?: string;
-  consent?: {
-    marketing?: boolean;
-    sms?: boolean;
-    whatsapp?: boolean;
-    analytics?: boolean;
-    experience?: boolean;
-    source?: string;
-    text_version?: string;
-    captured_at?: string;
-    actor?: string;
-  };
+  /** CASL: the form's own unchecked-by-default checkbox. Never the cookie banner. */
+  marketing_consent?: boolean;
+  /** Required "contact me about this request" box (vehicle partner form). */
+  contact_consent?: boolean;
+  locale?: string;
+  /** Spam guard (see useFormGuard): honeypot + time the form was open. */
+  website?: string;
+  form_elapsed_ms?: number;
 };
 
 function referralFromUrl(): string | undefined {
@@ -52,27 +48,6 @@ function referralFromSession(): string | undefined {
   }
 }
 
-function consentSnapshot(payload: InquiryPayload): InquiryPayload["consent"] | undefined {
-  if (payload.consent) return payload.consent;
-  const stored = readStoredConsent();
-  if (!stored) {
-    // Newsletter / explicit marketing forms default to marketing opt-in.
-    if (payload.form === "newsletter" || payload.inquiry_type === "newsletter") {
-      return { marketing: true };
-    }
-    return undefined;
-  }
-  return {
-    marketing: stored.marketing,
-    analytics: stored.analytics,
-    experience: stored.experience,
-    source: "website_cmp",
-    text_version: "casl_v1_marketing",
-    captured_at: new Date().toISOString(),
-    actor: "lead",
-  };
-}
-
 export async function submitInquiry(payload: InquiryPayload): Promise<{ id: string }> {
   const referred_by_merchant_id =
     payload.referred_by_merchant_id?.trim() || referralFromUrl() || referralFromSession();
@@ -80,7 +55,6 @@ export async function submitInquiry(payload: InquiryPayload): Promise<{ id: stri
     payload.visitor_id?.trim() ||
     (typeof window !== "undefined" ? getOrCreateVisitorId() : "") ||
     undefined;
-  const consent = consentSnapshot(payload);
 
   const res = await fetch("/api/inquiries", {
     method: "POST",
@@ -89,7 +63,7 @@ export async function submitInquiry(payload: InquiryPayload): Promise<{ id: stri
       ...payload,
       ...(referred_by_merchant_id ? { referred_by_merchant_id } : {}),
       ...(visitor_id ? { visitor_id } : {}),
-      ...(consent ? { consent } : {}),
+      marketing_consent: payload.marketing_consent === true,
     }),
   });
 
@@ -99,4 +73,25 @@ export async function submitInquiry(payload: InquiryPayload): Promise<{ id: stri
   }
 
   return res.json() as Promise<{ id: string }>;
+}
+
+export type NewsletterPayload = {
+  email: string;
+  source_page?: string;
+  locale?: string;
+  website?: string;
+  form_elapsed_ms?: number;
+};
+
+/** Newsletter = double opt-in subscriber list (confirmation email), not a sales lead. */
+export async function subscribeNewsletter(payload: NewsletterPayload): Promise<void> {
+  const res = await fetch("/api/newsletter", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "subscribe_failed");
+  }
 }

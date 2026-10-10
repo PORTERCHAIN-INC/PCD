@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { submitInquiry } from "@/lib/submit-inquiry";
+import { subscribeNewsletter } from "@/lib/submit-inquiry";
+import MarketingConsentCheckbox from "@/components/forms/MarketingConsentCheckbox";
+import { useFormGuard } from "@/components/forms/useFormGuard";
 
 export default function BlogNewsletter() {
   const t = useTranslations("blog.sidebar");
@@ -12,19 +14,20 @@ export default function BlogNewsletter() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
+  const locale = useLocale();
+  const { guardFields, honeypotField } = useFormGuard();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await submitInquiry({
+      await subscribeNewsletter({
         email: email.trim(),
-        source: "website",
         source_page: "/blog",
-        form: "newsletter",
-        inquiry_type: "newsletter",
-        message: "Newsletter subscription from blog sidebar",
+        locale,
+        ...guardFields(),
       });
       setDone(true);
     } catch {
@@ -46,7 +49,7 @@ export default function BlogNewsletter() {
           {t("subscribed")}
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-2">
+        <form onSubmit={handleSubmit} className="relative mt-4 space-y-2">
           <input
             type="email"
             required
@@ -54,6 +57,13 @@ export default function BlogNewsletter() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("emailPlaceholder")}
             className="w-full rounded-xl border border-primary/10 px-3.5 py-2.5 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15"
+          />
+          {honeypotField}
+          <MarketingConsentCheckbox
+            id="blog-newsletter-consent"
+            required
+            checked={consent}
+            onChange={setConsent}
           />
           <button
             type="submit"

@@ -18,6 +18,7 @@ from porterchain_api.crm_models import (
     CrmSalesTask,
 )
 from porterchain_api.collaboration_engine.crm_helpers import province_from_postal
+from porterchain_api.domain.crm_states import LeadStatus
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +170,121 @@ def notify_unassigned_high_priority(db: Session, lead: CrmLead) -> CrmSalesTask 
     db.flush()
     _enqueue_growth_staff_alert(db, lead, priority=pri)
     return task
+
+
+def _digits(phone: str | None) -> str:
+    d = "".join(ch for ch in str(phone or "") if ch.isdigit())
+    return f"1{d}" if len(d) == 10 else d
+
+
+def _quick_actions(lead: CrmLead) -> str:
+    d = _digits(lead.phone)
+    if not d:
+        return "No phone on file - reply by email from the lead page."
+    return f"Call: tel:+{d}\nWhatsApp: https://wa.me/{d}"
+
+
+def _owner_direct_alerts(lead: CrmLead, ctx: dict) -> list[dict]:
+    """Mobile-first: email the owner; SMS only when enabled AND Twilio is configured."""
+    from porterchain_api.config import get_settings
+    from porterchain_shared.config.settings import get_platform_settings
+
+    s = get_settings()
+    base = {
+        "template_key": "lead_new_hot",
+        "recipient_type": "admin",
+        "context": ctx,
+        "search_tags": {"lead_id": lead.id, "fanout": "hot_lead_owner"},
+        "category": "crm",
+        "priority": "high",
+        "deep_link": f"/leads/{lead.id}",
+    }
+    out: list[dict] = []
+    if lead.assigned_to:
+        out.append({**base, "channel": "email", "recipient_id": str(lead.assigned_to)})
+    owner = (s.lead_alert_email or "").strip()
+    if "@" in owner:
+        out.append({**base, "channel": "email", "recipient_id": "lead-alert-owner", "recipient_address": owner})
+    sms_to = (s.lead_alert_sms_to or "").strip()
+    twilio = bool((getattr(get_platform_settings(), "twilio_account_sid", "") or "").strip())
+    if s.lead_alert_sms_enabled and twilio and sms_to:
+        out.append({**base, "channel": "sms", "recipient_id": "lead-alert-owner", "recipient_address": sms_to})
+    return out
+
+
+def notify_hot_lead(db: Session, lead: CrmLead, *, created: bool) -> bool:
+    """High/urgent lead → in-app + push to the owner AND the growth team.
+
+    Once per lead per day (``custom_fields.hot_alerted_on``). Flush only.
+    Never contacts the lead — staff alerts only.
+    """
+    pri = (lead.priority or "").strip().lower()
+    if pri not in ("high", "urgent"):
+        return False
+    if (lead.status or "") in (LeadStatus.CONVERTED.value, LeadStatus.ARCHIVED.value):
+        return False
+    from datetime import date
+
+    today = date.today().isoformat()
+    cf = dict(lead.custom_fields or {})
+    if cf.get("hot_alerted_on") == today:
+        return False
+    cf["hot_alerted_on"] = today
+    lead.custom_fields = cf
+    try:
+        import uuid
+
+        from porterchain_api.config import get_settings
+        from porterchain_api.platform.staff_notify import (
+            dispatch_staff_specs,
+            growth_staff_sentinel,
+        )
+
+        admin = get_settings().admin_portal_url.rstrip("/")
+        company = lead.company_name or "Lead"
+        verb = "New" if created else "Returning"
+        title = f"{verb} {pri} lead: {company}"
+        message = (
+            f"{company} came in via {lead.source or lead.channel or 'website'}."
+            + ("" if lead.assigned_to else " No owner yet.")
+        )
+        ctx = {
+            "title": title,
+            "message": message,
+            "body": message,
+            "company_name": lead.company_name or "",
+            "lead_id": lead.id,
+            "priority": pri,
+            "source": lead.source or "",
+            "channel": lead.channel or "",
+            "deep_link": f"{admin}/leads/{lead.id}",
+            "quick_actions": _quick_actions(lead),
+        }
+        recipients: list[str] = [growth_staff_sentinel()]
+        if lead.assigned_to:
+            recipients.insert(0, str(lead.assigned_to))
+        specs: list[dict] = []
+        for rid in recipients:
+            for channel in ("in_app", "push"):
+                specs.append(
+                    {
+                        "template_key": "lead_new_hot",
+                        "channel": channel,
+                        "recipient_type": "admin",
+                        "recipient_id": rid,
+                        "context": ctx,
+                        "search_tags": {"lead_id": lead.id, "fanout": "hot_lead"},
+                        "category": "crm",
+                        "priority": "high",
+                        "deep_link": f"/leads/{lead.id}",
+                    }
+                )
+        specs += _owner_direct_alerts(lead, ctx)
+        correlation = str(uuid.uuid5(uuid.NAMESPACE_URL, f"lead:{lead.id}:hot:{today}"))
+        dispatch_staff_specs(db, specs, event_type="lead.hot", correlation_id=correlation)
+    except Exception:  # noqa: BLE001 — alerts never block ingest
+        logger.exception("lead_hot_alert_failed lead=%s", lead.id)
+    return True
 
 
 def _enqueue_growth_staff_alert(
@@ -551,6 +667,7 @@ __all__ = [
     "list_referral_credits",
     "list_referred_leads",
     "merchant_referral_overview",
+    "notify_hot_lead",
     "notify_unassigned_high_priority",
     "escalate_sla_breached_leads",
     "resolve_merge_candidate",

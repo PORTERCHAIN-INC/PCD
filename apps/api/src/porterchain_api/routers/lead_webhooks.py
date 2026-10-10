@@ -19,6 +19,7 @@ from porterchain_api.collaboration_engine.lead_channel_adapters import (
 )
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from porterchain_api.platform.secret_compare import secrets_match
 from porterchain_api.platform.rate_limit import (
     bucket_key,
     check_fixed_window,
@@ -76,7 +77,7 @@ def meta_webhook_verify(
     token = (settings.meta_webhook_verify_token or "").strip()
     if not token:
         raise HTTPException(status_code=503, detail="meta_webhook_not_configured")
-    if hub_mode == "subscribe" and hub_verify_token == token and hub_challenge is not None:
+    if hub_mode == "subscribe" and secrets_match(hub_verify_token, token) and hub_challenge is not None:
         try:
             return int(hub_challenge)
         except ValueError:
@@ -122,7 +123,7 @@ async def google_lead_webhook(
     expected = (settings.google_lead_webhook_secret or "").strip()
     if not expected:
         raise HTTPException(status_code=503, detail="google_lead_webhook_not_configured")
-    if not x_lead_webhook_secret or x_lead_webhook_secret != expected:
+    if not secrets_match(x_lead_webhook_secret, expected):
         raise HTTPException(status_code=401, detail="invalid_webhook_secret")
     try:
         payload = await request.json()
@@ -147,7 +148,7 @@ def _require_social_secret(settings: Settings, header: str | None) -> None:
     expected = (settings.social_lead_webhook_secret or "").strip()
     if not expected:
         raise HTTPException(status_code=503, detail="social_lead_webhook_not_configured")
-    if not header or header != expected:
+    if not secrets_match(header, expected):
         raise HTTPException(status_code=401, detail="invalid_webhook_secret")
 
 
