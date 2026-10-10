@@ -6,11 +6,11 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.notification_engine.models import NotificationRecord
-from porterchain_shared.events.catalog import DomainEventType
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ STALE_QUEUED_SECONDS = 120
 def _requeue_payload(row: NotificationRecord) -> dict[str, Any]:
     return {
         "notification_id": row.id,
+        "lane": (row.search_tags or {}).get("lane"),
         "channel": row.channel,
         "template": row.template_key,
         "recipient_type": row.recipient_type,
@@ -72,6 +73,24 @@ def sweep_notification_retries(db: Session, *, limit: int = 100) -> dict[str, An
         _emit_queued(db, row)
         requeued += 1
 
+    # Quiet-hours holds whose window has ended: release them to the queue.
+    held_rows = (
+        db.query(NotificationRecord)
+        .filter(
+            NotificationRecord.status == "held",
+            NotificationRecord.next_retry_at.isnot(None),
+            NotificationRecord.next_retry_at <= now,
+        )
+        .order_by(NotificationRecord.next_retry_at.asc())
+        .limit(limit)
+        .all()
+    )
+    for row in held_rows:
+        row.status = "queued"
+        row.next_retry_at = None
+        row.queued_at = now
+        _emit_queued(db, row)
+
     # Cancel queued push with no FCM device — retries only burn the stream.
     from porterchain_api.notification_engine.device_service import DeviceService
 
@@ -122,7 +141,7 @@ def sweep_notification_retries(db: Session, *, limit: int = 100) -> dict[str, An
         _emit_queued(db, row)
         stale_requeued += 1
 
-    if failed_rows or doomed_push or stale_rows:
+    if failed_rows or doomed_push or stale_rows or held_rows:
         db.commit()
     return {
         "due": len(failed_rows),
@@ -130,4 +149,5 @@ def sweep_notification_retries(db: Session, *, limit: int = 100) -> dict[str, An
         "stale_queued": len(stale_rows),
         "stale_requeued": stale_requeued,
         "push_no_device_deferred": cancelled_no_device,
+        "held_released": len(held_rows),
     }

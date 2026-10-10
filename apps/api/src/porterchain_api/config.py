@@ -112,6 +112,11 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("zeptomail_webhook_secret", "ZEPTOMAIL_WEBHOOK_SECRET"),
     )
+    #: mailto half of List-Unsubscribe on marketing/CRM email (must be a monitored inbox).
+    unsubscribe_mailbox: str = Field(
+        default="unsubscribe@porterchain.com",
+        validation_alias=AliasChoices("unsubscribe_mailbox", "UNSUBSCRIBE_MAILBOX"),
+    )
     website_revalidate_secret: str = Field(
         default="",
         validation_alias=AliasChoices(

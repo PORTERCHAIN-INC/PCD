@@ -488,6 +488,7 @@ _LEGACY_ROUTER_LOC: dict[str, int] = {
     "admin/leads.py": 632,
     "admin/settings.py": 464,
     "admin/orders.py": 369,
+    "notifications.py": 370,
 }
 
 MAX_NEW_ROUTER_LOC = 350

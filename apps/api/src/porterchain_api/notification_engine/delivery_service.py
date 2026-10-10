@@ -9,17 +9,21 @@ from datetime import UTC, datetime
 from email.message import EmailMessage
 from typing import Any
 
-from porterchain_api.db import SessionLocal
+from porterchain_shared.config.settings import get_platform_settings
+
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.db import SessionLocal
 from porterchain_api.notification_engine.device_service import DeviceService
+from porterchain_api.notification_engine.fcm_service import FCMService
 from porterchain_api.notification_engine.internal_inbox_mail import (
     normalize_recipient,
     record_internal_inbox_skip,
 )
-from porterchain_api.notification_engine.fcm_service import FCMService
-from porterchain_api.notification_engine.models import NotificationDeliveryLog, NotificationRecord
+from porterchain_api.notification_engine.models import (
+    NotificationDeliveryLog,
+    NotificationRecord,
+)
 from porterchain_api.notification_engine.templates import render_email, render_template
-from porterchain_shared.config.settings import get_platform_settings
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +37,19 @@ class DeliveryDeferred(Exception):
 
 class DeliveryService:
     def deliver(self, payload: dict[str, Any]) -> NotificationDeliveryLog:
+        from porterchain_api.notification_engine import send_claim
+
+        nid = payload.get("notification_id")
+        ok, previous = send_claim.claim(nid) if nid else (True, None)
+        if not ok:  # another worker owns it, or it already went out
+            return self._write_log(nid, payload.get("channel", "email"), payload.get("template", ""), payload.get("recipient") or "", "skipped", "already_sent", payload.get("context") or {})
+        try:
+            return self._deliver(payload)
+        finally:
+            if nid:
+                send_claim.release(nid, previous)
+
+    def _deliver(self, payload: dict[str, Any]) -> NotificationDeliveryLog:
         channel = payload.get("channel", "email")
         template = payload.get("template", "delivery_update")
         notification_id = payload.get("notification_id")
@@ -49,44 +66,14 @@ class DeliveryService:
             logger.info("sandbox blocks %s delivery (notification_id=%s)", channel, notification_id)
             if notification_id:
                 self._mark_deferred(notification_id, error)
-            db = SessionLocal()
-            try:
-                log = NotificationDeliveryLog(
-                    notification_id=notification_id,
-                    channel=channel,
-                    template=template,
-                    recipient=recipient[:320] if recipient else recipient_type,
-                    status=status,
-                    error=error,
-                    context={**context, "is_sandbox": True},
-                )
-                db.add(log)
-                db.commit()
-                db.refresh(log)
-                return log
-            finally:
-                db.close()
-        if notification_id and self._already_delivered(notification_id):
-            db = SessionLocal()
-            try:
-                log = NotificationDeliveryLog(
-                    notification_id=notification_id,
-                    channel=channel,
-                    template=template,
-                    recipient=recipient[:320] if recipient else recipient_type,
-                    status="skipped",
-                    error="already_sent",
-                    context=context,
-                )
-                db.add(log)
-                db.commit()
-                db.refresh(log)
-                return log
-            finally:
-                db.close()
-
+            return self._write_log(
+                notification_id, channel, template, recipient or recipient_type, status, error,
+                {**context, "is_sandbox": True},
+            )
         if channel == "email" and template == "lead_sla_escalation":
-            from porterchain_api.notification_engine.staff_fanout import ops_watch_emails
+            from porterchain_api.notification_engine.staff_fanout import (
+                ops_watch_emails,
+            )
 
             address = (recipient or "").strip().lower()
             watch = ops_watch_emails()
@@ -97,7 +84,8 @@ class DeliveryService:
 
         try:
             if channel == "email":
-                self._send_email(recipient, template, context)
+                who = {"recipient_type": recipient_type, "recipient_id": recipient_id, "notification_id": notification_id}
+                self._send_email(recipient, template, {**context, **who})
             elif channel == "sms":
                 self._send_sms(recipient, template, context)
             elif channel == "push":
@@ -147,6 +135,21 @@ class DeliveryService:
         finally:
             db.close()
 
+    @staticmethod
+    def _write_log(notification_id, channel, template, recipient, status, error, context) -> NotificationDeliveryLog:
+        db = SessionLocal()
+        try:
+            log = NotificationDeliveryLog(
+                notification_id=notification_id, channel=channel, template=template,
+                recipient=(recipient or "")[:320], status=status, error=error, context=context,
+            )
+            db.add(log)
+            db.commit()
+            db.refresh(log)
+            return log
+        finally:
+            db.close()
+
     def _try_channel_fallback(self, payload: dict[str, Any], *, failed_channel: str) -> None:
         """push → sms → email when addresses/prefs allow (Phase 3)."""
         chain = {"push": ("sms", "email"), "sms": ("email",)}.get(failed_channel, ())
@@ -185,8 +188,12 @@ class DeliveryService:
                 db.close()
 
         from porterchain_api.notification_engine.engine import get_notification_engine
-        from porterchain_api.notification_engine.preference_service import PreferenceService
-        from porterchain_api.notification_engine.user_settings import UserSettingsService
+        from porterchain_api.notification_engine.preference_service import (
+            PreferenceService,
+        )
+        from porterchain_api.notification_engine.user_settings import (
+            UserSettingsService,
+        )
 
         prefs = PreferenceService()
         quiet = UserSettingsService()
@@ -247,18 +254,9 @@ class DeliveryService:
                     )
                     return
             db.rollback()
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("channel fallback failed")
             db.rollback()
-        finally:
-            db.close()
-
-    @staticmethod
-    def _already_delivered(notification_id: str) -> bool:
-        db = SessionLocal()
-        try:
-            row = db.get(NotificationRecord, notification_id)
-            return bool(row and row.status in ("sent", "delivered"))
         finally:
             db.close()
 
@@ -269,7 +267,10 @@ class DeliveryService:
         now = datetime.now(UTC)
         row.status = "delivered" if row.channel == "push" else "sent"
         row.sent_at = row.sent_at or now
-        row.delivered_at = now
+        if row.channel == "email":  # provider accepted; delivered/opened arrive by webhook
+            row.provider_message_id, row.delivery_status = row.provider_message_id or row.id, "accepted"
+        else:
+            row.delivered_at = now
         db.flush()
         from porterchain_shared.events.catalog import DomainEventType
 
@@ -344,6 +345,12 @@ class DeliveryService:
         if context.get("is_sandbox") is True and from_name and "TEST" not in from_name.upper():
             from_name = f"{from_name} (TEST)"
 
+        from porterchain_api.notification_engine.unsubscribe import (
+            list_unsubscribe_headers,
+        )
+
+        extra_headers = list_unsubscribe_headers(settings, context)
+
         transport = settings.resolve_mail_transport()
         if transport == "https":
             self._send_email_zeptomail_https(
@@ -354,6 +361,9 @@ class DeliveryService:
                 from_addr=from_addr,
                 from_name=from_name,
                 settings=settings,
+                headers=extra_headers,
+                reference=context.get("notification_id"),
+                reply_to=context.get("reply_to_email"),
             )
             return
 
@@ -368,54 +378,14 @@ class DeliveryService:
             from_addr=from_addr,
             from_name=from_name,
             settings=settings,
+            headers={**extra_headers, **({"Reply-To": context["reply_to_email"]} if context.get("reply_to_email") else {})},
         )
 
-    def _send_email_zeptomail_https(
-        self,
-        *,
-        recipient: str,
-        subject: str,
-        text_body: str,
-        html_body: str,
-        from_addr: str,
-        from_name: str,
-        settings: Any,
-    ) -> None:
-        """ZeptoMail Send Mail HTTP API — used when DigitalOcean blocks outbound SMTP."""
-        from urllib.parse import urlparse
+    def _send_email_zeptomail_https(self, **kwargs: Any) -> None:
+        """ZeptoMail Send Mail HTTP API (DigitalOcean blocks outbound SMTP)."""
+        from porterchain_api.notification_engine.zeptomail import send_zeptomail
 
-        import httpx
-
-        token = (settings.smtp_password or "").strip()
-        if not token:
-            raise ValueError("zeptomail_token_missing")
-        auth = token if token.startswith("Zoho-enczapikey") else f"Zoho-enczapikey {token}"
-        api_url = (getattr(settings, "zeptomail_api_url", None) or "https://api.zeptomail.ca/v1.1/email").strip()
-        parsed = urlparse(api_url)
-        if parsed.scheme != "https" or not parsed.netloc:
-            raise ValueError("zeptomail_url_must_be_https")
-        from_obj: dict[str, str] = {"address": from_addr}
-        if from_name:
-            from_obj["name"] = from_name
-        payload: dict[str, Any] = {
-            "from": from_obj,
-            "to": [{"email_address": {"address": recipient}}],
-            "subject": subject,
-            "htmlbody": html_body or text_body,
-            "textbody": text_body or "",
-        }
-        try:
-            resp = httpx.post(
-                api_url,
-                json=payload,
-                headers={"accept": "application/json", "authorization": auth},
-                timeout=30.0,
-            )
-        except httpx.RequestError as exc:
-            raise ValueError(f"zeptomail_http_error:{exc}") from exc
-        if resp.status_code not in (200, 201):
-            raise ValueError(f"zeptomail_http_{resp.status_code}:{resp.text[:400]}")
-        logger.info("email (zeptomail https): to=%s status=%s", recipient, resp.status_code)
+        send_zeptomail(**kwargs)
 
     def _send_email_smtp(
         self,
@@ -427,9 +397,12 @@ class DeliveryService:
         from_addr: str,
         from_name: str,
         settings: Any,
+        headers: dict[str, str] | None = None,
     ) -> None:
         msg = EmailMessage()
         msg["Subject"] = subject
+        for name, value in (headers or {}).items():
+            msg[name] = value
         msg["From"] = f"{from_name} <{from_addr}>" if from_name else from_addr
         msg["To"] = recipient
         msg.set_content(text_body)

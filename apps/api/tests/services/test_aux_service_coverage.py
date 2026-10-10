@@ -53,7 +53,10 @@ def test_preference_and_device_services(db) -> None:
     assert pref.is_enabled(db, user_role="customer", user_id="u1", category="booking", channel="email")
     assert pref.get_all(db, user_role="customer", user_id="u1") == []
     pref.upsert(db, user_role="customer", user_id="u1", category="booking", email_enabled=False)
-    assert pref.is_enabled(db, user_role="customer", user_id="u1", category="booking", channel="email") is False
+    # Booking email is transactional: locked on (CASL). Marketing honours the switch.
+    assert pref.is_enabled(db, user_role="customer", user_id="u1", category="booking", channel="email") is True
+    pref.upsert(db, user_role="customer", user_id="u1", category="marketing", email_enabled=False)
+    assert pref.is_enabled(db, user_role="customer", user_id="u1", category="marketing", channel="email") is False
     devices = DeviceService()
     assert devices.list_active(db, user_role="driver", user_id="d1") == []
 

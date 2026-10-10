@@ -38,8 +38,12 @@ def test_merchant_portal_sync_blocks_booking_email(db) -> None:
             "channels": {"email": False, "in_app": True},
         },
     )
-    assert not prefs.is_enabled(
+    # CASL: booking email is transactional and locked on, even with the email channel off.
+    assert prefs.is_enabled(
         db, user_role="merchant", user_id=mid, category="booking", channel="email"
+    )
+    assert not prefs.is_enabled(
+        db, user_role="merchant", user_id=mid, category="marketing", channel="email"
     )
     assert prefs.is_enabled(
         db, user_role="merchant", user_id=mid, category="booking", channel="in_app"
@@ -53,7 +57,8 @@ def test_merchant_portal_sync_blocks_booking_email(db) -> None:
             "channels": {"email": True, "in_app": True},
         },
     )
-    assert not prefs.is_enabled(
+    # Transactional email stays locked on (CASL); the bell copy is what the toggle mutes.
+    assert prefs.is_enabled(
         db, user_role="merchant", user_id=mid, category="booking", channel="email"
     )
     db.rollback()

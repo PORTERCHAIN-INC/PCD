@@ -99,3 +99,23 @@ def mask_name(name: Any) -> str | None:
 def mask_initials(name: Any) -> str | None:
     parts = [p for p in str(name or "").strip().split() if p]
     return " ".join(f"{p[0].upper()}." for p in parts[:3]) or None
+
+
+_FR_PROVINCES = frozenset({"QC", "QUEBEC", "QUÉBEC"})
+
+
+def recipient_language(order: Order, preference: str = "auto") -> str:
+    """'fr' or 'en' for receiver emails. Merchant setting wins; 'auto' uses the
+    recipient's stated language, then a Quebec drop-off; English otherwise."""
+    pref = str(preference or "auto").lower()
+    if pref in ("en", "fr"):
+        return pref
+    meta = meta_of(order)
+    consignee = meta.get("consignee") if isinstance(meta.get("consignee"), dict) else {}
+    for key in ("language", "locale", "lang"):
+        val = str(consignee.get(key) or meta.get(key) or "").strip().lower()
+        if val:
+            return "fr" if val.startswith("fr") else "en"
+    dropoff = order.dropoff if isinstance(order.dropoff, dict) else {}
+    province = str(dropoff.get("province") or dropoff.get("state") or dropoff.get("region") or "").strip().upper()
+    return "fr" if province in _FR_PROVINCES else "en"

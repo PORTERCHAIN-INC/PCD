@@ -1,9 +1,10 @@
 """Per-merchant customer-experience settings (tracking page, notifications, self-service).
 
 Stored in ``merchant.profile["settings"]["customer_experience"]`` (JSON, no migration).
-Every customer-facing behaviour is OFF by default: the branded page, proactive
-notifications, self-scheduling and the re-attempt policy only start once the
-merchant (or ops) turns them on.
+Receiver email updates (out for delivery, ETA, delivered with proof, missed
+delivery, rescheduled) and the signed self-service link are ON by default, email
+only. The branded page and the re-attempt policy (which can return parcels to the
+sender and price extra legs) stay OFF until the merchant (or ops) turns them on.
 """
 
 from __future__ import annotations
@@ -20,7 +21,9 @@ NOTIFICATION_KINDS: tuple[str, ...] = (
     "delivered",
     "attempted",
     "schedule_request",
+    "rescheduled",
 )
+LANGUAGES: tuple[str, ...] = ("auto", "en", "fr")
 CHANNELS: tuple[str, ...] = ("email", "sms", "whatsapp")
 
 _DEFAULT: dict[str, Any] = {
@@ -29,22 +32,30 @@ _DEFAULT: dict[str, Any] = {
         "branded_page": False,
         "show_driver_first_name": True,
         "show_stops_away": True,
-        "show_pod_photo": False,
+        "show_pod_photo": True,
         "support_email": None,
         "support_phone": None,
         "help_url": None,
     },
     "notifications": {
-        "enabled": False,
+        "enabled": True,
         "channels": {"email": True, "sms": False, "whatsapp": False},
         "events": {kind: True for kind in NOTIFICATION_KINDS},
         "next_stop_threshold": 1,
         "eta_minutes": 20,
-        # SMS/WhatsApp are held during quiet hours; email still goes out.
+        # Receiver email language: auto = recipient's stated language, else Quebec drop-off -> fr.
+        "language": "auto",
+        # Per-recipient rate limit: at most one ETA / next-stop email per address in this window.
+        "eta_min_interval_minutes": 15,
+        # Email branding: button colour (must pass AA on white, else navy), logo, reply-to.
+        "brand_color": None,
+        "logo_url": None,
+        "reply_to": None,
+        # SMS/WhatsApp are held (deferred, never dropped) during quiet hours; email still goes out.
         "quiet_hours": {"enabled": True, "start": "21:00", "end": "08:00", "timezone": "America/Toronto"},
     },
     "self_service": {
-        "enabled": False,
+        "enabled": True,
         "link_ttl_hours": 72,
         "allow_reschedule": True,
         "allow_instructions": True,
@@ -157,6 +168,23 @@ def normalize_cx(raw: Any) -> dict[str, Any]:
             n_out["events"][kind] = bool(evs[kind])
     _int(nt, n_out, "next_stop_threshold", 0, 10, "notifications")
     _int(nt, n_out, "eta_minutes", 5, 120, "notifications")
+    _int(nt, n_out, "eta_min_interval_minutes", 0, 240, "notifications")
+    if "brand_color" in nt:
+        raw_hex = str(nt["brand_color"] or "").strip()
+        if raw_hex and not _HEX.match(raw_hex):
+            raise ValueError("cx_invalid:notifications.brand_color")
+        n_out["brand_color"] = raw_hex.lower() or None
+    _optional_text(nt, n_out, "reply_to", _EMAIL, "notifications")
+    if "logo_url" in nt:
+        url = str(nt["logo_url"] or "").strip()
+        if url and not url.startswith("https://"):
+            raise ValueError("cx_invalid:notifications.logo_url")
+        n_out["logo_url"] = url[:500] or None
+    if "language" in nt:
+        lang = str(nt["language"] or "auto").strip().lower()
+        if lang not in LANGUAGES:
+            raise ValueError("cx_invalid:notifications.language")
+        n_out["language"] = lang
     qh = _section(nt.get("quiet_hours"), "notifications.quiet_hours")
     q_out = n_out["quiet_hours"]
     _bool(qh, q_out, "enabled")
@@ -237,3 +265,42 @@ def brand_colours(merchant: Any) -> dict[str, str | None]:
         "primary_color": sanitize_hex(branding.get("primary_color"), "#1e3a5f"),
         "accent_color": sanitize_hex(branding.get("accent_color"), "#f59e0b"),
     }
+
+
+def _luminance(hex_colour: str) -> float:
+    def chan(v: int) -> float:
+        c = v / 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (int(hex_colour[i : i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b)
+
+
+def contrast_on_white(hex_colour: str) -> float:
+    return 1.05 / (_luminance(hex_colour) + 0.05)
+
+
+def email_brand(merchant: Any, cfg: dict[str, Any] | None = None) -> dict[str, str]:
+    """Receiver-email branding. A brand colour is only used when white text on it
+    passes WCAG AA (4.5:1); otherwise the PorterChain navy button stays."""
+    cfg = cfg or cx_for_merchant(merchant)
+    n = cfg["notifications"]
+    out: dict[str, str] = {}
+    colour = sanitize_hex(n.get("brand_color"))
+    if colour and contrast_on_white(colour) >= 4.5:
+        out["brand_color"] = colour
+    logo = n.get("logo_url")
+    if not logo and merchant is not None:
+        try:
+            from porterchain_api.merchant_engine.organization_sync import (
+                branding_logo_url,
+            )
+
+            logo = branding_logo_url(merchant)
+        except Exception:  # noqa: BLE001
+            logo = None
+    if isinstance(logo, str) and logo.startswith("https://"):
+        out["logo_url"] = logo
+    if n.get("reply_to"):
+        out["reply_to_email"] = str(n["reply_to"])
+    return out

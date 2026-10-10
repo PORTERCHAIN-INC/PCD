@@ -61,6 +61,19 @@ Git push from a laptop uses the deploy key in [`docs/GITHUB_SSH_KEYS.md`](./docs
 - Prod Postgres image currently **16.10** (dev **18**) — plan migrations before assuming PG18 in prod
 - Rollback: deploy README § Rolling deploy / rollback. After a full deploy, schema rollback is `CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh` on the droplet (pre-migrate dump + image pin). Image pin alone leaves a migrated schema in place.
 
+### Email notifications: deploy prerequisites
+
+Receiver/customer delivery emails are on by default (email only). Before a deploy that ships them:
+
+1. **`ZEPTOMAIL_WEBHOOK_SECRET`** in Doppler `pcd/prd` (long random string). In ZeptoMail → Mail Agent → Webhooks, point bounce + complaint events at `https://api.porterchain.com/v1/public/mail/zeptomail` with custom header `X-Porterchain-Mail-Webhook: <same secret>`. Without the secret the endpoint returns **503** outside local (it used to accept anyone, who could then suppress real customer addresses).
+2. `MAIL_TRANSPORT=https`, ZeptoMail token, and a from-address on a domain with SPF + DKIM + DMARC passing (check one sample in Gmail "Show original").
+3. `UNSUBSCRIBE_MAILBOX` (optional, default `unsubscribe@porterchain.com`) must exist or forward to a monitored inbox: it is the `mailto:` half of `List-Unsubscribe` on marketing/CRM mail.
+4. `support@porterchain.com` (or each merchant's `tracking.support_email`) must be monitored: it is the "Report a problem" target in receiver emails.
+5. `OPS_WATCH_EMAILS` must include the address that should get admin emails (failed delivery, reschedule, notification-health alert). Staff email only goes to that list; the bell works regardless.
+6. Run `alembic upgrade head` (adds `notification_records.idempotency_key` + `dedupe_family`). Downgrade restores the old JSON expression index.
+
+After deploy: Admin → Notifications shows `held` (quiet hours) and `dead_letter` rows; dead letters replay from there. Ops gets one bell + email alert per hour when ≥5 dead letters or ≥20% send failures (≥10 sends) happen in an hour.
+
 ---
 
 ## Related

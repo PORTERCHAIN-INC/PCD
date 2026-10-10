@@ -26,8 +26,9 @@ _RECIPIENT_TAG = "[Recipient]"
 
 
 def available(db: Session, order: Order, cfg: dict[str, Any], *, now: datetime | None = None) -> list[dict[str, Any]]:
-    from porterchain_api.platform.delivery_promise import load_delivery_promise_config
     from porterchain_pricing.delivery_promise import available_windows
+
+    from porterchain_api.platform.delivery_promise import load_delivery_promise_config
 
     return available_windows(
         load_delivery_promise_config(db),
@@ -103,7 +104,10 @@ def choose_window(db: Session, order: Order, code: str, *, now: datetime | None 
     )
     order.scheduled_at = datetime.fromisoformat(window["window_start"])
     db.commit()
-    from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
+    from porterchain_api.booking_engine.order_transitions import (
+        transition_order_state,
+        transition_to_dispatch_ready,
+    )
     from porterchain_api.domain.states import OrderState
 
     if was_failed:
@@ -123,9 +127,34 @@ def choose_window(db: Session, order: Order, code: str, *, now: datetime | None 
             actor_type="consignee",
             payload={"window": window["code"], "reason": "recipient_scheduled"},
         )
+    _emit_rescheduled(db, order, window, was_failed=was_failed)
     db.commit()
     db.refresh(order)
     return options(db, order, now=now)
+
+
+def _emit_rescheduled(db: Session, order: Order, window: dict[str, Any], *, was_failed: bool) -> None:
+    """One event every persona's notice hangs off (receiver, merchant, admin, driver)."""
+    from porterchain_api.booking_engine._core import emit_event
+
+    emit_event(
+        db,
+        event_type="order.rescheduled",
+        aggregate_type="order",
+        aggregate_id=order.id,
+        payload={
+            "order_id": order.id,
+            "order_number": order.order_number,
+            "tracking_number": order.tracking_number,
+            "merchant_id": order.merchant_id,
+            "customer_id": order.customer_id,
+            "driver_id": order.assigned_driver_id,
+            "window_code": window.get("code"),
+            "window_label": window.get("label"),
+            "after_failed_attempt": was_failed,
+            "actor_type": "consignee",
+        },
+    )
 
 
 def _clean(value: Any, limit: int) -> str | None:

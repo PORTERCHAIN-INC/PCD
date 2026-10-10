@@ -59,7 +59,7 @@ def _set_cx(db, merchant, patch: dict) -> dict:
     return settings["customer_experience"]
 
 
-def _order(db, merchant_ctx, *, state="IN_TRANSIT", driver_id=None, meta=None, sandbox=False) -> Order:
+def _order(db, merchant_ctx, *, state="IN_TRANSIT", driver_id=None, meta=None, sandbox=False, email=None) -> Order:
     order = Order(
         order_number=generate_order_number(),
         tracking_number=generate_tracking_number(),
@@ -80,7 +80,8 @@ def _order(db, merchant_ctx, *, state="IN_TRANSIT", driver_id=None, meta=None, s
         assigned_driver_id=driver_id,
         is_sandbox=sandbox,
         compliance_metadata={
-            "consignee": {"email": "receiver@example.test"},
+            # Unique per order: ETA emails are rate limited per recipient address.
+            "consignee": {"email": email or f"receiver-{uuid4().hex[:10]}@example.test"},
             "package_type": "looseParcel",
             "vehicle_class": "cargo_van",
             **(meta or {}),
@@ -125,11 +126,15 @@ def _all_on() -> dict:
 # --- settings ---------------------------------------------------------------
 
 
-def test_defaults_keep_every_customer_facing_change_off(merchant_ctx) -> None:
+def test_defaults_email_updates_on_risky_changes_off(merchant_ctx) -> None:
     cfg = cx_for_merchant(merchant_ctx.merchant)
     assert cfg["tracking"]["branded_page"] is False
-    assert cfg["notifications"]["enabled"] is False
-    assert cfg["self_service"]["enabled"] is False
+    # Email-first plan: receiver email updates + signed self-service link on by default.
+    assert cfg["notifications"]["enabled"] is True
+    assert cfg["self_service"]["enabled"] is True
+    assert cfg["notifications"]["language"] == "auto"
+    assert cfg["notifications"]["eta_min_interval_minutes"] == 15
+    # Re-attempt policy can return parcels and price legs: stays off.
     assert cfg["reattempt"]["enabled"] is False
     assert cfg["delivery_rules"]["require_schedule_for_bulky"] is False
     assert cfg["notifications"]["channels"] == {"email": True, "sms": False, "whatsapp": False}
@@ -268,7 +273,15 @@ def test_experience_hides_sandbox_orders(db, merchant_ctx, settings) -> None:
 # --- proactive notifications ------------------------------------------------------
 
 
-def test_notifications_off_by_default_queue_nothing(db, merchant_ctx, settings) -> None:
+def test_notifications_on_by_default_email_only(db, merchant_ctx, settings) -> None:
+    order = _order(db, merchant_ctx)
+    res = notify(db, settings, order, "out_for_delivery", now=NOON_ET)
+    assert res["queued"] == ["email"]
+    assert [r.channel for r in _records(db, order)] == ["email"]
+
+
+def test_merchant_can_turn_notifications_off(db, merchant_ctx, settings) -> None:
+    _set_cx(db, merchant_ctx.merchant, {"notifications": {"enabled": False}})
     order = _order(db, merchant_ctx)
     res = notify(db, settings, order, "out_for_delivery", now=NOON_ET)
     assert res["skipped"] == {"all": "disabled"}
@@ -277,7 +290,7 @@ def test_notifications_off_by_default_queue_nothing(db, merchant_ctx, settings) 
 
 def test_out_for_delivery_queues_email_and_sms_once(db, merchant_ctx, settings) -> None:
     _set_cx(db, merchant_ctx.merchant, _all_on())
-    order = _order(db, merchant_ctx)
+    order = _order(db, merchant_ctx, email="receiver@example.test")
     res = notify(db, settings, order, "out_for_delivery", now=NOON_ET)
     db.commit()
     assert sorted(res["queued"]) == ["email", "sms"]
@@ -288,7 +301,7 @@ def test_out_for_delivery_queues_email_and_sms_once(db, merchant_ctx, settings) 
     email = next(r for r in rows if r.channel == "email")
     assert email.recipient_address == "receiver@example.test"
     assert "/track/" in email.body and "/manage?t=" in email.body
-    assert "No marketing" in email.body and merchant_ctx.merchant.company_name in email.body
+    assert "not marketing" in email.body and merchant_ctx.merchant.company_name in email.body
     again = notify(db, settings, order, "out_for_delivery", now=NOON_ET)
     assert again["skipped"] == {"all": "duplicate"}
     assert len(_records(db, order)) == 2
@@ -300,8 +313,13 @@ def test_quiet_hours_hold_sms_but_not_email(db, merchant_ctx, settings) -> None:
     assert not in_quiet_hours(cfg["notifications"]["quiet_hours"], NOON_ET)
     order = _order(db, merchant_ctx)
     res = notify(db, settings, order, "delivered", now=LATE_ET)
-    assert res["queued"] == ["email"]
-    assert res["skipped"]["sms"] == "quiet_hours"
+    # Held, never dropped: SMS is parked until 08:00 Toronto, email goes now.
+    assert sorted(res["queued"]) == ["email", "sms"]
+    assert res["skipped"]["sms"] == "held_quiet_hours"
+    rows = {r.channel: r for r in _records(db, order)}
+    assert rows["email"].status == "queued"
+    assert rows["sms"].status == "held"
+    assert rows["sms"].next_retry_at == datetime(2026, 10, 10, 12, 0, tzinfo=UTC)  # 08:00 ET
 
 
 def test_sandbox_orders_never_notify(db, merchant_ctx, settings) -> None:
@@ -360,6 +378,7 @@ def test_event_router_runs_cx_hook_and_skips_sandbox(db, merchant_ctx, monkeypat
 
 
 def test_self_service_disabled_rejects_link_actions(db, merchant_ctx, settings) -> None:
+    _set_cx(db, merchant_ctx.merchant, {"self_service": {"enabled": False}})
     order = _order(db, merchant_ctx, state="BOOKED")
     token = make_manage_token(settings.jwt_secret, order_id=order.id, tracking_number=order.tracking_number)
     with pytest.raises(ValueError, match="self_service_disabled"):
@@ -613,7 +632,7 @@ def test_http_merchant_settings_roundtrip(client, db, merchant_ctx, monkeypatch)
     resp = client.get("/v1/merchant/settings/customer-experience")
     assert resp.status_code == 200, resp.text
     got = resp.json()
-    assert got["settings"]["notifications"]["enabled"] is False
+    assert got["settings"]["notifications"]["enabled"] is True
     assert set(got["presets"]) == {"furniture", "pharmacy"}
     res = client.put(
         "/v1/merchant/settings/customer-experience",

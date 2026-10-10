@@ -122,19 +122,49 @@ def _drain_queues(publisher, *, timeout_seconds: int = 0, queues=None) -> int:
     from porterchain_shared.queue.names import QueueName
     from processors import process_queue_message
 
+    from porterchain_api.notification_engine.lanes import SLOW_BUDGET_PER_LOOP
+
     processed = 0
+
+    def _run(queue, msg) -> None:
+        nonlocal processed
+        try:
+            process_queue_message(msg)
+            processed += 1
+        except Exception:
+            logger.exception("failed to process %s message %s", queue.value, msg.message_id)
+
+    def _drain_fast() -> None:
+        # Fast lane first, and again between every other message: an ETA email never
+        # waits behind a billing job or a digest burst.
+        while True:
+            msg = publisher.dequeue(QueueName.NOTIFY_FAST, timeout_seconds=0)
+            if not msg:
+                return
+            _run(QueueName.NOTIFY_FAST, msg)
+
+    ordered = list(queues or list(QueueName))
+    lanes_on = queues is None
+    if lanes_on:
+        ordered = [q for q in ordered if q not in (QueueName.NOTIFY_FAST, QueueName.NOTIFY_SLOW)]
+        _drain_fast()
     # Always non-blocking in mode=all — blocking per empty queue starved the event bus
     # (~8s+/loop) and left notification.queued / email-push stuck behind 30k lag.
-    for queue in queues or list(QueueName):
+    for queue in ordered:
         while True:
             msg = publisher.dequeue(queue, timeout_seconds=timeout_seconds)
             if not msg:
                 break
-            try:
-                process_queue_message(msg)
-                processed += 1
-            except Exception:
-                logger.exception("failed to process %s message %s", queue.value, msg.message_id)
+            _run(queue, msg)
+            if lanes_on:
+                _drain_fast()
+    if lanes_on:
+        for _ in range(SLOW_BUDGET_PER_LOOP):
+            msg = publisher.dequeue(QueueName.NOTIFY_SLOW, timeout_seconds=0)
+            if not msg:
+                break
+            _run(QueueName.NOTIFY_SLOW, msg)
+            _drain_fast()
     return processed
 
 
@@ -199,6 +229,15 @@ def _drain_notification_retries() -> int:
 
     with SessionLocal() as db:
         result = sweep_notification_retries(db)
+    try:
+        from porterchain_api.notification_engine.center import maybe_send_digest
+        from porterchain_api.notification_engine.health_alert import check_and_alert
+
+        with SessionLocal() as db:
+            check_and_alert(db)
+            maybe_send_digest(db)  # no-op unless an admin turned it on and approved it
+    except Exception:
+        logger.exception("notification health check failed")
     if result.get("requeued") or result.get("due"):
         logger.info(
             "notification retry sweep: due=%s requeued=%s",
@@ -449,10 +488,11 @@ def _drain_driver_compliance_expiry() -> int:
 
 def main(argv: list[str] | None = None) -> None:
     _load_local_api_env()
-    from porterchain_api.platform.bus import ensure_handlers_registered
     from porterchain_shared.queue.names import QueueName
     from porterchain_shared.queue.publisher import get_queue_publisher
     from porterchain_shared.redis_health import require_redis_for_production
+
+    from porterchain_api.platform.bus import ensure_handlers_registered
 
     require_redis_for_production()
     ensure_handlers_registered()

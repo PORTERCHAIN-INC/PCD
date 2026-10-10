@@ -1,6 +1,10 @@
 """Parcel notice policy. One table. Email rows require an address.
 
 Events not listed here stay in event_router until they move over.
+
+Receiver-facing delivery moments (delivered, failed attempt) share a dedupe family
+with the recipient-experience emails (customer_experience.notifications), so one
+address gets one email per moment no matter which path fires first.
 """
 
 from __future__ import annotations
@@ -9,6 +13,19 @@ import uuid
 from typing import Any
 
 from porterchain_shared.events.catalog import DomainEventType
+
+#: A failed attempt email is one per order+address per 6 h (several events can fire).
+ATTEMPT_WINDOW_SEC = 6 * 3600
+
+
+def delivered_family(order_id: Any, address: str) -> str:
+    return f"delivered|{order_id}|{address.strip().lower()}"
+
+
+def attempt_family(order_id: Any, address: str, attempt: Any = None) -> str:
+    """One missed-delivery email per attempt. Without an attempt number the 6 h window applies."""
+    return f"attempt|{order_id}|{attempt if attempt not in (None, '') else 'x'}|{address.strip().lower()}"
+
 
 # Fleetbase echoes these. The driver (or proof) path already notifies.
 _FLEETBASE_COVERED_STATES = frozenset(
@@ -58,17 +75,25 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
         *,
         category: str | None = None,
         pri: str | None = None,
+        family: Any = None,
+        window: int | None = None,
     ) -> None:
         chosen = receiver_addresses() if addresses is None else addresses
         if not chosen:
             return
+
+        def fam(addr: str) -> dict[str, Any]:
+            if family is None or not order_id:
+                return {}
+            return {"dedupe": family(order_id, addr), "dedupe_window": window}
+
         rest = chosen
         if customer_id:
-            add(template, "email", "customer", customer_id, address=chosen[0], category=category, pri=pri)
+            add(template, "email", "customer", customer_id, address=chosen[0], category=category, pri=pri, **fam(chosen[0]))
             rest = chosen[1:]
         for addr in rest:
             rid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{order_id or 'order'}:{addr.lower()}"))
-            add(template, "email", "consignee", rid, address=addr, category=category, pri=pri)
+            add(template, "email", "consignee", rid, address=addr, category=category, pri=pri, **fam(addr))
 
     def one_address(value: Any) -> list[str]:
         if isinstance(value, str) and "@" in value:
@@ -128,7 +153,7 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
             add("delivered", "in_app", "customer", customer_id)
             add("delivered", "push", "customer", customer_id)
         final = one_address(payload.get("stop_email")) or receiver_addresses()[-1:]
-        email_customer("delivered", final)
+        email_customer("delivered", final, family=delivered_family)
         if driver_id:
             add("delivered", "in_app", "driver", driver_id)
         if merchant_id:
@@ -141,7 +166,7 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
             add("delivered", "in_app", "customer", customer_id)
             add("delivered", "push", "customer", customer_id)
         stop_only = one_address(payload.get("stop_email") or payload.get("contact_email"))
-        email_customer("delivered", stop_only)
+        email_customer("delivered", stop_only, family=delivered_family)
         if merchant_id:
             add("delivered", "in_app", "merchant", merchant_id)
         return True
@@ -161,20 +186,49 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
             add("checkout_recovery", "email", "customer", rid, address=buyer.strip())
         return True
 
-    if event_type == "order.failed":
+    if event_type in ("order.failed", "order.delivery_failed"):
         from porterchain_api.notification_engine.staff_fanout import staff_sentinel
 
+        template = "delivery_failed"
         if customer_id:
-            add("exception_opened", "in_app", "customer", customer_id, category="orders", pri="high")
-            add("exception_opened", "push", "customer", customer_id, category="orders", pri="high")
-        email_customer("exception_opened", category="orders", pri="high")
+            add(template, "in_app", "customer", customer_id, category="orders", pri="high")
+            add(template, "push", "customer", customer_id, category="orders", pri="high")
+        # Receiver: the recipient-experience "attempted" email (with one-tap reschedule)
+        # normally wins this family; this is the fallback when that stream is off.
+        attempt_no = payload.get("attempts")
+        email_customer(
+            template,
+            category="orders",
+            pri="high",
+            family=lambda oid, addr: attempt_family(oid, addr, attempt_no),
+            window=None if attempt_no not in (None, "") else ATTEMPT_WINDOW_SEC,
+        )
         if merchant_id:
-            add("exception_opened", "in_app", "merchant", merchant_id, category="orders", pri="high")
-        email_merchant("exception_opened", category="orders", pri="high")
+            add(template, "in_app", "merchant", merchant_id, category="orders", pri="high")
+        email_merchant(template, category="orders", pri="high")
+        if driver_id:
+            add(template, "in_app", "driver", driver_id, category="orders")
         ops = staff_sentinel("ops")
-        add("exception_opened", "in_app", "admin", ops, category="orders", pri="high")
-        add("exception_opened", "push", "admin", ops, category="orders", pri="high")
-        add("exception_opened", "email", "admin", ops, category="orders", pri="high")
+        add(template, "in_app", "admin", ops, category="orders", pri="high")
+        add(template, "push", "admin", ops, category="orders", pri="high")
+        add(template, "email", "admin", ops, category="orders", pri="high")
+        return True
+
+    if event_type == "order.rescheduled":
+        from porterchain_api.notification_engine.staff_fanout import staff_sentinel
+
+        template = "order_rescheduled"
+        if customer_id:
+            add(template, "in_app", "customer", customer_id, category="tracking")
+        # Receiver confirmation is the recipient-experience "rescheduled" email.
+        if merchant_id:
+            add(template, "in_app", "merchant", merchant_id, category="orders")
+        email_merchant(template, category="orders")
+        if driver_id:
+            add(template, "in_app", "driver", driver_id, category="orders")
+        ops = staff_sentinel("ops")
+        add(template, "in_app", "admin", ops, category="orders")
+        add(template, "email", "admin", ops, category="orders")
         return True
 
     if event_type == DomainEventType.FLEETBASE_STATUS_UPDATED:
