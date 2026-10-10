@@ -166,13 +166,7 @@ export default function IntegrationsClient() {
             />
           )}
           {tab === "logs" && (
-            <LogsTab
-              logs={logs}
-              webhooks={webhooks}
-              onRefresh={load}
-              getToken={getApiToken}
-              orgId={orgId}
-            />
+            <LogsTab logs={logs} onRefresh={load} getToken={getApiToken} orgId={orgId} />
           )}
           {tab === "usage" && <UsageTab overview={overview} />}
           {tab === "sandbox" && (
@@ -497,13 +491,11 @@ function WebhooksTab({
 
 function LogsTab({
   logs,
-  webhooks,
   onRefresh,
   getToken,
   orgId,
 }: {
   logs: WebhookDelivery[];
-  webhooks: WebhookRecord[];
   onRefresh: () => Promise<void>;
   getToken: () => Promise<string>;
   orgId?: string;
