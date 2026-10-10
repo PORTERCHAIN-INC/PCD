@@ -153,10 +153,38 @@ for db in $DATABASES; do
   uploaded=$((uploaded + 1))
 done
 
+# ---- forensic evidence bundle (audit chain + signed checkpoint + server logs) -------------
+# Tamper-evident audit export, Caddy access logs and host auth/syslog, encrypted like the dumps.
+EVIDENCE="${BACKUP_EVIDENCE:-1}"
+EVIDENCE_DAYS="${EVIDENCE_RETENTION_DAYS:-400}"   # >= 1 year (PIPEDA breach records: 24 months via DB)
+if [[ "$EVIDENCE" == "1" && "$BACKUP_SOURCE" == "compose" ]]; then
+  ev="$WORK_DIR/${BACKUP_NAME_PREFIX}-evidence-${STAMP}"
+  mkdir -p "$ev"
+  docker compose -f "$COMPOSE_FILE" exec -T api python -m porterchain_api.forensics_cli checkpoint >"$ev/checkpoint.json" 2>"$ev/checkpoint.err" || log "checkpoint failed (see bundle)"
+  docker compose -f "$COMPOSE_FILE" exec -T api python -m porterchain_api.forensics_cli export >"$ev/audit-chain.json" || log "audit export failed"
+  docker compose -f "$COMPOSE_FILE" exec -T caddy sh -c 'cd /data/logs 2>/dev/null && tar -cf - . ' >"$ev/caddy-access-logs.tar" 2>/dev/null || true
+  journalctl --since "-2 days" -o short-iso-precise _SYSTEMD_UNIT=ssh.service _SYSTEMD_UNIT=sshd.service + _COMM=sudo + SYSLOG_FACILITY=10 >"$ev/auth.log" 2>/dev/null || true
+  journalctl --since "-2 days" -o short-iso-precise -p warning >"$ev/system-warnings.log" 2>/dev/null || true
+  timedatectl show -p NTPSynchronized -p TimeUSec >"$ev/time-sync.txt" 2>/dev/null || true
+  (cd "$ev" && sha256sum ./* >SHA256SUMS 2>/dev/null || shasum -a 256 ./* >SHA256SUMS)
+  tar -C "$WORK_DIR" -czf "$ev.tar.gz" "$(basename "$ev")"
+  rm -rf "$ev"
+  encrypt "$ev.tar.gz" "$ev.tar.gz.$ENC_EXT"
+  rm -f "$ev.tar.gz"
+  upload "$ev.tar.gz.$ENC_EXT"
+  log "uploaded evidence bundle $(basename "$ev").tar.gz.$ENC_EXT"
+  ev_cutoff=$((NOW - EVIDENCE_DAYS * 86400))
+  while IFS= read -r name; do
+    [[ "$name" =~ ^${BACKUP_NAME_PREFIX}-evidence-([0-9]{8}T[0-9]{6}Z)\.tar ]] || continue
+    (( $(epoch_of_stamp "${BASH_REMATCH[1]}") >= ev_cutoff )) || remote_delete "$name"
+  done < <(remote_list)
+fi
+
 # ---- retention: off-site ----------------------------------------------------------------
 daily_cutoff=$((NOW - OFFSITE_DAILY_DAYS * 86400))
 monthly_cutoff=$((NOW - OFFSITE_MONTHLY_MONTHS * 31 * 86400))
 while IFS= read -r name; do
+  [[ "$name" =~ ^${BACKUP_NAME_PREFIX}-evidence- ]] && continue
   [[ "$name" =~ ^${BACKUP_NAME_PREFIX}-[A-Za-z0-9_]+-([0-9]{8}T[0-9]{6}Z)\.dump ]] || continue
   stamp="${BASH_REMATCH[1]}"; ts="$(epoch_of_stamp "$stamp")"
   (( ts >= daily_cutoff )) && continue

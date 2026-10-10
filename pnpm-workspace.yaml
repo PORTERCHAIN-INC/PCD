@@ -68,3 +68,13 @@ minimumReleaseAgeExclude:
   - "@grpc/grpc-js@1.14.6"
   - happy-dom@20.14.6
   - baseline-browser-mapping@2.11.28
+
+# Accepted (2026-10-10): no patched release exists yet on npm. Neither is reachable in production:
+#  - braces (GHSA-vfj7-8cjw-p6xm): only via eslint-config-next -> fast-glob -> micromatch (build-time
+#    lint globs we author; never user input).
+#  - node-forge (GHSA-86w9-cpqp-85rv): only via @expo/cli (mobile build tooling, not shipped).
+# Remove these entries as soon as braces >=3.0.4 / node-forge >=1.4.1 are published.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
+    - GHSA-86w9-cpqp-85rv

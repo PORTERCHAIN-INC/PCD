@@ -39,6 +39,9 @@ env:
   PROD_API_URL: https://api.porterchain.com
   PROD_SITE_URL: https://porterchain.com
 
+permissions:
+  contents: read
+
 jobs:
   plan:
     name: Plan deploy
@@ -85,7 +88,7 @@ jobs:
             echo "value=${{ github.sha }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: steps.check.outputs.ready == 'true'
         with:
           ref: ${{ steps.sha.outputs.value }}
@@ -143,7 +146,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: matrix.id != '_noop'
         with:
           ref: ${{ needs.plan.outputs.sha }}
@@ -151,18 +154,18 @@ jobs:
       # Preflight only on website-only deploys. Full/parallel builds skip it so
       # pnpm install + Docker do not OOM the same runner (seen as a dead job
       # with missing logs on Build website).
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           version: 11.10.0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           python-version: "3.14.6"
@@ -179,11 +182,11 @@ jobs:
 
       - name: Set up Docker Buildx
         if: matrix.id != '_noop'
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Log in to GHCR
         if: matrix.id != '_noop'
-        uses: docker/login-action@v4
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -216,7 +219,7 @@ jobs:
 
       - name: Build and push API image
         if: matrix.flavor == 'api' && steps.reuse.outputs.hit != 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -230,7 +233,7 @@ jobs:
 
       - name: Build and push website image
         if: matrix.flavor == 'website' && steps.reuse.outputs.hit != 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -261,7 +264,7 @@ jobs:
 
       - name: Build and push portal image
         if: matrix.flavor == 'portal' && steps.reuse.outputs.hit != 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -290,7 +293,7 @@ jobs:
       contents: read
       packages: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
 
@@ -305,19 +308,19 @@ jobs:
 
       - name: Copy full-stack deploy manifests to droplet
         if: needs.plan.outputs.rollout == 'full'
-        uses: appleboy/scp-action@v1.0.0
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/deploy-paths.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/backup-porterchain-postgres.sh,infrastructure/deploy/scripts/restore-porterchain-postgres.sh,infrastructure/deploy/scripts/snapshot-before-migrate.sh,infrastructure/deploy/scripts/rollback-prod.sh,infrastructure/deploy/scripts/tune-valhalla-ram.sh,infrastructure/deploy/scripts/rebuild-valhalla-gta.sh,infrastructure/docker/scripts/tune-valhalla-json.py,infrastructure/docker/scripts/prepare-valhalla-gta.sh,infrastructure/docker/valhalla/valhalla.gta-ram.json"
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/deploy-paths.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/backup-porterchain-postgres.sh,infrastructure/deploy/scripts/backup-offsite-postgres.sh,infrastructure/deploy/scripts/restore-porterchain-postgres.sh,infrastructure/deploy/scripts/snapshot-before-migrate.sh,infrastructure/deploy/scripts/rollback-prod.sh,infrastructure/deploy/scripts/tune-valhalla-ram.sh,infrastructure/deploy/scripts/rebuild-valhalla-gta.sh,infrastructure/docker/scripts/tune-valhalla-json.py,infrastructure/docker/scripts/prepare-valhalla-gta.sh,infrastructure/docker/valhalla/valhalla.gta-ram.json"
           target: "/opt/porterchain"
           strip_components: 2
 
       - name: Copy partial-stack deploy manifests to droplet
         if: needs.plan.outputs.rollout == 'partial'
-        uses: appleboy/scp-action@v1.0.0
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -328,7 +331,7 @@ jobs:
           strip_components: 2
 
       - name: Copy Doppler config to droplet
-        uses: appleboy/scp-action@v1.0.0
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -351,7 +354,7 @@ jobs:
       - name: Deploy full stack to droplet over SSH
         id: deploy-full
         if: needs.plan.outputs.rollout == 'full'
-        uses: appleboy/ssh-action@v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -486,7 +489,7 @@ jobs:
       - name: Deploy scoped services to droplet over SSH
         id: deploy-partial
         if: needs.plan.outputs.rollout == 'partial'
-        uses: appleboy/ssh-action@v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -551,6 +554,11 @@ jobs:
               sleep 5
             done
             echo "Scoped deploy ($DEPLOY_SCOPE) updated: $SERVICES"
+            # Forensic audit trail: record the deploy (sha, scope, services) in the hash chain.
+            docker compose -f docker-compose.prod.yml exec -T api python -m porterchain_api.forensics_cli \
+              event deploy --actor "github-actions:${{ github.actor }}" \
+              --detail "{\"sha\":\"${{ github.sha }}\",\"scope\":\"$DEPLOY_SCOPE\",\"services\":\"$SERVICES\"}" \
+              || echo "::warning::forensic deploy event not recorded"
         env:
           IMAGE_TAG: ${{ needs.plan.outputs.sha }}
           GHCR_USER: ${{ github.actor }}
@@ -609,7 +617,7 @@ jobs:
 
       - name: Roll back pre-migrate snapshot when prod smoke fails
         if: needs.plan.outputs.rollout == 'full' && steps.public-smoke.outcome == 'failure'
-        uses: appleboy/ssh-action@v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}

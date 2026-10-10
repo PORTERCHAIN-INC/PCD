@@ -69,7 +69,9 @@ def _enforce_token_policy(payload: dict, settings: Settings) -> None:
             candidates.add(aud)
         elif isinstance(aud, list):
             candidates.update(str(a) for a in aud)
-        if not candidates.intersection(parties):
+        # Native (Expo) sessions carry no azp/aud; browser sessions always do. Enforce whenever
+        # the token names a party, so a token minted for another site is rejected.
+        if candidates and not candidates.intersection(parties):
             logger.warning("auth_reject reason=authorized_party_mismatch")
             raise HTTPException(status_code=401, detail="invalid_token_azp")
 

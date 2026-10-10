@@ -18,10 +18,10 @@ const fullCsp = websiteCsp({
     process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL,
   dev: isDev,
 });
-// Baseline is always enforced; the full allowlist is report-only unless WEBSITE_CSP_ENFORCE=true
+// Full allowlist is ENFORCED (validated against live pages 2026-10-10); WEBSITE_CSP_ENFORCE=false falls back to report-only
 // at BUILD time (headers are baked into the build; Docker build arg WEBSITE_CSP_ENFORCE).
 const cspHeaders =
-  process.env.WEBSITE_CSP_ENFORCE === "true"
+  process.env.WEBSITE_CSP_ENFORCE !== "false"
     ? [{ key: "Content-Security-Policy", value: fullCsp }]
     : [
         { key: "Content-Security-Policy", value: baselineCsp() },

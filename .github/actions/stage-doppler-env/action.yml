@@ -114,7 +114,7 @@ runs:
 
     - name: SCP doppler.env to droplet
       if: inputs.upload == 'true'
-      uses: appleboy/scp-action@v1.0.0
+      uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
       with:
         host: ${{ inputs.deploy_host }}
         username: ${{ inputs.deploy_user }}

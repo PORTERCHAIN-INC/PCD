@@ -17,6 +17,16 @@
 
 (common) {
 	encode zstd gzip
+	# Access logs for security investigations: JSON, 1-year retention, shipped in the nightly
+	# encrypted evidence bundle. Caddy redacts Authorization/Cookie headers by default.
+	log {
+		output file /data/logs/access.log {
+			roll_size 100MiB
+			roll_keep 200
+			roll_keep_for 8760h
+		}
+		format json
+	}
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		X-Content-Type-Options "nosniff"
@@ -31,6 +41,9 @@
 # Dedicated API host — used by all portals (CORS).
 api.porterchain.com {
 	import common
+	# Operational endpoints are not public (queue depths, service inventory).
+	@ops path /metrics /metrics/* /internal/*
+	respond @ops "Not found" 404
 	reverse_proxy api:8001
 }
 
@@ -107,7 +120,7 @@ porterchain.com {
 		reverse_proxy api:8001
 	}
 	handle /internal/* {
-		reverse_proxy api:8001
+		respond "Not found" 404
 	}
 	handle /webhooks/* {
 		reverse_proxy api:8001

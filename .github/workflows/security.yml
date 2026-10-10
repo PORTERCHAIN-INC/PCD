@@ -10,6 +10,9 @@ concurrency:
   group: security-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   bandit:
     name: Bandit (Python)
@@ -19,9 +22,9 @@ jobs:
         working-directory: apps/api
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.14.6"
 
@@ -48,7 +51,7 @@ jobs:
             dockerfile: website/Dockerfile
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build image for scan
         env:
@@ -65,7 +68,7 @@ jobs:
           fi
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: pcd-scan:${{ matrix.name }}
           format: table

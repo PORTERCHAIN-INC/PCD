@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { driverPublicEnv, loadMonorepoEnv } from "@porterchain/config/monorepo-env.mjs";
-import { baselineSecurityHeaders } from "@porterchain/config/security-headers.mjs";
+import { portalSecurityHeaders } from "@porterchain/config/security-headers.mjs";
 
 loadMonorepoEnv(process.cwd());
 
@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      { source: "/(.*)", headers: baselineSecurityHeaders() },
+      { source: "/(.*)", headers: portalSecurityHeaders("driver") },
       // App subdomains are private tools: never index (Search Console listed sign-in URLs).
       { source: "/(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
     ];

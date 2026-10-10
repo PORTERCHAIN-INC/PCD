@@ -10,12 +10,15 @@ concurrency:
   group: set-ingest-key
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   ensure-ingest-key:
     name: Doppler + droplet roll
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Check deploy secrets are configured
         id: check
@@ -56,7 +59,7 @@ jobs:
 
       # Cold-droplet safety: sync-secrets.sh must exist before SSH roll.
       - name: Copy sync-secrets.sh to droplet
-        uses: appleboy/scp-action@v1.0.0
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -80,7 +83,7 @@ jobs:
           deploy_port: ${{ secrets.DEPLOY_PORT || 22 }}
 
       - name: Sync secrets and recreate api + web
-        uses: appleboy/ssh-action@v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}

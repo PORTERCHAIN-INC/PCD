@@ -9,6 +9,9 @@ concurrency:
   group: nightly-e2e
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   d3-e2e:
     name: D3 E2E matrix
@@ -56,9 +59,9 @@ jobs:
       ROUTING_ENGINE: valhalla
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.14.6"
           cache: pip

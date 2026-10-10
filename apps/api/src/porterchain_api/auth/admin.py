@@ -32,25 +32,25 @@ async def get_admin_context(
         STAFF_COOKIE_NAME
     )
     if staff_sid and not _looks_like_clerk_bearer(authorization):
-        return _admin_from_staff_session(db, staff_sid, settings, x_admin_role)
+        return _tag_actor(request, _admin_from_staff_session(db, staff_sid, settings, x_admin_role))
 
     if allow_auth_dev_bypass(settings) and (not authorization or authorization == "Bearer dev"):
-        return _admin_from_dev_bypass(db, settings, x_admin_role)
+        return _tag_actor(request, _admin_from_dev_bypass(db, settings, x_admin_role))
 
     if authorization and authorization.startswith("Bearer "):
         token = authorization.removeprefix("Bearer ").strip()
         if token == "dev":
             if not allow_auth_dev_bypass(settings):
                 raise HTTPException(status_code=401, detail="dev_bypass_disabled")
-            return _admin_from_dev_bypass(db, settings, x_admin_role)
+            return _tag_actor(request, _admin_from_dev_bypass(db, settings, x_admin_role))
         if token.startswith("staff_sess_"):
-            return _admin_from_staff_session(
+            return _tag_actor(request, _admin_from_staff_session(
                 db, token.removeprefix("staff_sess_").strip(), settings, x_admin_role
-            )
+            ))
         raise HTTPException(status_code=401, detail="admin_clerk_retired_use_staff_idp")
 
     if staff_sid:
-        return _admin_from_staff_session(db, staff_sid, settings, x_admin_role)
+        return _tag_actor(request, _admin_from_staff_session(db, staff_sid, settings, x_admin_role))
 
     raise HTTPException(status_code=401, detail="missing_bearer_token")
 
@@ -127,6 +127,14 @@ def _finish_admin_context(
         (x_admin_role if allow_auth_dev_bypass(settings) else None) or user.role
     )
     return AdminContext(user=user, role=role)
+
+
+def _tag_actor(request, ctx: AdminContext) -> AdminContext:
+    try:
+        request.state.audit_actor = f"admin:{ctx.user.id}"
+    except Exception:  # noqa: BLE001
+        pass
+    return ctx
 
 
 _ensure_dev_admin = ensure_dev_admin

@@ -50,6 +50,18 @@ function Rows({ rows, cols }: { rows: O[]; cols: string[] }) {
 
 export default function CompliancePanel() {
   const { getApiToken } = useAdminAuth();
+  async function evidence(id: string, title: string) {
+    const token = await getApiToken();
+    const pack = await adminFetch<O>(`/v1/admin/compliance/breaches/${id}/evidence`, token);
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" })
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `breach-evidence-${String(title).replace(/\W+/g, "-").slice(0, 40)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
   const [o, setO] = useState<O | null>(null);
   const [cfg, setCfg] = useState<O>({});
   const [breach, setBreach] = useState<O>({
@@ -147,6 +159,20 @@ export default function CompliancePanel() {
           }))}
           cols={["title", "detected_at", "risk", "subjects_affected", "clock"]}
         />
+        {o.breaches.length ? (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {o.breaches.map((b: O) => (
+              <Button key={b.id} onClick={() => void evidence(b.id, b.title)}>
+                Evidence pack: {String(b.title).slice(0, 30)}
+              </Button>
+            ))}
+          </div>
+        ) : null}
+        <p className="mt-1 text-xs text-muted">
+          PIPEDA record of breaches: kept at least 24 months. Evidence pack = record, timeline,
+          notifications, OPC form fields and the tamper-evident audit trail (UTC, hash-chained,
+          signed). See docs/security/incident-response.md.
+        </p>
         <div className="mt-2 grid gap-2 sm:grid-cols-4">
           <Input
             placeholder="What happened"

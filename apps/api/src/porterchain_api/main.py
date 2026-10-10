@@ -118,6 +118,9 @@ def create_app() -> FastAPI:
     from porterchain_api.platform.rate_limit_middleware import PortalRateLimitMiddleware
 
     app.add_middleware(PortalRateLimitMiddleware)
+    from porterchain_api.platform.forensic_middleware import ForensicAuditMiddleware
+
+    app.add_middleware(ForensicAuditMiddleware)
     from porterchain_api.gateway_engine.middleware import MerchantApiGatewayMiddleware
 
     app.add_middleware(MerchantApiGatewayMiddleware)

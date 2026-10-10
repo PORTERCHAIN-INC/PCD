@@ -60,3 +60,27 @@ def my_ip(ctx: Annotated[AdminContext, Depends(get_admin_context)], request: Req
     from porterchain_api.platform.client_ip import client_ip
 
     return {"ip": client_ip(request)}
+
+
+@router.get("/compliance/breaches/{breach_id}/evidence")
+def breach_evidence(
+    breach_id: str, ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)
+) -> dict:
+    """One-click evidence pack (OPC / police): record, timeline, notifications, audit chain."""
+    try:
+        require_module(ctx, "settings")
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    from porterchain_api.platform.breach_evidence import evidence_pack
+
+    try:
+        return evidence_pack(db, breach_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/compliance/audit-chain/verify")
+def audit_chain_verify(ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)) -> dict:
+    from porterchain_api.platform import forensics
+
+    return {**forensics.verify(db), "public_key": forensics.public_key_b64()}

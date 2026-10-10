@@ -41,6 +41,8 @@ function originOf(url) {
 
 const CLERK = [
   "https://clerk.porterchain.com",
+  "https://clerk.admin.porterchain.com",
+  "https://clerk.driver.porterchain.com",
   "https://accounts.porterchain.com",
   "https://*.clerk.accounts.dev",
   "https://*.clerk.com",
@@ -123,4 +125,109 @@ export function websiteCsp(opts = {}) {
     "frame-ancestors 'none'",
     "form-action 'self' https://*.clerk.accounts.dev https://clerk.porterchain.com https://accounts.porterchain.com",
   ].join("; ");
+}
+
+const SHOPIFY = ["https://cdn.shopify.com", "https://admin.shopify.com", "https://*.myshopify.com"];
+const MAPS = [
+  "https://maps.googleapis.com",
+  "https://maps.gstatic.com",
+  "https://*.tile.openstreetmap.org",
+  "https://tile.openstreetmap.org",
+  "https://tiles.openfreemap.org",
+  "https://*.basemaps.cartocdn.com",
+  "https://demotiles.maplibre.org",
+];
+const FIREBASE = [
+  "https://www.gstatic.com",
+  "https://*.googleapis.com",
+  "https://*.firebaseio.com",
+  "https://fcmregistrations.googleapis.com",
+];
+
+/**
+ * Enforced per-portal policy with script rules (security audit 2026-10-10).
+ * Scripts only from self + the vendors each app really loads; no plugins, no framing,
+ * no <base> hijack, forms only to self/Clerk. 'unsafe-inline' stays for Next.js
+ * bootstrap scripts (no nonce: static rendering), 'unsafe-eval' only in dev.
+ * @param {{ app: "admin"|"merchant"|"customer"|"driver", apiUrl?: string, mapTileUrl?: string,
+ *           valhallaUrl?: string, frameAncestors?: string, dev?: boolean }} opts
+ */
+export function portalCsp(opts) {
+  const app = opts.app;
+  const clerk = app === "admin" ? [] : CLERK;
+  const stripe = app === "customer" || app === "merchant" ? STRIPE : [];
+  const shopify = app === "merchant" ? SHOPIFY : [];
+  const firebase = app === "driver" || app === "admin" ? FIREBASE : [];
+  const extraOrigins = [opts.apiUrl, opts.mapTileUrl, opts.valhallaUrl]
+    .map((u) => originOf(u ?? ""))
+    .filter(Boolean);
+  const scriptSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    ...clerk,
+    ...stripe.slice(0, 1),
+    ...shopify.slice(0, 1),
+    "https://maps.googleapis.com",
+    "https://www.googletagmanager.com",
+    ...firebase.slice(0, 1),
+  ];
+  if (opts.dev) scriptSrc.push("'unsafe-eval'");
+  const connect = [
+    "'self'",
+    "https://porterchain.com",
+    "https://*.porterchain.com",
+    "wss://*.porterchain.com",
+    ...extraOrigins,
+    ...clerk,
+    ...stripe,
+    ...shopify,
+    ...MAPS,
+    ...firebase,
+    ...SENTRY,
+    "https://*.google-analytics.com",
+    "https://*.analytics.google.com",
+  ];
+  if (opts.dev) connect.push("ws:", "http://localhost:*", "http://127.0.0.1:*");
+  return [
+    "default-src 'self'",
+    `script-src ${[...new Set(scriptSrc)].join(" ")}`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https:" + (opts.dev ? " http://localhost:*" : ""),
+    "font-src 'self' data: https://fonts.gstatic.com",
+    `connect-src ${[...new Set(connect)].join(" ")}`,
+    `frame-src 'self' ${[...clerk, ...stripe, ...shopify].join(" ")}`.trim(),
+    "worker-src 'self' blob:",
+    "child-src 'self' blob:",
+    "media-src 'self' blob: https:",
+    "manifest-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    `frame-ancestors ${opts.frameAncestors ?? "'none'"}`,
+    `form-action 'self' ${clerk.join(" ")}`.trim(),
+    ...(opts.dev ? [] : ["upgrade-insecure-requests"]),
+  ].join("; ");
+}
+
+/** Headers for a portal app (enforced portalCsp). Reads public env at build time. */
+export function portalSecurityHeaders(app, opts = {}) {
+  const env = process.env;
+  const csp = portalCsp({
+    app,
+    apiUrl: env.NEXT_PUBLIC_PORTERCHAIN_API_URL,
+    mapTileUrl: env.NEXT_PUBLIC_MAP_TILE_URL,
+    valhallaUrl: env.NEXT_PUBLIC_VALHALLA_URL,
+    dev: env.NODE_ENV !== "production",
+    frameAncestors: opts.frameAncestors,
+  });
+  const headers = [
+    { key: "X-Content-Type-Options", value: "nosniff" },
+    { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+    { key: "Content-Security-Policy", value: csp },
+    {
+      key: "Cross-Origin-Opener-Policy",
+      value: opts.frameAncestors ? "unsafe-none" : "same-origin-allow-popups",
+    },
+  ];
+  if (!opts.frameAncestors) headers.push({ key: "X-Frame-Options", value: "DENY" });
+  return headers;
 }

@@ -29,7 +29,7 @@ def recipients(db: Any, settings: Any) -> list[str]:
     try:
         rows = db.query(AdminUser).filter(AdminUser.role == "super_admin", AdminUser.is_active.is_(True)).all()
         out |= {r.email.strip().lower() for r in rows if r.email}
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("staff_login_alert_recipients_failed")
     return sorted(out)
 
@@ -64,5 +64,5 @@ def _send(to: str, message: str) -> None:
 
         DeliveryService().deliver({"channel": "email", "template": "system_alert", "recipient": to,
                                    "context": {"message": message, "subject": "Failed Admin sign-ins"}})
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("staff_login_alert_send_failed")

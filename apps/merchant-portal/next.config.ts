@@ -2,33 +2,18 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadMonorepoEnv, merchantPublicEnv } from "@porterchain/config/monorepo-env.mjs";
-import { baselineCsp } from "@porterchain/config/security-headers.mjs";
+import { portalSecurityHeaders } from "@porterchain/config/security-headers.mjs";
 
 loadMonorepoEnv(process.cwd());
 
 const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-const baseSecurityHeaders = [
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-];
+/** Shopify Admin embeds /shopify-app — framed only by Shopify, no X-Frame-Options there. */
+const shopifyEmbedHeaders = portalSecurityHeaders("merchant", {
+  frameAncestors: "https://admin.shopify.com https://*.myshopify.com https://*.shopify.com",
+});
 
-/** Shopify Admin embeds /shopify-app — must not send X-Frame-Options: DENY there. */
-const shopifyEmbedHeaders = [
-  ...baseSecurityHeaders,
-  {
-    key: "Content-Security-Policy",
-    value: baselineCsp({
-      frameAncestors: "https://admin.shopify.com https://*.myshopify.com https://*.shopify.com",
-    }),
-  },
-];
-
-const defaultSecurityHeaders = [
-  ...baseSecurityHeaders,
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "Content-Security-Policy", value: baselineCsp() },
-];
+const defaultSecurityHeaders = portalSecurityHeaders("merchant");
 
 const nextConfig: NextConfig = {
   output: "standalone",

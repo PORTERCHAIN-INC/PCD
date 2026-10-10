@@ -167,6 +167,11 @@ def staff_login(
             client_meta=client_meta_from_request(request),
         )
         note_auth_event(f"staff_login_{factor}", "ok")
+        from porterchain_api.auth.staff_rate_limit import _client_ip as _ip
+        from porterchain_api.platform.forensics import record_now
+
+        record_now("auth", f"staff.login.{factor}", ip=_ip(request),
+                   actor=str((payload or {}).get("admin_user_id") or (payload or {}).get("email") or "") or None)
         return _staff_session_response(payload, settings)
     except HTTPException as exc:
         note_auth_event(f"staff_login_{factor}", "fail")
@@ -175,6 +180,10 @@ def staff_login(
             from porterchain_api.auth.staff_rate_limit import _client_ip
 
             note_failed_login(db, settings, client_ip=_client_ip(request), factor=factor)
+            from porterchain_api.platform.forensics import record_now
+
+            record_now("auth", f"staff.login.{factor}", ip=_client_ip(request), outcome="denied",
+                       detail={"status": exc.status_code, "reason": str(exc.detail)[:80]})
         raise exc
 
 

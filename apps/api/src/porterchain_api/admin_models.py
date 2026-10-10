@@ -312,3 +312,7 @@ class SystemConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+# Tamper-evident audit chain: registers the mirror listeners for the audit tables above.
+import porterchain_api.platform.forensics  # noqa: E402,F401

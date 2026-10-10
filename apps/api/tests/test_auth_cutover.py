@@ -541,8 +541,10 @@ def test_client_meta_from_request_prefers_forwarded() -> None:
         "x-forwarded-for": "198.51.100.2, 10.0.0.1",
         "user-agent": "Mozilla/5.0 (Macintosh) Firefox/128.0",
     }.get(key, default)
+    req.client.host = "172.18.0.2"  # our proxy on the docker network
     meta = client_meta_from_request(req)
-    assert meta["client_ip"] == "198.51.100.2"
+    # Rightmost hop is the one our proxy appended; left entries are client-controlled.
+    assert meta["client_ip"] == "10.0.0.1"
     assert meta["device_label"] == "Firefox"
 
 

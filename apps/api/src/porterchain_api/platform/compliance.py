@@ -144,8 +144,35 @@ def normalize_breaches(raw: Any) -> list[dict[str, Any]]:
             "authority_notified_at": b.get("authority_notified_at") or None,
             "subjects_notified_at": b.get("subjects_notified_at") or None,
             "measures": str(b.get("measures") or "")[:4000],
+            **_pipeda_fields(b),
         })
     return out
+
+
+def _lst(v: Any, keys: tuple[str, ...]) -> list[dict[str, Any]]:
+    return [{k: str(i.get(k) or "")[:1000] for k in keys} for i in (v or []) if isinstance(i, dict)][:200]
+
+
+def _pipeda_fields(b: dict[str, Any]) -> dict[str, Any]:
+    """PIPEDA s.10.1 record of breaches (kept >= 24 months) + OPC report fields."""
+    detected = _parse(str(b["detected_at"]))
+    floor = (detected + timedelta(days=731)).isoformat()
+    retain = str(b.get("retain_until") or floor)
+    rrosh = b.get("rrosh") if isinstance(b.get("rrosh"), dict) else {}
+    return {
+        "occurred_from": b.get("occurred_from") or None,
+        "occurred_to": b.get("occurred_to") or None,
+        "contained_at": b.get("contained_at") or None,
+        "cause": str(b.get("cause") or "")[:2000],
+        "records_affected": str(b.get("records_affected") or "")[:4000],
+        "rrosh": {"sensitivity": str(rrosh.get("sensitivity") or "")[:1000],
+                  "probability_of_misuse": str(rrosh.get("probability_of_misuse") or "")[:1000],
+                  "real_risk": rrosh.get("real_risk") if rrosh.get("real_risk") in ("yes", "no", "undetermined") else "undetermined"},
+        "opc_reported_at": b.get("opc_reported_at") or None,
+        "timeline": _lst(b.get("timeline"), ("at", "note")),
+        "notifications": _lst(b.get("notifications"), ("at", "to", "method", "note")),
+        "retain_until": max(retain, floor),  # never shorter than 24 months
+    }
 
 
 def breach_clock(b: dict[str, Any], *, now: datetime | None = None) -> dict[str, Any]:

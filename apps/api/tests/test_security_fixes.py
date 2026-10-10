@@ -1,7 +1,7 @@
 import pytest
 
-from porterchain_api.platform.outbound_url import UnsafeUrl, assert_public_https_url
 from porterchain_api.platform import rate_limit_middleware as rl
+from porterchain_api.platform.outbound_url import UnsafeUrl, assert_public_https_url
 
 
 @pytest.mark.parametrize("url", [

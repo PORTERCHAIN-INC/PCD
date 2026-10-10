@@ -21,6 +21,7 @@ from porterchain_api import (  # noqa: F401
     unified_identity_models,
     website_content_models,
     invitation_models,
+    forensics_models,
 )
 from porterchain_api.auth import clerk_webhook_models  # noqa: F401
 from porterchain_api.billing_engine import models as billing_models  # noqa: F401
