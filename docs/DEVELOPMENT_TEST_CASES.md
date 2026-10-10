@@ -611,6 +611,6 @@ ripwire . --cache=.ripwire --impact=SYM
 | Lead ingest / Meta CAPI                     | ADMIN leads · `test_lead_*`                                                                                             |
 | Project mode / Doppler                      | HS-24 · PCD_INTENTIONAL_SKIPS                                                                                           |
 
-**Also required (easy to miss — already in catalogs):** EventBus, SpiceDB, Staff IdP, cuOpt shadow (non-replacement), FSA/GTA150, sequence-store CAS, Prometheus `/metrics`, integrity/IDOR, blog CMS, websocket live map (PC not SC), COD Connect additive to Checkout.
+**Also required (easy to miss — already in catalogs):** EventBus, SpiceDB, Staff IdP, FSA/GTA150, sequence-store CAS, Prometheus `/metrics`, integrity/IDOR, blog CMS, websocket live map (PC not SC), COD Connect additive to Checkout.
 
 **Do not invent greenfield product tests for:** WooCommerce/SAP/QuickBooks as first-class, Firebase Auth, Google Distance Matrix, second VROOM client, SocketCluster in web, Zoho SalesIQ, full Ontario tiles, auto-approve drivers — assert **absence** via ARCH / intentional skips.

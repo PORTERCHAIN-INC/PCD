@@ -324,17 +324,6 @@ export type OptimizeMetrics = {
   distance_delta_km?: number;
   valhalla_costing?: string;
   fuel_vehicle_class?: string;
-  cuopt_shadow?: {
-    status?: string;
-    winner?: string;
-    ortools_distance_km?: number | null;
-    vroom_distance_km?: number | null;
-    cuopt_distance_km?: number | null;
-    delta_km_ortools_minus_cuopt?: number | null;
-    reason?: string;
-    note?: string;
-    commit_sot?: string;
-  };
 };
 
 export type OptimizeUnassignedDetail = {

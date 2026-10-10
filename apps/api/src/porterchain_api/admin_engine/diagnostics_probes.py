@@ -184,7 +184,7 @@ class DiagnosticsProbesMixin:
             "details": {
                 "used_for_routing": False,
                 "routing_engine": platform.routing_engine or "valhalla",
-                "note": "Valhalla, then OSRM. Optimization is OR-Tools (cuOpt optional). Google is not required.",
+                "note": "Valhalla, then OSRM. Optimization is OR-Tools. Google is not required.",
             },
         }
 

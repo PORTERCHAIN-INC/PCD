@@ -78,18 +78,14 @@ def ai_usage_summary(db: Session, *, limit: int = 40) -> dict[str, Any]:
         .all()
     )
     flags = get_settings().phase2_flags
-    from porterchain_api.intelligence_engine.cuopt_client import cuopt_status
-    from porterchain_api.intelligence_engine.cuopt_shadow import cuopt_shadow_enabled
 
     return {
         "checked_at": datetime.now(UTC).isoformat(),
         "window": "24h",
         "nim": nim_status(),
-        "cuopt": cuopt_status(),
         "phase2": {
             "intelligence": bool(flags.get("intelligence")),
             "ai_dispatch": bool(flags.get("ai_dispatch")),
-            "cuopt_shadow": cuopt_shadow_enabled(),
         },
         "by_feature": [
             {

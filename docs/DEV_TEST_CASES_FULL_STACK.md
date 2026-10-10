@@ -219,7 +219,7 @@ Canonical client: `services/python/porterchain_services/maps/service.py`.
 | ENG-DRV-*   | `driver_engine`                            | façade over FB; wallet ledger; verification                                |
 | ENG-NOTIF-* | `notification_engine`                      | FCM + email orchestration                                                  |
 | ENG-AUTHZ-* | `authz`                                    | SpiceDB Check; TupleWriter                                                 |
-| ENG-INT-*   | `intelligence_engine`                      | cuopt **shadow only**; phase2 flags off by default                         |
+| ENG-INT-*   | `intelligence_engine`                      | phase2 flags off by default                                                |
 | ENG-SUP-*   | `support_engine`                           | claims/tickets ownership                                                   |
 | ENG-CRM-*   | collaboration / CRM                        | leads, nurture, merge (phase2 gated where required)                        |
 
@@ -294,8 +294,6 @@ From `integrations.yaml` + engines:
 | INT-ZOHO-01  | P3  | Zoho SalesIQ                              | website widget optional load                                                        |
 | INT-CHK-01   | P1  | Checkr / Stripe Identity webhooks         | driver verification; live keys intentional skip until dashboard ready               |
 | INT-MAP-01   | P0  | integrations matrix YAML ↔ docs           | `validate:integrations-matrix`                                                      |
-
-**Missed by typical lists (add these):** EventBus, SpiceDB, Staff IdP, RetryQueue, OpenAPI census, Doppler/`APP_ENV` immutability, Mailpit (not Mailhog), Fleetbase Valkey override, cuopt shadow, lead ingest bus, referral credits, standing orders, FSA GTA150, liftgate pricing, medical/food verticals, construction site access, investor metrics, AI governance (propose≠auto_apply).
 
 ---
 

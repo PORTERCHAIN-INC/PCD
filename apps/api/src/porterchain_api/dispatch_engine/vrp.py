@@ -1,8 +1,8 @@
 """Multi-vehicle pickup-and-delivery routing (OR-Tools default) + re-planning.
 
 Pure: callers pass a seconds matrix over ``[vehicle starts..., stops...]``.
-Solvers return ``{vehicle_id: [stop keys]}``; :func:`evaluate` scores any plan the
-same way so OR-Tools and cuOpt are compared on identical maths.
+The solver returns ``{vehicle_id: [stop keys]}``; :func:`evaluate` scores any plan
+(fresh or re-planned) on the same maths.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ from porterchain_api.dispatch_engine.stop_times import place_key
 
 DROP_PENALTY = 1_000_000  # seconds-equivalent; dropping a pair is always worse than driving
 HORIZON_S = 14 * 3600
+RUSH_FACTOR = 10  # a rush pair costs 10x more to drop, so capacity overflow bumps scheduled work first
 LATE_PENALTY = 100  # cost per second past a window close (an hour late ≈ 100 h of driving)
 
 
@@ -200,13 +201,15 @@ def solve_ortools(problem: Problem) -> dict[str, list[str]]:
             dim.CumulVar(routing.Start(k)).SetRange(load, load)
 
     solver = routing.solver()
+    rush = {s.key for s in problem.stops if s.rush}
     for p, d in problem.pairs:
         pi, di = manager.NodeToIndex(node_of[p]), manager.NodeToIndex(node_of[d])
         routing.AddPickupAndDelivery(pi, di)
         solver.Add(routing.VehicleVar(pi) == routing.VehicleVar(di))
         solver.Add(time_dim.CumulVar(pi) <= time_dim.CumulVar(di))
-        routing.AddDisjunction([pi], DROP_PENALTY)
-        routing.AddDisjunction([di], DROP_PENALTY)
+        penalty = DROP_PENALTY * (RUSH_FACTOR if p in rush else 1)
+        routing.AddDisjunction([pi], penalty)
+        routing.AddDisjunction([di], penalty)
     paired = {k for pr in problem.pairs for k in pr}
     for k, veh in enumerate(problem.vehicles):
         for d in veh.must_deliver:

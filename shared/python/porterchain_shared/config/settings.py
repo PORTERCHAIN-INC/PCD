@@ -110,11 +110,6 @@ class PlatformSettings(BaseSettings):
         default="openai/gpt-oss-20b",
         validation_alias=AliasChoices("nvidia_model", "NVIDIA_MODEL"),
     )
-    # cuOpt Catalog / self-host OptimizedRouting (shadow only)
-    nvidia_cuopt_url: str = Field(
-        default="https://optimize.api.nvidia.com/v1/nvidia/cuopt",
-        validation_alias=AliasChoices("nvidia_cuopt_url", "NVIDIA_CUOPT_URL"),
-    )
 
     # SMTP / ZeptoMail transactional (auth is Clerk-only)
     smtp_host: str = Field(default="", validation_alias=AliasChoices("smtp_host", "MAIL_HOST"))

@@ -1,4 +1,4 @@
-"""P0 route-optimize commit path — idempotency, CAS, Fleetbase-only apply, no cuOpt SoT.
+"""P0 route-optimize commit path — idempotency, CAS, PorterChain-only apply.
 
 Maps to docs/ROUTE_OPTIMIZATION_DEV_TEST_CASES.md checklist §21 items 1–3, 8–9
 and cases API-A-009/010/016, SEQ-001, ENG-021, API-D-005.
@@ -232,12 +232,11 @@ def test_accept_optimize_propagates_sequence_conflict() -> None:
 
 
 def test_execute_queued_run_is_porterchain_only() -> None:
-    """Commit and the worker finish path never write through Fleetbase or cuOpt."""
+    """Commit and the worker finish path never write through Fleetbase."""
     import inspect
 
     commit_src = inspect.getsource(OrchestratorOpsService.commit)
-    assert "run_cuopt_shadow" not in commit_src
-    assert "cuopt_shadow" not in commit_src
+    assert "fleetbase" not in commit_src.lower()
     exec_src = inspect.getsource(OrchestratorOpsService.execute_queued_run)
     assert "finish_porterchain_run" in exec_src
     assert "get_fleetbase_integration" not in exec_src

@@ -23,9 +23,6 @@ def build_integration_health(
 ) -> dict[str, Any]:
     """Compose integration status triad for settings / diagnostics dashboards."""
     ready = ready if ready is not None else readiness(db, settings)
-    # phase2_flags has no "cuopt_shadow" key — read the dedicated setting
-    # (same source as intelligence_engine.cuopt_shadow.cuopt_shadow_enabled).
-    cuopt_shadow = bool(getattr(settings, "phase2_cuopt_shadow", False))
     platform = PlatformSettings()
     checks = ready.get("checks", {})
 
@@ -78,12 +75,6 @@ def build_integration_health(
             phase2_ai_dispatch=bool(settings.phase2_flags.get("ai_dispatch")),
             note="Read-only language assist — never on pay / Valhalla / dispatch write path",
         ),
-        "nvidia_cuopt": _entry(
-            "shadow" if cuopt_shadow else "disabled",
-            phase2_cuopt_shadow=cuopt_shadow,
-            commit_sot="porterchain_ortools",
-            note="Shadow A/B only — never commits routes; day plan is OR-Tools",
-        ),
         "routing": {
             "primary": "valhalla",
             "fallback": "osrm",
@@ -92,7 +83,6 @@ def build_integration_health(
             "degrade_labels": {
                 "valhalla_down": "osrm_fallback",
                 "day_plan_unavailable": "optimize_unavailable",
-                "cuopt_shadow_error": "ortools_only",
             },
         },
     }

@@ -158,7 +158,6 @@ export const INTEGRATION_HEALTH_LABELS: Record<string, string> = {
   sms: "SMS",
   push: "Push",
   nvidia_nim: "NVIDIA NIM",
-  nvidia_cuopt: "NVIDIA cuOpt",
 };
 
 export const INTEGRATION_HEALTH_CORE_KEYS = [

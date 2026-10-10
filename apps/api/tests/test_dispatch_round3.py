@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session
 from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.admin_engine.logistics_partners_service import LogisticsPartnersService
+from porterchain_api.admin_engine.logistics_partners_service import (
+    LogisticsPartnersService,
+)
 from porterchain_api.booking_models import Order
 from porterchain_api.dispatch_engine import driver_route, retention
 from porterchain_api.dispatch_engine.driver_route import DriverRouteService
@@ -115,7 +117,7 @@ def test_dispatch_day_end_to_end(db: Session) -> None:
     board = DispatchBoardService()
     before = board.metrics(db, days=1)
 
-    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38), cuopt_fn=lambda p: {})
+    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
     plan = plans.plan(db, actor="t", order_ids=ids, driver_ids=[d1.id, d2.id], time_limit_s=1)
     assert plan["summary"]["dropped"] == []
     assert set(plan["summary"]["shapes"]) == {"1→1", "1→N", "N→1", "N→N", "return 1→1"}
@@ -158,7 +160,7 @@ def test_dispatch_day_end_to_end(db: Session) -> None:
 def test_checkin_guards(db: Session) -> None:
     d, other = _driver(db), _driver(db)
     o = _order(db, W, S)
-    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38), cuopt_fn=lambda p: {})
+    plans = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
     plan = plans.plan(db, actor="t", order_ids=[o.id], driver_ids=[d.id], time_limit_s=1)
     from porterchain_api.config import get_settings
 

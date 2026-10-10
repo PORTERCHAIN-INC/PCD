@@ -17,7 +17,7 @@
 
 | File                                                    | Focus                                                        |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
-| `apps/api/tests/test_optimize_commit_p0.py`             | **P0 commit idempotency, CAS→409, undo, cuOpt isolation**    |
+| `apps/api/tests/test_optimize_commit_p0.py`             | **P0 commit idempotency, CAS→409, undo**                     |
 | `apps/api/tests/test_optimize_rbac_idor.py`             | **dispatch RBAC + driver cross-run IDOR**                    |
 | `apps/admin/e2e/optimize.p0.spec.ts`                    | **UI-OPS-006 OptimizePanel smoke (mocked BFF)**              |
 | `apps/api/tests/test_optimize_run_queue.py`             | Enqueue without adapter; synced fleet gates; execute → ready |
@@ -27,7 +27,6 @@
 | `apps/api/tests/test_gps_ingest_wave4.py`               | `DriverRouteOptimizer` does not build local TSP              |
 | `apps/api/tests/test_remaining_to_live_prove.py`        | Handler enqueues without solver                              |
 | `apps/api/tests/test_offline_optimize_route.py`         | Offline queue alias / preview flag                           |
-| `apps/api/tests/test_cuopt_shadow.py`                   | NVIDIA cuOpt shadow only                                     |
 | `apps/api/tests/test_fuel_scorecard.py`                 | Fuel metrics on optimize plan                                |
 | `apps/api/tests/test_phase5c_baseline_events.py`        | `optimize.enqueued` events                                   |
 | `apps/api/tests/test_phase5_ops_hardening.py`           | Sequence apply / conflict / rollback                         |
@@ -51,7 +50,7 @@
 | `API-D-*` | Driver `/driver-api/v1/jobs/optimize*`                       |
 | `API-M-*` | Merchant `/v1/merchant/.../route-imports/.../optimize`       |
 | `API-S-*` | Shopify carrier rates (distance handshake, not VROOM)        |
-| `ENG-*`   | `OrchestratorOpsService`, import/jobs, maps, cuOpt shadow    |
+| `ENG-*`   | `OrchestratorOpsService`, import/jobs, maps                  |
 | `MAP-*`   | `MapsService` Valhalla → OSRM → labeled public demo          |
 | `FB-*`    | Fleetbase adapter + VROOM orchestrator                       |
 | `VRM-*`   | Local `porterchain-vroom` + `VROOM_ROUTER=valhalla`          |
@@ -134,7 +133,7 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | Pricing façade           | `apps/api/.../services/routing.py` `resolve_route_distance`                                                                 |
 | Fleetbase orchestrator   | `services/fleetbase-adapter/.../orchestrator/`, `integration.py`, `routes/`                                                 |
 | Worker                   | `apps/worker/processors/dispatch.py`                                                                                        |
-| Intelligence             | `intelligence_engine/tools.py` (`get_optimize_run`, fuel), `cuopt_shadow.py`                                                |
+| Intelligence             | `intelligence_engine/tools.py` (`get_optimize_run`, fuel)                                                                   |
 | Diagnostics              | `admin_engine/diagnostics_fleetbase_probes.py` `_probe_vroom`                                                               |
 | Schemas                  | `schemas_admin.py` `OptimizeRunBody`, `OptimizeCommitBody`                                                                  |
 | Models                   | `booking_models.Order`, `admin_models.Driver/Vehicle`, `merchant_models.BulkImportJob`, `fleetbase_models.FleetbaseSyncJob` |
@@ -162,7 +161,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | **Email / Mailpit**        | Optional notify merchant/driver on plan apply                      |
 | **Shopify**                | Carrier rates use Maps pricing path; bulk import can feed optimize |
 | **Partner / merchant-api** | External ERP ingest → same import/optimize enqueue                 |
-| **NVIDIA cuOpt**           | Shadow compare only — never commit                                 |
 | **SpiceDB / RBAC**         | `dispatch` / `dispatch_read` modules on admin optimize             |
 
 ---
@@ -337,7 +335,6 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | ENG-003 | P0  | `commit` → `commit_orchestrator` → Fleetbase COMMIT_PATH                                    |
 | ENG-004 | P0  | `DriverRouteOptimizer` has no local TSP / nearest-neighbor solver                           |
 | ENG-005 | P0  | `MerchantRouteImportService.optimize` only enqueues; worker applies                         |
-| ENG-006 | P0  | `run_cuopt_shadow` never invoked from commit path                                           |
 | ENG-007 | P1  | Fuel enrichment `_enrich_fuel_scorecard` attaches liters/cents without mutating assignments |
 | ENG-008 | P1  | Intelligence `get_optimize_run` / `get_fuel_delta` read-only                                |
 | ENG-009 | P1  | `_enqueue_driver_book_optimize` after assign uses same queue                                |
@@ -487,13 +484,7 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 
 ---
 
-## 18. NVIDIA cuOpt shadow (`ENG` / P3)
-
-| ID      | P   | Case                                                           |
-| ------- | --- | -------------------------------------------------------------- |
-| ENG-020 | P2  | Shadow compare logs delta vs VROOM metrics when configured     |
-| ENG-021 | P0  | Shadow **never** writes assignments / never called from commit |
-| ENG-022 | P3  | Unconfigured cuOpt → no-op / skipped without failing optimize  |
+## 18. Free stack only
 
 ---
 
@@ -510,7 +501,6 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | Events                                   | `test_phase5c_baseline_events.py`                                                                              |
 | Offline                                  | `test_offline_optimize_route.py`                                                                               |
 | Fuel                                     | `test_fuel_scorecard.py`                                                                                       |
-| cuOpt                                    | `test_cuopt_shadow.py`                                                                                         |
 | Adapter                                  | `services/fleetbase-adapter/tests/test_orchestrator.py`, timeout breaker                                       |
 | Maps costing / polyline                  | `services/python/tests/test_valhalla_costing.py`, `test_polyline.py`                                           |
 | Shopify rates                            | `test_shopify_carrier_*`                                                                                       |
@@ -527,7 +517,7 @@ PYTHONPATH=src:../../services/driver-platform:../../services/python:../../shared
 pytest tests/test_optimize_commit_p0.py tests/test_optimize_rbac_idor.py \
   tests/test_optimize_run_queue.py tests/test_step2_optimize_enqueue.py \
   tests/test_phase5_ops_hardening.py tests/test_phase_ui_driver_preview.py \
-  tests/test_offline_optimize_route.py tests/test_cuopt_shadow.py -q
+  tests/test_offline_optimize_route.py -q
 ```
 
 ### Playwright Optimize smoke
@@ -561,7 +551,6 @@ ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.sp
 
 ### Gaps you did not list (added here)
 
-1. **NVIDIA cuOpt shadow** — compare-only (§18).
 2. **Sequence CAS / multi-device conflict** — §13.
 3. **Offline driver optimize queue** — §4 / API-D-008.
 4. **Fuel scorecard on plans** — §13.
@@ -580,25 +569,24 @@ ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.sp
 - Using Google for distance/ETA/matrix/geometry in optimize.
 - Rebuilding a Fleetbase dispatch board in admin.
 - Calling SocketCluster from any web/mobile app.
-- Treating cuOpt as SoT.
 
 ---
 
 ## 21. P0 checklist (minimum green bar)
 
-| #   | Gate                                                | Automated seed                                                                                     |
-| --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 1   | Admin Optimize: pool → run → poll ready → commit    | `test_optimize_run_queue` + `test_optimize_commit_p0` (UI still manual/Playwright)                 |
-| 2   | Enqueue never blocks on solver                      | `test_optimize_run_queue`, `test_step2_optimize_enqueue`                                           |
-| 3   | No local TSP                                        | `test_gps_ingest_wave4`, `verify_no_ops_spatial_math`                                              |
-| 4   | Driver accept/undo + sequence CAS                   | `test_phase_ui_driver_preview`, `test_phase5_ops_hardening`, `test_optimize_commit_p0`             |
-| 5   | Merchant route-import optimize enqueue              | `test_step2_optimize_enqueue`, `test_import_route_optimize`                                        |
-| 6   | Valhalla-first / OSRM fallback / Google places-only | Maps unit + `verify_vendor_leaves` / policy                                                        |
-| 7   | VROOM only via Fleetbase                            | `verify_vendor_leaves`, adapter orchestrator tests                                                 |
-| 8   | Events enqueued/ready/applied                       | `test_phase5c_baseline_events` (+ accept emit in preview tests)                                    |
-| 9   | RBAC/IDOR                                           | `test_optimize_rbac_idor.py` (sales 403; support read-only; driver cross-run 404)                  |
-| 10  | Arch guards                                         | `verify_no_ops_spatial_math`, `verify_vendor_leaves`, cuOpt isolation in `test_optimize_commit_p0` |
-| UI  | OptimizePanel smoke                                 | `apps/admin/e2e/optimize.p0.spec.ts` (`UI-OPS-006`, `ADMIN_RUN_LIVE=1`)                            |
+| #   | Gate                                                | Automated seed                                                                                      |
+| --- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | Admin Optimize: pool → run → poll ready → commit    | `test_optimize_run_queue` + `test_optimize_commit_p0` (UI still manual/Playwright)                  |
+| 2   | Enqueue never blocks on solver                      | `test_optimize_run_queue`, `test_step2_optimize_enqueue`                                            |
+| 3   | No local TSP                                        | `test_gps_ingest_wave4`, `verify_no_ops_spatial_math`                                               |
+| 4   | Driver accept/undo + sequence CAS                   | `test_phase_ui_driver_preview`, `test_phase5_ops_hardening`, `test_optimize_commit_p0`              |
+| 5   | Merchant route-import optimize enqueue              | `test_step2_optimize_enqueue`, `test_import_route_optimize`                                         |
+| 6   | Valhalla-first / OSRM fallback / Google places-only | Maps unit + `verify_vendor_leaves` / policy                                                         |
+| 7   | VROOM only via Fleetbase                            | `verify_vendor_leaves`, adapter orchestrator tests                                                  |
+| 8   | Events enqueued/ready/applied                       | `test_phase5c_baseline_events` (+ accept emit in preview tests)                                     |
+| 9   | RBAC/IDOR                                           | `test_optimize_rbac_idor.py` (sales 403; support read-only; driver cross-run 404)                   |
+| 10  | Arch guards                                         | `verify_no_ops_spatial_math`, `verify_vendor_leaves`, commit isolation in `test_optimize_commit_p0` |
+| UI  | OptimizePanel smoke                                 | `apps/admin/e2e/optimize.p0.spec.ts` (`UI-OPS-006`, `ADMIN_RUN_LIVE=1`)                             |
 
 ---
 

@@ -167,7 +167,6 @@ export function FleetPlanPanel({
   const s = plan?.summary ?? {};
   const stops = plan?.routes.reduce((a, r) => a + r.stops.length, 0) ?? 0;
   const draft = plan?.status === "draft";
-  const compare = Object.entries(s.compare ?? {});
 
   return (
     <section className="space-y-4" data-testid="fleet-plan">
@@ -246,14 +245,7 @@ export function FleetPlanPanel({
               </p>
               <p className="inline-flex items-center gap-1.5 text-xs text-white/80">
                 <Cpu className="h-3.5 w-3.5" />
-                {plan.solver === "cuopt" ? "NVIDIA cuOpt" : "OR-Tools"}
-                {compare.length > 1 &&
-                  ` · ${compare
-                    .map(
-                      ([k, v]) =>
-                        `${k === "cuopt" ? "cuOpt" : "OR-Tools"} ${v.status ?? money(v.cost_cents)}`
-                    )
-                    .join(" vs ")}`}
+                OR-Tools · Valhalla
               </p>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-4 sm:grid-cols-6">
@@ -294,8 +286,7 @@ export function FleetPlanPanel({
               data-testid="plan-explain"
             >
               <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                {why.source === "nvidia_nim" ? "NVIDIA NIM · anonymised" : "Rules"} · suggestions
-                only
+                Why this plan · suggestions only
               </p>
               <ul className="mt-2 space-y-1 text-sm text-primary">
                 {why.explanation.map((l) => (

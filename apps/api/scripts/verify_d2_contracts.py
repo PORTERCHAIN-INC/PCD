@@ -308,7 +308,6 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->dispatch_engine:admin_engine/fleet_plan_service.py",
         "admin_engine->dispatch_engine:admin_engine/logistics_partners_service.py",
         "admin_engine->driver_engine:admin_engine/logistics_partners_service.py",
-        "admin_engine->intelligence_engine:admin_engine/fleet_plan_service.py",
         "admin_engine->booking_engine:admin_engine/job_offers_service.py",
         # Integration (6 branches combined): dispatch probes + driver PIN reuse driver_engine.
         "admin_engine->dispatch_engine:admin_engine/diagnostics_probes.py",

@@ -91,10 +91,6 @@ def score_candidate(
 
 
 class DispatchSuggestionsService:
-    def __init__(self, adapter: Any = None, maps: Any = None) -> None:
-        self._adapter = adapter
-        self._maps = maps
-
     def suggest(self, db: Session, order_id: str, *, refresh: bool = False) -> dict[str, Any]:
         from porterchain_api.admin_engine.control_tower.scoring import (
             enqueue_score_job,

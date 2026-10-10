@@ -1,8 +1,7 @@
 """Fleet plan: multi-vehicle routing for the day, re-plan, commit, explain.
 
-OR-Tools solves every plan. When ``dispatch_cuopt_enabled`` is on, self-hosted cuOpt
-solves the same problem; both are scored by ``vrp.evaluate`` and the better plan wins
-(OR-Tools on any cuOpt error). Plans are drafts until an admin commits them.
+OR-Tools solves every plan on Valhalla road times (all free, self-hosted). Plans are drafts
+until an admin commits them.
 """
 
 from __future__ import annotations
@@ -50,11 +49,9 @@ def _position(driver_id: str) -> tuple[float, float] | None:
 
 
 class FleetPlanService:
-    def __init__(self, *, matrix_fn: Matrix | None = None, position_fn: Callable[[str], Any] | None = None,
-                 cuopt_fn: Callable[[vrp.Problem], dict | None] | None = None) -> None:
+    def __init__(self, *, matrix_fn: Matrix | None = None, position_fn: Callable[[str], Any] | None = None) -> None:
         self.matrix_fn = matrix_fn or _valhalla
         self.position_fn = position_fn or _position
-        self.cuopt_fn = cuopt_fn
 
     # ------------------------------------------------------------ inputs
     def _orders(self, db: Session, order_ids: list[str] | None) -> list[Any]:
@@ -178,30 +175,8 @@ class FleetPlanService:
 
     # ------------------------------------------------------------ solve
     def _solve(self, problem: vrp.Problem) -> dict[str, Any]:
-        from porterchain_api.config import get_settings
-
-        compare: dict[str, Any] = {}
-        best_routes = vrp.solve_ortools(problem)
-        best = vrp.evaluate(problem, best_routes)
+        best = vrp.evaluate(problem, vrp.solve_ortools(problem))
         best["solver"] = "ortools"
-        compare["ortools"] = {k: best[k] for k in ("cost_cents", "feasible")} | {"dropped": len(best["dropped"])}
-        settings = get_settings()
-        fn = self.cuopt_fn
-        if fn is None and settings.dispatch_cuopt_enabled:
-            from porterchain_api.dispatch_engine.cuopt_solver import solve_cuopt
-
-            def fn(p: vrp.Problem) -> dict | None:
-                return solve_cuopt(p, base_url=settings.dispatch_cuopt_url)
-        if fn is not None:
-            cu = fn(problem)
-            if cu is None:
-                compare["cuopt"] = {"status": "unavailable — OR-Tools kept"}
-            else:
-                ev = vrp.evaluate(problem, cu)
-                compare["cuopt"] = {k: ev[k] for k in ("cost_cents", "feasible")} | {"dropped": len(ev["dropped"])}
-                if vrp.better(ev, best):
-                    best, best["solver"] = ev, "cuopt"
-        best["compare"] = compare
         return best
 
     def _persist(self, db: Session, plan_eval: dict[str, Any], *, meta: dict[str, Any], actor: str | None,
@@ -211,7 +186,7 @@ class FleetPlanService:
         summary = {
             **meta, "cost_cents": plan_eval["cost_cents"], "vehicles_used": plan_eval["vehicles_used"],
             "dropped": plan_eval["dropped"], "feasible": plan_eval["feasible"],
-            "violations": plan_eval["violations"], "compare": plan_eval.get("compare", {}),
+            "violations": plan_eval["violations"],
             "late_stops": plan_eval.get("late_stops", []),
         }
         plan = DispatchPlan(
@@ -372,28 +347,16 @@ class FleetPlanService:
         return self.get(db, plan.id)
 
     def explain(self, db: Session, plan_id: str) -> dict:
-        from porterchain_api.config import get_settings
         from porterchain_api.dispatch_engine.models import DispatchRoute
-        from porterchain_api.dispatch_engine.plan_explain import llm_explain, redact, rules_explain
+        from porterchain_api.dispatch_engine.plan_explain import rules_explain, summarize
 
         data = self.get(db, plan_id)
         routes = db.query(DispatchRoute).filter(DispatchRoute.plan_id == plan_id).all()
         orders = self._orders(db, list({s["order_id"] for r in routes for s in r.stops}))
         stops, _, _, _ = self._stops(db, orders)
         by_key = {s.key: s for s in stops}
-        summary = redact({
-            "routes": [{**r, "stops": r["stops"]} for r in data["routes"]],
-            "dropped": data["summary"].get("dropped", []), "cost_cents": data["summary"].get("cost_cents", 0),
-            "solver": data["solver"], "compare": data["summary"].get("compare", {}),
+        summary = summarize({
+            "routes": data["routes"], "dropped": data["summary"].get("dropped", []),
+            "cost_cents": data["summary"].get("cost_cents", 0),
         }, by_key)
-        out = rules_explain(summary)
-        if get_settings().dispatch_llm_explain_enabled:
-            try:
-                from porterchain_api.intelligence_engine.nim_client import chat_completion, nim_configured
-
-                if nim_configured():
-                    out = llm_explain(summary, chat_completion) | {"rules": out}
-            except Exception as exc:  # noqa: BLE001 — rules answer stands
-                out["llm_error"] = type(exc).__name__
-        out["sent_to_llm"] = summary if out.get("source") == "nvidia_nim" else None
-        return out
+        return rules_explain(summary)

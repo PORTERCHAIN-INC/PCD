@@ -299,7 +299,7 @@ class DiagnosticsHealthMixin:
             repo / "apps" / "driver-portal" / "src",
         ]
         # UIs talk to the PorterChain API only — never to routing/solver/cache services.
-        forbidden = ("VALHALLA_URL", "valhalla:8002", "CUOPT", "redis://")
+        forbidden = ("VALHALLA_URL", "valhalla:8002", "redis://")
         hits: list[str] = []
         for root in scan_roots:
             if not root.exists():

@@ -186,7 +186,6 @@ CI: no `:8000`, no Fleetbase HTTP, no SocketCluster in `apps/mobile-*/src`.
 | VR-023 | P0  | **Anti-case:** grep/CI — no `vroom` HTTP client import under `apps/api/src/porterchain_api/*_engine`                           |
 | VR-024 | P0  | **Anti-case:** Route Center / PC TSP flags stay retired (`Phase2Flags.route_center` false)                                     |
 | VR-025 | P1  | Fuel scorecard enrichment on optimize result does not call Google                                                              |
-| VR-026 | P2  | CUOPT shadow (if flagged) never replaces VROOM commit path                                                                     |
 | VR-027 | P1  | Diagnostics System Center surfaces VROOM probe result alongside Fleetbase probe                                                |
 | VR-028 | P2  | Empty allocate probe latency recorded; keys truncated safely                                                                   |
 
@@ -517,7 +516,6 @@ Explicitly included above beyond the original list:
 | OpenAPI census / verify_*        | Architecture as tests           | ARCH      |
 | Project mode / Doppler boot      | Immutable APP_ENV               | A-UI/DOC  |
 | Admin web FCM + WS token         | Ops loud push                   | NOTIF     |
-| CUOPT shadow                     | Must not replace VROOM          | VR        |
 | Visitor session website→customer | Retail handoff                  | W-UI      |
 | Integrity FK alembic             | Data trust                      | DB        |
 | Intentional skips as anti-cases  | Prevent false failures          | ARCH      |

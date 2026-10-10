@@ -36,7 +36,6 @@ class IntegrationHealthResponse(BaseModel):
     sms: IntegrationComponent | None = None
     push: IntegrationComponent | None = None
     nvidia_nim: IntegrationComponent | None = None
-    nvidia_cuopt: IntegrationComponent | None = None
     routing: dict[str, Any] | None = None
 
 

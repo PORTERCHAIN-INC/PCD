@@ -113,7 +113,6 @@ def test_rollback_restores_previous_snapshot() -> None:
 def test_nim_phase5_actions_closed_set() -> None:
     for action in (
         "run_optimize_preview",
-        "compare_cuopt_shadow",
         "reoptimize_after_pickup",
         "explain_fsa_coverage",
         "hold_for_out_of_tile",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDispatchView, legacyOperationsTarget } from "@/lib/dispatch";
+import { isDispatchView, legacyOperationsTarget, pageLabel } from "@/lib/dispatch";
 import { ADMIN_NAV_GROUPS, ADMIN_TOP_LEVEL_ROUTES, isNavActive } from "@/lib/admin-nav";
 
 describe("legacy Control Tower links", () => {
@@ -99,5 +99,14 @@ describe("groupStops", () => {
       ["drop", 1, 600],
       ["pickup", 1, 900],
     ]);
+  });
+});
+
+describe("pageLabel", () => {
+  it("hides when one page holds the whole queue", () => {
+    expect(pageLabel(0, 12, 12)).toBeNull();
+  });
+  it("shows the window and the full total", () => {
+    expect(pageLabel(50, 50, 312)).toBe("51–100 of 312");
   });
 });

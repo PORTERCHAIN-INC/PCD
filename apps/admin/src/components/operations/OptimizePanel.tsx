@@ -386,19 +386,6 @@ export function OptimizePanel({
             </div>
           )}
 
-          {m?.cuopt_shadow && (ready || readyEmpty) && (
-            <p className="rounded-xl border border-primary/10 bg-gray-bg/40 px-3 py-2 text-xs text-primary">
-              cuOpt shadow: {m.cuopt_shadow.status}
-              {m.cuopt_shadow.winner ? ` · winner ${m.cuopt_shadow.winner}` : ""}
-              {(m.cuopt_shadow.ortools_distance_km ?? m.cuopt_shadow.vroom_distance_km) != null &&
-              m.cuopt_shadow.cuopt_distance_km != null
-                ? ` · OR-Tools ${m.cuopt_shadow.ortools_distance_km ?? m.cuopt_shadow.vroom_distance_km} km vs cuOpt ${m.cuopt_shadow.cuopt_distance_km} km`
-                : ""}
-              {m.cuopt_shadow.reason ? ` · ${m.cuopt_shadow.reason}` : ""}
-              {" · accept stores the stop order"}
-            </p>
-          )}
-
           {pending ? (
             <Spinner label="Building the day plan…" />
           ) : !plan ? (

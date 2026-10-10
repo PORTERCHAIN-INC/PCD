@@ -8,8 +8,6 @@ export type ShortcutAction =
   | { kind: "help" }
   | { kind: "close" };
 
-export const TAB_COUNT = 7;
-
 export function shortcutFor(key: string): ShortcutAction | null {
   if (/^[1-7]$/.test(key)) return { kind: "tab", index: Number(key) - 1 };
   switch (key.toLowerCase()) {

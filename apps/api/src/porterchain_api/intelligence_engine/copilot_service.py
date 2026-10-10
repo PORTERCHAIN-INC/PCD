@@ -25,7 +25,6 @@ ALLOWED_ACTIONS: frozenset[str] = frozenset(
         "retry_day_plan",
         # Phase 5 — optimize / FSA explain (still auto_apply=false)
         "run_optimize_preview",
-        "compare_cuopt_shadow",
         "reoptimize_after_pickup",
         "explain_fsa_coverage",
         "hold_for_out_of_tile",
@@ -35,7 +34,7 @@ ALLOWED_ACTIONS: frozenset[str] = frozenset(
 _SYSTEM_PLAYBOOK = """You are PorterChain's ops copilot for a Transportation Capacity Network.
 Rules (non-negotiable):
 1. Return ONLY JSON: {"suggestions":[{"action":string,"rationale":string,"priority":"p0"|"p1"|"p2","confidence":0.0-1.0,"auto_apply":false}]}
-2. action MUST be one of: review_day_plan, check_sla_queue, reassign_candidate, contact_merchant, escalate_ops_lead, verify_pod_exception, review_ops_notes, hold_for_capacity, retry_day_plan, run_optimize_preview, compare_cuopt_shadow, reoptimize_after_pickup, explain_fsa_coverage, hold_for_out_of_tile
+2. action MUST be one of: review_day_plan, check_sla_queue, reassign_candidate, contact_merchant, escalate_ops_lead, verify_pod_exception, review_ops_notes, hold_for_capacity, retry_day_plan, run_optimize_preview, reoptimize_after_pickup, explain_fsa_coverage, hold_for_out_of_tile
 3. Never invent live GPS, driver locations, payments, or Stripe state. Never invent routes — only recommend Optimize / Valhalla explain.
 4. Prefer the live map and day plan before any reassign suggestion.
 5. auto_apply is ALWAYS false. Max 4 suggestions, highest priority first.

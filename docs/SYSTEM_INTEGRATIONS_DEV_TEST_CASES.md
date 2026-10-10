@@ -170,7 +170,6 @@ For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/
 | VR-002  | P0  | Driver-scoped optimize                          | Cannot pass other drivers’ order_ids                      | phase5c contract                  |
 | VR-003  | P1  | Commit idempotent by `run_id`                   | Double commit safe                                        | phase5                            |
 | VR-004  | P1  | Sequence CAS 409                                | Admin/driver race handled                                 | phase5                            |
-| VR-005  | P2  | cuOpt shadow only                               | Shadow metrics; never replaces VROOM                      | `test_cuopt_shadow.py`            |
 | VR-006  | P3  | OrderConfig HOS → VROOM                         | **Assert still NOT implemented** (intentional skip)       | PCD_INTENTIONAL_SKIPS             |
 
 ---
@@ -397,28 +396,27 @@ Each DIAG id → **config-only** pass + **live** pass (where safe) + **fail-clos
 
 Items you listed are covered above. **Also required** (easy to miss):
 
-| Area                               | Why                             |
-| ---------------------------------- | ------------------------------- |
-| Event Bus + Redis streams          | Sync/notify spine               |
-| SpiceDB                            | Authz SoT                       |
-| Staff IdP (not only Clerk)         | Admin auth                      |
-| Checkr + Stripe Identity           | Driver verification (flags)     |
-| ZeptoMail                          | Prod email leave                |
-| Doppler / project mode             | Fail-closed posture             |
-| OpenAPI census + vendor leaves     | Prevent boundary rot            |
-| Merchant partner API + idempotency | ERP ingress                     |
-| NetSuite + Zapier                  | Non-Shopify ERP                 |
-| Lead ingest bus (Meta/etc.)        | Growth handshakes               |
-| Websocket live map (PC, not SC)    | Ops UX                          |
-| Prometheus `/metrics`              | SLOs                            |
-| Alembic + ORM ownership            | Schema discipline               |
-| Worker queue depth probes          | Ops readiness                   |
-| cuOpt shadow                       | Non-replacement optimize shadow |
-| FSA / GTA150 coverage              | Pricing + tile honesty          |
-| Sequence store CAS                 | Optimize apply races            |
-| Public tracking snapshot           | Customer trust without auth     |
-| Integrity / IDOR / tenant          | Network trust                   |
-| Blog CMS / website SEO gates       | GTM (lower P for ops)           |
+| Area                               | Why                         |
+| ---------------------------------- | --------------------------- |
+| Event Bus + Redis streams          | Sync/notify spine           |
+| SpiceDB                            | Authz SoT                   |
+| Staff IdP (not only Clerk)         | Admin auth                  |
+| Checkr + Stripe Identity           | Driver verification (flags) |
+| ZeptoMail                          | Prod email leave            |
+| Doppler / project mode             | Fail-closed posture         |
+| OpenAPI census + vendor leaves     | Prevent boundary rot        |
+| Merchant partner API + idempotency | ERP ingress                 |
+| NetSuite + Zapier                  | Non-Shopify ERP             |
+| Lead ingest bus (Meta/etc.)        | Growth handshakes           |
+| Websocket live map (PC, not SC)    | Ops UX                      |
+| Prometheus `/metrics`              | SLOs                        |
+| Alembic + ORM ownership            | Schema discipline           |
+| Worker queue depth probes          | Ops readiness               |
+| FSA / GTA150 coverage              | Pricing + tile honesty      |
+| Sequence store CAS                 | Optimize apply races        |
+| Public tracking snapshot           | Customer trust without auth |
+| Integrity / IDOR / tenant          | Network trust               |
+| Blog CMS / website SEO gates       | GTM (lower P for ops)       |
 
 **Not in repo / do not invent product tests for:** WooCommerce, QuickBooks, SAP, custom SC clients, Google Distance Matrix, second VROOM client, Fleetbase Storefront/Ledger as PC SKU, Zoho SalesIQ, full Ontario tiles, mobile Critical Alerts entitlement — see intentional skips (assert absence where useful as ARCH/P3).
 

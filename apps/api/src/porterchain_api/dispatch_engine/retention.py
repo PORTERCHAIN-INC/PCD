@@ -8,7 +8,6 @@ Purges run daily in the worker and can be dry-run from Dispatch → Fleet.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from typing import Any
 
 STORAGE_KEY = "dispatch_retention"
@@ -42,7 +41,3 @@ def load_retention(db: Any) -> dict[str, Any]:
         return normalize_retention(row.value if row is not None else None)
     except ValueError:
         return default_retention()
-
-
-def cutoffs(policy: dict[str, Any], now: datetime) -> dict[str, datetime]:
-    return {"gps_before": now - timedelta(days=policy["gps_days"]), "pod_before": now - timedelta(days=policy["pod_days"])}

@@ -71,8 +71,18 @@ export type DispatchExceptions = {
   items: DispatchExceptionItem[];
   counts: Record<string, number>;
   total: number;
+  offset: number;
+  limit: number;
   eta: "ok" | "unavailable";
 };
+
+export const EXCEPTIONS_PAGE = 50;
+
+/** "51–100 of 312" for a queue page; null when everything fits on one page. */
+export function pageLabel(offset: number, shown: number, total: number): string | null {
+  if (total <= shown && offset === 0) return null;
+  return `${total === 0 ? 0 : offset + 1}–${offset + shown} of ${total}`;
+}
 
 export type RecommendDriver = {
   driver_id: string;
@@ -165,17 +175,10 @@ export type PlanRoute = {
   stops: PlanStop[];
 };
 
-export type SolverResult = {
-  cost_cents?: number;
-  feasible?: boolean;
-  dropped?: number;
-  status?: string;
-};
-
 export type FleetPlan = {
   id: string;
   status: "draft" | "committed" | "superseded" | "discarded";
-  solver: "ortools" | "cuopt";
+  solver: "ortools";
   version: number;
   parent_id: string | null;
   service_date: string;
@@ -193,7 +196,6 @@ export type FleetPlan = {
     /** Stops the plan reaches after the customer's window closes. */
     late_stops?: string[];
     feasible?: boolean;
-    compare?: Record<string, SolverResult>;
     kind?: "plan" | "replan";
     commit?: { assigned: number; skipped: { order_id: string; reason: string }[] };
   };
@@ -201,11 +203,10 @@ export type FleetPlan = {
 };
 
 export type PlanExplanation = {
-  source: "rules" | "nvidia_nim";
+  source: "rules";
   explanation: string[];
   suggestions: string[];
   suggest_only: true;
-  llm_error?: string;
 };
 
 export type LogisticsPartner = {
@@ -318,7 +319,8 @@ const J = { "Content-Type": "application/json" };
 
 export const dispatch = {
   metrics: (t: string, days = 7) => adminFetch<DispatchMetrics>(`${B}/metrics?days=${days}`, t),
-  exceptions: (t: string) => adminFetch<DispatchExceptions>(`${B}/exceptions`, t),
+  exceptions: (t: string, offset = 0) =>
+    adminFetch<DispatchExceptions>(`${B}/exceptions?offset=${offset}&limit=${EXCEPTIONS_PAGE}`, t),
   applyFix: (t: string, item: DispatchExceptionItem, fix: ExceptionFix) =>
     adminFetch<{ ok: boolean; action: string; result: Record<string, unknown> }>(
       `${B}/exceptions/apply`,

@@ -22,7 +22,7 @@ Plus `services/fleetbase-adapter/tests/`: **35 passed**.
 | NOTIF + AUTH                | notification__, auth__, idor, spicedb                      | PASS (after fixes)       |
 | GPS / ERP / worker          | gps waves, netsuite, processors                            | PASS                     |
 | ARCH gates                  | vendor leaves, spatial, census, boundaries, FB SLO, mobile | PASS                     |
-| Optimize / Valhalla / phase | phase4–6, optimize queue, cuopt                            | PASS                     |
+| Optimize / Valhalla / phase | phase4–6, optimize queue                                   | PASS                     |
 | Full `apps/api/tests/`      | all suites incl. admin_p0 / merchant_p0                    | **2067 PASS**            |
 
 ## Fixes landed while covering

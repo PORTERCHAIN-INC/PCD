@@ -610,28 +610,6 @@ class Settings(BaseSettings):
         default=False,
         validation_alias=AliasChoices("phase2_intelligence", "PORTERCHAIN_PHASE2_INTELLIGENCE"),
     )
-    # cuOpt shadow A/B vs OR-Tools — never auto-commits (day plan remains SoT).
-    phase2_cuopt_shadow: bool = Field(
-        default=False,
-        validation_alias=AliasChoices(
-            "phase2_cuopt_shadow", "PORTERCHAIN_PHASE2_CUOPT_SHADOW"
-        ),
-    )
-    # Dispatch Phase 2 — self-hosted NVIDIA cuOpt as an optional second solver (OR-Tools is default
-    # + fallback; the better plan wins). Only numbers leave the box: matrix, demands, capacities.
-    dispatch_cuopt_enabled: bool = Field(
-        default=False,
-        validation_alias=AliasChoices("dispatch_cuopt_enabled", "PORTERCHAIN_DISPATCH_CUOPT_ENABLED"),
-    )
-    dispatch_cuopt_url: str = Field(
-        default="http://localhost:5000",
-        validation_alias=AliasChoices("dispatch_cuopt_url", "PORTERCHAIN_DISPATCH_CUOPT_URL"),
-    )
-    # NIM LLM explains plans (suggest-only, PII-free payload). Off → rules-based explanation.
-    dispatch_llm_explain_enabled: bool = Field(
-        default=False,
-        validation_alias=AliasChoices("dispatch_llm_explain_enabled", "PORTERCHAIN_DISPATCH_LLM_EXPLAIN"),
-    )
     oauth_third_party_enabled: bool = Field(
         default=True,
         validation_alias=AliasChoices("oauth_third_party_enabled", "PORTERCHAIN_OAUTH_THIRD_PARTY_ENABLED"),

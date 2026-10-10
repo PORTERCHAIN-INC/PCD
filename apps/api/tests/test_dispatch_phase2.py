@@ -1,4 +1,4 @@
-"""Dispatch Phase 2: stop shapes, multi-vehicle VRP, re-plan, cuOpt pick, legs, retention, explain."""
+"""Dispatch Phase 2: stop shapes, multi-vehicle VRP, re-plan, legs, retention, explain."""
 
 from __future__ import annotations
 
@@ -12,11 +12,16 @@ from sqlalchemy.orm import Session
 from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401 — FK targets
 from porterchain_api.admin_engine.control_tower.service import ControlTowerService
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.admin_engine.logistics_partners_service import LogisticsPartnersService
+from porterchain_api.admin_engine.logistics_partners_service import (
+    LogisticsPartnersService,
+)
 from porterchain_api.admin_models import AdminUser, Driver, Vehicle
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+from porterchain_api.booking_engine.numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
 from porterchain_api.booking_models import Order, Package
-from porterchain_api.dispatch_engine import cuopt_solver, legs, plan_explain, retention, vrp
+from porterchain_api.dispatch_engine import legs, plan_explain, retention, vrp
 from porterchain_api.dispatch_engine.models import OrderLeg
 from porterchain_api.dispatch_engine.stop_shapes import StopSpec, fsa, order_stops
 from porterchain_api.driver_engine.retention_purge import purge
@@ -127,6 +132,15 @@ def test_ortools_drops_when_nothing_fits() -> None:
     assert len(ev["dropped"]) == 2
 
 
+def test_capacity_overflow_keeps_the_rush_job() -> None:
+    prob = _problem(cap_boxes=4, n_pairs=2, boxes=4, vehicles=1)
+    prob.vehicles[0].max_route_s = 1200  # shift fits one of the two jobs
+    assert vrp.evaluate(prob, vrp.solve_ortools(prob))["dropped"] == ["p1"]  # without rush the far job goes
+    for st in prob.stops:
+        st.rush = st.order_id == "o1"  # the farther job is the same-day rush
+    assert vrp.evaluate(prob, vrp.solve_ortools(prob))["dropped"] == ["p0"]
+
+
 def test_replan_keeps_loaded_freight_on_vehicle() -> None:
     prob = _problem(cap_boxes=20, n_pairs=3, boxes=2, vehicles=2)
     routes = {"v0": ["p0", "p1", "d0", "d1"], "v1": ["p2", "d2"]}
@@ -145,22 +159,6 @@ def test_better_prefers_feasible_then_fewer_drops_then_cost() -> None:
     assert vrp.better(a, {"feasible": True, "dropped": ["x"], "cost_cents": 100})
     assert vrp.better({"feasible": True, "dropped": [], "cost_cents": 800}, a)
     assert not vrp.better({"feasible": False, "dropped": [], "cost_cents": 1}, a)
-
-
-def test_cuopt_payload_is_numbers_only_and_parses() -> None:
-    prob = _problem(n_pairs=2, vehicles=2)
-    for s in prob.stops:
-        s.label = "100 Wellington St W"
-    body = cuopt_solver.build_payload(prob)
-    plan_explain.assert_no_pii(body)
-    assert body["task_data"]["pickup_and_delivery_pairs"] == [[0, 1], [2, 3]]
-    parsed = cuopt_solver.parse_routes(prob, {"response": {"solver_response": {"vehicle_data": {
-        "1": {"task_id": ["Depot", 0, 1, 2, 3, "Depot"]}}}}})
-    assert parsed == {"v1": ["p0", "d0", "p1", "d1"]}
-
-
-def test_cuopt_unreachable_returns_none() -> None:
-    assert cuopt_solver.solve_cuopt(_problem(n_pairs=1), base_url="http://127.0.0.1:9", timeout_s=1) is None
 
 
 # ---------------------------------------------------------------- legs
@@ -197,34 +195,14 @@ def test_legs_warehouse_hold() -> None:
     assert [x["mode"] for x in out["legs"]] == ["local", "warehouse", "local"]
 
 
-# ---------------------------------------------------------------- explain / PII
-def test_assert_no_pii_blocks() -> None:
-    for bad in ({"e": "a@b.co"}, {"p": "416-555-0199"}, {"z": "M5H 2N2"}, {"s": "100 Wellington St"},
-                {"o": "ORD-20261009-79B1BE"}, {"u": str(uuid4())}):
-        with pytest.raises(plan_explain.PiiLeak):
-            plan_explain.assert_no_pii(bad)
-    plan_explain.assert_no_pii({"fsa": "M5H", "at": [43.65, -79.38]})
-
-
-def test_redact_and_rules_explain() -> None:
+# ---------------------------------------------------------------- explain
+def test_summarize_and_rules_explain() -> None:
     prob = _problem(n_pairs=2, vehicles=2)
     ev = vrp.evaluate(prob, vrp.solve_ortools(prob)) | {"solver": "ortools"}
-    for r in ev["routes"]:
-        r["driver_id"] = str(uuid4())
-    summary = plan_explain.redact(ev, {s.key: s for s in prob.stops})
+    summary = plan_explain.summarize(ev, {s.key: s for s in prob.stops})
     assert all(len(str(s["at"][0]).split(".")[1]) <= 2 for r in summary["routes"] for s in r["stops"])
     out = plan_explain.rules_explain(summary)
     assert out["suggest_only"] and out["explanation"]
-
-
-def test_llm_explain_is_suggest_only() -> None:
-    def chat(**kw):
-        assert "FSA" in kw["messages"][0]["content"]
-        return {"content": '{"explanation": ["ok"], "suggestions": ["merge R2"]}', "model": "m"}
-
-    out = plan_explain.llm_explain({"routes": []}, chat)
-    assert out == {"source": "nvidia_nim", "model": "m", "explanation": ["ok"], "suggestions": ["merge R2"],
-                   "suggest_only": True}
 
 
 # ---------------------------------------------------------------- retention
@@ -232,6 +210,17 @@ def test_normalize_retention_limits() -> None:
     assert retention.normalize_retention({}) == retention.default_retention()
     with pytest.raises(ValueError):
         retention.normalize_retention({"gps_days": 1})
+
+
+def all_exceptions(board, db, **kw) -> dict:
+    """Every page of the Exceptions queue, merged (the queue itself is paged)."""
+    items, offset = [], 0
+    while True:
+        out = board.exceptions_queue(db, offset=offset, limit=200, **kw)
+        items += out["items"]
+        offset += 200
+        if offset >= out["total"]:
+            return {**out, "items": items}
 
 
 def _driver(db: Session, cls: str = "van") -> Driver:
@@ -289,13 +278,11 @@ def test_plan_commit_explain_and_replan(db: Session, monkeypatch) -> None:
     o1 = _order(db, W, {"stops": [S, M]}, boxes=4)
     o2 = _order(db, M, B, boxes=2)
     o3 = _order(db, S, W, boxes=1, compliance_metadata={"is_return": True})
-    svc = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38),
-                           cuopt_fn=lambda p: {})  # cuOpt "returns nothing" → OR-Tools must win
+    svc = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
     out = svc.plan(db, actor="t", order_ids=[o1.id, o2.id, o3.id], driver_ids=[d1.id, d2.id], time_limit_s=1)
     assert out["status"] == "draft" and out["solver"] == "ortools"
     assert out["summary"]["shapes"] == {"1→N": 1, "1→1": 1, "return 1→1": 1}
     assert out["summary"]["dropped"] == [] and out["summary"]["matrix"] == "valhalla"
-    assert set(out["summary"]["compare"]) == {"ortools", "cuopt"}
     kinds = {s["kind"] for r in out["routes"] for s in r["stops"]}
     assert {"pickup", "drop", "return_pickup", "return_drop"} <= kinds
     assert db.get(Order, o1.id).assigned_driver_id is None  # draft never assigns
@@ -324,19 +311,6 @@ def test_plan_commit_explain_and_replan(db: Session, monkeypatch) -> None:
             assert all(s["kind"] != "pickup" for s in r["stops"] if s["order_id"] == o1.id)
 
 
-def test_cuopt_better_plan_wins_and_tie_keeps_ortools(db: Session, monkeypatch) -> None:
-    d1 = _driver(db)
-    o = _order(db, W, S)
-    svc = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
-    svc.cuopt_fn = lambda problem: {problem.vehicles[0].id: [s.key for s in problem.stops]}
-    tie = svc.plan(db, actor="t", order_ids=[o.id], driver_ids=[d1.id], time_limit_s=1)
-    assert tie["solver"] == "ortools" and tie["summary"]["compare"]["cuopt"]["feasible"] is True
-
-    monkeypatch.setattr(vrp, "solve_ortools", lambda problem: {})  # OR-Tools drops everything
-    win = svc.plan(db, actor="t", order_ids=[o.id], driver_ids=[d1.id], time_limit_s=1)
-    assert win["solver"] == "cuopt" and win["summary"]["dropped"] == []
-
-
 def test_partner_and_legs_saved(db: Session) -> None:
     ctx = _ctx(db)
     svc = LogisticsPartnersService()
@@ -362,6 +336,6 @@ def test_board_excludes_sandbox(db: Session) -> None:
 def test_plan_refuses_without_road_router(db: Session) -> None:
     d1 = _driver(db)
     o = _order(db, W, S)
-    svc = FleetPlanService(matrix_fn=lambda pts: None, position_fn=lambda _d: (43.65, -79.38), cuopt_fn=lambda p: None)
+    svc = FleetPlanService(matrix_fn=lambda pts: None, position_fn=lambda _d: (43.65, -79.38))
     with pytest.raises(ValueError, match="road_router_unavailable"):
         svc.plan(db, actor="t", order_ids=[o.id], driver_ids=[d1.id], time_limit_s=1)

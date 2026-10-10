@@ -34,6 +34,7 @@ class StopSpec:
     window_start_s: int | None = None
     window_end_s: int | None = None
     partner_id: str | None = None
+    rush: bool = False  # same-day rush (EXPRESS): last to be dropped when the fleet is full
 
     def public(self) -> dict[str, Any]:
         return asdict(self)
@@ -99,6 +100,7 @@ def order_stops(order: Any, *, boxes: int = 0, kg: float = 0.0, m3: float = 0.0)
     pickups = _points(getattr(order, "pickup", None))
     drops = _points(getattr(order, "dropoff", None))
     returning = is_return(order)
+    rush = str(getattr(order, "order_type", "") or "").upper() == "EXPRESS"
     out = OrderStops(order_id=oid, shape=shape_label(len(pickups) or 1, len(drops) or 1, returning=returning))
     if not pickups or not drops:
         out.skipped = "missing pickup or drop"
@@ -132,12 +134,12 @@ def order_stops(order: Any, *, boxes: int = 0, kg: float = 0.0, m3: float = 0.0)
         ps = StopSpec(
             key=f"{oid}:p{i}:{k}", order_id=oid, kind=pk, lat=pl[0], lng=pl[1], fsa=fsa(_postal(p)),
             label=str(p.get("formatted") or ""), boxes=b, kg=kg_each, m3=m3_each,
-            service_s=int(p.get("service_s") or 300),
+            service_s=int(p.get("service_s") or 300), rush=rush,
         )
         ds = StopSpec(
             key=f"{oid}:d{j}:{k}", order_id=oid, kind=str(d.get("kind") or dk) if d.get("kind") in KINDS else dk,
             lat=dl[0], lng=dl[1], fsa=fsa(_postal(d)), label=str(d.get("formatted") or ""), boxes=b, kg=kg_each, m3=m3_each,
-            service_s=int(d.get("service_s") or 300), partner_id=d.get("partner_id"),
+            service_s=int(d.get("service_s") or 300), partner_id=d.get("partner_id"), rush=rush,
         )
         out.stops += [ps, ds]
         out.pairs.append((ps.key, ds.key))
