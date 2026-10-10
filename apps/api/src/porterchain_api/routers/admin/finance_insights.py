@@ -56,6 +56,19 @@ def finance_margin(
     return margin_report(db, days=days, merchant_id=merchant_id)
 
 
+@router.get("/analytics/ops")
+def ops_analytics(
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    days: int = Query(30, ge=1, le=366),
+) -> dict:
+    """Cost/stop, margins by merchant/FSA/vehicle/route, on-time, fill, failed, trend, FSA forecast."""
+    require_module(ctx, "finance_read")
+    from porterchain_api.reporting.analytics import ops_analytics as _ops
+
+    return _ops(db, days=days)
+
+
 @router.get("/finance/tax-report")
 def finance_tax_report(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],

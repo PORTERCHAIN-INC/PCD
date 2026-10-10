@@ -46,7 +46,12 @@ def _pct(margin: int, revenue: int) -> float | None:
 
 
 def margin_report(
-    db: Session, *, days: int = 30, now: datetime | None = None, merchant_id: str | None = None
+    db: Session,
+    *,
+    days: int = 30,
+    now: datetime | None = None,
+    merchant_id: str | None = None,
+    stop_limit: int = 500,
 ) -> dict[str, Any]:
     from porterchain_api.admin_engine.platform_settings import finance_number
     from porterchain_api.order_engine.buckets import DONE_STATES
@@ -195,5 +200,5 @@ def margin_report(
             else 0.0,
         },
         "routes": route_rows[:200],
-        "stops": stops[:500],
+        "stops": stops[:stop_limit],
     }
