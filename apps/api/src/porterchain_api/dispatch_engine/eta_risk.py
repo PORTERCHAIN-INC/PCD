@@ -8,6 +8,7 @@ of it (or beyond). No GPS or no Valhalla → ``unknown`` (never guessed).
 
 from __future__ import annotations
 
+from porterchain_api.dispatch_engine.capabilities import order_needs_liftgate
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
@@ -114,6 +115,7 @@ def live_etas(
             {
                 "order_id": o.id,
                 "order_number": o.order_number,
+                "liftgate": order_needs_liftgate(o),
                 "state": o.state,
                 "driver_id": o.assigned_driver_id,
                 "eta": eta.isoformat() if eta else None,

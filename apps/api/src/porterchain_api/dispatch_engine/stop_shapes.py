@@ -35,6 +35,7 @@ class StopSpec:
     window_end_s: int | None = None
     partner_id: str | None = None
     rush: bool = False  # same-day rush (EXPRESS): last to be dropped when the fleet is full
+    liftgate: bool = False  # hard: only a liftgate vehicle may serve this stop
 
     def public(self) -> dict[str, Any]:
         return asdict(self)

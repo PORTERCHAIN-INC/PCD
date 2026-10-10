@@ -159,6 +159,11 @@ export function DispatchStopPanel() {
       <Text style={styles.meta}>
         {stop.order_number ?? "—"} · {stop.boxes} box{stop.boxes === 1 ? "" : "es"}
       </Text>
+      {stop.liftgate ? (
+        <Text style={styles.liftgate} testID="stop-liftgate">
+          LIFTGATE NEEDED
+        </Text>
+      ) : null}
       {stop.notes ? <Text style={styles.note}>{stop.notes}</Text> : null}
 
       {needList
@@ -267,6 +272,18 @@ const styles = StyleSheet.create({
   },
   address: { fontSize: 24, fontWeight: "900", color: colors.primary },
   meta: { fontSize: 15, color: "#475569" },
+  liftgate: {
+    alignSelf: "flex-start",
+    marginTop: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: "#FEF3C7",
+    color: "#78350F",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
   note: {
     backgroundColor: "#fffbeb",
     color: "#78350f",

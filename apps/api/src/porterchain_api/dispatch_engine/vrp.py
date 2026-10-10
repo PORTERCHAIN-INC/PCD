@@ -40,6 +40,7 @@ class Vehicle:
     must_deliver: list[str] = field(default_factory=list)  # re-plan: drop keys locked to this vehicle
     rank: int = 0  # size rank (sedan 0 … box truck 3); bigger vehicles cost more to open
     km_cents: int = 0  # optional per-km cost (fleet ``cost_per_km_cents``)
+    liftgate: bool = False  # equipped with a liftgate (``vehicles.capabilities``)
 
 
 @dataclass
@@ -105,10 +106,12 @@ def evaluate(problem: Problem, routes: dict[str, list[str]]) -> dict[str, Any]:
             peak_kg, peak_boxes, peak_m3 = max(peak_kg, kg), max(peak_boxes, boxes), max(peak_m3, m3)
             seen.add(k)
             seq.append({"key": k, "order_id": s.order_id, "kind": s.kind, "fsa": s.fsa, "place": place_key(s.lat, s.lng),
-                        "eta_s": arrive, "service_s": s.service_s})
+                        "eta_s": arrive, "service_s": s.service_s, "liftgate": s.liftgate})
         for d in veh.must_deliver:
             if d not in seen:
                 violations.append(f"{veh.id}: onboard drop {d} missing")
+        if not veh.liftgate and any(by_key[k].liftgate for k in keys):
+            violations.append(f"{veh.id}: liftgate stop on a vehicle without one")
         if peak_kg > veh.cap_kg + 1e-6 or peak_boxes > veh.cap_boxes or peak_m3 > veh.cap_m3 + 1e-6:
             violations.append(f"{veh.id}: over capacity")
         if seconds > veh.max_route_s:
@@ -237,12 +240,16 @@ def solve_ortools(problem: Problem) -> dict[str, list[str]]:
 
     solver = routing.solver()
     rush = {s.key for s in problem.stops if s.rush}
+    by_key_lg = {s.key: s.liftgate for s in problem.stops}
+    lift_ok = [k for k, veh in enumerate(problem.vehicles) if veh.liftgate]
     for p, d in problem.pairs:
         pi, di = manager.NodeToIndex(node_of[p]), manager.NodeToIndex(node_of[d])
         routing.AddPickupAndDelivery(pi, di)
         solver.Add(routing.VehicleVar(pi) == routing.VehicleVar(di))
         solver.Add(time_dim.CumulVar(pi) <= time_dim.CumulVar(di))
         penalty = DROP_PENALTY * (RUSH_FACTOR if p in rush else 1)
+        if by_key_lg.get(p):
+            routing.VehicleVar(pi).SetValues([-1, *lift_ok])
         routing.AddDisjunction([pi], penalty)
         routing.AddDisjunction([di], penalty)
     paired = {k for pr in problem.pairs for k in pr}

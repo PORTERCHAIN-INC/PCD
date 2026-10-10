@@ -152,6 +152,7 @@ export type LiveEta = {
   promise: string | null;
   status: "on_time" | "at_risk" | "late" | "unknown";
   has_gps: boolean;
+  liftgate?: boolean;
 };
 
 export type FleetVehicle = {
@@ -185,6 +186,7 @@ export type PlanStop = {
   kind: "pickup" | "drop" | "return_pickup" | "return_drop" | "hub" | "handoff";
   fsa: string | null;
   eta_s: number;
+  liftgate?: boolean;
 };
 
 export type PlanRoute = {

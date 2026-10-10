@@ -86,6 +86,11 @@ function RouteCard({
                 {STOP_KIND_LABEL[s.kind]}
                 {s.count > 1 ? ` ×${s.count}` : ""}
               </span>
+              {s.liftgate && (
+                <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+                  Liftgate
+                </span>
+              )}
               <span className="text-muted">
                 {" "}
                 · {s.fsa ?? "—"} · {s.order_number ?? s.order_id.slice(0, 8)}

@@ -100,6 +100,8 @@ class FleetPlanService:
         pairs: list[tuple[str, str]] = []
         skipped: list[dict] = []
         shapes: dict[str, int] = {}
+        from porterchain_api.dispatch_engine.capabilities import order_needs_liftgate
+
         for o in orders:
             load = order_load(o)
             view = self._hub_override(db, o)
@@ -116,6 +118,9 @@ class FleetPlanService:
                 st.window_start_s, st.window_end_s = windows.to_offsets(win, origin)
                 if not point.get("service_s"):
                     st.service_s = times.seconds(st.kind, fsa=st.fsa, place=stop_times.place_key(st.lat, st.lng))
+            if order_needs_liftgate(o):
+                for st in os_.stops:
+                    st.liftgate = True
             stops += os_.stops
             pairs += os_.pairs
         return stops, pairs, skipped, shapes
@@ -144,17 +149,17 @@ class FleetPlanService:
 
         q = db.query(Driver).filter(Driver.status == "APPROVED")
         q = q.filter(Driver.id.in_(only)) if only else q.filter(Driver.is_online.is_(True))
+        from porterchain_api.dispatch_engine.capabilities import has_liftgate
         from porterchain_api.dispatch_engine.vehicle_cost import load_estimates, vehicle_costs
 
         estimates = load_estimates(db)
         out: list[vrp.Vehicle] = []
         cap = float(fleet.get("max_fill") or 0.85)
         for d in q.limit(100).all():
-            classes = sorted(
-                {c for c in (canonical_class(v.vehicle_class) for v in db.query(Vehicle).filter(
-                    Vehicle.driver_id == d.id, Vehicle.is_active.is_(True)).all()) if c},
-                key=lambda c: RANK.get(c, 9),
-            )
+            rows = db.query(Vehicle).filter(Vehicle.driver_id == d.id, Vehicle.is_active.is_(True)).all()
+            classes = sorted({c for c in (canonical_class(v.vehicle_class) for v in rows) if c},
+                             key=lambda c: RANK.get(c, 9))
+            lift = any(has_liftgate(v.capabilities) for v in rows)
             spec = vehicle_by_id(fleet, classes[-1]) if classes else None
             if spec is None or not spec.get("enabled", True):
                 continue
@@ -162,10 +167,21 @@ class FleetPlanService:
                 id=f"v-{d.id}", driver_id=d.id, vehicle_class=spec["id"],
                 cap_kg=float(spec["max_kg"]) * cap, cap_boxes=int(spec["max_boxes"] * cap),
                 cap_m3=float(spec["max_m3"]) * cap,
-                start=self.position_fn(d.id) or TORONTO, rank=RANK.get(spec["id"], 0),
+                start=self.position_fn(d.id) or TORONTO, rank=RANK.get(spec["id"], 0), liftgate=lift,
                 **dict(zip(("hourly_cents", "km_cents"), vehicle_costs(estimates, spec), strict=True)),
             ))
         return out
+
+    @staticmethod
+    def _liftgate_gap(stops: list[StopSpec], pairs: list, vehicles: list[vrp.Vehicle], skipped: list[dict]) -> tuple:
+        """No liftgate vehicle online: liftgate orders leave the plan with a clear reason."""
+        if any(v.liftgate for v in vehicles):
+            return stops, pairs
+        out = {s.order_id for s in stops if s.liftgate}
+        skipped += [{"order_id": oid, "order_number": None, "reason": "no_liftgate_vehicle"} for oid in sorted(out)]
+        keep = [s for s in stops if s.order_id not in out]
+        keys = {s.key for s in keep}
+        return keep, [(p, d) for p, d in pairs if p in keys and d in keys]
 
     def _matrix(self, vehicles: list[vrp.Vehicle], stops: list[StopSpec]) -> tuple[list[list[int]], str]:
         pts = vrp.points(vehicles, stops)
@@ -218,6 +234,7 @@ class FleetPlanService:
         vehicles = self._vehicles(db, fleet, only=driver_ids)
         if not vehicles:
             raise ValueError("no_online_drivers_with_vehicle")
+        stops, pairs = self._liftgate_gap(stops, pairs, vehicles, skipped)
         matrix, source = self._matrix(vehicles, stops)
         problem = vrp.Problem(stops=stops, pairs=pairs, vehicles=vehicles, matrix=matrix, time_limit_s=time_limit_s)
         ev = self._solve(problem)

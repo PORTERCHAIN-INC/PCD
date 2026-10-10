@@ -214,7 +214,28 @@ class DispatchBoardService:
             d for d in db.query(Driver).filter(Driver.status == "APPROVED", Driver.is_online.is_(True)).limit(50)
             if d.id not in busy
         ]
-        return stuck_items(active, now) + idle_items(idle, waiting, now)
+        return stuck_items(active, now) + idle_items(idle, waiting, now) + DispatchBoardService._liftgate(db, now, skip)
+
+    @staticmethod
+    def _liftgate(db: Session, now: datetime, skip: set[str]) -> list[dict[str, Any]]:
+        """Liftgate orders waiting while no online driver has a liftgate vehicle."""
+        from porterchain_api.admin_models import Driver, Vehicle
+        from porterchain_api.booking_models import Order
+        from porterchain_api.dispatch_engine.capabilities import has_liftgate, order_needs_liftgate
+
+        waiting = [o for o in db.query(Order).filter(Order.is_sandbox.is_(False), Order.state == "DISPATCH_READY")
+                   .limit(200) if order_needs_liftgate(o) and o.id not in skip]
+        if not waiting:
+            return []
+        rows = (db.query(Vehicle).join(Driver, Driver.id == Vehicle.driver_id)
+                .filter(Vehicle.is_active.is_(True), Driver.status == "APPROVED", Driver.is_online.is_(True)).all())
+        if any(has_liftgate(v.capabilities) for v in rows):
+            return []
+        return [{
+            "id": f"liftgate:{o.id}", "kind": "liftgate", "type": "NO_LIFTGATE_VEHICLE", "severity": "high",
+            "order_id": o.id, "order_number": o.order_number, "state": o.state,
+            "age_min": _age_min(o.created_at, now), "status": "open",
+        } for o in waiting]
 
     # ---------- Metrics ----------
     def metrics(self, db: Session, *, days: int = 7, now: datetime | None = None) -> dict[str, Any]:

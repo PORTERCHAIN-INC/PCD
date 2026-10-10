@@ -16,6 +16,7 @@ export type DispatchStop = {
   needs_pod: boolean;
   notes: string | null;
   eta_s: number;
+  liftgate?: boolean;
 };
 
 export type DispatchRoute = {

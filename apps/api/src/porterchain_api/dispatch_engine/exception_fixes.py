@@ -48,6 +48,10 @@ def suggest(
         if reroute:
             out.append(reroute)
         out.append(contact)
+    elif kind == "liftgate":
+        if slot:
+            out.append(slot)
+        out.append(_fix("contact", "Tell the customer", "no liftgate truck free; agree a new time"))
     elif kind == "idle":
         out.append(_fix("reassign", f"Give it to {item.get('idle_driver_name') or 'idle driver'}",
                         "driver is online with no job", driver_id=item.get("idle_driver_id")))

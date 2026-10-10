@@ -103,6 +103,7 @@ class DriverRouteService:
 
     def view(self, db: Session, driver_id: str) -> dict[str, Any]:
         from porterchain_api.booking_models import Order
+        from porterchain_api.dispatch_engine.capabilities import order_needs_liftgate
 
         route = self.current_route(db, driver_id)
         if route is None:
@@ -120,6 +121,7 @@ class DriverRouteService:
                 "address": addr.get("formatted"), "lat": addr.get("lat"), "lng": addr.get("lng"),
                 "boxes": boxes, "needs_pod": g["kind"] in POD_KINDS,
                 "notes": (o.special_instructions or None) if o is not None else None,
+                "liftgate": o is not None and order_needs_liftgate(o),
             })
         nxt = next((i for i, s in enumerate(stops) if s["status"] in {"pending", "arrived"}), None)
         done = sum(1 for s in stops if s["status"] in {"done", "failed"})

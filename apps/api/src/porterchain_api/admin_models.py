@@ -100,6 +100,8 @@ class Vehicle(Base):
     plate_number: Mapped[str] = mapped_column(String(32), index=True)
     make_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
     capacity_kg: Mapped[float | None] = mapped_column(nullable=True)
+    # Shared equipment flags (dispatch + pricing), e.g. ["liftgate"]. See dispatch_engine.capabilities.
+    capabilities: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     compliance_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

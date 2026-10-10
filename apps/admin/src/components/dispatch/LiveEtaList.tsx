@@ -56,6 +56,11 @@ export function LiveEtaList({
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold text-primary">
                   {r.order_number}
+                  {r.liftgate && (
+                    <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+                      Liftgate
+                    </span>
+                  )}
                 </span>
                 <span className="block truncate text-xs text-muted">
                   {r.state.replaceAll("_", " ").toLowerCase()} · promise {hhmm(r.promise)}

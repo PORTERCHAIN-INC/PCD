@@ -32,6 +32,7 @@ const LABEL: Record<string, string> = {
   margin: "Below margin floor",
   stuck: "Stuck — no progress",
   idle: "Driver idle, order waiting",
+  liftgate: "Needs liftgate — no liftgate truck online",
 };
 
 const money = (c: number) => `$${(c / 100).toFixed(2)}`;
