@@ -110,6 +110,7 @@ export type DriverVehicle = {
   capacity_kg: number | null;
   compliance_expires_at: string | null;
   is_active: boolean;
+  capabilities?: string[];
 };
 
 export type DriverPayouts = {
@@ -356,6 +357,7 @@ export const drivers = {
       make_model?: string;
       capacity_kg?: number;
       is_active?: boolean;
+      capabilities?: string[];
     }
   ) =>
     adminFetch<DriverVehicle>(`${B}/${id}/vehicles/${vehicleId}`, t, {

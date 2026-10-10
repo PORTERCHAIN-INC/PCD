@@ -57,6 +57,7 @@ class SqlAlchemyPricingRepository:
         ctx.price_book = self._load_system_value("pricing_book")
         ctx.price_version = format_version(self._load_system_value(VERSION_KEY))
         ctx.coverage = self._load_system_value("parcel_coverage")
+        ctx.carriage_terms = self._load_system_value("carriage_terms")
         system_card = self._load_rate_card()
         if request.channel == "retail":
             # Customer distance card only. Merchant FSA, rate card, and fuel stay off this quote.

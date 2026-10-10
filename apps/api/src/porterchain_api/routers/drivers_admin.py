@@ -84,6 +84,7 @@ def _vehicle(vehicle) -> dict:
         "vehicle_class": getattr(vehicle, "vehicle_class", None),
         "plate_number": getattr(vehicle, "plate_number", None),
         "is_active": vehicle.is_active,
+        "capabilities": list(getattr(vehicle, "capabilities", None) or []),
     }
 
 

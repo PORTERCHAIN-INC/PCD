@@ -74,6 +74,8 @@ class PricingRequest:
     coverage_upgrade: bool | None = None
     #: Item category for the coverage recommendation (electronics, jewelry, …).
     item_category: str | None = None
+    #: "curbside" (default) | "lobby" (concierge) | "past_designated_point" (contract surcharge).
+    delivery_point: str | None = None
     # GTA matrix inputs (optional — inferred from stops/geo when omitted)
     total_pickups: int | None = None
     total_drops: int | None = None
@@ -257,3 +259,5 @@ class PricingContext:
     price_version: str | None = None
     #: Raw ``system_config.parcel_coverage``; None = built-in defaults.
     coverage: dict[str, Any] | None = None
+    #: Universal conditions of carriage (``carriage_terms`` setting); None = defaults.
+    carriage_terms: dict | None = None

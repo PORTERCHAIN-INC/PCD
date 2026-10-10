@@ -61,6 +61,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "vehicles", "label": "Vehicle Classes", "group": "commercial"},
     {"id": "pricing", "label": "Pricing", "group": "commercial"},
     {"id": "coverage", "label": "Coverage", "group": "commercial"},
+    {"id": "carriage", "label": "Carriage Terms", "group": "commercial"},
     {"id": "booking", "label": "Booking", "group": "commercial"},
     {"id": "finance", "label": "Finance", "group": "commercial"},
     {"id": "documents", "label": "Documents", "group": "commercial"},
@@ -101,8 +102,7 @@ CONFIG_KEYS = {
     # Per-merchant FSA rate card formula (base, km, minute, downtown, bands).
     "pricing_fsa_card": "pricing_fsa_card",
     "driver_pay": "driver_pay_plan",
-    "pricing_margin_estimates": "pricing_margin_estimates",  # cost inputs (margin + planner)
-    "parcel_coverage": "parcel_coverage",  # declared-value cover tiers
+    **{k: k for k in COST_NORMALIZERS},  # margin cost inputs, parcel coverage, carriage terms
     # Checkout delivery promise (cut-offs, waves, holidays, FSA tiers). Off by default.
     "delivery_promise": "delivery_promise",
     # Website marketing switches (hero A/B flag, calculator limits). A/B off by default.

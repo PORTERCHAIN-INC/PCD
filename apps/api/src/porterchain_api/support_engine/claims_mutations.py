@@ -12,6 +12,7 @@ from porterchain_api.admin_models import Claim
 from porterchain_api.booking_engine._core import emit_event, publish_recorded_event, _event_fields
 from porterchain_api.booking_models import Customer, Order
 from porterchain_api.domain.claims import CLAIM_TYPES, claim_number
+from porterchain_api.support_engine.claim_terms import claim_terms_meta
 from porterchain_api.support_engine.claims_constants import CLAIM_STATUSES, set_claim_meta
 from porterchain_api.support_engine.support_helpers import SupportActor
 from porterchain_shared.events.catalog import DomainEventType
@@ -48,6 +49,7 @@ class ClaimsMutationsMixin:
             priority=priority,
             driver_id=order.assigned_driver_id if order else None,
             investigation_due_at=due_at.isoformat(),
+            **claim_terms_meta(db, order),
         )
         customer = (
             db.query(Customer).filter(Customer.id == order.customer_id).first()
@@ -133,6 +135,7 @@ class ClaimsMutationsMixin:
             payload={"claim_type": normalized_type, "order_id": order_id},
         )
         order = db.query(Order).filter(Order.id == order_id).first()
+        set_claim_meta(claim, **claim_terms_meta(db, order))
         emit_event(
             db,
             event_type=DomainEventType.CLAIM_OPENED,

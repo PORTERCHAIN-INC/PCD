@@ -25,7 +25,11 @@ from porterchain_api.booking_engine.order_metadata import resolve_order_type
 from porterchain_api.services.routing import resolve_route_distance
 from porterchain_pricing import GeoPoint, PricingRequest
 from porterchain_api.domain.merchant_states import MerchantStatus
-from porterchain_api.merchant_engine.booking_validation import BookingValidationError, assert_not_fsa_refused
+from porterchain_api.merchant_engine.booking_validation import (
+    BookingValidationError,
+    assert_not_fsa_refused,
+    check_declarations as _check_declarations,
+)
 from porterchain_api.merchant_engine.service_area import assert_ontario_booking, merchant_coverage_fsas
 from porterchain_api.merchant_engine.stop_cargo import (
     book_stops_for_request,
@@ -154,6 +158,7 @@ class MerchantBookingService:
         dropoff_geo = _geo(dropoff)
         stops = [_geo(s) for s in (body.additional_stops or [])]
         distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo, stops)
+        _check_declarations(body)
         weight_kg, dimensions = cargo_rollup(body)
         scheduled_at, schedule_mode = schedule_from_body(body)
         packages = getattr(body, "packages", None) or []
@@ -186,6 +191,7 @@ class MerchantBookingService:
             declared_value_cents=getattr(body, "declared_value_cents", None),
             coverage_upgrade=getattr(body, "coverage_upgrade", None),
             item_category=getattr(body, "item_category", None),
+            delivery_point=getattr(body, "delivery_point", None),
         )
 
     def find_by_idempotency_key(

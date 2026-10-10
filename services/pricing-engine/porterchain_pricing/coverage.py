@@ -12,14 +12,18 @@ from __future__ import annotations
 from typing import Any
 
 SETTINGS_KEY = "parcel_coverage"
-UNITS = ("delivery", "parcel")
+UNITS = ("delivery", "parcel", "stop")
+PER = ("delivery", "route", "parcel")
 
 DEFAULT_COVERAGE: dict[str, Any] = {
     "schema": 1,
-    "included_cents": 250_000,
+    # B4 Cargo Coverage (universal terms): $1,000 included per route; enhanced
+    # $25,000 for +$10 per stop, replacing standard (limits do not stack).
+    "included_cents": 100_000,
     "upgrade_cents": 2_500_000,
     "upgrade_price_cents": 1_000,
-    "unit": "delivery",
+    "unit": "stop",
+    "included_per": "route",
     #: Categories that should carry the upgrade even below the included cap.
     "high_risk_categories": ["electronics", "jewelry", "art", "medical", "luxury"],
     #: Recommend the upgrade once declared value reaches this share of the included cap.
@@ -50,6 +54,8 @@ def normalize_coverage(raw: Any) -> dict[str, Any]:
         if src["unit"] not in UNITS:
             raise ValueError("coverage_invalid:unit")
         out["unit"] = src["unit"]
+    if src.get("included_per") in PER:
+        out["included_per"] = src["included_per"]
     if isinstance(src.get("high_risk_categories"), list):
         out["high_risk_categories"] = [str(c).strip().lower() for c in src["high_risk_categories"] if str(c).strip()]
     if out["upgrade_cents"] < out["included_cents"]:
@@ -77,7 +83,7 @@ def charge_cents(upgrade: bool, parcels: int = 1, cfg: dict[str, Any] | None = N
     c = normalize_coverage(cfg)
     if not upgrade:
         return 0
-    units = max(int(parcels or 1), 1) if c["unit"] == "parcel" else 1
+    units = max(int(parcels or 1), 1) if c["unit"] in ("parcel", "stop") else 1
     return c["upgrade_price_cents"] * units
 
 

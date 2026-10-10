@@ -109,3 +109,20 @@ class MerchantSyncService:
             contract_id=contract_id,
             warnings=tuple(warnings),
         )
+
+
+def check_declarations(body: Any) -> None:
+    """C13/C15: dangerous goods need written approval first; prohibited articles are refused."""
+    from porterchain_pricing.contract_terms import DEFAULT_TERMS, declaration_problem
+
+    problem = declaration_problem(
+        DEFAULT_TERMS,
+        dangerous_goods=bool(getattr(body, "dangerous_goods", False)),
+        prohibited=list(getattr(body, "prohibited_articles", None) or []),
+    )
+    if problem == "prohibited_article":
+        raise BookingValidationError(problem, "Prohibited articles can't be carried without written approval.")
+    if problem:
+        raise BookingValidationError(
+            problem, "Dangerous goods need written approval and permits before booking. Contact us for a quote."
+        )

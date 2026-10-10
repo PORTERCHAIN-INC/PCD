@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { drivers, VEHICLE_CLASSES } from "@/lib/drivers";
+import { drivers, VEHICLE_CLASSES, type DriverVehicle } from "@/lib/drivers";
 import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
 
@@ -49,6 +49,19 @@ export function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean })
       const token = await getApiToken();
       if (active) await drivers.updateVehicle(token, id, vehicleId, { is_active: true });
       else await drivers.deactivateVehicle(token, id, vehicleId);
+      setVersion((n) => n + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update vehicle");
+    }
+  }
+  async function toggleLiftgate(v: DriverVehicle) {
+    setError(null);
+    try {
+      const token = await getApiToken();
+      const caps = new Set(v.capabilities ?? []);
+      if (caps.has("liftgate")) caps.delete("liftgate");
+      else caps.add("liftgate");
+      await drivers.updateVehicle(token, id, v.id, { capabilities: [...caps] });
       setVersion((n) => n + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update vehicle");
@@ -156,7 +169,8 @@ export function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean })
                 <div>
                   <p className="text-sm font-medium text-primary">
                     {v.make_model ?? titleCase(v.vehicle_class)}{" "}
-                    {v.is_active && <Badge tone="green">Active</Badge>}
+                    {v.is_active && <Badge tone="green">Active</Badge>}{" "}
+                    {v.capabilities?.includes("liftgate") && <Badge tone="slate">Liftgate</Badge>}
                   </p>
                   <p className="text-xs text-muted">
                     {titleCase(v.vehicle_class)} · {v.plate_number} ·{" "}
@@ -178,6 +192,11 @@ export function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean })
                       }}
                     >
                       Edit
+                    </Button>
+                  )}
+                  {canWrite && (
+                    <Button variant="outline" onClick={() => void toggleLiftgate(v)}>
+                      {v.capabilities?.includes("liftgate") ? "Remove liftgate" : "Has liftgate"}
                     </Button>
                   )}
                   {canWrite && v.is_active && (

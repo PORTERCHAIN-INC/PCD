@@ -227,6 +227,8 @@ class DriverVehicleUpdate(BaseModel):
     capacity_kg: float | None = None
     compliance_expires_at: datetime | None = None
     is_active: bool | None = None
+    #: Equipment flags, e.g. ["liftgate"] (dispatch_engine.capabilities).
+    capabilities: list[str] | None = None
 
 
 class DriverAddressInput(BaseModel):

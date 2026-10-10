@@ -176,6 +176,7 @@ class Driver360Service:
                 "capacity_kg": v.capacity_kg,
                 "compliance_expires_at": v.compliance_expires_at.isoformat() if v.compliance_expires_at else None,
                 "is_active": v.is_active,
+                "capabilities": list(v.capabilities or []),
             }
             for v in rows
         ]

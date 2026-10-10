@@ -45,12 +45,13 @@ def test_km_cost_per_vehicle_box_equals_van():
 def test_coverage_tiers_and_charge():
     from porterchain_pricing.coverage import charge_cents, normalize_coverage, recommend
 
-    assert recommend(100_000)["tier"] == "included"
-    assert recommend(240_000)["tier"] == "upgrade"  # near the $2,500 cap
-    assert recommend(50_000, "Electronics")["tier"] == "upgrade"
+    # B4 universal default: $1,000 per route included; $25,000 for +$10 per stop.
+    assert recommend(50_000)["tier"] == "included"
+    assert recommend(90_000)["tier"] == "upgrade"  # near the $1,000 cap
+    assert recommend(20_000, "Electronics")["tier"] == "upgrade"
     assert recommend(2_600_000)["tier"] == "over_max"
-    assert charge_cents(True, 3) == 1000
-    assert charge_cents(True, 3, {"unit": "parcel"}) == 3000
+    assert charge_cents(True, 3) == 3000
+    assert charge_cents(True, 3, {"unit": "delivery"}) == 1000
     assert charge_cents(False, 3) == 0
     import pytest
 

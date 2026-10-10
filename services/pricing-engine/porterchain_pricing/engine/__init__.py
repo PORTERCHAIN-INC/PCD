@@ -129,10 +129,10 @@ class PricingEngine:
         # A merchant on a checked-in contract schedule is priced per stop and
         # per parcel from that schedule — no FSA rows, distance stop fees, zone
         # multiplier, location surcharges or generic size tiers.
-        schedule_terms = self._contract_schedule(request, policy, breakdown)
+        schedule_terms = self._contract_schedule(request, policy, breakdown, ctx.merchant_pricing_config)
         route_priced = False
         if schedule_terms is not None and breakdown.base_cents == 0:
-            if not self._apply_contract_route(request, schedule_terms, breakdown):
+            if not self._apply_contract_route(request, schedule_terms, breakdown, ctx.carriage_terms):
                 breakdown.finalize()
                 return breakdown
             route_priced = True
@@ -210,6 +210,7 @@ class PricingEngine:
             breakdown.add_item("liftgate", "Liftgate service", card.liftgate_cents)
 
         self._apply_coverage(request, ctx, breakdown)
+        self._apply_concierge(request, ctx, breakdown)
 
         wait_rate = int(card.wait_cents_per_minute or 0)
         wait_minutes = float(request.wait_minutes or 0)
@@ -365,12 +366,15 @@ class PricingEngine:
         request: PricingRequest,
         policy: MerchantPricingPolicy,
         breakdown: PriceBreakdown,
+        ctx_cfg: dict | None = None,
     ) -> ContractSchedule | None:
         """The checked-in schedule named by an FSA-model merchant's policy, if any."""
         schedule_id = policy.schedule.contract_schedule
         if request.channel != "merchant" or policy.pricing_model != MODEL_FSA or not schedule_id:
             return None
-        terms = load_contract_schedule(schedule_id)
+        sched_cfg = (ctx_cfg or {}).get("schedule") if isinstance(ctx_cfg, dict) else None
+        overrides = (sched_cfg or {}).get("contract_overrides") if isinstance(sched_cfg, dict) else None
+        terms = load_contract_schedule(schedule_id, overrides if isinstance(overrides, dict) else None)
         if terms is None:
             breakdown.metadata["contract_schedule_unknown"] = schedule_id
         return terms
@@ -380,8 +384,21 @@ class PricingEngine:
         request: PricingRequest,
         schedule: ContractSchedule,
         breakdown: PriceBreakdown,
+        global_terms: dict | None = None,
     ) -> bool:
         """Price the whole route from the schedule. False when it is a custom quote."""
+        from porterchain_pricing.contract_terms import terms_of
+
+        terms = terms_of(schedule, global_terms)
+        if request.requires_liftgate and not terms["liftgate_available"]:
+            # C07: contract vehicles have no liftgate — the route needs a quotation.
+            breakdown.metadata.update(
+                {"refused": True, "custom_quote_reason": "liftgate_not_available", "contract_schedule": schedule.id}
+            )
+            breakdown.metadata["fsa_refused"] = True
+            breakdown.metadata["custom_quote"] = True
+            breakdown.metadata["pricing_model"] = "fsa_refused"
+            return False
         quote = self.contract_route.quote(request, schedule)
         if quote.metadata.get("refused"):
             breakdown.metadata.update(quote.metadata)
@@ -395,6 +412,7 @@ class PricingEngine:
         breakdown.distance_cents = 0
         breakdown.metadata.update(quote.metadata)
         breakdown.metadata["pricing_model"] = "contract_route"
+        breakdown.metadata["contract_terms"] = {"coverage": terms.get("coverage")}
         return True
 
     def _apply_zone_multiplier(self, breakdown: PriceBreakdown, multiplier: float) -> None:
@@ -647,12 +665,21 @@ class PricingEngine:
         )
         breakdown.metadata["base_km_limit"] = gta_cfg.base_km_limit
 
+    def _apply_concierge(self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown) -> None:
+        """C03: lobby/concierge included; past the designated point is a surcharge."""
+        from porterchain_pricing.contract_terms import concierge_cents, terms_of
+
+        cents = concierge_cents(terms_of(None, ctx.carriage_terms), request.delivery_point)
+        if cents:
+            breakdown.add_item("past_designated_point", "Delivery past the designated point", cents)
+
     def _apply_coverage(self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown) -> None:
         """Declared-value cover: free tier always; opt-in upgrade adds one line."""
         from porterchain_pricing.coverage import charge_cents, coverage_label, normalize_coverage, recommend
 
+        contract_cov = (breakdown.metadata.get("contract_terms") or {}).get("coverage")
         try:
-            cfg = normalize_coverage(ctx.coverage)
+            cfg = normalize_coverage(contract_cov or ctx.coverage)
         except ValueError:
             cfg = normalize_coverage(None)
         upgrade = request.coverage_upgrade
@@ -660,13 +687,20 @@ class PricingEngine:
             mcfg = ctx.merchant_pricing_config or {}
             upgrade = bool(mcfg.get("coverage_upgrade_default", False))
         rec = recommend(request.declared_value_cents, request.item_category, cfg)
-        cents = charge_cents(bool(upgrade), request.parcel_count, cfg)
+        units = request.parcel_count
+        if cfg["unit"] == "stop":
+            meta = breakdown.metadata
+            units = meta.get("compact_billable_stops") or sum(
+                int(r.get("billable_stops") or 1) for r in (meta.get("contract_stops") or [])
+            ) or 1 + len(request.additional_stops or [])
+        cents = charge_cents(bool(upgrade), units, cfg)
         if cents:
-            unit = " per parcel" if cfg["unit"] == "parcel" else ""
+            unit = {"parcel": " per parcel", "stop": " per stop"}.get(cfg["unit"], "")
             breakdown.add_item("coverage_upgrade", coverage_label(True, cfg) + unit, cents)
         breakdown.metadata["coverage"] = {
             "tier": "upgrade" if upgrade else "included",
             "covered_up_to_cents": cfg["upgrade_cents"] if upgrade else cfg["included_cents"],
+            "covered_per": cfg.get("included_per", "delivery"),
             "charge_cents": cents,
             "declared_value_cents": request.declared_value_cents,
             "recommended": rec["tier"],

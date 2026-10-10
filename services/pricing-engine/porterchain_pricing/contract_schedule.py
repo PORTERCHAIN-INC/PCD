@@ -90,6 +90,9 @@ class ContractSchedule:
     custom_quote_fsas: frozenset[str]
     compact: CompactTerms
     handling: tuple[HandlingTier, ...]
+    #: Conditions of carriage as data (waiting, returns, coverage, liftgate, claims…).
+    #: Read through `porterchain_pricing.contract_terms`; {} = platform defaults.
+    terms: Any = None
 
     def van_tier(self, fsa: str) -> VanTier | None:
         """Tier for a destination, or None when it is a custom quotation."""
@@ -202,6 +205,7 @@ def schedule_from_dict(raw: dict[str, Any]) -> ContractSchedule:
             fsas=_codes(compact["fsas"]),
         ),
         handling=handling_tiers_from_dict(handling),
+        terms=dict(raw.get("terms") or {}),
     )
 
 
@@ -223,14 +227,43 @@ def handling_tiers_from_dict(handling: dict[str, Any]) -> tuple[HandlingTier, ..
     )
 
 
-@lru_cache(maxsize=None)
-def load_contract_schedule(schedule_id: str | None) -> ContractSchedule | None:
-    """Parsed schedule for an id stored in `pricing_config`, or None when unknown."""
-    filename = SCHEDULE_FILES.get(str(schedule_id or "").strip())
+def deep_merge(base: Any, patch: Any) -> Any:
+    """Dicts merge key by key; anything else in ``patch`` replaces ``base``."""
+    if isinstance(base, dict) and isinstance(patch, dict):
+        out = dict(base)
+        for key, value in patch.items():
+            out[key] = deep_merge(base.get(key), value)
+        return out
+    return patch if patch is not None else base
+
+
+def load_contract_schedule(
+    schedule_id: str | None, overrides: dict[str, Any] | None = None
+) -> ContractSchedule | None:
+    """Parsed schedule for an id in `pricing_config`, with per-merchant edits merged on top.
+
+    ``overrides`` (``pricing_config.schedule.contract_overrides``) uses the file's own
+    shape, e.g. ``{"van": {"pickup_cents": 4500}, "terms": {"waiting": {"cents_per_hour": 3500}}}``.
+    """
+    key = json.dumps(overrides or {}, sort_keys=True, default=str)
+    return _load_cached(str(schedule_id or "").strip(), key)
+
+
+@lru_cache(maxsize=256)
+def _load_cached(schedule_id: str, overrides_json: str) -> ContractSchedule | None:
+    filename = SCHEDULE_FILES.get(schedule_id)
     if not filename:
         return None
     with open(_DATA_DIR / filename, encoding="utf-8") as handle:
-        return schedule_from_dict(json.load(handle))
+        raw = json.load(handle)
+    patch = json.loads(overrides_json)
+    if patch:
+        tiers = (patch.get("van") or {}).pop("tiers", None) if isinstance(patch.get("van"), dict) else None
+        raw = deep_merge(raw, patch)
+        if isinstance(tiers, list):  # tier edits by code (rates / minimums), FSA lists kept unless given
+            by_code = {str(t.get("code")): t for t in tiers if isinstance(t, dict)}
+            raw["van"]["tiers"] = [deep_merge(t, by_code.get(t["code"], {})) for t in raw["van"]["tiers"]]
+    return schedule_from_dict(raw)
 
 
 def raw_contract_schedule(schedule_id: str) -> dict[str, Any]:

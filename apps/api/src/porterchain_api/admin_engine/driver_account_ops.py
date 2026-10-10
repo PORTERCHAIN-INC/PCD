@@ -182,6 +182,7 @@ class DriverAccountOps:
         capacity_kg: float | None = None,
         compliance_expires_at=None,
         is_active: bool | None = None,
+        capabilities: list[str] | None = None,
         settings: Settings | None = None,
     ) -> Vehicle:
         self._get_or_raise(db, driver_id)
@@ -206,6 +207,9 @@ class DriverAccountOps:
             vehicle.compliance_expires_at = compliance_expires_at
         if is_active is not None:
             vehicle.is_active = is_active
+        if capabilities is not None:
+            allowed = {"liftgate"}
+            vehicle.capabilities = sorted({c.strip().lower() for c in capabilities if c} & allowed)
         if vehicle.is_active and vehicle.plate_number:
             self._reject_duplicate_plate(db, vehicle.plate_number, exclude_id=vehicle.id)
         self._audit(

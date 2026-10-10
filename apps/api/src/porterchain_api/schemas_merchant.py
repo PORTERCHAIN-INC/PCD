@@ -41,6 +41,14 @@ class MerchantBookDeliveryRequest(BaseModel):
         default=None, description="Upgrade cover to $25,000 (+$10). None = merchant default."
     )
     item_category: str | None = Field(default=None, description="Item category, e.g. electronics")
+    delivery_point: str | None = Field(
+        default=None, description="curbside | lobby (concierge) | past_designated_point (+contract surcharge)"
+    )
+    dangerous_goods: bool = Field(default=False, description="Sender declares dangerous goods (needs approval)")
+    dangerous_goods_description: str | None = None
+    prohibited_articles: list[str] | None = Field(
+        default=None, description="Declared prohibited articles (firearms, cannabis, …) — refused"
+    )
     custodian_name: str | None = Field(default=None, description="Medical chain-of-custody custodian (§8.1.2)")
     specimen_id: str | None = Field(default=None, description="Medical specimen / requisition ID (§8.1.2)")
     seal_number: str | None = Field(default=None, description="Tamper seal number (§8.1.2)")
