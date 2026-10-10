@@ -132,6 +132,9 @@ def create_app() -> FastAPI:
     app.include_router(public_inquiries.router)
     app.include_router(public_newsletter.router)
     app.include_router(public_marketing.router)
+    from porterchain_api.routers.admin.compliance import public_router as _region_router
+
+    app.include_router(_region_router)
     app.include_router(zeptomail_webhook.router)
     app.include_router(email_inbound.router)
     app.include_router(public_guide.router)

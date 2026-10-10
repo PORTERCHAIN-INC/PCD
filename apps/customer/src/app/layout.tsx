@@ -1,3 +1,4 @@
+import CookieConsent from "@/components/consent/CookieConsent";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Carlito } from "next/font/google";
@@ -28,8 +29,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const inbox = await customerServerFetch<unknown>("/v1/notifications/inbox?limit=20");
   if (inbox) client.setQueryData(["customer-notification-inbox"], inbox);
 
+  const region = await customerServerFetch<{ locale?: string; cookie_banner?: boolean }>(
+    "/v1/public/region"
+  );
+  const locale = region?.locale ?? "en-CA";
+
   return (
-    <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
+    <html lang={locale.slice(0, 2)} className={brand.variable} style={{ colorScheme: "light" }}>
       <body className={brand.className}>
         <AppClerkProvider
           publishableKey={publicEnv.clerkPublishableKey}
@@ -43,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <SessionContextProvider>
                 <ImpersonationBanner portal="customer" active={impersonating} />
                 <CustomerFrame>{children}</CustomerFrame>
+                <CookieConsent show={!!region?.cookie_banner} locale={locale} />
               </SessionContextProvider>
             </HydrationBoundary>
           </CustomerQueryProvider>
