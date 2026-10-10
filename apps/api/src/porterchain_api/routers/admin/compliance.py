@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
@@ -52,3 +52,11 @@ def public_region(db: Session = Depends(get_db)) -> dict:
     from porterchain_api.platform.compliance import public_region as _public
 
     return _public(db)
+
+
+@router.get("/security/my-ip")
+def my_ip(ctx: Annotated[AdminContext, Depends(get_admin_context)], request: Request) -> dict:
+    """The IP the API sees for you (add it before enabling the admin IP allowlist)."""
+    from porterchain_api.platform.client_ip import client_ip
+
+    return {"ip": client_ip(request)}

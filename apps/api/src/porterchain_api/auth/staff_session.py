@@ -23,14 +23,14 @@ logger = logging.getLogger("porterchain.security")
 
 SESSION_PREFIX = "pc:staff:session:v1:"
 USER_INDEX_PREFIX = "pc:staff:sessions:user:v1:"
-DEFAULT_TTL_SECONDS = 60 * 60 * 12  # idle sliding window
-ABSOLUTE_MAX_SECONDS = 60 * 60 * 24  # hard cap from created_at
+DEFAULT_TTL_SECONDS = 30 * 60  # idle sliding window (30 min of inactivity signs out)
+ABSOLUTE_MAX_SECONDS = 60 * 60 * 12  # hard cap from created_at
 STEP_UP_MAX_AGE_SECONDS = 15 * 60  # sensitive actions need recent step-up
 STAFF_COOKIE_NAME = "pc_staff_sid"
 STAFF_BEARER_PREFIX = "staff_sess_"
 
 
-def staff_cookie_params(settings, *, max_age: int = DEFAULT_TTL_SECONDS) -> dict:
+def staff_cookie_params(settings, *, max_age: int = ABSOLUTE_MAX_SECONDS) -> dict:
     """HttpOnly cookie attrs for Set-Cookie / delete_cookie."""
     from porterchain_shared.config.project_mode import runtime_posture_from_settings
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from porterchain_api.platform.admin_ip_allowlist import default_admin_access, normalize_admin_access  # noqa: I001
+
 from typing import Any
 
 from porterchain_api.platform.gps_policy import (
@@ -39,11 +41,14 @@ EXTRA_SECTIONS = [
     {"id": "future", "label": "Future", "group": "platform"},
     {"id": "privacy_access", "label": "Privacy Requests", "group": "access"},
     {"id": "compliance", "label": "Compliance", "group": "access"},
+    {"id": "admin_access", "label": "Admin access", "group": "access"},
 ]
 EXTRA_NORMALIZERS = {**COST_NORMALIZERS, "driver_gps": _save_driver_gps, "future_features": normalize_future,
-    "compliance": normalize_compliance, "breach_log": normalize_breaches, "privacy_requests": normalize_requests}
+    "compliance": normalize_compliance, "breach_log": normalize_breaches, "privacy_requests": normalize_requests,
+    "admin_access": normalize_admin_access}
 
 
 def EXTRA_DEFAULTS() -> dict[str, Any]:
     return {**COST_DEFAULTS(), "driver_gps": default_driver_gps(), "future_features": default_future(),
-            "compliance": default_compliance(), "breach_log": [], "privacy_requests": []}
+            "compliance": default_compliance(), "breach_log": [], "privacy_requests": [],
+            "admin_access": default_admin_access()}

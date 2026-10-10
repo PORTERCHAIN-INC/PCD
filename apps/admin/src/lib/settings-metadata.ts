@@ -81,6 +81,7 @@ export const SECTION_ICONS: Record<string, LucideIcon> = {
   carriage: ScrollText,
   route_pricing: Route,
   driver_gps: MapPin,
+  admin_access: Shield,
   booking: Package,
   finance: CreditCard,
   documents: FileText,
@@ -113,6 +114,7 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
     "Quote vehicle catalog. Enabled flags gate retail quotes. Physical fleet is PorterChain.",
   carriage: "Conditions of Carriage — waiting, returns, claims, coverage; contracts override.",
   driver_gps: "Live driver GPS — global switch and per-driver overrides.",
+  admin_access: "Optional IP allowlist for Admin (off by default).",
   route_pricing: "Smart route coefficients with a live current-vs-new preview.",
   pricing: "GTA matrix, FSA, liftgate/weight card, tax, and fuel — quotes use these immediately.",
   coverage:

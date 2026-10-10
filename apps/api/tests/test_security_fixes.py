@@ -68,3 +68,25 @@ def test_failed_login_alert_once_per_ip(monkeypatch):
     results = [a.note_failed_login(None, None, client_ip="203.0.113.9", factor="passkey",
                                    send=lambda to, m: sent.append(to)) for _ in range(8)]
     assert results.count(True) == 1 and sent == ["owner@example.com"]
+
+
+def test_admin_ip_allowlist(monkeypatch):
+    from porterchain_api.platform import admin_ip_allowlist as al
+
+    off = al.normalize_admin_access(None)
+    assert off == {"ip_allowlist_enabled": False, "ip_allowlist": []}
+    assert al.ip_allowed("8.8.8.8", off)
+    on = al.normalize_admin_access({"ip_allowlist_enabled": True, "ip_allowlist": "203.0.113.0/24\n8.8.4.4"})
+    assert al.ip_allowed("203.0.113.77", on) and al.ip_allowed("8.8.4.4", on)
+    assert not al.ip_allowed("8.8.8.8", on)
+    assert al.ip_allowed("8.8.8.8", {"ip_allowlist_enabled": True, "ip_allowlist": []})  # empty = off
+    monkeypatch.setenv("ADMIN_IP_ALLOWLIST_BREAK_GLASS", "true")
+    assert al.ip_allowed("8.8.8.8", on)
+    with pytest.raises(ValueError):
+        al.normalize_admin_access({"ip_allowlist": ["not-an-ip"]})
+
+
+def test_staff_session_timeouts():
+    from porterchain_api.auth import staff_session as ss
+
+    assert ss.DEFAULT_TTL_SECONDS == 30 * 60 and ss.ABSOLUTE_MAX_SECONDS == 12 * 3600

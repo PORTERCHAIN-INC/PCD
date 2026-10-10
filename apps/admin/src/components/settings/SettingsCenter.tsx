@@ -2,6 +2,7 @@
 
 import CarriageTermsPanel from "@/components/settings/CarriageTermsPanel";
 import RoutePricingPanel from "@/components/settings/RoutePricingPanel";
+import AdminAccessPanel from "@/components/settings/AdminAccessPanel";
 import DriverGpsPanel from "@/components/settings/DriverGpsPanel";
 import FutureFeaturesPanel from "@/components/settings/FutureFeaturesPanel";
 import PrivacyAccessPanel from "@/components/settings/PrivacyAccessPanel";
@@ -485,6 +486,7 @@ function SectionRouter({
   if (tab === "carriage") return <CarriageTermsPanel />;
   if (tab === "route_pricing") return <RoutePricingPanel />;
   if (tab === "driver_gps") return <DriverGpsPanel />;
+  if (tab === "admin_access") return <AdminAccessPanel />;
   if (tab === "future") return <FutureFeaturesPanel />;
   if (tab === "privacy_access") return <PrivacyAccessPanel />;
   if (tab === "compliance") return <CompliancePanel />;

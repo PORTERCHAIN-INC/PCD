@@ -25,6 +25,9 @@ async def get_admin_context(
     x_admin_role: Annotated[str | None, Header()] = None,
 ) -> AdminContext:
     """Staff IdP session (cookie / ``staff_sess_`` Bearer). Clerk JWT → 401 retired."""
+    from porterchain_api.platform.admin_ip_allowlist import enforce as enforce_ip_allowlist
+
+    enforce_ip_allowlist(request, db)
     staff_sid = session_id_from_authorization(authorization) or request.cookies.get(
         STAFF_COOKIE_NAME
     )
