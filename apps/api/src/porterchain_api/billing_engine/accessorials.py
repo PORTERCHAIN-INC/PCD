@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
-from porterchain_pricing.contract_terms import failed_delivery_cents, terms_of, waiting_cents
+from porterchain_pricing.contract_terms import failed_delivery_cents, waiting_cents
 
 _TZ = ZoneInfo("America/Toronto")
 FAILED_STATES = ("FAILED", "RETURN_TO_SENDER")
@@ -34,15 +34,9 @@ class Accessorial:
 
 
 def merchant_terms(db: Session, merchant: Any) -> dict[str, Any]:
-    from porterchain_api.admin_models import SystemConfig
-    from porterchain_pricing.contract_schedule import load_contract_schedule
+    from porterchain_api.platform.carriage_terms import merchant_carriage_terms
 
-    row = db.get(SystemConfig, "carriage_terms")
-    global_terms = row.value if row is not None and isinstance(row.value, dict) else None
-    sched = ((merchant.pricing_config or {}).get("schedule") or {}) if merchant else {}
-    sid = sched.get("contract_schedule")
-    schedule = load_contract_schedule(sid, sched.get("contract_overrides")) if sid else None
-    return terms_of(schedule, global_terms)
+    return merchant_carriage_terms(db, merchant)
 
 
 def _hm(at: datetime) -> str:
