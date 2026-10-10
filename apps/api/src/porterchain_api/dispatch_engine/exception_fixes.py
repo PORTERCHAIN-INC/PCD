@@ -4,7 +4,8 @@ Actions:
 - ``reroute``     re-plan the committed plan that carries the order (a new draft to commit);
 - ``reassign``    hand the order to the best-ranked available driver;
 - ``reschedule``  move the order to the next delivery slot and back into the pool;
-- ``contact``     tell the customer/merchant (``order.delayed`` notification).
+- ``contact``     tell the customer/merchant (``order.delayed`` notification);
+- ``rescue``      vehicle breakdown: move everything on the van to the nearest van that fits.
 """
 
 from __future__ import annotations
@@ -12,7 +13,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-ACTIONS = ("reroute", "reassign", "reschedule", "contact")
+ACTIONS = ("rescue", "reroute", "reassign", "reschedule", "contact")
+ISSUE_MESSAGE = "There is an issue with your delivery. Our team will email you the next steps today."
 BEFORE_PICKUP = {"DISPATCH_READY", "DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "DRIVER_REJECTED"}
 
 
@@ -61,11 +63,17 @@ def suggest(
         if slot:
             out.append(slot)
         out.append(contact)
+    elif typ == "VEHICLE_BREAKDOWN" and item.get("driver_id"):
+        out.append(_fix("rescue", "Send rescue van", "nearest van that fits meets this one; boxes scan across",
+                        driver_id=item["driver_id"]))
     elif typ in {"DRIVER_TIMEOUT", "DRIVER_REJECT", "VEHICLE_BREAKDOWN"}:
         if driver:
             out.append(driver)
         if reroute:
             out.append(reroute)
+    elif kind in {"damaged", "lost", "claim", "return"} or typ in {"PARCEL_DAMAGED", "PARCEL_LOST"}:
+        out.append(_fix("contact", "Tell the customer", "explain the issue and open the claim path",
+                        message=ISSUE_MESSAGE))
     elif typ in {"WRONG_ADDRESS", "package_missing", "package_short_at_drop"}:
         out.append(contact)
     return [f for f in out if f]

@@ -7,8 +7,9 @@ its own: ``apply`` is only called from the admin endpoint, and every apply is st
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
-from typing import Any, Callable
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
@@ -44,7 +45,12 @@ def _committed_routes(db: Session, now: datetime) -> list[Any]:
 def margin_items(db: Session, *, now: datetime, floor_pct: float) -> list[dict[str, Any]]:
     """Orders on today's committed routes whose cost per stop eats the margin floor."""
     from porterchain_api.booking_models import Order
-    from porterchain_api.dispatch_engine.margin import below_floor, margin_pct, order_costs, order_price_cents
+    from porterchain_api.dispatch_engine.margin import (
+        below_floor,
+        margin_pct,
+        order_costs,
+        order_price_cents,
+    )
 
     rows = _committed_routes(db, now)
     costs = order_costs([{"stops": r.stops, "cost_cents": r.cost_cents} for r, _ in rows])
@@ -61,6 +67,25 @@ def margin_items(db: Session, *, now: datetime, floor_pct: float) -> list[dict[s
                 "margin_pct": margin_pct(price, cost), "floor_pct": floor_pct,
             })
     return items
+
+
+def rescue_service() -> Any:
+    """Breakdown rescue wired to Valhalla, live GPS, the planner's vehicles and the delay email."""
+    from porterchain_shared.events.catalog import DomainEventType
+
+    from porterchain_api.admin_engine import fleet_plan_service as fps
+    from porterchain_api.booking_engine._core import emit_event
+    from porterchain_api.dispatch_engine.fleet_capacity import load_fleet
+    from porterchain_api.dispatch_engine.rescue import RescueService
+
+    planner = fps.FleetPlanService()
+
+    def email_delay(db: Session, ctx: Any, order: Any, message: str) -> None:
+        emit_event(db, event_type=DomainEventType.ORDER_DELAYED.value, aggregate_type="order", aggregate_id=order.id,
+                   actor_type="admin", actor_id=str(ctx.user.id), payload={"message": message, "reason": "vehicle_rescue"})
+
+    return RescueService(matrix_fn=fps._valhalla, position_fn=fps._position, email_delay=email_delay,
+                         vehicles_fn=lambda db, only: planner._vehicles(db, load_fleet(db), only=only))
 
 
 class ExceptionFixesService:
@@ -126,8 +151,18 @@ class ExceptionFixesService:
         return {"draft_plan_id": draft["id"], "note": "re-plan drafted — commit it on Plan"}
 
     @staticmethod
+    def _rescue(db: Session, settings: Any, ctx: Any, order: Any, params: dict[str, Any]) -> dict[str, Any]:
+        broken = str(params.get("driver_id") or order.assigned_driver_id or "")
+        if not broken:
+            raise ValueError("driver_id_required")
+        return rescue_service().rescue(db, ctx, broken_driver_id=broken,
+                                       rescue_driver_id=params.get("rescue_driver_id") or None)
+
+    @staticmethod
     def _reassign(db: Session, settings: Any, ctx: Any, order: Any, params: dict[str, Any]) -> dict[str, Any]:
-        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+        from porterchain_api.admin_engine.operations_service import (
+            AdminOperationsService,
+        )
 
         driver_id = str(params.get("driver_id") or "")
         if not driver_id:
@@ -137,7 +172,9 @@ class ExceptionFixesService:
 
     @staticmethod
     def _reschedule(db: Session, settings: Any, ctx: Any, order: Any, params: dict[str, Any]) -> dict[str, Any]:
-        from porterchain_api.booking_engine.order_transitions import transition_order_state
+        from porterchain_api.booking_engine.order_transitions import (
+            transition_order_state,
+        )
         from porterchain_api.domain.states import OrderState
 
         try:
@@ -152,8 +189,9 @@ class ExceptionFixesService:
 
     @staticmethod
     def _contact(db: Session, settings: Any, ctx: Any, order: Any, params: dict[str, Any]) -> dict[str, Any]:
-        from porterchain_api.booking_engine._core import emit_event
         from porterchain_shared.events.catalog import DomainEventType
+
+        from porterchain_api.booking_engine._core import emit_event
 
         message = str(params.get("message") or "Your delivery is running late. We will update your ETA shortly.")
         emit_event(db, event_type=DomainEventType.ORDER_DELAYED.value, aggregate_type="order", aggregate_id=order.id,

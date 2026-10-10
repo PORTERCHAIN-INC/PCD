@@ -42,7 +42,7 @@ def group(stops: list[dict[str, Any]]) -> list[dict[str, Any]]:
             last["eta_s"] = s.get("eta_s", last["eta_s"])
         else:
             out.append({"keys": [s["key"]], "order_id": s["order_id"], "kind": s["kind"],
-                        "fsa": s.get("fsa"), "eta_s": s.get("eta_s", 0)})
+                        "fsa": s.get("fsa"), "eta_s": s.get("eta_s", 0), **({"meet": s["meet"]} if s.get("meet") else {})})
     return out
 
 
@@ -128,6 +128,8 @@ class DriverRouteService:
 
     @staticmethod
     def _address(order: Any, g: dict[str, Any]) -> dict[str, Any]:
+        if g.get("meet"):
+            return g["meet"]  # rescue handover: the broken van's position, not the order's pickup
         if order is None:
             return {}
         side = order.pickup if g["kind"] in PICKUP_KINDS else order.dropoff
