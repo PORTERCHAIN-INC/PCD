@@ -9,8 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 TRACK_PAGES = (
     ("retail website", ROOT / "website/src/app/[locale]/track/[tracking]/track-view.tsx"),
-    ("customer portal", ROOT / "apps/customer/src/components/tracking/CustomerLiveTrack.tsx"),
 )
+# Customer fast-book: one tracking page. The portal /track routes redirect to the website page.
+PORTAL_REDIRECT = ROOT / "apps/customer/src/app/track/[trackingNumber]/page.tsx"
+ENGINE_WORDS = ("OSRM)", "(Valhalla)", "Corridor (", "GPS (polled)")
 
 REQUIRED = ("TrackRouteMap", "GoogleMapsProvider", "TrackEtaPanel")
 
@@ -26,6 +28,14 @@ def main() -> int:
             if needle not in text:
                 failures.append(f"{name}: track page missing {needle}")
 
+    redirect_text = PORTAL_REDIRECT.read_text(encoding="utf-8") if PORTAL_REDIRECT.is_file() else ""
+    if "redirect(" not in redirect_text or "websiteUrl" not in redirect_text:
+        failures.append("customer portal /track/[n] must redirect to the website tracking page")
+    eta_panel = (ROOT / "packages/maps/src/TrackEtaPanel.tsx").read_text(encoding="utf-8")
+    for word in ENGINE_WORDS:
+        if word in eta_panel:
+            failures.append(f"customer-facing ETA label leaks engine name {word!r}")
+
     snapshot = ROOT / "apps/api/src/porterchain_api/booking_engine/public_tracking_snapshot.py"
     if not snapshot.is_file():
         failures.append("missing public_tracking_snapshot.py")
@@ -40,7 +50,7 @@ def main() -> int:
         for item in failures:
             print(f"  FAIL: {item}")
         return 1
-    print("  PASS: retail + customer track pages render map + ETA")
+    print("  PASS: one tracking page (website) renders map + ETA; portal redirects; no engine labels")
     return 0
 
 

@@ -19,6 +19,7 @@ export const DomainEvents = {
   // Customer
   CUSTOMER_REGISTERED: "customer.registered",
   CUSTOMER_AUTHENTICATED: "customer.authenticated",
+  CUSTOMER_REORDER_NUDGE: "customer.reorder_nudge",
 
   // Merchant
   MERCHANT_LEAD_CREATED: "merchant.lead_created",

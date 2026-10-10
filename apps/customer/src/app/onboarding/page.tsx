@@ -1,16 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import dynamic from "next/dynamic";
-import { PageSkeleton } from "@porterchain/ui/loading";
-
-const OnboardingPageClient = dynamic(() => import("@/components/onboarding/OnboardingPageClient"), {
-  loading: () => (
-    <div className="p-8">
-      <PageSkeleton rows={4} />
-    </div>
-  ),
-});
-
+/** No onboarding step: the customer row is created on first sign-in (and adopted from guest bookings). */
 export default function OnboardingPage() {
-  return <OnboardingPageClient />;
+  redirect("/send");
 }

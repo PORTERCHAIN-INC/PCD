@@ -225,3 +225,112 @@ export const customersApi = {
       { method: "POST" }
     ),
 };
+
+// --------------------------------------------------------------------------- Customers 360
+
+export type Customer360 = {
+  customer_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  since: string | null;
+  account: string;
+  numbers: {
+    orders: number;
+    lifetime_value_cents: number;
+    avg_order_cents: number;
+    credit_balance_cents: number;
+    avg_rating: number | null;
+    low_ratings: number;
+    first_attempt_rate: number | null;
+  };
+  last_order_at: string | null;
+  churn: {
+    status: string;
+    flag: boolean;
+    days_since_last: number | null;
+    usual_interval_days: number | null;
+    threshold_days?: number;
+    rule?: string;
+  };
+  risk: Array<{ tracking_number: string; reasons: string[] }>;
+  consent: {
+    marketing: ConsentRow;
+    reorder: ConsentRow;
+    suppressed: boolean;
+    bounced: boolean;
+    deliverable: boolean;
+  };
+  privacy: { status: string; jobs: PrivacyJob[] };
+};
+
+export type ConsentRow = { granted: boolean; basis: string; at: string | null; source: string | null };
+
+export type PrivacyJob = {
+  id: string;
+  reference: string;
+  customer_id: string | null;
+  status: "pending_review" | "executed" | "rejected";
+  source: string;
+  plan: {
+    erase: Record<string, unknown>;
+    keep: Record<string, unknown>;
+    blockers: { active_deliveries: string[] };
+    stripe_customer: boolean;
+  };
+  result: Record<string, unknown> | null;
+  reviewer: string | null;
+  review_note: string | null;
+  due_at: string | null;
+  executed_at: string | null;
+  created_at: string | null;
+};
+
+export type TimelineItem = { at: string | null; kind: string; title: string; detail: string; ref: string };
+
+export type BookingLinkDraft = { sent: false; to: string; subject: string; body: string; link: string; note: string };
+
+const A = "/v1/admin";
+
+export const customer360Api = {
+  overview: (t: string, id: string) => adminFetch<Customer360>(`${B}/${id}/360`, t),
+  timeline: (t: string, id: string) => adminFetch<TimelineItem[]>(`${B}/${id}/timeline`, t),
+  addNote: (t: string, id: string, body: string) =>
+    adminFetch<{ id: string }>(`${B}/${id}/notes`, t, { method: "POST", body: JSON.stringify({ body }) }),
+  credit: (t: string, id: string, amount_cents: number, reason: string) =>
+    adminFetch<{ balance_cents: number }>(`${B}/${id}/credit`, t, {
+      method: "POST",
+      body: JSON.stringify({ amount_cents, reason }),
+    }),
+  refund: (t: string, id: string, tracking_number: string, amount_cents: number | null, reason: string) =>
+    adminFetch<{ refund: { status: string; amount_cents: number }; refunded_total_cents: number }>(
+      `${B}/${id}/refund`,
+      t,
+      { method: "POST", body: JSON.stringify({ tracking_number, amount_cents, reason }) }
+    ),
+  bookingLinkDraft: (t: string, id: string) =>
+    adminFetch<BookingLinkDraft>(`${B}/${id}/booking-link-draft`, t, { method: "POST" }),
+  privacyJobs: (t: string, status?: string) =>
+    adminFetch<PrivacyJob[]>(`${A}/customer-care/privacy-jobs${status ? `?status=${status}` : ""}`, t),
+  approveJob: (t: string, jobId: string, note: string) =>
+    adminFetch<PrivacyJob>(`${A}/customer-care/privacy-jobs/${jobId}/approve`, t, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+  rejectJob: (t: string, jobId: string, note: string) =>
+    adminFetch<PrivacyJob>(`${A}/customer-care/privacy-jobs/${jobId}/reject`, t, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+  nudges: (t: string) =>
+    adminFetch<{ enabled: boolean; nudges: Array<{ id: string; email: string | null; name: string | null; last_tracking: string | null; reason: string; created_at: string | null }> }>(
+      `${A}/customer-care/nudges`,
+      t
+    ),
+  draftNudges: (t: string) => adminFetch<{ drafted: number; enabled: boolean }>(`${A}/customer-care/nudges/draft`, t, { method: "POST" }),
+  decideNudges: (t: string, ids: string[], approve: boolean) =>
+    adminFetch<{ decided: number }>(`${A}/customer-care/nudges/decide`, t, {
+      method: "POST",
+      body: JSON.stringify({ ids, approve }),
+    }),
+};

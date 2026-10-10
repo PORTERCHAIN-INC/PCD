@@ -10,7 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 MAPS_PKG = REPO_ROOT / "packages" / "maps" / "src"
 ROUTING = REPO_ROOT / "apps" / "api" / "src" / "porterchain_api" / "services" / "routing.py"
 BOOK_CLIENTS = (
-    REPO_ROOT / "apps" / "customer" / "src" / "components" / "booking" / "CustomerBookDelivery.tsx",
+    REPO_ROOT / "apps" / "customer" / "src" / "components" / "send" / "SendClient.tsx",
     REPO_ROOT / "apps" / "merchant-portal" / "src" / "components" / "booking" / "BookDeliveryClient.tsx",
 )
 

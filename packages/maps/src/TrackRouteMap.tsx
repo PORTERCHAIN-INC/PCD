@@ -56,26 +56,9 @@ export default function TrackRouteMap({
 
   const center = driverLocation ?? dropoffPt ?? pickupPt ?? GTA_CENTER;
 
-  if (!isGoogleMapsConfigured()) {
-    return (
-      <div
-        className={`rounded-2xl border border-primary/10 bg-gray-bg flex items-center justify-center text-sm text-muted ${className}`}
-        style={{ height }}
-      >
-        Map unavailable — configure Google Maps API key
-      </div>
-    );
-  }
-
-  if (!pickupPt && !dropoffPt) {
-    return (
-      <div
-        className={`rounded-2xl border border-primary/10 bg-gray-bg flex items-center justify-center text-sm text-muted ${className}`}
-        style={{ height }}
-      >
-        Route map will appear when pickup and drop-off coordinates are available
-      </div>
-    );
+  // No key or no coordinates yet: a clean route card, never an engineering message.
+  if (!isGoogleMapsConfigured() || (!pickupPt && !dropoffPt)) {
+    return <RouteCard pickup={pickup} dropoff={dropoff} height={height} className={className} />;
   }
 
   return (
@@ -115,6 +98,51 @@ export default function TrackRouteMap({
           <Polyline path={routePath} strokeColor="#2563eb" strokeWeight={4} strokeOpacity={0.85} />
         )}
       </Map>
+    </div>
+  );
+}
+
+function areaLabel(addr?: Record<string, unknown> | null): string {
+  if (!addr) return "";
+  const formatted = typeof addr.formatted === "string" ? addr.formatted : "";
+  const postal = typeof addr.postal === "string" ? addr.postal : "";
+  const match = (postal || formatted).toUpperCase().match(/[A-Z]\d[A-Z]\s?\d[A-Z]\d|[A-Z]\d[A-Z]/);
+  const city = typeof addr.city === "string" ? addr.city : "";
+  const street = formatted.split(",")[0]?.trim() ?? "";
+  return [street, city, match?.[0]?.slice(0, 3)].filter(Boolean).slice(0, 2).join(" · ") || "—";
+}
+
+/** Static route summary used when a live map cannot be drawn. AA contrast, no jargon. */
+export function RouteCard({
+  pickup,
+  dropoff,
+  height,
+  className = "",
+}: {
+  pickup?: Record<string, unknown> | null;
+  dropoff?: Record<string, unknown> | null;
+  height?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      data-testid="route-card"
+      className={`flex flex-col justify-center rounded-2xl border border-primary/10 bg-white px-5 py-6 ${className}`}
+      style={{ minHeight: height ? `min(${height}, 200px)` : undefined }}
+    >
+      <ol className="relative space-y-6 pl-7">
+        <span aria-hidden className="absolute bottom-3 left-[7px] top-3 w-px bg-primary/20" />
+        <li className="relative">
+          <span aria-hidden className="absolute -left-7 top-1 h-3.5 w-3.5 rounded-full border-2 border-primary bg-white" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/70">Pickup</p>
+          <p className="mt-0.5 text-base font-semibold text-primary">{areaLabel(pickup)}</p>
+        </li>
+        <li className="relative">
+          <span aria-hidden className="absolute -left-7 top-1 h-3.5 w-3.5 rounded-full bg-primary" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/70">Drop-off</p>
+          <p className="mt-0.5 text-base font-semibold text-primary">{areaLabel(dropoff)}</p>
+        </li>
+      </ol>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import Container from "@/components/ui/Container";
 import TrackLookupForm from "@/components/track/TrackLookupForm";
 import TrackStatusSteps from "@/components/track/TrackStatusSteps";
 import TrackExperiencePanel from "./TrackExperiencePanel";
+import TrackActions from "./TrackActions";
 import {
   getOrderByTracking,
   getOrderExperience,
@@ -98,6 +99,9 @@ export default function TrackView({
       {order && (
         <>
           {enhanced ? <TrackExperiencePanel exp={enhanced} manageHref={manageHref} /> : null}
+          {manageToken ? (
+            <TrackActions tracking={tracking} token={manageToken} refreshKey={order.state} />
+          ) : null}
           {!enhanced && (order.logo_url || order.company_name || order.tracking_page_message) && (
             <div className="mb-8 flex items-start gap-3">
               {order.logo_url ? (
