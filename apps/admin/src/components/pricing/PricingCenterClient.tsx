@@ -12,6 +12,7 @@ import { useApiData } from "@/hooks/useApiData";
 import { merchants } from "@/lib/merchants";
 import { pricingApi, type SimulateQuoteResult } from "@/lib/pricing";
 import AdminPage from "@/components/layout/AdminPage";
+import { FinanceNav } from "@/components/finance/FinanceShell";
 
 const LINKS = [
   {
@@ -25,12 +26,12 @@ const LINKS = [
     blurb: "Open a merchant → Pricing (?tab=pricing) for FSA flats or Distance overlays.",
   },
   {
-    href: "/finance",
+    href: "/finance/invoices",
     title: "Billing & invoices",
     blurb: "Invoice detail shows quote lineage (model, lines, waivers).",
   },
   {
-    href: "/finance",
+    href: "/finance/payments",
     title: "Stripe / COD",
     blurb: "Connect and COD live on merchant Money; settlement surfaces under Finance.",
   },
@@ -93,8 +94,9 @@ export default function PricingCenterClient() {
 
   return (
     <AdminPage>
+      <FinanceNav />
       <div>
-        <h1 className="text-2xl font-bold text-primary">Pricing Center</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Pricing</h1>
         <p className="mt-1 text-sm text-muted">
           Commercial hub: catalog, merchant deals, quote simulator, and billing lineage. Does not
           reprice invoices — quotes remain the source of truth.

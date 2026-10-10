@@ -301,7 +301,9 @@ class MerchantBillingService:
             "payable": payable,
             "lines": lines,
             "lines_total_cents": line_sum,
-            "remittance_memo": inv.invoice_number,
+            "remittance_memo": getattr(inv, "payment_reference", None) or inv.invoice_number,
+            "payment_reference": getattr(inv, "payment_reference", None),
+            "amount_paid_cents": int(getattr(inv, "amount_paid_cents", 0) or 0),
         }
         try:
             from porterchain_api.merchant_engine.commerce_metrics import check_invoice_detail_consistency

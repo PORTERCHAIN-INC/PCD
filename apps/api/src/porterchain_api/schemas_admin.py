@@ -949,6 +949,7 @@ class FinanceDashboardResponse(BaseModel):
     refunds_count: int
     credit_notes_count: int
     merchant_balances_cents: int
+    merchant_credit_balances_cents: int = 0
     driver_payouts_pending_cents: int
     driver_payouts_paid_cents: int
     driver_wallets_cents: int
@@ -971,7 +972,8 @@ class FinanceInvoiceItem(BaseModel):
     merchant_name: str | None = None
     customer_id: str | None = None
     customer_email: str | None = None
-    order_id: str
+    # None for consolidated cycle invoices (one invoice, many orders as lines).
+    order_id: str | None = None
     order_number: str | None = None
     tracking_number: str | None = None
     booking_number: str | None = None
@@ -979,6 +981,10 @@ class FinanceInvoiceItem(BaseModel):
     tax_cents: int
     fees_cents: int
     outstanding_cents: int
+    amount_paid_cents: int = 0
+    payment_reference: str | None = None
+    billing_kind: str = "order"
+    order_count: int = 1
     currency: str
     payment_terms: str = "IMMEDIATE"
     due_date: datetime | None = None
@@ -1017,6 +1023,8 @@ class FinanceInvoicePage(BaseModel):
 
 class FinanceInvoiceDetailResponse(FinanceInvoiceItem):
     payment: dict[str, Any] | None = None
+    lines: list[dict[str, Any]] = Field(default_factory=list)
+    offline_payments: list[dict[str, Any]] = Field(default_factory=list)
     timeline: list[dict[str, Any]] = Field(default_factory=list)
     audit_log: list[dict[str, Any]] = Field(default_factory=list)
     duplicates: list[dict[str, Any]] = Field(default_factory=list)
@@ -1089,7 +1097,7 @@ class MerchantArGenerateRequest(BaseModel):
 
 class MerchantArRecordPaymentRequest(BaseModel):
     amount_cents: int | None = None
-    method: str = "wire"
+    method: str = "interac"
     reference: str | None = None
     paid_at: datetime | None = None
 

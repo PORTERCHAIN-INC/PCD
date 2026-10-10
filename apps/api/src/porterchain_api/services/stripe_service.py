@@ -200,6 +200,14 @@ def create_refund(
     return refund.id
 
 
+def list_payout_balance_transactions(settings: Settings, payout_id: str) -> list[dict]:
+    """Read-only: balance transactions in a Stripe payout (for reconciliation)."""
+    if not settings.stripe_secret:
+        return []
+    stripe_sdk.configure(settings.stripe_secret)
+    return stripe_sdk.list_payout_balance_transactions(payout_id)
+
+
 def construct_webhook_event(payload: bytes, sig_header: str | None, settings: Settings):
     """Verify Stripe webhook payload. Routers must not import stripe."""
     if not settings.stripe_webhook_secret:

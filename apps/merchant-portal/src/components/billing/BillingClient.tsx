@@ -161,10 +161,11 @@ export default function BillingClient() {
     await qc.invalidateQueries({ queryKey: ["merchant-billing"] });
   }
 
-  async function download(kind: "invoices" | "statement" | "history") {
+  async function download(kind: "invoices" | "statement" | "history" | "statement-pdf") {
     try {
       const token = await getApiToken();
-      if (kind === "invoices") await billingApi.downloadInvoicesCsv(token, orgId);
+      if (kind === "statement-pdf") await billingApi.downloadStatementPdf(token, orgId);
+      else if (kind === "invoices") await billingApi.downloadInvoicesCsv(token, orgId);
       else if (kind === "statement") await billingApi.downloadStatementCsv(token, orgId);
       else await billingApi.downloadHistoryCsv(token, orgId);
     } catch (e) {
@@ -194,7 +195,7 @@ export default function BillingClient() {
   if (!overview) return <PageSkeleton rows={5} />;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-8">
       {error ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {error}
@@ -202,32 +203,54 @@ export default function BillingClient() {
       ) : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Billing</h1>
-          <p className="text-sm text-muted">
-            {formatTerms(overview.payment_terms)} · {formatCycle(overview.billing_cycle)} cycle
-            {!overview.stripe_enabled && " · Net terms (no Stripe)"}
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Billing</h1>
+          <p className="mt-1 text-sm text-muted">
+            {formatTerms(overview.payment_terms)} · {formatCycle(overview.billing_cycle)} invoice
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => void download("invoices")}>
-            Export invoices CSV
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <Button
+            className="min-h-11 flex-1 sm:flex-none"
+            onClick={() => void download("statement-pdf")}
+          >
+            Download statement (PDF)
           </Button>
-          <Button size="sm" variant="outline" onClick={() => void download("statement")}>
-            Export statement CSV
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => void download("history")}>
-            Export history CSV
-          </Button>
+          <details className="relative">
+            <summary className="min-h-11 cursor-pointer list-none rounded-xl px-3 py-2.5 text-sm font-medium text-secondary hover:bg-secondary/10">
+              Export CSV
+            </summary>
+            <div className="absolute right-0 z-10 mt-1 w-48 rounded-xl border border-primary/10 bg-white p-1 shadow-lg">
+              {(
+                [
+                  ["invoices", "Invoices"],
+                  ["statement", "Statement"],
+                  ["history", "History"],
+                ] as const
+              ).map(([kind, label]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => void download(kind)}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-primary hover:bg-primary/5"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </details>
         </div>
       </div>
 
-      <nav className="flex flex-wrap gap-1 border-b border-primary/10 pb-1">
+      <nav
+        className="-mx-1 flex gap-1 overflow-x-auto border-b border-primary/10 px-1 pb-1"
+        aria-label="Billing"
+      >
         {PRIMARY_TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => gotoTab(t.id)}
-            className={`rounded-lg px-3 py-1.5 text-sm ${
+            className={`shrink-0 rounded-lg px-3 py-2 text-sm ${
               t.id === "invoices"
                 ? INVOICE_FAMILY.has(tab)
                   ? "bg-secondary/10 font-semibold text-secondary"

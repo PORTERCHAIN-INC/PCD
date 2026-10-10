@@ -64,6 +64,9 @@ def invoice_status(
     now = now or datetime.now(UTC).replace(tzinfo=None)
     if order and order.state in (OrderState.CANCELLED.value, OrderState.REFUNDED.value):
         return "cancelled"
+    paid_offline = int(getattr(invoice, "amount_paid_cents", 0) or 0)
+    if paid_offline > 0 and paid_offline >= invoice_total_cents(invoice):
+        return "paid"
     if payment:
         if payment.status == "SUCCEEDED":
             return "paid"
@@ -77,6 +80,8 @@ def invoice_status(
         due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
     if due and now > due:
         return "overdue"
+    if paid_offline > 0:
+        return "partial"
     return "sent"
 
 
@@ -92,7 +97,8 @@ def invoice_total_cents(invoice: Invoice) -> int:
 def outstanding_cents(invoice: Invoice, status: str) -> int:
     if status in ("paid", "void", "cancelled"):
         return 0
-    return invoice_total_cents(invoice)
+    paid_offline = int(getattr(invoice, "amount_paid_cents", 0) or 0)
+    return max(0, invoice_total_cents(invoice) - paid_offline)
 
 
 def effective_payment_terms(order: Order | None, merchant: object | None) -> str | None:
@@ -181,6 +187,9 @@ def serialize_invoice_row(
         "last_reminded_at": invoice.last_reminded_at.isoformat() if getattr(invoice, "last_reminded_at", None) else None,
         "pdf_url": invoice.pdf_url,
         "created_at": invoice.created_at,
+        "payment_reference": getattr(invoice, "payment_reference", None),
+        "amount_paid_cents": int(getattr(invoice, "amount_paid_cents", 0) or 0),
+        "billing_kind": getattr(invoice, "billing_kind", None) or "order",
     }
     if include_stripe and invoice.stripe_receipt_url:
         row["stripe_receipt_url"] = invoice.stripe_receipt_url

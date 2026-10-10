@@ -807,6 +807,10 @@ class BillingRemittance(BaseModel):
     credits_applied_cents: int = 0
     net_terms_days: int = 30
     instructions: str
+    # Interac e-Transfer: where to send and the PC-XXXXX codes to put in the message.
+    method: str = "interac"
+    etransfer_email: str | None = None
+    open_references: list[str] = Field(default_factory=list)
 
 
 class MerchantBillingOverviewResponse(BillingStatementResponse):
@@ -815,6 +819,7 @@ class MerchantBillingOverviewResponse(BillingStatementResponse):
     available_credit_cents: int | None = None
     headroom_cents: int | None = None
     credits_applied_cents: int = 0
+    credit_balance_cents: int = 0
     glossary: list[BillingGlossaryItem] = Field(default_factory=list)
     remittance: BillingRemittance | None = None
     invoices_due: int = 0

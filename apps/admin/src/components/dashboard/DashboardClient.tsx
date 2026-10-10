@@ -598,7 +598,10 @@ function FinancePanel({ center }: { center: DashboardCenter }) {
         />
         <Row label="Cash flow" value={formatCents(Number(f.cash_flow_cents ?? 0))} />
       </div>
-      <Link href="/finance" className="mt-2 inline-block text-sm text-secondary hover:underline">
+      <Link
+        href="/finance/cash"
+        className="mt-2 inline-block text-sm text-secondary hover:underline"
+      >
         Finance center →
       </Link>
     </Panel>

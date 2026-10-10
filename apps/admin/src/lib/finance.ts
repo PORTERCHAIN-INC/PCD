@@ -8,6 +8,7 @@ export const INVOICE_STATUSES = [
   "sent",
   "paid",
   "partially_paid",
+  "partial",
   "overdue",
   "cancelled",
   "void",
@@ -22,7 +23,8 @@ const invoiceSchema = z.object({
   merchant_name: z.string().nullable().optional(),
   customer_id: z.string().nullable().optional(),
   customer_email: z.string().nullable().optional(),
-  order_id: z.string(),
+  /** Null for consolidated cycle invoices (orders are lines). */
+  order_id: z.string().nullable().optional(),
   order_number: z.string().nullable().optional(),
   tracking_number: z.string().nullable().optional(),
   booking_number: z.string().nullable().optional(),
@@ -30,6 +32,11 @@ const invoiceSchema = z.object({
   tax_cents: z.number(),
   fees_cents: z.number(),
   outstanding_cents: z.number(),
+  amount_paid_cents: z.number().optional().default(0),
+  /** Interac e-Transfer memo code, e.g. PC-4F7K2. */
+  payment_reference: z.string().nullable().optional(),
+  billing_kind: z.string().optional().default("order"),
+  order_count: z.number().optional().default(1),
   currency: z.string(),
   payment_terms: z.string(),
   due_date: z.string().nullable().optional(),
@@ -62,8 +69,26 @@ const collectionSchema = invoiceSchema.extend({
 
 export type CollectionRow = z.infer<typeof collectionSchema>;
 
+const invoiceLineSchema = z.object({
+  order_id: z.string().nullable().optional(),
+  order_number: z.string().nullable().optional(),
+  description: z.string(),
+  amount_cents: z.number(),
+  tax_cents: z.number(),
+});
+
+const offlinePaymentSchema = z.object({
+  payment_id: z.string(),
+  amount_cents: z.number(),
+  method: z.string().nullable().optional(),
+  reference: z.string().nullable().optional(),
+  created_at: z.string().nullable().optional(),
+});
+
 export const invoiceDetailSchema = invoiceSchema.extend({
   payment: z.record(z.string(), z.unknown()).nullable().optional(),
+  lines: z.array(invoiceLineSchema).optional().default([]),
+  offline_payments: z.array(offlinePaymentSchema).optional().default([]),
   timeline: z.array(z.record(z.string(), z.unknown())),
   audit_log: z.array(z.record(z.string(), z.unknown())),
   duplicates: z.array(z.record(z.string(), z.unknown())),
@@ -120,7 +145,10 @@ export type FinanceDashboard = {
   paid_payments_count: number;
   refunds_count: number;
   credit_notes_count: number;
+  /** Open merchant (B2B) invoices, net of partial payments. */
   merchant_balances_cents: number;
+  /** Unapplied overpayment credit held for merchants. */
+  merchant_credit_balances_cents?: number;
   driver_payouts_pending_cents: number;
   driver_payouts_paid_cents: number;
   driver_wallets_cents: number;
@@ -155,6 +183,43 @@ function qs(filters?: FinanceFilters): string {
   const q = p.toString();
   return q ? `?${q}` : "";
 }
+
+/** Merchants pay by Interac e-Transfer. "ach" (US) is no longer offered. */
+export const OFFLINE_PAYMENT_METHODS = [
+  { value: "interac", label: "Interac e-Transfer" },
+  { value: "cheque", label: "Cheque" },
+  { value: "wire", label: "Wire" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const interacTransferSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  status: z.string(),
+  received_at: z.string().nullable().optional(),
+  sender_name: z.string().nullable().optional(),
+  sender_email: z.string().nullable().optional(),
+  amount_cents: z.number(),
+  currency: z.string(),
+  memo: z.string().nullable().optional(),
+  interac_reference: z.string().nullable().optional(),
+  auth_ok: z.boolean(),
+  auth_detail: z.string().nullable().optional(),
+  invoice_id: z.string().nullable().optional(),
+  invoice_number: z.string().nullable().optional(),
+  invoice_reference: z.string().nullable().optional(),
+  invoice_outstanding_cents: z.number().nullable().optional(),
+  merchant_id: z.string().nullable().optional(),
+  merchant_name: z.string().nullable().optional(),
+  match_method: z.string().nullable().optional(),
+  match_note: z.string().nullable().optional(),
+  payment_id: z.string().nullable().optional(),
+  reviewed_by: z.string().nullable().optional(),
+  reviewed_at: z.string().nullable().optional(),
+  review_note: z.string().nullable().optional(),
+});
+
+export type InteracTransfer = z.infer<typeof interacTransferSchema>;
 
 export const financeApi = {
   dashboard: (token: string) => adminFetch<FinanceDashboard>(`${B}/dashboard`, token),
@@ -242,11 +307,14 @@ export const financeApi = {
       period_end: string;
       created_count: number;
       skipped_count: number;
+      order_count?: number;
       invoices: Array<{
         invoice_id: string;
         invoice_number: string;
-        order_id: string;
+        payment_reference?: string | null;
+        order_count?: number;
         amount_cents: number;
+        credit_applied_cents?: number;
       }>;
     }>(`${B}/merchant-ar/generate`, token, {
       method: "POST",
@@ -261,11 +329,37 @@ export const financeApi = {
       invoice_id: string;
       payment_id: string;
       amount_cents: number;
+      applied_cents?: number;
+      excess_cents?: number;
+      balance_cents?: number;
       status: string;
       method: string;
     }>(`${B}/invoices/${invoiceId}/record-payment`, token, {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  interacQueue: async (token: string, status: string = "open") => {
+    const raw = await adminFetch<unknown>(
+      `${B}/interac?status=${encodeURIComponent(status)}`,
+      token
+    );
+    return z
+      .object({ inbox_enabled: z.boolean(), items: z.array(interacTransferSchema) })
+      .parse(raw);
+  },
+  interacApprove: (token: string, id: string, body: { invoice_id?: string; note?: string } = {}) =>
+    adminFetch<InteracTransfer>(`${B}/interac/${id}/approve`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  interacReject: (token: string, id: string, note?: string) =>
+    adminFetch<InteracTransfer>(`${B}/interac/${id}/reject`, token, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+  interacSync: (token: string) =>
+    adminFetch<{ enabled: boolean; fetched: number; queued: number }>(`${B}/interac/sync`, token, {
+      method: "POST",
     }),
   remindInvoice: (token: string, invoiceId: string) =>
     adminFetch<{
@@ -282,6 +376,7 @@ export const INVOICE_STATUS_STYLES: Record<string, string> = {
   sent: "bg-blue-100 text-blue-700",
   paid: "bg-green-100 text-green-700",
   partially_paid: "bg-teal-100 text-teal-800",
+  partial: "bg-teal-100 text-teal-800",
   overdue: "bg-red-100 text-red-700",
   cancelled: "bg-gray-100 text-gray-500",
   void: "bg-gray-100 text-gray-500",

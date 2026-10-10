@@ -244,7 +244,7 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
       },
       onRefund: () => {
         flashNotice("Refunds are processed through Finance — opening billing.");
-        router.push("/finance");
+        router.push("/finance/invoices");
       },
       onOpenClaim: () => router.push(`/claims?order_id=${id}`),
       onOpenSupport: () => router.push(`/support?order_id=${id}`),

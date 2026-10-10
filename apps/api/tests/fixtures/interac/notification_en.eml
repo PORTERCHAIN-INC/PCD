@@ -1,0 +1,21 @@
+Authentication-Results: mx.zohomail.com;
+	dkim=pass header.d=payments.interac.ca header.i=@payments.interac.ca;
+	spf=pass smtp.mailfrom=notify@payments.interac.ca;
+	dmarc=pass header.from=payments.interac.ca
+From: INTERAC e-Transfer <notify@payments.interac.ca>
+To: billing@porterchain.com
+Subject: INTERAC e-Transfer: {SENDER} sent you money.
+Date: Thu, 08 Oct 2026 09:02:11 -0400
+Message-ID: <{MSGID}@payments.interac.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hi PORTERCHAIN LOGISTICS INC.,
+{SENDER} sent you ${AMOUNT} (CAD).
+
+Message: {MEMO}
+
+To deposit your money, click here: https://etransfer.interac.ca/RequestMoney.do?xyz
+Expires on: November 07, 2026
+
+Reference Number: {IREF}

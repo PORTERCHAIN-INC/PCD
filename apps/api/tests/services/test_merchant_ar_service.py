@@ -68,9 +68,13 @@ def _seed_delivered_order(db: Session, merchant: Merchant) -> Order:
 
 
 def test_merchant_ar_generate_and_pay(db: Session):
+    """One cycle invoice per merchant per period; orders become lines."""
+    from porterchain_api.billing_engine.models import InvoiceLine
+
     actx = _admin(db)
     _mctx, merchant = _merchant(db)
     order = _seed_delivered_order(db, merchant)
+    order2 = _seed_delivered_order(db, merchant)
     ar = MerchantArService()
     start = datetime.now(UTC) - timedelta(days=1)
     end = datetime.now(UTC) + timedelta(days=1)
@@ -79,23 +83,45 @@ def test_merchant_ar_generate_and_pay(db: Session):
     assert order.id in preview["order_ids"]
 
     gen = ar.generate(db, actx, merchant_id=merchant.id, period_start=start, period_end=end)
-    assert gen["created_count"] >= 1
-    inv = db.query(Invoice).filter(Invoice.order_id == order.id).one()
+    assert gen["created_count"] == 1
+    line = db.query(InvoiceLine).filter(InvoiceLine.order_id == order.id).one()
+    line2 = db.query(InvoiceLine).filter(InvoiceLine.order_id == order2.id).one()
+    assert line.invoice_id == line2.invoice_id
+    inv = db.get(Invoice, line.invoice_id)
+    assert inv.billing_kind == "cycle"
+    assert inv.order_id is None
     assert inv.merchant_id == merchant.id
     assert inv.customer_id is None
     assert inv.due_at is not None
+    assert inv.payment_reference and inv.payment_reference.startswith("PC-")
+    assert db.query(Invoice).filter(Invoice.order_id == order.id).count() == 0
 
     gen2 = ar.generate(db, actx, merchant_id=merchant.id, period_start=start, period_end=end)
     assert gen2["created_count"] == 0
 
-    result = ar.record_payment(db, actx, inv.id, method="ach", reference="ACH-1")
+    total = int(inv.amount_cents)
+    result = ar.record_payment(db, actx, inv.id, method="interac", reference="CA123")
     assert result["status"] == "paid"
-    payment = db.query(Payment).filter(Payment.order_id == order.id, Payment.status == "SUCCEEDED").one()
+    payment = db.query(Payment).filter(Payment.invoice_id == inv.id, Payment.status == "SUCCEEDED").one()
     assert payment.quote_id is None
-    assert payment.payment_method == "ach"
+    assert payment.payment_method == "interac"
+    assert payment.amount_cents == total
     db.refresh(order)
+    db.refresh(inv)
     assert order.state == OrderState.INVOICED.value
-    assert invoice_status(inv, order, payment, terms=merchant.payment_terms) == "paid"
+    assert invoice_status(inv, None, None, terms=merchant.payment_terms) == "paid"
 
     with pytest.raises(ValueError, match="already_paid"):
         ar.record_payment(db, actx, inv.id, method="wire")
+
+
+def test_ach_is_no_longer_accepted(db: Session):
+    actx = _admin(db)
+    _mctx, merchant = _merchant(db)
+    _seed_delivered_order(db, merchant)
+    ar = MerchantArService()
+    start = datetime.now(UTC) - timedelta(days=1)
+    end = datetime.now(UTC) + timedelta(days=1)
+    gen = ar.generate(db, actx, merchant_id=merchant.id, period_start=start, period_end=end)
+    with pytest.raises(ValueError, match="invalid_payment_method"):
+        ar.record_payment(db, actx, gen["invoices"][0]["invoice_id"], method="ach")

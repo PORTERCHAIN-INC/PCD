@@ -105,8 +105,9 @@ def remind_invoice(
     actor_type: str,
     actor_id: str | None,
 ) -> dict[str, Any]:
-    order = db.query(Order).filter(Order.id == invoice.order_id).first()
-    if not order or order.merchant_id != merchant.id:
+    order = db.query(Order).filter(Order.id == invoice.order_id).first() if invoice.order_id else None
+    owner = order.merchant_id if order is not None else invoice.merchant_id
+    if not owner or owner != merchant.id:
         raise LookupError("invoice_not_found")
     to_email = primary_billing_email(merchant)
     if not to_email:
@@ -130,7 +131,7 @@ def remind_invoice(
         event_type=DomainEventType.MERCHANT_BILLED,
         aggregate_type="invoice",
         aggregate_id=invoice.id,
-        correlation_id=order.id,
+        correlation_id=order.id if order is not None else invoice.id,
         actor_type=actor_type,
         actor_id=actor_id,
         payload=payload,
@@ -144,7 +145,7 @@ def remind_invoice(
                 "event_type": DomainEventType.MERCHANT_BILLED,
                 "aggregate_type": "invoice",
                 "aggregate_id": invoice.id,
-                "correlation_id": order.id,
+                "correlation_id": order.id if order is not None else invoice.id,
                 "payload": payload,
             }
         )

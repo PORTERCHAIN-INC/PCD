@@ -183,11 +183,19 @@ def export_history_csv(svc: Any, db: Session, ctx: MerchantContext) -> str:
     )
 
 
-def merchant_invoices(db: Session, ctx: MerchantContext) -> list[tuple[Invoice, Order]]:
+def merchant_invoices(db: Session, ctx: MerchantContext) -> list[tuple[Invoice, Order | None]]:
+    """Per-order invoices (legacy) plus consolidated cycle invoices (order is None)."""
+    from sqlalchemy import and_, or_
+
     return (
         db.query(Invoice, Order)
-        .join(Order, Invoice.order_id == Order.id)
-        .filter(Order.merchant_id == ctx.merchant.id)
+        .outerjoin(Order, Invoice.order_id == Order.id)
+        .filter(
+            or_(
+                Order.merchant_id == ctx.merchant.id,
+                and_(Invoice.billing_kind == "cycle", Invoice.merchant_id == ctx.merchant.id),
+            )
+        )
         .order_by(Invoice.created_at.desc())
         .limit(500)
         .all()

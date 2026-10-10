@@ -16,6 +16,8 @@ from porterchain_api.booking_engine.stripe_webhook_idempotency import (
     release_stripe_event,
 )
 from porterchain_api.config import Settings
+from porterchain_api.platform.stripe_money import HANDLED_EVENTS as STRIPE_MONEY_EVENTS
+from porterchain_api.platform.stripe_money import handle_stripe_money_event
 from porterchain_api.booking_models import Invoice, Order, Payment, Quote
 from porterchain_api.services.stripe_service import handle_checkout_completed
 from porterchain_event_bus import get_event_bus
@@ -66,6 +68,9 @@ class StripeWebhookService:
                 self._handle_checkout_expired(db, data_object)
             elif event_type in ("payment_intent.payment_failed", "checkout.session.async_payment_failed"):
                 self._handle_payment_failed(db, data_object)
+            elif event_type in STRIPE_MONEY_EVENTS:
+                # Dashboard refunds, disputes, payouts (fees reconciled on payout.paid).
+                handle_stripe_money_event(db, settings, event_type, data_object)
             elif event_type in (
                 "identity.verification_session.verified",
                 "identity.verification_session.requires_input",

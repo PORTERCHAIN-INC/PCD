@@ -1,0 +1,19 @@
+Authentication-Results: mx.zohomail.com;
+	dkim=none;
+	spf=fail (zohomail.com: domain of payments.interac.ca does not designate 185.1.2.3 as permitted sender) smtp.mailfrom=notify@payments.interac.ca;
+	dmarc=fail header.from=payments.interac.ca
+Authentication-Results: evil-relay.example; dkim=pass header.d=payments.interac.ca; dmarc=pass header.from=payments.interac.ca
+From: "INTERAC e-Transfer" <notify@payments.interac.ca>
+To: billing@porterchain.com
+Subject: INTERAC e-Transfer: Your money has been automatically deposited.
+Date: Fri, 09 Oct 2026 11:00:00 -0400
+Message-ID: <{MSGID}@evil-relay.example>
+Content-Type: text/plain; charset="UTF-8"
+
+Hi PORTERCHAIN LOGISTICS INC.,
+
+{SENDER} sent you ${AMOUNT} (CAD) and the money has been automatically deposited into your bank account.
+
+Message: {MEMO}
+
+Reference Number: {IREF}

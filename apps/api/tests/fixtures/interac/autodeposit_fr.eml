@@ -1,0 +1,20 @@
+Authentication-Results: mx.zohomail.com;
+	dkim=pass header.d=payments.interac.ca;
+	spf=pass smtp.mailfrom=notify@payments.interac.ca;
+	dmarc=pass header.from=payments.interac.ca
+From: "Virement INTERAC" <notify@payments.interac.ca>
+To: billing@porterchain.com
+Subject: =?UTF-8?Q?Virement_INTERAC_:_Votre_argent_a_=C3=A9t=C3=A9_d=C3=A9pos=C3=A9_automatiquement.?=
+Date: Fri, 09 Oct 2026 08:30:00 -0400
+Message-ID: <{MSGID}@payments.interac.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Bonjour PORTERCHAIN LOGISTICS INC.,
+
+{SENDER} vous a envoyé {AMOUNT_FR} $ (CAD) et l'argent a été déposé automatiquement dans votre compte à la Banque Nationale.
+
+Message : {MEMO}
+
+Numéro de référence : {IREF}
