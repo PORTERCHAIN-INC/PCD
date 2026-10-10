@@ -55,7 +55,6 @@ export function OrdersToolbar({
           className="min-h-10 min-w-0 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm sm:min-w-[220px] sm:flex-1"
         />
         <select
-          aria-label="Environment"
           value={filters.env ?? "live"}
           onChange={(e) =>
             onChange({

@@ -26,7 +26,6 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
             <th className="px-3 py-3">
               <input
                 type="checkbox"
-                aria-label="Select all orders"
                 checked={allSelected}
                 disabled={ids.length === 0}
                 ref={(el) => {
