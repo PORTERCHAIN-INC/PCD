@@ -125,6 +125,19 @@ def shopify_install(
     return RedirectResponse(url, status_code=302)
 
 
+def _record_install_lead(db: Session, connected) -> None:
+    """Shopify install → CRM lead (linked to an existing lead by email)."""
+    try:
+        from porterchain_api.collaboration_engine.signup_leads import record_shopify_install_lead
+
+        record_shopify_install_lead(
+            db, shop_domain=connected.shop_domain, merchant_id=connected.merchant_id
+        )
+    except Exception:  # noqa: BLE001 — never block the install redirect
+        db.rollback()
+        logger.exception("shopify_install_lead_failed shop=%s", connected.shop_domain)
+
+
 @router.get("/callback")
 def shopify_callback(
     request: Request,
@@ -154,6 +167,7 @@ def shopify_callback(
         db.rollback()
         logger.exception("shopify_oauth_callback_failed shop=%s", shop)
         return _error_redirect(settings, "install_failed", shop=shop, host=host)
+    _record_install_lead(db, connected)
     dest = shopify.app_home_url(
         settings,
         shop_domain=connected.shop_domain,

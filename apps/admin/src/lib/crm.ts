@@ -93,6 +93,14 @@ export type Lead = {
   quote_id?: string | null;
   visitor_session_id?: string | null;
   booking_draft_id?: string | null;
+  awaiting_reply?: boolean;
+  last_inbound_at?: string | null;
+  first_response_at?: string | null;
+  order_id?: string | null;
+  quoted_at?: string | null;
+  won_at?: string | null;
+  lost_at?: string | null;
+  lost_reason?: string | null;
   created_at: string;
   updated_at: string;
 };

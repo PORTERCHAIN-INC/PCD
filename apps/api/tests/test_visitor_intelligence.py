@@ -65,5 +65,6 @@ def test_score_lead_fuses_behavior() -> None:
     )
     visitor = SimpleNamespace(intent_score=80, quote_generated=True)
     score = CrmLeadsMixin.score_lead(lead, visitor)  # type: ignore[arg-type]
-    assert score >= 55
+    base = CrmLeadsMixin.score_lead(lead, None)  # type: ignore[arg-type]
+    assert score > base  # quote intent + on-site quote raise engagement
     assert score <= 100

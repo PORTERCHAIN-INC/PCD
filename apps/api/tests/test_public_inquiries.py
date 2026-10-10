@@ -67,16 +67,6 @@ def test_public_inquiry_rejects_wrong_ingest_key(client: TestClient) -> None:
         ),
         (
             {
-                "email": "reader@example.com",
-                "form": "newsletter",
-                "inquiry_type": "newsletter",
-                "message": "Blog newsletter",
-            },
-            "website_newsletter",
-            "low",
-        ),
-        (
-            {
                 "email": "sales@example.com",
                 "form": "contact",
                 "inquiry_type": "sales",
@@ -84,7 +74,7 @@ def test_public_inquiry_rejects_wrong_ingest_key(client: TestClient) -> None:
                 "message": "General contact",
             },
             "website_contact",
-            "medium",
+            "high",
         ),
         (
             {

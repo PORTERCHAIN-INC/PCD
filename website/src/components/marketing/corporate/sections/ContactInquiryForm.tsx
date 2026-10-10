@@ -2,11 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { Check, Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { getStoredAttribution } from "@/lib/seo/attribution";
 import { submitInquiry } from "@/lib/submit-inquiry";
+import MarketingConsentCheckbox from "@/components/forms/MarketingConsentCheckbox";
+import { useFormGuard } from "@/components/forms/useFormGuard";
 
 const INQUIRY_TYPES = ["sales", "support", "partnership", "careers", "api"] as const;
 
@@ -24,6 +26,9 @@ export default function ContactInquiryForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const locale = useLocale();
+  const { guardFields, honeypotField } = useFormGuard();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -47,6 +52,9 @@ export default function ContactInquiryForm() {
         utm_source: stored.utm_source,
         utm_campaign: stored.utm_campaign,
         utm_medium: stored.utm_medium,
+        marketing_consent: marketingConsent,
+        locale,
+        ...guardFields(),
       });
       track(ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS, {
         source_section: "contact_form",
@@ -87,8 +95,9 @@ export default function ContactInquiryForm() {
       method="post"
       action="#"
       onSubmit={handleSubmit}
-      className="rounded-3xl border border-primary/8 bg-[#F4F6FA] p-6 sm:p-8"
+      className="relative rounded-3xl border border-primary/8 bg-[#F4F6FA] p-6 sm:p-8"
     >
+      {honeypotField}
       <h2 className="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
         {t("title")}
       </h2>
@@ -197,6 +206,14 @@ export default function ContactInquiryForm() {
             className={cn(inputClass, "resize-none")}
           />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <MarketingConsentCheckbox
+          id="contact-marketing-consent"
+          checked={marketingConsent}
+          onChange={setMarketingConsent}
+        />
       </div>
 
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}

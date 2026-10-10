@@ -78,9 +78,26 @@ vi.mock("@/lib/leads", async () => {
       update: (...args: unknown[]) => update(...args),
       convert: (...args: unknown[]) => convert(...args),
       remove: (...args: unknown[]) => remove(...args),
+      quote: (...args: unknown[]) => quoteApi(...args),
+      fitScore: (...args: unknown[]) => fitScore(...args),
+      draft: (...args: unknown[]) => draftApi(...args),
+      markLost: (...args: unknown[]) => markLost(...args),
+      replyChannels: () =>
+        Promise.resolve({
+          email: { enabled: true, transport: "zoho_smtp", from: "sales@porterchain.com" },
+          whatsapp: { enabled: false, reason: "whatsapp_cloud_disabled" },
+          call_outcomes: ["connected"],
+        }),
+      reply: (...args: unknown[]) => reply(...args),
     },
   };
 });
+
+const quoteApi = vi.fn();
+const fitScore = vi.fn();
+const draftApi = vi.fn();
+const markLost = vi.fn();
+const reply = vi.fn();
 
 import { LeadDetailView } from "@/components/leads/LeadDetailClient";
 
@@ -135,8 +152,66 @@ describe("LeadDetailView", () => {
       source: "heuristic",
       proposals: [{ id: "p1", type: "reply", title: "Draft", body: "Happy to quote" }],
     });
-    update.mockResolvedValue(sampleLead({ status: "contacted" }));
+    update.mockResolvedValue(sampleLead({ status: "replied" }));
     convert.mockResolvedValue({ company_id: "co-1", outcome: "merchant" });
+    quoteApi.mockResolvedValue({
+      available: true,
+      amount_cents: 10170,
+      amount_display: "$101.70",
+      pricing: "retail",
+      vehicle_class: "cargo_van",
+      vehicle_label: "cargo van",
+      pickup_fsa: "M5V",
+      dropoff_fsa: "M4C",
+      parcel_count: 1,
+      distance_km: 9.5,
+      lines: [],
+      tax_cents: 1170,
+      booking_url: "https://porterchain.com/en/book?pc_lead=lead-1",
+      note: "",
+    });
+    fitScore.mockResolvedValue({
+      score: 84,
+      version: "fit-v1",
+      reasons: [{ label: "Target industry: Pharmacy", points: 30 }],
+    });
+    draftApi.mockResolvedValue({
+      channel: "email",
+      subject: "Your PorterChain delivery quote: $101.70",
+      body: "Hi Ada, ... $101.70 ... https://porterchain.com/en/book?pc_lead=lead-1",
+      template: "Pharmacy",
+      with_quote: true,
+      source: "template",
+    });
+    markLost.mockResolvedValue({ status: "lost" });
+    reply.mockReset();
+    reply.mockResolvedValue({ id: "m1", channel: "email", status: "sent", to: "ada@acme.test" });
+  });
+
+  it("instant quote + score; Send quote only fills the composer, admin presses Send", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<LeadDetailView id="lead-1" />);
+    expect(await screen.findByText("$101.70")).toBeInTheDocument();
+    expect(await screen.findByText("Target industry: Pharmacy")).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: /send quote/i })[0]);
+    await waitFor(() => expect(draftApi).toHaveBeenCalled());
+    const box = await screen.findByRole("textbox", { name: /reply message/i });
+    await waitFor(() => expect((box as HTMLTextAreaElement).value).toContain("pc_lead=lead-1"));
+    expect(reply).not.toHaveBeenCalled(); // nothing sent yet
+    expect(screen.getByText(/quote attached/i)).toBeInTheDocument();
+    const sendButtons = screen.getAllByRole("button", { name: /^send quote$/i });
+    await user.click(sendButtons[sendButtons.length - 1]);
+    await waitFor(() => expect(reply).toHaveBeenCalledTimes(1));
+    expect(reply.mock.calls[0][2]).toMatchObject({ channel: "email", attach_quote: true });
+  });
+
+  it("marks a lead lost in one tap", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<LeadDetailView id="lead-1" />);
+    await user.click(await screen.findByRole("button", { name: "Price" }));
+    await waitFor(() =>
+      expect(markLost).toHaveBeenCalledWith(expect.anything(), "lead-1", "price")
+    );
   });
 
   it("renders company, convert actions, assist, and delete for super_admin", async () => {

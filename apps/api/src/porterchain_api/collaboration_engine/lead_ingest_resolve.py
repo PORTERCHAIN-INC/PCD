@@ -130,7 +130,10 @@ class LeadIngestResolveMixin:
             lead.channel = channel
         if intent_type and lead.intent_type in (None, "", LeadIntentType.UNKNOWN.value):
             lead.intent_type = intent_type
-        if priority in (LeadPriority.HIGH.value, LeadPriority.URGENT.value):
+        if priority in (LeadPriority.HIGH.value, LeadPriority.URGENT.value) and (
+            lead.status in (None, "", "new", "archived")
+        ):
+            # Don't override a priority staff set on a lead they're already working.
             if lead.priority not in (LeadPriority.URGENT.value,):
                 lead.priority = priority
         merged_custom = dict(lead.custom_fields or {})
@@ -209,7 +212,14 @@ class LeadIngestResolveMixin:
         )
 
     def _seed_message(
-        self, db: Session, lead: CrmLead, *, channel: str, body: str
+        self,
+        db: Session,
+        lead: CrmLead,
+        *,
+        channel: str,
+        body: str,
+        external_message_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         text = (body or "").strip()
         if not text:
@@ -234,8 +244,13 @@ class LeadIngestResolveMixin:
                 direction="inbound",
                 body=text,
                 actor_type="prospect",
-                metadata_json={"seed": True},
+                channel=channel,
+                external_message_id=(external_message_id or None),
+                metadata_json={"seed": True, **(metadata or {})},
             )
         )
+        from porterchain_api.collaboration_engine.lead_pipeline import apply_triage
+
+        apply_triage(lead, text)
 
 

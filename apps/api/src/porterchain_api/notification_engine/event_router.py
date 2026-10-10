@@ -98,6 +98,20 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
     merchant_id = payload.get("merchant_id")
     driver_id = payload.get("driver_id") or payload.get("assigned_driver_id")
 
+    if event_type == DomainEventType.NEWSLETTER_CONFIRM_REQUESTED:
+        # Double opt-in confirmation — transactional (crm), one email to the subscriber only.
+        subscriber_id = payload.get("subscriber_id")
+        if subscriber_id and email:
+            add(
+                "newsletter_confirm",
+                "email",
+                "subscriber",
+                subscriber_id,
+                address=email,
+                category="crm",
+            )
+        return specs
+
     if event_type == DomainEventType.BOOKING_DRAFT_CREATED:
         if customer_id:
             add("booking_draft_created", "in_app", "customer", customer_id)
@@ -504,6 +518,7 @@ def register_notification_handlers() -> None:
         DomainEventType.EXCEPTION_RESOLVED,
         DomainEventType.ORDER_DELAYED,
         DomainEventType.SLA_BREACHED,
+        DomainEventType.NEWSLETTER_CONFIRM_REQUESTED,
     ]
     for evt in watched:
         registry.subscribe(evt, handle_domain_event)

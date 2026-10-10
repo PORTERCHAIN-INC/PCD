@@ -64,15 +64,16 @@ def test_public_inquiry_stamps_visitor_and_consent(client: TestClient) -> None:
     assert event.consent.get("sms") is False
 
 
-def test_newsletter_inquiry_defaults_marketing_consent(client: TestClient) -> None:
-    lead = MagicMock()
-    lead.id = "lead-nl-1"
-    result = MagicMock()
-    result.lead = lead
-    with patch(
-        "porterchain_api.routers.public_inquiries._ingest.ingest",
-        return_value=result,
-    ) as ingest:
+def test_newsletter_inquiry_becomes_subscriber_not_lead(client: TestClient) -> None:
+    """Legacy newsletter posts land in the double opt-in list, never in CRM leads."""
+    sub = MagicMock()
+    sub.id = "sub-1"
+    with (
+        patch("porterchain_api.routers.public_inquiries._ingest.ingest") as ingest,
+        patch(
+            "porterchain_api.collaboration_engine.newsletter_subscribers.subscribe", return_value=sub
+        ) as subscribe,
+    ):
         res = client.post(
             "/v1/public/inquiries",
             headers={"X-Ingest-Key": "test-ingest-key"},
@@ -83,8 +84,9 @@ def test_newsletter_inquiry_defaults_marketing_consent(client: TestClient) -> No
             },
         )
     assert res.status_code == 201
-    event = ingest.call_args[0][1]
-    assert event.consent.get("marketing") is True
+    assert res.json()["status"] == "pending_confirmation"
+    ingest.assert_not_called()
+    subscribe.assert_called_once()
 
 
 def test_ingest_stamps_visitor_session_id_column(db) -> None:

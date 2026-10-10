@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -19,75 +18,41 @@ from porterchain_api.domain.crm_states import (
     DealStage,
     LeadDecisionStatus,
     LeadStatus,
+    normalize_lead_status,
 )
+from porterchain_api.collaboration_engine.lead_pipeline import stamp_status_change
 
 
 class CrmLeadWriteMixin:
     @staticmethod
     def score_lead(lead: CrmLead, visitor=None, *, db: Session | None = None) -> int:
-        """Logistics lead score (0-100): heuristic + empirical blend when priors ready."""
-        from porterchain_api.collaboration_engine.lead_scoring import score_breakdown
-        from porterchain_api.domain.visitor_intent import behavioral_score_boost
+        """Deterministic fit score 0-100 (industry, volume, GTA area, channel, engagement).
 
-        score = 0
-        deliveries = lead.estimated_deliveries_per_month or 0
-        if deliveries >= 1000:
-            score += 40
-        elif deliveries >= 250:
-            score += 30
-        elif deliveries >= 50:
-            score += 20
-        elif deliveries > 0:
-            score += 10
-        revenue = lead.estimated_revenue_cents or 0
-        if revenue >= 5_000_000:
-            score += 30
-        elif revenue >= 1_000_000:
-            score += 20
-        elif revenue > 0:
-            score += 10
-        if lead.current_logistics_provider:
-            score += 10  # actively shipping today
-        if lead.phone and lead.email:
-            score += 10
-        elif lead.phone:
-            score += 8  # outbound call lists often lack email
-        if lead.priority in ("high", "urgent"):
-            score += 10
-        raw_addr = getattr(lead, "address", None)
-        addr = raw_addr if isinstance(raw_addr, dict) else {}
-        if addr.get("street") and addr.get("city") and (addr.get("postal_code") or addr.get("postal")):
-            score += 5
-        tags = getattr(lead, "tags", None)
-        tags = tags if isinstance(tags, list) else []
-        if "cohort:gta" in tags or (getattr(lead, "source", None) or "") in (
-            "vendor_import",
-            "crm_import",
-        ):
-            city = str(addr.get("city") or getattr(lead, "service_area", None) or "").lower()
-            if "cohort:gta" in tags or any(
-                g in city
-                for g in ("toronto", "mississauga", "markham", "brampton", "vaughan", "scarborough")
-            ):
-                score += 7
-        score += behavioral_score_boost(lead, visitor)
-        heuristic = min(score, 100)
-        breakdown = score_breakdown(lead, heuristic, db=db)
-        # Persist transparency without clobbering operator custom_fields.
+        Reasons are stored on ``custom_fields._score`` for the lead page. The
+        empirical prior is kept as an advisory ``predictive`` figure only.
+        """
+        from porterchain_api.collaboration_engine.lead_scoring import get_score_priors, predictive_score
+        from porterchain_api.lead_desk.fit_score import fit_score
+
+        fit = fit_score(lead, visitor)
+        priors = get_score_priors(db) if db is not None else None
         fields = dict(lead.custom_fields) if isinstance(lead.custom_fields, dict) else {}
         fields["_score"] = {
-            "heuristic": breakdown["heuristic"],
-            "predictive": breakdown["predictive"],
-            "method": breakdown["method"],
-            "priors_n": breakdown["priors_n"],
+            "heuristic": fit["score"],
+            "predictive": round(predictive_score(lead, priors), 2) if priors else None,
+            "method": fit["version"],
+            "priors_n": priors.sample_n if priors else 0,
+            "reasons": fit["reasons"],
         }
         lead.custom_fields = fields
-        return int(breakdown["final"])
+        return int(fit["score"])
 
     def create_lead(self, db: Session, ctx: CrmActor | None, data: dict) -> CrmLead:
         from porterchain_api.domain.crm_states import channel_for_source
 
         data = dict(data)
+        if data.get("status"):
+            data["status"] = normalize_lead_status(data["status"])
         data.setdefault("assigned_to", _actor(ctx))
         if not data.get("channel"):
             data["channel"] = channel_for_source(data.get("source"))
@@ -113,6 +78,10 @@ class CrmLeadWriteMixin:
         if not lead:
             raise LookupError("lead_not_found")
         prev_status = lead.status
+        data = dict(data)
+        if data.get("status"):
+            data["status"] = normalize_lead_status(data["status"])
+            stamp_status_change(lead, data["status"])
         for key, value in data.items():
             setattr(lead, key, value)
         visitor = self._visitor_for_lead(db, lead)
@@ -120,7 +89,7 @@ class CrmLeadWriteMixin:
         db.commit()
         db.refresh(lead)
         if "status" in data and data["status"] != prev_status:
-            if data["status"] in ("converted", "unqualified"):
+            if data["status"] in ("won", "lost"):
                 from porterchain_api.collaboration_engine.lead_scoring import clear_score_priors_cache
 
                 clear_score_priors_cache()
@@ -230,7 +199,8 @@ class CrmLeadWriteMixin:
             db.add(deal)
             db.flush()
 
-        lead.status = LeadStatus.CONVERTED.value
+        stamp_status_change(lead, LeadStatus.WON.value)
+        lead.status = LeadStatus.WON.value
         lead.decision_status = LeadDecisionStatus.CONVERTED.value
         lead.company_id = company.id
         lead.contact_id = contact.id if contact else None

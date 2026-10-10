@@ -1,5 +1,7 @@
 """Booking confirmation — order, booking, invoice creation per PRD."""
 
+import logging
+
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
@@ -101,6 +103,9 @@ def _retail_compliance_from_quote(quote: Quote) -> dict | None:
         "weight_kg": None if payload.get("booking_mode") == "vehicle" else quote.weight_kg,
     }
 
+
+
+logger = logging.getLogger(__name__)
 
 class BookingConfirmationService:
     """Completes payment → booking → order → invoice; downstream via domain events."""
@@ -308,6 +313,21 @@ class BookingConfirmationService:
             correlation_id=order.id,
             payload=receipt_payload,
         )
+        try:
+            from porterchain_api.booking_engine.crm_lead_mirror import (
+                mark_booking_lead_converted,
+            )
+
+            with db.begin_nested():
+                mark_booking_lead_converted(
+                    db,
+                    quote_id=quote.id,
+                    order_id=order.id,
+                    customer_id=quote.customer_id,
+                    email=customer.email if customer else None,
+                )
+        except Exception:  # noqa: BLE001 — CRM bookkeeping never blocks a paid order
+            logger.exception("booking_lead_convert_failed quote=%s", quote.id)
         db.commit()
 
         transition_to_dispatch_ready(

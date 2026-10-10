@@ -8,13 +8,55 @@ from enum import StrEnum
 
 
 class LeadStatus(StrEnum):
+    """Five-stage pipeline: New → Replied → Quoted → Won / Lost.
+
+    ``archived`` is a visibility flag (hidden from the inbox), not a stage.
+    The pre-2026-10 names stay as enum *aliases* so existing callers keep
+    working; the stored value is always one of the five stages.
+    """
+
     NEW = "new"
-    CONTACTED = "contacted"
-    QUALIFIED = "qualified"
-    UNQUALIFIED = "unqualified"
-    NURTURING = "nurturing"
-    CONVERTED = "converted"
+    REPLIED = "replied"
+    QUOTED = "quoted"
+    WON = "won"
+    LOST = "lost"
     ARCHIVED = "archived"
+    # Legacy aliases (same value → same member).
+    CONTACTED = "replied"
+    QUALIFIED = "replied"
+    NURTURING = "replied"
+    CONVERTED = "won"
+    UNQUALIFIED = "lost"
+
+
+# Old stored value → new stage (migration lp0leadpipe1a2b + API back-compat).
+LEGACY_LEAD_STATUS: dict[str, str] = {
+    "contacted": "replied",
+    "qualified": "replied",
+    "nurturing": "replied",
+    "converted": "won",
+    "unqualified": "lost",
+}
+
+PIPELINE_STATUSES: tuple[str, ...] = ("new", "replied", "quoted", "won", "lost")
+
+LOST_REASONS: tuple[str, ...] = (
+    "price",
+    "timing",
+    "no_response",
+    "competitor",
+    "out_of_area",
+    "not_a_fit",
+    "other",
+)
+
+
+def normalize_lead_status(value: str | None) -> str | None:
+    """Accept old names from older clients; return the stored stage value."""
+    if value is None:
+        return None
+    v = str(value).strip().lower()
+    return LEGACY_LEAD_STATUS.get(v, v)
 
 
 class LeadPriority(StrEnum):
@@ -42,6 +84,10 @@ class LeadSourceChannel(StrEnum):
     MANUAL = "manual"
     CAPACITY_GUIDE = "capacity_guide"
     WEBSITE_BOOKING = "website_booking"
+    EMAIL = "email"
+    APP_INSTALL = "app_install"  # Shopify app store installs
+    MERCHANT_SIGNUP = "merchant_signup"
+    DRIVER_SIGNUP = "driver_signup"
     OTHER = "other"
 
 

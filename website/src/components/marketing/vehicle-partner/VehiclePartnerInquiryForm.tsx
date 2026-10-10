@@ -2,11 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Check, ExternalLink, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { submitInquiry } from "@/lib/submit-inquiry";
+import MarketingConsentCheckbox from "@/components/forms/MarketingConsentCheckbox";
+import { useFormGuard } from "@/components/forms/useFormGuard";
 import { getStoredAttribution } from "@/lib/seo/attribution";
 import { driverPortalUrl } from "@/data/portal-links";
 import LinkButton from "@/components/marketing/corporate/ui/LinkButton";
@@ -46,6 +48,9 @@ export default function VehiclePartnerInquiryForm({
   const [serviceArea, setServiceArea] = useState("");
   const [notes, setNotes] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const locale = useLocale();
+  const { guardFields, honeypotField } = useFormGuard();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +90,11 @@ export default function VehiclePartnerInquiryForm({
         utm_source: stored.utm_source,
         utm_campaign: stored.utm_campaign,
         utm_medium: stored.utm_medium,
+        // Required "contact me about the program" box — now stored as evidence.
+        contact_consent: agreed,
+        marketing_consent: marketingConsent,
+        locale,
+        ...guardFields(),
       });
     } catch {
       setError(t("errorMessage"));
@@ -149,7 +159,8 @@ export default function VehiclePartnerInquiryForm({
         <p className="mt-2 text-sm text-muted leading-relaxed">{t("subtitle")}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <form onSubmit={handleSubmit} className="relative space-y-4" noValidate>
+        {honeypotField}
         <div>
           <label htmlFor={`${id}-name`} className="block text-sm font-medium text-primary mb-1.5">
             {t("name")} <span className="text-secondary">*</span>
@@ -299,6 +310,12 @@ export default function VehiclePartnerInquiryForm({
             {t("consent")}
           </span>
         </label>
+
+        <MarketingConsentCheckbox
+          id="vehicle-partner-marketing-consent"
+          checked={marketingConsent}
+          onChange={setMarketingConsent}
+        />
 
         <button
           type="submit"

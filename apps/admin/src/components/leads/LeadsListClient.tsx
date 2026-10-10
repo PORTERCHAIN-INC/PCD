@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PageSkeleton } from "@porterchain/ui/loading";
-import { useDeferredValue, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
@@ -15,6 +14,19 @@ import {
   WEBSITE_NEWSLETTER_LEAD_SOURCE,
 } from "@/lib/admin-nav";
 import AdminPage from "@/components/layout/AdminPage";
+import LeadBulkBar from "@/components/leads/LeadBulkBar";
+import LeadSavedViews from "@/components/leads/LeadSavedViews";
+import LeadRow from "@/components/leads/LeadRow";
+import {
+  Disclosure,
+  EmptyState,
+  InboxSkeleton,
+  Kbd,
+  LeadSpeedStrip,
+  MoreMenu,
+  useTriageKeys,
+} from "@/components/leads/LeadDeskBits";
+import { useNow } from "@/components/leads/LeadInboxBits";
 import {
   LEAD_CHANNELS,
   LEAD_DECISION_STATUSES,
@@ -22,30 +34,20 @@ import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
   leadsApi,
-  leadForm,
-  leadIntent,
   LEAD_SOURCES,
-  PRIORITY_TONES,
-  STATUS_TONES,
-  DECISION_TONES,
   type LeadFilters,
 } from "@/lib/leads";
-
-function formatWhen(iso: string): string {
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function sourceLabel(source: string): string {
   if (source === DRIVER_LEAD_SOURCE) return "driver partner";
   return source.replace(/_/g, " ");
 }
+
+const VIEW_TABS = [
+  { key: "now", label: "Now" },
+  { key: "waiting", label: "Waiting" },
+  { key: "buyers", label: "All" },
+] as const;
 
 export default function LeadsListClient() {
   const { getApiToken, isLoaded, isSignedIn } = useAdminAuth();
@@ -54,19 +56,24 @@ export default function LeadsListClient() {
   const priorityFromUrl = searchParams.get("priority") ?? undefined;
   const statusFromUrl = searchParams.get("status") ?? undefined;
   const hasPhoneFromUrl = searchParams.get("has_phone");
-  const isDriverInbox = sourceFromUrl === DRIVER_LEAD_SOURCE;
-  const inboxTitle = "Lead Workspace";
+  const viewFromUrl = searchParams.get("view") === "drivers" ? "drivers" : undefined;
+  const isDriverInbox = sourceFromUrl === DRIVER_LEAD_SOURCE || viewFromUrl === "drivers";
+  const inboxTitle = isDriverInbox ? "Driver applicants" : "Inbox";
   const inboxSubtitle = isDriverInbox
-    ? "Vehicle partner applications from /vehicle-partner"
+    ? "Vehicle partner applications and driver sign-ups — kept out of the sales inbox"
     : sourceFromUrl === WEBSITE_CONTACT_LEAD_SOURCE
       ? "Website /contact inquiries"
       : sourceFromUrl === WEBSITE_NEWSLETTER_LEAD_SOURCE
         ? "Blog + footer newsletter subscriptions"
         : sourceFromUrl === "vendor_import"
           ? "Outbound vendor call queue"
-          : "Merchant, retail, driver, and newsletter inbox";
+          : "Every lead, one place. Reply in under 5 minutes.";
   const [filters, setFilters] = useState<LeadFilters>(() => {
     const base: LeadFilters = { sort: "smart" };
+    // Driver applicants live in their own view; the sales inbox hides them.
+    base.view =
+      viewFromUrl ??
+      (sourceFromUrl === DRIVER_LEAD_SOURCE ? undefined : sourceFromUrl ? "buyers" : "now");
     if (sourceFromUrl) base.source = sourceFromUrl;
     if (priorityFromUrl) base.priority = priorityFromUrl;
     if (statusFromUrl) base.status = statusFromUrl;
@@ -99,10 +106,11 @@ export default function LeadsListClient() {
         status: statusFromUrl ?? f.status,
         has_phone:
           hasPhoneFromUrl === "true" ? true : hasPhoneFromUrl === "false" ? false : undefined,
+        view: viewFromUrl ?? (sourceFromUrl === DRIVER_LEAD_SOURCE ? undefined : (f.view ?? "now")),
       };
       return next;
     });
-  }, [sourceFromUrl, priorityFromUrl, statusFromUrl, hasPhoneFromUrl]);
+  }, [sourceFromUrl, priorityFromUrl, statusFromUrl, hasPhoneFromUrl, viewFromUrl]);
 
   const deferredSearch = useDeferredValue(filters.search);
   const listFilters = { ...filters, search: deferredSearch };
@@ -127,19 +135,35 @@ export default function LeadsListClient() {
   const [loadOffset, setLoadOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  const filtersKey = JSON.stringify({ ...listFilters, offset: undefined, limit: undefined });
   useEffect(() => {
     setExtra([]);
     setLoadOffset(0);
-  }, [JSON.stringify({ ...listFilters, offset: undefined, limit: undefined })]);
+  }, [filtersKey]);
 
   const allRows = [...rows, ...extra];
   const canLoadMore = allRows.length < total;
+  const now = useNow();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [exporting, setExporting] = useState(false);
+  const allSelected = allRows.length > 0 && allRows.every((r) => selected.includes(r.id));
+  const toggle = (id: string) =>
+    setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
-  const { data: metrics } = useQuery({
-    queryKey: ["lead-metrics"],
-    enabled: isLoaded && !isDriverInbox && (isSignedIn || process.env.NODE_ENV === "development"),
-    queryFn: async () => leadsApi.metrics(await getApiToken(), 30),
-  });
+  const downloadCsv = async (ids?: string[]) => {
+    setExporting(true);
+    try {
+      const blob = await leadsApi.exportCsv(await getApiToken(), listFilters, ids);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `porterchain-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const { data: referralCredits = [] } = useQuery({
     queryKey: ["lead-referral-credits"],
@@ -147,267 +171,345 @@ export default function LeadsListClient() {
     queryFn: async () => leadsApi.referralCredits(await getApiToken()),
   });
 
+  const router = useRouter();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const nextLead = isDriverInbox
+    ? undefined
+    : (allRows.find((r) => r.awaiting_reply) ?? allRows.find((r) => r.status === "new"));
+  const currentView = filters.view ?? "buyers";
+  const activeFilterCount = [
+    filters.status,
+    filters.decision_status,
+    filters.channel,
+    filters.intent_type,
+    filters.priority,
+    filters.source,
+  ].filter(Boolean).length;
+  const rowIds = allRows.map((r) => r.id).join(",");
+  const openAt = useCallback(
+    (i: number) => {
+      const id = rowIds.split(",")[i];
+      if (id) router.push(`/leads/${id}`);
+    },
+    [rowIds, router]
+  );
+  const toggleAt = useCallback(
+    (i: number) => {
+      const id = rowIds.split(",")[i];
+      if (id) setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+    },
+    [rowIds]
+  );
+  const cursor = useTriageKeys({
+    count: allRows.length,
+    searchRef,
+    onOpen: openAt,
+    onToggle: toggleAt,
+  });
+
   return (
     <AdminPage>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">{inboxTitle}</h1>
-          <p className="text-sm text-muted">{inboxSubtitle}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {(
-              [
-                { href: "/leads", label: "All", source: undefined },
-                {
-                  href: "/leads?source=website_business",
-                  label: "Merchant",
-                  source: "website_business",
-                },
-                {
-                  href: `/leads?source=${DRIVER_LEAD_SOURCE}`,
-                  label: "Driver",
-                  source: DRIVER_LEAD_SOURCE,
-                },
-                {
-                  href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
-                  label: "Contact",
-                  source: WEBSITE_CONTACT_LEAD_SOURCE,
-                },
-                {
-                  href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
-                  label: "Newsletter",
-                  source: WEBSITE_NEWSLETTER_LEAD_SOURCE,
-                },
-                {
-                  href: "/leads?source=vendor_import&priority=high&has_phone=true&status=new",
-                  label: "Call queue",
-                  source: "vendor_import",
-                },
-                {
-                  href: "/leads/today",
-                  label: "Today",
-                  source: "__today__",
-                },
-                {
-                  href: "/leads/agent",
-                  label: "Lead Agent",
-                  source: "__agent__",
-                },
-              ] as const
-            ).map((chip) => {
-              const active =
-                chip.source === "__today__" || chip.source === "__agent__"
-                  ? false
-                  : (sourceFromUrl ?? undefined) === chip.source;
-              return (
-                <Link
-                  key={chip.label}
-                  href={chip.href}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 text-xs font-medium",
-                    active
-                      ? "border-secondary bg-secondary/10 text-secondary"
-                      : chip.source === "__agent__"
-                        ? "border-secondary/40 bg-secondary/5 text-secondary hover:bg-secondary/10"
-                        : "border-primary/10 text-muted hover:bg-slate-50"
-                  )}
-                >
-                  {chip.label}
-                </Link>
-              );
-            })}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Sales</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-primary sm:text-4xl">
+            {inboxTitle}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">{inboxSubtitle}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {nextLead ? (
             <Link
-              href="/settings?section=lead_ingest"
-              className="rounded-full border border-primary/10 px-2.5 py-1 text-xs font-medium text-muted hover:bg-slate-50"
+              href={`/leads/${nextLead.id}`}
+              className="inline-flex items-center rounded-full bg-secondary px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
             >
-              Ingest settings
+              Reply to next lead
             </Link>
-            <button
-              type="button"
-              onClick={() =>
-                setFilters((f) => ({
-                  ...f,
-                  sort: (f.sort ?? "smart") === "smart" ? "created_at" : "smart",
-                }))
-              }
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium",
-                (filters.sort ?? "smart") === "smart"
-                  ? "border-secondary bg-secondary/10 text-secondary"
-                  : "border-primary/10 text-muted hover:bg-slate-50"
-              )}
-              title="SLA breached → priority → score → newest"
-              aria-label="Toggle smart triage sort"
-              aria-pressed={(filters.sort ?? "smart") === "smart"}
-            >
-              {(filters.sort ?? "smart") === "smart" ? "Smart triage" : "Newest first"}
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setFilters((f) => ({
-                  ...f,
-                  status: f.status === "archived" ? undefined : "archived",
-                  include_archived: f.status === "archived" ? undefined : true,
-                }))
-              }
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                filters.status === "archived"
-                  ? "border-slate-400 bg-slate-100 text-slate-800"
-                  : "border-primary/10 text-muted hover:bg-slate-50"
-              )}
-              aria-label="Toggle archived leads"
-              aria-pressed={filters.status === "archived"}
-            >
-              Archived
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {!isDriverInbox ? (
-            <>
-              <Link
-                href="/leads/agent"
-                className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-                aria-label="Open Lead Agent activity"
-              >
-                Lead Agent
-              </Link>
-              <button
-                type="button"
-                onClick={() => setShowCapture(true)}
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-                aria-label="Add lead"
-              >
-                Add lead
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    merge_candidates: f.merge_candidates ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                  filters.merge_candidates
-                    ? "border-amber-300 bg-amber-50 text-amber-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-                aria-label="Toggle merge candidate queue"
-                aria-pressed={Boolean(filters.merge_candidates)}
-              >
-                Merge queue
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    sla_breached: f.sla_breached ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                  filters.sla_breached
-                    ? "border-red-300 bg-red-50 text-red-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-                aria-label="Toggle SLA-breached leads"
-                aria-pressed={Boolean(filters.sla_breached)}
-              >
-                SLA breach
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    unassigned: f.unassigned ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-                  filters.unassigned
-                    ? "border-sky-300 bg-sky-50 text-sky-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-                aria-label="Toggle unassigned leads"
-                aria-pressed={Boolean(filters.unassigned)}
-              >
-                Unassigned
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    has_open_draft: f.has_open_draft ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
-                  filters.has_open_draft
-                    ? "border-violet-300 bg-violet-50 text-violet-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-              >
-                Open draft
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    nurture_scheduled: f.nurture_scheduled ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
-                  filters.nurture_scheduled
-                    ? "border-teal-300 bg-teal-50 text-teal-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-              >
-                Nurture
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    has_abandoned: f.has_abandoned ? undefined : true,
-                  }))
-                }
-                className={cn(
-                  "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
-                  filters.has_abandoned
-                    ? "border-orange-300 bg-orange-50 text-orange-900"
-                    : "border-primary/10 text-secondary hover:bg-slate-50"
-                )}
-              >
-                Abandoned checkout
-              </button>
-              <Link
-                href="/leads/pipeline"
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-              >
-                Pipeline
-              </Link>
-              <Link
-                href="/leads/calendar"
-                className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
-              >
-                Calendar
-              </Link>
-            </>
           ) : null}
-          <Button variant="outline" onClick={() => void refetch()}>
-            <RefreshCw className="h-4 w-4" /> Refresh
-          </Button>
+          <MoreMenu>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Views
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  { href: "/leads", label: "All", source: undefined },
+                  {
+                    href: "/leads?source=website_business",
+                    label: "Merchant",
+                    source: "website_business",
+                  },
+                  {
+                    href: "/leads?view=drivers",
+                    label: "Driver applicants",
+                    source: "__drivers__",
+                  },
+                  {
+                    href: `/leads?source=${WEBSITE_CONTACT_LEAD_SOURCE}`,
+                    label: "Contact",
+                    source: WEBSITE_CONTACT_LEAD_SOURCE,
+                  },
+                  {
+                    href: `/leads?source=${WEBSITE_NEWSLETTER_LEAD_SOURCE}`,
+                    label: "Newsletter",
+                    source: WEBSITE_NEWSLETTER_LEAD_SOURCE,
+                  },
+                  {
+                    href: "/leads?source=vendor_import&priority=high&has_phone=true&status=new",
+                    label: "Call queue",
+                    source: "vendor_import",
+                  },
+                  {
+                    href: "/leads/today",
+                    label: "Today",
+                    source: "__today__",
+                  },
+                  {
+                    href: "/leads/agent",
+                    label: "Lead Agent",
+                    source: "__agent__",
+                  },
+                ] as const
+              ).map((chip) => {
+                const active =
+                  chip.source === "__today__" || chip.source === "__agent__"
+                    ? false
+                    : chip.source === "__drivers__"
+                      ? viewFromUrl === "drivers"
+                      : !viewFromUrl && (sourceFromUrl ?? undefined) === chip.source;
+                return (
+                  <Link
+                    key={chip.label}
+                    href={chip.href}
+                    className={cn(
+                      "rounded-full border px-2.5 py-1 text-xs font-medium",
+                      active
+                        ? "border-secondary bg-secondary/10 text-secondary"
+                        : chip.source === "__agent__"
+                          ? "border-secondary/40 bg-secondary/5 text-secondary hover:bg-secondary/10"
+                          : "border-primary/10 text-muted hover:bg-slate-50"
+                    )}
+                  >
+                    {chip.label}
+                  </Link>
+                );
+              })}
+              <Link
+                href="/settings?section=lead_ingest"
+                className="rounded-full border border-primary/10 px-2.5 py-1 text-xs font-medium text-muted hover:bg-slate-50"
+              >
+                Ingest settings
+              </Link>
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    sort: (f.sort ?? "smart") === "smart" ? "created_at" : "smart",
+                  }))
+                }
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs font-medium",
+                  (filters.sort ?? "smart") === "smart"
+                    ? "border-secondary bg-secondary/10 text-secondary"
+                    : "border-primary/10 text-muted hover:bg-slate-50"
+                )}
+                title="SLA breached → priority → score → newest"
+                aria-label="Toggle smart triage sort"
+                aria-pressed={(filters.sort ?? "smart") === "smart"}
+              >
+                {(filters.sort ?? "smart") === "smart" ? "Smart triage" : "Newest first"}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    status: f.status === "archived" ? undefined : "archived",
+                    include_archived: f.status === "archived" ? undefined : true,
+                  }))
+                }
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                  filters.status === "archived"
+                    ? "border-slate-400 bg-slate-100 text-slate-800"
+                    : "border-primary/10 text-muted hover:bg-slate-50"
+                )}
+                aria-label="Toggle archived leads"
+                aria-pressed={filters.status === "archived"}
+              >
+                Archived
+              </button>
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Actions
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {!isDriverInbox ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await leadsApi.rescore(await getApiToken());
+                      void refetch();
+                    }}
+                    className="inline-flex items-center rounded-xl border border-primary/15 px-3 py-2 text-sm font-medium text-primary hover:bg-slate-50"
+                  >
+                    Rescore open leads
+                  </button>
+                  <Link
+                    href="/leads/agent"
+                    className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+                    aria-label="Open Lead Agent activity"
+                  >
+                    Lead Agent
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setShowCapture(true)}
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                    aria-label="Add lead"
+                  >
+                    Add lead
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        merge_candidates: f.merge_candidates ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                      filters.merge_candidates
+                        ? "border-amber-300 bg-amber-50 text-amber-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                    aria-label="Toggle merge candidate queue"
+                    aria-pressed={Boolean(filters.merge_candidates)}
+                  >
+                    Merge queue
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        sla_breached: f.sla_breached ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                      filters.sla_breached
+                        ? "border-red-300 bg-red-50 text-red-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                    aria-label="Toggle SLA-breached leads"
+                    aria-pressed={Boolean(filters.sla_breached)}
+                  >
+                    SLA breach
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        unassigned: f.unassigned ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                      filters.unassigned
+                        ? "border-sky-300 bg-sky-50 text-sky-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                    aria-label="Toggle unassigned leads"
+                    aria-pressed={Boolean(filters.unassigned)}
+                  >
+                    Unassigned
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        has_open_draft: f.has_open_draft ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                      filters.has_open_draft
+                        ? "border-violet-300 bg-violet-50 text-violet-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                  >
+                    Open draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        nurture_scheduled: f.nurture_scheduled ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                      filters.nurture_scheduled
+                        ? "border-teal-300 bg-teal-50 text-teal-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                  >
+                    Nurture
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        has_abandoned: f.has_abandoned ? undefined : true,
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center rounded-xl border px-3 py-2 text-sm font-medium",
+                      filters.has_abandoned
+                        ? "border-orange-300 bg-orange-50 text-orange-900"
+                        : "border-primary/10 text-secondary hover:bg-slate-50"
+                    )}
+                  >
+                    Abandoned checkout
+                  </button>
+                  <Link
+                    href="/leads/pipeline"
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                  >
+                    Pipeline
+                  </Link>
+                  <Link
+                    href="/leads/calendar"
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                  >
+                    Calendar
+                  </Link>
+                  <Link
+                    href="/leads/attribution"
+                    className="inline-flex items-center rounded-xl border border-primary/10 px-3 py-2 text-sm font-medium text-secondary hover:bg-slate-50"
+                  >
+                    Attribution
+                  </Link>
+                </>
+              ) : null}
+              <Button variant="outline" onClick={() => void downloadCsv()} disabled={exporting}>
+                {exporting ? "Exporting…" : "Export CSV"}
+              </Button>
+              <Button variant="outline" onClick={() => void refetch()}>
+                <RefreshCw className="h-4 w-4" /> Refresh
+              </Button>
+            </div>
+          </MoreMenu>
         </div>
-      </div>
+      </header>
 
       {showCapture ? (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
@@ -558,297 +660,262 @@ export default function LeadsListClient() {
         </div>
       ) : null}
 
-      {metrics && !isDriverInbox ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-primary/10 bg-white p-4">
-            <p className="text-xs font-medium text-muted">Ingest (30d)</p>
-            <p className="mt-1 text-2xl font-semibold text-primary">{metrics.ingest.total}</p>
-          </div>
-          <div className="rounded-2xl border border-primary/10 bg-white p-4">
-            <p className="text-xs font-medium text-muted">Convert rate</p>
-            <p className="mt-1 text-2xl font-semibold text-primary">
-              {metrics.leads.conversion_rate}%
-            </p>
-          </div>
-          <div className="rounded-2xl border border-primary/10 bg-white p-4">
-            <p className="text-xs font-medium text-muted">SLA breached</p>
-            <p className="mt-1 text-2xl font-semibold text-primary">{metrics.sla.breached_new}</p>
-          </div>
-          <div className="rounded-2xl border border-primary/10 bg-white p-4">
-            <p className="text-xs font-medium text-muted">Meta Lead ID coverage</p>
-            <p className="mt-1 text-2xl font-semibold text-primary">
-              {metrics.capi.meta_lead_id_coverage_pct == null
-                ? "—"
-                : `${metrics.capi.meta_lead_id_coverage_pct}%`}
-            </p>
-          </div>
-        </div>
-      ) : null}
+      {!isDriverInbox ? <LeadSpeedStrip /> : null}
 
-      <div className="rounded-2xl border border-primary/10 bg-white p-4">
-        {!isDriverInbox ? (
-          <div className="mb-3 flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setFilters((f) => ({ ...f, source: undefined, channel: undefined }))}
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-xs font-medium",
-                !filters.source && !filters.channel
-                  ? "border-secondary bg-secondary/10 text-secondary"
-                  : "border-primary/10 text-muted hover:bg-slate-50"
-              )}
+      <div className="rounded-3xl border border-primary/10 bg-white p-4 sm:p-6">
+        <div className="mb-2 flex flex-wrap items-center gap-3">
+          {!isDriverInbox ? (
+            <div
+              role="tablist"
+              aria-label="Inbox view"
+              className="flex rounded-full bg-slate-100 p-1"
             >
-              All sources
-            </button>
-            {LEAD_CHANNELS.map((ch) => (
-              <button
-                key={ch}
-                type="button"
-                onClick={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    channel: f.channel === ch ? undefined : ch,
-                    source: undefined,
-                  }))
-                }
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-xs font-medium capitalize",
-                  filters.channel === ch
-                    ? "border-secondary bg-secondary/10 text-secondary"
-                    : "border-primary/10 text-muted hover:bg-slate-50"
-                )}
-              >
-                {ch.replace(/_/g, " ")}
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <div className="mb-4 flex flex-wrap gap-2">
+              {VIEW_TABS.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={currentView === t.key}
+                  onClick={() => {
+                    setSelected([]);
+                    setFilters((f) => ({
+                      ...f,
+                      view: t.key,
+                      awaiting_reply: undefined,
+                      priority: undefined,
+                      status: undefined,
+                    }));
+                  }}
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-sm font-bold",
+                    currentView === t.key
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-slate-600 hover:text-primary"
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <input
+            ref={searchRef}
             type="search"
-            placeholder="Search name, email, company…"
+            placeholder="Search…  /"
+            aria-label="Search leads (press / to focus)"
             value={filters.search ?? ""}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
-            className="min-w-[220px] flex-1 rounded-xl border border-primary/10 px-3 py-2 text-sm"
+            className="min-w-0 flex-1 basis-40 rounded-full border border-primary/15 bg-white px-4 py-2 text-sm text-primary placeholder:text-slate-500 focus:border-secondary focus:outline-none"
           />
-          <select
-            value={filters.status ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All statuses</option>
-            {LEAD_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.decision_status ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, decision_status: e.target.value || undefined }))
-            }
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All decisions</option>
-            {LEAD_DECISION_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.channel ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All channels</option>
-            {LEAD_CHANNELS.map((s) => (
-              <option key={s} value={s}>
-                {sourceLabel(s)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.intent_type ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, intent_type: e.target.value || undefined }))
-            }
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All intents</option>
-            {LEAD_INTENT_TYPES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.priority ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All priorities</option>
-            {LEAD_PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.source ?? ""}
-            onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value || undefined }))}
-            className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-          >
-            <option value="">All sources</option>
-            {LEAD_SOURCES.map((s) => (
-              <option key={s} value={s}>
-                {sourceLabel(s)}
-              </option>
-            ))}
-          </select>
+        </div>
+        <div className="mb-3">
+          <Disclosure label="Filters" count={activeFilterCount}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Saved views
+            </p>
+            <LeadSavedViews
+              filters={filters}
+              onApply={(next) => {
+                setSelected([]);
+                setFilters(next);
+              }}
+            />
+            {!isDriverInbox ? (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((f) => ({ ...f, source: undefined, channel: undefined }))
+                  }
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-medium",
+                    !filters.source && !filters.channel
+                      ? "border-secondary bg-secondary/10 text-secondary"
+                      : "border-primary/10 text-muted hover:bg-slate-50"
+                  )}
+                >
+                  All sources
+                </button>
+                {LEAD_CHANNELS.map((ch) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    onClick={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        channel: f.channel === ch ? undefined : ch,
+                        source: undefined,
+                      }))
+                    }
+                    className={cn(
+                      "rounded-full border px-2.5 py-1 text-xs font-medium capitalize",
+                      filters.channel === ch
+                        ? "border-secondary bg-secondary/10 text-secondary"
+                        : "border-primary/10 text-muted hover:bg-slate-50"
+                    )}
+                  >
+                    {ch.replace(/_/g, " ")}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <select
+                value={filters.status ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value || undefined }))}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All statuses</option>
+                {LEAD_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.decision_status ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, decision_status: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All decisions</option>
+                {LEAD_DECISION_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.channel ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, channel: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All channels</option>
+                {LEAD_CHANNELS.map((s) => (
+                  <option key={s} value={s}>
+                    {sourceLabel(s)}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.intent_type ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, intent_type: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All intents</option>
+                {LEAD_INTENT_TYPES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.priority ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, priority: e.target.value || undefined }))
+                }
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All priorities</option>
+                {LEAD_PRIORITIES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filters.source ?? ""}
+                onChange={(e) => setFilters((f) => ({ ...f, source: e.target.value || undefined }))}
+                className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
+              >
+                <option value="">All sources</option>
+                {LEAD_SOURCES.map((s) => (
+                  <option key={s} value={s}>
+                    {sourceLabel(s)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Disclosure>
         </div>
 
+        <LeadBulkBar
+          selected={selected}
+          getToken={getApiToken}
+          onDone={() => void refetch()}
+          onClear={() => setSelected([])}
+          onExportSelected={() => void downloadCsv(selected)}
+        />
         {isLoading ? (
-          <div className="flex justify-center py-12" role="status" aria-live="polite">
-            <PageSkeleton rows={3} />
-            <span className="sr-only">Loading leads</span>
-          </div>
+          <InboxSkeleton />
         ) : allRows.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted" role="status" aria-live="polite">
-            {isDriverInbox ? "No driver partner leads yet." : "No leads yet."}
-          </p>
+          <EmptyState
+            title={
+              isDriverInbox
+                ? "No driver applicants yet"
+                : currentView === "now"
+                  ? "Inbox zero"
+                  : currentView === "waiting"
+                    ? "Nobody to chase"
+                    : "No leads match"
+            }
+            hint={
+              isDriverInbox
+                ? "Vehicle-partner applications and driver sign-ups land here."
+                : currentView === "now"
+                  ? "Nobody is waiting on you. New forms, WhatsApp, email and sign-ups appear here the moment they arrive."
+                  : currentView === "waiting"
+                    ? "Leads you replied to or quoted show here until they answer."
+                    : "Try clearing filters or search."
+            }
+            action={
+              !isDriverInbox && currentView !== "buyers" ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setFilters((f) => ({ ...f, view: "buyers" }))}
+                >
+                  See all leads
+                </Button>
+              ) : null
+            }
+          />
         ) : (
-          <div className="overflow-x-auto">
+          <div>
             <p className="sr-only" aria-live="polite">
               {total} leads in inbox, showing {allRows.length}
             </p>
-            <table className="w-full min-w-[720px] text-left text-sm" aria-label="Lead inbox">
-              <thead>
-                <tr className="border-b border-primary/10 text-xs uppercase tracking-wide text-muted">
-                  <th className="px-3 py-2 font-medium">When</th>
-                  <th className="px-3 py-2 font-medium">Contact</th>
-                  <th className="px-3 py-2 font-medium">Channel</th>
-                  <th className="px-3 py-2 font-medium">Decision</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allRows.map((lead) => {
-                  const intent = leadIntent(lead);
-                  const form = leadForm(lead);
-                  return (
-                    <tr key={lead.id} className="border-b border-primary/5 hover:bg-slate-50">
-                      <td className="px-3 py-3 text-muted whitespace-nowrap">
-                        {formatWhen(lead.created_at)}
-                      </td>
-                      <td className="px-3 py-3">
-                        <Link
-                          href={`/leads/${lead.id}`}
-                          className="font-medium text-secondary hover:underline"
-                        >
-                          {lead.company_name}
-                        </Link>
-                        <p className="text-xs text-muted">
-                          {lead.primary_contact_name ?? "—"}
-                          {lead.email ? ` · ${lead.email}` : ""}
-                        </p>
-                        {(intent || lead.intent_type) && (
-                          <p className="mt-0.5 text-xs capitalize text-primary/70">
-                            Intent: {lead.intent_type ?? intent}
-                          </p>
-                        )}
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {lead.status === "archived" ? <Badge tone="slate">archived</Badge> : null}
-                          {lead.booking_draft_id ? <Badge tone="violet">draft</Badge> : null}
-                          {lead.status === "nurturing" ||
-                          (lead.tags || []).some((t) =>
-                            String(t).toLowerCase().includes("nurture")
-                          ) ? (
-                            <Badge tone="teal">nurture</Badge>
-                          ) : null}
-                          {lead.sla_first_response_due_at &&
-                          lead.status === "new" &&
-                          new Date(lead.sla_first_response_due_at).getTime() < Date.now() ? (
-                            <Badge tone="red">SLA</Badge>
-                          ) : null}
-                        </div>
-                        {lead.merge_candidate_of ? (
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <p className="text-xs text-amber-700">
-                              Merge candidate of{" "}
-                              <Link
-                                href={`/leads/${lead.merge_candidate_of}`}
-                                className="underline"
-                              >
-                                {lead.merge_candidate_of.slice(0, 8)}…
-                              </Link>
-                            </p>
-                            <button
-                              type="button"
-                              className="text-xs font-medium text-emerald-700 hover:underline"
-                              onClick={() => {
-                                void (async () => {
-                                  const token = await getApiToken();
-                                  await leadsApi.resolveMerge(token, lead.id, "accept");
-                                  void refetch();
-                                })();
-                              }}
-                            >
-                              Accept merge
-                            </button>
-                            <button
-                              type="button"
-                              className="text-xs font-medium text-muted hover:underline"
-                              onClick={() => {
-                                void (async () => {
-                                  const token = await getApiToken();
-                                  await leadsApi.resolveMerge(token, lead.id, "reject");
-                                  void refetch();
-                                })();
-                              }}
-                            >
-                              Keep separate
-                            </button>
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className="text-primary">
-                          {sourceLabel(lead.channel ?? lead.source)}
-                        </span>
-                        <p className="mt-0.5 text-xs text-muted">{sourceLabel(lead.source)}</p>
-                        {form && (
-                          <p className="mt-0.5 text-xs text-muted capitalize">Form: {form}</p>
-                        )}
-                      </td>
-                      <td className="px-3 py-3">
-                        <Badge tone={DECISION_TONES[lead.decision_status ?? "new"] ?? "slate"}>
-                          {(lead.decision_status ?? "new").replace(/_/g, " ")}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex flex-wrap gap-1">
-                          <Badge tone={STATUS_TONES[lead.status] ?? "slate"}>{lead.status}</Badge>
-                          <Badge tone={PRIORITY_TONES[lead.priority] ?? "slate"}>
-                            {lead.priority}
-                          </Badge>
-                        </div>
-                      </td>
-                      <td
-                        className={cn(
-                          "px-3 py-3 font-mono",
-                          lead.lead_score >= 30 && "font-semibold"
-                        )}
-                      >
-                        {lead.lead_score}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            {!isDriverInbox ? (
+              <div className="hidden items-center gap-3 border-b border-primary/5 pb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 md:flex">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4"
+                  aria-label="Select all leads on screen"
+                  checked={allSelected}
+                  onChange={() => setSelected(allSelected ? [] : allRows.map((r) => r.id))}
+                />
+                <span className="ml-12 flex-1">Lead</span>
+                <span className="hidden w-20 sm:block">Status</span>
+                <span className="w-24 text-right">Waiting</span>
+                <span className="w-10 text-right">Score</span>
+              </div>
+            ) : null}
+            <ul className="divide-y divide-primary/5" aria-label="Lead inbox">
+              {allRows.map((lead, idx) => (
+                <LeadRow
+                  key={lead.id}
+                  lead={lead}
+                  now={now}
+                  active={cursor === idx}
+                  selected={selected.includes(lead.id)}
+                  onToggle={() => toggle(lead.id)}
+                />
+              ))}
+            </ul>
             {canLoadMore ? (
               <div className="mt-4 flex justify-center">
                 <Button
@@ -879,6 +946,11 @@ export default function LeadsListClient() {
           </div>
         )}
       </div>
+
+      <p className="hidden text-center text-xs text-slate-500 md:block">
+        <Kbd>j</Kbd>/<Kbd>k</Kbd> move · <Kbd>Enter</Kbd> open · <Kbd>x</Kbd> select · <Kbd>/</Kbd>{" "}
+        search
+      </p>
 
       {referralCredits.length > 0 ? (
         <div className="mt-6 rounded-xl border border-primary/10 bg-white p-4">

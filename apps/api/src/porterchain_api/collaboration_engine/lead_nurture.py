@@ -247,7 +247,7 @@ def apply_nurture_after_ingest(
     from porterchain_api.config import get_settings
 
     # Zero-human lead_agent owns day-0 intro when auto-send is on.
-    if not bool(getattr(get_settings(), "lead_agent_auto_send", True)):
+    if not bool(getattr(get_settings(), "lead_agent_auto_send", False)):
         intro = enqueue_nurture_intro_email(lead, website_url=website_url, db=db)
     return {"scheduled": len(tasks), "intro_email": intro}
 

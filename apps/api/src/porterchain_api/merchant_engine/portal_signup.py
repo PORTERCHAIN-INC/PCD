@@ -111,6 +111,7 @@ def link_or_create_portal_merchant(
         return
 
     merchant = get_merchant_by_email(db, email)
+    created_new = merchant is None
     if not merchant:
         merchant = create_onboarding_merchant(
             db,
@@ -135,6 +136,12 @@ def link_or_create_portal_merchant(
         bind_seat_clerk(db, user.id, clerk_ref, activate=True)
     claim_pending_seats_for_clerk(db, email=email, clerk_id=clerk_id)
     db.commit()
+    if created_new:
+        from porterchain_api.merchant_engine.contacts_service import record_portal_signup_lead
+
+        record_portal_signup_lead(
+            db, merchant_id=merchant.id, email=email, company_name=company_name
+        )
 
 
 def save_vertical(db: Session, merchant: Any, vertical: str, industry: str | None) -> None:

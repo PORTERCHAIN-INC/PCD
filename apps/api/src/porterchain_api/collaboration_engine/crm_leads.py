@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from sqlalchemy import String, and_, case, cast, func, or_
 from sqlalchemy.orm import Session
@@ -41,6 +40,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
         include_archived: bool = False,
         tag: str | None = None,
         has_phone: bool | None = None,
+        awaiting_reply: bool | None = None,
+        view: str | None = None,
     ):
         q = db.query(CrmLead)
         if not include_archived and status != LeadStatus.ARCHIVED.value:
@@ -73,6 +74,32 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             q = q.filter(CrmLead.phone.isnot(None), CrmLead.phone != "")
         elif has_phone is False:
             q = q.filter(or_(CrmLead.phone.is_(None), CrmLead.phone == ""))
+        if awaiting_reply is True:
+            q = q.filter(CrmLead.awaiting_reply.is_(True))
+        elif awaiting_reply is False:
+            q = q.filter(CrmLead.awaiting_reply.is_(False))
+        v = (view or "").strip().lower()
+        if v == "drivers":
+            q = q.filter(CrmLead.intent_type == "driver_partner")
+        elif v == "buyers":
+            q = q.filter(CrmLead.intent_type != "driver_partner")
+        elif v == "now":
+            # Needs a human now: they wrote to us, or a hot lead nobody answered yet.
+            q = q.filter(
+                CrmLead.intent_type != "driver_partner",
+                CrmLead.status.notin_(("won", "lost")),
+                or_(
+                    CrmLead.awaiting_reply.is_(True),
+                    and_(CrmLead.status == LeadStatus.NEW.value, CrmLead.priority.in_(("high", "urgent"))),
+                ),
+            )
+        elif v == "waiting":
+            # Ball is in their court: replied or quoted, no new message from them.
+            q = q.filter(
+                CrmLead.intent_type != "driver_partner",
+                CrmLead.status.in_(("replied", "quoted")),
+                CrmLead.awaiting_reply.is_(False),
+            )
         if unassigned:
             q = q.filter(CrmLead.assigned_to.is_(None))
         if merge_candidates:
@@ -86,7 +113,10 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             )
         if has_open_draft:
             from porterchain_api.booking_draft_models import BookingDraft
-            from porterchain_api.domain.states import BOOKING_DRAFT_TERMINAL, BookingDraftState
+            from porterchain_api.domain.states import (
+                BOOKING_DRAFT_TERMINAL,
+                BookingDraftState,
+            )
 
             terminal = {s.value for s in BOOKING_DRAFT_TERMINAL}
             open_session_ids = (
@@ -109,12 +139,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
                 )
             )
         if nurture_scheduled:
-            q = q.filter(
-                or_(
-                    CrmLead.status == LeadStatus.NURTURING.value,
-                    cast(CrmLead.tags, String).ilike("%nurture%"),
-                )
-            )
+            # "nurturing" is no longer a stage (it maps to Replied) — tags only.
+            q = q.filter(cast(CrmLead.tags, String).ilike("%nurture%"))
         if has_abandoned:
             from porterchain_api.booking_models import AbandonedCheckout
 
@@ -170,6 +196,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
         sort: str = "smart",
         tag: str | None = None,
         has_phone: bool | None = None,
+        awaiting_reply: bool | None = None,
+        view: str | None = None,
     ) -> list[CrmLead]:
         q = self._leads_base_query(
             db,
@@ -195,6 +223,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             include_archived=include_archived,
             tag=tag,
             has_phone=has_phone,
+            awaiting_reply=awaiting_reply,
+            view=view,
         )
         if (sort or "smart").lower() == "smart":
             now = datetime.now(UTC)
@@ -254,6 +284,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
         include_archived: bool = False,
         tag: str | None = None,
         has_phone: bool | None = None,
+        awaiting_reply: bool | None = None,
+        view: str | None = None,
     ) -> int:
         return self._leads_base_query(
             db,
@@ -279,6 +311,8 @@ class CrmLeadsMixin(CrmLeadWriteMixin):
             include_archived=include_archived,
             tag=tag,
             has_phone=has_phone,
+            awaiting_reply=awaiting_reply,
+            view=view,
         ).count()
 
     def lead_filter_facets(self, db: Session) -> dict[str, list]:

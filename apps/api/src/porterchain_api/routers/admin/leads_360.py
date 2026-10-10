@@ -39,7 +39,9 @@ def lead_assist(
     return build_lead_assist(
         db,
         lead,
-        flags={"phase2_intelligence": bool(settings.phase2_intelligence)},
+        # phase2_intelligence_enabled() reads "intelligence"; the old key name
+        # meant the NIM path could never run even with the flag on.
+        flags={"intelligence": bool(settings.phase2_intelligence)},
         actor_id=ctx.user.id,
     )
 

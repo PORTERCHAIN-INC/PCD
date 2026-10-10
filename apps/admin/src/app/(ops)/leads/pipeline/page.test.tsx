@@ -59,9 +59,7 @@ describe("LeadsPipelinePage", () => {
 
   it("loads acquisition pipeline columns and lead cards", async () => {
     renderWithProviders(<LeadsPipelineClient />);
-    expect(
-      await screen.findByRole("heading", { name: /acquisition pipeline/i })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /^pipeline$/i })).toBeInTheDocument();
     await waitFor(() => expect(pipeline).toHaveBeenCalled());
     expect(screen.getByText(/prospecting/i)).toBeInTheDocument();
     expect(screen.getByText("Acme Logistics")).toBeInTheDocument();

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
@@ -37,20 +37,42 @@ _crm = CrmSalesService()
 _visitors = VisitorTrackingService()
 
 
-def _guide_consent(body: PublicGuideLeadCreate) -> dict:
-    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
+def _guide_consent(body: PublicGuideLeadCreate, *, ip: str | None = None) -> dict:
+    from porterchain_api.collaboration_engine.lead_consent import (
+        casl_evidence,
+        form_consent_evidence,
+    )
 
+    if body.marketing_consent is not None:
+        return form_consent_evidence(
+            marketing=bool(body.marketing_consent),
+            source="capacity_guide",
+            ip=ip,
+            locale=body.locale,
+            page=body.source_page,
+        )
+    # Cookie-banner flags are stripped inside casl_evidence.
     return casl_evidence(body.consent, source="capacity_guide", actor="lead")
 
 
 @router.post("/leads", response_model=PublicGuideLeadResponse, status_code=201)
 def upsert_guide_lead(
     body: PublicGuideLeadCreate,
+    request: Request,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
 ) -> PublicGuideLeadResponse:
     verify_public_ingest_key(settings, x_ingest_key)
+    from porterchain_api.marketing_site.form_guard import client_ip, looks_like_bot
+
+    # The guide calls this server-to-server several times per chat, so only the
+    # honeypot / fill-time checks apply here (no per-IP form rate limit).
+    if looks_like_bot(
+        honeypot=body.website, form_elapsed_ms=body.form_elapsed_ms, min_fill_seconds=2
+    ):
+        raise HTTPException(status_code=422, detail="rejected")
+    guide_ip = client_ip(request)
 
     email = body.email.strip()
     if not email or "@" not in email:
@@ -122,7 +144,7 @@ def upsert_guide_lead(
             message=(body.notes or "").strip() or None,
             tags=[t for t in ["capacity_guide", body.intent] if t],
             custom_fields={k: v for k, v in custom_patch.items() if v},
-            consent=_guide_consent(body),
+            consent=_guide_consent(body, ip=guide_ip),
             attribution={
                 k: v
                 for k, v in {

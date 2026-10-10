@@ -4,7 +4,6 @@ import {
   Bell,
   Building2,
   Calculator,
-  CalendarDays,
   ClipboardList,
   Headphones,
   HeartPulse,
@@ -18,7 +17,6 @@ import {
   UserPlus,
   Users,
   Zap,
-  Bot,
 } from "lucide-react";
 
 export type AdminNavItem = {
@@ -109,55 +107,27 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
   {
     id: "growth",
-    label: "Growth",
+    // "Sales": only what drives replies, quotes and bookings. Lead Agent, Calendar
+    // and Attribution stay reachable from the Inbox "More" menu; Blog moved to Administration.
+    label: "Sales",
     items: [
       {
         href: "/leads",
-        label: "Lead Workspace",
-        description: "Merchant, retail, driver, and newsletter inbox",
+        label: "Inbox",
+        description: "Every lead, answered in under 5 minutes",
         icon: UserPlus,
-      },
-      {
-        href: "/leads/today",
-        label: "Today Dial",
-        description: "Ready / follow-ups / interested call packs",
-        icon: Phone,
-      },
-      {
-        href: "/leads/agent",
-        label: "Lead Agent",
-        description: "Zero-human welcome, enrich, WhatsApp activity",
-        icon: Bot,
       },
       {
         href: "/leads/pipeline",
         label: "Pipeline",
-        description: "Leads + deals by stage",
+        description: "New → Replied → Quoted → Won / Lost",
         icon: LayoutDashboard,
       },
       {
-        href: "/leads/calendar",
-        label: "Sales Calendar",
-        description: "Calls and meetings from guides",
-        icon: CalendarDays,
-      },
-      {
-        href: "/leads/attribution",
-        label: "Lead Attribution",
-        description: "Leads by source, industry, FSA and UTM",
-        icon: ClipboardList,
-      },
-      {
-        href: "/blog",
-        label: "Website Blog",
-        description: "Marketing content (EN / FR)",
-        icon: Newspaper,
-      },
-      {
-        href: "/blog/authors",
-        label: "Blog authors",
-        description: "CMS author profiles for /authors",
-        icon: Users,
+        href: "/leads/today",
+        label: "Call list",
+        description: "Who to phone today",
+        icon: Phone,
       },
     ],
   },
@@ -201,6 +171,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "administration",
     label: "Administration",
     items: [
+      {
+        href: "/blog",
+        label: "Website Blog",
+        description: "Marketing content (EN / FR)",
+        icon: Newspaper,
+      },
+      {
+        href: "/blog/authors",
+        label: "Blog authors",
+        description: "CMS author profiles for /authors",
+        icon: Users,
+      },
       {
         href: "/notifications",
         label: "Notifications",
@@ -282,7 +264,7 @@ export function isNavActive(pathname: string, href: string, search = ""): boolea
     return false;
   }
 
-  // Dedicated calendar/pipeline items — don't also highlight Lead Workspace.
+  // Dedicated calendar/pipeline items — don't also highlight Inbox.
   if (
     path === "/leads" &&
     (pathname.startsWith("/leads/calendar") ||

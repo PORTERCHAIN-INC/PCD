@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine.visitor_tracking_service import VisitorTrackingService
@@ -22,7 +22,13 @@ from porterchain_api.domain.crm_states import (
 from porterchain_api.routers.public_ingest_auth import verify_public_ingest_key
 from pydantic import BaseModel, Field
 
-from porterchain_api.schemas_public import PublicInquiryCreate, PublicInquiryResponse
+from porterchain_api.schemas_public import (
+    PublicInquiryCreate,
+    PublicInquiryResponse,
+)
+
+# Contact-form inquiry types that are buying signals (→ high priority + alert).
+SALES_INQUIRY_TYPES = frozenset({"sales", "quote", "pricing", "enterprise", "demo", "business"})
 
 
 class LeadUnsubscribeRequest(BaseModel):
@@ -45,6 +51,8 @@ def _priority_for_intent(
     form: str | None = None,
 ) -> str:
     if intent in ("quote", "demo", "driver_partner"):
+        return LeadPriority.HIGH.value
+    if (inquiry_type or "").strip().lower() in SALES_INQUIRY_TYPES:
         return LeadPriority.HIGH.value
     if form in ("business", "vehicle_partner"):
         return LeadPriority.HIGH.value
@@ -85,32 +93,78 @@ def _intent_type(body: PublicInquiryCreate, source: str) -> str:
     return LeadIntentType.MERCHANT.value
 
 
-def _consent_snapshot(body: PublicInquiryCreate) -> dict[str, Any]:
-    """Normalize CMP / form consent into CrmLead.consent keys with CASL evidence."""
-    from porterchain_api.collaboration_engine.lead_consent import casl_evidence
-
-    force_marketing = None
-    if body.form == "newsletter" or body.inquiry_type == "newsletter":
-        force_marketing = True
-    return casl_evidence(
-        dict(body.consent or {}),
-        source="website_inquiry",
-        actor="lead",
-        force_marketing=force_marketing,
+def _consent_snapshot(body: PublicInquiryCreate, *, ip: str | None) -> dict[str, Any]:
+    """CASL evidence from the form's own checkbox — never from the cookie banner."""
+    from porterchain_api.collaboration_engine.lead_consent import (
+        casl_evidence,
+        form_consent_evidence,
     )
+
+    source = f"website_{(body.form or 'contact').strip().lower()[:40]}"
+    if body.marketing_consent is not None or body.contact_consent is not None:
+        return form_consent_evidence(
+            marketing=bool(body.marketing_consent),
+            source=source,
+            ip=ip,
+            locale=body.locale,
+            page=body.source_page,
+            contact_consent=body.contact_consent,
+        )
+    # Legacy clients: casl_evidence strips CMP (cookie banner) marketing flags.
+    return casl_evidence(dict(body.consent or {}), source=source, actor="lead")
+
+
+def _is_newsletter(body: PublicInquiryCreate) -> bool:
+    return body.form == "newsletter" or body.inquiry_type == "newsletter"
 
 @router.post("/inquiries", response_model=PublicInquiryResponse, status_code=201)
 def create_public_inquiry(
     body: PublicInquiryCreate,
+    request: Request,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     x_ingest_key: Annotated[str | None, Header(alias="X-Ingest-Key")] = None,
 ) -> PublicInquiryResponse:
     verify_public_ingest_key(settings, x_ingest_key)
+    from porterchain_api.marketing_site.form_guard import client_ip, guard_public_form
+
+    if guard_public_form(
+        request,
+        db,
+        bucket="inquiry",
+        app_env=settings.app_env,
+        honeypot=body.website,
+        form_elapsed_ms=body.form_elapsed_ms,
+    ):
+        # Same answer as a real submission; nothing stored.
+        return PublicInquiryResponse(id=str(uuid.uuid4()))
+    ip = client_ip(request)
 
     email = body.email.strip()
     if not email:
         raise HTTPException(status_code=422, detail="email_required")
+
+    if _is_newsletter(body):
+        # Newsletter sign-ups are subscribers (double opt-in), not sales leads.
+        from porterchain_api.collaboration_engine.newsletter_subscribers import subscribe
+
+        try:
+            sub = subscribe(
+                db,
+                email=email,
+                website_url=getattr(settings, "website_url", "") or "",
+                source_page=body.source_page,
+                locale=body.locale,
+                ip=ip,
+                attribution={
+                    "utm_source": body.utm_source,
+                    "utm_medium": body.utm_medium,
+                    "utm_campaign": body.utm_campaign,
+                },
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return PublicInquiryResponse(id=sub.id, status="pending_confirmation")
 
     contact_name = (body.name or "").strip() or email.split("@", 1)[0]
     company_name = (body.business_name or "").strip() or contact_name
@@ -162,7 +216,7 @@ def create_public_inquiry(
     if visitor_key:
         external_ids["visitor_session"] = visitor_key
 
-    consent = _consent_snapshot(body)
+    consent = _consent_snapshot(body, ip=ip)
 
     result = _ingest.ingest(
         db,
@@ -192,6 +246,8 @@ def create_public_inquiry(
                     "utm_source": body.utm_source,
                     "utm_campaign": body.utm_campaign,
                     "utm_medium": body.utm_medium,
+                    "utm_term": body.utm_term,
+                    "utm_content": body.utm_content,
                     "referred_by_merchant_id": referred_by,
                 }.items()
                 if v

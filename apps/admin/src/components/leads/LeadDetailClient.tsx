@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { hasPermission, useOptionalSessionContext } from "@porterchain/auth";
@@ -19,12 +19,16 @@ import {
   leadIntent,
   leadMessage,
   PRIORITY_TONES,
-  STATUS_TONES,
-  DECISION_TONES,
 } from "@/lib/leads";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import { LeadDialPanel } from "@/components/leads/LeadDialPanel";
+import { cn } from "@porterchain/ui/utils";
+import LeadReplyComposer from "@/components/leads/LeadReplyComposer";
+import LeadDeskPanel, { LostReasonMenu } from "@/components/leads/LeadDeskPanel";
+import { StatusPill } from "@/components/leads/LeadRow";
+import { MoreMenu } from "@/components/leads/LeadDeskBits";
+import type { ReplyPrefill } from "@/lib/leads";
 import AdminPage from "@/components/layout/AdminPage";
 
 function formatWhen(iso: string): string {
@@ -45,6 +49,25 @@ export function LeadDetailView({ id }: { id: string }) {
   const session = useOptionalSessionContext()?.session;
   const qc = useQueryClient();
   const [notes, setNotes] = useState("");
+  const [prefill, setPrefill] = useState<ReplyPrefill | null>(null);
+
+  // Triage keys on the lead page: r = reply, q = send quote, Esc = leave the box.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))) return;
+      if (e.key === "r") {
+        e.preventDefault();
+        document.getElementById("lead-reply-body")?.focus();
+      } else if (e.key === "q") {
+        e.preventDefault();
+        document.querySelector<HTMLButtonElement>("[data-send-quote]")?.click();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [saving, setSaving] = useState(false);
   const [converting, setConverting] = useState(false);
   const [convertError, setConvertError] = useState("");
@@ -242,91 +265,91 @@ export function LeadDetailView({ id }: { id: string }) {
 
   return (
     <AdminPage>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link
-            href="/leads"
-            className="mb-2 inline-flex items-center gap-2 text-sm text-secondary"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to leads
-          </Link>
-          <h1 className="text-2xl font-bold text-primary">{lead.company_name}</h1>
-          <p className="text-sm text-muted">{formatWhen(lead.created_at)}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={STATUS_TONES[lead.status] ?? "slate"}>{lead.status}</Badge>
-          <Badge tone={DECISION_TONES[lead.decision_status ?? "new"] ?? "slate"}>
-            {(lead.decision_status ?? "new").replace(/_/g, " ")}
-          </Badge>
-          <Badge tone={PRIORITY_TONES[lead.priority] ?? "slate"}>{lead.priority}</Badge>
-          <Badge tone="slate">Score {lead.lead_score}</Badge>
-          {(() => {
-            const s = (lead360?.score ?? lead.custom_fields?._score) as
-              { method?: string; heuristic?: number; predictive?: number | null } | undefined;
-            if (!s || typeof s !== "object") return null;
-            const tip = [
-              s.method ? `method ${s.method}` : null,
-              s.heuristic != null ? `h${s.heuristic}` : null,
-              s.predictive != null ? `p${s.predictive}` : null,
-            ]
-              .filter(Boolean)
-              .join(" · ");
-            return tip ? (
-              <span className="text-xs text-muted" title={tip}>
-                {tip}
+      <header className="space-y-3">
+        <Link
+          href="/leads"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-secondary"
+        >
+          <ArrowLeft className="h-4 w-4" /> Inbox
+        </Link>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-extrabold tracking-tight text-primary sm:text-4xl">
+              {lead.company_name}
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              {lead.primary_contact_name ? `${lead.primary_contact_name} · ` : ""}
+              {(lead.channel ?? lead.source).replace(/_/g, " ")} · {formatWhen(lead.created_at)}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <StatusPill status={lead.status} />
+              <LostReasonMenu lead={lead} />
+              {lead.priority === "high" || lead.priority === "urgent" ? (
+                <Badge tone={PRIORITY_TONES[lead.priority] ?? "slate"}>{lead.priority}</Badge>
+              ) : null}
+              {lead360?.sla?.breached ? (
+                <span className="text-xs font-semibold text-red-700">Over reply target</span>
+              ) : null}
+              <span className="text-xs text-slate-600">
+                {lead360?.assignee
+                  ? `Owner: ${lead360.assignee.name || lead360.assignee.email || lead360.assignee.id}`
+                  : lead.assigned_to
+                    ? ""
+                    : "No owner yet"}
               </span>
-            ) : null;
-          })()}
-          {lead360?.assignee ? (
-            <Badge tone="slate">
-              {lead360.assignee.name || lead360.assignee.email || lead360.assignee.id}
-            </Badge>
-          ) : lead.assigned_to ? (
-            <Badge tone="slate">Assignee {lead.assigned_to.slice(0, 8)}</Badge>
-          ) : (
-            <Badge tone="amber">Unassigned</Badge>
-          )}
-          {lead360?.sla?.breached ? <Badge tone="red">SLA breached</Badge> : null}
-          <Badge tone="slate">{(lead.channel ?? lead.source).replace(/_/g, " ")}</Badge>
-          {lead.status !== "converted" ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => void handleConvert(false, "merchant")}
-                disabled={converting}
-              >
-                {converting ? "Converting…" : "Convert to company"}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => void handleConvert(true, "merchant")}
-                disabled={converting}
-              >
-                {converting ? "Converting…" : "Convert → merchant"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => void handleConvert(false, "retail_customer")}
-                disabled={converting}
-              >
-                → customer
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => void handleConvert(false, "driver_partner")}
-                disabled={converting}
-              >
-                → driver partner
-              </Button>
-            </>
-          ) : null}
-          {canDelete ? (
-            <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
-              <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
-            </Button>
-          ) : null}
+            </div>
+          </div>
+          <MoreMenu>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Convert
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {lead.status !== "won" ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleConvert(false, "merchant")}
+                    disabled={converting}
+                  >
+                    {converting ? "Converting…" : "Convert to company"}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => void handleConvert(true, "merchant")}
+                    disabled={converting}
+                  >
+                    {converting ? "Converting…" : "Convert → merchant"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleConvert(false, "retail_customer")}
+                    disabled={converting}
+                  >
+                    → customer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleConvert(false, "driver_partner")}
+                    disabled={converting}
+                  >
+                    → driver partner
+                  </Button>
+                </>
+              ) : null}
+              {canDelete ? (
+                <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
+                  <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+                </Button>
+              ) : null}
+            </div>
+            <p className="text-xs text-slate-500">
+              Decision: {(lead.decision_status ?? "new").replace(/_/g, " ")}
+            </p>
+          </MoreMenu>
         </div>
-      </div>
+      </header>
+
+      <LeadDeskPanel lead={lead} onPrefill={setPrefill} />
 
       {convertError ? (
         <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{convertError}</p>
@@ -369,11 +392,13 @@ export function LeadDetailView({ id }: { id: string }) {
       )}
 
       {lead360?.urgent_unassigned_tasks && lead360.urgent_unassigned_tasks.length > 0 ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-          Urgent follow-up task (unassigned high) —{" "}
-          {String(lead360.urgent_unassigned_tasks[0]?.title ?? "open task")}
-        </div>
+        <p className="flex items-center gap-2 text-xs text-slate-600" role="note">
+          <span className="h-1.5 w-1.5 rounded-full bg-red-600" aria-hidden />
+          Open task: {String(lead360.urgent_unassigned_tasks[0]?.title ?? "follow up")}
+        </p>
       ) : null}
+
+      <LeadReplyComposer lead={lead} prefill={prefill} />
 
       <LeadDialPanel lead={lead} />
 
@@ -754,8 +779,21 @@ export function LeadDetailView({ id }: { id: string }) {
                 </p>
                 <ul className="space-y-2">
                   {c.messages.map((m) => (
-                    <li key={m.id} className="text-sm">
-                      <span className="text-xs text-muted">{m.direction}</span>
+                    <li
+                      key={m.id}
+                      className={cn(
+                        "max-w-[85%] rounded-xl px-3 py-2 text-sm",
+                        m.direction === "outbound" ? "ml-auto bg-secondary/10" : "bg-slate-100"
+                      )}
+                    >
+                      <span className="text-xs text-muted">
+                        {m.direction === "outbound"
+                          ? "PorterChain"
+                          : m.direction === "inbound"
+                            ? "Lead"
+                            : m.direction}
+                        {m.occurred_at ? ` · ${new Date(m.occurred_at).toLocaleString()}` : ""}
+                      </span>
                       <p className="whitespace-pre-wrap text-primary">{m.body}</p>
                     </li>
                   ))}
@@ -906,6 +944,7 @@ export function LeadDetailView({ id }: { id: string }) {
           <EntityTasks entityType="lead" entityId={id} />
         </Panel>
       </div>
+      <div className="h-24 md:hidden" aria-hidden />
     </AdminPage>
   );
 }

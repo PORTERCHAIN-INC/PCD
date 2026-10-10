@@ -25,8 +25,41 @@ class PublicInquiryCreate(BaseModel):
     referred_by_merchant_id: str | None = Field(default=None, max_length=64)
     # pc_vid from website visitor-tracking — stamps CrmLead.visitor_session_id.
     visitor_id: str | None = Field(default=None, max_length=128)
-    # Marketing / SMS / WhatsApp consent snapshot from CMP + form opt-ins.
+    # Legacy consent snapshot. CMP (cookie banner) values are ignored for email.
     consent: dict[str, Any] | None = None
+    # Explicit, unchecked-by-default CASL marketing checkbox on the form.
+    marketing_consent: bool | None = None
+    # Required "contact me about this request" box (vehicle-partner form).
+    contact_consent: bool | None = None
+    locale: str | None = Field(default=None, max_length=8)
+    utm_term: str | None = Field(default=None, max_length=128)
+    utm_content: str | None = Field(default=None, max_length=128)
+    # Spam guard (same as the calculator): honeypot + time-to-fill.
+    website: str | None = Field(default=None, max_length=200)
+    form_elapsed_ms: int | None = Field(default=None, ge=0)
+
+
+class NewsletterSubscribeRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    source_page: str | None = Field(default=None, max_length=512)
+    locale: str | None = Field(default=None, max_length=8)
+    utm_source: str | None = Field(default=None, max_length=128)
+    utm_medium: str | None = Field(default=None, max_length=128)
+    utm_campaign: str | None = Field(default=None, max_length=128)
+    website: str | None = Field(default=None, max_length=200)
+    form_elapsed_ms: int | None = Field(default=None, ge=0)
+
+
+class NewsletterSubscribeResponse(BaseModel):
+    status: str = "pending_confirmation"
+
+
+class NewsletterConfirmRequest(BaseModel):
+    token: str = Field(min_length=16, max_length=256)
+
+
+class NewsletterConfirmResponse(BaseModel):
+    status: str
 
 
 class PublicInquiryResponse(BaseModel):
@@ -47,6 +80,10 @@ class PublicGuideLeadCreate(BaseModel):
     visitor_id: str | None = Field(default=None, max_length=128)
     source_page: str | None = Field(default=None, max_length=512)
     notes: str | None = Field(default=None, max_length=4000)
+    marketing_consent: bool | None = None
+    locale: str | None = Field(default=None, max_length=8)
+    website: str | None = Field(default=None, max_length=200)
+    form_elapsed_ms: int | None = Field(default=None, ge=0)
     utm_source: str | None = Field(default=None, max_length=128)
     utm_campaign: str | None = Field(default=None, max_length=128)
     utm_medium: str | None = Field(default=None, max_length=128)
