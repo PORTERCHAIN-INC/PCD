@@ -129,24 +129,6 @@ export function donutChartOption(
   };
 }
 
-export function roseChartOption(slices: Array<{ name: string; value: number }>): EChartsOption {
-  return {
-    color: ["#2563eb", "#38bdf8", "#10b981", "#f59e0b", "#ef4444"],
-    tooltip: { trigger: "item" },
-    series: [
-      {
-        type: "pie",
-        roseType: "radius",
-        radius: ["16%", "68%"],
-        center: ["50%", "52%"],
-        itemStyle: { borderRadius: 5 },
-        label: { fontSize: 11 },
-        data: slices.filter((s) => s.value > 0),
-      },
-    ],
-  };
-}
-
 export function funnelChartOption(stages: Array<{ name: string; value: number }>): EChartsOption {
   const data = stages.filter((s) => s.value >= 0);
   const safe = data.some((s) => s.value > 0) ? data : [{ name: "No volume", value: 1 }];
@@ -167,60 +149,6 @@ export function funnelChartOption(stages: Array<{ name: string; value: number }>
         label: { fontSize: 11, color: "#0a1628" },
         itemStyle: { borderColor: "#fff", borderWidth: 2 },
         data: safe,
-      },
-    ],
-  };
-}
-
-/** Dual axis: spend ($) + orders for owner / accounting canvas. */
-export function compactTrendOption(
-  labels: string[],
-  spendDollars: number[],
-  orders: number[]
-): EChartsOption {
-  return {
-    color: ["#2563eb", "#0ea5e9"],
-    tooltip: { trigger: "axis" },
-    legend: { top: 0, right: 0, textStyle: { fontSize: 11 } },
-    grid: { left: 40, right: 36, top: 28, bottom: 28 },
-    xAxis: {
-      type: "category",
-      data: labels,
-      boundaryGap: false,
-      axisLabel: { fontSize: 10, color: "#64748b" },
-    },
-    yAxis: [
-      {
-        type: "value",
-        name: "$",
-        nameTextStyle: { fontSize: 10 },
-        splitLine: { lineStyle: { type: "dashed", color: "#e2e8f0" } },
-        axisLabel: { fontSize: 10 },
-      },
-      {
-        type: "value",
-        name: "ord",
-        nameTextStyle: { fontSize: 10 },
-        splitLine: { show: false },
-        axisLabel: { fontSize: 10 },
-      },
-    ],
-    series: [
-      {
-        name: "Spend",
-        type: "line",
-        smooth: true,
-        showSymbol: false,
-        areaStyle: { opacity: 0.12 },
-        data: spendDollars,
-      },
-      {
-        name: "Orders",
-        type: "line",
-        smooth: true,
-        showSymbol: false,
-        yAxisIndex: 1,
-        data: orders,
       },
     ],
   };

@@ -2,17 +2,18 @@
 
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
 import { MerchantDashboardGraphics } from "@/components/dashboard/MerchantDashboardGraphics";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { RecentDeliveries } from "@/components/dashboard/RecentDeliveries";
 import CompanyCompletenessBanner from "@/components/onboarding/CompanyCompletenessBanner";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { getDashboard } from "@/lib/api";
-import { merchantPortalJob } from "@/lib/merchant-nav";
+import { hasMerchantModule, merchantPortalJob } from "@/lib/merchant-nav";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useCallback } from "react";
+import { buttonClasses } from "@/components/ui/Button";
 
 export default function DashboardPage() {
   const { getApiToken, orgId, isLoaded, isSignedIn, modules } = useMerchantAuth();
@@ -44,8 +45,6 @@ export default function DashboardPage() {
   }
   if (!data) return null;
 
-  const invoiceUrl =
-    data.latest_invoice?.pdf_url ?? data.latest_invoice?.stripe_receipt_url ?? null;
   const showFinance = job === "accounting" || job === "owner";
   const homeCopy =
     job === "dispatcher"
@@ -70,11 +69,14 @@ export default function DashboardPage() {
             {isFetching && !isLoading && <span className="ml-2 text-secondary">Updating…</span>}
           </p>
         </div>
+        {hasMerchantModule(modules, "book") ? (
+          <Link href="/book" className={buttonClasses("primary", "md")}>
+            Book a delivery
+          </Link>
+        ) : null}
       </div>
 
       <MerchantDashboardGraphics data={data} job={job} />
-
-      <QuickActions invoiceUrl={invoiceUrl} />
 
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2">

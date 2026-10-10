@@ -3,32 +3,15 @@
 import { useMemo, type ComponentType } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Activity,
-  Package,
-  Truck,
-  Wallet,
-  AlertTriangle,
-  FileText,
-  LifeBuoy,
-  Zap,
-} from "lucide-react";
+import { Truck, Wallet, AlertTriangle, FileText, LifeBuoy, Zap } from "lucide-react";
 import ReportChart, {
   areaTrendOption,
   barChartOption,
-  compactTrendOption,
   donutChartOption,
   funnelChartOption,
-  roseChartOption,
   sparklineOption,
 } from "@/components/charts/ReportChart";
-import {
-  AnimatedRing,
-  BentoCell,
-  BentoGrid,
-  NumberTicker,
-  SpotlightCard,
-} from "@/components/dashboard/magic";
+import { AnimatedRing, BentoGrid, NumberTicker, SpotlightCard } from "@/components/dashboard/magic";
 import type { MerchantDashboard } from "@/lib/api";
 import type { MerchantPortalJob } from "@/lib/merchant-nav";
 import { formatCents } from "@/lib/utils";
@@ -275,16 +258,6 @@ export function MerchantDashboardGraphics({
     [data.todays_orders, data.awaiting_pickup, data.in_transit, data.delivered_today]
   );
 
-  const dualLabels = orderLabels.length >= spendLabels.length ? orderLabels : spendLabels;
-  const dualOrders =
-    orderValues.length === dualLabels.length
-      ? orderValues
-      : dualLabels.map((_, i) => orderValues[i] ?? 0);
-  const dualSpend =
-    spendDollars.length === dualLabels.length
-      ? spendDollars
-      : dualLabels.map((_, i) => spendDollars[i] ?? 0);
-
   return (
     <motion.div
       className="space-y-4"
@@ -298,30 +271,6 @@ export function MerchantDashboardGraphics({
 
       <motion.div variants={fade}>
         <BentoGrid>
-          {showTrack ? (
-            <KpiTile
-              label="Today's orders"
-              value={data.todays_orders}
-              spark={orderValues}
-              href="/orders"
-              icon={Package}
-            />
-          ) : null}
-          {showOps ? (
-            <KpiTile
-              label="Awaiting pickup"
-              value={data.awaiting_pickup}
-              href="/orders"
-              icon={Activity}
-              hint="Ready for driver"
-            />
-          ) : null}
-          {showTrack ? (
-            <KpiTile label="In transit" value={data.in_transit} href="/track" icon={Truck} />
-          ) : null}
-          {showOps ? (
-            <KpiTile label="Monthly orders" value={data.monthly_orders} icon={Package} />
-          ) : null}
           {showFinance ? (
             <KpiTile
               label="Monthly spend"
@@ -398,7 +347,7 @@ export function MerchantDashboardGraphics({
           </SpotlightCard>
         ) : null}
 
-        {showTrack && stateSlices.length > 0 ? (
+        {stateSlices.length > 0 ? (
           <SpotlightCard className="p-4 xl:col-span-1">
             <p className="text-sm font-semibold text-primary">Orders by status</p>
             <p className="mb-1 text-xs text-muted">Active mix across your account</p>
@@ -408,35 +357,6 @@ export function MerchantDashboardGraphics({
               })}
               height={240}
             />
-          </SpotlightCard>
-        ) : null}
-
-        {job === "owner" && dualLabels.length > 0 ? (
-          <SpotlightCard className="p-4 lg:col-span-2 xl:col-span-2">
-            <p className="text-sm font-semibold text-primary">Spend vs volume</p>
-            <p className="mb-1 text-xs text-muted">
-              Dual trend — capacity usage and what you&apos;re paying
-            </p>
-            <ReportChart
-              option={compactTrendOption(dualLabels, dualSpend, dualOrders)}
-              height={240}
-            />
-          </SpotlightCard>
-        ) : null}
-
-        {job === "accounting" && stateSlices.length > 0 ? (
-          <SpotlightCard className="p-4">
-            <p className="text-sm font-semibold text-primary">Status rose</p>
-            <p className="mb-1 text-xs text-muted">Where volume sits across states</p>
-            <ReportChart option={roseChartOption(stateSlices)} height={240} />
-          </SpotlightCard>
-        ) : null}
-
-        {job === "viewer" && stateSlices.length > 0 ? (
-          <SpotlightCard className="p-4">
-            <p className="text-sm font-semibold text-primary">Status mix</p>
-            <p className="mb-1 text-xs text-muted">Where your shipments are now</p>
-            <ReportChart option={roseChartOption(stateSlices)} height={240} />
           </SpotlightCard>
         ) : null}
       </motion.div>

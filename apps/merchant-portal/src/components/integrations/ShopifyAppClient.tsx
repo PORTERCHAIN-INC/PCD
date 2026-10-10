@@ -6,6 +6,7 @@ import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { publicEnv } from "@/lib/env";
 import { shopifyInstallError, shopifyRatesProblem } from "@/lib/shopifyStatus";
 import { PageSkeleton } from "@porterchain/ui/loading";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -20,7 +21,13 @@ function normalizeShop(raw: string | null): string {
 }
 
 export default function ShopifyAppClient() {
-  const { isLoaded, isSignedIn } = useMerchantAuth();
+  const { isLoaded, isSignedIn, orgId } = useMerchantAuth();
+  // Reads what ConnectionsStatus already fetched; never fetches on its own.
+  const status = useQuery<{ shopify: { shops: unknown[] } }>({
+    queryKey: ["merchant-connections-status", orgId],
+    enabled: false,
+  });
+  const hasStore = (status.data?.shopify.shops.length ?? 0) > 0;
   const searchParams = useSearchParams();
   const shop = normalizeShop(searchParams.get("shop") ?? searchParams.get("shopify"));
   const justConnected = searchParams.get("connected") === "1";
@@ -119,7 +126,7 @@ export default function ShopifyAppClient() {
       <ConnectionsStatus title="PorterChain for Shopify" />
       {errorBanner}
       <details
-        open={!shop || justConnected}
+        open={justConnected || (!hasStore && status.isSuccess)}
         className="group rounded-3xl border border-primary/10 bg-white"
       >
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-base font-bold text-primary sm:px-6">

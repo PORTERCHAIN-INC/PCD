@@ -8,9 +8,7 @@ export {
   barChartOption,
   sparklineOption,
   donutChartOption,
-  roseChartOption,
   funnelChartOption,
-  compactTrendOption,
 } from "@/components/charts/reportChartOptions";
 
 const ReportChartInner = dynamic(() => import("@/components/charts/ReportChartInner"), {

@@ -81,22 +81,6 @@ export function BentoGrid({ children, className }: { children: ReactNode; classN
   );
 }
 
-export function BentoCell({
-  children,
-  className,
-  span = 1,
-}: {
-  children: ReactNode;
-  className?: string;
-  span?: 1 | 2;
-}) {
-  return (
-    <SpotlightCard className={cn(span === 2 && "md:col-span-2", "p-4", className)}>
-      {children}
-    </SpotlightCard>
-  );
-}
-
 /** SVG circular progress — Magic UI vibe without extra deps. */
 export function AnimatedRing({
   value,
