@@ -235,7 +235,7 @@ def _driver(db: Session, cls: str = "van") -> Driver:
 
 
 def _order(db: Session, pickup, dropoff, boxes=2, **kw) -> Order:
-    o = Order(id=str(uuid4()), order_number=generate_order_number(), tracking_number=generate_tracking_number(),
+    o = Order(id=str(uuid4()), order_number=generate_order_number(), tracking_number=f"{generate_tracking_number()}-{uuid4().hex[:6]}",  # bulk helpers: no same-day suffix collisions
               state=kw.pop("state", "DISPATCH_READY"), amount_cents=4500, currency="cad", pickup=pickup,
               dropoff=dropoff, scheduled_at=datetime.now(UTC) + timedelta(hours=1), **kw)
     db.add(o)
