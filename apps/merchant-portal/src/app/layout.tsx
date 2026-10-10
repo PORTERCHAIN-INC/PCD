@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { APP_BRIDGE_SRC, EMBEDDED_HEADER, shopifyApiKey } from "@/lib/shopifyEmbed";
 import { Carlito } from "next/font/google";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const initialOrgId = (await merchantOrgId()) ?? undefined;
   const impersonating = (await cookies()).get(PC_IMP_FLAG)?.value === "1";
+  const embedded = (await headers()).get(EMBEDDED_HEADER) === "1";
   const client = new QueryClient();
   if (initialOrgId && !impersonating) {
     const inbox = await merchantServerFetch<unknown>(
@@ -41,6 +43,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       style={{ colorScheme: "light" }}
     >
+      {embedded ? (
+        <head>
+          <meta name="shopify-api-key" content={shopifyApiKey()} />
+          {/* eslint-disable-next-line @next/next/no-sync-scripts -- App Bridge must load first, synchronously */}
+          <script src={APP_BRIDGE_SRC} />
+        </head>
+      ) : null}
       <body className={`${brand.className} min-h-dvh bg-gray-bg text-primary antialiased`}>
         <AppClerkProvider
           publishableKey={publicEnv.clerkPublishableKey}
