@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine import events as E
 from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.numbers import generate_invoice_number, generate_receipt_number
+from porterchain_api.billing_engine.invoice_numbering import allocate_invoice_number
+from porterchain_api.booking_engine.numbers import generate_receipt_number
 from porterchain_api.booking_engine.order_transitions import transition_order_state
 from porterchain_api.domain.states import OrderState, PaymentStatus
 from porterchain_api.booking_models import Customer, Invoice, Order, Payment
@@ -69,6 +70,12 @@ class InvoiceService:
         if order.state != OrderState.POD_COMPLETED.value:
             return db.query(Invoice).filter(Invoice.order_id == order.id).first()
 
+        from porterchain_api.admin_engine.merchant_ar_service import is_cycle_billed
+
+        if is_cycle_billed(db, order):
+            # Net-terms merchant: billed on the consolidated cycle invoice, not per order.
+            return None
+
         invoice = self.ensure_invoice(db, order)
         db.flush()
 
@@ -111,18 +118,20 @@ class InvoiceService:
         from porterchain_api.admin_engine.platform_settings import (
             invoice_number_prefix,
             receipt_number_prefix,
-            tax_cents_for_amount,
         )
+        from porterchain_api.platform.merchant_billing import charged_tax_split
 
         amount_cents = int(order.amount_cents or 0)
+        split = charged_tax_split(db, order, amount_cents)
         invoice = Invoice(
-            invoice_number=generate_invoice_number(prefix=invoice_number_prefix(db)),
+            invoice_number=allocate_invoice_number(db, prefix=invoice_number_prefix(db)),
             receipt_number=generate_receipt_number(prefix=receipt_number_prefix(db)),
             order_id=order.id,
             customer_id=order.customer_id,
             merchant_id=order.merchant_id,
             amount_cents=amount_cents,
-            tax_cents=tax_cents_for_amount(db, amount_cents),
+            tax_cents=split.tax_cents,
+            tax_province=split.province,
             fees_cents=0,
             currency=order.currency or "cad",
             stripe_receipt_url=receipt_url or (payment.receipt_url if payment else None),
@@ -130,6 +139,10 @@ class InvoiceService:
         )
         db.add(invoice)
         db.flush()
+        if invoice.merchant_id and not invoice.customer_id:
+            from porterchain_api.billing_engine.invoice_numbering import ensure_payment_reference
+
+            ensure_payment_reference(db, invoice)
         from porterchain_api.billing_engine.invoice_document import attach_invoice_document
 
         attach_invoice_document(db, invoice, order, payment)
@@ -176,25 +189,23 @@ class InvoiceService:
         for row in rows:
             merge_additional_payment(db, row.id)
 
-    def _invoice_event_payload(self, db: Session, order: Order, invoice: Invoice) -> dict[str, Any]:
+    def _invoice_event_payload(self, db: Session, order: Order | None, invoice: Invoice) -> dict[str, Any]:
+        # Cycle invoices have no order: fall back to the invoice's own merchant/customer.
         payment = (
-            db.query(Payment)
-            .filter(Payment.order_id == order.id)
-            .order_by(Payment.created_at.desc())
-            .first()
-        )
-        customer = (
-            db.query(Customer).filter(Customer.id == order.customer_id).first()
-            if order.customer_id
+            db.query(Payment).filter(Payment.order_id == order.id).order_by(Payment.created_at.desc()).first()
+            if order is not None
             else None
         )
+        customer_id = order.customer_id if order is not None else invoice.customer_id
+        merchant_id = order.merchant_id if order is not None else invoice.merchant_id
+        customer = db.query(Customer).filter(Customer.id == customer_id).first() if customer_id else None
         from porterchain_api.admin_engine.platform_settings import (
             platform_company_name,
             platform_support_email,
         )
         from porterchain_api.merchant_engine.lookups import get_merchant
 
-        merchant = get_merchant(db, order.merchant_id)
+        merchant = get_merchant(db, merchant_id) if merchant_id else None
         from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
 
         billing_email = primary_billing_email(merchant) if merchant else None
@@ -209,11 +220,12 @@ class InvoiceService:
         return {
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
-            "order_id": order.id,
-            "order_number": order.order_number,
-            "tracking_number": order.tracking_number,
-            "customer_id": order.customer_id,
-            "merchant_id": order.merchant_id,
+            "order_id": order.id if order is not None else None,
+            "order_number": order.order_number if order is not None else "Billing cycle",
+            "tracking_number": order.tracking_number if order is not None else None,
+            "payment_reference": getattr(invoice, "payment_reference", None),
+            "customer_id": customer_id,
+            "merchant_id": merchant_id,
             "merchant_name": (merchant.company_name if merchant else None)
             or platform_company_name(db),
             "merchant_email": billing_email,

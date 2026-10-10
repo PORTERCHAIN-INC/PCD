@@ -444,6 +444,8 @@ class AdminDashboardService:
             order = db.query(Order).filter(Order.id == inv.order_id).first()
             payment = (
                 db.query(Payment).filter(Payment.order_id == inv.order_id).order_by(Payment.created_at.desc()).first()
+                if inv.order_id
+                else None
             )
             hits.append(
                 {

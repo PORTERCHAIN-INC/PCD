@@ -60,3 +60,12 @@ def create_identity_verification_session(**kwargs: Any) -> Any:
 
 def retrieve_identity_verification_session(session_id: str) -> Any:
     return stripe.identity.VerificationSession.retrieve(session_id)
+
+
+def list_payout_balance_transactions(payout_id: str) -> list[dict[str, Any]]:
+    """Every balance transaction settled in one payout (charges, refunds, fees, disputes)."""
+    out: list[dict[str, Any]] = []
+    page = stripe.BalanceTransaction.list(payout=payout_id, limit=100, expand=["data.source"])
+    for txn in page.auto_paging_iter():
+        out.append(txn.to_dict() if hasattr(txn, "to_dict") else dict(txn))
+    return out

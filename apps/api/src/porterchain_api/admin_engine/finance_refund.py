@@ -25,8 +25,8 @@ def refund_invoice(
     invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not invoice:
         raise LookupError("invoice_not_found")
-    order = db.query(Order).filter(Order.id == invoice.order_id).first()
-    if not order:
+    order = db.query(Order).filter(Order.id == invoice.order_id).first() if invoice.order_id else None
+    if not order:  # cycle (Interac) invoices are not Stripe-refundable
         raise LookupError("order_not_found")
     payment = svc._payment_for_order(db, invoice.order_id)
     pi = payment.stripe_payment_intent_id if payment and payment.stripe_payment_intent_id else order.stripe_payment_intent_id

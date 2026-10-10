@@ -70,10 +70,16 @@ def remittance_pack(
     open_invoice_numbers: list[str],
     net_terms_days: int,
     credits_applied_cents: int,
+    open_references: list[str] | None = None,
+    etransfer_email: str | None = None,
 ) -> dict[str, Any]:
     numbers = [n for n in open_invoice_numbers if n]
-    memo = ", ".join(numbers[:8]) if numbers else "invoice numbers from Billing"
+    refs = [r for r in (open_references or []) if r]
+    memo = ", ".join((refs or numbers)[:8]) if (refs or numbers) else "invoice numbers from Billing"
     return {
+        "method": "interac",
+        "etransfer_email": etransfer_email,
+        "open_references": refs[:20],
         "payee": PAYEE_LEGAL_NAME,
         "advice_email": primary_billing_email(merchant),
         "memo": memo,
@@ -82,11 +88,24 @@ def remittance_pack(
         "credits_applied_cents": credits_applied_cents,
         "net_terms_days": net_terms_days,
         "instructions": (
-            f"Pay {PAYEE_LEGAL_NAME}. Put {memo} on the wire or cheque. "
-            "Send remittance advice to the billing email. "
-            "Bank details are on the invoice PDF or from your PorterChain contact."
+            f"Pay by Interac e-Transfer to {etransfer_email or 'the billing email on your invoice'}. "
+            f"Put {memo} in the e-Transfer message so we can match it. "
+            "Partial payments are applied; any overpayment becomes credit on your next invoice."
         ),
     }
+
+
+def _etransfer_email(db) -> str:
+    from porterchain_api.platform.merchant_billing import etransfer_recipient_email
+
+    return etransfer_recipient_email(db)
+
+
+def _credit_balance(db, merchant_id: str) -> int:
+    """Overpayment credit carried to the next invoice."""
+    from porterchain_api.platform.merchant_billing import merchant_credit_cents
+
+    return merchant_credit_cents(db, merchant_id)
 
 
 def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[str, Any]:
@@ -118,6 +137,7 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
         "available_credit_cents": available,
         "headroom_cents": available,
         "credits_applied_cents": credit_notes_cents,
+        "credit_balance_cents": _credit_balance(db, merchant.id),
         "glossary": BILLING_GLOSSARY,
         "remittance": remittance_pack(
             merchant,
@@ -125,6 +145,12 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
             open_invoice_numbers=open_numbers,
             net_terms_days=int(summary["net_terms_days"]),
             credits_applied_cents=credit_notes_cents,
+            open_references=[
+                str(r.get("payment_reference") or "")
+                for r in enriched
+                if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled")
+            ],
+            etransfer_email=_etransfer_email(db),
         ),
         "outstanding_balance_cents": outstanding_balance,
         "outstanding_invoices_cents": outstanding_invoices,
@@ -135,7 +161,7 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
         "overdue_invoice_count": ar.overdue_invoice_count,
         "billing_cycles_available": list(billing_cycles),
         "invoices_due": sum(
-            1 for r in enriched if r["status"] in ("sent", "overdue", "pending") and r["outstanding_cents"] > 0
+            1 for r in enriched if r["status"] in ("sent", "overdue", "pending", "partial") and r["outstanding_cents"] > 0
         ),
         "overdue_invoices": sum(1 for r in enriched if r["status"] == "overdue"),
         "invoice_count": len(invoices),

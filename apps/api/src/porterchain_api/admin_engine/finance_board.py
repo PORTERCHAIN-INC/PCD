@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from porterchain_api.admin_models import Driver, DriverPayout
+from porterchain_api.platform.merchant_billing import merchant_credit_total_cents
 from porterchain_api.booking_models import Customer, Invoice, Order, Payment
 from porterchain_api.domain.states import OrderState
 from porterchain_api.driver_models import DriverWalletTransaction
@@ -50,6 +51,7 @@ def dashboard_payload(svc: Any, db: Session) -> dict[str, Any]:
     overdue_count = 0
     outstanding_count = 0
     paid_count = 0
+    merchant_ar_cents = 0
     for inv in db.query(Invoice).all():
         order = db.query(Order).filter(Order.id == inv.order_id).first()
         if order is not None and bool(getattr(order, "is_sandbox", False)):
@@ -64,6 +66,8 @@ def dashboard_payload(svc: Any, db: Session) -> dict[str, Any]:
             outstanding_total += outstanding
             if outstanding > 0:
                 outstanding_count += 1
+            if inv.merchant_id and not inv.customer_id:
+                merchant_ar_cents += outstanding
         if st == "overdue":
             overdue_count += 1
 
@@ -123,7 +127,10 @@ def dashboard_payload(svc: Any, db: Session) -> dict[str, Any]:
         "paid_payments_count": int(succeeded),
         "refunds_count": int(refunds),
         "credit_notes_count": svc._credit_notes_count(db),
-        "merchant_balances_cents": int(svc._credit_limit_cents_sum(db)),
+        # What merchants owe us right now (open B2B invoices, net of partial payments).
+        # Was the sum of credit *limits*, which is not a balance.
+        "merchant_balances_cents": int(merchant_ar_cents),
+        "merchant_credit_balances_cents": int(merchant_credit_total_cents(db)),
         "driver_payouts_pending_cents": int(pending_payouts),
         "driver_payouts_paid_cents": int(paid_payouts),
         "driver_wallets_cents": int(driver_wallets),
@@ -148,7 +155,7 @@ def collections_payload(svc: Any, db: Session) -> list[dict[str, Any]]:
             continue
         payment = svc._payment_for_order(db, inv.order_id)
         st = svc._invoice_status(inv, order, payment)
-        if st not in ("overdue", "sent", "pending") or svc._outstanding_cents(inv, st) <= 0:
+        if st not in ("overdue", "sent", "pending", "partial") or svc._outstanding_cents(inv, st) <= 0:
             continue
         row = svc._invoice_row(db, inv)
         row["days_overdue"] = svc._days_overdue(row.get("due_date"), st)

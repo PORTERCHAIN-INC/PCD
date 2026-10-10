@@ -221,3 +221,56 @@ def address_in_coverage(
     if not hay.strip():
         return False
     return any(name in hay for name in allowed)
+
+
+# --- Invoicing / Interac (CRA + e-Transfer) -------------------------------------------
+
+GST_HST_PLACEHOLDER = "PENDING-GST-HST-NUMBER"
+
+
+def supplier_gst_hst_number(db: Session) -> str:
+    """PorterChain's own GST/HST registration (BN + RT0001). CRA requires it on any invoice
+    of $100+ for the recipient's input tax credit. Placeholder until Ravi sets it."""
+    raw = str(finance_settings(db).get("gst_hst_number") or "").strip()
+    return raw or GST_HST_PLACEHOLDER
+
+
+def tax_label(db: Session) -> str:
+    pct = default_tax_percent(db)
+    name = str(finance_settings(db).get("tax_name") or "HST").strip() or "HST"
+    return f"{name} {pct:g}%"
+
+
+def etransfer_recipient_email(db: Session) -> str:
+    raw = str(finance_settings(db).get("etransfer_email") or "").strip()
+    return raw or "billing@porterchain.com"
+
+
+def etransfer_autodeposit(db: Session) -> bool:
+    return bool(finance_settings(db).get("etransfer_autodeposit", True))
+
+
+def tax_mode(db: Session) -> str:
+    """"exclusive" (default, B2B norm): rates are pre-tax, tax added on top.
+    "inclusive": prices already include tax; tax is extracted."""
+    raw = str(finance_settings(db).get("tax_mode") or "exclusive").strip().lower()
+    return raw if raw in ("exclusive", "inclusive") else "exclusive"
+
+
+def default_tax_province(db: Session) -> str:
+    return (str(finance_settings(db).get("default_tax_province") or "ON").strip().upper() or "ON")[:2]
+
+
+def collect_qst(db: Session) -> bool:
+    return bool(finance_settings(db).get("collect_qst", False))
+
+
+def finance_number(db: Session, key: str, default: float) -> float:
+    try:
+        return float(finance_settings(db).get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def merchant_cycle_invoicing_enabled(db: Session) -> bool:
+    return bool(finance_settings(db).get("merchant_cycle_invoicing", True))

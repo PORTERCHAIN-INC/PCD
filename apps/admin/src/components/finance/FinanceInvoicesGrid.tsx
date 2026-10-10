@@ -120,8 +120,15 @@ function FinanceInvoicesGridTable({
         accessorKey: "order_number",
         header: "Order",
         size: 100,
-        cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{String(getValue() || "—")}</span>
+        // Cycle invoices have no single order: show how many deliveries they cover.
+        cell: ({ getValue, row }) => (
+          <span className="font-mono text-xs">
+            {row.original.order_id
+              ? String(getValue() || "—")
+              : row.original.billing_kind === "cycle"
+                ? `${row.original.order_count ?? 0} deliveries`
+                : "—"}
+          </span>
         ),
       },
       {

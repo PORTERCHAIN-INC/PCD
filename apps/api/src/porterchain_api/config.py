@@ -108,6 +108,38 @@ class Settings(BaseSettings):
     driver_portal_url: str = "http://localhost:3003"
     customer_portal_url: str = "http://localhost:3004"
     website_url: str = "http://localhost:3000"
+    # Interac e-Transfer inbox reader (billing@ on Zoho Mail). Off by default; env only —
+    # the app password is never stored in the database or settings UI.
+    interac_imap_enabled: bool = Field(
+        default=False, validation_alias=AliasChoices("interac_imap_enabled", "INTERAC_IMAP_ENABLED")
+    )
+    interac_imap_host: str = Field(
+        default="imappro.zoho.com", validation_alias=AliasChoices("interac_imap_host", "INTERAC_IMAP_HOST")
+    )
+    interac_imap_port: int = Field(
+        default=993, validation_alias=AliasChoices("interac_imap_port", "INTERAC_IMAP_PORT")
+    )
+    interac_imap_user: str = Field(
+        default="", validation_alias=AliasChoices("interac_imap_user", "INTERAC_IMAP_USER")
+    )
+    interac_imap_password: str = Field(
+        default="", validation_alias=AliasChoices("interac_imap_password", "INTERAC_IMAP_PASSWORD")
+    )
+    interac_imap_folder: str = Field(
+        default="INBOX", validation_alias=AliasChoices("interac_imap_folder", "INTERAC_IMAP_FOLDER")
+    )
+    interac_imap_lookback_days: int = Field(
+        default=7, validation_alias=AliasChoices("interac_imap_lookback_days", "INTERAC_IMAP_LOOKBACK_DAYS")
+    )
+    # authserv-id of OUR receiving server's Authentication-Results header (Zoho: mx.zohomail.com).
+    # Only that header is trusted; a sender can forge others.
+    interac_authserv_id: str = Field(
+        default="mx.zohomail.com", validation_alias=AliasChoices("interac_authserv_id", "INTERAC_AUTHSERV_ID")
+    )
+    billing_cycle_autorun_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("billing_cycle_autorun_enabled", "BILLING_CYCLE_AUTORUN_ENABLED"),
+    )
     zeptomail_webhook_secret: str = Field(
         default="",
         validation_alias=AliasChoices("zeptomail_webhook_secret", "ZEPTOMAIL_WEBHOOK_SECRET"),

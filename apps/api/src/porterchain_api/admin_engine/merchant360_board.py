@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.settings_service import (
@@ -842,9 +842,9 @@ def timeline_payload(db: Session, merchant_id: str, company_id: str | None) -> l
             }
         )
     invs = (
-        db.query(Invoice, Order)
-        .join(Order, Invoice.order_id == Order.id)
-        .filter(Order.merchant_id == merchant_id, Order.is_sandbox.is_(False))
+        db.query(Invoice, Order)  # outer: cycle invoices have no order
+        .outerjoin(Order, Invoice.order_id == Order.id)
+        .filter(or_(Order.merchant_id == merchant_id, Invoice.merchant_id == merchant_id), or_(Order.id.is_(None), Order.is_sandbox.is_(False)))
         .order_by(Invoice.created_at.desc())
         .limit(25)
         .all()
@@ -855,7 +855,7 @@ def timeline_payload(db: Session, merchant_id: str, company_id: str | None) -> l
             {
                 "kind": "invoice",
                 "type": "ops",
-                "title": f"Invoice {inv.invoice_number} · {amount} · {order.order_number}",
+                "title": f"Invoice {inv.invoice_number} · {amount} · {order.order_number if order else 'billing cycle'}",
                 "at": inv.created_at.isoformat() if inv.created_at else None,
             }
         )

@@ -313,6 +313,14 @@ class Invoice(Base):
     last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     billing_period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     billing_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Interac e-Transfer memo code (PC-XXXXX). Unique; merchants type it in the e-Transfer message.
+    payment_reference: Mapped[str | None] = mapped_column(String(16), nullable=True, unique=True, index=True)
+    # Running total of offline settlements (Interac/cheque/wire/credit). Enables partial payments.
+    amount_paid_cents: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # "order" = legacy one-invoice-per-order; "cycle" = one invoice per merchant billing period.
+    billing_kind: Mapped[str] = mapped_column(String(16), default="order", server_default="order")
+    # Destination province used for GST/HST/QST (CRA place of supply = freight destination).
+    tax_province: Mapped[str | None] = mapped_column(String(2), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

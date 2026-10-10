@@ -1,0 +1,36 @@
+Return-Path: <notify@payments.interac.ca>
+Authentication-Results: mx.zohomail.com;
+	dkim=pass;
+	spf=pass (zohomail.com: domain of payments.interac.ca designates 205.206.220.15 as permitted sender) smtp.mailfrom=notify@payments.interac.ca;
+	dmarc=pass(p=reject dis=none) header.from=payments.interac.ca;
+	dkim=pass header.i=@payments.interac.ca header.d=payments.interac.ca
+Received: from mta5.payments.interac.ca (mta5.payments.interac.ca [205.206.220.15]) by mx.zohomail.com
+	with SMTPS id 1728494400123; Wed, 7 Oct 2026 10:14:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=payments.interac.ca; s=selector1; h=from:subject:date; bh=abc=; b=def=
+From: "INTERAC e-Transfer" <notify@payments.interac.ca>
+To: billing@porterchain.com
+Subject: INTERAC e-Transfer: Your money has been automatically deposited.
+Date: Wed, 07 Oct 2026 13:14:20 -0400
+Message-ID: <{MSGID}@payments.interac.ca>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+Hi PORTERCHAIN LOGISTICS INC.,
+
+{SENDER} sent you ${AMOUNT} (CAD) and the money has been automatically deposited into your bank account at Royal Bank of Canada.
+
+Message: {MEMO}
+
+Reference Number: {IREF}
+
+This is a secure transaction. Please do not reply to this email.
+
+--b1
+Content-Type: text/html; charset="UTF-8"
+
+<html><body><p>Hi PORTERCHAIN LOGISTICS INC.,</p><p>{SENDER} sent you ${AMOUNT} (CAD) and the money has been automatically deposited.</p></body></html>
+--b1--

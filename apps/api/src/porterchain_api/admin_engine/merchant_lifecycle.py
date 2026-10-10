@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
@@ -443,9 +444,9 @@ def ops_invoices(db: Session, merchant: Merchant):
     from porterchain_api.schemas_crm import InvoiceOut
 
     rows = (
-        db.query(Invoice, Order)
-        .join(Order, Invoice.order_id == Order.id)
-        .filter(Order.merchant_id == merchant.id)
+        db.query(Invoice, Order)  # outer: cycle invoices have no order
+        .outerjoin(Order, Invoice.order_id == Order.id)
+        .filter(or_(Order.merchant_id == merchant.id, Invoice.merchant_id == merchant.id))
         .order_by(Invoice.created_at.desc())
         .limit(200)
         .all()
@@ -453,12 +454,12 @@ def ops_invoices(db: Session, merchant: Merchant):
     out: list[InvoiceOut] = []
     for inv, order in rows:
         payment = (
-            db.query(Payment)
-            .filter(Payment.order_id == order.id)
-            .order_by(Payment.created_at.desc())
-            .first()
+            db.query(Payment).filter(Payment.order_id == order.id).order_by(Payment.created_at.desc()).first()
+            if order is not None
+            else None
         )
-        status = invoice_status(inv, order, payment, terms=merchant.payment_terms or order.payment_terms)
+        oterms = order.payment_terms if order is not None else None
+        status = invoice_status(inv, order, payment, terms=merchant.payment_terms or oterms)
         due = inv.due_at.date() if inv.due_at else None
         paid_at = payment.created_at if payment and payment.status == "SUCCEEDED" else None
         total = invoice_total_cents(inv)
@@ -475,10 +476,10 @@ def ops_invoices(db: Session, merchant: Merchant):
                 tax_cents=inv.tax_cents,
                 total_cents=total,
                 currency=inv.currency,
-                net_terms=merchant.payment_terms or order.payment_terms or "NET_30",
+                net_terms=merchant.payment_terms or oterms or "NET_30",
                 line_items=[
                     {
-                        "label": order.order_number or order.tracking_number or "Delivery",
+                        "label": (order.order_number or order.tracking_number) if order else "Billing cycle",
                         "quantity": 1,
                         "unit_price_cents": pretax if inv.tax_cents else inv.amount_cents,
                         "amount_cents": pretax if inv.tax_cents else inv.amount_cents,

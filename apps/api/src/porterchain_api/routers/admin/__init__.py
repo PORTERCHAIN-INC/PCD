@@ -9,6 +9,9 @@ from porterchain_api.routers.admin import booking_drafts  # noqa: F401
 from porterchain_api.routers.admin import claims  # noqa: F401
 from porterchain_api.routers.admin import finance  # noqa: F401
 from porterchain_api.routers.admin import finance_invoice_pdf  # noqa: F401
+from porterchain_api.routers.admin import finance_interac  # noqa: F401
+from porterchain_api.routers.admin import finance_cash  # noqa: F401
+from porterchain_api.routers.admin import finance_insights  # noqa: F401
 from porterchain_api.routers.admin import support  # noqa: F401
 from porterchain_api.routers.admin import settings  # noqa: F401
 from porterchain_api.routers.admin import settings_directory  # noqa: F401
