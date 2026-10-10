@@ -861,7 +861,7 @@ function LazyAnalytics({ id }: { id: string }) {
     return () => io.disconnect();
   }, [show]);
   return (
-    <div ref={ref}>{show ? <AnalyticsTab id={id} /> : <div className="h-48" aria-hidden />}</div>
+    <div ref={ref}>{show ? <AnalyticsTab id={id} /> : <div className="h-24" aria-hidden />}</div>
   );
 }
 

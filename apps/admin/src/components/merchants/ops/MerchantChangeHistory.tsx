@@ -27,11 +27,10 @@ export function MerchantChangeHistory({ id, version = 0 }: { id: string; version
       ) : error ? (
         <Empty title="Couldn't load history" hint={error} />
       ) : rows.length === 0 ? (
-        <Empty
-          icon={<History className="h-6 w-6" aria-hidden />}
-          title="No changes yet"
-          hint="Price, contract, credit, key, owner and document changes land here."
-        />
+        <p className="flex items-center gap-2 text-sm text-muted">
+          <History className="h-4 w-4" aria-hidden />
+          No changes yet — price, contract, credit, key, owner and document changes land here.
+        </p>
       ) : (
         <>
           <ol className="-my-2 divide-y divide-primary/5">

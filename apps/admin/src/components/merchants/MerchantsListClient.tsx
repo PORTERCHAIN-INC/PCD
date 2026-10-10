@@ -571,7 +571,7 @@ export default function MerchantsListClient() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 25 } },
+    initialState: { pagination: { pageSize: 15 } },
   });
 
   const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k]);

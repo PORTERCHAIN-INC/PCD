@@ -168,7 +168,10 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
       {message && <p className="text-sm text-secondary">{message}</p>}
 
       {data?.card && (
-        <SectionCard title="What this merchant sees">
+        <details className="rounded-2xl border border-primary/10 bg-white">
+          <summary className="cursor-pointer px-5 py-3 text-sm font-semibold text-primary">
+            What this merchant sees
+          </summary>
           <div className="p-5">
             <RateCardPreview card={data.card} />
             <p className="mt-4 text-xs text-muted">
@@ -176,7 +179,7 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
               or change platform defaults in Settings → Pricing.
             </p>
           </div>
-        </SectionCard>
+        </details>
       )}
 
       <SectionCard>
@@ -251,7 +254,10 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
       </SectionCard>
 
       {distanceSelected && (
-        <SectionCard title={data?.has_custom_gta ? "Custom distance rates" : "Distance rates"}>
+        <details className="rounded-2xl border border-primary/10 bg-white">
+          <summary className="cursor-pointer px-5 py-3 text-sm font-semibold text-primary">
+            {data?.has_custom_gta ? "Custom distance rates" : "Distance rates"}
+          </summary>
           <div className="p-5">
             <MerchantGtaMatrixFields
               value={draft.gta_rate}
@@ -264,7 +270,7 @@ export default function MerchantPricingPanel({ merchantId }: { merchantId: strin
               }}
             />
           </div>
-        </SectionCard>
+        </details>
       )}
 
       {fsaSelected && (

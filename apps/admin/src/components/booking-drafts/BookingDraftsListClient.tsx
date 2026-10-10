@@ -270,6 +270,17 @@ export default function BookingDraftsListClient() {
         {selected.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-secondary/5 px-3 py-2">
             <Badge tone="blue">{selected.length} selected</Badge>
+            {selected.length < rows.length ? (
+              <button
+                type="button"
+                className="text-sm font-semibold text-secondary hover:underline"
+                onClick={() => setSelected(rows.map((r) => r.draft_id))}
+              >
+                Select all {rows.length} matching
+              </button>
+            ) : rows.length > draftPage.visible.length ? (
+              <span className="text-sm text-muted">All {rows.length} matching selected</span>
+            ) : null}
             <Button variant="outline" disabled={bulkLoading} onClick={() => void runBulk("extend")}>
               Extend
             </Button>

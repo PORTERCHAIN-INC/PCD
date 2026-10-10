@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useShowMore } from "@/components/layout/ShowMore";
 import { useQuery } from "@tanstack/react-query";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { PageSkeleton, TableSkeleton } from "@porterchain/ui/loading";
@@ -28,10 +29,11 @@ function MarginList({
   floor: number;
   kind: "route" | "stop";
 }) {
+  const page = useShowMore(rows.slice(0, 12), 5);
   if (!rows.length) return <Empty>No delivered {kind}s in this window.</Empty>;
   return (
     <ul className="divide-y divide-primary/10">
-      {rows.slice(0, 12).map((r) => (
+      {page.visible.map((r) => (
         <li
           key={r.route_id ?? r.order_id}
           className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
@@ -62,6 +64,7 @@ function MarginList({
           </span>
         </li>
       ))}
+      {page.more ? <li>{page.more}</li> : null}
     </ul>
   );
 }
@@ -88,6 +91,7 @@ export default function ReportsClient() {
     enabled,
     queryFn: async () => financeApi.ledger(await getApiToken()),
   });
+  const ledgerPage = useShowMore((ledger.data ?? []).slice(0, 25), 8);
 
   const download = async (kind: "hst" | "quickbooks" | "xero") =>
     financeOpsApi.downloadExport(await getApiToken(), kind, q.start, q.end);
@@ -257,7 +261,7 @@ export default function ReportsClient() {
           <Empty>Ledger is empty.</Empty>
         ) : (
           <ul className="divide-y divide-primary/10">
-            {(ledger.data ?? []).slice(0, 25).map((e) => (
+            {ledgerPage.visible.map((e) => (
               <li
                 key={String(e.id)}
                 className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
@@ -271,6 +275,7 @@ export default function ReportsClient() {
                 </span>
               </li>
             ))}
+            {ledgerPage.more ? <li>{ledgerPage.more}</li> : null}
           </ul>
         )}
       </Section>
