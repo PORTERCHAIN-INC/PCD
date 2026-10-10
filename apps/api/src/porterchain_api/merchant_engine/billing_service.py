@@ -363,6 +363,12 @@ class MerchantBillingService:
             "quote_breakdown": quote,
             "rate_quote_id": rate_quote_id,
             "rate_quote_cents": int(rate_quote_cents) if rate_quote_cents is not None else None,
+            # Waiting / failed-delivery fee lines: the recorded check-ins or status behind them.
+            "evidence": next(
+                (r.get("evidence") for r in (compliance.get("accessorials") or [])
+                 if isinstance(r, dict) and r.get("description") == getattr(line, "description", None)),
+                None,
+            ),
         }
 
     def invoice_pdf(self, db: Session, ctx: MerchantContext, invoice_id: str) -> tuple[bytes, str]:

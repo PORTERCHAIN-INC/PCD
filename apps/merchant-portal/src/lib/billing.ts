@@ -103,6 +103,14 @@ export type InvoiceDetailLine = {
   quote_breakdown?: Record<string, unknown> | null;
   rate_quote_id?: string | null;
   rate_quote_cents?: number | null;
+  /** Waiting / failed-delivery fee: recorded check-ins or status behind the charge. */
+  evidence?: {
+    source?: string;
+    stops?: Array<{ kind: string; arrived: string; done: string; minutes: number }>;
+    state?: string;
+    failed_at?: string | null;
+    reason?: string | null;
+  } | null;
 };
 
 export type InvoiceDetail = {

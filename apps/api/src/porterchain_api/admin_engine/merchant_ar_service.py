@@ -197,14 +197,16 @@ class MerchantArService:
             now = datetime.now(UTC)
             # (order, split): pre-tax + destination-province tax; gross is what the merchant owes.
             line_specs = [(order, order_tax_split(db, order)) for order in orders]
+            from porterchain_api.billing_engine.accessorials import add_fee_lines, fee_specs
+            extras = fee_specs(db, merchant, orders)  # waiting / failed-delivery fees with evidence
             provinces = {s.province for _, s in line_specs}
             invoice = Invoice(
                 invoice_number=allocate_invoice_number(db, prefix=invoice_number_prefix(db)),
                 order_id=None,
                 customer_id=None,
                 merchant_id=merchant_id,
-                amount_cents=sum(s.gross_cents for _, s in line_specs),
-                tax_cents=sum(s.tax_cents for _, s in line_specs),
+                amount_cents=sum(s.gross_cents for _, s in [*line_specs, *extras]),
+                tax_cents=sum(s.tax_cents for _, s in [*line_specs, *extras]),
                 tax_province=next(iter(provinces)) if len(provinces) == 1 else None,
                 fees_cents=0,
                 currency=orders[0].currency or "cad",
@@ -266,6 +268,7 @@ class MerchantArService:
                             "merchant_ar_cycle": True,
                         },
                     )
+            add_fee_lines(db, invoice.id, extras)
             db.flush()
             from porterchain_api.admin_engine.merchant_ar_cycles import apply_available_credit
 

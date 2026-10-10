@@ -145,7 +145,30 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
                   key={line.line_id ?? `${line.order_id}-${idx}`}
                   className="border-b border-primary/5"
                 >
-                  <td className="px-4 py-3">{line.description}</td>
+                  <td className="px-4 py-3">
+                    {line.description}
+                    {line.evidence ? (
+                      <details className="mt-1 text-xs text-primary/70">
+                        <summary className="cursor-pointer">Evidence</summary>
+                        {line.evidence.stops?.map((s) => (
+                          <p key={s.arrived}>
+                            {s.kind}: arrived {new Date(s.arrived).toLocaleString()}, done{" "}
+                            {new Date(s.done).toLocaleTimeString()} ({s.minutes} min)
+                          </p>
+                        ))}
+                        {line.evidence.state ? (
+                          <p>
+                            Status {line.evidence.state}
+                            {line.evidence.failed_at
+                              ? ` at ${new Date(line.evidence.failed_at).toLocaleString()}`
+                              : ""}
+                            {line.evidence.reason ? ` · ${line.evidence.reason}` : ""}
+                          </p>
+                        ) : null}
+                        <p>Source: {line.evidence.source || "driver app records"}</p>
+                      </details>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs">{line.order_number ?? "—"}</td>
                   <td className="px-4 py-3 capitalize">{line.channel ?? "—"}</td>
                   <td className="px-4 py-3 uppercase">{line.pricing_model ?? "—"}</td>
