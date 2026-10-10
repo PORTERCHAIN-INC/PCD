@@ -3,13 +3,13 @@ import {
   MerchantVehicleClass,
   type MerchantVehicleClass as VehicleClassId,
   type Parcel,
-} from "./types";
+} from "./types.ts";
 import {
   CAPACITY_CATALOG_FALLBACK,
   canonicalizeCapacityClassId,
   type CapacityCatalogRow,
 } from "../capacity-catalog";
-import { convertToCm, parcelVolumeCm3, sumChargeableWeightKg } from "./units";
+import { convertToCm, parcelVolumeCm3, sumChargeableWeightKg } from "./units.ts";
 
 type PackVehicle = CapacityCatalogRow & {
   band: FleetBand;

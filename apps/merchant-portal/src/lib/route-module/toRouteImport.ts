@@ -1,12 +1,17 @@
-import { isOntarioPostal, postalFromAddress } from "./ontario";
+import { isOntarioPostal, postalFromAddress } from "./ontario.ts";
 import type {
   Parcel,
   RouteImportCreatePayload,
   RouteImportPackagePayload,
   RouteJob,
   RouteStop,
-} from "./types";
-import { convertToCm, convertToKg, formatParcelSpec, serializeParcelsForLegacyAPI } from "./units";
+} from "./types.ts";
+import {
+  convertToCm,
+  convertToKg,
+  formatParcelSpec,
+  serializeParcelsForLegacyAPI,
+} from "./units.ts";
 
 export interface RouteValidation {
   ok: boolean;

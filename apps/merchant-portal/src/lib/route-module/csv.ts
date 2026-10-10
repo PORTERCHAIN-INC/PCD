@@ -5,9 +5,9 @@ import {
   type Parcel,
   type PickupLocation,
   type RouteStop,
-} from "./types";
+} from "./types.ts";
 import { canonicalizeCapacityClassId } from "../capacity-catalog";
-import { withVolumetricWeight } from "./units";
+import { withVolumetricWeight } from "./units.ts";
 
 /** Columns match the route planner form. Repeat sequence to add another parcel to the same stop. */
 export const ROUTE_CSV_COLUMNS = [

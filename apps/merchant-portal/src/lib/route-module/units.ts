@@ -1,4 +1,4 @@
-import { DimensionUnit, WeightUnit, type LegacyParcelSerialization, type Parcel } from "./types";
+import { DimensionUnit, WeightUnit, type LegacyParcelSerialization, type Parcel } from "./types.ts";
 
 /** Industry domestic volumetric divisor: cm³ / 5000 = kg. */
 export const VOLUMETRIC_DIVISOR_CM = 5000;

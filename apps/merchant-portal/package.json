@@ -9,6 +9,7 @@
     "dev": "next dev --port 3001 --turbopack",
     "build": "next build",
     "start": "next start --port 3001",
+    "test": "node --test 'src/**/*.test.ts'",
     "test:e2e": "playwright test",
     "test:e2e:p0": "playwright test --grep @p0",
     "test:e2e:live": "playwright test e2e/book.golden.p0.spec.ts --grep 'MP-BOOK-001|MP-AUTH-006'",

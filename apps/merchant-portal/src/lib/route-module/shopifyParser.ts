@@ -9,7 +9,7 @@
  * (tracking URL + ETA). This parser does not call Shopify.
  */
 
-import { isOntarioPostal, isOntarioProvince } from "./ontario";
+import { isOntarioPostal, isOntarioProvince } from "./ontario.ts";
 import {
   DimensionUnit,
   RouteJobStatus,
@@ -17,8 +17,8 @@ import {
   type Parcel,
   type RouteStop,
   type ShopifyParseResult,
-} from "./types";
-import { withVolumetricWeight } from "./units";
+} from "./types.ts";
+import { withVolumetricWeight } from "./units.ts";
 
 const TRACKING_BASE = "https://porterchain.com/track";
 

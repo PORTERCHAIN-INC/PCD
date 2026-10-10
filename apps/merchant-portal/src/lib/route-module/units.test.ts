@@ -19,7 +19,7 @@ test("converts pounds and inches into kilograms and centimetres", () => {
 
 test("volumetric weight uses centimetres and divisor 5000", () => {
   assert.equal(calculateVolumetricWeight(10, 10, 10, DimensionUnit.CM), 0.2);
-  assert.equal(calculateVolumetricWeight(12, 12, 12, DimensionUnit.IN), 4.424);
+  assert.equal(calculateVolumetricWeight(12, 12, 12, DimensionUnit.IN), 5.663);
 });
 
 test("legacy serialization groups identical parcels", () => {
