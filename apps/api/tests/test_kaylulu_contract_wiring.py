@@ -314,3 +314,19 @@ def test_template_points_at_the_contract_schedule():
     assert cfg["schedule"]["size_match"] == "all"
     assert cfg["surcharges"] == {"downtown": False, "upper_zone": False}
     assert cfg["schedule"]["route_minimums_cents"] == {"T1": 12000, "T2": 20000, "T3": 25000}
+
+
+def test_contract_merchant_never_sees_route_pricing_banner_or_opts_in():
+    from types import SimpleNamespace
+
+    import pytest
+
+    from porterchain_api.pricing_engine.smart_apply import on_contract, set_opt_in, status_payload
+
+    m = SimpleNamespace(pricing_config={"schedule": {"contract_schedule": "kaylulu-2026-09"}})
+    assert on_contract(m)
+    st = status_payload(None, m)
+    assert st["show_banner"] is False and st["examples"] == [] and st["contract"] is True
+    with pytest.raises(ValueError):
+        set_opt_in(m, enabled=True, actor="t")
+    assert not on_contract(SimpleNamespace(pricing_config={"schedule": {}}))

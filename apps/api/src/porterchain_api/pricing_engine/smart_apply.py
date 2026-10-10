@@ -98,6 +98,8 @@ def opt_in_state(merchant: Any) -> dict[str, Any]:
 
 
 def set_opt_in(merchant: Any, *, enabled: bool, actor: str) -> dict[str, Any]:
+    if enabled and on_contract(merchant):
+        raise ValueError("contract_merchant")
     cfg = dict(merchant.pricing_config or {})
     own = dict(cfg.get("smart_pricing") or {})
     own["enabled"] = bool(enabled)
@@ -166,9 +168,17 @@ def _recent_drop_fsas(db: Session, merchant_id: str) -> list[str]:
     return seen
 
 
+def on_contract(merchant: Any) -> bool:
+    """A signed contract schedule prices this merchant; route pricing is not offered."""
+    sched = (getattr(merchant, "pricing_config", None) or {}).get("schedule") or {}
+    return bool(isinstance(sched, dict) and str(sched.get("contract_schedule") or "").strip())
+
+
 def status_payload(db: Session, merchant: Any) -> dict[str, Any]:
     """What the portal / Shopify banner shows: state, plain summary, old vs new examples."""
     state = opt_in_state(merchant)
+    if on_contract(merchant):
+        return {**state, "contract": True, "show_banner": False, "examples": [], "summary": ""}
     return {
         **state,
         "show_banner": not state["opted_in"] and not state["dismissed_at"],

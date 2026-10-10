@@ -58,5 +58,10 @@ def shopify_route_pricing_set(
         if action == "dismiss":
             dismiss_banner(merchant)
         else:
-            set_opt_in(merchant, enabled=action == "opt_in", actor="shopify_admin")
+            try:
+                set_opt_in(merchant, enabled=action == "opt_in", actor="shopify_admin")
+            except ValueError:
+                from fastapi import HTTPException
+
+                raise HTTPException(status_code=409, detail="contract_pricing_applies") from None
     return status_payload(db, merchant)
