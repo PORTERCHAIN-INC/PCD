@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, ScanLine } from "lucide-react";
+import { actionErrorMessage } from "@/lib/jobs";
 import { cn } from "@/lib/utils";
 
 type Box = { code: string; label: string; done: boolean; missing?: boolean };
@@ -28,7 +29,7 @@ export function ScanPanel({
   const [camera, setCamera] = useState(false);
   const [manual, setManual] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
-  const done = boxes.filter((b) => b.done || b.missing).length;
+  const done = boxes.filter((b) => b.done).length; // a missing box is accounted for, never "scanned"
 
   const submit = async (raw: string) => {
     const code = raw.trim();
@@ -38,7 +39,7 @@ export function ScanPanel({
       await onScan(code);
       setManual("");
     } catch (e) {
-      setMsg(e instanceof Error ? e.message.replaceAll("_", " ") : "Scan failed");
+      setMsg(e instanceof Error ? actionErrorMessage(e.message) : "Scan failed. Try again.");
     }
   };
 
@@ -124,7 +125,7 @@ export function ScanPanel({
                 Missing
               </button>
             ) : null}
-            {b.missing ? <span className="text-sm font-semibold">Reported</span> : null}
+            {b.missing ? <span className="text-sm font-semibold">Missing</span> : null}
           </li>
         ))}
       </ul>

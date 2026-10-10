@@ -159,3 +159,38 @@ export function currentPosition(
     );
   });
 }
+
+export type DropBox = {
+  code: string;
+  packageId: string;
+  label: string;
+  done: boolean;
+  missing: boolean;
+};
+
+/** Boxes a customer drop must scan off the van. Delivering short marks every unscanned box missing. */
+export function dropBoxes(
+  scan: { scanned?: number; missing_suffixes?: string[] } | null | undefined,
+  scannedHere: string[],
+  short: boolean
+): DropBox[] {
+  const scanned = scan?.scanned ?? 0;
+  const done: DropBox[] = Array.from({ length: scanned }, (_, i) => ({
+    code: `done-${i}`,
+    packageId: "",
+    label: `Box ${i + 1}`,
+    done: true,
+    missing: false,
+  }));
+  const open = (scan?.missing_suffixes ?? []).map((c, i) => {
+    const isDone = scannedHere.includes(c);
+    return {
+      code: c,
+      packageId: "",
+      label: `Box ${scanned + i + 1}`,
+      done: isDone,
+      missing: short && !isDone,
+    };
+  });
+  return [...done, ...open];
+}

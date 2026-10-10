@@ -29,6 +29,7 @@ import {
   type CheckinEvent,
   type DriverDispatchRoute,
   type RouteStop,
+  dropBoxes,
 } from "@/lib/dispatch-route";
 import { cn } from "@/lib/utils";
 
@@ -220,23 +221,9 @@ function StopCard({
           missing: b.missing,
         }))
       )
-    : [
-        ...Array.from({ length: stop.scan?.scanned ?? 0 }, (_, i) => ({
-          code: `done-${i}`,
-          packageId: "",
-          label: `Box ${i + 1}`,
-          done: true,
-          missing: false,
-        })),
-        ...(stop.scan?.missing_suffixes ?? []).map((c, i) => ({
-          code: c,
-          packageId: "",
-          label: `Box ${(stop.scan?.scanned ?? 0) + i + 1}`,
-          done: scannedHere.includes(c),
-          missing: false,
-        })),
-      ];
-  const unscanned = boxes.filter((b) => !b.done && !b.missing).length;
+    : dropBoxes(stop.scan, scannedHere, short);
+  // Short boxes still count as not scanned: they drive the alert and the "Delivered · N short" label.
+  const unscanned = boxes.filter((b) => !b.done && (!b.missing || !pickup)).length;
   const gated = atStop && (pickup || stop.needs_pod) && boxes.length > 0;
 
   const scan = async (code: string) => {
