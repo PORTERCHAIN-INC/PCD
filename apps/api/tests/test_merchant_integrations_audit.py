@@ -116,7 +116,7 @@ def test_failed_dlq_replay_stays_open_with_reason(db, merchant, monkeypatch):
     def boom(*a, **k):
         raise ValueError("default_pickup_required")
 
-    monkeypatch.setattr("porterchain_api.merchant_engine.shopify_service.process_queued_webhook", boom)
+    monkeypatch.setattr("porterchain_api.merchant_engine.shopify_webhooks.process_queued_webhook", boom)
     out = replay_ingress_dlq(db, _ctx("admin"), merchant.id, row.id, get_settings())
     assert out["ok"] is False and out["replayed"] is False
     fresh = db.get(ShopifyIngressDlq, row.id)

@@ -52,6 +52,7 @@ from porterchain_api.db import SessionLocal  # noqa: E402
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus  # noqa: E402
 from porterchain_api.domain.states import OrderSource  # noqa: E402
 from porterchain_api.merchant_engine import shopify_service as shopify  # noqa: E402
+from porterchain_api.merchant_engine import shopify_webhooks  # noqa: E402
 from porterchain_api.merchant_engine.rbac import MerchantContext  # noqa: E402
 from porterchain_api.merchant_engine.secrets import encrypt_signing_secret  # noqa: E402
 from porterchain_api.merchant_engine.shopify_ingress_dlq import (  # noqa: E402
@@ -418,7 +419,7 @@ def main() -> int:
 
         # --- Book sandbox parcel ---
         try:
-            book = shopify.process_queued_webhook(
+            book = shopify_webhooks.process_queued_webhook(
                 db,
                 settings,
                 {
@@ -440,7 +441,7 @@ def main() -> int:
             )
 
         if sandbox_order_id:
-            replay = shopify.process_queued_webhook(
+            replay = shopify_webhooks.process_queued_webhook(
                 db,
                 settings,
                 {
@@ -488,7 +489,7 @@ def main() -> int:
         live_payload = _order_payload(suffix=f"{suffix}-live", order_id=live_id, test=False)
         live_body = json.dumps(live_payload).encode()
         try:
-            live_book = shopify.process_queued_webhook(
+            live_book = shopify_webhooks.process_queued_webhook(
                 db,
                 settings,
                 {
@@ -519,7 +520,7 @@ def main() -> int:
         paused_id = int(str(uuid.uuid4().int)[:10])
         paused_payload = _order_payload(suffix=f"{suffix}-pause", order_id=paused_id, test=True)
         paused_body = json.dumps(paused_payload).encode()
-        paused_res = shopify.process_queued_webhook(
+        paused_res = shopify_webhooks.process_queued_webhook(
             db,
             settings,
             {
@@ -577,7 +578,7 @@ def main() -> int:
         )
         if sandbox_order_id:
             try:
-                cancel_res = shopify.process_queued_webhook(
+                cancel_res = shopify_webhooks.process_queued_webhook(
                     db,
                     settings,
                     {

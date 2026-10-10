@@ -951,7 +951,7 @@ def _act_on_fulfillment_requests(
         fulfillment_order_close,
         reject_fulfillment_request,
     )
-    from porterchain_api.merchant_engine.shopify_service import _book_from_shopify_payload
+    from porterchain_api.merchant_engine.shopify_payload_ops import _book_from_shopify_payload
 
     try:
         nodes = assigned_fulfillment_orders(
@@ -1025,11 +1025,11 @@ def _act_on_cancellations(
         assigned_fulfillment_orders,
         reject_cancellation_request,
     )
-    from porterchain_api.merchant_engine.shopify_service import (
-        _PRE_PICKUP,
+    from porterchain_api.merchant_engine.shopify_payload_ops import (
         _cancel_from_shopify_payload,
         _order_for_shopify,
     )
+    from porterchain_api.merchant_engine.shopify_service import _PRE_PICKUP
 
     try:
         nodes = assigned_fulfillment_orders(

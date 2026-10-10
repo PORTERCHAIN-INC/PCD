@@ -20,6 +20,8 @@ from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.booking_models import Order
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_webhooks
+from porterchain_api.merchant_engine import shopify_payload_ops
 from porterchain_api.merchant_engine.shopify_ingress_dlq import (
     REASON_INGRESS_PAUSED,
     REASON_MISSING_PICKUP,
@@ -80,7 +82,7 @@ def test_ingress_paused_holds_to_dlq(db: Session, shopify_shop: ShopifyShop) -> 
     db.commit()
     settings = _settings()
     body = {"id": 55001, "name": "#55001", "shipping_address": {"address1": "1 Main", "city": "Toronto", "zip": "M5V1A1"}}
-    result = shopify.process_queued_webhook(
+    result = shopify_webhooks.process_queued_webhook(
         db,
         settings,
         {
@@ -102,7 +104,7 @@ def test_book_failure_records_dlq(db: Session, shopify_shop: ShopifyShop, monkey
     monkeypatch.setattr(shopify, "default_pickup_address", MagicMock(return_value=None))
     body = {"id": 55002, "name": "#55002", "shipping_address": {"address1": "1 Main", "city": "Toronto", "zip": "M5V1A1"}}
     with pytest.raises(RuntimeError, match="default_pickup_required"):
-        shopify.process_queued_webhook(
+        shopify_webhooks.process_queued_webhook(
             db,
             settings,
             {
@@ -159,7 +161,7 @@ def test_auto_dispatch_false_holds_booked(db: Session, shopify_shop: ShopifyShop
     monkeypatch.setattr(shopify, "address_from_saved", MagicMock(return_value=pickup))
     monkeypatch.setattr(shopify, "_actor", MagicMock(return_value=MagicMock(id="u1")))
 
-    result = shopify._book_from_shopify_payload(
+    result = shopify_payload_ops._book_from_shopify_payload(
         db,
         settings,
         shop_domain=shopify_shop.shop_domain,

@@ -190,6 +190,7 @@ def test_retail_dropoff_outside_service_area(db, settings):
 
 def test_book_reuses_checkout_quote_pickup(db, settings, monkeypatch):
     from porterchain_api.merchant_engine import shopify_service as shopify
+    from porterchain_api.merchant_engine import shopify_payload_ops
 
     ctx = _merchant_ctx(db, pricing_model="distance")
     shop = ShopifyShop(
@@ -255,7 +256,7 @@ def test_book_reuses_checkout_quote_pickup(db, settings, monkeypatch):
     monkeypatch.setattr(shopify._booking, "find_by_idempotency_key", MagicMock(return_value=None))
     monkeypatch.setattr(shopify._booking, "create_shipment", _create)
 
-    shopify._book_from_shopify_payload(
+    shopify_payload_ops._book_from_shopify_payload(
         db,
         settings,
         shop_domain=shop.shop_domain,

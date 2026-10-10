@@ -26,6 +26,7 @@ from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_webhooks
 from porterchain_api.merchant_engine.account_ops.connections import watchdog
 from porterchain_api.merchant_engine.shopify_one_click import connection_payload
 from porterchain_api.merchant_models import (
@@ -146,11 +147,11 @@ def _queue(db, settings, shop_domain: str, topic: str, body: dict, calls) -> dic
     raw = json.dumps(body).encode()
     enqueue = calls["publish"].return_value.enqueue
     enqueue.reset_mock()
-    out = shopify.ingest_webhook(db, settings, raw_body=raw, hmac_header=_sig(raw), shop_domain_header=shop_domain,
+    out = shopify_webhooks.ingest_webhook(db, settings, raw_body=raw, hmac_header=_sig(raw), shop_domain_header=shop_domain,
                                  topic=topic, webhook_id=uuid4().hex)
     if not out.get("queued"):
         return out
-    return shopify.process_queued_webhook(db, settings, enqueue.call_args.args[1])
+    return shopify_webhooks.process_queued_webhook(db, settings, enqueue.call_args.args[1])
 
 
 def test_install_rate_order_fulfil_track_return_uninstall_redact(db, company):
@@ -288,7 +289,7 @@ def test_paused_store_holds_returns_too(db, company):
                        ingress_paused=True)
     db.add(shop)
     db.commit()
-    out = shopify.process_queued_webhook(db, settings, {
+    out = shopify_webhooks.process_queued_webhook(db, settings, {
         "action": "shopify_return_approve", "shop_domain": shop.shop_domain, "topic": "returns/approve",
         "raw_body": json.dumps({"id": "r1", "order_id": 5})})
     assert out.get("held") is True

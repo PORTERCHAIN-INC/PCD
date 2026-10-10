@@ -61,7 +61,7 @@ def _shopify_privacy(request_id: str | None) -> None:
 def _shopify_ingress(payload: dict[str, Any]) -> None:
     from porterchain_api.config import get_settings
     from porterchain_api.db import SessionLocal
-    from porterchain_api.merchant_engine.shopify_service import process_queued_webhook
+    from porterchain_api.merchant_engine.shopify_webhooks import process_queued_webhook
 
     db = SessionLocal()
     try:

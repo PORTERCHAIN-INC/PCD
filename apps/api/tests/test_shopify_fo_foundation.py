@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from porterchain_api.config import Settings
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_webhooks
 from porterchain_api.merchant_engine.shopify_urls import fulfillment_service_url
 
 
@@ -45,10 +46,10 @@ def test_fo_webhook_ignored_when_flag_off() -> None:
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = None
     with patch(
-        "porterchain_api.merchant_engine.shopify_service.verify_webhook_hmac",
+        "porterchain_api.merchant_engine.shopify_webhooks.verify_webhook_hmac",
         return_value=True,
     ):
-        result = shopify.ingest_webhook(
+        result = shopify_webhooks.ingest_webhook(
             db,
             _settings(fo=False),
             raw_body=b"{}",
@@ -61,7 +62,7 @@ def test_fo_webhook_ignored_when_flag_off() -> None:
 
 
 def test_process_queued_fo_stub_when_flag_on() -> None:
-    result = shopify.process_queued_webhook(
+    result = shopify_webhooks.process_queued_webhook(
         MagicMock(),
         _settings(fo=True),
         {
@@ -75,7 +76,7 @@ def test_process_queued_fo_stub_when_flag_on() -> None:
 
 
 def test_process_queued_fo_skipped_when_flag_off() -> None:
-    result = shopify.process_queued_webhook(
+    result = shopify_webhooks.process_queued_webhook(
         MagicMock(),
         _settings(fo=False),
         {

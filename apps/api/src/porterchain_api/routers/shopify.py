@@ -14,6 +14,7 @@ from porterchain_api.db import get_db
 from porterchain_api.merchant_engine.booking_validation import BookingValidationError
 from porterchain_api.integrations.shopify_hmac import verify_oauth_hmac
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_webhooks as webhook_ingress
 from porterchain_api.merchant_engine.shopify_session import (
     ensure_carrier_rates,
     install_from_session_token,
@@ -194,7 +195,7 @@ async def shopify_webhooks(
     )
     raw = await request.body()
     try:
-        result = shopify.ingest_webhook(
+        result = webhook_ingress.ingest_webhook(
             db,
             settings,
             raw_body=raw,

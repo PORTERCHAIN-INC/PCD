@@ -248,7 +248,7 @@ def replay_ingress_dlq(
 ) -> dict[str, Any]:
     from porterchain_api.admin_engine.merchant_org import require_merchant, write_staff_audit
     from porterchain_api.merchant_engine.shopify_ingress_dlq import mark_dlq_resolved
-    from porterchain_api.merchant_engine.shopify_service import process_queued_webhook
+    from porterchain_api.merchant_engine.shopify_webhooks import process_queued_webhook
 
     require_merchant(db, merchant_id)
     row = (

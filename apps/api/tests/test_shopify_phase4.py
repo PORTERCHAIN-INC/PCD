@@ -16,6 +16,8 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_webhooks
+from porterchain_api.merchant_engine import shopify_payload_ops
 from porterchain_api.merchant_models import Merchant, ShopifyShop
 
 
@@ -64,7 +66,7 @@ def test_ingest_bad_hmac_raises_permission(db: Session, shopify_shop: ShopifySho
     settings = _settings()
     body = b'{"id":1}'
     with pytest.raises(PermissionError, match="shopify_hmac_invalid"):
-        shopify.ingest_webhook(
+        shopify_webhooks.ingest_webhook(
             db,
             settings,
             raw_body=body,
@@ -85,7 +87,7 @@ def test_ingest_orders_create_enqueues_and_returns_queued(
         "porterchain_shared.queue.publisher.get_queue_publisher",
         return_value=mock_pub,
     ):
-        result = shopify.ingest_webhook(
+        result = shopify_webhooks.ingest_webhook(
             db,
             settings,
             raw_body=body,
@@ -113,7 +115,7 @@ def test_ingest_enqueue_failure_raises_for_503(db: Session, shopify_shop: Shopif
         patch("porterchain_shared.queue.publisher.get_queue_publisher", return_value=mock_pub),
         pytest.raises(RuntimeError, match="shopify_enqueue_failed"),
     ):
-        shopify.ingest_webhook(
+        shopify_webhooks.ingest_webhook(
             db,
             settings,
             raw_body=body,
@@ -132,7 +134,7 @@ def test_ingest_orders_cancelled_enqueues(db: Session, shopify_shop: ShopifyShop
         "porterchain_shared.queue.publisher.get_queue_publisher",
         return_value=mock_pub,
     ):
-        result = shopify.ingest_webhook(
+        result = shopify_webhooks.ingest_webhook(
             db,
             settings,
             raw_body=body,
@@ -146,7 +148,7 @@ def test_ingest_orders_cancelled_enqueues(db: Session, shopify_shop: ShopifyShop
 
 def test_cancel_from_payload_skips_missing_order(db: Session, shopify_shop: ShopifyShop) -> None:
     settings = _settings()
-    result = shopify._cancel_from_shopify_payload(
+    result = shopify_payload_ops._cancel_from_shopify_payload(
         db,
         settings,
         shop_domain=shopify_shop.shop_domain,
@@ -210,13 +212,13 @@ def test_book_idempotent_replay(db: Session, shopify_shop: ShopifyShop, monkeypa
         },
         "line_items": [{"grams": 1000, "quantity": 1}],
     }
-    first = shopify._book_from_shopify_payload(
+    first = shopify_payload_ops._book_from_shopify_payload(
         db, settings, shop_domain=shopify_shop.shop_domain, payload=payload
     )
     assert first["order_id"] == "ord-1"
     # Second: find returns existing immediately
     shopify._booking.find_by_idempotency_key = MagicMock(return_value=order)
-    second = shopify._book_from_shopify_payload(
+    second = shopify_payload_ops._book_from_shopify_payload(
         db, settings, shop_domain=shopify_shop.shop_domain, payload=payload
     )
     assert second.get("replayed") is True
@@ -251,7 +253,7 @@ def test_shopify_webhook_router_http_401_503_200(db: Session, shopify_shop: Shop
     assert bad.status_code == 401
 
     with patch(
-        "porterchain_api.routers.shopify.shopify.ingest_webhook",
+        "porterchain_api.routers.shopify.webhook_ingress.ingest_webhook",
         side_effect=RuntimeError("shopify_enqueue_failed"),
     ):
         fail = client.post(
@@ -262,7 +264,7 @@ def test_shopify_webhook_router_http_401_503_200(db: Session, shopify_shop: Shop
     assert fail.status_code == 503
 
     with patch(
-        "porterchain_api.routers.shopify.shopify.ingest_webhook",
+        "porterchain_api.routers.shopify.webhook_ingress.ingest_webhook",
         return_value={"ok": True, "queued": True},
     ):
         ok = client.post(

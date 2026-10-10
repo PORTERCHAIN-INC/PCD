@@ -106,6 +106,7 @@ def test_dropoff_is_not_a_shopify_pickup(db):
 
 def test_book_path_fills_null_shop_pickup(db, settings, monkeypatch):
     from porterchain_api.merchant_engine import shopify_service as shopify
+    from porterchain_api.merchant_engine import shopify_payload_ops
 
     ctx = _merchant(db)
     shop = _shop(db, ctx.merchant.id)
@@ -133,7 +134,7 @@ def test_book_path_fills_null_shop_pickup(db, settings, monkeypatch):
     monkeypatch.setattr(shopify._booking, "find_by_idempotency_key", MagicMock(return_value=None))
     monkeypatch.setattr(shopify._booking, "create_shipment", MagicMock(return_value=order))
 
-    shopify._book_from_shopify_payload(
+    shopify_payload_ops._book_from_shopify_payload(
         db,
         settings,
         shop_domain=shop.shop_domain,

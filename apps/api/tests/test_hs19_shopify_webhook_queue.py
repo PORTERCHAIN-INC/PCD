@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_engine import shopify_service as shopify
+from porterchain_api.merchant_engine import shopify_webhooks
 from porterchain_api.merchant_models import Merchant, ShopifyShop
 from porterchain_shared.queue.names import QueueName
 
@@ -83,16 +84,16 @@ def test_hs19_process_queued_webhook_routes_create_and_cancel(db: Session) -> No
         "raw_body": json.dumps({"id": 1001, "name": "#1001"}),
     }
     with (
-        patch.object(shopify, "_book_from_shopify_payload", return_value={"booked": True}) as book,
-        patch.object(shopify, "_cancel_from_shopify_payload", return_value={"cancelled": True}) as cancel,
+        patch.object(shopify_webhooks, "_book_from_shopify_payload", return_value={"booked": True}) as book,
+        patch.object(shopify_webhooks, "_cancel_from_shopify_payload", return_value={"cancelled": True}) as cancel,
     ):
-        assert shopify.process_queued_webhook(db, settings, create_payload) == {"booked": True}
+        assert shopify_webhooks.process_queued_webhook(db, settings, create_payload) == {"booked": True}
         book.assert_called_once()
-        assert shopify.process_queued_webhook(db, settings, cancel_payload) == {"cancelled": True}
+        assert shopify_webhooks.process_queued_webhook(db, settings, cancel_payload) == {"cancelled": True}
         cancel.assert_called_once()
 
     with pytest.raises(ValueError, match="unknown_shopify_action"):
-        shopify.process_queued_webhook(
+        shopify_webhooks.process_queued_webhook(
             db,
             settings,
             {"action": "shopify_unknown", "shop_domain": "x", "raw_body": "{}"},
@@ -106,7 +107,7 @@ def test_hs19_worker_process_webhook_invokes_queued_processor(webhooks_module) -
         "raw_body": "{}",
     }
     with patch(
-        "porterchain_api.merchant_engine.shopify_service.process_queued_webhook",
+        "porterchain_api.merchant_engine.shopify_webhooks.process_queued_webhook",
         return_value={"ok": True},
     ) as queued:
         with patch("porterchain_api.db.SessionLocal") as session_local:
@@ -123,7 +124,7 @@ def test_hs19_worker_reraises_so_queue_can_retry(webhooks_module) -> None:
         "raw_body": "{}",
     }
     with patch(
-        "porterchain_api.merchant_engine.shopify_service.process_queued_webhook",
+        "porterchain_api.merchant_engine.shopify_webhooks.process_queued_webhook",
         side_effect=RuntimeError("hs19_book_failed"),
     ):
         with patch("porterchain_api.db.SessionLocal") as session_local:
@@ -146,7 +147,7 @@ def test_hs19_ingest_enqueue_shape_matches_worker(db: Session, shopify_shop: Sho
         "porterchain_shared.queue.publisher.get_queue_publisher",
         return_value=mock_pub,
     ):
-        out = shopify.ingest_webhook(
+        out = shopify_webhooks.ingest_webhook(
             db,
             settings,
             raw_body=body,
@@ -161,5 +162,5 @@ def test_hs19_ingest_enqueue_shape_matches_worker(db: Session, shopify_shop: Sho
     assert job["action"] == "shopify_orders_create"
     assert job["shop_domain"] == shopify_shop.shop_domain
     assert "raw_body" in job
-    with patch.object(shopify, "_book_from_shopify_payload", return_value={"booked": True}):
-        assert shopify.process_queued_webhook(db, settings, job)["booked"] is True
+    with patch.object(shopify_webhooks, "_book_from_shopify_payload", return_value={"booked": True}):
+        assert shopify_webhooks.process_queued_webhook(db, settings, job)["booked"] is True
