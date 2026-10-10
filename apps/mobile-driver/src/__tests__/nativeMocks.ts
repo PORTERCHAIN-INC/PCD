@@ -3,7 +3,7 @@ import { vi } from "vitest";
 /** In-memory AsyncStorage, encrypted-blob store and SecureStore shared by the tests. */
 export const storage = new Map<string, string>();
 export const blobs = new Map<string, unknown>();
-export const secure = new Map<string, string>();
+const secure = new Map<string, string>();
 
 export const asyncStorageMock = {
   getItem: vi.fn(async (k: string) => storage.get(k) ?? null),

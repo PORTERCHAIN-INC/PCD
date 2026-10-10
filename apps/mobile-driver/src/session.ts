@@ -60,7 +60,7 @@ export async function waitForSignedSession(timeoutMs = 5_000): Promise<boolean> 
 /**
  * Sign-out. Tries one last sync (bounded), then wipes every piece of driver data on the phone:
  * queued actions, refused actions, encrypted POD files + key, GPS buffer, background location,
- * push registration. Wipe runs even if the sync or the Clerk sign-out fails.
+ * location consent (the next driver on a shared phone must agree for themselves), push registration. Wipe runs even if the sync or the Clerk sign-out fails.
  */
 export async function clearSession(): Promise<void> {
   // Dynamic imports avoid the session ↔ api ↔ offline/push cycle.
@@ -89,7 +89,9 @@ export async function clearSession(): Promise<void> {
     await snapshot.signOut();
   } finally {
     const { wipeOfflineData } = await import("./offline");
+    const { withdrawLocationConsent } = await import("./consent");
     await wipeOfflineData();
+    await withdrawLocationConsent();
     setSessionSnapshot({
       ready: true,
       signedIn: false,

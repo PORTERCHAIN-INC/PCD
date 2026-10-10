@@ -10,6 +10,9 @@ vi.mock("../offline", () => offline);
 vi.mock("../location", () => ({
   stopBackgroundLocation: vi.fn(async () => void calls.push("gps_off")),
 }));
+vi.mock("../consent", () => ({
+  withdrawLocationConsent: vi.fn(async () => void calls.push("consent_off")),
+}));
 vi.mock("../push", () => ({
   unregisterRememberedPush: vi.fn(async () => void calls.push("push_off")),
 }));
@@ -31,7 +34,7 @@ describe("clearSession (sign-out wipe)", () => {
       signOut: async () => void calls.push("clerk_out"),
     });
     await clearSession();
-    expect(calls).toEqual(["flush", "gps_off", "push_off", "clerk_out", "wipe"]);
+    expect(calls).toEqual(["flush", "gps_off", "push_off", "clerk_out", "wipe", "consent_off"]);
     expect(getSessionSnapshot().signedIn).toBe(false);
   });
 

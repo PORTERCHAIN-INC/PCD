@@ -1,29 +1,19 @@
-import type { Handshake } from "./types";
-import { humanDriverError } from "./auth/errors";
 import { isOnboardingBlocked } from "./handshake";
+import type { Handshake } from "./types";
 
 export type GateResult = { ok: true } | { ok: false; reason: string };
 
+/** Fail-closed: the field app opens only when the API answered and this driver is signed in. */
 export function canEnterRoute(
   handshake: Handshake,
   signedIn: boolean,
   allowDev: boolean
 ): GateResult {
-  if (handshake.api !== "up") {
-    return {
-      ok: false,
-      reason:
-        humanDriverError(handshake.error) || "API unreachable — start Porterchain API on :8001",
-    };
-  }
+  if (handshake.api !== "up")
+    return { ok: false, reason: handshake.error ?? "network_unavailable" };
   if (handshake.auth !== "up" && !isOnboardingBlocked(handshake.error)) {
-    return {
-      ok: false,
-      reason: humanDriverError(handshake.error) || "Sign-in failed — van is not on the network",
-    };
+    return { ok: false, reason: handshake.error ?? "sign_in_failed" };
   }
-  if (!signedIn && !allowDev) {
-    return { ok: false, reason: "Sign in required" };
-  }
+  if (!signedIn && !allowDev) return { ok: false, reason: "Sign in required" };
   return { ok: true };
 }

@@ -24,3 +24,20 @@ export const apiBaseUrl = trimSlash(
 
 export const fetchTimeoutMs = 12_000;
 export const locationPingMs = 25_000;
+
+/** Dispatch contact. Overridden by the server's support hub (ops_hotline / ops_email) when it answers. */
+export const dispatchPhone = (process.env.EXPO_PUBLIC_DISPATCH_PHONE ?? "").trim();
+export const dispatchEmail = (
+  process.env.EXPO_PUBLIC_DISPATCH_EMAIL ?? "support@porterchain.com"
+).trim();
+
+/** Earnings, documents, onboarding, inbox history live on the driver web portal. */
+export const driverPortalUrl = (
+  process.env.EXPO_PUBLIC_DRIVER_PORTAL_URL ?? "https://driver.porterchain.com"
+).replace(/\/$/, "");
+
+/**
+ * Days PorterChain keeps on-duty GPS points. Shown to the driver on the consent screen, so it
+ * MUST match the server retention job and the privacy policy before a store release.
+ */
+export const locationRetentionDays = Number(process.env.EXPO_PUBLIC_LOCATION_RETENTION_DAYS ?? 30);

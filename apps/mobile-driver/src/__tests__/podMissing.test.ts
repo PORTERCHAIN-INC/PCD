@@ -13,7 +13,7 @@ vi.mock("../ui/PodCapture", () => ({
   }),
 }));
 
-import { podMissing } from "../hooks/completeStopAction";
+import { podMissing } from "../stop/podRules";
 
 const empty = {
   photoUrl: null,
