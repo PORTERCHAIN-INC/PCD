@@ -37,6 +37,7 @@ def set_ingress_paused(
     *,
     paused: bool,
     reason: str | None = None,
+    settings: Settings | None = None,
 ) -> dict[str, Any]:
     from porterchain_api.admin_engine.merchant_org import (
         require_integrations_elevated,
@@ -61,10 +62,25 @@ def set_ingress_paused(
         resource_id=shop_id,
         payload={"reason": note, "ingress_paused": bool(paused), "shop_domain": shop.shop_domain},
     )
+    released = failed = 0
+    if not paused and settings is not None:
+        # Resume used to leave every order held during the pause stuck in the queue.
+        held = (
+            db.query(ShopifyIngressDlq.id)
+            .filter(ShopifyIngressDlq.shop_id == shop.id, ShopifyIngressDlq.status == "held")
+            .order_by(ShopifyIngressDlq.created_at)
+            .all()
+        )
+        for (dlq_id,) in held:
+            out = replay_ingress_dlq(db, ctx, merchant_id, dlq_id, settings)
+            released += 1 if out.get("ok") else 0
+            failed += 0 if out.get("ok") else 1
     return {
         "shop_id": shop.id,
         "shop_domain": shop.shop_domain,
         "ingress_paused": shop.ingress_paused,
+        "released": released,
+        "release_failed": failed,
     }
 
 
@@ -254,23 +270,34 @@ def replay_ingress_dlq(
     shop = (
         db.query(ShopifyShop).filter(ShopifyShop.id == row.shop_id).first() if row.shop_id else None
     )
-    if shop and shop.ingress_paused and row.action == "shopify_orders_create":
+    if shop and shop.ingress_paused and row.action in {"shopify_orders_create", "shopify_return_approve"}:
         raise RuntimeError("ingress_still_paused")
 
     row.attempts = int(row.attempts or 0) + 1
     db.commit()
 
-    result = process_queued_webhook(
-        db,
-        settings,
-        {
-            "action": row.action,
-            "shop_domain": row.shop_domain,
-            "topic": row.topic or "",
-            "raw_body": row.raw_body,
-            "_from_dlq_replay": True,
-        },
-    )
+    try:
+        result = process_queued_webhook(
+            db,
+            settings,
+            {
+                "action": row.action,
+                "shop_domain": row.shop_domain,
+                "topic": row.topic or "",
+                "raw_body": row.raw_body,
+                "_from_dlq_replay": True,
+            },
+        )
+    except Exception as exc:  # noqa: BLE001 — a failed replay must stay open with the new reason, not 500
+        from porterchain_api.merchant_engine.shopify_ingress_dlq import reason_from_exc
+
+        db.rollback()
+        row = db.get(ShopifyIngressDlq, dlq_id) or row
+        reason, detail = reason_from_exc(exc)
+        row.reason_code = reason
+        row.detail = detail
+        db.commit()
+        return {"ok": False, "replayed": False, "dlq_id": row.id, "reason_code": reason, "detail": detail}
     order_id = None
     if isinstance(result, dict):
         order_id = result.get("order_id")

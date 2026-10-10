@@ -42,11 +42,10 @@ def _go_live_status(
 ) -> dict[str, Any]:
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
 
-    connected = [
-        s
-        for s in shops
-        if s.uninstalled_at is None and bool(s.encrypted_access_token)
-    ]
+    from porterchain_api.merchant_engine.shopify_health import is_connected, missing_scopes
+    from porterchain_api.merchant_engine.shopify_urls import oauth_scopes
+
+    connected = [s for s in shops if is_connected(s)]
     pickup_ok = False
     for shop in connected:
         if default_pickup_address(db, merchant.id, shop=shop):
@@ -66,6 +65,9 @@ def _go_live_status(
         "carrier_registered": any(bool(s.carrier_service_gid) for s in connected),
         # Shopify refused our token: the merchant must reopen the app to re-approve.
         "token_valid": not any(s.token_status == "token_reauth_required" for s in connected),
+        # Same rules as the admin view (shopify_health): paused and missing scopes are not live.
+        "orders_flowing": not any(s.ingress_paused for s in connected),
+        "scopes_ok": not any(missing_scopes(s.scopes, oauth_scopes(settings)) for s in connected),
     }
     blocking: list[str] = []
     if not checks["oauth_configured"]:
@@ -78,6 +80,10 @@ def _go_live_status(
         blocking.append("token_reauth_required")
     if checks["shop_connected"] and not checks["carrier_registered"]:
         blocking.append("carrier_not_registered")
+    if checks["shop_connected"] and not checks["scopes_ok"]:
+        blocking.append("scopes_missing")
+    if checks["shop_connected"] and not checks["orders_flowing"]:
+        blocking.append("orders_paused")
     if not checks["merchant_active"]:
         blocking.append("merchant_not_active")
     if not checks["has_rate_card"]:
@@ -175,6 +181,7 @@ def shop_link_status(db: Session, merchant_id: str, shop_domain: str | None) -> 
 def connection_payload(
     db: Session, merchant_id: str, settings: Settings, *, shop_domain: str | None = None
 ) -> dict[str, Any]:
+    from porterchain_api.merchant_engine.shopify_health import shop_health
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
 
     merchant = db.get(Merchant, merchant_id)
@@ -199,6 +206,7 @@ def connection_payload(
                 "has_webhook_secret": bool(shop.encrypted_webhook_secret),
                 "carrier_registered": bool(shop.carrier_service_gid),
                 "fulfillment_service_registered": bool(shop.fulfillment_service_gid),
+                "health": shop_health(db, shop, settings, pickup_set=pickup is not None),
             }
         )
     go_live = (

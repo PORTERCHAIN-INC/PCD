@@ -808,3 +808,9 @@ from porterchain_api.customer_experience.templates import CX_TEMPLATE_META, CX_T
 
 TEMPLATES.update(CX_TEMPLATES)
 TEMPLATE_META.update(CX_TEMPLATE_META)
+
+# Merchant admin ops (staff-only emails: churn risk, credit hold).
+from porterchain_api.notification_engine.merchant_ops_templates import OPS_TEMPLATE_META, OPS_TEMPLATES  # noqa: E402
+
+TEMPLATES.update(OPS_TEMPLATES)
+TEMPLATE_META.update(OPS_TEMPLATE_META)

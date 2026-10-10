@@ -134,6 +134,7 @@ class MerchantPrivacyService:
                 }
                 for row in audit
             ],
+            "documents": _document_index(db, merchant.id),
             "retention_note": (
                 "Billing and live shipment records may be retained per legal obligation after "
                 "erasure request. Sandbox/test orders are labeled is_sandbox=true in this export "
@@ -288,6 +289,10 @@ class MerchantPrivacyService:
         for hook in db.query(MerchantWebhook).filter(MerchantWebhook.merchant_id == merchant.id).all():
             hook.is_active = False
 
+        from porterchain_api.merchant_engine.account_ops.documents import purge_documents
+
+        documents_purged = purge_documents(db, merchant.id)
+
         db.add(
             MerchantAuditLog(
                 merchant_id=merchant.id,
@@ -297,6 +302,7 @@ class MerchantPrivacyService:
                 resource_id=merchant.id,
                 payload={
                     "kept": ["orders", "invoices", "amounts"],
+                    "documents_purged": documents_purged,
                     "note": "Sandbox orders remain labeled is_sandbox on kept shipment rows",
                 },
             )
@@ -328,3 +334,10 @@ class MerchantPrivacyService:
         if not merchant:
             raise LookupError("merchant_not_found")
         return self.execute_merchant_erasure(db, merchant, actor_user_id=actor_user_id)
+
+
+def _document_index(db: Session, merchant_id: str) -> list[dict[str, Any]]:
+    """Vault metadata for the DSAR export (files themselves are sent on request)."""
+    from porterchain_api.merchant_engine.account_ops.documents import list_documents
+
+    return list_documents(db, merchant_id)

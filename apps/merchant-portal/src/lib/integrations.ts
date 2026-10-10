@@ -363,12 +363,6 @@ export const integrationsApi = {
       { method: "POST", orgId }
     ),
 
-  updateRateLimit: (token: string, keyId: string, rate_limit_per_minute: number, orgId?: string) =>
-    integrationsFetch<{ api_key_id: string; rate_limit_per_minute: number }>(
-      `/v1/merchant/integrations/api-keys/${keyId}/rate-limit`,
-      token,
-      { method: "PATCH", body: JSON.stringify({ rate_limit_per_minute }), orgId }
-    ),
 
   erp: (token: string, orgId?: string) =>
     integrationsFetch<{ platforms: ErpPlatform[] }>("/v1/merchant/integrations/erp", token, {

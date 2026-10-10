@@ -124,7 +124,12 @@ export default function MerchantsListClient() {
     }
   );
 
-  const [registerOpen, setRegisterOpen] = useState(false);
+  // Board's "Add merchant" lands here with ?register=1.
+  const [registerOpen, setRegisterOpen] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("register") === "1"
+  );
   const [registerForm, setRegisterForm] = useState({ email: "", company_name: "" });
   const [registerPricing, setRegisterPricing] = useState<MerchantPricing>(DEFAULT_MERCHANT_PRICING);
   const [registerError, setRegisterError] = useState<string | null>(null);

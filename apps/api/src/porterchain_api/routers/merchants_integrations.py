@@ -68,7 +68,7 @@ def apply_merchant_kaylulu_pricing(
     merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)
 ) -> MerchantPricingResponse:
     view = _invoke(
-        ctx, "merchants", apply_kaylulu_pricing_template, db, ctx, merchant_id, org=True, copy=org_error_message
+        ctx, "merchants_read", apply_kaylulu_pricing_template, db, ctx, merchant_id, org=True, copy=org_error_message
     )
     return MerchantPricingResponse(**{k: v for k, v in view.items() if k != "clone"})
 
@@ -83,7 +83,7 @@ def clone_merchant_pricing(
 ) -> MerchantPricingResponse:
     view = _invoke(
         ctx,
-        "merchants",
+        "merchants_read",
         clone_pricing_from,
         db,
         ctx,
@@ -209,6 +209,7 @@ def merchant_shopify_ingress_pause(
     body: dict,
     ctx: Ctx,
     db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
     return _invoke(
         ctx,
@@ -220,6 +221,7 @@ def merchant_shopify_ingress_pause(
         shop_id,
         paused=bool(body.get("paused")),
         reason=body.get("reason"),
+        settings=settings,
         org=True,
         copy=org_error_message,
     )

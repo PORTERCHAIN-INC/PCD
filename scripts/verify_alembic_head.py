@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSIONS = ROOT / "apps/api/alembic/versions"
-EXPECTED_HEAD = "ib1cashtaxpay2b3c"
+EXPECTED_HEAD = "ma0merchops1a2b"
 
 # Migrations declare identifiers both bare (`revision = "x"`) and annotated
 # (`revision: str = "x"`). Matching only the bare form silently drops the

@@ -4,23 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft,
-  Building2,
-  CheckCircle2,
-  Copy,
-  ExternalLink,
-  Globe,
-  Info,
-  KeyRound,
-  ListChecks,
-  Package,
-  Receipt,
-  Rocket,
-  Settings as SettingsIcon,
-  Tags,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, Building2, Info, KeyRound, Package, Receipt, Users } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { getSystemLinks } from "@/lib/system-links";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -28,20 +12,47 @@ import { useApiData } from "@/hooks/useApiData";
 import { merchantStatusLabel } from "@/lib/catalog";
 import {
   merchants,
-  healthTone,
   merchantActionMessage,
   vehicleClassLabel,
   type MerchantDetail,
 } from "@/lib/merchants";
+import { merchantOps, type MerchantOps } from "@/lib/merchant-ops";
+import {
+  ACTIVITY_IDS,
+  ACTIVITY_PANELS,
+  MONEY_IDS,
+  MONEY_PANELS,
+  PEOPLE_IDS,
+  PEOPLE_PANELS,
+  parseMerchantTab,
+  type ActivityPanel,
+  type MoneyPanel,
+  type PeoplePanel,
+  type Route,
+  type TabId,
+} from "@/lib/merchant-tabs";
 import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
-import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, relativeTime, titleCase, dateTime } from "@/lib/crmFormat";
+import {
+  HealthReasons,
+  MerchantHero,
+  OwnerSegmentCard,
+} from "@/components/merchants/ops/MerchantOpsOverview";
+import {
+  ActionMenu,
+  Dialog,
+  Empty,
+  Panel,
+  Pill,
+  PrimaryAction,
+  QuietButton,
+  SkeletonRows,
+} from "@/components/merchants/ops/ui";
 import AdminPage from "@/components/layout/AdminPage";
-import { PageSkeleton } from "@porterchain/ui/loading";
 
-const tabFallback = () => <PageSkeleton rows={3} />;
+const tabFallback = () => <SkeletonRows rows={3} label="Loading section" />;
 
 const MerchantContactsPanel = dynamic(
   () => import("@/components/merchants/MerchantContactsPanel"),
@@ -88,426 +99,423 @@ const ContractsTab = dynamic(
   () => import("@/components/merchants/MerchantMoneyTabs").then((m) => m.ContractsTab),
   { loading: tabFallback }
 );
+const MerchantCreditCard = dynamic(
+  () => import("@/components/merchants/ops/MerchantCreditCard").then((m) => m.MerchantCreditCard),
+  { loading: tabFallback }
+);
+const MerchantQuotePreview = dynamic(
+  () =>
+    import("@/components/merchants/ops/MerchantQuotePreview").then((m) => m.MerchantQuotePreview),
+  { loading: tabFallback }
+);
+const MerchantDocumentsPanel = dynamic(
+  () =>
+    import("@/components/merchants/ops/MerchantDocumentsPanel").then(
+      (m) => m.MerchantDocumentsPanel
+    ),
+  { loading: tabFallback }
+);
+const MerchantSupportPanel = dynamic(
+  () =>
+    import("@/components/merchants/ops/MerchantSupportPanel").then((m) => m.MerchantSupportPanel),
+  { loading: tabFallback }
+);
+const MerchantChangeHistory = dynamic(
+  () =>
+    import("@/components/merchants/ops/MerchantChangeHistory").then((m) => m.MerchantChangeHistory),
+  { loading: tabFallback }
+);
 const SettingsTab = dynamic(
   () => import("@/components/merchants/MerchantSettingsTab").then((m) => m.SettingsTab),
   { loading: tabFallback }
 );
 
-const STATUS_TONE: Record<string, string> = {
-  ACTIVE: "green",
-  PENDING: "amber",
-  ONBOARDING: "sky",
-  SUSPENDED: "red",
-  CLOSED: "slate",
+const TABS: {
+  id: TabId;
+  label: string;
+  short: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { id: "overview", label: "Overview", short: "Overview", icon: Info },
+  { id: "orders", label: "Orders & delivery times", short: "Orders", icon: Package },
+  { id: "money", label: "Money", short: "Money", icon: Receipt },
+  { id: "connections", label: "Connections", short: "Connections", icon: KeyRound },
+  { id: "people", label: "People & files", short: "People", icon: Users },
+];
+
+type Lifecycle = "approve" | "suspend" | "unsuspend" | "reopen";
+const LIFECYCLE_COPY: Record<
+  Lifecycle,
+  { title: string; body: string; cta: string; danger?: boolean }
+> = {
+  approve: {
+    title: "Approve this merchant?",
+    body: "They can book live deliveries right away.",
+    cta: "Approve",
+  },
+  suspend: {
+    title: "Suspend this merchant?",
+    body: "Portal sign-in and new bookings stop. Open orders still deliver.",
+    cta: "Suspend",
+    danger: true,
+  },
+  unsuspend: {
+    title: "Unsuspend this merchant?",
+    body: "Portal access and booking come back.",
+    cta: "Unsuspend",
+  },
+  reopen: {
+    title: "Reopen this account?",
+    body: "The account moves back to active.",
+    cta: "Reopen",
+  },
 };
-const RISK_TONE: Record<string, string> = { low: "green", medium: "amber", high: "red" };
-type TabId = "overview" | "orders" | "money" | "pricing" | "people" | "api" | "settings";
-type PeoplePanel = "team" | "contacts" | "locations" | "activity";
-type MoneyPanel = "invoices" | "contracts" | "statement" | "credits";
-type ActivityPanel = "timeline" | "activities" | "tasks";
-
-const TABS: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: "overview", label: "Overview", icon: Info },
-  { id: "orders", label: "Orders", icon: Package },
-  { id: "money", label: "Billing", icon: Receipt },
-  { id: "pricing", label: "Pricing", icon: Tags },
-  { id: "people", label: "People", icon: Users },
-  { id: "api", label: "Integrations", icon: KeyRound },
-  { id: "settings", label: "Settings", icon: SettingsIcon },
-];
-
-const PEOPLE_PANELS: { id: PeoplePanel; label: string }[] = [
-  { id: "team", label: "Team" },
-  { id: "contacts", label: "Contacts" },
-  { id: "locations", label: "Locations" },
-  { id: "activity", label: "Activity" },
-];
-
-const MONEY_PANELS: { id: MoneyPanel; label: string }[] = [
-  { id: "invoices", label: "Invoices" },
-  { id: "contracts", label: "Contracts" },
-  { id: "statement", label: "Statement" },
-  { id: "credits", label: "Credit notes" },
-];
-
-const ACTIVITY_PANELS: { id: ActivityPanel; label: string }[] = [
-  { id: "timeline", label: "Timeline" },
-  { id: "activities", label: "CRM notes" },
-  { id: "tasks", label: "Tasks" },
-];
-
-function parseMerchantTab(raw: string | null): {
-  tab: TabId;
-  people: PeoplePanel;
-  money: MoneyPanel;
-  activity: ActivityPanel;
-} {
-  if (raw === "invoices" || raw === "contracts" || raw === "statement" || raw === "credits") {
-    return { tab: "money", people: "team", money: raw, activity: "timeline" };
-  }
-  if (raw === "team" || raw === "contacts" || raw === "locations") {
-    return { tab: "people", people: raw, money: "invoices", activity: "timeline" };
-  }
-  if (raw === "activities" || raw === "tasks" || raw === "timeline") {
-    return { tab: "people", people: "activity", money: "invoices", activity: raw };
-  }
-  if (raw === "analytics") {
-    return { tab: "overview", people: "team", money: "invoices", activity: "timeline" };
-  }
-  if (TABS.some((t) => t.id === raw)) {
-    return { tab: raw as TabId, people: "team", money: "invoices", activity: "timeline" };
-  }
-  return { tab: "overview", people: "team", money: "invoices", activity: "timeline" };
-}
 
 export default function MerchantDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
-  const [tab, setTab] = useState<TabId>(() => parseMerchantTab(searchParams.get("tab")).tab);
-  const [peoplePanel, setPeoplePanel] = useState<PeoplePanel>(
-    () => parseMerchantTab(searchParams.get("tab")).people
-  );
-  const [moneyPanel, setMoneyPanel] = useState<MoneyPanel>(
-    () => parseMerchantTab(searchParams.get("tab")).money
-  );
-  const [activityPanel, setActivityPanel] = useState<ActivityPanel>(
-    () => parseMerchantTab(searchParams.get("tab")).activity
+  const [route, setRoute] = useState<Route>(() =>
+    parseMerchantTab(searchParams.get("tab"), searchParams.get("panel"))
   );
   const [busy, setBusy] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [copied, setCopied] = useState<"id" | "portal" | null>(null);
+  const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
+  const [confirm, setConfirm] = useState<Lifecycle | null>(null);
   const merchantPortalBase =
     getSystemLinks().find((l) => l.id === "merchant")?.href ?? "http://localhost:3001";
 
   const { data: m, error } = useApiData((t) => merchants.detail(t, id), [id, version], {
     key: `merchant-detail-${id}`,
   });
+  const { data: ops } = useApiData((t) => merchantOps.overview(t, id), [id, version], {
+    key: `merchant-ops-${id}`,
+  });
   const refresh = () => setVersion((v) => v + 1);
 
-  async function copyText(kind: "id" | "portal", value: string) {
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  async function copyText(label: string, value: string) {
     try {
       await navigator.clipboard.writeText(value);
-      setCopied(kind);
-      window.setTimeout(() => setCopied(null), 1500);
+      setToast({ text: `${label} copied` });
     } catch {
-      setActionError("Could not copy to clipboard");
+      setToast({ text: "Could not copy to clipboard", bad: true });
     }
   }
 
-  function gotoTab(
-    tid: TabId,
-    extras?: { people?: PeoplePanel; money?: MoneyPanel; activity?: ActivityPanel }
-  ) {
-    setTab(tid);
-    if (extras?.people) setPeoplePanel(extras.people);
-    if (extras?.money) setMoneyPanel(extras.money);
-    if (extras?.activity) setActivityPanel(extras.activity);
-    const qs = new URLSearchParams();
-    qs.set("tab", tid);
-    if (tid === "people") {
-      qs.set("panel", extras?.activity ?? extras?.people ?? peoplePanel);
+  function go(tab: TabId, panel?: string) {
+    const next: Route = { ...route, tab };
+    if (tab === "money" && panel && MONEY_IDS.has(panel)) next.money = panel as MoneyPanel;
+    if (tab === "people" && panel) {
+      if (PEOPLE_IDS.has(panel)) next.people = panel as PeoplePanel;
+      if (ACTIVITY_IDS.has(panel)) {
+        next.people = "activity";
+        next.activity = panel as ActivityPanel;
+      }
     }
-    if (tid === "money") qs.set("panel", extras?.money ?? moneyPanel);
+    setRoute(next);
+    const qs = new URLSearchParams({ tab });
+    if (tab === "money") qs.set("panel", next.money);
+    if (tab === "people") qs.set("panel", next.people === "activity" ? next.activity : next.people);
     router.replace(`/merchants/${id}?${qs.toString()}`, { scroll: false });
+    if (tab === "overview") {
+      window.setTimeout(
+        () =>
+          document
+            .getElementById("why-score")
+            ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        50
+      );
+    } else {
+      window.setTimeout(
+        () =>
+          document
+            .getElementById("merchant-sections")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        50
+      );
+    }
   }
 
   useEffect(() => {
-    const parsed = parseMerchantTab(searchParams.get("tab"));
-    const panel = searchParams.get("panel");
-    setTab(parsed.tab);
-    if (parsed.tab === "people") {
-      if (panel === "team" || panel === "contacts" || panel === "locations") {
-        setPeoplePanel(panel);
-      } else if (
-        panel === "activity" ||
-        panel === "timeline" ||
-        panel === "activities" ||
-        panel === "tasks"
-      ) {
-        setPeoplePanel("activity");
-        if (panel === "timeline" || panel === "activities" || panel === "tasks") {
-          setActivityPanel(panel);
-        }
-      } else {
-        setPeoplePanel(parsed.people);
-        if (parsed.activity) setActivityPanel(parsed.activity);
-      }
-    }
-    if (parsed.tab === "money") {
-      if (panel === "invoices" || panel === "contracts" || panel === "statement")
-        setMoneyPanel(panel);
-      else setMoneyPanel(parsed.money);
-    }
+    setRoute(parseMerchantTab(searchParams.get("tab"), searchParams.get("panel")));
   }, [searchParams]);
 
-  async function lifecycle(action: "approve" | "suspend" | "unsuspend" | "reopen") {
+  async function lifecycle(action: Lifecycle) {
     setBusy(true);
-    setActionError(null);
     try {
       const token = await getApiToken();
       if (action === "approve") await merchants.approve(token, id);
       else if (action === "suspend") await merchants.suspend(token, id);
       else if (action === "unsuspend") await merchants.unsuspend(token, id);
       else await merchants.reopen(token, id);
+      setToast({ text: `${LIFECYCLE_COPY[action].cta} done` });
       refresh();
     } catch (e) {
-      setActionError(merchantActionMessage(e, `${action} failed`));
+      setToast({ text: merchantActionMessage(e, `${action} failed`), bad: true });
     } finally {
       setBusy(false);
+      setConfirm(null);
     }
   }
 
-  if (error) return <p className="text-red-600">{error}</p>;
-  if (!m) return <PageSkeleton rows={5} />;
+  if (error) {
+    return (
+      <AdminPage>
+        <Empty
+          icon={<Building2 className="h-6 w-6" aria-hidden />}
+          title="Couldn't open this merchant"
+          hint={error}
+          action={
+            <QuietButton onClick={() => router.push("/merchants")}>Back to merchants</QuietButton>
+          }
+        />
+      </AdminPage>
+    );
+  }
+  if (!m) {
+    return (
+      <AdminPage>
+        <SkeletonRows rows={6} label="Loading merchant" />
+      </AdminPage>
+    );
+  }
+
+  const pending = m.status === "PENDING" || m.status === "ONBOARDING";
+  const statusPill = ops?.credit.blocked ? (
+    <Pill tone="red">Credit hold</Pill>
+  ) : m.status !== "ACTIVE" ? (
+    <Pill tone={m.status === "SUSPENDED" ? "red" : "amber"}>
+      {m.status_label || merchantStatusLabel(m.status)}
+    </Pill>
+  ) : null;
+
+  const menu = [
+    ...(m.status === "ACTIVE"
+      ? [{ label: "Suspend", tone: "danger" as const, onSelect: () => setConfirm("suspend") }]
+      : []),
+    ...(m.status === "SUSPENDED"
+      ? [{ label: "Unsuspend", onSelect: () => setConfirm("unsuspend") }]
+      : []),
+    ...(m.status === "CLOSED" ? [{ label: "Reopen", onSelect: () => setConfirm("reopen") }] : []),
+    {
+      label: "Open merchant portal",
+      onSelect: () => window.open(merchantPortalBase, "_blank", "noopener"),
+    },
+    { label: "Copy portal URL", onSelect: () => void copyText("Portal URL", merchantPortalBase) },
+    { label: "Copy merchant ID", onSelect: () => void copyText("Merchant ID", m.id) },
+    {
+      label: "COD / Connect",
+      onSelect: () => window.open(`${merchantPortalBase}/billing?tab=cod`, "_blank", "noopener"),
+    },
+    { label: "Booking drafts", onSelect: () => router.push(`/booking-drafts?merchant_id=${m.id}`) },
+    ...(m.website
+      ? [{ label: "Website", onSelect: () => window.open(m.website!, "_blank", "noopener") }]
+      : []),
+    { label: "Privacy · export or erase", onSelect: () => go("people", "privacy") },
+  ];
+  const lc = confirm ? LIFECYCLE_COPY[confirm] : null;
 
   return (
     <AdminPage>
-      <button
-        onClick={() => router.push("/merchants")}
-        className="flex min-h-10 items-center gap-1.5 text-sm text-muted hover:text-primary"
+      <Link
+        href="/merchants"
+        className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary"
       >
-        <ArrowLeft className="h-4 w-4" /> All merchants
-      </button>
+        <ArrowLeft className="h-4 w-4" aria-hidden /> Merchants
+      </Link>
 
-      {/* Header */}
-      <div className="min-w-0 rounded-2xl border border-primary/10 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-secondary/10 text-secondary sm:h-14 sm:w-14">
-              {m.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={m.logo_url} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <Building2 className="h-7 w-7" />
-              )}
-            </span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate text-lg font-bold text-primary sm:text-xl">
-                  {m.company_name}
-                </h1>
-                <Badge tone={STATUS_TONE[m.status] ?? "slate"}>
-                  {m.status_label || merchantStatusLabel(m.status)}
-                </Badge>
-                {m.owner_clerk_linked ? (
-                  <Badge tone="sky">Clerk</Badge>
-                ) : (
-                  <Badge tone="amber">Clerk off</Badge>
-                )}
-                {m.api_connected ? (
-                  <Badge tone="green">API</Badge>
-                ) : (
-                  <Badge tone="slate">API off</Badge>
-                )}
-                {m.cod_enabled ? <Badge tone="green">COD</Badge> : null}
-              </div>
-              <p className="mt-0.5 break-words text-sm text-muted">
-                {m.industry ?? "—"}
-                {m.city ? ` · ${[m.city, m.province].filter(Boolean).join(", ")}` : ""}
-                {m.website ? (
-                  <>
-                    {" · "}
-                    <a
-                      href={m.website}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-secondary"
-                    >
-                      <Globe className="h-3 w-3" /> Website
-                    </a>
-                  </>
-                ) : null}
-              </p>
+      <section className="min-w-0 space-y-7 rounded-[2rem] border border-primary/10 bg-white p-5 sm:p-8">
+        <header className="flex items-start gap-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/[0.05] text-primary sm:h-14 sm:w-14">
+            {m.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={m.logo_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Building2 className="h-6 w-6" aria-hidden />
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[11px] font-semibold tracking-[0.18em] text-secondary uppercase">
+              {ops ? ops.segment.label : m.industry || "Merchant"}
+              {ops ? ` · ${ops.owner.name ?? "No owner"}` : ""}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h1 className="min-w-0 text-2xl font-extrabold tracking-tight text-primary sm:text-4xl">
+                {m.company_name}
+              </h1>
+              {statusPill}
             </div>
           </div>
-          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-            <button
-              type="button"
-              onClick={() => void copyText("id", m.id)}
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-              title={m.id}
-            >
-              <Copy className="h-4 w-4" />
-              {copied === "id" ? "Copied id" : "Copy id"}
-            </button>
-            <a
-              href={merchantPortalBase}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-            >
-              <ExternalLink className="h-4 w-4" /> Portal
-            </a>
-            <button
-              type="button"
-              onClick={() => void copyText("portal", merchantPortalBase)}
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-            >
-              <Copy className="h-4 w-4" />
-              {copied === "portal" ? "Copied URL" : "Copy portal"}
-            </button>
-            <a
-              href={`${merchantPortalBase}/billing?tab=cod`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-            >
-              <ExternalLink className="h-4 w-4" /> COD / Connect
-            </a>
-            <Link
-              href={`/booking-drafts?merchant_id=${m.id}`}
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-            >
-              Drafts
-            </Link>
-            <Link
-              href={`/support?merchant_id=${m.id}`}
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-            >
-              Support
-            </Link>
-            <Link
-              href={`/claims?merchant_id=${m.id}`}
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg"
-            >
-              Claims
-            </Link>
-            <Link
-              href="/settings?section=users&tab=merchant"
-              className="col-span-2 inline-flex min-h-10 items-center justify-center rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-gray-bg sm:col-span-1"
-            >
-              Users directory
-            </Link>
-            {(m.status === "PENDING" || m.status === "ONBOARDING") && (
-              <Button onClick={() => lifecycle("approve")} disabled={busy}>
-                <Rocket className="h-4 w-4" /> Approve
-              </Button>
-            )}
-            {m.status === "ACTIVE" && (
-              <Button variant="outline" onClick={() => lifecycle("suspend")} disabled={busy}>
-                Suspend
-              </Button>
-            )}
-            {m.status === "SUSPENDED" && (
-              <Button onClick={() => lifecycle("unsuspend")} disabled={busy}>
-                Unsuspend
-              </Button>
-            )}
-            {m.status === "CLOSED" && (
-              <Button variant="outline" onClick={() => lifecycle("reopen")} disabled={busy}>
-                Reopen
-              </Button>
-            )}
+          <div className="flex shrink-0 items-center gap-2">
+            {pending ? (
+              <PrimaryAction
+                onClick={() => setConfirm("approve")}
+                disabled={busy}
+                className="hidden sm:inline-flex"
+              >
+                Approve
+              </PrimaryAction>
+            ) : null}
+            <ActionMenu
+              items={
+                pending
+                  ? [{ label: "Approve", onSelect: () => setConfirm("approve") }, ...menu]
+                  : menu
+              }
+            />
           </div>
-        </div>
-        {actionError && (
-          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-            {actionError}
-          </p>
-        )}
+        </header>
+        <MerchantHero
+          ops={ops ?? undefined}
+          revenue30dCents={m.metrics.monthly_revenue_cents}
+          orders30d={m.metrics.monthly_orders}
+          onGo={(t, p) => go(t as TabId, p)}
+        />
+      </section>
 
-        {/* Metric tiles + health + AI */}
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <HealthCard score={m.health} />
-          <Metric
-            label="Monthly revenue"
-            value={money(m.metrics.monthly_revenue_cents)}
-            sub={`${m.metrics.monthly_orders} orders / 30d`}
-          />
-          <Metric
-            label="AR outstanding"
-            value={money(m.metrics.outstanding_balance_cents)}
-            sub={
-              m.metrics.overdue_balance_cents > 0
-                ? `${money(m.metrics.overdue_balance_cents)} overdue`
-                : (m.metrics.crm_outstanding_balance_cents ?? 0) > 0
-                  ? `CRM sales ${money(m.metrics.crm_outstanding_balance_cents ?? 0)} tracked separately`
-                  : "Invoiced + not yet invoiced − credits"
-            }
-            danger={m.metrics.overdue_balance_cents > 0}
-          />
-          <Metric
-            label="Lifetime"
-            value={money(m.metrics.lifetime_revenue_cents)}
-            sub={`${m.metrics.lifetime_orders} orders`}
-          />
-        </div>
+      {toast && (
+        <p
+          role="status"
+          className={cn(
+            "fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-semibold shadow-xl",
+            toast.bad ? "bg-red-700 text-white" : "bg-primary text-white"
+          )}
+        >
+          {toast.text}
+        </p>
+      )}
 
-        <AiPanel ai={m.ai} />
-      </div>
-
-      {/* Tabs */}
-      <div className="sticky top-0 z-10 min-w-0 rounded-2xl border border-primary/10 bg-white/95 shadow-sm backdrop-blur">
-        <div className="ops-tab-rail" role="tablist" aria-label="Merchant sections">
-          {TABS.map(({ id: tid, label, icon: Icon }) => (
+      <nav
+        id="merchant-sections"
+        className="sticky top-0 z-10 -mx-1 scroll-mt-4 bg-gray-bg/90 px-1 py-2 backdrop-blur"
+        aria-label="Merchant sections"
+      >
+        <div className="ops-tab-rail gap-1 border-b border-primary/10" role="tablist">
+          {TABS.map(({ id: tid, label, short, icon: Icon }) => (
             <button
               key={tid}
               type="button"
               role="tab"
-              aria-selected={tab === tid}
-              onClick={() => gotoTab(tid)}
+              aria-selected={route.tab === tid}
+              onClick={() => go(tid)}
               className={cn(
-                "flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors",
-                tab === tid ? "bg-secondary text-white" : "text-primary/70 hover:bg-gray-bg"
+                "-mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold whitespace-nowrap",
+                route.tab === tid
+                  ? "border-secondary text-primary"
+                  : "border-transparent text-slate-600 hover:text-primary"
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
+              <Icon className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="sm:hidden">{short}</span>
+              <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
         </div>
-      </div>
+      </nav>
 
       <div className="min-w-0">
-        {tab === "overview" && <OverviewTab m={m} onGoto={gotoTab} />}
-        {tab === "orders" && <OrdersTab id={id} />}
-        {tab === "money" && (
-          <div className="space-y-4">
-            <SubRail
-              items={MONEY_PANELS}
-              value={moneyPanel}
-              onChange={(panel) => gotoTab("money", { money: panel })}
-              label="Billing sections"
+        {route.tab === "overview" && (
+          <div className="space-y-6">
+            {m.portal_ready === false && (
+              <div className="flex flex-col gap-3 rounded-3xl bg-amber-50 px-5 py-4 text-sm text-amber-950 sm:flex-row sm:items-center">
+                <p className="flex-1">
+                  Not portal-ready yet. Invite the owner and activate the seat.
+                </p>
+                <QuietButton onClick={() => go("people", "team")}>Open team</QuietButton>
+              </div>
+            )}
+            {ops ? (
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+                <HealthReasons ops={ops} />
+                <div className="space-y-6">
+                  <OwnerSegmentCard ops={ops} onSaved={refresh} />
+                  <AtAGlance m={m} onGoto={go} />
+                </div>
+              </div>
+            ) : (
+              <SkeletonRows rows={4} label="Loading health" />
+            )}
+            <BusinessDetails m={m} />
+            <EntityAlertsPanel
+              recipientType="merchant"
+              recipientId={m.id}
+              careHref={`/support?merchant_id=${m.id}`}
             />
-            {moneyPanel === "invoices" && <InvoicesTab id={id} />}
-            {moneyPanel === "contracts" && <ContractsTab id={id} />}
-            {moneyPanel === "statement" && <StatementTab id={id} />}
-            {moneyPanel === "credits" && <CreditNotesTab id={id} />}
+            <LazyAnalytics id={m.id} />
+            <MerchantChangeHistory id={id} version={version} />
           </div>
         )}
-        {tab === "pricing" && <MerchantPricingPanel merchantId={id} />}
-        {tab === "people" && (
-          <div className="space-y-4">
+        {route.tab === "orders" && (
+          <div className="space-y-6">
+            {ops && <DeliveryTimes ops={ops} />}
+            <OrdersTab id={id} />
+            <MerchantStandingOrdersCard id={id} />
+          </div>
+        )}
+        {route.tab === "money" && (
+          <div className="space-y-5">
+            <SubRail
+              items={MONEY_PANELS}
+              value={route.money}
+              onChange={(panel) => go("money", panel)}
+              label="Money sections"
+            />
+            {route.money === "pricing" && <MerchantPricingPanel merchantId={id} />}
+            {route.money === "quote" && <MerchantQuotePreview id={id} />}
+            {route.money === "credit" &&
+              (ops ? (
+                <MerchantCreditCard ops={ops} onSaved={refresh} />
+              ) : (
+                <SkeletonRows rows={3} label="Loading credit" />
+              ))}
+            {route.money === "invoices" && <InvoicesTab id={id} />}
+            {route.money === "contracts" && <ContractsTab id={id} />}
+            {route.money === "statement" && <StatementTab id={id} />}
+            {route.money === "credits" && <CreditNotesTab id={id} />}
+          </div>
+        )}
+        {route.tab === "connections" && (
+          <div className="space-y-6">
+            <MerchantIntegrationsTab id={id} />
+          </div>
+        )}
+        {route.tab === "people" && (
+          <div className="space-y-5">
             <SubRail
               items={PEOPLE_PANELS}
-              value={peoplePanel}
-              onChange={(panel) => gotoTab("people", { people: panel })}
-              label="People sections"
+              value={route.people}
+              onChange={(panel) => go("people", panel)}
+              label="People and files sections"
             />
-            {peoplePanel === "team" && <MerchantTeamPanel merchant={m} />}
-            {peoplePanel === "contacts" && <MerchantContactsPanel id={id} />}
-            {peoplePanel === "locations" && <MerchantLocationsPanel id={id} />}
-            {peoplePanel === "activity" && (
-              <div className="space-y-4">
+            {route.people === "team" && <MerchantTeamPanel merchant={m} />}
+            {route.people === "contacts" && <MerchantContactsPanel id={id} />}
+            {route.people === "locations" && <MerchantLocationsPanel id={id} />}
+            {route.people === "documents" && <MerchantDocumentsPanel id={id} />}
+            {route.people === "support" && <MerchantSupportPanel id={id} />}
+            {route.people === "settings" && <SettingsTab m={m} onSaved={refresh} />}
+            {route.people === "privacy" && <MerchantPrivacyCard id={id} />}
+            {route.people === "activity" && (
+              <div className="space-y-5">
                 <SubRail
                   items={ACTIVITY_PANELS}
-                  value={activityPanel}
-                  onChange={(panel) => {
-                    setActivityPanel(panel);
-                    router.replace(`/merchants/${id}?tab=people&panel=${panel}`, { scroll: false });
-                  }}
+                  value={route.activity}
+                  onChange={(panel) => go("people", panel)}
                   label="Activity sections"
                 />
-                {activityPanel === "timeline" && <TimelineTab id={id} />}
-                {activityPanel === "activities" &&
+                {route.activity === "timeline" && <TimelineTab id={id} />}
+                {route.activity === "activities" &&
                   (m.company_id ? (
                     <ActivityTimeline entityType="company" entityId={m.company_id} />
                   ) : (
                     <ReadActivities id={id} />
                   ))}
-                {activityPanel === "tasks" &&
+                {route.activity === "tasks" &&
                   (m.company_id ? (
                     <EntityTasks
                       entityType="company"
@@ -515,18 +523,62 @@ export default function MerchantDetailClient({ id }: { id: string }) {
                       companyId={m.company_id}
                     />
                   ) : (
-                    <p className="py-10 text-center text-sm text-muted">
-                      Tasks available once a CRM company is linked.
-                    </p>
+                    <Panel>
+                      <Empty
+                        title="No tasks yet"
+                        hint="Tasks appear once a CRM company is linked."
+                      />
+                    </Panel>
                   ))}
               </div>
             )}
           </div>
         )}
-        {tab === "api" && <MerchantIntegrationsTab id={id} />}
-        {tab === "settings" && <SettingsTab m={m} onSaved={refresh} />}
       </div>
+
+      <Dialog
+        open={confirm != null}
+        onClose={() => setConfirm(null)}
+        title={lc?.title ?? ""}
+        description={lc?.body}
+        footer={
+          <>
+            <QuietButton onClick={() => setConfirm(null)}>Cancel</QuietButton>
+            <PrimaryAction
+              disabled={busy}
+              tone={lc?.danger ? "danger" : "accent"}
+              onClick={() => confirm && void lifecycle(confirm)}
+            >
+              {busy ? "Working…" : lc?.cta}
+            </PrimaryAction>
+          </>
+        }
+      />
     </AdminPage>
+  );
+}
+
+function DeliveryTimes({ ops }: { ops: MerchantOps }) {
+  const h = ops.health;
+  return (
+    <dl className="grid grid-cols-2 gap-1 rounded-3xl border border-primary/10 bg-white p-1.5 sm:grid-cols-4">
+      <Metric label="On time · 30 d" value={h.on_time_pct == null ? "—" : `${h.on_time_pct}%`} />
+      <Metric
+        label="Orders · 4 wk"
+        value={String(h.trend.last_4w)}
+        sub={
+          h.trend.change_pct != null
+            ? `${h.trend.change_pct > 0 ? "+" : ""}${h.trend.change_pct}% vs prior`
+            : undefined
+        }
+      />
+      <Metric
+        label="Open exceptions"
+        value={String(h.open_exceptions)}
+        danger={h.open_exceptions > 0}
+      />
+      <Metric label="Open claims" value={String(h.open_claims)} danger={h.open_claims > 0} />
+    </dl>
   );
 }
 
@@ -542,11 +594,7 @@ function SubRail<T extends string>({
   label: string;
 }) {
   return (
-    <div
-      className="ops-tab-rail rounded-xl border border-primary/10 bg-white"
-      role="tablist"
-      aria-label={label}
-    >
+    <div className="ops-tab-rail gap-1" role="tablist" aria-label={label}>
       {items.map((item) => (
         <button
           key={item.id}
@@ -555,8 +603,10 @@ function SubRail<T extends string>({
           aria-selected={value === item.id}
           onClick={() => onChange(item.id)}
           className={cn(
-            "min-h-10 shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap",
-            value === item.id ? "bg-primary text-white" : "text-muted hover:bg-gray-bg"
+            "min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold whitespace-nowrap",
+            value === item.id
+              ? "bg-primary text-white"
+              : "text-slate-600 hover:bg-white hover:text-primary"
           )}
         >
           {item.label}
@@ -578,238 +628,137 @@ function Metric({
   danger?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-xl border border-primary/10 p-4">
-      <p className="text-xs text-muted">{label}</p>
-      <p className="mt-1 truncate text-xl font-bold tabular-nums text-primary">{value}</p>
-      {sub && <p className={cn("text-xs", danger ? "text-red-600" : "text-muted")}>{sub}</p>}
-    </div>
-  );
-}
-
-function HealthCard({ score }: { score: number }) {
-  const color = score >= 70 ? "#16a34a" : score >= 40 ? "#f59e0b" : "#dc2626";
-  return (
-    <div className="flex min-w-0 items-center gap-4 rounded-xl border border-primary/10 p-4">
-      <div
-        className="relative flex h-16 w-16 items-center justify-center rounded-full"
-        style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #e2e8f0 0deg)` }}
+    <div className="min-w-0 rounded-2xl px-4 py-3">
+      <dt className="text-[11px] font-semibold tracking-[0.14em] text-slate-600 uppercase">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          "mt-1 truncate text-2xl font-extrabold tracking-tight tabular-nums",
+          danger ? "text-red-700" : "text-primary"
+        )}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-sm font-bold text-primary">
-          {score}
-        </div>
-      </div>
-      <div>
-        <p className="text-xs text-muted">Health score</p>
-        <p className="text-lg font-bold text-primary">
-          {score >= 70 ? "Healthy" : score >= 40 ? "Watch" : "At risk"}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function AiPanel({ ai }: { ai: MerchantDetail["ai"] }) {
-  const modelAssisted = ai.actions_source === "nvidia_nim";
-  return (
-    <div className="mt-4 rounded-xl border border-primary/15 bg-white p-4">
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
-        <ListChecks className="h-4 w-4 text-secondary" /> Next actions
-      </div>
-      <p className="mb-2 text-xs text-muted">
-        {modelAssisted
-          ? "Risk scores stay rule-based · action copy NVIDIA NIM · read-only"
-          : "From orders, AR, and contract dates — not a model."}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <Badge tone={RISK_TONE[ai.risk_score]}>Risk: {titleCase(ai.risk_score)}</Badge>
-        <Badge tone={RISK_TONE[ai.payment_risk]}>Payment: {titleCase(ai.payment_risk)}</Badge>
-        <Badge tone={RISK_TONE[ai.renewal_risk]}>Renewal: {titleCase(ai.renewal_risk)}</Badge>
-        <Badge tone="sky">Trend: {titleCase(ai.revenue_trend)}</Badge>
-        {modelAssisted ? <Badge tone="sky">NVIDIA NIM</Badge> : null}
-      </div>
-      <ul className="mt-3 space-y-1">
-        {ai.suggested_actions.map((s, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-primary">
-            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-secondary" />
-            {s}
-          </li>
-        ))}
-      </ul>
+        {value}
+      </dd>
+      {sub ? <dd className="text-xs text-slate-600">{sub}</dd> : null}
     </div>
   );
 }
 
 function Detail({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div>
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd className="text-sm text-primary">{value || "—"}</dd>
+    <div className="min-w-0">
+      <dt className="text-xs text-slate-600">{label}</dt>
+      <dd className={cn("truncate text-sm font-medium", value ? "text-primary" : "text-slate-500")}>
+        {value || "—"}
+      </dd>
     </div>
   );
 }
 
-function OverviewTab({
+function AtAGlance({
   m,
   onGoto,
 }: {
   m: MerchantDetail;
-  onGoto: (
-    t: TabId,
-    extras?: { people?: PeoplePanel; money?: MoneyPanel; activity?: ActivityPanel }
-  ) => void;
+  onGoto: (t: TabId, panel?: string) => void;
 }) {
-  const a = m.billing_address as Record<string, string>;
+  const rows: [string, string, () => void][] = [
+    ["Open orders", String(m.metrics.open_orders), () => onGoto("orders")],
+    ["Team", String(m.counts.users ?? 0), () => onGoto("people", "team")],
+    ["Contacts", String(m.counts.contacts ?? 0), () => onGoto("people", "contacts")],
+    ["Locations", String(m.counts.locations ?? 0), () => onGoto("people", "locations")],
+    ["API keys", String(m.counts.api_keys ?? 0), () => onGoto("connections")],
+    ["Open tasks", String(m.counts.open_tasks ?? 0), () => onGoto("people", "tasks")],
+    ["Contract", titleCase(m.contract_status) || "None", () => onGoto("money", "contracts")],
+    ["Lifetime", money(m.metrics.lifetime_revenue_cents), () => onGoto("money", "statement")],
+  ];
   return (
-    <div className="space-y-5">
-      {m.portal_ready === false && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          This company is not portal-ready. Open{" "}
-          <button
-            type="button"
-            className="font-semibold underline"
-            onClick={() => onGoto("people", { people: "team" })}
-          >
-            People → Team
-          </button>{" "}
-          to invite the owner and activate the seat.
-        </div>
-      )}
-      <MerchantStandingOrdersCard id={m.id} compact />
-      <MerchantPrivacyCard id={m.id} compact />
-      <div className="grid gap-5 lg:grid-cols-3">
-        <SectionCard title="Business details" className="lg:col-span-2">
-          <dl className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5 md:grid-cols-3">
+    <Panel title="At a glance">
+      <ul className="-my-1 grid grid-cols-2 gap-1">
+        {rows.map(([label, value, onClick]) => (
+          <li key={label}>
+            <button
+              onClick={onClick}
+              className="flex min-h-11 w-full flex-col items-start rounded-xl px-2 py-1.5 text-left hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary"
+            >
+              <span className="text-xs text-slate-600">{label}</span>
+              <span className="truncate text-base font-bold text-primary tabular-nums">
+                {value}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+function BusinessDetails({ m }: { m: MerchantDetail }) {
+  const [all, setAll] = useState(false);
+  const a = m.billing_address as Record<string, string>;
+  const coverageVehicles = m.coverage?.assigned_vehicles?.length
+    ? m.coverage.assigned_vehicles.map((v) => v.label).join(", ")
+    : m.preferred_vehicles?.length
+      ? m.preferred_vehicles.map(vehicleClassLabel).join(", ")
+      : null;
+  const zones = m.coverage?.delivery_zones?.length
+    ? m.coverage.delivery_zones.map((z) => z.name || z.code).join(", ")
+    : (m.delivery_zones ?? []).map(String).filter(Boolean).join(", ") || null;
+  return (
+    <Panel
+      title="Business"
+      aside={
+        <button
+          onClick={() => setAll((v) => !v)}
+          aria-expanded={all}
+          className="min-h-11 rounded-full px-3 text-sm font-semibold text-secondary hover:bg-secondary/5"
+        >
+          {all ? "Show less" : "Show all"}
+        </button>
+      }
+    >
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Detail label="Email" value={m.email} />
+        <Detail label="Phone" value={m.phone} />
+        <Detail label="Payment terms" value={titleCase(m.payment_terms)} />
+        <Detail
+          label="Credit limit"
+          value={m.credit_limit_cents != null ? money(m.credit_limit_cents) : "No limit"}
+        />
+        <Detail label="Service area" value={m.coverage?.service_area ?? m.service_area} />
+        <Detail
+          label="Billing city"
+          value={[a?.city, a?.province].filter(Boolean).join(", ") || null}
+        />
+        {all && (
+          <>
             <Detail label="Legal name" value={m.legal_name} />
             <Detail label="Industry" value={m.industry} />
-            <Detail label="Email" value={m.email} />
-            <Detail label="Phone" value={m.phone} />
             <Detail label="HST number" value={m.hst_number} />
             <Detail label="Business number" value={m.business_number} />
             <Detail label="Tax region" value={m.tax_region} />
             <Detail label="Tax exempt" value={m.tax_exempt ? "Yes" : "No"} />
             <Detail
-              label="Tax & legal last writer"
+              label="Tax & legal last edit"
               value={
                 m.tax_legal_meta?.updated_at
                   ? `${m.tax_legal_meta.updated_by || "someone"} · ${dateTime(m.tax_legal_meta.updated_at)}`
                   : null
               }
             />
-            <Detail label="Payment terms" value={titleCase(m.payment_terms)} />
-            <Detail
-              label="Credit limit"
-              value={m.credit_limit_cents != null ? money(m.credit_limit_cents) : null}
-            />
             <Detail
               label="Available credit"
               value={m.available_credit_cents != null ? money(m.available_credit_cents) : null}
             />
-            <Detail label="Service area" value={m.coverage?.service_area ?? m.service_area} />
-            <Detail
-              label="Assigned vehicles"
-              value={
-                m.coverage?.assigned_vehicles?.length
-                  ? m.coverage.assigned_vehicles.map((v) => v.label).join(", ")
-                  : m.preferred_vehicles?.length
-                    ? m.preferred_vehicles.map(vehicleClassLabel).join(", ")
-                    : null
-              }
-            />
-            <Detail
-              label="Delivery zones"
-              value={
-                m.coverage?.delivery_zones?.length
-                  ? m.coverage.delivery_zones.map((z) => z.name || z.code).join(", ")
-                  : (m.delivery_zones ?? []).map(String).filter(Boolean).join(", ") || null
-              }
-            />
-            <Detail
-              label="Billing city"
-              value={[a?.city, a?.province].filter(Boolean).join(", ") || null}
-            />
+            <Detail label="Assigned vehicles" value={coverageVehicles} />
+            <Detail label="Delivery zones" value={zones} />
             <Detail label="Activated" value={shortDate(m.activated_at)} />
             <Detail label="Created" value={shortDate(m.created_at)} />
-          </dl>
-        </SectionCard>
-        <SectionCard title="At a glance">
-          <div className="space-y-3 p-5 text-sm">
-            <QuickRow
-              label="Open orders"
-              value={String(m.metrics.open_orders)}
-              onClick={() => onGoto("orders")}
-            />
-            <QuickRow
-              label="Contacts"
-              value={String(m.counts.contacts ?? 0)}
-              onClick={() => onGoto("people", { people: "contacts" })}
-            />
-            <QuickRow
-              label="Locations"
-              value={String(m.counts.locations ?? 0)}
-              onClick={() => onGoto("people", { people: "locations" })}
-            />
-            <QuickRow
-              label="Team members"
-              value={String(m.counts.users ?? 0)}
-              onClick={() => onGoto("people", { people: "team" })}
-            />
-            <QuickRow
-              label="API keys"
-              value={String(m.counts.api_keys ?? 0)}
-              onClick={() => onGoto("api")}
-            />
-            <QuickRow
-              label="Open tasks"
-              value={String(m.counts.open_tasks ?? 0)}
-              onClick={() => onGoto("people", { people: "activity", activity: "tasks" })}
-            />
-            <QuickRow
-              label="Contract"
-              value={titleCase(m.contract_status)}
-              onClick={() => onGoto("money", { money: "contracts" })}
-            />
-            <QuickRow
-              label="Credit notes"
-              value="View"
-              onClick={() => onGoto("money", { money: "credits" })}
-            />
-            <Link
-              href={`/booking-drafts?merchant_id=${m.id}`}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm hover:bg-gray-bg"
-            >
-              <span className="text-muted">Booking drafts</span>
-              <span className="font-semibold text-secondary">Open →</span>
-            </Link>
-          </div>
-        </SectionCard>
-      </div>
-      <EntityAlertsPanel
-        recipientType="merchant"
-        recipientId={m.id}
-        careHref={`/support?merchant_id=${m.id}`}
-      />
-      <LazyAnalytics id={m.id} />
-    </div>
-  );
-}
-
-function QuickRow({
-  label,
-  value,
-  onClick,
-}: {
-  label: string;
-  value: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left hover:bg-gray-bg"
-    >
-      <span className="text-muted">{label}</span>
-      <span className="font-semibold text-primary">{value}</span>
-    </button>
+          </>
+        )}
+      </dl>
+    </Panel>
   );
 }
 
@@ -818,23 +767,26 @@ function ReadActivities({ id }: { id: string }) {
     key: `merchant-activities-${id}`,
   });
   return (
-    <SectionCard title="Activity">
-      <div className="divide-y divide-primary/5">
-        {(data ?? []).map((a) => (
-          <div key={a.id} className="px-5 py-3">
-            <p className="text-sm text-primary">
-              {a.subject ?? a.body ?? titleCase(a.activity_type)}
-            </p>
-            <p className="text-xs text-muted">
-              {titleCase(a.activity_type)} · {relativeTime(a.occurred_at)}
-            </p>
-          </div>
-        ))}
-        {(!data || data.length === 0) && (
-          <p className="px-5 py-10 text-center text-sm text-muted">No activity yet.</p>
-        )}
-      </div>
-    </SectionCard>
+    <Panel title="Activity">
+      {!data ? (
+        <SkeletonRows rows={3} label="Loading activity" />
+      ) : data.length === 0 ? (
+        <Empty title="No activity yet" hint="Calls, emails and notes show up here." />
+      ) : (
+        <ul className="-my-2 divide-y divide-primary/5">
+          {data.map((a) => (
+            <li key={a.id} className="py-3">
+              <p className="text-sm font-medium text-primary">
+                {a.subject ?? a.body ?? titleCase(a.activity_type)}
+              </p>
+              <p className="text-xs text-slate-600">
+                {titleCase(a.activity_type)} · {relativeTime(a.occurred_at)}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   );
 }
 
@@ -842,33 +794,39 @@ function TimelineTab({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.timeline(t, id), [id], {
     key: `merchant-timeline-${id}`,
   });
-  const tone: Record<string, string> = {
-    activity: "bg-secondary",
-    order: "bg-violet-500",
-    invoice: "bg-amber-500",
-  };
   return (
-    <SectionCard title="Timeline">
-      <div className="space-y-0 p-5">
-        {(data ?? []).map((e, i) => (
-          <div key={i} className="flex gap-3 pb-4 last:pb-0">
-            <div className="flex flex-col items-center">
-              <span className={cn("h-2.5 w-2.5 rounded-full", tone[e.kind] ?? "bg-slate-400")} />
-              {i < (data?.length ?? 0) - 1 && <span className="w-px flex-1 bg-primary/10" />}
-            </div>
-            <div className="-mt-1 pb-1">
-              <p className="text-sm text-primary">{e.title}</p>
-              <p className="text-xs text-muted">
-                {titleCase(e.kind)} · {dateTime(e.at)}
-              </p>
-            </div>
-          </div>
-        ))}
-        {(!data || data.length === 0) && (
-          <p className="py-10 text-center text-sm text-muted">No timeline events.</p>
-        )}
-      </div>
-    </SectionCard>
+    <Panel title="Timeline">
+      {!data ? (
+        <SkeletonRows rows={4} label="Loading timeline" />
+      ) : data.length === 0 ? (
+        <Empty
+          title="No events yet"
+          hint="Orders, invoices and activity appear here as they happen."
+        />
+      ) : (
+        <ol>
+          {data.map((e, i) => (
+            <li key={i} className="flex gap-3 pb-4 last:pb-0">
+              <div className="flex flex-col items-center">
+                <span
+                  className={cn(
+                    "mt-1.5 h-2 w-2 rounded-full",
+                    e.kind === "invoice" ? "bg-amber-600" : "bg-primary"
+                  )}
+                />
+                {i < data.length - 1 && <span className="w-px flex-1 bg-primary/10" />}
+              </div>
+              <div className="pb-1">
+                <p className="text-sm font-medium text-primary">{e.title}</p>
+                <p className="text-xs text-slate-600">
+                  {titleCase(e.kind)} · {dateTime(e.at)}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Panel>
   );
 }
 
@@ -899,51 +857,55 @@ function AnalyticsTab({ id }: { id: string }) {
   const { data } = useApiData((t) => merchants.analytics(t, id), [id], {
     key: `merchant-analytics-${id}`,
   });
-  if (!data) return <PageSkeleton rows={3} />;
+  if (!data) return <SkeletonRows rows={3} label="Loading revenue" />;
   const months = data.revenue_by_month ?? [];
   const destinations = data.top_destinations ?? [];
   const maxRev = Math.max(1, ...months.map((r) => r.revenue_cents));
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <SectionCard title="Revenue by month" className="lg:col-span-2">
-        <div className="space-y-3 p-5">
-          {months.map((r) => (
-            <div key={r.month}>
-              <div className="mb-1 flex items-center justify-between text-sm">
-                <span className="text-primary">
-                  {r.month} <span className="text-muted">· {r.orders} orders</span>
-                </span>
-                <span className="font-semibold text-primary">{money(r.revenue_cents)}</span>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <Panel title="Revenue by month">
+        {months.length === 0 ? (
+          <Empty title="No order history yet" />
+        ) : (
+          <div className="space-y-3">
+            {months.map((r) => (
+              <div key={r.month}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="text-primary">
+                    {r.month} <span className="text-slate-600">· {r.orders} orders</span>
+                  </span>
+                  <span className="font-bold text-primary tabular-nums">
+                    {money(r.revenue_cents)}
+                  </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${(r.revenue_cents / maxRev) * 100}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-gray-bg">
-                <div
-                  className="h-full rounded-full bg-secondary"
-                  style={{ width: `${(r.revenue_cents / maxRev) * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
-          {months.length === 0 && (
-            <p className="py-6 text-center text-sm text-muted">No order history yet.</p>
-          )}
-        </div>
-      </SectionCard>
-      <SectionCard title="Top destinations">
-        <div className="divide-y divide-primary/5">
-          {destinations.map((d) => (
-            <div
-              key={d.city}
-              className="flex min-w-0 items-center justify-between gap-3 px-5 py-3 text-sm"
-            >
-              <span className="min-w-0 truncate text-primary">{d.city}</span>
-              <span className="font-semibold text-primary">{d.orders}</span>
-            </div>
-          ))}
-          {destinations.length === 0 && (
-            <p className="px-5 py-8 text-center text-sm text-muted">No destinations yet.</p>
-          )}
-        </div>
-      </SectionCard>
+            ))}
+          </div>
+        )}
+      </Panel>
+      <Panel title="Top destinations">
+        {destinations.length === 0 ? (
+          <Empty title="No destinations yet" />
+        ) : (
+          <ul className="-my-2 divide-y divide-primary/5">
+            {destinations.map((d) => (
+              <li
+                key={d.city}
+                className="flex min-w-0 items-center justify-between gap-3 py-2.5 text-sm"
+              >
+                <span className="min-w-0 truncate text-primary">{d.city}</span>
+                <span className="font-bold text-primary tabular-nums">{d.orders}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
     </div>
   );
 }

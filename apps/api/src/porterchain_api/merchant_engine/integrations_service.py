@@ -324,29 +324,11 @@ class MerchantIntegrationsService:
         )
 
     def update_api_key_rate_limit(
-        self,
-        db: Session,
-        ctx: MerchantContext,
-        key_id: str,
-        *,
-        rate_limit_per_minute: int,
+        self, db: Session, ctx: MerchantContext, key_id: str, *, rate_limit_per_minute: int
     ) -> dict[str, Any]:
-        from porterchain_api.merchant_models import MerchantApiKey
+        from porterchain_api.merchant_engine.api_key_limits import set_rate_limit
 
-        record = (
-            db.query(MerchantApiKey)
-            .filter(MerchantApiKey.id == key_id, MerchantApiKey.merchant_id == ctx.merchant.id)
-            .first()
-        )
-        if not record:
-            raise LookupError("api_key_not_found")
-        record.rate_limit_per_minute = max(10, min(rate_limit_per_minute, 600))
-        db.commit()
-        db.refresh(record)
-        return {
-            "api_key_id": record.id,
-            "rate_limit_per_minute": record.rate_limit_per_minute,
-        }
+        return set_rate_limit(db, ctx.merchant.id, key_id, rate_limit_per_minute)
 
     def console_execute(
         self,

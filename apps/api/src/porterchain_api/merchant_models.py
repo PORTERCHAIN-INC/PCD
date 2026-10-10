@@ -1,7 +1,19 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -17,6 +29,9 @@ class Merchant(Base):
     __tablename__ = "merchants"
     __table_args__ = (
         CheckConstraint("pricing_model IN ('fsa', 'distance')", name="ck_merchants_pricing_model"),
+        CheckConstraint(
+            "credit_hold_mode IN ('none', 'manual', 'auto')", name="ck_merchants_credit_hold_mode"
+        ),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -47,6 +62,13 @@ class Merchant(Base):
     preferred_vehicles: Mapped[list | None] = mapped_column(JSON, nullable=True)
     delivery_zones: Mapped[list | None] = mapped_column(JSON, nullable=True)
     activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Merchant admin ops (ma0merchops1a2b): account owner, segments, credit hold.
+    owner_admin_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    segment_tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    credit_hold_mode: Mapped[str] = mapped_column(String(16), default="none", server_default="none", index=True)
+    credit_hold_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    credit_hold_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    credit_override_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -131,6 +153,9 @@ class MerchantApiKey(Base):
     rate_limit_per_minute: Mapped[int] = mapped_column(Integer, default=60)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Rotation: the old key keeps working until expires_at (grace window).
+    rotated_from_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     merchant: Mapped[Merchant] = relationship(back_populates="api_keys")
@@ -373,4 +398,42 @@ class ShopifyRateQuote(Base):
     dropoff_postal: Mapped[str | None] = mapped_column(String(32), nullable=True)
     weight_kg: Mapped[str | None] = mapped_column(String(32), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MerchantDocument(Base):
+    """Ops document vault: COI, signed contract, tax forms. Bytes purged on erasure."""
+
+    __tablename__ = "merchant_documents"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    filename: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str] = mapped_column(String(64))
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    sha256: Mapped[str] = mapped_column(String(64))
+    content: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    expires_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    uploaded_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MerchantAlert(Base):
+    """Dedupe ledger for merchant ops emails (churn, credit hold)."""
+
+    __tablename__ = "merchant_alerts"
+    __table_args__ = (
+        UniqueConstraint("merchant_id", "kind", "fingerprint", name="uq_merchant_alerts_dedupe"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    recipient: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="sent")
+    payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

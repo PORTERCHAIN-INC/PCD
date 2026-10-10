@@ -517,6 +517,17 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
     }
 
 
+def _key_expired(key: MerchantApiKey) -> bool:
+    from datetime import UTC, datetime
+
+    exp = getattr(key, "expires_at", None)
+    if exp is None:
+        return False
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=UTC)
+    return exp <= datetime.now(UTC)
+
+
 def api_keys_payload(db: Session, merchant_id: str) -> dict:
     """Integrations health for admin merchant 360 — mirrors merchant portal overview.
 
@@ -528,6 +539,7 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
     from porterchain_api.config import get_settings
     from porterchain_api.domain.states import OrderSource
     from porterchain_api.gateway_engine import merchant_api as gateway
+    from porterchain_api.merchant_engine.shopify_health import DLQ_WAITING, shop_health
     from porterchain_api.merchant_engine.shopify_service import default_pickup_address
     from porterchain_api.merchant_engine.shopify_urls import (
         carrier_rates_url,
@@ -578,7 +590,8 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
     shopify_shops: list[dict[str, Any]] = []
     for shop in shops:
         pickup = default_pickup_address(db, merchant_id, shop=shop)
-        installed = shop.uninstalled_at is None
+        health = shop_health(db, shop, settings, pickup_set=pickup is not None)
+        installed = health["connected"]  # was uninstalled_at only; merchant view also needs a token
         shopify_shops.append(
             {
                 "id": shop.id,
@@ -595,6 +608,7 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
                 "auto_dispatch": bool(getattr(shop, "auto_dispatch", False)),
                 "default_vehicle_class": getattr(shop, "default_vehicle_class", None),
                 "default_package_type": getattr(shop, "default_package_type", None),
+                "health": health,
             }
         )
 
@@ -604,11 +618,18 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         "shopify.",
         "partner_api.",
     )
+    # Filter in SQL: a busy account (pricing/credit edits) used to push every
+    # integration event out of a 40-row window, so the log looked empty.
+    from sqlalchemy import or_
+
     audit_rows = (
         db.query(MerchantAuditLog)
-        .filter(MerchantAuditLog.merchant_id == merchant_id)
+        .filter(
+            MerchantAuditLog.merchant_id == merchant_id,
+            or_(*[MerchantAuditLog.action.like(f"{p}%") for p in audit_actions]),
+        )
         .order_by(MerchantAuditLog.created_at.desc())
-        .limit(40)
+        .limit(20)
         .all()
     )
     audit_events = [
@@ -705,7 +726,7 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         db.query(ShopifyIngressDlq)
         .filter(
             ShopifyIngressDlq.merchant_id == merchant_id,
-            ShopifyIngressDlq.status.in_(("open", "held")),
+            ShopifyIngressDlq.status.in_(DLQ_WAITING),
         )
         .count()
     )
@@ -721,7 +742,8 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         "last_fulfillment": last_fulfill_meta,
         "quote_book_locked": quote_book_locked,
         "oauth_configured": bool(settings.shopify_api_key and settings.shopify_api_secret),
-        "mid_flight_tracking": True,
+        # Real signal, not a constant: did we push tracking to Shopify for the latest fulfilled order?
+        "mid_flight_tracking": bool(last_fulfill_meta and last_fulfill_meta.get("last_tracking_push_at")),
         "fo_partner_path": (
             "flag_on" if settings.shopify_fulfillment_service_enabled else "flag_off"
         ),
@@ -740,7 +762,9 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
                 "environment": k.environment,
                 "scopes": k.scopes or [],
                 "rate_limit_per_minute": k.rate_limit_per_minute,
-                "is_active": k.is_active,
+                # A rotated key past its grace window is dead even before its next auth attempt flips the flag.
+                "is_active": bool(k.is_active) and not _key_expired(k),
+                "expires_at": k.expires_at.isoformat() if getattr(k, "expires_at", None) else None,
                 "last_used_at": k.last_used_at.isoformat() if k.last_used_at else None,
                 "created_at": k.created_at.isoformat() if k.created_at else None,
             }
@@ -763,6 +787,7 @@ def api_keys_payload(db: Session, merchant_id: str) -> dict:
         "sandbox_mode": gateway.sandbox_mode_enabled(merchant) if merchant else False,
         "booking_env_preference": gateway.booking_env_preference(merchant) if merchant else "live",
         "api_keys_count": len(keys),
+        "active_keys": sum(1 for k in keys if k.is_active and not _key_expired(k)),
         "sandbox_keys": sum(1 for k in keys if k.environment == "sandbox"),
         "production_keys": sum(1 for k in keys if k.environment == "production"),
         "webhooks_count": len(hooks),

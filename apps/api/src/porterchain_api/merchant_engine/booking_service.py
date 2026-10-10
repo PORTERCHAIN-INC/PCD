@@ -89,6 +89,7 @@ def _geo(addr: AddressInput) -> GeoPoint:
 
 
 def _assert_credit_headroom(db: Session, ctx: MerchantContext) -> None:
+    _assert_not_on_credit_hold(db, ctx)  # also covers validate_flow, which calls this
     limit = ctx.merchant.credit_limit_cents
     if limit is None or limit <= 0:
         return
@@ -100,6 +101,20 @@ def _assert_credit_headroom(db: Session, ctx: MerchantContext) -> None:
             "credit_hold",
             "This account is at its credit limit. Contact PorterChain before booking.",
         )
+
+
+def _assert_not_on_credit_hold(db: Session, ctx: MerchantContext) -> None:
+    """Manual or automatic (overdue invoice) credit hold blocks new bookings."""
+    from porterchain_api.merchant_engine.account_ops.credit import assert_can_book
+
+    try:
+        assert_can_book(db, ctx.merchant)
+    except ValueError as exc:
+        raise BookingValidationError(
+            "credit_hold",
+            "This account is on credit hold because an invoice is overdue. "
+            "Pay by Interac e-Transfer or contact PorterChain to book.",
+        ) from exc
 
 
 def assert_pickup_window(body: MerchantBookDeliveryRequest) -> None:
