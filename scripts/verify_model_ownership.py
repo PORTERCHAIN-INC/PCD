@@ -33,6 +33,7 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
         "admin_engine/control_tower/service.py",  # control tower Shopify ops side-effects
         "integrations/shopify_carrier_rates.py",  # carrier quote persistence
         "notification_engine/preference_service.py",  # merchant notif prefs
+        "pricing_engine/fsa_rate_card.py",  # reads Merchant/SavedAddress only; writes PricingFsaRate
     }
 )
 
@@ -45,6 +46,8 @@ _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
         "merchant_engine/billing_service.py",  # MerchantContract read+flush path
         "notification_engine/delivery_service.py",  # AdminUser resolve on deliver
         "booking_engine/order_sla.py",  # SLA timestamps on admin-adjacent order rows
+        "pricing_engine/fsa_rate_card.py",  # PricingFsaRate rows are pricing-owned rate data
+        "dispatch_engine/rescue.py",  # reads Driver; writes dispatch packages/stops only
     }
 )
 

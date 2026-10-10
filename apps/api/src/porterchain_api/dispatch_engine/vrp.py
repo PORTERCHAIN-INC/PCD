@@ -178,7 +178,11 @@ def solve_ortools(problem: Problem) -> dict[str, list[str]]:
         # still served (and scored late) instead of being dropped from the day.
         node = manager.NodeToIndex(1 + v + i)
         if st.window_start_s:
-            time_dim.CumulVar(node).SetMin(min(int(st.window_start_s), HORIZON_S))
+            # Clamp to the longest shift: a window opening after every van's shift ends
+            # must not make the model infeasible (CP "Solver fail"); the stop is then
+            # served last or dropped via its disjunction.
+            cumul = time_dim.CumulVar(node)
+            cumul.SetMin(min(int(st.window_start_s), HORIZON_S, cumul.Max()))
         if st.window_end_s is not None:
             time_dim.SetCumulVarSoftUpperBound(node, min(int(st.window_end_s), HORIZON_S), LATE_PENALTY)
 

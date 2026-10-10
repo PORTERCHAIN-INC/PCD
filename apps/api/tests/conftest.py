@@ -38,6 +38,7 @@ def settings():
     return Settings(
         app_env="local",
         stripe_mock=True,
+        stripe_secret="",  # never call real Stripe from tests, even with a local .env key
         jwt_secret="test-jwt-secret-local",
         spicedb_enabled=False,
         spicedb_use_memory=True,
