@@ -1,6 +1,7 @@
-import TrackLookupClient from "./track-lookup-client";
+import { redirect } from "next/navigation";
+import { publicEnv } from "@/lib/env";
 
-/** Form-only lookup — no list to prefetch. */
-export default function TrackLookupPage() {
-  return <TrackLookupClient />;
+/** Tracking lookup lives on the public website (no login). */
+export default function TrackLookupRedirect() {
+  redirect(`${publicEnv.websiteUrl}/en/track`);
 }

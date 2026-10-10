@@ -271,6 +271,21 @@ export default function PriceCalculator() {
                 <span>{formatCad(estimate.tax_cents)}</span>
               </li>
             </ul>
+            <Link
+              href={`/book?pickup=${encodeURIComponent(pickup.trim().toUpperCase())}&dropoff=${encodeURIComponent(dropoff.trim().toUpperCase())}&vehicle=${encodeURIComponent(estimate.vehicle_class)}`}
+              data-testid="calculator-book"
+              onClick={() =>
+                trackConversion(CONVERSION_EVENTS.CALCULATOR_ESTIMATE, {
+                  vehicle: estimate.vehicle_class,
+                  amount_cents: estimate.amount_cents,
+                  action: "book",
+                })
+              }
+              className="mt-4 flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-3.5 text-white hover:bg-primary/90"
+            >
+              <span className="font-semibold">Book now, no account</span>
+              <span className="text-lg font-extrabold">{formatCad(estimate.amount_cents)}</span>
+            </Link>
             <p className="mt-3 text-xs text-muted">{estimate.disclaimer}</p>
           </div>
         ) : null}

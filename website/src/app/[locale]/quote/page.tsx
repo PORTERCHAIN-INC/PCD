@@ -36,17 +36,12 @@ async function QuoteRedirect({
   const loc = (
     routing.locales.includes(locale as Locale) ? locale : routing.defaultLocale
   ) as string;
-  const base = `/${loc}/sign-up`;
-  const merged: Record<string, string | string[] | undefined> = {
-    intent: "quote",
-    from: "quote",
-    ...query,
-  };
-  redirect(withQuery(base, merged));
+  // Retail quotes are instant and need no account: go straight to guest booking.
+  redirect(withQuery(`/${loc}/book`, query));
   return null;
 }
 
-/** Legacy `/quote` — money-loop surface; capacity quote path is Clerk sign-up. */
+/** Legacy `/quote` → guest express booking (`/book`), query preserved. */
 export default async function QuoteRedirectPage({ params, searchParams }: Props) {
   const { locale } = await params;
   return (

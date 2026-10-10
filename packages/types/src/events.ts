@@ -11,6 +11,7 @@ export type DomainEventType =
   | "checkout.abandoned"
   | "customer.registered"
   | "customer.authenticated"
+  | "customer.reorder_nudge"
   | "merchant.lead_created"
   | "merchant.approved"
   | "merchant.activated"

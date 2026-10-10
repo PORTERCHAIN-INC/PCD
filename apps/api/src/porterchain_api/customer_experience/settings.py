@@ -245,8 +245,25 @@ def apply_preset(current: dict[str, Any], preset: str) -> dict[str, Any]:
     return normalize_cx(merge_patch(current, PRESETS[preset]))
 
 
+def retail_cx() -> dict[str, Any]:
+    """PorterChain's own retail customers: the full tracking page is the product.
+
+    Branded page, proof-of-delivery photo (behind the signed link) and self-service on.
+    Recipient notification fan-out stays as the default (owned by the notifications work).
+    """
+    cfg = default_cx()
+    cfg["tracking"].update({"branded_page": True, "show_pod_photo": True})
+    cfg["self_service"].update({"enabled": True, "link_ttl_hours": 24 * 30})
+    return cfg
+
+
 def cx_for_merchant(merchant: Any) -> dict[str, Any]:
-    """Normalized settings for a merchant (defaults on missing/invalid data)."""
+    """Normalized settings for a merchant (defaults on missing/invalid data).
+
+    ``None`` is a retail (no-merchant) order and gets :func:`retail_cx`.
+    """
+    if merchant is None:
+        return retail_cx()
     profile = getattr(merchant, "profile", None) if merchant is not None else None
     settings = profile.get("settings") if isinstance(profile, dict) else None
     raw = settings.get("customer_experience") if isinstance(settings, dict) else None

@@ -24,6 +24,8 @@ class DomainEventType(StrEnum):
     # Customer
     CUSTOMER_REGISTERED = "customer.registered"
     CUSTOMER_AUTHENTICATED = "customer.authenticated"
+    #: Staff-approved "same as last time?" email (customer_fast.admin360.decide_nudges).
+    CUSTOMER_REORDER_NUDGE = "customer.reorder_nudge"
 
     # Merchant
     MERCHANT_LEAD_CREATED = "merchant.lead_created"

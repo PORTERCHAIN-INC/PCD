@@ -281,7 +281,9 @@ def test_ui_admin_add_order_modal_wires_payment_link() -> None:
 
 def test_ui_customer_book_clerk_quote_mock_complete() -> None:
     """C-UI-010/042/043 contract: book flow uses Clerk + quotes + mock-complete."""
-    book = (CUSTOMER_SRC / "components/booking/CustomerBookDelivery.tsx").read_text(encoding="utf-8")
+    book = (CUSTOMER_SRC / "components/send/SendClient.tsx").read_text(encoding="utf-8") + (
+        CUSTOMER_SRC / "components/auth/PortalAuth.tsx"
+    ).read_text(encoding="utf-8")
     booking_lib = (CUSTOMER_SRC / "lib/booking.ts").read_text(encoding="utf-8")
     assert "createQuote" in book
     assert "mockCompleteCheckout" in book or "syncBookingCheckout" in book
@@ -289,7 +291,7 @@ def test_ui_customer_book_clerk_quote_mock_complete() -> None:
     assert "/v1/quotes" in booking_lib
     assert "/v1/bookings" in booking_lib
     assert "isClerkConfigured" in book
-    assert "CustomerBookDeliveryWithClerk" in book or "useAuth" in book or "useUser" in book
+    assert "useAuth" in book or "useUser" in book
 
 
 # ---------------------------------------------------------------------------

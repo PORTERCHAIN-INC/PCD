@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           "/*/login",
           "/*/book",
           "/*/book/",
+          "/*/email-preferences",
           "/*/track/",
           // signed draft previews (token in query) — never public content
           "/*/blog/preview/",

@@ -24,5 +24,8 @@ export const apiBaseUrl = trimSlash(
     (Platform.OS === "android" ? "http://10.0.2.2:8001" : "http://127.0.0.1:8001")
 );
 
+/** Public website: the one tracking page (map, photo, rating, receipt, cancel, report a problem). */
+export const websiteUrl = trimSlash(process.env.EXPO_PUBLIC_WEBSITE_URL ?? "https://porterchain.com");
+
 export const fetchTimeoutMs = 12_000;
 export const appVersion = "1.0.0";

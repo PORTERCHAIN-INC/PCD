@@ -6,6 +6,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+from porterchain_shared.events.catalog import DomainEventType
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_engine._core import emit_event
@@ -15,7 +16,6 @@ from porterchain_api.merchant_engine.privacy import (
     MerchantPrivacyService,
     merchant_privacy_file,
 )
-from porterchain_shared.events.catalog import DomainEventType
 
 PRIVACY_ERROR_MESSAGES: dict[str, str] = {
     "merchant_not_found": "That company was not found.",
@@ -53,7 +53,9 @@ class PrivacyService:
     def export_customer(self, db: Session, customer: Customer) -> dict[str, Any]:
         """C-20: DSAR export — profile + orders + payments + tickets + prefs."""
         from porterchain_api.booking_models import Payment
-        from porterchain_api.notification_engine.user_settings import UserSettingsService
+        from porterchain_api.notification_engine.user_settings import (
+            UserSettingsService,
+        )
         from porterchain_api.support_engine.support_service import AdminSupportService
 
         orders = (
@@ -143,6 +145,11 @@ class PrivacyService:
         customer.privacy_status = "deletion_hold"
         customer.privacy_hold_reference = reference
         customer.privacy_hold_at = datetime.now(UTC)
+        # Reviewable erasure job: automatic plan, staff approve → execute (customer_fast.privacy).
+        from porterchain_api.customer_fast.privacy import open_job
+
+        job = open_job(db, customer, reference=reference, source=reason or "customer_portal_request")
+        payload["job_id"] = job.id
         emit_event(
             db,
             event_type=DomainEventType.PRIVACY_DELETE_REQUESTED,

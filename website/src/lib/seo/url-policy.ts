@@ -44,6 +44,7 @@ export const LOCALE_APP_SECTIONS = new Set([
   "delivery",
   "delivery-cost-calculator",
   "developers",
+  "email-preferences",
   "enterprise",
   "facts",
   "faq",
@@ -355,13 +356,23 @@ function pickIndexable(locale: PolicyLocale, candidates: string[]): string | nul
 }
 
 /** Query params worth keeping across a legacy redirect. */
+const FUNCTIONAL_QUERY_KEYS = new Set(["t", "quote_id", "again", "pickup", "dropoff", "session_id"]);
+
 function carriedQuery(search: string): string {
   const params = new URLSearchParams(search);
   const kept = new URLSearchParams();
   for (const [k, v] of params) {
     // utm_* / gclid = attribution; intent/vehicle = functional quote-flow state (the target
     // pages are noindex or canonicalise to the clean URL). `from` is always dropped.
-    if (k.startsWith("utm_") || k === "gclid" || k === "intent" || k === "vehicle") {
+    // Signed / transactional state (track manage token, checkout + rebook handles) must survive
+    // a locale or legacy redirect, otherwise emailed links silently lose their token.
+    if (
+      k.startsWith("utm_") ||
+      k === "gclid" ||
+      k === "intent" ||
+      k === "vehicle" ||
+      FUNCTIONAL_QUERY_KEYS.has(k)
+    ) {
       kept.append(k, v);
     }
   }

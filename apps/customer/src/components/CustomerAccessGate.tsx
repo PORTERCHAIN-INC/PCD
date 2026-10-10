@@ -60,9 +60,9 @@ function CustomerAccessGateWithClerk({ children }: Props) {
     router.replace("/sign-in");
   }, [router, setSession]);
 
-  const onNeedOnboarding = useCallback(() => {
-    router.replace("/onboarding");
-  }, [router]);
+  // No onboarding screen: the API provisions the customer row on first call. A real blocker
+  // (portal disabled / staff identity) is shown inline below as a session error.
+  const onNeedOnboarding = useCallback(() => undefined, []);
 
   const effectivelySignedIn = !!isSignedIn || !!impToken;
 

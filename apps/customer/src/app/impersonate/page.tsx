@@ -7,7 +7,7 @@ import { clearImpersonationBearer, storeImpersonationBearer } from "@porterchain
 export default function CustomerImpersonatePage() {
   return (
     <Suspense fallback={<p className="p-8 text-sm text-muted">Preparing impersonation…</p>}>
-      <ImpersonateBootstrap home="/dashboard" />
+      <ImpersonateBootstrap home="/orders" />
     </Suspense>
   );
 }

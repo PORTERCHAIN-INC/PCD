@@ -337,6 +337,12 @@ class BookingConfirmationService:
             payload={},
         )
 
+        from porterchain_api.customer_fast.service import confirmation_links
+
+        try:
+            fast_links = confirmation_links(db, settings, order, customer)
+        except Exception:  # noqa: BLE001 - links are a convenience, never block confirmation
+            fast_links = {}
         emit_event(
             db,
             event_type=E.BOOKING_CONFIRMED,
@@ -359,6 +365,7 @@ class BookingConfirmationService:
                 "amount_cents": order.amount_cents,
                 "amount_display": amount_display,
                 "currency": order.currency,
+                **fast_links,
             },
         )
         self._drafts.on_payment_completed(

@@ -1,47 +1,44 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
+import SiteShell from "@/components/layout/SiteShell";
+import Container from "@/components/ui/Container";
+import BookSuccess from "@/components/book/BookSuccess";
 import { routing } from "@/i18n/routing";
-import { customerPortalBookUrl } from "@/data/portal-links";
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+export const metadata: Metadata = {
+  title: "Booked | PorterChain",
+  robots: { index: false, follow: false },
+};
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-function withQuery(base: string, searchParams: Record<string, string | string[] | undefined>) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value == null) continue;
-    if (Array.isArray(value)) {
-      for (const v of value) params.append(key, v);
-    } else {
-      params.set(key, value);
-    }
-  }
-  const qs = params.toString();
-  return qs ? `${base}?${qs}` : base;
+async function SuccessBody({ params, searchParams }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const q = await searchParams;
+  const quoteId = Array.isArray(q.quote_id) ? q.quote_id[0] : q.quote_id;
+  return (
+    <SiteShell>
+      <Container className="py-10 md:py-16">
+        <BookSuccess quoteId={String(quoteId ?? "").slice(0, 64)} />
+      </Container>
+    </SiteShell>
+  );
 }
 
-async function BookSuccessRedirect({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const query = await searchParams;
-  redirect(withQuery(`${customerPortalBookUrl}/success`, query));
-  return null;
-}
-
-/** Legacy `/book/success` — confirmation lives on customer portal; forward quote_id. */
-export default async function BookSuccessRedirectPage({ params, searchParams }: Props) {
-  await params;
+/** Stripe success return for guest (retail) checkout. */
+export default function BookSuccessPage(props: Props) {
   return (
     <Suspense fallback={null}>
-      <BookSuccessRedirect searchParams={searchParams} />
+      <SuccessBody {...props} />
     </Suspense>
   );
 }

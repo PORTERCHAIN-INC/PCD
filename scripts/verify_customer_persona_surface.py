@@ -37,6 +37,8 @@ def main() -> int:
     customer_pages = (
         "app/page.tsx",
         "app/dashboard/page.tsx",
+        "app/send/page.tsx",
+        "app/orders/page.tsx",
         "app/book/page.tsx",
         "app/book/success/page.tsx",
         "app/track/page.tsx",
@@ -62,8 +64,10 @@ def main() -> int:
         if not (ADMIN / rel).is_file():
             failures.append(f"missing admin customers file {rel}")
 
-    detail = _read(ADMIN / "app/(ops)/customers/[id]/page.tsx")
-    for tab in ("overview", "orders", "care", "billing", "trust", "activity", "tasks"):
+    detail = _read(ADMIN / "app/(ops)/customers/[id]/page.tsx") + _read(
+        ADMIN / "components/customers/CustomerDetailClient.tsx"
+    )
+    for tab in ("overview", "orders", "money", "care", "privacy"):
         if tab not in detail:
             failures.append(f"admin customer detail missing tab {tab}")
 
@@ -81,12 +85,13 @@ def main() -> int:
         if needle not in booking:
             failures.append(f"customer booking.ts missing {needle}")
 
-    book_ui = _read(CUSTOMER / "components/booking/CustomerBookDelivery.tsx")
-    for needle in ("createQuote", "isClerkConfigured"):
+    # Portal booking = Send (shared @porterchain/types/booking rules); auth via PortalAuth.
+    book_ui = _read(CUSTOMER / "components/send/SendClient.tsx") + _read(CUSTOMER / "components/auth/PortalAuth.tsx")
+    for needle in ("createQuote", "isClerkConfigured", "@porterchain/types/booking"):
         if needle not in book_ui:
-            failures.append(f"CustomerBookDelivery missing {needle}")
+            failures.append(f"Send flow missing {needle}")
     if "mockCompleteCheckout" not in book_ui and "syncBookingCheckout" not in book_ui:
-        failures.append("CustomerBookDelivery missing checkout complete path")
+        failures.append("Send flow missing checkout complete path")
 
     modal = _read(ADMIN / "components/customers/CustomerAddOrderModal.tsx")
     if "send_payment_link" not in modal or "checkout_url" not in modal:

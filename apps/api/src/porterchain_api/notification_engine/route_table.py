@@ -159,6 +159,31 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
         if merchant_id:
             add("delivered", "in_app", "merchant", merchant_id)
         email_merchant("delivered")
+        # Customer fast-book: one Send-again email (eligibility set by customer_fast.mailer).
+        if customer_id and payload.get("send_again_eligible") and payload.get("send_again_email"):
+            add(
+                "fast_send_again",
+                "email",
+                "customer",
+                customer_id,
+                address=payload["send_again_email"],
+                category="reorder",
+                pri="low",
+            )
+        return True
+
+    if event_type == DomainEventType.CUSTOMER_REORDER_NUDGE:
+        # Only reached after staff approval with reorder_nudges_enabled on (admin360).
+        if customer_id and payload.get("send_again_email"):
+            add(
+                "fast_send_again",
+                "email",
+                "customer",
+                customer_id,
+                address=payload["send_again_email"],
+                category="reorder",
+                pri="low",
+            )
         return True
 
     if event_type == "order.stop_completed":

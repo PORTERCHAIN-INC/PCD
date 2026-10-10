@@ -104,14 +104,12 @@ def main() -> int:
     book_page = APP / "book/page.tsx"
     if book_page.is_file():
         book_text = book_page.read_text(encoding="utf-8")
-        if (
-            "/business" not in book_text
-            and "portal-book-redirect" not in book_text
-            and "customerPortalBookUrl" not in book_text
-        ):
-            failures.append(
-                "book page must redirect to /business or customer portal book (marketing site does not host booking)"
-            )
+        # Customer fast-book (v2): /book hosts the guest express form only — never the
+        # legacy BookingWidget / draft flow.
+        if "ExpressBook" not in book_text:
+            failures.append("book page must render the guest ExpressBook (no-account booking)")
+        if "BookingWidget" in book_text:
+            failures.append("book page must not embed the legacy BookingWidget")
 
     navbar = WEBSITE / "src/components/layout/SiteNavbar.tsx"
     if navbar.is_file():

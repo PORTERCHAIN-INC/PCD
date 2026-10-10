@@ -431,6 +431,11 @@ def handle_domain_event(envelope: dict[str, Any]) -> None:
             cx = meta.get("cx") if isinstance(meta.get("cx"), dict) else {}
             if cx.get("attempts"):
                 payload["attempts"] = cx["attempts"]
+        # Customer fast-book: one Send-again email after a retail delivery (CASL implied consent).
+        from porterchain_api.config import get_settings
+        from porterchain_api.customer_fast.mailer import enrich_send_again
+
+        payload = enrich_send_again(db, get_settings(), event_type, payload)
 
         specs = _specs_for_event(event_type, payload)
         if specs:

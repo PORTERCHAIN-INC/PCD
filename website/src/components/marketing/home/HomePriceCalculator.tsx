@@ -5,7 +5,6 @@ import { useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { quoteSignUpPath } from "@/data/portal-links";
 import {
   CALCULATOR_VEHICLES,
   normalizeFsa,
@@ -242,7 +241,8 @@ export default function HomePriceCalculator() {
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <Link
-                href={quoteSignUpPath({ from: "home-price", vehicle: estimate.vehicle_class })}
+                href={`/book?pickup=${encodeURIComponent(pickup.trim().toUpperCase())}&dropoff=${encodeURIComponent(dropoff.trim().toUpperCase())}&vehicle=${encodeURIComponent(estimate.vehicle_class)}`}
+                data-testid="home-price-book"
                 onClick={() =>
                   track(ANALYTICS_EVENTS.CTA_CLICK, {
                     source_section: "home-price",
@@ -251,7 +251,7 @@ export default function HomePriceCalculator() {
                 }
                 className="inline-flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-white hover:bg-[#152238] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                {t("book")}
+                {t("book")} · {money(estimate.amount_cents)}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link

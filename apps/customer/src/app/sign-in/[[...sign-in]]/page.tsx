@@ -50,7 +50,7 @@ function ClerkUnavailable() {
           refresh.
         </p>
         <Link
-          href="/dashboard"
+          href="/orders"
           className="flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
         >
           Continue
@@ -65,7 +65,7 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const redirectUrl = safeAppRedirect(searchParams.get("redirect_url"), {
-    fallback: "/onboarding",
+    fallback: "/send",
     blockPrefixes: ["/sign-in", "/sign-up"],
   });
   const [checking, setChecking] = useState(true);

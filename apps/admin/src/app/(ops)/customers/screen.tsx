@@ -14,6 +14,7 @@ import { money, shortDate } from "@/lib/crmFormat";
 import { cn } from "@porterchain/ui/utils";
 import { TableSkeleton } from "@porterchain/ui/loading";
 import AdminPage from "@/components/layout/AdminPage";
+import CustomerCareQueue from "@/components/customers/CustomerCareQueue";
 import dynamic from "next/dynamic";
 
 const CustomerCreateModal = dynamic(
@@ -161,6 +162,8 @@ export default function CustomersPage() {
           />
         </div>
       )}
+
+      <CustomerCareQueue canWrite={canWrite} />
 
       <SectionCard title={`Directory (${rows.length})`}>
         {loading && rows.length === 0 ? (
