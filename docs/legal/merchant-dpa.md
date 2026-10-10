@@ -66,3 +66,5 @@ Liability follows the main agreement. If this DPA conflicts with the main agreem
 | Signature / date |          |                            |
 
 **Annex 1:** Subprocessor List (see `subprocessors.md`). **Annex 2:** Security measures (section 4).
+
+**PorterChain privacy contact:** Ravi Chauhan, Owner (accountable for privacy), privacy@porterchain.com / sales@porterchain.com.

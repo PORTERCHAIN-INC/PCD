@@ -19,4 +19,4 @@
 Not subprocessors (run on our own servers): Valhalla and OSRM routing, map-matching, isochrones, OpenStreetMap data, and VROOM/OR-Tools route optimisation.
 Removed: NVIDIA (no longer used).
 
-_Last reviewed: [date] — DRAFT_
+_Last reviewed: 2026-10-10 — DRAFT_

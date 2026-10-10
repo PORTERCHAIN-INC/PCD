@@ -1,8 +1,8 @@
-> **DRAFT for lawyer review — Ontario ESA Part XI.1. Required in writing if PorterChain has 25+ employees on January 1 of a year. Must be given to employees within 30 days of being prepared or changed. Drivers who are contractors should also receive it.**
+> **Final — version 2026-10, effective 2026-10-10 (Ontario ESA Part XI.1).** Shown to drivers in the driver app/portal (onboarding acknowledgment with timestamp + version, settings, GPS consent prompt) and in admin Settings → Compliance. The in-app text is served from `apps/api/src/porterchain_api/platform/monitoring_policy.py`; keep both in sync and bump `POLICY_VERSION` on any change (drivers re-acknowledge; give the changed policy to employees within 30 days).
 
 # Electronic Monitoring Policy — PorterChain Logistics Inc.
 
-**Date prepared:** [date] · **Last changed:** [date]
+**Date prepared:** 2026-10-10 · **Last changed:** 2026-10-10 · **Version:** 2026-10
 
 ## Does PorterChain monitor workers electronically?
 
@@ -20,14 +20,14 @@ Yes. This is how, when and why.
 
 - Location is never collected off shift.
 - PorterChain can turn live location off for all drivers or for one driver. When it is off, the app stops sending location, and the live position is deleted immediately.
-- Where consent is required, drivers accept in the app. A driver who withdraws consent is not tracked.
+- Drivers are asked to agree in the app before location is collected. A driver who withdraws consent is not tracked.
 - Customers see only the arrival time and stop status, never a driver's location history.
 - Location history is deleted after 30 days. Proof-of-delivery records are kept for 365 days.
 
 ## How information may be used
 
-Monitoring information may be used to plan and assign work, calculate pay and mileage, investigate complaints, claims or safety incidents, and meet legal obligations. [Lawyer: confirm wording on whether it may be used for discipline.]
+Monitoring information may be used to plan and assign work, calculate pay and mileage, investigate complaints, claims or safety incidents, and meet legal obligations. It is not used for any other purpose.
 
 ## Questions
 
-Contact [Privacy Officer], privacy@porterchain.com.
+Contact Ravi Chauhan, Owner (accountable for privacy), privacy@porterchain.com or sales@porterchain.com.

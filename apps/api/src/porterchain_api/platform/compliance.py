@@ -85,8 +85,15 @@ DPIA_GPS = (
 )
 
 
+# No privacy officer appointed: the owner is the accountable person (PIPEDA Principle 1).
+DEFAULT_PRIVACY_CONTACT = (
+    "Ravi Chauhan, Owner (accountable for privacy) - privacy@porterchain.com / sales@porterchain.com"
+)
+
+
 def default_compliance() -> dict[str, Any]:
-    return {"region": "CA", "data_residency": None, "dpo_contact": "", "privacy_by_default": True}
+    return {"region": "CA", "data_residency": None, "dpo_contact": DEFAULT_PRIVACY_CONTACT,
+            "privacy_by_default": True}
 
 
 def normalize_compliance(raw: Any) -> dict[str, Any]:
@@ -98,7 +105,7 @@ def normalize_compliance(raw: Any) -> dict[str, Any]:
     return {
         "region": src["region"],
         "data_residency": src.get("data_residency") or None,
-        "dpo_contact": str(src.get("dpo_contact") or "")[:200],
+        "dpo_contact": str(src.get("dpo_contact") or DEFAULT_PRIVACY_CONTACT)[:200],
         "privacy_by_default": bool(src.get("privacy_by_default", True)),
     }
 
@@ -201,6 +208,7 @@ def overview(db: Any) -> dict[str, Any]:
         "ropa": ROPA,
         "subprocessors": SUBPROCESSORS,
         "dpia_gps": DPIA_GPS,
+        "monitoring_policy": _monitoring(db),
         "breaches": [breach_clock(b, now=now) for b in normalize_breaches(val(BREACH_KEY))],
         "requests": reqs,
         "request_types": list(REQUEST_TYPES),
@@ -213,3 +221,9 @@ def public_region(db: Any) -> dict[str, Any]:
     row = db.get(SystemConfig, STORAGE_KEY)
     p = region_profile(normalize_compliance(row.value if row else None))
     return {k: p[k] for k in ("code", "currency", "locale", "languages", "tax", "cookie_banner")}
+
+
+def _monitoring(db: Any) -> dict[str, Any]:
+    from porterchain_api.platform.monitoring_policy import ack_summary, policy
+
+    return {**policy(), **ack_summary(db)}
