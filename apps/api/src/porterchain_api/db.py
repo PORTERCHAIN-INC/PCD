@@ -74,6 +74,25 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+REPORT_STATEMENT_TIMEOUT_MS = 300_000
+
+
+def get_report_db() -> Generator[Session, None, None]:
+    """Session for exports/reports: 5 min statement cap instead of the 30 s default."""
+    db = SessionLocal()
+    try:
+        db.execute(text(f"SET statement_timeout = {REPORT_STATEMENT_TIMEOUT_MS}"))
+        yield db
+    finally:
+        try:
+            db.rollback()
+            db.execute(text("RESET statement_timeout"))
+            db.commit()
+        except Exception:  # noqa: BLE001 — never block close on cleanup
+            pass
+        db.close()
+
+
 @contextmanager
 def db_transaction(db: Session) -> Iterator[None]:
     """Commit a unit of work on a request session that may already be in a transaction.

@@ -1,5 +1,6 @@
 """admin routes — finance."""
 
+from porterchain_api.db import get_report_db
 from fastapi import Header, Request
 
 from porterchain_api.auth.staff_step_up import enforce_staff_step_up
@@ -54,7 +55,7 @@ def finance_dashboard(
 @router.get("/finance/reports")
 def finance_reports(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> dict:
     require_module(ctx, "finance_read")
     return _finance.reports(db)
@@ -73,7 +74,7 @@ def finance_collections(
 @router.get("/finance/export")
 def finance_export_gl(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> list[dict]:
     require_module(ctx, "finance_read")
     return _finance.export_gl(db)

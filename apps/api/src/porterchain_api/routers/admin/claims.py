@@ -1,5 +1,6 @@
 """admin routes — claims."""
 
+from porterchain_api.db import get_report_db
 from fastapi import Response
 
 from porterchain_api.routers.admin._deps import (
@@ -43,7 +44,7 @@ def claims_dashboard(
 @router.get("/claims/reports")
 def claims_reports(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> dict:
     require_module(ctx, "claims_read")
     return _claims.reports(db)
@@ -52,7 +53,7 @@ def claims_reports(
 @router.get("/claims/export.csv")
 def export_claims_csv(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     status: str | None = None,
     claim_type: str | None = None,
     limit: int = 2000,

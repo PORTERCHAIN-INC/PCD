@@ -1,5 +1,6 @@
 """admin routes — orders."""
 
+from porterchain_api.db import get_report_db
 from fastapi.responses import RedirectResponse, Response
 
 from porterchain_api.reporting.label_service import PackagesRequired
@@ -72,7 +73,7 @@ def orders_dashboard(ctx: Ctx, db: Session = Depends(get_db)) -> OrderDashboardR
 
 
 @router.get("/orders/reports")
-def orders_reports(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+def orders_reports(ctx: Ctx, db: Session = Depends(get_report_db)) -> dict:
     return _invoke(ctx, "orders_read", _orders.reports, db)
 
 
@@ -201,7 +202,7 @@ def order_timeline(order_id: str, ctx: Ctx, db: Session = Depends(get_db)):
 
 
 @router.get("/orders/{order_id}/audit-export")
-def order_audit_export(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+def order_audit_export(order_id: str, ctx: Ctx, db: Session = Depends(get_report_db)) -> dict:
     """§8.1.4 — compliance audit trail export."""
     return _invoke(ctx, "orders_read", _orders.require_audit_export, db, order_id)
 

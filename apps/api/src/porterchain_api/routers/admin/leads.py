@@ -1,5 +1,6 @@
 """Admin CRM leads — list, detail, status updates, appointment calendar."""
 
+from porterchain_api.db import get_report_db
 from typing import Annotated
 import uuid
 
@@ -508,7 +509,7 @@ def convert_lead(
 def export_lead_privacy(
     lead_id: str,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> dict:
     require_module(ctx, "crm_read")
     from porterchain_api.collaboration_engine.lead_privacy import LeadPrivacyService
