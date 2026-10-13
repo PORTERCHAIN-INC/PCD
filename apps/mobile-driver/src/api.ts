@@ -405,3 +405,13 @@ export type EarningsToday = { today_cents?: number; week_cents?: number; month_c
 export function fetchEarningsToday(): Promise<EarningsToday> {
   return driverFetch(`${DRIVER_API}/earnings/today`);
 }
+
+/** Customer phone for one stop, released per tap and logged on the server (not cached). */
+export function fetchStopContact(
+  orderId: string,
+  kind: "drop" | "pickup"
+): Promise<{ phone: string }> {
+  return driverFetch(
+    `${DRIVER_API}/dispatch/orders/${encodeURIComponent(orderId)}/contact?kind=${kind}`
+  );
+}

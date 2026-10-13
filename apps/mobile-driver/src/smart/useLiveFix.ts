@@ -1,8 +1,15 @@
-/** Foreground GPS watch (only while `active`; nothing stored on the phone). */
+/**
+ * Foreground GPS watch (only while `active`; nothing stored on the phone).
+ * Battery saver: in low-power mode or under 20 % it drops to balanced accuracy and wider spacing.
+ */
 import { useEffect, useState } from "react";
 import type { Fix } from "./geo";
+import { gpsMode } from "./route";
+import { useBattery } from "./useBattery";
 
-export function useLiveFix(active: boolean): { fix: Fix | null; at: number } {
+export function useLiveFix(active: boolean): { fix: Fix | null; at: number; saver: boolean } {
+  const battery = useBattery();
+  const saver = gpsMode(battery.level, battery.lowPower) === "saver";
   const [state, setState] = useState<{ fix: Fix | null; at: number }>({ fix: null, at: 0 });
   useEffect(() => {
     if (!active) return;
@@ -13,7 +20,9 @@ export function useLiveFix(active: boolean): { fix: Fix | null; at: number } {
         const Location = await import("expo-location");
         if ((await Location.getForegroundPermissionsAsync()).status !== "granted") return;
         const s = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, distanceInterval: 15, timeInterval: 5_000 },
+          saver
+            ? { accuracy: Location.Accuracy.Balanced, distanceInterval: 40, timeInterval: 15_000 }
+            : { accuracy: Location.Accuracy.High, distanceInterval: 15, timeInterval: 5_000 },
           (p) => {
             if (cancelled) return;
             setState({
@@ -37,6 +46,6 @@ export function useLiveFix(active: boolean): { fix: Fix | null; at: number } {
       cancelled = true;
       sub?.remove();
     };
-  }, [active]);
-  return state;
+  }, [active, saver]);
+  return { ...state, saver };
 }

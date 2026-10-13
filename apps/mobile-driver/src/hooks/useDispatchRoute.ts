@@ -74,7 +74,7 @@ export function useDispatchRoute(onDuty: boolean) {
 
   const stop = route && route.next_index != null ? (route.stops[route.next_index] ?? null) : null;
   const stopKey = stop?.keys.join(",") ?? null;
-  const { fix, at: fixAt } = useLiveFix(onDuty && Boolean(stopKey));
+  const { fix, at: fixAt, saver } = useLiveFix(onDuty && Boolean(stopKey));
 
   const checkin = useCallback(
     async (
@@ -127,6 +127,8 @@ export function useDispatchRoute(onDuty: boolean) {
     loaded,
     stop,
     fix,
+    fixAt,
+    saver,
     distance,
     /** Absolute ms when we expect to arrive (re-anchored on every GPS fix). */
     etaAt: etaS != null ? fixAt + etaS * 1000 : null,
