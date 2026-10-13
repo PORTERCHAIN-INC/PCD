@@ -576,6 +576,8 @@ def delete_lead(
     from porterchain_api import soft_delete as sd
     from porterchain_api.admin_engine.audit import commit_admin_write
 
+    if not sd.can_delete(ctx):
+        raise HTTPException(status_code=403, detail="admin_forbidden:lead_delete")
     try:
         sd.soft_delete(db, ctx, "lead", lead_id)
     except PermissionError as exc:

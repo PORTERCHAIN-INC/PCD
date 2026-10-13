@@ -73,8 +73,8 @@ export default function DeleteButton({
         data-testid={`delete-${entity}`}
         className={
           compact
-            ? "rounded p-1 text-slate-400 hover:bg-white/5 hover:text-white disabled:opacity-40"
-            : "inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2.5 py-1 text-xs text-slate-300 hover:border-white/30 hover:text-white disabled:opacity-40"
+            ? "rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40"
+            : "inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:border-slate-500 hover:text-slate-900 disabled:opacity-40"
         }
       >
         <Trash2 className="h-3.5 w-3.5" />

@@ -1,4 +1,4 @@
-"""Admin lead delete — super_admin (system_all) only."""
+"""Admin lead delete is a soft delete (admin + super_admin); purge lives in Deleted items."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from porterchain_api.admin_models import AdminUser
 from porterchain_api.authz.client import AuthzClient, Relationship, reset_authz_client
 from porterchain_api.authz.tuples import PLATFORM_ID
 from porterchain_api.domain.admin_states import AdminRole
+from porterchain_api import soft_delete as sd
 from porterchain_api.routers.admin import leads as leads_mod
 
 
@@ -55,13 +56,20 @@ def test_delete_lead_forbidden_for_sales(monkeypatch: pytest.MonkeyPatch) -> Non
     _bind_authz(client)
 
     delete_mock = MagicMock()
-    monkeypatch.setattr(leads_mod._crm, "delete_lead", delete_mock)
+    monkeypatch.setattr(sd, "soft_delete", delete_mock)
 
     ctx = _admin_ctx(role=AdminRole.SALES, uid=uid)
     with pytest.raises(HTTPException) as exc_info:
         leads_mod.delete_lead(lead_id="lead-1", ctx=ctx, db=MagicMock())
     assert exc_info.value.status_code == 403
     delete_mock.assert_not_called()
+
+
+def test_delete_lead_sales_role_is_refused_by_service(db) -> None:
+    ctx = _admin_ctx(role=AdminRole.SALES, uid="u-sales")
+    with pytest.raises(HTTPException) as exc_info:
+        leads_mod.delete_lead(lead_id="lead-1", ctx=ctx, db=db)
+    assert exc_info.value.status_code in (403, 404)
 
 
 def test_delete_lead_super_admin_ok(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -75,12 +83,12 @@ def test_delete_lead_super_admin_ok(monkeypatch: pytest.MonkeyPatch) -> None:
     _bind_authz(client)
 
     delete_mock = MagicMock()
-    monkeypatch.setattr(leads_mod._crm, "delete_lead", delete_mock)
+    monkeypatch.setattr(sd, "soft_delete", delete_mock)
 
     ctx = _admin_ctx(role=AdminRole.SUPER_ADMIN, uid=uid)
     assert leads_mod.delete_lead(lead_id="lead-1", ctx=ctx, db=MagicMock()) is None
     delete_mock.assert_called_once()
-    assert delete_mock.call_args.args[1] == "lead-1"
+    assert delete_mock.call_args.args[2:] == ("lead", "lead-1")
 
 
 def test_delete_lead_missing_is_404(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -93,10 +101,10 @@ def test_delete_lead_missing_is_404(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     _bind_authz(client)
 
-    def _raise(_db, _lead_id: str) -> None:
+    def _raise(_db, _ctx, _entity: str, _lead_id: str, **_kw) -> None:
         raise LookupError("lead_not_found")
 
-    monkeypatch.setattr(leads_mod._crm, "delete_lead", _raise)
+    monkeypatch.setattr(sd, "soft_delete", _raise)
 
     ctx = _admin_ctx(role=AdminRole.SUPER_ADMIN, uid=uid)
     with pytest.raises(HTTPException) as exc_info:
