@@ -34,6 +34,17 @@ import { MeScreen } from "./src/screens/MeScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useIsRestoring } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { invalidateFromPush, prefetchAll } from "./src/data/queries";
+import {
+  clearQueryCache,
+  persistOptions,
+  queryClient,
+  wireQueryLifecycle,
+} from "./src/data/queryClient";
+import { attachPushReceived } from "./src/push";
+import { loadSettings, resetSettings } from "./src/settings";
 import { AppErrorBoundary } from "./src/ui/AppErrorBoundary";
 import { TabBarBelow } from "./src/ui/layout";
 import { toast, ToastHost } from "./src/ui/toast";
@@ -48,7 +59,11 @@ type Blocker = { kind: "update"; policy: MobileDriverPolicy } | { kind: "setup" 
 function DriverApp() {
   const field = useFieldSession();
   const { handshake: h, setHandshake, setError } = field;
-  const [signedInView, setSignedInView] = useState(false);
+  // Instant cold start: a cached snapshot + a live session paints Today right away; enter()
+  // re-validates in the background and only falls back to Sign in if the server says so.
+  const [signedInView, setSignedInView] = useState(
+    () => field.updatedAt > 0 && h.api === "up" && getSessionSnapshot().signedIn
+  );
   const [blocker, setBlocker] = useState<Blocker>(null);
   const [tab, setTab] = useState<TabId>("today");
   const [pod, setPod] = useState<PodDraft>(emptyPodDraft());
@@ -104,6 +119,7 @@ function DriverApp() {
         const gate = canEnterRoute(next, getSessionSnapshot().signedIn, allowDevAuth());
         if (!gate.ok) {
           setHandshake({ ...next, error: gate.reason });
+          setSignedInView(false);
           return;
         }
         const onboarding = await fetchOnboarding().catch(() => null);
@@ -125,13 +141,20 @@ function DriverApp() {
             if (next.online) setConsentFor({ then: "review" });
           } else setConsent(local);
         })();
-        setTab(next.currentOrderId ? "job" : "today");
+        setTab((t) => (next.currentOrderId ? "job" : t));
         void field.refreshCounts();
+        prefetchAll();
       } finally {
         setEntering(false);
       }
     })();
   }, [field.refreshCounts, h.location, setError, setHandshake]);
+
+  // Cold start from cache: validate in the background (no spinner, no sign-in flash).
+  useEffect(() => {
+    if (signedInView) enter();
+    return attachPushReceived(invalidateFromPush);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useDriverDeepLinks({
     onInvite: (token) => {
@@ -165,6 +188,8 @@ function DriverApp() {
     try {
       await clearSession();
     } finally {
+      await clearQueryCache().catch(() => undefined);
+      await resetSettings();
       setConsent(null);
       setPod(emptyPodDraft());
       setTab("today");
@@ -325,14 +350,35 @@ function DriverApp() {
   );
 }
 
+wireQueryLifecycle();
+const settingsReady = loadSettings();
+
+/** Wait for the encrypted cache to load (a few ms) so the first frame already has data. */
+function Hydrated({ children }: { children: ReactElement }) {
+  const restoring = useIsRestoring();
+  const [settings, setSettingsReady] = useState(false);
+  useEffect(() => {
+    void settingsReady.finally(() => setSettingsReady(true));
+  }, []);
+  return restoring || !settings ? (
+    <View style={{ flex: 1, backgroundColor: color.bg }} />
+  ) : (
+    children
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <SessionGate>
-        <AppErrorBoundary>
-          <DriverApp />
-        </AppErrorBoundary>
-      </SessionGate>
+      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
+        <SessionGate>
+          <AppErrorBoundary>
+            <Hydrated>
+              <DriverApp />
+            </Hydrated>
+          </AppErrorBoundary>
+        </SessionGate>
+      </PersistQueryClientProvider>
     </SafeAreaProvider>
   );
 }

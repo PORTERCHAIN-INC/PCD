@@ -415,3 +415,75 @@ export function fetchStopContact(
     `${DRIVER_API}/dispatch/orders/${encodeURIComponent(orderId)}/contact?kind=${kind}`
   );
 }
+
+// ---------- Documents, vehicle, settings, privacy ----------
+export type DriverDocument = {
+  type: string;
+  label: string;
+  status: string; // missing | pending_review | verified | rejected | expired
+  verified: boolean;
+  has_file?: boolean;
+  url: string | null;
+  uploaded_at: string | null;
+  expires_at: string | null;
+  rejection_reason: string | null;
+};
+
+export function fetchDocuments(): Promise<{ documents: DriverDocument[] }> {
+  return driverFetch(`${DRIVER_API}/documents?include_files=false`);
+}
+
+export function uploadDocument(body: {
+  doc_type: string;
+  file_url: string;
+  metadata?: Record<string, unknown>;
+}): Promise<DriverDocument> {
+  return driverFetch(`${DRIVER_API}/documents`, { method: "POST", body: JSON.stringify(body) });
+}
+
+export type DriverVehicle = {
+  id?: string;
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
+  color?: string | null;
+  plate?: string | null;
+  license_plate?: string | null;
+  vehicle_class?: string | null;
+  capacity_kg?: number | null;
+  capabilities?: string[] | null;
+};
+
+export function fetchVehicle(): Promise<{
+  vehicle: DriverVehicle | null;
+  vehicles: DriverVehicle[];
+}> {
+  return driverFetch(`${DRIVER_API}/vehicle`);
+}
+
+export function fetchAppSettings(): Promise<{ settings: Record<string, unknown> }> {
+  return driverFetch(`${DRIVER_API}/settings`);
+}
+
+export function saveAppSettings(
+  settings: Record<string, unknown>
+): Promise<{ settings: Record<string, unknown> }> {
+  return driverFetch(`${DRIVER_API}/settings`, {
+    method: "PUT",
+    body: JSON.stringify({ settings }),
+  });
+}
+
+export function requestPrivacy(
+  kind: "access" | "correction" | "deletion",
+  note?: string
+): Promise<{
+  status: string;
+  reference: string | null;
+  sla_days: number;
+}> {
+  return driverFetch(`${DRIVER_API}/privacy/request`, {
+    method: "POST",
+    body: JSON.stringify({ kind, ...(note ? { note } : {}) }),
+  });
+}

@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 import type { Fix } from "./geo";
 import { gpsMode } from "./route";
 import { useBattery } from "./useBattery";
+import { useSettings } from "../settings";
 
 export function useLiveFix(active: boolean): { fix: Fix | null; at: number; saver: boolean } {
   const battery = useBattery();
-  const saver = gpsMode(battery.level, battery.lowPower) === "saver";
+  const { battery_saver_pct } = useSettings();
+  const saver = gpsMode(battery.level, battery.lowPower, battery_saver_pct) === "saver";
   const [state, setState] = useState<{ fix: Fix | null; at: number }>({ fix: null, at: 0 });
   useEffect(() => {
     if (!active) return;

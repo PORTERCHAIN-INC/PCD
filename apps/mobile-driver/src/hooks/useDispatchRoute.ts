@@ -5,7 +5,8 @@
  * No paid APIs: ETA is distance on the road network estimate from the phone's own GPS.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState } from "react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { qk } from "../data/keys";
 import { dispatchCheckin, fetchDispatchRoute } from "../api";
 import type { CheckinEvent, DispatchRoute, DispatchStop } from "../dispatchRoute";
 import { haptic } from "../haptics";
@@ -47,30 +48,29 @@ export function applyLocalCheckin(
 }
 
 export function useDispatchRoute(onDuty: boolean) {
-  const [route, setRoute] = useState<DispatchRoute | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  // Cached + persisted: the route is on screen instantly on cold start, then revalidated.
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: qk.route,
+    queryFn: fetchDispatchRoute,
+    refetchInterval: onDuty ? POLL_MS : false,
+    refetchIntervalInBackground: false,
+  });
+  const route = q.data?.route ?? null;
+  const loaded = q.isFetched || q.data !== undefined;
+  const setRoute = useCallback(
+    (next: DispatchRoute | null | ((r: DispatchRoute | null) => DispatchRoute | null)) =>
+      qc.setQueryData<{ route: DispatchRoute | null }>(qk.route, (old) => ({
+        route: typeof next === "function" ? next(old?.route ?? null) : next,
+      })),
+    [qc]
+  );
+  const load = useCallback(async () => {
+    await q.refetch();
+  }, [q]);
   const [queued, setQueued] = useState(false);
   const [autoArrived, setAutoArrived] = useState<string | null>(null);
   const autoDone = useRef(new Set<string>());
-
-  const load = useCallback(async () => {
-    try {
-      setRoute((await fetchDispatchRoute()).route);
-    } catch {
-      /* keep what we have (offline) */
-    } finally {
-      setLoaded(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-    if (!onDuty) return;
-    const t = setInterval(() => {
-      if (AppState.currentState === "active") void load();
-    }, POLL_MS);
-    return () => clearInterval(t);
-  }, [load, onDuty]);
 
   const stop = route && route.next_index != null ? (route.stops[route.next_index] ?? null) : null;
   const stopKey = stop?.keys.join(",") ?? null;
@@ -89,17 +89,23 @@ export function useDispatchRoute(onDuty: boolean) {
         ...(fix ? { lat: fix.lat, lng: fix.lng, accuracy_m: fix.accuracy ?? undefined } : {}),
         ...extra,
       };
-      const how = await runOnlineOrQueue("dispatch_checkin", body, async () => {
-        const out = await dispatchCheckin(body);
-        setRoute(out.route);
-      });
-      if (how === "queued") {
-        setQueued(true);
-        setRoute((r) => (r ? applyLocalCheckin(r, stop.keys, event) : r));
-      } else setQueued(false);
+      // Optimistic: the next stop shows at once; the server copy replaces it when it lands.
+      const before = route;
+      setRoute((r) => (r ? applyLocalCheckin(r, stop.keys, event) : r));
+      let how: Awaited<ReturnType<typeof runOnlineOrQueue>>;
+      try {
+        how = await runOnlineOrQueue("dispatch_checkin", body, async () => {
+          const out = await dispatchCheckin(body);
+          setRoute(out.route);
+        });
+      } catch (e) {
+        setRoute(before); // server said no (e.g. photo missing): put the stop back
+        throw e;
+      }
+      setQueued(how === "queued");
       if (event === "delivered" || event === "picked_up") haptic.success();
     },
-    [fix, route, stop]
+    [fix, route, stop, setRoute]
   );
 
   // Geofence auto-arrive: inside 100 m, slow, good fix → "Arrived" once per stop.
@@ -135,6 +141,9 @@ export function useDispatchRoute(onDuty: boolean) {
     queued,
     autoArrived: autoArrived != null && autoArrived === stopKey,
     reload: load,
+    /** ms epoch of the last good server copy (for "updated Xs ago"). */
+    updatedAt: q.dataUpdatedAt,
+    fetching: q.isFetching,
     checkin,
   };
 }

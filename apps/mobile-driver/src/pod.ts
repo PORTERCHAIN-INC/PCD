@@ -15,15 +15,24 @@ export const POD_SHRINK_STEPS: Array<{ width: number; compress: number }> = [
   { width: 800, compress: 0.4 },
 ];
 
+/** Documents need fine print to stay legible: start bigger, still capped by MAX_DATA_URL_CHARS. */
+export const DOC_SHRINK_STEPS: Array<{ width: number; compress: number }> = [
+  { width: 1600, compress: 0.6 },
+  { width: 1400, compress: 0.5 },
+  { width: 1200, compress: 0.45 },
+  { width: 1000, compress: 0.4 },
+];
+
 export function toDataUrl(base64: string, mime = "image/jpeg"): string {
   return `data:${mime};base64,${base64}`;
 }
 
 /** First data URL that fits; null when even the smallest step is too big. */
 export async function shrinkToFit(
-  render: (step: { width: number; compress: number }) => Promise<string | null | undefined>
+  render: (step: { width: number; compress: number }) => Promise<string | null | undefined>,
+  steps: Array<{ width: number; compress: number }> = POD_SHRINK_STEPS
 ): Promise<string | null> {
-  for (const step of POD_SHRINK_STEPS) {
+  for (const step of steps) {
     const b64 = await render(step);
     if (!b64) continue;
     const url = toDataUrl(b64);
@@ -64,6 +73,47 @@ export async function capturePodPhotoDataUrl(): Promise<string> {
     throw new Error("photo_cancelled");
   }
   const url = await shrinkToFit((step) => renderStep(result.assets[0].uri, step));
+  if (!url) throw new Error("photo_too_large");
+  return url;
+}
+
+/**
+ * Licence / insurance / permit photo from the camera, the photo library, or Files (images).
+ * Auto-compressed to fit the upload cap; no EXIF/GPS kept.
+ */
+export async function captureDocumentDataUrl(
+  source: "camera" | "library" | "file"
+): Promise<string> {
+  let uri: string | undefined;
+  if (source === "file") {
+    const DocumentPicker = await import("expo-document-picker");
+    const r = await DocumentPicker.getDocumentAsync({
+      type: ["image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+    uri = r.assets[0].uri;
+  } else if (source === "library") {
+    const r = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+      exif: false,
+    });
+    if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+    uri = r.assets[0].uri;
+  } else {
+    let { status } = await ImagePicker.getCameraPermissionsAsync();
+    if (status !== "granted") status = (await ImagePicker.requestCameraPermissionsAsync()).status;
+    if (status !== "granted") throw new Error("camera_permission_denied");
+    const r = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+      exif: false,
+    });
+    if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+    uri = r.assets[0].uri;
+  }
+  const url = await shrinkToFit((step) => renderStep(uri as string, step), DOC_SHRINK_STEPS);
   if (!url) throw new Error("photo_too_large");
   return url;
 }

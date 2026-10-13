@@ -75,3 +75,16 @@ export async function wipeSecureBlobs(): Promise<void> {
   cachedKey = null;
   await SecureStore.deleteItemAsync(KEY_NAME);
 }
+
+/** Encrypt a string with the same device key (used by the encrypted query-cache persister). */
+export async function sealString(plain: string): Promise<string> {
+  const sealed = await aesEncryptAsync(new TextEncoder().encode(plain), await getKey());
+  return sealed.combined("base64");
+}
+
+export async function openString(combined: string): Promise<string> {
+  const bytes = await aesDecryptAsync(AESSealedData.fromCombined(combined), await getKey(), {
+    output: "bytes",
+  });
+  return new TextDecoder().decode(bytes);
+}

@@ -52,10 +52,14 @@ export function headsUpText(etaMinutes: number | null, kind: DispatchStop["kind"
   return `Hi, this is your PorterChain driver. I'll be there to ${what} in about ${m} min.`;
 }
 
-/** Battery saver: below 20 % or OS low-power mode, GPS drops to balanced accuracy. */
-export function gpsMode(level: number | null, lowPower: boolean): "high" | "saver" {
+/** Battery saver: below the Settings threshold (default 20 %) or OS low-power mode, GPS drops to balanced accuracy. */
+export function gpsMode(
+  level: number | null,
+  lowPower: boolean,
+  thresholdPct = 20
+): "high" | "saver" {
   if (lowPower) return "saver";
-  if (level != null && level >= 0 && level < 0.2) return "saver";
+  if (thresholdPct > 0 && level != null && level >= 0 && level < thresholdPct / 100) return "saver";
   return "high";
 }
 

@@ -1,7 +1,10 @@
 /** Haptics that never throw (web, simulators and old phones simply do nothing). */
 import * as Haptics from "expo-haptics";
 
+import { getSettings } from "./settings";
+
 const safe = (p: () => Promise<void>) => {
+  if (!getSettings().haptics) return; // Settings → Haptics off
   try {
     void p().catch(() => undefined);
   } catch {

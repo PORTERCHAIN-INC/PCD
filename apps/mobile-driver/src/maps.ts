@@ -1,4 +1,5 @@
 import { Linking, Platform } from "react-native";
+import { getSettings } from "./settings";
 
 type Dest = {
   navigationUrl?: string | null;
@@ -8,12 +9,33 @@ type Dest = {
 };
 
 /** Candidate deep links, best first. All free: the phone's own maps app does the routing. */
-export function navigationLinks(dest: Dest, os: string = Platform.OS): string[] {
+/** Deep link for the driver's chosen app (Settings → Navigation app). */
+export function preferredLink(app: string, q: string, os: string): string | null {
+  if (!q) return null;
+  if (app === "waze")
+    return /^-?\d/.test(q)
+      ? `https://waze.com/ul?ll=${q}&navigate=yes`
+      : `https://waze.com/ul?q=${q}&navigate=yes`;
+  if (app === "google")
+    return os === "android"
+      ? `google.navigation:q=${q}&mode=d`
+      : `comgooglemaps://?daddr=${q}&directionsmode=driving`;
+  if (app === "apple" && os === "ios") return `maps://?daddr=${q}&dirflg=d`;
+  return null;
+}
+
+export function navigationLinks(
+  dest: Dest,
+  os: string = Platform.OS,
+  app: string = getSettings().nav_app
+): string[] {
   const nav = dest.navigationUrl?.trim();
   const hasCoords = dest.lat != null && dest.lng != null;
   const q = hasCoords ? `${dest.lat},${dest.lng}` : encodeURIComponent(dest.address?.trim() ?? "");
   if (!nav && !q) return [];
   const links: string[] = [];
+  const preferred = preferredLink(app, q, os);
+  if (preferred) links.push(preferred);
   if (nav) links.push(nav);
   if (os === "android") {
     // Straight into Google Maps turn-by-turn; geo: is the any-app fallback.
@@ -23,7 +45,7 @@ export function navigationLinks(dest: Dest, os: string = Platform.OS): string[] 
     links.push(`comgooglemaps://?daddr=${q}&directionsmode=driving`);
     links.push(`maps://?daddr=${q}&dirflg=d`);
   }
-  return links;
+  return [...new Set(links)];
 }
 
 /**

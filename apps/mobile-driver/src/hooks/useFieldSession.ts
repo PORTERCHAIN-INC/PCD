@@ -23,12 +23,25 @@ import {
 import { mergeOfflineHandshake } from "../fieldState";
 import { getSessionSnapshot, subscribeSession } from "../session";
 import type { Handshake } from "../types";
+import { qk } from "../data/keys";
+import { queryClient } from "../data/queryClient";
+
+/** Last known snapshot from the encrypted cache: Today/Job/Me paint instantly on cold start. */
+function cachedHandshake(): Handshake | null {
+  const h = queryClient.getQueryData<Handshake>(qk.handshake);
+  return h && h.api === "up" ? { ...h, error: null } : null;
+}
 
 const OFFLINE_POLL_MS = 30_000;
 const ON_DUTY_POLL_MS = 30_000;
 
 export function useFieldSession() {
-  const [handshake, setHandshake] = useState<Handshake>(idleHandshake());
+  const [handshake, setHandshake] = useState<Handshake>(() => cachedHandshake() ?? idleHandshake());
+  /** False until this launch has its own server copy (GPS/duty side effects wait for it). */
+  const [fresh, setFresh] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(
+    () => queryClient.getQueryState(qk.handshake)?.dataUpdatedAt ?? 0
+  );
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState(0);
   const [rejected, setRejected] = useState(0);
@@ -48,7 +61,15 @@ export function useFieldSession() {
   }, []);
 
   const apply = useCallback((next: Handshake) => {
-    setHandshake((prev) => mergeOfflineHandshake(prev, next, signedInRef.current));
+    setHandshake((prev) => {
+      const merged = mergeOfflineHandshake(prev, next, signedInRef.current);
+      if (merged.api === "up") {
+        queryClient.setQueryData(qk.handshake, merged);
+        setUpdatedAt(Date.now());
+        setFresh(true);
+      }
+      return merged;
+    });
   }, []);
 
   /** Pull the server snapshot, push the outbox, and pull again if anything was sent. */
@@ -105,6 +126,7 @@ export function useFieldSession() {
 
   // GPS follows duty: on duty → pings + background updates; off duty → nothing.
   useEffect(() => {
+    if (!fresh) return; // cached "on duty" isn't proof: wait for this launch's server copy
     if (!handshake.online) {
       void stopBackgroundLocation();
       return;
@@ -113,7 +135,7 @@ export function useFieldSession() {
       setHandshake((prev) => ({ ...prev, location }));
     void startBackgroundLocation().then(setLocation);
     return startLocationLoop(() => true, setLocation);
-  }, [handshake.online]);
+  }, [handshake.online, fresh]);
 
   const goOnDuty = useCallback(
     async (pretrip: Record<string, boolean>) => {
@@ -140,6 +162,9 @@ export function useFieldSession() {
   return {
     handshake,
     setHandshake,
+    /** This launch has a server copy (false = painting from the cache). */
+    fresh,
+    updatedAt,
     busy,
     setBusy,
     pending,

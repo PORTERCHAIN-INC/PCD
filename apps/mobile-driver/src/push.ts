@@ -274,3 +274,18 @@ export function attachPushListeners(onOpen: (payload: PushOpenPayload) => void):
   });
   return () => remove?.();
 }
+
+/** Foreground push (any type): invalidate the cached data it touches. Realtime without polling. */
+export function attachPushReceived(onData: (kind: string | undefined) => void): () => void {
+  let remove: (() => void) | undefined;
+  void loadNotifications().then((Notifications) => {
+    if (!Notifications) return;
+    const sub = Notifications.addNotificationReceivedListener((n) => {
+      const data = (n.request.content.data ?? {}) as Record<string, unknown>;
+      const kind = data.type ?? data.event ?? data.kind;
+      onData(typeof kind === "string" ? kind : undefined);
+    });
+    remove = () => sub.remove();
+  });
+  return () => remove?.();
+}
