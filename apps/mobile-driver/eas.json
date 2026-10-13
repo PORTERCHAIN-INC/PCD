@@ -56,7 +56,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "porterchaininc@gmail.com",
+        "appleId": "iot.ravichauhan@gmail.com",
         "ascAppId": "6781880626",
         "appleTeamId": "4XWFT5A8C3",
         "bundleIdentifier": "com.porterchain.PCD"
