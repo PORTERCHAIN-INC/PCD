@@ -27,7 +27,6 @@ from porterchain_api.admin_models import (
     PricingTariff,
     PricingZone,
     Promotion,
-    RouteCenterTemplate,
     SupportTicket,
     SystemConfig,
     Vehicle,
@@ -228,7 +227,7 @@ def _draft_purge(db: Session, d: BookingDraft) -> str | None:
 def _merchant_children(db: Session, m: Merchant) -> list[Any]:
     out: list[Any] = []
     out += _rows(db, Order, Order.merchant_id == m.id, Order.state.notin_(ON_ROAD))
-    for model in (StandingOrder, MerchantBookingTemplate, MerchantRecipient, RouteCenterTemplate, Promotion,
+    for model in (StandingOrder, MerchantBookingTemplate, MerchantRecipient, Promotion,
                   PricingTariff):
         out += _rows(db, model, model.merchant_id == m.id)
     out += [p for o in out if isinstance(o, Order) for p in _rows(db, Package, Package.order_id == o.id)]
@@ -352,7 +351,6 @@ REGISTRY: dict[str, Entity] = {e.key: e for e in (
     _e("promotion", Promotion, "Promotion", lambda r: r.code),
     _e("pricing_zone", PricingZone, "Pricing zone", lambda r: _first(r.name, r.code)),
     _e("pricing_tariff", PricingTariff, "Pricing tariff", lambda r: r.name),
-    _e("route_template", RouteCenterTemplate, "Route template", lambda r: r.name),
     _e("standing_order", StandingOrder, "Standing order", lambda r: _first(getattr(r, "name", None), f"Weekly {r.id[:8]}"),
        parent=_parent_merchant),
     _e("booking_template", MerchantBookingTemplate, "Booking template", lambda r: r.name, parent=_parent_merchant),

@@ -17,7 +17,7 @@ TABLES = (
     "orders", "packages", "customers", "customer_addresses", "customer_notes",
     "merchants", "merchant_recipients", "merchant_booking_templates", "standing_orders",
     "drivers", "vehicles", "claims", "support_tickets", "promotions", "pricing_zones", "pricing_tariffs",
-    "route_center_templates", "dispatch_routes", "dispatch_plans", "blog_posts",
+    "dispatch_routes", "dispatch_plans", "blog_posts",
 )
 
 

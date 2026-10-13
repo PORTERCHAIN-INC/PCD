@@ -283,7 +283,7 @@ class AdminAuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class RouteCenterTemplate(SoftDeleteMixin, Base):
+class RouteCenterTemplate(Base):
     """Wholesale / recurring route templates (§8.1.10) — alias: RouteTemplate."""
 
     __tablename__ = "route_center_templates"
