@@ -14,6 +14,8 @@ import {
 import { touchTargetMin } from "@porterchain/mobile-theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { haptic } from "../haptics";
+import { tr } from "../i18n";
+import { useSettings } from "../settings";
 import { useLayout, useTabBarBelow } from "./layout";
 import { PressScale } from "./motion";
 import { color, maxFontScale, radius, space, target, type } from "./theme";
@@ -96,34 +98,54 @@ export function Screen({
   );
 }
 
-export const Title = (p: TextProps) => (
-  <Text
-    accessibilityRole="header"
-    maxFontSizeMultiplier={maxFontScale}
-    {...p}
-    style={[s.title, p.style]}
-  />
-);
-export const Heading = (p: TextProps) => (
-  <Text
-    accessibilityRole="header"
-    maxFontSizeMultiplier={maxFontScale}
-    {...p}
-    style={[s.heading, p.style]}
-  />
-);
-export const Body = (p: TextProps) => (
-  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.body, p.style]} />
-);
-export const Strong = (p: TextProps) => (
-  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.strong, p.style]} />
-);
-export const Muted = (p: TextProps) => (
-  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.muted, p.style]} />
-);
-export const Label = (p: TextProps) => (
-  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.label, p.style]} />
-);
+/** Settings → Text size: multiplies font size + line height of a text style. */
+function useTextScale(base: { fontSize?: number; lineHeight?: number }) {
+  const { text_scale } = useSettings();
+  if (text_scale === 1) return null;
+  return {
+    ...(base.fontSize ? { fontSize: Math.round(base.fontSize * text_scale) } : {}),
+    ...(base.lineHeight ? { lineHeight: Math.round(base.lineHeight * text_scale) } : {}),
+  };
+}
+
+export const Title = (p: TextProps) => {
+  const z = useTextScale(s.title);
+  return (
+    <Text
+      accessibilityRole="header"
+      maxFontSizeMultiplier={maxFontScale}
+      {...p}
+      style={[s.title, z, p.style]}
+    />
+  );
+};
+export const Heading = (p: TextProps) => {
+  const z = useTextScale(s.heading);
+  return (
+    <Text
+      accessibilityRole="header"
+      maxFontSizeMultiplier={maxFontScale}
+      {...p}
+      style={[s.heading, z, p.style]}
+    />
+  );
+};
+export const Body = (p: TextProps) => {
+  const z = useTextScale(s.body);
+  return <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.body, z, p.style]} />;
+};
+export const Strong = (p: TextProps) => {
+  const z = useTextScale(s.strong);
+  return <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.strong, z, p.style]} />;
+};
+export const Muted = (p: TextProps) => {
+  const z = useTextScale(s.muted);
+  return <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.muted, z, p.style]} />;
+};
+export const Label = (p: TextProps) => {
+  const z = useTextScale(s.label);
+  return <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.label, z, p.style]} />;
+};
 
 type Tone = "primary" | "secondary" | "danger" | "quiet";
 
@@ -145,6 +167,7 @@ export function Button({
   hint?: string;
   testID?: string;
 }) {
+  const zBtn = useTextScale(s.btnText);
   const off = disabled || busy;
   return (
     <PressScale
@@ -179,6 +202,7 @@ export function Button({
           maxFontSizeMultiplier={1.3}
           style={[
             s.btnText,
+            zBtn,
             tone === "primary" && s.btnTextOn,
             tone === "danger" && s.btnTextOnDanger,
             tone === "quiet" && s.btnTextQuiet,
@@ -284,6 +308,7 @@ export function TabBar({
   /** Dot on the Job tab when there is work waiting. */
   jobBadge?: boolean;
 }) {
+  const { language } = useSettings();
   const insets = useSafeAreaInsets();
   const L = useLayout();
   return (
@@ -305,7 +330,11 @@ export function TabBar({
             key={t.id}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            accessibilityLabel={t.id === "job" && jobBadge ? `${t.label}, work waiting` : t.label}
+            accessibilityLabel={
+              t.id === "job" && jobBadge
+                ? `${tr(t.id, language)}, work waiting`
+                : tr(t.id, language)
+            }
             onPress={() => {
               haptic.tap();
               onTab(t.id);
@@ -313,7 +342,7 @@ export function TabBar({
             style={[s.tab, (L.landscape || L.compact) && s.tabShort, on && s.tabOn]}
             testID={`tab-${t.id}`}
           >
-            <Text style={[s.tabText, on && s.tabTextOn]}>{t.label}</Text>
+            <Text style={[s.tabText, on && s.tabTextOn]}>{tr(t.id, language)}</Text>
             {t.id === "job" && jobBadge ? <View style={s.dot} /> : null}
           </Pressable>
         );

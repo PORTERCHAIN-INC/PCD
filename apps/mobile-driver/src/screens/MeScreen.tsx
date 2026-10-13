@@ -1,18 +1,24 @@
-import { useEffect, useState } from "react";
-import { Linking, StyleSheet, View } from "react-native";
-import { fetchSupportHub } from "../api";
-import { dispatchEmail, dispatchPhone, driverPortalUrl, locationRetentionDays } from "../config";
+/**
+ * Me: a compact hub. Everything renders from the cache instantly; details live on full-screen
+ * pages (Documents, Settings) so this screen stays one glance.
+ */
+import { useState } from "react";
+import { Linking, StyleSheet, Text, View } from "react-native";
+import { dispatchEmail, dispatchPhone, driverPortalUrl } from "../config";
 import type { MonitoringPolicy } from "../api";
-import { haptic } from "../haptics";
-import { Rise } from "../ui/motion";
-import { usePolicyPage } from "../ui/PolicyPage";
 import type { LocationConsent } from "../consent";
-import { useSos } from "../ui/SosButton";
+import { useDocuments, useEarnings, useSupportHub, useVehicle } from "../data/queries";
+import { docAlerts } from "../docs";
+import { money } from "../smart/geo";
+import { useT } from "../i18n";
 import type { FieldSession } from "../hooks/useFieldSession";
-import { readQueue } from "../offline";
-import { currentAppVersion } from "../version";
-import { Banner, Body, Button, Card, Heading, Label, Muted, Screen, Title } from "../ui/kit";
-import { space } from "../ui/theme";
+import { Banner, Button, Muted, Screen, Title } from "../ui/kit";
+import { Row, Section } from "../ui/settings/rows";
+import { useSos } from "../ui/SosButton";
+import { color, space } from "../ui/theme";
+import { UpdatedAgo } from "../ui/UpdatedAgo";
+import { DocumentsPage } from "./DocumentsPage";
+import { SettingsPage } from "./SettingsPage";
 
 type Props = {
   field: FieldSession;
@@ -22,170 +28,173 @@ type Props = {
   onWithdrawConsent: () => void;
   onSync: () => void;
   onSignOut: () => Promise<void>;
+  /** Harness/deep link: open a page straight away. */
+  initialPage?: null | "settings" | "documents";
 };
 
-export function MeScreen({
-  field,
-  consent,
-  policy,
-  onReviewConsent,
-  onWithdrawConsent,
-  onSync,
-  onSignOut,
-}: Props) {
+export function MeScreen(props: Props) {
+  const { field, onSync } = props;
   const { handshake: h, pending } = field;
-  const [phone, setPhone] = useState(dispatchPhone);
-  const [email, setEmail] = useState(dispatchEmail);
+  const t = useT();
+  const [page, setPage] = useState<null | "settings" | "documents">(props.initialPage ?? null);
+  const hub = useSupportHub();
+  const docs = useDocuments();
+  const vehicle = useVehicle();
+  const earnings = useEarnings();
   const { state: sos, ask: sendSos, page: sosPage } = useSos();
-  const policyPage = usePolicyPage();
-  /** Inline confirm (no popup): null = closed, number = unsynced actions found. */
-  const [confirmOut, setConfirmOut] = useState<number | null>(null);
-  const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    void fetchSupportHub()
-      .then((hub) => {
-        if (hub.emergency_contact?.ops_hotline) setPhone(hub.emergency_contact.ops_hotline);
-        if (hub.emergency_contact?.ops_email) setEmail(hub.emergency_contact.ops_email);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  const goSignOut = () => {
-    setSigningOut(true);
-    void onSignOut().finally(() => setSigningOut(false));
-  };
-  const signOut = () => {
-    haptic.press();
-    void readQueue()
-      .then((q) => setConfirmOut(q.length))
-      .catch(() => setConfirmOut(0));
-  };
+  const phone = hub.data?.emergency_contact?.ops_hotline ?? dispatchPhone;
+  const email = hub.data?.emergency_contact?.ops_email ?? dispatchEmail;
+  const alerts = docAlerts(docs.data?.documents, Date.now());
+  const v = vehicle.data?.vehicle;
+  const vLine = v
+    ? [v.year, v.make, v.model].filter(Boolean).join(" ") +
+      (v.plate || v.license_plate ? ` · ${v.plate ?? v.license_plate}` : "")
+    : undefined;
+  const e = earnings.data;
 
   return (
     <Screen testID="screen-me">
-      <Title>{h.driverName ?? "Me"}</Title>
-      <Muted>{h.online ? "On duty" : "Off duty"}</Muted>
+      <View style={st.head}>
+        <View style={st.flex}>
+          <Title numberOfLines={1}>{h.driverName ?? t("me")}</Title>
+          <Muted>{h.online ? "On duty" : "Off duty"}</Muted>
+        </View>
+        <UpdatedAgo at={field.updatedAt} fetching={field.busy} offline={h.api === "down"} />
+      </View>
+
       {h.push.kind === "denied" ? (
         <Banner
           tone="warn"
           title="Job alerts are off"
-          body="Turn on notifications for PorterChain Driver in Settings, or you will miss new jobs."
-          action={{ label: "Open Settings", onPress: () => void Linking.openSettings() }}
+          body="Turn on notifications for PorterChain Driver, or you will miss new jobs."
+          action={{ label: "Open phone settings", onPress: () => void Linking.openSettings() }}
+        />
+      ) : null}
+      {alerts ? (
+        <Banner
+          tone="warn"
+          title={`${alerts} document${alerts === 1 ? " needs" : "s need"} attention`}
+          body="Expired or missing papers can stop new jobs."
+          action={{ label: "Open documents", onPress: () => setPage("documents") }}
         />
       ) : null}
 
-      <Card testID="me-dispatch">
-        <Heading>Dispatch</Heading>
+      {e && (e.today_cents != null || e.week_cents != null) ? (
+        <View style={st.stats} testID="me-earnings">
+          <Stat label="Today" value={money(e.today_cents ?? 0)} />
+          <Stat label="This week" value={money(e.week_cents ?? 0)} />
+          <Stat label="Month" value={money(e.month_cents ?? 0)} />
+        </View>
+      ) : null}
+
+      <Section title="ACCOUNT">
+        <Row
+          label={t("documents")}
+          sub={docs.data ? (alerts ? "Action needed" : "All in order") : undefined}
+          badge={alerts}
+          onPress={() => setPage("documents")}
+          testID="me-documents"
+        />
+        <Row
+          label={t("vehicle")}
+          value={vLine}
+          onPress={() => setPage("documents")}
+          testID="me-vehicle"
+        />
+        <Row
+          label={t("settings")}
+          sub="Navigation, voice, text size, notifications, privacy"
+          onPress={() => setPage("settings")}
+          testID="me-settings"
+        />
+        <Row
+          label="Driver portal"
+          sub="Payouts, statements, messages"
+          onPress={() => void Linking.openURL(driverPortalUrl)}
+        />
+      </Section>
+
+      <Section title="DISPATCH" testID="me-dispatch">
         {phone ? (
-          <Button
-            tone="primary"
+          <Row
             label="Call dispatch"
-            hint={phone}
+            value={phone}
+            tone="accent"
             onPress={() => void Linking.openURL(`tel:${phone}`)}
           />
         ) : null}
-        <Button
+        <Row
           label="Email dispatch"
-          hint={email}
+          value={email}
           onPress={() => void Linking.openURL(`mailto:${email}`)}
         />
-        <Button
+        {pending ? (
+          <Row
+            label="Sync now"
+            sub={`${pending} action${pending === 1 ? "" : "s"} waiting`}
+            onPress={onSync}
+            testID="me-sync"
+          />
+        ) : null}
+      </Section>
+
+      <Button
+        tone="danger"
+        label="SOS — emergency"
+        testID="sos"
+        busy={sos === "sending"}
+        onPress={sendSos}
+      />
+      {sos === "failed" ? (
+        <Banner
           tone="danger"
-          label="SOS — emergency"
-          testID="sos"
-          busy={sos === "sending"}
-          onPress={sendSos}
+          title="SOS did not send"
+          body="No connection. Call dispatch or 911."
+          action={{ label: "Call 911", onPress: () => void Linking.openURL("tel:911") }}
         />
-        {sos === "sent" ? (
-          <Banner tone="success" title="SOS sent. Dispatch will call you." />
-        ) : null}
-        {sos === "failed" ? (
-          <Banner
-            tone="danger"
-            title="SOS did not send"
-            body="No connection. Call dispatch or 911."
-            action={{ label: "Call 911", onPress: () => void Linking.openURL("tel:911") }}
-          />
-        ) : null}
-      </Card>
+      ) : null}
 
-      <Card testID="me-sync">
-        <Heading>Saved work</Heading>
-        <Body>
-          {pending
-            ? `${pending} action${pending === 1 ? "" : "s"} waiting to sync`
-            : "Everything is synced."}
-        </Body>
-        {pending ? <Button label="Sync now" onPress={onSync} /> : null}
-      </Card>
-
-      <Card testID="me-portal">
-        <Heading>Earnings, documents & messages</Heading>
-        <Body>These are on the driver web portal.</Body>
-        <Button
-          label="Open driver portal"
-          hint="Opens in your browser"
-          onPress={() => void Linking.openURL(driverPortalUrl)}
-        />
-      </Card>
-
-      <Card testID="me-privacy">
-        <Heading>Location & privacy</Heading>
-        <Body>
-          {consent
-            ? `Background location: on while on duty. You agreed ${new Date(consent.agreedAt).toLocaleDateString()}.`
-            : "Background location: off. Dispatch sees you only while the app is open."}
-        </Body>
-        <Muted>Location points are deleted after {locationRetentionDays} days.</Muted>
-        <Button
-          tone="quiet"
-          label={`Electronic Monitoring Policy${policy ? ` (v${policy.version})` : ""}`}
-          testID="me-policy"
-          onPress={() => policyPage.open(policy)}
-        />
-        <View style={styles.row}>
-          <Button label={consent ? "Review" : "Turn on"} onPress={onReviewConsent} />
-          {consent ? (
-            <Button tone="quiet" label="Turn off background location" onPress={onWithdrawConsent} />
-          ) : null}
-        </View>
-      </Card>
-
-      <Label>Account</Label>
-      {confirmOut == null ? (
-        <Button label="Sign out" testID="sign-out" busy={signingOut} onPress={signOut} />
-      ) : (
-        <Rise>
-          <Banner
-            tone={confirmOut ? "danger" : "warn"}
-            title={confirmOut ? "Unsynced work on this phone" : "Sign out?"}
-            body={
-              confirmOut
-                ? `${confirmOut} saved action${confirmOut === 1 ? " hasn't" : "s haven't"} reached PorterChain yet. Signing out deletes ${confirmOut === 1 ? "it" : "them"}. Get signal first if you can.`
-                : "This removes your data from this phone."
-            }
-          />
-          <View style={styles.confirm}>
-            <Button
-              tone="danger"
-              label={confirmOut ? "Sign out anyway" : "Sign out"}
-              busy={signingOut}
-              onPress={goSignOut}
-              testID="sign-out-confirm"
-            />
-            <Button tone="quiet" label="Cancel" onPress={() => setConfirmOut(null)} />
-          </View>
-        </Rise>
-      )}
-      <Muted>Version {currentAppVersion()}</Muted>
       {sosPage}
-      {policyPage.page}
+      <DocumentsPage visible={page === "documents"} onClose={() => setPage(null)} />
+      <SettingsPage
+        visible={page === "settings"}
+        onClose={() => setPage(null)}
+        consent={props.consent}
+        policy={props.policy}
+        onReviewConsent={() => {
+          setPage(null);
+          props.onReviewConsent();
+        }}
+        onWithdrawConsent={props.onWithdrawConsent}
+        onSignOut={props.onSignOut}
+      />
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  row: { gap: space.sm },
-  confirm: { gap: space.sm, marginTop: space.sm },
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={st.stat}>
+      <Text style={st.statV} numberOfLines={1} adjustsFontSizeToFit>
+        {value}
+      </Text>
+      <Text style={st.statL}>{label}</Text>
+    </View>
+  );
+}
+
+const st = StyleSheet.create({
+  head: { flexDirection: "row", alignItems: "flex-end", gap: space.md },
+  flex: { flex: 1 },
+  stats: { flexDirection: "row", gap: space.sm },
+  stat: {
+    flex: 1,
+    backgroundColor: color.surface,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: color.border,
+    padding: space.md,
+  },
+  statV: { fontSize: 20, fontWeight: "900", color: color.ink, fontVariant: ["tabular-nums"] },
+  statL: { fontSize: 12, fontWeight: "700", color: color.inkMuted, marginTop: 2 },
 });

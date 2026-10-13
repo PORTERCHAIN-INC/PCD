@@ -2,7 +2,7 @@
  * The next stop on a dispatch route, as one hero card with one primary action.
  * Arrived → (checklist / proof only if the server needs it) → Picked up / Delivered.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Image, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { fetchDispatchChecklist, fetchStopContact } from "../api";
 import {
@@ -23,6 +23,7 @@ import { Banner, Button, Label } from "./kit";
 import { PressScale, Rise } from "./motion";
 import { color, maxFontScale, radius, space, target, type } from "./theme";
 import { useNow } from "./useNow";
+import { useSettings } from "../settings";
 import { DriveMode } from "./DriveMode";
 import { useLayout } from "./layout";
 import { Sheet } from "./Sheet";
@@ -48,6 +49,8 @@ export function useRouteStopUi(
   const now = useNow(Boolean(r.etaAt) && stop?.status === "pending");
   const [page, setPage] = useState<null | "problem" | "drive" | "load">(null);
   const [reason, setReason] = useState<string | null>(null);
+  const settings = useSettings();
+  const autoDriveFor = useRef<string | null>(null);
 
   const stopId = stop?.keys.join(",") ?? "";
   useEffect(() => {
@@ -62,6 +65,15 @@ export function useRouteStopUi(
         .catch(() => setChecklist({ items: [], item_count: 0, box_count: 0 }));
     }
   }, [stopId, stop?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Settings → Drive mode starts by itself: once per stop, when moving (> ~15 km/h) towards it.
+  const moving = (r.fix?.speed ?? 0) > 4;
+  useEffect(() => {
+    if (!settings.drive_mode_auto || !stop || stop.status !== "pending" || !moving) return;
+    if (autoDriveFor.current === stopId) return;
+    autoDriveFor.current = stopId;
+    setPage("drive");
+  }, [settings.drive_mode_auto, stopId, stop?.status, moving]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!route || route.total === 0) return { card: null, footer: undefined, pages: null };
 

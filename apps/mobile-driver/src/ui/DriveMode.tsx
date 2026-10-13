@@ -8,6 +8,7 @@ import { Modal, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { KIND_LABEL, type DispatchStop } from "../dispatchRoute";
 import { haptic } from "../haptics";
+import { getSettings } from "../settings";
 import { distanceLabel } from "../smart/geo";
 import { speak, stopReadout, stopSpeaking } from "../smart/voice";
 import { Button } from "./kit";
@@ -47,7 +48,7 @@ export function DriveMode(p: Props) {
 export function DriveBody(p: Props) {
   const insets = useSafeAreaInsets();
   const L = useLayout();
-  const [voice, setVoice] = useState(true);
+  const [voice, setVoice] = useState(getSettings().voice);
 
   useEffect(() => {
     let release: (() => void) | null = null;

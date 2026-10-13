@@ -4,7 +4,10 @@
  */
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { fetchEarningsToday } from "../api";
+import { useEarnings } from "../data/queries";
+import { UpdatedAgo } from "../ui/UpdatedAgo";
+
+const onDutyFlag = (h: { online?: boolean | null }) => Boolean(h.online);
 import { haptic } from "../haptics";
 import type { FieldSession } from "../hooks/useFieldSession";
 import type { RouteState } from "../hooks/useDispatchRoute";
@@ -60,7 +63,8 @@ export function TodayScreen({
 }: Props) {
   const { handshake: h, busy, pending, rejected, refresh, setError } = field;
   const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
-  const [earned, setEarned] = useState<number | null>(null);
+  const earnings = useEarnings(onDutyFlag(h));
+  const earned = earnings.data?.today_cents ?? null;
   const sos = useSos();
   const onDuty = Boolean(h.online);
   const open = h.jobs.filter((j) => !isClosed(j.state ?? j.status));
@@ -72,12 +76,10 @@ export function TodayScreen({
   const firstLoad = h.api === "idle" && busy;
   const now = useNow(onDuty && Boolean(r.etaAt));
 
+  // A finished stop changes earnings: refresh in the background (cached value stays on screen).
   useEffect(() => {
-    if (!onDuty) return;
-    void fetchEarningsToday()
-      .then((e) => setEarned(e.today_cents ?? null))
-      .catch(() => undefined);
-  }, [onDuty, done]);
+    if (onDuty && done) void earnings.refetch();
+  }, [onDuty, done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checked = PRETRIP_ITEMS.filter((i) => pretrip[i.id]).length;
   const footer = !onDuty ? (
@@ -130,6 +132,11 @@ export function TodayScreen({
         </View>
       </View>
 
+      <UpdatedAgo
+        at={Math.max(field.updatedAt, r.updatedAt ?? 0)}
+        fetching={busy || r.fetching}
+        offline={h.api === "down"}
+      />
       <Text style={styles.hello} maxFontSizeMultiplier={maxFontScale} accessibilityRole="header">
         {firstLoad
           ? "Today"
