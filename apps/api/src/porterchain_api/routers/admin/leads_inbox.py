@@ -5,6 +5,7 @@ Registered before `leads_360` so `/leads/export.csv` etc. don't hit `/leads/{lea
 
 from __future__ import annotations
 
+from porterchain_api.db import get_report_db
 from datetime import datetime
 from typing import Annotated
 
@@ -86,7 +87,7 @@ def get_reply_channels(
 @router.get("/leads/export.csv")
 def export_leads_csv(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     status: str | None = None,
     priority: str | None = None,
     channel: str | None = None,

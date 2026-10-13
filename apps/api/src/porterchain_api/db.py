@@ -27,6 +27,10 @@ def _require_postgresql_url(url: str) -> None:
 
 
 settings = get_settings()
+
+# Server-side guards: a leaked/stalled request can never pin a pooled connection
+# ("idle in transaction") long enough to exhaust the pool and take login down.
+_PG_GUARDS = {"options": "-c idle_in_transaction_session_timeout=60000 -c statement_timeout=30000"}
 _require_postgresql_url(settings.database_url)
 
 engine = create_engine(
@@ -36,6 +40,7 @@ engine = create_engine(
     pool_timeout=settings.db_pool_timeout,
     pool_recycle=settings.db_pool_recycle,
     pool_pre_ping=True,
+    connect_args=_PG_GUARDS,
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 
@@ -66,6 +71,25 @@ def get_db() -> Generator[Session, None, None]:
     try:
         yield db
     finally:
+        db.close()
+
+
+REPORT_STATEMENT_TIMEOUT_MS = 300_000
+
+
+def get_report_db() -> Generator[Session, None, None]:
+    """Session for exports/reports: 5 min statement cap instead of the 30 s default."""
+    db = SessionLocal()
+    try:
+        db.execute(text(f"SET statement_timeout = {REPORT_STATEMENT_TIMEOUT_MS}"))
+        yield db
+    finally:
+        try:
+            db.rollback()
+            db.execute(text("RESET statement_timeout"))
+            db.commit()
+        except Exception:  # noqa: BLE001 — never block close on cleanup
+            pass
         db.close()
 
 

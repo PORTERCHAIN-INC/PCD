@@ -1,5 +1,6 @@
 """merchant routes — billing."""
 
+from porterchain_api.db import get_report_db
 from porterchain_api.routers.merchant._deps import (
     Annotated,
     BillingStatementResponse,
@@ -184,7 +185,7 @@ def merchant_rate_card(
 @router.get("/billing/export/invoices.csv")
 def export_invoices_csv(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> Response:
     require_module(ctx, "invoices")
     content = _billing.export_invoices_csv(db, ctx)
@@ -198,7 +199,7 @@ def export_invoices_csv(
 @router.get("/billing/export/statement.csv")
 def export_statement_csv(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> Response:
     require_module(ctx, "statements")
     content = _billing.export_statement_csv(db, ctx)
@@ -212,7 +213,7 @@ def export_statement_csv(
 @router.get("/billing/export/history.csv")
 def export_history_csv(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> Response:
     require_module(ctx, "billing")
     content = _billing.export_history_csv(db, ctx)

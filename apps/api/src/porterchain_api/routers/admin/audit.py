@@ -1,5 +1,6 @@
 """admin routes — audit log export (§11.1.7)."""
 
+from porterchain_api.db import get_report_db
 from fastapi import Response
 
 from porterchain_api.routers.admin._deps import (
@@ -33,7 +34,7 @@ def list_audit_logs(
 @router.get("/audit-logs/export")
 def export_audit_logs(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     limit: int = Query(1000, le=5000),
 ):
     require_module(ctx, "settings")
@@ -43,7 +44,7 @@ def export_audit_logs(
 @router.get("/audit-logs/export.csv")
 def export_audit_logs_csv(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     limit: int = Query(1000, le=5000),
 ):
     require_module(ctx, "settings")

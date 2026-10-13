@@ -1,5 +1,6 @@
 """merchant routes — reports."""
 
+from porterchain_api.db import get_report_db
 from porterchain_api.routers.merchant._deps import (
     Annotated,
     Depends,
@@ -21,7 +22,7 @@ from porterchain_api.routers.merchant._deps import (
 @router.get("/reports/summary", response_model=ReportSummaryResponse)
 def reports_summary(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ) -> ReportSummaryResponse:
     require_module(ctx, "reports")
     return ReportSummaryResponse(**_reports.summary(db, ctx))
@@ -30,7 +31,7 @@ def reports_summary(
 @router.get("/reports/overview")
 def reports_overview(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.overview(db, ctx)
@@ -39,7 +40,7 @@ def reports_overview(
 @router.get("/reports/executive")
 def reports_executive(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.executive(db, ctx)
@@ -48,7 +49,7 @@ def reports_executive(
 @router.get("/reports/delivery-performance")
 def reports_delivery_performance(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.delivery_performance(db, ctx)
@@ -57,7 +58,7 @@ def reports_delivery_performance(
 @router.get("/reports/order-volume")
 def reports_order_volume(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.order_volume(db, ctx)
@@ -66,7 +67,7 @@ def reports_order_volume(
 @router.get("/reports/invoices")
 def reports_invoices(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.invoice_reports(db, ctx)
@@ -75,7 +76,7 @@ def reports_invoices(
 @router.get("/reports/drivers")
 def reports_drivers(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.driver_reports(db, ctx)
@@ -84,7 +85,7 @@ def reports_drivers(
 @router.get("/reports/vehicles")
 def reports_vehicles(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.vehicle_reports(db, ctx)
@@ -93,7 +94,7 @@ def reports_vehicles(
 @router.get("/reports/destinations")
 def reports_destinations(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.destination_reports(db, ctx)
@@ -102,7 +103,7 @@ def reports_destinations(
 @router.get("/reports/claims")
 def reports_claims(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.claims_reports(db, ctx)
@@ -111,7 +112,7 @@ def reports_claims(
 @router.get("/reports/sla-history")
 def reports_sla_history(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     """§8.3.2 — 12-month SLA history for merchant portal."""
     require_module(ctx, "reports")
@@ -121,7 +122,7 @@ def reports_sla_history(
 @router.get("/reports/switching-costs")
 def reports_switching_costs(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     """§8.3 — integration depth, SLA history, tariffs, RBAC audit snapshot."""
     require_module(ctx, "reports")
@@ -140,7 +141,7 @@ def reports_saved_list(
 def reports_saved_create(
     body: MerchantReportSaveRequest,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.save_report(
@@ -176,7 +177,7 @@ def reports_scheduled_list(
 def reports_scheduled_create(
     body: MerchantReportScheduleRequest,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     return _reports.save_scheduled_report(
@@ -193,7 +194,7 @@ def reports_scheduled_create(
 def reports_export_csv(
     report_type: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     content = _reports.export_csv(db, ctx, report_type)
@@ -208,7 +209,7 @@ def reports_export_csv(
 def reports_export_excel(
     report_type: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "reports")
     try:

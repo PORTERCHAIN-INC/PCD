@@ -1,5 +1,6 @@
 """admin routes — Stripe payouts/disputes, margin, GST/HST report, accounting exports."""
 
+from porterchain_api.db import get_report_db
 from datetime import UTC, datetime, timedelta
 
 from fastapi.responses import Response
@@ -96,7 +97,7 @@ def future_features(
 @router.get("/privacy/access-export")
 def privacy_access_export(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     email: str | None = None,
     phone: str | None = None,
 ) -> dict:
@@ -113,7 +114,7 @@ def privacy_access_export(
 @router.get("/finance/tax-report")
 def finance_tax_report(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     start: str | None = None,
     end: str | None = None,
 ) -> dict:
@@ -128,7 +129,7 @@ def finance_tax_report(
 def finance_export_csv(
     kind: str,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     start: str | None = None,
     end: str | None = None,
 ) -> Response:

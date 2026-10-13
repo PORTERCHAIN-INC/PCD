@@ -1,5 +1,6 @@
 """admin routes — settings."""
 
+from porterchain_api.db import get_report_db
 from collections.abc import Callable
 from typing import TypeVar
 
@@ -187,7 +188,7 @@ def settings_validate(
 @router.get("/settings/export")
 def settings_export(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     return _invoke(ctx, _settings.export_configuration, db)
 

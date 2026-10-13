@@ -1,5 +1,6 @@
 """admin routes — support."""
 
+from porterchain_api.db import get_report_db
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
@@ -40,7 +41,7 @@ def support_dashboard(
 @router.get("/support/reports")
 def support_reports(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "support_read")
     return _support.reports(db)

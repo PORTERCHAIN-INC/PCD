@@ -1,5 +1,6 @@
 """merchant routes — privacy export / delete requests (§11.1.8)."""
 
+from porterchain_api.db import get_report_db
 from porterchain_api.routers.merchant._deps import (
     Annotated,
     Depends,
@@ -30,7 +31,7 @@ def privacy_status(
 @router.get("/privacy/export")
 def privacy_export(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
 ):
     require_module(ctx, "settings")
     return _privacy.export_merchant(db, ctx.merchant, actor_user_id=ctx.user.id)
@@ -61,7 +62,7 @@ def shopify_privacy_requests(
 def shopify_privacy_export(
     request_id: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     settings: Settings = Depends(get_settings),
 ):
     require_module(ctx, "settings")

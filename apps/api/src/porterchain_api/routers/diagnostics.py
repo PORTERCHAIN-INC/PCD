@@ -15,7 +15,7 @@ from porterchain_api.admin_engine.diagnostics_service import (
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.config import Settings, get_settings
-from porterchain_api.db import get_db
+from porterchain_api.db import get_db, get_report_db
 from porterchain_api.schemas_admin import ReportsRequest
 from porterchain_api.schemas_health import HealthDashboardResponse
 
@@ -191,7 +191,7 @@ def observability(
 def generate_reports(
     ctx: Ctx,
     body: ReportsRequest,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_report_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
     _guard(ctx, "diagnostics_write")
