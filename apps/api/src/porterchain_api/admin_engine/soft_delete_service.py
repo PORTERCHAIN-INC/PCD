@@ -420,7 +420,7 @@ def check(db: Session, key: str, row_id: str) -> dict[str, Any]:
     """Dry run used by the Delete button: tells the admin what will happen before they click."""
     ent = entity(key)
     row = db.get(ent.model, row_id)
-    if row is None:
+    if row is None or row.deleted_at is not None:
         raise LookupError(f"{key}_not_found")
     blocked = ent.guard_delete(db, row) if ent.guard_delete else None
     kids = ent.children(db, row) if ent.children else []
@@ -436,7 +436,7 @@ def soft_delete(db: Session, ctx: AdminContext, key: str, row_id: str, *, reason
     _require(can_delete(ctx), "Only admins can delete.")
     ent = entity(key)
     row = db.get(ent.model, row_id)
-    if row is None:
+    if row is None or row.deleted_at is not None:
         raise LookupError(f"{key}_not_found")
     if ent.guard_delete and (why := ent.guard_delete(db, row)):
         raise Blocked(why)
@@ -453,6 +453,7 @@ def soft_delete(db: Session, ctx: AdminContext, key: str, row_id: str, *, reason
         r.deleted_at, r.deleted_by, r.delete_reason, r.delete_batch_id = now, ctx.user.id, batch.reason, batch.id
     log_admin_audit(db, ctx, action="soft_delete.delete", resource_type=key, resource_id=row.id,
                     payload={"batch_id": batch.id, "label": batch.label, "children": len(kids), "reason": batch.reason})
+    db.flush()
     return batch
 
 
@@ -493,6 +494,7 @@ def restore(db: Session, ctx: AdminContext, batch_id: str) -> DeletedBatch:
     b.state, b.closed_at, b.closed_by = "restored", datetime.now(UTC), ctx.user.id
     log_admin_audit(db, ctx, action="soft_delete.restore", resource_type=b.entity, resource_id=b.root_id,
                     payload={"batch_id": b.id, "label": b.label, "children": len(kids)})
+    db.flush()
     return b
 
 

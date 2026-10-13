@@ -75,7 +75,8 @@ def _hide_deleted(state: ORMExecuteState) -> None:
     ):
         return
     state.statement = state.statement.options(
-        with_loader_criteria(SoftDeleteMixin, lambda cls: cls.deleted_at.is_(None), include_aliases=True)
+        with_loader_criteria(SoftDeleteMixin, lambda cls: cls.deleted_at.is_(None), include_aliases=True,
+                             propagate_to_loaders=False)
     )
 
 

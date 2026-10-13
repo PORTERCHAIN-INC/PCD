@@ -572,12 +572,13 @@ def delete_lead(
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
 ) -> None:
-    """Hard-delete a CRM lead. Super_admin only (SpiceDB system_all)."""
+    """Soft-delete a CRM lead (restore or purge it in Settings > Deleted items)."""
+    from porterchain_api.admin_engine import soft_delete_service as sd
+
     try:
-        require_module(ctx, "system:all")
+        sd.soft_delete(db, ctx, "lead", lead_id)
     except PermissionError as exc:
         _perm(exc)
-    try:
-        _crm.delete_lead(db, lead_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="lead_not_found") from exc
+    db.commit()
