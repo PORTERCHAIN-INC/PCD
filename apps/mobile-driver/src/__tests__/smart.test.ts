@@ -85,11 +85,11 @@ describe("offline-first check-in", () => {
 });
 
 describe("one-tap navigate", () => {
-  it("Android: Google Maps turn-by-turn first, then any maps app, then web", () => {
+  it("Android: Google Maps turn-by-turn first, then any maps app", () => {
     const links = navigationLinks({ lat: 43.6, lng: -79.3 }, "android");
     expect(links[0]).toBe("google.navigation:q=43.6,-79.3&mode=d");
     expect(links[1]).toMatch(/^geo:/);
-    expect(links.at(-1)).toMatch(/^https:\/\/www\.google\.com\/maps\/dir/);
+    expect(links.join(" ")).not.toContain("google.com/maps/dir");
   });
   it("iOS: Google Maps if installed, else Apple Maps; API navigation_url wins", () => {
     expect(navigationLinks({ address: "1 King St" }, "ios")[0]).toMatch(/^comgooglemaps:/);

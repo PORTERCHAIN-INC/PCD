@@ -23,13 +23,12 @@ export function navigationLinks(dest: Dest, os: string = Platform.OS): string[] 
     links.push(`comgooglemaps://?daddr=${q}&directionsmode=driving`);
     links.push(`maps://?daddr=${q}&dirflg=d`);
   }
-  links.push(`https://www.google.com/maps/dir/?api=1&destination=${q}&travelmode=driving`);
   return links;
 }
 
 /**
  * One-tap navigate. Prefers the API's Valhalla/OSRM navigation_url, then Google Maps, then the
- * built-in maps app, then the web. Never calls a paid routing API.
+ * built-in maps app. Never calls a paid routing API (no Google Directions / Distance Matrix).
  */
 export async function openTurnByTurn(dest: Dest): Promise<void> {
   const links = navigationLinks(dest);
