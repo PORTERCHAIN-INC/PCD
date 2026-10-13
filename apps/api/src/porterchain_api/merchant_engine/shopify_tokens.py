@@ -97,8 +97,12 @@ def _token_request(shop: str, data: dict[str, str]) -> dict[str, Any]:
     return body if isinstance(body, dict) else {}
 
 
-def _client(settings: Settings) -> dict[str, str]:
-    return {"client_id": settings.shopify_api_key, "client_secret": settings.shopify_api_secret}
+def _client(settings: Settings, shop: str) -> dict[str, str]:
+    """The app pinned to this shop (custom distribution), else the public app."""
+    from porterchain_api.merchant_engine.shopify_apps import for_shop
+
+    app = for_shop(settings, shop)
+    return {"client_id": app.client_id, "client_secret": app.secret}
 
 
 def exchange_id_token(shop: str, id_token: str, settings: Settings) -> dict[str, Any]:
@@ -106,7 +110,7 @@ def exchange_id_token(shop: str, id_token: str, settings: Settings) -> dict[str,
     return _token_request(
         shop,
         {
-            **_client(settings),
+            **_client(settings, shop),
             "grant_type": GRANT_TOKEN_EXCHANGE,
             "subject_token": id_token,
             "subject_token_type": TOKEN_TYPE_ID_TOKEN,
@@ -121,7 +125,7 @@ def migrate_legacy_token(shop: str, legacy_token: str, settings: Settings) -> di
     return _token_request(
         shop,
         {
-            **_client(settings),
+            **_client(settings, shop),
             "grant_type": GRANT_TOKEN_EXCHANGE,
             "subject_token": legacy_token,
             "subject_token_type": TOKEN_TYPE_OFFLINE,
@@ -133,7 +137,7 @@ def migrate_legacy_token(shop: str, legacy_token: str, settings: Settings) -> di
 
 def refresh_access_token(shop: str, refresh_token: str, settings: Settings) -> dict[str, Any]:
     """Refresh grant. A retry after a transient failure returns the same rotated pair."""
-    data = {**_client(settings), "grant_type": "refresh_token", "refresh_token": refresh_token}
+    data = {**_client(settings, shop), "grant_type": "refresh_token", "refresh_token": refresh_token}
     try:
         return _token_request(shop, data)
     except ShopifyTokenError as exc:

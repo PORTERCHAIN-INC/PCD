@@ -62,3 +62,11 @@ test("4-click flag off adds nothing; on adds Confirm pickup + Go live", () => {
   assert.match(on, /Go live/);
   assert.ok(on.indexOf("__pcOnboard=") < on.lastIndexOf("window.__pcOnboard(s,render)"));
 });
+
+test("?app= picks a listed custom-distribution key, anything else falls back", () => {
+  process.env.SHOPIFY_API_KEY = "pub";
+  process.env.SHOPIFY_EXTRA_API_KEYS = "cust, other";
+  assert.equal(shopifyApiKey("cust"), "cust");
+  assert.equal(shopifyApiKey("evil"), "pub");
+  assert.equal(shopifyApiKey(null), "pub");
+});

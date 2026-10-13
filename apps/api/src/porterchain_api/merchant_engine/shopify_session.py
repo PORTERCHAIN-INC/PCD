@@ -246,14 +246,20 @@ def verify_session_token(token: str, settings: Settings) -> str:
         normalize_shop_domain,
     )
 
+    from porterchain_api.merchant_engine.shopify_apps import by_client_id
+
     if not (settings.shopify_api_key and settings.shopify_api_secret):
         raise ValueError("shopify_oauth_not_configured")
     try:
+        aud = jwt.decode(token, options={"verify_signature": False}).get("aud")
+        app = by_client_id(settings, aud if isinstance(aud, str) else None)
+        if app is None or not app.secret:
+            raise jwt.InvalidAudienceError("unknown_app")
         claims = jwt.decode(
             token,
-            settings.shopify_api_secret,
+            app.secret,
             algorithms=["HS256"],
-            audience=settings.shopify_api_key,
+            audience=app.client_id,
             leeway=10,
             options={"require": ["exp", "nbf", "dest", "aud"]},
         )
@@ -261,7 +267,7 @@ def verify_session_token(token: str, settings: Settings) -> str:
         raise ValueError("session_token_invalid") from None
     shop = normalize_shop_domain(str(claims.get("dest") or ""))
     issuer = normalize_shop_domain(str(claims.get("iss") or shop))
-    if not is_shop_domain(shop) or issuer != shop:
+    if not is_shop_domain(shop) or issuer != shop or (app.shop and app.shop != shop):
         raise ValueError("session_token_invalid")
     return shop
 
