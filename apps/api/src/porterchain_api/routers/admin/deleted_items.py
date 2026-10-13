@@ -8,7 +8,8 @@ from fastapi import Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine import soft_delete_service as sd
+from porterchain_api import soft_delete as sd
+from porterchain_api.admin_engine.audit import commit_admin_write
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
@@ -50,7 +51,7 @@ def deleted_items_settings(body: RetentionBody, ctx: Annotated[AdminContext, Dep
         days = sd.set_retention_days(db, ctx, body.retention_days)
     except (sd.Blocked, PermissionError) as exc:
         _fail(exc)
-    db.commit()
+    commit_admin_write(db)
     return {"retention_days": days}
 
 
@@ -82,7 +83,7 @@ def deleted_items_delete(entity: str, row_id: str, body: DeleteBody, ctx: Annota
     except (sd.Blocked, PermissionError, LookupError) as exc:
         db.rollback()
         _fail(exc)
-    db.commit()
+    commit_admin_write(db)
     return sd.batch_out(b)
 
 
@@ -94,7 +95,7 @@ def deleted_items_restore(batch_id: str, ctx: Annotated[AdminContext, Depends(ge
     except (sd.Blocked, PermissionError, LookupError) as exc:
         db.rollback()
         _fail(exc)
-    db.commit()
+    commit_admin_write(db)
     return sd.batch_out(b)
 
 
@@ -110,7 +111,7 @@ def deleted_items_purge(batch_id: str, body: PurgeBody, ctx: Annotated[AdminCont
         forensics.record(None, "erasure", "soft_delete.purge_refused", actor=ctx.user.id, target_type="deleted_batch",
                          target_id=batch_id, outcome="denied", detail={"reason": getattr(exc, "reason", str(exc))})
         _fail(exc)
-    db.commit()
+    commit_admin_write(db)
     forensics.record(None, "erasure", "soft_delete.purge", actor=ctx.user.id, target_type=b.entity,
                      target_id=b.root_id, detail={"batch_id": b.id, "mode": (b.outcome or {}).get("mode")})
     return sd.batch_out(b)

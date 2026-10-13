@@ -142,7 +142,8 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   lead_ingest:
     "Lead webhook secrets, Meta/LinkedIn CAPI, territory map, and referral credits — saved to Doppler on write.",
   automation: "Dispatch retry settings stay on the PorterChain worker.",
-  deleted_items: "Restore deleted items, or delete them for good. Finance and audit records are never deleted.",
+  deleted_items:
+    "Restore deleted items, or delete them for good. Finance and audit records are never deleted.",
   audit: "Immutable trail of settings changes with actor and reason.",
   backup: "Export/import Settings-owned configuration.",
 };

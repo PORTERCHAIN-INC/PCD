@@ -41,6 +41,7 @@ import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@
 import { TableSkeleton } from "@porterchain/ui/loading";
 import AdminPage from "@/components/layout/AdminPage";
 import dynamic from "next/dynamic";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const AddDriverModal = dynamic(
   () => import("@/components/drivers/AddDriverModal").then((m) => m.AddDriverModal),
@@ -389,6 +390,12 @@ export default function DriversListClient() {
         accessorKey: "created_at",
         header: "Created",
         cell: ({ getValue }) => shortDate(String(getValue())),
+      },
+      {
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => <DeleteButton compact entity="driver" id={row.original.id} />,
       },
     ],
     []

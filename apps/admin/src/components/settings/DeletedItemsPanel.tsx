@@ -26,7 +26,10 @@ export default function DeletedItemsPanel() {
   const load = useCallback(async () => {
     try {
       const t = await getApiToken();
-      const [m, l] = await Promise.all([deletedItemsApi.meta(t), deletedItemsApi.list(t, { entity, q })]);
+      const [m, l] = await Promise.all([
+        deletedItemsApi.meta(t),
+        deletedItemsApi.list(t, { entity, q }),
+      ]);
       setMeta(m);
       setItems(l.items);
       setDays((d) => (d === "" ? m.retention_days : d));
@@ -100,7 +103,11 @@ export default function DeletedItemsPanel() {
         </span>
       </div>
 
-      {msg && <p className="mt-3 text-xs text-slate-300" data-testid="deleted-items-msg">{msg}</p>}
+      {msg && (
+        <p className="mt-3 text-xs text-slate-300" data-testid="deleted-items-msg">
+          {msg}
+        </p>
+      )}
 
       <table className="mt-4 w-full text-left text-xs">
         <thead className="text-[10px] uppercase tracking-wider text-slate-500">
@@ -132,7 +139,9 @@ export default function DeletedItemsPanel() {
                 </td>
                 <td className="text-slate-400">{it.entity_title}</td>
                 <td className="text-slate-400">{it.deleted_by ?? "—"}</td>
-                <td className="text-slate-400">{it.deleted_at ? new Date(it.deleted_at).toLocaleString() : "—"}</td>
+                <td className="text-slate-400">
+                  {it.deleted_at ? new Date(it.deleted_at).toLocaleString() : "—"}
+                </td>
                 <td className="text-slate-400">
                   {left === null ? (it.outcome?.reason ? "Archive only" : "—") : `${left}d`}
                 </td>
@@ -140,7 +149,9 @@ export default function DeletedItemsPanel() {
                   <button
                     type="button"
                     data-testid="restore"
-                    onClick={() => act((t) => deletedItemsApi.restore(t, it.id), `Restored ${it.label}`)}
+                    onClick={() =>
+                      act((t) => deletedItemsApi.restore(t, it.id), `Restored ${it.label}`)
+                    }
                     className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[#4F8CFF] hover:bg-[#4F8CFF]/10"
                   >
                     <RotateCcw className="h-3 w-3" /> Restore
@@ -166,7 +177,10 @@ export default function DeletedItemsPanel() {
       </table>
 
       {purging && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          role="dialog"
+        >
           <div className="w-[26rem] rounded-xl border border-white/10 bg-[#0B1530] p-5 text-sm text-slate-200 shadow-2xl">
             <p className="font-medium text-white">Delete forever?</p>
             <p className="mt-1 text-xs text-slate-400">
@@ -185,14 +199,23 @@ export default function DeletedItemsPanel() {
               className="mt-2 w-full rounded-md border border-white/10 bg-white/5 px-2 py-1.5 font-mono text-xs text-white focus:border-[#4F8CFF] focus:outline-none"
             />
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setPurging(null)} className="px-2.5 py-1 text-xs text-slate-400 hover:text-white">
+              <button
+                type="button"
+                onClick={() => setPurging(null)}
+                className="px-2.5 py-1 text-xs text-slate-400 hover:text-white"
+              >
                 Cancel
               </button>
               <button
                 type="button"
                 disabled={!confirmMatches(typed, purging.label)}
                 data-testid="purge-confirm"
-                onClick={() => act((t) => deletedItemsApi.purge(t, purging.id, typed), `Deleted ${purging.label} forever`)}
+                onClick={() =>
+                  act(
+                    (t) => deletedItemsApi.purge(t, purging.id, typed),
+                    `Deleted ${purging.label} forever`
+                  )
+                }
                 className="rounded-md bg-[#4F8CFF] px-3 py-1 text-xs font-medium text-white disabled:opacity-30"
               >
                 Delete forever

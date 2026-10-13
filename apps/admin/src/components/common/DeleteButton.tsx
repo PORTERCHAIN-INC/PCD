@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { cascadeSummary, deletedItemsApi, type DeleteCheck, type DeletableEntity } from "@/lib/deleted-items";
+import {
+  cascadeSummary,
+  deletedItemsApi,
+  type DeleteCheck,
+  type DeletableEntity,
+} from "@/lib/deleted-items";
 
 /**
  * One delete button for every admin entity. Soft by default: the item moves to
@@ -83,8 +88,12 @@ export default function DeleteButton({
           {err && <p className="text-[13px] text-slate-200">{err}</p>}
           {check && !check.allowed && (
             <>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Can&apos;t delete</p>
-              <p className="mt-1 text-[13px] leading-snug" data-testid="delete-guard">{check.reason}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+                Can&apos;t delete
+              </p>
+              <p className="mt-1 text-[13px] leading-snug" data-testid="delete-guard">
+                {check.reason}
+              </p>
             </>
           )}
           {check && check.allowed && (
@@ -92,7 +101,9 @@ export default function DeleteButton({
               <p className="font-medium text-white">Delete {check.label}?</p>
               <p className="mt-1 text-xs text-slate-400">
                 It moves to Settings → Deleted items. You can restore it.
-                {Object.keys(check.cascade).length > 0 && <> Also hides {cascadeSummary(check.cascade)}.</>}
+                {Object.keys(check.cascade).length > 0 && (
+                  <> Also hides {cascadeSummary(check.cascade)}.</>
+                )}
               </p>
               <input
                 value={reason}

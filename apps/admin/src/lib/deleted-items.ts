@@ -2,10 +2,29 @@ import { adminFetch } from "@/lib/api";
 
 /** Entity keys the API registry accepts (see soft_delete_service.REGISTRY). */
 export type DeletableEntity =
-  | "booking_draft" | "lead" | "order" | "parcel" | "merchant" | "customer" | "driver" | "vehicle"
-  | "route" | "dispatch_plan" | "claim" | "support_ticket" | "crm_company" | "crm_contact" | "crm_deal"
-  | "crm_quotation" | "promotion" | "pricing_zone" | "pricing_tariff" | "standing_order"
-  | "booking_template" | "recipient" | "blog_post";
+  | "booking_draft"
+  | "lead"
+  | "order"
+  | "parcel"
+  | "merchant"
+  | "customer"
+  | "driver"
+  | "vehicle"
+  | "route"
+  | "dispatch_plan"
+  | "claim"
+  | "support_ticket"
+  | "crm_company"
+  | "crm_contact"
+  | "crm_deal"
+  | "crm_quotation"
+  | "promotion"
+  | "pricing_zone"
+  | "pricing_tariff"
+  | "standing_order"
+  | "booking_template"
+  | "recipient"
+  | "blog_post";
 
 export type DeleteCheck = {
   entity: DeletableEntity;

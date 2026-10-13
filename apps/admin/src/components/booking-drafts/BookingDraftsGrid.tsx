@@ -26,6 +26,7 @@ import {
 import { Badge, Button } from "@/components/crm/primitives";
 import { SavedPresetsControl } from "@/components/crm/SavedPresetsControl";
 import { PageSkeleton } from "@porterchain/ui/loading";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const VIEWS_KEY = "porterchain.booking-drafts.views";
 const COLS_KEY = "porterchain.booking-drafts.columns";
@@ -235,6 +236,14 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
           >
             <ExternalLink className="h-4 w-4" />
           </Link>
+        ),
+      },
+      {
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <DeleteButton compact entity="booking_draft" id={row.original.draft_id} />
         ),
       },
     ],

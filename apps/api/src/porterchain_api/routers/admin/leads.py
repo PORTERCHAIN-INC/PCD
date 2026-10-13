@@ -573,7 +573,8 @@ def delete_lead(
     db: Session = Depends(get_db),
 ) -> None:
     """Soft-delete a CRM lead (restore or purge it in Settings > Deleted items)."""
-    from porterchain_api.admin_engine import soft_delete_service as sd
+    from porterchain_api import soft_delete as sd
+    from porterchain_api.admin_engine.audit import commit_admin_write
 
     try:
         sd.soft_delete(db, ctx, "lead", lead_id)
@@ -581,4 +582,4 @@ def delete_lead(
         _perm(exc)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="lead_not_found") from exc
-    db.commit()
+    commit_admin_write(db)

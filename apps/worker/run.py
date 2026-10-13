@@ -554,7 +554,7 @@ def _drain_deleted_items_purge() -> int:
     if now - _last_deleted_purge_at < DELETED_ITEMS_PURGE_INTERVAL_SECONDS:
         return 0
     _last_deleted_purge_at = now
-    from porterchain_api.admin_engine.soft_delete_service import auto_purge
+    from porterchain_api.soft_delete import auto_purge
     from porterchain_api.db import SessionLocal
 
     with SessionLocal() as db:

@@ -77,8 +77,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "channels", "label": "Channels", "group": "connections"},
     {"id": "lead_ingest", "label": "Lead Ingest", "group": "connections"},
     {"id": "automation", "label": "Automation", "group": "platform"},
-    {"id": "audit", "label": "Audit", "group": "platform"},
-    {"id": "deleted_items", "label": "Deleted items", "group": "platform"},
+    {"id": "audit", "label": "Audit", "group": "platform"}, {"id": "deleted_items", "label": "Deleted items", "group": "platform"},
     {"id": "backup", "label": "Backup", "group": "platform"},
 ]
 

@@ -37,6 +37,7 @@ import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { money, shortDate, titleCase, dateTime } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
 import { PageSkeleton } from "@porterchain/ui/loading";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const tabFallback = () => <PageSkeleton rows={3} />;
 
@@ -203,7 +204,17 @@ export default function DriverDetailClient({ id }: { id: string }) {
   if (!d) return <PageSkeleton rows={5} />;
 
   return (
-    <AdminPage>
+    <AdminPage
+      actions={
+        <DeleteButton
+          entity="driver"
+          id={id}
+          onDeleted={() => {
+            window.location.href = "/drivers";
+          }}
+        />
+      }
+    >
       <button
         onClick={() => router.push("/drivers")}
         className="flex items-center gap-1.5 text-sm text-muted hover:text-primary"

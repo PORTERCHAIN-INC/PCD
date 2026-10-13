@@ -51,6 +51,7 @@ import {
   SkeletonRows,
 } from "@/components/merchants/ops/ui";
 import AdminPage from "@/components/layout/AdminPage";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const tabFallback = () => <SkeletonRows rows={3} label="Loading section" />;
 
@@ -322,7 +323,17 @@ export default function MerchantDetailClient({ id }: { id: string }) {
   const lc = confirm ? LIFECYCLE_COPY[confirm] : null;
 
   return (
-    <AdminPage>
+    <AdminPage
+      actions={
+        <DeleteButton
+          entity="merchant"
+          id={id}
+          onDeleted={() => {
+            window.location.href = "/merchants";
+          }}
+        />
+      }
+    >
       <Link
         href="/merchants"
         className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary"

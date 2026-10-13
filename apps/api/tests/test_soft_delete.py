@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from porterchain_api.admin_engine import soft_delete_service as sd
+from porterchain_api import soft_delete as sd
 from porterchain_api.admin_engine.rbac import AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver
 from porterchain_api.auth.admin import get_admin_context

@@ -206,7 +206,7 @@ export function LeadDetailView({ id }: { id: string }) {
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this lead permanently?")) return;
+    if (!confirm("Delete this lead? You can restore it from Settings → Deleted items.")) return;
     setDeleting(true);
     setDeleteError("");
     try {
