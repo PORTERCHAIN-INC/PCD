@@ -13,7 +13,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.porterchain.PCD",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "21",
+      "buildNumber": "22",
       "deploymentTarget": "17.0",
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification", "location"],
