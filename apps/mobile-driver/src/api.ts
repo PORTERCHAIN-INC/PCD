@@ -321,3 +321,69 @@ export function setAvailability(
     body: JSON.stringify({ mode }),
   });
 }
+
+// ---------- GPS policy + Ontario electronic monitoring policy ----------
+export type GpsStatus = {
+  enabled: boolean;
+  message: string;
+  consent_required?: boolean;
+  consent_text?: string;
+};
+
+/** Is live location sharing on for this driver? (PorterChain admin switch) */
+export function fetchGpsStatus(): Promise<GpsStatus> {
+  return driverFetch(`${DRIVER_API}/gps-status`) as Promise<GpsStatus>;
+}
+
+export function sendGpsConsent(accepted: boolean): Promise<GpsStatus> {
+  return driverFetch(`${DRIVER_API}/gps-consent`, {
+    method: "POST",
+    body: JSON.stringify({ accepted, source: "app" }),
+  }) as Promise<GpsStatus>;
+}
+
+export type MonitoringPolicy = {
+  title: string;
+  version: string;
+  date: string;
+  sections: Array<{ heading: string; body?: string; items?: string[] }>;
+  acknowledged: boolean;
+};
+
+/** Ontario ESA electronic monitoring policy (view anytime; acknowledge per version). */
+export function fetchMonitoringPolicy(): Promise<MonitoringPolicy> {
+  return driverFetch(`${DRIVER_API}/monitoring-policy`) as Promise<MonitoringPolicy>;
+}
+
+export function ackMonitoringPolicy(): Promise<MonitoringPolicy> {
+  return driverFetch(`${DRIVER_API}/monitoring-policy/ack`, {
+    method: "POST",
+    body: JSON.stringify({ source: "app" }),
+  }) as Promise<MonitoringPolicy>;
+}
+
+// ---------- Dispatch route (committed plan) + stop check-ins ----------
+import type { CheckinEvent, DispatchRoute, StopChecklist } from "./dispatchRoute";
+
+export function fetchDispatchRoute(): Promise<{ route: DispatchRoute | null }> {
+  return driverFetch(`${DRIVER_API}/dispatch/route`);
+}
+
+export function dispatchCheckin(body: {
+  keys: string[];
+  event: CheckinEvent;
+  lat?: number;
+  lng?: number;
+  accuracy_m?: number;
+  note?: string;
+  pod_photo?: string;
+}): Promise<{ ok: boolean; order_state: string; route: DispatchRoute | null }> {
+  return driverFetch(`${DRIVER_API}/dispatch/stops/checkin`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchDispatchChecklist(orderId: string): Promise<StopChecklist> {
+  return driverFetch(`${DRIVER_API}/dispatch/orders/${encodeURIComponent(orderId)}/checklist`);
+}
