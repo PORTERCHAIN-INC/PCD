@@ -25,6 +25,7 @@ import { getSessionSnapshot, subscribeSession } from "../session";
 import type { Handshake } from "../types";
 
 const OFFLINE_POLL_MS = 30_000;
+const ON_DUTY_POLL_MS = 30_000;
 
 export function useFieldSession() {
   const [handshake, setHandshake] = useState<Handshake>(idleHandshake());
@@ -91,6 +92,16 @@ export function useFieldSession() {
       clearInterval(timer);
     };
   }, [signedIn, refreshCounts]);
+
+  // On duty with the app open: pull every 30 s so new jobs show up even where push can't
+  // reach (iPhones until Firebase Messaging is in the build, Do Not Disturb, flaky FCM).
+  useEffect(() => {
+    if (!signedIn || !handshake.online) return;
+    const timer = setInterval(() => {
+      if (AppState.currentState === "active") void refreshRef.current();
+    }, ON_DUTY_POLL_MS);
+    return () => clearInterval(timer);
+  }, [signedIn, handshake.online]);
 
   // GPS follows duty: on duty → pings + background updates; off duty → nothing.
   useEffect(() => {

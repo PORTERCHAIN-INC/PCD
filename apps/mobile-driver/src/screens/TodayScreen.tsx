@@ -1,27 +1,30 @@
-import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
-import { isClosed, needsAccept, normState } from "../stop/stopFlow";
+/**
+ * Today: one glance, one action. Off duty → vehicle check → Go on duty.
+ * On duty → shift glance (done / left / earned) → next stop with live ETA → Open stop.
+ */
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { fetchEarningsToday } from "../api";
+import { haptic } from "../haptics";
 import type { FieldSession } from "../hooks/useFieldSession";
+import type { RouteState } from "../hooks/useDispatchRoute";
+import { KIND_LABEL } from "../dispatchRoute";
+import { openTurnByTurn } from "../maps";
+import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
+import { clockLabel, distanceLabel, etaCountdown, money } from "../smart/geo";
+import { isClosed, needsAccept, normState } from "../stop/stopFlow";
 import type { DriverJobSummary } from "../types";
-import {
-  Banner,
-  Body,
-  Button,
-  Card,
-  EmptyState,
-  Heading,
-  Label,
-  Muted,
-  Screen,
-  Strong,
-  Title,
-} from "../ui/kit";
+import { Banner, Button, Label, Screen } from "../ui/kit";
+import { LiveDot, PressScale, Rise, Skeleton } from "../ui/motion";
+import { SosButton, useSos } from "../ui/SosButton";
 import { SyncBanners } from "../ui/SyncBanners";
-import { color, radius, space, target, type } from "../ui/theme";
+import { SyncPill } from "../ui/SyncPill";
+import { color, maxFontScale, radius, space, target, type } from "../ui/theme";
+import { useNow } from "../ui/useNow";
 
 type Props = {
   field: FieldSession;
+  route: RouteState;
   action: string | null;
   onOpenJob: () => void;
   onGoOnDuty: (pretrip: PretripChecks) => void;
@@ -46,25 +49,42 @@ function jobStatus(job: DriverJobSummary): string {
   return STATE_COPY[s] ?? s.replace(/_/g, " ").toLowerCase();
 }
 
-export function TodayScreen({ field, action, onOpenJob, onGoOnDuty, onGoOffDuty, onSync }: Props) {
+export function TodayScreen({
+  field,
+  route: r,
+  action,
+  onOpenJob,
+  onGoOnDuty,
+  onGoOffDuty,
+  onSync,
+}: Props) {
   const { handshake: h, busy, pending, rejected, refresh, setError } = field;
   const [pretrip, setPretrip] = useState<PretripChecks>(emptyPretrip());
+  const [earned, setEarned] = useState<number | null>(null);
+  const sos = useSos();
   const onDuty = Boolean(h.online);
   const open = h.jobs.filter((j) => !isClosed(j.state ?? j.status));
-  const done = h.stopsDone ?? 0;
-  const total = h.stopsTotal ?? 0;
-  const hasWork = Boolean(h.currentOrderId);
+  const route = r.route && r.route.total > 0 ? r.route : null;
+  const done = route ? route.done : (h.stopsDone ?? 0);
+  const total = route ? route.total : (h.stopsTotal ?? 0);
+  const hasWork = Boolean(h.currentOrderId) || Boolean(r.stop);
   const ready = pretripComplete(pretrip);
+  const firstLoad = h.api === "idle" && busy;
+  const now = useNow(onDuty && Boolean(r.etaAt));
 
+  useEffect(() => {
+    if (!onDuty) return;
+    void fetchEarningsToday()
+      .then((e) => setEarned(e.today_cents ?? null))
+      .catch(() => undefined);
+  }, [onDuty, done]);
+
+  const checked = PRETRIP_ITEMS.filter((i) => pretrip[i.id]).length;
   const footer = !onDuty ? (
     <Button
       tone="primary"
       testID="go-on-duty"
-      label={
-        ready
-          ? "Go on duty"
-          : `Vehicle check ${PRETRIP_ITEMS.filter((i) => pretrip[i.id]).length}/${PRETRIP_ITEMS.length}`
-      }
+      label={ready ? "Go on duty" : `Vehicle check ${checked}/${PRETRIP_ITEMS.length}`}
       hint="Starts your shift and shares your location with dispatch"
       busy={action === "duty"}
       disabled={!ready || h.auth !== "up"}
@@ -74,17 +94,13 @@ export function TodayScreen({ field, action, onOpenJob, onGoOnDuty, onGoOffDuty,
     <Button
       tone="primary"
       testID="open-job"
-      label={needsAccept(h.currentOrderState) ? "New job — review" : "Open current job"}
+      label={needsAccept(h.currentOrderState) ? "New job — review" : "Open stop"}
       onPress={onOpenJob}
     />
-  ) : (
-    <Button
-      label="Go off duty"
-      testID="go-off-duty"
-      busy={action === "duty"}
-      onPress={onGoOffDuty}
-    />
-  );
+  ) : null;
+
+  const first = h.driverName?.split(" ")[0];
+  const next = r.stop;
 
   return (
     <Screen
@@ -94,173 +110,331 @@ export function TodayScreen({ field, action, onOpenJob, onGoOnDuty, onGoOffDuty,
       refreshing={busy}
     >
       <View style={styles.head}>
-        <Title>{h.driverName ? `Hi, ${h.driverName.split(" ")[0]}` : "Today"}</Title>
         <View
-          style={[styles.pill, onDuty ? styles.pillOn : styles.pillOff]}
+          style={styles.status}
           accessibilityLabel={onDuty ? "You are on duty" : "You are off duty"}
         >
-          <Strong style={onDuty ? styles.pillTextOn : undefined}>
-            {onDuty ? "On duty" : "Off duty"}
-          </Strong>
+          <LiveDot on={onDuty} />
+          <Text style={[styles.statusText, onDuty && styles.statusOn]}>
+            {onDuty ? "ON DUTY" : "OFF DUTY"}
+          </Text>
+        </View>
+        <View style={styles.headRight}>
+          <SyncPill
+            offline={h.api === "down"}
+            pending={pending}
+            rejected={rejected}
+            onSync={onSync}
+          />
+          <SosButton onAsk={sos.ask} />
         </View>
       </View>
 
+      <Text style={styles.hello} maxFontSizeMultiplier={maxFontScale} accessibilityRole="header">
+        {onDuty
+          ? next
+            ? "Next stop"
+            : hasWork
+              ? "On the job"
+              : "Waiting for work"
+          : first
+            ? `Ready, ${first}?`
+            : "Ready?"}
+      </Text>
+
+      {sos.state === "sent" ? (
+        <Banner tone="success" title="SOS sent. Dispatch will call you." />
+      ) : null}
+      {sos.state === "failed" ? (
+        <Banner
+          tone="danger"
+          title="SOS did not send"
+          body="No connection. Call dispatch or 911."
+        />
+      ) : null}
+
       <SyncBanners
-        offline={h.api === "down"}
-        pending={pending}
-        rejected={rejected}
+        offline={false}
+        pending={0}
+        rejected={0}
         error={h.error}
         onSync={onSync}
         onDismissError={() => setError(null)}
       />
 
-      {!onDuty ? (
-        <Card testID="pretrip-check">
-          <Heading>Vehicle check</Heading>
-          <Muted>Tap each one when it's OK. Takes 30 seconds.</Muted>
-          {PRETRIP_ITEMS.map((item) => {
-            const on = pretrip[item.id];
-            return (
-              <Pressable
-                key={item.id}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={item.label}
-                onPress={() => setPretrip({ ...pretrip, [item.id]: !on })}
-                style={[styles.check, on && styles.checkOn]}
-                testID={`pretrip-${item.id}`}
+      {firstLoad ? (
+        <View style={styles.skel} testID="today-skeleton">
+          <Skeleton height={96} />
+          <Skeleton height={180} />
+          <Skeleton height={64} />
+        </View>
+      ) : !onDuty ? (
+        <Rise>
+          <View style={styles.card} testID="pretrip-check">
+            <Label>Vehicle check · 30 seconds</Label>
+            <View style={styles.grid}>
+              {PRETRIP_ITEMS.map((item) => {
+                const on = pretrip[item.id];
+                return (
+                  <PressScale
+                    key={item.id}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: on }}
+                    accessibilityLabel={item.label}
+                    onPress={() => {
+                      haptic.tap();
+                      setPretrip({ ...pretrip, [item.id]: !on });
+                    }}
+                    style={[styles.check, on && styles.checkOn]}
+                    testID={`pretrip-${item.id}`}
+                  >
+                    <Text style={[styles.checkMark, on && styles.checkMarkOn]}>
+                      {on ? "✓" : "○"}
+                    </Text>
+                    <Text style={[styles.checkText, on && styles.checkTextOn]} numberOfLines={2}>
+                      {item.label}
+                    </Text>
+                  </PressScale>
+                );
+              })}
+            </View>
+          </View>
+        </Rise>
+      ) : (
+        <>
+          <Rise index={0}>
+            <View style={styles.glance} testID="today-progress">
+              <Stat label="Done" value={`${done}`} />
+              <Stat label="Left" value={`${Math.max(0, total - done)}`} />
+              <Stat label="Earned" value={money(earned)} accent />
+            </View>
+            <View
+              style={styles.bar}
+              accessibilityRole="progressbar"
+              accessibilityValue={{ min: 0, max: total || 1, now: done }}
+            >
+              <View
+                style={[
+                  styles.barFill,
+                  { width: `${total ? Math.min(100, (done / total) * 100) : 0}%` },
+                ]}
+              />
+            </View>
+          </Rise>
+
+          {next ? (
+            <Rise index={1}>
+              <PressScale
+                accessibilityRole="button"
+                accessibilityLabel={`Next stop: ${next.address ?? "address on file"}. Open stop.`}
+                onPress={onOpenJob}
+                style={styles.hero}
+                testID="today-next-stop"
               >
-                <View style={[styles.box, on && styles.boxOn]}>
-                  {on ? <Strong style={styles.tick}>✓</Strong> : null}
+                <Label style={styles.kicker}>
+                  {KIND_LABEL[next.kind]} · stop {(r.route?.next_index ?? 0) + 1}
+                </Label>
+                <Text style={styles.heroAddr} numberOfLines={2} maxFontSizeMultiplier={1.4}>
+                  {next.address ?? "Address on file"}
+                </Text>
+                {r.etaAt && next.status === "pending" ? (
+                  <View style={styles.etaRow}>
+                    <Text style={styles.eta}>{etaCountdown(r.etaAt, now)}</Text>
+                    <Text style={styles.etaMeta}>
+                      {r.distance != null ? `${distanceLabel(r.distance)} · ` : ""}arrive{" "}
+                      {clockLabel(r.etaAt)}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.etaMeta}>
+                    {next.status === "arrived" ? "You're at this stop" : "Locating…"}
+                  </Text>
+                )}
+              </PressScale>
+              {next.status === "pending" ? (
+                <View style={styles.navWrap}>
+                  <Button
+                    label="Navigate"
+                    testID="today-navigate"
+                    onPress={() =>
+                      void openTurnByTurn({
+                        lat: next.lat,
+                        lng: next.lng,
+                        address: next.address,
+                      }).catch((e: Error) => setError(e.message))
+                    }
+                  />
                 </View>
-                <Body>{item.label}</Body>
-              </Pressable>
+              ) : null}
+            </Rise>
+          ) : h.nextStop ? (
+            <Rise index={1}>
+              <PressScale
+                onPress={onOpenJob}
+                style={styles.hero}
+                accessibilityRole="button"
+                testID="today-next-stop"
+              >
+                <Label style={styles.kicker}>{h.nextStopType ?? "Next"}</Label>
+                <Text style={styles.heroAddr} numberOfLines={2}>
+                  {h.nextStop}
+                </Text>
+                {h.etaLabel ? <Text style={styles.etaMeta}>{h.etaLabel}</Text> : null}
+              </PressScale>
+            </Rise>
+          ) : null}
+
+          {h.location.kind === "denied" || h.location.kind === "error" ? (
+            <Banner tone="warn" title="Location is off" body={h.location.detail} />
+          ) : null}
+
+          {open.length === 0 && !route ? (
+            <View style={styles.empty} testID="today-empty">
+              <LiveDot on size={14} />
+              <Text style={styles.emptyTitle}>You're live</Text>
+              <Text style={styles.emptyBody}>Stay on duty — new jobs ring this phone.</Text>
+            </View>
+          ) : null}
+
+          {open.length > 0 ? <Label>Jobs today</Label> : null}
+          {open.map((job, i) => {
+            const current = job.order_id === h.currentOrderId;
+            return (
+              <Rise key={job.order_id} index={i + 2}>
+                <Pressable
+                  accessibilityRole={current ? "button" : "text"}
+                  accessibilityLabel={`Job ${job.order_number}. ${jobStatus(job)}. To ${job.delivery_address ?? "drop-off"}`}
+                  disabled={!current}
+                  onPress={onOpenJob}
+                  style={[styles.job, current && styles.jobCurrent]}
+                  testID={`job-${job.order_id}`}
+                >
+                  <View style={styles.jobHead}>
+                    <Text style={styles.jobNo}>#{job.order_number}</Text>
+                    <Text style={[styles.jobState, current && styles.jobStateNow]}>
+                      {current ? "NOW" : jobStatus(job)}
+                    </Text>
+                  </View>
+                  {job.delivery_address ? (
+                    <Text style={styles.jobAddr} numberOfLines={1}>
+                      {job.delivery_address}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              </Rise>
             );
           })}
-        </Card>
-      ) : (
-        <Card testID="today-progress">
-          <Label>Today</Label>
-          <Title>
-            {done} of {total} stops done
-          </Title>
-          <View
-            style={styles.bar}
-            accessibilityRole="progressbar"
-            accessibilityValue={{ min: 0, max: total || 1, now: done }}
-          >
-            <View
-              style={[
-                styles.barFill,
-                { width: `${total ? Math.min(100, (done / total) * 100) : 0}%` },
-              ]}
-            />
-          </View>
-          {h.nextStop ? (
-            <Body>
-              Next: <Strong>{h.nextStop}</Strong>
-              {h.etaLabel ? ` · ${h.etaLabel}` : ""}
-            </Body>
-          ) : null}
-        </Card>
-      )}
 
-      {onDuty && (h.location.kind === "denied" || h.location.kind === "error") ? (
-        <Banner tone="warn" title="Location is off" body={h.location.detail} />
-      ) : null}
-
-      <Label>Jobs today</Label>
-      {open.length === 0 ? (
-        <EmptyState
-          testID="today-empty"
-          title="No jobs yet"
-          body={
-            onDuty
-              ? "Stay on duty. You'll get a notification when dispatch sends a job."
-              : "Go on duty to receive jobs."
-          }
-        />
-      ) : (
-        open.map((job) => {
-          const current = job.order_id === h.currentOrderId;
-          return (
-            <Pressable
-              key={job.order_id}
-              accessibilityRole={current ? "button" : "text"}
-              accessibilityLabel={`Job ${job.order_number}. ${jobStatus(job)}. From ${job.pickup_address ?? "pickup"} to ${job.delivery_address ?? "drop-off"}`}
-              disabled={!current}
-              onPress={onOpenJob}
-              style={[styles.job, current && styles.jobCurrent]}
-              testID={`job-${job.order_id}`}
-            >
-              <View style={styles.jobHead}>
-                <Strong>#{job.order_number}</Strong>
-                {current ? <Label style={styles.now}>NOW</Label> : null}
-              </View>
-              <Muted>{jobStatus(job)}</Muted>
-              {job.pickup_address ? <Body numberOfLines={1}>↑ {job.pickup_address}</Body> : null}
-              {job.delivery_address ? (
-                <Body numberOfLines={1}>↓ {job.delivery_address}</Body>
-              ) : null}
-            </Pressable>
-          );
-        })
+          <Button
+            tone="quiet"
+            label="Go off duty"
+            testID="go-off-duty"
+            busy={action === "duty"}
+            onPress={onGoOffDuty}
+          />
+        </>
       )}
-      {onDuty && hasWork ? (
-        <Button tone="quiet" label="Go off duty" busy={action === "duty"} onPress={onGoOffDuty} />
-      ) : null}
     </Screen>
   );
 }
 
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <View style={styles.stat} accessibilityLabel={`${label}: ${value}`}>
+      <Text style={[styles.statValue, accent && styles.statAccent]} maxFontSizeMultiplier={1.3}>
+        {value}
+      </Text>
+      <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  head: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  headRight: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  status: { flexDirection: "row", alignItems: "center", gap: 2 },
+  statusText: { ...type.label, color: color.inkFaint },
+  statusOn: { color: color.primary },
+  hello: { ...type.display, color: color.ink, marginTop: space.sm },
+  skel: { gap: space.md },
+  card: {
+    backgroundColor: color.surface,
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: color.border,
+    padding: space.lg,
+    gap: space.md,
+  },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
+  check: {
+    width: "48.5%",
+    minHeight: target.primary,
+    borderRadius: radius.lg,
+    backgroundColor: color.surface2,
+    padding: space.md,
+    gap: space.xs,
+    justifyContent: "center",
+  },
+  checkOn: { backgroundColor: color.accentSoft },
+  checkMark: { fontSize: 22, color: color.inkFaint, fontWeight: "900" },
+  checkMarkOn: { color: color.primary },
+  checkText: { ...type.small, color: color.inkMuted, fontWeight: "700" },
+  checkTextOn: { color: color.ink },
+  glance: { flexDirection: "row", gap: space.sm },
+  stat: {
+    flex: 1,
+    backgroundColor: color.surface,
+    borderRadius: radius.lg,
+    paddingVertical: space.lg,
+    paddingHorizontal: space.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: color.border,
+  },
+  statValue: { ...type.title, color: color.ink, fontVariant: ["tabular-nums"] },
+  statAccent: { color: color.primary },
+  statLabel: { ...type.label, color: color.inkFaint, marginTop: 2 },
+  bar: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: color.surface2,
+    overflow: "hidden",
+    marginTop: space.md,
+  },
+  barFill: { height: 6, backgroundColor: color.primary },
+  hero: {
+    backgroundColor: color.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: color.primary,
+    padding: space.xl,
     gap: space.sm,
   },
-  pill: {
-    paddingHorizontal: space.md,
-    paddingVertical: space.xs,
-    borderRadius: radius.pill,
-    borderWidth: 2,
-  },
-  pillOn: { backgroundColor: color.primary, borderColor: color.primary },
-  pillOff: { backgroundColor: color.surface, borderColor: color.ink },
-  pillTextOn: { color: color.onPrimary },
-  check: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space.md,
-    minHeight: target.min,
-    paddingHorizontal: space.sm,
-    borderRadius: radius.md,
-  },
-  checkOn: { backgroundColor: color.successSoft },
-  box: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: color.ink,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: color.surface,
-  },
-  boxOn: { backgroundColor: color.primary, borderColor: color.primary },
-  tick: { color: color.onPrimary },
-  bar: { height: 12, borderRadius: 6, backgroundColor: color.disabled, overflow: "hidden" },
-  barFill: { height: 12, backgroundColor: color.primary },
+  kicker: { color: color.primary },
+  heroAddr: { ...type.title, color: color.ink },
+  etaRow: { flexDirection: "row", alignItems: "baseline", gap: space.md },
+  eta: { ...type.hero, color: color.primary, fontVariant: ["tabular-nums"] },
+  etaMeta: { ...type.small, color: color.inkMuted },
+  navWrap: { marginTop: space.sm },
+  empty: { alignItems: "center", paddingVertical: space.xxl, gap: space.sm },
+  emptyTitle: { ...type.title, color: color.ink },
+  emptyBody: { ...type.body, color: color.inkMuted, textAlign: "center" },
   job: {
     backgroundColor: color.surface,
     borderRadius: radius.lg,
     padding: space.lg,
     gap: space.xs,
-    borderWidth: 2,
-    borderColor: "transparent",
+    borderWidth: 1,
+    borderColor: color.border,
   },
   jobCurrent: { borderColor: color.primary },
-  jobHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  now: { color: color.primary, ...type.label },
+  jobHead: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: space.sm,
+  },
+  jobNo: { ...type.bodyStrong, color: color.ink },
+  jobState: { ...type.small, color: color.inkMuted, flexShrink: 1, textAlign: "right" },
+  jobStateNow: { ...type.label, color: color.primary },
+  jobAddr: { ...type.body, color: color.inkMuted },
 });

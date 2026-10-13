@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
-import { fetchSupportHub, sendEmergency } from "../api";
+import { fetchSupportHub } from "../api";
 import { dispatchEmail, dispatchPhone, driverPortalUrl, locationRetentionDays } from "../config";
+import type { MonitoringPolicy } from "../api";
+import { showMonitoringPolicy } from "../compliance";
 import type { LocationConsent } from "../consent";
+import { useSos } from "../ui/SosButton";
 import type { FieldSession } from "../hooks/useFieldSession";
 import { readQueue } from "../offline";
 import { currentAppVersion } from "../version";
@@ -12,6 +15,7 @@ import { space } from "../ui/theme";
 type Props = {
   field: FieldSession;
   consent: LocationConsent;
+  policy?: MonitoringPolicy | null;
   onReviewConsent: () => void;
   onWithdrawConsent: () => void;
   onSync: () => void;
@@ -21,6 +25,7 @@ type Props = {
 export function MeScreen({
   field,
   consent,
+  policy,
   onReviewConsent,
   onWithdrawConsent,
   onSync,
@@ -29,7 +34,7 @@ export function MeScreen({
   const { handshake: h, pending } = field;
   const [phone, setPhone] = useState(dispatchPhone);
   const [email, setEmail] = useState(dispatchEmail);
-  const [sos, setSos] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const { state: sos, ask: sendSos } = useSos();
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
@@ -66,26 +71,6 @@ export function MeScreen({
       })
       .catch(go);
   };
-
-  const sendSos = () =>
-    Alert.alert(
-      "Send SOS to dispatch?",
-      "Dispatch gets your location and calls you. In immediate danger, call 911.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Call 911", onPress: () => void Linking.openURL("tel:911") },
-        {
-          text: "Send SOS",
-          style: "destructive",
-          onPress: () => {
-            setSos("sending");
-            void sendEmergency()
-              .then(() => setSos("sent"))
-              .catch(() => setSos("failed"));
-          },
-        },
-      ]
-    );
 
   return (
     <Screen testID="screen-me">
@@ -163,6 +148,12 @@ export function MeScreen({
             : "Background location: off. Dispatch sees you only while the app is open."}
         </Body>
         <Muted>Location points are deleted after {locationRetentionDays} days.</Muted>
+        <Button
+          tone="quiet"
+          label={`Electronic Monitoring Policy${policy ? ` (v${policy.version})` : ""}`}
+          testID="me-policy"
+          onPress={() => showMonitoringPolicy(policy)}
+        />
         <View style={styles.row}>
           <Button label={consent ? "Review" : "Turn on"} onPress={onReviewConsent} />
           {consent ? (

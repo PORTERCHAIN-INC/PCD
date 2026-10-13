@@ -1,0 +1,42 @@
+/** Foreground GPS watch (only while `active`; nothing stored on the phone). */
+import { useEffect, useState } from "react";
+import type { Fix } from "./geo";
+
+export function useLiveFix(active: boolean): { fix: Fix | null; at: number } {
+  const [state, setState] = useState<{ fix: Fix | null; at: number }>({ fix: null, at: 0 });
+  useEffect(() => {
+    if (!active) return;
+    let sub: { remove: () => void } | null = null;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const Location = await import("expo-location");
+        if ((await Location.getForegroundPermissionsAsync()).status !== "granted") return;
+        const s = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, distanceInterval: 15, timeInterval: 5_000 },
+          (p) => {
+            if (cancelled) return;
+            setState({
+              fix: {
+                lat: p.coords.latitude,
+                lng: p.coords.longitude,
+                accuracy: p.coords.accuracy,
+                speed: p.coords.speed,
+              },
+              at: Date.now(),
+            });
+          }
+        );
+        if (cancelled) s.remove();
+        else sub = s;
+      } catch {
+        /* web / no GPS */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      sub?.remove();
+    };
+  }, [active]);
+  return state;
+}

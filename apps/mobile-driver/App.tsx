@@ -10,11 +10,14 @@ import { fetchOnboarding, fetchPublicHealth } from "./src/api";
 import { SessionGate } from "./src/auth/SessionGate";
 import { allowDevAuth, driverPortalUrl } from "./src/config";
 import {
-  readLocationConsent,
-  saveLocationConsent,
-  withdrawLocationConsent,
-  type LocationConsent,
-} from "./src/consent";
+  agreeToMonitoring,
+  checkCompliance,
+  resendPendingConsent,
+  withdrawMonitoring,
+} from "./src/compliance";
+import { readLocationConsent, type LocationConsent } from "./src/consent";
+import type { MonitoringPolicy } from "./src/api";
+import { useDispatchRoute } from "./src/hooks/useDispatchRoute";
 import { isSilentError } from "./src/errorCopy";
 import { canEnterRoute } from "./src/gate";
 import { runHandshake } from "./src/handshake";
@@ -53,6 +56,9 @@ function DriverApp() {
     null | { then: "duty"; pretrip: PretripChecks } | { then: "review" }
   >(null);
   const [entering, setEntering] = useState(false);
+  const [policy, setPolicy] = useState<MonitoringPolicy | null>(null);
+  const [consentError, setConsentError] = useState<string | null>(null);
+  const route = useDispatchRoute(signedInView && Boolean(h.online));
 
   useEffect(() => {
     void readLocationConsent().then(setConsent);
@@ -105,6 +111,17 @@ function DriverApp() {
         setBlocker(null);
         setInviteToken(null);
         setSignedInView(true);
+        // GPS consent lives on the server (Ontario monitoring policy). If it needs a (re)agree,
+        // forget the local yes so the consent screen shows before location is shared again.
+        void (async () => {
+          const local = await resendPendingConsent();
+          const check = await checkCompliance(local);
+          setPolicy(check.policy);
+          if (check.needed && check.policy) {
+            setConsent(null);
+            if (next.online) setConsentFor({ then: "review" });
+          } else setConsent(local);
+        })();
         setTab(next.currentOrderId ? "job" : "today");
         void field.refreshCounts();
       } finally {
@@ -204,16 +221,23 @@ function DriverApp() {
   } else if (consentFor) {
     body = (
       <ConsentScreen
-        busy={action === "duty"}
-        onAgree={() =>
-          void saveLocationConsent().then((saved) => {
-            setConsent(saved);
-            const next = consentFor;
-            setConsentFor(null);
-            if (next.then === "duty") startDuty(next.pretrip);
-            else if (h.online) void startBackgroundLocation();
-          })
-        }
+        busy={action === "duty" || action === "consent"}
+        policy={policy}
+        error={consentError}
+        onAgree={() => {
+          setAction("consent");
+          setConsentError(null);
+          void agreeToMonitoring(policy)
+            .then((saved) => {
+              setConsent(saved);
+              const next = consentFor;
+              setConsentFor(null);
+              if (next.then === "duty") startDuty(next.pretrip);
+              else if (h.online) void startBackgroundLocation();
+            })
+            .catch((err: Error) => setConsentError(err.message))
+            .finally(() => setAction(null));
+        }}
         onNotNow={() => {
           const next = consentFor;
           setConsentFor(null);
@@ -238,6 +262,7 @@ function DriverApp() {
         {tab === "today" ? (
           <TodayScreen
             field={field}
+            route={route}
             action={action}
             onOpenJob={() => setTab("job")}
             onGoOnDuty={(pretrip) =>
@@ -250,6 +275,7 @@ function DriverApp() {
         {tab === "job" ? (
           <JobScreen
             field={field}
+            route={route}
             action={action}
             pod={pod}
             setPod={setPod}
@@ -263,8 +289,9 @@ function DriverApp() {
             field={field}
             consent={consent}
             onReviewConsent={() => setConsentFor({ then: "review" })}
+            policy={policy}
             onWithdrawConsent={() =>
-              void withdrawLocationConsent().then(() => {
+              void withdrawMonitoring().then(() => {
                 setConsent(null);
                 // Background stops now; foreground pings continue while the app is open on duty.
                 void stopBackgroundLocation();
@@ -274,7 +301,11 @@ function DriverApp() {
             onSignOut={signOut}
           />
         ) : null}
-        <TabBar tab={tab} onTab={setTab} jobBadge={Boolean(h.currentOrderId) && tab !== "job"} />
+        <TabBar
+          tab={tab}
+          onTab={setTab}
+          jobBadge={(Boolean(h.currentOrderId) || Boolean(route.stop)) && tab !== "job"}
+        />
       </View>
     );
   }
@@ -282,7 +313,7 @@ function DriverApp() {
   return (
     <View style={{ flex: 1, backgroundColor: color.bg }}>
       {body}
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
     </View>
   );
 }

@@ -124,9 +124,9 @@ function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: 
     setSessionSnapshot({
       ready: settled || timedOut,
       signedIn: Boolean(isSignedIn) || (!settled && storedSession),
-      getToken: async () => {
+      getToken: async (opts?: { fresh?: boolean }) => {
         if (!isLoaded) return allowDevAuth() ? "dev" : null;
-        const token = (await getToken()) ?? null;
+        const token = (await getToken(opts?.fresh ? { skipCache: true } : undefined)) ?? null;
         if (token) return token;
         return allowDevAuth() ? "dev" : null;
       },

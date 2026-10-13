@@ -26,7 +26,12 @@ describe("location consent", () => {
   it("absent until agreed; versioned; withdrawable", async () => {
     expect(await readLocationConsent()).toBeNull();
     const saved = await saveLocationConsent(new Date("2026-10-09T12:00:00Z"));
-    expect(saved).toEqual({ version: CONSENT_VERSION, agreedAt: "2026-10-09T12:00:00.000Z" });
+    expect(saved).toEqual({
+      version: CONSENT_VERSION,
+      agreedAt: "2026-10-09T12:00:00.000Z",
+      policyVersion: null,
+      serverSynced: false,
+    });
     expect(await readLocationConsent()).toEqual(saved);
     await withdrawLocationConsent();
     expect(await readLocationConsent()).toBeNull();
@@ -82,5 +87,28 @@ describe("mergeOfflineHandshake", () => {
     expect(
       mergeOfflineHandshake(prev, hs({ api: "down", routeId: null }), false).routeId
     ).toBeNull();
+  });
+});
+
+describe("POD photo shrink", () => {
+  it("returns the first size that fits the offline-queue limit", async () => {
+    vi.doMock("expo-image-picker", () => ({}));
+    vi.doMock("expo-image-manipulator", () => ({
+      ImageManipulator: {},
+      SaveFormat: { JPEG: "jpeg" },
+    }));
+    const { shrinkToFit, MAX_DATA_URL_CHARS } = await import("../pod");
+    const widths: number[] = [];
+    const url = await shrinkToFit(async ({ width }) => {
+      widths.push(width);
+      return "A".repeat(width === 1280 ? MAX_DATA_URL_CHARS : 1000);
+    });
+    expect(widths).toEqual([1280, 1024]);
+    expect(url?.startsWith("data:image/jpeg;base64,")).toBe(true);
+  });
+
+  it("gives up (null) only when even the smallest size is too big", async () => {
+    const { shrinkToFit, MAX_DATA_URL_CHARS } = await import("../pod");
+    expect(await shrinkToFit(async () => "A".repeat(MAX_DATA_URL_CHARS))).toBeNull();
   });
 });

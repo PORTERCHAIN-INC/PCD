@@ -7,41 +7,40 @@ type Dest = {
   address?: string | null;
 };
 
-function coords(lat: number, lng: number): string {
-  return `${lat},${lng}`;
+/** Candidate deep links, best first. All free: the phone's own maps app does the routing. */
+export function navigationLinks(dest: Dest, os: string = Platform.OS): string[] {
+  const nav = dest.navigationUrl?.trim();
+  const hasCoords = dest.lat != null && dest.lng != null;
+  const q = hasCoords ? `${dest.lat},${dest.lng}` : encodeURIComponent(dest.address?.trim() ?? "");
+  if (!nav && !q) return [];
+  const links: string[] = [];
+  if (nav) links.push(nav);
+  if (os === "android") {
+    // Straight into Google Maps turn-by-turn; geo: is the any-app fallback.
+    links.push(`google.navigation:q=${q}&mode=d`);
+    links.push(hasCoords ? `geo:${q}?q=${q}` : `geo:0,0?q=${q}`);
+  } else if (os === "ios") {
+    links.push(`comgooglemaps://?daddr=${q}&directionsmode=driving`);
+    links.push(`maps://?daddr=${q}&dirflg=d`);
+  }
+  links.push(`https://www.google.com/maps/dir/?api=1&destination=${q}&travelmode=driving`);
+  return links;
 }
 
 /**
- * Prefer Valhalla/OSRM navigation_url from the API.
- * Fallback opens the native maps app for turn-by-turn UI only — never Google Distance Matrix.
+ * One-tap navigate. Prefers the API's Valhalla/OSRM navigation_url, then Google Maps, then the
+ * built-in maps app, then the web. Never calls a paid routing API.
  */
 export async function openTurnByTurn(dest: Dest): Promise<void> {
-  const nav = dest.navigationUrl?.trim();
-  if (nav) {
-    await Linking.openURL(nav);
-    return;
+  const links = navigationLinks(dest);
+  if (!links.length) throw new Error("No stop to navigate to");
+  for (const url of links) {
+    try {
+      await Linking.openURL(url);
+      return;
+    } catch {
+      /* app not installed: try the next one */
+    }
   }
-
-  const hasCoords = dest.lat != null && dest.lng != null;
-  if (hasCoords) {
-    const lat = dest.lat as number;
-    const lng = dest.lng as number;
-    const url =
-      Platform.OS === "ios"
-        ? `http://maps.apple.com/?daddr=${coords(lat, lng)}&dirflg=d`
-        : `geo:${lat},${lng}?q=${lat},${lng}`;
-    await Linking.openURL(url);
-    return;
-  }
-
-  const address = dest.address?.trim();
-  if (!address) {
-    throw new Error("No stop to navigate to");
-  }
-  const encoded = encodeURIComponent(address);
-  const url =
-    Platform.OS === "ios"
-      ? `http://maps.apple.com/?daddr=${encoded}&dirflg=d`
-      : `geo:0,0?q=${encoded}`;
-  await Linking.openURL(url);
+  throw new Error("No maps app available");
 }

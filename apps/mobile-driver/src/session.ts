@@ -3,7 +3,8 @@ import { allowDevAuth } from "./config";
 export type SessionSnapshot = {
   ready: boolean;
   signedIn: boolean;
-  getToken: () => Promise<string | null>;
+  /** `fresh` skips the cached JWT (Clerk tokens live ~60 s; a 401 means the cached one expired). */
+  getToken: (opts?: { fresh?: boolean }) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
 
@@ -34,8 +35,8 @@ export function subscribeSession(listener: () => void): () => void {
   };
 }
 
-export async function requireBearer(): Promise<string> {
-  const token = await snapshot.getToken();
+export async function requireBearer(fresh = false): Promise<string> {
+  const token = await snapshot.getToken(fresh ? { fresh: true } : undefined);
   if (token) return token;
   if (allowDevAuth()) return "dev";
   throw new Error("signed_out");

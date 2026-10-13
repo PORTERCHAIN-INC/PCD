@@ -3,8 +3,23 @@
  * consent; GDPR Art. 13 notice). Plain words: what, when, who sees it, how long, how to stop.
  */
 import { StyleSheet, View } from "react-native";
+import type { MonitoringPolicy } from "../api";
+import { showMonitoringPolicy } from "../compliance";
 import { locationRetentionDays } from "../config";
-import { Body, Button, Card, Heading, Muted, Screen, Strong, Title } from "../ui/kit";
+import { humanError } from "../errorCopy";
+import {
+  Banner,
+  Body,
+  Button,
+  Card,
+  Heading,
+  Label,
+  Muted,
+  Screen,
+  Strong,
+  Title,
+} from "../ui/kit";
+import { Rise } from "../ui/motion";
 import { space } from "../ui/theme";
 
 const POINTS: Array<{ title: string; body: string }> = [
@@ -38,10 +53,15 @@ export function ConsentScreen({
   onAgree,
   onNotNow,
   busy,
+  policy,
+  error,
 }: {
   onAgree: () => void;
   onNotNow: () => void;
   busy?: boolean;
+  /** Ontario electronic monitoring policy from the server (version shown + agreed to). */
+  policy?: MonitoringPolicy | null;
+  error?: string | null;
 }) {
   return (
     <Screen
@@ -60,14 +80,30 @@ export function ConsentScreen({
         </>
       }
     >
+      <Label>Location · electronic monitoring</Label>
       <Title>Sharing your location</Title>
       <Body>Before we ask your phone for location access, here's exactly how it's used.</Body>
-      {POINTS.map((p) => (
-        <Card key={p.title}>
-          <Heading>{p.title}</Heading>
-          <Body>{p.body}</Body>
-        </Card>
+      {error ? <Banner tone="danger" title={humanError(error)} testID="consent-error" /> : null}
+      {POINTS.map((p, i) => (
+        <Rise key={p.title} index={i}>
+          <Card>
+            <Heading>{p.title}</Heading>
+            <Body>{p.body}</Body>
+          </Card>
+        </Rise>
       ))}
+      <Card testID="consent-policy">
+        <Heading>{policy?.title ?? "Electronic Monitoring Policy"}</Heading>
+        <Body>
+          Ontario law asks us to tell you how we monitor drivers electronically. Tapping I agree
+          records that you have read version {policy?.version ?? "2026-10"}.
+        </Body>
+        <Button
+          label="Read the full policy"
+          testID="consent-read-policy"
+          onPress={() => showMonitoringPolicy(policy)}
+        />
+      </Card>
       <View style={styles.foot}>
         <Muted>
           <Strong>Not now</Strong> keeps location off in the background. You can still work while

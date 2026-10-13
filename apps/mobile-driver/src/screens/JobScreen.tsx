@@ -2,7 +2,7 @@
  * The current stop. One big primary action at a time, decided by stop/stopFlow:
  * Accept → Arrived → Scan → Proof → Complete. Everything else is secondary.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Linking, StyleSheet, TextInput, View } from "react-native";
 import {
   acceptOrder,
@@ -14,12 +14,17 @@ import {
 } from "../api";
 import { formatCents } from "../format";
 import type { FieldSession } from "../hooks/useFieldSession";
+import type { RouteState } from "../hooks/useDispatchRoute";
+import { haptic } from "../haptics";
+import { insideGeofence } from "../smart/geo";
+import { useLiveFix } from "../smart/useLiveFix";
+import { RouteStopCard } from "../ui/RouteStopCard";
 import { openTurnByTurn } from "../maps";
 import { runOnlineOrQueue } from "../offline";
 import { capturePodPhotoDataUrl } from "../pod";
 import { completeStop } from "../stop/completeStop";
 import { emptyPodDraft, type PodDraft } from "../stop/podDraft";
-import { deriveStop, type PrimaryAction } from "../stop/stopFlow";
+import { deriveStop, needsAccept, type PrimaryAction } from "../stop/stopFlow";
 import { BarcodeScannerModal } from "../ui/BarcodeScannerModal";
 import { ProblemSheet } from "../ui/job/ProblemSheet";
 import { ProofSheets, type ProofSheet } from "../ui/job/ProofSheets";
@@ -42,6 +47,7 @@ import { color, radius, space, target, type } from "../ui/theme";
 
 type Props = {
   field: FieldSession;
+  route: RouteState;
   action: string | null;
   pod: PodDraft;
   setPod: (next: PodDraft) => void;
@@ -50,7 +56,7 @@ type Props = {
   onSync: () => void;
 };
 
-export function JobScreen({ field, action, pod, setPod, run, onGoToday, onSync }: Props) {
+export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, onSync }: Props) {
   const {
     handshake: h,
     pending,
@@ -140,6 +146,40 @@ export function JobScreen({ field, action, pod, setPod, run, onGoToday, onSync }
         });
     }
   };
+
+  // Geofence auto-arrive for the single-job flow (dispatch routes do this in useDispatchRoute).
+  const watchArrive =
+    view.step === "arrive" &&
+    view.primary?.action === "arrive" &&
+    h.destLat != null &&
+    h.destLng != null;
+  const { fix } = useLiveFix(watchArrive);
+  const autoArrived = useRef<string | null>(null);
+  useEffect(() => {
+    if (!watchArrive || !fix || autoArrived.current === stopId || busy) return;
+    if (!insideGeofence(fix, { lat: h.destLat as number, lng: h.destLng as number })) return;
+    autoArrived.current = stopId;
+    haptic.warn();
+    doPrimary("arrive");
+  }, [fix, watchArrive, stopId, busy]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Dispatch route (OR-Tools plan): the route card is the whole screen, one action at a time.
+  // A brand-new offer still goes through Accept / Decline first.
+  if (route.route && route.route.total > 0 && !needsAccept(h.currentOrderState)) {
+    return (
+      <Screen testID="screen-job" onRefresh={() => void route.reload()} refreshing={field.busy}>
+        <SyncBanners
+          offline={h.api === "down"}
+          pending={pending}
+          rejected={rejected}
+          error={h.error}
+          onSync={onSync}
+          onDismissError={() => setError(null)}
+        />
+        <RouteStopCard r={route} />
+      </Screen>
+    );
+  }
 
   if (view.step === "none" || view.step === "waiting") {
     return (

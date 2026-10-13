@@ -48,8 +48,8 @@ function detailFromBody(body: unknown, status: number): string {
   return `http_${status}`;
 }
 
-async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = await requireBearer();
+async function driverFetch<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
+  const token = await requireBearer(retried);
   const res = await fetchWithTimeout(`${apiBaseUrl}${path}`, {
     ...init,
     headers: {
@@ -60,6 +60,9 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
       ...(init?.headers ?? {}),
     },
   });
+  // A cached session JWT can expire between calls (same bug the merchant portal had):
+  // get a fresh one and retry exactly once before telling the driver anything.
+  if (res.status === 401 && !retried) return driverFetch<T>(path, init, true);
   const text = await res.text();
   let body: unknown = null;
   if (text) {
@@ -193,10 +196,16 @@ export function fetchNavigationSession(orderId?: string | null): Promise<Navigat
   return driverFetch<NavigationSession>(`${DRIVER_API}/navigation/session${q}`);
 }
 
-export function sendEmergency(message?: string): Promise<unknown> {
+export function sendEmergency(
+  message?: string,
+  location?: { lat: number; lng: number; accuracy_m?: number | null } | null
+): Promise<unknown> {
   return driverFetch(`${DRIVER_API}/emergency`, {
     method: "POST",
-    body: JSON.stringify({ message: message ?? "Driver SOS from mobile app" }),
+    body: JSON.stringify({
+      message: message ?? "Driver SOS from mobile app",
+      location: location ?? null,
+    }),
   });
 }
 
@@ -377,6 +386,9 @@ export function dispatchCheckin(body: {
   accuracy_m?: number;
   note?: string;
   pod_photo?: string;
+  short_reason?: string;
+  /** Same id online and in the offline queue: a replay is a no-op on the server. */
+  client_id?: string;
 }): Promise<{ ok: boolean; order_state: string; route: DispatchRoute | null }> {
   return driverFetch(`${DRIVER_API}/dispatch/stops/checkin`, {
     method: "POST",
@@ -386,4 +398,10 @@ export function dispatchCheckin(body: {
 
 export function fetchDispatchChecklist(orderId: string): Promise<StopChecklist> {
   return driverFetch(`${DRIVER_API}/dispatch/orders/${encodeURIComponent(orderId)}/checklist`);
+}
+
+export type EarningsToday = { today_cents?: number; week_cents?: number; month_cents?: number };
+
+export function fetchEarningsToday(): Promise<EarningsToday> {
+  return driverFetch(`${DRIVER_API}/earnings/today`);
 }
