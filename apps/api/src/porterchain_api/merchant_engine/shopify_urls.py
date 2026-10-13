@@ -117,7 +117,9 @@ def managed_install_url(shop_domain: str, settings: Settings) -> str:
     if not is_shop_domain(shop):
         raise ValueError("shop_domain_invalid")
     handle = shop.removesuffix(".myshopify.com")
-    return f"https://admin.shopify.com/store/{handle}/oauth/install?client_id={settings.shopify_api_key}"
+    from porterchain_api.merchant_engine.shopify_apps import for_shop
+
+    return f"https://admin.shopify.com/store/{handle}/oauth/install?client_id={for_shop(settings, shop).client_id}"
 
 
 def embedded_app_url(shop_domain: str, settings: Settings) -> str:
@@ -125,5 +127,7 @@ def embedded_app_url(shop_domain: str, settings: Settings) -> str:
     shop = normalize_shop_domain(shop_domain)
     if not is_shop_domain(shop) or not settings.shopify_api_key:
         raise ValueError("shop_domain_invalid")
+    from porterchain_api.merchant_engine.shopify_apps import for_shop
+
     handle = shop.removesuffix(".myshopify.com")
-    return f"https://admin.shopify.com/store/{handle}/apps/{settings.shopify_api_key}"
+    return f"https://admin.shopify.com/store/{handle}/apps/{for_shop(settings, shop).client_id}"

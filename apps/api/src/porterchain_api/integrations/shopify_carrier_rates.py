@@ -45,10 +45,9 @@ def _carrier_hmac_secrets(db: Session, settings: Settings, shop_domain: str | No
         stored = _decrypt(shop.encrypted_webhook_secret, settings)
         if stored:
             secrets.append(stored)
-    app_secret = getattr(settings, "shopify_api_secret", None) or ""
-    if app_secret:
-        secrets.append(app_secret)
-    return secrets
+    from porterchain_api.merchant_engine.shopify_apps import secrets as app_secrets
+
+    return secrets + app_secrets(settings)
 
 
 def _postal_norm(raw: str | None) -> str:

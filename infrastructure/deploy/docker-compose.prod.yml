@@ -284,6 +284,7 @@ services:
       # must be passed explicitly — compose does not auto-inject unused .env keys.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
       SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
+      SHOPIFY_EXTRA_APPS: ${SHOPIFY_EXTRA_APPS:-}
       SHOPIFY_API_VERSION: ${SHOPIFY_API_VERSION:-2025-01}
       SHOPIFY_API_SCOPES: ${SHOPIFY_API_SCOPES:-}
       SHOPIFY_FULFILLMENT_SERVICE_ENABLED: ${SHOPIFY_FULFILLMENT_SERVICE_ENABLED:-false}
@@ -392,6 +393,7 @@ services:
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
       SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
+      SHOPIFY_EXTRA_APPS: ${SHOPIFY_EXTRA_APPS:-}
       SHOPIFY_API_VERSION: ${SHOPIFY_API_VERSION:-2025-01}
       SHOPIFY_API_SCOPES: ${SHOPIFY_API_SCOPES:-}
       SHOPIFY_FULFILLMENT_SERVICE_ENABLED: ${SHOPIFY_FULFILLMENT_SERVICE_ENABLED:-false}
@@ -477,6 +479,7 @@ services:
       # Public Shopify client id: rendered as the shopify-api-key meta on /shopify-app
       # (App Bridge cannot mint session tokens without it). Never the secret.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
+      SHOPIFY_EXTRA_API_KEYS: ${SHOPIFY_EXTRA_API_KEYS:-}
     expose:
       - "3001"
     networks:

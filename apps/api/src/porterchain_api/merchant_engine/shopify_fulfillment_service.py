@@ -59,8 +59,9 @@ def ingest_fulfillment_order_notification(
         stored = _helpers()._decrypt(shop.encrypted_webhook_secret, settings)
         if stored:
             secrets.append(stored)
-    if settings.shopify_api_secret:
-        secrets.append(settings.shopify_api_secret)
+    from porterchain_api.merchant_engine.shopify_apps import secrets as app_secrets
+
+    secrets += app_secrets(settings)
     if not verify_webhook_hmac(raw_body, hmac_header, secrets):
         raise PermissionError("shopify_hmac_invalid")
     if not shop or shop.uninstalled_at is not None:
