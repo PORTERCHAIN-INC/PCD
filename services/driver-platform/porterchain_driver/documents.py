@@ -15,6 +15,7 @@ _UPLOADABLE_DOCS = _REQUIRED_DOCS + (
     "training_certificate",
     "vehicle_photo",
     "abstract",
+    "work_permit",
 )
 _FILE_ALIASES: dict[str, frozenset[str]] = {
     "license": frozenset({"license", "driver_license", "drivers_license"}),
@@ -90,7 +91,12 @@ class DocumentsService:
     def list_documents(self, driver: Any) -> list[dict]:
         docs = driver.documents or {}
         result = []
-        for doc_type in _REQUIRED_DOCS + ("background_check", "training_certificate", "abstract"):
+        for doc_type in _REQUIRED_DOCS + (
+            "background_check",
+            "training_certificate",
+            "abstract",
+            "work_permit",
+        ):
             entry = docs.get(doc_type, {})
             if not isinstance(entry, dict):
                 entry = {}
@@ -106,6 +112,14 @@ class DocumentsService:
                     entry = {**entry, "verified": True, "status": abstract.get("status") or "verified"}
             result.append(self._serialize_doc(doc_type, entry))
         return result
+
+    def list_documents_lite(self, driver: Any) -> list[dict]:
+        """Same list without inline file bytes (data: URLs can be ~300 KB each) — for the app."""
+        out = []
+        for d in self.list_documents(driver):
+            url = d.get("url")
+            out.append({**d, "has_file": bool(url), "url": url if url and not str(url).startswith("data:") else None})
+        return out
 
     def list_vehicle_photos(self, driver: Any) -> list[dict]:
         docs = driver.documents or {}
@@ -187,6 +201,7 @@ class DocumentsService:
             "background_check": "Background Check",
             "training_certificate": "Training Certificate",
             "abstract": "Ontario Driver Abstract",
+            "work_permit": "Work Permit",
         }
         return {
             "type": doc_type,
