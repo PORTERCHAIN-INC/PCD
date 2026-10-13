@@ -4,9 +4,9 @@
     "slug": "porterchain-driver",
     "owner": "porterchains-organization",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "scheme": "porterchain-driver",
     "ios": {
       "icon": "./assets/AppIcon.icon",

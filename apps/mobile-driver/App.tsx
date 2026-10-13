@@ -4,7 +4,7 @@
  * lives in src/stop; data lives in useFieldSession.
  */
 import { useCallback, useEffect, useState, type ReactElement } from "react";
-import { Alert, BackHandler, Platform, View } from "react-native";
+import { BackHandler, Platform, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { fetchOnboarding, fetchPublicHealth } from "./src/api";
 import { SessionGate } from "./src/auth/SessionGate";
@@ -33,7 +33,10 @@ import { JobScreen } from "./src/screens/JobScreen";
 import { MeScreen } from "./src/screens/MeScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppErrorBoundary } from "./src/ui/AppErrorBoundary";
+import { TabBarBelow } from "./src/ui/layout";
+import { toast, ToastHost } from "./src/ui/toast";
 import { TabBar, type TabId } from "./src/ui/kit";
 import { Notice } from "./src/ui/Notice";
 import { color } from "./src/ui/theme";
@@ -179,9 +182,10 @@ function DriverApp() {
       }
       if (!signedInView) return false;
       if (tab === "job" && h.online && h.stopId) {
-        Alert.alert(
+        toast.show(
+          "warn",
           "Stop in progress",
-          "Finish or report this stop first. Your work is saved on this phone."
+          "Finish or report this stop first. Your work is saved."
         );
         return true;
       }
@@ -259,48 +263,50 @@ function DriverApp() {
     const onSync = () => void field.refresh();
     body = (
       <View style={{ flex: 1 }}>
-        {tab === "today" ? (
-          <TodayScreen
-            field={field}
-            route={route}
-            action={action}
-            onOpenJob={() => setTab("job")}
-            onGoOnDuty={(pretrip) =>
-              consent ? startDuty(pretrip) : setConsentFor({ then: "duty", pretrip })
-            }
-            onGoOffDuty={() => void run("duty", field.goOffDuty)}
-            onSync={onSync}
-          />
-        ) : null}
-        {tab === "job" ? (
-          <JobScreen
-            field={field}
-            route={route}
-            action={action}
-            pod={pod}
-            setPod={setPod}
-            run={run}
-            onGoToday={() => setTab("today")}
-            onSync={onSync}
-          />
-        ) : null}
-        {tab === "me" ? (
-          <MeScreen
-            field={field}
-            consent={consent}
-            onReviewConsent={() => setConsentFor({ then: "review" })}
-            policy={policy}
-            onWithdrawConsent={() =>
-              void withdrawMonitoring().then(() => {
-                setConsent(null);
-                // Background stops now; foreground pings continue while the app is open on duty.
-                void stopBackgroundLocation();
-              })
-            }
-            onSync={onSync}
-            onSignOut={signOut}
-          />
-        ) : null}
+        <TabBarBelow.Provider value={true}>
+          {tab === "today" ? (
+            <TodayScreen
+              field={field}
+              route={route}
+              action={action}
+              onOpenJob={() => setTab("job")}
+              onGoOnDuty={(pretrip) =>
+                consent ? startDuty(pretrip) : setConsentFor({ then: "duty", pretrip })
+              }
+              onGoOffDuty={() => void run("duty", field.goOffDuty)}
+              onSync={onSync}
+            />
+          ) : null}
+          {tab === "job" ? (
+            <JobScreen
+              field={field}
+              route={route}
+              action={action}
+              pod={pod}
+              setPod={setPod}
+              run={run}
+              onGoToday={() => setTab("today")}
+              onSync={onSync}
+            />
+          ) : null}
+          {tab === "me" ? (
+            <MeScreen
+              field={field}
+              consent={consent}
+              onReviewConsent={() => setConsentFor({ then: "review" })}
+              policy={policy}
+              onWithdrawConsent={() =>
+                void withdrawMonitoring().then(() => {
+                  setConsent(null);
+                  // Background stops now; foreground pings continue while the app is open on duty.
+                  void stopBackgroundLocation();
+                })
+              }
+              onSync={onSync}
+              onSignOut={signOut}
+            />
+          ) : null}
+        </TabBarBelow.Provider>
         <TabBar
           tab={tab}
           onTab={setTab}
@@ -313,6 +319,7 @@ function DriverApp() {
   return (
     <View style={{ flex: 1, backgroundColor: color.bg }}>
       {body}
+      <ToastHost />
       <StatusBar style="light" />
     </View>
   );
@@ -320,10 +327,12 @@ function DriverApp() {
 
 export default function App() {
   return (
-    <SessionGate>
-      <AppErrorBoundary>
-        <DriverApp />
-      </AppErrorBoundary>
-    </SessionGate>
+    <SafeAreaProvider>
+      <SessionGate>
+        <AppErrorBoundary>
+          <DriverApp />
+        </AppErrorBoundary>
+      </SessionGate>
+    </SafeAreaProvider>
   );
 }

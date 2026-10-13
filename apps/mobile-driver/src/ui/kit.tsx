@@ -1,20 +1,20 @@
 /** The whole component kit: Screen, text, Button, Banner, Card, EmptyState, TabBar. */
-import type { ReactNode } from "react";
+import { Children, Fragment, isValidElement, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Platform,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   View,
   type TextProps,
 } from "react-native";
 import { touchTargetMin } from "@porterchain/mobile-theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { haptic } from "../haptics";
+import { useLayout, useTabBarBelow } from "./layout";
 import { PressScale } from "./motion";
 import { color, maxFontScale, radius, space, target, type } from "./theme";
 
@@ -25,6 +25,7 @@ export function Screen({
   scroll = true,
   onRefresh,
   refreshing = false,
+  header,
 }: {
   children: ReactNode;
   /** Pull down to refresh. */
@@ -32,27 +33,76 @@ export function Screen({
   refreshing?: boolean;
   /** Pinned under the content: the one primary action lives here, always in thumb reach. */
   footer?: ReactNode;
+  /** Pinned above the content (status row); stays put while the body scrolls. */
+  header?: ReactNode;
   testID?: string;
   scroll?: boolean;
 }) {
-  const top = Platform.OS === "android" ? (StatusBar.currentHeight ?? 24) : 0;
+  // Edge-to-edge: we draw under the status/nav bars and pad by the real insets (notch, Dynamic
+  // Island, gesture bar, landscape camera cut-out) instead of guessing.
+  const insets = useSafeAreaInsets();
+  const L = useLayout();
+  const tabBelow = useTabBarBelow();
+  const side = { paddingLeft: insets.left + L.gutter, paddingRight: insets.right + L.gutter };
+  const width = { maxWidth: L.maxContent + insets.left + insets.right + 2 * L.gutter };
+  const gap = L.compact ? space.sm + 2 : space.md;
   return (
-    <SafeAreaView style={[s.safe, { paddingTop: top }]} testID={testID}>
+    <View style={[s.safe, { paddingTop: insets.top }]} testID={testID}>
+      {header ? <View style={[s.header, side, width, s.centered]}>{header}</View> : null}
       {scroll ? (
         <ScrollView
-          contentContainerStyle={s.content}
+          contentContainerStyle={[
+            s.content,
+            side,
+            width,
+            s.centered,
+            { gap, paddingTop: header ? space.xs : space.md },
+          ]}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined
+            onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={color.primary}
+              />
+            ) : undefined
           }
         >
           {children}
         </ScrollView>
       ) : (
-        <View style={[s.content, s.flex]}>{children}</View>
+        <View style={[s.content, side, width, s.centered, s.flex, { gap }]}>{children}</View>
       )}
-      {footer ? <View style={s.footer}>{footer}</View> : null}
-    </SafeAreaView>
+      {footer ? (
+        <View
+          style={[
+            s.footer,
+            side,
+            { paddingBottom: tabBelow ? space.md : Math.max(insets.bottom, space.lg) },
+          ]}
+        >
+          <View style={[width, s.centered, s.footerInner, L.landscape && s.footerRow]}>
+            {L.landscape
+              ? flatten(footer).map((child, i) => (
+                  <View key={i} style={s.flex}>
+                    {child}
+                  </View>
+                ))
+              : footer}
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** Footer children, fragments unwrapped (landscape lays them out side by side). */
+function flatten(node: ReactNode): ReactNode[] {
+  return Children.toArray(node).flatMap((c) =>
+    isValidElement<{ children?: ReactNode }>(c) && c.type === Fragment
+      ? flatten(c.props.children)
+      : [c]
   );
 }
 
@@ -244,8 +294,20 @@ export function TabBar({
   /** Dot on the Job tab when there is work waiting. */
   jobBadge?: boolean;
 }) {
+  const insets = useSafeAreaInsets();
+  const L = useLayout();
   return (
-    <View style={s.tabs} accessibilityRole="tablist">
+    <View
+      style={[
+        s.tabs,
+        {
+          paddingBottom: Math.max(insets.bottom, space.xs),
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+      ]}
+      accessibilityRole="tablist"
+    >
       {TABS.map((t) => {
         const on = t.id === tab;
         return (
@@ -258,7 +320,7 @@ export function TabBar({
               haptic.tap();
               onTab(t.id);
             }}
-            style={[s.tab, on && s.tabOn]}
+            style={[s.tab, (L.landscape || L.compact) && s.tabShort, on && s.tabOn]}
             testID={`tab-${t.id}`}
           >
             <Text style={[s.tabText, on && s.tabTextOn]}>{t.label}</Text>
@@ -273,12 +335,13 @@ export function TabBar({
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: color.bg },
   flex: { flex: 1 },
-  content: { padding: space.lg, gap: space.md, paddingBottom: space.xxl },
+  content: { paddingBottom: space.xxl },
+  centered: { width: "100%", alignSelf: "center" },
+  header: { paddingTop: space.sm, paddingBottom: space.xs },
+  footerInner: { gap: space.sm },
+  footerRow: { flexDirection: "row-reverse", alignItems: "stretch" },
   footer: {
-    paddingHorizontal: space.lg,
     paddingTop: space.md,
-    paddingBottom: space.lg,
-    gap: space.sm,
     backgroundColor: color.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color.border,
@@ -343,7 +406,6 @@ const s = StyleSheet.create({
     backgroundColor: color.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color.border,
-    paddingBottom: Platform.OS === "ios" ? space.lg : space.sm,
   },
   tab: {
     flex: 1,
@@ -353,6 +415,7 @@ const s = StyleSheet.create({
     borderTopWidth: 3,
     borderTopColor: "transparent",
   },
+  tabShort: { minHeight: target.min - 4 },
   tabOn: { borderTopColor: color.primary },
   tabText: { ...type.bodyStrong, color: color.inkMuted },
   tabTextOn: { color: color.ink },
