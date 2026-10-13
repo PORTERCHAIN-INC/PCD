@@ -19,6 +19,7 @@ import { haptic } from "../haptics";
 import { insideGeofence } from "../smart/geo";
 import { useLiveFix } from "../smart/useLiveFix";
 import { useRouteStopUi } from "../ui/RouteStopCard";
+import { toast } from "../ui/toast";
 import { openTurnByTurn } from "../maps";
 import { runOnlineOrQueue } from "../offline";
 import { capturePodPhotoDataUrl } from "../pod";
@@ -98,7 +99,20 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
 
   const submitScan = (code: string) =>
     run("scan", async () => {
-      const res = await scanPackage(orderId, code.trim(), scanPhase);
+      let res: Awaited<ReturnType<typeof scanPackage>>;
+      try {
+        res = await scanPackage(orderId, code.trim(), scanPhase);
+      } catch (e) {
+        // Wrong parcel / not on this order: buzz + slim toast, keep scanning.
+        const m = e instanceof Error ? e.message : "";
+        if (/not_on_order|unknown_package|wrong|mismatch|404/i.test(m)) {
+          toast.show("danger", "Wrong parcel", "That box isn't on this order. Put it back.");
+          return;
+        }
+        throw e;
+      }
+      if (res.complete) toast.show("success", "All boxes scanned");
+      else haptic.tap();
       const progress = {
         scanned: res.scanned,
         required: res.required,
