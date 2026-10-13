@@ -33,32 +33,38 @@ export async function probeStaffCookie(): Promise<boolean> {
   }
 }
 
-/** Clear browser cookie + revoke API session (best-effort). */
+export const LOGOUT_TIMEOUT_MS = 3000;
+
+/** fetch that never throws and never waits longer than `ms`. */
+async function quietFetch(url: string, init: RequestInit, ms: number): Promise<void> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    await fetch(url, { ...init, signal: ctl.signal });
+  } catch {
+    /* offline / API down — sign-out must still succeed */
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Sign out that works even when the API is down.
+ * Revoke (best-effort, bounded) and drop the local cookie in parallel —
+ * the BFF reads the cookie when the request starts, so revoke still carries the bearer.
+ */
 export async function clearStaffSession(apiUrl?: string): Promise<void> {
-  // Revoke while cookie still present so BFF can attach Bearer.
-  try {
-    await fetch("/api/porterchain/v1/auth/staff/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-  } catch {
-    /* ignore */
-  }
+  const post: RequestInit = { method: "POST", credentials: "include" };
+  const revoke = [quietFetch("/api/porterchain/v1/auth/staff/logout", post, LOGOUT_TIMEOUT_MS)];
   if (apiUrl) {
-    try {
-      await fetch(`${apiUrl.replace(/\/$/, "")}/v1/auth/staff/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch {
-      /* ignore */
-    }
+    revoke.push(
+      quietFetch(`${apiUrl.replace(/\/$/, "")}/v1/auth/staff/logout`, post, LOGOUT_TIMEOUT_MS)
+    );
   }
-  try {
-    await fetch("/api/auth/staff-session", { method: "DELETE" });
-  } catch {
-    /* ignore */
-  }
+  await Promise.all([
+    ...revoke,
+    quietFetch("/api/auth/staff-session", { method: "DELETE" }, LOGOUT_TIMEOUT_MS),
+  ]);
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event(STAFF_AUTH_EVENT));
   }
