@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { BookDeliveryPayload } from "@/lib/api";
 import { previewBooking, type BookingPreview } from "@/lib/booking";
+import { withFreshToken } from "@/lib/freshToken";
 
 export function useBookingPreview(
-  token: string | null,
+  getToken: (() => Promise<string>) | null,
   orgId: string | undefined,
   payload: BookDeliveryPayload | null,
   enabled: boolean
@@ -16,7 +17,7 @@ export function useBookingPreview(
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!enabled || !token || !payload) {
+    if (!enabled || !getToken || !payload) {
       setPreview(null);
       return;
     }
@@ -29,7 +30,7 @@ export function useBookingPreview(
       setLoading(true);
       setError(null);
       try {
-        const result = await previewBooking(token, payload, orgId);
+        const result = await withFreshToken(getToken, (t) => previewBooking(t, payload, orgId));
         setPreview(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Preview failed");
@@ -41,7 +42,7 @@ export function useBookingPreview(
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [token, orgId, payload, enabled]);
+  }, [getToken, orgId, payload, enabled]);
 
   return { preview, loading, error };
 }

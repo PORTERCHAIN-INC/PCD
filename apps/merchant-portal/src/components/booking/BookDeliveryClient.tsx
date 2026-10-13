@@ -232,16 +232,12 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     bookAsSandbox,
   ]);
 
-  const [previewToken, setPreviewToken] = useState<string | null>(null);
-  useEffect(() => {
-    if (!isSignedIn) return;
-    getApiToken()
-      .then(setPreviewToken)
-      .catch(() => setPreviewToken(null));
-  }, [isSignedIn, getApiToken]);
-
-  const { preview, loading: previewLoading } = useBookingPreview(
-    previewToken,
+  const {
+    preview,
+    loading: previewLoading,
+    error: previewError,
+  } = useBookingPreview(
+    isSignedIn ? getApiToken : null,
     orgId,
     bookingPayload,
     step === "review" || step === "details"
@@ -1143,7 +1139,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         </div>
 
         <aside className="space-y-4">
-          <PricingPanel preview={preview} loading={previewLoading} />
+          <PricingPanel preview={preview} loading={previewLoading} error={previewError} />
           <div className="rounded-2xl border border-primary/10 bg-white p-4">
             <h3 className="font-medium text-primary">Saved templates</h3>
             {templates.length === 0 ? (
@@ -1243,9 +1239,11 @@ function StepTabs({ step, onStep }: { step: Step; onStep: (s: Step) => void }) {
 function PricingPanel({
   preview,
   loading,
+  error,
 }: {
   preview: ReturnType<typeof useBookingPreview>["preview"];
   loading: boolean;
+  error?: string | null;
 }) {
   return (
     <div className="rounded-2xl border border-primary/10 bg-white p-4">
@@ -1291,7 +1289,12 @@ function PricingPanel({
           )}
         </div>
       )}
-      {!loading && !preview && (
+      {!loading && !preview && error && (
+        <p className="mt-2 text-xs text-red-700">
+          Couldn&apos;t load pricing ({error}). Retrying on next change.
+        </p>
+      )}
+      {!loading && !preview && !error && (
         <p className="mt-2 text-xs text-muted">Enter addresses for live pricing</p>
       )}
     </div>

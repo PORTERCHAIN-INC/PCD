@@ -13,7 +13,10 @@ export const ADMIN_SHIPPING = "shopify://admin/settings/shipping";
 export const APP_BRIDGE_SRC = "https://cdn.shopify.com/shopifycloud/app-bridge.js";
 
 /** Public client id (not the secret), read at request time from the container env. */
-export function shopifyApiKey(): string {
+export function shopifyApiKey(requested?: string | null): string {
+  // Custom-distribution apps open /shopify-app?app=<client_id>; only listed ids are honoured.
+  const extra = (process.env.SHOPIFY_EXTRA_API_KEYS ?? "").split(",").map((k) => k.trim());
+  if (requested && extra.includes(requested)) return requested;
   return (process.env.SHOPIFY_API_KEY ?? "").trim();
 }
 

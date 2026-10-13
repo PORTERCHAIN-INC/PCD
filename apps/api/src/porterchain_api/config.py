@@ -541,6 +541,11 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("shopify_api_secret", "SHOPIFY_API_SECRET"),
     )
+    # client_id:secret:shop.myshopify.com, comma-separated (custom-distribution apps).
+    shopify_extra_apps: str = Field(
+        default="",
+        validation_alias=AliasChoices("shopify_extra_apps", "SHOPIFY_EXTRA_APPS"),
+    )
     shopify_api_scopes: str = Field(
         default=(
             "read_orders,write_fulfillments,write_shipping,"
