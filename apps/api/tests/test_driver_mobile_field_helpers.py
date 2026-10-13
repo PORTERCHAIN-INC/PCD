@@ -44,8 +44,11 @@ def test_soft_offline_stale_constant() -> None:
 def test_money_screen_reads_wallet_and_earnings_contract() -> None:
     """Earnings glance on Today reads /earnings/today; full wallet/statements live on the web portal."""
     today = (MOBILE / "screens/TodayScreen.tsx").read_text()
+    queries = (MOBILE / "data/queries.ts").read_text()
     api = (MOBILE / "api.ts").read_text()
-    assert "fetchEarningsToday" in today and "today_cents" in today
+    # Today reads earnings through the cached query (instant from the last known value).
+    assert "useEarnings" in today and "today_cents" in today
+    assert "fetchEarningsToday" in queries
     assert "/earnings/today" in api
     for field in ("today_cents", "week_cents", "month_cents"):
         assert field in api
