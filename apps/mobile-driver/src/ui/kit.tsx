@@ -14,7 +14,9 @@ import {
   type TextProps,
 } from "react-native";
 import { touchTargetMin } from "@porterchain/mobile-theme";
-import { color, radius, space, target, type } from "./theme";
+import { haptic } from "../haptics";
+import { PressScale } from "./motion";
+import { color, maxFontScale, radius, space, target, type } from "./theme";
 
 export function Screen({
   children,
@@ -55,15 +57,33 @@ export function Screen({
 }
 
 export const Title = (p: TextProps) => (
-  <Text accessibilityRole="header" {...p} style={[s.title, p.style]} />
+  <Text
+    accessibilityRole="header"
+    maxFontSizeMultiplier={maxFontScale}
+    {...p}
+    style={[s.title, p.style]}
+  />
 );
 export const Heading = (p: TextProps) => (
-  <Text accessibilityRole="header" {...p} style={[s.heading, p.style]} />
+  <Text
+    accessibilityRole="header"
+    maxFontSizeMultiplier={maxFontScale}
+    {...p}
+    style={[s.heading, p.style]}
+  />
 );
-export const Body = (p: TextProps) => <Text {...p} style={[s.body, p.style]} />;
-export const Strong = (p: TextProps) => <Text {...p} style={[s.strong, p.style]} />;
-export const Muted = (p: TextProps) => <Text {...p} style={[s.muted, p.style]} />;
-export const Label = (p: TextProps) => <Text {...p} style={[s.label, p.style]} />;
+export const Body = (p: TextProps) => (
+  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.body, p.style]} />
+);
+export const Strong = (p: TextProps) => (
+  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.strong, p.style]} />
+);
+export const Muted = (p: TextProps) => (
+  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.muted, p.style]} />
+);
+export const Label = (p: TextProps) => (
+  <Text maxFontSizeMultiplier={maxFontScale} {...p} style={[s.label, p.style]} />
+);
 
 type Tone = "primary" | "secondary" | "danger" | "quiet";
 
@@ -87,33 +107,40 @@ export function Button({
 }) {
   const off = disabled || busy;
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
       accessibilityState={{ disabled: off, busy }}
       disabled={off}
-      onPress={onPress}
+      onPress={() => {
+        if (tone === "primary" || tone === "danger") haptic.press();
+        else haptic.tap();
+        onPress();
+      }}
       testID={testID}
-      style={({ pressed }) => [
+      style={[
         s.btn,
         tone === "primary" && s.btnPrimary,
         tone === "secondary" && s.btnSecondary,
         tone === "danger" && s.btnDanger,
         tone === "quiet" && s.btnQuiet,
-        pressed && !off && (tone === "primary" ? s.btnPrimaryPressed : s.pressed),
         off && tone !== "quiet" && s.btnDisabled,
       ]}
     >
       {busy ? (
         <ActivityIndicator
-          color={tone === "primary" || tone === "danger" ? color.onPrimary : color.ink}
+          color={
+            tone === "primary" ? color.onPrimary : tone === "danger" ? color.onDanger : color.ink
+          }
         />
       ) : (
         <Text
+          maxFontSizeMultiplier={1.3}
           style={[
             s.btnText,
-            (tone === "primary" || tone === "danger") && s.btnTextOn,
+            tone === "primary" && s.btnTextOn,
+            tone === "danger" && s.btnTextOnDanger,
             tone === "quiet" && s.btnTextQuiet,
             off && s.btnTextDisabled,
           ]}
@@ -121,7 +148,7 @@ export function Button({
           {label}
         </Text>
       )}
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -227,7 +254,10 @@ export function TabBar({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={t.id === "job" && jobBadge ? `${t.label}, work waiting` : t.label}
-            onPress={() => onTab(t.id)}
+            onPress={() => {
+              haptic.tap();
+              onTab(t.id);
+            }}
             style={[s.tab, on && s.tabOn]}
             testID={`tab-${t.id}`}
           >
@@ -249,7 +279,7 @@ const s = StyleSheet.create({
     paddingTop: space.md,
     paddingBottom: space.lg,
     gap: space.sm,
-    backgroundColor: color.surface,
+    backgroundColor: color.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color.border,
   },
@@ -259,7 +289,7 @@ const s = StyleSheet.create({
   strong: { ...type.bodyStrong, color: color.ink },
   muted: { ...type.small, color: color.inkMuted },
   small: { ...type.small },
-  label: { ...type.label, color: color.inkMuted, textTransform: "uppercase" },
+  label: { ...type.label, color: color.inkFaint, textTransform: "uppercase" },
   btn: {
     minHeight: target.min,
     borderRadius: radius.lg,
@@ -267,26 +297,35 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  btnPrimary: { backgroundColor: color.primary, minHeight: target.primary },
-  btnPrimaryPressed: { backgroundColor: color.primaryPressed },
-  btnSecondary: { backgroundColor: color.surface, borderWidth: 2, borderColor: color.ink },
+  btnPrimary: {
+    backgroundColor: color.primary,
+    minHeight: target.primary,
+    shadowColor: color.primary,
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  btnSecondary: { backgroundColor: color.surface2, borderWidth: 1, borderColor: color.border },
   btnDanger: { backgroundColor: color.danger },
   btnQuiet: { backgroundColor: "transparent", minHeight: touchTargetMin + 4 },
   btnDisabled: { backgroundColor: color.disabled, borderColor: color.disabled },
-  pressed: { opacity: 0.7 },
   btnText: { ...type.button, color: color.ink, textAlign: "center" },
   btnTextOn: { color: color.onPrimary },
+  btnTextOnDanger: { color: color.onDanger },
   btnTextQuiet: { ...type.bodyStrong, textDecorationLine: "underline" },
   btnTextDisabled: { color: color.onDisabled },
   banner: {
     borderRadius: radius.md,
-    borderLeftWidth: 6,
+    borderLeftWidth: 4,
     padding: space.md,
     gap: space.xs,
   },
   bannerAction: { paddingTop: space.xs, minHeight: 32, justifyContent: "center" },
   card: {
     backgroundColor: color.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: color.border,
     borderRadius: radius.lg,
     padding: space.lg,
     gap: space.sm,
@@ -296,7 +335,7 @@ const s = StyleSheet.create({
   center: { textAlign: "center" },
   tabs: {
     flexDirection: "row",
-    backgroundColor: color.surface,
+    backgroundColor: color.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color.border,
     paddingBottom: Platform.OS === "ios" ? space.lg : space.sm,
@@ -306,7 +345,7 @@ const s = StyleSheet.create({
     minHeight: target.min + 8,
     alignItems: "center",
     justifyContent: "center",
-    borderTopWidth: 4,
+    borderTopWidth: 3,
     borderTopColor: "transparent",
   },
   tabOn: { borderTopColor: color.primary },
