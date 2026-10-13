@@ -326,6 +326,9 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "collaboration_engine->notification_engine:collaboration_engine/lead_outbound_email.py",
         "dispatch_engine->driver_engine:dispatch_engine/driver_pin.py",
         "driver_engine->dispatch_engine:driver_engine/last_known.py",
+        # Offline replay of route check-ins: same service + scan gate the live endpoint uses.
+        "driver_engine->dispatch_engine:driver_engine/offline_executor.py",
+        "driver_engine->merchant_engine:driver_engine/offline_executor.py",
         "merchant_engine->dispatch_engine:merchant_engine/route_import_service.py",
         "merchant_engine->dispatch_engine:merchant_engine/tracking_service.py",
         "notification_engine->merchant_engine:notification_engine/context.py",
