@@ -117,3 +117,13 @@ describe("settings", () => {
   });
   it("speaks French", () => expect(tr("settings", "fr")).toBe("Paramètres"));
 });
+
+import { moneyShort } from "../smart/geo";
+describe("moneyShort", () => {
+  it("fits a tile", () => {
+    expect(moneyShort(950)).toBe("$9.50");
+    expect(moneyShort(14250)).toBe("$143");
+    expect(moneyShort(241900)).toBe("$2.4k");
+    expect(moneyShort(null)).toBe("—");
+  });
+});

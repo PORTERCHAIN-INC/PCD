@@ -14,7 +14,7 @@ import type { RouteState } from "../hooks/useDispatchRoute";
 import { KIND_LABEL } from "../dispatchRoute";
 import { openTurnByTurn } from "../maps";
 import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
-import { clockLabel, distanceLabel, etaCountdown, money } from "../smart/geo";
+import { clockLabel, distanceLabel, etaCountdown, money, moneyShort } from "../smart/geo";
 import { isClosed, needsAccept, normState } from "../stop/stopFlow";
 import type { DriverJobSummary } from "../types";
 import { Banner, Button, Label, Screen } from "../ui/kit";
@@ -216,7 +216,7 @@ export function TodayScreen({
             <View style={styles.glance} testID="today-progress">
               <Stat label="Done" value={`${done}`} />
               <Stat label="Left" value={`${Math.max(0, total - done)}`} />
-              <Stat label="Earned" value={money(earned)} accent />
+              <Stat label="Earned" value={moneyShort(earned)} accent />
             </View>
             <View
               style={styles.bar}

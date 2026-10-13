@@ -53,3 +53,12 @@ export function money(cents: number | null | undefined): string {
   if (cents == null) return "—";
   return `$${(cents / 100).toFixed(2)}`;
 }
+
+/** Glance money for small tiles: "$9.50", "$142", "$2.4k". */
+export function moneyShort(cents: number | null | undefined): string {
+  if (cents == null) return "—";
+  const d = cents / 100;
+  if (d < 100) return `$${d.toFixed(2)}`;
+  if (d < 1000) return `$${Math.round(d)}`;
+  return `$${(d / 1000).toFixed(d < 10_000 ? 1 : 0)}k`;
+}

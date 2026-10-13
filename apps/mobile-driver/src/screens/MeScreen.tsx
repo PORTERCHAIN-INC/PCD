@@ -9,7 +9,7 @@ import type { MonitoringPolicy } from "../api";
 import type { LocationConsent } from "../consent";
 import { useDocuments, useEarnings, useSupportHub, useVehicle } from "../data/queries";
 import { docAlerts } from "../docs";
-import { money } from "../smart/geo";
+import { moneyShort } from "../smart/geo";
 import { useT } from "../i18n";
 import type { FieldSession } from "../hooks/useFieldSession";
 import { Banner, Button, Muted, Screen, Title } from "../ui/kit";
@@ -81,9 +81,9 @@ export function MeScreen(props: Props) {
 
       {e && (e.today_cents != null || e.week_cents != null) ? (
         <View style={st.stats} testID="me-earnings">
-          <Stat label="Today" value={money(e.today_cents ?? 0)} />
-          <Stat label="This week" value={money(e.week_cents ?? 0)} />
-          <Stat label="Month" value={money(e.month_cents ?? 0)} />
+          <Stat label="Today" value={moneyShort(e.today_cents ?? 0)} />
+          <Stat label="This week" value={moneyShort(e.week_cents ?? 0)} />
+          <Stat label="Month" value={moneyShort(e.month_cents ?? 0)} />
         </View>
       ) : null}
 
