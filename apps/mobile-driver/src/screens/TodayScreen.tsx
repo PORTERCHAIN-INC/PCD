@@ -131,15 +131,17 @@ export function TodayScreen({
       </View>
 
       <Text style={styles.hello} maxFontSizeMultiplier={maxFontScale} accessibilityRole="header">
-        {onDuty
-          ? next
-            ? "Next stop"
-            : hasWork
-              ? "On the job"
-              : "Waiting for work"
-          : first
-            ? `Ready, ${first}?`
-            : "Ready?"}
+        {firstLoad
+          ? "Today"
+          : onDuty
+            ? next
+              ? "Next stop"
+              : hasWork
+                ? "On the job"
+                : "Waiting for work"
+            : first
+              ? `Ready, ${first}?`
+              : "Ready?"}
       </Text>
 
       {sos.state === "sent" ? (
