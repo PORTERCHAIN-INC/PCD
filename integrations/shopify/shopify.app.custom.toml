@@ -17,6 +17,9 @@ client_id = "7bc64e5fb3d27d33df9dc6d5a72df88d"
 application_url = "https://merchant.porterchain.com/shopify-app?app=7bc64e5fb3d27d33df9dc6d5a72df88d"
 embedded = true
 
+[auth]
+redirect_urls = [ "https://api.porterchain.com/v1/integrations/shopify/callback" ]
+
 [access_scopes]
 scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders"
 use_legacy_install_flow = false
