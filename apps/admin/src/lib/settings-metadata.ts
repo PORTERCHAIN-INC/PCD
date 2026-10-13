@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Trash2,
   MapPin,
   Route,
   ScrollText,
@@ -98,6 +99,7 @@ export const SECTION_ICONS: Record<string, LucideIcon> = {
   lead_ingest: Plug,
   automation: Wrench,
   audit: FileText,
+  deleted_items: Trash2,
   backup: Server,
 };
 
@@ -140,6 +142,7 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   lead_ingest:
     "Lead webhook secrets, Meta/LinkedIn CAPI, territory map, and referral credits — saved to Doppler on write.",
   automation: "Dispatch retry settings stay on the PorterChain worker.",
+  deleted_items: "Restore deleted items, or delete them for good. Finance and audit records are never deleted.",
   audit: "Immutable trail of settings changes with actor and reason.",
   backup: "Export/import Settings-owned configuration.",
 };
