@@ -16,6 +16,7 @@ import {
 import { cn } from "@porterchain/ui/utils";
 import type { Lead } from "@/lib/crm";
 import { CHANNEL_BADGES } from "@/components/leads/LeadInboxBits";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const CHANNEL_ICONS: Record<string, LucideIcon> = {
   website: Globe,
@@ -177,6 +178,7 @@ export default function LeadRow({
       >
         {lead.lead_score}
       </span>
+      <DeleteButton compact entity="lead" id={lead.id} />
     </li>
   );
 }

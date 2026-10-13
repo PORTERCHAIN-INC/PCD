@@ -76,6 +76,8 @@ export function LeadDetailView({ id }: { id: string }) {
 
   const canDelete =
     hasPermission(session?.permissions, "system:all") || profile?.role === "super_admin";
+  // Soft delete (restorable from Settings → Deleted items) is open to admins too.
+  const canSoftDelete = canDelete || profile?.role === "admin";
 
   const {
     data: lead,
@@ -336,7 +338,7 @@ export function LeadDetailView({ id }: { id: string }) {
                   </Button>
                 </>
               ) : null}
-              {canDelete ? (
+              {canSoftDelete ? (
                 <Button variant="danger" onClick={() => void handleDelete()} disabled={deleting}>
                   <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
                 </Button>

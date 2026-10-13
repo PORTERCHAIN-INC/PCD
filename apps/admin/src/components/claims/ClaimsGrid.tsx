@@ -25,6 +25,7 @@ import {
   type ClaimRow,
 } from "@/lib/claims";
 import { Button } from "@/components/crm/primitives";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const COLS_KEY = "porterchain.claims.columns";
 const VIEWS_KEY = "porterchain.claims.views";
@@ -231,6 +232,12 @@ export default function ClaimsGrid({ rows, selected, onSelect }: Props) {
             <ExternalLink className="h-4 w-4" />
           </Link>
         ),
+      },
+      {
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => <DeleteButton compact entity="claim" id={row.original.id} />,
       },
     ],
     [selected, onSelect]

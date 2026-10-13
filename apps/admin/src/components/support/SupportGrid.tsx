@@ -26,6 +26,7 @@ import {
 } from "@/lib/support";
 import { relativeTime } from "@/lib/crmFormat";
 import { Button } from "@/components/crm/primitives";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const COLS_KEY = "porterchain.support.columns";
 
@@ -255,6 +256,12 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
             <ExternalLink className="h-4 w-4" />
           </Link>
         ),
+      },
+      {
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => <DeleteButton compact entity="support_ticket" id={row.original.id} />,
       },
     ],
     [selected, onSelect]
