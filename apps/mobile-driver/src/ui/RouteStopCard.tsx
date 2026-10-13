@@ -129,6 +129,12 @@ export function RouteStopCard({ r }: { r: RouteState }) {
   };
 
   const eta = r.etaAt && stop.status === "pending" ? etaCountdown(r.etaAt, now) : null;
+  // One main action: while driving it's Navigate; at the stop it's the check-in.
+  const driving = stop.status === "pending" && (r.distance == null || r.distance > 300);
+  const navigate = () =>
+    void openTurnByTurn({ lat: stop.lat, lng: stop.lng, address: stop.address }).catch((e: Error) =>
+      setError(e.message)
+    );
 
   return (
     <Rise>
@@ -237,37 +243,45 @@ export function RouteStopCard({ r }: { r: RouteState }) {
           </Text>
         ) : null}
 
-        {action ? (
-          <Button
-            tone="primary"
-            label={label}
-            busy={busy}
-            disabled={!ready}
-            onPress={() => void send(action.event)}
-            testID="dispatch-primary"
-          />
-        ) : null}
-        <View style={styles.row}>
-          {stop.status === "pending" ? (
-            <View style={styles.flex}>
-              <Button
-                label="Navigate"
-                testID="stop-navigate"
-                hint="Opens turn-by-turn directions in your maps app"
-                onPress={() =>
-                  void openTurnByTurn({
-                    lat: stop.lat,
-                    lng: stop.lng,
-                    address: stop.address,
-                  }).catch((e: Error) => setError(e.message))
-                }
-              />
+        {driving ? (
+          <>
+            <Button
+              tone="primary"
+              label="Navigate"
+              testID="stop-navigate"
+              hint="Opens turn-by-turn directions in your maps app"
+              onPress={navigate}
+            />
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Button
+                  label="I'm here"
+                  busy={busy}
+                  testID="dispatch-primary"
+                  hint="Marks you arrived. Happens by itself when you pull up."
+                  onPress={() => void send("arrived")}
+                />
+              </View>
+              <View style={styles.flex}>
+                <Button tone="quiet" label="Problem" onPress={fail} testID="stop-fail" />
+              </View>
             </View>
-          ) : null}
-          <View style={styles.flex}>
-            <Button tone="quiet" label="Can't complete" onPress={fail} testID="stop-fail" />
-          </View>
-        </View>
+          </>
+        ) : (
+          <>
+            {action ? (
+              <Button
+                tone="primary"
+                label={label}
+                busy={busy}
+                disabled={!ready}
+                onPress={() => void send(action.event)}
+                testID="dispatch-primary"
+              />
+            ) : null}
+            <Button tone="quiet" label="Problem with this stop" onPress={fail} testID="stop-fail" />
+          </>
+        )}
       </View>
     </Rise>
   );

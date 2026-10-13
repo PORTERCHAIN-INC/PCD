@@ -309,7 +309,12 @@ const s = StyleSheet.create({
   btnSecondary: { backgroundColor: color.surface2, borderWidth: 1, borderColor: color.border },
   btnDanger: { backgroundColor: color.danger },
   btnQuiet: { backgroundColor: "transparent", minHeight: touchTargetMin + 4 },
-  btnDisabled: { backgroundColor: color.disabled, borderColor: color.disabled },
+  btnDisabled: {
+    backgroundColor: color.disabled,
+    borderColor: color.disabled,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   btnText: { ...type.button, color: color.ink, textAlign: "center" },
   btnTextOn: { color: color.onPrimary },
   btnTextOnDanger: { color: color.onDanger },
