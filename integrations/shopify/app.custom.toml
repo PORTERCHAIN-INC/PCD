@@ -1,0 +1,42 @@
+# Shopify Partners manifest: embedded app, Shopify-managed install, free listing.
+# Runtime SSOT is the PorterChain API (scopes, webhooks, CarrierService).
+# Install: Shopify grants [access_scopes] itself, then loads application_url inside
+# admin. The page loads App Bridge, posts its session token to
+# POST /v1/integrations/shopify/session, and the API token-exchanges it once.
+# Billing: none. The app is free; deliveries are invoiced by Interac e-Transfer.
+# FO request topics stay out of this file; they register only when
+# SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off).
+# read_returns + returns/* topics: add back with SHOPIFY_RETURNS_SCOPE_ENABLED=true
+# (returns are off; requesting an unused scope fails App Store review).
+# API 2026-10: carrier services are no longer auto-added to the General shipping
+# profile; merchants switch PorterChain rates on in Shipping and delivery / Markets.
+# Custom-distribution app (single store, store domain TBD). Secret lives only in SHOPIFY_EXTRA_APPS on the server.
+
+name = "Porterchain"
+client_id = "7bc64e5fb3d27d33df9dc6d5a72df88d"
+application_url = "https://merchant.porterchain.com/shopify-app?app=7bc64e5fb3d27d33df9dc6d5a72df88d"
+embedded = true
+
+[access_scopes]
+scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders"
+use_legacy_install_flow = false
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  topics = [
+    "orders/create",
+    "orders/updated",
+    "orders/edited",
+    "orders/paid",
+    "orders/cancelled",
+    "orders/delete",
+    "refunds/create",
+    "app/uninstalled"
+  ]
+  uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"
