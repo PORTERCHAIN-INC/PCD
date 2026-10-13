@@ -4,7 +4,7 @@
  */
 import { StyleSheet, View } from "react-native";
 import type { MonitoringPolicy } from "../api";
-import { showMonitoringPolicy } from "../compliance";
+import { usePolicyPage } from "../ui/PolicyPage";
 import { locationRetentionDays } from "../config";
 import { humanError } from "../errorCopy";
 import {
@@ -63,6 +63,7 @@ export function ConsentScreen({
   policy?: MonitoringPolicy | null;
   error?: string | null;
 }) {
+  const policyPage = usePolicyPage();
   return (
     <Screen
       testID="screen-consent"
@@ -101,7 +102,7 @@ export function ConsentScreen({
         <Button
           label="Read the full policy"
           testID="consent-read-policy"
-          onPress={() => showMonitoringPolicy(policy)}
+          onPress={() => policyPage.open(policy)}
         />
       </Card>
       <View style={styles.foot}>
@@ -110,6 +111,7 @@ export function ConsentScreen({
           the app is open.
         </Muted>
       </View>
+      {policyPage.page}
     </Screen>
   );
 }

@@ -3,7 +3,7 @@
  * Accept → Arrived → Scan → Proof → Complete. Everything else is secondary.
  */
 import { useEffect, useRef, useState } from "react";
-import { Alert, Linking, StyleSheet, TextInput, View } from "react-native";
+import { Linking, StyleSheet, TextInput, View } from "react-native";
 import {
   acceptOrder,
   arriveStop,
@@ -70,6 +70,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   const [typeCode, setTypeCode] = useState<string | null>(null);
   const [sheet, setSheet] = useState<ProofSheet>(null);
   const [problemOpen, setProblemOpen] = useState(false);
+  const [confirmDecline, setConfirmDecline] = useState(false);
   const stopUi = useRouteStopUi(route, { offline: h.api === "down" });
 
   const scanPhase = (h.nextStopType ?? "").toLowerCase() === "pickup" ? "pickup" : "delivery";
@@ -257,19 +258,22 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
       ) : null}
       {view.step === "offer" ? (
         <Button
-          label="Decline"
+          tone={confirmDecline ? "danger" : undefined}
+          label={confirmDecline ? "Tap again to decline" : "Decline"}
+          hint="Dispatch will offer it to another driver"
           busy={action === "decline"}
           disabled={busy}
-          onPress={() =>
-            Alert.alert("Decline this job?", "Dispatch will offer it to another driver.", [
-              { text: "Keep it", style: "cancel" },
-              {
-                text: "Decline",
-                style: "destructive",
-                onPress: () => void run("decline", () => rejectOrder(orderId)),
-              },
-            ])
-          }
+          testID="offer-decline"
+          onPress={() => {
+            if (!confirmDecline) {
+              haptic.warn();
+              setConfirmDecline(true);
+              setTimeout(() => setConfirmDecline(false), 4000);
+              return;
+            }
+            setConfirmDecline(false);
+            void run("decline", () => rejectOrder(orderId));
+          }}
         />
       ) : null}
       {hasNav ? (

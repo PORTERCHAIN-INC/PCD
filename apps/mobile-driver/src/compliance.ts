@@ -4,7 +4,6 @@
  * van is invisible to dispatch and customers — this module makes sure that never happens
  * silently.
  */
-import { Alert } from "react-native";
 import {
   ackMonitoringPolicy,
   fetchGpsStatus,
@@ -34,16 +33,6 @@ export function policyText(p: MonitoringPolicy): string {
       [s.heading, s.body, ...(s.items ?? []).map((i) => `• ${i}`)].filter(Boolean).join("\n")
     )
     .join("\n\n");
-}
-
-export function showMonitoringPolicy(policy?: MonitoringPolicy | null): void {
-  const show = (p: MonitoringPolicy) => Alert.alert(`${p.title} (v${p.version})`, policyText(p));
-  if (policy) return show(policy);
-  void fetchMonitoringPolicy()
-    .then(show)
-    .catch(() =>
-      Alert.alert("Electronic Monitoring Policy", "Couldn't load it. Try again online.")
-    );
 }
 
 /** Ask the server. Offline: fall back to the local record (never blocks work offline). */

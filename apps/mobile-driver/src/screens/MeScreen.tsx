@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Alert, Linking, StyleSheet, View } from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
 import { fetchSupportHub } from "../api";
 import { dispatchEmail, dispatchPhone, driverPortalUrl, locationRetentionDays } from "../config";
 import type { MonitoringPolicy } from "../api";
-import { showMonitoringPolicy } from "../compliance";
+import { haptic } from "../haptics";
+import { Rise } from "../ui/motion";
+import { usePolicyPage } from "../ui/PolicyPage";
 import type { LocationConsent } from "../consent";
 import { useSos } from "../ui/SosButton";
 import type { FieldSession } from "../hooks/useFieldSession";
@@ -34,7 +36,10 @@ export function MeScreen({
   const { handshake: h, pending } = field;
   const [phone, setPhone] = useState(dispatchPhone);
   const [email, setEmail] = useState(dispatchEmail);
-  const { state: sos, ask: sendSos } = useSos();
+  const { state: sos, ask: sendSos, page: sosPage } = useSos();
+  const policyPage = usePolicyPage();
+  /** Inline confirm (no popup): null = closed, number = unsynced actions found. */
+  const [confirmOut, setConfirmOut] = useState<number | null>(null);
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
@@ -46,30 +51,15 @@ export function MeScreen({
       .catch(() => undefined);
   }, []);
 
+  const goSignOut = () => {
+    setSigningOut(true);
+    void onSignOut().finally(() => setSigningOut(false));
+  };
   const signOut = () => {
-    const go = () => {
-      setSigningOut(true);
-      void onSignOut().finally(() => setSigningOut(false));
-    };
+    haptic.press();
     void readQueue()
-      .then((q) => {
-        if (!q.length) {
-          Alert.alert("Sign out?", "This removes your data from this phone.", [
-            { text: "Cancel", style: "cancel" },
-            { text: "Sign out", style: "destructive", onPress: go },
-          ]);
-          return;
-        }
-        Alert.alert(
-          "Unsynced work on this phone",
-          `${q.length} saved action${q.length === 1 ? " has" : "s have"} not reached PorterChain yet. Signing out deletes ${q.length === 1 ? "it" : "them"} from this phone. Get signal first if you can.`,
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Sign out anyway", style: "destructive", onPress: go },
-          ]
-        );
-      })
-      .catch(go);
+      .then((q) => setConfirmOut(q.length))
+      .catch(() => setConfirmOut(0));
   };
 
   return (
@@ -152,7 +142,7 @@ export function MeScreen({
           tone="quiet"
           label={`Electronic Monitoring Policy${policy ? ` (v${policy.version})` : ""}`}
           testID="me-policy"
-          onPress={() => showMonitoringPolicy(policy)}
+          onPress={() => policyPage.open(policy)}
         />
         <View style={styles.row}>
           <Button label={consent ? "Review" : "Turn on"} onPress={onReviewConsent} />
@@ -163,10 +153,39 @@ export function MeScreen({
       </Card>
 
       <Label>Account</Label>
-      <Button label="Sign out" testID="sign-out" busy={signingOut} onPress={signOut} />
+      {confirmOut == null ? (
+        <Button label="Sign out" testID="sign-out" busy={signingOut} onPress={signOut} />
+      ) : (
+        <Rise>
+          <Banner
+            tone={confirmOut ? "danger" : "warn"}
+            title={confirmOut ? "Unsynced work on this phone" : "Sign out?"}
+            body={
+              confirmOut
+                ? `${confirmOut} saved action${confirmOut === 1 ? " hasn't" : "s haven't"} reached PorterChain yet. Signing out deletes ${confirmOut === 1 ? "it" : "them"}. Get signal first if you can.`
+                : "This removes your data from this phone."
+            }
+          />
+          <View style={styles.confirm}>
+            <Button
+              tone="danger"
+              label={confirmOut ? "Sign out anyway" : "Sign out"}
+              busy={signingOut}
+              onPress={goSignOut}
+              testID="sign-out-confirm"
+            />
+            <Button tone="quiet" label="Cancel" onPress={() => setConfirmOut(null)} />
+          </View>
+        </Rise>
+      )}
       <Muted>Version {currentAppVersion()}</Muted>
+      {sosPage}
+      {policyPage.page}
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({ row: { gap: space.sm } });
+const styles = StyleSheet.create({
+  row: { gap: space.sm },
+  confirm: { gap: space.sm, marginTop: space.sm },
+});

@@ -144,6 +144,7 @@ export function TodayScreen({
               : "Ready?"}
       </Text>
 
+      {sos.page}
       {sos.state === "sent" ? (
         <Banner tone="success" title="SOS sent. Dispatch will call you." />
       ) : null}
