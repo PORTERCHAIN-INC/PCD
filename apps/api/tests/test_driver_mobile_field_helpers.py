@@ -63,7 +63,8 @@ def test_field_copy_hides_corelocation_and_apns_stacks() -> None:
     today = (MOBILE / "screens/TodayScreen.tsx").read_text()
     assert 'testID="pretrip-check"' in today
     kit = (MOBILE / "ui/kit.tsx").read_text()
-    assert "StatusBar.currentHeight" in kit
+    # Edge-to-edge: real insets (status bar, notch, gesture bar) instead of the Android-only hack.
+    assert "useSafeAreaInsets" in kit
 
 def test_pretrip_checklist_keys_match_api() -> None:
     text = (MOBILE / "pretrip.ts").read_text()
