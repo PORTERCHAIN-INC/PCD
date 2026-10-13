@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutFor } from "./layout";
+import { layoutFor } from "./layoutFor";
 
 describe("layoutFor", () => {
   it("iPhone SE is compact", () =>
