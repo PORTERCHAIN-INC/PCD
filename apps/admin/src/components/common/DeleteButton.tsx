@@ -31,10 +31,14 @@ export default function DeleteButton({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
 
   async function open(e: React.MouseEvent) {
     e.stopPropagation();
     e.preventDefault();
+    // Fixed position so tables/cards with overflow-hidden never clip the dialog.
+    const r = e.currentTarget.getBoundingClientRect();
+    setPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
     setErr(null);
     setBusy(true);
     try {
@@ -83,7 +87,8 @@ export default function DeleteButton({
       {(check || err) && (
         <div
           role="dialog"
-          className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-white/10 bg-[#0B1530] p-4 text-left text-sm text-slate-200 shadow-2xl"
+          style={pos ? { top: pos.top, right: pos.right } : undefined}
+          className="fixed z-50 w-80 rounded-lg border border-white/10 bg-[#0B1530] p-4 text-left text-sm text-slate-200 shadow-2xl"
         >
           {err && <p className="text-[13px] text-slate-200">{err}</p>}
           {check && !check.allowed && (
