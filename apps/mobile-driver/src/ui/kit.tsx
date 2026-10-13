@@ -1,5 +1,5 @@
 /** The whole component kit: Screen, text, Button, Banner, Card, EmptyState, TabBar. */
-import { Children, Fragment, isValidElement, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -46,63 +46,53 @@ export function Screen({
   const side = { paddingLeft: insets.left + L.gutter, paddingRight: insets.right + L.gutter };
   const width = { maxWidth: L.maxContent + insets.left + insets.right + 2 * L.gutter };
   const gap = L.compact ? space.sm + 2 : space.md;
+  const body = scroll ? (
+    <ScrollView
+      style={s.flex}
+      contentContainerStyle={[
+        s.content,
+        side,
+        width,
+        s.centered,
+        { gap, paddingTop: header ? space.xs : space.md },
+      ]}
+      keyboardShouldPersistTaps="handled"
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={color.primary} />
+        ) : undefined
+      }
+    >
+      {children}
+    </ScrollView>
+  ) : (
+    <View style={[s.content, side, width, s.centered, s.flex, { gap }]}>{children}</View>
+  );
+  const bottom = tabBelow ? space.md : Math.max(insets.bottom, space.lg);
+  // Landscape (dashboard mount): actions move to a right-hand rail so the stop keeps the height.
+  if (footer && L.landscape) {
+    return (
+      <View style={[s.safe, { paddingTop: insets.top }]} testID={testID}>
+        {header ? <View style={[s.header, side]}>{header}</View> : null}
+        <View style={[s.flex, s.landRow]}>
+          <View style={s.flex}>{body}</View>
+          <View style={[s.rail, { paddingRight: insets.right + L.gutter, paddingBottom: bottom }]}>
+            {footer}
+          </View>
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={[s.safe, { paddingTop: insets.top }]} testID={testID}>
       {header ? <View style={[s.header, side, width, s.centered]}>{header}</View> : null}
-      {scroll ? (
-        <ScrollView
-          contentContainerStyle={[
-            s.content,
-            side,
-            width,
-            s.centered,
-            { gap, paddingTop: header ? space.xs : space.md },
-          ]}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            onRefresh ? (
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={color.primary}
-              />
-            ) : undefined
-          }
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[s.content, side, width, s.centered, s.flex, { gap }]}>{children}</View>
-      )}
+      {body}
       {footer ? (
-        <View
-          style={[
-            s.footer,
-            side,
-            { paddingBottom: tabBelow ? space.md : Math.max(insets.bottom, space.lg) },
-          ]}
-        >
-          <View style={[width, s.centered, s.footerInner, L.landscape && s.footerRow]}>
-            {L.landscape
-              ? flatten(footer).map((child, i) => (
-                  <View key={i} style={s.flex}>
-                    {child}
-                  </View>
-                ))
-              : footer}
-          </View>
+        <View style={[s.footer, side, { paddingBottom: bottom }]}>
+          <View style={[width, s.centered, s.footerInner]}>{footer}</View>
         </View>
       ) : null}
     </View>
-  );
-}
-
-/** Footer children, fragments unwrapped (landscape lays them out side by side). */
-function flatten(node: ReactNode): ReactNode[] {
-  return Children.toArray(node).flatMap((c) =>
-    isValidElement<{ children?: ReactNode }>(c) && c.type === Fragment
-      ? flatten(c.props.children)
-      : [c]
   );
 }
 
@@ -339,7 +329,14 @@ const s = StyleSheet.create({
   centered: { width: "100%", alignSelf: "center" },
   header: { paddingTop: space.sm, paddingBottom: space.xs },
   footerInner: { gap: space.sm },
-  footerRow: { flexDirection: "row-reverse", alignItems: "stretch" },
+  landRow: { flexDirection: "row" },
+  rail: {
+    width: "38%",
+    maxWidth: 380,
+    justifyContent: "flex-end",
+    gap: space.sm,
+    paddingTop: space.md,
+  },
   footer: {
     paddingTop: space.md,
     backgroundColor: color.bg,
