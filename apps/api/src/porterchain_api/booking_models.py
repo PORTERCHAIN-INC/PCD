@@ -28,6 +28,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 from porterchain_api.domain.states import OrderSource, OrderState, OrderType, PaymentTerms, QuoteState
 
 
@@ -35,7 +36,7 @@ def _uuid() -> str:
     return str(uuid.uuid4())
 
 
-class Customer(Base):
+class Customer(SoftDeleteMixin, Base):
     __tablename__ = "customers"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -144,7 +145,7 @@ class Booking(Base):
     order: Mapped["Order | None"] = relationship(back_populates="booking", uselist=False)
 
 
-class Order(Base):
+class Order(SoftDeleteMixin, Base):
     __tablename__ = "orders"
     __table_args__ = (
         # One order per (merchant, idempotency key, sandbox flag) so a retried API
@@ -217,7 +218,7 @@ class Order(Base):
     )
 
 
-class Package(Base):
+class Package(SoftDeleteMixin, Base):
     """Physical parcel on an order — N packages = N labels / scans (spine 1)."""
 
     __tablename__ = "packages"
@@ -506,7 +507,7 @@ class OrderRating(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class CustomerAddress(Base):
+class CustomerAddress(SoftDeleteMixin, Base):
     """Customer address book (saved + learned from history). Max a few dozen per customer."""
 
     __tablename__ = "customer_addresses"
@@ -529,7 +530,7 @@ class CustomerAddress(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class CustomerNote(Base):
+class CustomerNote(SoftDeleteMixin, Base):
     """Staff note on a customer (admin Care tab timeline)."""
 
     __tablename__ = "customer_notes"

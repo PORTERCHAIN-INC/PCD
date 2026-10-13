@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 from porterchain_api.domain.admin_states import DriverStatus, TicketStatus
 
 
@@ -53,7 +54,7 @@ class StaffWebAuthnCredential(Base):
     admin_user: Mapped[AdminUser] = relationship("AdminUser", back_populates="webauthn_credentials")
 
 
-class Driver(Base):
+class Driver(SoftDeleteMixin, Base):
     __tablename__ = "drivers"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -91,7 +92,7 @@ class Driver(Base):
     payouts: Mapped[list["DriverPayout"]] = relationship(back_populates="driver")
 
 
-class Vehicle(Base):
+class Vehicle(SoftDeleteMixin, Base):
     __tablename__ = "vehicles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -123,7 +124,7 @@ class DriverPayout(Base):
     driver: Mapped[Driver] = relationship(back_populates="payouts")
 
 
-class SupportTicket(Base):
+class SupportTicket(SoftDeleteMixin, Base):
     __tablename__ = "support_tickets"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -152,7 +153,7 @@ class SupportTicket(Base):
     )
 
 
-class Claim(Base):
+class Claim(SoftDeleteMixin, Base):
     __tablename__ = "claims"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -172,7 +173,7 @@ class Claim(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
-class PricingTariff(Base):
+class PricingTariff(SoftDeleteMixin, Base):
     __tablename__ = "pricing_tariffs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -189,7 +190,7 @@ class PricingTariff(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class Promotion(Base):
+class Promotion(SoftDeleteMixin, Base):
     __tablename__ = "promotions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -243,7 +244,7 @@ class PricingFsaRate(Base):
     )
 
 
-class PricingZone(Base):
+class PricingZone(SoftDeleteMixin, Base):
     __tablename__ = "pricing_zones"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -282,7 +283,7 @@ class AdminAuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class RouteCenterTemplate(Base):
+class RouteCenterTemplate(SoftDeleteMixin, Base):
     """Wholesale / recurring route templates (§8.1.10) — alias: RouteTemplate."""
 
     __tablename__ = "route_center_templates"

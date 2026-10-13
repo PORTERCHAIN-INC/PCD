@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 
 
 def _uuid() -> str:
@@ -35,7 +36,7 @@ class DispatchJobOffer(Base):
     meta: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
-class DispatchPlan(Base):
+class DispatchPlan(SoftDeleteMixin, Base):
     """One solve of the day. Draft until an admin commits it; re-plans supersede."""
 
     __tablename__ = "dispatch_plans"
@@ -54,7 +55,7 @@ class DispatchPlan(Base):
     committed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
-class DispatchRoute(Base):
+class DispatchRoute(SoftDeleteMixin, Base):
     """One vehicle's ordered stops inside a plan (stops JSON: key, order, kind, FSA, ETA)."""
 
     __tablename__ = "dispatch_routes"
