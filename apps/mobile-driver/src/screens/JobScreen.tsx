@@ -18,7 +18,7 @@ import type { RouteState } from "../hooks/useDispatchRoute";
 import { haptic } from "../haptics";
 import { insideGeofence } from "../smart/geo";
 import { useLiveFix } from "../smart/useLiveFix";
-import { RouteStopCard } from "../ui/RouteStopCard";
+import { useRouteStopUi } from "../ui/RouteStopCard";
 import { openTurnByTurn } from "../maps";
 import { runOnlineOrQueue } from "../offline";
 import { capturePodPhotoDataUrl } from "../pod";
@@ -70,6 +70,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   const [typeCode, setTypeCode] = useState<string | null>(null);
   const [sheet, setSheet] = useState<ProofSheet>(null);
   const [problemOpen, setProblemOpen] = useState(false);
+  const stopUi = useRouteStopUi(route, { offline: h.api === "down" });
 
   const scanPhase = (h.nextStopType ?? "").toLowerCase() === "pickup" ? "pickup" : "delivery";
   const scan = scanPhase === "pickup" ? h.scanPickup : h.scanDelivery;
@@ -167,7 +168,12 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   // A brand-new offer still goes through Accept / Decline first.
   if (route.route && route.route.total > 0 && !needsAccept(h.currentOrderState)) {
     return (
-      <Screen testID="screen-job" onRefresh={() => void route.reload()} refreshing={field.busy}>
+      <Screen
+        testID="screen-job"
+        onRefresh={() => void route.reload()}
+        refreshing={field.busy}
+        footer={stopUi.footer}
+      >
         <SyncBanners
           offline={h.api === "down"}
           pending={pending}
@@ -176,7 +182,8 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
           onSync={onSync}
           onDismissError={() => setError(null)}
         />
-        <RouteStopCard r={route} />
+        {stopUi.card}
+        {stopUi.pages}
       </Screen>
     );
   }
