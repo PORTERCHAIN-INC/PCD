@@ -263,13 +263,33 @@ def verify_session_token(token: str, settings: Settings) -> str:
             leeway=10,
             options={"require": ["exp", "nbf", "dest", "aud"]},
         )
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as exc:
+        logger.warning(
+            "shopify_session_rejected reason=%s aud=%s", type(exc).__name__, _peek(token, "aud")
+        )
         raise ValueError("session_token_invalid") from None
     shop = normalize_shop_domain(str(claims.get("dest") or ""))
     issuer = normalize_shop_domain(str(claims.get("iss") or shop))
-    if not is_shop_domain(shop) or issuer != shop or (app.shop and app.shop != shop):
+    if not is_shop_domain(shop) or issuer != shop:
+        logger.warning("shopify_session_rejected reason=dest_iss_mismatch aud=%s shop=%s", app.client_id, shop)
+        raise ValueError("session_token_invalid")
+    if app.shop and app.shop != shop:
+        # Custom-distribution app opened on a store it is not pinned to (SHOPIFY_EXTRA_APPS).
+        logger.warning(
+            "shopify_session_rejected reason=custom_app_wrong_shop aud=%s shop=%s pinned=%s",
+            app.client_id, shop, app.shop,
+        )
         raise ValueError("session_token_invalid")
     return shop
+
+
+def _peek(token: str, claim: str) -> str:
+    import jwt
+
+    try:
+        return str(jwt.decode(token, options={"verify_signature": False}).get(claim) or "")
+    except jwt.PyJWTError:
+        return "undecodable"
 
 
 def open_embedded(

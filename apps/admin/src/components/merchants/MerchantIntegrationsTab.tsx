@@ -223,6 +223,10 @@ export default function MerchantIntegrationsTab({ id }: { id: string }) {
   const sendInstallLink = (shop: string) =>
     run(async (t) => {
       const res = await merchants.shopifyInstallUrl(t, id, shop.trim());
+      if (!res.install_url) {
+        setToast({ text: res.message ?? "Use the Shopify Partners install link.", bad: true });
+        return;
+      }
       await copy(res.install_url, `Reconnect link for ${res.shop_domain}`);
       setInstall(null);
     });

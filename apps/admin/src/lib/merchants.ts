@@ -878,10 +878,13 @@ export const merchants = {
       body: JSON.stringify({ reason }),
     }),
   shopifyInstallUrl: (t: string, id: string, shop: string) =>
-    adminFetch<{ install_url: string; shop_domain: string; merchant_id: string }>(
-      `${B}/${id}/shopify/install-url${qs({ shop })}`,
-      t
-    ),
+    adminFetch<{
+      install_url: string | null;
+      shop_domain: string;
+      merchant_id: string;
+      custom_distribution?: boolean;
+      message?: string;
+    }>(`${B}/${id}/shopify/install-url${qs({ shop })}`, t),
   shopifyIngressPause: (t: string, id: string, shopId: string, paused: boolean, reason: string) =>
     adminFetch<{
       shop_id: string;

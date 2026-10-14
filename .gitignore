@@ -116,3 +116,6 @@ website/graphify-out/
 
 vendors.csv
 docs/archive/vendor-leads/*.csv
+
+# Shopify CLI local state
+integrations/shopify/.shopify/

@@ -980,7 +980,20 @@ def shopify_install_url_for(
 ) -> dict:
     from porterchain_api.merchant_engine.shopify_urls import managed_install_url
 
+    from porterchain_api.merchant_engine.shopify_apps import CUSTOM_INSTALL_MESSAGE, custom_app_for
+    from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain
+
     require_merchant(db, merchant_id)
+    custom = custom_app_for(settings, normalize_shop_domain(shop))
+    if custom is not None:
+        return {
+            "install_url": None,
+            "custom_distribution": True,
+            "client_id": custom.client_id,
+            "message": CUSTOM_INSTALL_MESSAGE,
+            "shop_domain": shop,
+            "merchant_id": merchant_id,
+        }
     url = managed_install_url(shop, settings)
     write_staff_audit(
         db,
