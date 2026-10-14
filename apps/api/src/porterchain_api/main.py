@@ -213,6 +213,15 @@ def create_app() -> FastAPI:
             headers={REQUEST_ID_HEADER: rid} if rid else None,
         )
 
+    @app.exception_handler(PermissionError)
+    async def _permission_error_handler(request: Request, exc: PermissionError) -> JSONResponse:
+        rid = _request_id(request)
+        return JSONResponse(
+            status_code=403,
+            content=error_envelope(str(exc) or "forbidden", request_id=rid),
+            headers={REQUEST_ID_HEADER: rid} if rid else None,
+        )
+
     @app.exception_handler(HTTPException)
     async def _http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
         rid = _request_id(request)
