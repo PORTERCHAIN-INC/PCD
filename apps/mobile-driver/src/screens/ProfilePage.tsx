@@ -334,13 +334,16 @@ function ContactAndSecurity({ p, onSignOut }: { p: MeProfile; onSignOut: () => P
     }[]
   >([]);
 
+  const userId = user?.id;
   useEffect(() => {
     if (!user) return;
     void user
       .getSessions()
-      .then((s) => setSessions(s as never))
+      .then((x) => setSessions(x as never))
       .catch(() => undefined);
-  }, [user]);
+    // Keyed on the user id: the user object is re-created on every Clerk update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const reset = () => {
     setEditing(null);

@@ -140,7 +140,7 @@ export function Segmented<T extends string | number>({
 }) {
   return (
     <View style={st.segWrap} testID={testID}>
-      <Text style={st.label}>{label}</Text>
+      {label ? <Text style={st.label}>{label}</Text> : null}
       <View style={st.seg} accessibilityRole="radiogroup">
         {options.map((o) => {
           const on = o.value === value;
