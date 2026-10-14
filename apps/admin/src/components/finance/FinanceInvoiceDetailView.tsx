@@ -57,13 +57,28 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
     mutationFn: async () => {
       if (!detail) throw new Error("no_invoice");
       const token = await getApiToken();
-      return withStaffStepUp(token, () =>
-        financeApi.recordPayment(token, detail.invoice_id, {
-          method,
-          reference: reference || undefined,
-          amount_cents: amount.trim() ? Math.round(Number(amount) * 100) : undefined,
-        })
-      );
+      const send = (allowMismatch: boolean) =>
+        withStaffStepUp(token, () =>
+          financeApi.recordPayment(token, detail.invoice_id, {
+            method,
+            reference: reference || undefined,
+            amount_cents: amount.trim() ? Math.round(Number(amount) * 100) : undefined,
+            allow_reference_mismatch: allowMismatch || undefined,
+          })
+        );
+      try {
+        return await send(false);
+      } catch (err) {
+        // Interac: the e-Transfer message must carry this invoice's payment reference.
+        if (err instanceof Error && err.message.includes("payment_reference_mismatch")) {
+          const ok = confirm(
+            "This reference doesn't match the invoice's payment reference. Record the payment anyway?"
+          );
+          if (ok) return send(true);
+          throw new Error("Payment not recorded: reference does not match this invoice.");
+        }
+        throw err;
+      }
     },
     onSuccess: async (res) => {
       setAmount("");

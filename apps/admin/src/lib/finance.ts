@@ -324,7 +324,12 @@ export const financeApi = {
   recordPayment: (
     token: string,
     invoiceId: string,
-    body: { method: string; amount_cents?: number; reference?: string }
+    body: {
+      method: string;
+      amount_cents?: number;
+      reference?: string;
+      allow_reference_mismatch?: boolean;
+    }
   ) =>
     adminFetch<{
       invoice_id: string;

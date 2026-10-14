@@ -35,10 +35,6 @@ const HistoryTab = dynamic(() => import("./tabs/HistoryTab").then((m) => m.Histo
 const TaxTab = dynamic(() => import("./tabs/TaxTab").then((m) => m.TaxTab), {
   loading: () => <PageSkeleton rows={3} />,
 });
-const CodConnectPanel = dynamic(
-  () => import("./tabs/CodConnectPanel").then((m) => m.CodConnectPanel),
-  { loading: () => <PageSkeleton rows={3} /> }
-);
 
 type Tab =
   | "overview"
@@ -62,7 +58,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "tax", label: "Tax summary" },
   { id: "rates", label: "Rate card" },
   { id: "contacts", label: "Billing contacts" },
-  { id: "cod", label: "COD / Connect" },
 ];
 
 const PRIMARY_TABS: { id: Tab; label: string }[] = [
@@ -70,7 +65,6 @@ const PRIMARY_TABS: { id: Tab; label: string }[] = [
   { id: "invoices", label: "Invoices" },
   { id: "rates", label: "Rate card" },
   { id: "contacts", label: "Billing contacts" },
-  { id: "cod", label: "COD" },
 ];
 
 const INVOICE_PANELS: { id: Tab; label: string }[] = [
@@ -303,7 +297,7 @@ export default function BillingClient() {
           orgId={orgId}
         />
       )}
-      {tab === "cod" && <CodConnectPanel getToken={getApiToken} orgId={orgId} />}
+      {/* COD / Stripe Connect retired: billing is Interac e-Transfer only. */}
     </div>
   );
 }

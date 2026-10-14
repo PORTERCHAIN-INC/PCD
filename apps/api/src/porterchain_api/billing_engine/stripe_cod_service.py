@@ -175,6 +175,8 @@ class StripeCodService:
         order: Order,
     ) -> dict[str, Any]:
         """Resolve the merchant then issue a COD Checkout session."""
+        # Billing is Interac e-Transfer only: no Stripe COD at the door.
+        raise PermissionError("billing_is_interac_etransfer_only")
         from porterchain_api.merchant_engine.lookups import get_merchant
 
         if not order.merchant_id:
