@@ -219,3 +219,42 @@ export function glide<T extends Pos>(from: Pos[], to: T[], t: number): T[] {
     return { ...p, lat: a.lat + (p.lat - a.lat) * k, lng: a.lng + (p.lng - a.lng) * k };
   });
 }
+
+export type LiveMsg =
+  | { type: "hello" | "pong" }
+  | { type: "driver"; id: string; lat: number; lng: number; heading?: number | null; at?: string }
+  | { type: "order"; id: string; event: string; state?: string | null }
+  | { type: "exception"; id: string; event: string; order_id?: string | null };
+
+/**
+ * Apply one live GPS fix to the cached map snapshot. Only drivers already on the board move:
+ * the snapshot is the consent/shift filter, so a fix never reveals someone the board hides.
+ * Out-of-order fixes (older `at`) are ignored.
+ */
+export function applyDriverFix<
+  S extends { drivers: { id: string; lat: number; lng: number; recorded_at?: string | null }[] },
+>(snap: S | null | undefined, fix: Extract<LiveMsg, { type: "driver" }>): S | null | undefined {
+  if (!snap) return snap;
+  const i = snap.drivers.findIndex((d) => d.id === fix.id);
+  if (i < 0) return snap;
+  const cur = snap.drivers[i];
+  if (fix.at && cur.recorded_at && Date.parse(fix.at) < Date.parse(cur.recorded_at)) return snap;
+  const drivers = snap.drivers.slice();
+  drivers[i] = { ...cur, lat: fix.lat, lng: fix.lng, recorded_at: fix.at ?? cur.recorded_at };
+  return { ...snap, drivers };
+}
+
+/** Which cached Today queries a live event makes stale (driver fixes patch the map in place). */
+export function staleKeysFor(msg: LiveMsg): string[] {
+  if (msg.type === "order")
+    return [
+      "today-stats",
+      "today-queue",
+      "today-eta",
+      "today-exceptions",
+      "today-map",
+      "today-order",
+    ];
+  if (msg.type === "exception") return ["today-exceptions", "today-stats", "today-order"];
+  return [];
+}

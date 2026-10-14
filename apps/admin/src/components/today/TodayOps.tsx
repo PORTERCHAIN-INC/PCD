@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, Check, Loader2, Route, Send, Undo2, X, Zap } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
+import { useOpsLive } from "@/hooks/useOpsLive";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ops } from "@/lib/operations";
 import { dispatch, optimizeToast } from "@/lib/dispatch";
@@ -39,6 +40,8 @@ const RISK: Record<string, string> = {
   low: "#475569",
 };
 const REFRESH_MS = 15_000;
+/** Safety net while the WebSocket is up — events do the real work. */
+const LIVE_SAFETY_MS = 60_000;
 
 const FILTERS: { key: TodayFilter; label: string }[] = [
   { key: "all", label: "All" },
@@ -330,7 +333,8 @@ export function TodayOps() {
 
 function TodayOpsLive() {
   const fill = useFillHeight();
-  const tick = useTicker(REFRESH_MS);
+  const liveStatus = useOpsLive();
+  const tick = useTicker(liveStatus === "live" ? LIVE_SAFETY_MS : REFRESH_MS);
   const qc = useQueryClient();
   const { getApiToken } = useAdminAuth();
   const [filter, setFilter] = useState<TodayFilter>("all");
@@ -471,10 +475,18 @@ function TodayOpsLive() {
             <span
               className={cn(
                 "h-1.5 w-1.5 rounded-full",
-                loadError ? "bg-red-500" : "bg-emerald-400"
+                loadError
+                  ? "bg-red-500"
+                  : liveStatus === "live"
+                    ? "animate-pulse bg-emerald-400"
+                    : "bg-amber-400"
               )}
             />
-            {loadError ? "Offline · showing last data" : `Synced ${ago(syncedAt)}`}
+            {loadError
+              ? "Offline · showing last data"
+              : liveStatus === "live"
+                ? "Live"
+                : `Polling every 15s · synced ${ago(syncedAt)}`}
           </div>
         </div>
         <Kpi label="On time" value={k.onTimePct == null ? "—" : `${k.onTimePct}%`} />

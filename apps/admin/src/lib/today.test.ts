@@ -181,3 +181,38 @@ describe("optimizeToast", () => {
     );
   });
 });
+
+describe("live updates", () => {
+  it("moves only drivers already on the board, newest fix wins", async () => {
+    const { applyDriverFix } = await import("@/lib/today");
+    const snap = {
+      drivers: [{ id: "d1", lat: 1, lng: 1, recorded_at: "2026-10-14T16:00:10Z", name: "J" }],
+      orders: [],
+    };
+    const moved = applyDriverFix(snap, {
+      type: "driver",
+      id: "d1",
+      lat: 2,
+      lng: 3,
+      at: "2026-10-14T16:00:20Z",
+    })!;
+    expect(moved.drivers[0]).toMatchObject({ lat: 2, lng: 3, name: "J" });
+    expect(snap.drivers[0].lat).toBe(1); // immutable
+    expect(
+      applyDriverFix(snap, { type: "driver", id: "dX", lat: 9, lng: 9, at: "2026-10-14T16:00:20Z" })
+    ).toBe(snap);
+    expect(
+      applyDriverFix(snap, { type: "driver", id: "d1", lat: 9, lng: 9, at: "2026-10-14T16:00:00Z" })
+    ).toBe(snap);
+  });
+  it("maps events to stale queries", async () => {
+    const { staleKeysFor } = await import("@/lib/today");
+    expect(staleKeysFor({ type: "order", id: "o", event: "order.delivered" })).toContain(
+      "today-map"
+    );
+    expect(staleKeysFor({ type: "exception", id: "e", event: "exception.opened" })).toContain(
+      "today-exceptions"
+    );
+    expect(staleKeysFor({ type: "driver", id: "d", lat: 0, lng: 0 })).toEqual([]);
+  });
+});
