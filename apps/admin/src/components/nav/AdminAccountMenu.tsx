@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, KeyRound, LogIn, LogOut, Settings, Shield, User } from "lucide-react";
@@ -78,6 +78,19 @@ export default function AdminAccountMenu() {
   const session = useOptionalSessionContext()?.session;
   const [passkeyMsg, setPasskeyMsg] = useState<string | null>(null);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
+  // Session lives in the browser (HttpOnly cookie → client provider), so the server always
+  // renders signed-out. Render a neutral avatar slot until mounted to keep hydration identical.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <span
+        aria-hidden
+        className="flex h-10 w-[4.5rem] items-center rounded-full border border-primary/10 bg-white"
+      />
+    );
+  }
 
   if (!isSignedIn && !profile && !session) {
     return (
