@@ -6,6 +6,7 @@ from porterchain_api.booking_engine import BookingConfirmationService, BookingSe
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.config import Settings, get_settings
+from porterchain_shared.redis_health import is_local_env
 from porterchain_api.db import get_db
 from porterchain_api.schemas import (
     BookingConfirmationResponse,
@@ -217,8 +218,9 @@ def mock_complete_checkout(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> BookingConfirmationResponse:
-    if not settings.allow_stripe_mock:
-        raise HTTPException(status_code=403, detail="mock_checkout_disabled")
+    # Hard-off outside local dev: the route does not exist in staging/production.
+    if not is_local_env(settings.app_env) or not settings.allow_stripe_mock:
+        raise HTTPException(status_code=404, detail="not_found")
     try:
         order = _confirmation_service.mock_complete_checkout(db, settings, body.quote_id)
     except LookupError:
