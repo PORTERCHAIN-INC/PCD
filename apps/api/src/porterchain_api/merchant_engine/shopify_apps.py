@@ -51,3 +51,16 @@ def for_shop(settings: Any, shop: str | None) -> ShopifyApp:
         getattr(settings, "shopify_api_key", "") or "",
         getattr(settings, "shopify_api_secret", "") or "",
     )
+
+
+def custom_app_for(settings: Any, shop: str | None) -> ShopifyApp | None:
+    """The custom-distribution app pinned to this shop, or None."""
+    shop = _norm(shop or "")
+    return next((a for a in apps(settings) if a.shop and a.shop == shop), None)
+
+
+CUSTOM_INSTALL_MESSAGE = (
+    "This store uses PorterChain's custom Shopify app. Unsigned install links show "
+    "'installation link is invalid'. Generate the install link in Shopify Partners "
+    "(Apps > Porterchain > Distribution) and send that link to the store owner."
+)
