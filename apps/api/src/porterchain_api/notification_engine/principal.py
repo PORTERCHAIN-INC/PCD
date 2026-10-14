@@ -221,6 +221,7 @@ async def resolve_notification_ws_user(
         try:
             from porterchain_api.auth.clerk import verify_clerk_token
 
+            db.rollback()  # release the connection while awaiting JWKS
             claims = await verify_clerk_token(
                 token,
                 settings,
@@ -265,4 +266,6 @@ async def resolve_notification_ws_user(
             return None
         return None
     finally:
-        db.close()
+        from porterchain_api.db import _safe_close
+
+        _safe_close(db)

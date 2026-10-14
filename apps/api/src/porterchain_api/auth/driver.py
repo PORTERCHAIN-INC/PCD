@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException
+from starlette.concurrency import run_in_threadpool
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -22,9 +23,34 @@ async def get_driver_context(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)] = None,
     x_driver_id: Annotated[str | None, Header()] = None,
 ) -> DriverContext:
-    driver_id: str | None = None
-
+    """Async shell: only the JWKS verify is awaited; all DB + Clerk Backend I/O runs
+    in the threadpool so a slow Clerk call or an exhausted pool can never block the
+    event loop (2026-10-14 freeze)."""
     token = credentials.credentials if credentials and credentials.credentials else None
+    claims = None
+    if token and token != "dev":
+        from porterchain_api.auth.impersonation_session import IMP_BEARER_PREFIX
+
+        if not token.startswith(IMP_BEARER_PREFIX):
+            from porterchain_api.auth.clerk import verify_clerk_token
+
+            try:
+                claims = await verify_clerk_token(token, settings)
+            except Exception as exc:
+                raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
+    return await run_in_threadpool(
+        _resolve_driver_context_sync, db, settings, token, x_driver_id, claims
+    )
+
+
+def _resolve_driver_context_sync(
+    db: Session,
+    settings: Settings,
+    token: str | None,
+    x_driver_id: str | None,
+    claims,
+) -> DriverContext:
+    driver_id: str | None = None
     if token == "dev" and allow_auth_dev_bypass(settings):
         driver = resolve_dev_bypass_driver(db)
         if driver:
@@ -45,7 +71,7 @@ async def get_driver_context(
             if driver.status == DriverStatus.SUSPENDED.value:
                 raise HTTPException(status_code=403, detail="driver_suspended")
             return DriverContext(driver=driver)
-        driver_id = await _clerk_driver_id(db, token, settings)
+        driver_id = _clerk_driver_id_from_claims(db, claims, settings)
     elif allow_auth_dev_bypass(settings) and x_driver_id:
         driver_id = x_driver_id
     elif allow_auth_dev_bypass(settings):
@@ -83,15 +109,30 @@ def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
 
 
 async def _clerk_driver_id(db: Session, token: str, settings: Settings) -> str:
+    """Back-compat async entry: verify on the loop, resolve in the threadpool."""
     from porterchain_api.auth.clerk import verify_clerk_token
-    from porterchain_api.auth.persona_bundle import load_persona_bundle
-    from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
-    from porterchain_api.auth.prepare import prepare_user_from_claims
 
     try:
         claims = await verify_clerk_token(token, settings)
     except Exception as exc:
         raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
+    return await run_in_threadpool(_clerk_driver_id_from_claims, db, claims, settings)
+
+
+def _clerk_driver_id_from_claims(db: Session, claims, settings: Settings) -> str:
+    from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
+    from porterchain_api.auth.persona_bundle import load_persona_bundle
+    from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
+    from porterchain_api.auth.prepare import prepare_user_from_claims
+
+    if claims is None:
+        raise HTTPException(status_code=401, detail="invalid_driver_token")
+    # Clerk Backend lookup BEFORE the first query: never hold a transaction open
+    # ("idle in transaction") while waiting on the network.
+    try:
+        claims = enrich_claims_with_verified_email(claims, settings)
+    except Exception:  # noqa: BLE001 — email check below reports the precise error
+        pass
 
     # Align with other portals: prepare (UserSync + SpiceDB) once, then exclusive check.
     prepare_user_from_claims(db, claims)

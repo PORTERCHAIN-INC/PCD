@@ -82,7 +82,8 @@ class ClerkClient:
         return None
 
     def get_user(self, clerk_user_id: str) -> dict[str, Any] | None:
-        with httpx.Client(timeout=20.0) as client:
+        # Request-path lookup: short budget so auth never waits ~20 s per Clerk app.
+        with httpx.Client(timeout=httpx.Timeout(4.0, connect=2.0)) as client:
             res = client.get(f"{CLERK_API}/users/{clerk_user_id}", headers=self._headers())
             if res.status_code == 404:
                 return None

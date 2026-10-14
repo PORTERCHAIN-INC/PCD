@@ -201,6 +201,15 @@ services:
   api:
     image: ${API_IMAGE:-ghcr.io/porterchain-inc/pcd-api:latest}
     restart: unless-stopped
+    labels:
+      autoheal: "true"
+    # Liveness only (no DB). Docker marks unhealthy after ~45 s; autoheal restarts it.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -m 3 http://localhost:8001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     pull_policy: missing
     # No container_name — required for `docker compose up --scale api=N` (ADR-012).
     # 4GB droplet default is API_REPLICAS=1; scale to 2 when the host has ≥8 GB.
@@ -544,6 +553,18 @@ services:
       - edge
     security_opt:
       - no-new-privileges:true
+
+  # Docker never restarts an *unhealthy* container on its own; this does.
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    restart: unless-stopped
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: "10"
+      AUTOHEAL_START_PERIOD: "60"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: none
 
 networks:
   edge:
