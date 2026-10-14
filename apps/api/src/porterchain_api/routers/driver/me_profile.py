@@ -58,17 +58,23 @@ async def sync_my_identity(
         claims = await verify_clerk_token(token, settings)
     except Exception as exc:
         raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
-    driver = pp.driver_for_clerk_user(db, claims.clerk_user_id)
-    if not driver:
-        raise HTTPException(status_code=403, detail="driver_not_found")
-    clerk_user, _ = fetch_clerk_user(settings, claims.clerk_user_id)
-    if not clerk_user:
-        raise HTTPException(status_code=502, detail="identity_lookup_failed")
-    email, _detail = email_identity.verified_primary_email_from_clerk_user(clerk_user)
-    phone = pp.verified_primary_phone(clerk_user)
-    email_identity._email_cache.pop(claims.clerk_user_id, None)
-    with db_transaction(db):
-        changed = pp.sync_identity(db, driver, email=email, phone=phone)
-        if changed:
-            pp.audit_self_change(db, driver.id, "driver.identity.sync", changed)
-    return {"profile": pp.read_profile(driver), "changed": changed}
+    from starlette.concurrency import run_in_threadpool
+
+    def _sync() -> dict:
+        # Clerk Backend first: no DB transaction is open while we wait on the network.
+        clerk_user, _ = fetch_clerk_user(settings, claims.clerk_user_id)
+        driver = pp.driver_for_clerk_user(db, claims.clerk_user_id)
+        if not driver:
+            raise HTTPException(status_code=403, detail="driver_not_found")
+        if not clerk_user:
+            raise HTTPException(status_code=502, detail="identity_lookup_failed")
+        email, _detail = email_identity.verified_primary_email_from_clerk_user(clerk_user)
+        phone = pp.verified_primary_phone(clerk_user)
+        email_identity._email_cache.pop(claims.clerk_user_id, None)
+        with db_transaction(db):
+            changed = pp.sync_identity(db, driver, email=email, phone=phone)
+            if changed:
+                pp.audit_self_change(db, driver.id, "driver.identity.sync", changed)
+        return {"profile": pp.read_profile(driver), "changed": changed}
+
+    return await run_in_threadpool(_sync)
