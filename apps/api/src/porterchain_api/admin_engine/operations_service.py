@@ -70,6 +70,23 @@ class AdminOperationsService:
         except Exception:  # noqa: BLE001 — assign must succeed even if optimize queues fail
             pass
 
+    @staticmethod
+    def release_assignment_no_commit(db: Session, ctx: AdminContext, order: Order, *, plan_id: str) -> None:
+        """Undo a plan assignment: back to the dispatch pool. Caller guarantees DRIVER_ASSIGNED.
+
+        Canonical path (ASSIGNED → REJECTED → DISPATCH_READY) tagged ``order.plan_undo`` so it never
+        counts as a driver rejection.
+        """
+        actor = getattr(getattr(ctx, "user", None), "id", None)
+        payload = {"driver_id": order.assigned_driver_id, "plan_id": plan_id, "reason": "plan_undo"}
+        for to in (OrderState.DRIVER_REJECTED, OrderState.DISPATCH_READY):
+            transition_order_state(db, order, to, event_type="order.plan_undo",
+                                   actor_type="admin", actor_id=actor, payload=payload)
+        order.assigned_driver_id = None
+        db.add(AdminAuditLog(actor_user_id=actor, action="dispatch.plan_undo", resource_type="order",
+                             resource_id=order.id, payload=payload))
+        db.flush()
+
     def _assign_driver_no_commit(
         self,
         db: Session,

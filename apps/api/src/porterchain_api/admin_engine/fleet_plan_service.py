@@ -24,6 +24,13 @@ CUSTOMER_DROPS = {"drop", "return_drop"}  # a hub/partner handoff never inherits
 Matrix = Callable[[list[tuple[float, float]]], list[list[int]] | None]
 
 
+UNDO_WINDOW = timedelta(minutes=15)
+
+
+def _aware(dt: datetime) -> datetime:
+    return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
+
+
 def _now() -> datetime:
     return datetime.now(UTC)
 
@@ -372,7 +379,7 @@ class FleetPlanService:
         if plan.status != "draft":
             raise ValueError("plan_not_draft")
         ops = AdminOperationsService()
-        assigned, skipped = 0, []
+        assigned, skipped, assigned_ids = 0, [], []
         for r in db.query(DispatchRoute).filter(DispatchRoute.plan_id == plan.id).all():
             if not r.driver_id:
                 continue
@@ -386,19 +393,66 @@ class FleetPlanService:
                 try:
                     ops.assign_driver(db, settings, ctx, oid, r.driver_id)
                     assigned += 1
+                    assigned_ids.append({"order_id": oid, "driver_id": r.driver_id})
                 except (ValueError, LookupError, PermissionError) as exc:
                     db.rollback()
                     skipped.append({"order_id": oid, "reason": str(exc)})
             r.status = "committed"
-        db.query(DispatchPlan).filter(
-            DispatchPlan.status == "committed", DispatchPlan.service_date == plan.service_date
-        ).update({DispatchPlan.status: "superseded"}, synchronize_session=False)
+        prior = db.query(DispatchPlan).filter(
+            DispatchPlan.status == "committed", DispatchPlan.service_date == plan.service_date,
+            DispatchPlan.id != plan.id,
+        )
+        superseded = [p.id for p in prior.all()]
+        prior.update({DispatchPlan.status: "superseded"}, synchronize_session=False)
         plan.status = "committed"
         plan.committed_at = _now()
         plan.committed_by = getattr(getattr(ctx, "user", None), "id", None)
-        plan.summary = {**(plan.summary or {}), "commit": {"assigned": assigned, "skipped": skipped}}
+        plan.summary = {**(plan.summary or {}), "commit": {
+            "assigned": assigned, "skipped": skipped, "assigned_ids": assigned_ids, "superseded": superseded,
+        }}
         db.commit()
         return self.get(db, plan.id)
+
+    def undo(self, db: Session, ctx: Any, plan_id: str) -> dict:
+        """Revert a just-committed plan: un-assign only what this commit assigned.
+
+        Safe by construction: an order is released back to the pool only while it is still
+        DRIVER_ASSIGNED to the same driver (driver has not accepted, nothing picked up).
+        Anything further along is left untouched and reported as kept.
+        """
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+        from porterchain_api.booking_models import Order
+        from porterchain_api.dispatch_engine.models import DispatchPlan
+        from porterchain_api.domain.states import OrderState
+
+        plan = db.get(DispatchPlan, plan_id)
+        if plan is None:
+            raise LookupError("plan_not_found")
+        if plan.status != "committed":
+            raise ValueError("plan_not_committed")
+        if plan.committed_at and _now() - _aware(plan.committed_at) > UNDO_WINDOW:
+            raise ValueError("undo_window_expired")
+        commit = (plan.summary or {}).get("commit") or {}
+        actor = getattr(getattr(ctx, "user", None), "id", None)
+        released, kept = [], []
+        for row in commit.get("assigned_ids") or []:
+            o = db.get(Order, row["order_id"])
+            if o is None:
+                continue
+            if o.assigned_driver_id != row["driver_id"] or o.state != OrderState.DRIVER_ASSIGNED.value:
+                kept.append({"order_id": o.id, "reason": f"already {o.state.lower()}"})
+                continue
+            AdminOperationsService.release_assignment_no_commit(db, ctx, o, plan_id=plan.id)
+            released.append(o.id)
+        restore = commit.get("superseded") or []
+        if restore:
+            db.query(DispatchPlan).filter(DispatchPlan.id.in_(restore), DispatchPlan.status == "superseded").update(
+                {DispatchPlan.status: "committed"}, synchronize_session=False)
+        plan.status = "reverted"
+        plan.summary = {**(plan.summary or {}), "undo": {"released": released, "kept": kept, "by": actor,
+                                                          "at": _now().isoformat()}}
+        db.commit()
+        return {"plan_id": plan.id, "status": plan.status, "released": len(released), "kept": kept}
 
     def explain(self, db: Session, plan_id: str) -> dict:
         from porterchain_api.dispatch_engine.models import DispatchRoute
