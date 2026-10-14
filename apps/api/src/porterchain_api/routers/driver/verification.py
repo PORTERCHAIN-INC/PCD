@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, Field
 
+from porterchain_shared.redis_health import is_local_env
 from porterchain_api.db import db_transaction
 from porterchain_api.driver_engine.abstract_service import DriverAbstractService
 from porterchain_api.driver_engine.background_check_service import DriverBackgroundCheckService
@@ -54,6 +55,12 @@ def start_identity_verification_session(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
+def _require_local_mock(settings: Settings) -> None:
+    """Mock identity/background completion is local dev only: 404 everywhere else."""
+    if not is_local_env(settings.app_env):
+        raise HTTPException(status_code=404, detail="not_found")
+
+
 @router.post("/verification/identity/mock-complete")
 def mock_complete_identity_verification(
     body: MockIdentityCompleteRequest,
@@ -61,6 +68,7 @@ def mock_complete_identity_verification(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     """Local-only: complete a mock Stripe Identity session without webhooks."""
+    _require_local_mock(settings)
     try:
         with db_transaction(db):
             return _verification.complete_mock_identity(
@@ -104,6 +112,7 @@ def mock_complete_background_check(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     """Local-only: complete a mock Checkr screening without webhooks."""
+    _require_local_mock(settings)
     try:
         with db_transaction(db):
             return _background.complete_mock(
