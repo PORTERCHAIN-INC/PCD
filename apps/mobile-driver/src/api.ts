@@ -38,7 +38,9 @@ function detailFromBody(body: unknown, status: number): string {
     const detail = (body as { detail: unknown }).detail;
     if (typeof detail === "string") return detail;
     if (typeof detail === "object" && detail) {
-      const d = detail as { code?: string; error?: string; message?: string };
+      const d = detail as { code?: string; error?: string; message?: string; field?: string };
+      // Field validation (422): keep field + code so the form can mark the right input.
+      if (d.field && d.code) return JSON.stringify({ field: d.field, code: d.code });
       if (d.code === "sequence_version_conflict") return "sequence_version_conflict";
       if ((d.code === "pod_required" || d.code === "driver_off_duty") && d.message)
         return d.message;
@@ -485,5 +487,160 @@ export function requestPrivacy(
   return driverFetch(`${DRIVER_API}/privacy/request`, {
     method: "POST",
     body: JSON.stringify({ kind, ...(note ? { note } : {}) }),
+  });
+}
+
+// ---------- Profile, pay, time, alerts, help ----------
+export type Address = {
+  line1: string;
+  line2?: string | null;
+  city: string;
+  province: string;
+  postal_code: string;
+  country?: string;
+};
+export type EmergencyContact = { name: string; relationship: string; phone: string };
+export type MeProfile = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  address: Address | null;
+  emergency_contact: EmergencyContact | null;
+  photo_url: string | null;
+  updated_at: string | null;
+};
+export type ProfilePatch = Partial<{
+  full_name: string;
+  address: Address | null;
+  emergency_contact: EmergencyContact | null;
+  photo: string | null;
+}>;
+
+export function fetchMyProfile(): Promise<MeProfile> {
+  return driverFetch(`${DRIVER_API}/me/profile`);
+}
+export function patchMyProfile(
+  body: ProfilePatch
+): Promise<{ profile: MeProfile; changed: string[] }> {
+  return driverFetch(`${DRIVER_API}/me/profile`, { method: "PATCH", body: JSON.stringify(body) });
+}
+export function syncMyIdentity(): Promise<{ profile: MeProfile; changed: string[] }> {
+  return driverFetch(`${DRIVER_API}/me/profile/sync-identity`, { method: "POST" });
+}
+
+export type Statement = {
+  id: string;
+  period_label: string;
+  period_start: string;
+  period_end: string;
+  gross_cents: number;
+  deductions_cents: number;
+  net_cents: number;
+  deliveries: number;
+};
+export type Payout = {
+  id: string;
+  amount_cents: number;
+  status: string;
+  reference: string | null;
+  created_at: string | null;
+};
+export type EarningsFull = {
+  today_cents: number;
+  week_cents: number;
+  month_cents: number;
+  completed_deliveries_week?: number;
+  wallet_balance_cents?: number;
+  payout_history?: Payout[];
+  payment_schedule?: {
+    frequency: string;
+    next_payout_date: string;
+    deposit_delay_business_days: number;
+  };
+  taxes?: { ytd_gross_cents: number };
+};
+export function fetchEarnings(): Promise<EarningsFull> {
+  return driverFetch(`${DRIVER_API}/earnings`);
+}
+export function fetchStatements(): Promise<{ statements: Statement[] }> {
+  return driverFetch(`${DRIVER_API}/earnings/statements`);
+}
+
+export type TimesheetShift = {
+  id: string;
+  date: string;
+  started_at: string;
+  ended_at: string | null;
+  worked_minutes: number;
+  break_minutes: number;
+  km: number;
+  status: string;
+};
+export type TimesheetWeek = {
+  week_start: string;
+  worked_minutes: number;
+  break_minutes: number;
+  km: number;
+  shifts: TimesheetShift[];
+};
+export function fetchTimesheets(
+  weeks = 4
+): Promise<{ weeks: TimesheetWeek[]; total_worked_minutes: number }> {
+  return driverFetch(`${DRIVER_API}/timesheets?weeks=${weeks}`);
+}
+
+export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+export type Schedule = Record<DayKey, { start: string; end: string }[]>;
+export function fetchSchedule(): Promise<{ schedule: Schedule; weekly_hours: number }> {
+  return driverFetch(`${DRIVER_API}/availability/schedule`);
+}
+export function saveSchedule(
+  schedule: Schedule
+): Promise<{ schedule: Schedule; weekly_hours: number }> {
+  return driverFetch(`${DRIVER_API}/availability/schedule`, {
+    method: "PUT",
+    body: JSON.stringify({ schedule }),
+  });
+}
+
+export type InboxItem = {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  category: string;
+  is_read: boolean;
+  created_at: string | null;
+};
+export function fetchInbox(): Promise<{ unread_count: number; items: InboxItem[] }> {
+  return driverFetch(`${DRIVER_API}/communications/notifications/history?limit=100`);
+}
+export function markAllRead(): Promise<{ ok: boolean; marked: number }> {
+  return driverFetch(`${DRIVER_API}/communications/notifications/mark-all-read`, {
+    method: "POST",
+  });
+}
+
+export type Ticket = {
+  id: string;
+  ticket_number?: string;
+  subject: string;
+  status: string;
+  priority?: string;
+  description?: string | null;
+  created_at?: string | null;
+};
+export function fetchTickets(): Promise<{ tickets: Ticket[] }> {
+  return driverFetch(`${DRIVER_API}/support`);
+}
+export function createTicket(body: {
+  subject: string;
+  description?: string;
+  order_id?: string;
+}): Promise<Ticket> {
+  return driverFetch(`${DRIVER_API}/support`, {
+    method: "POST",
+    body: JSON.stringify({ ...body, category: "driver_support" }),
   });
 }

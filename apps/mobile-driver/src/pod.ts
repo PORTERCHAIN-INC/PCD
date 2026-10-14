@@ -117,3 +117,27 @@ export async function captureDocumentDataUrl(
   if (!url) throw new Error("photo_too_large");
   return url;
 }
+
+/** Square profile photo (512 px, ~60 KB) from camera or library. No EXIF/GPS kept. */
+export async function captureAvatarDataUrl(source: "camera" | "library"): Promise<string> {
+  const opts = {
+    mediaTypes: ["images"] as ImagePicker.MediaType[],
+    quality: 0.8,
+    exif: false,
+    allowsEditing: true,
+    aspect: [1, 1] as [number, number],
+  };
+  if (source === "camera") {
+    let { status } = await ImagePicker.getCameraPermissionsAsync();
+    if (status !== "granted") status = (await ImagePicker.requestCameraPermissionsAsync()).status;
+    if (status !== "granted") throw new Error("camera_permission_denied");
+  }
+  const r =
+    source === "camera"
+      ? await ImagePicker.launchCameraAsync(opts)
+      : await ImagePicker.launchImageLibraryAsync(opts);
+  if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+  const b64 = await renderStep(r.assets[0].uri, { width: 512, compress: 0.8 });
+  if (!b64) throw new Error("photo_failed");
+  return toDataUrl(b64);
+}

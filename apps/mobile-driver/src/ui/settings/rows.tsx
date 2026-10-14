@@ -1,6 +1,6 @@
 /** Compact settings rows: section card, tap row, switch row, segmented choice. 52 pt rows. */
 import type { ReactNode } from "react";
-import { StyleSheet, Switch, Text, View } from "react-native";
+import { StyleSheet, Switch, Text, TextInput, View, type TextInputProps } from "react-native";
 import { haptic } from "../../haptics";
 import { PressScale } from "../motion";
 import { color, radius, space, type } from "../theme";
@@ -230,4 +230,56 @@ const st = StyleSheet.create({
   segText: { fontSize: 14, fontWeight: "700", color: color.inkMuted },
   segTextOn: { color: color.ink },
   divider: { height: space.sm },
+});
+
+/** Labelled text input row in the same card language (52 pt, high contrast). */
+export function InputRow({
+  label,
+  value,
+  onChange,
+  testID,
+  error,
+  ...rest
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  testID?: string;
+  error?: string | null;
+} & Omit<TextInputProps, "value" | "onChangeText" | "onChange">) {
+  return (
+    <View style={inSt.row}>
+      <Text style={inSt.label}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        placeholderTextColor={color.inkFaint}
+        style={inSt.input}
+        accessibilityLabel={label}
+        testID={testID}
+        {...rest}
+      />
+      {error ? <Text style={inSt.err}>{error}</Text> : null}
+    </View>
+  );
+}
+
+const inSt = StyleSheet.create({
+  row: {
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm + 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: color.border,
+    gap: 4,
+  },
+  label: { ...type.label, color: color.inkFaint },
+  input: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "600",
+    color: color.ink,
+    minHeight: 32,
+    padding: 0,
+  },
+  err: { fontSize: 13, color: color.danger },
 });

@@ -8,6 +8,13 @@ export const qk = {
   vehicle: ["vehicle"] as const,
   settings: ["settings"] as const,
   policy: ["policy"] as const,
+  profile: ["profile"] as const,
+  earningsFull: ["pay", "earnings"] as const,
+  statements: ["pay", "statements"] as const,
+  timesheets: ["time", "sheets"] as const,
+  schedule: ["time", "schedule"] as const,
+  inbox: ["inbox"] as const,
+  tickets: ["tickets"] as const,
 };
 
 export const PERSISTED = new Set<string>([
@@ -19,6 +26,11 @@ export const PERSISTED = new Set<string>([
   "vehicle",
   "settings",
   "policy",
+  "profile",
+  "pay",
+  "time",
+  "inbox",
+  "tickets",
 ]);
 
 /** Pure: should this cached query be written to disk? (success only, allow-listed, no file bytes). */

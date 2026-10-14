@@ -3,11 +3,20 @@
  * pages (Documents, Settings) so this screen stays one glance.
  */
 import { useState } from "react";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, StyleSheet, Text, View } from "react-native";
 import { dispatchEmail, dispatchPhone, driverPortalUrl } from "../config";
 import type { MonitoringPolicy } from "../api";
 import type { LocationConsent } from "../consent";
-import { useDocuments, useEarnings, useSupportHub, useVehicle } from "../data/queries";
+import {
+  useDocuments,
+  useEarnings,
+  useInbox,
+  useMyProfile,
+  useSchedule,
+  useSupportHub,
+  useVehicle,
+} from "../data/queries";
+import { PressScale } from "../ui/motion";
 import { docAlerts } from "../docs";
 import { moneyShort } from "../smart/geo";
 import { useT } from "../i18n";
@@ -19,6 +28,13 @@ import { color, space } from "../ui/theme";
 import { UpdatedAgo } from "../ui/UpdatedAgo";
 import { DocumentsPage } from "./DocumentsPage";
 import { SettingsPage } from "./SettingsPage";
+import { AvailabilityPage } from "./AvailabilityPage";
+import { HelpPage } from "./HelpPage";
+import { InboxPage } from "./InboxPage";
+import { PayPage } from "./PayPage";
+import { ProfilePage } from "./ProfilePage";
+
+type Page = null | "settings" | "documents" | "profile" | "pay" | "availability" | "inbox" | "help";
 
 type Props = {
   field: FieldSession;
@@ -29,14 +45,17 @@ type Props = {
   onSync: () => void;
   onSignOut: () => Promise<void>;
   /** Harness/deep link: open a page straight away. */
-  initialPage?: null | "settings" | "documents";
+  initialPage?: Page;
 };
 
 export function MeScreen(props: Props) {
   const { field, onSync } = props;
   const { handshake: h, pending } = field;
   const t = useT();
-  const [page, setPage] = useState<null | "settings" | "documents">(props.initialPage ?? null);
+  const [page, setPage] = useState<Page>(props.initialPage ?? null);
+  const profile = useMyProfile();
+  const inbox = useInbox();
+  const sched = useSchedule();
   const hub = useSupportHub();
   const docs = useDocuments();
   const vehicle = useVehicle();
@@ -55,10 +74,32 @@ export function MeScreen(props: Props) {
   return (
     <Screen testID="screen-me">
       <View style={st.head}>
-        <View style={st.flex}>
-          <Title numberOfLines={1}>{h.driverName ?? t("me")}</Title>
-          <Muted>{h.online ? "On duty" : "Off duty"}</Muted>
-        </View>
+        <PressScale
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+          onPress={() => setPage("profile")}
+          style={st.who}
+          testID="me-profile"
+        >
+          {profile.data?.photo_url ? (
+            <Image source={{ uri: profile.data.photo_url }} style={st.avatar} />
+          ) : (
+            <View style={[st.avatar, st.avatarEmpty]}>
+              <Text style={st.initials}>
+                {(profile.data?.full_name ?? h.driverName ?? "?")
+                  .split(/\s+/)
+                  .map((w) => w[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={st.flex}>
+            <Title numberOfLines={1}>{profile.data?.full_name ?? h.driverName ?? t("me")}</Title>
+            <Muted>{h.online ? "On duty" : "Off duty"} · View profile ›</Muted>
+          </View>
+        </PressScale>
         <UpdatedAgo at={field.updatedAt} fetching={field.busy} offline={h.api === "down"} />
       </View>
 
@@ -87,7 +128,35 @@ export function MeScreen(props: Props) {
         </View>
       ) : null}
 
+      <Section title="WORK">
+        <Row
+          label="Pay & time"
+          sub="Earnings, statements, payouts, timesheets"
+          onPress={() => setPage("pay")}
+          testID="me-pay"
+        />
+        <Row
+          label="Availability"
+          value={sched.data ? `${sched.data.weekly_hours} h/wk` : undefined}
+          sub="Days and hours dispatch can plan you"
+          onPress={() => setPage("availability")}
+          testID="me-availability"
+        />
+        <Row
+          label="Notifications"
+          badge={inbox.data?.unread_count || undefined}
+          onPress={() => setPage("inbox")}
+          testID="me-inbox"
+        />
+      </Section>
+
       <Section title="ACCOUNT">
+        <Row
+          label="Profile & security"
+          sub="Name, address, emergency contact, email, phone, password"
+          onPress={() => setPage("profile")}
+          testID="me-profile-row"
+        />
         <Row
           label={t("documents")}
           sub={docs.data ? (alerts ? "Action needed" : "All in order") : undefined}
@@ -103,14 +172,15 @@ export function MeScreen(props: Props) {
         />
         <Row
           label={t("settings")}
-          sub="Navigation, voice, text size, notifications, privacy"
+          sub="Language, navigation, voice, notifications, privacy, legal"
           onPress={() => setPage("settings")}
           testID="me-settings"
         />
         <Row
-          label="Driver portal"
-          sub="Payouts, statements, messages"
-          onPress={() => void Linking.openURL(driverPortalUrl)}
+          label="Help"
+          sub="Dispatch, tickets"
+          onPress={() => setPage("help")}
+          testID="me-help"
         />
       </Section>
 
@@ -156,6 +226,15 @@ export function MeScreen(props: Props) {
 
       {sosPage}
       <DocumentsPage visible={page === "documents"} onClose={() => setPage(null)} />
+      <ProfilePage
+        visible={page === "profile"}
+        onClose={() => setPage(null)}
+        onSignOut={props.onSignOut}
+      />
+      <PayPage visible={page === "pay"} onClose={() => setPage(null)} />
+      <AvailabilityPage visible={page === "availability"} onClose={() => setPage(null)} />
+      <InboxPage visible={page === "inbox"} onClose={() => setPage(null)} />
+      <HelpPage visible={page === "help"} onClose={() => setPage(null)} />
       <SettingsPage
         visible={page === "settings"}
         onClose={() => setPage(null)}
@@ -185,6 +264,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 const st = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "flex-end", gap: space.md },
+  who: { flex: 1, flexDirection: "row", alignItems: "center", gap: space.md },
+  avatar: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: color.primary },
+  avatarEmpty: { backgroundColor: color.surface2, alignItems: "center", justifyContent: "center" },
+  initials: { fontSize: 20, fontWeight: "900", color: color.ink },
   flex: { flex: 1 },
   stats: { flexDirection: "row", gap: space.sm },
   stat: {
