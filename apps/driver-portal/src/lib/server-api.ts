@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
-import { clerkDevBypassEnabled } from "@porterchain/auth/devBypass";
+import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { PC_IMP_COOKIE, PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
 import type { DriverDashboard, DriverIncident, DriverProfile, DriverVehicle } from "@/lib/api";
@@ -23,6 +23,8 @@ function apiBase(): string {
 }
 
 function devLoginEnabled(): boolean {
+  // The dev cookie is forgeable: a production build never honours it (matches middleware).
+  if (!isDevelopmentBuild()) return false;
   if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "false") return false;
   if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "true") return true;
   const appEnv = (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? "").trim();

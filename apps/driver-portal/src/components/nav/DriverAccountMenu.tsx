@@ -137,10 +137,10 @@ function DriverAccountMenuBody({
 
       <div className="p-1.5">
         <AccountMenuLink
-          href="/profile"
+          href="/account"
           icon={User}
-          label="Driver profile"
-          hint="License, vehicle, compliance"
+          label="Account"
+          hint="Profile, password, devices, privacy"
         />
         <AccountMenuLink
           href="/profile#documents"

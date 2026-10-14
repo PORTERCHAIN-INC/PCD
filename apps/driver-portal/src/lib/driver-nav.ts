@@ -9,6 +9,7 @@ import {
   LifeBuoy,
   Navigation,
   Route,
+  ShieldCheck,
   Siren,
   TrendingUp,
   User,
@@ -103,7 +104,18 @@ export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
         description: "Courses and certificates",
         icon: GraduationCap,
       },
-      { href: "/profile", label: "Profile", description: "Contact, bank, preferences", icon: User },
+      {
+        href: "/account",
+        label: "Account",
+        description: "Profile, password, devices, privacy",
+        icon: User,
+      },
+      {
+        href: "/profile",
+        label: "Compliance",
+        description: "Verification, vehicle checks, expiry",
+        icon: ShieldCheck,
+      },
       { href: "/support", label: "Support", description: "Help and tickets", icon: LifeBuoy },
       {
         href: "/emergency",
