@@ -195,3 +195,27 @@ export function ago(ms: number | null, now: number = Date.now()): string {
   if (s < 60) return `${s}s ago`;
   return `${Math.round(s / 60)}m ago`;
 }
+
+export type Pos = { id: string; lat: number; lng: number };
+
+/** Ease-out cubic: fast start, gentle arrival — reads as a vehicle settling, not a jump. */
+export const easeOut = (t: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+
+/** Jumps larger than this (~2 km) snap instead of gliding — a teleporting van across town is worse. */
+const MAX_GLIDE_DEG = 0.02;
+
+/**
+ * Interpolate driver positions between two polls. New drivers appear at their target,
+ * vanished drivers drop out, and big jumps snap.
+ */
+export function glide<T extends Pos>(from: Pos[], to: T[], t: number): T[] {
+  const prev = new Map(from.map((p) => [p.id, p]));
+  const k = easeOut(t);
+  return to.map((p) => {
+    const a = prev.get(p.id);
+    if (!a) return p;
+    const far = Math.abs(p.lat - a.lat) > MAX_GLIDE_DEG || Math.abs(p.lng - a.lng) > MAX_GLIDE_DEG;
+    if (far || k >= 1) return p;
+    return { ...p, lat: a.lat + (p.lat - a.lat) * k, lng: a.lng + (p.lng - a.lng) * k };
+  });
+}

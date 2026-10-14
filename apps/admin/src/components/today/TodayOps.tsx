@@ -4,12 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Check, Loader2, Route, Send, X, Zap } from "lucide-react";
+import { ArrowUpRight, Check, Loader2, Route, Send, Undo2, X, Zap } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ops } from "@/lib/operations";
-import { dispatch } from "@/lib/dispatch";
+import { dispatch, optimizeToast } from "@/lib/dispatch";
 import { ordersApi } from "@/lib/orders";
 import type { MapLine, MapPoint } from "@/components/maps/OsmMap";
 import {
@@ -17,9 +17,11 @@ import {
   buildIssues,
   filterCounts,
   filterIssues,
+  glide,
   kpis,
   promiseTimeline,
   type TodayFilter,
+  type Pos,
   type TodayIssue,
 } from "@/lib/today";
 
@@ -251,6 +253,41 @@ function Inspector({ orderId, onClose }: { orderId: string; onClose: () => void 
   );
 }
 
+const GLIDE_MS = 1800;
+
+/** Smoothly move markers from the last poll to the new one (prep for WebSocket pushes). */
+function useGlide<T extends Pos>(target: T[]): T[] {
+  const [shown, setShown] = useState<T[]>(target);
+  const last = useRef<Pos[]>(target);
+  useEffect(() => {
+    const from = last.current;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || from.length === 0) {
+      last.current = target;
+      setShown(target);
+      return;
+    }
+    const start = performance.now();
+    let raf = 0;
+    let lastPaint = 0;
+    const step = (now: number) => {
+      const t = (now - start) / GLIDE_MS;
+      if (now - lastPaint > 33 || t >= 1) {
+        lastPaint = now;
+        const frame = glide(from, target, t);
+        last.current = frame;
+        setShown(frame);
+      }
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  return shown;
+}
+
+type Toast = { text: string; planId?: string; tone?: "ok" | "error" };
+
 /** Fill the viewport below wherever the shell places us (banners vary). */
 function useFillHeight() {
   const ref = useRef<HTMLDivElement>(null);
@@ -279,7 +316,13 @@ export function TodayOps() {
   const { getApiToken } = useAdminAuth();
   const [filter, setFilter] = useState<TodayFilter>("all");
   const [selected, setSelected] = useState<string | null>(null);
-  const [planMsg, setPlanMsg] = useState<string | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const [undoing, setUndoing] = useState(false);
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), toast.planId ? 20_000 : 6_000);
+    return () => clearTimeout(id);
+  }, [toast]);
   const [planning, setPlanning] = useState(false);
 
   // Instant data: cached snapshot renders first (keepPreviousData), refresh is quiet.
@@ -320,6 +363,9 @@ export function TodayOps() {
     return m;
   }, [issues]);
 
+  const driverTargets = useMemo(() => live.data?.drivers ?? [], [live.data]);
+  const glidingDrivers = useGlide(driverTargets);
+
   const points = useMemo<MapPoint[]>(() => {
     const snap = live.data;
     if (!snap) return [];
@@ -337,7 +383,7 @@ export function TodayOps() {
         };
       })
     );
-    const drivers: MapPoint[] = snap.drivers.map((d) => ({
+    const drivers: MapPoint[] = glidingDrivers.map((d) => ({
       id: `driver:${d.id}`,
       lat: d.lat,
       lng: d.lng,
@@ -347,7 +393,7 @@ export function TodayOps() {
       title: d.name,
     }));
     return [...stops, ...drivers];
-  }, [live.data, riskByOrder, selected]);
+  }, [live.data, glidingDrivers, riskByOrder, selected]);
 
   const lines = useMemo<MapLine[]>(() => {
     const p = route.data?.path;
@@ -361,17 +407,34 @@ export function TodayOps() {
   const firstLoad = !stats.data && !exc.data && (stats.loading || exc.loading);
   const loadError = stats.error || exc.error || live.error;
 
+  // Ravi (Oct 14): optimizing applies the plan immediately; Undo is the safety net.
   const optimize = async () => {
     setPlanning(true);
-    setPlanMsg(null);
+    setToast(null);
     try {
-      const plan = await dispatch.planDay(await getApiToken(), { time_limit_s: 10 });
-      const routes = (plan as { routes?: unknown[] }).routes?.length ?? 0;
-      setPlanMsg(`${routes} route${routes === 1 ? "" : "s"} drafted`);
+      const plan = await dispatch.planDay(await getApiToken(), { time_limit_s: 10, commit: true });
+      const assigned = plan.summary.commit?.assigned ?? 0;
+      setToast({ text: optimizeToast(plan), planId: assigned > 0 ? plan.id : undefined });
+      void refetchAll();
     } catch (e) {
-      setPlanMsg(e instanceof Error ? e.message : "Optimize failed");
+      setToast({ text: e instanceof Error ? e.message : "Optimize failed", tone: "error" });
     } finally {
       setPlanning(false);
+    }
+  };
+
+  const undo = async (planId: string) => {
+    setUndoing(true);
+    try {
+      const r = await dispatch.undoPlan(await getApiToken(), planId);
+      setToast({
+        text: `Undone · ${r.released} released${r.kept.length ? ` · ${r.kept.length} kept (already moving)` : ""}`,
+      });
+      void refetchAll();
+    } catch (e) {
+      setToast({ text: e instanceof Error ? e.message : "Undo failed", tone: "error" });
+    } finally {
+      setUndoing(false);
     }
   };
 
@@ -379,7 +442,7 @@ export function TodayOps() {
     <div
       ref={fill.ref}
       style={fill.h ? { height: fill.h } : undefined}
-      className="today-ops flex h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-xl border border-[#1E2A44] bg-[#0B1426] text-white"
+      className="today-ops relative flex h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-xl border border-[#1E2A44] bg-[#0B1426] text-white"
     >
       {/* Top strip: 4 numbers only + two actions */}
       <header className="flex flex-wrap items-center gap-x-10 gap-y-3 border-b border-[#1E2A44] px-5 py-4">
@@ -404,11 +467,6 @@ export function TodayOps() {
         <Kpi label="At risk" value={String(k.atRisk)} tone={k.atRisk ? "risk" : undefined} />
         <Kpi label="Done" value={`${k.done}/${k.total}`} />
         <div className="ml-auto flex items-center gap-2">
-          {planMsg && (
-            <Link href="/dispatch/plan" className="text-xs text-[#60A5FA] hover:underline">
-              {planMsg} · review
-            </Link>
-          )}
           <button
             type="button"
             onClick={optimize}
@@ -513,6 +571,46 @@ export function TodayOps() {
           {selected && <Inspector orderId={selected} onClose={() => setSelected(null)} />}
         </section>
       </div>
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-xl border px-4 py-3 text-sm shadow-none",
+            toast.tone === "error"
+              ? "border-red-500/40 bg-[#2A1220] text-red-200"
+              : "border-[#1E2A44] bg-[#111C33] text-white"
+          )}
+        >
+          <span className="tabular-nums">{toast.text}</span>
+          {toast.planId && (
+            <button
+              type="button"
+              onClick={() => undo(toast.planId!)}
+              disabled={undoing}
+              className="inline-flex items-center gap-1.5 font-semibold text-[#60A5FA] hover:text-white disabled:opacity-50"
+            >
+              {undoing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Undo2 className="h-4 w-4" />
+              )}
+              Undo
+            </button>
+          )}
+          <Link href="/dispatch/plan" className="text-xs text-slate-400 hover:text-white">
+            View plan
+          </Link>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            aria-label="Dismiss"
+            className="text-slate-500 hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

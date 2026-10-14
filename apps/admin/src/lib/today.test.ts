@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { ago, buildIssues, filterCounts, filterIssues, kpis, promiseTimeline } from "@/lib/today";
+import {
+  ago,
+  buildIssues,
+  filterCounts,
+  filterIssues,
+  glide,
+  kpis,
+  promiseTimeline,
+} from "@/lib/today";
 import type { DispatchExceptionItem, LiveEta } from "@/lib/dispatch";
 import type { OpsStats, QueueOrder } from "@/lib/operations";
 
@@ -134,5 +142,42 @@ describe("ago", () => {
     expect(ago(null)).toBe("—");
     expect(ago(1000, 3000)).toBe("live");
     expect(ago(0 + 1, 125_001)).toBe("2m ago");
+  });
+});
+
+describe("glide", () => {
+  const a = [{ id: "d1", lat: 43.65, lng: -79.38 }];
+  it("eases between polls and lands exactly", () => {
+    const to = [{ id: "d1", lat: 43.66, lng: -79.37, name: "J" }];
+    expect(glide(a, to, 0)[0].lat).toBeCloseTo(43.65);
+    const mid = glide(a, to, 0.5)[0];
+    expect(mid.lat).toBeGreaterThan(43.655); // ease-out is past halfway at t=.5
+    expect(mid.name).toBe("J");
+    expect(glide(a, to, 1)[0]).toEqual(to[0]);
+  });
+  it("snaps big jumps and new drivers", () => {
+    const to = [
+      { id: "d1", lat: 43.9, lng: -79.38 },
+      { id: "d2", lat: 43.7, lng: -79.4 },
+    ];
+    expect(glide(a, to, 0.1)).toEqual(to);
+  });
+});
+
+describe("optimizeToast", () => {
+  it("summarises the auto-committed plan", async () => {
+    const { optimizeToast } = await import("@/lib/dispatch");
+    const route = (driver_id: string | null) => ({ driver_id }) as never;
+    expect(
+      optimizeToast({
+        routes: [route("d1"), route("d2"), route(null)],
+        summary: {
+          commit: { assigned: 5, skipped: [{ order_id: "x", reason: "already picked_up" }] },
+        },
+      })
+    ).toBe("5 orders assigned on 2 routes · 1 kept as-is");
+    expect(optimizeToast({ routes: [], summary: { commit: { assigned: 0, skipped: [] } } })).toBe(
+      "Already optimal · nothing to assign"
+    );
   });
 });
