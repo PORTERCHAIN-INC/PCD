@@ -9,7 +9,6 @@ import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import Container from "@/components/ui/Container";
 import DriverAccessGate from "@/components/DriverAccessGate";
 import DriverAccountMenu from "@/components/nav/DriverAccountMenu";
-import DriverAppsMenu from "@/components/nav/DriverAppsMenu";
 import NotificationBell from "@/components/nav/NotificationBell";
 import { DriverProfileProvider } from "@/components/nav/DriverProfileContext";
 import { AppShell, type AppNavGroup } from "@porterchain/ui/app-nav";
@@ -105,7 +104,6 @@ function DriverChrome({ children }: { children: React.ReactNode }) {
       actions={
         <>
           <NotificationBell viewAllHref="/communications" />
-          <DriverAppsMenu />
           <DriverAccountMenu />
         </>
       }
