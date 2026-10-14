@@ -139,14 +139,13 @@ function IssueRow({
           aria-label={issue.severity}
         />
         <span className="min-w-0 flex-1">
-          <span className="flex items-baseline gap-2">
-            <span className="truncate text-sm font-semibold text-white">{issue.label}</span>
-            <span className="shrink-0 text-xs tabular-nums text-slate-400">
-              {issue.order_number}
-            </span>
-          </span>
+          <span className="block truncate text-sm font-semibold text-white">{issue.label}</span>
           <span className="block truncate text-xs text-slate-400">
-            {note ?? issue.detail ?? issue.item?.state?.replaceAll("_", " ") ?? ""}
+            <span className="tabular-nums text-slate-300">{issue.order_number}</span>
+            {(() => {
+              const sub = note ?? issue.detail ?? issue.item?.state?.replaceAll("_", " ");
+              return sub ? ` · ${sub}` : null;
+            })()}
           </span>
         </span>
         <span
@@ -172,7 +171,7 @@ function IssueRow({
             ) : (
               <Send className="h-3.5 w-3.5" />
             )}
-            <span className="max-w-[7rem] truncate">
+            <span className="max-w-[6rem] truncate">
               {issue.action === "fix" ? (fix?.label ?? "Fix") : "Assign"}
             </span>
           </button>
@@ -309,7 +308,22 @@ function useFillHeight() {
   return { ref, h };
 }
 
+/** Cached query data exists only in the browser; render data after mount so SSR == first paint. */
 export function TodayOps() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) {
+    return (
+      <div
+        aria-busy
+        className="today-ops h-[calc(100dvh-7rem)] rounded-xl border border-[#1E2A44] bg-[#0B1426]"
+      />
+    );
+  }
+  return <TodayOpsLive />;
+}
+
+function TodayOpsLive() {
   const fill = useFillHeight();
   const tick = useTicker(REFRESH_MS);
   const qc = useQueryClient();
