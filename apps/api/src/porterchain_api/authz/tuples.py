@@ -101,9 +101,11 @@ class TupleWriter:
                 Relationship("customer_profile", customer.id, "owner", "user", user.id)
             )
 
-        # Full reconcile: drop all known edges (memory + gRPC), then write the desired set.
-        self.revoke_all_for_user(db, user)
-        token = self.client.write_relationships(desired) if desired else None
+        # Full reconcile in ONE SpiceDB write: delete stale edges + touch desired ones.
+        # (delete-then-write left a window where concurrent Checks saw no role → false 403s.)
+        token = self.client.replace_relationships(
+            self._known_relationships(db, user), desired
+        ) or None
         logger.info(
             "authz_tuples_synced user_id=%s relationships=%s",
             user.id,
@@ -111,8 +113,8 @@ class TupleWriter:
         )
         return token
 
-    def revoke_all_for_user(self, db: Session, user: PorterchainUser) -> str | None:
-        """Delete SpiceDB edges for this internal user (memory + gRPC)."""
+    def _known_relationships(self, db: Session, user: PorterchainUser) -> list[Relationship]:
+        """Every edge this user could hold (platform roles, seats, profiles)."""
         subject = user.clerk_user_id
         to_delete: list[Relationship] = []
         # Drop every known platform role relation (covers role changes + legacy staff).
@@ -137,6 +139,11 @@ class TupleWriter:
                 to_delete.append(
                     Relationship("customer_profile", customer.id, "owner", "user", user.id)
                 )
+        return to_delete
+
+    def revoke_all_for_user(self, db: Session, user: PorterchainUser) -> str | None:
+        """Delete SpiceDB edges for this internal user (memory + gRPC)."""
+        to_delete = self._known_relationships(db, user)
 
         # Memory store: also wipe any leftover subject edges.
         client = self.client
