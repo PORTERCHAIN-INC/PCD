@@ -3,6 +3,7 @@
 from porterchain_api.routers.driver._deps import router
 
 from porterchain_api.routers.driver import profile  # noqa: F401
+from porterchain_api.routers.driver import me_profile  # noqa: F401
 from porterchain_api.routers.driver import dashboard  # noqa: F401
 from porterchain_api.routers.driver import shift  # noqa: F401
 from porterchain_api.routers.driver import support  # noqa: F401

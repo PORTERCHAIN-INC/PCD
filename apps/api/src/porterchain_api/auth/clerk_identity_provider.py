@@ -46,6 +46,10 @@ def _rsa_key_for_token(jwks: dict, token: str):
     return None
 
 
+# Clerk session JWTs live 60 s; tolerate small client/server clock drift on exp/nbf/iat.
+_CLOCK_LEEWAY_S = 10
+
+
 def _csv_set(raw: str) -> set[str]:
     return {part.strip() for part in (raw or "").split(",") if part.strip()}
 
@@ -154,6 +158,7 @@ async def verify_clerk_token(
                 algorithms=["RS256"],
                 audience=audience,
                 options=decode_options,
+                leeway=_CLOCK_LEEWAY_S,
             )
             _enforce_token_policy(payload, settings)
             claims = _claims_from_payload(payload, clerk_app=clerk_app)
@@ -168,9 +173,11 @@ async def verify_clerk_token(
             continue
 
     if last_error:
-        logger.warning("auth_reject reason=invalid_token")
+        # Name the jwt error class (ExpiredSignatureError, ImmatureSignatureError, ...) so
+        # 401 bursts can be diagnosed from logs; never log the token itself.
+        logger.warning("auth_reject reason=invalid_token error=%s", type(last_error).__name__)
         raise HTTPException(status_code=401, detail="invalid_token") from last_error
-    logger.warning("auth_reject reason=invalid_token")
+    logger.warning("auth_reject reason=invalid_token error=no_matching_jwks_key")
     raise HTTPException(status_code=401, detail="invalid_token")
 
 
