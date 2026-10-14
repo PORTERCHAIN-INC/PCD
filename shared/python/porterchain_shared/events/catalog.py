@@ -3,7 +3,7 @@
 from enum import StrEnum
 
 # Bump when adding/removing/renaming events (§3.3.4); keep in sync with packages/events.
-CATALOG_VERSION = "1.2.0"
+CATALOG_VERSION = "1.2.1"
 
 
 class DomainEventType(StrEnum):
@@ -55,6 +55,8 @@ class DomainEventType(StrEnum):
     ORDER_CLOSED = "order.closed"
     ORDER_CANCELLED = "order.cancelled"
     DRIVER_REJECTED = "order.driver_rejected"
+    #: Dispatch took a not-yet-accepted job back (e.g. Ops Today plan Undo) — tell the driver.
+    DRIVER_JOB_REMOVED = "order.driver_job_removed"
     ORDER_NEAR_DELIVERY = "order.near_delivery"
     ORDER_LOCATION_UPDATED = "order.tracking_updated"
     ORDER_TEMP_EXCURSION = "order.temp_excursion"

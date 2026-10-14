@@ -405,3 +405,16 @@ def test_commit_restores_superseded_plan_on_undo(db: Session, monkeypatch) -> No
     svc.undo(db, ctx, second["id"])
     db.expire_all()
     assert db.get(DispatchPlan, first["id"]).status == "committed"
+
+
+def test_plan_undo_tells_the_driver_job_removed(db: Session, monkeypatch) -> None:
+    from porterchain_api.booking_models import DomainEvent
+
+    svc, ctx, done, d1, o1, o2 = _commit_two(db, monkeypatch)
+    db.get(Order, o2.id).state = "PICKED_UP"  # kept → no notice for o2
+    db.flush()
+    svc.undo(db, ctx, done["id"])
+    rows = db.query(DomainEvent).filter(DomainEvent.event_type == "order.driver_job_removed").all()
+    mine = [r for r in rows if r.aggregate_id in {o1.id, o2.id}]
+    assert [r.aggregate_id for r in mine] == [o1.id]
+    assert mine[0].payload["driver_id"] == d1.id and mine[0].payload["reason"] == "plan_undo"

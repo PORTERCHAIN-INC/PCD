@@ -125,3 +125,16 @@ def test_merge_and_hydrate_empty_order(db) -> None:
     merged = merge_notification_context({"driver_id": "d1"}, {"customer_id": "c1", "driver_id": "old"})
     assert merged["driver_id"] == "d1"
     assert merged["customer_id"] == "c1"
+
+
+def test_job_removed_notifies_only_the_driver_push_and_in_app() -> None:
+    from porterchain_api.notification_engine.lanes import FAST_TEMPLATES
+    from porterchain_api.notification_engine.templates import TEMPLATES
+
+    payload = {"driver_id": "drv-1", "customer_id": "c-1", "merchant_id": "m-1",
+               "order_number": "ORD-9", "tracking_number": "TRK-9"}
+    specs = _specs_for_event(DomainEventType.DRIVER_JOB_REMOVED, payload)
+    assert {(s["recipient_type"], s["channel"]) for s in specs} == {("driver", "push"), ("driver", "in_app")}
+    assert all(s["recipient_id"] == "drv-1" and s["template_key"] == "job_removed" for s in specs)
+    assert "job_removed" in FAST_TEMPLATES
+    assert "ORD-9" in TEMPLATES["job_removed"]["body"].format(**payload)

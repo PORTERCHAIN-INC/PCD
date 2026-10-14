@@ -12,6 +12,7 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.booking_models import Order
+from porterchain_shared.events.catalog import DomainEventType
 from porterchain_api.order_engine.buckets import dispatch_queue_sort_key
 
 
@@ -85,7 +86,18 @@ class AdminOperationsService:
         order.assigned_driver_id = None
         db.add(AdminAuditLog(actor_user_id=actor, action="dispatch.plan_undo", resource_type="order",
                              resource_id=order.id, payload=payload))
-        db.flush()
+        # Tell the driver (push + in-app via the notification router) — the job left their list.
+        emit_event(
+            db,
+            event_type=DomainEventType.DRIVER_JOB_REMOVED,
+            aggregate_type="order",
+            aggregate_id=order.id,
+            actor_type="admin",
+            actor_id=actor,
+            payload={**payload, "order_id": order.id, "order_number": order.order_number,
+                     "tracking_number": order.tracking_number, "driver_deep_link": "/jobs"},
+        )
+        db.commit()
 
     def _assign_driver_no_commit(
         self,
