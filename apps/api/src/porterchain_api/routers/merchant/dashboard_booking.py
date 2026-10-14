@@ -47,6 +47,7 @@ from porterchain_api.routers.merchant._deps import (
     require_module,
     router,
 )
+from starlette.concurrency import run_in_threadpool
 
 
 @router.get("/dashboard", response_model=MerchantDashboardResponse)
@@ -314,13 +315,13 @@ async def bulk_upload(
         raw = await file.read(10 * 1024 * 1024 + 1)
         if len(raw) > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="bulk_file_too_large")
-        job = _bulk.upload_file(
+        job = (await run_in_threadpool(lambda: _bulk.upload_file(
             db,
             settings,
             ctx,
             filename=file.filename or "upload.csv",
             content=raw,
-        )
+        )))
         return BulkUploadResponse(**_bulk.upload_payload(job))
     except PermissionError as exc:
         _handle_permission(exc)

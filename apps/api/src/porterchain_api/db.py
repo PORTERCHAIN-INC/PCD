@@ -66,12 +66,32 @@ def _replica_db() -> tuple[Engine, sessionmaker[Session]] | None:
     return replica_engine, factory
 
 
+def _safe_close(db: Session) -> None:
+    """Return the connection to the pool even if Postgres already killed it.
+
+    After idle_in_transaction_session_timeout the server drops the socket; a plain
+    close() then raises during ROLLBACK. Invalidate so the pool discards the dead
+    connection instead of leaking the checkout.
+    """
+    try:
+        db.rollback()
+    except Exception:  # noqa: BLE001
+        try:
+            db.invalidate()
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        db.close()
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        _safe_close(db)
 
 
 REPORT_STATEMENT_TIMEOUT_MS = 300_000
@@ -90,7 +110,7 @@ def get_report_db() -> Generator[Session, None, None]:
             db.commit()
         except Exception:  # noqa: BLE001 — never block close on cleanup
             pass
-        db.close()
+        _safe_close(db)
 
 
 @contextmanager
@@ -120,7 +140,7 @@ def get_read_db() -> Generator[Session, None, None]:
     try:
         yield db
     finally:
-        db.close()
+        _safe_close(db)
 
 
 def init_db() -> None:

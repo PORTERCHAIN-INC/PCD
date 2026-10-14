@@ -30,6 +30,20 @@ CONSUMER_GROUP = "porterchain-workers"
 STREAM_READ_COUNT = 25
 
 
+
+# redis-py socket timeout for the bus client. XREADGROUP BLOCK must stay well under it,
+# otherwise every idle read ends in a client-side TimeoutError (prod log spam,
+# 2026-10-14). Note: Redis treats BLOCK 0 as "block forever", never "don't block".
+REDIS_SOCKET_TIMEOUT_S = 10.0
+MAX_XREAD_BLOCK_MS = int((REDIS_SOCKET_TIMEOUT_S - 5.0) * 1000)
+
+
+def xread_block_ms(block_ms: int, *, processed: int = 0) -> int | None:
+    """BLOCK value for XREADGROUP: None = non-blocking, else capped below socket timeout."""
+    if processed or block_ms <= 0:
+        return None
+    return min(block_ms, MAX_XREAD_BLOCK_MS)
+
 class EventBus:
     """
     Publish domain events to Redis Streams (or in-memory).
@@ -57,7 +71,14 @@ class EventBus:
             try:
                 import redis
 
-                self._redis_client = redis.from_url(redis_url, decode_responses=True)
+                # socket_timeout must exceed the longest XREADGROUP BLOCK (see consume_once).
+                self._redis_client = redis.from_url(
+                    redis_url,
+                    decode_responses=True,
+                    socket_timeout=REDIS_SOCKET_TIMEOUT_S,
+                    socket_connect_timeout=5,
+                    health_check_interval=30,
+                )
                 self._redis_client.ping()
                 self.idempotency = idempotency or RedisIdempotencyStore(redis_url)
                 self.dlq = dlq or RedisDeadLetterQueue(redis_url)
@@ -168,7 +189,7 @@ class EventBus:
                 consumer_name,
                 {STREAM_KEY: ">"},
                 count=STREAM_READ_COUNT,
-                block=0 if processed else block_ms,
+                block=xread_block_ms(block_ms, processed=processed),
             )
         except Exception as exc:
             # Idle block timeouts and transient socket errors must not crash the worker.

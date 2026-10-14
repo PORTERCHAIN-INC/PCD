@@ -421,7 +421,8 @@ jobs:
             if ! docker exec pcd-postgres psql -U porterchain -d porterchain -tAc "SELECT to_regclass('public.booking_drafts')" | grep -q booking_drafts; then
               rollback_and_exit "booking_drafts table missing after migrations"
             fi
-            docker compose -f docker-compose.prod.yml restart api
+            # up -d (not restart): applies compose changes (healthcheck, labels) and starts autoheal.
+            docker compose -f docker-compose.prod.yml up -d api worker autoheal
             docker compose -f docker-compose.prod.yml restart caddy
             echo "Waiting for API health..."
             api_healthy=0
@@ -532,6 +533,8 @@ jobs:
             docker compose -f docker-compose.prod.yml pull $SERVICES
             # shellcheck disable=SC2086
             docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate $SERVICES
+            # Watchdog: restart unhealthy containers (labelled autoheal=true).
+            docker compose -f docker-compose.prod.yml up -d --no-deps autoheal
             if [ "$MIGRATE" = "true" ]; then
               echo "Running Alembic migrations (partial, migrate=true)..."
               docker compose -f docker-compose.prod.yml exec -T -w /app/apps/api \

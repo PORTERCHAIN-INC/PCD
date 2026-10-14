@@ -37,6 +37,12 @@ def resolve_customer_contact(
         except PermissionError:
             email = None
 
+    # Clerk Backend lookup happens BEFORE any query so the request never holds a
+    # transaction open while waiting on the network. DB phone still wins.
+    clerk_phone: str | None = None
+    if not phone and is_clerk_secret_configured(settings):
+        clerk_phone = _clerk_phone_cached(settings, claims.clerk_user_id)
+
     if not phone:
         user = (
             db.query(PorterchainUser)
@@ -50,15 +56,34 @@ def resolve_customer_contact(
             if customer:
                 phone = customer.phone
 
-    if not phone and is_clerk_secret_configured(settings):
-        try:
-            clerk_user, _kind = fetch_clerk_user(settings, claims.clerk_user_id)
-            if clerk_user:
-                phone = ClerkClient.primary_phone(clerk_user)
-        except Exception:
-            pass
+    if not phone:
+        phone = clerk_phone
 
     return email, phone
+
+
+_PHONE_CACHE_TTL_S = 300.0
+_phone_cache: dict[str, tuple[float, str | None]] = {}
+
+
+def _clerk_phone_cached(settings: Settings, clerk_user_id: str) -> str | None:
+    import time
+
+    now = time.monotonic()
+    hit = _phone_cache.get(clerk_user_id)
+    if hit and hit[0] > now:
+        return hit[1]
+    phone = None
+    try:
+        clerk_user, _kind = fetch_clerk_user(settings, clerk_user_id)
+        if clerk_user:
+            phone = ClerkClient.primary_phone(clerk_user)
+    except Exception:  # noqa: BLE001
+        phone = None
+    if len(_phone_cache) > 10_000:
+        _phone_cache.clear()
+    _phone_cache[clerk_user_id] = (now + _PHONE_CACHE_TTL_S, phone)
+    return phone
 
 
 def require_customer(
@@ -73,8 +98,9 @@ def require_customer(
             raise HTTPException(status_code=404, detail="customer_not_found")
         return customer
 
-    assert_clerk_id_exclusive(db, claims, portal="customer", settings=settings)
+    # Contact first: its Clerk lookups run before this request's first query.
     email, phone = resolve_customer_contact(db, claims, settings)
+    assert_clerk_id_exclusive(db, claims, portal="customer", settings=settings)
     try:
         customer = _customers.get_or_create_from_clerk(
             db,

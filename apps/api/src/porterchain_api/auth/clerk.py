@@ -14,6 +14,7 @@ from porterchain_api.auth.dev import DEV_PORTAL_HEADER, allow_auth_dev_bypass
 from porterchain_api.auth.prepare import prepare_user_from_claims
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from starlette.concurrency import run_in_threadpool
 
 # Re-export for existing imports
 __all__ = [
@@ -56,7 +57,7 @@ async def get_clerk_claims(
     portal_header = _portal_header(request, x_porterchain_portal)
     path = _request_path(request)
     if allow_auth_dev_bypass(settings) and (not authorization or authorization == "Bearer dev"):
-        return _sync_and_ensure(db, _dev_claims(path=path, header=portal_header))
+        return (await run_in_threadpool(lambda: _sync_and_ensure(db, _dev_claims(path=path, header=portal_header))))
 
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="missing_bearer_token")
@@ -65,7 +66,7 @@ async def get_clerk_claims(
     if token == "dev":
         if not allow_auth_dev_bypass(settings):
             raise HTTPException(status_code=401, detail="dev_bypass_disabled")
-        return _sync_and_ensure(db, _dev_claims(path=path, header=portal_header))
+        return (await run_in_threadpool(lambda: _sync_and_ensure(db, _dev_claims(path=path, header=portal_header))))
 
     from porterchain_api.auth.impersonation_session import (
         IMP_BEARER_PREFIX,
@@ -95,7 +96,7 @@ async def get_clerk_claims(
         )
 
     claims = await verify_clerk_token(token, settings, path=path, header=portal_header)
-    return _sync_and_ensure(db, claims)
+    return (await run_in_threadpool(lambda: _sync_and_ensure(db, claims)))
 
 
 async def get_clerk_user_id(claims: ClerkClaims = Depends(get_clerk_claims)) -> str:
@@ -124,5 +125,5 @@ async def get_optional_clerk_user_id(
             claims = await verify_clerk_token(token, settings, path=path, header=portal_header)
         except HTTPException:
             return None
-    _sync_and_ensure(db, claims)
+    (await run_in_threadpool(lambda: _sync_and_ensure(db, claims)))
     return claims.clerk_user_id

@@ -7,6 +7,7 @@ from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.driver_engine.background_check_service import DriverBackgroundCheckService
 from porterchain_api.services.stripe_service import StripeSignatureError, construct_webhook_event
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 _stripe_webhooks = StripeWebhookService()
@@ -32,7 +33,7 @@ async def stripe_webhook(
     except StripeSignatureError as exc:
         raise HTTPException(status_code=400, detail="invalid_signature") from exc
 
-    return _stripe_webhooks.handle(db, settings, event)
+    return (await run_in_threadpool(lambda: _stripe_webhooks.handle(db, settings, event)))
 
 
 @router.post("/clerk")
@@ -43,14 +44,14 @@ async def clerk_webhook(
 ) -> dict[str, str]:
     """Clerk user lifecycle webhooks (Svix-signed). Idempotent; no operational cascade deletes."""
     payload = await request.body()
-    return _clerk_webhooks.handle(
+    return (await run_in_threadpool(lambda: _clerk_webhooks.handle(
         db,
         settings,
         payload=payload,
         svix_id=request.headers.get("svix-id"),
         svix_timestamp=request.headers.get("svix-timestamp"),
         svix_signature=request.headers.get("svix-signature"),
-    )
+    )))
 
 
 @router.post("/checkr")
@@ -73,13 +74,16 @@ async def checkr_webhook(
     if not isinstance(event, dict):
         raise HTTPException(status_code=400, detail="invalid_payload")
     try:
-        with db_transaction(db):
-            return _background_checks.handle_webhook(
-                db,
-                settings,
-                payload=payload,
-                signature=signature,
-                event=event,
-            )
+        def _handle():
+            with db_transaction(db):
+                return _background_checks.handle_webhook(
+                    db,
+                    settings,
+                    payload=payload,
+                    signature=signature,
+                    event=event,
+                )
+
+        return await run_in_threadpool(_handle)
     except PermissionError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

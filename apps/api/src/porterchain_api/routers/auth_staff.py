@@ -28,6 +28,7 @@ from porterchain_api.routers.auth import (
     router,
 )
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 @router.get("/staff/enrollment/{token}")
 def peek_staff_enrollment(token: str, request: Request) -> dict:
@@ -116,7 +117,7 @@ async def staff_passkey_register_options(
     from porterchain_api.auth.admin import get_admin_context
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
-    return _invoke(staff_webauthn.registration_options, db, settings, ctx.user)
+    return (await run_in_threadpool(lambda: _invoke(staff_webauthn.registration_options, db, settings, ctx.user)))
 
 
 @router.post("/staff/passkey/register/verify")
@@ -131,7 +132,7 @@ async def staff_passkey_register_verify(
     from porterchain_api.auth.admin import get_admin_context
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
-    row = _invoke(verify_registration_from_body, db, settings, admin_user=ctx.user, body=body)
+    row = (await run_in_threadpool(lambda: _invoke(verify_registration_from_body, db, settings, admin_user=ctx.user, body=body)))
     return passkey_credential_payload(row)
 
 

@@ -72,10 +72,18 @@ async def lifespan(_app: FastAPI):
     from porterchain_api.notification_engine.realtime import realtime_hub
 
     ensure_handlers_registered()
+    import asyncio
+
+    from porterchain_api.db import engine as _engine
+    from porterchain_api.platform import db_pool_monitor
+
+    db_pool_monitor.install(_engine)
+    pool_watch = asyncio.create_task(db_pool_monitor.run_pool_watch(_engine))
     await realtime_hub.start()
     try:
         yield
     finally:
+        pool_watch.cancel()
         await realtime_hub.stop()
 
 
@@ -229,13 +237,15 @@ def create_app() -> FastAPI:
         )
 
     @app.get("/health")
-    def health() -> dict[str, str]:
+    async def health() -> dict[str, str]:
+        # Pure liveness: no DB pool, no threadpool token. A saturated pool or
+        # threadpool must not make the probe itself hang.
         from porterchain_api.platform.health import liveness
 
         return liveness()
 
     @app.get("/health/live")
-    def health_live() -> dict[str, str]:
+    async def health_live() -> dict[str, str]:
         from porterchain_api.platform.health import liveness
 
         return liveness()

@@ -15,6 +15,7 @@ from porterchain_api.auth.staff_session import (
 )
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from starlette.concurrency import run_in_threadpool
 
 
 async def get_admin_context(
@@ -27,30 +28,30 @@ async def get_admin_context(
     """Staff IdP session (cookie / ``staff_sess_`` Bearer). Clerk JWT → 401 retired."""
     from porterchain_api.platform.admin_ip_allowlist import enforce as enforce_ip_allowlist
 
-    enforce_ip_allowlist(request, db)
+    (await run_in_threadpool(lambda: enforce_ip_allowlist(request, db)))
     staff_sid = session_id_from_authorization(authorization) or request.cookies.get(
         STAFF_COOKIE_NAME
     )
     if staff_sid and not _looks_like_clerk_bearer(authorization):
-        return _tag_actor(request, _admin_from_staff_session(db, staff_sid, settings, x_admin_role))
+        return _tag_actor(request, (await run_in_threadpool(lambda: _admin_from_staff_session(db, staff_sid, settings, x_admin_role))))
 
     if allow_auth_dev_bypass(settings) and (not authorization or authorization == "Bearer dev"):
-        return _tag_actor(request, _admin_from_dev_bypass(db, settings, x_admin_role))
+        return _tag_actor(request, (await run_in_threadpool(lambda: _admin_from_dev_bypass(db, settings, x_admin_role))))
 
     if authorization and authorization.startswith("Bearer "):
         token = authorization.removeprefix("Bearer ").strip()
         if token == "dev":
             if not allow_auth_dev_bypass(settings):
                 raise HTTPException(status_code=401, detail="dev_bypass_disabled")
-            return _tag_actor(request, _admin_from_dev_bypass(db, settings, x_admin_role))
+            return _tag_actor(request, (await run_in_threadpool(lambda: _admin_from_dev_bypass(db, settings, x_admin_role))))
         if token.startswith("staff_sess_"):
-            return _tag_actor(request, _admin_from_staff_session(
+            return _tag_actor(request, (await run_in_threadpool(lambda: _admin_from_staff_session(
                 db, token.removeprefix("staff_sess_").strip(), settings, x_admin_role
-            ))
+            ))))
         raise HTTPException(status_code=401, detail="admin_clerk_retired_use_staff_idp")
 
     if staff_sid:
-        return _tag_actor(request, _admin_from_staff_session(db, staff_sid, settings, x_admin_role))
+        return _tag_actor(request, (await run_in_threadpool(lambda: _admin_from_staff_session(db, staff_sid, settings, x_admin_role))))
 
     raise HTTPException(status_code=401, detail="missing_bearer_token")
 

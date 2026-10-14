@@ -25,6 +25,8 @@ from porterchain_api.platform.rate_limit import (
     rate_limit_headers,
 )
 
+from starlette.concurrency import run_in_threadpool
+
 logger = logging.getLogger(__name__)
 
 _api_keys = MerchantApiKeyService()
@@ -53,7 +55,7 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
         if not raw_key and not bearer:
             return await call_next(request)
 
-        db = SessionLocal()
+        db = await run_in_threadpool(SessionLocal)
         try:
             record = None
             traffic_class = TRAFFIC_MERCHANT_API
@@ -61,9 +63,10 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
             limit = gateway.DEFAULT_RATE_LIMIT
 
             if raw_key:
-                record = _api_keys.authenticate_key(db, raw_key)
+                record = await run_in_threadpool(_api_keys.authenticate_key, db, raw_key)
                 if not record:
                     incr_merchant_api_auth_reject("invalid_key")
+                    await run_in_threadpool(db.commit)
                     return await call_next(request)
                 request.state.merchant_api_key = record
                 identity = record.id
@@ -80,9 +83,11 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
                 except Exception as exc:
                     logger.warning("merchant-api oauth resolve failed: %s", exc)
                     incr_merchant_api_auth_reject("invalid_key")
+                    await run_in_threadpool(db.commit)
                     return await call_next(request)
                 if not payload or not payload.get("merchant_id"):
                     incr_merchant_api_auth_reject("invalid_key")
+                    await run_in_threadpool(db.commit)
                     return await call_next(request)
                 identity = str(payload["merchant_id"])
                 oauth_env = str(payload.get("environment") or "sandbox").lower()
@@ -94,7 +99,8 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
                 limit = gateway.DEFAULT_RATE_LIMIT
 
             if not skip_limit and identity is not None:
-                allowed, current, err = gateway.check_rate_limit_redis(
+                allowed, current, err = await run_in_threadpool(
+                    gateway.check_rate_limit_redis,
                     traffic_class=traffic_class,
                     identity=identity,
                     limit=limit,
@@ -120,6 +126,10 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
             else:
                 current = 0
 
+            # Release the pooled connection BEFORE the downstream request: this
+            # session must never sit "idle in transaction" for the whole call.
+            # commit (not rollback) keeps `record` loaded (expire_on_commit=False).
+            await run_in_threadpool(db.commit)
             start = time.perf_counter()
             response = await call_next(request)
             if not skip_limit and identity is not None:
@@ -128,7 +138,8 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
 
             if record is not None:
                 duration_ms = int((time.perf_counter() - start) * 1000)
-                gateway.record_usage(
+                await run_in_threadpool(
+                    gateway.record_usage,
                     db,
                     api_key=record,
                     method=request.method,
@@ -138,4 +149,6 @@ class MerchantApiGatewayMiddleware(BaseHTTPMiddleware):
                 )
             return response
         finally:
-            db.close()
+            from porterchain_api.db import _safe_close
+
+            await run_in_threadpool(_safe_close, db)

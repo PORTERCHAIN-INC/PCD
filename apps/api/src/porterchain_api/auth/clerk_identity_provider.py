@@ -160,7 +160,10 @@ async def verify_clerk_token(
             # Default Clerk session JWTs omit email — resolve verified primary via Backend API.
             from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
 
-            return enrich_claims_with_verified_email(claims, settings)
+            from starlette.concurrency import run_in_threadpool
+
+            # Sync httpx to Clerk Backend: never on the event loop (2026-10-14 freeze).
+            return await run_in_threadpool(enrich_claims_with_verified_email, claims, settings)
         except HTTPException:
             raise
         except PyJWTError as exc:
