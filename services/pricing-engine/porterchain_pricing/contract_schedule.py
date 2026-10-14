@@ -93,6 +93,14 @@ class ContractSchedule:
     #: Conditions of carriage as data (waiting, returns, coverage, liftgate, claims…).
     #: Read through `porterchain_pricing.contract_terms`; {} = platform defaults.
     terms: Any = None
+    #: One stop per delivery address: every box there is combined into one
+    #: consignment (summed weight, stacked size). False = schedule wording
+    #: (A2 three parcels per stop, A3 one parcel per stop over 12" x 12").
+    consolidate_per_destination: bool = False
+    #: Beyond the last handling tier (contract "Tier 3 — custom quotation"):
+    #: None refuses the route; a number prices it as the last tier's surcharge
+    #: plus this extra (owner rule 2026-10-14: +$50).
+    handling_beyond_extra_cents: int | None = None
 
     def van_tier(self, fsa: str) -> VanTier | None:
         """Tier for a destination, or None when it is a custom quotation."""
@@ -206,6 +214,12 @@ def schedule_from_dict(raw: dict[str, Any]) -> ContractSchedule:
         ),
         handling=handling_tiers_from_dict(handling),
         terms=dict(raw.get("terms") or {}),
+        handling_beyond_extra_cents=(
+            max(int(handling.get("beyond_extra_cents") or 0), 0)
+            if handling.get("beyond") == "surcharge"
+            else None
+        ),
+        consolidate_per_destination=bool((raw.get("consolidation") or {}).get("per_destination", False)),
     )
 
 

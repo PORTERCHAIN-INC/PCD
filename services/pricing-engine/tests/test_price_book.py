@@ -84,7 +84,9 @@ def test_defaults_are_off_and_validate():
 def test_handling_and_small_defaults_equal_the_kaylulu_contract():
     raw = raw_contract_schedule("kaylulu-2026-09")
     book = default_price_book()
-    assert book["handling"] == raw["handling"]
+    # Tiers match; Kaylulu alone prices beyond Tier 2 (+$50) instead of a custom quote.
+    assert book["handling"]["tiers"] == raw["handling"]["tiers"]
+    assert raw["handling"]["beyond"] == "surcharge" and raw["handling"]["beyond_extra_cents"] == 5000
     assert book["small_parcel"]["van_max_in"] == raw["van"]["grouping"]["max_packed_inches"]
     assert book["small_parcel"]["group_size"] == raw["van"]["grouping"]["parcels_per_stop"]
     assert book["small_parcel"]["compact_max_in"] == raw["compact"]["max_packed_inches"]
@@ -273,7 +275,11 @@ def test_dedicated_vehicle_half_day_and_hourly():
 
 def _kaylulu_with_book(**extra):
     ctx = _kaylulu_ctx(price_book={"merchant_parcels": {"enabled": True}, "retail": {"enabled": True}}, **extra)
-    ctx.merchant_pricing_config = {"price_book": {"enabled": True, "multi_box_as_one_item": True}}
+    # Schedule wording (per-parcel stops); the per-address consolidation is in test_contract_schedule.
+    ctx.merchant_pricing_config = {
+        "price_book": {"enabled": True, "multi_box_as_one_item": True},
+        "schedule": {"contract_overrides": {"consolidation": {"per_destination": False}, "handling": {"beyond": "custom_quote"}}},
+    }
     return ctx
 
 

@@ -251,12 +251,22 @@ def require_module(ctx: AdminContext, module: str) -> None:
 
     client = get_authz_client()
     # Check the exact module key (e.g. finance_read) — never OR with portal ``admin``.
-    if client.check(
-        resource_type="platform",
-        resource_id=PLATFORM_ID,
-        permission=module,
-        subject_id=user_id,
-    ):
+    # SpiceDB errors retry once, then 503: an outage must never look like a 403.
+    for attempt in range(2):
+        try:
+            allowed = client.check(
+                resource_type="platform",
+                resource_id=PLATFORM_ID,
+                permission=module,
+                subject_id=user_id,
+            )
+            break
+        except Exception as exc:  # noqa: BLE001
+            if attempt:
+                from fastapi import HTTPException
+
+                raise HTTPException(status_code=503, detail="authz_unavailable") from exc
+    if allowed:
         return
     raise PermissionError(f"admin_forbidden:{module}")
 

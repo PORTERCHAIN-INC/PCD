@@ -27,7 +27,8 @@ import MapsMissingBanner from "@/components/maps/MapsMissingBanner";
 import { publicEnv } from "@/lib/env";
 import { DimensionUnit, WeightUnit, type Parcel } from "@/lib/route-module/types";
 import { serializeParcelsForLegacyAPI, withVolumetricWeight } from "@/lib/route-module/units";
-import { packagePayload } from "@/lib/route-module/toRouteImport";
+import { itemKeys, packagePayload } from "@/lib/route-module/toRouteImport";
+import ContractStops from "@/components/pricing/ContractStops";
 import { formatDate } from "@/lib/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
@@ -179,7 +180,14 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       pickup_window_start: readyFrom ? new Date(readyFrom).toISOString() : undefined,
       pickup_window_end: pickupBy ? new Date(pickupBy).toISOString() : undefined,
       packages: filledCargo.length
-        ? filledCargo.map((parcel) => ({ ...packagePayload(parcel), package_type: packageType }))
+        ? (() => {
+            const keys = itemKeys(filledCargo);
+            return filledCargo.map((parcel, i) => ({
+              ...packagePayload(parcel),
+              ...(keys[i] ? { item_key: keys[i] } : {}),
+              package_type: packageType,
+            }));
+          })()
         : undefined,
       special_instructions: instructions || undefined,
       site_access_notes: siteAccessNotes || undefined,
@@ -711,13 +719,33 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   <div>
                     <p className="text-sm font-medium text-primary">Parcels on this pickup</p>
                     <p className="text-xs text-muted">
-                      Weight and size are used for pricing. Add a line per box or bag.
+                      Weight and size are used for pricing. Add a line per box or bag. If several
+                      boxes are one item, tick &quot;Same item as box above&quot; — we combine them
+                      into one parcel (total weight and size).
                     </p>
                   </div>
                   {cargo.map((parcel, index) => (
                     <div key={parcel.id} className="rounded-xl bg-gray-bg p-3">
                       <div className="mb-2 flex items-center justify-between">
-                        <p className="text-sm font-medium text-primary">Parcel {index + 1}</p>
+                        <p className="text-sm font-medium text-primary">Box {index + 1}</p>
+                        {index > 0 ? (
+                          <label className="flex items-center gap-1 text-xs text-primary">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(parcel.sameItemAsPrevious)}
+                              onChange={(event) =>
+                                setCargo((prev) =>
+                                  prev.map((row, i) =>
+                                    i === index
+                                      ? { ...row, sameItemAsPrevious: event.target.checked }
+                                      : row
+                                  )
+                                )
+                              }
+                            />
+                            Same item as box above
+                          </label>
+                        ) : null}
                         {cargo.length > 1 ? (
                           <button
                             type="button"
@@ -1265,6 +1293,9 @@ function PricingPanel({
                 : ""}
             </p>
           )}
+          <ContractStops
+            metadata={preview.pricing_breakdown?.metadata as Record<string, unknown> | undefined}
+          />
           {preview.pricing_breakdown && (
             <QuoteLines
               breakdown={preview.pricing_breakdown}
@@ -1297,6 +1328,12 @@ function PricingPanel({
       {!loading && !preview && !error && (
         <p className="mt-2 text-xs text-muted">Enter addresses for live pricing</p>
       )}
+      <Link
+        href="/pricing/how-we-price"
+        className="mt-3 inline-block text-xs text-primary underline"
+      >
+        How we price →
+      </Link>
     </div>
   );
 }

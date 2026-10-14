@@ -519,3 +519,41 @@ export const settingsApi = {
       { orgId }
     ),
 };
+
+export type ContractDocument = {
+  id: string;
+  kind: string;
+  kind_label: string;
+  filename: string;
+  size_bytes: number;
+  created_at: string | null;
+};
+
+/** Signed contract + rate sheet PorterChain uploaded for this merchant. */
+export async function listContractDocuments(token: string, orgId?: string) {
+  return settingsFetch<{ items: ContractDocument[] }>("/v1/merchant/contract-documents", token, {
+    orgId,
+  });
+}
+
+export async function downloadContractDocument(
+  token: string,
+  doc: ContractDocument,
+  orgId?: string
+) {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
+  };
+  if (orgId) headers["X-Merchant-Id"] = orgId;
+  const res = await fetch(`${API_BASE}/v1/merchant/contract-documents/${doc.id}/download`, {
+    headers,
+  });
+  if (!res.ok) throw new Error(`Could not download ${doc.filename} (${res.status})`);
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = doc.filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

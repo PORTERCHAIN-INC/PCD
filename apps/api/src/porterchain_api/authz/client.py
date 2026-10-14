@@ -52,6 +52,21 @@ class _MemoryStore:
                 self.zed_token = f"memory-token-{n}"
             return self.zed_token
 
+    def replace(self, delete: list[Relationship], write: list[Relationship]) -> str:
+        """Delete + write under one lock, so readers never see the gap."""
+        with self.lock:
+            for r in delete:
+                self.relationships.discard(
+                    (r.resource_type, r.resource_id, r.relation, r.subject_type, r.subject_id)
+                )
+            for r in write:
+                self.relationships.add(
+                    (r.resource_type, r.resource_id, r.relation, r.subject_type, r.subject_id)
+                )
+            n = int(self.zed_token.rsplit("-", 1)[-1]) + 1
+            self.zed_token = f"memory-token-{n}"
+            return self.zed_token
+
     def delete(self, rels: list[Relationship]) -> str:
         with self.lock:
             for r in rels:
@@ -282,6 +297,55 @@ class AuthzClient:
                     ),
                 )
             )
+        resp = self._grpc.WriteRelationships(WriteRelationshipsRequest(updates=updates))
+        token = resp.written_at.token if resp.written_at else ""
+        self._last_zed_token = token
+        return token
+
+    def replace_relationships(
+        self, delete: list[Relationship], write: list[Relationship]
+    ) -> str:
+        """Atomically drop ``delete`` (minus anything in ``write``) and TOUCH ``write``.
+
+        One WriteRelationships call is one SpiceDB transaction, so concurrent Checks see
+        either the old or the new set, never an empty one (no false 403 mid-reconcile).
+        """
+        keep = {(r.resource_type, r.resource_id, r.relation, r.subject_type, r.subject_id) for r in write}
+        delete = [
+            r for r in delete
+            if (r.resource_type, r.resource_id, r.relation, r.subject_type, r.subject_id) not in keep
+        ]
+        if not delete and not write:
+            return self._last_zed_token or ""
+        self._ensure_backend()
+        if self._use_memory or self._grpc is None:
+            token = self._memory.replace(delete, write)
+            self._last_zed_token = token
+            return token
+        from authzed.api.v1 import (
+            ObjectReference,
+            RelationshipUpdate,
+            SubjectReference,
+            WriteRelationshipsRequest,
+        )
+        from authzed.api.v1 import Relationship as SpiceRel
+
+        def upd(op, r: Relationship):
+            return RelationshipUpdate(
+                operation=op,
+                relationship=SpiceRel(
+                    resource=ObjectReference(object_type=r.resource_type, object_id=r.resource_id),
+                    relation=r.relation,
+                    subject=SubjectReference(
+                        object=ObjectReference(object_type=r.subject_type, object_id=r.subject_id)
+                    ),
+                ),
+            )
+
+        ops = RelationshipUpdate.Operation
+        updates = [upd(ops.OPERATION_DELETE, r) for r in delete] + [
+            upd(ops.OPERATION_TOUCH, r) for r in write
+        ]
         resp = self._grpc.WriteRelationships(WriteRelationshipsRequest(updates=updates))
         token = resp.written_at.token if resp.written_at else ""
         self._last_zed_token = token

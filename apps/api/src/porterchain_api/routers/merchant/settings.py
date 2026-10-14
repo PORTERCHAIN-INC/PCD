@@ -225,3 +225,41 @@ def delete_address(
     except LookupError:
         raise HTTPException(status_code=404, detail="address_not_found") from None
 
+
+
+@router.get("/contract-documents")
+def contract_documents_list(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    """Signed contract + rate sheet staff uploaded to this merchant's vault."""
+    from porterchain_api.merchant_engine.account_ops import documents as _docs
+
+    require_module(ctx, "billing")
+    return {"items": _docs.list_merchant_visible(db, ctx.merchant.id)}
+
+
+@router.get("/contract-documents/{doc_id}/download")
+def contract_document_download(
+    doc_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    from fastapi import Response
+
+    from porterchain_api.merchant_engine.account_ops import documents as _docs
+
+    require_module(ctx, "billing")
+    try:
+        doc, data = _docs.read_for_merchant(db, ctx, doc_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="document_not_found") from None
+    return Response(
+        content=data,
+        media_type=doc.content_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{doc.filename}"',
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )

@@ -6,6 +6,10 @@
     "currency": "CAD",
     "tax": "HST extra"
   },
+  "consolidation": {
+    "per_destination": true,
+    "note": "Owner rule 2026-10-14 (agreed with Kaylulu): boxes of the same parcel (shared item_key) are combined into one parcel, tiered on total weight and stacked size; separate parcels at one address still bill per A3. Duplicate drop-offs at one address merge. Set false for per-box wording."
+  },
   "van": {
     "pickup_cents": 4000,
     "grouping": {
@@ -539,7 +543,8 @@
         "surcharge_cents": 6000
       }
     ],
-    "beyond": "custom_quote"
+    "beyond": "surcharge",
+    "beyond_extra_cents": 5000
   },
   "terms": {
     "liftgate_available": false,

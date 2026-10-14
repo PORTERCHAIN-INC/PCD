@@ -241,6 +241,39 @@ def _shipped_units(items: list[Any] | None):
         yield pos, item, grams, qty, _item_dims_in(item), item_boxes(item)
 
 
+def contract_rate_summary(breakdown: dict[str, Any] | None) -> str:
+    """
+    Short checkout line for contract pricing, e.g. "1 stop · 2 boxes · 18 kg · T1".
+    Empty for non-contract merchants (their description is unchanged).
+    """
+    meta = (breakdown or {}).get("metadata") or {}
+    rows = meta.get("contract_stops")
+    if meta.get("contract_vehicle") == "compact":
+        stops = int(meta.get("compact_billable_stops") or 0)
+        boxes = int(meta.get("compact_box_count") or meta.get("compact_parcel_count") or 0)
+        bits = [f"{stops} stop{'s' if stops != 1 else ''}", f"{boxes} box{'es' if boxes != 1 else ''}", "Compact"]
+        return " · ".join(bits)
+    if not rows:
+        return ""
+    stops = sum(int(r.get("billable_stops") or 1) for r in rows)
+    boxes = sum(int(r.get("boxes") or r.get("parcels") or 1) for r in rows)
+    kg = [float(r["combined_weight_kg"]) for r in rows if r.get("combined_weight_kg")]
+    bits = [f"{stops} stop{'s' if stops != 1 else ''}", f"{boxes} box{'es' if boxes != 1 else ''}"]
+    if kg:
+        bits.append(f"{round(sum(kg), 1):g} kg")
+    if meta.get("fsa_tier"):
+        bits.append(str(meta["fsa_tier"]))
+    tiers = {
+        p.get("handling_tier")
+        for r in rows
+        for p in (r.get("parcel_detail") or [])
+        if p.get("handling_tier") not in (None, "standard")
+    }
+    if tiers:
+        bits.append("Heavy " + "/".join(sorted(t.replace("handling_", "T") for t in tiers)))
+    return " · ".join(bits)
+
+
 def parcels_from_items(items: list[Any] | None) -> list[ParcelSpec]:
     """
     One parcel per shipped unit, with that line's grams and dimensions.
@@ -877,6 +910,9 @@ def carrier_service_rates(
         service_name, service_code = "PorterChain Same Day", "porterchain_same_day"
         desc = "Same-day local capacity"
         min_delivery, max_delivery = _delivery_window()
+    summary = contract_rate_summary(breakdown)
+    if summary:
+        desc = f"{desc} · {summary}" if desc else summary
     rate: dict[str, Any] = {
         "service_name": service_name,
         "service_code": service_code,

@@ -167,3 +167,62 @@ def purge_documents(db: Session, merchant_id: str) -> int:
         doc.deleted_at = doc.deleted_at or now
         n += 1
     return n
+
+
+# ── merchant-facing: the merchant's own contract and rate sheet ─────────
+
+#: Only these kinds are ever shown to the merchant; COI, tax forms, onboarding
+#: and "other" stay staff-only.
+MERCHANT_VISIBLE_KINDS: frozenset[str] = frozenset({"signed_contract", "rate_sheet"})
+
+
+def _merchant_row(doc: MerchantDocument) -> dict[str, Any]:
+    row = _row(doc)
+    row.pop("uploaded_by", None)
+    row.pop("note", None)
+    return row
+
+
+def list_merchant_visible(db: Session, merchant_id: str) -> list[dict[str, Any]]:
+    rows = (
+        db.query(MerchantDocument)
+        .filter(
+            MerchantDocument.merchant_id == merchant_id,
+            MerchantDocument.deleted_at.is_(None),
+            MerchantDocument.kind.in_(sorted(MERCHANT_VISIBLE_KINDS)),
+        )
+        .order_by(MerchantDocument.created_at.desc())
+        .all()
+    )
+    return [_merchant_row(r) for r in rows]
+
+
+def read_for_merchant(db: Session, ctx: Any, doc_id: str) -> tuple[MerchantDocument, bytes]:
+    """The signed-in merchant's own visible document; anything else is not found."""
+    from porterchain_api.merchant_models import MerchantAuditLog
+
+    merchant_id = ctx.merchant.id
+    doc = (
+        db.query(MerchantDocument)
+        .filter(
+            MerchantDocument.id == doc_id,
+            MerchantDocument.merchant_id == merchant_id,
+            MerchantDocument.deleted_at.is_(None),
+            MerchantDocument.kind.in_(sorted(MERCHANT_VISIBLE_KINDS)),
+        )
+        .first()
+    )
+    if not doc or doc.content is None:
+        raise LookupError("document_not_found")
+    db.add(
+        MerchantAuditLog(
+            merchant_id=merchant_id,
+            actor_user_id=str(getattr(ctx.user, "id", "") or ""),
+            action="document.downloaded",
+            resource_type="document",
+            resource_id=doc.id,
+            payload={"filename": doc.filename, "by": "merchant"},
+        )
+    )
+    db.commit()
+    return doc, bytes(doc.content)

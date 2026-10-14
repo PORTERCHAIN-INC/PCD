@@ -1,5 +1,6 @@
 """Resolve admin staff context from staff IdP session (Clerk JWT retired for admin)."""
 
+import logging
 from typing import Annotated, Any
 
 from fastapi import Depends, Header, HTTPException, Request
@@ -16,6 +17,8 @@ from porterchain_api.auth.staff_session import (
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from starlette.concurrency import run_in_threadpool
+
+logger = logging.getLogger("porterchain.auth.admin")
 
 
 async def get_admin_context(
@@ -95,11 +98,48 @@ def _admin_from_staff_session(
     if not user.is_active:
         raise HTTPException(status_code=403, detail="admin_user_inactive")
 
-    from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
+    if not _staff_identity_current(user):
+        from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
 
-    ensure_staff_identity(db, user)
-    db.refresh(user)
+        ensure_staff_identity(db, user)
+        db.refresh(user)
     return _finish_admin_context(db, user, settings, x_admin_role)
+
+
+def _staff_identity_current(user: Any) -> bool:
+    """Already bound to ``staff:{id}`` with platform#portal → skip the per-request reconcile.
+
+    Reconciling on every request rewrote this user's SpiceDB tuples on every API call
+    (slow, and racy with parallel requests). Role changes re-sync via
+    ``sync_authz_after_persona_mutation``; a missing portal edge still self-heals here.
+    """
+    if not user.porterchain_user_id or str(user.clerk_user_id or "") != f"staff:{user.id}":
+        return False
+    try:
+        return _check_platform(user.porterchain_user_id, "portal")
+    except HTTPException:
+        return False
+
+
+def _check_platform(subject_id: str, permission: str) -> bool:
+    """SpiceDB platform Check with one retry; outage → 503 (never a false 403)."""
+    from porterchain_api.authz.client import get_authz_client
+    from porterchain_api.authz.tuples import PLATFORM_ID
+
+    client = get_authz_client()
+    last: Exception | None = None
+    for _ in range(2):
+        try:
+            return client.check(
+                resource_type="platform",
+                resource_id=PLATFORM_ID,
+                permission=permission,
+                subject_id=subject_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+    logger.warning("authz_check_unavailable permission=%s err=%s", permission, type(last).__name__)
+    raise HTTPException(status_code=503, detail="authz_unavailable")
 
 
 def _finish_admin_context(
@@ -108,20 +148,11 @@ def _finish_admin_context(
     settings: Settings,
     x_admin_role: str | None,
 ) -> AdminContext:
-    from porterchain_api.authz.client import get_authz_client
-    from porterchain_api.authz.tuples import PLATFORM_ID
-
     subject_id = user.porterchain_user_id
     if not subject_id:
         raise HTTPException(status_code=403, detail="admin_assignment_missing")
 
-    client = get_authz_client()
-    if not client.check(
-        resource_type="platform",
-        resource_id=PLATFORM_ID,
-        permission="portal",
-        subject_id=subject_id,
-    ):
+    if not _check_platform(subject_id, "portal"):
         raise HTTPException(status_code=403, detail="admin_assignment_missing")
 
     role = parse_admin_role(

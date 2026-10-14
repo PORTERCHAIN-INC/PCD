@@ -70,3 +70,9 @@ test("?app= picks a listed custom-distribution key, anything else falls back", (
   assert.equal(shopifyApiKey("evil"), "pub");
   assert.equal(shopifyApiKey(null), "pub");
 });
+
+test("linked view explains how the checkout rate is priced and links the rules", () => {
+  assert.match(html, /How your checkout rate is worked out/);
+  assert.match(html, /Boxes of the same item are combined into one parcel/);
+  assert.match(html, /\/pricing\/how-we-price/);
+});

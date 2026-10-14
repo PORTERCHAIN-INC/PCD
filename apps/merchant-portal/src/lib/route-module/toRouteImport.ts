@@ -68,6 +68,21 @@ function toIsoDateTime(value: string | undefined): string | undefined {
   return date.toISOString();
 }
 
+/** item_key per line: a box marked "same item as above" joins the previous line's item. */
+export function itemKeys(parcels: Parcel[]): (string | undefined)[] {
+  const out: (string | undefined)[] = [];
+  parcels.forEach((p, i) => {
+    if (i > 0 && p.sameItemAsPrevious) {
+      const prev = out[i - 1] ?? `item-${parcels[i - 1].id}`;
+      out[i - 1] = prev;
+      out.push(prev);
+    } else {
+      out.push(undefined);
+    }
+  });
+  return out;
+}
+
 export function packagePayload(parcel: Parcel): RouteImportPackagePayload {
   return {
     id: parcel.id,
