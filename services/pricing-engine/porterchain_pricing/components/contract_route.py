@@ -60,6 +60,78 @@ def parcels_by_stop(request: PricingRequest) -> list[list[Parcel]]:
     return buckets
 
 
+def _address_key(point: Any) -> str:
+    """Same delivery address → same key (case, spacing and punctuation ignored)."""
+    text = " ".join(str(getattr(point, "formatted", "") or "").upper().replace(",", " ").replace(".", " ").split())
+    postal = "".join(str(getattr(point, "postal", "") or "").upper().split())
+    if text:
+        return f"{text}|{postal}"
+    lat, lng = getattr(point, "lat", None), getattr(point, "lng", None)
+    if lat is not None and lng is not None:
+        return f"@{round(float(lat), 5)},{round(float(lng), 5)}|{postal}"
+    return f"#{id(point)}"
+
+
+def merge_same_address(points: list[Any], buckets: list[list[Parcel]]) -> tuple[list[Any], list[list[Parcel]]]:
+    """Drops entered twice for one delivery address become one destination."""
+    keys: dict[str, int] = {}
+    out_points: list[Any] = []
+    out_buckets: list[list[Parcel]] = []
+    for point, bucket in zip(points, buckets):
+        key = _address_key(point)
+        if key in keys:
+            merged = out_buckets[keys[key]]
+            merged.extend(p for p in bucket if p != (None, (None, None, None)))
+            if not merged:
+                merged.append((None, (None, None, None)))
+            continue
+        keys[key] = len(out_points)
+        out_points.append(point)
+        out_buckets.append(list(bucket))
+    return out_points, out_buckets
+
+
+def combine_boxes(bucket: list[Parcel]) -> tuple[Parcel, dict[str, Any]]:
+    """
+    Every box to one address as ONE consignment: weights add up, boxes stack.
+
+    Stacked size = longest box length × widest box width × summed heights (each
+    box's sides sorted longest first). Boxes stack, so the footprint the handling
+    tier reads is the largest box's two longest sides, not the stack height.
+    Volume is the sum of box volumes.
+    """
+    known = [(w, d) for w, d in bucket if w is not None or any(x for x in d)]
+    boxes = len([p for p in bucket if p != (None, (None, None, None))]) or 1
+    weights = [float(w) for w, _ in known if w]
+    total_kg = round(sum(weights), 3) if weights else None
+    sized = [sorted((float(x) for x in d if x), reverse=True) for _, d in known]
+    sized = [s for s in sized if len(s) == 3]
+    dims: tuple[float | None, float | None, float | None] = (None, None, None)
+    volume_cm3 = None
+    stacked = None
+    if sized and len(sized) == len(known):
+        dims = (max(s[0] for s in sized), max(s[1] for s in sized), None)
+        stacked = (dims[0], dims[1], sum(s[2] for s in sized))
+        volume_cm3 = round(sum(s[0] * s[1] * s[2] for s in sized), 1)
+    info = {
+        "boxes": boxes,
+        "combined_weight_kg": total_kg,
+        "combined_dimensions_cm": None if stacked is None else [round(x, 1) for x in stacked],
+        "combined_volume_m3": None if volume_cm3 is None else round(volume_cm3 / 1_000_000, 4),
+    }
+    return (total_kg, dims), info
+
+
+def _box_summary(info: dict[str, Any]) -> str:
+    n = info["boxes"]
+    bits = [f"{n} box{'es' if n != 1 else ''}"]
+    if info.get("combined_weight_kg"):
+        bits.append(f"{info['combined_weight_kg']:g} kg")
+    if info.get("combined_volume_m3"):
+        bits.append(f"{info['combined_volume_m3']:g} m³")
+    return ", ".join(bits)
+
+
 def _refuse(reason: str, stops: list[dict[str, Any]], schedule: ContractSchedule) -> ComponentQuote:
     return ComponentQuote(
         component=COMPONENT,
@@ -93,6 +165,9 @@ class ContractRouteService:
         points = [request.dropoff, *(request.additional_stops or [])]
         fsas = [fsa_from_point(p) for p in points]
         buckets = parcels_by_stop(request)
+        if schedule.consolidate_per_destination:
+            points, buckets = merge_same_address(points, buckets)
+            fsas = [fsa_from_point(p) for p in points]
 
         # Whole-route refusal first, independent of stop order.
         bad = [
@@ -132,7 +207,10 @@ class ContractRouteService:
         self, schedule: ContractSchedule, fsas: list[str], buckets: list[list[Parcel]]
     ) -> ComponentQuote:
         terms = schedule.compact
-        stops = sum(terms.billable_stops(len(bucket)) for bucket in buckets)
+        if schedule.consolidate_per_destination:
+            stops = len(buckets)  # one stop per delivery address, any number of boxes
+        else:
+            stops = sum(terms.billable_stops(len(bucket)) for bucket in buckets)
         band = terms.band_for(stops)
         items: list[PriceLineItem] = []
         if band.pickup_cents:
@@ -158,6 +236,10 @@ class ContractRouteService:
                 "compact_banding": True,
                 "compact_billable_stops": stops,
                 "compact_parcel_count": sum(len(b) for b in buckets),
+                "consolidated_per_destination": schedule.consolidate_per_destination,
+                "destinations": [
+                    {"stop": i + 1, "fsa": f, **combine_boxes(b)[1]} for i, (f, b) in enumerate(zip(fsas, buckets))
+                ],
                 "contract_destinations": fsas,
                 "true_bill_cents": true_bill,
                 "route_minimum_cents": terms.route_minimum_cents,
@@ -178,7 +260,12 @@ class ContractRouteService:
             if highest is None or tier.route_minimum_cents > highest.route_minimum_cents:
                 highest = tier
             units, small, handling_cents = 0, 0, 0
-            for weight, dims in bucket:
+            box_info: dict[str, Any] = {"boxes": len(bucket)}
+            priced = bucket
+            if schedule.consolidate_per_destination:
+                combined, box_info = combine_boxes(bucket)
+                priced = [combined]
+            for weight, dims in priced:
                 handling = schedule.handling_tier(weight, dims)
                 if handling is None:
                     return _refuse(
@@ -197,26 +284,32 @@ class ContractRouteService:
                             handling.surcharge_cents,
                         )
                     )
-                elif fp is not None and fits(fp, schedule.group_max_cm):
+                elif not schedule.consolidate_per_destination and fp is not None and fits(
+                    fp, schedule.group_max_cm
+                ):
                     small += 1
                 else:
                     units += 1
             units += math.ceil(small / max(schedule.group_parcels_per_stop, 1))
             stop_cents = units * tier.stop_cents
-            items.append(
-                PriceLineItem(
-                    "contract_stop",
-                    f"Stop {idx} {fsa} · {tier.code}"
-                    + (f" ({units} stops)" if units != 1 else ""),
-                    stop_cents,
+            if schedule.consolidate_per_destination:
+                label = (
+                    f"Stop {idx} {fsa} · {tier.code} — 1 stop ({_box_summary(box_info)})"
+                    f" × ${tier.stop_cents / 100:g}"
                 )
-            )
+            else:
+                label = f"Stop {idx} {fsa} · {tier.code}" + (f" ({units} stops)" if units != 1 else "")
+            items.append(PriceLineItem("contract_stop", label, stop_cents))
             rows.append(
                 {
                     "stop": idx,
                     "fsa": fsa,
                     "tier": tier.code,
                     "parcels": len(bucket),
+                    "boxes": box_info["boxes"],
+                    "combined_weight_kg": box_info.get("combined_weight_kg"),
+                    "combined_dimensions_cm": box_info.get("combined_dimensions_cm"),
+                    "combined_volume_m3": box_info.get("combined_volume_m3"),
                     "billable_stops": units,
                     "stop_cents": stop_cents,
                     "handling_cents": handling_cents,
@@ -234,6 +327,7 @@ class ContractRouteService:
                 "contract_schedule": schedule.id,
                 "contract_vehicle": "cargo_van",
                 "contract_stops": rows,
+                "consolidated_per_destination": schedule.consolidate_per_destination,
                 "fsa_tier": highest.code if highest else None,
                 "origin_pickup_cents": schedule.pickup_cents,
                 "true_bill_cents": true_bill,

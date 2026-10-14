@@ -6,6 +6,10 @@
     "currency": "CAD",
     "tax": "HST extra"
   },
+  "consolidation": {
+    "per_destination": true,
+    "note": "Owner rule 2026-10-14: all boxes to one delivery address are one consignment = one stop, priced on combined weight and stacked size. Departs from A2/A3 per-parcel stop counting; set false for the strict schedule wording."
+  },
   "van": {
     "pickup_cents": 4000,
     "grouping": {

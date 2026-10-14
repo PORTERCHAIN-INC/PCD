@@ -273,7 +273,11 @@ def test_dedicated_vehicle_half_day_and_hourly():
 
 def _kaylulu_with_book(**extra):
     ctx = _kaylulu_ctx(price_book={"merchant_parcels": {"enabled": True}, "retail": {"enabled": True}}, **extra)
-    ctx.merchant_pricing_config = {"price_book": {"enabled": True, "multi_box_as_one_item": True}}
+    # Schedule wording (per-parcel stops); the per-address consolidation is in test_contract_schedule.
+    ctx.merchant_pricing_config = {
+        "price_book": {"enabled": True, "multi_box_as_one_item": True},
+        "schedule": {"contract_overrides": {"consolidation": {"per_destination": False}}},
+    }
     return ctx
 
 

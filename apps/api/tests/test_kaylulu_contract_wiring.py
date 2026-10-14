@@ -213,9 +213,12 @@ def _engine_quote(merchant, dest: str, items: list[dict]):
         )
 
 
-def test_shopify_quote_bills_each_unit_as_a_van_stop():
+def test_shopify_quote_bills_all_units_to_one_address_as_one_van_stop():
+    # One delivery address = one stop; 5 boxes combined (25 kg). 40 + 45 < T2 minimum 200.
     cents, meta = _engine_quote(_kaylulu(), "L8P", [_item(5, (20, 20, 20), grams=5000)])
-    assert meta["subtotal_cents"] == 26500  # 40 pickup + 5 × T2 45
+    assert meta["subtotal_cents"] == 20000
+    row = meta["metadata"]["contract_stops"][0]
+    assert row["billable_stops"] == 1 and row["boxes"] == 5
     assert meta["metadata"]["contract_vehicle"] == "cargo_van"
 
 
