@@ -63,8 +63,15 @@ export const WEBSITE_NEWSLETTER_LEAD_SOURCE = "website_newsletter";
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "dashboard",
-    label: "Dashboard",
+    label: "Today",
     items: [
+      {
+        href: "/today",
+        label: "Today",
+        description: "Exceptions first, live map, one-click assign",
+        icon: Radio,
+        badgeKey: "exceptions",
+      },
       {
         href: "/dashboard",
         label: "Dashboard",
@@ -79,8 +86,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/dispatch/today",
-        label: "Today",
-        description: "Unassigned, exceptions, board",
+        label: "Queue",
+        description: "Classic dispatch: unassigned, board",
         icon: Zap,
       },
       {
@@ -278,6 +285,7 @@ export const ALL_ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
 
 /** Top-level ops pages that must stay in the nav (redirects / nested details excluded). */
 export const ADMIN_TOP_LEVEL_ROUTES = [
+  "/today",
   "/dashboard",
   "/dispatch/today",
   "/dispatch/plan",

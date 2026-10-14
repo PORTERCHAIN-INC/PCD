@@ -21,7 +21,7 @@ export function middleware(req: NextRequest) {
   const staffSid = req.cookies.get("pc_staff_sid")?.value;
 
   if (pathname === "/") {
-    const dest = staffSid ? "/dashboard" : "/sign-in";
+    const dest = staffSid ? "/today" : "/sign-in";
     return NextResponse.redirect(new URL(dest, req.url));
   }
 

@@ -27,7 +27,7 @@ function StaffSignIn() {
   const localSuperAdminEnabled = useClerkDevApiBypass();
   const localDev = isLocalDev();
   const redirectUrl = safeAppRedirect(searchParams.get("redirect_url"), {
-    fallback: "/dashboard",
+    fallback: "/today",
     blockPrefixes: ["/sign-in", "/sign-up", "/activate-staff"],
   });
 

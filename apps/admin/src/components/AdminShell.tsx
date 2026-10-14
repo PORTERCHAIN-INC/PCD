@@ -94,7 +94,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         name: "Porterchain",
         sub: profile?.role === "super_admin" ? "Super admin" : "Admin",
       }}
-      brandHref="/dashboard"
+      brandHref="/today"
       groups={groups}
       isActive={(href) => isNavActive(pathname, href, search)}
       Link={Link}
