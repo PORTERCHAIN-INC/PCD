@@ -14,36 +14,53 @@
     "archive:ios": "bash scripts/archive-ios-testflight.sh",
     "lint": "tsc --noEmit",
     "test:maestro": "maestro test maestro/",
-    "test:maestro:p0": "maestro test maestro/ --include-tags=p0"
+    "test:maestro:p0": "maestro test maestro/ --include-tags=p0",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@clerk/expo": "^4.6.6",
     "@porterchain/mobile-theme": "file:./vendor/mobile-theme",
-    "@porterchain/types": "workspace:*",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/netinfo": "12.0.1",
+    "@tanstack/query-async-storage-persister": "^5.104.2",
+    "@tanstack/react-query": "^5.104.2",
+    "@tanstack/react-query-persist-client": "^5.104.2",
     "expo": "~57.0.27",
+    "expo-application": "~57.0.3",
     "expo-auth-session": "~57.0.14",
+    "expo-battery": "~57.0.3",
     "expo-build-properties": "~57.0.22",
     "expo-camera": "~57.0.6",
     "expo-constants": "~57.0.21",
     "expo-crypto": "~57.0.3",
     "expo-dev-client": "~57.0.19",
+    "expo-document-picker": "~57.0.3",
+    "expo-file-system": "~57.0.7",
+    "expo-haptics": "~57.0.3",
+    "expo-image-manipulator": "~57.0.21",
     "expo-image-picker": "~57.0.20",
+    "expo-keep-awake": "~57.0.2",
     "expo-linking": "~57.0.12",
     "expo-local-authentication": "~57.0.3",
     "expo-location": "~57.0.20",
     "expo-notifications": "~57.0.22",
     "expo-secure-store": "~57.0.4",
+    "expo-speech": "~57.0.3",
     "expo-status-bar": "~57.0.1",
     "expo-task-manager": "~57.0.21",
     "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-native": "0.86.3"
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
     "babel-preset-expo": "~57.0.14",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "4.1.11"
   }
 }

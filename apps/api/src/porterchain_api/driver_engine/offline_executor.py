@@ -43,6 +43,32 @@ class DriverOfflineExecutor:
                 speed_mps=payload.get("speed_mps"),
                 recorded_at=payload.get("recorded_at"))
             return
+        if action == "dispatch_checkin":
+            # Multi-stop route check-in replayed after an offline stretch. ``client_id`` makes
+            # a second replay a no-op on the server, so this is safe to retry.
+            from porterchain_api.dispatch_engine.driver_route import DriverRouteService
+            from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+            gate = ScanGateService()
+
+            def num(k: str) -> float | None:
+                v = payload.get(k)
+                return float(v) if isinstance(v, (int, float)) else None
+
+            DriverRouteService().check_in(
+                db,
+                driver,
+                keys=[str(k) for k in payload.get("keys") or []],
+                event=str(payload.get("event") or ""),
+                lat=num("lat"),
+                lng=num("lng"),
+                accuracy_m=num("accuracy_m"),
+                note=str(payload["note"]) if payload.get("note") else None,
+                pod_photo=str(payload["pod_photo"]) if payload.get("pod_photo") else None,
+                client_id=str(payload["client_id"])[:64] if payload.get("client_id") else None,
+                short_reason=str(payload["short_reason"]) if payload.get("short_reason") else None,
+                scan_gate=lambda order, phase: gate.scan_progress(db, order, phase=phase))
+            return
         if action == "pod_photo":
             self._platform.pod.capture_photo(
                 db,

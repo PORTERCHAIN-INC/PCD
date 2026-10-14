@@ -1,82 +1,53 @@
+/**
+ * One round-trip snapshot of the driver's world: who, on duty or not, today's jobs, and the
+ * current stop. Everything on screen reads from this; stop logic derives from it (stop/stopFlow).
+ */
 import {
   fetchDashboard,
   fetchJob,
   fetchJobs,
   fetchMe,
-  fetchNavigationRoute,
   fetchNavigationSession,
-  fetchPublicHealth,
   probeApi,
 } from "./api";
-import { collectPush } from "./push";
-import { formatKm, formatAccessLine } from "./format";
+import { formatAccessLine, formatKm } from "./format";
 import { idleLocation } from "./location";
-import type { Handshake, LocationState, NavigationSession, PushState } from "./types";
+import { collectPush } from "./push";
+import type { DriverJobSummary, Handshake, LocationState, PushState } from "./types";
 
 const PUSH_IDLE: PushState = {
   kind: "unavailable",
   permission: "idle",
   tokenPreview: null,
   registered: false,
-  detail: "Not probed",
+  detail: "Not checked",
 };
 
 function coord(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-function navBits(nav: NavigationSession | null, stopType: string | null) {
-  if (!nav || nav.idle) {
-    return {
-      navigationUrl: null as string | null,
-      destLat: null as number | null,
-      destLng: null as number | null,
-      etaLabel: null as string | null,
-      distanceLabel: null as string | null,
-    };
-  }
-  const dest = stopType === "pickup" ? nav.pickup : (nav.dropoff ?? nav.pickup);
-  return {
-    navigationUrl: nav.navigation_url ?? null,
-    destLat: coord(dest?.lat),
-    destLng: coord(dest?.lng),
-    etaLabel: nav.eta?.eta_label ?? null,
-    distanceLabel: formatKm(nav.eta?.distance_meters ?? null),
-  };
-}
-
-export function isOnboardingBlocked(message: string | null | undefined): boolean {
-  return Boolean(message?.startsWith("driver_onboarding_blocked:"));
-}
-
 export const idleHandshake = (): Handshake => ({
   api: "idle",
   auth: "idle",
   driverName: null,
-  availability: null,
   online: null,
-  nextStop: null,
-  nextStopType: null,
-  etaMinutes: null,
   stopsDone: null,
   stopsTotal: null,
+  jobs: [],
   routeId: null,
   stopId: null,
   stopStatus: null,
+  nextStop: null,
+  nextStopType: null,
+  etaMinutes: null,
   currentOrderId: null,
   currentOrderNumber: null,
   currentOrderState: null,
   accessNotes: null,
   parcelLines: [],
-  bookingMode: null,
-  vehicleClass: null,
   deliveryAttempts: null,
   maxDeliveryAttempts: null,
-  walletCents: null,
-  todayEarningsCents: null,
-  pendingDocuments: null,
-  jobsOpen: null,
-  performanceScore: null,
   navigationUrl: null,
   destLat: null,
   destLng: null,
@@ -90,146 +61,103 @@ export const idleHandshake = (): Handshake => ({
   codStatus: null,
   push: PUSH_IDLE,
   location: idleLocation(),
-  platformStatus: "unknown",
-  platformDetail: null,
-  routePolyline: null,
-  navStopCount: null,
   error: null,
 });
+
+export function isOnboardingBlocked(message: string | null | undefined): boolean {
+  return Boolean(message?.startsWith("driver_onboarding_blocked:"));
+}
 
 export async function runHandshake(location: LocationState = idleLocation()): Promise<Handshake> {
   const next = idleHandshake();
   next.location = location;
-  const apiUp = await probeApi();
-  next.api = apiUp ? "up" : "down";
-  if (!apiUp) {
-    next.error = "API unreachable — start Porterchain API on :8001";
+  if (!(await probeApi())) {
+    next.api = "down";
+    // Local dev: the PorterChain API must be running on :8001 (see config.ts).
+    next.error = "network_unavailable";
     next.push = await collectPush().catch(() => PUSH_IDLE);
     return next;
   }
+  next.api = "up";
 
   try {
-    const health = await fetchPublicHealth().catch(() => null);
-    if (health) {
-      next.platformStatus = health.status === "ok" ? "ok" : "degraded";
-      if (next.platformStatus === "degraded") {
-        const bad = Object.entries(health.components ?? {})
-          .filter(([, v]) => v !== "operational")
-          .map(([k]) => k);
-        next.platformDetail = bad.length
-          ? `Platform degraded: ${bad.join(", ")}`
-          : "Platform degraded — some services may be slow";
-      }
-    }
-
-    const [me, push] = await Promise.all([fetchMe(), collectPush()]);
+    const [me, push] = await Promise.all([fetchMe(), collectPush().catch(() => PUSH_IDLE)]);
     next.auth = "up";
     next.driverName = me.full_name;
-    next.walletCents = me.wallet_balance_cents ?? null;
+    next.online = me.is_online;
     next.push = push;
 
-    const dash = await fetchDashboard().catch((err: unknown) => {
-      const message = err instanceof Error ? err.message : "dashboard_failed";
-      next.error = message;
-      return null;
-    });
-    const jobs = await fetchJobs().catch(() => ({
-      next_stop: null,
-      current: null,
-      route_id: null,
-      upcoming: [],
-      jobs: [],
-    }));
-    if (!dash) {
-      return next;
+    const [dash, jobs] = await Promise.all([
+      fetchDashboard().catch((err: unknown) => {
+        next.error = err instanceof Error ? err.message : "dashboard_failed";
+        return null;
+      }),
+      fetchJobs().catch(() => null),
+    ]);
+    if (dash) {
+      next.online = dash.is_online;
+      next.stopsDone = dash.todays_stops_completed;
+      next.stopsTotal = dash.todays_stops_total;
     }
-    next.availability = dash.availability;
-    next.online = dash.is_online;
-    next.stopsDone = dash.todays_stops_completed;
-    next.stopsTotal = dash.todays_stops_total;
-    next.walletCents = dash.wallet_balance_cents ?? me.wallet_balance_cents ?? null;
-    next.todayEarningsCents = dash.todays_earnings_cents ?? null;
-    next.pendingDocuments = dash.pending_documents ?? null;
-    next.jobsOpen = (jobs.current ? 1 : 0) + (jobs.upcoming?.length ?? 0);
-    next.performanceScore = dash.performance_score ?? null;
-    next.routeId = jobs.route_id ?? dash.active_route_id ?? null;
-    next.stopId = jobs.next_stop?.stop_id ?? null;
-    next.stopStatus = jobs.next_stop?.status ?? null;
-    next.nextStop = jobs.next_stop?.formatted_address ?? null;
-    next.nextStopType = jobs.next_stop?.stop_type ?? null;
-    next.etaMinutes = jobs.next_stop?.eta_minutes ?? null;
-    next.currentOrderId = jobs.current?.order_id ?? jobs.next_stop?.order_id ?? null;
+    if (!jobs) return next;
+
+    const stop = jobs.next_stop ?? null;
+    const listed = [jobs.current, ...(jobs.upcoming ?? []), ...(jobs.jobs ?? [])].filter(
+      (j): j is DriverJobSummary => Boolean(j)
+    );
+    next.jobs = listed.filter((j, i) => listed.findIndex((x) => x.order_id === j.order_id) === i);
+    next.routeId = jobs.route_id ?? dash?.active_route_id ?? null;
+    next.stopId = stop?.stop_id ?? null;
+    next.stopStatus = stop?.status ?? null;
+    next.nextStop = stop?.formatted_address ?? null;
+    next.nextStopType = stop?.stop_type ?? null;
+    next.etaMinutes = stop?.eta_minutes ?? null;
+    next.deliveryAttempts = stop?.delivery_attempts ?? null;
+    next.maxDeliveryAttempts = stop?.max_delivery_attempts ?? null;
+    next.accessNotes = stop ? formatAccessLine(stop) : null;
+    next.currentOrderId = jobs.current?.order_id ?? stop?.order_id ?? null;
     next.currentOrderNumber = jobs.current?.order_number ?? null;
-    const listed = [jobs.current, ...(jobs.upcoming ?? []), ...(jobs.jobs ?? [])];
-    const currentRow = listed.find((job) => job?.order_id === next.currentOrderId) ?? null;
-    next.currentOrderState = currentRow?.state ?? currentRow?.status ?? null;
-    next.accessNotes = jobs.next_stop
-      ? formatAccessLine({
-          special_instructions: jobs.next_stop.special_instructions,
-          access_unit: jobs.next_stop.access_unit,
-          access_buzzer: jobs.next_stop.access_buzzer,
-          access_dock: jobs.next_stop.access_dock,
-          call_on_arrival: jobs.next_stop.call_on_arrival,
-          contact_phone_masked: jobs.next_stop.contact_phone_masked,
-        })
-      : null;
-    next.deliveryAttempts = jobs.next_stop?.delivery_attempts ?? null;
-    next.maxDeliveryAttempts = jobs.next_stop?.max_delivery_attempts ?? null;
-    next.push = push;
+    const row = next.jobs.find((j) => j.order_id === next.currentOrderId);
+    next.currentOrderState = row?.state ?? row?.status ?? null;
+    next.destLat = coord(stop?.address?.lat);
+    next.destLng = coord(stop?.address?.lng);
 
     if (next.currentOrderId) {
-      try {
-        const job = await fetchJob(next.currentOrderId);
+      const [job, nav] = await Promise.all([
+        fetchJob(next.currentOrderId).catch(() => null),
+        fetchNavigationSession(next.currentOrderId).catch(() => null),
+      ]);
+      if (job) {
         next.otpRequired = Boolean(job.otp_required);
         next.podRequirements = job.pod_requirements ?? null;
         next.scanPickup = job.scan_pickup ?? null;
         next.scanDelivery = job.scan_delivery ?? null;
         next.codAmountCents = job.cod_amount_cents ?? null;
         next.codStatus = job.cod_status ?? null;
-        if (!next.currentOrderNumber) next.currentOrderNumber = job.order_number;
-        if (job.state || job.status) next.currentOrderState = job.state ?? job.status ?? null;
+        next.currentOrderNumber ??= job.order_number;
+        next.currentOrderState = job.state ?? job.status ?? next.currentOrderState;
         if (!next.accessNotes && job.special_instructions) {
-          next.accessNotes = formatAccessLine({ special_instructions: job.special_instructions });
+          next.accessNotes = job.special_instructions;
         }
-        next.bookingMode = job.booking_mode ?? null;
-        next.vehicleClass = job.vehicle_class ?? null;
-        next.parcelLines = (job.packages ?? [])
-          .map((pkg) => {
-            const name = pkg.preset_label || "Parcel";
-            return pkg.instructions ? `${name}: ${pkg.instructions}` : name;
-          })
-          .filter(Boolean);
-        if (job.delivery_attempts != null) next.deliveryAttempts = job.delivery_attempts;
-        if (job.max_delivery_attempts != null) next.maxDeliveryAttempts = job.max_delivery_attempts;
-      } catch {
-        /* FieldOps can still fetch */
+        next.parcelLines = (job.packages ?? []).map((pkg) => {
+          const name = pkg.preset_label || "Parcel";
+          return pkg.instructions ? `${name}: ${pkg.instructions}` : name;
+        });
+        next.deliveryAttempts = job.delivery_attempts ?? next.deliveryAttempts;
+        next.maxDeliveryAttempts = job.max_delivery_attempts ?? next.maxDeliveryAttempts;
       }
-    }
-
-    const nav = await fetchNavigationSession(next.currentOrderId).catch(() => null);
-    Object.assign(next, navBits(nav, next.nextStopType));
-    if (next.destLat == null) {
-      next.destLat = coord(jobs.next_stop?.address?.lat);
-      next.destLng = coord(jobs.next_stop?.address?.lng);
-    }
-    if (nav?.optimized_route?.polyline) {
-      next.routePolyline = nav.optimized_route.polyline;
-    }
-
-    if (next.routeId) {
-      try {
-        const routeNav = await fetchNavigationRoute(next.routeId);
-        next.navStopCount = routeNav.stops?.length ?? null;
-        if (routeNav.route_polyline) next.routePolyline = routeNav.route_polyline;
-        if (!next.etaLabel && routeNav.eta?.eta_label) next.etaLabel = routeNav.eta.eta_label;
-      } catch {
-        /* optional geometry */
+      if (nav && !nav.idle) {
+        const dest = next.nextStopType === "pickup" ? nav.pickup : (nav.dropoff ?? nav.pickup);
+        next.navigationUrl = nav.navigation_url ?? null;
+        next.destLat = coord(dest?.lat) ?? next.destLat;
+        next.destLng = coord(dest?.lng) ?? next.destLng;
+        next.etaLabel = nav.eta?.eta_label ?? null;
+        next.distanceLabel = formatKm(nav.eta?.distance_meters ?? null);
       }
     }
   } catch (err) {
     next.auth = "down";
     next.error = err instanceof Error ? err.message : "handshake_failed";
-    next.push = await collectPush().catch(() => PUSH_IDLE);
   }
   return next;
 }

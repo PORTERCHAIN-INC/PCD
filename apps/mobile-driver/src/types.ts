@@ -1,15 +1,3 @@
-export type Screen =
-  | "sign-in"
-  | "invite"
-  | "onboarding"
-  | "route"
-  | "job-detail"
-  | "inbox"
-  | "support"
-  | "force-update";
-
-export type FieldTab = "work" | "jobs" | "money" | "docs" | "more";
-
 export type LinkState = "up" | "down" | "idle";
 
 export type PushKind = "fcm" | "apns" | "expo" | "denied" | "unavailable";
@@ -36,74 +24,33 @@ export type ScanProgress = {
   reported_missing?: number;
 };
 
-export type PickupChecklistBox = {
-  package_id: string;
-  box_index: number | null;
-  parcel_index: number;
-  tracking_suffix: string;
-  status: string;
-  scanned: boolean;
-  missing: boolean;
-};
-
-export type PickupChecklistItem = {
-  item_key: string | null;
-  /** "Item 2" or "Parcel 4" — never contents. */
-  label: string;
-  box_count: number;
-  boxes: PickupChecklistBox[];
-  scanned: number;
-  missing: number;
-  complete: boolean;
-};
-
-export type PickupChecklist = {
-  order_id: string;
-  whole_vehicle: boolean;
-  items: PickupChecklistItem[];
-  scanned: number;
-  missing: number;
-  required: number;
-  can_confirm: boolean;
-};
-
-export type MissingReason = "not_ready" | "not_found" | "damaged" | "wrong_item" | "other";
-
 export type Handshake = {
   api: LinkState;
   auth: LinkState;
   driverName: string | null;
-  availability: string | null;
   online: boolean | null;
-  nextStop: string | null;
-  nextStopType: string | null;
-  etaMinutes: number | null;
   stopsDone: number | null;
   stopsTotal: number | null;
+  /** Today's jobs (current first), de-duplicated. */
+  jobs: DriverJobSummary[];
   routeId: string | null;
   stopId: string | null;
   stopStatus: string | null;
+  nextStop: string | null;
+  nextStopType: string | null;
+  etaMinutes: number | null;
   currentOrderId: string | null;
   currentOrderNumber: string | null;
   currentOrderState: string | null;
   accessNotes: string | null;
   parcelLines: string[];
-  bookingMode: string | null;
-  vehicleClass: string | null;
   deliveryAttempts: number | null;
   maxDeliveryAttempts: number | null;
-  walletCents: number | null;
-  todayEarningsCents: number | null;
-  pendingDocuments: number | null;
-  /** Current + upcoming jobs (Jobs tab badge). */
-  jobsOpen: number | null;
-  performanceScore: number | null;
   navigationUrl: string | null;
   destLat: number | null;
   destLng: number | null;
   etaLabel: string | null;
   distanceLabel: string | null;
-  /** Cached from job detail during handshake — avoids FieldOps / OTP refetch races. */
   otpRequired: boolean;
   podRequirements: PodRequirements | null;
   scanPickup: ScanProgress | null;
@@ -112,27 +59,13 @@ export type Handshake = {
   codStatus: string | null;
   push: PushState;
   location: LocationState;
-  platformStatus: "ok" | "degraded" | "unknown";
-  platformDetail: string | null;
-  routePolyline: string | null;
-  navStopCount: number | null;
   error: string | null;
-};
-
-export type OfflineActionRow = {
-  id?: string;
-  action_type: string;
-  status?: string;
-  error?: string | null;
-  created_at?: string | null;
 };
 
 export type OfflineStatus = {
   pending_count: number;
   failed_count: number;
   synced_count?: number;
-  pending?: OfflineActionRow[];
-  failed?: OfflineActionRow[];
   last_sync_at?: string | null;
 };
 
@@ -230,26 +163,6 @@ export type DriverPackage = {
   package_type?: string;
 };
 
-export type DriverTimelineEvent = {
-  event_type: string;
-  label: string;
-  from_state?: string | null;
-  to_state?: string | null;
-  occurred_at?: string | null;
-  actor_type?: string | null;
-};
-
-export type DriverProof = {
-  type?: string;
-  value?: string;
-};
-
-export type DriverProofOfDelivery = {
-  completed?: boolean;
-  proofs?: DriverProof[];
-  otp_verified?: boolean;
-};
-
 /** API pod_policy.requirements_for — what the dropoff needs before completion. */
 export type PodRequirements = {
   enforced?: boolean;
@@ -281,11 +194,6 @@ export type DriverJobDetail = DriverJobSummary & {
   vehicle_class?: string | null;
   packages?: DriverPackage[];
   packages_error?: string | null;
-  timeline?: DriverTimelineEvent[];
-  photos?: DriverProof[];
-  signatures?: DriverProof[];
-  documents?: DriverProof[];
-  proof_of_delivery?: DriverProofOfDelivery;
   pickup_completed_at?: string | null;
   delivery_completed_at?: string | null;
   delivery_attempts?: number;
@@ -293,77 +201,13 @@ export type DriverJobDetail = DriverJobSummary & {
   merchant?: { company_name?: string } | null;
 };
 
-export type DriverOnboardingStep = {
-  id: string;
-  label: string;
-  description: string;
-  complete: boolean;
-  status: string;
-  missing?: string[];
-};
-
 export type DriverOnboarding = {
   ready: boolean;
   blockers: string[];
   status: string;
   clerk_linked: boolean;
-  steps: DriverOnboardingStep[];
   pending_documents: number;
   can_access_portal: boolean;
-};
-
-export type WalletSnapshot = {
-  balance_cents: number;
-  transactions: Array<{
-    id?: string;
-    type?: string;
-    amount_cents: number;
-    description?: string;
-    created_at?: string | null;
-  }>;
-  payouts: Array<{
-    id?: string;
-    amount_cents: number;
-    status?: string;
-    created_at?: string | null;
-  }>;
-};
-
-export type EarningsSnapshot = {
-  today_cents: number;
-  week_cents: number;
-  month_cents: number;
-  completed_deliveries_today?: number;
-  wallet_balance_cents?: number;
-  last_updated?: string;
-};
-
-export type StatementRow = {
-  id: string;
-  period_label: string;
-  gross_cents: number;
-  net_cents: number;
-  deliveries: number;
-};
-
-export type DriverDocument = {
-  type: string;
-  label: string;
-  status: string;
-  verified: boolean;
-  url?: string | null;
-  expires_at?: string | null;
-  rejection_reason?: string | null;
-};
-
-export type DriverPerformance = {
-  score: number;
-  on_time_percent: number;
-  completion_percent: number;
-  deliveries_total: number;
-  deliveries_today: number;
-  acceptance_rate: number;
-  rating: number | null;
 };
 
 export type NavigationSession = {
@@ -373,13 +217,6 @@ export type NavigationSession = {
   dropoff?: { lat?: number; lng?: number; formatted?: string };
   pickup?: { lat?: number; lng?: number; formatted?: string };
   optimized_route?: { polyline?: string | null } | null;
-};
-
-export type NavigationRoute = {
-  route_id?: string;
-  route_polyline?: string | null;
-  stops?: Array<{ stop_id: string; stop_type?: string; status?: string | null }>;
-  eta?: { eta_label?: string; duration_seconds?: number; distance_meters?: number } | null;
 };
 
 export type MobileDriverPolicy = {
@@ -397,79 +234,8 @@ export type PublicHealthStatus = {
   updated_at?: string;
 };
 
-export type InboxNotification = {
-  id: string;
-  title: string;
-  body: string;
-  priority?: string;
-  category?: string;
-  template_key?: string;
-  deep_link?: string | null;
-  is_read: boolean;
-  created_at?: string | null;
-  group?: string;
-  order_id?: string;
-};
-
-export type InboxSnapshot = {
-  unread_count: number;
-  items: InboxNotification[];
-};
-
-export type SupportTicketRow = {
-  id: string;
-  ticket_number?: string;
-  subject: string;
-  status: string;
-  priority: string;
-  order_id?: string | null;
-  created_at?: string | null;
-};
-
-export type SupportClaimRow = {
-  id: string;
-  claim_number?: string;
-  claim_type: string;
-  status: string;
-  order_id: string;
-  description?: string | null;
-  created_at?: string | null;
-};
-
-export type SupportIncidentRow = {
-  id: string;
-  incident_type: string;
-  description: string;
-  status: string;
-  created_at: string;
-};
-
-export type EmergencyContact = {
-  name?: string | null;
-  phone?: string | null;
-  relationship?: string | null;
-  ops_hotline?: string;
-  ops_email?: string;
-};
-
-export type KbArticle = {
-  id: string;
-  category_id: string;
-  title: string;
-  body: string;
-};
-
 export type SupportHub = {
-  tickets: SupportTicketRow[];
-  claims: SupportClaimRow[];
-  incidents: SupportIncidentRow[];
-  emergency_contact: EmergencyContact;
-  knowledge_base: {
-    categories: Array<{ id: string; name: string }>;
-    articles: KbArticle[];
-    faq: Array<{ question: string; answer: string }>;
-  };
-  chat?: { enabled: boolean; status: string; message: string };
+  emergency_contact?: { ops_hotline?: string; ops_email?: string };
 };
 
 export type ShiftSnapshot = {
@@ -480,101 +246,4 @@ export type ShiftSnapshot = {
   on_break?: boolean;
   route_id?: string | null;
   started_at?: string | null;
-};
-
-export type OptimizeResult = {
-  plan_id?: string;
-  run_id?: string | null;
-  status?: string;
-  warnings?: string[];
-  message?: string | null;
-  order_ids?: string[];
-  metrics?: Record<string, unknown>;
-  jobs?: DriverJobs;
-  optimized_stops?: Array<Record<string, unknown>>;
-  sequence_version?: number | null;
-  preview?: boolean | null;
-  applied?: boolean | null;
-  ok?: boolean | null;
-  error?: string | null;
-};
-
-export type AssignedRoute = {
-  id: string;
-  status?: string | null;
-  stop_count?: number;
-  completed_stops?: number;
-  earnings_cents?: number | null;
-};
-
-export type RouteStopRow = {
-  stop_id: string;
-  stop_type?: string;
-  order_id?: string;
-  status?: string | null;
-  formatted_address?: string | null;
-  sequence?: number;
-};
-
-export type DriverProfile = {
-  full_name?: string;
-  email?: string;
-  phone?: string | null;
-  status?: string;
-  rating?: number | null;
-  profile?: {
-    full_name?: string;
-    email?: string;
-    phone?: string | null;
-    status?: string;
-    rating?: number | null;
-  };
-};
-
-export type DriverVehicle = {
-  id: string;
-  vehicle_class?: string;
-  plate_number?: string;
-  make_model?: string | null;
-  is_active?: boolean;
-};
-
-export type TrainingModule = {
-  id: string;
-  title?: string;
-  name?: string;
-  completed?: boolean;
-  status?: string;
-};
-
-export type BonusRow = {
-  id: string;
-  title?: string;
-  label?: string;
-  amount_cents?: number;
-  status?: string;
-  claimable?: boolean;
-};
-
-export type RatingsSummary = {
-  rating?: number | null;
-  count?: number;
-  average?: number | null;
-  recent?: Array<{ score?: number; comment?: string | null }>;
-};
-
-export type InsuranceStatus = {
-  status?: string;
-  verified?: boolean;
-  insurance_verified?: boolean;
-  provider?: string | null;
-  expires_at?: string | null;
-};
-
-export type StatementDetail = {
-  id: string;
-  period_label?: string;
-  net_cents?: number;
-  download_url?: string | null;
-  lines?: Array<{ description?: string; amount_cents?: number }>;
 };

@@ -16,14 +16,13 @@ Description (required)
 ────────────────────────────────────────
 Porterchain Driver is the field app for drivers on Porterchain’s Transportation Capacity Network.
 
-You get the work that is assigned to you — the next stop, the job number, wallet and today’s earnings — and you run the loop on the van:
+You get the work that is assigned to you — the next stop, the job number and today's progress — and you run the loop on the van:
 
 • Start a shift only after a short pre-trip check
 • Navigate to the stop and mark arrival when you are actually there
 • Scan package QR or Code 128 labels that belong to this order
 • Capture proof of delivery photos
-• Keep licence, insurance, and vehicle documents current
-• See jobs, money, and messages without a dispatch console on your phone
+• Call or email dispatch, or send an SOS, from the Me tab
 
 Location is used while you are on duty so dispatch can see the van, including with the screen locked. Camera is used for proof of delivery and label scans. Sign-in is for approved Porterchain drivers only.
 
@@ -101,7 +100,7 @@ Porterchain Driver (ASC name: PCD) is for approved Porterchain network drivers o
 
 Sign in: tap “Sign in with Porterchain”, then use the User name / Password in this form (Clerk hosted auth).
 
-After sign-in you should land on Work. Check Jobs, Money, Docs, and More — none require a live route. Work shows the assigned stop when a job is on the board; otherwise wallet and duty controls still appear.
+After sign-in you land on Today (vehicle check and duty). Job shows the current stop when dispatch has assigned one; otherwise it shows an empty state. Me has dispatch contact, SOS, location & privacy, and sign-out. Earnings and documents are on the driver web portal, not in the app.
 
 Background location (5.1.4): precise location is sent only while the driver is On duty so PorterChain dispatch can see the van with the screen locked. Off duty stops the on-duty ping. Not used for ads or tracking.
 
@@ -113,7 +112,7 @@ Push: APNs for job assigned / stop changes. Missing push registration on the rev
 
 Encryption: standard HTTPS only (ITSAppUsesNonExemptEncryption = false).
 
-Account deletion: email porterchaininc@gmail.com (drivers are ops-provisioned). In-app: More → Support.
+Account deletion: email porterchaininc@gmail.com (drivers are ops-provisioned). In-app: Me → Email dispatch.
 
 Please do not reject for: no public registration; geofence “I’ve arrived” may refuse until the device pin is inside the stop.
 
@@ -122,7 +121,7 @@ Attachment
 ────────────────────────────────────────
 Optional. If you attach anything, use a one-page PDF with:
   • Sign-in steps (Sign in with Porterchain → email/password)
-  • Tab map: Work / Jobs / Money / Docs / More
+  • Tab map: Today / Job / Me
 Otherwise leave Attachment empty — Notes above are enough.
 
 ────────────────────────────────────────

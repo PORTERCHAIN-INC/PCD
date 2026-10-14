@@ -400,7 +400,12 @@ class StopsService:
                         actor_id=driver.id,
                         event_type="exception.return_to_sender")
             except Exception:  # noqa: BLE001 — exception row already persisted
-                pass
+                # Never silent: without this the merchant/Shopify never hear the stop failed.
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "stop_exception_transition_failed order=%s outcome=%s", order.id, outcome
+                )
         emit_event(
             db,
             event_type="incident.reported",

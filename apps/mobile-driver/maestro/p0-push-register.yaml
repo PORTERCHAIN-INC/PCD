@@ -1,5 +1,3 @@
-# P0 — push registration path when settings present
-# Case: MOB-03 / GAP-08 — Maestro live; pytest: tests/services/test_driver_push_service.py
 appId: com.porterchain.PCD
 tags:
   - p0
@@ -10,32 +8,13 @@ tags:
     id: mobile-sign-in
 - tapOn:
     id: dev-sign-in
-- runFlow:
-    when:
-      visible:
-        id: mobile-onboarding
-    commands:
-      - tapOn:
-          id: onboarding-skip-dev
 - extendedWaitUntil:
     visible:
       id: mobile-track
     timeout: 20000
-- runFlow:
-    when:
-      visible:
-        id: more-tab
-    commands:
-      - tapOn:
-          id: more-tab
-      - runFlow:
-          when:
-            visible:
-              id: push-register
-          commands:
-            - tapOn:
-                id: push-register
-            - assertVisible:
-                id: push-status
+- tapOn:
+    id: tab-me
 - assertVisible:
-    id: route-status
+    id: me-dispatch
+- assertVisible:
+    id: sos

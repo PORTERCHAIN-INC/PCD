@@ -1,13 +1,14 @@
 import { Platform } from "react-native";
 import { fetchGpsStatus, pingLocation, setAvailability } from "./api";
 import { locationPingMs } from "./config";
-import { humanFieldCopy } from "./fieldCopy";
+import { humanError } from "./errorCopy";
 import { enqueueGpsPing } from "./offline";
+import { readLocationConsent } from "./consent";
 import { DRIVER_LOCATION_TASK } from "./locationTask";
 import type { LocationState } from "./types";
 
 /** Soft-offline if no successful ping for this long while on duty. */
-export const STALE_LOCATION_MS = 5 * 60_000;
+const STALE_LOCATION_MS = 5 * 60_000;
 
 let lastSuccessfulPingAt = 0;
 /** Set when PorterChain has switched live GPS off for this driver. */
@@ -40,15 +41,15 @@ export function idleLocation(): LocationState {
 
 function humanLocationDetail(err: unknown): string {
   const raw = err instanceof Error ? err.message : "location_unavailable";
-  return humanFieldCopy(raw) || raw;
+  return humanError(raw);
 }
 
-export function markLocationPingSuccess(at = Date.now()): void {
+function markLocationPingSuccess(at = Date.now()): void {
   lastSuccessfulPingAt = at;
   softOfflineArmed = false;
 }
 
-export function isLocationStale(now = Date.now()): boolean {
+function isLocationStale(now = Date.now()): boolean {
   if (!lastSuccessfulPingAt) return false;
   return now - lastSuccessfulPingAt > STALE_LOCATION_MS;
 }
@@ -57,40 +58,53 @@ async function loadLocation() {
   return import("expo-location");
 }
 
+/** Foreground ("While using") permission only. Never shows the "Always" prompt. */
 export async function requestLocationAccess(): Promise<LocationState> {
   try {
     const Location = await loadLocation();
     const existing = await Location.getForegroundPermissionsAsync();
     let status = existing.status;
-    if (status !== "granted") {
-      const asked = await Location.requestForegroundPermissionsAsync();
-      status = asked.status;
+    if (status !== "granted" && existing.canAskAgain !== false) {
+      status = (await Location.requestForegroundPermissionsAsync()).status;
     }
     if (status !== "granted") {
       return { kind: "denied", detail: "Location off — dispatch will not see this van" };
     }
-
-    const bg = await Location.getBackgroundPermissionsAsync();
-    if (bg.status !== "granted") {
-      await Location.requestBackgroundPermissionsAsync();
-    }
-
-    return {
-      kind: "granted",
-      detail: "Location on — foreground and background go to PorterChain dispatch",
-    };
+    return { kind: "granted", detail: "Location on while the app is open" };
   } catch (err) {
-    return {
-      kind: "error",
-      detail: humanLocationDetail(err),
-    };
+    return { kind: "error", detail: humanLocationDetail(err) };
   }
+}
+
+/** Checks (never prompts) — safe to call on every ping. */
+async function hasForegroundPermission(): Promise<boolean> {
+  try {
+    const Location = await loadLocation();
+    return (await Location.getForegroundPermissionsAsync()).status === "granted";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The "Always" prompt. Only called after the driver agreed on the consent screen
+ * (see consent.ts); without consent, on-duty GPS stays foreground-only.
+ */
+async function requestBackgroundAccess(): Promise<boolean> {
+  const consent = await readLocationConsent();
+  if (!consent) return false;
+  const Location = await loadLocation();
+  const bg = await Location.getBackgroundPermissionsAsync();
+  if (bg.status === "granted") return true;
+  if (bg.canAskAgain === false) return false;
+  return (await Location.requestBackgroundPermissionsAsync()).status === "granted";
 }
 
 export async function sendLocationPing(): Promise<LocationState> {
   if (gpsOffMessage) return gpsOffState();
-  const access = await requestLocationAccess();
-  if (access.kind !== "granted") return access;
+  if (!(await hasForegroundPermission())) {
+    return { kind: "denied", detail: "Location off — dispatch will not see this van" };
+  }
   try {
     const Location = await loadLocation();
     const pos = await Location.getCurrentPositionAsync({
@@ -152,6 +166,12 @@ export async function startBackgroundLocation(): Promise<LocationState> {
   const access = await requestLocationAccess();
   if (access.kind !== "granted") return access;
   try {
+    if (!(await requestBackgroundAccess())) {
+      return {
+        kind: "granted",
+        detail: "Location shared only while the app is open (background location is off)",
+      };
+    }
     const Location = await loadLocation();
     const started = await Location.hasStartedLocationUpdatesAsync(DRIVER_LOCATION_TASK);
     if (!started) {

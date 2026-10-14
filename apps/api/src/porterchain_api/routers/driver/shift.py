@@ -25,8 +25,12 @@ def insurance(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Se
 
 
 @router.get("/documents")
-def list_documents(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
-    return {"documents": svc.platform.documents.list_documents(ctx.driver)}
+def list_documents(
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    include_files: bool = True):
+    """`include_files=false` drops inline data: URLs (the app lists status/expiry only)."""
+    docs = svc.platform.documents
+    return {"documents": docs.list_documents(ctx.driver) if include_files else docs.list_documents_lite(ctx.driver)}
 
 
 @router.post("/documents")
@@ -74,3 +78,50 @@ def complete_training(
     return result
 
 
+
+
+# ---------- App settings + privacy request (driver mobile Settings page) ----------
+_PRIVACY_KINDS = {"access", "correction", "deletion"}
+
+
+@router.get("/settings")
+def get_app_settings(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
+    from porterchain_driver.app_settings import read_settings
+
+    return {"settings": read_settings(ctx.driver)}
+
+
+@router.put("/settings")
+def put_app_settings(
+    body: dict,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db)):
+    """Merge-update; unknown keys and bad values are dropped. Notification flags gate push by type."""
+    from porterchain_driver.app_settings import merge_settings
+
+    raw = body.get("settings") if isinstance(body.get("settings"), dict) else body
+    with db_transaction(db):
+        merged = merge_settings(db, ctx.driver, raw)
+    return {"settings": merged}
+
+
+@router.post("/privacy/request")
+def privacy_request(
+    body: dict,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db)):
+    """PIPEDA access / correction / deletion request → a tracked privacy ticket (30-day SLA)."""
+    kind = str(body.get("kind") or "")
+    if kind not in _PRIVACY_KINDS:
+        raise HTTPException(status_code=422, detail="invalid_privacy_kind")
+    note = str(body.get("note") or "")[:1000] or None
+    with db_transaction(db):
+        ticket = svc.platform.support.create_ticket(
+            db,
+            ctx.driver,
+            subject=f"Privacy request: {kind}",
+            description=note,
+            priority="high",
+            category="privacy")
+    ref = ticket.get("id") if isinstance(ticket, dict) else None
+    return {"status": "received", "kind": kind, "reference": ref, "sla_days": 30}

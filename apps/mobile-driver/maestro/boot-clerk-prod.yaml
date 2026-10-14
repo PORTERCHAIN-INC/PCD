@@ -7,6 +7,6 @@ appId: com.porterchain.PCD
     optional: true
 - extendedWaitUntil:
     visible:
-      text: "Sign in with Porterchain|env=production|Couldn’t finish starting"
+      text: "Sign in|env=production|Couldn't start sign-in"
     timeout: 90000
 - takeScreenshot: /tmp/pcd-metro-clerk-boot

@@ -113,3 +113,49 @@ def dispatch_stop_checklist(
     data["item_count"] = len(items)
     data["box_count"] = sum(len(it.get("boxes") or []) for it in items)
     return data
+
+
+_CONTACT_PHONE_KEYS = ("phone", "contact_phone", "mobile")
+_CLOSED_STATES = {"DELIVERED", "POD_COMPLETED", "FAILED", "CANCELLED", "RETURN_TO_SENDER", "COMPLETED"}
+
+
+def _side_phone(side: object) -> str | None:
+    if not isinstance(side, dict):
+        return None
+    candidates = [side, *[s for s in (side.get("stops") or []) if isinstance(s, dict)]]
+    for c in candidates:
+        for k in _CONTACT_PHONE_KEYS:
+            v = c.get(k)
+            if isinstance(v, str) and sum(ch.isdigit() for ch in v) >= 7:
+                return v.strip()
+    return None
+
+
+@router.get("/dispatch/orders/{order_id}/contact")
+def dispatch_stop_contact(
+    order_id: str,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db),
+    kind: str = "drop"):
+    """Phone for the stop's contact, only while the order is assigned to this driver and open.
+
+    PIPEDA: the number is never in route lists (those carry a masked form); it is released per
+    tap for a live stop, so the app can open the phone's own dialer / SMS app (no paid bridge).
+    """
+    require_approved_driver(ctx)
+    import logging
+
+    try:
+        order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    if str(order.state) in _CLOSED_STATES:
+        raise HTTPException(status_code=409, detail="stop_closed")
+    side = order.pickup if kind in {"pickup", "return_pickup"} else order.dropoff
+    phone = _side_phone(side)
+    if not phone:
+        raise HTTPException(status_code=404, detail="no_contact_phone")
+    logging.getLogger(__name__).info("driver_contact_released order=%s driver=%s", order.id, ctx.driver.id)
+    return {"phone": phone}

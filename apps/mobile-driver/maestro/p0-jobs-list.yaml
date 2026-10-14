@@ -1,5 +1,3 @@
-# P0 — jobs list surface after login
-# Case: MOB-02 · API-D-02 mobile view
 appId: com.porterchain.PCD
 tags:
   - p0
@@ -10,25 +8,11 @@ tags:
     id: mobile-sign-in
 - tapOn:
     id: dev-sign-in
-- runFlow:
-    when:
-      visible:
-        id: mobile-onboarding
-    commands:
-      - tapOn:
-          id: onboarding-skip-dev
 - extendedWaitUntil:
     visible:
       id: mobile-track
     timeout: 20000
-- runFlow:
-    when:
-      visible:
-        id: jobs-tab
-    commands:
-      - tapOn:
-          id: jobs-tab
-      - assertVisible:
-          id: jobs-list
+- tapOn:
+    id: tab-job
 - assertVisible:
-    id: route-status
+    id: screen-job

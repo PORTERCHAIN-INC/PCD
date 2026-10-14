@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import { endShift, probeApi, startShift } from "../api";
+/**
+ * Field session state: the handshake snapshot, duty + GPS, and the offline outbox counters.
+ * Sync happens automatically on reconnect and on app foreground; "Sync now" is a backup.
+ */
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
+import { endShift, startShift } from "../api";
 import { idleHandshake, runHandshake } from "../handshake";
 import {
   requestLocationAccess,
@@ -10,152 +16,166 @@ import {
 import {
   flushOfflineQueues,
   pendingOfflineCount,
+  queuedStopIds,
+  readRejected,
   runOnlineOrQueue,
-  type FlushResult,
 } from "../offline";
-import { collectPush } from "../push";
+import { mergeOfflineHandshake } from "../fieldState";
 import { getSessionSnapshot, subscribeSession } from "../session";
-import type { Handshake, LocationState } from "../types";
+import type { Handshake } from "../types";
+import { qk } from "../data/keys";
+import { queryClient } from "../data/queryClient";
+
+/** Last known snapshot from the encrypted cache: Today/Job/Me paint instantly on cold start. */
+function cachedHandshake(): Handshake | null {
+  const h = queryClient.getQueryData<Handshake>(qk.handshake);
+  return h && h.api === "up" ? { ...h, error: null } : null;
+}
 
 const OFFLINE_POLL_MS = 30_000;
+const ON_DUTY_POLL_MS = 30_000;
 
 export function useFieldSession() {
-  const [handshake, setHandshake] = useState<Handshake>(idleHandshake());
+  const [handshake, setHandshake] = useState<Handshake>(() => cachedHandshake() ?? idleHandshake());
+  /** False until this launch has its own server copy (GPS/duty side effects wait for it). */
+  const [fresh, setFresh] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(
+    () => queryClient.getQueryState(qk.handshake)?.dataUpdatedAt ?? 0
+  );
   const [busy, setBusy] = useState(false);
-  const [location, setLocation] = useState<LocationState>(idleHandshake().location);
-  const [offlinePending, setOfflinePending] = useState(0);
-  const [offlineNote, setOfflineNote] = useState<string | null>(null);
-  const [lastFlush, setLastFlush] = useState<FlushResult | null>(null);
+  const [pending, setPending] = useState(0);
+  const [rejected, setRejected] = useState(0);
+  const [syncingStopIds, setSyncingStopIds] = useState<string[]>([]);
   const [signedIn, setSignedIn] = useState(() => getSessionSnapshot().signedIn);
+  const signedInRef = useRef(signedIn);
+  signedInRef.current = signedIn;
+  const locationRef = useRef(handshake.location);
+  locationRef.current = handshake.location;
 
   useEffect(() => subscribeSession(() => setSignedIn(getSessionSnapshot().signedIn)), []);
 
-  const refreshOfflineCount = useCallback(async () => {
-    setOfflinePending(await pendingOfflineCount());
+  const refreshCounts = useCallback(async (serverFailed = 0) => {
+    setPending(await pendingOfflineCount());
+    setSyncingStopIds(await queuedStopIds());
+    setRejected((await readRejected()).length + serverFailed);
   }, []);
 
-  const applyFlush = useCallback((flushed: FlushResult) => {
-    setLastFlush(flushed);
-    if (flushed.conflicts_resolved > 0) {
-      setOfflineNote(
-        `${flushed.conflicts_resolved} queued action${flushed.conflicts_resolved === 1 ? "" : "s"} skipped (already applied on server)`
-      );
-    } else if (flushed.failed > 0) {
-      setOfflineNote(
-        `${flushed.failed} offline action${flushed.failed === 1 ? "" : "s"} failed — retry from sync`
-      );
-    } else if (flushed.synced && (flushed.queued > 0 || flushed.gps_flushed > 0)) {
-      setOfflineNote(null);
-    }
+  const apply = useCallback((next: Handshake) => {
+    setHandshake((prev) => {
+      const merged = mergeOfflineHandshake(prev, next, signedInRef.current);
+      if (merged.api === "up") {
+        queryClient.setQueryData(qk.handshake, merged);
+        setUpdatedAt(Date.now());
+        setFresh(true);
+      }
+      return merged;
+    });
   }, []);
 
-  const refreshHandshake = useCallback(async () => {
+  /** Pull the server snapshot, push the outbox, and pull again if anything was sent. */
+  const refresh = useCallback(async () => {
     setBusy(true);
     try {
-      setHandshake(await runHandshake(location));
-      await refreshOfflineCount();
+      apply(await runHandshake(locationRef.current));
       try {
         const flushed = await flushOfflineQueues();
-        applyFlush(flushed);
         if (flushed.queued > 0 || flushed.gps_flushed > 0) {
-          setHandshake(await runHandshake(location));
+          apply(await runHandshake(locationRef.current));
         }
-        await refreshOfflineCount();
+        await refreshCounts(flushed.server_failed);
       } catch {
-        /* keep local queue */
+        await refreshCounts();
       }
     } finally {
       setBusy(false);
     }
-  }, [applyFlush, location, refreshOfflineCount]);
+  }, [apply, refreshCounts]);
 
-  // Full /me handshake only after Clerk is live — unsigned mount used to paint a false auth error.
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
+  // Reliable sync: on reconnect and whenever the app comes back to the foreground.
   useEffect(() => {
     if (!signedIn) return;
-    void refreshHandshake();
-  }, [refreshHandshake, signedIn]);
-
-  // Unsigned: probe API + push only (no /me) so the sign-in screen still shows push status.
-  useEffect(() => {
-    if (signedIn) return;
-    let cancelled = false;
-    void (async () => {
-      const next = idleHandshake();
-      next.location = location;
-      try {
-        next.api = (await probeApi()) ? "up" : "down";
-        if (next.api === "down") {
-          next.error = "API unreachable — start Porterchain API on :8001";
-        }
-        next.push = await collectPush().catch(() => next.push);
-      } catch {
-        /* keep idle */
-      }
-      if (!cancelled) setHandshake(next);
-    })();
+    let wasConnected: boolean | null = null;
+    const unsubNet = NetInfo.addEventListener((state) => {
+      const connected = Boolean(state.isConnected && state.isInternetReachable !== false);
+      if (connected && wasConnected === false) void refreshRef.current();
+      wasConnected = connected;
+    });
+    const appSub = AppState.addEventListener("change", (next) => {
+      if (next === "active") void refreshRef.current();
+    });
+    const timer = setInterval(() => void refreshCounts(), OFFLINE_POLL_MS);
     return () => {
-      cancelled = true;
+      unsubNet();
+      appSub.remove();
+      clearInterval(timer);
     };
-  }, [location, signedIn]);
+  }, [signedIn, refreshCounts]);
 
+  // On duty with the app open: pull every 30 s so new jobs show up even where push can't
+  // reach (iPhones until Firebase Messaging is in the build, Do Not Disturb, flaky FCM).
   useEffect(() => {
+    if (!signedIn || !handshake.online) return;
     const timer = setInterval(() => {
-      void refreshOfflineCount();
-    }, OFFLINE_POLL_MS);
+      if (AppState.currentState === "active") void refreshRef.current();
+    }, ON_DUTY_POLL_MS);
     return () => clearInterval(timer);
-  }, [refreshOfflineCount]);
+  }, [signedIn, handshake.online]);
 
+  // GPS follows duty: on duty → pings + background updates; off duty → nothing.
   useEffect(() => {
+    if (!fresh) return; // cached "on duty" isn't proof: wait for this launch's server copy
     if (!handshake.online) {
       void stopBackgroundLocation();
       return;
     }
-    void startBackgroundLocation().then((next) => {
-      setLocation(next);
-      setHandshake((prev) => ({ ...prev, location: next }));
-    });
-    return startLocationLoop(
-      () => handshake.online === true,
-      (next) => {
-        setLocation(next);
-        setHandshake((prev) => ({ ...prev, location: next }));
-      }
-    );
-  }, [handshake.online]);
+    const setLocation = (location: Handshake["location"]) =>
+      setHandshake((prev) => ({ ...prev, location }));
+    void startBackgroundLocation().then(setLocation);
+    return startLocationLoop(() => true, setLocation);
+  }, [handshake.online, fresh]);
 
   const goOnDuty = useCallback(
-    async (routeId: string | null, pretrip?: Record<string, boolean>) => {
+    async (pretrip: Record<string, boolean>) => {
       const access = await requestLocationAccess();
-      setLocation(access);
-      await runOnlineOrQueue("shift_start", { route_id: routeId, pretrip: pretrip ?? null }, () =>
-        startShift(routeId, pretrip)
+      setHandshake((prev) => ({ ...prev, location: access }));
+      await runOnlineOrQueue("shift_start", { route_id: handshake.routeId, pretrip }, () =>
+        startShift(handshake.routeId, pretrip)
       );
-      const bg = await startBackgroundLocation();
-      setLocation(bg);
+      setHandshake((prev) => ({ ...prev, online: true }));
     },
-    []
+    [handshake.routeId]
   );
 
   const goOffDuty = useCallback(async () => {
     await stopBackgroundLocation();
     await endShift();
+    setHandshake((prev) => ({ ...prev, online: false }));
+  }, []);
+
+  const setError = useCallback((error: string | null) => {
+    setHandshake((prev) => ({ ...prev, error }));
   }, []);
 
   return {
     handshake,
     setHandshake,
+    /** This launch has a server copy (false = painting from the cache). */
+    fresh,
+    updatedAt,
     busy,
     setBusy,
-    location,
-    setLocation,
-    offlinePending,
-    offlineNote,
-    setOfflineNote,
-    lastFlush,
-    refreshHandshake,
-    refreshOfflineCount,
-    applyFlush,
+    pending,
+    rejected,
+    syncingStopIds,
+    refresh,
+    refreshCounts,
     goOnDuty,
     goOffDuty,
+    setError,
   };
 }
+
+export type FieldSession = ReturnType<typeof useFieldSession>;

@@ -92,12 +92,43 @@ export interface DriverIncident {
 
 export type { DriverRoute, DriverStop };
 
+type ClerkWindow = {
+  Clerk?: {
+    session?: { getToken: (o?: { skipCache?: boolean }) => Promise<string | null> } | null;
+  };
+};
+
+/**
+ * Clerk session JWTs live 60 s. The BFF forwards the `__session` cookie token, which can be
+ * stale after a sleeping tab or a burst of parallel requests. On a 401 we ask Clerk for a fresh
+ * token once (this rewrites the cookie) and replay the request before giving up.
+ */
+let refreshing: Promise<boolean> | null = null;
+async function refreshClerkSession(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const session = (window as unknown as ClerkWindow).Clerk?.session;
+  if (!session) return false;
+  refreshing ??= session
+    .getToken({ skipCache: true })
+    .then((t) => Boolean(t))
+    .catch(() => false)
+    .finally(() => {
+      setTimeout(() => (refreshing = null), 0);
+    });
+  return refreshing;
+}
+
 async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
+  const send = () =>
+    fetch(`${API_BASE}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...init?.headers },
+    });
+  let res = await send();
+  if (res.status === 401 && (await refreshClerkSession())) {
+    res = await send();
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     const detailRaw = err.detail;
@@ -105,8 +136,10 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
     if (typeof detailRaw === "string") {
       detail = detailRaw;
     } else if (detailRaw && typeof detailRaw === "object") {
-      const d = detailRaw as { code?: string; error?: string; message?: string };
-      if (d.code === "sequence_version_conflict") {
+      const d = detailRaw as { code?: string; error?: string; message?: string; field?: string };
+      if (d.field && d.code) {
+        detail = JSON.stringify({ field: d.field, code: d.code });
+      } else if (d.code === "sequence_version_conflict") {
         detail = "sequence_version_conflict";
       } else if ((d.code === "pod_required" || d.code === "driver_off_duty") && d.message) {
         detail = d.message;
@@ -118,7 +151,13 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
     }
     if (res.status === 401 && typeof window !== "undefined") {
       const onLogin = window.location.pathname.startsWith("/login");
-      if (!onLogin && (detail === "unauthorized" || detail === "invalid_driver_token")) {
+      if (
+        !onLogin &&
+        (detail === "unauthorized" ||
+          detail === "invalid_driver_token" ||
+          detail === "driver_auth_required" ||
+          detail === "missing_bearer_token")
+      ) {
         window.location.href = "/login?session=expired";
       }
     }
@@ -504,3 +543,103 @@ export const driverApi = {
     ),
   logout: () => driverLogout(),
 };
+
+// ---------- Personal profile (/account) ----------
+export type DriverAddress = {
+  line1: string;
+  line2?: string | null;
+  city: string;
+  province: string;
+  postal_code: string;
+  country?: string;
+};
+export type DriverEmergencyContact = { name: string; relationship: string; phone: string };
+export type DriverMeProfile = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  address: DriverAddress | null;
+  emergency_contact: DriverEmergencyContact | null;
+  photo_url: string | null;
+  updated_at: string | null;
+  identity_managed_by: "clerk";
+};
+export type DriverAppSettings = {
+  language?: "en" | "fr";
+  nav_app?: "google" | "apple" | "waze";
+  notify_jobs?: boolean;
+  notify_messages?: boolean;
+  notify_route_changes?: boolean;
+  notify_documents?: boolean;
+};
+
+export const accountApi = {
+  profile: () => driverFetch<DriverMeProfile>("/v1/me/profile"),
+  updateProfile: (
+    body: Partial<{
+      full_name: string;
+      address: DriverAddress | null;
+      emergency_contact: DriverEmergencyContact | null;
+      photo: string | null;
+    }>
+  ) =>
+    driverFetch<{ profile: DriverMeProfile; changed: string[] }>("/v1/me/profile", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  syncIdentity: () =>
+    driverFetch<{ profile: DriverMeProfile; changed: string[] }>("/v1/me/profile/sync-identity", {
+      method: "POST",
+    }),
+  settings: () => driverFetch<{ settings: DriverAppSettings }>("/v1/settings"),
+  updateSettings: (settings: DriverAppSettings) =>
+    driverFetch<{ settings: DriverAppSettings }>("/v1/settings", {
+      method: "PUT",
+      body: JSON.stringify({ settings }),
+    }),
+  privacyRequest: (kind: "access" | "correction" | "deletion", note?: string) =>
+    driverFetch<{ status: string; reference: string | null; sla_days: number }>(
+      "/v1/privacy/request",
+      { method: "POST", body: JSON.stringify({ kind, note }) }
+    ),
+};
+
+// ---------- Timesheets + weekly availability ----------
+export type TimesheetShift = {
+  id: string;
+  date: string;
+  started_at: string;
+  ended_at: string | null;
+  worked_minutes: number;
+  break_minutes: number;
+  km: number;
+  status: string;
+};
+export type TimesheetWeek = {
+  week_start: string;
+  worked_minutes: number;
+  break_minutes: number;
+  km: number;
+  shifts: TimesheetShift[];
+};
+export type Timesheets = { weeks: TimesheetWeek[]; total_worked_minutes: number };
+export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+export type WeekSchedule = Record<DayKey, { start: string; end: string }[]>;
+export type ScheduleResponse = { schedule: WeekSchedule; weekly_hours: number };
+
+export const timeApi = {
+  timesheets: (weeks = 8) => driverFetch<Timesheets>(`/v1/timesheets?weeks=${weeks}`),
+  schedule: () => driverFetch<ScheduleResponse>("/v1/availability/schedule"),
+  saveSchedule: (schedule: WeekSchedule) =>
+    driverFetch<ScheduleResponse>("/v1/availability/schedule", {
+      method: "PUT",
+      body: JSON.stringify({ schedule }),
+    }),
+};
+
+export function workedLabel(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
+}

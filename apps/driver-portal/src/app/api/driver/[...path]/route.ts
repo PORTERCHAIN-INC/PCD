@@ -1,3 +1,4 @@
+import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
@@ -11,6 +12,8 @@ const IMP_COOKIE = "pc_imp_bearer";
 type RouteContext = { params: Promise<{ path: string[] }> };
 
 function isDevLoginEnabled(): boolean {
+  // The dev cookie is forgeable: a production build never honours it (matches middleware).
+  if (!isDevelopmentBuild()) return false;
   if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "false") return false;
   if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "true") return true;
   const appEnv = (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? "").trim();
