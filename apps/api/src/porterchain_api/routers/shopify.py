@@ -24,6 +24,7 @@ from porterchain_api.platform.rate_limit import (
     incr_rate_limited,
     rate_limit_headers,
 )
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/v1/integrations/shopify", tags=["shopify"])
 logger = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ async def shopify_webhooks(
     )
     raw = await request.body()
     try:
-        result = webhook_ingress.ingest_webhook(
+        result = (await run_in_threadpool(lambda: webhook_ingress.ingest_webhook(
             db,
             settings,
             raw_body=raw,
@@ -112,7 +113,7 @@ async def shopify_webhooks(
             shop_domain_header=shop_domain,
             topic=topic,
             webhook_id=webhook_id,
-        )
+        )))
         return JSONResponse(result, headers=headers)
     except PermissionError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
@@ -144,13 +145,13 @@ async def shopify_fulfillment_order_notification(
     )
     raw = await request.body()
     try:
-        result = shopify.ingest_fulfillment_order_notification(
+        result = (await run_in_threadpool(lambda: shopify.ingest_fulfillment_order_notification(
             db,
             settings,
             raw_body=raw,
             hmac_header=hmac_header,
             shop_domain_header=shop_domain,
-        )
+        )))
         return JSONResponse(result, headers=headers)
     except PermissionError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
@@ -184,14 +185,14 @@ async def shopify_carrier_service_rates(
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="invalid_json") from exc
     try:
-        result = carrier_service_rates(
+        result = (await run_in_threadpool(lambda: carrier_service_rates(
             db,
             settings,
             raw_body=raw,
             hmac_header=hmac_header,
             shop_domain=shop_domain,
             payload=payload if isinstance(payload, dict) else {},
-        )
+        )))
         return JSONResponse(result, headers=headers)
     except PermissionError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc

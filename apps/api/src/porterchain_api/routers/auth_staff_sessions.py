@@ -26,6 +26,7 @@ from porterchain_api.routers.auth import (
     _invoke,
     router,
 )
+from starlette.concurrency import run_in_threadpool
 
 @router.get("/staff/sessions")
 async def staff_list_sessions(
@@ -55,7 +56,7 @@ async def staff_security_status(
     from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
-    passkeys = list_passkeys(db, ctx.user.id)
+    passkeys = (await run_in_threadpool(lambda: list_passkeys(db, ctx.user.id)))
     posture = runtime_posture_from_settings(settings)
     cookie = staff_cookie_params(settings)
     return {
@@ -125,7 +126,7 @@ async def staff_list_passkeys(
     from porterchain_api.auth.admin import get_admin_context
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
-    return {"passkeys": list_passkeys(db, ctx.user.id)}
+    return {"passkeys": (await run_in_threadpool(lambda: list_passkeys(db, ctx.user.id)))}
 
 
 @router.delete("/staff/passkeys/{credential_id}")
@@ -139,7 +140,7 @@ async def staff_delete_passkey(
     from porterchain_api.auth.admin import get_admin_context
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
-    ok = delete_passkey(db, admin_user_id=ctx.user.id, credential_row_id=credential_id)
+    ok = (await run_in_threadpool(lambda: delete_passkey(db, admin_user_id=ctx.user.id, credential_row_id=credential_id)))
     if not ok:
         raise HTTPException(status_code=404, detail="passkey_not_found")
     return {"ok": True}
@@ -156,7 +157,7 @@ async def staff_step_up_options(
     from porterchain_api.auth.admin import get_admin_context
 
     ctx = await get_admin_context(request, authorization, db, settings, None)
-    return _invoke(staff_webauthn.step_up_options, db, settings, admin_user=ctx.user)
+    return (await run_in_threadpool(lambda: _invoke(staff_webauthn.step_up_options, db, settings, admin_user=ctx.user)))
 
 
 @router.post("/staff/step-up")
@@ -181,14 +182,14 @@ async def staff_step_up(
     if not challenge_id or not isinstance(credential, dict):
         raise HTTPException(status_code=400, detail="passkey_assertion_invalid")
 
-    _invoke(
+    (await run_in_threadpool(lambda: _invoke(
         staff_webauthn.confirm_passkey_for_admin,
         db,
         settings,
         admin_user=ctx.user,
         challenge_id=challenge_id,
         credential=credential,
-    )
+    )))
     updated = mark_step_up(sid)
     if updated is None:
         note_auth_event("staff_step_up", "fail")

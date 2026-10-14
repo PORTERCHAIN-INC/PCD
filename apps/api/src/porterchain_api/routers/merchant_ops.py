@@ -36,6 +36,7 @@ from porterchain_api.merchant_engine.account_ops import (
     quote_preview,
     support,
 )
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/v1/admin/merchant-ops", tags=["merchant-ops"])
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
@@ -255,9 +256,9 @@ async def merchant_document_upload(
     note: str | None = Form(None),
 ) -> dict:
     data = await file.read(documents.MAX_BYTES + 1)
-    return _run(ctx, "merchants", documents.upload_document, db, ctx, merchant_id, kind=kind,
+    return (await run_in_threadpool(lambda: _run(ctx, "merchants", documents.upload_document, db, ctx, merchant_id, kind=kind,
                 filename=file.filename or "document", content_type=file.content_type or "",
-                data=data, expires_on=expires_on, note=note)
+                data=data, expires_on=expires_on, note=note)))
 
 
 @router.get("/{merchant_id}/documents/{doc_id}/download")

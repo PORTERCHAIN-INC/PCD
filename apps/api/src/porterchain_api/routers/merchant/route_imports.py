@@ -27,6 +27,7 @@ from porterchain_api.schemas_merchant import (
     RouteImportResponse,
     RouteImportStopPatch,
 )
+from starlette.concurrency import run_in_threadpool
 
 _route_import = MerchantRouteImportService()
 
@@ -99,7 +100,7 @@ async def create_route_import_upload(
     try:
         require_module(ctx, "routes")
         data = await file.read()
-        job = _route_import.create_from_file(
+        job = (await run_in_threadpool(lambda: _route_import.create_from_file(
             db,
             ctx,
             filename=file.filename or "upload.csv",
@@ -110,8 +111,8 @@ async def create_route_import_upload(
             requires_liftgate=requires_liftgate,
             site_access_notes=site_access_notes,
             mapping_profile_id=mapping_profile_id,
-        )
-        return _respond(job, db)
+        )))
+        return (await run_in_threadpool(lambda: _respond(job, db)))
     except PermissionError as exc:
         _handle_permission(exc)
     except ValueError as exc:

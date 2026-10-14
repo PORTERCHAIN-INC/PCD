@@ -209,3 +209,161 @@ def test_pool_monitor_alerts(caplog):
 @pytest.fixture
 def anyio_backend():
     return "asyncio"
+
+
+# ---------------------------------------------------------------- follow-ups
+
+async def _loop_stall_during(coro_factory, n: int = 3) -> float:
+    """Run n copies of a coroutine and return the worst event-loop stall (s)."""
+    worst = 0.0
+    stop = False
+
+    async def ticker():
+        nonlocal worst
+        last = time.perf_counter()
+        while not stop:
+            await asyncio.sleep(0.005)
+            now = time.perf_counter()
+            worst = max(worst, now - last)
+            last = now
+
+    tick = asyncio.create_task(ticker())
+    await asyncio.sleep(0.02)
+    await asyncio.gather(*(coro_factory() for _ in range(n)), return_exceptions=True)
+    stop = True
+    await tick
+    return worst
+
+
+@pytest.mark.anyio
+async def test_verify_clerk_token_email_lookup_off_loop(monkeypatch):
+    """Customer/merchant/driver JWTs without email hit Clerk Backend inside verify."""
+    import porterchain_api.auth.clerk_identity_provider as cip
+    import porterchain_api.auth.email_identity as ei
+
+    async def jwks(url):
+        return {"keys": [{"kid": "k"}]}
+
+    monkeypatch.setattr(cip, "clerk_jwks_urls", lambda s: [("customer", "https://jwks")])
+    monkeypatch.setattr(cip, "_get_jwks", jwks)
+    monkeypatch.setattr(cip, "_rsa_key_for_token", lambda j, t: "key")
+    monkeypatch.setattr(cip.jwt, "decode", lambda *a, **k: {"sub": "user_c"})
+    monkeypatch.setattr(cip, "_enforce_token_policy", lambda p, s: None)
+    monkeypatch.setattr(cip, "_claims_from_payload", lambda p, clerk_app=None: ClerkClaims(clerk_user_id="user_c", email=None))
+
+    def slow_enrich(claims, settings):
+        time.sleep(SLOW_CLERK_S)
+        return claims
+
+    monkeypatch.setattr(ei, "enrich_claims_with_verified_email", slow_enrich)
+    settings = MagicMock(clerk_audience="")
+    stall = await _loop_stall_during(lambda: cip.verify_clerk_token("jwt", settings))
+    assert stall < 0.5, f"verify_clerk_token blocked the loop {stall:.2f}s"
+
+
+def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
+    import porterchain_api.auth.customer as cust
+    import porterchain_api.auth.email_identity as ei
+
+    order: list[str] = []
+    monkeypatch.setattr(ei, "resolve_verified_clerk_email", lambda **k: order.append("clerk_email") or "a@b.c")
+    monkeypatch.setattr(cust, "is_clerk_secret_configured", lambda s: True)
+    monkeypatch.setattr(cust, "fetch_clerk_user", lambda s, uid: (order.append("clerk_phone") or {"x": 1}, "customer"))
+    monkeypatch.setattr(cust.ClerkClient, "primary_phone", staticmethod(lambda u: "+14165550000"))
+    monkeypatch.setattr(cust._customers, "get_by_clerk", lambda db, uid: None)
+    cust._phone_cache.clear()
+    db = MagicMock()
+    db.query.side_effect = lambda *a, **k: order.append("db") or MagicMock(
+        filter=lambda *a: MagicMock(first=lambda: None)
+    )
+    email, phone = cust.resolve_customer_contact(db, ClerkClaims(clerk_user_id="user_c", email=None), MagicMock())
+    assert (email, phone) == ("a@b.c", "+14165550000")
+    assert order.index("clerk_phone") < order.index("db"), order
+    # cached: second call makes no Clerk request
+    order.clear()
+    cust.resolve_customer_contact(db, ClerkClaims(clerk_user_id="user_c", email=None), MagicMock())
+    assert "clerk_phone" not in order
+
+
+@pytest.mark.anyio
+async def test_websocket_user_lookup_off_loop(monkeypatch):
+    from porterchain_api import db as dbmod
+    from porterchain_api.notification_engine import principal as pr
+
+    monkeypatch.setattr(dbmod, "SessionLocal", lambda: MagicMock())
+
+    def slow_staff(db, token):
+        time.sleep(SLOW_CLERK_S)  # sync DB lookup under pool pressure
+        return pr.NotificationUser("admin", "a1")
+
+    monkeypatch.setattr(pr, "_resolve_staff_notification_user", slow_staff)
+    results = []
+
+    async def one():
+        results.append(await pr.resolve_notification_ws_user("staff_sess_x"))
+
+    stall = await _loop_stall_during(one)
+    assert stall < 0.5, f"ws user lookup blocked the loop {stall:.2f}s"
+    assert all(r and r.user_role == "admin" for r in results)
+
+
+@pytest.mark.anyio
+async def test_notification_http_dependency_off_loop(monkeypatch):
+    from fastapi.security import HTTPAuthorizationCredentials
+
+    from porterchain_api.notification_engine import principal as pr
+
+    def slow_staff(db, token):
+        time.sleep(SLOW_CLERK_S)
+        return pr.NotificationUser("admin", "a1")
+
+    monkeypatch.setattr(pr, "_resolve_staff_notification_user", slow_staff)
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="staff_sess_x")
+    stall = await _loop_stall_during(
+        lambda: pr.get_notification_user(db=MagicMock(), settings=MagicMock(), credentials=creds)
+    )
+    assert stall < 0.5, f"notification dependency blocked the loop {stall:.2f}s"
+
+
+def test_no_sync_db_or_http_in_async_defs():
+    """Static guard: no un-offloaded db/Clerk/httpx call inside any async def."""
+    import ast
+    import pathlib
+
+    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "porterchain_api"
+    bad = []
+    for f in root.rglob("*.py"):
+        tree = ast.parse(f.read_text())
+        for fn in ast.walk(tree):
+            if not isinstance(fn, ast.AsyncFunctionDef):
+                continue
+            safe = set()
+            for c in ast.walk(fn):
+                if isinstance(c, ast.Await):
+                    safe.update(id(x) for x in ast.walk(c.value))
+                if isinstance(c, (ast.FunctionDef, ast.Lambda)):
+                    safe.update(id(x) for x in ast.walk(c))
+            for c in ast.walk(fn):
+                if not isinstance(c, ast.Call) or id(c) in safe:
+                    continue
+                name = ast.unparse(c.func)
+                if name in {"run_in_threadpool", "db_transaction"}:
+                    continue
+                uses_db = any(isinstance(a, ast.Name) and a.id == "db" for a in c.args)
+                if uses_db or name.startswith("db.") or name in {"SessionLocal", "httpx.Client"} or name.endswith(
+                    ("fetch_clerk_user", "enrich_claims_with_verified_email", "prepare_user_from_claims")
+                ):
+                    bad.append(f"{f.relative_to(root)}:{c.lineno} {fn.name} -> {name}")
+    assert not bad, "blocking calls on the event loop:\n" + "\n".join(bad)
+
+
+def test_event_bus_block_never_forever_and_below_socket_timeout():
+    import sys
+
+    sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[3] / "services" / "event-bus"))
+    from porterchain_event_bus import bus
+
+    assert bus.xread_block_ms(0) is None  # Redis BLOCK 0 == forever: never send it
+    assert bus.xread_block_ms(1000, processed=3) is None
+    assert bus.xread_block_ms(60_000) == bus.MAX_XREAD_BLOCK_MS
+    assert bus.MAX_XREAD_BLOCK_MS < bus.REDIS_SOCKET_TIMEOUT_S * 1000

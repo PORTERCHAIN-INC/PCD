@@ -26,6 +26,7 @@ from porterchain_api.auth.unified_catalog import UnifiedPermission
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.unified_identity_models import AccessAuditLog
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger("porterchain.security")
 
@@ -111,7 +112,7 @@ async def get_authenticated_identity(
     path = request.url.path
     if allow_auth_dev_bypass(settings) and (not authorization or authorization == "Bearer dev"):
         claims = _dev_claims(path=path, header=portal_header)
-        prepare_user_from_claims(db, claims)
+        (await run_in_threadpool(lambda: prepare_user_from_claims(db, claims)))
         return claims_to_identity(claims)
 
     if not authorization or not authorization.startswith("Bearer "):
@@ -120,14 +121,14 @@ async def get_authenticated_identity(
     token = authorization.removeprefix("Bearer ").strip()
     if token == "dev" and allow_auth_dev_bypass(settings):
         claims = _dev_claims(path=path, header=portal_header)
-        prepare_user_from_claims(db, claims)
+        (await run_in_threadpool(lambda: prepare_user_from_claims(db, claims)))
         return claims_to_identity(claims)
 
     if token.startswith("staff_sess_"):
-        return _identity_from_staff_bearer(db, token)
+        return (await run_in_threadpool(lambda: _identity_from_staff_bearer(db, token)))
 
     identity = await get_identity_provider().authenticate_bearer(token, settings)
-    prepare_user_from_claims(db, _claims_for_sync(identity))
+    (await run_in_threadpool(lambda: prepare_user_from_claims(db, _claims_for_sync(identity))))
     return identity
 
 
@@ -136,7 +137,7 @@ async def require_authenticated(
     db: Session = Depends(get_db),
 ) -> CurrentPrincipal:
     """Authenticate + resolve internal user. Suspended/deactivated → 403."""
-    return resolve_principal_cached(db, identity)
+    return (await run_in_threadpool(lambda: resolve_principal_cached(db, identity)))
 
 
 def require_permission(*needed: UnifiedPermission | str) -> Callable:
@@ -159,12 +160,12 @@ def require_permission(*needed: UnifiedPermission | str) -> Callable:
             principal.user_id,
             missing,
         )
-        _record_denial(
+        (await run_in_threadpool(lambda: _record_denial(
             db,
             actor_user_id=principal.user_id,
             action="permission.denied",
             detail={"missing_any_of": missing, "roles": sorted(r.value for r in principal.roles)},
-        )
+        )))
         raise HTTPException(status_code=403, detail="forbidden")
 
     return _dependency
@@ -187,12 +188,12 @@ def require_all_permissions(*needed: UnifiedPermission | str) -> Callable:
         if not missing:
             return principal
         logger.info("authz_denied user_id=%s missing_all=%s", principal.user_id, missing)
-        _record_denial(
+        (await run_in_threadpool(lambda: _record_denial(
             db,
             actor_user_id=principal.user_id,
             action="permission.denied",
             detail={"missing": missing, "roles": sorted(r.value for r in principal.roles)},
-        )
+        )))
         raise HTTPException(status_code=403, detail="forbidden")
 
     return _dependency

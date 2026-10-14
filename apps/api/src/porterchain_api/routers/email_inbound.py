@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/v1/public/mail", tags=["mail"])
 
@@ -60,4 +61,4 @@ async def inbound_email(
             if isinstance(data.get("headers"), dict)
         },
     )
-    return ingest_inbound_email(db, settings, msg)
+    return (await run_in_threadpool(lambda: ingest_inbound_email(db, settings, msg)))

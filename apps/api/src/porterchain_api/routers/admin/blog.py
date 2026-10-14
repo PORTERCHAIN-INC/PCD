@@ -23,6 +23,7 @@ from porterchain_api.routers.admin._deps import (
     log_admin_audit,
     router,
 )
+from starlette.concurrency import run_in_threadpool
 
 
 _IMAGE_EXT = frozenset({"jpg", "jpeg", "png", "webp", "gif"})
@@ -88,14 +89,14 @@ async def upload_blog_media(
     except PermissionError as exc:
         _perm(exc)
     raw = await file.read()
-    allowed = document_allowed_types(db)
+    allowed = (await run_in_threadpool(lambda: document_allowed_types(db)))
     imageish = frozenset(f".{ext}" for ext in allowed if ext in _IMAGE_EXT)
     try:
         path = save_blog_image(
             filename=file.filename or "upload.jpg",
             content=raw,
             content_type=file.content_type,
-            max_bytes=min(document_max_bytes(db), 10 * 1024 * 1024),
+            max_bytes=min((await run_in_threadpool(lambda: document_max_bytes(db))), 10 * 1024 * 1024),
             allowed_ext=imageish,
         )
     except ValueError as exc:

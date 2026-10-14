@@ -26,6 +26,7 @@ from porterchain_api.platform.rate_limit import (
     incr_rate_limit_unavailable,
     incr_rate_limited,
 )
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +110,7 @@ async def meta_webhook_ingest(
         raise HTTPException(status_code=400, detail="invalid_payload")
 
     events = events_from_meta_payload(payload)
-    return _process_events(db, settings, events, provider="meta")
+    return (await run_in_threadpool(lambda: _process_events(db, settings, events, provider="meta")))
 
 
 @router.post("/webhooks/google")
@@ -132,7 +133,7 @@ async def google_lead_webhook(
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="invalid_payload")
     event = event_from_google_lead(payload)
-    out = _process_events(db, settings, [event], provider="google")
+    out = (await run_in_threadpool(lambda: _process_events(db, settings, [event], provider="google")))
     if out.get("queued"):
         return out
     return {
@@ -184,7 +185,7 @@ async def linkedin_lead_webhook(
     _rate_limit_webhook(request)
     _require_social_secret(settings, x_lead_webhook_secret)
     event = event_from_linkedin_lead(await _json_body(request))
-    return _social_result(_process_events(db, settings, [event], provider="linkedin"))
+    return _social_result((await run_in_threadpool(lambda: _process_events(db, settings, [event], provider="linkedin"))))
 
 
 @router.post("/webhooks/x")
@@ -197,7 +198,7 @@ async def x_lead_webhook(
     _rate_limit_webhook(request)
     _require_social_secret(settings, x_lead_webhook_secret)
     event = event_from_x_lead(await _json_body(request))
-    return _social_result(_process_events(db, settings, [event], provider="x"))
+    return _social_result((await run_in_threadpool(lambda: _process_events(db, settings, [event], provider="x"))))
 
 
 @router.post("/webhooks/youtube")
@@ -210,4 +211,4 @@ async def youtube_lead_webhook(
     _rate_limit_webhook(request)
     _require_social_secret(settings, x_lead_webhook_secret)
     event = event_from_youtube_lead(await _json_body(request))
-    return _social_result(_process_events(db, settings, [event], provider="youtube"))
+    return _social_result((await run_in_threadpool(lambda: _process_events(db, settings, [event], provider="youtube"))))

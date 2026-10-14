@@ -13,6 +13,7 @@ from porterchain_api.auth.dependencies import require_authenticated
 from porterchain_api.authz.client import get_authz_client
 from porterchain_api.db import get_db
 from porterchain_api.unified_identity_models import AccessAuditLog
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger("porterchain.security")
 
@@ -37,7 +38,8 @@ def require_relation(
             raise HTTPException(status_code=500, detail="authz_resource_id_missing")
         client = get_authz_client()
         try:
-            allowed = client.check(
+            allowed = await run_in_threadpool(
+                client.check,
                 resource_type=resource_type,
                 resource_id=rid,
                 permission=permission,
@@ -60,7 +62,7 @@ def require_relation(
             return principal
 
         try:
-            db.add(
+            (await run_in_threadpool(lambda: db.add(
                 AccessAuditLog(
                     actor_user_id=principal.user_id,
                     action="spicedb.check.denied",
@@ -69,12 +71,12 @@ def require_relation(
                     outcome="denied",
                     detail={"permission": permission},
                 )
-            )
-            db.commit()
+            )))
+            (await run_in_threadpool(lambda: db.commit()))
         except Exception:  # noqa: BLE001
             logger.exception("access_audit_write_failed")
             try:
-                db.rollback()
+                (await run_in_threadpool(lambda: db.rollback()))
             except Exception:  # noqa: BLE001
                 pass
         raise HTTPException(status_code=403, detail="forbidden")
