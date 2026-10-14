@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { randomUUID } from "expo-crypto";
 import { fetchOfflineStatus, queueOffline, syncOffline } from "./api";
 import { ApiError, isApiError, isNetworkError } from "./netErrors";
+import { isTransientRejection, shouldPark } from "./replayPolicy";
 import { deleteSecureBlob, readSecureBlob, wipeSecureBlobs, writeSecureBlob } from "./secureBlob";
 import type { OfflineSyncResult } from "./types";
 
@@ -22,6 +23,8 @@ export type QueuedAction = {
   created_at: string;
   /** Set when the server rejected the action during a sync. */
   rejected_reason?: string;
+  /** Auth/permission (401/403) replays so far; capped so a real 403 cannot block forever. */
+  auth_attempts?: number;
 };
 
 export type FlushResult = {
@@ -165,6 +168,19 @@ export async function runOnlineOrQueue(
 
 async function pushQueue(): Promise<{ queued: number; rejected: number }> {
   return withLock(async () => {
+    // Older builds parked actions on auth/permission blips; put those back in line.
+    const parkedNow = await readRejected();
+    const revive = parkedNow.filter((a) => isTransientRejection(a.rejected_reason));
+    if (revive.length) {
+      await writeList(
+        REJECTED_KEY,
+        parkedNow.filter((a) => !revive.includes(a))
+      );
+      await writeList(LOCAL_QUEUE_KEY, [
+        ...revive.map(({ rejected_reason: _r, ...a }) => ({ ...a, auth_attempts: 0 })),
+        ...(await readQueue()),
+      ]);
+    }
     let queue = await readQueue();
     let queued = 0;
     let rejected = 0;
@@ -188,13 +204,20 @@ async function pushQueue(): Promise<{ queued: number; rejected: number }> {
         if (item.blob_id) deleteSecureBlob(item.blob_id);
         queued += 1;
       } catch (err) {
-        if (isApiError(err) && err.status >= 400 && err.status < 500) {
+        const attempts = (item.auth_attempts ?? 0) + 1;
+        if (isApiError(err) && shouldPark(err.status, attempts - 1)) {
           const parked = await readRejected();
           parked.push({ ...item, rejected_reason: err.message });
           await writeList(REJECTED_KEY, parked);
           rejected += 1;
         } else {
-          break; // offline or server error: keep it and everything after it, retry later
+          if (isApiError(err) && (err.status === 401 || err.status === 403)) {
+            await writeList(LOCAL_QUEUE_KEY, [
+              { ...item, auth_attempts: attempts },
+              ...queue.slice(1),
+            ]);
+          }
+          break; // offline, auth blip or server error: keep it and everything after it, retry later
         }
       }
       queue = queue.slice(1);

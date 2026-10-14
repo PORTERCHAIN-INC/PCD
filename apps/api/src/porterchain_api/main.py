@@ -59,6 +59,9 @@ from porterchain_api.routers import (
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    from porterchain_api.platform.log_redact import install as _redact_logs
+
+    _redact_logs()  # again after uvicorn's dictConfig, in case it replaced handlers
     from porterchain_shared.redis_health import require_redis_for_production
 
     settings = get_settings()
@@ -99,6 +102,9 @@ def api_docs_exposed(settings) -> bool:
 
 
 def create_app() -> FastAPI:
+    from porterchain_api.platform.log_redact import install as _redact_logs
+
+    _redact_logs()
     settings = get_settings()
     docs_on = api_docs_exposed(settings)
     app = FastAPI(
