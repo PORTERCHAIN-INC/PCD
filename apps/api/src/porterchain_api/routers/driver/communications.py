@@ -129,3 +129,33 @@ def communications_offline_retry(
         ))
     return result
 
+
+
+@router.post("/communications/offline/{action_id}/retry")
+def communications_offline_retry_one(
+    action_id: str,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings)):
+    """Replay one refused action (own actions only)."""
+    require_approved_driver(ctx)
+    try:
+        return svc.persist(
+            db,
+            lambda: svc.platform.offline.retry_one(
+                db, ctx.driver, action_id, executor=svc.offline_executor(db, settings)
+            ))
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="offline_action_not_found") from exc
+
+
+@router.post("/communications/offline/{action_id}/discard")
+def communications_offline_discard_one(
+    action_id: str,
+    ctx: Annotated[DriverContext, Depends(get_driver_context)],
+    db: Session = Depends(get_db)):
+    """Drop one refused action (own actions only). Kept for audit, never replayed."""
+    try:
+        return svc.persist(db, lambda: svc.platform.offline.discard_one(db, ctx.driver, action_id))
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="offline_action_not_found") from exc

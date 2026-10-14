@@ -266,6 +266,29 @@ export function syncOffline(): Promise<OfflineSyncResult> {
   return driverFetch<OfflineSyncResult>(`${DRIVER_API}/offline/sync`, { method: "POST" });
 }
 
+export type ServerOfflineAction = {
+  id: string;
+  action_type: string;
+  payload: Record<string, unknown> | null;
+  status: string;
+  error: string | null;
+  created_at: string | null;
+};
+
+export function retryServerAction(id: string): Promise<ServerOfflineAction> {
+  return driverFetch<ServerOfflineAction>(
+    `${DRIVER_API}/communications/offline/${encodeURIComponent(id)}/retry`,
+    { method: "POST" }
+  );
+}
+
+export function discardServerAction(id: string): Promise<ServerOfflineAction> {
+  return driverFetch<ServerOfflineAction>(
+    `${DRIVER_API}/communications/offline/${encodeURIComponent(id)}/discard`,
+    { method: "POST" }
+  );
+}
+
 export function fetchOfflineStatus(): Promise<OfflineStatus> {
   return driverFetch<OfflineStatus>(`${DRIVER_API}/communications/offline`);
 }

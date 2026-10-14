@@ -34,6 +34,7 @@ import { MeScreen } from "./src/screens/MeScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
 import { TodayScreen } from "./src/screens/TodayScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { RefusedReviewHost } from "./src/ui/RefusedReview";
 import { useIsRestoring } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { invalidateFromPush, prefetchAll } from "./src/data/queries";
@@ -376,6 +377,7 @@ export default function App() {
             <Hydrated>
               <DriverApp />
             </Hydrated>
+            <RefusedReviewHost />
           </AppErrorBoundary>
         </SessionGate>
       </PersistQueryClientProvider>

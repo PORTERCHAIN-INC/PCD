@@ -1,5 +1,6 @@
 /** One glanceable sync status: Live · Saving N · Offline · N refused. Tap = sync now. */
 import { StyleSheet, Text } from "react-native";
+import { openRefusedReview } from "../refusedReview";
 import { LiveDot, PressScale } from "./motion";
 import { color, radius, type } from "./theme";
 
@@ -34,8 +35,8 @@ export function SyncPill({
   return (
     <PressScale
       accessibilityRole="button"
-      accessibilityLabel={`Sync status: ${s.text}. Tap to sync now.`}
-      onPress={onSync}
+      accessibilityLabel={`Sync status: ${s.text}. ${rejected > 0 ? "Tap to review." : "Tap to sync now."}`}
+      onPress={rejected > 0 ? openRefusedReview : onSync}
       hitSlop={8}
       style={styles.pill}
       testID="sync-pill"

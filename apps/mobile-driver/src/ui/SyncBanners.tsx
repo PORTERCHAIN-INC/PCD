@@ -1,4 +1,5 @@
 import { humanError } from "../errorCopy";
+import { openRefusedReview } from "../refusedReview";
 import { Banner } from "./kit";
 
 /** Connection / sync / error state, worded for a driver. Shown at the top of Today and Job. */
@@ -40,7 +41,8 @@ export function SyncBanners({
           tone="danger"
           testID="banner-rejected"
           title={`${rejected} saved action${rejected === 1 ? " was" : "s were"} refused`}
-          body="The server did not accept it. Call dispatch so they can fix the stop."
+          body="The server did not accept it. Review to retry or discard, or call dispatch."
+          action={{ label: "Review", onPress: openRefusedReview }}
         />
       ) : null}
       {error ? (
