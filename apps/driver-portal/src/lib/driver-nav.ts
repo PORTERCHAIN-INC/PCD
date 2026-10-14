@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Briefcase,
+  CalendarClock,
   Car,
   Clock,
   FileText,
@@ -61,6 +62,12 @@ export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
         icon: Navigation,
       },
       { href: "/shift", label: "Shift", description: "Clock in, breaks, end of day", icon: Clock },
+      {
+        href: "/timesheets",
+        label: "Time",
+        description: "Timesheets and weekly availability",
+        icon: CalendarClock,
+      },
     ],
   },
   {

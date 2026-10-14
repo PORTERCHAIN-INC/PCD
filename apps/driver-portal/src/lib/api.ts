@@ -604,3 +604,42 @@ export const accountApi = {
       { method: "POST", body: JSON.stringify({ kind, note }) }
     ),
 };
+
+// ---------- Timesheets + weekly availability ----------
+export type TimesheetShift = {
+  id: string;
+  date: string;
+  started_at: string;
+  ended_at: string | null;
+  worked_minutes: number;
+  break_minutes: number;
+  km: number;
+  status: string;
+};
+export type TimesheetWeek = {
+  week_start: string;
+  worked_minutes: number;
+  break_minutes: number;
+  km: number;
+  shifts: TimesheetShift[];
+};
+export type Timesheets = { weeks: TimesheetWeek[]; total_worked_minutes: number };
+export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+export type WeekSchedule = Record<DayKey, { start: string; end: string }[]>;
+export type ScheduleResponse = { schedule: WeekSchedule; weekly_hours: number };
+
+export const timeApi = {
+  timesheets: (weeks = 8) => driverFetch<Timesheets>(`/v1/timesheets?weeks=${weeks}`),
+  schedule: () => driverFetch<ScheduleResponse>("/v1/availability/schedule"),
+  saveSchedule: (schedule: WeekSchedule) =>
+    driverFetch<ScheduleResponse>("/v1/availability/schedule", {
+      method: "PUT",
+      body: JSON.stringify({ schedule }),
+    }),
+};
+
+export function workedLabel(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
+}
