@@ -143,7 +143,12 @@ function IssueRow({
           <span className="block truncate text-xs text-slate-400">
             <span className="tabular-nums text-slate-300">{issue.order_number}</span>
             {(() => {
-              const sub = note ?? issue.detail ?? issue.item?.state?.replaceAll("_", " ");
+              const sub = (
+                note ||
+                issue.detail ||
+                issue.item?.state?.replaceAll("_", " ") ||
+                ""
+              ).trim();
               return sub ? ` · ${sub}` : null;
             })()}
           </span>
