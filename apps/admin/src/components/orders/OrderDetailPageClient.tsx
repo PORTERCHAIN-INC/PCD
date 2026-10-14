@@ -11,6 +11,7 @@ import type { ExceptionColumn } from "@/components/orders/ExceptionReasonModal";
 import type { OrderBuilderPrefill } from "@/components/orders/OrderBuilderModal";
 import { downloadOrderFile, ordersApi, type OrderDetail } from "@/lib/orders";
 import { ops } from "@/lib/operations";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const OrderDetailView = dynamic(() => import("@/components/orders/OrderDetailView"), {
   loading: () => (
@@ -306,6 +307,15 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
 
   return (
     <>
+      <div className="flex justify-end px-4 pt-3">
+        <DeleteButton
+          entity="order"
+          id={id}
+          onDeleted={() => {
+            window.location.href = "/orders";
+          }}
+        />
+      </div>
       <OrderDetailView
         detail={detail ?? null}
         tracking={tracking ?? null}

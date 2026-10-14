@@ -17,6 +17,7 @@ import { TableSkeleton } from "@porterchain/ui/loading";
 import AdminPage from "@/components/layout/AdminPage";
 import CustomerCareQueue from "@/components/customers/CustomerCareQueue";
 import dynamic from "next/dynamic";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const CustomerCreateModal = dynamic(
   () => import("@/components/customers/CustomerCreateModal").then((m) => m.CustomerCreateModal),
@@ -188,6 +189,7 @@ export default function CustomersPage() {
                   <th className="px-4 py-2">Orders</th>
                   <th className="px-4 py-2">Revenue</th>
                   <th className="px-4 py-2">Added</th>
+                  <th className="px-4 py-2" />
                 </tr>
               </thead>
               <tbody>
@@ -222,6 +224,9 @@ export default function CustomersPage() {
                     <td className="px-4 py-3">{money(c.lifetime_revenue_cents)}</td>
                     <td className="px-4 py-3 text-xs text-muted">
                       {c.created_at ? shortDate(c.created_at) : "—"}
+                    </td>
+                    <td className="px-2 py-3 text-right">
+                      <DeleteButton compact entity="customer" id={c.id} />
                     </td>
                   </tr>
                 ))}

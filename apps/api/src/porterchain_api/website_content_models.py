@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 
 
 def _uuid() -> str:
@@ -27,7 +28,7 @@ class BlogAuthor(Base):
     )
 
 
-class BlogPost(Base):
+class BlogPost(SoftDeleteMixin, Base):
     __tablename__ = "blog_posts"
     __table_args__ = (UniqueConstraint("locale", "slug", name="uq_blog_posts_locale_slug"),)
 

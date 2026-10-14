@@ -11,6 +11,7 @@ import { PAYMENT_STATUS_STYLES, STATE_STYLES, type BookingDraftDetail } from "@/
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
+import DeleteButton from "@/components/common/DeleteButton";
 
 type Tab =
   | "overview"
@@ -81,7 +82,17 @@ export default function BookingDraftDetailView({
     detail.display_state === "CONVERTED_TO_ORDER";
 
   return (
-    <AdminPage>
+    <AdminPage
+      actions={
+        <DeleteButton
+          entity="booking_draft"
+          id={detail.draft_id}
+          onDeleted={() => {
+            window.location.href = "/booking-drafts";
+          }}
+        />
+      }
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link

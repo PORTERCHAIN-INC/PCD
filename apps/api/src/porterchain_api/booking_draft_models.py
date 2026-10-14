@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 from porterchain_api.domain.states import BookingDraftState
 
 
@@ -15,7 +16,7 @@ def _uuid() -> str:
     return str(uuid.uuid4())
 
 
-class BookingDraft(Base):
+class BookingDraft(SoftDeleteMixin, Base):
     __tablename__ = "booking_drafts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)

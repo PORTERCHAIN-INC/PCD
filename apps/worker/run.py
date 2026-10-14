@@ -29,6 +29,7 @@ _last_lead_nurture_at = 0.0
 _last_lead_sla_at = 0.0
 _last_lead_inbound_email_at = 0.0
 _last_lead_archive_at = 0.0
+_last_deleted_purge_at = 0.0
 _last_shopify_retention_at = 0.0
 _last_lead_agent_at = 0.0
 _last_blog_schedule_at = 0.0
@@ -48,6 +49,7 @@ LEAD_NURTURE_INTERVAL_SECONDS = 300
 LEAD_SLA_ESCALATION_INTERVAL_SECONDS = 3600
 LEAD_INBOUND_EMAIL_INTERVAL_SECONDS = 120
 LEAD_SOFT_ARCHIVE_INTERVAL_SECONDS = 86400
+DELETED_ITEMS_PURGE_INTERVAL_SECONDS = 3600
 SHOPIFY_RETENTION_INTERVAL_SECONDS = 86400
 LEAD_AGENT_INTERVAL_SECONDS = 180
 BLOG_SCHEDULE_INTERVAL_SECONDS = 60
@@ -544,6 +546,24 @@ def _drain_lead_soft_archive() -> int:
     return int(result.get("archived", 0))
 
 
+def _drain_deleted_items_purge() -> int:
+    """Hourly: permanently delete Settings > Deleted items past their retention (default 30 days).
+    Archive-only items (invoiced, delivered with POD) are kept; customers are anonymised (PIPEDA)."""
+    global _last_deleted_purge_at
+    now = time.monotonic()
+    if now - _last_deleted_purge_at < DELETED_ITEMS_PURGE_INTERVAL_SECONDS:
+        return 0
+    _last_deleted_purge_at = now
+    from porterchain_api.soft_delete import auto_purge
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = auto_purge(db, limit=200)
+    if result.get("scanned"):
+        logger.info("deleted-items auto-purge: %s", result)
+    return int(result.get("purged", 0))
+
+
 def _drain_shopify_buyer_retention() -> int:
     """Wipe Shopify buyer contact 24 months after delivery."""
     global _last_shopify_retention_at
@@ -725,6 +745,7 @@ def main(argv: list[str] | None = None) -> None:
                 processed += _drain_lead_inbound_email()
                 processed += _drain_delivery_sla()
                 processed += _drain_lead_soft_archive()
+                processed += _drain_deleted_items_purge()
                 processed += _drain_shopify_buyer_retention()
                 processed += _drain_blog_scheduled_publish()
                 processed += _merchant_ops_drain()

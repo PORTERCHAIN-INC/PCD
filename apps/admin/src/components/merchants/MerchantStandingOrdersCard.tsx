@@ -7,6 +7,7 @@ import { useApiData } from "@/hooks/useApiData";
 import { merchantActionMessage, merchants, type MerchantStandingOrder } from "@/lib/merchants";
 import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { dateTime, titleCase } from "@/lib/crmFormat";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const RULE_LABEL: Record<string, string> = {
   daily: "Every day",
@@ -91,6 +92,7 @@ export default function MerchantStandingOrdersCard({
                   {pausingId === row.id ? "Pausing…" : "Pause"}
                 </Button>
               ) : null}
+              <DeleteButton entity="standing_order" id={row.id} onDeleted={() => void refetch()} />
             </div>
             <p className="text-xs text-muted">
               {ruleLabel(row.recurrence_rule)} · Next {dateTime(row.next_run_at)}

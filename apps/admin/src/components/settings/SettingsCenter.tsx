@@ -34,6 +34,7 @@ import {
 import { SECTION_ALIASES, SECTION_DESCRIPTIONS, SECTION_ICONS } from "@/lib/settings-metadata";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import SettingsSidebar from "./SettingsSidebar";
+import DeletedItemsPanel from "./DeletedItemsPanel";
 import { MasterruleCallout } from "./ui/SettingsPrimitives";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
@@ -476,6 +477,7 @@ function SectionRouter({
   if (tab === "users") return <UsersPanel onRefetch={onRefetch} />;
   if (tab === "roles") return <RolesPanel />;
   if (tab === "audit") return <AuditPanel />;
+  if (tab === "deleted_items") return <DeletedItemsPanel />;
   if (tab === "backup")
     return <PlatformPanel variant="backup" onExport={onExport} onImport={onImport} />;
 

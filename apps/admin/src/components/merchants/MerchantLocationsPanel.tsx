@@ -9,6 +9,7 @@ import { merchants, type MerchantLocations } from "@/lib/merchants";
 import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { Badge, Button, Field, Input, SectionCard, Select } from "@/components/crm/primitives";
 import { titleCase } from "@/lib/crmFormat";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const emptyPlace = (): BookingAddress => ({ formatted: "" });
 
@@ -169,20 +170,8 @@ export default function MerchantLocationsPanel({ id }: { id: string }) {
     }
   }
 
-  async function removeRecipient(recipientId: string) {
-    if (!window.confirm("Remove this recipient?")) return;
-    setBusy(true);
-    setFormError(null);
-    try {
-      const token = await getApiToken();
-      await merchants.deleteRecipient(token, id, recipientId);
-      if (editingRecipientId === recipientId) resetRecipientForm();
-      refresh();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Could not remove this recipient");
-    } finally {
-      setBusy(false);
-    }
+  function onRecipientDeleted() {
+    refresh();
   }
 
   return (
@@ -303,13 +292,7 @@ export default function MerchantLocationsPanel({ id }: { id: string }) {
                     >
                       Edit
                     </Button>
-                    <Button
-                      variant="danger"
-                      disabled={busy}
-                      onClick={() => void removeRecipient(row.id)}
-                    >
-                      Remove
-                    </Button>
+                    <DeleteButton entity="recipient" id={row.id} onDeleted={onRecipientDeleted} />
                   </div>
                 </div>
               ))}

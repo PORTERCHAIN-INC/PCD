@@ -27,6 +27,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 from porterchain_api.domain.crm_states import (
     CompanyMerchantStatus,
     ContractStatus,
@@ -44,7 +45,7 @@ def _uuid() -> str:
     return str(uuid.uuid4())
 
 
-class CrmCompany(Base):
+class CrmCompany(SoftDeleteMixin, Base):
     """A logistics merchant prospect / account."""
 
     __tablename__ = "crm_companies"
@@ -98,7 +99,7 @@ class CrmCompany(Base):
     deals: Mapped[list["CrmDeal"]] = relationship(back_populates="company")
 
 
-class CrmContact(Base):
+class CrmContact(SoftDeleteMixin, Base):
     """A person at a merchant company. Companies support unlimited contacts."""
 
     __tablename__ = "crm_contacts"
@@ -129,7 +130,7 @@ class CrmContact(Base):
     company: Mapped[CrmCompany | None] = relationship(back_populates="contacts")
 
 
-class CrmLead(Base):
+class CrmLead(SoftDeleteMixin, Base):
     """An inbound business inquiry. Every inquiry becomes a lead."""
 
     __tablename__ = "crm_leads"
@@ -206,7 +207,7 @@ class CrmLead(Base):
     )
 
 
-class CrmDeal(Base):
+class CrmDeal(SoftDeleteMixin, Base):
     """A sales opportunity moving through the pipeline."""
 
     __tablename__ = "crm_deals"
@@ -239,7 +240,7 @@ class CrmDeal(Base):
     company: Mapped[CrmCompany | None] = relationship(back_populates="deals")
 
 
-class CrmQuotation(Base):
+class CrmQuotation(SoftDeleteMixin, Base):
     """A versioned quotation that can be converted into a contract."""
 
     __tablename__ = "crm_quotations"

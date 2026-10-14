@@ -55,8 +55,15 @@ export async function adminFetch<T>(
           .filter(Boolean)
           .join(", ");
       } else if (detail && typeof detail === "object") {
-        const d = detail as { code?: string; current_version?: number; expected_version?: number };
-        if (d.code === "sequence_version_conflict") {
+        const d = detail as {
+          code?: string;
+          message?: string;
+          current_version?: number;
+          expected_version?: number;
+        };
+        if (typeof d.message === "string" && d.message) {
+          message = d.message;
+        } else if (d.code === "sequence_version_conflict") {
           message =
             "Sequence conflict — another optimize won the race. Refresh and re-run preview.";
         } else {
