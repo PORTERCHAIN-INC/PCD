@@ -4,10 +4,12 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
+import { onRefusedChanged } from "../refusedReview";
 import NetInfo from "@react-native-community/netinfo";
 import { endShift, startShift } from "../api";
 import { idleHandshake, runHandshake } from "../handshake";
 import {
+  onGpsPolicyEnabled,
   requestLocationAccess,
   startBackgroundLocation,
   startLocationLoop,
@@ -93,6 +95,7 @@ export function useFieldSession() {
 
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
+  useEffect(() => onRefusedChanged(() => void refreshRef.current()), []);
 
   // Reliable sync: on reconnect and whenever the app comes back to the foreground.
   useEffect(() => {
@@ -133,8 +136,28 @@ export function useFieldSession() {
     }
     const setLocation = (location: Handshake["location"]) =>
       setHandshake((prev) => ({ ...prev, location }));
-    void startBackgroundLocation().then(setLocation);
-    return startLocationLoop(() => true, setLocation);
+    let cancelled = false;
+    let stopLoop: (() => void) | null = null;
+    // Policy + permission first, then pings: a ping racing ahead of the server's GPS policy
+    // used to show "Location is off" before the app had ever asked iOS for permission.
+    const start = () =>
+      startBackgroundLocation().then((state) => {
+        if (cancelled) return;
+        setLocation(state);
+        stopLoop ??= startLocationLoop(() => true, setLocation);
+      });
+    void start();
+    const offPolicy = onGpsPolicyEnabled(() => void start()); // consent just given → ask iOS now
+    // Back from Settings (permission / Precise / Location Services changed): re-check now.
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next === "active") void start();
+    });
+    return () => {
+      cancelled = true;
+      offPolicy();
+      sub.remove();
+      stopLoop?.();
+    };
   }, [handshake.online, fresh]);
 
   const goOnDuty = useCallback(
