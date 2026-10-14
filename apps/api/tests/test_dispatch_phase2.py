@@ -339,3 +339,82 @@ def test_plan_refuses_without_road_router(db: Session) -> None:
     svc = FleetPlanService(matrix_fn=lambda pts: None, position_fn=lambda _d: (43.65, -79.38))
     with pytest.raises(ValueError, match="road_router_unavailable"):
         svc.plan(db, actor="t", order_ids=[o.id], driver_ids=[d1.id], time_limit_s=1)
+
+
+def _commit_two(db: Session, monkeypatch):
+    from porterchain_api.admin_engine.operations_service import AdminOperationsService
+    from porterchain_api.config import get_settings
+
+    monkeypatch.setattr(AdminOperationsService, "_enqueue_driver_book_optimize", staticmethod(lambda *a, **k: None))
+    d1 = _driver(db)
+    o1, o2 = _order(db, W, S, boxes=1), _order(db, M, B, boxes=1)
+    svc = FleetPlanService(matrix_fn=_road, position_fn=lambda _d: (43.65, -79.38))
+    ctx = _ctx(db)
+    draft = svc.plan(db, actor="t", order_ids=[o1.id, o2.id], driver_ids=[d1.id], time_limit_s=1)
+    done = svc.commit(db, get_settings(), ctx, draft["id"])
+    return svc, ctx, done, d1, o1, o2
+
+
+def test_plan_undo_releases_only_untouched_assignments(db: Session, monkeypatch) -> None:
+    svc, ctx, done, d1, o1, o2 = _commit_two(db, monkeypatch)
+    assert done["status"] == "committed"
+    ids = {r["order_id"] for r in done["summary"]["commit"]["assigned_ids"]}
+    assert ids == {o1.id, o2.id}
+
+    # o2 is already in progress — undo must never pull it back.
+    db.get(Order, o2.id).state = "PICKED_UP"
+    db.flush()
+
+    out = svc.undo(db, ctx, done["id"])
+    assert out["status"] == "reverted" and out["released"] == 1
+    assert out["kept"] == [{"order_id": o2.id, "reason": "already picked_up"}]
+    r1, r2 = db.get(Order, o1.id), db.get(Order, o2.id)
+    assert r1.assigned_driver_id is None and r1.state == "DISPATCH_READY"
+    assert r2.assigned_driver_id == d1.id and r2.state == "PICKED_UP"
+
+    with pytest.raises(ValueError, match="plan_not_committed"):
+        svc.undo(db, ctx, done["id"])
+
+
+def test_plan_undo_skips_accepted_and_respects_window(db: Session, monkeypatch) -> None:
+    from porterchain_api.admin_engine import fleet_plan_service as fps
+    from porterchain_api.dispatch_engine.models import DispatchPlan
+
+    svc, ctx, done, d1, o1, o2 = _commit_two(db, monkeypatch)
+    db.get(Order, o1.id).state = "DRIVER_ACCEPTED"
+    db.flush()
+    plan = db.get(DispatchPlan, done["id"])
+    plan.committed_at = fps._now() - fps.UNDO_WINDOW - timedelta(minutes=1)
+    db.flush()
+    with pytest.raises(ValueError, match="undo_window_expired"):
+        svc.undo(db, ctx, done["id"])
+    plan.committed_at = fps._now()
+    db.flush()
+    out = svc.undo(db, ctx, done["id"])
+    assert out["released"] == 1 and out["kept"][0]["order_id"] == o1.id
+    assert db.get(Order, o1.id).assigned_driver_id == d1.id
+
+
+def test_commit_restores_superseded_plan_on_undo(db: Session, monkeypatch) -> None:
+    from porterchain_api.dispatch_engine.models import DispatchPlan
+
+    svc, ctx, first, *_ = _commit_two(db, monkeypatch)
+    _, _, second, *_ = _commit_two(db, monkeypatch)
+    db.expire_all()
+    assert db.get(DispatchPlan, first["id"]).status == "superseded"
+    svc.undo(db, ctx, second["id"])
+    db.expire_all()
+    assert db.get(DispatchPlan, first["id"]).status == "committed"
+
+
+def test_plan_undo_tells_the_driver_job_removed(db: Session, monkeypatch) -> None:
+    from porterchain_api.booking_models import DomainEvent
+
+    svc, ctx, done, d1, o1, o2 = _commit_two(db, monkeypatch)
+    db.get(Order, o2.id).state = "PICKED_UP"  # kept → no notice for o2
+    db.flush()
+    svc.undo(db, ctx, done["id"])
+    rows = db.query(DomainEvent).filter(DomainEvent.event_type == "order.driver_job_removed").all()
+    mine = [r for r in rows if r.aggregate_id in {o1.id, o2.id}]
+    assert [r.aggregate_id for r in mine] == [o1.id]
+    assert mine[0].payload["driver_id"] == d1.id and mine[0].payload["reason"] == "plan_undo"

@@ -50,10 +50,16 @@ def dispatch_plan_latest(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
 
 @router.post(f"{P}/plans")
 def dispatch_plan_create(ctx: Ctx, db: Session = Depends(get_db), body: dict = Body(default={})) -> dict:
-    """Plan the day: every waiting order, every online vehicle. Draft only — nothing is assigned."""
+    """Plan the day: every waiting order, every online vehicle. Draft unless ``commit`` is true
+    (Ops Today "Optimize routes": draft + commit in one call; undo via /plans/{id}/undo)."""
     ids = body.get("order_ids") if isinstance(body.get("order_ids"), list) else None
     limit = int(body.get("time_limit_s") or 5)
-    return _run(ctx, "dispatch", _plans.plan, db, actor=_actor(ctx), order_ids=ids, time_limit_s=max(1, min(limit, 30)))
+    draft = _run(ctx, "dispatch", _plans.plan, db, actor=_actor(ctx), order_ids=ids, time_limit_s=max(1, min(limit, 30)))
+    if body.get("commit") is True:
+        from porterchain_api.config import get_settings
+
+        return _run(ctx, "dispatch", _plans.commit, db, get_settings(), ctx, draft["id"])
+    return draft
 
 
 @router.get(f"{P}/plans/{{plan_id}}")
@@ -73,6 +79,12 @@ def dispatch_plan_commit(plan_id: str, ctx: Ctx, db: Session = Depends(get_db)) 
     from porterchain_api.config import get_settings
 
     return _run(ctx, "dispatch", _plans.commit, db, get_settings(), ctx, plan_id)
+
+
+@router.post(f"{P}/plans/{{plan_id}}/undo")
+def dispatch_plan_undo(plan_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    """Undo a commit (15 min): release only orders still DRIVER_ASSIGNED to the planned driver."""
+    return _run(ctx, "dispatch", _plans.undo, db, ctx, plan_id)
 
 
 @router.post(f"{P}/plans/{{plan_id}}/explain")

@@ -4,12 +4,12 @@ import { useEffect, useRef } from "react";
 import { publicEnv } from "@/lib/env";
 import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
 
-function apiWsBase(): string {
+export function apiWsBase(): string {
   const base = publicEnv.porterchainApiUrl.replace(/\/$/, "");
   return base.replace(/^http/, "ws");
 }
 
-async function resolveWsToken(getToken: () => Promise<string>): Promise<string | null> {
+export async function resolveWsToken(getToken: () => Promise<string>): Promise<string | null> {
   const token = await getToken();
   if (!token) return null;
   if (token === "dev" || token.startsWith("staff_sess_")) return token;

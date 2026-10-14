@@ -43,7 +43,7 @@ class DispatchPlan(SoftDeleteMixin, Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     service_date: Mapped[date] = mapped_column(Date, index=True)
-    # draft | committed | superseded | discarded
+    # draft | committed | superseded | discarded | reverted (undone within UNDO_WINDOW)
     status: Mapped[str] = mapped_column(String(16), default="draft", index=True)
     solver: Mapped[str] = mapped_column(String(16), default="ortools")
     version: Mapped[int] = mapped_column(Integer, default=1)

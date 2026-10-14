@@ -20,6 +20,7 @@ SLOW = "slow"
 FAST_TEMPLATES = frozenset(
     {
         "job_assigned",  # driver job offer (push, FCM category job_offer)
+        "job_removed",  # dispatch took the job back — must beat the driver driving to it
         "cx_out_for_delivery",
         "cx_eta",
         "cx_eta_20",

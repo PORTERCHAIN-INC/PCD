@@ -164,6 +164,12 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
             add("driver_assigned", "in_app", "merchant", merchant_id)
         # Ops board already tracks assignment — skip staff in_app spam.
 
+    elif event_type == DomainEventType.DRIVER_JOB_REMOVED:
+        # Only the driver who lost the job; customer/merchant never saw it change hands.
+        if driver_id:
+            add("job_removed", "push", "driver", driver_id, category="orders", pri="high")
+            add("job_removed", "in_app", "driver", driver_id, category="orders", pri="high")
+
     elif event_type == DomainEventType.ORDER_CANCELLED:
         if customer_id:
             add("order_cancelled", "in_app", "customer", customer_id)

@@ -176,6 +176,12 @@ def write_last_known(
         speed_mps=speed_mps,
         h3=cell_id,
     )
+    from porterchain_api.platform.ops_live import driver_message, publish_ops_live
+
+    publish_ops_live(
+        driver_message(driver_id=driver_id, lat=float(lat), lng=float(lng), heading=heading, at=stamp.isoformat()),
+        client=redis_client,
+    )
     return stored
 
 

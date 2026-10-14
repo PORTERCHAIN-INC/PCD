@@ -12,6 +12,7 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.booking_models import Order
+from porterchain_shared.events.catalog import DomainEventType
 from porterchain_api.order_engine.buckets import dispatch_queue_sort_key
 
 
@@ -69,6 +70,34 @@ class AdminOperationsService:
                 JobsService().optimize_route(db, driver, insert_order_id=insert_order_id)
         except Exception:  # noqa: BLE001 — assign must succeed even if optimize queues fail
             pass
+
+    @staticmethod
+    def release_assignment_no_commit(db: Session, ctx: AdminContext, order: Order, *, plan_id: str) -> None:
+        """Undo a plan assignment: back to the dispatch pool. Caller guarantees DRIVER_ASSIGNED.
+
+        Canonical path (ASSIGNED → REJECTED → DISPATCH_READY) tagged ``order.plan_undo`` so it never
+        counts as a driver rejection.
+        """
+        actor = getattr(getattr(ctx, "user", None), "id", None)
+        payload = {"driver_id": order.assigned_driver_id, "plan_id": plan_id, "reason": "plan_undo"}
+        for to in (OrderState.DRIVER_REJECTED, OrderState.DISPATCH_READY):
+            transition_order_state(db, order, to, event_type="order.plan_undo",
+                                   actor_type="admin", actor_id=actor, payload=payload)
+        order.assigned_driver_id = None
+        db.add(AdminAuditLog(actor_user_id=actor, action="dispatch.plan_undo", resource_type="order",
+                             resource_id=order.id, payload=payload))
+        # Tell the driver (push + in-app via the notification router) — the job left their list.
+        emit_event(
+            db,
+            event_type=DomainEventType.DRIVER_JOB_REMOVED,
+            aggregate_type="order",
+            aggregate_id=order.id,
+            actor_type="admin",
+            actor_id=actor,
+            payload={**payload, "order_id": order.id, "order_number": order.order_number,
+                     "tracking_number": order.tracking_number, "driver_deep_link": "/jobs"},
+        )
+        db.commit()
 
     def _assign_driver_no_commit(
         self,

@@ -203,7 +203,7 @@ export type PlanRoute = {
 
 export type FleetPlan = {
   id: string;
-  status: "draft" | "committed" | "superseded" | "discarded";
+  status: "draft" | "committed" | "superseded" | "discarded" | "reverted";
   solver: "ortools";
   version: number;
   parent_id: string | null;
@@ -223,11 +223,40 @@ export type FleetPlan = {
     late_stops?: string[];
     feasible?: boolean;
     kind?: "plan" | "replan";
-    commit?: { assigned: number; skipped: { order_id: string; reason: string }[] };
+    commit?: {
+      assigned: number;
+      skipped: { order_id: string; reason: string }[];
+      assigned_ids?: { order_id: string; driver_id: string }[];
+    };
   };
   routes: PlanRoute[];
   diff?: { added: PlanChange[]; moved: PlanChange[]; removed: PlanChange[] };
 };
+
+export type PlanUndo = {
+  plan_id: string;
+  status: "reverted";
+  released: number;
+  kept: { order_id: string; reason: string }[];
+};
+
+/** Toast copy after "Optimize routes" auto-commits. */
+export function optimizeToast(plan: Pick<FleetPlan, "routes" | "summary">): string {
+  const assigned = plan.summary.commit?.assigned ?? 0;
+  const routes = plan.routes.filter((r) => r.driver_id).length;
+  const skipped = plan.summary.commit?.skipped?.length ?? 0;
+  const dropped = plan.summary.dropped?.length ?? 0;
+  if (assigned === 0)
+    return dropped
+      ? `Nothing assigned · ${dropped} can't fit a vehicle`
+      : "Already optimal · nothing to assign";
+  const parts = [
+    `${assigned} order${assigned === 1 ? "" : "s"} assigned on ${routes} route${routes === 1 ? "" : "s"}`,
+  ];
+  if (skipped) parts.push(`${skipped} kept as-is`);
+  if (dropped) parts.push(`${dropped} unplaced`);
+  return parts.join(" · ");
+}
 
 export type PlanExplanation = {
   source: "rules";
@@ -382,12 +411,17 @@ export const dispatch = {
       headers: { "Content-Type": "application/json" },
     }),
   latestPlan: (t: string) => adminFetch<PlanLatest>(`${B}/plans/latest`, t),
-  planDay: (t: string, body: { order_ids?: string[]; time_limit_s?: number } = {}) =>
+  planDay: (
+    t: string,
+    body: { order_ids?: string[]; time_limit_s?: number; commit?: boolean } = {}
+  ) =>
     adminFetch<FleetPlan>(`${B}/plans`, t, {
       method: "POST",
       body: JSON.stringify(body),
       headers: J,
     }),
+  undoPlan: (t: string, id: string) =>
+    adminFetch<PlanUndo>(`${B}/plans/${encodeURIComponent(id)}/undo`, t, { method: "POST" }),
   replan: (t: string, id: string) =>
     adminFetch<FleetPlan>(`${B}/plans/${encodeURIComponent(id)}/replan`, t, { method: "POST" }),
   commitPlan: (t: string, id: string) =>

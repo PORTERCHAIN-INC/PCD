@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useMemo } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Container from "@porterchain/ui/container";
@@ -37,7 +37,12 @@ function Shell({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  const profile = useOptionalAdminProfile();
+  const loadedProfile = useOptionalAdminProfile();
+  // Profile comes from the browser session; the server always renders without it. Use it only
+  // after mount so SSR and first client paint match (no hydration mismatch on role/nav).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const profile = mounted ? loadedProfile : null;
   const { getApiToken } = useAdminAuth();
 
   const base = useMemo(() => adminNavForRole(profile?.role), [profile?.role]);
@@ -94,7 +99,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         name: "Porterchain",
         sub: profile?.role === "super_admin" ? "Super admin" : "Admin",
       }}
-      brandHref="/dashboard"
+      brandHref="/today"
       groups={groups}
       isActive={(href) => isNavActive(pathname, href, search)}
       Link={Link}

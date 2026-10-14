@@ -8,6 +8,15 @@ import "maplibre-gl/dist/maplibre-gl.css";
 /** OpenStreetMap raster tiles (no API key). Point NEXT_PUBLIC_MAP_TILE_URL at self-hosted tiles in production. */
 const TILE_URL =
   process.env.NEXT_PUBLIC_MAP_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+/**
+ * MapLibre 6 resolves its worker next to the bundled chunk, which Next does not emit.
+ * Point it at the bundler-emitted worker file instead (fixes "Worker failed to load").
+ */
+if (typeof window !== "undefined") {
+  maplibregl.setWorkerUrl(
+    new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString()
+  );
+}
 const GTA: [number, number] = [-79.3832, 43.6532];
 
 export type MapPoint = {
@@ -39,6 +48,8 @@ type Props = {
   onPointClick?: (id: string) => void;
   className?: string;
   label: string;
+  /** "navy" dims + desaturates the same free OSM tiles for the dark ops theme. */
+  tone?: "light" | "navy";
 };
 
 type Data = Parameters<GeoJSONSource["setData"]>[0];
@@ -100,6 +111,7 @@ export function OsmMap({
   onPointClick,
   className,
   label,
+  tone = "light",
 }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
@@ -127,7 +139,24 @@ export function OsmMap({
             attribution: "© OpenStreetMap contributors",
           },
         },
-        layers: [{ id: "osm", type: "raster", source: "osm" }],
+        layers: [
+          {
+            id: "osm",
+            type: "raster",
+            source: "osm",
+            paint:
+              tone === "navy"
+                ? {
+                    // Invert lightness: white land → near navy, roads → soft slate.
+                    "raster-brightness-min": 0.45,
+                    "raster-brightness-max": 0.06,
+                    "raster-saturation": -0.7,
+                    "raster-hue-rotate": 180,
+                    "raster-opacity": 0.6,
+                  }
+                : {},
+          },
+        ],
       },
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -195,6 +224,8 @@ export function OsmMap({
       m.remove();
       map.current = null;
     };
+    // tone is fixed per mount; changing it would rebuild the map.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

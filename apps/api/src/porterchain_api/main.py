@@ -80,11 +80,15 @@ async def lifespan(_app: FastAPI):
     db_pool_monitor.install(_engine)
     pool_watch = asyncio.create_task(db_pool_monitor.run_pool_watch(_engine))
     await realtime_hub.start()
+    from porterchain_api.routers.ops_live import ops_live_hub
+
+    await ops_live_hub.start()
     try:
         yield
     finally:
         pool_watch.cancel()
         await realtime_hub.stop()
+        await ops_live_hub.stop()
 
 
 def api_docs_exposed(settings) -> bool:
@@ -176,6 +180,9 @@ def create_app() -> FastAPI:
     app.include_router(customers_admin_360.router)
     app.include_router(notifications_admin.router)
     app.include_router(notifications.router)
+    from porterchain_api.routers import ops_live as _ops_live
+
+    app.include_router(_ops_live.router)
     app.include_router(security.router)
     app.include_router(operations.router)
     app.include_router(operations.dispatch_router)

@@ -26,6 +26,7 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "order_booked": {"category": "orders"},
     "driver_assigned": {"category": "tracking"},
     "job_assigned": {"category": "orders"},
+    "job_removed": {"category": "orders"},
     "order_cancelled": {"category": "orders"},
     "driver_accepted": {"category": "tracking"},
     "driver_rejected": {"category": "tracking"},
@@ -223,6 +224,10 @@ TEMPLATES: dict[str, dict[str, str]] = {
     "job_assigned": {
         "subject": "New job — tap to accept",
         "body": "Job {order_number} ({tracking_number}) is waiting. Open the app to accept.",
+    },
+    "job_removed": {
+        "subject": "Job removed",
+        "body": "Job {order_number} ({tracking_number}) was taken off your list by dispatch. No action needed.",
     },
     "order_cancelled": {
         "subject": "Order cancelled",

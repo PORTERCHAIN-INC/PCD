@@ -15,12 +15,24 @@ API_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_ROOT / "src"))
 sys.path.insert(0, str(API_ROOT.parent.parent / "services" / "driver-platform"))
 
+# Register every FK target table before Driver is used (drivers.porterchain_user_id →
+# porterchain_users lives in user_models); without this SQLAlchemy raises NoReferencedTableError.
+from porterchain_api import crm_models, merchant_models, user_models  # noqa: F401
 from porterchain_api.admin_models import Driver, Vehicle
 from porterchain_api.db import SessionLocal, init_db
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_driver import DriverPlatform
 
 MARKER = "online-drivers-batch-v1"
+
+
+def _require_local_db(db) -> None:
+    """Seed data must never land in prod: only localhost / docker-local databases."""
+    import os
+
+    host = db.get_bind().url.host or ""
+    if host not in {"localhost", "127.0.0.1", "postgres", "db"} and os.environ.get("SEED_ALLOW_REMOTE") != "1":
+        raise SystemExit(f"refusing to seed non-local database host {host!r}")
 
 DRIVERS = [
     {
@@ -185,8 +197,9 @@ def _go_online_with_location(db, driver: Driver, spec: dict) -> None:
 
 
 def main() -> None:
-    init_db()
     db = SessionLocal()
+    _require_local_db(db)
+    init_db()
     try:
         print(f"=== Seeding 5 online drivers ({MARKER}) ===\n")
         for spec in DRIVERS:
