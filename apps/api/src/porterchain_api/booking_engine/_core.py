@@ -67,6 +67,15 @@ def publish_recorded_event(**fields: Any) -> None:
         )
     except Exception as exc:
         logger.warning("event bus publish failed: %s", exc)
+    try:
+        from porterchain_api.platform.ops_live import message_for_event, publish_ops_live
+
+        msg = message_for_event(fields["event_type"], fields["aggregate_type"], fields["aggregate_id"],
+                                fields.get("payload"))
+        if msg:
+            publish_ops_live(msg)
+    except Exception:  # noqa: BLE001 — never block the write path on the live view
+        logger.debug("ops live fanout failed", exc_info=True)
 
 
 def emit_event(
