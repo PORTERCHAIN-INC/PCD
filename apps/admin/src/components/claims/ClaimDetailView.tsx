@@ -10,6 +10,7 @@ import { formatClaimType, PRIORITY_STYLES, STATUS_STYLES, type ClaimDetail } fro
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
+import DeleteButton from "@/components/common/DeleteButton";
 
 type Tab =
   | "overview"
@@ -73,7 +74,17 @@ export default function ClaimDetailView({
   const terminal = ["closed", "archived", "rejected"].includes(detail.display_status);
 
   return (
-    <AdminPage>
+    <AdminPage
+      actions={
+        <DeleteButton
+          entity="claim"
+          id={detail.id}
+          onDeleted={() => {
+            window.location.href = "/claims";
+          }}
+        />
+      }
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link

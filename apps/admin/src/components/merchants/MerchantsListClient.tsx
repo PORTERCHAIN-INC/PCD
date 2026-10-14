@@ -50,6 +50,7 @@ import { money, shortDate, relativeTime, titleCase, downloadCsv, toCsv } from "@
 import AdminPage from "@/components/layout/AdminPage";
 import { TableSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const MerchantPricingFields = dynamic(
   () => import("@/components/merchants/MerchantPricingFields"),
@@ -553,6 +554,12 @@ export default function MerchantsListClient() {
         accessorKey: "created_at",
         header: "Created",
         cell: ({ getValue }) => shortDate(String(getValue())),
+      },
+      {
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => <DeleteButton compact entity="merchant" id={row.original.id} />,
       },
     ],
     [busy]

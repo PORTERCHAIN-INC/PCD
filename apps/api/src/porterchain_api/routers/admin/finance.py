@@ -273,19 +273,10 @@ def finance_record_invoice_payment(
 ) -> dict:
     require_module(ctx, "finance")
     _step_up(request, authorization, settings)
-    from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+    from porterchain_api.admin_engine.ar_payments import record_admin_payment
 
-    svc = MerchantArService()
     try:
-        return svc.record_payment(
-            db,
-            ctx,
-            invoice_id,
-            method=body.method,
-            amount_cents=body.amount_cents,
-            reference=body.reference,
-            paid_at=body.paid_at,
-        )
+        return record_admin_payment(db, ctx, invoice_id, body)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

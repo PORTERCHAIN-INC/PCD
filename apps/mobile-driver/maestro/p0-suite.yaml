@@ -21,3 +21,5 @@ tags:
     file: p0-jobs-list.yaml
 - runFlow:
     file: p0-push-register.yaml
+- runFlow:
+    file: consent.yaml

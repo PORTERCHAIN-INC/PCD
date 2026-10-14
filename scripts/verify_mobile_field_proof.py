@@ -75,7 +75,7 @@ def main() -> int:
     if "AppErrorBoundary" not in blob or 'testID="error-boundary"' not in blob:
         failures.append("AppErrorBoundary missing")
     if 'testID="offline-banner"' not in blob:
-        failures.append("offline-banner missing on StatusRail")
+        failures.append("offline-banner missing (SyncBanners)")
     if 'kind: "fcm"' not in blob and 'PushKind = "fcm"' not in blob and 'type PushKind' not in blob:
         failures.append("FCM push kind typing missing")
 
@@ -109,10 +109,10 @@ def main() -> int:
         failures.append("app.json missing expo-camera plugin")
     if "expo-camera" not in _read(DRIVER / "package.json"):
         failures.append("expo-camera dependency missing")
-    if 'testID="pod-barcode-scan"' not in blob:
-        failures.append("POD Scan with camera button missing")
-    if 'testID="scan-camera"' not in blob:
-        failures.append("FieldOps camera scan button missing")
+    if 'testID="proof-card"' not in blob:
+        failures.append("Job proof-of-delivery card missing")
+    if '"scan-camera"' not in blob:
+        failures.append("Job camera scan button missing")
 
     # --- Maestro hooks ---
     pod_flow = DRIVER / "maestro/pod-capture.yaml"
@@ -120,7 +120,7 @@ def main() -> int:
         failures.append("maestro/pod-capture.yaml missing")
     else:
         flow = _read(pod_flow)
-        for needle in ("pod-capture", "signature-pad", "pod-barcode-scan"):
+        for needle in ("proof-card", "signature-pad"):
             if needle not in flow:
                 failures.append(f"pod-capture.yaml missing {needle!r}")
 

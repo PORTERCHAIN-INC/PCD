@@ -46,6 +46,7 @@ import {
   use360,
 } from "@/components/customers/Customer360";
 import { PageSkeleton, TableSkeleton } from "@porterchain/ui/loading";
+import DeleteButton from "@/components/common/DeleteButton";
 
 /** Mirrors API MODULE_PERMISSIONS["customers"]. */
 const CUSTOMERS_WRITE_ROLES = new Set([
@@ -125,7 +126,17 @@ export default function CustomerDetailClient({ id }: { id: string }) {
   const showInvite = canWrite && !data.clerk_linked && data.privacy_status !== "deletion_hold";
 
   return (
-    <AdminPage>
+    <AdminPage
+      actions={
+        <DeleteButton
+          entity="customer"
+          id={id}
+          onDeleted={() => {
+            window.location.href = "/customers";
+          }}
+        />
+      }
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <Button variant="outline" onClick={() => router.push("/customers")}>

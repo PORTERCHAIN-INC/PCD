@@ -26,6 +26,7 @@ import {
   type OrderRow,
 } from "@/lib/orders";
 import { Button } from "@/components/crm/primitives";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const COLS_KEY = "porterchain.orders.columns";
 
@@ -333,6 +334,12 @@ function OrdersGridTable({ rows, selected, onSelect, loading }: Props) {
             <ExternalLink className="h-4 w-4" aria-hidden />
           </Link>
         ),
+      },
+      {
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => <DeleteButton compact entity="order" id={row.original.order_id} />,
       },
     ],
     []

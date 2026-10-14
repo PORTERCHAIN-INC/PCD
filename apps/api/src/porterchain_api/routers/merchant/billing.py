@@ -224,50 +224,36 @@ def export_history_csv(
     )
 
 
+# Billing is Interac e-Transfer only. Stripe Connect COD onboarding is retired:
+# status reports it off, and connect/enable return 410 so no client can start it.
+_INTERAC_ONLY = "billing_is_interac_etransfer_only"
+
+
 @router.get("/billing/cod")
 def billing_cod_status(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
 ) -> dict:
-    """COD / Stripe Connect status for the merchant."""
     require_module(ctx, "billing")
-    m = ctx.merchant
     return {
-        "cod_enabled": bool(getattr(m, "cod_enabled", False)),
-        "stripe_connect_account_id": getattr(m, "stripe_connect_account_id", None),
-        "connect_ready": bool(getattr(m, "stripe_connect_account_id", None)),
+        "cod_enabled": False,
+        "stripe_connect_account_id": None,
+        "connect_ready": False,
+        "interac_only": True,
     }
 
 
 @router.post("/billing/cod/connect")
 def billing_cod_connect(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
 ) -> dict:
-    """Start Stripe Connect Express onboarding (or return mock link)."""
     require_module(ctx, "billing")
-    from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
-
-    return StripeCodService().create_connect_account_link(db, settings, ctx.merchant)
+    raise HTTPException(status_code=410, detail=_INTERAC_ONLY)
 
 
 @router.post("/billing/cod/enable")
 def billing_cod_enable(
     body: dict,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-    db: Session = Depends(get_db),
 ) -> dict:
     require_module(ctx, "billing")
-    from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
-
-    enabled = bool(body.get("enabled"))
-    try:
-        merchant = StripeCodService().set_cod_enabled(db, ctx.merchant, enabled=enabled)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {
-        "cod_enabled": merchant.cod_enabled,
-        "stripe_connect_account_id": merchant.stripe_connect_account_id,
-    }
-
-
+    raise HTTPException(status_code=410, detail=_INTERAC_ONLY)

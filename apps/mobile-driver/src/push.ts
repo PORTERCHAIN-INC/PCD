@@ -5,9 +5,9 @@ import { orderIdFromPushData } from "./linking";
 import { clearRememberedPushToken, readRememberedPushToken, rememberPushToken } from "./pushToken";
 
 /** Must match FCM `categoryId` / APNs `category` for job_assigned pushes. */
-export const JOB_OFFER_CATEGORY = "job_offer";
-export const JOB_OFFER_ACCEPT = "accept";
-export const JOB_OFFER_DECLINE = "decline";
+const JOB_OFFER_CATEGORY = "job_offer";
+const JOB_OFFER_ACCEPT = "accept";
+const JOB_OFFER_DECLINE = "decline";
 
 function isFcmToken(token: string): boolean {
   return token.includes(":APA91");
@@ -269,6 +269,21 @@ export function attachPushListeners(onOpen: (payload: PushOpenPayload) => void):
 
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       void handleJobOfferResponse(response, onOpen);
+    });
+    remove = () => sub.remove();
+  });
+  return () => remove?.();
+}
+
+/** Foreground push (any type): invalidate the cached data it touches. Realtime without polling. */
+export function attachPushReceived(onData: (kind: string | undefined) => void): () => void {
+  let remove: (() => void) | undefined;
+  void loadNotifications().then((Notifications) => {
+    if (!Notifications) return;
+    const sub = Notifications.addNotificationReceivedListener((n) => {
+      const data = (n.request.content.data ?? {}) as Record<string, unknown>;
+      const kind = data.type ?? data.event ?? data.kind;
+      onData(typeof kind === "string" ? kind : undefined);
     });
     remove = () => sub.remove();
   });

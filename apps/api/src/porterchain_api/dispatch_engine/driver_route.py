@@ -109,13 +109,15 @@ class DriverRouteService:
         if route is None:
             return {"route": None}
         events = self._events(db, route.id)
-        orders = {o.id: o for o in db.query(Order).filter(Order.id.in_({s["order_id"] for s in route.stops}))}
+        order_ids = {s["order_id"] for s in route.stops}
+        orders = {o.id: o for o in db.query(Order).filter(Order.id.in_(order_ids))}
+        counts = self._package_counts(db, order_ids)  # one grouped query, not o.packages per stop
         stops = []
         for g in group(route.stops):
             evs: set[str] = set().union(*(events.get(k, set()) for k in g["keys"]))
             o = orders.get(g["order_id"])
             addr = self._address(o, g)
-            boxes = len(o.packages) if o is not None else 0
+            boxes = counts.get(g["order_id"], 0) if o is not None else 0
             stops.append({
                 **g, "status": stop_status(g["kind"], evs), "order_number": o.order_number if o else None,
                 "address": addr.get("formatted"), "lat": addr.get("lat"), "lng": addr.get("lng"),
@@ -127,6 +129,21 @@ class DriverRouteService:
         done = sum(1 for s in stops if s["status"] in {"done", "failed"})
         return {"route": {"id": route.id, "vehicle_class": route.vehicle_class, "stops": stops,
                           "next_index": nxt, "done": done, "total": len(stops)}}
+
+    @staticmethod
+    def _package_counts(db: Session, order_ids: set[str]) -> dict[str, int]:
+        from sqlalchemy import func
+
+        from porterchain_api.booking_models import Package
+
+        if not order_ids:
+            return {}
+        rows = (
+            db.query(Package.order_id, func.count(Package.id))
+            .filter(Package.order_id.in_(order_ids))
+            .group_by(Package.order_id)
+        )
+        return {oid: int(n) for oid, n in rows}
 
     @staticmethod
     def _address(order: Any, g: dict[str, Any]) -> dict[str, Any]:

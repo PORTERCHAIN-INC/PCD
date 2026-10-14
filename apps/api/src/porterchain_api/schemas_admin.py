@@ -1099,6 +1099,8 @@ class MerchantArRecordPaymentRequest(BaseModel):
     method: str = "interac"
     reference: str | None = None
     paid_at: datetime | None = None
+    # Interac: reference must match the invoice's payment reference unless overridden.
+    allow_reference_mismatch: bool = False
 
 
 class BookingDraftAdminItem(BaseModel):

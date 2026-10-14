@@ -18,6 +18,7 @@ import {
   type PlanRoute,
 } from "@/lib/dispatch";
 import { cn } from "@porterchain/ui/utils";
+import DeleteButton from "@/components/common/DeleteButton";
 
 const KIND_DOT: Record<string, string> = {
   pickup: "bg-secondary",
@@ -51,8 +52,9 @@ function RouteCard({
           <h3 className="text-base font-semibold text-primary">
             R{index + 1} · <span className="capitalize">{r.vehicle_class.replace("_", " ")}</span>
           </h3>
-          <span className="text-sm font-semibold tabular-nums text-primary">
+          <span className="flex items-center gap-1 text-sm font-semibold tabular-nums text-primary">
             {money(r.cost_cents)}
+            <DeleteButton compact entity="route" id={r.id} />
           </span>
         </div>
         <p className="mt-0.5 truncate text-xs text-muted">

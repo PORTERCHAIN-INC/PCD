@@ -12,14 +12,13 @@ Promotional text (≤170)
 Description
   Porterchain Driver is the field app for drivers on Porterchain’s Transportation Capacity Network.
 
-  You get the work that is assigned to you — the next stop, the job number, wallet and today’s earnings — and you run the loop on the van:
+  You get the work that is assigned to you — the next stop, the job number and today's progress — and you run the loop on the van:
 
   • Start a shift only after a short pre-trip check
   • Navigate to the stop and mark arrival when you are actually there
   • Scan package QR or Code 128 labels that belong to this order
   • Capture proof of delivery photos
-  • Keep licence, insurance, and vehicle documents current
-  • See jobs, money, and messages without a dispatch console on your phone
+    • Call or email dispatch, or send an SOS, from the Me tab
 
   Location is used while you are on duty so dispatch can see the van, including with the screen locked. Camera is used for proof of delivery and label scans. Sign-in is for approved Porterchain drivers only.
 

@@ -6,6 +6,7 @@ import { useApiData } from "@/hooks/useApiData";
 import { drivers, VEHICLE_CLASSES, type DriverVehicle } from "@/lib/drivers";
 import { Badge, Button, SectionCard } from "@/components/crm/primitives";
 import { shortDate, titleCase } from "@/lib/crmFormat";
+import DeleteButton from "@/components/common/DeleteButton";
 
 export function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean }) {
   const { getApiToken } = useAdminAuth();
@@ -209,6 +210,7 @@ export function VehiclesTab({ id, canWrite }: { id: string; canWrite: boolean })
                       Set active
                     </Button>
                   )}
+                  {canWrite && <DeleteButton entity="vehicle" id={v.id} />}
                 </div>
               </>
             )}

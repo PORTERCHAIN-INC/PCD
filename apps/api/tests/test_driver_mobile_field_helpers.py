@@ -10,14 +10,12 @@ FCM = ROOT / "apps/api/src/porterchain_api/notification_engine/fcm_service.py"
 
 
 def test_stop_checklist_ordered_steps() -> None:
-    text = (MOBILE / "stopChecklist.ts").read_text()
-    assert "buildStopChecklist" in text
-    for step in ("arrive", "scan", "pod", "leave"):
-        assert f'"{step}"' in text or f"'{step}'" in text
-    assert text.index('"arrive"') < text.index('"scan"')
-    assert text.index('"scan"') < text.index('"pod"')
-    assert text.index('"pod"') < text.index('"leave"')
-
+    """One action at a time: Arrive → Scan → Proof → Complete (stop/stopFlow.ts)."""
+    text = (MOBILE / "stop/stopFlow.ts").read_text()
+    assert "export function deriveStop" in text
+    for step in ("arrive", "scan", "proof", "complete"):
+        assert f'"{step}"' in text
+    assert text.index('"arrive"') < text.index('"scan"') < text.index('"proof"') < text.index('"complete"')
 
 def test_maps_prefers_valhalla_url_no_google_dir() -> None:
     text = (MOBILE / "maps.ts").read_text()
@@ -44,36 +42,32 @@ def test_soft_offline_stale_constant() -> None:
 
 
 def test_money_screen_reads_wallet_and_earnings_contract() -> None:
-    """D7 — MoneyScreen fields must stay aligned with api.ts earnings/wallet paths."""
-    money = (MOBILE / "screens/MoneyScreen.tsx").read_text()
+    """Earnings glance on Today reads /earnings/today; full wallet/statements live on the web portal."""
+    today = (MOBILE / "screens/TodayScreen.tsx").read_text()
+    queries = (MOBILE / "data/queries.ts").read_text()
     api = (MOBILE / "api.ts").read_text()
-    types = (MOBILE / "types.ts").read_text()
-    assert "fetchWallet" in money and "fetchEarnings" in money
-    assert "refreshToken" in money
-    assert "/wallet" in api and "/earnings" in api
-    assert "/earnings/statements" in api
-    for field in ("balance_cents", "today_cents", "week_cents", "month_cents"):
-        assert field in types or field in money
-
+    # Today reads earnings through the cached query (instant from the last known value).
+    assert "useEarnings" in today and "today_cents" in today
+    assert "fetchEarningsToday" in queries
+    assert "/earnings/today" in api
+    for field in ("today_cents", "week_cents", "month_cents"):
+        assert field in api
 
 def test_field_copy_hides_corelocation_and_apns_stacks() -> None:
-    text = (MOBILE / "fieldCopy.ts").read_text()
-    assert "export function humanFieldCopy" in text
-    assert "export function fieldWarning" in text
+    text = (MOBILE / "errorCopy.ts").read_text()
+    assert "export function humanError" in text
     assert "kCLErrorDomain" in text
-    assert 'key === "not_at_stop"' in text
-    assert 'key === "pretrip_required"' in text
-    assert 'key === "shift_required"' in text
+    for key in ("not_at_stop", "pretrip_required", "shift_required"):
+        assert f"{key}:" in text
     push = (MOBILE / "push.ts").read_text()
     assert "iOS Expo Go yields APNs" not in push
-    route = (MOBILE / "screens/RouteScreen.tsx").read_text()
-    assert "handshake.navigationUrl || handshake.destLat" in route
-    assert "includeBottomSafeArea={false}" in route
-    assert "PretripRow" in route
-    assert 'testID="pretrip-check"' in route
-    screen = (MOBILE / "ui/Screen.tsx").read_text()
-    assert "StatusBar.currentHeight" in screen
-
+    job = (MOBILE / "screens/JobScreen.tsx").read_text()
+    assert "h.navigationUrl || h.destLat" in job
+    today = (MOBILE / "screens/TodayScreen.tsx").read_text()
+    assert 'testID="pretrip-check"' in today
+    kit = (MOBILE / "ui/kit.tsx").read_text()
+    # Edge-to-edge: real insets (status bar, notch, gesture bar) instead of the Android-only hack.
+    assert "useSafeAreaInsets" in kit
 
 def test_pretrip_checklist_keys_match_api() -> None:
     text = (MOBILE / "pretrip.ts").read_text()
@@ -88,24 +82,25 @@ def test_package_scan_camera_is_qr_and_code128_only() -> None:
     scanner = (MOBILE / "ui/BarcodeScannerModal.tsx").read_text()
     assert 'barcodeTypes: ["qr", "code128"]' in scanner
     assert "ean13" not in scanner
-    field = (MOBILE / "ui/FieldOpsPanel.tsx").read_text()
-    assert "PorterChain QR or tracking line" in field
-
+    job = (MOBILE / "screens/JobScreen.tsx").read_text()
+    assert "Code under the barcode" in job
 
 def test_handshake_proves_auth_before_dashboard() -> None:
     """Dashboard 403 (onboarding) must not drop Bearer-dev auth."""
     text = (MOBILE / "handshake.ts").read_text()
     assert "export function isOnboardingBlocked" in text
     compact = "".join(text.split())
-    assert "Promise.all([fetchMe(),collectPush()])" in compact
+    assert "Promise.all([fetchMe(),collectPush()" in compact
     assert text.index("fetchMe()") < text.index("fetchDashboard()")
     gate = (MOBILE / "gate.ts").read_text()
     assert "isOnboardingBlocked" in gate
 
-
 def test_route_screen_offline_banner_and_checklist() -> None:
-    route = (MOBILE / "screens/RouteScreen.tsx").read_text()
-    assert "offline-banner" in route
-    assert "stop-checklist" in route
-    assert "buildStopChecklist" in route
-    assert "navigationUrl" in route
+    """Job screen: offline banner, dispatch-route card with pickup checklist, navigation."""
+    job = (MOBILE / "screens/JobScreen.tsx").read_text()
+    banners = (MOBILE / "ui/SyncBanners.tsx").read_text()
+    card = (MOBILE / "ui/RouteStopCard.tsx").read_text()
+    assert "SyncBanners" in job and "offline-banner" in banners
+    assert "RouteStopCard" in job
+    assert "fetchDispatchChecklist" in card and 'testID="dispatch-stop"' in card
+    assert "navigationUrl" in job and "openTurnByTurn" in card

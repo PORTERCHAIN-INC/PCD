@@ -1,5 +1,3 @@
-# P0 — shift / duty controls after login
-# Case: UI-D-05 (mobile analogue) · MOB-02
 appId: com.porterchain.PCD
 tags:
   - p0
@@ -10,25 +8,15 @@ tags:
     id: mobile-sign-in
 - tapOn:
     id: dev-sign-in
-- runFlow:
-    when:
-      visible:
-        id: mobile-onboarding
-    commands:
-      - tapOn:
-          id: onboarding-skip-dev
 - extendedWaitUntil:
     visible:
       id: mobile-track
     timeout: 20000
+# Off duty: vehicle check gates Go on duty. On duty: Go off duty is offered.
 - runFlow:
     when:
       visible:
-        id: shift-controls
+        id: pretrip-check
     commands:
       - assertVisible:
-          id: shift-start
-      - assertVisible:
-          id: shift-end
-- assertVisible:
-    id: route-status
+          id: go-on-duty

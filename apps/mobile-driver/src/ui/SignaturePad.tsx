@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PanResponder, View, StyleSheet, type LayoutChangeEvent } from "react-native";
-import { colors, radius, spacing } from "@porterchain/mobile-theme";
+import { color, radius, space } from "./theme";
 
 type Point = { x: number; y: number };
 type Stroke = Point[];
@@ -86,6 +86,7 @@ export function SignaturePad({ disabled, onChange }: Props) {
   return (
     <View
       testID="signature-pad"
+      accessibilityLabel="Signature box. Receiver signs here with a finger."
       style={[styles.pad, disabled ? styles.disabled : null]}
       onLayout={(e: LayoutChangeEvent) => {
         const { width, height } = e.nativeEvent.layout;
@@ -123,19 +124,20 @@ export function SignaturePad({ disabled, onChange }: Props) {
 
 const styles = StyleSheet.create({
   pad: {
-    minHeight: 140,
-    borderWidth: 1,
-    borderColor: colors.muted,
+    minHeight: 220,
+    borderWidth: 2,
+    borderColor: color.ink,
+    borderStyle: "dashed",
     borderRadius: radius.lg,
-    backgroundColor: "#fafafa",
+    backgroundColor: color.surface,
     overflow: "hidden",
-    marginBottom: spacing.xs,
+    marginBottom: space.xs,
   },
   disabled: { opacity: 0.5 },
   segment: {
     position: "absolute",
-    height: 2.5,
-    backgroundColor: colors.primary,
+    height: 3,
+    backgroundColor: color.ink,
     borderRadius: 2,
     transformOrigin: "left center",
   },

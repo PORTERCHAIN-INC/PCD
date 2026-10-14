@@ -200,7 +200,7 @@ MATRIX: tuple[Row, ...] = (
         engine="apps/mobile-driver + mobile-theme",
         api_needles=(),
         client_checks=(
-            (Path("apps/mobile-driver/src/ui/Screen.tsx"), "@porterchain/mobile-theme"),
+            (Path("apps/mobile-driver/src/ui/kit.tsx"), "@porterchain/mobile-theme"),
             (Path("apps/mobile-driver/package.json"), "@porterchain/mobile-theme"),
         ),
         extra_paths=(ROOT / "packages/mobile-theme/src/tokens.ts",),

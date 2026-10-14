@@ -49,13 +49,26 @@ export function useDriverCommunications() {
 
   useEffect(() => {
     let cancelled = false;
+    let attempt = 0;
+    let retryTimer: number | undefined;
+
+    // Reconnect with backoff after any close (deploy, Wi-Fi blip, sleep). Each attempt fetches a
+    // fresh ws token: Clerk session tokens expire in ~60 s, so reusing one would fail.
+    const scheduleReconnect = () => {
+      if (cancelled) return;
+      const delay = Math.min(30_000, 1_000 * 2 ** attempt) + Math.floor(Math.random() * 500);
+      attempt += 1;
+      retryTimer = window.setTimeout(() => void connectWs().catch(scheduleReconnect), delay);
+    };
 
     async function connectWs() {
       const sessionRes = await fetch("/api/auth/ws-token", { credentials: "include" });
-      if (!sessionRes.ok) return;
+      if (sessionRes.status === 401) return; // signed out: the page handles it
+      if (!sessionRes.ok) throw new Error("ws_token_unavailable");
       const session = (await sessionRes.json()) as { token?: string };
       const token = session.token;
-      if (!token || cancelled) return;
+      if (cancelled) return;
+      if (!token) throw new Error("ws_token_missing");
 
       const base = publicEnv.porterchainApiUrl.replace(/^http/, "ws");
       const url = `${base}/v1/notifications/ws?token=${encodeURIComponent(token)}`;
@@ -63,7 +76,9 @@ export function useDriverCommunications() {
       wsRef.current = ws;
 
       ws.onopen = () => {
+        attempt = 0;
         if (!cancelled) setWsConnected(true);
+        void refresh(); // catch up on anything missed while disconnected
       };
       ws.onmessage = (ev) => {
         try {
@@ -74,11 +89,15 @@ export function useDriverCommunications() {
         }
       };
       ws.onclose = () => {
-        if (!cancelled) setWsConnected(false);
+        if (wsRef.current === ws) wsRef.current = null;
+        if (!cancelled) {
+          setWsConnected(false);
+          scheduleReconnect();
+        }
       };
     }
 
-    void connectWs().catch(() => undefined);
+    void connectWs().catch(scheduleReconnect);
 
     const ping = window.setInterval(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -89,6 +108,7 @@ export function useDriverCommunications() {
     return () => {
       cancelled = true;
       window.clearInterval(ping);
+      if (retryTimer) window.clearTimeout(retryTimer);
       wsRef.current?.close();
     };
   }, [refresh]);

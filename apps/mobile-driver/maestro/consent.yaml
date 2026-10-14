@@ -1,0 +1,30 @@
+appId: com.porterchain.PCD
+tags:
+  - p0
+  - privacy
+---
+- launchApp
+- assertVisible:
+    id: mobile-sign-in
+- tapOn:
+    id: dev-sign-in
+- extendedWaitUntil:
+    visible:
+      id: mobile-track
+    timeout: 20000
+# Going on duty without consent shows the explainer before any OS prompt.
+- runFlow:
+    when:
+      visible:
+        id: pretrip-check
+    commands:
+      - tapOn: { id: pretrip-lights }
+      - tapOn: { id: pretrip-tires }
+      - tapOn: { id: pretrip-plates }
+      - tapOn: { id: pretrip-leaks }
+      - tapOn: { id: pretrip-winter_kit }
+      - tapOn: { id: go-on-duty }
+      - assertVisible:
+          id: screen-consent
+      - tapOn:
+          id: consent-not-now

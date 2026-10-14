@@ -18,6 +18,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from porterchain_api.db import Base
+from porterchain_api.platform.soft_delete import SoftDeleteMixin
 from porterchain_api.domain.merchant_states import MerchantStatus
 
 
@@ -25,7 +26,7 @@ def _uuid() -> str:
     return str(uuid.uuid4())
 
 
-class Merchant(Base):
+class Merchant(SoftDeleteMixin, Base):
     __tablename__ = "merchants"
     __table_args__ = (
         CheckConstraint("pricing_model IN ('fsa', 'distance')", name="ck_merchants_pricing_model"),
@@ -124,7 +125,7 @@ class SavedAddress(Base):
     merchant: Mapped[Merchant] = relationship(back_populates="saved_addresses")
 
 
-class MerchantRecipient(Base):
+class MerchantRecipient(SoftDeleteMixin, Base):
     __tablename__ = "merchant_recipients"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -251,7 +252,7 @@ class MerchantAuditLog(Base):
     merchant: Mapped[Merchant] = relationship(back_populates="audit_logs")
 
 
-class MerchantBookingTemplate(Base):
+class MerchantBookingTemplate(SoftDeleteMixin, Base):
     __tablename__ = "merchant_booking_templates"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -263,7 +264,7 @@ class MerchantBookingTemplate(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class StandingOrder(Base):
+class StandingOrder(SoftDeleteMixin, Base):
     """Recurring merchant bookings materialized by worker cron (§8.1.11)."""
 
     __tablename__ = "standing_orders"

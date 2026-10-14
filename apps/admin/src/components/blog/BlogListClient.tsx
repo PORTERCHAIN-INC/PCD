@@ -18,6 +18,7 @@ import {
   STATUS_TONES,
   type BlogFilters,
 } from "@/lib/blog";
+import DeleteButton from "@/components/common/DeleteButton";
 
 function formatWhen(iso: string): string {
   try {
@@ -130,6 +131,7 @@ export default function BlogListClient() {
                   <th className="px-3 py-2 font-medium">Status</th>
                   <th className="px-3 py-2 font-medium">Category</th>
                   <th className="px-3 py-2 font-medium">Updated</th>
+                  <th className="px-3 py-2" />
                 </tr>
               </thead>
               <tbody>
@@ -152,6 +154,9 @@ export default function BlogListClient() {
                       {row.category.replace(/-/g, " ")}
                     </td>
                     <td className="px-3 py-3 text-muted">{formatWhen(row.updated_at)}</td>
+                    <td className="px-2 py-3 text-right">
+                      <DeleteButton compact entity="blog_post" id={row.id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

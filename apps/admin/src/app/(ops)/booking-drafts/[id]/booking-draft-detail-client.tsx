@@ -53,7 +53,7 @@ export default function BookingDraftDetailClient({ id }: { id: string }) {
         const token = await getApiToken();
         const res = await bookingDraftsApi.sendPaymentLink(token, id);
         if (res.checkout_url) window.open(res.checkout_url, "_blank", "noopener,noreferrer");
-        else alert("Payment link created — check Stripe mock or customer email flow");
+        else alert("Payment request created. The customer receives it by email.");
         void refetch();
       }}
     />

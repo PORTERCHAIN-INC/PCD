@@ -3,8 +3,8 @@ App Review notes — Porterchain Driver (com.porterchain.PCD)
 What to test
   1. Sign in with the App Review account (hosted Clerk: tap “Sign in with Porterchain”).
   2. Land on Work. Profile shows an approved driver.
-  3. Open Jobs, Money, Docs, and More. None of these require a live route.
-  4. Work shows the assigned stop when dispatch has given this driver a job. If no job is on the board, Work still shows wallet, duty, and the field actions.
+  3. Open Today, Job and Me. None of these require a live route.
+  4. Job shows the assigned stop when dispatch has given this driver a job. If no job is on the board, Job shows an empty state and Today shows the vehicle check and duty controls.
 
 Sign-in
   Use the demo driver account supplied in App Store Connect (Notes field). This app is not a public consumer product. Only approved Porterchain drivers can complete handshake.
@@ -27,7 +27,7 @@ Encryption
   ITSAppUsesNonExemptEncryption = false (HTTPS only).
 
 Account deletion
-  Drivers are provisioned by Porterchain operations. To delete a review account, email porterchaininc@gmail.com. In-app support is under More → Support.
+  Drivers are provisioned by Porterchain operations. To delete a review account, email porterchaininc@gmail.com. In-app, dispatch contact is under Me.
 
 Do not reject for
   • No public sign-up (invite / ops-provisioned drivers only)
