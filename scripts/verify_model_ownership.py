@@ -34,6 +34,7 @@ _LEGACY_MERCHANT_MODEL_WRITERS: frozenset[str] = frozenset(
         "integrations/shopify_carrier_rates.py",  # carrier quote persistence
         "notification_engine/preference_service.py",  # merchant notif prefs
         "pricing_engine/fsa_rate_card.py",  # reads Merchant/SavedAddress only; writes PricingFsaRate
+        "soft_delete/registry.py",  # cross-context soft delete / restore / purge (admin Deleted items)
     }
 )
 
@@ -48,11 +49,13 @@ _LEGACY_ADMIN_MODEL_WRITERS: frozenset[str] = frozenset(
         "booking_engine/order_sla.py",  # SLA timestamps on admin-adjacent order rows
         "pricing_engine/fsa_rate_card.py",  # PricingFsaRate rows are pricing-owned rate data
         "dispatch_engine/rescue.py",  # reads Driver; writes dispatch packages/stops only
+        "soft_delete/actions.py",  # cross-context soft delete / restore / purge (admin Deleted items)
+        "soft_delete/registry.py",  # cross-context soft delete / restore / purge (admin Deleted items)
     }
 )
 
 # §3.2.4 — legacy writers outside driver_engine (shrink over time).
-_LEGACY_DRIVER_MODEL_WRITERS: frozenset[str] = frozenset({"finance_ops/payout_runs.py"})  # integration: branch debt
+_LEGACY_DRIVER_MODEL_WRITERS: frozenset[str] = frozenset({"finance_ops/payout_runs.py", "soft_delete/registry.py"})  # payout: branch debt; soft_delete: cross-context restore
 
 # §3.2.6 — legacy writers outside collaboration_engine (shrink over time).
 _LEGACY_CRM_MODEL_WRITERS: frozenset[str] = frozenset(
@@ -60,6 +63,7 @@ _LEGACY_CRM_MODEL_WRITERS: frozenset[str] = frozenset(
         "customer_fast/privacy.py",  # integration: branch debt
         "admin_engine/merchant_org.py",
         "routers/admin/leads.py",  # thin later — move commits to collaboration_engine
+        "soft_delete/registry.py",  # cross-context soft delete / restore / purge (admin Deleted items)
     }
 )
 
@@ -131,7 +135,7 @@ _OWNERSHIP_CHECKS: tuple[dict[str, object], ...] = (
     {
         "model_module": "website_content_models",
         "owner_prefix": "content_engine",
-        "legacy_writers": frozenset(),
+        "legacy_writers": frozenset({"soft_delete/registry.py"}),
         "section": "§3.2.8",
         "mutation_re": _DB_MUTATION,
     },
