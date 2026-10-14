@@ -11,7 +11,7 @@ export type PushState = {
 };
 
 export type LocationState = {
-  kind: "idle" | "granted" | "denied" | "error";
+  kind: "idle" | "granted" | "searching" | "denied" | "error";
   detail: string;
 };
 
@@ -66,6 +66,14 @@ export type OfflineStatus = {
   pending_count: number;
   failed_count: number;
   synced_count?: number;
+  failed?: Array<{
+    id: string;
+    action_type: string;
+    payload: Record<string, unknown> | null;
+    status: string;
+    error: string | null;
+    created_at: string | null;
+  }>;
   last_sync_at?: string | null;
 };
 

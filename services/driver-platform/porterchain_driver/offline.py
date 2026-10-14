@@ -150,6 +150,44 @@ class OfflineService:
         result["retried"] = len(rows)
         return result
 
+    def _own_failed(self, db: Session, driver_id: str, action_id: str) -> Any:
+        """One failed action, only if it belongs to this driver (else LookupError → 404)."""
+        from porterchain_api.driver_models import DriverOfflineAction
+
+        row = (
+            db.query(DriverOfflineAction)
+            .filter(
+                DriverOfflineAction.id == action_id,
+                DriverOfflineAction.driver_id == driver_id,
+                DriverOfflineAction.status == "failed",
+            )
+            .first()
+        )
+        if row is None:
+            raise LookupError("offline_action_not_found")
+        return row
+
+    def retry_one(self, db: Session, driver: Any, action_id: str, *, executor: Any) -> dict:
+        """Replay a single refused action now. Stays failed (with the new reason) if refused again."""
+        row = self._own_failed(db, driver.id, action_id)
+        try:
+            executor.execute(driver, row.action_type, row.payload)
+            row.status, row.error = "synced", None
+        except ConflictSkip as exc:
+            row.status, row.error = "synced", str(exc)[:500]
+        except Exception as exc:
+            row.error = str(exc)[:500]
+        db.flush()
+        return self._serialize(row)
+
+    def discard_one(self, db: Session, driver: Any, action_id: str) -> dict:
+        """Driver chose to drop a refused action. Kept as an audit row, never replayed."""
+        row = self._own_failed(db, driver.id, action_id)
+        row.status = "discarded"
+        row.error = f"discarded_by_driver at {datetime.now(UTC).isoformat()} | {row.error or ''}"[:500]
+        db.flush()
+        return self._serialize(row)
+
     def _list_by_status(self, db: Session, driver_id: str, status: str) -> list[dict]:
         from porterchain_api.driver_models import DriverOfflineAction
 

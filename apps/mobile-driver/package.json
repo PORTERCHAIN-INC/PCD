@@ -16,7 +16,11 @@
     "test:maestro": "maestro test maestro/",
     "test:maestro:p0": "maestro test maestro/ --include-tags=p0",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev": "set -a && . ./.env.live && set +a && EXPO_NO_DOTENV=1 expo start --dev-client --clear",
+    "dev:local": "EXPO_PUBLIC_API_URL=http://127.0.0.1:8001 expo start --dev-client",
+    "ios:sim": "EXPO_PUBLIC_API_URL=https://api.porterchain.com EXPO_PUBLIC_ALLOW_DEV_AUTH=false expo run:ios",
+    "ios:device": "EXPO_PUBLIC_API_URL=https://api.porterchain.com EXPO_PUBLIC_ALLOW_DEV_AUTH=false expo run:ios --device"
   },
   "dependencies": {
     "@clerk/expo": "^4.6.6",

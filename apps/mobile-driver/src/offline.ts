@@ -287,3 +287,34 @@ export async function wipeOfflineData(): Promise<void> {
   });
   await wipeSecureBlobs();
 }
+
+/** Driver chose Retry on a refused (device-saved) action: back to the front of the queue. */
+export function unparkRejected(clientId: string): Promise<boolean> {
+  return withLock(async () => {
+    const parked = await readRejected();
+    const item = parked.find((a) => a.client_id === clientId);
+    if (!item) return false;
+    const { rejected_reason: _r, ...rest } = item;
+    await writeList(LOCAL_QUEUE_KEY, [{ ...rest, auth_attempts: 0 }, ...(await readQueue())]);
+    await writeList(
+      REJECTED_KEY,
+      parked.filter((a) => a.client_id !== clientId)
+    );
+    return true;
+  });
+}
+
+/** Driver confirmed Discard on a refused (device-saved) action: gone, with its encrypted file. */
+export function discardRejected(clientId: string): Promise<boolean> {
+  return withLock(async () => {
+    const parked = await readRejected();
+    const item = parked.find((a) => a.client_id === clientId);
+    if (!item) return false;
+    if (item.blob_id) deleteSecureBlob(item.blob_id);
+    await writeList(
+      REJECTED_KEY,
+      parked.filter((a) => a.client_id !== clientId)
+    );
+    return true;
+  });
+}

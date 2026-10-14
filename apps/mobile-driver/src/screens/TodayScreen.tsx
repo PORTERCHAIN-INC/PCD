@@ -3,7 +3,8 @@
  * On duty → shift glance (done / left / earned) → next stop with live ETA → Open stop.
  */
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { gpsDisabledMessage } from "../location";
 import { useEarnings } from "../data/queries";
 import { UpdatedAgo } from "../ui/UpdatedAgo";
 
@@ -295,7 +296,20 @@ export function TodayScreen({
           ) : null}
 
           {h.location.kind === "denied" || h.location.kind === "error" ? (
-            <Banner tone="warn" title="Location is off" body={h.location.detail} />
+            <Banner
+              tone="warn"
+              title={h.location.kind === "denied" ? "Location is off" : "Location problem"}
+              body={h.location.detail}
+              action={{ label: "Open Settings", onPress: () => void Linking.openSettings() }}
+            />
+          ) : h.location.kind === "searching" ? (
+            <Banner tone="info" title="Waiting for GPS" body={h.location.detail} />
+          ) : h.online && h.location.kind === "idle" && gpsDisabledMessage() ? (
+            <Banner
+              tone="warn"
+              title="Location sharing is paused"
+              body={gpsDisabledMessage() ?? ""}
+            />
           ) : null}
 
           {open.length === 0 && !route ? (

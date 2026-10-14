@@ -19,13 +19,22 @@ export function gpsDisabledMessage(): string | null {
 }
 
 /** Ask the server whether live GPS is on; stops background updates when it is off. */
+const policyListeners = new Set<() => void>();
+/** Called when live GPS turns back on (e.g. the driver just agreed on the consent screen). */
+export function onGpsPolicyEnabled(fn: () => void): () => void {
+  policyListeners.add(fn);
+  return () => policyListeners.delete(fn);
+}
+
 export async function refreshGpsPolicy(): Promise<boolean> {
+  const wasOff = gpsOffMessage != null;
   try {
     const s = await fetchGpsStatus();
     gpsOffMessage = s.enabled ? null : s.message;
   } catch {
     /* keep the last known policy */
   }
+  if (wasOff && gpsOffMessage == null) policyListeners.forEach((fn) => fn());
   if (gpsOffMessage) await stopBackgroundLocation();
   return gpsOffMessage == null;
 }
@@ -100,6 +109,50 @@ async function requestBackgroundAccess(): Promise<boolean> {
   return (await Location.requestBackgroundPermissionsAsync()).status === "granted";
 }
 
+/** Fresh fix, else a recent cached one. Null = permission is fine but there is no fix yet. */
+export async function readPosition(Location: Awaited<ReturnType<typeof loadLocation>>): Promise<{
+  coords: {
+    latitude: number;
+    longitude: number;
+    accuracy: number | null;
+    heading: number | null;
+    speed: number | null;
+  };
+} | null> {
+  try {
+    return await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+  } catch {
+    try {
+      return await Location.getLastKnownPositionAsync({ maxAge: 5 * 60_000 });
+    } catch {
+      return null;
+    }
+  }
+}
+
+/** Permission is granted but no fix: say exactly what is missing instead of "Location is off". */
+export async function noFixState(
+  Location: Awaited<ReturnType<typeof loadLocation>>
+): Promise<LocationState> {
+  let servicesOn = true;
+  try {
+    servicesOn = await Location.hasServicesEnabledAsync();
+  } catch {
+    /* assume on */
+  }
+  if (!servicesOn) {
+    return {
+      kind: "denied",
+      detail:
+        "Location Services are off for this phone. Settings → Privacy & Security → Location Services.",
+    };
+  }
+  return {
+    kind: "searching",
+    detail: "Finding GPS signal… dispatch will see you once the phone gets a fix.",
+  };
+}
+
 export async function sendLocationPing(): Promise<LocationState> {
   if (gpsOffMessage) return gpsOffState();
   if (!(await hasForegroundPermission())) {
@@ -107,9 +160,8 @@ export async function sendLocationPing(): Promise<LocationState> {
   }
   try {
     const Location = await loadLocation();
-    const pos = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
+    const pos = await readPosition(Location);
+    if (!pos) return await noFixState(Location);
     try {
       const res = (await pingLocation(
         pos.coords.latitude,
