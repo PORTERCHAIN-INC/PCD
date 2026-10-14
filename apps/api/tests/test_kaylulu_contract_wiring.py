@@ -213,12 +213,9 @@ def _engine_quote(merchant, dest: str, items: list[dict]):
         )
 
 
-def test_shopify_quote_bills_all_units_to_one_address_as_one_van_stop():
-    # One delivery address = one stop; 5 boxes combined (25 kg). 40 + 45 < T2 minimum 200.
+def test_shopify_quote_bills_each_unit_as_a_van_stop():
     cents, meta = _engine_quote(_kaylulu(), "L8P", [_item(5, (20, 20, 20), grams=5000)])
-    assert meta["subtotal_cents"] == 20000
-    row = meta["metadata"]["contract_stops"][0]
-    assert row["billable_stops"] == 1 and row["boxes"] == 5
+    assert meta["subtotal_cents"] == 26500  # 40 pickup + 5 × T2 45
     assert meta["metadata"]["contract_vehicle"] == "cargo_van"
 
 
@@ -333,3 +330,11 @@ def test_contract_merchant_never_sees_route_pricing_banner_or_opts_in():
     with pytest.raises(ValueError):
         set_opt_in(m, enabled=True, actor="t")
     assert not on_contract(SimpleNamespace(pricing_config={"schedule": {}}))
+
+
+def test_checkout_description_summarises_contract_quote():
+    from porterchain_api.integrations.shopify_carrier_rates import contract_rate_summary
+
+    _cents, meta = _engine_quote(_kaylulu(), "L6H", [_item(1, (20, 20, 20), grams=9000)])
+    assert contract_rate_summary(meta) == "1 stop · 1 box · 9 kg · T1"
+    assert contract_rate_summary({"metadata": {}}) == ""

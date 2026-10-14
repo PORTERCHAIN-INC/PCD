@@ -49,7 +49,7 @@ def _ctx(*, strict: bool = True, **extra) -> PricingContext:
     if strict:
         extra.setdefault(
             "merchant_pricing_config",
-            {"schedule": {"contract_overrides": {"consolidation": {"per_destination": False}}}},
+            {"schedule": {"contract_overrides": {"consolidation": {"per_destination": False}, "handling": {"beyond": "custom_quote"}}}},
         )
     config = {
         "pricing_model": "fsa",
@@ -363,43 +363,75 @@ def test_generic_fsa_merchant_without_own_rows_still_uses_platform_rows():
     assert _price(["M5V"], ctx=_generic_fsa_ctx(rows)).subtotal_cents == 1500
 
 
-# ── one stop per delivery address (owner rule, shipped default) ─────────
+# ── combined boxes per parcel + Tier 3 (+$50), shipped default ─────────
 
 
 def _item(result, code):
     return [i for i in result.items if i.code == code]
 
 
-def test_shipped_schedule_consolidates_per_destination():
-    assert load_contract_schedule(SCHEDULE_ID).consolidate_per_destination is True
+def _boxes(n, kg, dims, key="sofa"):
+    return [ParcelSpec(0, kg, dims, item_key=key)] * n
 
 
-def test_two_boxes_one_address_is_one_stop_van_kaylulu_case():
-    # Tracy: 2 parcels → one Oakville address. Was "Stop 1 L6H · T1 (2 stops) — $60".
-    r = _price(["L6H"], parcels=[ParcelSpec(0, 5.0, MEDIUM)] * 2, ctx=_ctx(strict=False))
+def test_shipped_schedule_combines_boxes_and_prices_tier3():
+    s = load_contract_schedule(SCHEDULE_ID)
+    assert s.consolidate_per_destination is True
+    assert s.handling_beyond_extra_cents == 5000
+
+
+def test_two_boxes_of_one_parcel_one_address_is_one_stop():
+    r = _price(["L6H"], parcels=_boxes(2, 9.0, MEDIUM), ctx=_ctx(strict=False))
     stops = _item(r, "contract_stop")
     assert len(stops) == 1 and stops[0].amount_cents == 3000
-    assert "1 stop (2 boxes, 10 kg" in stops[0].label
+    assert "1 parcel, 2 boxes" in stops[0].label
     row = r.metadata["contract_stops"][0]
-    assert row["billable_stops"] == 1 and row["boxes"] == 2
-    assert row["combined_weight_kg"] == 10.0
-    # $40 pickup + $30 = $70 < T1 minimum $120
+    assert (row["billable_stops"], row["parcels"], row["boxes"], row["combined_weight_kg"]) == (1, 1, 2, 18.0)
+    assert r.subtotal_cents == 12000  # 40 + 30 → T1 minimum 120
+
+
+def test_two_separate_parcels_one_address_bill_per_a3():
+    # Separate parcels (no shared item_key) are each a stop under A3: 40 + 2×30 → 120.
+    r = _price(["L6H"], parcels=[ParcelSpec(0, 9.0, MEDIUM)] * 2, ctx=_ctx(strict=False))
+    assert r.metadata["contract_stops"][0]["billable_stops"] == 2
     assert r.subtotal_cents == 12000
 
 
-def test_combined_weight_drives_handling_tier():
-    # 2 × 60 lb boxes = 120 lb combined → Handling Tier 1 (+$30), still one stop
-    r = _price(["L6H"], parcels=[ParcelSpec(0, 60 * LB, MEDIUM)] * 2, ctx=_ctx(strict=False))
+def test_combined_weight_sets_handling_tier():
+    # 2 × 60 lb boxes of one item = 120 lb → Tier 1 +$30, still one stop
+    r = _price(["L6H"], parcels=_boxes(2, 60 * LB, MEDIUM), ctx=_ctx(strict=False))
     assert len(_item(r, "contract_stop")) == 1
-    assert sum(i.amount_cents for i in _item(r, "handling")) == 3000
+    assert [i.amount_cents for i in _item(r, "handling")] == [3000]
+
+
+def test_over_tier2_limits_is_tier3_tier2_plus_50_not_refused():
+    # 2 × 90 lb = 180 lb > 150 lb → Tier 3 = $60 + $50 = $110
+    r = _price(["L6H"], parcels=_boxes(2, 90 * LB, MEDIUM), ctx=_ctx(strict=False))
+    assert not r.metadata.get("custom_quote")
+    assert [i.amount_cents for i in _item(r, "handling")] == [11000]
+    assert r.metadata["contract_stops"][0]["parcel_detail"][0]["handling_tier"] == "handling_3"
+    assert r.subtotal_cents == 4000 + 3000 + 11000  # 180 > 120 minimum
+
+
+def test_tier3_extra_is_editable_per_merchant():
+    ctx = _ctx(strict=False, merchant_pricing_config={
+        "schedule": {"contract_overrides": {"handling": {"beyond_extra_cents": 7500}}}})
+    r = _price(["L6H"], parcels=_boxes(2, 90 * LB, MEDIUM), ctx=ctx)
+    assert [i.amount_cents for i in _item(r, "handling")] == [13500]
+
+
+def test_heavy_boxes_flag_two_person_per_box():
+    r = _price(["L6H"], parcels=_boxes(2, 55 * LB, MEDIUM), ctx=_ctx(strict=False))
+    flags = r.metadata["lift_flags"]
+    assert flags and flags[0]["boxes_over_50_lb"] == 2
 
 
 def test_same_address_entered_as_two_drops_merges():
     req = PricingRequest(
         pickup=_point("L9T"), dropoff=_point("L6H"), additional_stops=[_point("L6H")],
         vehicle_class="cargo_van", channel="merchant", merchant_id=MID,
-        parcels=[ParcelSpec(0, 3.0, MEDIUM), ParcelSpec(1, 3.0, MEDIUM)], parcel_count=2,
-        distance_meters=50_000,
+        parcels=[ParcelSpec(0, 3.0, MEDIUM, item_key="a"), ParcelSpec(1, 3.0, MEDIUM, item_key="a")],
+        parcel_count=2, distance_meters=50_000,
     )
     r = PricingEngine().calculate(req, _ctx(strict=False))
     assert len(_item(r, "contract_stop")) == 1
@@ -409,9 +441,3 @@ def test_same_address_entered_as_two_drops_merges():
 def test_different_addresses_stay_separate_stops():
     r = _price(["L5M", "M5V"], parcels=[ParcelSpec(0, 1, MEDIUM), ParcelSpec(1, 1, MEDIUM)], ctx=_ctx(strict=False))
     assert len(_item(r, "contract_stop")) == 2
-
-
-def test_compact_many_boxes_one_address_is_one_stop():
-    r = _price(["L5M"], vehicle="sedan_suv", parcels=[ParcelSpec(0, 1, SMALL)] * 6, ctx=_ctx(strict=False))
-    assert r.metadata["compact_billable_stops"] == 1
-    assert r.subtotal_cents == 5000

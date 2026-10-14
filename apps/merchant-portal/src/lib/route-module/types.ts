@@ -63,6 +63,8 @@ export interface Parcel {
   weightUnit: WeightUnit;
   /** kg, cm³ / 5000 after unit conversion. */
   volumetricWeightKg: number;
+  /** Another box of the same item as the line above: priced as one combined parcel. */
+  sameItemAsPrevious?: boolean;
 }
 
 export interface PickupLocation {
@@ -111,6 +113,8 @@ export interface LegacyParcelSerialization {
 
 export interface RouteImportPackagePayload {
   id: string;
+  /** Boxes of one item share this key; they are combined into one parcel for pricing. */
+  item_key?: string;
   name: string;
   sku?: string;
   quantity: number;
