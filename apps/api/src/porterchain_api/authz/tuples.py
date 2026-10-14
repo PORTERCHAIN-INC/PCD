@@ -103,9 +103,8 @@ class TupleWriter:
 
         # Full reconcile in ONE SpiceDB write: delete stale edges + touch desired ones.
         # (delete-then-write left a window where concurrent Checks saw no role → false 403s.)
-        token = self.client.replace_relationships(
-            self._known_relationships(db, user), desired
-        ) or None
+        stale = self._known_relationships(db, user) + self._memory_leftovers(user)
+        token = self.client.replace_relationships(stale, desired) or None
         logger.info(
             "authz_tuples_synced user_id=%s relationships=%s",
             user.id,
@@ -140,6 +139,19 @@ class TupleWriter:
                     Relationship("customer_profile", customer.id, "owner", "user", user.id)
                 )
         return to_delete
+
+    def _memory_leftovers(self, user: PorterchainUser) -> list[Relationship]:
+        """Memory store only: every edge it holds for this user (e.g. a deleted driver profile)."""
+        client = self.client
+        mem = getattr(client, "_memory", None)
+        if mem is None or not (client._use_memory or client._grpc is None):  # noqa: SLF001
+            return []
+        with mem.lock:
+            return [
+                Relationship(t[0], t[1], t[2], t[3], t[4])
+                for t in mem.relationships
+                if t[3] == "user" and t[4] == user.id
+            ]
 
     def revoke_all_for_user(self, db: Session, user: PorterchainUser) -> str | None:
         """Delete SpiceDB edges for this internal user (memory + gRPC)."""
