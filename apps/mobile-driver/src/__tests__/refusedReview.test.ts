@@ -97,3 +97,16 @@ describe("refused review", () => {
     expect(whereLabel(null)).toBeNull();
   });
 });
+
+describe("refused is discoverable", () => {
+  it("pill says Review and Today shows the refused banner with the real count", async () => {
+    const fs = await import("node:fs");
+    const pill = fs.readFileSync(new URL("../ui/SyncPill.tsx", import.meta.url), "utf8");
+    expect(pill).toContain("refused · Review");
+    expect(pill).toContain("rejected > 0 ? openRefusedReview : onSync");
+    const today = fs.readFileSync(new URL("../screens/TodayScreen.tsx", import.meta.url), "utf8");
+    expect(today).not.toMatch(/rejected=\{0\}/);
+    const banners = fs.readFileSync(new URL("../ui/SyncBanners.tsx", import.meta.url), "utf8");
+    expect(banners).toContain('label: "Review", onPress: openRefusedReview');
+  });
+});
