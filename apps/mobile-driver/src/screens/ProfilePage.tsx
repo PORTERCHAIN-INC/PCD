@@ -21,6 +21,7 @@ import { Sheet } from "../ui/Sheet";
 import { color, radius, space } from "../ui/theme";
 import { toast } from "../ui/toast";
 import { UpdatedAgo } from "../ui/UpdatedAgo";
+import { confirmDeleteAccount } from "../ui/confirmDeleteAccount";
 
 const RELS = ["spouse", "parent", "sibling", "friend", "other"];
 function clerkMsg(e: unknown): string {
@@ -488,6 +489,12 @@ function ContactAndSecurity({ p, onSignOut }: { p: MeProfile; onSignOut: () => P
       </Section>
 
       <Section title="SECURITY" testID="profile-security">
+        <Row
+          label="Delete account"
+          sub="Permanently delete your driver account and data"
+          onPress={() => confirmDeleteAccount()}
+          testID="profile-delete-account"
+        />
         <Row
           label={user?.passwordEnabled ? "Change password" : "Set a password"}
           sub="Optional if you sign in with a code"
