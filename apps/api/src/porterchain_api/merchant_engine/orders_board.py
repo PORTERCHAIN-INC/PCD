@@ -113,6 +113,10 @@ def sanitize_merchant_detail(
     detail.pop("audit_log", None)
     detail.pop("fraud_risk_score", None)
     detail.pop("smart", None)
+    # Privacy (Ravi, 2026-10-15): merchants see the assigned driver's name only.
+    # Never phone, email, rating internals or wallet data.
+    drv = detail.get("driver")
+    detail["driver"] = {"name": drv.get("name")} if isinstance(drv, dict) and drv.get("name") else None
 
     meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
     snap = meta.get("quote") if isinstance(meta.get("quote"), dict) else {}

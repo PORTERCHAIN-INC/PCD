@@ -293,6 +293,9 @@ class StopsService:
         )
 
         if is_pickup:
+            from porterchain_api.booking_attachments.service import assert_pickup_documents_shown
+
+            assert_pickup_documents_shown(db, order)
             steps = _PICKUP_COMPLETE_STEPS
             _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
             target = OrderState.PICKED_UP

@@ -197,6 +197,9 @@ def create_app() -> FastAPI:
     app.include_router(operations.dispatch_router)
     app.include_router(diagnostics.router)
     app.include_router(driver.router)
+    from porterchain_api.routers import booking_attachments as _booking_attachments
+
+    app.include_router(_booking_attachments.router)
 
     from fastapi import HTTPException, Request
     from fastapi.exceptions import RequestValidationError

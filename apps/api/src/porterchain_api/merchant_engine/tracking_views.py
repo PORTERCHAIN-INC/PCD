@@ -160,7 +160,6 @@ def driver_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> d
         return {
             "id": driver.id,
             "name": driver.full_name,
-            "phone": driver.phone,
             "is_online": fb_driver.get("online") if isinstance(fb_driver, dict) else None,
             "rating": driver.rating,
         }
@@ -168,7 +167,6 @@ def driver_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> d
         return {
             "id": fb_driver.get("id"),
             "name": fb_driver.get("name"),
-            "phone": fb_driver.get("phone"),
         }
     return None
 

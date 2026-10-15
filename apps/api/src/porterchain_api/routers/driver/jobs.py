@@ -246,6 +246,7 @@ def deliverstop_response(
     require_approved_driver(ctx)
     from porterchain_api.merchant_engine.scan_gate_service import PackagesIncomplete
     from porterchain_driver.pod_policy import DriverOffDuty, PodMissing
+    from porterchain_api.booking_attachments.service import PickupDocumentNotShown
 
     try:
         with db_transaction(db):
@@ -257,7 +258,7 @@ def deliverstop_response(
         return stop_response(stop)
     except PackagesIncomplete as exc:
         raise HTTPException(status_code=409, detail=exc.payload) from exc
-    except (PodMissing, DriverOffDuty) as exc:
+    except (PodMissing, DriverOffDuty, PickupDocumentNotShown) as exc:
         raise HTTPException(status_code=409, detail=exc.payload) from exc
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -303,7 +304,12 @@ def order_pickup_checklist(
 
     try:
         order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)
-        return ScanGateService().pickup_checklist(db, order)
+        out = ScanGateService().pickup_checklist(db, order)
+        if order.assigned_driver_id == ctx.driver.id and isinstance(out, dict):
+            from porterchain_api.booking_attachments.service import list_for_driver
+
+            out["documents"] = list_for_driver(db, ctx.driver.id, order.id)["pickup_checklist"]
+        return out
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except PermissionError as exc:

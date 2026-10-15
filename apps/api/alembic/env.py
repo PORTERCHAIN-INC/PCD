@@ -23,6 +23,7 @@ from porterchain_api import (  # noqa: F401
     invitation_models,
     forensics_models,
 )
+from porterchain_api import booking_attachment_models  # noqa: F401
 from porterchain_api.auth import clerk_webhook_models  # noqa: F401
 from porterchain_api.billing_engine import models as billing_models  # noqa: F401
 from porterchain_api.notification_engine import models as notification_models  # noqa: F401
