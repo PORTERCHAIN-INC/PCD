@@ -131,6 +131,8 @@ const SHOPIFY = ["https://cdn.shopify.com", "https://admin.shopify.com", "https:
 const MAPS = [
   "https://maps.googleapis.com",
   "https://maps.gstatic.com",
+  // Places API (New): AutocompleteSuggestion / Place.fetchFields call this host (2026-10-15).
+  "https://places.googleapis.com",
   "https://*.tile.openstreetmap.org",
   "https://tile.openstreetmap.org",
   "https://tiles.openfreemap.org",

@@ -69,12 +69,52 @@ class MerchantBookingFlowService:
         require_coordinates: bool = True,
     ) -> list[dict[str, str]]:
         errors: list[dict[str, str]] = []
+        if require_coordinates:
+            for addr in (pickup, dropoff):
+                self.resolve_coordinates(addr)
         for label, addr in (("pickup", pickup), ("dropoff", dropoff)):
             if not addr.formatted or not addr.formatted.strip():
                 errors.append({"field": label, "error": "address_required"})
             elif require_coordinates and (addr.lat is None or addr.lng is None):
                 errors.append({"field": label, "error": "coordinates_required", "hint": "Select from autocomplete"})
         return errors
+
+    @staticmethod
+    def resolve_coordinates(addr: AddressInput) -> None:
+        """Server-side geocode when the browser sent a typed address without lat/lng
+        (Places autocomplete failed or the merchant didn't pick a suggestion).
+        Nominatim first (rooftop/street), then the FSA centroid from the postal code."""
+        if addr is None or (addr.lat is not None and addr.lng is not None):
+            return
+        text = (addr.formatted or "").strip()
+        if not text:
+            return
+        import logging
+
+        log = logging.getLogger(__name__)
+        try:
+            from porterchain_api.merchant_engine.import_geocode import geocode_stop
+
+            geo = geocode_stop(address=text, postal=addr.postal, province="ON")
+            if geo.lat is not None and geo.lng is not None:
+                addr.lat, addr.lng = float(geo.lat), float(geo.lng)
+                if not addr.postal and getattr(geo, "postal", None):
+                    addr.postal = geo.postal
+                log.info("merchant_quote_server_geocode source=nominatim status=%s", geo.status)
+                return
+        except Exception as exc:  # noqa: BLE001 - geocoder must never break the quote path
+            log.warning("merchant_quote_server_geocode nominatim_error=%s", exc)
+        try:
+            from porterchain_api.customer_fast.geo import with_coords
+
+            hit = with_coords({"formatted": text, "postal": addr.postal})
+            if hit and hit.get("lat") is not None and hit.get("lng") is not None:
+                addr.lat, addr.lng = float(hit["lat"]), float(hit["lng"])
+                if not addr.postal and hit.get("postal"):
+                    addr.postal = hit["postal"]
+                log.info("merchant_quote_server_geocode source=fsa")
+        except Exception as exc:  # noqa: BLE001
+            log.warning("merchant_quote_server_geocode fsa_error=%s", exc)
 
     def validate_recipient(self, db: Session, ctx: MerchantContext, recipient_id: str | None) -> MerchantRecipient | None:
         if not recipient_id:
