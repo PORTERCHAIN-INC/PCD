@@ -21,6 +21,7 @@ from porterchain_api.domain.states import BookingDraftState
 from porterchain_api.merchant_engine.booking_validation import BookingValidationError, MerchantSyncService, assert_not_fsa_refused
 from porterchain_api.merchant_engine.booking_service import MerchantBookingService
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
+from porterchain_api.merchant_engine.quote_geocode import resolve_missing_coordinates
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.template_service import MerchantTemplateService
 from porterchain_api.merchant_models import MerchantBookingTemplate, MerchantRecipient
@@ -106,6 +107,7 @@ class MerchantBookingFlowService:
         ctx: MerchantContext,
         body: MerchantBookDeliveryRequest,
     ) -> dict[str, Any]:
+        resolve_missing_coordinates(body.pickup, body.dropoff)
         address_errors = self.validate_addresses(body.pickup, body.dropoff)
         if address_errors:
             return {"valid": False, "address_errors": address_errors}
