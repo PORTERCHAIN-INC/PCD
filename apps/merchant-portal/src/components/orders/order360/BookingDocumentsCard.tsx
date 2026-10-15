@@ -217,7 +217,7 @@ export function BookingDocumentsCard({
             )}
             <div>
               <p className="font-medium">{pending.file.name}</p>
-              <p className="text-muted">We suggested a type. Change it if it's wrong.</p>
+              <p className="text-muted">We suggested a type. Change it if it&apos;s wrong.</p>
             </div>
           </div>
           <label className="block">
