@@ -167,7 +167,7 @@ export function TodayScreen({
       <SyncBanners
         offline={false}
         pending={0}
-        rejected={0}
+        rejected={rejected}
         error={h.error}
         onSync={onSync}
         onDismissError={() => setError(null)}

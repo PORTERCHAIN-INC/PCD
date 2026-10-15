@@ -5,7 +5,7 @@ import { LiveDot, PressScale } from "./motion";
 import { color, radius, type } from "./theme";
 
 export function syncState(offline: boolean, pending: number, rejected: number) {
-  if (rejected > 0) return { tone: "danger" as const, text: `${rejected} refused` };
+  if (rejected > 0) return { tone: "danger" as const, text: `${rejected} refused · Review` };
   if (offline)
     return { tone: "warn" as const, text: pending ? `Offline · ${pending} saved` : "Offline" };
   if (pending > 0) return { tone: "info" as const, text: `Syncing ${pending}` };
