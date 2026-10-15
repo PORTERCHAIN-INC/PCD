@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine import merchant_merge as mm
+from porterchain_api.merchant_engine import merchant_merge as mm
 from porterchain_api.db import get_db
 from porterchain_api.routers.merchants_integrations import Ctx, _invoke
 

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from porterchain_api.admin_engine import merchant_merge as mm
+from porterchain_api.merchant_engine import merchant_merge as mm
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
 from porterchain_api.merchant_models import Merchant, MerchantMerge, MerchantUser, ShopifyShop
 

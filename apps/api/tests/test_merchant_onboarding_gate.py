@@ -34,7 +34,7 @@ def _seat(
         email=f"onb-{suffix}@test.local",
         phone="+14165550100",
         legal_name=f"ONB Legal {suffix}",
-        hst_number="123456789RT0001",
+        hst_number=f"{uuid.uuid4().int % 10**9:09d}RT0001",
         profile={
             "vertical": vertical,
             "billing_address": {"formatted": "100 King St W, Toronto", "postal": "M5X 1A1"},

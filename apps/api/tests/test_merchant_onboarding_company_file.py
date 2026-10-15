@@ -116,7 +116,7 @@ def test_onboarding_owner_saves_company_file(db, settings) -> None:
         MerchantProfileUpdateRequest(
             legal_name="Onboard Co Inc.",
             phone="4165550100",
-            hst_number="123456789RT0001",
+            hst_number=f"{uuid.uuid4().int % 10**9:09d}RT0001",
             billing_address={"formatted": "100 Queen St W, Toronto, ON"},
         ),
         settings=settings,
