@@ -291,7 +291,7 @@ def test_merchant_sees_driver_name_only(db):
     o = _order(db, m.id, d.id)
     info = driver_info(db, o, None)
     assert info["name"] == d.full_name
-    assert "phone" not in info and "email" not in info
+    assert "phone" not in info and "email" not in info and "rating" not in info
 
 
 def test_gate_env_flag(monkeypatch):
