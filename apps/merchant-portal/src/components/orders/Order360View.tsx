@@ -355,6 +355,12 @@ export function Order360View({
       {activeSection === "overview" && (
         <div className="space-y-6">
           <OverviewTab detail={detail} />
+          <BookingDocumentsCard
+            orderId={detail.order_id}
+            getApiToken={getApiToken}
+            orgId={orgId}
+            canWrite={canWriteOrders}
+          />
           <ReturnsCard
             orderId={detail.order_id}
             state={detail.state}
@@ -400,12 +406,6 @@ export function Order360View({
             orderId={detail.order_id}
             getApiToken={getApiToken}
             orgId={orgId}
-          />
-          <BookingDocumentsCard
-            orderId={detail.order_id}
-            getApiToken={getApiToken}
-            orgId={orgId}
-            canWrite={canWriteOrders}
           />
           <DocumentsTab
             documents={detail.documents}
