@@ -31,7 +31,10 @@ export type AttachmentList = {
 export const ACCEPT = "application/pdf,image/png,image/jpeg,image/heic,image/heif,.heic,.heif";
 
 function headers(token: string, orgId?: string): Record<string, string> {
-  const h: Record<string, string> = { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "merchant" };
+  const h: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
+  };
   if (orgId) h["X-Merchant-Id"] = orgId;
   return h;
 }
@@ -50,7 +53,8 @@ export function attachmentErrorCopy(code: string): string {
     attachment_type_not_allowed: "Use a PDF, JPG, PNG or HEIC file.",
     attachment_too_large: "That file is over 10 MB. Try a smaller scan or photo.",
     attachment_empty: "That file is empty.",
-    attachment_active_content: "That PDF contains scripts, so we can't accept it. Print it to PDF again and retry.",
+    attachment_active_content:
+      "That PDF contains scripts, so we can't accept it. Print it to PDF again and retry.",
     attachment_malware_detected: "That file failed the security scan.",
     attachment_stop_closed: "This stop is already done, so its documents can't change.",
     attachment_limit_reached: "A booking can hold up to 10 documents.",
@@ -60,9 +64,9 @@ export function attachmentErrorCopy(code: string): string {
 
 export const attachmentsApi = {
   list: (token: string, orderId: string, orgId?: string) =>
-    fetch(`${API_BASE}/v1/merchant/orders/${orderId}/attachments`, { headers: headers(token, orgId) }).then(
-      (r) => ok<AttachmentList>(r)
-    ),
+    fetch(`${API_BASE}/v1/merchant/orders/${orderId}/attachments`, {
+      headers: headers(token, orgId),
+    }).then((r) => ok<AttachmentList>(r)),
   suggest: (token: string, file: File, orgId?: string) => {
     const fd = new FormData();
     fd.set("file", file);
@@ -76,7 +80,13 @@ export const attachmentsApi = {
     token: string,
     orderId: string,
     file: File,
-    opts: { kind?: string; stop?: string; required: boolean; note?: string; saveForLocation: boolean },
+    opts: {
+      kind?: string;
+      stop?: string;
+      required: boolean;
+      note?: string;
+      saveForLocation: boolean;
+    },
     orgId?: string
   ) => {
     const fd = new FormData();
@@ -93,11 +103,14 @@ export const attachmentsApi = {
     }).then((r) => ok<BookingAttachment>(r));
   },
   remove: (token: string, id: string, orgId?: string) =>
-    fetch(`${API_BASE}/v1/merchant/attachments/${id}`, { method: "DELETE", headers: headers(token, orgId) }).then(
-      (r) => ok<void>(r)
-    ),
+    fetch(`${API_BASE}/v1/merchant/attachments/${id}`, {
+      method: "DELETE",
+      headers: headers(token, orgId),
+    }).then((r) => ok<void>(r)),
   open: async (token: string, id: string, orgId?: string) => {
-    const r = await fetch(`${API_BASE}/v1/merchant/attachments/${id}/file`, { headers: headers(token, orgId) });
+    const r = await fetch(`${API_BASE}/v1/merchant/attachments/${id}/file`, {
+      headers: headers(token, orgId),
+    });
     if (!r.ok) throw new Error(attachmentErrorCopy("open_failed"));
     const url = URL.createObjectURL(await r.blob());
     window.open(url, "_blank", "noopener");
@@ -119,7 +132,13 @@ export async function attachPendingFiles(
     for (const [i, f] of files.entries()) {
       try {
         // Save-for-address only once, on the first booking.
-        await attachmentsApi.upload(token, key, f.file, { required: f.required, saveForLocation: f.saveForLocation && key === orderKeys[0] }, orgId);
+        await attachmentsApi.upload(
+          token,
+          key,
+          f.file,
+          { required: f.required, saveForLocation: f.saveForLocation && key === orderKeys[0] },
+          orgId
+        );
       } catch {
         if (key === orderKeys[0]) failed.push(files[i].file.name);
       }

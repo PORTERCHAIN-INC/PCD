@@ -42,7 +42,12 @@ function detailFromBody(body: unknown, status: number): string {
       // Field validation (422): keep field + code so the form can mark the right input.
       if (d.field && d.code) return JSON.stringify({ field: d.field, code: d.code });
       if (d.code === "sequence_version_conflict") return "sequence_version_conflict";
-      if ((d.code === "pod_required" || d.code === "driver_off_duty" || d.code === "pickup_document_not_shown") && d.message)
+      if (
+        (d.code === "pod_required" ||
+          d.code === "driver_off_duty" ||
+          d.code === "pickup_document_not_shown") &&
+        d.message
+      )
         return d.message;
       return d.error || d.code || JSON.stringify(detail);
     }
@@ -696,14 +701,20 @@ export async function downloadStopDocument(id: string): Promise<ArrayBuffer> {
 
 /** 5-minute single-use link so the phone's own viewer can show a PDF full-screen. */
 export async function stopDocumentLink(id: string): Promise<string> {
-  const r = await driverFetch<{ path: string }>(`/driver-api/v1/attachments/${id}/link`, { method: "POST" });
+  const r = await driverFetch<{ path: string }>(`/driver-api/v1/attachments/${id}/link`, {
+    method: "POST",
+  });
   return `${apiBaseUrl}${r.path}`;
 }
 
-export async function markStopDocumentShown(id: string, proofUri?: string | null): Promise<unknown> {
+export async function markStopDocumentShown(
+  id: string,
+  proofUri?: string | null
+): Promise<unknown> {
   const token = await requireBearer(false);
   const fd = new FormData();
-  if (proofUri) fd.append("proof", { uri: proofUri, name: "proof.jpg", type: "image/jpeg" } as unknown as Blob);
+  if (proofUri)
+    fd.append("proof", { uri: proofUri, name: "proof.jpg", type: "image/jpeg" } as unknown as Blob);
   const res = await fetchWithTimeout(`${apiBaseUrl}/driver-api/v1/attachments/${id}/shown`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "driver" },

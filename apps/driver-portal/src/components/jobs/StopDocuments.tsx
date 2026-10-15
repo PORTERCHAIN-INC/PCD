@@ -47,7 +47,9 @@ export function StopDocuments({ orderId, onChanged }: { orderId: string; onChang
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/orders/${orderId}/attachments`, { credentials: "include" });
+      const res = await fetch(`${API_BASE}/orders/${orderId}/attachments`, {
+        credentials: "include",
+      });
       if (!res.ok) return;
       const body = (await res.json()) as { items: Doc[] };
       setDocs(body.items);
@@ -120,8 +122,12 @@ export function StopDocuments({ orderId, onChanged }: { orderId: string; onChang
               </button>
             </div>
             {d.required_at_stop && d.stop === "pickup" && (
-              <p className={`mt-2 text-sm font-semibold ${d.shown_at ? "text-green-700" : "text-amber-800"}`}>
-                {d.shown_at ? "✓ Shown to warehouse staff" : "Required: show document to warehouse staff before Picked up"}
+              <p
+                className={`mt-2 text-sm font-semibold ${d.shown_at ? "text-green-700" : "text-amber-800"}`}
+              >
+                {d.shown_at
+                  ? "✓ Shown to warehouse staff"
+                  : "Required: show document to warehouse staff before Picked up"}
               </p>
             )}
           </li>
@@ -130,10 +136,19 @@ export function StopDocuments({ orderId, onChanged }: { orderId: string; onChang
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       {showing && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white" role="dialog" aria-label="Show document to staff">
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-white"
+          role="dialog"
+          aria-label="Show document to staff"
+        >
           <div className="flex items-center justify-between border-b p-3">
             <p className="text-lg font-bold">{showing.doc.kind_label}</p>
-            <button type="button" aria-label="Close" onClick={() => setShowing(null)} className="rounded-full p-2">
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={() => setShowing(null)}
+              className="rounded-full p-2"
+            >
               <X className="h-6 w-6" />
             </button>
           </div>
@@ -142,7 +157,11 @@ export function StopDocuments({ orderId, onChanged }: { orderId: string; onChang
               <iframe title={showing.doc.filename} src={showing.url} className="h-full w-full" />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={showing.url} alt={showing.doc.filename} className="mx-auto max-h-full w-full object-contain" />
+              <img
+                src={showing.url}
+                alt={showing.doc.filename}
+                className="mx-auto max-h-full w-full object-contain"
+              />
             )}
           </div>
           <div className="grid grid-cols-2 gap-2 border-t p-3">

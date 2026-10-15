@@ -460,8 +460,17 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         confirmKeyRef.current = null;
         setMultiResult(result.orders);
         if (pendingFiles.length) {
-          const failed = await attachPendingFiles(token, result.orders.map((o) => o.tracking_number), pendingFiles, orgId);
-          setFileNotice(failed.length ? `Couldn't attach: ${failed.join(", ")}. Add them from the order page.` : "Documents attached for the driver.");
+          const failed = await attachPendingFiles(
+            token,
+            result.orders.map((o) => o.tracking_number),
+            pendingFiles,
+            orgId
+          );
+          setFileNotice(
+            failed.length
+              ? `Couldn't attach: ${failed.join(", ")}. Add them from the order page.`
+              : "Documents attached for the driver."
+          );
         }
         if (result.errors.length) {
           setError(`${result.errors.length} parcel(s) failed validation`);
@@ -478,8 +487,17 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       );
       confirmKeyRef.current = null;
       if (pendingFiles.length) {
-        const failed = await attachPendingFiles(token, [result.tracking_number], pendingFiles, orgId);
-        setFileNotice(failed.length ? `Couldn't attach: ${failed.join(", ")}. Add them from the order page.` : "Documents attached for the driver.");
+        const failed = await attachPendingFiles(
+          token,
+          [result.tracking_number],
+          pendingFiles,
+          orgId
+        );
+        setFileNotice(
+          failed.length
+            ? `Couldn't attach: ${failed.join(", ")}. Add them from the order page.`
+            : "Documents attached for the driver."
+        );
       }
       setConfirmResult({
         tracking_number: result.tracking_number,

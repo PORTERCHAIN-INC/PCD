@@ -78,24 +78,56 @@ def _addr(raw: str | None) -> dict | None:
 
 # ── shared owner handlers ────────────────────────────────────────────────
 
-def _owner_upload(db, owner_type, owner_id, actor_id, order_id, data, file, kind, stop, required_at_stop,
-                  note, save_for_location, location_address):
-    out = _call(svc.upload, db, owner_type=owner_type, owner_id=owner_id, actor_id=actor_id, order_id=order_id,
-                data=data, filename=file.filename or "document", kind=kind or None, stop=stop or None,
-                required_at_stop=required_at_stop, note=note, save_for_location=save_for_location,
-                location_address=_addr(location_address))
+
+def _owner_upload(
+    db,
+    owner_type,
+    owner_id,
+    actor_id,
+    order_id,
+    data,
+    file,
+    kind,
+    stop,
+    required_at_stop,
+    note,
+    save_for_location,
+    location_address,
+):
+    out = _call(
+        svc.upload,
+        db,
+        owner_type=owner_type,
+        owner_id=owner_id,
+        actor_id=actor_id,
+        order_id=order_id,
+        data=data,
+        filename=file.filename or "document",
+        kind=kind or None,
+        stop=stop or None,
+        required_at_stop=required_at_stop,
+        note=note,
+        save_for_location=save_for_location,
+        location_address=_addr(location_address),
+    )
     db.commit()
     return out
 
 
 # ── merchant ─────────────────────────────────────────────────────────────
 
+
 @router.post("/v1/merchant/attachments/suggest")
 async def merchant_suggest(ctx: MCtx, file: UploadFile = File(...)) -> dict[str, Any]:
     data = await _read(file)
     ctype = await run_in_threadpool(_call, svc.validate_file, data)
     kind = svc.suggest_kind(file.filename or "", data)
-    return {"kind": kind, "kind_label": svc.KINDS[kind], "stop": svc.DEFAULT_STOP[kind], "content_type": ctype}
+    return {
+        "kind": kind,
+        "kind_label": svc.KINDS[kind],
+        "stop": svc.DEFAULT_STOP[kind],
+        "content_type": ctype,
+    }
 
 
 @router.get("/v1/merchant/orders/{order_id}/attachments")
@@ -108,14 +140,34 @@ def merchant_list(order_id: str, ctx: MCtx, db: Session = Depends(get_db)):
 
 @router.post("/v1/merchant/orders/{order_id}/attachments", status_code=201)
 async def merchant_upload(
-    order_id: str, ctx: MCtx, db: Session = Depends(get_db), file: UploadFile = File(...),
-    kind: str | None = Form(None), stop: str | None = Form(None), required_at_stop: bool = Form(True),
-    note: str | None = Form(None), save_for_location: bool = Form(False),
+    order_id: str,
+    ctx: MCtx,
+    db: Session = Depends(get_db),
+    file: UploadFile = File(...),
+    kind: str | None = Form(None),
+    stop: str | None = Form(None),
+    required_at_stop: bool = Form(True),
+    note: str | None = Form(None),
+    save_for_location: bool = Form(False),
 ):
     require_module(ctx, "orders_write")
     data = await _read(file)
-    return await run_in_threadpool(_owner_upload, db, "merchant", ctx.merchant.id, ctx.user.id, order_id, data,
-                                   file, kind, stop, required_at_stop, note, save_for_location, None)
+    return await run_in_threadpool(
+        _owner_upload,
+        db,
+        "merchant",
+        ctx.merchant.id,
+        ctx.user.id,
+        order_id,
+        data,
+        file,
+        kind,
+        stop,
+        required_at_stop,
+        note,
+        save_for_location,
+        None,
+    )
 
 
 @router.get("/v1/merchant/attachments/locations")
@@ -126,61 +178,117 @@ def merchant_location_templates(ctx: MCtx, db: Session = Depends(get_db)):
 
 @router.post("/v1/merchant/attachments/locations", status_code=201)
 async def merchant_location_upload(
-    ctx: MCtx, db: Session = Depends(get_db), file: UploadFile = File(...),
-    location_address: str = Form(...), kind: str | None = Form(None), stop: str = Form("pickup"),
-    required_at_stop: bool = Form(True), note: str | None = Form(None),
+    ctx: MCtx,
+    db: Session = Depends(get_db),
+    file: UploadFile = File(...),
+    location_address: str = Form(...),
+    kind: str | None = Form(None),
+    stop: str = Form("pickup"),
+    required_at_stop: bool = Form(True),
+    note: str | None = Form(None),
 ):
     require_module(ctx, "orders_write")
     data = await _read(file)
-    return await run_in_threadpool(_owner_upload, db, "merchant", ctx.merchant.id, ctx.user.id, None, data,
-                                   file, kind, stop, required_at_stop, note, True, location_address)
+    return await run_in_threadpool(
+        _owner_upload,
+        db,
+        "merchant",
+        ctx.merchant.id,
+        ctx.user.id,
+        None,
+        data,
+        file,
+        kind,
+        stop,
+        required_at_stop,
+        note,
+        True,
+        location_address,
+    )
 
 
 @router.patch("/v1/merchant/attachments/{attachment_id}")
-def merchant_patch(attachment_id: str, body: AttachmentPatch, ctx: MCtx, db: Session = Depends(get_db)):
+def merchant_patch(
+    attachment_id: str, body: AttachmentPatch, ctx: MCtx, db: Session = Depends(get_db)
+):
     require_module(ctx, "orders_write")
-    out = _call(svc.update, db, owner_type="merchant", owner_id=ctx.merchant.id, actor_id=ctx.user.id,
-                attachment_id=attachment_id, **body.model_dump())
+    out = _call(
+        svc.update,
+        db,
+        owner_type="merchant",
+        owner_id=ctx.merchant.id,
+        actor_id=ctx.user.id,
+        attachment_id=attachment_id,
+        **body.model_dump(),
+    )
     db.commit()
     return out
 
 
 @router.delete("/v1/merchant/attachments/{attachment_id}", status_code=204)
-def merchant_delete(attachment_id: str, ctx: MCtx, db: Session = Depends(get_db)) -> Response:
+def merchant_delete(
+    attachment_id: str, ctx: MCtx, db: Session = Depends(get_db)
+) -> Response:
     require_module(ctx, "orders_write")
-    _call(svc.delete, db, owner_type="merchant", owner_id=ctx.merchant.id, actor_id=ctx.user.id,
-          attachment_id=attachment_id)
+    _call(
+        svc.delete,
+        db,
+        owner_type="merchant",
+        owner_id=ctx.merchant.id,
+        actor_id=ctx.user.id,
+        attachment_id=attachment_id,
+    )
     db.commit()
     return Response(status_code=204)
 
 
 @router.get("/v1/merchant/attachments/{attachment_id}/file")
-def merchant_file(attachment_id: str, ctx: MCtx, db: Session = Depends(get_db)) -> Response:
+def merchant_file(
+    attachment_id: str, ctx: MCtx, db: Session = Depends(get_db)
+) -> Response:
     require_module(ctx, "orders")
-    att, data = _call(svc.owner_download, db, owner_type="merchant", owner_id=ctx.merchant.id,
-                      actor_id=ctx.user.id, attachment_id=attachment_id)
+    att, data = _call(
+        svc.owner_download,
+        db,
+        owner_type="merchant",
+        owner_id=ctx.merchant.id,
+        actor_id=ctx.user.id,
+        attachment_id=attachment_id,
+    )
     db.commit()
     return _file(att, data)
 
 
 # ── customer ─────────────────────────────────────────────────────────────
 
+
 def _customer(db: Session, claims: ClerkClaims, settings: Settings):
     return require_customer(db, claims, settings)
 
 
 @router.post("/v1/customers/me/attachments/suggest")
-async def customer_suggest(file: UploadFile = File(...), claims: ClerkClaims = Depends(get_clerk_claims)):
+async def customer_suggest(
+    file: UploadFile = File(...), claims: ClerkClaims = Depends(get_clerk_claims)
+):
     del claims  # signed-in customers only; nothing is stored
     data = await _read(file)
     ctype = await run_in_threadpool(_call, svc.validate_file, data)
     kind = svc.suggest_kind(file.filename or "", data)
-    return {"kind": kind, "kind_label": svc.KINDS[kind], "stop": svc.DEFAULT_STOP[kind], "content_type": ctype}
+    return {
+        "kind": kind,
+        "kind_label": svc.KINDS[kind],
+        "stop": svc.DEFAULT_STOP[kind],
+        "content_type": ctype,
+    }
 
 
 @router.get("/v1/customers/me/orders/{order_id}/attachments")
-def customer_list(order_id: str, db: Session = Depends(get_db), claims: ClerkClaims = Depends(get_clerk_claims),
-                  settings: Settings = Depends(get_settings)):
+def customer_list(
+    order_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+):
     c = _customer(db, claims, settings)
     out = _call(svc.list_for_owner, db, "customer", c.id, order_id)
     db.commit()
@@ -189,51 +297,104 @@ def customer_list(order_id: str, db: Session = Depends(get_db), claims: ClerkCla
 
 @router.post("/v1/customers/me/orders/{order_id}/attachments", status_code=201)
 async def customer_upload(
-    order_id: str, db: Session = Depends(get_db), claims: ClerkClaims = Depends(get_clerk_claims),
-    settings: Settings = Depends(get_settings), file: UploadFile = File(...), kind: str | None = Form(None),
-    stop: str | None = Form(None), required_at_stop: bool = Form(True), note: str | None = Form(None),
+    order_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+    file: UploadFile = File(...),
+    kind: str | None = Form(None),
+    stop: str | None = Form(None),
+    required_at_stop: bool = Form(True),
+    note: str | None = Form(None),
     save_for_location: bool = Form(False),
 ):
     data = await _read(file)
 
     def _go():
         c = _customer(db, claims, settings)
-        return _owner_upload(db, "customer", c.id, c.id, order_id, data, file, kind, stop, required_at_stop,
-                             note, save_for_location, None)
+        return _owner_upload(
+            db,
+            "customer",
+            c.id,
+            c.id,
+            order_id,
+            data,
+            file,
+            kind,
+            stop,
+            required_at_stop,
+            note,
+            save_for_location,
+            None,
+        )
 
     return await run_in_threadpool(_go)
 
 
 @router.patch("/v1/customers/me/attachments/{attachment_id}")
-def customer_patch(attachment_id: str, body: AttachmentPatch, db: Session = Depends(get_db),
-                   claims: ClerkClaims = Depends(get_clerk_claims), settings: Settings = Depends(get_settings)):
+def customer_patch(
+    attachment_id: str,
+    body: AttachmentPatch,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+):
     c = _customer(db, claims, settings)
-    out = _call(svc.update, db, owner_type="customer", owner_id=c.id, actor_id=c.id,
-                attachment_id=attachment_id, **body.model_dump())
+    out = _call(
+        svc.update,
+        db,
+        owner_type="customer",
+        owner_id=c.id,
+        actor_id=c.id,
+        attachment_id=attachment_id,
+        **body.model_dump(),
+    )
     db.commit()
     return out
 
 
 @router.delete("/v1/customers/me/attachments/{attachment_id}", status_code=204)
-def customer_delete(attachment_id: str, db: Session = Depends(get_db),
-                    claims: ClerkClaims = Depends(get_clerk_claims), settings: Settings = Depends(get_settings)):
+def customer_delete(
+    attachment_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+):
     c = _customer(db, claims, settings)
-    _call(svc.delete, db, owner_type="customer", owner_id=c.id, actor_id=c.id, attachment_id=attachment_id)
+    _call(
+        svc.delete,
+        db,
+        owner_type="customer",
+        owner_id=c.id,
+        actor_id=c.id,
+        attachment_id=attachment_id,
+    )
     db.commit()
     return Response(status_code=204)
 
 
 @router.get("/v1/customers/me/attachments/{attachment_id}/file")
-def customer_file(attachment_id: str, db: Session = Depends(get_db),
-                  claims: ClerkClaims = Depends(get_clerk_claims), settings: Settings = Depends(get_settings)):
+def customer_file(
+    attachment_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+):
     c = _customer(db, claims, settings)
-    att, data = _call(svc.owner_download, db, owner_type="customer", owner_id=c.id, actor_id=c.id,
-                      attachment_id=attachment_id)
+    att, data = _call(
+        svc.owner_download,
+        db,
+        owner_type="customer",
+        owner_id=c.id,
+        actor_id=c.id,
+        attachment_id=attachment_id,
+    )
     db.commit()
     return _file(att, data)
 
 
 # ── driver ───────────────────────────────────────────────────────────────
+
 
 @router.get("/driver-api/v1/orders/{order_id}/attachments")
 def driver_list(order_id: str, ctx: DCtx, db: Session = Depends(get_db)):
@@ -243,20 +404,29 @@ def driver_list(order_id: str, ctx: DCtx, db: Session = Depends(get_db)):
 
 
 @router.get("/driver-api/v1/attachments/{attachment_id}/file")
-def driver_file(attachment_id: str, ctx: DCtx, db: Session = Depends(get_db)) -> Response:
+def driver_file(
+    attachment_id: str, ctx: DCtx, db: Session = Depends(get_db)
+) -> Response:
     att, data = _call(svc.driver_download, db, ctx.driver.id, attachment_id)
     db.commit()
     return _file(att, data)
 
 
 @router.post("/driver-api/v1/attachments/{attachment_id}/link")
-def driver_link(attachment_id: str, ctx: DCtx, db: Session = Depends(get_db),
-                settings: Settings = Depends(get_settings)) -> dict[str, Any]:
+def driver_link(
+    attachment_id: str,
+    ctx: DCtx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict[str, Any]:
     token = _call(svc.driver_link, db, ctx.driver.id, attachment_id)
     db.commit()
     base = (getattr(settings, "public_api_url", None) or "").rstrip("/")
-    return {"path": f"/v1/attachment-links/{token}", "url": f"{base}/v1/attachment-links/{token}" if base else None,
-            "expires_in": int(svc.LINK_TTL.total_seconds())}
+    return {
+        "path": f"/v1/attachment-links/{token}",
+        "url": f"{base}/v1/attachment-links/{token}" if base else None,
+        "expires_in": int(svc.LINK_TTL.total_seconds()),
+    }
 
 
 @router.get("/v1/attachment-links/{token}")
@@ -267,9 +437,14 @@ def redeem_link(token: str, db: Session = Depends(get_db)) -> Response:
 
 
 @router.post("/driver-api/v1/attachments/{attachment_id}/shown")
-async def driver_shown(attachment_id: str, ctx: DCtx, db: Session = Depends(get_db),
-                       proof: UploadFile | None = File(None)):
+async def driver_shown(
+    attachment_id: str,
+    ctx: DCtx,
+    db: Session = Depends(get_db),
+    proof: UploadFile | None = File(None),
+):
     data = await _read(proof) if proof is not None else None
+
     def _go():
         out = _call(svc.mark_shown, db, ctx.driver.id, attachment_id, data or None)
         db.commit()
@@ -280,6 +455,7 @@ async def driver_shown(attachment_id: str, ctx: DCtx, db: Session = Depends(get_
 
 # ── staff ────────────────────────────────────────────────────────────────
 
+
 @router.get("/v1/admin/orders/{order_id}/attachments")
 def staff_list(order_id: str, ctx: ACtx, db: Session = Depends(get_db)):
     admin_require_module(ctx, "orders")
@@ -287,8 +463,12 @@ def staff_list(order_id: str, ctx: ACtx, db: Session = Depends(get_db)):
 
 
 @router.get("/v1/admin/attachments/{attachment_id}/file")
-def staff_file(attachment_id: str, ctx: ACtx, db: Session = Depends(get_db), proof: bool = False) -> Response:
+def staff_file(
+    attachment_id: str, ctx: ACtx, db: Session = Depends(get_db), proof: bool = False
+) -> Response:
     admin_require_module(ctx, "orders")
-    att, data, ctype = _call(svc.staff_download, db, str(ctx.user.id), attachment_id, proof=proof)
+    att, data, ctype = _call(
+        svc.staff_download, db, str(ctx.user.id), attachment_id, proof=proof
+    )
     db.commit()
     return _file(att, data, ctype)

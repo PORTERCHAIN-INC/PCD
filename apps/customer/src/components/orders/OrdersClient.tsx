@@ -250,7 +250,9 @@ function OrderCard({ order, auth }: { order: MyDelivery; auth: PortalAuthValue }
           </button>
         </div>
       ) : null}
-      {order.active ? <BookingDocuments trackingNumber={order.tracking_number} getToken={auth.getToken} /> : null}
+      {order.active ? (
+        <BookingDocuments trackingNumber={order.tracking_number} getToken={auth.getToken} />
+      ) : null}
     </li>
   );
 }

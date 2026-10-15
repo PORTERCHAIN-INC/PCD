@@ -1,9 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ACCEPT, STATUS_LABEL, customerAttachments, type CustomerAttachmentList } from "@/lib/attachments";
+import {
+  ACCEPT,
+  STATUS_LABEL,
+  customerAttachments,
+  type CustomerAttachmentList,
+} from "@/lib/attachments";
 
-export function BookingDocuments({ trackingNumber, getToken }: { trackingNumber: string; getToken: () => Promise<string | null> }) {
+export function BookingDocuments({
+  trackingNumber,
+  getToken,
+}: {
+  trackingNumber: string;
+  getToken: () => Promise<string | null>;
+}) {
   const [data, setData] = useState<CustomerAttachmentList | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,7 +64,10 @@ export function BookingDocuments({ trackingNumber, getToken }: { trackingNumber:
               className="font-semibold text-secondary underline-offset-2 hover:underline"
               onClick={async () => {
                 const t = await getToken();
-                if (t) await customerAttachments.open(t, a.id).catch((e) => setError((e as Error).message));
+                if (t)
+                  await customerAttachments
+                    .open(t, a.id)
+                    .catch((e) => setError((e as Error).message));
               }}
             >
               {a.filename}
@@ -61,7 +75,9 @@ export function BookingDocuments({ trackingNumber, getToken }: { trackingNumber:
             <span className="text-primary/65">
               {a.kind_label} · {a.stop === "pickup" ? "Pickup" : "Drop-off"}
             </span>
-            <span className="rounded-full bg-white px-2 py-0.5 text-xs">{STATUS_LABEL[a.status]}</span>
+            <span className="rounded-full bg-white px-2 py-0.5 text-xs">
+              {STATUS_LABEL[a.status]}
+            </span>
             {data.editable[a.stop] && (
               <button
                 type="button"
@@ -82,14 +98,37 @@ export function BookingDocuments({ trackingNumber, getToken }: { trackingNumber:
       </ul>
       {canAdd && (
         <div className="mt-3 flex gap-2">
-          <button type="button" disabled={busy} className="rounded-full bg-primary px-4 py-2 font-semibold text-white" onClick={() => pick.current?.click()}>
+          <button
+            type="button"
+            disabled={busy}
+            className="rounded-full bg-primary px-4 py-2 font-semibold text-white"
+            onClick={() => pick.current?.click()}
+          >
             {busy ? "Uploading…" : "Attach document"}
           </button>
-          <button type="button" disabled={busy} className="rounded-full border border-primary/20 px-4 py-2 font-semibold" onClick={() => cam.current?.click()}>
+          <button
+            type="button"
+            disabled={busy}
+            className="rounded-full border border-primary/20 px-4 py-2 font-semibold"
+            onClick={() => cam.current?.click()}
+          >
             Take photo
           </button>
-          <input ref={pick} type="file" accept={ACCEPT} hidden onChange={(e) => void add(e.target.files?.[0])} />
-          <input ref={cam} type="file" accept="image/*" capture="environment" hidden onChange={(e) => void add(e.target.files?.[0])} />
+          <input
+            ref={pick}
+            type="file"
+            accept={ACCEPT}
+            hidden
+            onChange={(e) => void add(e.target.files?.[0])}
+          />
+          <input
+            ref={cam}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            hidden
+            onChange={(e) => void add(e.target.files?.[0])}
+          />
         </div>
       )}
       {error && <p className="mt-2 text-red-600">{error}</p>}

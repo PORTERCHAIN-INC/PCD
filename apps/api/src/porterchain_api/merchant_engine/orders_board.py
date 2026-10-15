@@ -116,9 +116,13 @@ def sanitize_merchant_detail(
     # Privacy (Ravi, 2026-10-15): merchants see the assigned driver's name only.
     # Never phone, email, rating internals or wallet data.
     drv = detail.get("driver")
-    detail["driver"] = {"name": drv.get("name")} if isinstance(drv, dict) and drv.get("name") else None
+    detail["driver"] = (
+        {"name": drv.get("name")} if isinstance(drv, dict) and drv.get("name") else None
+    )
 
-    meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+    meta = (
+        order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+    )
     snap = meta.get("quote") if isinstance(meta.get("quote"), dict) else {}
     breakdown = sanitize_pricing_breakdown(detail.get("pricing_breakdown"))
     if not breakdown and snap:
@@ -161,7 +165,14 @@ def sanitize_merchant_detail(
     return detail
 
 
-def bulk_action(svc: Any, db: Session, settings: Any, ctx: MerchantContext, order_ids: list[str], action: str) -> list[dict[str, str | bool]]:
+def bulk_action(
+    svc: Any,
+    db: Session,
+    settings: Any,
+    ctx: MerchantContext,
+    order_ids: list[str],
+    action: str,
+) -> list[dict[str, str | bool]]:
     results: list[dict[str, str | bool]] = []
     for oid in order_ids:
         tracking = ""

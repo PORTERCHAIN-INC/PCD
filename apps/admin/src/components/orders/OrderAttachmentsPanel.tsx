@@ -19,7 +19,13 @@ type Item = {
   uploaded_by: string | null;
   from_location_template: boolean;
 };
-type Ev = { attachment_id: string; actor_type: string; actor_id: string | null; action: string; at: string | null };
+type Ev = {
+  attachment_id: string;
+  actor_type: string;
+  actor_id: string | null;
+  action: string;
+  at: string | null;
+};
 
 const STATUS: Record<string, string> = {
   waiting: "Not opened",
@@ -27,13 +33,29 @@ const STATUS: Record<string, string> = {
   shown_at_pickup: "Shown at pickup",
 };
 const fmt = (s: string | null) =>
-  s ? new Date(s).toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" }) + " ET" : "—";
+  s
+    ? new Date(s).toLocaleString("en-CA", {
+        timeZone: "America/Toronto",
+        dateStyle: "medium",
+        timeStyle: "short",
+      }) + " ET"
+    : "—";
 
-export function OrderAttachmentsPanel({ orderId, getApiToken }: { orderId: string; getApiToken: () => Promise<string> }) {
+export function OrderAttachmentsPanel({
+  orderId,
+  getApiToken,
+}: {
+  orderId: string;
+  getApiToken: () => Promise<string>;
+}) {
   const [err, setErr] = useState<string | null>(null);
   const { data } = useQuery({
     queryKey: ["order-attachments", orderId],
-    queryFn: async () => adminFetch<{ items: Item[]; events: Ev[] }>(`/v1/admin/orders/${orderId}/attachments`, await getApiToken()),
+    queryFn: async () =>
+      adminFetch<{ items: Item[]; events: Ev[] }>(
+        `/v1/admin/orders/${orderId}/attachments`,
+        await getApiToken()
+      ),
   });
   if (!data || (data.items.length === 0 && data.events.length === 0)) {
     return (
@@ -46,7 +68,11 @@ export function OrderAttachmentsPanel({ orderId, getApiToken }: { orderId: strin
   const names = Object.fromEntries(data.items.map((i) => [i.id, i.filename]));
   async function dl(id: string, name: string, proof = false) {
     try {
-      await downloadOrderFile(await getApiToken(), `/v1/admin/attachments/${id}/file${proof ? "?proof=true" : ""}`, name);
+      await downloadOrderFile(
+        await getApiToken(),
+        `/v1/admin/attachments/${id}/file${proof ? "?proof=true" : ""}`,
+        name
+      );
     } catch (e) {
       setErr((e as Error).message);
     }
@@ -68,19 +94,33 @@ export function OrderAttachmentsPanel({ orderId, getApiToken }: { orderId: strin
         <tbody>
           {data.items.map((i) => (
             <tr key={i.id} className={`border-t ${i.deleted ? "text-gray-400 line-through" : ""}`}>
-              <td className="py-1">{i.filename}{i.from_location_template ? " (saved for address)" : ""}</td>
-              <td>{i.kind_label}{i.required_at_stop ? " · required" : ""}</td>
+              <td className="py-1">
+                {i.filename}
+                {i.from_location_template ? " (saved for address)" : ""}
+              </td>
+              <td>
+                {i.kind_label}
+                {i.required_at_stop ? " · required" : ""}
+              </td>
               <td>{i.stop}</td>
-              <td>{i.purged ? "Purged (retention)" : STATUS[i.status] ?? i.status}</td>
+              <td>{i.purged ? "Purged (retention)" : (STATUS[i.status] ?? i.status)}</td>
               <td>{i.uploaded_by ?? "—"}</td>
               <td className="space-x-2 text-right">
                 {!i.purged && !i.deleted && (
-                  <button type="button" className="text-blue-700 hover:underline" onClick={() => void dl(i.id, i.filename)}>
+                  <button
+                    type="button"
+                    className="text-blue-700 hover:underline"
+                    onClick={() => void dl(i.id, i.filename)}
+                  >
                     Open
                   </button>
                 )}
                 {i.has_proof_photo && (
-                  <button type="button" className="text-blue-700 hover:underline" onClick={() => void dl(i.id, `proof-${i.filename}.jpg`, true)}>
+                  <button
+                    type="button"
+                    className="text-blue-700 hover:underline"
+                    onClick={() => void dl(i.id, `proof-${i.filename}.jpg`, true)}
+                  >
                     Proof photo
                   </button>
                 )}
@@ -94,7 +134,8 @@ export function OrderAttachmentsPanel({ orderId, getApiToken }: { orderId: strin
         {data.events.map((e, n) => (
           <li key={n}>
             {fmt(e.at)} · {e.actor_type}
-            {e.actor_id ? ` ${e.actor_id}` : ""} · {e.action.replace(/_/g, " ")} · {names[e.attachment_id] ?? e.attachment_id}
+            {e.actor_id ? ` ${e.actor_id}` : ""} · {e.action.replace(/_/g, " ")} ·{" "}
+            {names[e.attachment_id] ?? e.attachment_id}
           </li>
         ))}
       </ul>

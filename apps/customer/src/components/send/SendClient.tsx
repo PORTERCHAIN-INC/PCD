@@ -298,13 +298,22 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         ) : null}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-dashed border-primary/20 p-4 text-sm" data-testid="send-docs">
+      <div
+        className="mt-6 rounded-2xl border border-dashed border-primary/20 p-4 text-sm"
+        data-testid="send-docs"
+      >
         <p className="font-bold text-primary">Pickup documents (optional)</p>
-        <p className="text-primary/65">E.g. a pickup authorization the driver must show. Only your driver can open it.</p>
+        <p className="text-primary/65">
+          E.g. a pickup authorization the driver must show. Only your driver can open it.
+        </p>
         {docs.map((d, i) => (
           <p key={i} className="mt-1 flex items-center gap-3">
             <span className="font-semibold">{d.file.name}</span>
-            <button type="button" className="text-xs text-red-600" onClick={() => setDocs(docs.filter((_, j) => j !== i))}>
+            <button
+              type="button"
+              className="text-xs text-red-600"
+              onClick={() => setDocs(docs.filter((_, j) => j !== i))}
+            >
               Remove
             </button>
           </p>
@@ -317,12 +326,14 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             multiple
             hidden
             onChange={(e) =>
-              setDocs([
-                ...docs,
-                ...Array.from(e.target.files ?? [])
-                  .filter((f) => f.size <= 10 * 1024 * 1024)
-                  .map((file) => ({ file, required: true })),
-              ].slice(0, 10))
+              setDocs(
+                [
+                  ...docs,
+                  ...Array.from(e.target.files ?? [])
+                    .filter((f) => f.size <= 10 * 1024 * 1024)
+                    .map((file) => ({ file, required: true })),
+                ].slice(0, 10)
+              )
             }
           />
         </label>

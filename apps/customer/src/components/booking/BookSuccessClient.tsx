@@ -10,7 +10,15 @@ import PortalAuth from "@/components/auth/PortalAuth";
 import { attachAll, takeStash } from "@/lib/attachments";
 
 /** Files picked before Stripe checkout: attach them now that the booking exists. */
-function AttachStashed({ quoteId, tracking, getToken }: { quoteId: string; tracking: string; getToken: () => Promise<string | null> }) {
+function AttachStashed({
+  quoteId,
+  tracking,
+  getToken,
+}: {
+  quoteId: string;
+  tracking: string;
+  getToken: () => Promise<string | null>;
+}) {
   const [note, setNote] = useState<string | null>(null);
   useEffect(() => {
     let done = false;
@@ -19,7 +27,11 @@ function AttachStashed({ quoteId, tracking, getToken }: { quoteId: string; track
       const token = await getToken();
       if (!files.length || !token || done) return;
       const failed = await attachAll(token, tracking, files);
-      setNote(failed.length ? `Couldn't attach ${failed.join(", ")}. Add it from My orders.` : "Your documents are attached for the driver.");
+      setNote(
+        failed.length
+          ? `Couldn't attach ${failed.join(", ")}. Add it from My orders.`
+          : "Your documents are attached for the driver."
+      );
     })();
     return () => {
       done = true;
@@ -128,7 +140,11 @@ function SuccessContent() {
       {tracking ? (
         <>
           <p className="mt-6 font-mono text-lg font-semibold text-emerald-800">{tracking}</p>
-          <PortalAuth>{(auth) => <AttachStashed quoteId={quoteId} tracking={tracking} getToken={auth.getToken} />}</PortalAuth>
+          <PortalAuth>
+            {(auth) => (
+              <AttachStashed quoteId={quoteId} tracking={tracking} getToken={auth.getToken} />
+            )}
+          </PortalAuth>
           <p className="mt-1 text-xs text-slate-500">Tracking number</p>
         </>
       ) : null}

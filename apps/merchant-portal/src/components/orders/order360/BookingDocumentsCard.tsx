@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
-import { ACCEPT, attachmentsApi, type AttachmentList, type BookingAttachment } from "@/lib/attachments";
+import {
+  ACCEPT,
+  attachmentsApi,
+  type AttachmentList,
+  type BookingAttachment,
+} from "@/lib/attachments";
 import { Card } from "./shared";
 
 const STATUS: Record<BookingAttachment["status"], { label: string; cls: string }> = {
@@ -11,7 +16,15 @@ const STATUS: Record<BookingAttachment["status"], { label: string; cls: string }
   shown_at_pickup: { label: "Shown at pickup", cls: "bg-green-100 text-green-800" },
 };
 
-type Pending = { file: File; preview: string | null; kind: string; stop: "pickup" | "dropoff"; required: boolean; save: boolean; note: string };
+type Pending = {
+  file: File;
+  preview: string | null;
+  kind: string;
+  stop: "pickup" | "dropoff";
+  required: boolean;
+  save: boolean;
+  note: string;
+};
 
 export function BookingDocumentsCard({
   orderId,
@@ -48,7 +61,10 @@ export function BookingDocumentsCard({
   async function choose(file: File | undefined) {
     if (!file || !getApiToken) return;
     setError(null);
-    const preview = file.type.startsWith("image/") && !/heic|heif/i.test(file.type) ? URL.createObjectURL(file) : null;
+    const preview =
+      file.type.startsWith("image/") && !/heic|heif/i.test(file.type)
+        ? URL.createObjectURL(file)
+        : null;
     let kind = "pickup_authorization";
     let stop: "pickup" | "dropoff" = "pickup";
     try {
@@ -71,7 +87,13 @@ export function BookingDocumentsCard({
         await getApiToken(),
         orderId,
         pending.file,
-        { kind: pending.kind, stop: pending.stop, required: pending.required, note: pending.note, saveForLocation: pending.save },
+        {
+          kind: pending.kind,
+          stop: pending.stop,
+          required: pending.required,
+          note: pending.note,
+          saveForLocation: pending.save,
+        },
         orgId
       );
       setPending(null);
@@ -100,8 +122,8 @@ export function BookingDocumentsCard({
   return (
     <Card title="Pickup & delivery documents">
       <p className="mb-3 text-sm text-muted">
-        Only the driver assigned to this booking can open these, and only at their stop. They are removed 90 days
-        after delivery.
+        Only the driver assigned to this booking can open these, and only at their stop. They are
+        removed 90 days after delivery.
       </p>
 
       {(data?.items ?? []).length > 0 && (
@@ -111,7 +133,9 @@ export function BookingDocumentsCard({
               <button
                 type="button"
                 className="font-medium text-secondary hover:underline"
-                onClick={async () => getApiToken && attachmentsApi.open(await getApiToken(), a.id, orgId)}
+                onClick={async () =>
+                  getApiToken && attachmentsApi.open(await getApiToken(), a.id, orgId)
+                }
                 disabled={a.purged}
               >
                 {a.filename}
@@ -121,9 +145,15 @@ export function BookingDocumentsCard({
                 {a.required_at_stop ? " · Must be shown" : ""}
                 {a.from_location_template ? " · Saved for this address" : ""}
               </span>
-              <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS[a.status].cls}`}>{STATUS[a.status].label}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS[a.status].cls}`}>
+                {STATUS[a.status].label}
+              </span>
               {canWrite && editable[a.stop] && (
-                <button type="button" className="ml-auto text-xs text-red-600 hover:underline" onClick={() => void remove(a.id)}>
+                <button
+                  type="button"
+                  className="ml-auto text-xs text-red-600 hover:underline"
+                  onClick={() => void remove(a.id)}
+                >
                   Remove
                 </button>
               )}
@@ -156,8 +186,21 @@ export function BookingDocumentsCard({
               Take photo
             </Button>
           </div>
-          <input ref={pickRef} type="file" accept={ACCEPT} hidden onChange={(e) => void choose(e.target.files?.[0])} />
-          <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => void choose(e.target.files?.[0])} />
+          <input
+            ref={pickRef}
+            type="file"
+            accept={ACCEPT}
+            hidden
+            onChange={(e) => void choose(e.target.files?.[0])}
+          />
+          <input
+            ref={camRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            hidden
+            onChange={(e) => void choose(e.target.files?.[0])}
+          />
         </div>
       )}
 
@@ -168,7 +211,9 @@ export function BookingDocumentsCard({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={pending.preview} alt="" className="h-20 w-16 rounded object-cover" />
             ) : (
-              <div className="flex h-20 w-16 items-center justify-center rounded bg-primary/5 text-xs">PDF</div>
+              <div className="flex h-20 w-16 items-center justify-center rounded bg-primary/5 text-xs">
+                PDF
+              </div>
             )}
             <div>
               <p className="font-medium">{pending.file.name}</p>
@@ -177,7 +222,11 @@ export function BookingDocumentsCard({
           </div>
           <label className="block">
             Document type
-            <select className="mt-1 block w-full rounded border p-2" value={pending.kind} onChange={(e) => setPending({ ...pending, kind: e.target.value })}>
+            <select
+              className="mt-1 block w-full rounded border p-2"
+              value={pending.kind}
+              onChange={(e) => setPending({ ...pending, kind: e.target.value })}
+            >
               {Object.entries(kinds).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
@@ -190,23 +239,42 @@ export function BookingDocumentsCard({
             <select
               className="mt-1 block w-full rounded border p-2"
               value={pending.stop}
-              onChange={(e) => setPending({ ...pending, stop: e.target.value as "pickup" | "dropoff" })}
+              onChange={(e) =>
+                setPending({ ...pending, stop: e.target.value as "pickup" | "dropoff" })
+              }
             >
-              <option value="pickup" disabled={!editable.pickup}>Pickup stop</option>
-              <option value="dropoff" disabled={!editable.dropoff}>Drop-off stop</option>
+              <option value="pickup" disabled={!editable.pickup}>
+                Pickup stop
+              </option>
+              <option value="dropoff" disabled={!editable.dropoff}>
+                Drop-off stop
+              </option>
             </select>
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={pending.required} onChange={(e) => setPending({ ...pending, required: e.target.checked })} />
+            <input
+              type="checkbox"
+              checked={pending.required}
+              onChange={(e) => setPending({ ...pending, required: e.target.checked })}
+            />
             Driver must show this to staff before pickup
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={pending.save} onChange={(e) => setPending({ ...pending, save: e.target.checked })} />
+            <input
+              type="checkbox"
+              checked={pending.save}
+              onChange={(e) => setPending({ ...pending, save: e.target.checked })}
+            />
             Use for every booking from this address
           </label>
           <label className="block">
             Note for driver (optional)
-            <input className="mt-1 block w-full rounded border p-2" maxLength={500} value={pending.note} onChange={(e) => setPending({ ...pending, note: e.target.value })} />
+            <input
+              className="mt-1 block w-full rounded border p-2"
+              maxLength={500}
+              value={pending.note}
+              onChange={(e) => setPending({ ...pending, note: e.target.value })}
+            />
           </label>
           <div className="flex gap-2">
             <Button size="sm" onClick={() => void save()} disabled={busy}>

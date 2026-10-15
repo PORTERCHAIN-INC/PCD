@@ -42,9 +42,7 @@ class AmbiguousTrackingQuery(LookupError):
 
     @property
     def message(self) -> str:
-        return (
-            f"{len(self.orders)} shipments share PO {self.query}. Pick the one you want to track."
-        )
+        return f"{len(self.orders)} shipments share PO {self.query}. Pick the one you want to track."
 
     def choices(self) -> list[dict[str, Any]]:
         return [
@@ -53,7 +51,9 @@ class AmbiguousTrackingQuery(LookupError):
                 "order_number": o.order_number,
                 "tracking_number": o.tracking_number,
                 "state": o.state,
-                "dropoff": (o.dropoff or {}).get("formatted") if isinstance(o.dropoff, dict) else None,
+                "dropoff": (o.dropoff or {}).get("formatted")
+                if isinstance(o.dropoff, dict)
+                else None,
                 "scheduled_at": o.scheduled_at.isoformat() if o.scheduled_at else None,
             }
             for o in self.orders
@@ -105,7 +105,9 @@ def merchant_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
         payload["optimized_route"] = cleaned
     status = payload.get("delivery_status")
     if isinstance(status, dict):
-        status["label"] = order_state_label(str(status.get("order_state") or payload.get("state") or ""))
+        status["label"] = order_state_label(
+            str(status.get("order_state") or payload.get("state") or "")
+        )
     replay = payload.get("replay")
     if isinstance(replay, list):
         payload["replay"] = [merchant_replay_frame(frame) for frame in replay]
@@ -117,7 +119,8 @@ def delivery_status(order_state: str, *, in_flight: tuple[str, ...]) -> dict[str
         "order_state": order_state,
         "label": order_state_label(order_state),
         "in_transit": order_state in in_flight,
-        "delivered": order_state in ("DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"),
+        "delivered": order_state
+        in ("DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"),
     }
 
 
@@ -146,11 +149,21 @@ def set_cached_eta(cache_key: str, eta: dict[str, Any]) -> None:
     _eta_cache[cache_key] = (time.time() + _ETA_CACHE_TTL_SECONDS, eta)
 
 
-def driver_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> dict[str, Any] | None:
+def driver_info(
+    db: Session, order: Order, live_raw: dict[str, Any] | None
+) -> dict[str, Any] | None:
     fb_driver = None
     if live_raw:
-        tracker = live_raw.get("tracker") if isinstance(live_raw.get("tracker"), dict) else live_raw
-        fb_driver = live_raw.get("driver") or tracker.get("driver") if isinstance(tracker, dict) else None
+        tracker = (
+            live_raw.get("tracker")
+            if isinstance(live_raw.get("tracker"), dict)
+            else live_raw
+        )
+        fb_driver = (
+            live_raw.get("driver") or tracker.get("driver")
+            if isinstance(tracker, dict)
+            else None
+        )
 
     driver = None
     if order.assigned_driver_id:
@@ -160,7 +173,9 @@ def driver_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> d
         return {
             "id": driver.id,
             "name": driver.full_name,
-            "is_online": fb_driver.get("online") if isinstance(fb_driver, dict) else None,
+            "is_online": fb_driver.get("online")
+            if isinstance(fb_driver, dict)
+            else None,
             "rating": driver.rating,
         }
     if isinstance(fb_driver, dict):
@@ -171,7 +186,9 @@ def driver_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> d
     return None
 
 
-def vehicle_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> dict[str, Any] | None:
+def vehicle_info(
+    db: Session, order: Order, live_raw: dict[str, Any] | None
+) -> dict[str, Any] | None:
     fb_vehicle = None
     if live_raw and isinstance(live_raw.get("tracker"), dict):
         tracker = live_raw["tracker"]
@@ -181,7 +198,9 @@ def vehicle_info(db: Session, order: Order, live_raw: dict[str, Any] | None) -> 
     if order.assigned_driver_id:
         driver = db.query(Driver).filter(Driver.id == order.assigned_driver_id).first()
         if driver and driver.vehicles:
-            vehicle = next((v for v in driver.vehicles if v.is_active), driver.vehicles[0])
+            vehicle = next(
+                (v for v in driver.vehicles if v.is_active), driver.vehicles[0]
+            )
 
     if vehicle:
         return {
@@ -215,7 +234,9 @@ def tracking_history(db: Session, order_id: str) -> list[dict[str, Any]]:
             "to_state": ev.to_state,
             "occurred_at": ev.occurred_at.isoformat() if ev.occurred_at else None,
             "payload": ev.payload,
-            "location": (ev.payload or {}).get("location") if isinstance(ev.payload, dict) else None,
+            "location": (ev.payload or {}).get("location")
+            if isinstance(ev.payload, dict)
+            else None,
         }
         for ev in events
     ]
@@ -238,19 +259,42 @@ def build_replay(
 
     for item in activity:
         loc = item.get("location")
-        if isinstance(loc, dict) and loc.get("lat") is not None and loc.get("lng") is not None:
+        if (
+            isinstance(loc, dict)
+            and loc.get("lat") is not None
+            and loc.get("lng") is not None
+        ):
             add_frame(float(loc["lat"]), float(loc["lng"]), item.get("at"), "activity")
 
     for ev in history:
         loc = ev.get("location")
-        if isinstance(loc, dict) and loc.get("lat") is not None and loc.get("lng") is not None:
-            add_frame(float(loc["lat"]), float(loc["lng"]), ev.get("occurred_at"), "order_event")
+        if (
+            isinstance(loc, dict)
+            and loc.get("lat") is not None
+            and loc.get("lng") is not None
+        ):
+            add_frame(
+                float(loc["lat"]),
+                float(loc["lng"]),
+                ev.get("occurred_at"),
+                "order_event",
+            )
 
     if live_raw:
-        tracker = live_raw.get("tracker") if isinstance(live_raw.get("tracker"), dict) else live_raw
+        tracker = (
+            live_raw.get("tracker")
+            if isinstance(live_raw.get("tracker"), dict)
+            else live_raw
+        )
         for key in ("coordinates", "position", "location"):
-            loc = live_raw.get(key) or (tracker.get(key) if isinstance(tracker, dict) else None)
-            if isinstance(loc, dict) and loc.get("lat") is not None and loc.get("lng") is not None:
+            loc = live_raw.get(key) or (
+                tracker.get(key) if isinstance(tracker, dict) else None
+            )
+            if (
+                isinstance(loc, dict)
+                and loc.get("lat") is not None
+                and loc.get("lng") is not None
+            ):
                 add_frame(
                     float(loc["lat"]),
                     float(loc["lng"]),

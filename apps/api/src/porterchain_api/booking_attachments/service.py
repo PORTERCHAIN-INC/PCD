@@ -52,18 +52,63 @@ RETENTION_DAYS = 90
 STOPS = ("pickup", "dropoff")
 
 PICKUP_DONE = {
-    "PICKED_UP", "IN_TRANSIT", "AT_DESTINATION", "DELIVERED", "POD_COMPLETED",
-    "INVOICED", "CLOSED", "CANCELLED", "FAILED", "RETURNED",
+    "PICKED_UP",
+    "IN_TRANSIT",
+    "AT_DESTINATION",
+    "DELIVERED",
+    "POD_COMPLETED",
+    "INVOICED",
+    "CLOSED",
+    "CANCELLED",
+    "FAILED",
+    "RETURNED",
 }
-DROPOFF_DONE = {"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED", "CANCELLED", "FAILED", "RETURNED"}
-TERMINAL = {"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED", "CANCELLED", "FAILED", "RETURNED"}
+DROPOFF_DONE = {
+    "DELIVERED",
+    "POD_COMPLETED",
+    "INVOICED",
+    "CLOSED",
+    "CANCELLED",
+    "FAILED",
+    "RETURNED",
+}
+TERMINAL = {
+    "DELIVERED",
+    "POD_COMPLETED",
+    "INVOICED",
+    "CLOSED",
+    "CANCELLED",
+    "FAILED",
+    "RETURNED",
+}
 
 _KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
-    ("bill_of_lading", ("bol", "bill of lading", "bill-of-lading", "lading", "waybill")),
-    ("customs", ("customs", "cbsa", "b3", "commercial invoice", "ci5", "usmca", "cusma")),
-    ("delivery_instructions", ("delivery", "instructions", "dropoff", "drop-off", "receiving", "consignee")),
-    ("pickup_authorization", ("pickup", "pick-up", "pick up", "release", "authorization", "authorisation",
-                              "warehouse", "collection", "pu ")),
+    (
+        "bill_of_lading",
+        ("bol", "bill of lading", "bill-of-lading", "lading", "waybill"),
+    ),
+    (
+        "customs",
+        ("customs", "cbsa", "b3", "commercial invoice", "ci5", "usmca", "cusma"),
+    ),
+    (
+        "delivery_instructions",
+        ("delivery", "instructions", "dropoff", "drop-off", "receiving", "consignee"),
+    ),
+    (
+        "pickup_authorization",
+        (
+            "pickup",
+            "pick-up",
+            "pick up",
+            "release",
+            "authorization",
+            "authorisation",
+            "warehouse",
+            "collection",
+            "pu ",
+        ),
+    ),
 ]
 
 
@@ -85,6 +130,7 @@ class PickupDocumentNotShown(Exception):
 
 # ── detection ────────────────────────────────────────────────────────────
 
+
 def sniff_type(data: bytes) -> str | None:
     if data.startswith(b"%PDF"):
         return "application/pdf"
@@ -92,12 +138,18 @@ def sniff_type(data: bytes) -> str | None:
         return "image/png"
     if data.startswith(b"\xff\xd8\xff"):
         return "image/jpeg"
-    if len(data) > 12 and data[4:8] == b"ftyp" and data[8:12] in (b"heic", b"heix", b"mif1", b"msf1", b"heif", b"hevc"):
+    if (
+        len(data) > 12
+        and data[4:8] == b"ftyp"
+        and data[8:12] in (b"heic", b"heix", b"mif1", b"msf1", b"heif", b"hevc")
+    ):
         return "image/heic"
     return None
 
 
-_ACTIVE_PDF = re.compile(rb"/(JavaScript|JS|Launch|EmbeddedFile|OpenAction\s*<<[^>]*/JS)\b")
+_ACTIVE_PDF = re.compile(
+    rb"/(JavaScript|JS|Launch|EmbeddedFile|OpenAction\s*<<[^>]*/JS)\b"
+)
 
 
 def _clamd_scan(data: bytes) -> str | None:
@@ -148,11 +200,19 @@ def suggest_kind(filename: str, data: bytes | None = None) -> str:
 def location_key(addr: Any) -> str | None:
     if not isinstance(addr, dict):
         return None
-    street = addr.get("street") or addr.get("line1") or addr.get("address") or addr.get("formatted") or ""
+    street = (
+        addr.get("street")
+        or addr.get("line1")
+        or addr.get("address")
+        or addr.get("formatted")
+        or ""
+    )
     postal = addr.get("postal_code") or addr.get("postal") or addr.get("zip") or ""
     street = re.sub(r"[^a-z0-9]", "", str(street).lower().split(",")[0])
     postal = re.sub(r"[^a-z0-9]", "", str(postal).lower())
-    unit = re.sub(r"[^a-z0-9]", "", str(addr.get("unit") or addr.get("line2") or "").lower())
+    unit = re.sub(
+        r"[^a-z0-9]", "", str(addr.get("unit") or addr.get("line2") or "").lower()
+    )
     key = "|".join(p for p in (street, unit, postal) if p)
     return key or None
 
@@ -166,16 +226,33 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def _event(db: Session, att: BookingAttachment, actor_type: str, actor_id: str | None, action: str,
-           order_id: str | None = None, **payload: Any) -> None:
-    db.add(BookingAttachmentEvent(
-        attachment_id=att.id, order_id=order_id or att.order_id, actor_type=actor_type,
-        actor_id=actor_id, action=action, payload=payload,
-    ))
+def _event(
+    db: Session,
+    att: BookingAttachment,
+    actor_type: str,
+    actor_id: str | None,
+    action: str,
+    order_id: str | None = None,
+    **payload: Any,
+) -> None:
+    db.add(
+        BookingAttachmentEvent(
+            attachment_id=att.id,
+            order_id=order_id or att.order_id,
+            actor_type=actor_type,
+            actor_id=actor_id,
+            action=action,
+            payload=payload,
+        )
+    )
 
 
 def row(att: BookingAttachment, *, for_owner: bool = True) -> dict[str, Any]:
-    status = "shown_at_pickup" if att.shown_at else ("viewed_by_driver" if att.first_viewed_by_driver_at else "waiting")
+    status = (
+        "shown_at_pickup"
+        if att.shown_at
+        else ("viewed_by_driver" if att.first_viewed_by_driver_at else "waiting")
+    )
     out = {
         "id": att.id,
         "order_id": att.order_id,
@@ -190,7 +267,9 @@ def row(att: BookingAttachment, *, for_owner: bool = True) -> dict[str, Any]:
         "is_location_template": bool(att.is_location_template),
         "from_location_template": bool(att.source_template_id),
         "status": status,
-        "viewed_at": att.first_viewed_by_driver_at.isoformat() if att.first_viewed_by_driver_at else None,
+        "viewed_at": att.first_viewed_by_driver_at.isoformat()
+        if att.first_viewed_by_driver_at
+        else None,
         "shown_at": att.shown_at.isoformat() if att.shown_at else None,
         "has_proof_photo": att.proof_content is not None,
         "purged": att.purged_at is not None,
@@ -203,8 +282,13 @@ def row(att: BookingAttachment, *, for_owner: bool = True) -> dict[str, Any]:
 
 # ── owner side (merchant / customer) ─────────────────────────────────────
 
+
 def _owner_filter(q, owner_type: str, owner_id: str):
-    col = BookingAttachment.merchant_id if owner_type == "merchant" else BookingAttachment.customer_id
+    col = (
+        BookingAttachment.merchant_id
+        if owner_type == "merchant"
+        else BookingAttachment.customer_id
+    )
     return q.filter(col == owner_id)
 
 
@@ -213,7 +297,11 @@ def owned_order(db: Session, owner_type: str, owner_id: str, order_id: str) -> O
     if order is None:
         # Customer screens key bookings by tracking number; scoped to the owner below.
         col = Order.merchant_id if owner_type == "merchant" else Order.customer_id
-        order = db.query(Order).filter(Order.tracking_number == order_id, col == owner_id).first()
+        order = (
+            db.query(Order)
+            .filter(Order.tracking_number == order_id, col == owner_id)
+            .first()
+        )
     if not order:
         raise LookupError("order_not_found")
     owner = order.merchant_id if owner_type == "merchant" else order.customer_id
@@ -231,26 +319,48 @@ def sync_location_templates(db: Session, order: Order) -> None:
     """Attach saved location documents to this booking (idempotent)."""
     if not order.merchant_id and not order.customer_id:
         return
-    keys = {"pickup": location_key(order.pickup), "dropoff": location_key(order.dropoff)}
+    keys = {
+        "pickup": location_key(order.pickup),
+        "dropoff": location_key(order.dropoff),
+    }
     q = db.query(BookingAttachment).filter(
-        BookingAttachment.is_location_template.is_(True), BookingAttachment.deleted_at.is_(None)
+        BookingAttachment.is_location_template.is_(True),
+        BookingAttachment.deleted_at.is_(None),
     )
-    q = _owner_filter(q, "merchant" if order.merchant_id else "customer", order.merchant_id or order.customer_id)
-    templates = [t for t in q.all() if t.location_key and t.location_key == keys.get(t.stop)]
+    q = _owner_filter(
+        q,
+        "merchant" if order.merchant_id else "customer",
+        order.merchant_id or order.customer_id,
+    )
+    templates = [
+        t for t in q.all() if t.location_key and t.location_key == keys.get(t.stop)
+    ]
     if not templates:
         return
     have = {
         r.source_template_id
-        for r in db.query(BookingAttachment.source_template_id).filter(BookingAttachment.order_id == order.id).all()
+        for r in db.query(BookingAttachment.source_template_id)
+        .filter(BookingAttachment.order_id == order.id)
+        .all()
     }
     for t in templates:
         if t.id in have or not _stop_open(order, t.stop):
             continue
         copy = BookingAttachment(
-            order_id=order.id, merchant_id=order.merchant_id, customer_id=order.customer_id, stop=t.stop,
-            kind=t.kind, filename=t.filename, content_type=t.content_type, size_bytes=t.size_bytes,
-            sha256=t.sha256, content=t.content, note=t.note, required_at_stop=t.required_at_stop,
-            source_template_id=t.id, uploaded_by=t.uploaded_by,
+            order_id=order.id,
+            merchant_id=order.merchant_id,
+            customer_id=order.customer_id,
+            stop=t.stop,
+            kind=t.kind,
+            filename=t.filename,
+            content_type=t.content_type,
+            size_bytes=t.size_bytes,
+            sha256=t.sha256,
+            content=t.content,
+            note=t.note,
+            required_at_stop=t.required_at_stop,
+            source_template_id=t.id,
+            uploaded_by=t.uploaded_by,
         )
         db.add(copy)
         db.flush()
@@ -258,12 +368,17 @@ def sync_location_templates(db: Session, order: Order) -> None:
     db.flush()
 
 
-def list_for_owner(db: Session, owner_type: str, owner_id: str, order_id: str) -> dict[str, Any]:
+def list_for_owner(
+    db: Session, owner_type: str, owner_id: str, order_id: str
+) -> dict[str, Any]:
     order = owned_order(db, owner_type, owner_id, order_id)
     sync_location_templates(db, order)
     rows = (
         db.query(BookingAttachment)
-        .filter(BookingAttachment.order_id == order.id, BookingAttachment.deleted_at.is_(None))
+        .filter(
+            BookingAttachment.order_id == order.id,
+            BookingAttachment.deleted_at.is_(None),
+        )
         .order_by(BookingAttachment.created_at)
         .all()
     )
@@ -276,9 +391,20 @@ def list_for_owner(db: Session, owner_type: str, owner_id: str, order_id: str) -
 
 
 def upload(
-    db: Session, *, owner_type: str, owner_id: str, actor_id: str, order_id: str | None, data: bytes,
-    filename: str, kind: str | None = None, stop: str | None = None, required_at_stop: bool = True,
-    note: str | None = None, save_for_location: bool = False, location_address: dict | None = None,
+    db: Session,
+    *,
+    owner_type: str,
+    owner_id: str,
+    actor_id: str,
+    order_id: str | None,
+    data: bytes,
+    filename: str,
+    kind: str | None = None,
+    stop: str | None = None,
+    required_at_stop: bool = True,
+    note: str | None = None,
+    save_for_location: bool = False,
+    location_address: dict | None = None,
 ) -> dict[str, Any]:
     ctype = validate_file(data)
     kind = kind or suggest_kind(filename, data)
@@ -294,7 +420,10 @@ def upload(
             raise AttachmentError("attachment_stop_closed")
         count = (
             db.query(BookingAttachment)
-            .filter(BookingAttachment.order_id == order.id, BookingAttachment.deleted_at.is_(None))
+            .filter(
+                BookingAttachment.order_id == order.id,
+                BookingAttachment.deleted_at.is_(None),
+            )
             .count()
         )
         if count >= MAX_PER_ORDER:
@@ -302,11 +431,22 @@ def upload(
     elif not save_for_location:
         raise AttachmentError("attachment_order_required")
     common = dict(
-        merchant_id=owner_id if owner_type == "merchant" else (order.merchant_id if order else None),
-        customer_id=owner_id if owner_type == "customer" else (order.customer_id if order else None),
-        stop=stop, kind=kind, filename=_safe_name(filename), content_type=ctype, size_bytes=len(data),
-        sha256=hashlib.sha256(data).hexdigest(), content=data, note=(note or "").strip()[:500] or None,
-        required_at_stop=bool(required_at_stop), uploaded_by=f"{owner_type}:{actor_id}",
+        merchant_id=owner_id
+        if owner_type == "merchant"
+        else (order.merchant_id if order else None),
+        customer_id=owner_id
+        if owner_type == "customer"
+        else (order.customer_id if order else None),
+        stop=stop,
+        kind=kind,
+        filename=_safe_name(filename),
+        content_type=ctype,
+        size_bytes=len(data),
+        sha256=hashlib.sha256(data).hexdigest(),
+        content=data,
+        note=(note or "").strip()[:500] or None,
+        required_at_stop=bool(required_at_stop),
+        uploaded_by=f"{owner_type}:{actor_id}",
     )
     template = None
     if save_for_location:
@@ -316,22 +456,37 @@ def upload(
         key = location_key(addr)
         if not key:
             raise AttachmentError("attachment_location_unknown")
-        template = BookingAttachment(order_id=None, is_location_template=True, location_key=key, **common)
+        template = BookingAttachment(
+            order_id=None, is_location_template=True, location_key=key, **common
+        )
         db.add(template)
         db.flush()
         _event(db, template, owner_type, actor_id, "location_template_saved")
     att = None
     if order:
-        att = BookingAttachment(order_id=order.id, source_template_id=template.id if template else None, **common)
+        att = BookingAttachment(
+            order_id=order.id,
+            source_template_id=template.id if template else None,
+            **common,
+        )
         db.add(att)
         db.flush()
         _event(db, att, owner_type, actor_id, "uploaded", kind=kind, stop=stop)
     return row(att or template)
 
 
-def update(db: Session, *, owner_type: str, owner_id: str, actor_id: str, attachment_id: str,
-           kind: str | None = None, stop: str | None = None, required_at_stop: bool | None = None,
-           note: str | None = None) -> dict[str, Any]:
+def update(
+    db: Session,
+    *,
+    owner_type: str,
+    owner_id: str,
+    actor_id: str,
+    attachment_id: str,
+    kind: str | None = None,
+    stop: str | None = None,
+    required_at_stop: bool | None = None,
+    note: str | None = None,
+) -> dict[str, Any]:
     att = _owned_attachment(db, owner_type, owner_id, attachment_id)
     if att.order_id:
         order = db.get(Order, att.order_id)
@@ -354,15 +509,21 @@ def update(db: Session, *, owner_type: str, owner_id: str, actor_id: str, attach
     return row(att)
 
 
-def _owned_attachment(db: Session, owner_type: str, owner_id: str, attachment_id: str) -> BookingAttachment:
-    q = db.query(BookingAttachment).filter(BookingAttachment.id == attachment_id, BookingAttachment.deleted_at.is_(None))
+def _owned_attachment(
+    db: Session, owner_type: str, owner_id: str, attachment_id: str
+) -> BookingAttachment:
+    q = db.query(BookingAttachment).filter(
+        BookingAttachment.id == attachment_id, BookingAttachment.deleted_at.is_(None)
+    )
     att = _owner_filter(q, owner_type, owner_id).first()
     if not att:
         raise LookupError("attachment_not_found")
     return att
 
 
-def delete(db: Session, *, owner_type: str, owner_id: str, actor_id: str, attachment_id: str) -> None:
+def delete(
+    db: Session, *, owner_type: str, owner_id: str, actor_id: str, attachment_id: str
+) -> None:
     att = _owned_attachment(db, owner_type, owner_id, attachment_id)
     if att.order_id and not _stop_open(db.get(Order, att.order_id), att.stop):
         raise AttachmentError("attachment_stop_closed")
@@ -372,14 +533,22 @@ def delete(db: Session, *, owner_type: str, owner_id: str, actor_id: str, attach
     db.flush()
 
 
-def list_location_templates(db: Session, owner_type: str, owner_id: str) -> list[dict[str, Any]]:
+def list_location_templates(
+    db: Session, owner_type: str, owner_id: str
+) -> list[dict[str, Any]]:
     q = db.query(BookingAttachment).filter(
-        BookingAttachment.is_location_template.is_(True), BookingAttachment.deleted_at.is_(None)
+        BookingAttachment.is_location_template.is_(True),
+        BookingAttachment.deleted_at.is_(None),
     )
-    return [row(r) | {"location_key": r.location_key} for r in _owner_filter(q, owner_type, owner_id).all()]
+    return [
+        row(r) | {"location_key": r.location_key}
+        for r in _owner_filter(q, owner_type, owner_id).all()
+    ]
 
 
-def owner_download(db: Session, *, owner_type: str, owner_id: str, actor_id: str, attachment_id: str):
+def owner_download(
+    db: Session, *, owner_type: str, owner_id: str, actor_id: str, attachment_id: str
+):
     att = _owned_attachment(db, owner_type, owner_id, attachment_id)
     if att.content is None:
         raise LookupError("attachment_purged")
@@ -388,6 +557,7 @@ def owner_download(db: Session, *, owner_type: str, owner_id: str, actor_id: str
 
 
 # ── driver side ──────────────────────────────────────────────────────────
+
 
 def _driver_order(db: Session, driver_id: str, order_id: str) -> Order:
     order = db.get(Order, order_id)
@@ -411,16 +581,24 @@ def list_for_driver(db: Session, driver_id: str, order_id: str) -> dict[str, Any
     stops = _driver_stops(order)
     rows = (
         db.query(BookingAttachment)
-        .filter(BookingAttachment.order_id == order.id, BookingAttachment.deleted_at.is_(None),
-                BookingAttachment.stop.in_(stops or ["-"]))
+        .filter(
+            BookingAttachment.order_id == order.id,
+            BookingAttachment.deleted_at.is_(None),
+            BookingAttachment.stop.in_(stops or ["-"]),
+        )
         .order_by(BookingAttachment.created_at)
         .all()
     )
     items = [row(r, for_owner=False) for r in rows]
     checklist = [
-        {"id": f"show_document:{r['id']}", "label": "Show document to warehouse staff",
-         "document": r["filename"], "done": r["shown_at"] is not None}
-        for r in items if r["required_at_stop"] and r["stop"] == "pickup"
+        {
+            "id": f"show_document:{r['id']}",
+            "label": "Show document to warehouse staff",
+            "document": r["filename"],
+            "done": r["shown_at"] is not None,
+        }
+        for r in items
+        if r["required_at_stop"] and r["stop"] == "pickup"
     ]
     return {"items": items, "pickup_checklist": checklist}
 
@@ -464,8 +642,18 @@ def driver_link(db: Session, driver_id: str, attachment_id: str) -> str:
 
 def redeem_link(db: Session, token: str):
     h = hashlib.sha256(token.encode()).hexdigest()
-    att = db.query(BookingAttachment).filter(BookingAttachment.link_token_hash == h).first()
-    if not att or not att.link_expires_at or att.link_expires_at < _now() or att.content is None or att.deleted_at:
+    att = (
+        db.query(BookingAttachment)
+        .filter(BookingAttachment.link_token_hash == h)
+        .first()
+    )
+    if (
+        not att
+        or not att.link_expires_at
+        or att.link_expires_at < _now()
+        or att.content is None
+        or att.deleted_at
+    ):
         raise LookupError("link_expired")
     att.link_token_hash = None  # single use
     att.link_expires_at = None
@@ -475,7 +663,9 @@ def redeem_link(db: Session, token: str):
     return att, att.content
 
 
-def mark_shown(db: Session, driver_id: str, attachment_id: str, proof: bytes | None = None) -> dict[str, Any]:
+def mark_shown(
+    db: Session, driver_id: str, attachment_id: str, proof: bytes | None = None
+) -> dict[str, Any]:
     att = db.get(BookingAttachment, attachment_id)
     if not att or att.deleted_at or not att.order_id:
         raise LookupError("attachment_not_found")
@@ -502,39 +692,66 @@ def pickup_gate_enforced() -> bool:
     return os.environ.get("PICKUP_DOCUMENT_GATE", "off").lower() in ("1", "true", "on")
 
 
-def assert_pickup_documents_shown(db: Session, order: Order, *, force: bool = False) -> None:
+def assert_pickup_documents_shown(
+    db: Session, order: Order, *, force: bool = False
+) -> None:
     if not (force or pickup_gate_enforced()):
         return
     missing = (
         db.query(BookingAttachment)
-        .filter(BookingAttachment.order_id == order.id, BookingAttachment.deleted_at.is_(None),
-                BookingAttachment.stop == "pickup", BookingAttachment.required_at_stop.is_(True),
-                BookingAttachment.shown_at.is_(None))
+        .filter(
+            BookingAttachment.order_id == order.id,
+            BookingAttachment.deleted_at.is_(None),
+            BookingAttachment.stop == "pickup",
+            BookingAttachment.required_at_stop.is_(True),
+            BookingAttachment.shown_at.is_(None),
+        )
         .all()
     )
     if missing:
-        raise PickupDocumentNotShown([{"id": m.id, "filename": m.filename} for m in missing])
+        raise PickupDocumentNotShown(
+            [{"id": m.id, "filename": m.filename} for m in missing]
+        )
 
 
 # ── staff ────────────────────────────────────────────────────────────────
 
+
 def list_for_staff(db: Session, order_id: str) -> dict[str, Any]:
-    rows = db.query(BookingAttachment).filter(BookingAttachment.order_id == order_id).order_by(BookingAttachment.created_at).all()
+    rows = (
+        db.query(BookingAttachment)
+        .filter(BookingAttachment.order_id == order_id)
+        .order_by(BookingAttachment.created_at)
+        .all()
+    )
     events = (
-        db.query(BookingAttachmentEvent).filter(BookingAttachmentEvent.order_id == order_id)
-        .order_by(BookingAttachmentEvent.created_at).all()
+        db.query(BookingAttachmentEvent)
+        .filter(BookingAttachmentEvent.order_id == order_id)
+        .order_by(BookingAttachmentEvent.created_at)
+        .all()
     )
     return {
-        "items": [row(r) | {"deleted": r.deleted_at is not None, "uploaded_by": r.uploaded_by} for r in rows],
+        "items": [
+            row(r) | {"deleted": r.deleted_at is not None, "uploaded_by": r.uploaded_by}
+            for r in rows
+        ],
         "events": [
-            {"attachment_id": e.attachment_id, "actor_type": e.actor_type, "actor_id": e.actor_id,
-             "action": e.action, "payload": e.payload, "at": e.created_at.isoformat() if e.created_at else None}
+            {
+                "attachment_id": e.attachment_id,
+                "actor_type": e.actor_type,
+                "actor_id": e.actor_id,
+                "action": e.action,
+                "payload": e.payload,
+                "at": e.created_at.isoformat() if e.created_at else None,
+            }
             for e in events
         ],
     }
 
 
-def staff_download(db: Session, staff_id: str, attachment_id: str, *, proof: bool = False):
+def staff_download(
+    db: Session, staff_id: str, attachment_id: str, *, proof: bool = False
+):
     att = db.get(BookingAttachment, attachment_id)
     if not att:
         raise LookupError("attachment_not_found")
@@ -548,13 +765,18 @@ def staff_download(db: Session, staff_id: str, attachment_id: str, *, proof: boo
 
 # ── retention ────────────────────────────────────────────────────────────
 
+
 def purge_expired(db: Session, *, now: datetime | None = None) -> int:
     """Wipe bytes RETENTION_DAYS after the booking finished. Templates are kept until the owner deletes them."""
     cutoff = (now or _now()) - timedelta(days=RETENTION_DAYS)
     rows = (
         db.query(BookingAttachment)
         .join(Order, Order.id == BookingAttachment.order_id)
-        .filter(BookingAttachment.purged_at.is_(None), Order.state.in_(TERMINAL), Order.updated_at < cutoff)
+        .filter(
+            BookingAttachment.purged_at.is_(None),
+            Order.state.in_(TERMINAL),
+            Order.updated_at < cutoff,
+        )
         .all()
     )
     for r in rows:

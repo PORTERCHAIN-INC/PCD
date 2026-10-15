@@ -22,7 +22,10 @@ export const STATUS_LABEL: Record<CustomerAttachment["status"], string> = {
   shown_at_pickup: "Shown at pickup",
 };
 
-const h = (token: string) => ({ Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "customer" });
+const h = (token: string) => ({
+  Authorization: `Bearer ${token}`,
+  "X-Porterchain-Portal": "customer",
+});
 
 async function ok<T>(r: Response): Promise<T> {
   if (!r.ok) {
@@ -42,9 +45,9 @@ async function ok<T>(r: Response): Promise<T> {
 /** `key` is the tracking number (or order id); the API scopes it to this customer. */
 export const customerAttachments = {
   list: (token: string, key: string) =>
-    fetch(`${API_BASE}/v1/customers/me/orders/${encodeURIComponent(key)}/attachments`, { headers: h(token) }).then((r) =>
-      ok<CustomerAttachmentList>(r)
-    ),
+    fetch(`${API_BASE}/v1/customers/me/orders/${encodeURIComponent(key)}/attachments`, {
+      headers: h(token),
+    }).then((r) => ok<CustomerAttachmentList>(r)),
   upload: (token: string, key: string, file: File, required: boolean) => {
     const fd = new FormData();
     fd.set("file", file);
@@ -56,9 +59,14 @@ export const customerAttachments = {
     }).then((r) => ok<CustomerAttachment>(r));
   },
   remove: (token: string, id: string) =>
-    fetch(`${API_BASE}/v1/customers/me/attachments/${id}`, { method: "DELETE", headers: h(token) }).then((r) => ok<void>(r)),
+    fetch(`${API_BASE}/v1/customers/me/attachments/${id}`, {
+      method: "DELETE",
+      headers: h(token),
+    }).then((r) => ok<void>(r)),
   open: async (token: string, id: string) => {
-    const r = await fetch(`${API_BASE}/v1/customers/me/attachments/${id}/file`, { headers: h(token) });
+    const r = await fetch(`${API_BASE}/v1/customers/me/attachments/${id}/file`, {
+      headers: h(token),
+    });
     if (!r.ok) throw new Error("Couldn't open that document.");
     const url = URL.createObjectURL(await r.blob());
     window.open(url, "_blank", "noopener");
@@ -80,7 +88,15 @@ export async function stashFiles(quoteId: string, files: PendingFile[]) {
   const db = await idb();
   await new Promise<void>((res, rej) => {
     const tx = db.transaction("pending", "readwrite");
-    tx.objectStore("pending").put(files.map((f) => ({ blob: f.file, name: f.file.name, type: f.file.type, required: f.required })), quoteId);
+    tx.objectStore("pending").put(
+      files.map((f) => ({
+        blob: f.file,
+        name: f.file.name,
+        type: f.file.type,
+        required: f.required,
+      })),
+      quoteId
+    );
     tx.oncomplete = () => res();
     tx.onerror = () => rej(tx.error);
   });
@@ -92,14 +108,28 @@ export async function takeStash(quoteId: string): Promise<PendingFile[]> {
     const store = tx.objectStore("pending");
     const g = store.get(quoteId);
     g.onsuccess = () => {
-      const rows = (g.result ?? []) as Array<{ blob: Blob; name: string; type: string; required: boolean }>;
+      const rows = (g.result ?? []) as Array<{
+        blob: Blob;
+        name: string;
+        type: string;
+        required: boolean;
+      }>;
       store.delete(quoteId);
-      res(rows.map((r) => ({ file: new File([r.blob], r.name, { type: r.type }), required: r.required })));
+      res(
+        rows.map((r) => ({
+          file: new File([r.blob], r.name, { type: r.type }),
+          required: r.required,
+        }))
+      );
     };
     g.onerror = () => res([]);
   });
 }
-export async function attachAll(token: string, key: string, files: PendingFile[]): Promise<string[]> {
+export async function attachAll(
+  token: string,
+  key: string,
+  files: PendingFile[]
+): Promise<string[]> {
   const failed: string[] = [];
   for (const f of files) {
     try {

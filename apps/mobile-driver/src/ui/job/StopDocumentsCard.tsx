@@ -32,7 +32,17 @@ async function cache(d: StopDocument): Promise<string | null> {
   return f.uri;
 }
 
-function ShowToStaff({ doc, uri, onClose, onShown }: { doc: StopDocument; uri: string; onClose: () => void; onShown: () => void }) {
+function ShowToStaff({
+  doc,
+  uri,
+  onClose,
+  onShown,
+}: {
+  doc: StopDocument;
+  uri: string;
+  onClose: () => void;
+  onShown: () => void;
+}) {
   useKeepAwake();
   const [busy, setBusy] = useState(false);
   async function shown(withPhoto: boolean) {
@@ -42,7 +52,11 @@ function ShowToStaff({ doc, uri, onClose, onShown }: { doc: StopDocument; uri: s
       if (withPhoto) {
         const perm = await ImagePicker.requestCameraPermissionsAsync();
         if (perm.status !== "granted") throw new Error("camera");
-        const r = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.6, exif: false });
+        const r = await ImagePicker.launchCameraAsync({
+          mediaTypes: ["images"],
+          quality: 0.6,
+          exif: false,
+        });
         if (r.canceled || !r.assets?.[0]) return;
         proof = r.assets[0].uri;
       }
@@ -60,14 +74,24 @@ function ShowToStaff({ doc, uri, onClose, onShown }: { doc: StopDocument; uri: s
       <View style={st.full}>
         <View style={st.bar}>
           <Text style={st.barTitle}>{doc.kind_label}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} hitSlop={16}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            onPress={onClose}
+            hitSlop={16}
+          >
             <Text style={st.close}>✕</Text>
           </Pressable>
         </View>
         <Image source={{ uri }} style={st.img} resizeMode="contain" />
         <View style={st.actions}>
           <Button label="Photo of signed copy" onPress={() => void shown(true)} busy={busy} />
-          <Button label="Shown to staff" tone="primary" onPress={() => void shown(false)} busy={busy} />
+          <Button
+            label="Shown to staff"
+            tone="primary"
+            onPress={() => void shown(false)}
+            busy={busy}
+          />
         </View>
       </View>
     </Modal>
@@ -128,9 +152,18 @@ export function StopDocumentsCard({ orderId }: { orderId: string }) {
             {d.note ? ` · ${d.note}` : ""}
           </Muted>
           {d.required_at_stop && d.stop === "pickup" ? (
-            <Muted>{d.shown_at ? "✓ Shown to warehouse staff" : "Required: show to warehouse staff before Picked up"}</Muted>
+            <Muted>
+              {d.shown_at
+                ? "✓ Shown to warehouse staff"
+                : "Required: show to warehouse staff before Picked up"}
+            </Muted>
           ) : null}
-          <Button label="Show to staff" tone="primary" onPress={() => void open(d)} testID={`show-doc-${d.id}`} />
+          <Button
+            label="Show to staff"
+            tone="primary"
+            onPress={() => void open(d)}
+            testID={`show-doc-${d.id}`}
+          />
           {confirming?.id === d.id ? (
             <View style={st.actions}>
               <Button
@@ -167,7 +200,13 @@ export function StopDocumentsCard({ orderId }: { orderId: string }) {
 const st = StyleSheet.create({
   row: { marginTop: 12, gap: 6 },
   full: { flex: 1, backgroundColor: "#ffffff" },
-  bar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, paddingTop: 56 },
+  bar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    paddingTop: 56,
+  },
   barTitle: { fontSize: 22, fontWeight: "700", color: "#000" },
   close: { fontSize: 28, color: "#000" },
   img: { flex: 1, width: "100%" },

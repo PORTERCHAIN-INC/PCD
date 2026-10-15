@@ -76,7 +76,9 @@ def _assert_dropoff_pod_ready(db: Session, order: Any) -> None:
     """
     if not _pod_enforced():
         return
-    from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
+    from porterchain_api.booking_engine.compliance_metadata import (
+        otp_required_at_delivery,
+    )
     from porterchain_api.domain.states import OrderState
     from porterchain_driver.pod_policy import PodMissing, missing_for
 
@@ -101,10 +103,18 @@ def _validate_stop_action(order: Any, stop_id: str, action: str) -> None:
     if is_pickup:
         if state in _PICKUP_DONE_STATES:
             raise ValueError("pickup_already_completed")
-        if action == "deliver" and state not in PICKUP_LEG and state != "DRIVER_ASSIGNED":
+        if (
+            action == "deliver"
+            and state not in PICKUP_LEG
+            and state != "DRIVER_ASSIGNED"
+        ):
             raise ValueError("pickup_already_completed")
     else:
-        if state in PICKUP_LEG or state in ("BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED"):
+        if state in PICKUP_LEG or state in (
+            "BOOKED",
+            "DISPATCH_READY",
+            "DRIVER_ASSIGNED",
+        ):
             raise ValueError("pickup_required")
         if action == "deliver" and state == "DELIVERED":
             return
@@ -123,7 +133,9 @@ def _validate_current_stop(db: Session, driver: Any, stop_id: str) -> None:
         raise ValueError("not_current_stop")
 
 
-def _record_stop_completion(db: Session, driver_id: str, order_id: str, stop_type: str) -> None:
+def _record_stop_completion(
+    db: Session, driver_id: str, order_id: str, stop_type: str
+) -> None:
     from porterchain_api.driver_models import DriverStopMeta
 
     now = datetime.now(UTC).isoformat()
@@ -147,7 +159,8 @@ def _apply_state_chain(
     steps: list[tuple[str, str]],
     *,
     actor_type: str,
-    actor_id: str) -> None:
+    actor_id: str,
+) -> None:
     from porterchain_api.domain.states import OrderState, can_transition_order
     from porterchain_api.booking_engine.order_transitions import transition_order_state
 
@@ -169,7 +182,9 @@ def _apply_state_chain(
             start = i
             break
     else:
-        if current == OrderState.DRIVER_ASSIGNED and can_transition_order(current, OrderState(steps[0][0])):
+        if current == OrderState.DRIVER_ASSIGNED and can_transition_order(
+            current, OrderState(steps[0][0])
+        ):
             start = 0
         else:
             raise ValueError(f"Invalid order transition {current} -> {final}")
@@ -185,20 +200,29 @@ def _apply_state_chain(
             target,
             event_type=event_type,
             actor_type=actor_type,
-            actor_id=actor_id)
+            actor_id=actor_id,
+        )
 
 
 class StopsService:
     def today_stops(self, db: Session, driver_id: str) -> list[StopView]:
-        return self._stops_for_orders(self._today_orders(db, driver_id), driver_id=driver_id)
+        return self._stops_for_orders(
+            self._today_orders(db, driver_id), driver_id=driver_id
+        )
 
-    def stops_for_route(self, db: Session, driver_id: str, route_id: str) -> list[StopView]:
+    def stops_for_route(
+        self, db: Session, driver_id: str, route_id: str
+    ) -> list[StopView]:
         if route_id.startswith("route-"):
             return self.today_stops(db, driver_id)
-        return self._stops_for_orders(self._orders_for_driver(db, driver_id), driver_id=driver_id)
+        return self._stops_for_orders(
+            self._orders_for_driver(db, driver_id), driver_id=driver_id
+        )
 
     def assigned_route(self, db: Session, driver: Any) -> RouteView | None:
-        stops = self._stops_for_orders(self._today_orders(db, driver.id), driver_id=driver.id)
+        stops = self._stops_for_orders(
+            self._today_orders(db, driver.id), driver_id=driver.id
+        )
         if not stops:
             return None
         today = datetime.now(UTC).date().isoformat()
@@ -208,13 +232,16 @@ class StopsService:
         return RouteView(
             route_id=route_id,
             driver_id=driver.id,
-            status="assigned" if any(s.status not in ("delivered", "POD_COMPLETED") for s in stops) else "completed",
+            status="assigned"
+            if any(s.status not in ("delivered", "POD_COMPLETED") for s in stops)
+            else "completed",
             stops=stops,
-            earnings_cents=EarningsService().route_earnings_cents(db, driver.id, route_id))
+            earnings_cents=EarningsService().route_earnings_cents(
+                db, driver.id, route_id
+            ),
+        )
 
-    def start_route(
-        self, db: Session, driver: Any, route_id: str
-    ) -> RouteView:
+    def start_route(self, db: Session, driver: Any, route_id: str) -> RouteView:
         route = self.assigned_route(db, driver)
         if not route:
             raise LookupError("route_not_found")
@@ -233,7 +260,8 @@ class StopsService:
                 "driver_id": driver.id,
                 "route_id": route.route_id,
                 "stops_count": len(route.stops),
-            })
+            },
+        )
         return route
 
     def arrive_stop(
@@ -243,7 +271,8 @@ class StopsService:
         stop_id: str,
         *,
         enforce_sequence: bool = True,
-        skip_presence: bool = False) -> StopView:
+        skip_presence: bool = False,
+    ) -> StopView:
         order = self._order_for_stop(db, driver.id, stop_id)
         _validate_stop_action(order, stop_id, "arrive")
         if enforce_sequence:
@@ -252,7 +281,11 @@ class StopsService:
             from porterchain_driver.navigation import assert_driver_inside_stop
 
             assert_driver_inside_stop(driver.id, order, stop_id)
-        steps = _PICKUP_ARRIVAL_STEPS if stop_id.endswith("-pickup") else _DELIVERY_ARRIVAL_STEPS
+        steps = (
+            _PICKUP_ARRIVAL_STEPS
+            if stop_id.endswith("-pickup")
+            else _DELIVERY_ARRIVAL_STEPS
+        )
         _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
         stop_type = stop_id.split("-")[-1]
         if stop_type == "pickup":
@@ -270,7 +303,8 @@ class StopsService:
         enforce_sequence: bool = True,
         auto_reoptimize: bool = False,
         pod_override: bool = False,
-        duty_override: bool = False) -> StopView:
+        duty_override: bool = False,
+    ) -> StopView:
         """Complete a stop. ``pod_override`` / ``duty_override`` are for the audited super-admin
         "finish without proof" path only — driver routes never pass them."""
         order = self._order_for_stop(db, driver.id, stop_id)
@@ -293,15 +327,21 @@ class StopsService:
         )
 
         if is_pickup:
-            from porterchain_api.booking_attachments.service import assert_pickup_documents_shown
+            from porterchain_api.booking_attachments.service import (
+                assert_pickup_documents_shown,
+            )
 
             assert_pickup_documents_shown(db, order)
             steps = _PICKUP_COMPLETE_STEPS
-            _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
+            _apply_state_chain(
+                db, order, steps, actor_type="driver", actor_id=driver.id
+            )
             target = OrderState.PICKED_UP
             _record_stop_completion(db, driver.id, order.id, "pickup")
         else:
-            already_pod = str(getattr(order, "state", "") or "") == OrderState.POD_COMPLETED.value
+            already_pod = (
+                str(getattr(order, "state", "") or "") == OrderState.POD_COMPLETED.value
+            )
             if already_pod:
                 # OTP complete_pod already walked AT_DESTINATION → DELIVERED → POD_COMPLETED.
                 target = OrderState.POD_COMPLETED
@@ -311,7 +351,9 @@ class StopsService:
                 if not pod_override:
                     _assert_dropoff_pod_ready(db, order)
                 steps = _DELIVERY_COMPLETE_STEPS
-                _apply_state_chain(db, order, steps, actor_type="driver", actor_id=driver.id)
+                _apply_state_chain(
+                    db, order, steps, actor_type="driver", actor_id=driver.id
+                )
                 target = OrderState.DELIVERED
                 _record_stop_completion(db, driver.id, order.id, "dropoff")
                 EarningsService().credit_delivery(db, driver, order_id=order.id)
@@ -331,9 +373,12 @@ class StopsService:
         exception_type: str,
         notes: str | None = None,
         photo_url: str | None = None,
-        auto_reoptimize: bool = False) -> dict:
+        auto_reoptimize: bool = False,
+    ) -> dict:
         from porterchain_api.booking_engine._core import emit_event
-        from porterchain_api.booking_engine.order_transitions import transition_order_state
+        from porterchain_api.booking_engine.order_transitions import (
+            transition_order_state,
+        )
         from porterchain_api.booking_models import OrderException
         from porterchain_api.domain.states import OrderState
         from porterchain_driver.stop_exceptions import (
@@ -342,7 +387,8 @@ class StopsService:
             photo_required,
             prior_attempt_rows,
             resolve_outcome,
-            retryable_attempt_count)
+            retryable_attempt_count,
+        )
 
         coded = normalize_exception_type(exception_type)
         if photo_required(coded) and not (photo_url or "").strip():
@@ -368,7 +414,8 @@ class StopsService:
                 "photo_url": (photo_url or "").strip() or None,
                 "attempt": attempt,
                 "outcome": outcome,
-            })
+            },
+        )
         db.add(exc)
         db.flush()
 
@@ -393,21 +440,28 @@ class StopsService:
                         OrderState.FAILED,
                         actor_type="driver",
                         actor_id=driver.id,
-                        event_type="exception.opened")
-                if close_state == OrderState.RETURN_TO_SENDER.value and str(order.state) == OrderState.FAILED.value:
+                        event_type="exception.opened",
+                    )
+                if (
+                    close_state == OrderState.RETURN_TO_SENDER.value
+                    and str(order.state) == OrderState.FAILED.value
+                ):
                     transition_order_state(
                         db,
                         order,
                         OrderState.RETURN_TO_SENDER,
                         actor_type="driver",
                         actor_id=driver.id,
-                        event_type="exception.return_to_sender")
+                        event_type="exception.return_to_sender",
+                    )
             except Exception:  # noqa: BLE001 — exception row already persisted
                 # Never silent: without this the merchant/Shopify never hear the stop failed.
                 import logging
 
                 logging.getLogger(__name__).exception(
-                    "stop_exception_transition_failed order=%s outcome=%s", order.id, outcome
+                    "stop_exception_transition_failed order=%s outcome=%s",
+                    order.id,
+                    outcome,
                 )
         emit_event(
             db,
@@ -424,7 +478,8 @@ class StopsService:
                 "notes": notes or "",
                 "attempt": attempt,
                 "outcome": outcome,
-            })
+            },
+        )
         reopt: dict | None = None
         if auto_reoptimize and close_state:
             try:
@@ -452,26 +507,18 @@ class StopsService:
     def assignedroute_response(self, db: Session, driver: Any) -> RouteView | None:
         return self.assigned_route(db, driver)
 
-    def startroute_response(
-        self, db: Session, driver: Any, route_id: str
-    ) -> RouteView:
+    def startroute_response(self, db: Session, driver: Any, route_id: str) -> RouteView:
         return self.start_route(db, driver, route_id)
 
-    def stops_forroute_response(self, db: Session, driver_id: str, route_id: str) -> list[StopView]:
+    def stops_forroute_response(
+        self, db: Session, driver_id: str, route_id: str
+    ) -> list[StopView]:
         return self.stops_for_route(db, driver_id, route_id)
 
     def arrivestop_response(
-        self,
-        db: Session,
-        driver: Any,
-        stop_id: str,
-        *,
-        enforce_sequence: bool = True) -> StopView:
-        return self.arrive_stop(
-            db,
-            driver,
-            stop_id,
-            enforce_sequence=enforce_sequence)
+        self, db: Session, driver: Any, stop_id: str, *, enforce_sequence: bool = True
+    ) -> StopView:
+        return self.arrive_stop(db, driver, stop_id, enforce_sequence=enforce_sequence)
 
     def deliverstop_response(
         self,
@@ -480,13 +527,15 @@ class StopsService:
         stop_id: str,
         *,
         enforce_sequence: bool = True,
-        auto_reoptimize: bool = False) -> StopView:
+        auto_reoptimize: bool = False,
+    ) -> StopView:
         return self.deliver_stop(
             db,
             driver,
             stop_id,
             enforce_sequence=enforce_sequence,
-            auto_reoptimize=auto_reoptimize)
+            auto_reoptimize=auto_reoptimize,
+        )
 
     def _today_orders(self, db: Session, driver_id: str) -> list:
         from porterchain_api.booking_models import Order
@@ -496,8 +545,11 @@ class StopsService:
             db.query(Order)
             .filter(
                 Order.assigned_driver_id == driver_id,
-                Order.state.in_(list(_ACTIVE_STATES) + ["DISPATCH_READY", "POD_COMPLETED"]),
-                Order.scheduled_at >= start)
+                Order.state.in_(
+                    list(_ACTIVE_STATES) + ["DISPATCH_READY", "POD_COMPLETED"]
+                ),
+                Order.scheduled_at >= start,
+            )
             .order_by(Order.scheduled_at.asc())
             .all()
         )
@@ -507,7 +559,10 @@ class StopsService:
 
         return (
             db.query(Order)
-            .filter(Order.assigned_driver_id == driver_id, Order.state.in_(list(_ACTIVE_STATES)))
+            .filter(
+                Order.assigned_driver_id == driver_id,
+                Order.state.in_(list(_ACTIVE_STATES)),
+            )
             .order_by(Order.scheduled_at.asc())
             .all()
         )
@@ -516,12 +571,18 @@ class StopsService:
         from porterchain_api.booking_models import Order
 
         order_id = stop_id.rsplit("-", 1)[0]
-        order = db.query(Order).filter(Order.id == order_id, Order.assigned_driver_id == driver_id).first()
+        order = (
+            db.query(Order)
+            .filter(Order.id == order_id, Order.assigned_driver_id == driver_id)
+            .first()
+        )
         if not order:
             raise LookupError("stop_not_found")
         return order
 
-    def _stops_for_orders(self, orders: list, *, driver_id: str | None = None) -> list[StopView]:
+    def _stops_for_orders(
+        self, orders: list, *, driver_id: str | None = None
+    ) -> list[StopView]:
         """Build stop views; prefer applied day-plan waypoint sequence when present.
 
         Without a plan, emit pickup then dropoff per order (legacy order). A ready
@@ -541,7 +602,9 @@ class StopsService:
         stops: list[StopView] = []
         if waypoints:
             seen: set[tuple[str, str]] = set()
-            for i, wp in enumerate(sorted(waypoints, key=lambda w: int(w.get("sequence") or 0))):
+            for i, wp in enumerate(
+                sorted(waypoints, key=lambda w: int(w.get("sequence") or 0))
+            ):
                 oid = str(wp.get("order_id") or "")
                 leg = str(wp.get("stop_type") or "").lower()
                 if leg not in {"pickup", "dropoff"} or oid not in by_id:
@@ -556,7 +619,9 @@ class StopsService:
                 oid = str(order.id)
                 for leg in ("pickup", "dropoff"):
                     if (oid, leg) not in seen:
-                        stops.append(self._order_to_stop(order, leg, sequence=len(stops)))
+                        stops.append(
+                            self._order_to_stop(order, leg, sequence=len(stops))
+                        )
             return stops
 
         for i, order in enumerate(orders):
@@ -581,4 +646,5 @@ class StopsService:
             order_number=order.order_number or order.tracking_number,
             special_instructions=order.special_instructions,
             otp_required=stop_type == "dropoff",
-            pod_required=stop_type == "dropoff")
+            pod_required=stop_type == "dropoff",
+        )
