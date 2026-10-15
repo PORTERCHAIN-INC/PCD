@@ -133,10 +133,9 @@ class BookingConfirmationService:
             raise LookupError("quote_not_found")
         quote = locked_quote
 
-        if quote.state != QuoteState.PAYMENT_PENDING.value:
-            raise ValueError("quote_not_awaiting_payment")
-
-        # Idempotency — a verified webhook may arrive more than once.
+        # Idempotency first: the success-page poll, the worker backstop and the
+        # webhook can all confirm the same paid session; the quote has already left
+        # PAYMENT_PENDING by the second call, so that must not raise.
         existing = lock_order_by_quote(db, quote.id)
         if existing:
             booking = db.query(Booking).filter(Booking.quote_id == quote.id).first()
@@ -146,6 +145,9 @@ class BookingConfirmationService:
                 )
                 self._drafts.on_booking_confirmed(db, quote, booking, existing)
             return existing
+
+        if quote.state != QuoteState.PAYMENT_PENDING.value:
+            raise ValueError("quote_not_awaiting_payment")
 
         payment = lock_active_payment(db, quote.id)
         if payment:

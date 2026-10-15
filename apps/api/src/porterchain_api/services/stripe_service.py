@@ -126,7 +126,11 @@ def handle_checkout_completed(settings: Settings, session: dict) -> dict | None:
         "payment_method": (methods[0] if methods else None),
         "amount_total": session.get("amount_total"),
         "currency": session.get("currency"),
-        "tax_cents": total_details.get("amount_tax"),
+        # Our quote price already includes GST/HST (pricing engine). Stripe Tax is
+        # off, so amount_tax is 0 and must not overwrite our tax split; only trust it
+        # when Stripe actually computed tax.
+        "tax_cents": (total_details.get("amount_tax") or None),
+        "payment_status": session.get("payment_status"),
     }
 
 
