@@ -75,7 +75,9 @@ class Settings(BaseSettings):
     clerk_authorized_parties: str = ""  # comma-separated azp allowlist
     clerk_authorized_issuers: str = ""  # comma-separated iss allowlist
     # Phase 4 — Clerk webhook (Svix) signing secret
-    clerk_webhook_signing_secret: str = ""
+    clerk_webhook_signing_secret: str = ""  # Platform instance endpoint (whsec_...)
+    #: Porterchain Driver instance endpoint (whsec_...). Separate Clerk app = separate secret.
+    clerk_driver_webhook_signing_secret: str = ""
     # RETIRED — must stay false. platform_driver is the only supported layout.
     clerk_unified_mode: bool = False
 

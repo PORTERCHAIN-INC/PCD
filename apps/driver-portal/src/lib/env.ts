@@ -11,6 +11,8 @@ export const publicEnv = {
     process.env.NEXT_PUBLIC_WEBSITE_URL ??
     (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://porterchain.com")
   ).replace(/\/$/, ""),
+  // Must be the Porterchain Driver instance key (clerk.driver.porterchain.com) — the same Clerk
+  // app the driver mobile app uses, so one driver account works on web and mobile.
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
   googleMapsApiKey: (
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ??

@@ -46,21 +46,28 @@ class ClerkWebhookService:
         svix_timestamp: str | None,
         svix_signature: str | None,
     ) -> dict[str, str]:
-        secret = (settings.clerk_webhook_signing_secret or "").strip()
-        if not secret:
+        candidates = _webhook_secrets(settings)
+        if not candidates:
             raise HTTPException(status_code=503, detail="clerk_webhook_not_configured")
 
-        try:
-            verify_clerk_webhook_signature(
-                payload=payload,
-                secret=secret,
-                svix_id=svix_id,
-                svix_timestamp=svix_timestamp,
-                svix_signature=svix_signature,
-            )
-        except ClerkWebhookSignatureError as exc:
-            logger.warning("clerk_webhook_reject reason=%s", exc)
-            raise HTTPException(status_code=400, detail="invalid_signature") from exc
+        source: str | None = None
+        last_error: ClerkWebhookSignatureError | None = None
+        for name, secret in candidates:
+            try:
+                verify_clerk_webhook_signature(
+                    payload=payload,
+                    secret=secret,
+                    svix_id=svix_id,
+                    svix_timestamp=svix_timestamp,
+                    svix_signature=svix_signature,
+                )
+                source = name
+                break
+            except ClerkWebhookSignatureError as exc:
+                last_error = exc
+        if source is None:
+            logger.warning("clerk_webhook_reject reason=%s", last_error)
+            raise HTTPException(status_code=400, detail="invalid_signature")
 
         try:
             body = json.loads(payload.decode("utf-8"))
@@ -82,7 +89,7 @@ class ClerkWebhookService:
 
         try:
             data = body.get("data") if isinstance(body.get("data"), dict) else {}
-            self._dispatch(db, settings, event_type=event_type, data=data)
+            self._dispatch(db, settings, event_type=event_type, data=data, source=source)
             complete_clerk_event(db, clerk_event_id=event_id)
             db.commit()
             if event_type == "user.created" and _is_driver_signup(data):
@@ -99,7 +106,15 @@ class ClerkWebhookService:
             logger.exception("clerk_webhook_processing_failed")
             raise HTTPException(status_code=500, detail="webhook_processing_failed") from None
 
-    def _dispatch(self, db: Session, settings: Settings, *, event_type: str, data: dict[str, Any]) -> None:
+    def _dispatch(
+        self,
+        db: Session,
+        settings: Settings,
+        *,
+        event_type: str,
+        data: dict[str, Any],
+        source: str = "platform",
+    ) -> None:
         clerk_user_id = str(data.get("id") or "")
         if not clerk_user_id:
             raise ValueError("missing_clerk_user_id")
@@ -110,7 +125,7 @@ class ClerkWebhookService:
 
         email, verified = _primary_email(data)
         phone = _primary_phone(data)
-        issuer = _issuer_from_settings(settings)
+        issuer = _issuer_for_source(settings, source) or _issuer_from_settings(settings)
 
         # Never elevate: ensure creates pending/unprovisioned + mirrors legacy only
         self._ensure.ensure_from_clerk_user_payload(
@@ -192,3 +207,29 @@ def _primary_phone(data: dict[str, Any]) -> str | None:
 def _issuer_from_settings(settings: Settings) -> str | None:
     issuers = [p.strip() for p in (settings.clerk_authorized_issuers or "").split(",") if p.strip()]
     return issuers[0] if len(issuers) == 1 else None
+
+
+def _webhook_secrets(settings: Settings) -> list[tuple[str, str]]:
+    """(source, secret) pairs: Platform first, then Porterchain Driver."""
+    out: list[tuple[str, str]] = []
+    platform = (settings.clerk_webhook_signing_secret or "").strip()
+    driver = (getattr(settings, "clerk_driver_webhook_signing_secret", "") or "").strip()
+    if platform:
+        out.append(("platform", platform))
+    if driver and driver != platform:
+        out.append(("driver", driver))
+    return out
+
+
+def _issuer_from_jwks(jwks_url: str) -> str | None:
+    url = (jwks_url or "").strip()
+    if not url:
+        return None
+    marker = "/.well-known/"
+    return url.split(marker, 1)[0] if marker in url else None
+
+
+def _issuer_for_source(settings: Settings, source: str) -> str | None:
+    if source == "driver":
+        return _issuer_from_jwks(settings.clerk_driver_jwks_url)
+    return _issuer_from_jwks(settings.clerk_jwks_url or settings.clerk_admin_jwks_url)
