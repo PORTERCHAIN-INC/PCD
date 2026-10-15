@@ -104,7 +104,11 @@ export function SettingsBody({
                 Alert.alert(m.title, m.body);
               })
               .catch(() =>
-                toast.show("danger", "Couldn't send", "Try again with signal, or email privacy@porterchain.com.")
+                toast.show(
+                  "danger",
+                  "Couldn't send",
+                  "Try again with signal, or email privacy@porterchain.com."
+                )
               )
               .finally(() => setPrivacyBusy(false));
           },
