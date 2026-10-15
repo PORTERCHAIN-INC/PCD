@@ -86,3 +86,24 @@ def test_reconcile_confirms_paid_and_expires_abandoned(db: Session, settings: Se
     # Re-running is a no-op for the confirmed one.
     StripeWebhookService().reconcile_open_checkouts(db, s2)
     assert db.query(Order).filter(Order.quote_id == paid_q.id).count() == 1
+
+
+def test_reconcile_closes_older_session_on_same_quote(db: Session, settings: Settings, monkeypatch) -> None:
+    import porterchain_api.services.stripe_service as ss
+
+    quote, customer, first = _setup_quote(db, settings)
+    old = datetime.now(UTC) - timedelta(minutes=30)
+    first.stripe_checkout_session_id = f"cs_test_old_{uuid4().hex[:6]}"
+    first.status = "PROCESSING"
+    first.created_at = old
+    second = Payment(quote_id=quote.id, amount_cents=first.amount_cents, currency=first.currency,
+                     status="PROCESSING", stripe_checkout_session_id=f"cs_test_new_{uuid4().hex[:6]}",
+                     created_at=old + timedelta(minutes=2))
+    db.add(second)
+    db.commit()
+    monkeypatch.setattr(ss, "retrieve_checkout_session", lambda _s, sid: {
+        "id": sid, "status": "expired", "payment_status": "unpaid",
+        "metadata": {"quote_id": quote.id, "customer_id": customer.id}})
+    StripeWebhookService().reconcile_open_checkouts(db, settings.model_copy(update={"stripe_secret": "sk_test_x"}))
+    db.refresh(first); db.refresh(second)
+    assert first.status == "FAILED" and second.status == "FAILED"

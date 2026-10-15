@@ -267,6 +267,10 @@ class StripeWebhookService:
                     out["confirmed"] += 1
                 elif session_payload.get("status") == "expired":
                     self._handle_checkout_expired(db, session_payload)
+                    # A quote can have several sessions; the handler fails the quote's
+                    # active payment, which may be a newer one. Close this row too.
+                    if payment.status == "PROCESSING":
+                        self._payments.mark_failed(db, payment, reason="checkout_session_expired")
                     out["expired"] += 1
                 db.commit()
             except Exception:  # noqa: BLE001
