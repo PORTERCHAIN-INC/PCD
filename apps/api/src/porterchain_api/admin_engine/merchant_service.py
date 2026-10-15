@@ -74,6 +74,7 @@ class AdminMerchantService:
 
         merchant = create_onboarding_merchant(
             db,
+            dedupe_source="admin_create",
             company_name=company_name.strip(),
             email=normalized,
             status=MerchantStatus.PENDING.value,

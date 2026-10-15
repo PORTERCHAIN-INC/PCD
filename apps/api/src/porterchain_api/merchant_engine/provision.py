@@ -29,6 +29,7 @@ def create_onboarding_merchant(
     clerk_org_id: str | None = None,
     activated_at: datetime | None = None,
     pricing_config: dict[str, Any] | None = None,
+    dedupe_source: str | None = None,
 ) -> Merchant:
     config = dict(pricing_config or {})
     raw_model = str(config.pop("pricing_model", "") or "distance").lower()
@@ -52,6 +53,10 @@ def create_onboarding_merchant(
     )
     db.add(merchant)
     db.flush()
+    if dedupe_source:
+        from porterchain_api.merchant_engine.dedupe import flag_possible_duplicate
+
+        flag_possible_duplicate(db, merchant, source=dedupe_source)
     return merchant
 
 

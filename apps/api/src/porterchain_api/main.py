@@ -176,6 +176,9 @@ def create_app() -> FastAPI:
     app.include_router(collaboration.router)
     app.include_router(merchants.router)
     app.include_router(merchants_integrations.router)
+    from porterchain_api.routers import admin_merchant_dedupe
+
+    app.include_router(admin_merchant_dedupe.router)
     app.include_router(fsa_rate_card.merchant_router)
     app.include_router(fsa_rate_card.admin_router)
     app.include_router(merchant_ops.router)

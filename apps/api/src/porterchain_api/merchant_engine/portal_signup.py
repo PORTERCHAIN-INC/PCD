@@ -115,6 +115,7 @@ def link_or_create_portal_merchant(
     if not merchant:
         merchant = create_onboarding_merchant(
             db,
+            dedupe_source="portal_signup",
             company_name=company_name,
             email=email,
             status=resolve_initial_status(db, source=SIGNUP_SOURCE_PORTAL),
