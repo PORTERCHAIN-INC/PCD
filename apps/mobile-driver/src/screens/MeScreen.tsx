@@ -172,7 +172,7 @@ export function MeScreen(props: Props) {
         />
         <Row
           label={t("settings")}
-          sub="Language, navigation, voice, notifications, privacy, legal"
+          sub="Language, navigation, notifications, privacy, delete account"
           onPress={() => setPage("settings")}
           testID="me-settings"
         />
