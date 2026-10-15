@@ -14,7 +14,6 @@ export function DriverTab({
   return (
     <Card title="Driver">
       <p className="font-medium">{String(driver.name ?? "—")}</p>
-      <p className="mt-1 text-muted">Phone: {String(driver.phone ?? "—")}</p>
       <p className="mt-1 text-muted">
         Status: {status ?? String(driver.is_online ? "online" : "offline")}
       </p>

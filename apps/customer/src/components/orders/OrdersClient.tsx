@@ -1,5 +1,7 @@
 "use client";
 
+import { BookingDocuments } from "./BookingDocuments";
+
 import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -247,6 +249,9 @@ function OrderCard({ order, auth }: { order: MyDelivery; auth: PortalAuthValue }
             Send to support
           </button>
         </div>
+      ) : null}
+      {order.active ? (
+        <BookingDocuments trackingNumber={order.tracking_number} getToken={auth.getToken} />
       ) : null}
     </li>
   );

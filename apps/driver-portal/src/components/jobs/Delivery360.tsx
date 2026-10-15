@@ -14,6 +14,7 @@ import {
   Truck,
 } from "lucide-react";
 import { driverApi } from "@/lib/api";
+import { StopDocuments } from "./StopDocuments";
 import { enqueueOfflineAction } from "@/lib/offline-client";
 import type { DriverJobDetail, JobActionKey } from "@/lib/jobs";
 import {
@@ -303,6 +304,8 @@ export default function Delivery360({
           </button>
         </div>
       )}
+
+      {!completed && <StopDocuments orderId={job.order_id} onChanged={onUpdated} />}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section

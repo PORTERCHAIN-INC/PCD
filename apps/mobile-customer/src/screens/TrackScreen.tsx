@@ -1,3 +1,4 @@
+import { openDocuments } from "../documents";
 import { useState } from "react";
 import { Linking, Pressable, Text, TextInput, StyleSheet, View } from "react-native";
 import { websiteUrl } from "../config";
@@ -125,6 +126,14 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
               )
             }
           />
+          <Pressable
+            accessibilityRole="button"
+            testID="track-attach-docs"
+            onPress={() => void openDocuments(order.tracking_number ?? trimmed)}
+            style={{ paddingVertical: 12 }}
+          >
+            <Text style={styles.meta}>Pickup documents for the driver →</Text>
+          </Pressable>
           {enhanced ? (
             <>
               {etaWindowText(enhanced.eta_window) ? (

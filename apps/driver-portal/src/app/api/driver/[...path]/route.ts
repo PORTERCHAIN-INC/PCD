@@ -28,7 +28,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const url = new URL(request.url);
   const target = `${API_BASE}/driver-api/v1/${parts.join("/")}${url.search}`;
   const requestBody =
-    request.method === "GET" || request.method === "HEAD" ? undefined : await request.text();
+    request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(); // binary-safe (photos, documents)
 
   const headers = new Headers(request.headers);
   headers.delete("host");
@@ -64,6 +64,8 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const body = await upstream.arrayBuffer();
   const responseHeaders: Record<string, string> = { "Content-Type": contentType };
   if (disposition) responseHeaders["Content-Disposition"] = disposition;
+  const cacheControl = upstream.headers.get("cache-control");
+  if (cacheControl) responseHeaders["Cache-Control"] = cacheControl;
 
   return new NextResponse(body, { status: upstream.status, headers: responseHeaders });
 }

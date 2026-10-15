@@ -48,6 +48,7 @@ const SupportTab = dynamic(() => import("./order360/SupportTab").then((m) => m.S
 const ClaimsTab = dynamic(() => import("./order360/ClaimsTab").then((m) => m.ClaimsTab), {
   loading: () => <PageSkeleton rows={3} />,
 });
+import { BookingDocumentsCard } from "./order360/BookingDocumentsCard";
 const DocumentsTab = dynamic(() => import("./order360/DocumentsTab").then((m) => m.DocumentsTab), {
   loading: () => <PageSkeleton rows={2} />,
 });
@@ -354,6 +355,12 @@ export function Order360View({
       {activeSection === "overview" && (
         <div className="space-y-6">
           <OverviewTab detail={detail} />
+          <BookingDocumentsCard
+            orderId={detail.order_id}
+            getApiToken={getApiToken}
+            orgId={orgId}
+            canWrite={canWriteOrders}
+          />
           <ReturnsCard
             orderId={detail.order_id}
             state={detail.state}

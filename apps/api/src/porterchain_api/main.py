@@ -65,7 +65,10 @@ async def lifespan(_app: FastAPI):
     from porterchain_shared.redis_health import require_redis_for_production
 
     settings = get_settings()
-    from porterchain_api.platform.observability import init_observability, instrument_app
+    from porterchain_api.platform.observability import (
+        init_observability,
+        instrument_app,
+    )
 
     init_observability(sentry_dsn=settings.sentry_dsn, app_env=settings.app_env)
     instrument_app(_app, app_env=settings.app_env)
@@ -98,7 +101,9 @@ def api_docs_exposed(settings) -> bool:
     """Interactive docs + OpenAPI JSON only in local/dev/test, or when explicitly enabled."""
     from porterchain_shared.redis_health import is_local_env
 
-    return bool(getattr(settings, "api_docs_enabled", False)) or is_local_env(settings.app_env)
+    return bool(getattr(settings, "api_docs_enabled", False)) or is_local_env(
+        settings.app_env
+    )
 
 
 def create_app() -> FastAPI:
@@ -197,12 +202,17 @@ def create_app() -> FastAPI:
     app.include_router(operations.dispatch_router)
     app.include_router(diagnostics.router)
     app.include_router(driver.router)
+    from porterchain_api.routers import booking_attachments as _booking_attachments
+
+    app.include_router(_booking_attachments.router)
 
     from fastapi import HTTPException, Request
     from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
 
-    from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+    from porterchain_api.merchant_engine.booking_validation import (
+        BookingValidationError,
+    )
     from porterchain_api.platform.errors import error_envelope
     import logging
 
@@ -212,7 +222,9 @@ def create_app() -> FastAPI:
         return getattr(request.state, "request_id", None)
 
     @app.exception_handler(BookingValidationError)
-    async def _booking_validation_handler(request: Request, exc: BookingValidationError) -> JSONResponse:
+    async def _booking_validation_handler(
+        request: Request, exc: BookingValidationError
+    ) -> JSONResponse:
         rid = _request_id(request)
         return JSONResponse(
             status_code=422,
@@ -221,7 +233,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def _validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    async def _validation_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         rid = _request_id(request)
         return JSONResponse(
             status_code=422,
@@ -230,7 +244,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(PermissionError)
-    async def _permission_error_handler(request: Request, exc: PermissionError) -> JSONResponse:
+    async def _permission_error_handler(
+        request: Request, exc: PermissionError
+    ) -> JSONResponse:
         rid = _request_id(request)
         return JSONResponse(
             status_code=403,
@@ -239,7 +255,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(HTTPException)
-    async def _http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    async def _http_exception_handler(
+        request: Request, exc: HTTPException
+    ) -> JSONResponse:
         rid = _request_id(request)
         headers = dict(exc.headers or {})
         if rid:
@@ -251,13 +269,19 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(Exception)
-    async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    async def _unhandled_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
         _logger.exception("unhandled error: %s", exc)
-        detail = str(exc) if settings.app_env != "production" else "internal_server_error"
+        detail = (
+            str(exc) if settings.app_env != "production" else "internal_server_error"
+        )
         rid = _request_id(request)
         return JSONResponse(
             status_code=500,
-            content=error_envelope(detail, code="internal_server_error", request_id=rid),
+            content=error_envelope(
+                detail, code="internal_server_error", request_id=rid
+            ),
             headers={REQUEST_ID_HEADER: rid} if rid else None,
         )
 
@@ -292,7 +316,9 @@ def create_app() -> FastAPI:
         from fastapi.responses import PlainTextResponse
         from porterchain_api.platform.metrics import prometheus_metrics
 
-        return PlainTextResponse(prometheus_metrics(), media_type="text/plain; version=0.0.4")
+        return PlainTextResponse(
+            prometheus_metrics(), media_type="text/plain; version=0.0.4"
+        )
 
     return app
 

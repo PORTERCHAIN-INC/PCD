@@ -229,7 +229,6 @@ function DriverVehicleCard({ tracking }: { tracking: LiveTracking }) {
       {driver ? (
         <div className="mt-2 text-sm">
           <p className="font-medium">{String(driver.name ?? "—")}</p>
-          <p className="text-muted">{String(driver.phone ?? "")}</p>
           {driver.is_online != null && (
             <p className="text-xs text-muted">{driver.is_online ? "Online" : "Offline"}</p>
           )}

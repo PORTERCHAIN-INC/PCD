@@ -30,6 +30,7 @@ import { BarcodeScannerModal } from "../ui/BarcodeScannerModal";
 import { ProblemSheet } from "../ui/job/ProblemSheet";
 import { ProofSheets, type ProofSheet } from "../ui/job/ProofSheets";
 import { StepRail } from "../ui/job/StepRail";
+import { StopDocumentsCard } from "../ui/job/StopDocumentsCard";
 import {
   Banner,
   Body,
@@ -351,6 +352,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         ) : null}
       </View>
       <StepRail steps={view.rail} />
+      {orderId && view.step !== "offer" ? <StopDocumentsCard orderId={orderId} /> : null}
 
       {h.accessNotes ? (
         <Card testID="access-notes">

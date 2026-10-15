@@ -141,7 +141,12 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
         detail = JSON.stringify({ field: d.field, code: d.code });
       } else if (d.code === "sequence_version_conflict") {
         detail = "sequence_version_conflict";
-      } else if ((d.code === "pod_required" || d.code === "driver_off_duty") && d.message) {
+      } else if (
+        (d.code === "pod_required" ||
+          d.code === "driver_off_duty" ||
+          d.code === "pickup_document_not_shown") &&
+        d.message
+      ) {
         detail = d.message;
       } else {
         detail = d.error || d.code || "request_failed";
