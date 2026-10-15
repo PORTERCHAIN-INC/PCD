@@ -4,13 +4,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import {
-  acceptOrder,
-  arriveStop,
-  rejectOrder,
-  reportException,
-  scanPackage,
-} from "../api";
+import { acceptOrder, arriveStop, rejectOrder, reportException, scanPackage } from "../api";
 import type { FieldSession } from "../hooks/useFieldSession";
 import type { RouteState } from "../hooks/useDispatchRoute";
 import { haptic } from "../haptics";

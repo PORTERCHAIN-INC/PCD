@@ -13,7 +13,9 @@ describe("build 29 regressions", () => {
 
   it("an open shift on an older server is resumed, not an error", () => {
     expect(read("src/hooks/useFieldSession.ts")).toMatch(/shift_already_active/);
-    expect(humanError("shift_already_active")).toBe("You are already on duty. Pull down to refresh.");
+    expect(humanError("shift_already_active")).toBe(
+      "You are already on duty. Pull down to refresh."
+    );
   });
 
   it("action errors are set after the refresh so they stay on screen", () => {
