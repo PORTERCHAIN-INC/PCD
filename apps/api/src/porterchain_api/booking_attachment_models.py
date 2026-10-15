@@ -44,6 +44,9 @@ class BookingAttachment(Base):
     shown_by_driver_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     proof_content: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     proof_content_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # One-time short-lived link (5 min) so the phone's built-in viewer can open a PDF full-screen.
+    link_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    link_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     purged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

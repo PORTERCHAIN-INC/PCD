@@ -169,6 +169,15 @@ def _customer(db: Session, claims: ClerkClaims, settings: Settings):
     return require_customer(db, claims, settings)
 
 
+@router.post("/v1/customers/me/attachments/suggest")
+async def customer_suggest(file: UploadFile = File(...), claims: ClerkClaims = Depends(get_clerk_claims)):
+    del claims  # signed-in customers only; nothing is stored
+    data = await _read(file)
+    ctype = await run_in_threadpool(_call, svc.validate_file, data)
+    kind = svc.suggest_kind(file.filename or "", data)
+    return {"kind": kind, "kind_label": svc.KINDS[kind], "stop": svc.DEFAULT_STOP[kind], "content_type": ctype}
+
+
 @router.get("/v1/customers/me/orders/{order_id}/attachments")
 def customer_list(order_id: str, db: Session = Depends(get_db), claims: ClerkClaims = Depends(get_clerk_claims),
                   settings: Settings = Depends(get_settings)):
@@ -236,6 +245,23 @@ def driver_list(order_id: str, ctx: DCtx, db: Session = Depends(get_db)):
 @router.get("/driver-api/v1/attachments/{attachment_id}/file")
 def driver_file(attachment_id: str, ctx: DCtx, db: Session = Depends(get_db)) -> Response:
     att, data = _call(svc.driver_download, db, ctx.driver.id, attachment_id)
+    db.commit()
+    return _file(att, data)
+
+
+@router.post("/driver-api/v1/attachments/{attachment_id}/link")
+def driver_link(attachment_id: str, ctx: DCtx, db: Session = Depends(get_db),
+                settings: Settings = Depends(get_settings)) -> dict[str, Any]:
+    token = _call(svc.driver_link, db, ctx.driver.id, attachment_id)
+    db.commit()
+    base = (getattr(settings, "public_api_url", None) or "").rstrip("/")
+    return {"path": f"/v1/attachment-links/{token}", "url": f"{base}/v1/attachment-links/{token}" if base else None,
+            "expires_in": int(svc.LINK_TTL.total_seconds())}
+
+
+@router.get("/v1/attachment-links/{token}")
+def redeem_link(token: str, db: Session = Depends(get_db)) -> Response:
+    att, data = _call(svc.redeem_link, db, token)
     db.commit()
     return _file(att, data)
 

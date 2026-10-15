@@ -18,6 +18,7 @@ import CustomerShell from "@/components/CustomerShell";
 import { publicEnv } from "@/lib/env";
 import PortalAuth, { type PortalAuthValue } from "@/components/auth/PortalAuth";
 import { accountApi, type SavedAddress } from "@/lib/account";
+import { ACCEPT, attachAll, stashFiles, type PendingFile } from "@/lib/attachments";
 import {
   createQuote,
   getQuote,
@@ -48,6 +49,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
   const router = useRouter();
   const params = useSearchParams();
   const resumeId = params.get("quote_id");
+  const [docs, setDocs] = useState<PendingFile[]>([]);
   const [pickup, setPickup] = useState("");
   const [drops, setDrops] = useState<string[]>([""]);
   const [vehicle, setVehicle] = useState<VehicleId>("sedan_suv");
@@ -139,12 +141,14 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         dangerous_goods_confirmed: true,
         consent_at: new Date().toISOString(),
       });
+      if (docs.length) await stashFiles(quoteId, docs).catch(() => undefined);
       if (booking.checkout_url) {
         window.location.href = booking.checkout_url;
         return;
       }
       if (booking.mock_checkout) {
         const done = await mockCompleteCheckout(quoteId);
+        if (docs.length) await attachAll(token, done.tracking_number, docs);
         router.push(`/orders?booked=${encodeURIComponent(done.tracking_number)}`);
         return;
       }
@@ -292,6 +296,36 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             />
           </label>
         ) : null}
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-dashed border-primary/20 p-4 text-sm" data-testid="send-docs">
+        <p className="font-bold text-primary">Pickup documents (optional)</p>
+        <p className="text-primary/65">E.g. a pickup authorization the driver must show. Only your driver can open it.</p>
+        {docs.map((d, i) => (
+          <p key={i} className="mt-1 flex items-center gap-3">
+            <span className="font-semibold">{d.file.name}</span>
+            <button type="button" className="text-xs text-red-600" onClick={() => setDocs(docs.filter((_, j) => j !== i))}>
+              Remove
+            </button>
+          </p>
+        ))}
+        <label className="mt-2 inline-block cursor-pointer font-semibold text-secondary">
+          + Attach document or photo
+          <input
+            type="file"
+            accept={ACCEPT}
+            multiple
+            hidden
+            onChange={(e) =>
+              setDocs([
+                ...docs,
+                ...Array.from(e.target.files ?? [])
+                  .filter((f) => f.size <= 10 * 1024 * 1024)
+                  .map((file) => ({ file, required: true })),
+              ].slice(0, 10))
+            }
+          />
+        </label>
       </div>
 
       {error ? (

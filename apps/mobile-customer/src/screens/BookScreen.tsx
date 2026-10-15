@@ -1,3 +1,4 @@
+import { openDocuments } from "../documents";
 import { useEffect, useState } from "react";
 import {
   InputAccessoryView,
@@ -551,6 +552,14 @@ export function BookScreen({
                 label="Track shipment"
                 onPress={() => onTracked(done.tracking_number)}
               />
+              <Pressable
+                accessibilityRole="button"
+                testID="book-attach-docs"
+                onPress={() => void openDocuments(done.tracking_number)}
+                style={{ paddingVertical: 14, alignItems: "center" }}
+              >
+                <Text style={styles.lede}>Attach a pickup document for the driver</Text>
+              </Pressable>
             </>
           ) : (
             <>

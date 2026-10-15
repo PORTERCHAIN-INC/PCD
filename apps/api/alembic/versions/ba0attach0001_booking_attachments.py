@@ -34,6 +34,8 @@ def upgrade() -> None:
         sa.Column("shown_by_driver_id", sa.String(36), nullable=True),
         sa.Column("proof_content", sa.LargeBinary, nullable=True),
         sa.Column("proof_content_type", sa.String(64), nullable=True),
+        sa.Column("link_token_hash", sa.String(64), nullable=True, index=True),
+        sa.Column("link_expires_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("purged_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),

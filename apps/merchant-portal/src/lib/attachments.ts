@@ -76,13 +76,13 @@ export const attachmentsApi = {
     token: string,
     orderId: string,
     file: File,
-    opts: { kind: string; stop: string; required: boolean; note?: string; saveForLocation: boolean },
+    opts: { kind?: string; stop?: string; required: boolean; note?: string; saveForLocation: boolean },
     orgId?: string
   ) => {
     const fd = new FormData();
     fd.set("file", file);
-    fd.set("kind", opts.kind);
-    fd.set("stop", opts.stop);
+    if (opts.kind) fd.set("kind", opts.kind);
+    if (opts.stop) fd.set("stop", opts.stop);
     fd.set("required_at_stop", String(opts.required));
     fd.set("save_for_location", String(opts.saveForLocation));
     if (opts.note) fd.set("note", opts.note);
@@ -104,3 +104,26 @@ export const attachmentsApi = {
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   },
 };
+
+export type PendingFile = { file: File; required: boolean; saveForLocation: boolean };
+
+/** After a booking is created: attach the files picked on the form. Returns names that failed. */
+export async function attachPendingFiles(
+  token: string,
+  orderKeys: string[],
+  files: PendingFile[],
+  orgId?: string
+): Promise<string[]> {
+  const failed: string[] = [];
+  for (const key of orderKeys) {
+    for (const [i, f] of files.entries()) {
+      try {
+        // Save-for-address only once, on the first booking.
+        await attachmentsApi.upload(token, key, f.file, { required: f.required, saveForLocation: f.saveForLocation && key === orderKeys[0] }, orgId);
+      } catch {
+        if (key === orderKeys[0]) failed.push(files[i].file.name);
+      }
+    }
+  }
+  return failed;
+}

@@ -173,3 +173,31 @@ def test_gate_env_flag(monkeypatch):
     assert svc.pickup_gate_enforced()
     monkeypatch.setenv("PICKUP_DOCUMENT_GATE", "off")
     assert not svc.pickup_gate_enforced()
+
+
+def test_owner_lookup_by_tracking_number_is_scoped(db):
+    m, other = _merchant(db), _merchant(db)
+    o = _order(db, m.id)
+    assert svc.owned_order(db, "merchant", m.id, o.tracking_number).id == o.id
+    with pytest.raises(LookupError):
+        svc.owned_order(db, "merchant", other.id, o.tracking_number)
+
+
+def test_short_lived_single_use_link(db):
+    m, d, other = _merchant(db), _driver(db), _driver(db)
+    o = _order(db, m.id, d.id)
+    att = svc.upload(db, owner_type="merchant", owner_id=m.id, actor_id="u", order_id=o.id, data=PDF, filename="p.pdf")
+    with pytest.raises(PermissionError):
+        svc.driver_link(db, other.id, att["id"])
+    token = svc.driver_link(db, d.id, att["id"])
+    _, data = svc.redeem_link(db, token)
+    assert data == PDF
+    with pytest.raises(LookupError):
+        svc.redeem_link(db, token)  # single use
+    token2 = svc.driver_link(db, d.id, att["id"])
+    from porterchain_api.booking_attachment_models import BookingAttachment
+    row = db.get(BookingAttachment, att["id"])
+    row.link_expires_at = datetime.now(UTC) - timedelta(seconds=1)
+    db.flush()
+    with pytest.raises(LookupError):
+        svc.redeem_link(db, token2)

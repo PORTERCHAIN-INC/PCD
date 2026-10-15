@@ -12,6 +12,7 @@ import type { OrderBuilderPrefill } from "@/components/orders/OrderBuilderModal"
 import { downloadOrderFile, ordersApi, type OrderDetail } from "@/lib/orders";
 import { ops } from "@/lib/operations";
 import DeleteButton from "@/components/common/DeleteButton";
+import { OrderAttachmentsPanel } from "@/components/orders/OrderAttachmentsPanel";
 
 const OrderDetailView = dynamic(() => import("@/components/orders/OrderDetailView"), {
   loading: () => (
@@ -327,6 +328,7 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
         actionNotice={actionNotice}
         onRefresh={() => void invalidate()}
       />
+      {detail ? <OrderAttachmentsPanel orderId={id} getApiToken={getApiToken} /> : null}
       <AssignDriverModal
         open={assignOpen}
         orderId={id}

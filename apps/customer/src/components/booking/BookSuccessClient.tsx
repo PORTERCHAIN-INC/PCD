@@ -6,6 +6,27 @@ import { useSearchParams } from "next/navigation";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerMotion from "@/components/motion/CustomerMotion";
 import { syncBookingCheckout, type BookingConfirmation } from "@/lib/booking";
+import PortalAuth from "@/components/auth/PortalAuth";
+import { attachAll, takeStash } from "@/lib/attachments";
+
+/** Files picked before Stripe checkout: attach them now that the booking exists. */
+function AttachStashed({ quoteId, tracking, getToken }: { quoteId: string; tracking: string; getToken: () => Promise<string | null> }) {
+  const [note, setNote] = useState<string | null>(null);
+  useEffect(() => {
+    let done = false;
+    void (async () => {
+      const files = await takeStash(quoteId).catch(() => []);
+      const token = await getToken();
+      if (!files.length || !token || done) return;
+      const failed = await attachAll(token, tracking, files);
+      setNote(failed.length ? `Couldn't attach ${failed.join(", ")}. Add it from My orders.` : "Your documents are attached for the driver.");
+    })();
+    return () => {
+      done = true;
+    };
+  }, [quoteId, tracking, getToken]);
+  return note ? <p className="mt-3 text-sm text-emerald-800">{note}</p> : null;
+}
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -107,6 +128,7 @@ function SuccessContent() {
       {tracking ? (
         <>
           <p className="mt-6 font-mono text-lg font-semibold text-emerald-800">{tracking}</p>
+          <PortalAuth>{(auth) => <AttachStashed quoteId={quoteId} tracking={tracking} getToken={auth.getToken} />}</PortalAuth>
           <p className="mt-1 text-xs text-slate-500">Tracking number</p>
         </>
       ) : null}

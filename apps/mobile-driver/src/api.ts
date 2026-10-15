@@ -42,7 +42,7 @@ function detailFromBody(body: unknown, status: number): string {
       // Field validation (422): keep field + code so the form can mark the right input.
       if (d.field && d.code) return JSON.stringify({ field: d.field, code: d.code });
       if (d.code === "sequence_version_conflict") return "sequence_version_conflict";
-      if ((d.code === "pod_required" || d.code === "driver_off_duty") && d.message)
+      if ((d.code === "pod_required" || d.code === "driver_off_duty" || d.code === "pickup_document_not_shown") && d.message)
         return d.message;
       return d.error || d.code || JSON.stringify(detail);
     }
@@ -666,4 +666,49 @@ export function createTicket(body: {
     method: "POST",
     body: JSON.stringify({ ...body, category: "driver_support" }),
   });
+}
+
+// ── Booking documents (pickup authorization etc.) ─────────────────────────
+export type StopDocument = {
+  id: string;
+  stop: "pickup" | "dropoff";
+  kind_label: string;
+  filename: string;
+  content_type: string;
+  note: string | null;
+  required_at_stop: boolean;
+  shown_at: string | null;
+};
+
+export function fetchStopDocuments(orderId: string): Promise<{ items: StopDocument[] }> {
+  return driverFetch(`/driver-api/v1/orders/${orderId}/attachments`);
+}
+
+/** Raw bytes for the on-device copy (works offline once fetched). */
+export async function downloadStopDocument(id: string): Promise<ArrayBuffer> {
+  const token = await requireBearer(false);
+  const res = await fetchWithTimeout(`${apiBaseUrl}/driver-api/v1/attachments/${id}/file`, {
+    headers: { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "driver" },
+  });
+  if (!res.ok) throw new ApiError(`http_${res.status}`, res.status);
+  return res.arrayBuffer();
+}
+
+/** 5-minute single-use link so the phone's own viewer can show a PDF full-screen. */
+export async function stopDocumentLink(id: string): Promise<string> {
+  const r = await driverFetch<{ path: string }>(`/driver-api/v1/attachments/${id}/link`, { method: "POST" });
+  return `${apiBaseUrl}${r.path}`;
+}
+
+export async function markStopDocumentShown(id: string, proofUri?: string | null): Promise<unknown> {
+  const token = await requireBearer(false);
+  const fd = new FormData();
+  if (proofUri) fd.append("proof", { uri: proofUri, name: "proof.jpg", type: "image/jpeg" } as unknown as Blob);
+  const res = await fetchWithTimeout(`${apiBaseUrl}/driver-api/v1/attachments/${id}/shown`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "X-Porterchain-Portal": "driver" },
+    body: fd,
+  });
+  if (!res.ok) throw new ApiError(`http_${res.status}`, res.status);
+  return res.json();
 }

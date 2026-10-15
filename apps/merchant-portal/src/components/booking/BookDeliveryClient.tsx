@@ -33,6 +33,8 @@ import { formatDate } from "@/lib/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import Link from "next/link";
+import { BookingFilesPicker } from "@/components/booking/BookingFilesPicker";
+import { attachPendingFiles, type PendingFile } from "@/lib/attachments";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Mode = "single" | "multi";
@@ -155,6 +157,8 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     consignee_email?: string | null;
   } | null>(null);
   const [bookAsSandbox, setBookAsSandbox] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [fileNotice, setFileNotice] = useState<string | null>(null);
   const [multiResult, setMultiResult] = useState<MultiParcelResult["orders"]>([]);
 
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -455,6 +459,10 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         );
         confirmKeyRef.current = null;
         setMultiResult(result.orders);
+        if (pendingFiles.length) {
+          const failed = await attachPendingFiles(token, result.orders.map((o) => o.tracking_number), pendingFiles, orgId);
+          setFileNotice(failed.length ? `Couldn't attach: ${failed.join(", ")}. Add them from the order page.` : "Documents attached for the driver.");
+        }
         if (result.errors.length) {
           setError(`${result.errors.length} parcel(s) failed validation`);
         }
@@ -469,6 +477,10 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         idempotencyKey
       );
       confirmKeyRef.current = null;
+      if (pendingFiles.length) {
+        const failed = await attachPendingFiles(token, [result.tracking_number], pendingFiles, orgId);
+        setFileNotice(failed.length ? `Couldn't attach: ${failed.join(", ")}. Add them from the order page.` : "Documents attached for the driver.");
+      }
       setConfirmResult({
         tracking_number: result.tracking_number,
         amount_cents: result.amount_cents,
@@ -492,6 +504,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
           <p className="font-semibold text-green-800">
             {confirmResult?.is_sandbox ? "Test booking created" : "Booking confirmed"}
           </p>
+          {fileNotice && <p className="mt-1 text-sm">{fileNotice}</p>}
           {confirmResult && (
             <>
               <p className="mt-2 text-sm">
@@ -1023,6 +1036,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     onChange={(e) => setInstructions(e.target.value)}
                   />
                 </div>
+                <BookingFilesPicker files={pendingFiles} onChange={setPendingFiles} />
               </div>
             )}
             {step === "review" && bookingPayload && (

@@ -29,5 +29,9 @@ export const websiteUrl = trimSlash(
   process.env.EXPO_PUBLIC_WEBSITE_URL ?? "https://porterchain.com"
 );
 
+/** Customer web portal: documents are attached there (file picking + secure upload). */
+export const customerPortalUrl = trimSlash(
+  (process.env.EXPO_PUBLIC_CUSTOMER_PORTAL_URL ?? "https://customer.porterchain.com").trim()
+);
 export const fetchTimeoutMs = 12_000;
 export const appVersion = "1.0.0";

@@ -209,7 +209,11 @@ def _owner_filter(q, owner_type: str, owner_id: str):
 
 
 def owned_order(db: Session, owner_type: str, owner_id: str, order_id: str) -> Order:
-    order = db.get(Order, order_id)
+    order = db.get(Order, order_id) if len(order_id) == 36 else None
+    if order is None:
+        # Customer screens key bookings by tracking number; scoped to the owner below.
+        col = Order.merchant_id if owner_type == "merchant" else Order.customer_id
+        order = db.query(Order).filter(Order.tracking_number == order_id, col == owner_id).first()
     if not order:
         raise LookupError("order_not_found")
     owner = order.merchant_id if owner_type == "merchant" else order.customer_id
@@ -433,6 +437,40 @@ def driver_download(db: Session, driver_id: str, attachment_id: str):
     if att.first_viewed_by_driver_at is None:
         att.first_viewed_by_driver_at = _now()
     _event(db, att, "driver", driver_id, "viewed")
+    db.flush()
+    return att, att.content
+
+
+LINK_TTL = timedelta(minutes=5)
+
+
+def driver_link(db: Session, driver_id: str, attachment_id: str) -> str:
+    """Mint a 5-minute, single-use token for this driver's document."""
+    import secrets
+
+    att = db.get(BookingAttachment, attachment_id)
+    if not att or att.deleted_at or not att.order_id:
+        raise LookupError("attachment_not_found")
+    order = _driver_order(db, driver_id, att.order_id)
+    if att.stop not in _driver_stops(order):
+        raise PermissionError("attachment_not_for_this_stop")
+    token = secrets.token_urlsafe(32)
+    att.link_token_hash = hashlib.sha256(token.encode()).hexdigest()
+    att.link_expires_at = _now() + LINK_TTL
+    _event(db, att, "driver", driver_id, "link_issued")
+    db.flush()
+    return token
+
+
+def redeem_link(db: Session, token: str):
+    h = hashlib.sha256(token.encode()).hexdigest()
+    att = db.query(BookingAttachment).filter(BookingAttachment.link_token_hash == h).first()
+    if not att or not att.link_expires_at or att.link_expires_at < _now() or att.content is None or att.deleted_at:
+        raise LookupError("link_expired")
+    att.link_token_hash = None  # single use
+    att.link_expires_at = None
+    att.first_viewed_by_driver_at = att.first_viewed_by_driver_at or _now()
+    _event(db, att, "driver", None, "viewed", via="link")
     db.flush()
     return att, att.content
 
