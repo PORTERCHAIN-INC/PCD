@@ -309,6 +309,7 @@ services:
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Porterchain}
       MAIL_TRANSPORT: ${MAIL_TRANSPORT:-https}
       ZEPTOMAIL_API_URL: ${ZEPTOMAIL_API_URL:-https://api.zeptomail.ca/v1.1/email}
+      ZEPTOMAIL_WEBHOOK_SECRET: ${ZEPTOMAIL_WEBHOOK_SECRET:-}
       ROUTING_ENGINE: valhalla
       VALHALLA_BASE_URL: http://valhalla:8002
       OSRM_HOST: ${OSRM_HOST:-}
