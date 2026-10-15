@@ -3,16 +3,14 @@
  * Accept → Arrived → Scan → Proof → Complete. Everything else is secondary.
  */
 import { useEffect, useRef, useState } from "react";
-import { Linking, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 import {
   acceptOrder,
   arriveStop,
-  codCheckout,
   rejectOrder,
   reportException,
   scanPackage,
 } from "../api";
-import { formatCents } from "../format";
 import type { FieldSession } from "../hooks/useFieldSession";
 import type { RouteState } from "../hooks/useDispatchRoute";
 import { haptic } from "../haptics";
@@ -95,8 +93,6 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   const orderId = h.currentOrderId ?? "";
   const busy = Boolean(action);
   const arrivedOrLater = ["scan", "proof", "complete"].includes(view.step);
-  const codDue =
-    (h.codAmountCents ?? 0) > 0 && !["collected", "payout_processed"].includes(h.codStatus ?? "");
 
   const submitScan = (code: string) =>
     run("scan", async () => {
@@ -398,22 +394,6 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
             <ProofRow key={row.label} label={row.label} done={row.done} onRedo={row.redo} />
           ))}
         </Card>
-      ) : null}
-
-      {codDue && arrivedOrLater ? (
-        <Banner
-          tone="warn"
-          testID="cod-due"
-          title={`Collect ${formatCents(h.codAmountCents)} payment`}
-          action={{
-            label: "Open payment link",
-            onPress: () =>
-              void run("cod", async () => {
-                const res = await codCheckout(orderId);
-                if (res.checkout_url) await Linking.openURL(res.checkout_url);
-              }),
-          }}
-        />
       ) : null}
 
       {arrivedOrLater ? (

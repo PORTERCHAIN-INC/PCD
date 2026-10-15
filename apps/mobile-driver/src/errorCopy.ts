@@ -39,6 +39,7 @@ const COPY: Record<string, string> = {
   not_at_stop: "GPS says you are not at this stop yet. Get closer, then tap Arrived.",
   pretrip_required: "Finish the vehicle check first.",
   shift_required: "Go on duty first.",
+  shift_already_active: "You are already on duty. Pull down to refresh.",
   no_stop: "There is no active stop. Pull down to refresh.",
   no_job: "There is no job to act on. Pull down to refresh.",
   camera_permission_denied: "Camera is off. Allow camera access in Settings.",

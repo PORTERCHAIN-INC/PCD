@@ -165,7 +165,12 @@ export function useFieldSession() {
       const access = await requestLocationAccess();
       setHandshake((prev) => ({ ...prev, location: access }));
       await runOnlineOrQueue("shift_start", { route_id: handshake.routeId, pretrip }, () =>
-        startShift(handshake.routeId, pretrip)
+        startShift(handshake.routeId, pretrip).catch((err: unknown) => {
+          // Older servers refuse when a shift was left open (reinstall, crash): it is still
+          // this driver's shift, so carry on with it instead of failing.
+          if (err instanceof Error && err.message.includes("shift_already_active")) return null;
+          throw err;
+        })
       );
       setHandshake((prev) => ({ ...prev, online: true }));
     },
