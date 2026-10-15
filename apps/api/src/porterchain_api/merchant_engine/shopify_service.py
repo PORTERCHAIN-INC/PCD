@@ -374,16 +374,43 @@ def _merchant_for_install(
                 raise ValueError("shopify_email_already_bound")
             return by_email
 
+    from porterchain_api.merchant_engine import dedupe
+
+    name = str(shop_payload.get("name") or shop_domain)
+    probe = dedupe.Probe(
+        company_name=name,
+        email=email or None,
+        phone=shop_payload.get("phone"),
+        website=shop_payload.get("domain"),
+        postal_code=shop_payload.get("zip"),
+        shop_domain=shop_domain,
+    )
+    match = dedupe.resolve(probe, dedupe.candidates_from_db(db, probe))
+    if match.decision == "link" and match.merchant_id:
+        linked = db.query(Merchant).filter(Merchant.id == match.merchant_id).first()
+        if linked:
+            logger.info("shopify_install_dedupe_link shop=%s merchant=%s why=%s", shop_domain, linked.id, match.reasons)
+            prof = dict(linked.profile or {})
+            prof.pop("pending_shopify_install", None)
+            linked.profile = prof
+            return linked
     if not email:
         local = shop_domain.split(".", 1)[0]
         email = f"{local}@merchants.porterchain.invalid"
-    name = str(shop_payload.get("name") or shop_domain)
     merchant = Merchant(
         status=MerchantStatus.ONBOARDING.value,
         company_name=name,
         email=email,
         payment_terms="NET_30",
-        profile={"source": SIGNUP_SOURCE_SHOPIFY, "shopify_shop_domain": shop_domain},
+        profile={
+            "source": SIGNUP_SOURCE_SHOPIFY,
+            "shopify_shop_domain": shop_domain,
+            **(
+                {"possible_duplicate_of": {"merchant_id": match.merchant_id, "score": round(match.score, 2), "reasons": match.reasons}}
+                if match.decision == "suggest"
+                else {}
+            ),
+        },
     )
     db.add(merchant)
     db.flush()

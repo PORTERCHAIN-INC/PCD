@@ -995,6 +995,13 @@ def shopify_install_url_for(
             "merchant_id": merchant_id,
         }
     url = managed_install_url(shop, settings)
+    # Remember which company this install is for: the managed install URL carries no
+    # state, so without this the install path cannot know and may create a duplicate.
+    target = require_merchant(db, merchant_id)
+    if target is not None:
+        prof = dict(target.profile or {})
+        prof["pending_shopify_install"] = normalize_shop_domain(shop)
+        target.profile = prof
     write_staff_audit(
         db,
         ctx,
