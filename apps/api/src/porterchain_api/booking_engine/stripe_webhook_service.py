@@ -57,7 +57,7 @@ class StripeWebhookService:
 
             data_object = event["data"]["object"]
 
-            if event_type == "checkout.session.completed":
+            if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
                 session_obj = data_object
                 meta = session_obj.get("metadata") or {}
                 if meta.get("purpose") == "cod":
@@ -145,6 +145,11 @@ class StripeWebhookService:
             return
         if not meta.get("quote_id"):
             return
+        # Delayed methods complete the session with payment_status "unpaid" and
+        # settle later via checkout.session.async_payment_succeeded.
+        if meta.get("payment_status") not in (None, "paid", "no_payment_required"):
+            logger.info("checkout completed but unpaid; awaiting async success session=%s", session.get("id"))
+            return
         quote = lock_quote(db, meta["quote_id"])
         if not quote:
             return
@@ -219,8 +224,52 @@ class StripeWebhookService:
         from porterchain_api.services.stripe_service import retrieve_checkout_session
 
         session_payload = retrieve_checkout_session(settings, session_id)
-        if session_payload.get("payment_status") != "paid" and session_payload.get("status") != "complete":
+        if session_payload.get("payment_status") not in ("paid", "no_payment_required"):
             return False
 
         self._handle_checkout_completed(db, settings, session_payload)
         return True
+
+    def reconcile_open_checkouts(
+        self, db: Session, settings: Settings, *, min_age_minutes: int = 10, limit: int = 50
+    ) -> dict[str, int]:
+        """Backstop for customers who pay then close the tab before the success page.
+
+        Looks at PROCESSING payments with a Checkout session and asks Stripe:
+        paid -> confirm booking (idempotent); expired -> mark failed + abandoned.
+        """
+        from datetime import UTC, datetime, timedelta
+
+        from porterchain_api.booking_models import Payment
+        from porterchain_api.services.stripe_service import retrieve_checkout_session
+
+        out = {"checked": 0, "confirmed": 0, "expired": 0}
+        if not settings.stripe_secret:
+            return out
+        cutoff = datetime.now(UTC) - timedelta(minutes=min_age_minutes)
+        rows = (
+            db.query(Payment)
+            .filter(
+                Payment.status == "PROCESSING",
+                Payment.stripe_checkout_session_id.isnot(None),
+                Payment.created_at < cutoff,
+            )
+            .order_by(Payment.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        for payment in rows:
+            out["checked"] += 1
+            try:
+                session_payload = retrieve_checkout_session(settings, payment.stripe_checkout_session_id)
+                if session_payload.get("payment_status") in ("paid", "no_payment_required"):
+                    self._handle_checkout_completed(db, settings, session_payload)
+                    out["confirmed"] += 1
+                elif session_payload.get("status") == "expired":
+                    self._handle_checkout_expired(db, session_payload)
+                    out["expired"] += 1
+                db.commit()
+            except Exception:  # noqa: BLE001
+                db.rollback()
+                logger.exception("checkout reconcile failed payment=%s", payment.id)
+        return out

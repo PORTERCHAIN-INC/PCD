@@ -100,5 +100,18 @@ class BookingDraftReconciliationService:
 
     def run_cycle(self, db: Session, settings: Settings) -> dict[str, int]:
         expired = self.expire_stale_drafts(db)
+        from porterchain_api.booking_engine.stripe_webhook_service import StripeWebhookService
+
+        try:
+            checkouts = StripeWebhookService().reconcile_open_checkouts(db, settings)
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            logger.exception("open checkout reconcile failed")
+            checkouts = {"confirmed": 0, "expired": 0}
         repaired = self.reconcile_paid_orders(db, settings)
-        return {"expired": expired, "repaired": repaired}
+        return {
+            "expired": expired,
+            "repaired": repaired,
+            "checkouts_confirmed": checkouts.get("confirmed", 0),
+            "checkouts_expired": checkouts.get("expired", 0),
+        }
