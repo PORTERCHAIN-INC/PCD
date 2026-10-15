@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -17,6 +17,10 @@ PRETRIP_ITEMS: tuple[tuple[str, str], ...] = (
     ("leaks", "No fluid leaks"),
     ("winter_kit", "Winter kit on board"),
 )
+
+
+# An open shift older than this is treated as abandoned when the driver goes on duty again.
+STALE_SHIFT_AFTER = timedelta(hours=16)
 
 
 def require_pretrip(raw: dict[str, Any] | None) -> dict[str, bool]:
@@ -78,8 +82,26 @@ class ShiftService:
     ) -> dict[str, Any]:
         self._require_approved(driver)
         checks = require_pretrip(pretrip)
-        if self._active_shift(db, driver.id):
-            raise PermissionError("shift_already_active")
+        active = self._active_shift(db, driver.id)
+        if active:
+            started = active.started_at
+            if started is not None and started.tzinfo is None:
+                started = started.replace(tzinfo=UTC)
+            if started is not None and datetime.now(UTC) - started > STALE_SHIFT_AFTER:
+                # Left open from an earlier day (app killed, phone died): close it, start fresh.
+                self.end_shift(db, driver)
+            else:
+                # Same working day: the app lost track (reinstall, crash). Resume, don't refuse.
+                active.meta = {
+                    **(active.meta or {}),
+                    "pretrip": {**checks, "completed_at": datetime.now(UTC).isoformat()},
+                }
+                driver.is_online = True
+                if (driver.availability or "offline") == "offline":
+                    driver.availability = "idle"
+                self._log(db, driver.id, active.id, "shift_resumed", {"route_id": active.route_id})
+                db.flush()
+                return self.snapshot(db, driver)
 
         from porterchain_driver.vehicle import VehicleService
         from porterchain_driver.stops import StopsService

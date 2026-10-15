@@ -170,15 +170,18 @@ function DriverApp() {
   const run = useCallback(
     async (name: string, work: () => Promise<unknown>) => {
       setAction(name);
+      let failure: string | null = null;
       try {
         await work();
       } catch (err) {
         const code = err instanceof Error ? err.message : name;
-        if (!isSilentError(code)) setError(code);
+        if (!isSilentError(code)) failure = code;
       } finally {
         setAction(null);
       }
       await field.refresh();
+      // After the refresh: a fresh server copy clears errors, which used to hide this one.
+      if (failure) setError(failure);
     },
     [field, setError]
   );

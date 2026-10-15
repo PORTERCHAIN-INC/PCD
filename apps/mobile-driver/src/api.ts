@@ -337,17 +337,6 @@ export function scanPackage(
   });
 }
 
-export function codCheckout(orderId: string): Promise<{
-  checkout_url: string;
-  session_id: string;
-  amount_cents: number;
-  mock?: boolean;
-}> {
-  return driverFetch(`${DRIVER_API}/orders/${encodeURIComponent(orderId)}/cod-checkout`, {
-    method: "POST",
-  });
-}
-
 export function fetchSupportHub(): Promise<SupportHub> {
   return driverFetch<SupportHub>(`${DRIVER_API}/support/hub`);
 }
