@@ -179,7 +179,7 @@ def candidates_from_db(db: Any, probe: Probe, limit: int = 50) -> list[Candidate
         filters.append(func.lower(Merchant.email).like(f"%@{pd}"))
         filters.append(func.lower(Merchant.company_name).contains(pd.split(".")[0]))
     if probe.shop_domain:
-        filters.append(Merchant.profile["pending_shopify_install"].astext == probe.shop_domain)
+        filters.append(Merchant.profile["pending_shopify_install"].as_string() == probe.shop_domain)
     if not filters:
         return []
     out: list[Candidate] = []
@@ -199,3 +199,33 @@ def candidates_from_db(db: Any, probe: Probe, limit: int = 50) -> list[Candidate
             shop_domains=[d for (d,) in shops], pending_install_shops=[pending] if pending else [],
         ))
     return out
+
+
+def probe_for(m: Any) -> Probe:
+    addr = m.billing_address if isinstance(getattr(m, "billing_address", None), dict) else {}
+    prof = m.profile or {}
+    return Probe(
+        company_name=m.company_name, email=m.email, phone=m.phone, website=prof.get("website"),
+        hst_number=m.hst_number, business_number=m.business_number,
+        postal_code=addr.get("postal_code"), shop_domain=prof.get("shopify_shop_domain"),
+    )
+
+
+def flag_possible_duplicate(db: Any, merchant: Any, *, source: str) -> Match:
+    """After any create: record a likely-duplicate for the admin review queue.
+
+    Never auto-links and never tells the signup anything about the other account
+    (PIPEDA): the decision is staff-only, or the owner approves a join later.
+    """
+    probe = probe_for(merchant)
+    cands = [c for c in candidates_from_db(db, probe) if c.id != str(merchant.id)]
+    match = resolve(probe, cands)
+    if match.decision in ("link", "suggest") and match.merchant_id:
+        prof = dict(merchant.profile or {})
+        prof["possible_duplicate_of"] = {
+            "merchant_id": match.merchant_id, "score": round(match.score, 2),
+            "reasons": match.reasons, "source": source, "status": "open",
+        }
+        merchant.profile = prof
+        db.flush()
+    return match

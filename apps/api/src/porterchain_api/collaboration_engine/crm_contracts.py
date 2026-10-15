@@ -104,6 +104,7 @@ class CrmContractsMixin:
 
         merchant = create_onboarding_merchant(
             db,
+            dedupe_source="crm_convert",
             company_name=company.operating_name or company.legal_name,
             legal_name=company.legal_name,
             email=email,

@@ -242,6 +242,7 @@ def _authorize_merchant(
         if not merchant:
             merchant = create_onboarding_merchant(
                 db,
+                dedupe_source="admin_user_approval",
                 company_name=name or normalized.split("@")[0].title(),
                 email=normalized,
                 status=MerchantStatus.ACTIVE.value,
