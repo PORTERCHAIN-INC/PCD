@@ -603,6 +603,13 @@ def list_for_driver(db: Session, driver_id: str, order_id: str) -> dict[str, Any
     return {"items": items, "pickup_checklist": checklist}
 
 
+def with_document_checklist(db: Session, order: Order, driver_id: str, out: Any) -> Any:
+    """Add 'Show document to warehouse staff' items to the scan checklist."""
+    if order.assigned_driver_id == driver_id and isinstance(out, dict):
+        out["documents"] = list_for_driver(db, driver_id, order.id)["pickup_checklist"]
+    return out
+
+
 def driver_download(db: Session, driver_id: str, attachment_id: str):
     att = db.get(BookingAttachment, attachment_id)
     if not att or att.deleted_at or not att.order_id:
