@@ -176,7 +176,6 @@ def driver_info(
             "is_online": fb_driver.get("online")
             if isinstance(fb_driver, dict)
             else None,
-            "rating": driver.rating,
         }
     if isinstance(fb_driver, dict):
         return {

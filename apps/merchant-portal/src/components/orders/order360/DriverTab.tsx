@@ -17,7 +17,6 @@ export function DriverTab({
       <p className="mt-1 text-muted">
         Status: {status ?? String(driver.is_online ? "online" : "offline")}
       </p>
-      {driver.rating != null && <p className="mt-1 text-muted">Rating: {String(driver.rating)}</p>}
     </Card>
   );
 }
