@@ -3,9 +3,8 @@
  * and syncs to the server in the background (PUT /settings); nothing waits on the network.
  */
 import { useState } from "react";
-import { Alert, Linking, StyleSheet, Text, View } from "react-native";
+import { Linking, StyleSheet, Text, View } from "react-native";
 import { requestPrivacy, type MonitoringPolicy } from "../api";
-import { requestAccountDeletion } from "../accountDeletion";
 import { locationRetentionDays } from "../config";
 import type { LocationConsent } from "../consent";
 import { clearQueryCache } from "../data/queryClient";
@@ -21,6 +20,7 @@ import { Row, Section, Segmented, ToggleRow } from "../ui/settings/rows";
 import { Sheet } from "../ui/Sheet";
 import { color, space } from "../ui/theme";
 import { toast } from "../ui/toast";
+import { confirmDeleteAccount } from "../ui/confirmDeleteAccount";
 import { currentAppVersion } from "../version";
 import { Platform } from "react-native";
 
@@ -87,35 +87,7 @@ export function SettingsBody({
       .finally(() => setPrivacyBusy(false));
   };
 
-  const deleteAccount = () => {
-    Alert.alert(
-      "Delete your account?",
-      "This deletes your PorterChain driver account and personal data. You won't be able to sign in or get jobs. Delivery records the law requires are kept.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete account",
-          style: "destructive",
-          onPress: () => {
-            setPrivacyBusy(true);
-            void requestAccountDeletion(requestPrivacy)
-              .then((m) => {
-                haptic.success();
-                Alert.alert(m.title, m.body);
-              })
-              .catch(() =>
-                toast.show(
-                  "danger",
-                  "Couldn't send",
-                  "Try again with signal, or email privacy@porterchain.com."
-                )
-              )
-              .finally(() => setPrivacyBusy(false));
-          },
-        },
-      ]
-    );
-  };
+  const deleteAccount = () => confirmDeleteAccount(setPrivacyBusy);
 
   const iosOrAndroid = Platform.OS === "ios";
   const navOptions = [
