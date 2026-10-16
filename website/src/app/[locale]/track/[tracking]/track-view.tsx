@@ -55,7 +55,8 @@ export default function TrackView({
       .catch(() => setError(t("notFound")));
     getOrderLiveTracking(tracking)
       .then(setLive)
-      .catch(() => setLive(null));
+      // Keep the last good snapshot on a 429/blip so the map does not flash empty.
+      .catch(() => undefined);
     getOrderExperience(tracking, manageToken)
       .then(setExperience)
       .catch(() => undefined);

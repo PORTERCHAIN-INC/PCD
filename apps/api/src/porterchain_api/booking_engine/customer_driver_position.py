@@ -78,6 +78,36 @@ def load_order_and_driver(db: Any, tracking_number: str) -> tuple[Any, Any]:
     return order, driver
 
 
+def coarse_position(
+    state: Any,
+    pin: dict[str, Any] | None,
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any] | None:
+    """Shared privacy filter for any driver position shown outside ops.
+
+    Active shipment only, fresh (<= MAX_AGE_SECONDS) only, rounded to COARSE_DECIMALS
+    (~100 m). Anything else -> None. Never returns source, heading, speed or driver ids.
+    """
+    if str(state or "").upper() not in ACTIVE_STATES:
+        return None
+    if not pin or pin.get("lat") is None or pin.get("lng") is None:
+        return None
+    recorded = _parse(pin.get("recorded_at"))
+    current = now or datetime.now(UTC)
+    if recorded is None or (current - recorded).total_seconds() > MAX_AGE_SECONDS:
+        return None
+    try:
+        lat, lng = float(pin["lat"]), float(pin["lng"])
+    except (TypeError, ValueError):
+        return None
+    return {
+        "lat": round(lat, COARSE_DECIMALS),
+        "lng": round(lng, COARSE_DECIMALS),
+        "recorded_at": recorded.replace(microsecond=0).isoformat(),
+    }
+
+
 def unavailable(reason: str) -> dict[str, Any]:
     return {"available": False, "reason": reason, "position": None}
 
@@ -107,16 +137,7 @@ def customer_driver_position(
         return unavailable("sharing_off")
     if not pin or pin.get("lat") is None or pin.get("lng") is None:
         return unavailable("no_signal")
-    recorded = _parse(pin.get("recorded_at"))
-    current = now or datetime.now(UTC)
-    if recorded is None or (current - recorded).total_seconds() > MAX_AGE_SECONDS:
+    position = coarse_position(state, pin, now=now)
+    if position is None:
         return unavailable("stale")
-    return {
-        "available": True,
-        "reason": None,
-        "position": {
-            "lat": round(float(pin["lat"]), COARSE_DECIMALS),
-            "lng": round(float(pin["lng"]), COARSE_DECIMALS),
-            "recorded_at": recorded.replace(microsecond=0).isoformat(),
-        },
-    }
+    return {"available": True, "reason": None, "position": position}

@@ -58,13 +58,20 @@ def test_build_public_live_tracking_osrm_eta():
 
     live_raw = {
         "tracker": {"status": "in_transit"},
-        "coordinates": {"lat": 43.65, "lng": -79.38},
+        "coordinates": {"lat": 43.651234, "lng": -79.384567},
+        "recorded_at": "2026-07-08T17:58:00+00:00",
     }
-    snapshot = build_public_live_tracking(_order(), live_raw, maps=maps)
+    now = datetime(2026, 7, 8, 18, 0, tzinfo=UTC)
+    snapshot = build_public_live_tracking(_order(), live_raw, maps=maps, now=now)
 
     assert snapshot["eta"]["source"] == "osrm"
     assert snapshot["eta"]["label"] == "10 min"
-    assert snapshot["driver_location"] == {"lat": 43.65, "lng": -79.38}
+    # Public: coarse (3 decimals) + timestamp only.
+    assert snapshot["driver_location"] == {
+        "lat": 43.651,
+        "lng": -79.385,
+        "recorded_at": "2026-07-08T17:58:00+00:00",
+    }
     assert snapshot["optimized_route"]["polyline_encoding"] == "google"
     assert snapshot["optimized_route"]["polyline"] is not None
 

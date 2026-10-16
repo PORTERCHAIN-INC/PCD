@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Callable
 
 from porterchain_api.booking_engine.public_address import public_address_snapshot
 from porterchain_api.dispatch_engine.nav_geometry_cache import read_nav_geometry, write_nav_geometry
@@ -90,8 +90,17 @@ def build_public_live_tracking(
     live_raw: dict[str, Any] | None,
     *,
     maps: MapsService | None = None,
+    gps_allowed: Callable[[], bool] | None = None,
+    now: datetime | None = None,
 ) -> dict[str, Any]:
-    """Return public-safe live tracking: city-level addresses, driver pin, route geometry, and ETA."""
+    """Return public-safe live tracking: city-level addresses, coarse driver pin, route, ETA.
+
+    Anyone holding a tracking number can call this, so the driver position is filtered by
+    ``coarse_position``: active shipment only, <= 10 min old, rounded to 3 decimals, and
+    nothing once delivered. ``gps_allowed`` (driver GPS consent) can veto it entirely.
+    """
+    from porterchain_api.booking_engine.customer_driver_position import coarse_position
+
     maps_service = maps or MapsService()
     translated = _translate_live(live_raw)
     pickup_raw = order.pickup if isinstance(order.pickup, dict) else None
@@ -100,15 +109,22 @@ def build_public_live_tracking(
     dropoff = public_address_snapshot(dropoff_raw)
     pickup_coords = _coords_from_address(pickup_raw)
     dropoff_coords = _coords_from_address(dropoff_raw)
-    driver_loc = translated.get("location")
-    if not driver_loc and getattr(order, "assigned_driver_id", None):
+    raw_pin: dict[str, Any] | None = None
+    loc = translated.get("location")
+    if loc:
+        raw_pin = {**loc, "recorded_at": (live_raw or {}).get("recorded_at") or translated.get("last_updated")}
+    elif getattr(order, "assigned_driver_id", None):
         from porterchain_api.dispatch_engine.driver_pin import driver_pin
 
-        driver_loc = driver_pin(order.assigned_driver_id)
+        raw_pin = driver_pin(order.assigned_driver_id)
+    if raw_pin is not None and gps_allowed is not None and not gps_allowed():
+        raw_pin = None
+    driver_loc = coarse_position(order.state, raw_pin, now=now)
 
     eta: dict[str, Any] | None = None
     if order.state not in DELIVERED_STATES:
-        eta_origin = driver_loc or pickup_coords
+        # Exact pin feeds the road ETA server-side only, and only when it passed the filter.
+        eta_origin = (raw_pin if driver_loc else None) or pickup_coords
         if eta_origin and dropoff_coords:
             eta = _road_eta(maps_service, eta_origin, dropoff_coords)
         if not eta and order.scheduled_at:
