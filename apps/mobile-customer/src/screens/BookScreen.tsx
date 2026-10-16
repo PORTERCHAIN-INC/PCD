@@ -1,3 +1,4 @@
+import { pickDocuments, uploadAll, type PendingDoc } from "../attachments";
 import { openDocuments } from "../documents";
 import { useEffect, useState } from "react";
 import {
@@ -236,6 +237,8 @@ export function BookScreen({
   const [quote, setQuote] = useState<QuoteResult | null>(null);
   const [done, setDone] = useState<BookingConfirmation | null>(null);
   const [busy, setBusy] = useState(false);
+  const [docs, setDocs] = useState<PendingDoc[]>([]);
+  const [docNote, setDocNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -460,14 +463,25 @@ export function BookScreen({
         consent_at: new Date().toISOString(),
         anonymous_session_id: visitorId,
       });
+      let confirmed: BookingConfirmation;
       if (booking.mock_checkout) {
-        setDone(await mockComplete(quote.quote_id));
-        setStep("done");
-        return;
+        confirmed = await mockComplete(quote.quote_id);
+      } else {
+        if (!booking.checkout_url) throw new Error("checkout_unavailable");
+        await WebBrowser.openBrowserAsync(booking.checkout_url);
+        confirmed = await pollCheckout(quote.quote_id);
       }
-      if (!booking.checkout_url) throw new Error("checkout_unavailable");
-      await WebBrowser.openBrowserAsync(booking.checkout_url);
-      setDone(await pollCheckout(quote.quote_id));
+      if (docs.length) {
+        // Booking exists only once paid; documents attach to it now.
+        const failed = await uploadAll(confirmed.tracking_number, docs);
+        setDocNote(
+          failed.length
+            ? `Couldn't attach ${failed.join(", ")}. Tap below to add it again.`
+            : `${docs.length} document${docs.length > 1 ? "s" : ""} attached for the driver.`
+        );
+        if (!failed.length) setDocs([]);
+      }
+      setDone(confirmed);
       setStep("done");
     } catch (err) {
       const raw = err instanceof Error ? err.message : "request_failed";
@@ -558,8 +572,11 @@ export function BookScreen({
                 onPress={() => void openDocuments(done.tracking_number)}
                 style={{ paddingVertical: 14, alignItems: "center" }}
               >
-                <Text style={styles.lede}>Attach a pickup document for the driver</Text>
+                <Text style={styles.lede}>
+                  {docNote ? "Manage pickup documents" : "Attach a pickup document for the driver"}
+                </Text>
               </Pressable>
+              {docNote ? <Text style={styles.lede}>{docNote}</Text> : null}
             </>
           ) : (
             <>
@@ -1042,6 +1059,52 @@ export function BookScreen({
                       onChange={setDangerous}
                     />
                   </View>
+                  <View testID="book-docs">
+                    <Text style={styles.lede}>
+                      Pickup documents (optional): e.g. a warehouse release. Your driver sees them
+                      and shows them at pickup.
+                    </Text>
+                    {docs.map((d, i) => (
+                      <View key={`${d.uri}-${i}`} style={styles.docRow}>
+                        <Text style={styles.docName} numberOfLines={1}>
+                          {d.name}
+                        </Text>
+                        <Pressable
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: d.required }}
+                          onPress={() =>
+                            setDocs((xs) =>
+                              xs.map((x, j) => (j === i ? { ...x, required: !x.required } : x))
+                            )
+                          }
+                        >
+                          <Text style={styles.choice}>
+                            {d.required ? "Must show at pickup" : "For info"}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Remove ${d.name}`}
+                          onPress={() => setDocs((xs) => xs.filter((_, j) => j !== i))}
+                        >
+                          <Text style={styles.choice}>Remove</Text>
+                        </Pressable>
+                      </View>
+                    ))}
+                    <Pressable
+                      accessibilityRole="button"
+                      testID="book-add-doc"
+                      disabled={busy}
+                      onPress={() =>
+                        void pickDocuments(docs).then((r) => {
+                          setDocs(r.docs);
+                          setError(r.error);
+                        })
+                      }
+                    >
+                      <Text style={styles.choice}>+ Attach a document (PDF or photo)</Text>
+                    </Pressable>
+                  </View>
                   {error ? <Text style={styles.error}>{error}</Text> : null}
                   <PrimaryButton
                     label={busy ? "Working…" : "Pay with Stripe"}
@@ -1071,6 +1134,8 @@ export function BookScreen({
 }
 
 const styles = StyleSheet.create({
+  docRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 },
+  docName: { ...typography.body, flex: 1, color: colors.primary },
   flex: { flex: 1 },
   scroll: { gap: 10, paddingBottom: 32 },
   keyboardBar: {
