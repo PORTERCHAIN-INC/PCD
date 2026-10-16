@@ -205,7 +205,7 @@ def _format(p: dict[str, Any]) -> tuple[str, str]:
     return main, secondary
 
 
-from porterchain_api.geo_photon import _postal_fallback, photon_search  # noqa: E402
+from porterchain_api.geo_photon import _postal_fallback, photon_search
 from porterchain_api.geo_text import (
     normalize_postal,
 )
