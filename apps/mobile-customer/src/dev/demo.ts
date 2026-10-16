@@ -147,6 +147,24 @@ function route(path: string, method: string): unknown {
             created_at: iso(60 * 30),
           },
         ];
+  const dp = /^\/v1\/customers\/me\/orders\/([^/]+)\/driver-position$/.exec(path);
+  if (dp) {
+    const o = orders.find((x) => x.tracking_number === decodeURIComponent(dp[1]!));
+    if (!o || o.state !== "IN_TRANSIT")
+      return { available: false, reason: "not_active", position: null };
+    const p = o.pickup as { lat: number; lng: number };
+    const d = o.dropoff as { lat: number; lng: number };
+    const t = 0.62;
+    return {
+      available: true,
+      reason: null,
+      position: {
+        lat: Math.round((p.lat + (d.lat - p.lat) * t) * 1000) / 1000,
+        lng: Math.round((p.lng + (d.lng - p.lng) * t) * 1000) / 1000,
+        recorded_at: iso(1),
+      },
+    };
+  }
   if (path.startsWith("/v1/customers/me/rebook/"))
     return {
       pickup: MILTON,
