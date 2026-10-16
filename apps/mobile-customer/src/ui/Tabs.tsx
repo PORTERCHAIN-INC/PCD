@@ -1,46 +1,111 @@
-import { Pressable, Text, StyleSheet, View } from "react-native";
-import { colors, typography } from "@porterchain/mobile-theme";
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { haptic } from "../haptics";
+import { type, usePalette } from "../theme";
+import { Icon, type IconName } from "./kit";
 
 export type TabId = "home" | "book" | "activity" | "account" | "alerts";
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "home", label: "Home" },
-  { id: "book", label: "Book" },
-  { id: "activity", label: "Activity" },
-  { id: "alerts", label: "Alerts" },
-  { id: "account", label: "Account" },
+const TABS: { id: TabId; label: string; icon: IconName; iconOn: IconName }[] = [
+  { id: "home", label: "Home", icon: "home-outline", iconOn: "home" },
+  { id: "book", label: "Book", icon: "add-circle-outline", iconOn: "add-circle" },
+  { id: "activity", label: "Activity", icon: "receipt-outline", iconOn: "receipt" },
+  { id: "alerts", label: "Alerts", icon: "notifications-outline", iconOn: "notifications" },
+  { id: "account", label: "Account", icon: "person-circle-outline", iconOn: "person-circle" },
 ];
 
-export function Tabs({ current, onChange }: { current: TabId; onChange: (tab: TabId) => void }) {
+export function Tabs({
+  current,
+  onChange,
+  badges,
+}: {
+  current: TabId;
+  onChange: (tab: TabId) => void;
+  badges?: Partial<Record<TabId, number>>;
+}) {
+  const c = usePalette();
   return (
-    <View style={styles.bar}>
-      {TABS.map((tab) => {
-        const active = tab.id === current;
-        return (
-          <Pressable
-            key={tab.id}
-            accessibilityRole="button"
-            onPress={() => onChange(tab.id)}
-            style={styles.item}
-          >
-            <Text style={active ? styles.active : styles.label}>{tab.label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <SafeAreaView style={{ backgroundColor: c.white }}>
+      <View
+        accessibilityRole="tablist"
+        style={[styles.bar, { backgroundColor: c.white, borderTopColor: c.border }]}
+      >
+        {TABS.map((tab) => {
+          const active = tab.id === current;
+          const badge = badges?.[tab.id] ?? 0;
+          return (
+            <Pressable
+              key={tab.id}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={badge ? `${tab.label}, ${badge} unread` : tab.label}
+              onPress={() => {
+                if (!active) haptic.tap();
+                onChange(tab.id);
+              }}
+              style={styles.item}
+            >
+              <View>
+                <Icon
+                  name={active ? tab.iconOn : tab.icon}
+                  size={25}
+                  color={active ? c.accentText : c.muted}
+                />
+                {badge > 0 ? (
+                  <View
+                    style={[
+                      styles.badge,
+                      {
+                        backgroundColor: c.danger === "#fca5a5" ? "#ef4444" : c.danger,
+                        borderColor: c.white,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.badgeText} maxFontSizeMultiplier={1}>
+                      {badge > 9 ? "9+" : badge}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text
+                maxFontSizeMultiplier={1.2}
+                style={[
+                  type.caption,
+                  {
+                    fontSize: 11,
+                    color: active ? c.accentText : c.muted,
+                    fontWeight: active ? "700" : "500",
+                  },
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   bar: {
     flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: `${colors.primary}14`,
-    backgroundColor: colors.white,
-    paddingBottom: 8,
-    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 6,
+    paddingBottom: 4,
   },
-  item: { flex: 1, alignItems: "center", minHeight: 44, justifyContent: "center" },
-  label: { ...typography.caption, color: colors.muted },
-  active: { ...typography.caption, color: colors.secondary, fontWeight: "700" },
+  item: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 48, gap: 2 },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -10,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+  },
+  badgeText: { color: "#fff", fontSize: 10, fontWeight: "800" },
 });

@@ -6,7 +6,8 @@ import {
   StyleSheet,
   type KeyboardTypeOptions,
 } from "react-native";
-import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { useThemed, type Palette } from "../theme";
 
 type Props = {
   label: string;
@@ -29,6 +30,7 @@ export function SuggestField({
   accessoryId,
   autoCapitalize = "sentences",
 }: Props) {
+  const { colors, styles } = useThemed(makeStyles);
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
@@ -63,34 +65,35 @@ export function SuggestField({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { gap: 8 },
-  label: { ...typography.caption, color: colors.muted },
-  input: {
-    minHeight: touchTargetMin,
-    borderWidth: 1,
-    borderColor: `${colors.primary}26`,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
-    color: colors.primary,
-    fontSize: typography.body.fontSize,
-  },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    backgroundColor: colors.white,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: `${colors.primary}18`,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  chipOn: {
-    backgroundColor: colors.secondary,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  chipText: { ...typography.caption, color: colors.primary, fontWeight: "600" },
-  chipOnText: { ...typography.caption, color: colors.white, fontWeight: "700" },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    wrap: { gap: 8 },
+    label: { ...typography.caption, color: colors.muted },
+    input: {
+      minHeight: touchTargetMin,
+      borderWidth: 1,
+      borderColor: `${colors.primary}26`,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.white,
+      color: colors.primary,
+      fontSize: typography.body.fontSize,
+    },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    chip: {
+      backgroundColor: colors.white,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: `${colors.primary}18`,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    chipOn: {
+      backgroundColor: colors.secondary,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    chipText: { ...typography.caption, color: colors.primary, fontWeight: "600" },
+    chipOnText: { ...typography.caption, color: colors.onAccent, fontWeight: "700" },
+  });

@@ -1,6 +1,7 @@
-import { Text, StyleSheet, Pressable } from "react-native";
-import { colors, typography } from "@porterchain/mobile-theme";
+import { View } from "react-native";
 import type { OnboardingStatus } from "../api";
+import { spacing } from "../theme";
+import { Banner, Button, Card, Divider, ListRow, Txt } from "../ui/kit";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
 
@@ -12,22 +13,39 @@ type Props = {
 };
 
 export function OnboardingScreen({ status, error, onRefresh, onSignOut }: Props) {
+  const steps = status?.steps ?? [];
   return (
-    <Screen testID="customer-onboarding">
-      <Text style={styles.title}>Finish sign-in</Text>
-      <Text style={styles.lede}>Porterchain checks these steps before opening your home.</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {(status?.steps ?? []).map((step) => (
-        <Text key={step.id} style={step.complete ? styles.done : styles.pending}>
-          {step.complete ? "Done" : "Needed"} · {step.label}
-          {step.status.startsWith("conflict_") ? " · wrong account type" : ""}
-          {step.id === "portal_enabled" && !step.complete ? " · portal is turned off" : ""}
-        </Text>
-      ))}
+    <Screen
+      scroll
+      testID="customer-onboarding"
+      title="Finish setting up"
+      subtitle="PorterChain checks these steps before opening your account."
+    >
+      {error ? <Banner tone="danger" text={error} /> : null}
+      {steps.length ? (
+        <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+          {steps.map((step, i) => (
+            <View key={step.id}>
+              {i ? <Divider /> : null}
+              <ListRow
+                icon={step.complete ? "checkmark-circle" : "ellipse-outline"}
+                title={step.label}
+                subtitle={
+                  step.status.startsWith("conflict_")
+                    ? "Wrong account type"
+                    : step.id === "portal_enabled" && !step.complete
+                      ? "Portal is turned off"
+                      : step.complete
+                        ? "Done"
+                        : step.description || "Needed"
+                }
+              />
+            </View>
+          ))}
+        </Card>
+      ) : null}
       <PrimaryButton label="Check again" onPress={onRefresh} />
-      <Pressable accessibilityRole="button" onPress={onSignOut}>
-        <Text style={styles.signOut}>Sign out</Text>
-      </Pressable>
+      <Button variant="plain" label="Sign out" onPress={onSignOut} />
     </Screen>
   );
 }
@@ -40,21 +58,12 @@ export function AccessDeniedScreen({
   onSignOut: () => void;
 }) {
   return (
-    <Screen testID="customer-denied">
-      <Text style={styles.title}>Access denied</Text>
-      <Text style={styles.lede}>{detail}</Text>
-      <Pressable accessibilityRole="button" onPress={onSignOut}>
-        <Text style={styles.signOut}>Sign out</Text>
-      </Pressable>
+    <Screen scroll testID="customer-denied" title="This account can't book">
+      <Banner tone="danger" text={detail} />
+      <Txt v="callout" tone="muted">
+        Sign out and use your customer account, or contact support from porterchain.com.
+      </Txt>
+      <Button label="Sign out" variant="ghost" onPress={onSignOut} />
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 32, color: colors.primary },
-  lede: { ...typography.body, color: colors.muted },
-  done: { ...typography.caption, color: colors.success },
-  pending: { ...typography.caption, color: colors.primary },
-  error: { ...typography.caption, color: colors.danger },
-  signOut: { ...typography.caption, color: colors.danger, textAlign: "center" },
-});

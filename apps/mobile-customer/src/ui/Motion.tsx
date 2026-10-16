@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
-import { colors, radius, typography } from "@porterchain/mobile-theme";
+import { radius, typography } from "@porterchain/mobile-theme";
+import { useThemed, type Palette } from "../theme";
 import shipment from "@porterchain/customer-motion/shipment.json";
 import route from "@porterchain/customer-motion/route.json";
 import inbox from "@porterchain/customer-motion/inbox.json";
@@ -33,6 +34,7 @@ export function EmptyState({
   title: string;
   body: string;
 }) {
+  const { colors, styles } = useThemed(makeStyles);
   return (
     <View style={styles.card}>
       {animation ? <Motion name={animation} /> : null}
@@ -42,16 +44,17 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 4,
-    gap: 4,
-  },
-  title: { ...typography.body, color: colors.primary, fontWeight: "700", textAlign: "center" },
-  body: { ...typography.caption, color: colors.muted, textAlign: "center" },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.white,
+      borderRadius: radius.xl,
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      paddingTop: 4,
+      gap: 4,
+    },
+    title: { ...typography.body, color: colors.primary, fontWeight: "700", textAlign: "center" },
+    body: { ...typography.caption, color: colors.muted, textAlign: "center" },
+  });

@@ -12,7 +12,8 @@
     "ios": "expo run:ios",
     "prebuild": "expo prebuild && node ../../scripts/pin-android-gradle-jdk.mjs",
     "archive:ios": "bash scripts/archive-ios-testflight.sh",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@clerk/expo": "^4.6.6",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "babel-preset-expo": "~57.0.14",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "4.1.11"
   }
 }
