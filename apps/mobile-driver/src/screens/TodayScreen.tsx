@@ -20,6 +20,7 @@ import { isClosed, needsAccept, normState } from "../stop/stopFlow";
 import type { DriverJobSummary } from "../types";
 import { Banner, Button, Label, Screen } from "../ui/kit";
 import { LiveDot, PressScale, Rise, Skeleton } from "../ui/motion";
+import { ScanLookupButton } from "../ui/ScanLookup";
 import { SosButton, useSos } from "../ui/SosButton";
 import { SyncBanners } from "../ui/SyncBanners";
 import { SyncPill } from "../ui/SyncPill";
@@ -132,6 +133,7 @@ export function TodayScreen({
           <SosButton onAsk={sos.ask} />
         </View>
       </View>
+      {onDuty ? <ScanLookupButton currentOrderId={h.currentOrderId} onOpenJob={onOpenJob} /> : null}
 
       <UpdatedAgo
         at={Math.max(field.updatedAt, r.updatedAt ?? 0)}

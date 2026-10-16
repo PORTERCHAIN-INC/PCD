@@ -13,7 +13,9 @@ import { useLiveFix } from "../smart/useLiveFix";
 import { useRouteStopUi } from "../ui/RouteStopCard";
 import { toast } from "../ui/toast";
 import { openTurnByTurn } from "../maps";
-import { runOnlineOrQueue } from "../offline";
+import { enqueueOfflineAction, readQueue, runOnlineOrQueue } from "../offline";
+import { isNetworkError } from "../netErrors";
+import { scanFix, type ScanOutcome } from "../scanFeedback";
 import { capturePodPhotoDataUrl } from "../pod";
 import { completeStop } from "../stop/completeStop";
 import { emptyPodDraft, type PodDraft } from "../stop/podDraft";
@@ -88,34 +90,71 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   const busy = Boolean(action);
   const arrivedOrLater = ["scan", "proof", "complete"].includes(view.step);
 
-  const submitScan = (code: string) =>
-    run("scan", async () => {
-      let res: Awaited<ReturnType<typeof scanPackage>>;
-      try {
-        res = await scanPackage(orderId, code.trim(), scanPhase);
-      } catch (e) {
-        // Wrong parcel / not on this order: buzz + slim toast, keep scanning.
-        const m = e instanceof Error ? e.message : "";
-        if (/not_on_order|unknown_package|wrong|mismatch|404/i.test(m)) {
-          toast.show("danger", "Wrong parcel", "That box isn't on this order. Put it back.");
-          return;
-        }
-        throw e;
-      }
-      if (res.complete) toast.show("success", "All boxes scanned");
-      else haptic.tap();
-      const progress = {
-        scanned: res.scanned,
-        required: res.required,
-        complete: res.complete,
-        missing_suffixes: res.missing_suffixes ?? [],
-      };
-      setHandshake((prev) =>
-        scanPhase === "pickup"
-          ? { ...prev, scanPickup: progress }
-          : { ...prev, scanDelivery: progress }
+  /**
+   * One camera scan. Returns the outcome so the scanner beeps/buzzes; continuous mode
+   * keeps the camera open for the next box. No signal: the scan is queued with its GPS
+   * and time and replays in order when the phone is back online (server re-checks it).
+   */
+  const submitScan = async (code: string): Promise<ScanOutcome> => {
+    const meta = { ...((await scanFix()) ?? {}), scanned_at: new Date().toISOString() };
+    let res: Awaited<ReturnType<typeof scanPackage>> | null = null;
+    const payload = { order_id: orderId, qr_payload: code.trim(), phase: scanPhase, ...meta };
+    try {
+      // Online first (other queued actions must not hold up the box count), but keep
+      // order behind any earlier offline scans of this job (pickup before delivery).
+      const queuedForJob = (await readQueue()).some(
+        (q) => q.action_type === "package_scan" && q.payload.order_id === orderId
       );
-    });
+      let queued = queuedForJob;
+      if (!queuedForJob) {
+        try {
+          res = await scanPackage(orderId, code.trim(), scanPhase, meta);
+        } catch (err) {
+          if (!isNetworkError(err)) throw err;
+          queued = true;
+        }
+      }
+      if (queued) {
+        await enqueueOfflineAction("package_scan", payload);
+        toast.show("info", "Saved offline", "This scan will sync when you're back online.");
+        return "queued";
+      }
+    } catch (e) {
+      const m = e instanceof Error ? e.message : "";
+      if (/mismatch|wrong/i.test(m)) {
+        toast.show("danger", "Wrong stop", "That box belongs to a different stop. Put it back.");
+        return "warn";
+      }
+      if (/not_on_order|unknown_package|package_not_found|invalid_label|404/i.test(m)) {
+        toast.show("danger", "Not on this job", "That label isn't one of your parcels here.");
+        return "error";
+      }
+      if (/pickup_required_first/i.test(m)) {
+        toast.show("danger", "Not picked up", "Scan this box at pickup first.");
+        return "warn";
+      }
+      toast.show("danger", "Scan failed", m || "Try again.");
+      return "error";
+    }
+    const r = res as Awaited<ReturnType<typeof scanPackage>> | null;
+    if (!r) return "ok";
+    const progress = {
+      scanned: r.scanned,
+      required: r.required,
+      complete: r.complete,
+      missing_suffixes: r.missing_suffixes ?? [],
+    };
+    setHandshake((prev) =>
+      scanPhase === "pickup"
+        ? { ...prev, scanPickup: progress }
+        : { ...prev, scanDelivery: progress }
+    );
+    if (r.complete) {
+      toast.show("success", "All boxes scanned");
+      return "done";
+    }
+    return "ok";
+  };
 
   const doPrimary = (a: PrimaryAction) => {
     switch (a) {
@@ -401,8 +440,11 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
 
       <BarcodeScannerModal
         visible={scanOpen}
+        continuous
+        title={scanPhase === "pickup" ? "Scan boxes at pickup" : "Scan boxes at delivery"}
+        progress={`${scan?.scanned ?? 0} of ${scan?.required ?? 0} scanned`}
         onClose={() => setScanOpen(false)}
-        onScan={(code) => void submitScan(code)}
+        onScan={submitScan}
       />
       <ProofSheets
         open={sheet}
