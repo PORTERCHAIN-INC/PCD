@@ -98,3 +98,22 @@ def test_lookup_own_parcel_and_wrong_stop(patched, monkeypatch):
     assert out["next_phase"] == "delivery" and "scan_delivery" in out["allowed_actions"]
     assert "phone" not in str(out) and "address" not in str(out)
     assert patched[-1]["result"] == "wrong_stop"
+
+
+def test_offline_package_scan_replays_with_audit(monkeypatch):
+    from porterchain_api.driver_engine import scan_audit
+    from porterchain_api.driver_engine.api_service import DriverApiService
+    from porterchain_api.driver_engine.offline_executor import DriverOfflineExecutor
+    from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+    logged: list[dict] = []
+    monkeypatch.setattr(scan_audit, "log_scan", lambda db, **kw: logged.append(kw))
+    monkeypatch.setattr(DriverApiService, "require_assigned_order",
+                        staticmethod(lambda db, driver_id, order_id: SimpleNamespace(id=order_id)))
+    monkeypatch.setattr(ScanGateService, "scan_qr_from_body",
+                        lambda self, db, order, body, actor_id=None: {"package_id": "p1"})
+    DriverOfflineExecutor(MagicMock()).execute(
+        MagicMock(), SimpleNamespace(id="d1"), "package_scan",
+        {"order_id": "o1", "qr_payload": "PC1.X.Y", "phase": "pickup", "lat": 43.5, "lng": -79.8},
+    )
+    assert logged[-1]["result"] == "ok" and logged[-1]["body"]["offline_replay"] is True
