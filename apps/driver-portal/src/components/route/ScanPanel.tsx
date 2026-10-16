@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Camera, Check, ScanLine } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Smartphone } from "lucide-react";
+import { driverApi } from "@/lib/api";
 import { actionErrorMessage } from "@/lib/jobs";
 import { cn } from "@/lib/utils";
 
 type Box = { code: string; label: string; done: boolean; missing?: boolean };
 
-type Detector = { detect: (src: HTMLVideoElement) => Promise<{ rawValue: string }[]> };
-type DetectorCtor = new (opts: { formats: string[] }) => Detector;
-
 /**
- * Scan-to-confirm: camera barcode/QR reading where the phone supports it (BarcodeDetector),
- * typed label code otherwise. Every box must be scanned (or reported missing) before the
+ * Box checklist for the web portal. Label scanning is camera-only in the PorterChain
+ * Driver app (iPhone + Android); the portal offers a typed label-code fallback and
+ * shows recent scans. Every box must be scanned (or reported missing) before the
  * primary action unlocks.
  */
 export function ScanPanel({
@@ -26,7 +25,6 @@ export function ScanPanel({
   onScan: (code: string) => Promise<void>;
   onMissing?: (code: string) => void;
 }) {
-  const [camera, setCamera] = useState(false);
   const [manual, setManual] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const done = boxes.filter((b) => b.done).length; // a missing box is accounted for, never "scanned"
@@ -52,18 +50,11 @@ export function ScanPanel({
           <span className="text-slate-400">/{boxes.length}</span>
         </p>
       </div>
-      {camera ? (
-        <CameraScanner onCode={(c) => void submit(c)} onClose={() => setCamera(false)} />
-      ) : null}
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={() => setCamera((c) => !c)}
-          className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-[#0a1628] text-base font-bold text-[#0a1628]"
-        >
-          <ScanLine className="h-6 w-6" aria-hidden /> {camera ? "Stop camera" : "Scan label"}
-        </button>
-      </div>
+      <p className="mt-3 flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <Smartphone className="h-5 w-5 shrink-0" aria-hidden />
+        Scan labels with the PorterChain Driver app camera. Label won&apos;t scan? Type its code
+        below.
+      </p>
       <form
         className="mt-2 flex gap-2"
         onSubmit={(e) => {
@@ -75,7 +66,7 @@ export function ScanPanel({
           value={manual}
           onChange={(e) => setManual(e.target.value)}
           aria-label="Label code"
-          placeholder="Or type the label code"
+          placeholder="Type the label code"
           autoCapitalize="characters"
           className="h-12 min-w-0 flex-1 rounded-xl border border-slate-300 px-3 text-base text-slate-900"
         />
@@ -129,84 +120,64 @@ export function ScanPanel({
           </li>
         ))}
       </ul>
+      <ScanHistory />
     </div>
   );
 }
 
-function CameraScanner({
-  onCode,
-  onClose,
-}: {
-  onCode: (code: string) => void;
-  onClose: () => void;
-}) {
-  const video = useRef<HTMLVideoElement>(null);
-  const emit = useRef(onCode);
-  emit.current = onCode;
-  const [error, setError] = useState<string | null>(null);
+const KIND: Record<string, string> = {
+  lookup: "Looked up",
+  pickup: "Pickup",
+  delivery: "Delivery",
+};
+const RESULT: Record<string, string> = {
+  ok: "OK",
+  wrong_stop: "Wrong stop",
+  not_yours: "Not your parcel",
+  invalid_label_qr: "Unreadable label",
+};
 
+/** The driver's own recent scans (from the app or typed here), newest first. */
+export function ScanHistory() {
+  const [items, setItems] = useState<
+    Awaited<ReturnType<typeof driverApi.scanHistory>>["items"] | null
+  >(null);
   useEffect(() => {
-    const Ctor = (globalThis as unknown as { BarcodeDetector?: DetectorCtor }).BarcodeDetector;
-    if (!Ctor) {
-      setError("This phone can't scan in the browser. Type the code below.");
-      return;
-    }
-    const detector = new Ctor({
-      formats: ["qr_code", "code_128", "code_39", "ean_13", "data_matrix"],
-    });
-    let stream: MediaStream | null = null;
-    let stop = false;
-    let last = "";
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-        if (!video.current) return;
-        video.current.srcObject = stream;
-        await video.current.play();
-        while (!stop && video.current) {
-          const found = await detector.detect(video.current).catch(() => []);
-          const code = found[0]?.rawValue;
-          if (code && code !== last) {
-            last = code;
-            navigator.vibrate?.(60);
-            emit.current(code);
-          }
-          await new Promise((r) => setTimeout(r, 250));
-        }
-      } catch {
-        setError("Camera blocked. Allow camera access or type the code below.");
-      }
-    })();
+    let live = true;
+    driverApi
+      .scanHistory(30)
+      .then((r) => live && setItems(r.items))
+      .catch(() => live && setItems([]));
     return () => {
-      stop = true;
-      stream?.getTracks().forEach((t) => t.stop());
+      live = false;
     };
   }, []);
-
+  if (!items || items.length === 0) return null;
   return (
-    <div className="mt-3 overflow-hidden rounded-2xl bg-black">
-      {error ? (
-        <p className="flex items-center gap-2 p-4 text-sm text-white">
-          <Camera className="h-5 w-5 shrink-0" aria-hidden /> {error}
-          <button
-            type="button"
-            onClick={onClose}
-            className="ml-auto min-h-10 rounded-lg bg-white/10 px-3 font-semibold"
-          >
-            OK
-          </button>
-        </p>
-      ) : (
-        <video
-          ref={video}
-          muted
-          playsInline
-          className="aspect-[4/3] w-full object-cover"
-          aria-label="Camera scanner"
-        />
-      )}
-    </div>
+    <details className="mt-4 rounded-2xl border border-slate-200 px-4 py-3">
+      <summary className="cursor-pointer text-sm font-semibold text-slate-800">
+        Recent scans ({items.length})
+      </summary>
+      <ul className="mt-2 divide-y divide-slate-100">
+        {items.map((it, i) => (
+          <li key={i} className="flex items-center justify-between py-2 text-sm">
+            <span className="text-slate-700">{KIND[it.kind] ?? it.kind}</span>
+            <span
+              className={cn(
+                "font-semibold",
+                it.result === "ok" ? "text-emerald-700" : "text-amber-800"
+              )}
+            >
+              {RESULT[it.result] ?? it.result}
+            </span>
+            <span className="tabular-nums text-slate-500">
+              {it.at
+                ? new Date(it.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                : ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
