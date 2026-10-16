@@ -303,6 +303,24 @@ export function getOrderLiveTracking(trackingNumber: string): Promise<OrderLiveT
   return request(`/v1/orders/${encodeURIComponent(trackingNumber)}/tracking`);
 }
 
+export type DriverPosition = {
+  available: boolean;
+  reason?: string | null;
+  position?: { lat: number; lng: number; recorded_at: string } | null;
+};
+
+/**
+ * Driver's latest (coarse) position for the signed-in customer's own active shipment.
+ * Server returns 404 for anyone else's order and nothing once delivered; 429 if polled too fast.
+ */
+export function getDriverPosition(trackingNumber: string): Promise<DriverPosition> {
+  return request(
+    `/v1/customers/me/orders/${encodeURIComponent(trackingNumber)}/driver-position`,
+    {},
+    true
+  );
+}
+
 export function fetchOnboarding(): Promise<OnboardingStatus> {
   return request("/v1/auth/customer/onboarding", {}, true);
 }

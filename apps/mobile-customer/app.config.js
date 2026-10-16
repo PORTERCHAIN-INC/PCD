@@ -27,6 +27,15 @@ module.exports = ({ config }) => {
   return {
     ...config,
     plugins: withCleartext(config.plugins, appEnv !== "production"),
+    android: {
+      ...(config.android ?? {}),
+      // In-app live map (react-native-maps, Google on Android). Same Google key as
+      // Places; restrict it in Google Cloud to com.porterchain.customer + signing SHA-1.
+      config: {
+        ...(config.android?.config ?? {}),
+        googleMaps: { apiKey: (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim() },
+      },
+    },
     extra: {
       ...(config.extra ?? {}),
       appEnv,

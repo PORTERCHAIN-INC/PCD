@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Image, Pressable, Share, TextInput, View } from "react-native";
+import { Pressable, Share, TextInput, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import {
   etaWindowText,
@@ -12,11 +12,13 @@ import {
 import {
   getOrderByTracking,
   getOrderExperience,
+  getDriverPosition,
   getOrderLiveTracking,
   type OrderLiveTracking,
   type OrderResult,
 } from "../api";
-import { googleMapsApiKey, websiteUrl } from "../config";
+import { websiteUrl } from "../config";
+import { LiveMap } from "../ui/LiveMap";
 import { openDocuments } from "../documents";
 import { humanCustomerError } from "../errors";
 import { isActiveState, isOfflineError, JOURNEY, orderStatus, shortAddress } from "../format";
@@ -35,25 +37,6 @@ export function trackingUrl(tracking: string): string {
   return `${websiteUrl}/en/track/${encodeURIComponent(tracking)}`;
 }
 
-function staticMap(order: OrderResult): string | null {
-  const p = order.pickup;
-  const d = order.dropoff;
-  if (!googleMapsApiKey || p?.lat == null || p.lng == null || d?.lat == null || d.lng == null)
-    return null;
-  const q = new URLSearchParams({
-    size: "640x320",
-    scale: "2",
-    maptype: "roadmap",
-    key: googleMapsApiKey,
-  });
-  return (
-    `https://maps.googleapis.com/maps/api/staticmap?${q.toString()}` +
-    `&markers=color:0x2563eb|label:A|${p.lat},${p.lng}` +
-    `&markers=color:0x0a1628|label:B|${d.lat},${d.lng}` +
-    `&path=color:0x2563ebcc|weight:4|${p.lat},${p.lng}|${d.lat},${d.lng}`
-  );
-}
-
 export function TrackScreen({ initialTracking = "", onBack }: Props) {
   const c = usePalette();
   const [trackingNumber, setTrackingNumber] = useState(initialTracking);
@@ -64,6 +47,9 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
   const [order, setOrder] = useState<OrderResult | null>(null);
   const [live, setLive] = useState<OrderLiveTracking | null>(null);
   const [experience, setExperience] = useState<TrackingExperience | null>(null);
+  const [driver, setDriver] = useState<{ latitude: number; longitude: number; at: string } | null>(
+    null
+  );
   const enhanced = isEnhancedExperience(experience) ? experience : null;
 
   const trimmed = trackingNumber.trim();
@@ -119,7 +105,41 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
     return () => clearInterval(timer);
   }, [order, lookup]);
 
-  const map = order ? staticMap(order) : null;
+  const active = !!order && isActiveState(order.state);
+  // Driver's coarse live position: own active shipment only; ~10 s poll (server rate-limits at 5 s).
+  useEffect(() => {
+    if (!order || !active) {
+      setDriver(null);
+      return;
+    }
+    let stop = false;
+    const tick = () =>
+      getDriverPosition(order.tracking_number)
+        .then((r) => {
+          if (stop) return;
+          setDriver(
+            r.available && r.position
+              ? { latitude: r.position.lat, longitude: r.position.lng, at: r.position.recorded_at }
+              : null
+          );
+        })
+        .catch(() => undefined);
+    void tick();
+    const timer = setInterval(tick, 10_000);
+    return () => {
+      stop = true;
+      clearInterval(timer);
+    };
+  }, [order, active]);
+
+  const pt = (a?: { lat?: number | null; lng?: number | null } | null) =>
+    a?.lat != null && a.lng != null ? { latitude: a.lat, longitude: a.lng } : null;
+  const pickupPt = order ? pt(order.pickup) : null;
+  const dropPt = order ? pt(order.dropoff) : null;
+  const showMap = active && (pickupPt || dropPt);
+  const driverNote = driver
+    ? `Updated ${Math.max(0, Math.round((Date.now() - Date.parse(driver.at)) / 60_000))} min ago`
+    : "Waiting for driver location";
 
   return (
     <Screen
@@ -264,31 +284,22 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
             ) : null}
           </Card>
 
+          {showMap ? (
+            <LiveMap
+              pickup={pickupPt}
+              dropoff={dropPt}
+              driver={driver ? { latitude: driver.latitude, longitude: driver.longitude } : null}
+              eta={eta}
+              note={driverNote}
+            />
+          ) : null}
+
           <Card
             testID="track-open-live"
-            accessibilityLabel="Open the live map on porterchain.com"
+            accessibilityLabel="Open the tracking page on porterchain.com"
             onPress={() => void WebBrowser.openBrowserAsync(trackingUrl(tracking))}
             style={{ padding: 0, overflow: "hidden", gap: 0 }}
           >
-            {map ? (
-              <Image
-                source={{ uri: map }}
-                style={{ width: "100%", height: 170 }}
-                accessibilityIgnoresInvertColors
-              />
-            ) : (
-              <View
-                style={{
-                  height: 120,
-                  backgroundColor: c.infoBg,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
-              >
-                <Icon name="map" size={34} color={c.accentText} />
-              </View>
-            )}
             <View
               style={{
                 flexDirection: "row",
@@ -298,9 +309,9 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
               }}
             >
               <View style={{ flex: 1 }}>
-                <Txt v="headline">Open live map</Txt>
+                <Txt v="headline">Open on porterchain.com</Txt>
                 <Txt v="caption" tone="muted">
-                  Driver location, photo proof and receipt
+                  Share link, photo proof and receipt
                 </Txt>
               </View>
               <Icon name="open-outline" size={20} color={c.accentText} />
