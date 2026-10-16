@@ -1,4 +1,4 @@
-"""HS-20 — Google Places for address autocomplete; no Distance Matrix for pricing."""
+"""HS-20 — free address autocomplete (/v1/geo, no Google Places); no Distance Matrix for pricing."""
 
 from __future__ import annotations
 
@@ -16,11 +16,15 @@ BOOK_CLIENTS = (
 
 
 def test_hs20_places_autocomplete_in_maps_package() -> None:
-    """Book UI address entry uses PlaceAutocompleteElement (Places), not Distance Matrix."""
+    """Book UI address entry uses our /v1/geo endpoint, never Google Places or Distance Matrix."""
     autocomplete = (MAPS_PKG / "AddressAutocompleteInput.tsx").read_text(encoding="utf-8")
-    assert "PlaceAutocompleteElement" in autocomplete
-    assert "useMapsLibrary(\"places\")" in autocomplete or "useMapsLibrary('places')" in autocomplete
+    core = (MAPS_PKG / "maps-core.ts").read_text(encoding="utf-8")
+    assert "fetchGeoSuggestions" in autocomplete
+    assert "/v1/geo/autocomplete" in core
     for needle in (
+        "PlaceAutocompleteElement",
+        "useMapsLibrary",
+        "places.googleapis.com",
         "DistanceMatrix",
         "distancematrix",
         "DirectionsService",
