@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 import pytest
 
-from porterchain_api import geo_text
+from porterchain_api import geo_photon, geo_text
 from porterchain_api.routers import geo
 
 
@@ -194,3 +194,35 @@ def test_leading_city_moved_last() -> None:
         geo_text.lead_city_last("Milton 8500 Mount Pleasant Way")
         == "8500 Mount Pleasant Way Milton"
     )
+
+
+def test_postal_must_fit_city(monkeypatch: pytest.MonkeyPatch) -> None:
+    def hit(pc: str, lng: float, name: str | None = None) -> dict[str, Any]:
+        return {
+            "geometry": {"coordinates": [lng, 43.786]},
+            "properties": {
+                "housenumber": "1881",
+                "street": "Steeles Avenue West",
+                "name": name,
+                "postcode": pc,
+                "city": "Toronto",
+                "district": "North York",
+                "state": "Ontario",
+                "osm_value": "house",
+            },
+        }
+
+    seen: list[dict[str, Any]] = []
+    monkeypatch.setenv("PHOTON_URL", "http://photon:2322")
+    feats = [
+        hit("L4J 4H6", -79.4695),
+        hit("M3H 5Y4", -79.4687),
+        hit("M3H 5Y4", -79.4687, "Shoppers"),
+    ]
+    monkeypatch.setattr(geo.httpx, "Client", _client(feats, seen))
+    out, confident = geo.photon_search_scored("1881 Steeles Ave W", 5)
+    assert confident
+    assert out[0]["formatted"].endswith("M3H 5Y4")
+    assert not any("L4J" in r["formatted"] for r in out)
+    assert geo_photon.postal_fits({"city": "Vaughan", "postcode": "L4J 4H6"})
+    assert not geo_photon.postal_fits({"city": "Milton", "postcode": "M3H 5Y4"})
