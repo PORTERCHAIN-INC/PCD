@@ -35,6 +35,7 @@ export function Tabs({
           return (
             <Pressable
               key={tab.id}
+              testID={`tab-${tab.id}`}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
               accessibilityLabel={badge ? `${tab.label}, ${badge} unread` : tab.label}
