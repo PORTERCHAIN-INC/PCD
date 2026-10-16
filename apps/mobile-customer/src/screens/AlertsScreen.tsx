@@ -1,85 +1,108 @@
-import { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, StyleSheet } from "react-native";
-import { colors, typography } from "@porterchain/mobile-theme";
+import { View } from "react-native";
 import { fetchInbox, markAllRead, markRead, type InboxItem } from "../api";
-import { humanCustomerError } from "../errors";
+import { friendlyDate } from "../format";
 import { screenFromDeepLink } from "../linking";
-import { EmptyState } from "../ui/Motion";
+import { spacing, usePalette } from "../theme";
+import { Banner, Card, Divider, EmptyNote, ListRow, SkeletonList, Txt } from "../ui/kit";
 import { Screen } from "../ui/Screen";
+import { useRemote } from "../ui/useRemote";
 
 let cachedInbox: { items: InboxItem[]; unread_count: number } | null = null;
 
-export function AlertsScreen({ onTrack }: { onTrack: (tracking: string) => void }) {
-  const [items, setItems] = useState<InboxItem[]>(() => cachedInbox?.items ?? []);
-  const [unread, setUnread] = useState(() => cachedInbox?.unread_count ?? 0);
-  const [error, setError] = useState<string | null>(null);
+export function peekUnread(): number {
+  return cachedInbox?.unread_count ?? 0;
+}
 
-  const load = useCallback(() => {
-    void fetchInbox()
-      .then((inbox) => {
-        cachedInbox = { items: inbox.items, unread_count: inbox.unread_count };
-        setItems(inbox.items);
-        setUnread(inbox.unread_count);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
-      });
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+export function AlertsScreen({
+  onTrack,
+  onUnread,
+}: {
+  onTrack: (tracking: string) => void;
+  onUnread?: (n: number) => void;
+}) {
+  const c = usePalette();
+  const { data, loading, refreshing, error, offline, refresh } = useRemote(async () => {
+    const inbox = await fetchInbox();
+    cachedInbox = { items: inbox.items, unread_count: inbox.unread_count };
+    onUnread?.(inbox.unread_count);
+    return cachedInbox;
+  }, cachedInbox);
+  const items = data?.items ?? [];
+  const unread = data?.unread_count ?? 0;
 
   return (
-    <Screen>
-      <Text style={styles.title}>Alerts</Text>
-      <Text style={styles.meta}>
-        {unread} unread. Push to this phone is off. Shipment updates appear in this list.
-      </Text>
-      {unread > 0 ? (
-        <Pressable
-          onPress={() => {
-            void markAllRead().then(load);
-          }}
-        >
-          <Text style={styles.link}>Mark all read</Text>
-        </Pressable>
-      ) : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <ScrollView contentContainerStyle={styles.list}>
-        {items.length === 0 ? (
-          <EmptyState
-            animation="inbox"
-            title="No alerts yet"
-            body="When a shipment moves, the update lands here."
-          />
-        ) : null}
-        {items.map((item) => (
-          <Pressable
-            key={item.id}
-            style={styles.row}
-            onPress={() => {
-              void markRead(item.id).then(load);
-              const link = screenFromDeepLink(item.deep_link);
-              if (link?.screen === "track" && link.tracking) onTrack(link.tracking);
-            }}
+    <Screen
+      scroll
+      testID="alerts"
+      title="Alerts"
+      subtitle={unread ? `${unread} unread` : "Shipment updates land here."}
+      refreshing={refreshing}
+      onRefresh={() => void refresh()}
+      headerRight={
+        unread > 0 ? (
+          <Txt
+            v="callout"
+            tone="accent"
+            accessibilityRole="button"
+            onPress={() => void markAllRead().then(refresh)}
+            style={{ paddingVertical: 12 }}
           >
-            <Text style={styles.strong}>{item.title}</Text>
-            <Text style={styles.meta}>{item.body}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+            Mark all read
+          </Txt>
+        ) : null
+      }
+    >
+      {error ? (
+        <Banner
+          tone={offline ? "offline" : "danger"}
+          text={error}
+          action="Retry"
+          onAction={() => void refresh()}
+        />
+      ) : null}
+      {loading && !data ? <SkeletonList rows={3} /> : null}
+      {data && items.length === 0 ? (
+        <EmptyNote
+          icon="notifications-outline"
+          title="You're all caught up"
+          body="When a shipment moves, the update lands here."
+        />
+      ) : null}
+      {items.length ? (
+        <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+          {items.map((item, i) => {
+            const isUnread = !item.is_read;
+            return (
+              <View key={item.id}>
+                {i ? <Divider /> : null}
+                <ListRow
+                  icon={isUnread ? "notifications" : "notifications-outline"}
+                  title={item.title}
+                  subtitle={[item.body, friendlyDate(item.created_at)].filter(Boolean).join(" · ")}
+                  right={
+                    isUnread ? (
+                      <View
+                        accessibilityLabel="Unread"
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: c.secondary,
+                        }}
+                      />
+                    ) : undefined
+                  }
+                  onPress={() => {
+                    void markRead(item.id).then(refresh);
+                    const link = screenFromDeepLink(item.deep_link);
+                    if (link?.screen === "track" && link.tracking) onTrack(link.tracking);
+                  }}
+                />
+              </View>
+            );
+          })}
+        </Card>
+      ) : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 30, color: colors.primary },
-  meta: { ...typography.caption, color: colors.muted },
-  link: { ...typography.caption, color: colors.secondary, fontWeight: "700" },
-  error: { ...typography.caption, color: colors.danger },
-  list: { gap: 8, paddingBottom: 24 },
-  row: { backgroundColor: colors.white, borderRadius: 12, padding: 12, gap: 4 },
-  strong: { ...typography.body, color: colors.primary, fontWeight: "700" },
-});

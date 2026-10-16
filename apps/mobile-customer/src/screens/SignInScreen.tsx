@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Text, StyleSheet, Pressable } from "react-native";
+import { View } from "react-native";
 import { useHostedAuth } from "@clerk/expo/hosted-auth";
-import { colors, typography } from "@porterchain/mobile-theme";
 import { useSessionView } from "../auth/SessionGate";
 import { allowDevAuth, apiBaseUrl, clerkPublishableKey } from "../config";
 import { humanCustomerError } from "../errors";
 import { clearSession, waitForSignedSession } from "../session";
 import { Motion } from "../ui/Motion";
 import { PrimaryButton } from "../ui/PrimaryButton";
+import { spacing } from "../theme";
+import { Banner, Button, Txt } from "../ui/kit";
 import { Screen } from "../ui/Screen";
 
 type Props = {
@@ -40,18 +41,20 @@ function HostedButtons({ onSignedIn }: { onSignedIn: () => void }) {
     <>
       <PrimaryButton
         testID="customer-sign-in"
-        label={busy === "sign-in" ? "Opening sign-in…" : "Sign in"}
+        label="Sign in"
+        loading={busy === "sign-in"}
         disabled={busy != null}
         onPress={() => void start("sign-in")}
       />
       <PrimaryButton
         testID="customer-sign-up"
         tone="ghost"
-        label={busy === "sign-up" ? "Opening sign-up…" : "Create account"}
+        label="Create account"
+        loading={busy === "sign-up"}
         disabled={busy != null}
         onPress={() => void start("sign-up")}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Banner tone="danger" text={error} /> : null}
     </>
   );
 }
@@ -63,61 +66,60 @@ export function SignInScreen({ apiUp, onSignedIn, onTrack }: Props) {
   const stuckSession = session.signedIn && showHosted;
 
   return (
-    <Screen testID="mobile-sign-in">
-      <Motion name="route" size={220} />
-      <Text style={styles.kicker}>Porterchain</Text>
-      <Text style={styles.title}>Capacity when you need it.</Text>
-      <Text style={styles.lede}>Quote a lane, book the delivery, and follow every handoff.</Text>
+    <Screen testID="mobile-sign-in" scroll style={{ flexGrow: 1, justifyContent: "center" }}>
+      <Motion name="route" size={200} />
+      <View style={{ gap: spacing.sm }}>
+        <Txt v="overline" tone="accent">
+          PorterChain
+        </Txt>
+        <Txt v="largeTitle" accessibilityRole="header">
+          Same-day delivery, booked in a minute.
+        </Txt>
+        <Txt v="body" tone="muted">
+          Get an upfront price with HST, pay by card, and follow every handoff live.
+        </Txt>
+      </View>
       {__DEV__ ? (
-        <Text style={styles.meta}>
+        <Txt v="caption" tone="muted">
           API {apiUp == null ? "…" : apiUp ? "reachable" : "unreachable"} · {apiBaseUrl}
-        </Text>
+        </Txt>
       ) : null}
-      {session.bootError ? <Text style={styles.error}>{session.bootError}</Text> : null}
-      {showHosted && !stuckSession ? <HostedButtons onSignedIn={onSignedIn} /> : null}
-      {!showHosted && allowDevAuth() ? (
-        <PrimaryButton testID="dev-sign-in" label="Continue" onPress={onSignedIn} />
-      ) : null}
-      {!showHosted && !allowDevAuth() ? (
-        <Text style={styles.error}>
-          This build has no PorterChain Platform key. Archive with the live publishable key.
-        </Text>
-      ) : null}
-      {stuckSession ? (
-        <>
-          <Text style={styles.lede}>A session is already on this device.</Text>
-          <PrimaryButton label="Continue" onPress={onSignedIn} />
-          <Pressable
-            accessibilityRole="button"
-            disabled={signingOut}
-            onPress={() => {
-              setSigningOut(true);
-              void clearSession().finally(() => setSigningOut(false));
-            }}
-          >
-            <Text style={styles.signOut}>{signingOut ? "Signing out…" : "Sign out"}</Text>
-          </Pressable>
-        </>
-      ) : null}
-      <Pressable accessibilityRole="button" onPress={onTrack}>
-        <Text style={styles.link}>Track a shipment without an account</Text>
-      </Pressable>
+      {session.bootError ? <Banner tone="danger" text={session.bootError} /> : null}
+      <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+        {showHosted && !stuckSession ? <HostedButtons onSignedIn={onSignedIn} /> : null}
+        {!showHosted && allowDevAuth() ? (
+          <PrimaryButton testID="dev-sign-in" label="Continue" onPress={onSignedIn} />
+        ) : null}
+        {!showHosted && !allowDevAuth() ? (
+          <Banner
+            tone="danger"
+            text="This build has no PorterChain Platform key. Archive with the live publishable key."
+          />
+        ) : null}
+        {stuckSession ? (
+          <>
+            <Txt v="callout" tone="muted">
+              A session is already on this device.
+            </Txt>
+            <PrimaryButton label="Continue" onPress={onSignedIn} />
+            <Button
+              variant="plain"
+              label="Sign out"
+              loading={signingOut}
+              onPress={() => {
+                setSigningOut(true);
+                void clearSession().finally(() => setSigningOut(false));
+              }}
+            />
+          </>
+        ) : null}
+        <Button
+          variant="plain"
+          icon="locate-outline"
+          label="Track a shipment without an account"
+          onPress={onTrack}
+        />
+      </View>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  kicker: {
-    ...typography.caption,
-    color: colors.secondary,
-    fontWeight: "700",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-  },
-  title: { ...typography.title, fontSize: 34, color: colors.primary },
-  lede: { ...typography.body, color: colors.muted },
-  meta: { ...typography.caption, color: colors.muted },
-  error: { ...typography.caption, color: colors.danger },
-  signOut: { ...typography.caption, color: colors.danger, textAlign: "center" },
-  link: { ...typography.caption, color: colors.secondary, textAlign: "center" },
-});

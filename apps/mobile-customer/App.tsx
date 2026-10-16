@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
-import { colors, typography } from "@porterchain/mobile-theme";
+import { usePalette } from "./src/theme";
+import { Txt } from "./src/ui/kit";
 import {
   fetchOnboarding,
   fetchSessionContext,
@@ -16,7 +17,7 @@ import { humanCustomerError } from "./src/errors";
 import { screenFromUrl, type VisitorTracking } from "./src/linking";
 import { AccountScreen } from "./src/screens/AccountScreen";
 import { ActivityScreen } from "./src/screens/ActivityScreen";
-import { AlertsScreen } from "./src/screens/AlertsScreen";
+import { AlertsScreen, peekUnread } from "./src/screens/AlertsScreen";
 import { BookScreen } from "./src/screens/BookScreen";
 import { HomeScreen, peekCachedDashboard } from "./src/screens/HomeScreen";
 import { AccessDeniedScreen, OnboardingScreen } from "./src/screens/OnboardingScreen";
@@ -45,6 +46,8 @@ function Root() {
   const [visitorTracking, setVisitorTracking] = useState<VisitorTracking | undefined>();
   const [apiUp, setApiUp] = useState<boolean | null>(null);
   const started = useRef(false);
+  const [unread, setUnread] = useState(peekUnread());
+  const palette = usePalette();
 
   const enter = useCallback(async () => {
     setPhase("checking");
@@ -138,8 +141,8 @@ function Root() {
 
   if (!session.ready && !hasCachedHome && !session.signedIn) {
     return (
-      <Screen>
-        <ActivityIndicator color={colors.secondary} />
+      <Screen style={styles.center}>
+        <ActivityIndicator color={palette.muted} />
       </Screen>
     );
   }
@@ -175,16 +178,18 @@ function Root() {
             setShowTrack(true);
           }}
         />
-        <Tabs current={tab} onChange={setTab} />
+        <Tabs current={tab} onChange={setTab} badges={{ alerts: unread }} />
       </>
     );
   }
 
   if (phase === "checking") {
     return (
-      <Screen>
-        <ActivityIndicator color={colors.secondary} />
-        <Text style={styles.meta}>Checking your account…</Text>
+      <Screen style={styles.center}>
+        <ActivityIndicator color={palette.muted} />
+        <Txt v="callout" tone="muted" center>
+          Checking your account…
+        </Txt>
       </Screen>
     );
   }
@@ -220,6 +225,7 @@ function Root() {
             setTracking(number);
             setShowTrack(true);
           }}
+          onActivity={() => setTab("activity")}
         />
       ) : null}
       {tab === "book" ? (
@@ -237,6 +243,10 @@ function Root() {
       ) : null}
       {tab === "activity" ? (
         <ActivityScreen
+          onBook={() => {
+            setRebookOrderId(undefined);
+            setTab("book");
+          }}
           onTrack={(number) => {
             setTracking(number);
             setShowTrack(true);
@@ -245,6 +255,7 @@ function Root() {
       ) : null}
       {tab === "alerts" ? (
         <AlertsScreen
+          onUnread={setUnread}
           onTrack={(number) => {
             setTracking(number);
             setShowTrack(true);
@@ -252,7 +263,7 @@ function Root() {
         />
       ) : null}
       {tab === "account" ? <AccountScreen onSignedOut={() => void signOut()} /> : null}
-      <Tabs current={tab} onChange={setTab} />
+      <Tabs current={tab} onChange={setTab} badges={{ alerts: unread }} />
     </>
   );
 }
@@ -262,12 +273,12 @@ export default function App() {
     <AppErrorBoundary>
       <SessionGate>
         <Root />
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
       </SessionGate>
     </AppErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  meta: { ...typography.caption, color: colors.muted, textAlign: "center" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", gap: 12 },
 });
