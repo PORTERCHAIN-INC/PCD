@@ -247,6 +247,9 @@ services:
       PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
       PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
       PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
+      STRIPE_CONNECT_REFRESH_URL: https://merchant.porterchain.com/billing
+      STRIPE_CONNECT_RETURN_URL: https://merchant.porterchain.com/billing?connect=return
+      DRIVER_IDENTITY_RETURN_URL: https://driver.porterchain.com/profile?identity=return
       CLERK_DEV_BYPASS: "false"
       # Security audit 2026-10-10
       AUDIT_SIGNING_KEY: ${AUDIT_SIGNING_KEY:-}
@@ -365,6 +368,28 @@ services:
       REDIS_URL: redis://redis:6379/0
       DB_POOL_SIZE: "5"
       DB_MAX_OVERFLOW: "5"
+      # Public URLs: worker renders emails/SMS links (tracking, invoices, resets).
+      # Without these the settings fall back to localhost (Kaylulu bug 2026-10-15).
+      PORTERCHAIN_API_URL: https://api.porterchain.com
+      WEBSITE_URL: https://porterchain.com
+      ADMIN_PORTAL_URL: https://admin.porterchain.com
+      MERCHANT_PORTAL_URL: https://merchant.porterchain.com
+      DRIVER_PORTAL_URL: https://driver.porterchain.com
+      DRIVER_PORTAL_BASE_URL: https://driver.porterchain.com
+      CUSTOMER_PORTAL_URL: https://customer.porterchain.com
+      RETAIL_CHECKOUT_SUCCESS_URL: https://porterchain.com/en/book/success
+      RETAIL_CHECKOUT_CANCEL_URL: https://porterchain.com/en/book/continue
+      CUSTOMER_CHECKOUT_SUCCESS_URL: https://customer.porterchain.com/book/success
+      CUSTOMER_CHECKOUT_CANCEL_URL: https://customer.porterchain.com/book
+      PORTERCHAIN_RETAIL_PAY_URL_BASE: https://porterchain.com/track
+      PORTERCHAIN_RETAIL_STRIPE_SUCCESS_URL: https://porterchain.com/track/{tracking_number}?paid=1
+      PORTERCHAIN_RETAIL_STRIPE_CANCEL_URL: https://porterchain.com/track/{tracking_number}?cancelled=1
+      PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
+      PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
+      PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
+      STRIPE_CONNECT_REFRESH_URL: https://merchant.porterchain.com/billing
+      STRIPE_CONNECT_RETURN_URL: https://merchant.porterchain.com/billing?connect=return
+      DRIVER_IDENTITY_RETURN_URL: https://driver.porterchain.com/profile?identity=return
       STRIPE_MOCK: "false"
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}

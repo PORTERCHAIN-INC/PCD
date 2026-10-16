@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Self
+from urllib.parse import urlparse
 
 from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -773,3 +774,43 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+PUBLIC_URL_FIELDS = (
+    "porterchain_api_url",
+    "admin_portal_url",
+    "merchant_portal_url",
+    "driver_portal_url",
+    "customer_portal_url",
+    "website_url",
+    "driver_identity_return_url",
+    "stripe_connect_refresh_url",
+    "stripe_connect_return_url",
+    "retail_checkout_success_url",
+    "retail_checkout_cancel_url",
+    "customer_checkout_success_url",
+    "customer_checkout_cancel_url",
+)
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0", "::1"})
+
+
+def public_url_errors(settings: Settings) -> list[str]:
+    """Public URLs that would put localhost links into emails/SMS outside local dev."""
+    if is_local_env(settings.app_env):
+        return []
+    bad: list[str] = []
+    for name in PUBLIC_URL_FIELDS:
+        value = str(getattr(settings, name, "") or "")
+        host = (urlparse(value).hostname or "").lower()
+        if not host or host in _LOOPBACK_HOSTS or host.endswith(".localhost"):
+            bad.append(f"{name.upper()}={value or '<empty>'}")
+    return bad
+
+
+def require_public_urls_for_production(settings: Settings | None = None) -> None:
+    """Fail boot (API + worker) instead of emailing localhost links (Kaylulu bug 2026-10-15)."""
+    bad = public_url_errors(settings or get_settings())
+    if bad:
+        raise RuntimeError(
+            "Public URLs must point at real hosts when APP_ENV is not local; set: " + ", ".join(bad)
+        )
