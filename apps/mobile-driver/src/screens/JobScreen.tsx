@@ -13,7 +13,8 @@ import { useLiveFix } from "../smart/useLiveFix";
 import { useRouteStopUi } from "../ui/RouteStopCard";
 import { toast } from "../ui/toast";
 import { openTurnByTurn } from "../maps";
-import { runOnlineOrQueue } from "../offline";
+import { enqueueOfflineAction, readQueue, runOnlineOrQueue } from "../offline";
+import { isNetworkError } from "../netErrors";
 import { scanFix, type ScanOutcome } from "../scanFeedback";
 import { capturePodPhotoDataUrl } from "../pod";
 import { completeStop } from "../stop/completeStop";
@@ -97,15 +98,24 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   const submitScan = async (code: string): Promise<ScanOutcome> => {
     const meta = { ...((await scanFix()) ?? {}), scanned_at: new Date().toISOString() };
     let res: Awaited<ReturnType<typeof scanPackage>> | null = null;
+    const payload = { order_id: orderId, qr_payload: code.trim(), phase: scanPhase, ...meta };
     try {
-      const how = await runOnlineOrQueue(
-        "package_scan",
-        { order_id: orderId, qr_payload: code.trim(), phase: scanPhase, ...meta },
-        async () => {
-          res = await scanPackage(orderId, code.trim(), scanPhase, meta);
-        }
+      // Online first (other queued actions must not hold up the box count), but keep
+      // order behind any earlier offline scans of this job (pickup before delivery).
+      const queuedForJob = (await readQueue()).some(
+        (q) => q.action_type === "package_scan" && q.payload.order_id === orderId
       );
-      if (how === "queued") {
+      let queued = queuedForJob;
+      if (!queuedForJob) {
+        try {
+          res = await scanPackage(orderId, code.trim(), scanPhase, meta);
+        } catch (err) {
+          if (!isNetworkError(err)) throw err;
+          queued = true;
+        }
+      }
+      if (queued) {
+        await enqueueOfflineAction("package_scan", payload);
         toast.show("info", "Saved offline", "This scan will sync when you're back online.");
         return "queued";
       }
