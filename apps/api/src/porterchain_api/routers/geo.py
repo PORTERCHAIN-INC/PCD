@@ -205,58 +205,10 @@ def _format(p: dict[str, Any]) -> tuple[str, str]:
     return main, secondary
 
 
-def photon_search(q: str, limit: int) -> list[dict[str, Any]]:
-    params = {
-        "q": q,
-        "limit": str(min(limit * 3, 30)),
-        "lat": str(HUB_LAT),
-        "lon": str(HUB_LNG),
-        "bbox": BBOX,
-        "lang": "en",
-    }
-    with httpx.Client(timeout=TIMEOUT_S) as client:
-        res = client.get(f"{photon_url()}/api", params=params)
-        res.raise_for_status()
-        features = res.json().get("features") or []
-    out: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for f in features:
-        props = f.get("properties") or {}
-        coords = (f.get("geometry") or {}).get("coordinates") or []
-        if len(coords) != 2 or (props.get("countrycode") or "").upper() not in {
-            "",
-            "CA",
-        }:
-            continue
-        lng, lat = float(coords[0]), float(coords[1])
-        if _km(lat, lng) > MAX_KM:
-            continue
-        main, secondary = _format(props)
-        if not main:
-            continue
-        formatted = ", ".join(x for x in (main, secondary) if x)
-        if formatted in seen:
-            continue
-        seen.add(formatted)
-        place = {
-            "formatted": formatted,
-            "lat": lat,
-            "lng": lng,
-            "postal": props.get("postcode"),
-            "city": props.get("city") or props.get("town") or props.get("village"),
-            "province": "ON" if props.get("state") == "Ontario" else props.get("state"),
-        }
-        out.append(
-            {
-                "id": _encode(place),
-                "main": main,
-                "secondary": secondary,
-                "formatted": formatted,
-            }
-        )
-        if len(out) >= limit:
-            break
-    return out
+from porterchain_api.geo_photon import _postal_fallback, photon_search  # noqa: E402
+from porterchain_api.geo_text import (
+    normalize_postal,
+)
 
 
 def _postal_complete(postal: str | None) -> bool:
@@ -274,7 +226,13 @@ def autocomplete(
     q = q.strip()
     if photon_url():
         try:
-            return {"results": photon_search(q, limit), "source": "photon"}
+            results = photon_search(q, limit)
+            if results or not normalize_postal(q):
+                return {"results": results, "source": "photon"}
+            fsa = _postal_fallback(q)
+            if fsa:
+                return {"results": [fsa], "source": "fsa"}
+            return {"results": [], "source": "photon"}
         except httpx.HTTPError as exc:
             logger.warning("photon unavailable, falling back to nominatim: %s", exc)
     try:
