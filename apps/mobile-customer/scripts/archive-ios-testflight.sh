@@ -51,25 +51,6 @@ if [[ -z "${EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:-}" ]]; then
   exit 1
 fi
 
-# Places autocomplete only. Same public browser key the customer website uses.
-if [[ -z "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:-}" && -f "$ROOT/../../env/.env" ]]; then
-  EXPO_PUBLIC_GOOGLE_MAPS_API_KEY="$(python3 - "$ROOT/../../env/.env" <<'PY'
-import sys
-key = ""
-for line in open(sys.argv[1]):
-    if line.startswith("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="):
-        key = line.split("=", 1)[1].strip().strip('"')
-        break
-print(key, end="")
-PY
-)"
-  export EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
-fi
-if [[ -z "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:-}" ]]; then
-  echo "Set EXPO_PUBLIC_GOOGLE_MAPS_API_KEY so pickup and drop-off can search Google Places."
-  exit 1
-fi
-
 mkdir -p "$ROOT/build"
 cat >"$EXPORT_PLIST" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
