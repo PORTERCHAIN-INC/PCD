@@ -226,3 +226,45 @@ def test_postal_must_fit_city(monkeypatch: pytest.MonkeyPatch) -> None:
     assert not any("L4J" in r["formatted"] for r in out)
     assert geo_photon.postal_fits({"city": "Vaughan", "postcode": "L4J 4H6"})
     assert not geo_photon.postal_fits({"city": "Milton", "postcode": "M3H 5Y4"})
+
+
+def test_trailing_postal_and_unknown_town_dont_break_exact_match(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def house(num: str, street: str, city: str, pc: str) -> dict[str, Any]:
+        return {
+            "geometry": {"coordinates": [-79.45, 43.67]},
+            "properties": {
+                "housenumber": num,
+                "street": street,
+                "city": city,
+                "state": "Ontario",
+                "postcode": pc,
+                "osm_value": "house",
+                "countrycode": "CA",
+            },
+        }
+
+    seen: list[dict[str, Any]] = []
+    monkeypatch.setenv("PHOTON_URL", "http://photon:2322")
+    monkeypatch.setattr(
+        geo.httpx, "Client", _client([house("7", "Connolly Street", "Toronto", "M6N 4Y5")], seen)
+    )
+    out, confident = geo.photon_search_scored("7 Connolly St, Toronto M6N 4Y5", 5)
+    assert confident and out[0]["formatted"].startswith("7 Connolly Street")
+    monkeypatch.undo()
+    monkeypatch.setenv("PHOTON_URL", "http://photon:2322")
+    monkeypatch.setattr(
+        geo.httpx, "Client", _client([house("42", "Willoughby Place", "Clarington", "L1C 0W4")], seen)
+    )
+    out, confident = geo.photon_search_scored("42 Willoughby Pl, Bowmanville", 5)
+    assert confident and out[0]["formatted"].startswith("42 Willoughby Place")
+    assert geo_text.split_city("7 Connolly Street, Toronto M6N 4Y5") == ("7 Connolly Street", "toronto")
+
+
+def test_street_loose_match() -> None:
+    m = geo_photon.street_loose_match
+    assert m("willoughby place, bowmanville", "willoughby place")
+    assert m("woody vine way", "woody vineway")
+    assert not m("king street east", "king street")
+    assert not m("kingston road", "king street")

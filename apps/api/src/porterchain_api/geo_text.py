@@ -176,7 +176,10 @@ def expand_short_forms(q: str) -> str:
 
 def split_city(q: str) -> tuple[str, str | None]:
     """'1880 Steeles Avenue West North York' -> ('1880 Steeles Avenue West', 'north york')."""
+    # A trailing postal code ("..., Toronto M6N 4Y5") is not part of the street or city.
+    q = re.sub(r"(?:,|\s)\s*[A-Z]\d[A-Z](?:\s*\d[A-Z]\d)?\s*$", "", q.strip(), flags=re.IGNORECASE)
     q = re.sub(r"(?:,|\s)\s*canada\.?\s*$", "", q.strip(), flags=re.IGNORECASE)
+    q = re.sub(r"(?:,|\s)\s*[A-Z]\d[A-Z](?:\s*\d[A-Z]\d)?\s*$", "", q.strip(), flags=re.IGNORECASE)
     base = re.sub(
         r"(?:,|\s)\s*(?:on|ontario)\.?\s*$", "", q.strip(), flags=re.IGNORECASE
     )
