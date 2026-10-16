@@ -1399,7 +1399,7 @@ function AddressField({
         <AddressAutocompleteInput
           id={id}
           value={value.formatted}
-          onChange={(formatted) => onChange({ ...value, formatted })}
+          onChange={(formatted) => onChange({ formatted })}
           onPlaceSelect={onChange}
           apiKey={publicEnv.googleMapsApiKey}
           placeholder={label}

@@ -121,6 +121,15 @@ def get_booking_catalog(db: Session = Depends(get_db)) -> dict:
     }
 
 
+
+def _geocode_typed(body: CreateQuoteRequest) -> None:
+    """Typed (not picked) addresses arrive without lat/lng; locate them server-side so the
+    fare includes distance (Nominatim, then postal-code centroid). Never raises."""
+    from porterchain_api.merchant_engine.quote_geocode import resolve_missing_coordinates
+
+    resolve_missing_coordinates(body.pickup, body.dropoff, *(body.additional_stops or []))  # type: ignore[arg-type]
+
+
 @router.post("/quotes", response_model=QuoteResponse)
 def post_quote(
     body: CreateQuoteRequest,
@@ -129,6 +138,7 @@ def post_quote(
     settings: Settings = Depends(get_settings),
 ) -> QuoteResponse:
     client_ip = request.client.host if request.client else None
+    _geocode_typed(body)
     try:
         quote = _quote_service.create_quote(db, settings, body, ip_address=client_ip)
     except ValueError as exc:
@@ -143,6 +153,7 @@ def post_quote_preview(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     """Live fare. Does not insert a quote, visitor, or draft."""
+    _geocode_typed(body)
     try:
         return _quote_service.preview_quote(db, settings, body)
     except ValueError as exc:

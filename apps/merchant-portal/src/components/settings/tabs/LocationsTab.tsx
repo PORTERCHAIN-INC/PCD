@@ -100,7 +100,7 @@ export function LocationsTab({
         <AddressAutocompleteInput
           id="settings-pickup"
           value={pickup.formatted}
-          onChange={(formatted) => setPickup({ ...pickup, formatted })}
+          onChange={(formatted) => setPickup({ formatted })}
           onPlaceSelect={setPickup}
           apiKey={publicEnv.googleMapsApiKey}
           placeholder="Ontario address"

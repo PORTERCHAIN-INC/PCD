@@ -36,6 +36,7 @@ from porterchain_api.routers import (
     orders,
     payments,
     public_newsletter,
+    geo,
     email_inbound,
     pricing_admin,
     pricing_components,
@@ -159,6 +160,7 @@ def create_app() -> FastAPI:
     app.include_router(shopify_route_pricing.router)
     app.include_router(public_inquiries.router)
     app.include_router(public_newsletter.router)
+    app.include_router(geo.router)
     app.include_router(public_marketing.router)
     from porterchain_api.routers.admin.compliance import public_router as _region_router
 
