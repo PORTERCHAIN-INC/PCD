@@ -326,14 +326,52 @@ export function fetchJob(orderId: string): Promise<DriverJobDetail> {
   return driverFetch<DriverJobDetail>(`${DRIVER_API}/jobs/${encodeURIComponent(orderId)}`);
 }
 
+/** GPS + client time sent with every scan (server audit log). */
+export type ScanMeta = {
+  lat?: number;
+  lng?: number;
+  accuracy_m?: number;
+  scanned_at?: string;
+};
+
 export function scanPackage(
   orderId: string,
   qrPayload: string,
-  phase: "pickup" | "delivery"
+  phase: "pickup" | "delivery",
+  meta: ScanMeta = {}
 ): Promise<ScanProgress & { package_id?: string; tracking_suffix?: string; status?: string }> {
   return driverFetch(`${DRIVER_API}/orders/${encodeURIComponent(orderId)}/packages/scan`, {
     method: "POST",
-    body: JSON.stringify({ qr_payload: qrPayload, phase }),
+    body: JSON.stringify({ qr_payload: qrPayload, phase, ...meta }),
+  });
+}
+
+export type LabelLookup = {
+  warning: "wrong_stop" | null;
+  order: { id: string; order_number: string; state: string };
+  parcel: {
+    id: string;
+    tracking_suffix: string;
+    status: string;
+    item_label: string | null;
+    box_index: number | null;
+    box_count: number | null;
+    parcel_index: number | null;
+    total_parcels: number | null;
+    stop_sequence: number | null;
+  };
+  next_phase: "pickup" | "delivery";
+  allowed_actions: string[];
+};
+
+/** Scan-anytime: resolves only parcels on this driver's own active jobs (else 404 not_yours). */
+export function lookupLabel(
+  code: string,
+  meta: ScanMeta & { expected_order_id?: string } = {}
+): Promise<LabelLookup> {
+  return driverFetch(`${DRIVER_API}/scan/lookup`, {
+    method: "POST",
+    body: JSON.stringify({ code, ...meta }),
   });
 }
 

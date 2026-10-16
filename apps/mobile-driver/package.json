@@ -32,6 +32,7 @@
     "@tanstack/react-query-persist-client": "^5.104.2",
     "expo": "~57.0.27",
     "expo-application": "~57.0.3",
+    "expo-audio": "~57.0.5",
     "expo-auth-session": "~57.0.14",
     "expo-battery": "~57.0.3",
     "expo-build-properties": "~57.0.22",

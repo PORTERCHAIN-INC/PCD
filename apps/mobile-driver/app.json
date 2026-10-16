@@ -22,7 +22,7 @@
         "NSLocationWhenInUseUsageDescription": "While you are on duty, PorterChain sends your location to PorterChain dispatch so the van can be seen on the map.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "PorterChain needs background location while you are on duty so PorterChain dispatch can see the van with the screen locked.",
         "NSLocationAlwaysUsageDescription": "PorterChain needs background location while you are on duty so PorterChain dispatch can see the van with the screen locked.",
-        "NSCameraUsageDescription": "Camera is used to capture proof of delivery photos and scan package barcodes.",
+        "NSCameraUsageDescription": "PorterChain uses the camera to scan parcel labels at pickup and delivery and to take proof-of-delivery photos.",
         "NSPhotoLibraryUsageDescription": "Photo library access is used when attaching proof of delivery images.",
         "NSFaceIDUsageDescription": "Porterchain uses Face ID to unlock your saved driver session on this device."
       },
@@ -89,7 +89,8 @@
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
     },
     "plugins": [
       "./plugins/with-rn-spm-nil-guard.js",
@@ -129,14 +130,14 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Camera is used to capture proof of delivery photos.",
+          "cameraPermission": "PorterChain uses the camera to scan parcel labels at pickup and delivery and to take proof-of-delivery photos.",
           "photosPermission": "Photo library access is used when attaching proof of delivery images."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Camera is used to scan package barcodes and capture proof of delivery.",
+          "cameraPermission": "PorterChain uses the camera to scan parcel labels at pickup and delivery and to take proof-of-delivery photos.",
           "microphonePermission": false,
           "barcodeScannerEnabled": true
         }
@@ -145,6 +146,12 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "Porterchain uses Face ID to unlock your saved driver session on this device."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
         }
       ]
     ],
