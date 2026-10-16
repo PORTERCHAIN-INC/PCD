@@ -347,6 +347,16 @@ export const driverApi = {
       method: "POST",
     }),
   job: (orderId: string) => driverFetch<DriverJobDetail>(`/v1/jobs/${orderId}`),
+  scanHistory: (limit = 30) =>
+    driverFetch<{
+      items: {
+        at: string | null;
+        kind: "lookup" | "pickup" | "delivery";
+        result: string;
+        order_id: string | null;
+        package_id: string | null;
+      }[];
+    }>(`/v1/scan/history?limit=${limit}`),
   scanPackage: (orderId: string, body: { qr_payload: string; phase: "pickup" | "delivery" }) =>
     driverFetch<{
       package_id: string;

@@ -523,6 +523,11 @@ class Settings(BaseSettings):
         default=False,
         validation_alias=AliasChoices("gps_write_ping_table", "GPS_WRITE_PING_TABLE"),
     )
+    # Parcel label signing key (PC1 codes). Empty = derived from JWT_SECRET (domain-separated).
+    label_signing_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices("label_signing_secret", "LABEL_SIGNING_SECRET"),
+    )
     sso_jwt_secret: str = Field(
         default="",
         validation_alias=AliasChoices(

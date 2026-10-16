@@ -170,6 +170,31 @@ class DriverOfflineExecutor:
                 order_id=payload.get("order_id"),
                 priority=payload.get("priority", "normal"))
             return
+        if action == "package_scan":
+            # Camera scan captured offline; replayed in order. Same ownership,
+            # transition and audit rules as the live endpoint.
+            from porterchain_api.driver_engine import scan_audit
+            from porterchain_api.driver_engine.api_service import DriverApiService
+            from porterchain_api.merchant_engine.scan_gate_service import ScanGateService
+
+            order_id = payload.get("order_id")
+            if not order_id:
+                raise ValueError("order_id_required")
+            body = {**payload, "offline_replay": True}
+            try:
+                scan_audit.audited_package_scan(
+                    db, driver.id, order_id, body,
+                    lambda: ScanGateService().scan_qr_from_body(
+                        db,
+                        DriverApiService.require_assigned_order(db, driver_id=driver.id, order_id=order_id),
+                        body,
+                        actor_id=driver.id,
+                    ),
+                )
+            except ValueError as exc:
+                # Wrong parcel / bad label: nothing to retry; the audit row keeps the evidence.
+                raise ConflictSkip(str(exc)) from exc
+            return
         if action == "accept_order":
             order_id = payload.get("order_id")
             if not order_id:
