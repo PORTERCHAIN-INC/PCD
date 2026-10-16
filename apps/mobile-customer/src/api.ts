@@ -1,6 +1,7 @@
 import type { TrackingExperience } from "@porterchain/types";
 import * as Crypto from "expo-crypto";
 import { apiBaseUrl, fetchTimeoutMs } from "./config";
+import { demoEnabled, demoRequest } from "./dev/demo";
 import { requireBearer } from "./session";
 
 const PORTAL = "customer";
@@ -259,6 +260,7 @@ async function readError(res: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}, auth = false): Promise<T> {
+  if (demoEnabled()) return demoRequest<T>(path, init);
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(init.body ? { "Content-Type": "application/json" } : {}),
@@ -279,6 +281,7 @@ export function formatCad(cents: number, currency = "CAD"): string {
 }
 
 export async function probeApi(): Promise<boolean> {
+  if (demoEnabled()) return true;
   try {
     const res = await fetchWithTimeout(`${apiBaseUrl}/health`, { method: "GET" });
     return res.ok;
@@ -298,6 +301,24 @@ export function getOrderExperience(trackingNumber: string): Promise<TrackingExpe
 
 export function getOrderLiveTracking(trackingNumber: string): Promise<OrderLiveTracking> {
   return request(`/v1/orders/${encodeURIComponent(trackingNumber)}/tracking`);
+}
+
+export type DriverPosition = {
+  available: boolean;
+  reason?: string | null;
+  position?: { lat: number; lng: number; recorded_at: string } | null;
+};
+
+/**
+ * Driver's latest (coarse) position for the signed-in customer's own active shipment.
+ * Server returns 404 for anyone else's order and nothing once delivered; 429 if polled too fast.
+ */
+export function getDriverPosition(trackingNumber: string): Promise<DriverPosition> {
+  return request(
+    `/v1/customers/me/orders/${encodeURIComponent(trackingNumber)}/driver-position`,
+    {},
+    true
+  );
 }
 
 export function fetchOnboarding(): Promise<OnboardingStatus> {

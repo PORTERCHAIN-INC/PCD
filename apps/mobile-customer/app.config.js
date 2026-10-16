@@ -27,6 +27,23 @@ module.exports = ({ config }) => {
   return {
     ...config,
     plugins: withCleartext(config.plugins, appEnv !== "production"),
+    android: {
+      ...(config.android ?? {}),
+      // In-app live map (react-native-maps, Google on Android; iOS uses Apple Maps, no key).
+      // GOOGLE_MAPS_ANDROID_API_KEY = "PorterChain Android Maps" key (Maps SDK for Android
+      // only, restricted to com.porterchain.customer + SHA-1s). Build-time only: not
+      // EXPO_PUBLIC_, so it is not inlined into the JS bundle. Doppler pcd/prd + EAS env.
+      config: {
+        ...(config.android?.config ?? {}),
+        googleMaps: {
+          apiKey: (
+            process.env.GOOGLE_MAPS_ANDROID_API_KEY ||
+            process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||
+            ""
+          ).trim(),
+        },
+      },
+    },
     extra: {
       ...(config.extra ?? {}),
       appEnv,

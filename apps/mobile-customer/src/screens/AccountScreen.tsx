@@ -1,16 +1,11 @@
 import { useClerk } from "@clerk/expo";
 import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Share,
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-} from "react-native";
-import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { Alert, Share, StyleSheet, TextInput, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import { appVersion, websiteUrl } from "../config";
+import { friendlyDate } from "../format";
+import { radius, spacing, touchTargetMin, useThemed, type Palette } from "../theme";
+import { Banner, Button, Card, Divider, ListRow, SectionHeader, StatusPill, Txt } from "../ui/kit";
 import {
   createSupport,
   fetchOnboarding,
@@ -22,12 +17,18 @@ import {
 } from "../api";
 import { humanCustomerError } from "../errors";
 import { sessionIdentity } from "../session";
-import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
 
 export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const identity = sessionIdentity();
-  const clerk = useClerk();
+  let clerk: ReturnType<typeof useClerk> | null = null;
+  try {
+    // Throws when no ClerkProvider (dev builds without a publishable key).
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    clerk = useClerk();
+  } catch {
+    clerk = null;
+  }
   const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [subject, setSubject] = useState("");
@@ -35,8 +36,12 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [composing, setComposing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const { colors: c, styles } = useThemed(makeStyles);
 
   const load = useCallback(() => {
+    setRefreshing(true);
     void Promise.all([fetchOnboarding(), listSupport()])
       .then(([status, rows]) => {
         setOnboarding(status);
@@ -44,7 +49,8 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
       })
       .catch((err: unknown) => {
         setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
-      });
+      })
+      .finally(() => setRefreshing(false));
   }, []);
 
   useEffect(() => {
@@ -62,7 +68,8 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
       });
       setSubject("");
       setDescription("");
-      setMessage("Support request submitted.");
+      setMessage("Sent. Support will reply by email.");
+      setComposing(false);
       load();
     } catch (err) {
       setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
@@ -115,48 +122,98 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
     ]);
   }
 
+  const initial = (identity.email || "C")[0]!.toUpperCase();
+
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Account</Text>
-        <View style={styles.profile}>
-          <Text style={styles.strong}>{identity.email || "Customer"}</Text>
-          <Text style={styles.meta}>
-            {onboarding?.ready ? "Portal ready" : "Onboarding still has open steps"}
-          </Text>
+    <Screen scroll testID="account" title="Account" refreshing={refreshing} onRefresh={load}>
+      <Card style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <View style={[styles.avatar, { backgroundColor: c.secondary }]}>
+          <Txt v="title" tone="onAccent">
+            {initial}
+          </Txt>
         </View>
-        {message ? <Text style={styles.meta}>{message}</Text> : null}
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Text style={styles.section}>Report a problem</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Subject"
-          value={subject}
-          onChangeText={setSubject}
-          placeholderTextColor={colors.muted}
+        <View style={{ flex: 1, gap: 2 }}>
+          <Txt v="headline">{identity.email || "Customer"}</Txt>
+          <StatusPill
+            label={onboarding?.ready === false ? "Setup incomplete" : "Account active"}
+            tone={onboarding?.ready === false ? "info" : "success"}
+          />
+        </View>
+      </Card>
+      {message ? <Banner tone="success" text={message} /> : null}
+      {error ? <Banner tone="danger" text={error} /> : null}
+
+      <SectionHeader title="Help & support" />
+      <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+        <ListRow
+          icon="chatbubble-ellipses-outline"
+          title="Report a problem"
+          subtitle="Our team replies by email"
+          onPress={() => setComposing((v) => !v)}
+          testID="account-support"
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Details"
-          value={description}
-          onChangeText={setDescription}
-          placeholderTextColor={colors.muted}
-        />
-        <PrimaryButton
-          label={busy ? "Working…" : "Submit ticket"}
-          disabled={busy}
-          onPress={() => void submitTicket()}
-        />
+        {composing ? (
+          <View style={{ gap: spacing.sm, paddingBottom: spacing.md }}>
+            <TextInput
+              style={styles.input}
+              accessibilityLabel="Subject"
+              placeholder="What went wrong?"
+              value={subject}
+              onChangeText={setSubject}
+              placeholderTextColor={c.muted}
+              maxFontSizeMultiplier={1.6}
+              returnKeyType="next"
+            />
+            <TextInput
+              style={[styles.input, { minHeight: 96, textAlignVertical: "top", paddingTop: 12 }]}
+              accessibilityLabel="Details"
+              placeholder="Details, tracking number, anything that helps"
+              value={description}
+              onChangeText={setDescription}
+              placeholderTextColor={c.muted}
+              multiline
+              maxFontSizeMultiplier={1.6}
+            />
+            <Button
+              label="Send to support"
+              loading={busy}
+              disabled={!subject.trim()}
+              onPress={() => void submitTicket()}
+            />
+          </View>
+        ) : null}
         {tickets.map((ticket) => (
-          <Text key={ticket.ticket_id} style={styles.meta}>
-            {ticket.subject} · {ticket.status}
-          </Text>
+          <View key={ticket.ticket_id}>
+            <Divider />
+            <ListRow
+              icon="mail-outline"
+              title={ticket.subject}
+              subtitle={friendlyDate(ticket.created_at)}
+              right={
+                <StatusPill
+                  label={ticket.status.replace(/_/g, " ")}
+                  tone={/resolved|closed/i.test(ticket.status) ? "success" : "info"}
+                />
+              }
+            />
+          </View>
         ))}
-        <Text style={styles.section}>Security</Text>
-        <PrimaryButton
-          label="Password and security"
+        <Divider />
+        <ListRow
+          icon="globe-outline"
+          title="Questions & answers"
+          subtitle="porterchain.com/faq"
+          onPress={() => void WebBrowser.openBrowserAsync(`${websiteUrl}/en/faq`)}
+        />
+      </Card>
+
+      <SectionHeader title="Security & privacy" />
+      <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+        <ListRow
+          icon="lock-closed-outline"
+          title="Password and security"
           onPress={() => {
-            const open = (clerk as { openUserProfile?: () => void }).openUserProfile;
+            const open = (clerk as { openUserProfile?: () => void } | null)?.openUserProfile;
             if (open) open();
             else {
               Alert.alert(
@@ -166,41 +223,47 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
             }
           }}
         />
-        <Text style={styles.section}>Privacy</Text>
-        <PrimaryButton label="Export my data" disabled={busy} onPress={() => void exportData()} />
-        <Pressable onPress={requestDelete}>
-          <Text style={styles.danger}>Request deletion</Text>
-        </Pressable>
-        <Pressable onPress={signOut}>
-          <Text style={styles.danger}>Sign out</Text>
-        </Pressable>
-      </ScrollView>
+        <Divider />
+        <ListRow
+          icon="download-outline"
+          title="Export my data"
+          subtitle="A copy of your PorterChain data"
+          onPress={busy ? undefined : () => void exportData()}
+        />
+        <Divider />
+        <ListRow
+          icon="trash-outline"
+          title="Request account deletion"
+          danger
+          onPress={requestDelete}
+        />
+      </Card>
+
+      <Button label="Sign out" variant="danger" icon="log-out-outline" onPress={signOut} />
+      <Txt v="caption" tone="muted" center>
+        PorterChain {appVersion}
+      </Txt>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { gap: 10, paddingBottom: 32 },
-  title: { ...typography.title, fontSize: 30, color: colors.primary },
-  profile: { backgroundColor: colors.white, borderRadius: radius.xl, padding: 16, gap: 4 },
-  strong: { ...typography.body, color: colors.primary, fontWeight: "700" },
-  section: {
-    ...typography.caption,
-    color: colors.muted,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginTop: 8,
-  },
-  meta: { ...typography.caption, color: colors.muted },
-  error: { ...typography.caption, color: colors.danger },
-  danger: { ...typography.caption, color: colors.danger, textAlign: "center", paddingVertical: 8 },
-  input: {
-    minHeight: touchTargetMin,
-    borderWidth: 1,
-    borderColor: `${colors.primary}26`,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
-    color: colors.primary,
-  },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    avatar: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    input: {
+      minHeight: touchTargetMin + 4,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      backgroundColor: c.grayBg,
+      color: c.primary,
+      fontSize: 16,
+    },
+  });

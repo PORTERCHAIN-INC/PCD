@@ -14,7 +14,22 @@ import {
   StyleSheet,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { expiresIn, priceSummary, shortAddress } from "../format";
+import { haptic } from "../haptics";
+import { radius, spacing, touchTargetMin, useThemed, type Palette } from "../theme";
+import {
+  Banner,
+  Button,
+  Card,
+  Chip,
+  Divider,
+  Icon,
+  ListRow,
+  Progress,
+  Segmented,
+  StatusPill,
+  Txt,
+} from "../ui/kit";
 import {
   CAPACITY_CLASS_OPTIONS,
   MAX_DROPS,
@@ -50,8 +65,6 @@ import {
   timeLabel,
 } from "../ui/bookRules";
 import { formatCanadianPhone } from "../ui/canadaPhone";
-import { Motion } from "../ui/Motion";
-import { PrimaryButton } from "../ui/PrimaryButton";
 import { Screen } from "../ui/Screen";
 import { SuggestField } from "../ui/SuggestField";
 
@@ -240,6 +253,8 @@ export function BookScreen({
   const [docs, setDocs] = useState<PendingDoc[]>([]);
   const [docNote, setDocNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const { colors, styles } = useThemed(makeStyles);
 
   useEffect(() => {
     const mapped = vehicle ? (VEHICLE_ALIAS[vehicle] ?? vehicle) : "";
@@ -483,9 +498,11 @@ export function BookScreen({
       }
       setDone(confirmed);
       setStep("done");
+      haptic.success();
     } catch (err) {
       const raw = err instanceof Error ? err.message : "request_failed";
       setError(humanCustomerError(raw));
+      haptic.error();
     } finally {
       setBusy(false);
     }
@@ -535,511 +552,687 @@ export function BookScreen({
     }
   }, [wholeVehicleOk, bookingMode]);
 
+  const priced = quote ? priceSummary(quote.pricing_breakdown, quote.amount_cents) : null;
+  const total = quote ? quote.amount_display || formatCad(quote.amount_cents) : "";
+  const stepIndex = step === "details" ? 0 : step === "quote" ? 1 : 2;
+  const setRow = (patch: Partial<ParcelRow>) =>
+    changeRows((current) =>
+      current.map((row, index) => (index === activeParcel ? { ...row, ...patch } : row))
+    );
+  const allowedPresets = presets.filter((item) => {
+    const allowed = selectedVehicle?.allowed_presets;
+    if (allowed?.length) return allowed.includes(item.id);
+    return vehicleClass !== "sedan_suv" || ["small", "medium", "large", "other"].includes(item.id);
+  });
+
+  const footer =
+    step === "done" ? null : step === "details" ? (
+      <>
+        <View style={styles.fareRow}>
+          <Txt v="callout" tone="muted">
+            {liveFare ? "Estimated price" : "Add both addresses for a price"}
+          </Txt>
+          {liveFare ? (
+            <Txt v="title" accessibilityLabel={`Estimated price ${liveFare.amount}`}>
+              {liveFare.amount.replace(" CAD", "")}
+            </Txt>
+          ) : null}
+        </View>
+        <Button
+          testID="book-get-quote"
+          label="Review price"
+          loading={busy}
+          onPress={() => void onQuote()}
+        />
+      </>
+    ) : step === "quote" ? (
+      <Button testID="book-continue" label="Continue" onPress={() => setStep("pay")} />
+    ) : (
+      <>
+        <Button
+          testID="book-pay"
+          icon="card"
+          label={`Pay ${total.replace(" CAD", "")} by card`}
+          loading={busy}
+          disabled={!terms || !privacy || !dangerous}
+          onPress={() => void onPay()}
+        />
+        <View style={styles.secure}>
+          <Icon name="lock-closed" size={13} color={colors.muted} />
+          <Txt v="caption" tone="muted">
+            Secure card checkout by Stripe · Apple Pay and Google Pay accepted
+          </Txt>
+        </View>
+      </>
+    );
+
   return (
-    <Screen>
+    <Screen footer={footer}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 140 : 0}
       >
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
+          testID="book"
         >
-          <Text style={styles.title}>Book delivery</Text>
           {step === "done" && done ? (
-            <>
-              <Motion name="shipment" size={140} />
-              <Text style={styles.price}>{done.tracking_number}</Text>
-              <Text style={styles.lede}>
-                {done.booking_mode === "vehicle"
-                  ? "Whole vehicle"
-                  : done.parcels
-                      ?.map((item) => item.preset_label)
-                      .filter(Boolean)
-                      .join(", ") || `${done.parcels?.length || 0} parcels`}
-                {done.vehicle_class ? ` · ${vehicleName(done.vehicle_class)}` : ""}
-                {done.invoice_number ? ` · Invoice ${done.invoice_number}` : ""}
-                {` · ${formatCad(done.amount_cents, done.currency)}`}
-              </Text>
-              <PrimaryButton
+            <View style={styles.doneWrap} testID="book-done">
+              <View style={[styles.doneIcon, { backgroundColor: colors.successBg }]}>
+                <Icon name="checkmark" size={44} color={colors.success} />
+              </View>
+              <Txt v="largeTitle" center accessibilityRole="header">
+                You're booked
+              </Txt>
+              <Txt v="body" tone="muted" center>
+                We'll notify you when a driver is assigned. A receipt is on its way by email.
+              </Txt>
+              <Card style={{ alignSelf: "stretch" }}>
+                <Txt v="overline" tone="muted">
+                  Tracking number
+                </Txt>
+                <Txt v="title" selectable>
+                  {done.tracking_number}
+                </Txt>
+                <Txt v="callout" tone="muted">
+                  {done.booking_mode === "vehicle"
+                    ? "Whole vehicle"
+                    : done.parcels
+                        ?.map((item) => item.preset_label)
+                        .filter(Boolean)
+                        .join(", ") || `${done.parcels?.length || 0} parcels`}
+                  {done.vehicle_class ? ` · ${vehicleName(done.vehicle_class)}` : ""}
+                  {done.invoice_number ? ` · Invoice ${done.invoice_number}` : ""}
+                  {` · ${formatCad(done.amount_cents, done.currency)} paid`}
+                </Txt>
+              </Card>
+              {docNote ? <Banner tone="info" text={docNote} /> : null}
+              <Button
+                icon="locate"
                 label="Track shipment"
                 onPress={() => onTracked(done.tracking_number)}
               />
-              <Pressable
-                accessibilityRole="button"
+              <Button
                 testID="book-attach-docs"
+                variant="ghost"
+                icon="document-attach-outline"
+                label={docNote ? "Manage pickup documents" : "Attach a pickup document"}
                 onPress={() => void openDocuments(done.tracking_number)}
-                style={{ paddingVertical: 14, alignItems: "center" }}
-              >
-                <Text style={styles.lede}>
-                  {docNote ? "Manage pickup documents" : "Attach a pickup document for the driver"}
-                </Text>
-              </Pressable>
-              {docNote ? <Text style={styles.lede}>{docNote}</Text> : null}
-            </>
+              />
+            </View>
           ) : (
             <>
-              <View style={styles.chips}>
-                {(["details", "quote", "pay"] as const).map((id) => {
-                  const label = id === "details" ? "Details" : id === "quote" ? "Quote" : "Pay";
-                  const open =
-                    id === "details" ||
-                    (id === "quote" && Boolean(quote)) ||
-                    (id === "pay" && Boolean(quote));
-                  return (
-                    <Pressable
-                      key={id}
-                      disabled={!open}
-                      onPress={() => {
-                        if (id === "details") setQuote(null);
-                        setStep(id);
-                      }}
-                      style={step === id ? styles.chipOn : styles.chip}
-                    >
-                      <Text style={step === id ? styles.chipOnText : styles.chipText}>{label}</Text>
-                    </Pressable>
-                  );
-                })}
+              <View style={styles.headerRow}>
+                {step !== "details" ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Back"
+                    hitSlop={8}
+                    onPress={() => {
+                      if (step === "pay") setStep("quote");
+                      else {
+                        setQuote(null);
+                        setStep("details");
+                      }
+                    }}
+                    style={styles.back}
+                  >
+                    <Icon name="chevron-back" size={24} color={colors.accentText} />
+                  </Pressable>
+                ) : null}
+                <Txt v="largeTitle" accessibilityRole="header" style={{ flex: 1 }}>
+                  {step === "details"
+                    ? "Book delivery"
+                    : step === "quote"
+                      ? "Review price"
+                      : "Confirm & pay"}
+                </Txt>
               </View>
+              <Progress steps={["Details", "Review", "Pay"]} current={stepIndex} />
+              <Txt v="caption" tone="muted">
+                Step {stepIndex + 1} of 3 ·{" "}
+                {["Addresses and load", "Price with HST", "Card payment"][stepIndex]}
+              </Txt>
+              {error ? <Banner tone="danger" text={error} /> : null}
+
               {step === "details" ? (
                 <>
-                  <Text style={styles.lede}>
-                    Choose both addresses from Google. The quote uses those places.
-                  </Text>
-                  <AddressField
-                    label="Pickup"
-                    value={pickup}
-                    onChange={(next) => {
-                      setPickup(next);
-                      setQuote(null);
-                    }}
-                    accessoryId={KEYBOARD_BAR}
-                    onManualOk={setPickupManual}
-                  />
-                  <AddressField
-                    label="Dropoff"
-                    value={dropoff}
-                    onChange={(next) => {
-                      setDropoff(next);
-                      setQuote(null);
-                    }}
-                    accessoryId={KEYBOARD_BAR}
-                    onManualOk={setDropoffManual}
-                  />
-                  {extraStops.map((stop, i) => (
+                  <Card>
+                    <Txt v="headline" accessibilityRole="header">
+                      Where
+                    </Txt>
                     <AddressField
-                      key={i}
-                      label={`${bookingText("en", "dropN", { n: i + 1 })} (before final drop-off)`}
-                      value={stop}
+                      label="Pickup"
+                      value={pickup}
                       onChange={(next) => {
-                        setExtraStops((all) => all.map((x, j) => (j === i ? next : x)));
+                        setPickup(next);
                         setQuote(null);
                       }}
                       accessoryId={KEYBOARD_BAR}
-                      onManualOk={setStopManual}
+                      onManualOk={setPickupManual}
                     />
-                  ))}
-                  {extraStops.length < MAX_DROPS - 1 ? (
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() => setExtraStops((all) => [...all, emptyAddress()])}
-                    >
-                      <Text style={styles.label}>
-                        + {bookingText("en", "addDrop")} ({extraStops.length + 1}/{MAX_DROPS})
-                      </Text>
-                    </Pressable>
-                  ) : (
-                    <Text style={styles.label}>{bookingText("en", "dropsLimit")}</Text>
-                  )}
-                  <Text style={styles.label}>Vehicle</Text>
-                  <View style={styles.chips}>
-                    {vehicles.map((item) => (
-                      <Pressable
-                        key={item.id}
-                        onPress={() => {
-                          setVehicleClass(item.id);
+                    <AddressField
+                      label="Drop-off"
+                      value={dropoff}
+                      onChange={(next) => {
+                        setDropoff(next);
+                        setQuote(null);
+                      }}
+                      accessoryId={KEYBOARD_BAR}
+                      onManualOk={setDropoffManual}
+                    />
+                    {extraStops.map((stop, i) => (
+                      <AddressField
+                        key={i}
+                        label={`${bookingText("en", "dropN", { n: i + 1 })} (before final drop-off)`}
+                        value={stop}
+                        onChange={(next) => {
+                          setExtraStops((all) => all.map((x, j) => (j === i ? next : x)));
                           setQuote(null);
                         }}
-                        style={item.id === vehicleClass ? styles.chipOn : styles.chip}
-                      >
-                        <Text
-                          style={item.id === vehicleClass ? styles.chipOnText : styles.chipText}
-                        >
-                          {item.label}
-                          {includedKm ? ` · ${includedKm} km` : ""}
-                        </Text>
-                      </Pressable>
+                        accessoryId={KEYBOARD_BAR}
+                        onManualOk={setStopManual}
+                      />
                     ))}
-                  </View>
-                  <Text style={styles.label}>Load</Text>
-                  <View style={styles.chips}>
-                    <Pressable
-                      onPress={() => {
-                        setBookingMode("parcels");
-                        setQuote(null);
-                      }}
-                      style={bookingMode === "parcels" ? styles.chipOn : styles.chip}
-                    >
-                      <Text style={bookingMode === "parcels" ? styles.chipOnText : styles.chipText}>
-                        Parcels
-                      </Text>
-                    </Pressable>
-                    {wholeVehicleOk ? (
-                      <Pressable
+                    {extraStops.length < MAX_DROPS - 1 ? (
+                      <Button
+                        variant="plain"
+                        compact
+                        icon="add-circle-outline"
+                        label={`${bookingText("en", "addDrop")} (${extraStops.length + 1}/${MAX_DROPS})`}
+                        onPress={() => setExtraStops((all) => [...all, emptyAddress()])}
+                        style={{ alignSelf: "flex-start", paddingHorizontal: 0 }}
+                      />
+                    ) : (
+                      <Txt v="caption" tone="muted">
+                        {bookingText("en", "dropsLimit")}
+                      </Txt>
+                    )}
+                  </Card>
+
+                  <Card>
+                    <Txt v="headline" accessibilityRole="header">
+                      When
+                    </Txt>
+                    <View style={styles.chips}>
+                      <Chip
+                        icon="flash-outline"
+                        label="As soon as possible"
+                        selected={!later}
                         onPress={() => {
-                          setBookingMode("vehicle");
+                          setLater(false);
+                          setSlot(null);
                           setQuote(null);
                         }}
-                        style={bookingMode === "vehicle" ? styles.chipOn : styles.chip}
-                      >
-                        <Text
-                          style={bookingMode === "vehicle" ? styles.chipOnText : styles.chipText}
+                      />
+                      <Chip
+                        icon="calendar-outline"
+                        label="Schedule"
+                        selected={later}
+                        onPress={() => {
+                          setLater(true);
+                          setQuote(null);
+                        }}
+                      />
+                    </View>
+                    {later ? (
+                      <>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.chipsRow}
                         >
-                          Whole vehicle
-                        </Text>
-                      </Pressable>
-                    ) : null}
-                  </View>
-                  {nextVehicle ? (
-                    <Pressable
-                      onPress={() => {
-                        setVehicleClass(nextVehicle.id);
-                        setQuote(null);
-                      }}
-                      style={styles.chip}
-                    >
-                      <Text style={styles.chipText}>
-                        This load needs {nextVehicle.label}. Switch vehicle.
-                      </Text>
-                    </Pressable>
-                  ) : null}
-                  {bookingMode === "parcels" ? (
-                    <>
-                      <Text style={styles.label}>Parcels</Text>
-                      {rows.map((row, index) => (
-                        <Pressable
-                          key={`${row.preset_id}-${index}`}
-                          onPress={() => setActiveParcel(index)}
-                        >
-                          <Text style={styles.lede}>
-                            {index + 1}.{" "}
-                            {presets.find((item) => item.id === row.preset_id)?.label ||
-                              row.preset_id}
-                            {row.instructions ? ` · ${row.instructions}` : ""}
-                          </Text>
-                        </Pressable>
-                      ))}
-                      <Text style={styles.label}>Size for parcel {activeParcel + 1}</Text>
-                      <View style={styles.chips}>
-                        {presets
-                          .filter((item) => {
-                            const vehicle = vehicles.find((row) => row.id === vehicleClass) as {
-                              allowed_presets?: string[] | null;
-                            };
-                            const allowed = vehicle?.allowed_presets;
-                            if (allowed?.length) return allowed.includes(item.id);
-                            return (
-                              vehicleClass !== "sedan_suv" ||
-                              ["small", "medium", "large", "other"].includes(item.id)
-                            );
-                          })
-                          .map((item) => (
-                            <Pressable
-                              key={item.id}
-                              onPress={() =>
-                                changeRows((current) =>
-                                  current.map((row, index) =>
-                                    index === activeParcel ? { ...row, preset_id: item.id } : row
-                                  )
-                                )
-                              }
-                              style={
-                                rows[activeParcel]?.preset_id === item.id
-                                  ? styles.chipOn
-                                  : styles.chip
-                              }
-                            >
-                              <Text
-                                style={
-                                  rows[activeParcel]?.preset_id === item.id
-                                    ? styles.chipOnText
-                                    : styles.chipText
-                                }
-                              >
-                                {item.label}
-                              </Text>
-                            </Pressable>
+                          {days.map((day, index) => (
+                            <Chip
+                              key={day.toISOString()}
+                              label={dayLabel(day)}
+                              selected={index === dayIndex}
+                              onPress={() => {
+                                setDayIndex(index);
+                                setSlot(null);
+                                setQuote(null);
+                              }}
+                            />
                           ))}
+                        </ScrollView>
+                        <View style={styles.chips}>
+                          {slots.length ? (
+                            slots.map((iso) => (
+                              <Chip
+                                key={iso}
+                                label={timeLabel(iso)}
+                                selected={iso === slot}
+                                onPress={() => {
+                                  setSlot(iso);
+                                  setQuote(null);
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <Txt v="callout" tone="muted">
+                              No times left today. Pick another day.
+                            </Txt>
+                          )}
+                        </View>
+                      </>
+                    ) : null}
+                  </Card>
+
+                  <Card>
+                    <Txt v="headline" accessibilityRole="header">
+                      Vehicle
+                    </Txt>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.chipsRow}
+                    >
+                      {vehicles.map((item) => (
+                        <Chip
+                          key={item.id}
+                          icon={
+                            item.id.startsWith("box")
+                              ? "bus-outline"
+                              : item.id.includes("van")
+                                ? "car-sport-outline"
+                                : "car-outline"
+                          }
+                          label={item.label}
+                          selected={item.id === vehicleClass}
+                          onPress={() => {
+                            setVehicleClass(item.id);
+                            setQuote(null);
+                          }}
+                        />
+                      ))}
+                    </ScrollView>
+                    {includedKm ? (
+                      <Txt v="caption" tone="muted">
+                        Price includes the first {includedKm} km, then per km.
+                      </Txt>
+                    ) : null}
+                    {wholeVehicleOk ? (
+                      <Segmented
+                        options={[
+                          { id: "parcels", label: "Parcels" },
+                          { id: "vehicle", label: "Whole vehicle" },
+                        ]}
+                        value={bookingMode}
+                        onChange={(id) => {
+                          setBookingMode(id);
+                          setQuote(null);
+                        }}
+                      />
+                    ) : null}
+                    {nextVehicle ? (
+                      <Banner
+                        tone="warning"
+                        text={`This load needs a ${nextVehicle.label}.`}
+                        action="Switch"
+                        onAction={() => {
+                          setVehicleClass(nextVehicle.id);
+                          setQuote(null);
+                        }}
+                      />
+                    ) : null}
+                  </Card>
+
+                  {bookingMode === "parcels" ? (
+                    <Card>
+                      <View style={styles.rowBetween}>
+                        <Txt v="headline" accessibilityRole="header">
+                          Parcels
+                        </Txt>
+                        <Txt v="caption" tone="muted">
+                          {rows.length} item{rows.length > 1 ? "s" : ""}
+                        </Txt>
                       </View>
+                      {rows.length > 1 ? (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.chipsRow}
+                        >
+                          {rows.map((row, index) => (
+                            <Chip
+                              key={`${row.preset_id}-${index}`}
+                              label={`${index + 1}. ${presets.find((item) => item.id === row.preset_id)?.label || row.preset_id}`}
+                              selected={index === activeParcel}
+                              onPress={() => setActiveParcel(index)}
+                            />
+                          ))}
+                        </ScrollView>
+                      ) : null}
+                      <Txt v="caption" tone="muted">
+                        Size{rows.length > 1 ? ` for parcel ${activeParcel + 1}` : ""}
+                      </Txt>
+                      <View style={styles.chips}>
+                        {allowedPresets.map((item) => (
+                          <Chip
+                            key={item.id}
+                            label={item.label}
+                            selected={rows[activeParcel]?.preset_id === item.id}
+                            onPress={() => setRow({ preset_id: item.id })}
+                          />
+                        ))}
+                      </View>
+                      {rows[activeParcel]?.preset_id === "other" ? (
+                        <View style={styles.dims}>
+                          {(
+                            [
+                              ["length_in", "Length", "in"],
+                              ["width_in", "Width", "in"],
+                              ["height_in", "Height", "in"],
+                              ["weight_lb", "Weight", "lb"],
+                            ] as const
+                          ).map(([key, label, unit]) => (
+                            <View key={key} style={styles.dim}>
+                              <Txt v="caption" tone="muted">
+                                {label} ({unit})
+                              </Txt>
+                              <TextInput
+                                accessibilityLabel={`${label} in ${unit === "in" ? "inches" : "pounds"}`}
+                                style={styles.input}
+                                keyboardType="decimal-pad"
+                                value={rows[activeParcel]?.[key] ?? ""}
+                                onChangeText={(value) =>
+                                  setRow({ [key]: value } as Partial<ParcelRow>)
+                                }
+                                placeholder="0"
+                                placeholderTextColor={colors.muted}
+                                inputAccessoryViewID={KEYBOARD_BAR}
+                                maxFontSizeMultiplier={1.6}
+                              />
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
                       <SuggestField
                         label="Note for this parcel"
                         value={rows[activeParcel]?.instructions ?? ""}
-                        onChange={(value) =>
-                          changeRows((current) =>
-                            current.map((row, index) =>
-                              index === activeParcel ? { ...row, instructions: value } : row
-                            )
-                          )
-                        }
-                        placeholder="Or type your own note"
+                        onChange={(value) => setRow({ instructions: value })}
+                        placeholder="Optional"
                         suggestions={INSTRUCTIONS}
                         accessoryId={KEYBOARD_BAR}
                       />
-                      {rows[activeParcel]?.preset_id === "other" ? (
-                        <>
-                          <SuggestField
-                            label="Length (in)"
-                            value={rows[activeParcel]?.length_in ?? ""}
-                            onChange={(value) =>
-                              changeRows((current) =>
-                                current.map((row, index) =>
-                                  index === activeParcel ? { ...row, length_in: value } : row
-                                )
-                              )
-                            }
-                            placeholder="Inches"
-                            suggestions={[]}
-                            keyboardType="decimal-pad"
-                            accessoryId={KEYBOARD_BAR}
-                          />
-                          <SuggestField
-                            label="Width (in)"
-                            value={rows[activeParcel]?.width_in ?? ""}
-                            onChange={(value) =>
-                              changeRows((current) =>
-                                current.map((row, index) =>
-                                  index === activeParcel ? { ...row, width_in: value } : row
-                                )
-                              )
-                            }
-                            placeholder="Inches"
-                            suggestions={[]}
-                            keyboardType="decimal-pad"
-                            accessoryId={KEYBOARD_BAR}
-                          />
-                          <SuggestField
-                            label="Height (in)"
-                            value={rows[activeParcel]?.height_in ?? ""}
-                            onChange={(value) =>
-                              changeRows((current) =>
-                                current.map((row, index) =>
-                                  index === activeParcel ? { ...row, height_in: value } : row
-                                )
-                              )
-                            }
-                            placeholder="Inches"
-                            suggestions={[]}
-                            keyboardType="decimal-pad"
-                            accessoryId={KEYBOARD_BAR}
-                          />
-                          <SuggestField
-                            label="Weight (lb)"
-                            value={rows[activeParcel]?.weight_lb ?? ""}
-                            onChange={(value) =>
-                              changeRows((current) =>
-                                current.map((row, index) =>
-                                  index === activeParcel ? { ...row, weight_lb: value } : row
-                                )
-                              )
-                            }
-                            placeholder="Pounds"
-                            suggestions={[]}
-                            keyboardType="decimal-pad"
-                            accessoryId={KEYBOARD_BAR}
-                          />
-                        </>
-                      ) : null}
-                      <Pressable
-                        onPress={() => {
-                          changeRows((current) => [...current, blankRow()]);
-                          setActiveParcel(rows.length);
-                          setQuote(null);
-                        }}
-                        style={styles.chip}
-                      >
-                        <Text style={styles.chipText}>Add parcel</Text>
-                      </Pressable>
-                      {rows.length > 1 ? (
-                        <Pressable
+                      <View style={styles.chips}>
+                        <Button
+                          variant="ghost"
+                          compact
+                          icon="add"
+                          label="Add parcel"
                           onPress={() => {
-                            changeRows((current) =>
-                              current.filter((_, index) => index !== activeParcel)
-                            );
-                            setActiveParcel((current) => Math.max(0, current - 1));
+                            changeRows((current) => [...current, blankRow()]);
+                            setActiveParcel(rows.length);
                           }}
-                          style={styles.chip}
-                        >
-                          <Text style={styles.chipText}>Remove parcel</Text>
-                        </Pressable>
-                      ) : null}
-                    </>
-                  ) : null}
-                  {liveFare ? (
-                    <Text style={styles.lede}>
-                      Estimated fare {liveFare.amount}
-                      {liveFare.km != null ? ` · ${liveFare.km} km` : ""}. Save the quote before
-                      paying.
-                    </Text>
-                  ) : null}
-                  <SuggestField
-                    label="Declared value (CAD)"
-                    value={declared}
-                    onChange={(value) => {
-                      setDeclared(value);
-                      setQuote(null);
-                    }}
-                    placeholder="Dollars, or pick one"
-                    suggestions={VALUES}
-                    keyboardType="decimal-pad"
-                    accessoryId={KEYBOARD_BAR}
-                  />
-                  <SuggestField
-                    label="Instructions for the driver"
-                    value={instructions}
-                    onChange={setInstructions}
-                    placeholder="Or type your own note"
-                    suggestions={INSTRUCTIONS}
-                    accessoryId={KEYBOARD_BAR}
-                  />
-                  <Text style={styles.label}>Phone</Text>
-                  <TextInput
-                    style={styles.input}
-                    accessibilityLabel="Phone"
-                    placeholder="+1 xxx-xxx-xxxx"
-                    keyboardType="phone-pad"
-                    textContentType="telephoneNumber"
-                    value={phone}
-                    onChangeText={(text) => setPhone(formatCanadianPhone(text))}
-                    placeholderTextColor={colors.muted}
-                    inputAccessoryViewID={KEYBOARD_BAR}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Promo code"
-                    autoCapitalize="characters"
-                    value={promo}
-                    onChangeText={(text) => {
-                      setPromo(text);
-                      setQuote(null);
-                    }}
-                    placeholderTextColor={colors.muted}
-                    inputAccessoryViewID={KEYBOARD_BAR}
-                  />
-                  <View style={styles.chips}>
-                    <Pressable
-                      onPress={() => {
-                        setLater(false);
-                        setSlot(null);
-                        setQuote(null);
-                      }}
-                      style={!later ? styles.chipOn : styles.chip}
-                    >
-                      <Text style={!later ? styles.chipOnText : styles.chipText}>
-                        As soon as possible
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        setLater(true);
-                        setQuote(null);
-                      }}
-                      style={later ? styles.chipOn : styles.chip}
-                    >
-                      <Text style={later ? styles.chipOnText : styles.chipText}>Schedule</Text>
-                    </Pressable>
-                  </View>
-                  {later ? (
-                    <>
-                      <Text style={styles.label}>Pickup day</Text>
-                      <View style={styles.chips}>
-                        {days.map((day, index) => (
-                          <Pressable
-                            key={day.toISOString()}
+                        />
+                        {rows.length > 1 ? (
+                          <Button
+                            variant="plain"
+                            compact
+                            icon="trash-outline"
+                            label="Remove"
                             onPress={() => {
-                              setDayIndex(index);
-                              setSlot(null);
-                              setQuote(null);
+                              changeRows((current) =>
+                                current.filter((_, index) => index !== activeParcel)
+                              );
+                              setActiveParcel((current) => Math.max(0, current - 1));
                             }}
-                            style={index === dayIndex ? styles.chipOn : styles.chip}
-                          >
-                            <Text style={index === dayIndex ? styles.chipOnText : styles.chipText}>
-                              {dayLabel(day)}
-                            </Text>
-                          </Pressable>
-                        ))}
+                          />
+                        ) : null}
                       </View>
-                      <Text style={styles.label}>Pickup time</Text>
-                      <View style={styles.chips}>
-                        {slots.length ? (
-                          slots.map((iso) => (
-                            <Pressable
-                              key={iso}
-                              onPress={() => {
-                                setSlot(iso);
-                                setQuote(null);
-                              }}
-                              style={iso === slot ? styles.chipOn : styles.chip}
-                            >
-                              <Text style={iso === slot ? styles.chipOnText : styles.chipText}>
-                                {timeLabel(iso)}
-                              </Text>
-                            </Pressable>
-                          ))
-                        ) : (
-                          <Text style={styles.lede}>No times left today. Pick another day.</Text>
-                        )}
-                      </View>
-                    </>
+                    </Card>
                   ) : null}
-                  {error ? <Text style={styles.error}>{error}</Text> : null}
-                  <PrimaryButton
-                    label={busy ? "Working…" : "Get quote"}
-                    disabled={busy}
-                    onPress={() => void onQuote()}
-                  />
+
+                  <Card>
+                    <Txt v="headline" accessibilityRole="header">
+                      Contact on the day
+                    </Txt>
+                    <TextInput
+                      style={styles.input}
+                      accessibilityLabel="Phone for the driver"
+                      placeholder="Phone, +1 xxx-xxx-xxxx"
+                      keyboardType="phone-pad"
+                      textContentType="telephoneNumber"
+                      autoComplete="tel"
+                      value={phone}
+                      onChangeText={(text) => setPhone(formatCanadianPhone(text))}
+                      placeholderTextColor={colors.muted}
+                      inputAccessoryViewID={KEYBOARD_BAR}
+                      maxFontSizeMultiplier={1.6}
+                    />
+                    <SuggestField
+                      label="Instructions for the driver"
+                      value={instructions}
+                      onChange={setInstructions}
+                      placeholder="Optional"
+                      suggestions={INSTRUCTIONS}
+                      accessoryId={KEYBOARD_BAR}
+                    />
+                  </Card>
+
+                  <Card>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: moreOpen }}
+                      onPress={() => setMoreOpen((v) => !v)}
+                      style={styles.rowBetween}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Txt v="headline">More options</Txt>
+                        <Txt v="caption" tone="muted">
+                          Declared value, promo code
+                          {declared || promo ? " · added" : ""}
+                        </Txt>
+                      </View>
+                      <Icon
+                        name={moreOpen ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color={colors.muted}
+                      />
+                    </Pressable>
+                    {moreOpen ? (
+                      <>
+                        <SuggestField
+                          label="Declared value (CAD)"
+                          value={declared}
+                          onChange={(value) => {
+                            setDeclared(value);
+                            setQuote(null);
+                          }}
+                          placeholder="Dollars, or pick one"
+                          suggestions={VALUES}
+                          keyboardType="decimal-pad"
+                          accessoryId={KEYBOARD_BAR}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          accessibilityLabel="Promo code"
+                          placeholder="Promo code"
+                          autoCapitalize="characters"
+                          value={promo}
+                          onChangeText={(text) => {
+                            setPromo(text);
+                            setQuote(null);
+                          }}
+                          placeholderTextColor={colors.muted}
+                          inputAccessoryViewID={KEYBOARD_BAR}
+                          maxFontSizeMultiplier={1.6}
+                        />
+                      </>
+                    ) : null}
+                  </Card>
                 </>
               ) : null}
-              {step === "quote" && quote ? (
+
+              {step === "quote" && quote && priced ? (
                 <>
-                  <Text style={styles.lede}>{pickup.formatted}</Text>
-                  <Text style={styles.lede}>{dropoff.formatted}</Text>
-                  {later && slot ? (
-                    <Text style={styles.lede}>
-                      Pickup {dayLabel(new Date(slot))} · {timeLabel(slot)}
-                    </Text>
-                  ) : (
-                    <Text style={styles.lede}>As soon as possible</Text>
-                  )}
-                  <Text style={styles.price}>
-                    {quote.amount_display || formatCad(quote.amount_cents)}
-                  </Text>
-                  <Text style={styles.lede}>Expires {quote.expires_at}</Text>
-                  {quote.pricing_breakdown.map((line) => (
-                    <Text key={line.code} style={styles.lede}>
-                      {line.label} · {formatCad(line.amount_cents)}
-                    </Text>
-                  ))}
-                  {error ? <Text style={styles.error}>{error}</Text> : null}
-                  <PrimaryButton label="Continue to pay" onPress={() => setStep("pay")} />
-                  <Pressable
-                    onPress={() => {
-                      setQuote(null);
-                      setStep("details");
-                    }}
-                  >
-                    <Text style={styles.choice}>Edit details</Text>
-                  </Pressable>
+                  <Card style={{ gap: 0, paddingVertical: spacing.xs }}>
+                    <ListRow
+                      icon="arrow-up-circle"
+                      title={shortAddress(pickup.formatted)}
+                      subtitle={pickup.formatted}
+                    />
+                    <Divider />
+                    {extraStops
+                      .filter((x) => x.formatted.trim())
+                      .map((x, i) => (
+                        <View key={i}>
+                          <ListRow
+                            icon="ellipse-outline"
+                            title={shortAddress(x.formatted)}
+                            subtitle="Extra stop"
+                          />
+                          <Divider />
+                        </View>
+                      ))}
+                    <ListRow
+                      icon="flag"
+                      title={shortAddress(dropoff.formatted)}
+                      subtitle={dropoff.formatted}
+                    />
+                    <Divider />
+                    <ListRow
+                      icon="time-outline"
+                      title={
+                        later && slot
+                          ? `${dayLabel(new Date(slot))} · ${timeLabel(slot)}`
+                          : "As soon as possible"
+                      }
+                      subtitle={[
+                        vehicleName(quote.vehicle_class),
+                        quote.booking_mode === "vehicle"
+                          ? "Whole vehicle"
+                          : `${rows.length} parcel${rows.length > 1 ? "s" : ""}`,
+                        quote.distance_km != null ? `${quote.distance_km} km` : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    />
+                  </Card>
+                  <Card testID="book-price">
+                    <Txt v="headline" accessibilityRole="header">
+                      Price
+                    </Txt>
+                    {priced.lines.map((line) => (
+                      <View key={line.code} style={styles.rowBetween}>
+                        <Txt v="callout" tone="muted" style={{ flex: 1 }}>
+                          {line.label}
+                        </Txt>
+                        <Txt v="callout">{formatCad(line.amount_cents)}</Txt>
+                      </View>
+                    ))}
+                    {priced.tax.map((line) => (
+                      <View key={line.code} style={styles.rowBetween}>
+                        <Txt v="callout" tone="muted" style={{ flex: 1 }}>
+                          {line.label}
+                        </Txt>
+                        <Txt v="callout">{formatCad(line.amount_cents)}</Txt>
+                      </View>
+                    ))}
+                    <Divider />
+                    <View style={styles.rowBetween}>
+                      <Txt v="headline">Total</Txt>
+                      <Txt v="title" accessibilityLabel={`Total ${total}`}>
+                        {total}
+                      </Txt>
+                    </View>
+                    <Txt v="caption" tone="muted">
+                      {priced.taxItemised ? "HST shown above." : "Total includes 13% HST."}{" "}
+                      {expiresIn(quote.expires_at)}.
+                    </Txt>
+                  </Card>
                 </>
               ) : null}
+
               {step === "pay" && quote ? (
                 <>
-                  <Text style={styles.price}>
-                    {quote.amount_display || formatCad(quote.amount_cents)}
-                  </Text>
-                  <Text style={styles.lede}>{phone || "No phone on this booking"}</Text>
-                  <Text style={styles.lede}>Open each statement, read it, then accept.</Text>
-                  <View style={styles.consent}>
+                  <Card style={styles.rowBetween}>
+                    <View>
+                      <Txt v="caption" tone="muted">
+                        Total incl. HST
+                      </Txt>
+                      <Txt v="title">{total}</Txt>
+                    </View>
+                    <Txt v="caption" tone="muted" style={{ textAlign: "right", flexShrink: 1 }}>
+                      {shortAddress(pickup.formatted)} → {shortAddress(dropoff.formatted)}
+                    </Txt>
+                  </Card>
+                  <Card testID="book-docs">
+                    <Txt v="headline" accessibilityRole="header">
+                      Pickup documents
+                    </Txt>
+                    <Txt v="caption" tone="muted">
+                      Optional. For example a warehouse release. Your driver sees them and shows
+                      required ones at pickup.
+                    </Txt>
+                    {docs.map((d, i) => (
+                      <View key={`${d.uri}-${i}`} style={styles.docRow}>
+                        <Icon
+                          name={
+                            d.mimeType === "application/pdf"
+                              ? "document-text-outline"
+                              : "image-outline"
+                          }
+                          size={20}
+                          color={colors.accentText}
+                        />
+                        <Txt v="callout" numberOfLines={1} style={{ flex: 1 }}>
+                          {d.name}
+                        </Txt>
+                        <Pressable
+                          accessibilityRole="switch"
+                          accessibilityLabel={`${d.name}: must show at pickup`}
+                          accessibilityState={{ checked: d.required }}
+                          hitSlop={8}
+                          style={styles.tapMin}
+                          onPress={() =>
+                            setDocs((xs) =>
+                              xs.map((x, j) => (j === i ? { ...x, required: !x.required } : x))
+                            )
+                          }
+                        >
+                          <StatusPill
+                            label={d.required ? "Must show" : "For info"}
+                            tone={d.required ? "progress" : "neutral"}
+                          />
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Remove ${d.name}`}
+                          hitSlop={8}
+                          style={styles.tapMin}
+                          onPress={() => setDocs((xs) => xs.filter((_, j) => j !== i))}
+                        >
+                          <Icon name="close-circle" size={22} color={colors.muted} />
+                        </Pressable>
+                      </View>
+                    ))}
+                    <Button
+                      testID="book-add-doc"
+                      variant="ghost"
+                      compact
+                      icon="attach"
+                      label="Attach PDF or photo"
+                      disabled={busy}
+                      onPress={() =>
+                        void pickDocuments(docs).then((r) => {
+                          setDocs(r.docs);
+                          setError(r.error);
+                        })
+                      }
+                    />
+                  </Card>
+                  <Card>
+                    <Txt v="headline" accessibilityRole="header">
+                      Before you pay
+                    </Txt>
+                    <Txt v="caption" tone="muted">
+                      Tap a statement to read it, then accept.
+                    </Txt>
                     <ConsentCheck
                       label="I accept the Terms of Service"
                       checked={terms}
@@ -1058,62 +1251,7 @@ export function BookScreen({
                       document={DANGEROUS_GOODS}
                       onChange={setDangerous}
                     />
-                  </View>
-                  <View testID="book-docs">
-                    <Text style={styles.lede}>
-                      Pickup documents (optional): e.g. a warehouse release. Your driver sees them
-                      and shows them at pickup.
-                    </Text>
-                    {docs.map((d, i) => (
-                      <View key={`${d.uri}-${i}`} style={styles.docRow}>
-                        <Text style={styles.docName} numberOfLines={1}>
-                          {d.name}
-                        </Text>
-                        <Pressable
-                          accessibilityRole="checkbox"
-                          accessibilityState={{ checked: d.required }}
-                          onPress={() =>
-                            setDocs((xs) =>
-                              xs.map((x, j) => (j === i ? { ...x, required: !x.required } : x))
-                            )
-                          }
-                        >
-                          <Text style={styles.choice}>
-                            {d.required ? "Must show at pickup" : "For info"}
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          accessibilityRole="button"
-                          accessibilityLabel={`Remove ${d.name}`}
-                          onPress={() => setDocs((xs) => xs.filter((_, j) => j !== i))}
-                        >
-                          <Text style={styles.choice}>Remove</Text>
-                        </Pressable>
-                      </View>
-                    ))}
-                    <Pressable
-                      accessibilityRole="button"
-                      testID="book-add-doc"
-                      disabled={busy}
-                      onPress={() =>
-                        void pickDocuments(docs).then((r) => {
-                          setDocs(r.docs);
-                          setError(r.error);
-                        })
-                      }
-                    >
-                      <Text style={styles.choice}>+ Attach a document (PDF or photo)</Text>
-                    </Pressable>
-                  </View>
-                  {error ? <Text style={styles.error}>{error}</Text> : null}
-                  <PrimaryButton
-                    label={busy ? "Working…" : "Pay with Stripe"}
-                    disabled={busy}
-                    onPress={() => void onPay()}
-                  />
-                  <Pressable onPress={() => setStep("quote")}>
-                    <Text style={styles.choice}>Back to quote</Text>
-                  </Pressable>
+                  </Card>
                 </>
               ) : null}
             </>
@@ -1123,8 +1261,15 @@ export function BookScreen({
       {Platform.OS === "ios" ? (
         <InputAccessoryView nativeID={KEYBOARD_BAR}>
           <View style={styles.keyboardBar}>
-            <Pressable accessibilityRole="button" onPress={() => Keyboard.dismiss()} hitSlop={8}>
-              <Text style={styles.keyboardHide}>Hide keyboard</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => Keyboard.dismiss()}
+              hitSlop={8}
+              style={styles.tapMin}
+            >
+              <Txt v="headline" tone="accent">
+                Done
+              </Txt>
             </Pressable>
           </View>
         </InputAccessoryView>
@@ -1133,57 +1278,64 @@ export function BookScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  docRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 },
-  docName: { ...typography.body, flex: 1, color: colors.primary },
-  flex: { flex: 1 },
-  scroll: { gap: 10, paddingBottom: 32 },
-  keyboardBar: {
-    alignItems: "flex-end",
-    backgroundColor: colors.grayBg,
-    borderTopWidth: 1,
-    borderTopColor: `${colors.primary}14`,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-  },
-  keyboardHide: { ...typography.body, color: colors.secondary, fontWeight: "700" },
-  title: { ...typography.title, fontSize: 30, color: colors.primary },
-  lede: { ...typography.caption, color: colors.muted },
-  label: { ...typography.caption, color: colors.muted },
-  choice: { ...typography.body, color: colors.primary },
-  consent: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.xs,
-  },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    backgroundColor: colors.white,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: `${colors.primary}18`,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  chipOn: {
-    backgroundColor: colors.secondary,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  chipText: { ...typography.caption, color: colors.primary, fontWeight: "600" },
-  chipOnText: { ...typography.caption, color: colors.white, fontWeight: "700" },
-  price: { ...typography.title, color: colors.primary },
-  error: { ...typography.caption, color: colors.danger },
-  input: {
-    minHeight: touchTargetMin,
-    borderWidth: 1,
-    borderColor: `${colors.primary}26`,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
-    color: colors.primary,
-  },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    flex: { flex: 1 },
+    scroll: { gap: spacing.md, paddingBottom: spacing["2xl"], paddingTop: spacing.xs },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+    back: {
+      minWidth: touchTargetMin,
+      minHeight: touchTargetMin,
+      justifyContent: "center",
+      marginLeft: -10,
+    },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+    chipsRow: { gap: spacing.sm, paddingRight: spacing.lg },
+    rowBetween: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
+    },
+    fareRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    secure: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+    dims: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+    dim: { width: "47%", gap: 4 },
+    docRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      minHeight: touchTargetMin,
+    },
+    tapMin: {
+      minHeight: touchTargetMin,
+      minWidth: touchTargetMin,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    doneWrap: { alignItems: "center", gap: spacing.md, paddingTop: spacing.xl },
+    doneIcon: {
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    keyboardBar: {
+      alignItems: "flex-end",
+      backgroundColor: c.white,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.border,
+      paddingHorizontal: spacing.md,
+    },
+    input: {
+      minHeight: touchTargetMin + 4,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      backgroundColor: c.grayBg,
+      color: c.primary,
+      fontSize: 16,
+    },
+  });

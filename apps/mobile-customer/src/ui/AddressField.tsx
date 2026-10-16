@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, StyleSheet } from "react-native";
-import { colors, radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
+import { useThemed, type Palette } from "../theme";
 import type { Address } from "../api";
 import { googleMapsApiKey } from "../config";
 
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function AddressField({ label, value, onChange, accessoryId, onManualOk }: Props) {
+  const { colors, styles } = useThemed(makeStyles);
   const [query, setQuery] = useState(value.formatted);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hint, setHint] = useState<string | null>(null);
@@ -165,25 +167,26 @@ export function AddressField({ label, value, onChange, accessoryId, onManualOk }
   );
 }
 
-const styles = StyleSheet.create({
-  label: { ...typography.caption, color: colors.muted },
-  hint: { ...typography.caption, color: colors.muted },
-  input: {
-    minHeight: touchTargetMin,
-    borderWidth: 1,
-    borderColor: `${colors.primary}26`,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
-    color: colors.primary,
-    fontSize: typography.body.fontSize,
-  },
-  suggestion: {
-    minHeight: touchTargetMin,
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-  },
-  suggestionText: { ...typography.caption, color: colors.primary },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    label: { ...typography.caption, color: colors.muted },
+    hint: { ...typography.caption, color: colors.muted },
+    input: {
+      minHeight: touchTargetMin,
+      borderWidth: 1,
+      borderColor: `${colors.primary}26`,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.white,
+      color: colors.primary,
+      fontSize: typography.body.fontSize,
+    },
+    suggestion: {
+      minHeight: touchTargetMin,
+      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.white,
+      borderRadius: radius.md,
+    },
+    suggestionText: { ...typography.caption, color: colors.primary },
+  });

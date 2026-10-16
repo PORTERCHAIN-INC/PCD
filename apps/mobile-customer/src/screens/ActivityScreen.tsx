@@ -1,246 +1,242 @@
-import { useCallback, useEffect, useState } from "react";
-import { Linking, Pressable, ScrollView, Text, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import { colors, typography } from "@porterchain/mobile-theme";
-import { vehicleLabel as capacityVehicleLabel } from "@porterchain/types";
-import {
-  fetchDashboard,
-  formatCad,
-  getQuote,
-  pollCheckout,
-  retryPayment,
-  type CustomerDashboard,
-  type QuoteResult,
-} from "../api";
+import { vehicleLabel } from "@porterchain/types";
+import { fetchDashboard, pollCheckout, retryPayment } from "../api";
 import { humanCustomerError } from "../errors";
-import { EmptyState, type MotionName } from "../ui/Motion";
+import {
+  formatMoney,
+  friendlyDate,
+  isActiveState,
+  orderStatus,
+  paymentStatus,
+  shortAddress,
+} from "../format";
+import { spacing } from "../theme";
+import {
+  Banner,
+  Card,
+  Chip,
+  Divider,
+  EmptyNote,
+  ListRow,
+  Segmented,
+  SkeletonList,
+  StatusPill,
+  Txt,
+} from "../ui/kit";
 import { Screen } from "../ui/Screen";
+import { useRemote } from "../ui/useRemote";
 import { peekCachedDashboard } from "./HomeScreen";
 
-type Segment = "orders" | "bookings" | "parcels" | "billing";
+type Segment = "shipments" | "receipts";
+type Filter = "all" | "active" | "done";
 
-function vehicleLabel(id?: string | null) {
-  if (!id) return "vehicle";
-  return capacityVehicleLabel(id, id);
-}
-
-export function ActivityScreen({ onTrack }: { onTrack: (tracking: string) => void }) {
-  const [segment, setSegment] = useState<Segment>("orders");
-  const [data, setData] = useState<CustomerDashboard | null>(() => peekCachedDashboard());
-  const [quotes, setQuotes] = useState<Record<string, QuoteResult>>({});
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    void fetchDashboard()
-      .then((dashboard) => {
-        setData(dashboard);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
-      });
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  useEffect(() => {
-    if (segment !== "parcels" || !data) return;
-    for (const booking of data.bookings) {
-      if (!booking.quote_id || quotes[booking.quote_id]) continue;
-      const quoteId = booking.quote_id;
-      void getQuote(quoteId)
-        .then((quote) => setQuotes((current) => ({ ...current, [quote.quote_id]: quote })))
-        .catch(() =>
-          setQuotes((current) => ({
-            ...current,
-            [quoteId]: {
-              quote_id: quoteId,
-              state: "unknown",
-              amount_cents: 0,
-              amount_display: "",
-              expires_at: "",
-              pricing_breakdown: [],
-              vehicle_class: "—",
-              package_type: "Unavailable",
-            },
-          }))
-        );
-    }
-  }, [data, quotes, segment]);
+export function ActivityScreen({
+  onTrack,
+  onBook,
+}: {
+  onTrack: (tracking: string) => void;
+  onBook?: () => void;
+}) {
+  const [segment, setSegment] = useState<Segment>("shipments");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [notice, setNotice] = useState<string | null>(null);
+  const { data, loading, refreshing, error, offline, refresh } = useRemote(
+    fetchDashboard,
+    peekCachedDashboard()
+  );
 
   async function retry(quoteId: string) {
+    setNotice(null);
     try {
       const payment = await retryPayment(quoteId);
       if (payment.checkout_url) await WebBrowser.openBrowserAsync(payment.checkout_url);
       await pollCheckout(quoteId);
-      load();
+      void refresh();
     } catch (err) {
-      setError(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
+      setNotice(humanCustomerError(err instanceof Error ? err.message : "request_failed"));
     }
   }
 
+  const orders = (data?.orders ?? []).filter((o) =>
+    filter === "all" ? true : filter === "active" ? isActiveState(o.state) : !isActiveState(o.state)
+  );
+  const failed = (data?.payments ?? []).filter(
+    (p) => p.quote_id && paymentStatus(p.status).tone === "danger"
+  );
+
   return (
-    <Screen>
-      <Text style={styles.title}>Activity</Text>
-      <ScrollView horizontal contentContainerStyle={styles.segments}>
-        {(["orders", "bookings", "parcels", "billing"] as Segment[]).map((id) => (
-          <Pressable key={id} onPress={() => setSegment(id)}>
-            <Text style={segment === id ? styles.active : styles.segment}>{id}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <ScrollView contentContainerStyle={styles.list}>
-        {segment === "orders"
-          ? (data?.orders ?? []).map((order) => (
-              <Pressable
-                key={order.order_id}
-                onPress={() => onTrack(order.tracking_number)}
-                style={styles.row}
-              >
-                <Text style={styles.strong}>{order.tracking_number}</Text>
-                <Text style={styles.meta}>
-                  {order.state}
-                  {order.amount_cents != null
-                    ? ` · ${formatCad(order.amount_cents, order.currency)}`
-                    : ""}
-                </Text>
-              </Pressable>
-            ))
-          : null}
-        {segment === "bookings"
-          ? (data?.bookings ?? []).map((booking) => (
-              <Text key={booking.booking_id} style={styles.rowText}>
-                {booking.booking_number || booking.booking_id} · {booking.state}
-              </Text>
-            ))
-          : null}
-        {segment === "parcels"
-          ? (data?.bookings ?? []).map((booking) => {
-              const quote = booking.quote_id ? quotes[booking.quote_id] : undefined;
-              return (
-                <Text key={booking.booking_id} style={styles.rowText}>
-                  {quote
-                    ? quote.booking_mode === "vehicle"
-                      ? `Whole vehicle · ${vehicleLabel(quote.vehicle_class)}`
-                      : `${
-                          quote.parcels
-                            ?.map((item) => item.preset_label)
-                            .filter(Boolean)
-                            .join(", ") || `${quote.parcels?.length || 0} parcels`
-                        } · ${vehicleLabel(quote.vehicle_class)}${
-                          quote.declared_value_cents
-                            ? ` · $${(quote.declared_value_cents / 100).toFixed(2)}`
-                            : ""
-                        }`
-                    : "Loading parcel…"}
-                </Text>
-              );
-            })
-          : null}
-        {segment === "billing" ? (
-          <>
-            {(data?.invoices ?? []).map((invoice) => (
-              <Pressable
-                key={invoice.invoice_id}
-                onPress={() => {
-                  const url = invoice.stripe_receipt_url || invoice.pdf_url;
-                  if (url) void Linking.openURL(url);
-                }}
-              >
-                <Text style={styles.rowText}>
-                  {invoice.invoice_number} · {formatCad(invoice.amount_cents, invoice.currency)}
-                </Text>
-              </Pressable>
-            ))}
-            {(data?.payments ?? []).map((payment) => (
-              <Pressable
-                key={payment.payment_id}
-                onPress={() =>
-                  payment.quote_id && payment.status !== "succeeded"
-                    ? void retry(payment.quote_id)
-                    : undefined
-                }
-              >
-                <Text style={styles.rowText}>
-                  {payment.status} · {formatCad(payment.amount_cents, payment.currency)}
-                  {payment.failure_reason ? ` · ${payment.failure_reason}` : ""}
-                  {payment.status !== "succeeded" && payment.quote_id ? " · Retry" : ""}
-                </Text>
-              </Pressable>
-            ))}
-          </>
-        ) : null}
-        {data && isEmpty(segment, data) ? (
-          <EmptyState
-            animation={EMPTY[segment].animation}
-            title={EMPTY[segment].title}
-            body={EMPTY[segment].body}
+    <Screen
+      scroll
+      testID="activity"
+      title="Activity"
+      refreshing={refreshing}
+      onRefresh={() => void refresh()}
+    >
+      <Segmented
+        options={[
+          { id: "shipments", label: "Shipments" },
+          { id: "receipts", label: "Receipts" },
+        ]}
+        value={segment}
+        onChange={setSegment}
+      />
+      {error ? (
+        <Banner
+          tone={offline ? "offline" : "danger"}
+          text={error}
+          action="Retry"
+          onAction={() => void refresh()}
+        />
+      ) : null}
+      {notice ? <Banner tone="danger" text={notice} /> : null}
+      {failed.length ? (
+        <Banner
+          tone="warning"
+          text={`${failed.length} payment${failed.length > 1 ? "s" : ""} didn't go through.`}
+          action="Pay now"
+          onAction={() => void retry(failed[0]!.quote_id!)}
+        />
+      ) : null}
+      {loading && !data ? <SkeletonList rows={4} /> : null}
+
+      {data && segment === "shipments" ? (
+        <>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Chip label="All" selected={filter === "all"} onPress={() => setFilter("all")} />
+            <Chip
+              label="In progress"
+              selected={filter === "active"}
+              onPress={() => setFilter("active")}
+            />
+            <Chip
+              label="Completed"
+              selected={filter === "done"}
+              onPress={() => setFilter("done")}
+            />
+          </View>
+          {orders.length === 0 ? (
+            <EmptyNote
+              icon="cube-outline"
+              title={filter === "all" ? "No shipments yet" : "Nothing here"}
+              body={
+                filter === "all"
+                  ? "Book a delivery and it shows up here with live tracking."
+                  : "Try another filter."
+              }
+              action={filter === "all" && onBook ? "Book a delivery" : undefined}
+              onAction={onBook}
+            />
+          ) : (
+            <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+              {orders.map((order, i) => {
+                const s = orderStatus(order.state);
+                return (
+                  <View key={order.order_id}>
+                    {i ? <Divider /> : null}
+                    <ListRow
+                      title={`${shortAddress(order.pickup?.formatted) || order.tracking_number} → ${shortAddress(order.dropoff?.formatted)}`}
+                      subtitle={[
+                        friendlyDate(order.created_at),
+                        order.goods_summary,
+                        order.vehicle_class
+                          ? vehicleLabel(order.vehicle_class, order.vehicle_class)
+                          : "",
+                        order.amount_cents != null
+                          ? formatMoney(order.amount_cents, order.currency)
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                      right={<StatusPill label={s.label} tone={s.tone} />}
+                      onPress={() => onTrack(order.tracking_number)}
+                    />
+                  </View>
+                );
+              })}
+            </Card>
+          )}
+        </>
+      ) : null}
+
+      {data && segment === "receipts" ? (
+        data.invoices.length === 0 && data.payments.length === 0 ? (
+          <EmptyNote
+            icon="receipt-outline"
+            title="No receipts yet"
+            body="Stripe receipts and invoices appear here after you pay."
           />
-        ) : null}
-      </ScrollView>
+        ) : (
+          <>
+            {data.invoices.length ? (
+              <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+                {data.invoices.map((invoice, i) => {
+                  const url = invoice.stripe_receipt_url || invoice.pdf_url;
+                  return (
+                    <View key={invoice.invoice_id}>
+                      {i ? <Divider /> : null}
+                      <ListRow
+                        icon="document-text-outline"
+                        title={`Invoice ${invoice.invoice_number}`}
+                        subtitle={[
+                          friendlyDate(invoice.created_at),
+                          url ? "Tap to view receipt" : "Receipt not ready",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                        right={
+                          <Txt v="headline">
+                            {formatMoney(invoice.amount_cents, invoice.currency)}
+                          </Txt>
+                        }
+                        onPress={url ? () => void WebBrowser.openBrowserAsync(url) : undefined}
+                      />
+                    </View>
+                  );
+                })}
+              </Card>
+            ) : null}
+            {data.payments.length ? (
+              <>
+                <Txt v="overline" tone="muted" style={{ marginTop: spacing.sm }}>
+                  Card payments (Stripe)
+                </Txt>
+                <Card style={{ paddingVertical: spacing.xs, gap: 0 }}>
+                  {data.payments.map((payment, i) => {
+                    const s = paymentStatus(payment.status);
+                    const canRetry = Boolean(payment.quote_id) && s.tone === "danger";
+                    return (
+                      <View key={payment.payment_id}>
+                        {i ? <Divider /> : null}
+                        <ListRow
+                          icon="card-outline"
+                          title={formatMoney(payment.amount_cents, payment.currency)}
+                          subtitle={
+                            canRetry
+                              ? `${payment.failure_reason ?? "Declined"} · Tap to pay again`
+                              : payment.receipt_url
+                                ? "Tap to view receipt"
+                                : undefined
+                          }
+                          right={<StatusPill label={s.label} tone={s.tone} />}
+                          onPress={
+                            canRetry
+                              ? () => void retry(payment.quote_id!)
+                              : payment.receipt_url
+                                ? () => void WebBrowser.openBrowserAsync(payment.receipt_url!)
+                                : undefined
+                          }
+                        />
+                      </View>
+                    );
+                  })}
+                </Card>
+              </>
+            ) : null}
+          </>
+        )
+      ) : null}
     </Screen>
   );
 }
-
-const EMPTY: Record<Segment, { animation?: MotionName; title: string; body: string }> = {
-  orders: {
-    animation: "shipment",
-    title: "No shipments yet",
-    body: "Book a delivery and the order shows up here.",
-  },
-  bookings: {
-    animation: "route",
-    title: "No bookings yet",
-    body: "Quotes you pay for are listed in this tab.",
-  },
-  parcels: {
-    animation: "shipment",
-    title: "No parcels yet",
-    body: "Package, weight, and vehicle appear after a booking.",
-  },
-  billing: {
-    title: "No invoices yet",
-    body: "Receipts and payments show up after checkout.",
-  },
-};
-
-function isEmpty(segment: Segment, data: CustomerDashboard) {
-  if (segment === "orders") return data.orders.length === 0;
-  if (segment === "bookings" || segment === "parcels") return data.bookings.length === 0;
-  return data.invoices.length === 0 && data.payments.length === 0;
-}
-
-const styles = StyleSheet.create({
-  title: { ...typography.title, fontSize: 30, color: colors.primary },
-  segments: { gap: 12, paddingVertical: 8 },
-  segment: {
-    ...typography.caption,
-    color: colors.muted,
-    textTransform: "capitalize",
-    backgroundColor: colors.white,
-    overflow: "hidden",
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  active: {
-    ...typography.caption,
-    color: colors.white,
-    fontWeight: "700",
-    textTransform: "capitalize",
-    backgroundColor: colors.secondary,
-    overflow: "hidden",
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  list: { gap: 8, paddingBottom: 24 },
-  row: { backgroundColor: colors.white, borderRadius: 12, padding: 12 },
-  rowText: { ...typography.body, color: colors.primary },
-  strong: { ...typography.body, color: colors.primary, fontWeight: "700" },
-  meta: { ...typography.caption, color: colors.muted },
-  error: { ...typography.caption, color: colors.danger },
-});
