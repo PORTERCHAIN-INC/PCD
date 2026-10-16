@@ -5,8 +5,8 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://localhost:8001", "type": "string" },
-    { "key": "token", "value": "dev", "type": "string" },
+    { "key": "base_url", "value": "https://api.porterchain.com", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
     { "key": "api_key", "value": "", "type": "string" },
     { "key": "quote_id", "value": "", "type": "string" },
     { "key": "tracking_number", "value": "", "type": "string" },

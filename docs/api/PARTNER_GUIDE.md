@@ -4,7 +4,7 @@
 
 Programmatic merchant integrations use **`/v1/merchant-api/*`**, not Clerk `/v1/merchant/*`. Auth is the interface (API key + optional `Idempotency-Key`). Do not merge this prefix into the portal.
 
-OpenAPI: `http://localhost:8001/docs` · snapshot [`openapi.json`](openapi.json)
+OpenAPI: production base `https://api.porterchain.com` · spec [`openapi.json`](openapi.json)
 
 | Method | Path                                       | Scope             |
 | ------ | ------------------------------------------ | ----------------- |

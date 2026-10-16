@@ -2536,7 +2536,7 @@
     "quickstart": {
       "label": "Démarrage rapide",
       "title": "Trois étapes pour votre premier appel",
-      "apiHost": "Hôte API : {host} — définissez NEXT_PUBLIC_PORTERCHAIN_API_URL en local (http://localhost:8001).",
+      "apiHost": "Hôte API : {host}",
       "steps": {
         "0": {
           "step": "Étape 1",
