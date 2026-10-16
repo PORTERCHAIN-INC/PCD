@@ -19,15 +19,36 @@ export const allowDevAuth = (): boolean => {
   return true;
 };
 
-export const apiBaseUrl = trimSlash(
-  process.env.EXPO_PUBLIC_API_URL ??
-    (Platform.OS === "android" ? "http://10.0.2.2:8001" : "http://127.0.0.1:8001")
+const PROD_API = "https://api.porterchain.com";
+const isLocal = (u: string) =>
+  /\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2|0\.0\.0\.0)(:|\/|$)/i.test(u);
+
+/**
+ * Release builds can never point at a developer machine: a missing or local
+ * EXPO_PUBLIC_API_URL falls back to production instead of localhost.
+ */
+export function resolveApiBaseUrl(
+  envUrl: string | undefined,
+  dev: boolean,
+  os: string = Platform.OS
+): string {
+  const url = (envUrl ?? "").trim();
+  if (dev) {
+    return trimSlash(url || (os === "android" ? "http://10.0.2.2:8001" : "http://127.0.0.1:8001"));
+  }
+  return trimSlash(url && !isLocal(url) ? url : PROD_API);
+}
+
+export const apiBaseUrl = resolveApiBaseUrl(
+  process.env.EXPO_PUBLIC_API_URL,
+  __DEV__ && appEnv !== "production" && appEnv !== "preview"
 );
 
 /** Public website: the one tracking page (map, photo, rating, receipt, cancel, report a problem). */
-export const websiteUrl = trimSlash(
-  process.env.EXPO_PUBLIC_WEBSITE_URL ?? "https://porterchain.com"
-);
+export const websiteUrl = (() => {
+  const u = trimSlash((process.env.EXPO_PUBLIC_WEBSITE_URL ?? "").trim());
+  return u && (__DEV__ || !isLocal(u)) ? u : "https://porterchain.com";
+})();
 
 /** Customer web portal: documents are attached there (file picking + secure upload). */
 export const customerPortalUrl = trimSlash(
