@@ -612,7 +612,9 @@ jobs:
           retry_smoke "customer login" http_code_is https://customer.porterchain.com/login '200|307|308'
           # Retired Fleetbase hosts must 404 (never fall through to marketing).
           retry_smoke "console 404" http_code_is https://console.porterchain.com/ 404
-          retry_smoke "fleetbase 404" http_code_is https://fleetbase.porterchain.com/ 404
+          # The record may also be deleted from DNS entirely (retired); that passes too.
+          fleetbase_retired() { ! getent hosts fleetbase.porterchain.com >/dev/null || http_code_is https://fleetbase.porterchain.com/ 404; }
+          retry_smoke "fleetbase 404 or no DNS" fleetbase_retired
           retry_smoke "public quote" quote_ok
           echo "Prod D3 smoke passed"
 
