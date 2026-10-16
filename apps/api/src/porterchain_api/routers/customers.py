@@ -209,13 +209,12 @@ def get_my_driver_position(
 
     See booking_engine/customer_driver_position.py for the privacy rules.
     """
-    from porterchain_api.admin_models import Driver
     from porterchain_api.booking_engine.customer_driver_position import (
         RateLimited,
         check_rate,
         customer_driver_position,
+        load_order_and_driver,
     )
-    from porterchain_api.booking_models import Order
     from porterchain_api.dispatch_engine.driver_pin import driver_pin
     from porterchain_api.platform.gps_policy import driver_gps_status
 
@@ -228,9 +227,8 @@ def get_my_driver_position(
             detail="rate_limited",
             headers={"Retry-After": str(exc.retry_after)},
         ) from exc
-    order = db.query(Order).filter(Order.tracking_number == tracking_number).first()
-    driver_id = getattr(order, "assigned_driver_id", None) if order else None
-    driver = db.get(Driver, driver_id) if driver_id else None
+    order, driver = load_order_and_driver(db, tracking_number)
+    driver_id = getattr(driver, "id", None)
     owned_and_active = (
         order is not None
         and order.customer_id == customer.id

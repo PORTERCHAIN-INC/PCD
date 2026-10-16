@@ -114,7 +114,22 @@ def test_rate_limit_per_customer_and_order():
 def test_route_requires_sign_in():
     from fastapi.testclient import TestClient
 
+    from porterchain_api.config import Settings, get_settings
     from porterchain_api.main import app
 
-    resp = TestClient(app).get("/v1/customers/me/orders/PC-1/driver-position")
+    # Bypass off: a local CLERK_DEV_BYPASS would otherwise sign the request in.
+    locked = Settings(
+        app_env="local",
+        stripe_mock=True,
+        jwt_secret="test-jwt-secret-local",
+        spicedb_enabled=False,
+        spicedb_use_memory=True,
+        spicedb_required=False,
+        clerk_dev_bypass=False,
+    )
+    app.dependency_overrides[get_settings] = lambda: locked
+    try:
+        resp = TestClient(app).get("/v1/customers/me/orders/PC-1/driver-position")
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
     assert resp.status_code in {401, 403}

@@ -67,6 +67,17 @@ def _parse(ts: Any) -> datetime | None:
     return None
 
 
+def load_order_and_driver(db: Any, tracking_number: str) -> tuple[Any, Any]:
+    """Order by tracking number and its assigned driver (either may be None)."""
+    from porterchain_api.admin_models import Driver
+    from porterchain_api.booking_models import Order
+
+    order = db.query(Order).filter(Order.tracking_number == tracking_number).first()
+    driver_id = getattr(order, "assigned_driver_id", None) if order else None
+    driver = db.get(Driver, driver_id) if driver_id else None
+    return order, driver
+
+
 def unavailable(reason: str) -> dict[str, Any]:
     return {"available": False, "reason": reason, "position": None}
 
