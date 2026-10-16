@@ -34,7 +34,11 @@ def _ready_customer(db: Session, claims: ClerkClaims, settings: Settings):
     customer = require_customer(db, claims, settings)
     try:
         require_customer_portal_ready(
-            db, claims, customer, settings=settings, email=customer.email or claims.email
+            db,
+            claims,
+            customer,
+            settings=settings,
+            email=customer.email or claims.email,
         )
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -50,7 +54,11 @@ def get_my_dashboard(
     customer = require_customer(db, claims, settings)
     try:
         require_customer_portal_ready(
-            db, claims, customer, settings=settings, email=customer.email or claims.email
+            db,
+            claims,
+            customer,
+            settings=settings,
+            email=customer.email or claims.email,
         )
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -187,3 +195,57 @@ def customer_privacy_delete_request(
 ):
     customer = require_customer(db, claims, settings)
     return _privacy.request_customer_deletion(db, customer)
+
+
+@router.get("/me/orders/{tracking_number}/driver-position")
+def get_my_driver_position(
+    tracking_number: str,
+    response: Response,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Coarse live position of the driver on the caller's own active shipment.
+
+    See booking_engine/customer_driver_position.py for the privacy rules.
+    """
+    from porterchain_api.admin_models import Driver
+    from porterchain_api.booking_engine.customer_driver_position import (
+        RateLimited,
+        check_rate,
+        customer_driver_position,
+    )
+    from porterchain_api.booking_models import Order
+    from porterchain_api.dispatch_engine.driver_pin import driver_pin
+    from porterchain_api.platform.gps_policy import driver_gps_status
+
+    customer = _ready_customer(db, claims, settings)
+    try:
+        check_rate(f"{customer.id}:{tracking_number}")
+    except RateLimited as exc:
+        raise HTTPException(
+            status_code=429,
+            detail="rate_limited",
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
+    order = db.query(Order).filter(Order.tracking_number == tracking_number).first()
+    driver_id = getattr(order, "assigned_driver_id", None) if order else None
+    driver = db.get(Driver, driver_id) if driver_id else None
+    owned_and_active = (
+        order is not None
+        and order.customer_id == customer.id
+        and str(order.state).upper()
+        in {"DRIVER_EN_ROUTE", "AT_PICKUP", "PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"}
+    )
+    payload = customer_driver_position(
+        order,
+        customer_id=customer.id,
+        driver=driver,
+        # Only read the pin when the order is the caller's and active.
+        pin=driver_pin(driver_id) if owned_and_active and driver_id else None,
+        gps_allowed=lambda d: bool(driver_gps_status(d.id, db, d)["enabled"]),
+    )
+    if payload is None:
+        raise HTTPException(status_code=404, detail="order_not_found")
+    response.headers["Cache-Control"] = "no-store"
+    return payload
