@@ -1,6 +1,7 @@
 import type { TrackingExperience } from "@porterchain/types";
 import * as Crypto from "expo-crypto";
 import { apiBaseUrl, fetchTimeoutMs } from "./config";
+import { demoEnabled, demoRequest } from "./dev/demo";
 import { requireBearer } from "./session";
 
 const PORTAL = "customer";
@@ -259,6 +260,7 @@ async function readError(res: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}, auth = false): Promise<T> {
+  if (demoEnabled()) return demoRequest<T>(path, init);
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(init.body ? { "Content-Type": "application/json" } : {}),
@@ -279,6 +281,7 @@ export function formatCad(cents: number, currency = "CAD"): string {
 }
 
 export async function probeApi(): Promise<boolean> {
+  if (demoEnabled()) return true;
   try {
     const res = await fetchWithTimeout(`${apiBaseUrl}/health`, { method: "GET" });
     return res.ok;
