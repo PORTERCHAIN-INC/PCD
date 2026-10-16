@@ -1,7 +1,10 @@
 import type { LatLng } from "./types";
 
 /** Decode Google/OSRM (1e-5) or Valhalla (1e-6) encoded polylines. */
-export function decodePolyline(encoded: string, encoding: "google" | "valhalla" = "google"): LatLng[] {
+export function decodePolyline(
+  encoded: string,
+  encoding: "google" | "valhalla" = "google"
+): LatLng[] {
   const factor = encoding === "valhalla" ? 1e6 : 1e5;
   const points: LatLng[] = [];
   let index = 0;

@@ -177,30 +177,47 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # Free address autocomplete (replaces Google Places). Prebuilt Canada index
-  # (~5 GB download, ~10-12 GB on disk); the API filters to GTA ±150 km.
+  # Free address autocomplete (replaces Google Places). GTA +150 km Photon index built
+  # on the home build server (build-geo-artifacts.sh) and rsynced to /opt/porterchain/photon.
+  # Measured: ~PHOTON_RSS MB RSS with -Xmx512m; cap leaves headroom on the 3.8 GB droplet.
   photon:
-    image: rtuszik/photon-docker:latest
+    # Opt-in until the artifacts exist on the droplet: publish-geo-artifacts.sh runs
+    # `docker compose --profile geo up -d photon`. Until then the API falls back to Nominatim.
+    profiles: ["geo"]
+    image: eclipse-temurin:21-jre-noble@sha256:000fd431958bc81a24abe1e8e5f0f0fd3ae365a594bd50aadb20696805f9408c
     container_name: pcd-photon
     restart: unless-stopped
     expose:
       - "2322"
     environment:
-      REGION: ca
-      UPDATE_STRATEGY: SEQUENTIAL
-      UPDATE_INTERVAL: 720h
-      JAVA_PARAMS: "-Xms256m -Xmx900m"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -XX:+UseSerialGC -XX:MaxDirectMemorySize=128m"
+    command:
+      [
+        "java",
+        "-jar",
+        "/photon/photon.jar",
+        "serve",
+        "-data-dir",
+        "/photon",
+        "-listen-ip",
+        "0.0.0.0",
+        "-listen-port",
+        "2322",
+      ]
     volumes:
-      - photon-data:/photon/data
-    mem_limit: 1400m
+      # photon.jar (sha256-checked at build) + node_1/ index, both from the home build server.
+      - /opt/porterchain/photon:/photon
+    mem_limit: 900m
+    memswap_limit: 900m
     networks:
       - edge
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- 'http://127.0.0.1:2322/api?q=toronto&limit=1' >/dev/null || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -fs 'http://127.0.0.1:2322/api?q=toronto&limit=1' >/dev/null || exit 1"]
       interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 1800s
+      start_period: 180s
     security_opt:
       - no-new-privileges:true
 
@@ -632,4 +649,3 @@ volumes:
   redis-data:
   valhalla-tiles:
   osrm-tiles:
-  photon-data:

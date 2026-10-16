@@ -900,7 +900,6 @@ function AddressField({
           value={value.formatted}
           onChange={(formatted) => onChange({ formatted })}
           onPlaceSelect={onChange}
-          apiKey={publicEnv.googleMapsApiKey}
           placeholder={label}
           fallbackClassName={inputClass}
         />

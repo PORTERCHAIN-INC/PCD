@@ -253,7 +253,6 @@ export default function MerchantLocationsPanel({ id }: { id: string }) {
                   value={place.formatted}
                   onChange={(formatted) => setPlace({ formatted })}
                   onPlaceSelect={setPlace}
-                  apiKey={publicEnv.googleMapsApiKey}
                   placeholder="Ontario address"
                   fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
                 />

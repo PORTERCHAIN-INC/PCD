@@ -33,7 +33,7 @@ export function porterchainMapStyle(tilesBase?: string): maplibregl.StyleSpecifi
     sources: {
       protomaps: {
         type: "vector",
-        url: `pmtiles://${base}/ontario.pmtiles`,
+        url: `pmtiles://${base}/gta-150km.pmtiles`,
         attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
       },
     },
@@ -183,7 +183,11 @@ export default function LibreMap({
         id: "pc-circles-line",
         type: "line",
         source: "pc-circles",
-        paint: { "line-color": ["get", "color"], "line-opacity": ["get", "strokeOpacity"], "line-width": 1 },
+        paint: {
+          "line-color": ["get", "color"],
+          "line-opacity": ["get", "strokeOpacity"],
+          "line-width": 1,
+        },
       });
     }
   }, [ready, lines, circles]);

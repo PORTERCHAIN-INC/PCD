@@ -14,16 +14,7 @@ export const publicEnv = {
   // Must be the Porterchain Driver instance key (clerk.driver.porterchain.com) — the same Clerk
   // app the driver mobile app uses, so one driver account works on web and mobile.
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
-  googleMapsApiKey: (
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ??
-    process.env.GOOGLE_MAPS_BROWSER_API_KEY ??
-    ""
-  ).trim(),
 } as const;
-
-export function isGoogleMapsConfigured(): boolean {
-  return publicEnv.googleMapsApiKey.length > 0;
-}
 
 export function isClerkConfigured(): boolean {
   return publicEnv.clerkPublishableKey.length > 0;

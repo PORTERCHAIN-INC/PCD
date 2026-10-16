@@ -233,7 +233,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
                 value={billing.formatted}
                 onChange={(formatted) => setBilling({ formatted })}
                 onPlaceSelect={setBilling}
-                apiKey={publicEnv.googleMapsApiKey}
                 placeholder="Ontario billing address"
                 fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
               />

@@ -1,10 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { GoogleMapsProvider } from "@porterchain/maps";
-import { publicEnv } from "@/lib/env";
 
-/** Scope Maps JS to routes that need Places/map UI — not the whole portal shell. */
+/** Former Google Maps wrapper; MapLibre and /v1/geo need no provider. */
 export default function WithGoogleMaps({ children }: { children: ReactNode }) {
-  return <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>{children}</GoogleMapsProvider>;
+  return <>{children}</>;
 }

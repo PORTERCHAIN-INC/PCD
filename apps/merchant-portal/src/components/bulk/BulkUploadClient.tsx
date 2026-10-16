@@ -686,7 +686,6 @@ export default function BulkPage() {
                         setEditPlace(place);
                       }}
                       placeholder="Start typing — pick a suggestion to lock the pin"
-                      apiKey={publicEnv.googleMapsApiKey}
                       className="w-full"
                       fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2"
                     />

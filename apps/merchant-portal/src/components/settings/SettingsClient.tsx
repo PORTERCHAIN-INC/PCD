@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CompanyCompletenessBanner from "@/components/onboarding/CompanyCompletenessBanner";
-import MapsMissingBanner from "@/components/maps/MapsMissingBanner";
 import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { EmptyState } from "@porterchain/ui/empty-state";
 import { PageSkeleton } from "@porterchain/ui/loading";
@@ -163,7 +162,6 @@ export default function SettingsClient() {
       </div>
 
       <CompanyCompletenessBanner completeness={data.completeness} />
-      <MapsMissingBanner />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

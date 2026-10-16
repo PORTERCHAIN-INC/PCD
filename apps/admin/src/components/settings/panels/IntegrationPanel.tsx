@@ -32,9 +32,9 @@ const INTEGRATION_DOCS: Record<string, string[]> = {
     "API keys live in Doppler / env — change them there, then restart API.",
   ],
   google_maps: [
-    "Browser map tiles and Places autocomplete only — not a routing engine.",
+    "No Google services. Maps: MapLibre + self-hosted Protomaps tiles (tiles.porterchain.com).",
+    "Address search: /v1/geo (self-hosted Photon, Nominatim fallback), GTA ±150 km.",
     "Routing runs on Valhalla (primary) with OSRM fallback, configured via env.",
-    "Browser key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY · server key in API env.",
   ],
   channels: [
     "Email uses SMTP from environment (Mailpit in local dev).",

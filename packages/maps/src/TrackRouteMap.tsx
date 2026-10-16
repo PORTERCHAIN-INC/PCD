@@ -53,7 +53,8 @@ export default function TrackRouteMap({
   }, [fitPoints]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lines = useMemo(
-    () => (routePath.length > 1 ? [{ path: routePath, color: "#2563eb", width: 4, opacity: 0.85 }] : []),
+    () =>
+      routePath.length > 1 ? [{ path: routePath, color: "#2563eb", width: 4, opacity: 0.85 }] : [],
     [routePath]
   );
 

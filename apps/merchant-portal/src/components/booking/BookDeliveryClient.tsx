@@ -23,7 +23,6 @@ import {
   type SavedAddress,
 } from "@/lib/booking";
 import { PACKAGE_OPTIONS, VEHICLE_OPTIONS, packageLabel, vehicleLabel } from "@/lib/catalog";
-import MapsMissingBanner from "@/components/maps/MapsMissingBanner";
 import { publicEnv } from "@/lib/env";
 import { DimensionUnit, WeightUnit, type Parcel } from "@/lib/route-module/types";
 import { serializeParcelsForLegacyAPI, withVolumetricWeight } from "@/lib/route-module/units";
@@ -625,8 +624,6 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
           {draftBanner}
         </div>
       )}
-
-      <MapsMissingBanner />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
@@ -1401,7 +1398,6 @@ function AddressField({
           value={value.formatted}
           onChange={(formatted) => onChange({ formatted })}
           onPlaceSelect={onChange}
-          apiKey={publicEnv.googleMapsApiKey}
           placeholder={label}
           fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
         />
