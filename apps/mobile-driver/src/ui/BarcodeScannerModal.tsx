@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 
 import { makeDeduper, scanFeedback, type ScanOutcome } from "../scanFeedback";
@@ -84,73 +85,81 @@ export function BarcodeScannerModal({
   const onBarcode = (r: BarcodeScanningResult) => void submit(r.data || "");
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.wrap} testID="barcode-scanner">
-        <Title>{title}</Title>
-        <Body>{hint}</Body>
-        {!permission?.granted ? (
-          <>
-            <Banner
-              tone="warn"
-              title="Camera is off"
-              body="Allow camera access to scan labels, or type the code below."
-            />
-            {permission && !permission.canAskAgain ? (
-              <Button label="Open Settings" onPress={() => void Linking.openSettings()} />
-            ) : null}
-          </>
-        ) : (
-          <View style={styles.cameraWrap}>
-            <CameraView
-              style={styles.camera}
-              facing="back"
-              enableTorch={torch}
-              barcodeScannerSettings={{ barcodeTypes: ["qr", "code128"] }}
-              onBarcodeScanned={onBarcode}
-            />
-            <View style={styles.overlay} pointerEvents="box-none">
-              {progress ? <Text style={styles.chip}>{progress}</Text> : <View />}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={torch ? "Turn light off" : "Turn light on"}
-                testID="scanner-torch"
-                onPress={() => setTorch((t) => !t)}
-                style={[styles.torch, torch && styles.torchOn]}
-              >
-                <Text style={styles.torchText}>{torch ? "Light on" : "Light"}</Text>
-              </Pressable>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.wrap} edges={["top", "bottom"]} testID="barcode-scanner">
+          <Title>{title}</Title>
+          <Body>{hint}</Body>
+          {!permission?.granted ? (
+            <>
+              <Banner
+                tone="warn"
+                title="Camera is off"
+                body="Allow camera access to scan labels, or type the code below."
+              />
+              {permission && !permission.canAskAgain ? (
+                <Button label="Open Settings" onPress={() => void Linking.openSettings()} />
+              ) : null}
+            </>
+          ) : (
+            <View style={styles.cameraWrap}>
+              <CameraView
+                style={styles.camera}
+                facing="back"
+                enableTorch={torch}
+                barcodeScannerSettings={{ barcodeTypes: ["qr", "code128"] }}
+                onBarcodeScanned={onBarcode}
+              />
+              <View style={styles.overlay} pointerEvents="box-none">
+                {progress ? <Text style={styles.chip}>{progress}</Text> : <View />}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={torch ? "Turn light off" : "Turn light on"}
+                  testID="scanner-torch"
+                  onPress={() => setTorch((t) => !t)}
+                  style={[styles.torch, torch && styles.torchOn]}
+                >
+                  <Text style={styles.torchText}>{torch ? "Light on" : "Light"}</Text>
+                </Pressable>
+              </View>
+              {last ? (
+                <Text
+                  testID="scanner-last"
+                  style={[
+                    styles.last,
+                    last.tone === "warn" && styles.lastWarn,
+                    last.tone === "error" && styles.lastError,
+                  ]}
+                >
+                  {last.text}
+                </Text>
+              ) : null}
             </View>
-            {last ? (
-              <Text
-                testID="scanner-last"
-                style={[
-                  styles.last,
-                  last.tone === "warn" && styles.lastWarn,
-                  last.tone === "error" && styles.lastError,
-                ]}
-              >
-                {last.text}
-              </Text>
-            ) : null}
+          )}
+          <View style={styles.manualRow}>
+            <TextInput
+              testID="scanner-manual"
+              value={manual}
+              onChangeText={setManual}
+              placeholder="Label won't scan? Type the code"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={styles.input}
+              onSubmitEditing={() => {
+                void submit(manual);
+                setManual("");
+              }}
+            />
           </View>
-        )}
-        <View style={styles.manualRow}>
-          <TextInput
-            testID="scanner-manual"
-            value={manual}
-            onChangeText={setManual}
-            placeholder="Label won't scan? Type the code"
-            autoCapitalize="characters"
-            autoCorrect={false}
-            style={styles.input}
-            onSubmitEditing={() => {
-              void submit(manual);
-              setManual("");
-            }}
-          />
-        </View>
-        <Button label={continuous ? "Done" : "Cancel"} onPress={onClose} />
-      </View>
+          <Button label={continuous ? "Done" : "Cancel"} onPress={onClose} />
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -161,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
     padding: space.lg,
     gap: space.md,
-    paddingTop: space.xxl,
+    paddingTop: space.md,
   },
   cameraWrap: { flex: 1, minHeight: 320, borderRadius: radius.lg, overflow: "hidden" },
   camera: { flex: 1 },
