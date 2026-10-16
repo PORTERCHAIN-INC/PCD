@@ -140,9 +140,28 @@ class TrackingService:
     ) -> dict[str, Any]:
         """Enriched public snapshot: addresses, map geometry, and ETA."""
         live_raw = self.get_live_tracking(db, settings, order)
-        snapshot = build_public_live_tracking(order, live_raw)
+        snapshot = build_public_live_tracking(
+            order, live_raw, gps_allowed=lambda: self._driver_gps_allowed(db, order)
+        )
         snapshot["branding"] = self._shipper_branding(db, order)
         return snapshot
+
+    @staticmethod
+    def _driver_gps_allowed(db: Session, order: Order) -> bool:
+        """Driver GPS consent policy; fail closed if it can't be read."""
+        driver_id = getattr(order, "assigned_driver_id", None)
+        if not driver_id:
+            return False
+        try:
+            from porterchain_api.admin_models import Driver
+            from porterchain_api.platform.gps_policy import driver_gps_status
+
+            driver = db.get(Driver, driver_id)
+            if driver is None:
+                return False
+            return bool(driver_gps_status(driver.id, db, driver)["enabled"])
+        except Exception:  # noqa: BLE001
+            return False
 
     def _shipper_branding(self, db: Session, order: Order) -> dict[str, Any]:
         if not order.merchant_id:

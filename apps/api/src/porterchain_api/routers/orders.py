@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.clerk import get_clerk_user_id
@@ -25,13 +25,19 @@ def get_order_by_tracking(
 @router.get("/orders/{tracking_number}/tracking", response_model=OrderTrackingResponse)
 def get_order_live_tracking(
     tracking_number: str,
+    request: Request,
+    response: Response,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> OrderTrackingResponse:
-    """Live GPS/status from the assigned driver."""
+    """Public live status. Driver position is coarse, fresh, active-only and rate-limited."""
+    from porterchain_api.booking_engine.public_tracking_limit import enforce_public_tracking_limit
+
+    enforce_public_tracking_limit(request, tracking_number, app_env=settings.app_env)
     result = _tracking.get_order_tracking_response(db, settings, tracking_number)
     if not result:
         raise HTTPException(status_code=404, detail="order_not_found")
+    response.headers["Cache-Control"] = "no-store"
     return result
 
 
