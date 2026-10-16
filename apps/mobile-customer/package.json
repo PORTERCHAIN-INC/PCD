@@ -15,11 +15,11 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/expo": "^4.6.6",
+    "@clerk/expo": "^4.10.1",
     "@porterchain/customer-motion": "workspace:*",
     "@porterchain/mobile-theme": "file:./vendor/mobile-theme",
     "@porterchain/types": "workspace:*",
-    "lottie-react-native": "~7.3.8",
+    "lottie-react-native": "~7.5.0",
     "expo": "~57.0.27",
     "expo-auth-session": "~57.0.14",
     "expo-build-properties": "~57.0.22",
@@ -34,7 +34,7 @@
     "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-native": "0.86.3"
+    "react-native": "0.87.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
