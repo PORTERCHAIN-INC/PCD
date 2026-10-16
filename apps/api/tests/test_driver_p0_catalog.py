@@ -176,12 +176,23 @@ def test_require_assigned_order_allows_own() -> None:
     assert out.id == "ord-own"
 
 
-def test_require_assigned_order_allows_unassigned() -> None:
-    """Unassigned orders are loadable (assignment may land after fetch)."""
+def test_require_assigned_order_unassigned_needs_route(monkeypatch) -> None:
+    """Unassigned orders: only a stop on this driver's committed route (Oct 2026 fix;
+    before, any driver could scan/act on an unassigned order)."""
+    from porterchain_api.dispatch_engine.driver_route import DriverRouteService
+
     db = MagicMock()
     order = SimpleNamespace(id="ord-open", assigned_driver_id=None)
     db.get = MagicMock(return_value=order)
 
+    monkeypatch.setattr(DriverRouteService, "current_route", lambda self, db, d: None)
+    with pytest.raises(PermissionError):
+        DriverApiService.require_assigned_order(db, driver_id="driver-a", order_id="ord-open")
+
+    monkeypatch.setattr(
+        DriverRouteService, "current_route",
+        lambda self, db, d: SimpleNamespace(stops=[{"order_id": "ord-open"}]),
+    )
     out = DriverApiService.require_assigned_order(db, driver_id="driver-a", order_id="ord-open")
     assert out.id == "ord-open"
 
