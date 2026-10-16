@@ -9,7 +9,12 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
 from porterchain_api.merchant_engine.package_service import PackageService
-from porterchain_api.reporting.qr_codec import InvalidLabelQr, decode_label_qr
+from porterchain_api.reporting.qr_codec import (
+    InvalidLabelQr,
+    decode_label_qr,
+    decode_signed_label,
+    is_signed_label,
+)
 
 Phase = Literal["pickup", "delivery"]
 
@@ -173,6 +178,17 @@ class ScanGateService:
         if not token:
             raise ValueError("invalid_label_qr")
         self._packages.ensure_for_order(db, order)
+        if is_signed_label(token):
+            try:
+                pkg_id = decode_signed_label(token)
+            except InvalidLabelQr as exc:
+                raise ValueError("invalid_label_qr") from exc
+            pkg = db.get(Package, pkg_id)
+            if not pkg:
+                raise ValueError("invalid_label_qr")
+            if pkg.order_id != order.id:
+                raise ValueError("qr_order_mismatch")
+            return pkg
         try:
             decoded = decode_label_qr(token)
         except InvalidLabelQr:

@@ -37,7 +37,9 @@ class DriverApiService:
         order = db.get(Order, order_id)
         if not order:
             raise LookupError("order_not_found")
-        if order.assigned_driver_id and order.assigned_driver_id != driver_id:
+        from porterchain_api.driver_ownership import driver_owns_order
+
+        if not driver_owns_order(db, driver_id, order):
             raise PermissionError("not_assigned_driver")
         return order
 
@@ -50,3 +52,4 @@ class DriverApiService:
                 executor.execute(db, driver, action_type, payload)
 
         return _Executor()
+

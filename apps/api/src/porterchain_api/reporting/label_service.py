@@ -163,13 +163,7 @@ class LabelService:
                     "order_number": order.order_number,
                     "tracking_base": order.tracking_number,
                     "cod_line": cod_line,
-                    "qr_payload": encode_label_qr(
-                        order_id=order.id,
-                        package_id=pkg.id,
-                        route_hint=route_hint or None,
-                        stop_sequence=pkg.stop_sequence,
-                        cod_cents=cod_cents,
-                    ),
+                    "qr_payload": _label_code(pkg.id, order.id, route_hint, pkg.stop_sequence, cod_cents),
                     "tracking_suffix": pkg.tracking_suffix,
                     "parcel_index": pkg.parcel_index,
                     "total_parcels": pkg.total_parcels,
@@ -177,3 +171,19 @@ class LabelService:
                 }
             )
         return pages
+
+
+def _label_code(package_id, order_id, route_hint, stop_sequence, cod_cents) -> str:
+    """Signed opaque PC1 code; legacy pipe payload only for non-UUID package ids."""
+    from porterchain_api.reporting.qr_codec import encode_signed_label
+
+    try:
+        return encode_signed_label(package_id)
+    except ValueError:
+        return encode_label_qr(
+            order_id=order_id,
+            package_id=package_id,
+            route_hint=route_hint or None,
+            stop_sequence=stop_sequence,
+            cod_cents=cod_cents,
+        )

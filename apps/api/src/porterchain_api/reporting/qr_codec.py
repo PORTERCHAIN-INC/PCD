@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import base64 as _b64
+import hashlib as _hashlib
+import hmac as _hmac
 from dataclasses import dataclass
 
 
@@ -60,3 +63,58 @@ def decode_label_qr(raw: str) -> LabelQrPayload:
         stop_sequence=parts[4],
         cod_cents=parts[5],
     )
+
+
+# ---------------------------------------------------------------------------
+# PC1 signed label code (Oct 2026). Opaque: carries no order id, COD, name or
+# address. ``PC1.<package uuid hex>.<hmac-sha256 truncated, base32>``.
+# A forged or mistyped code fails verification and resolves to nothing.
+# Legacy LOGISTICSv1 labels already printed keep scanning.
+# ---------------------------------------------------------------------------
+
+
+PC1_PREFIX = "PC1"
+_SIG_BYTES = 10
+
+
+def _label_key() -> bytes:
+    from porterchain_api.config import get_settings
+
+    s = get_settings()
+    explicit = (getattr(s, "label_signing_secret", "") or "").strip()
+    if explicit:
+        return explicit.encode()
+    base = (getattr(s, "jwt_secret", "") or getattr(s, "sso_jwt_secret", "") or "").strip()
+    if not base:
+        base = "porterchain-dev-label-key"  # tests / local only; prod always has JWT_SECRET
+    return _hmac.new(base.encode(), b"porterchain-label-v1", _hashlib.sha256).digest()
+
+
+def _sig(pkg_hex: str, key: bytes | None = None) -> str:
+    mac = _hmac.new(key or _label_key(), f"{PC1_PREFIX}.{pkg_hex}".encode(), _hashlib.sha256).digest()
+    return _b64.b32encode(mac[:_SIG_BYTES]).decode().rstrip("=")
+
+
+def encode_signed_label(package_id: str, *, key: bytes | None = None) -> str:
+    pkg_hex = package_id.replace("-", "").lower()
+    if len(pkg_hex) != 32 or any(c not in "0123456789abcdef" for c in pkg_hex):
+        raise ValueError("package_id_not_uuid")
+    return f"{PC1_PREFIX}.{pkg_hex.upper()}.{_sig(pkg_hex, key)}"
+
+
+def is_signed_label(raw: str) -> bool:
+    return (raw or "").strip().upper().startswith(PC1_PREFIX + ".")
+
+
+def decode_signed_label(raw: str, *, key: bytes | None = None) -> str:
+    """Return the package UUID, or raise InvalidLabelQr (bad shape or signature)."""
+    parts = (raw or "").strip().upper().split(".")
+    if len(parts) != 3 or parts[0] != PC1_PREFIX:
+        raise InvalidLabelQr("invalid_label_qr")
+    pkg_hex = parts[1].lower()
+    if len(pkg_hex) != 32:
+        raise InvalidLabelQr("invalid_label_qr")
+    if not _hmac.compare_digest(_sig(pkg_hex, key), parts[2]):
+        raise InvalidLabelQr("invalid_label_qr")
+    h = pkg_hex
+    return f"{h[0:8]}-{h[8:12]}-{h[12:16]}-{h[16:20]}-{h[20:32]}"

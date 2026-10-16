@@ -22,8 +22,17 @@ def test_api_d_02_require_assigned_order_matrix() -> None:
     db.get = MagicMock(return_value=SimpleNamespace(id="o1", assigned_driver_id="d1"))
     assert DriverApiService.require_assigned_order(db, driver_id="d1", order_id="o1").id == "o1"
 
+    from porterchain_api.dispatch_engine.driver_route import DriverRouteService
+
+    # Unassigned: only when it is a stop on this driver's committed route.
     db.get = MagicMock(return_value=SimpleNamespace(id="o2", assigned_driver_id=None))
-    assert DriverApiService.require_assigned_order(db, driver_id="d1", order_id="o2").id == "o2"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(DriverRouteService, "current_route",
+                   lambda self, db, d: SimpleNamespace(stops=[{"order_id": "o2"}]))
+        assert DriverApiService.require_assigned_order(db, driver_id="d1", order_id="o2").id == "o2"
+        mp.setattr(DriverRouteService, "current_route", lambda self, db, d: None)
+        with pytest.raises(PermissionError, match="not_assigned_driver"):
+            DriverApiService.require_assigned_order(db, driver_id="d1", order_id="o2")
 
     db.get = MagicMock(return_value=SimpleNamespace(id="o3", assigned_driver_id="other"))
     with pytest.raises(PermissionError, match="not_assigned_driver"):

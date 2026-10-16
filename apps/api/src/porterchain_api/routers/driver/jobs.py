@@ -280,9 +280,15 @@ def scan_order_package(
         PackagesIncomplete,
         ScanGateService)
 
+    from porterchain_api.driver_engine import scan_audit
+
+    scan_audit.enforce_scan_rate(ctx.driver.id)
     try:
-        order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)
-        return ScanGateService().scan_qr_from_body(db, order, body, actor_id=ctx.driver.id)
+        return scan_audit.audited_package_scan(
+            db, ctx.driver.id, order_id, body,
+            lambda: ScanGateService().scan_qr_from_body(
+                db, svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id),
+                body, actor_id=ctx.driver.id))
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except PermissionError as exc:
