@@ -205,7 +205,12 @@ def _format(p: dict[str, Any]) -> tuple[str, str]:
     return main, secondary
 
 
-from porterchain_api.geo_photon import _postal_fallback, photon_search
+from porterchain_api import geo_google
+from porterchain_api.geo_photon import (
+    _postal_fallback,
+    photon_search,  # noqa: F401
+    photon_search_scored,
+)
 from porterchain_api.geo_text import (
     normalize_postal,
 )
@@ -213,6 +218,47 @@ from porterchain_api.geo_text import (
 
 def _postal_complete(postal: str | None) -> bool:
     return bool(postal) and len((postal or "").replace(" ", "")) == 6
+
+
+def _google_suggest(q: str, limit: int) -> list[dict[str, Any]]:
+    try:
+        rows = geo_google.suggest(q, limit, BBOX)
+    except httpx.HTTPError as exc:
+        logger.warning("google places fallback failed: %s", exc)
+        return []
+    return [
+        {
+            "id": _encode({"g": r["g"], "formatted": r["formatted"]}),
+            "main": r["main"],
+            "secondary": r["secondary"],
+            "formatted": r["formatted"],
+        }
+        for r in rows
+    ]
+
+
+def _google_place(data: dict[str, Any], token: str) -> dict[str, Any]:
+    try:
+        hit = geo_google.details(str(data["g"])[:300])
+    except httpx.HTTPError as exc:
+        logger.warning("google place details failed: %s", exc)
+        hit = None
+    if hit and _km(hit["lat"], hit["lng"]) <= MAX_KM:
+        return {**hit, "placeId": token}
+    from porterchain_api.merchant_engine.import_geocode import geocode_stop
+
+    geo = geocode_stop(address=str(data.get("formatted") or ""), province="ON")
+    if geo.lat is None or geo.lng is None:
+        raise HTTPException(status_code=404, detail="not_found")
+    return {
+        "formatted": geo.formatted or data.get("formatted"),
+        "lat": geo.lat,
+        "lng": geo.lng,
+        "postal": geo.postal,
+        "city": geo.city,
+        "source": geo.source or "nominatim",
+        "placeId": token,
+    }
 
 
 @router.get("/autocomplete")
@@ -226,7 +272,15 @@ def autocomplete(
     q = q.strip()
     if photon_url():
         try:
-            results = photon_search(q, limit)
+            results, confident = photon_search_scored(q, limit)
+            if not confident and geo_google.enabled():
+                google = _google_suggest(q, limit)
+                if google:
+                    keep = [r for r in results if r not in google]
+                    return {
+                        "results": (google + keep)[:limit],
+                        "source": "photon+google",
+                    }
             if results or not normalize_postal(q):
                 return {"results": results, "source": "photon"}
             fsa = _postal_fallback(q)
@@ -253,6 +307,8 @@ def place(
     _limit(request, response)
     if id:
         data = _decode(id)
+        if data.get("g"):
+            return _google_place(data, id)
         lat, lng = data.get("lat"), data.get("lng")
         if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
             raise HTTPException(status_code=400, detail="invalid_place_id")
