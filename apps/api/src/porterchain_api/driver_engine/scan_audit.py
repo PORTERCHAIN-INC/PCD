@@ -150,3 +150,11 @@ def audited_package_scan(db: Session, driver_id: str, order_id: str, body: dict 
         raise
     _audit("ok", (res or {}).get("package_id") if isinstance(res, dict) else None)
     return res
+
+
+def scan_error_code(code: str) -> str:
+    """Driver app 1.0.0 (b29) shows its wrong-box message only for codes containing
+    ``unknown_package``; keep the precise code as the prefix for newer clients."""
+    if code in ("invalid_label_qr", "package_not_found"):
+        return f"{code}_unknown_package"
+    return code

@@ -290,11 +290,11 @@ def scan_order_package(
                 db, svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id),
                 body, actor_id=ctx.driver.id))
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=scan_audit.scan_error_code(str(exc))) from exc
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=scan_audit.scan_error_code(str(exc))) from exc
     except PackagesIncomplete as exc:
         raise HTTPException(status_code=409, detail=exc.payload) from exc
 
@@ -391,5 +391,6 @@ def issue_cod_checkout(
         raise HTTPException(status_code=409, detail=exc.payload) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 
 

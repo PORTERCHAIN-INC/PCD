@@ -135,6 +135,7 @@ const RESULT: Record<string, string> = {
   wrong_stop: "Wrong stop",
   not_yours: "Not your parcel",
   invalid_label_qr: "Unreadable label",
+  invalid_label_qr_unknown_package: "Unreadable label",
 };
 
 /** The driver's own recent scans (from the app or typed here), newest first. */

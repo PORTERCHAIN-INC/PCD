@@ -117,3 +117,12 @@ def test_offline_package_scan_replays_with_audit(monkeypatch):
         {"order_id": "o1", "qr_payload": "PC1.X.Y", "phase": "pickup", "lat": 43.5, "lng": -79.8},
     )
     assert logged[-1]["result"] == "ok" and logged[-1]["body"]["offline_replay"] is True
+
+
+def test_scan_error_codes_stay_build29_compatible():
+    from porterchain_api.driver_engine.scan_audit import scan_error_code as _scan_code
+
+    assert "unknown_package" in _scan_code("invalid_label_qr")
+    assert _scan_code("invalid_label_qr").startswith("invalid_label_qr")
+    assert "unknown_package" in _scan_code("package_not_found")
+    assert _scan_code("qr_order_mismatch") == "qr_order_mismatch"

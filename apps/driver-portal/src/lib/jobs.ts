@@ -296,6 +296,8 @@ export function actionErrorMessage(code: string): string {
     stop_not_found: "Stop not found or not assigned to you.",
     packages_incomplete: "Scan all package labels before confirming.",
     invalid_label_qr: "That is not a PorterChain package label.",
+    invalid_label_qr_unknown_package: "That is not a PorterChain package label.",
+    package_not_found_unknown_package: "Package not found on this order.",
     qr_order_mismatch: "That label belongs to a different order.",
     scan_pickup_required_first: "Scan this box at pickup before delivery scan.",
     invalid_otp: "That OTP does not match. Ask the receiver for the current code.",
