@@ -7,7 +7,8 @@ import {
   View,
   type ViewProps,
 } from "react-native";
-import { spacing, usePalette } from "../theme";
+import { spacing } from "@porterchain/mobile-theme";
+import { usePalette } from "../theme";
 import { Txt } from "./kit";
 
 type Props = ViewProps & {
