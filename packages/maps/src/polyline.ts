@@ -1,10 +1,9 @@
+import type { LatLng } from "./types";
+
 /** Decode Google/OSRM (1e-5) or Valhalla (1e-6) encoded polylines. */
-export function decodePolyline(
-  encoded: string,
-  encoding: "google" | "valhalla" = "google"
-): google.maps.LatLngLiteral[] {
+export function decodePolyline(encoded: string, encoding: "google" | "valhalla" = "google"): LatLng[] {
   const factor = encoding === "valhalla" ? 1e6 : 1e5;
-  const points: google.maps.LatLngLiteral[] = [];
+  const points: LatLng[] = [];
   let index = 0;
   let lat = 0;
   let lng = 0;
@@ -18,8 +17,7 @@ export function decodePolyline(
       result |= (byte & 0x1f) << shift;
       shift += 5;
     } while (byte >= 0x20);
-    const deltaLat = result & 1 ? ~(result >> 1) : result >> 1;
-    lat += deltaLat;
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
 
     shift = 0;
     result = 0;
@@ -28,8 +26,7 @@ export function decodePolyline(
       result |= (byte & 0x1f) << shift;
       shift += 5;
     } while (byte >= 0x20);
-    const deltaLng = result & 1 ? ~(result >> 1) : result >> 1;
-    lng += deltaLng;
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
 
     points.push({ lat: lat / factor, lng: lng / factor });
   }

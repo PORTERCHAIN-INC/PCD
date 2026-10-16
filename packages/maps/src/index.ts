@@ -1,20 +1,18 @@
-export { default as GoogleMapsProvider } from "./GoogleMapsProvider";
+export { default as GoogleMapsProvider, default as MapsProvider } from "./GoogleMapsProvider";
 export { default as AddressAutocompleteInput } from "./AddressAutocompleteInput";
-export type { BookingAddress } from "./types";
+export type { BookingAddress, LatLng } from "./types";
 export {
   GTA_CENTER,
-  GTA_LOCATION_BIAS,
   GTA_MAP_BOUNDS,
-  applyBookingAutocompleteStyles,
   coordsFromAddress,
   fetchGeoSuggestions,
+  isMapsConfigured,
   resolveGeoApiBase,
   resolveGeoPlace,
-  isGoogleMapsConfigured,
-  placeDetailsToBookingAddress,
-  resolveGoogleMapsApiKey,
+  resolveTilesBase,
 } from "./maps-core";
 export type { GeoSuggestion } from "./maps-core";
+export type { LibreMapProps, MapCircle, MapLine, MapMarker, MapMarkerKind } from "./LibreMap";
 export { decodePolyline, resolveRoutePolylineEncoding } from "./polyline";
 export { default as TrackRouteMap } from "./TrackRouteMap";
 export type { TrackRouteMapProps } from "./TrackRouteMap";

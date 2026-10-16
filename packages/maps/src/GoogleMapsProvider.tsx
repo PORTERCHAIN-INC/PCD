@@ -1,24 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { APIProvider } from "@vis.gl/react-google-maps";
-import { isGoogleMapsConfigured, resolveGoogleMapsApiKey } from "./maps-core";
 
-export default function GoogleMapsProvider({
-  children,
-  apiKey,
-}: {
-  children: ReactNode;
-  apiKey?: string;
-}) {
-  const key = resolveGoogleMapsApiKey(apiKey);
-  if (!isGoogleMapsConfigured(key)) {
-    return <>{children}</>;
-  }
-
-  return (
-    <APIProvider apiKey={key} language="en" region="CA">
-      {children}
-    </APIProvider>
-  );
+/**
+ * Former Google Maps API provider. Maps (MapLibre) and address search
+ * (/v1/geo) need no key or context now, so this is a pass-through kept so
+ * existing wrappers keep compiling.
+ */
+export default function MapsProvider({ children }: { children: ReactNode; apiKey?: string }) {
+  return <>{children}</>;
 }

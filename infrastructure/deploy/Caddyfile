@@ -39,6 +39,20 @@
 }
 
 # Dedicated API host — used by all portals (CORS).
+# Self-hosted Protomaps PMTiles + fonts/sprites for MapLibre (replaces Google Maps JS).
+# Files live on the droplet in /opt/porterchain/tiles (see scripts/build-pmtiles.sh).
+tiles.porterchain.com {
+	encode gzip
+	header {
+		Access-Control-Allow-Origin "*"
+		Access-Control-Allow-Headers "Range"
+		Access-Control-Expose-Headers "Content-Length, Content-Range, ETag"
+		Cache-Control "public, max-age=86400"
+	}
+	root * /srv/tiles
+	file_server
+}
+
 api.porterchain.com {
 	import common
 	# Operational endpoints are not public (queue depths, service inventory).

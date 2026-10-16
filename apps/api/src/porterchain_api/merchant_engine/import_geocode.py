@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -19,7 +20,7 @@ from porterchain_api.merchant_engine.address_normalize import normalize_address
 
 logger = logging.getLogger(__name__)
 
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_URL = os.environ.get("NOMINATIM_URL", "https://nominatim.openstreetmap.org/search")
 USER_AGENT = "PorterchainRouteImport/1.0 (https://porterchain.com)"
 MIN_INTERVAL_S = 1.05  # Nominatim usage policy ~1 req/s
 TIMEOUT_S = 8.0
