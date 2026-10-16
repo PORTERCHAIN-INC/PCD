@@ -205,7 +205,7 @@ services:
         "2322",
       ]
     volumes:
-      # photon.jar (sha256-checked at build) + node_1/ index, both from the home build server.
+      # photon.jar (sha256-checked at build) + photon_data/ index, both from the home build server.
       - /opt/porterchain/photon:/photon
     mem_limit: 900m
     memswap_limit: 900m

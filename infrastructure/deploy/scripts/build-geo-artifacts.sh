@@ -6,7 +6,7 @@
 # Output ($WORK/out):
 #   tiles/gta-150km.pmtiles   Protomaps basemap, z0-15, clipped to the GTA bbox
 #   tiles/fonts, tiles/sprites  glyphs + sprites so the map makes no third-party calls
-#   photon/node_1/...          Photon (OpenSearch) index, places within 155 km of downtown
+#   photon/photon_data + photon.jar  Photon (OpenSearch) index, places within 155 km of downtown
 #
 # Then publish with publish-geo-artifacts.sh (rsync to the droplet).
 set -euo pipefail
@@ -48,7 +48,7 @@ rm -rf "$WORK/out.prev"; [ -d "$WORK/out" ] && mv "$WORK/out" "$WORK/out.prev"
 mkdir -p "$WORK/out/tiles"
 mv "$WORK/out.new/gta-150km.pmtiles" "$WORK/out/tiles/"
 mv "$WORK/out.new/basemaps-assets-main/fonts" "$WORK/out.new/basemaps-assets-main/sprites" "$WORK/out/tiles/"
-mv "$WORK/out.new/photon" "$WORK/out/photon"
+mv "$WORK/out.new/photon" "$WORK/out/photon"; cp "$WORK/bin/photon-$PHOTON_VERSION.jar" "$WORK/out/photon/photon.jar"
 rm -rf "$WORK/out.new"
 du -sh "$WORK/out/tiles/gta-150km.pmtiles" "$WORK/out/tiles/fonts" "$WORK/out/photon"
 echo "built: $BUILD $(date -u +%FT%TZ)" > "$WORK/out/BUILD_INFO"
