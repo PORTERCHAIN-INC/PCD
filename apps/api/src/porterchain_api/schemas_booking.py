@@ -186,7 +186,7 @@ class BookingConfirmationResponse(BaseModel):
     vehicle_class: str | None = None
     booking_mode: str | None = None
     parcels: list[dict[str, Any]] | None = None
-    dashboard_url: str = "http://localhost:3004/dashboard"
+    dashboard_url: str = ""
 
 
 class BookingConfirmationStatusResponse(BaseModel):

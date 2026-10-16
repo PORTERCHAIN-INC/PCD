@@ -18,7 +18,7 @@ from porterchain_api.booking_engine.numbers import (
 )
 from porterchain_api.booking_engine.payment_service import PaymentService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
-from porterchain_api.config import Settings
+from porterchain_api.config import Settings, get_settings
 from porterchain_api.domain.states import OrderState, QuoteState
 from porterchain_api.booking_models import Booking, Customer, Invoice, Order, Payment, Quote
 from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
@@ -400,6 +400,7 @@ class BookingConfirmationService:
         )
         customer = db.query(Customer).filter(Customer.id == order.customer_id).first() if order.customer_id else None
         return {
+            "dashboard_url": f"{get_settings().customer_portal_url.rstrip('/')}/dashboard",
             "booking_id": booking.id if booking else "",
             "booking_number": booking.booking_number if booking else "",
             "order_id": order.id,

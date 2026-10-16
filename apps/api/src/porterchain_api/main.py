@@ -73,6 +73,9 @@ async def lifespan(_app: FastAPI):
     init_observability(sentry_dsn=settings.sentry_dsn, app_env=settings.app_env)
     instrument_app(_app, app_env=settings.app_env)
     require_redis_for_production()
+    from porterchain_api.config import require_public_urls_for_production
+
+    require_public_urls_for_production(settings)
     init_db()
     from porterchain_api.platform.bus import ensure_handlers_registered
     from porterchain_api.notification_engine.realtime import realtime_hub

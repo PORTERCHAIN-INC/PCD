@@ -700,6 +700,9 @@ def main(argv: list[str] | None = None) -> None:
     from porterchain_api.platform.bus import ensure_handlers_registered
 
     require_redis_for_production()
+    from porterchain_api.config import require_public_urls_for_production
+
+    require_public_urls_for_production()
     ensure_handlers_registered()
 
     signal.signal(signal.SIGINT, _shutdown)
