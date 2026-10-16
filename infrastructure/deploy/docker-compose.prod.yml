@@ -338,6 +338,10 @@ services:
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
       PHOTON_URL: http://photon:2322
+      # Capped Google Places (New) backup for address search (IP-restricted server key).
+      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      GEO_GOOGLE_FALLBACK: ${GEO_GOOGLE_FALLBACK:-1}
+      GEO_GOOGLE_DAILY_CAP: ${GEO_GOOGLE_DAILY_CAP:-300}
       # Shopify partner app (merchant OAuth + CarrierService). Keys live in Doppler → .env;
       # must be passed explicitly — compose does not auto-inject unused .env keys.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
@@ -473,6 +477,10 @@ services:
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
       PHOTON_URL: http://photon:2322
+      # Capped Google Places (New) backup for address search (IP-restricted server key).
+      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      GEO_GOOGLE_FALLBACK: ${GEO_GOOGLE_FALLBACK:-1}
+      GEO_GOOGLE_DAILY_CAP: ${GEO_GOOGLE_DAILY_CAP:-300}
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
       SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
       SHOPIFY_EXTRA_APPS: ${SHOPIFY_EXTRA_APPS:-}

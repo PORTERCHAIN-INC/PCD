@@ -108,7 +108,10 @@ def test_relaxed_retry_drops_city(monkeypatch: pytest.MonkeyPatch) -> None:
         q = req.url.params["q"]
         calls.append(q)
         return httpx.Response(
-            200, json={"features": [STREET] if q == "8500 Mount Pleasant Way" else []}
+            200,
+            json={
+                "features": [STREET] if q == "8500 Mount Pleasant Way Milton" else []
+            },
         )
 
     real = httpx.Client
@@ -118,11 +121,76 @@ def test_relaxed_retry_drops_city(monkeypatch: pytest.MonkeyPatch) -> None:
         "Client",
         lambda *a, **kw: real(*a, transport=httpx.MockTransport(handler)),
     )
-    out = geo.photon_search("8500 Mount Pleasant Way Halton Hills", 5)
-    assert calls == [
-        "8500 Mount Pleasant Way Halton Hills",
-        "8500 Mount Pleasant Way Halton",
-        "8500 Mount Pleasant Way",
-    ]
+    out = geo.photon_search("8500 Mount Pleasant Way Milton Ontario Canada", 5)
+    assert calls[0] == "8500 Mount Pleasant Way Milton Ontario Canada"
+    assert calls[-1] == "8500 Mount Pleasant Way Milton"
     assert out[0]["formatted"].startswith("8500 Mount Pleasant Way")
     assert geo_text.relaxed_queries("L9T 8W7", True) == ["L9T 8W7"]
+
+
+def test_short_forms_and_city_split() -> None:
+    assert (
+        geo_text.expand_short_forms("1880 Steeles Ave W") == "1880 Steeles Avenue West"
+    )
+    assert geo_text.expand_short_forms("12 St Clair Ave E") == "12 St Clair Avenue East"
+    assert geo_text.split_city("1880 Steeles Avenue West North York") == (
+        "1880 Steeles Avenue West",
+        "north york",
+    )
+    assert geo_text.split_city("8500 Mount Pleasant Way Milton, ON")[1] == "milton"
+
+
+def test_number_not_invented_on_far_apart_segments(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def seg(lng: float) -> dict[str, Any]:
+        return {
+            "geometry": {"coordinates": [lng, 43.79]},
+            "properties": {
+                "name": "Steeles Avenue West",
+                "osm_value": "secondary",
+                "type": "street",
+                "city": "Toronto",
+                "district": "North York",
+                "state": "Ontario",
+            },
+        }
+
+    seen: list[dict[str, Any]] = []
+    monkeypatch.setenv("PHOTON_URL", "http://photon:2322")
+    monkeypatch.setattr(geo.httpx, "Client", _client([seg(-79.43), seg(-79.54)], seen))
+    out, confident = geo.photon_search_scored("1880 Steeles Ave W North York", 5)
+    assert seen[0]["q"] == "1880 Steeles Avenue West North York"
+    assert not confident
+    assert all(not r["formatted"].startswith("1880") for r in out)
+    assert "North York, Toronto" in out[0]["formatted"]
+
+
+def test_google_fallback_capped(monkeypatch: pytest.MonkeyPatch) -> None:
+    from porterchain_api import geo_google
+
+    class R:
+        n = 0
+
+        def incr(self, _k):
+            R.n += 1
+            return R.n
+
+        def expire(self, *_a):
+            return True
+
+    monkeypatch.setenv("GOOGLE_MAPS_SERVER_API_KEY", "k")
+    monkeypatch.setenv("GEO_GOOGLE_FALLBACK", "1")
+    monkeypatch.setenv("GEO_GOOGLE_DAILY_CAP", "1")
+    monkeypatch.setattr(geo_google, "_redis", lambda: R())
+    assert geo_google._take_slot() is True
+    assert geo_google._take_slot() is False
+    monkeypatch.setenv("GEO_GOOGLE_FALLBACK", "0")
+    assert geo_google.suggest("x", 3, geo.BBOX) == []
+
+
+def test_leading_city_moved_last() -> None:
+    assert (
+        geo_text.lead_city_last("Milton 8500 Mount Pleasant Way")
+        == "8500 Mount Pleasant Way Milton"
+    )
