@@ -179,7 +179,8 @@ services:
 
   # Free address autocomplete (replaces Google Places). GTA +150 km Photon index built
   # on the home build server (build-geo-artifacts.sh) and rsynced to /opt/porterchain/photon.
-  # Measured: ~PHOTON_RSS MB RSS with -Xmx512m; cap leaves headroom on the 3.8 GB droplet.
+  # Measured on the home server (2.36M places, 2.1 GB index): cgroup peak 453 MiB, no OOM,
+  # under 2000 queries at 8-way concurrency with -Xmx384m and MemoryMax=700M.
   photon:
     # Opt-in until the artifacts exist on the droplet: publish-geo-artifacts.sh runs
     # `docker compose --profile geo up -d photon`. Until then the API falls back to Nominatim.
@@ -190,7 +191,7 @@ services:
     expose:
       - "2322"
     environment:
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -XX:+UseSerialGC -XX:MaxDirectMemorySize=128m"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx384m -XX:+UseSerialGC -XX:MaxDirectMemorySize=64m"
     command:
       [
         "java",
@@ -207,8 +208,8 @@ services:
     volumes:
       # photon.jar (sha256-checked at build) + photon_data/ index, both from the home build server.
       - /opt/porterchain/photon:/photon
-    mem_limit: 900m
-    memswap_limit: 900m
+    mem_limit: 700m
+    memswap_limit: 700m
     networks:
       - edge
     healthcheck:
