@@ -37,7 +37,11 @@ export function porterchainMapStyle(tilesBase?: string): maplibregl.StyleSpecifi
         attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
       },
     },
-    layers: layers("protomaps", namedFlavor("light"), { lang: "en" }),
+    // @protomaps/basemaps types its layers with its own copy of the style spec; the
+    // shapes are identical, so widen to maplibre-gl's type (fails the Docker build otherwise).
+    layers: layers("protomaps", namedFlavor("light"), {
+      lang: "en",
+    }) as unknown as maplibregl.LayerSpecification[],
   };
 }
 
