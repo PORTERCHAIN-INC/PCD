@@ -3,7 +3,7 @@ import { Pressable, Text, TextInput, StyleSheet } from "react-native";
 import { radius, spacing, touchTargetMin, typography } from "@porterchain/mobile-theme";
 import { useThemed, type Palette } from "../theme";
 import type { Address } from "../api";
-import { googleMapsApiKey } from "../config";
+import { apiBaseUrl } from "../config";
 
 type Suggestion = { placeId: string; description: string };
 
@@ -12,7 +12,7 @@ type Props = {
   value: Address;
   onChange: (next: Address) => void;
   accessoryId?: string;
-  /** True when a typed address may be quoted because Google returned nothing. */
+  /** True when a typed address may be quoted because search returned nothing. */
   onManualOk?: (ok: boolean) => void;
 };
 
@@ -27,7 +27,7 @@ export function AddressField({ label, value, onChange, accessoryId, onManualOk }
   }, [value.formatted]);
 
   useEffect(() => {
-    if (!googleMapsApiKey || query.trim().length < 3) {
+    if (query.trim().length < 3) {
       setSuggestions([]);
       return;
     }
@@ -38,59 +38,41 @@ export function AddressField({ label, value, onChange, accessoryId, onManualOk }
     onManualOk?.(false);
     let cancelled = false;
     const timer = setTimeout(() => {
-      void fetch("https://places.googleapis.com/v1/places:autocomplete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": googleMapsApiKey,
-        },
-        body: JSON.stringify({
-          input: query,
-          includedRegionCodes: ["ca"],
-        }),
+      // PorterChain address search (self-hosted, GTA ±150 km). No Google key in the app.
+      void fetch(`${apiBaseUrl}/v1/geo/autocomplete?q=${encodeURIComponent(query)}&limit=5`, {
+        headers: { Accept: "application/json" },
       })
         .then(async (res) => {
-          if (!res.ok) throw new Error("places_unavailable");
+          if (!res.ok) throw new Error("geo_unavailable");
           return res.json() as Promise<{
-            suggestions?: Array<{
-              placePrediction?: { placeId?: string; text?: { text?: string } };
-            }>;
+            results?: Array<{ id?: string; formatted?: string }>;
           }>;
         })
         .then((body) => {
           if (cancelled) return;
-          const rows = (body.suggestions ?? [])
-            .map((row) => ({
-              placeId: row.placePrediction?.placeId ?? "",
-              description: row.placePrediction?.text?.text ?? "",
-            }))
+          const rows = (body.results ?? [])
+            .map((row) => ({ placeId: row.id ?? "", description: row.formatted ?? "" }))
             .filter((row) => row.placeId && row.description)
             .slice(0, 5);
           setSuggestions(rows);
           const none = rows.length === 0;
-          setHint(none ? "No matching Canadian address. You can keep what you typed." : null);
+          setHint(none ? "No matching address nearby. You can keep what you typed." : null);
           onManualOk?.(none);
         })
         .catch(() => {
           if (cancelled) return;
           setSuggestions([]);
-          setHint(
-            "Google address search is unavailable. Type the full street, city, and postal code."
-          );
+          setHint("Address search is unavailable. Type the full street, city, and postal code.");
           onManualOk?.(true);
         });
-    }, 300);
+    }, 400);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, value.formatted, onManualOk]);
+  }, [query, value.formatted, value.place_id, onManualOk]);
 
   useEffect(() => {
-    if (!googleMapsApiKey) {
-      onManualOk?.(true);
-      return;
-    }
     if (value.place_id || query.trim().length < 3) onManualOk?.(false);
   }, [query, value.place_id, onManualOk]);
 
@@ -99,35 +81,27 @@ export function AddressField({ label, value, onChange, accessoryId, onManualOk }
     setHint(null);
     setQuery(item.description);
     try {
-      const res = await fetch(
-        `https://places.googleapis.com/v1/places/${encodeURIComponent(item.placeId)}`,
-        {
-          headers: {
-            "X-Goog-Api-Key": googleMapsApiKey,
-            "X-Goog-FieldMask": "formattedAddress,location,addressComponents",
-          },
-        }
-      );
-      if (!res.ok) throw new Error("place_details_unavailable");
+      const res = await fetch(`${apiBaseUrl}/v1/geo/place?id=${encodeURIComponent(item.placeId)}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error("place_unavailable");
       const body = (await res.json()) as {
-        formattedAddress?: string;
-        location?: { latitude?: number; longitude?: number };
-        addressComponents?: Array<{ longText?: string; types?: string[] }>;
+        formatted?: string;
+        lat?: number;
+        lng?: number;
+        postal?: string | null;
       };
-      const postal = body.addressComponents?.find((part) =>
-        part.types?.includes("postal_code")
-      )?.longText;
-      const formatted = body.formattedAddress || item.description;
-      const lat = body.location?.latitude;
-      const lng = body.location?.longitude;
-      if (lat == null || lng == null) throw new Error("place_without_point");
+      const formatted = body.formatted || item.description;
+      if (body.lat == null || body.lng == null) throw new Error("place_without_point");
       setQuery(formatted);
       onChange({
         formatted,
-        place_id: item.placeId,
-        lat,
-        lng,
-        postal,
+        // Server caps place_id at 255 chars; the search token can be longer, so store a
+        // short stable id. Price and distance always come from lat/lng on the API.
+        place_id: `osm:${body.lat.toFixed(5)},${body.lng.toFixed(5)}`,
+        lat: body.lat,
+        lng: body.lng,
+        postal: body.postal ?? undefined,
       });
     } catch {
       setHint("Could not load that place. Choose another suggestion.");
@@ -141,7 +115,7 @@ export function AddressField({ label, value, onChange, accessoryId, onManualOk }
       <TextInput
         accessibilityLabel={label}
         autoCorrect={false}
-        placeholder={googleMapsApiKey ? "Search a Canadian address" : "Street, city, postal code"}
+        placeholder="Search an address"
         placeholderTextColor={colors.muted}
         style={styles.input}
         value={query}
