@@ -29,6 +29,9 @@ const COPY: Record<string, string> = {
 
 export function humanCustomerError(raw: string): string {
   const key = raw.trim();
+  if (/network request failed|aborted|failed to fetch/i.test(key)) {
+    return "You're offline or PorterChain can't be reached. Pull down to try again.";
+  }
   if (COPY[key]) return COPY[key];
   if (key.startsWith("quote_price_changed:")) {
     const cents = Number(key.split(":")[1]);
