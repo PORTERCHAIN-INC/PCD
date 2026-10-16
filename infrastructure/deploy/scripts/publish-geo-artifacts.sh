@@ -11,6 +11,9 @@ rsync -a --delete --partial --info=progress2 "$WORK/out/tiles/"  "$DROPLET:$DEST
 rsync -a --delete --partial --info=progress2 "$WORK/out/photon/" "$DROPLET:$DEST/photon.next/"
 ssh "$DROPLET" "set -e; cd $DEST
   for d in tiles photon; do rm -rf \$d.prev; [ -d \$d ] && mv \$d \$d.prev; mv \$d.next \$d; done
-  docker compose -f docker-compose.prod.yml --profile geo up -d --no-deps photon
+  # Bind mounts follow the old inode after the swap: recreate Caddy (tiles) and Photon.
+  docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate caddy
+  docker compose -f docker-compose.prod.yml --profile geo up -d --no-deps --force-recreate photon
   for i in \$(seq 1 60); do docker exec pcd-photon curl -fs 'http://127.0.0.1:2322/api?q=milton&limit=1' >/dev/null && break; sleep 3; done
   docker exec pcd-photon curl -fs 'http://127.0.0.1:2322/api?q=milton&limit=1' >/dev/null && echo photon_ok"
+curl -fsS -r 0-15 -o /dev/null https://tiles.porterchain.com/gta-150km.pmtiles && echo tiles_ok
