@@ -131,7 +131,8 @@
         "expo-image-picker",
         {
           "cameraPermission": "PorterChain uses the camera to scan parcel labels at pickup and delivery and to take proof-of-delivery photos.",
-          "photosPermission": "Photo library access is used when attaching proof of delivery images."
+          "photosPermission": "Photo library access is used when attaching proof of delivery images.",
+          "microphonePermission": false
         }
       ],
       [

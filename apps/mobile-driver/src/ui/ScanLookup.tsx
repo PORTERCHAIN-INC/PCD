@@ -2,10 +2,12 @@
  * Scan anytime: scan any of YOUR parcel labels to see the box, its job and what you can
  * do next. Someone else's (or a forged) label shows "Not your parcel" and nothing else.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { lookupLabel, type LabelLookup } from "../api";
+import { fetchJob, lookupLabel, type LabelLookup } from "../api";
+import type { DriverJobDetail } from "../types";
+import { StopDocumentsCard } from "./job/StopDocumentsCard";
 import { scanFix, type ScanOutcome } from "../scanFeedback";
 import { BarcodeScannerModal } from "./BarcodeScannerModal";
 import { Banner, Body, Button } from "./kit";
@@ -40,6 +42,22 @@ export function ScanLookupButton({
   const [scanning, setScanning] = useState(false);
   const [found, setFound] = useState<LabelLookup | null>(null);
   const [notYours, setNotYours] = useState(false);
+  const [job, setJob] = useState<DriverJobDetail | null>(null);
+  const [jobErr, setJobErr] = useState(false);
+
+  // Any of the driver's assigned jobs (the server already proved it's theirs).
+  useEffect(() => {
+    setJob(null);
+    setJobErr(false);
+    if (!found) return;
+    let live = true;
+    fetchJob(found.order.id)
+      .then((j) => live && setJob(j))
+      .catch(() => live && setJobErr(true));
+    return () => {
+      live = false;
+    };
+  }, [found]);
 
   async function onScan(code: string): Promise<ScanOutcome> {
     const meta = { ...((await scanFix()) ?? {}), scanned_at: new Date().toISOString() };
@@ -126,6 +144,29 @@ export function ScanLookupButton({
             <Text style={styles.muted}>
               You can: {found.allowed_actions.map((a) => ACTION_LABEL[a] ?? a).join(" · ")}
             </Text>
+            {job ? (
+              <View style={styles.job} testID="scan-lookup-job">
+                {job.pickup_address ? (
+                  <Text style={styles.muted}>Pickup: {job.pickup_address}</Text>
+                ) : null}
+                {job.delivery_address ? (
+                  <Text style={styles.muted}>Drop-off: {job.delivery_address}</Text>
+                ) : null}
+                {job.special_instructions ? (
+                  <Text style={styles.muted}>Notes: {job.special_instructions}</Text>
+                ) : null}
+                {found.order.id !== currentOrderId ? (
+                  <Text style={styles.muted}>
+                    Not your current stop. Finish the current job first; this one is in your list.
+                  </Text>
+                ) : null}
+                <StopDocumentsCard orderId={found.order.id} />
+              </View>
+            ) : jobErr ? (
+              <Text style={styles.muted}>
+                Couldn't load the job details. Pull to refresh Today.
+              </Text>
+            ) : null}
           </View>
         ) : null}
       </Sheet>
@@ -137,4 +178,5 @@ const styles = StyleSheet.create({
   body: { gap: space.sm },
   row: { ...type.bodyStrong, color: color.ink },
   muted: { ...type.small, color: color.inkMuted },
+  job: { gap: space.xs, marginTop: space.sm },
 });
