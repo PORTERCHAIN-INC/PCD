@@ -95,10 +95,13 @@ def photon_search_scored(q: str, limit: int) -> tuple[list[dict[str, Any]], bool
         features = _fetch(
             split_city(search)[0], False
         )  # city spelled differently in OSM
+    if postal:
+        return _postal_area(postal, features)
 
     exact: list[tuple[dict[str, Any], tuple[float, float]]] = []
     segments: list[tuple[dict[str, Any], tuple[float, float]]] = []
     others: list[tuple[dict[str, Any], tuple[float, float]]] = []
+    loose: list[tuple[dict[str, Any], tuple[float, float]]] = []
     for f in features:
         props = f.get("properties") or {}
         coords = (f.get("geometry") or {}).get("coordinates") or []
@@ -119,6 +122,8 @@ def photon_search_scored(q: str, limit: int) -> tuple[list[dict[str, Any]], bool
         if number and typed_street:
             if props.get("housenumber") == number and street_name == typed_street:
                 exact.append((props, pt))
+            elif props.get("housenumber") == number and street_loose_match(typed_street, street_name):
+                loose.append((props, pt))
             elif is_street and street_name == typed_street:
                 segments.append((props, pt))
             elif props.get("osm_value") == "bus_stop" or (
@@ -132,6 +137,8 @@ def photon_search_scored(q: str, limit: int) -> tuple[list[dict[str, Any]], bool
 
     picked: list[tuple[dict[str, Any], tuple[float, float]]] = []
     confident = False
+    if not exact and loose:
+        exact = loose  # same number, street typed with a town/postal after it or spaced differently
     if exact:
         picked, confident = exact, True
     elif segments:
@@ -197,6 +204,23 @@ def photon_search_scored(q: str, limit: int) -> tuple[list[dict[str, Any]], bool
     return out, confident and bool(out)
 
 
+_DIRECTIONS = {"east", "west", "north", "south", "e", "w", "n", "s"}
+
+
+def street_loose_match(typed: str, cand: str) -> bool:
+    """'willoughby place, bowmanville' ~ 'willoughby place'; 'woody vine way' ~ 'woody vineway'.
+    A trailing direction is never dropped ('king street east' is not 'king street')."""
+    if not typed or not cand:
+        return False
+    head = typed.split(",")[0].strip()
+    if head.replace(" ", "") == cand.replace(" ", ""):
+        return True
+    if not head.startswith(cand + " ") and head != cand:
+        return False
+    nxt = head[len(cand) :].split()
+    return not nxt or nxt[0] not in _DIRECTIONS
+
+
 def postal_fits(props: dict[str, Any]) -> bool:
     """Toronto postal codes start with M; GTA cities outside Toronto use L/N/K, never M."""
     pc = (props.get("postcode") or "").strip().upper()
@@ -224,6 +248,40 @@ def postal_consistent(
     good_keys = {key(x[0]) for x in good}
     bad = [x for x in picked if not postal_fits(x[0]) and key(x[0]) not in good_keys]
     return good + bad
+
+
+def _postal_area(postal: str, features: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], bool]:
+    """A typed postal code: one suggestion for that exact code (centre of its addresses).
+    Photon's near-misses (other codes sharing digits) are never offered as the answer."""
+    pts: list[tuple[float, float]] = []
+    cities: dict[str, int] = {}
+    for f in features:
+        props = f.get("properties") or {}
+        coords = (f.get("geometry") or {}).get("coordinates") or []
+        if len(coords) != 2 or normalize_postal(props.get("postcode") or "") != postal:
+            continue
+        pt = (float(coords[1]), float(coords[0]))
+        if _g()._km(*pt) > _g().MAX_KM:
+            continue
+        pts.append(pt)
+        city = _display(props).get("city") or props.get("town") or props.get("village")
+        if city:
+            cities[city] = cities.get(city, 0) + 1
+    if not pts:
+        return [], False
+    lat = sum(p[0] for p in pts) / len(pts)
+    lng = sum(p[1] for p in pts) / len(pts)
+    city = max(cities, key=cities.get) if cities else None
+    secondary = f"{city}, ON" if city else "ON"
+    place = {
+        "formatted": f"{postal}, {secondary}",
+        "lat": lat,
+        "lng": lng,
+        "postal": postal,
+        "city": city,
+        "province": "ON",
+    }
+    return [{"id": _g()._encode(place), "main": postal, "secondary": secondary, "formatted": place["formatted"]}], True
 
 
 def photon_search(q: str, limit: int) -> list[dict[str, Any]]:
