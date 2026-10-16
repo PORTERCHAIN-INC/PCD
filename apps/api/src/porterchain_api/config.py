@@ -791,7 +791,7 @@ PUBLIC_URL_FIELDS = (
     "customer_checkout_success_url",
     "customer_checkout_cancel_url",
 )
-_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0", "::1"})
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0", "::1"})  # nosec B104 - denylist, not a bind
 
 
 def public_url_errors(settings: Settings) -> list[str]:
