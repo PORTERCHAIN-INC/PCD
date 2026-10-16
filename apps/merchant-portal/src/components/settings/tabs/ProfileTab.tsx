@@ -128,7 +128,7 @@ export function ProfileTab({
             <AddressAutocompleteInput
               id="settings-billing"
               value={billing.formatted}
-              onChange={(formatted) => setBilling({ ...billing, formatted })}
+              onChange={(formatted) => setBilling({ formatted })}
               onPlaceSelect={setBilling}
               apiKey={publicEnv.googleMapsApiKey}
               placeholder="Ontario billing address"

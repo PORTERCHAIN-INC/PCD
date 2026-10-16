@@ -7,10 +7,14 @@ export {
   GTA_MAP_BOUNDS,
   applyBookingAutocompleteStyles,
   coordsFromAddress,
+  fetchGeoSuggestions,
+  resolveGeoApiBase,
+  resolveGeoPlace,
   isGoogleMapsConfigured,
   placeDetailsToBookingAddress,
   resolveGoogleMapsApiKey,
 } from "./maps-core";
+export type { GeoSuggestion } from "./maps-core";
 export { decodePolyline, resolveRoutePolylineEncoding } from "./polyline";
 export { default as TrackRouteMap } from "./TrackRouteMap";
 export type { TrackRouteMapProps } from "./TrackRouteMap";

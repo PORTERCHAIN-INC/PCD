@@ -231,7 +231,7 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
               <AddressAutocompleteInput
                 id={`admin-merchant-billing-${m.id}`}
                 value={billing.formatted}
-                onChange={(formatted) => setBilling({ ...billing, formatted })}
+                onChange={(formatted) => setBilling({ formatted })}
                 onPlaceSelect={setBilling}
                 apiKey={publicEnv.googleMapsApiKey}
                 placeholder="Ontario billing address"

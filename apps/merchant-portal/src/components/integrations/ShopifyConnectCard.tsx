@@ -295,7 +295,7 @@ export default function ShopifyConnectCard({
           <AddressAutocompleteInput
             id="shopify-pickup"
             value={pickupAddress.formatted}
-            onChange={(formatted) => setPickupAddress({ ...pickupAddress, formatted })}
+            onChange={(formatted) => setPickupAddress({ formatted })}
             onPlaceSelect={setPickupAddress}
             apiKey={publicEnv.googleMapsApiKey}
             placeholder="Pickup address"
@@ -360,7 +360,7 @@ export default function ShopifyConnectCard({
             <AddressAutocompleteInput
               id="shopify-pickup-connect"
               value={pickupAddress.formatted}
-              onChange={(formatted) => setPickupAddress({ ...pickupAddress, formatted })}
+              onChange={(formatted) => setPickupAddress({ formatted })}
               onPlaceSelect={setPickupAddress}
               apiKey={publicEnv.googleMapsApiKey}
               placeholder="Pickup address"

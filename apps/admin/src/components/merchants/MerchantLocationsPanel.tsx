@@ -251,7 +251,7 @@ export default function MerchantLocationsPanel({ id }: { id: string }) {
                 <AddressAutocompleteInput
                   id={`admin-merchant-location-${id}`}
                   value={place.formatted}
-                  onChange={(formatted) => setPlace({ ...place, formatted })}
+                  onChange={(formatted) => setPlace({ formatted })}
                   onPlaceSelect={setPlace}
                   apiKey={publicEnv.googleMapsApiKey}
                   placeholder="Ontario address"

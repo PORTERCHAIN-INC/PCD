@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link2, Plus } from "lucide-react";
-import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
+import { AddressAutocompleteInput, resolveGeoPlace, type BookingAddress } from "@porterchain/maps";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { customersApi, type CreateCustomerBookingDraftResult } from "@/lib/customers";
 import { RETAIL_VEHICLE_OPTIONS } from "@/lib/merchants";
@@ -47,16 +47,35 @@ export function CustomerAddOrderModal({
 
   async function submit() {
     if (!pickup.formatted.trim() || !dropoff.formatted.trim()) {
-      setError("Select pickup and dropoff from Google suggestions");
+      setError("Enter a pickup and dropoff address");
       return;
     }
+    // Typed (not picked) addresses: locate them on the server (Nominatim / postal code).
+    let pickupAddr = pickup;
+    let dropoffAddr = dropoff;
+    if (typeof pickupAddr.lat !== "number") {
+      pickupAddr =
+        (await resolveGeoPlace(
+          { q: pickupAddr.formatted.trim() },
+          { apiBase: publicEnv.porterchainApiUrl }
+        )) ?? pickupAddr;
+      setPickup(pickupAddr);
+    }
+    if (typeof dropoffAddr.lat !== "number") {
+      dropoffAddr =
+        (await resolveGeoPlace(
+          { q: dropoffAddr.formatted.trim() },
+          { apiBase: publicEnv.porterchainApiUrl }
+        )) ?? dropoffAddr;
+      setDropoff(dropoffAddr);
+    }
     if (
-      typeof pickup.lat !== "number" ||
-      typeof pickup.lng !== "number" ||
-      typeof dropoff.lat !== "number" ||
-      typeof dropoff.lng !== "number"
+      typeof pickupAddr.lat !== "number" ||
+      typeof pickupAddr.lng !== "number" ||
+      typeof dropoffAddr.lat !== "number" ||
+      typeof dropoffAddr.lng !== "number"
     ) {
-      setError("Pick addresses from the Google suggestions list (lat/lng required for pricing)");
+      setError("We couldn't locate one of these addresses. Pick it from the suggestions list.");
       return;
     }
     setBusy(true);
@@ -65,16 +84,16 @@ export function CustomerAddOrderModal({
       const token = await getApiToken();
       const result = await customersApi.createBookingDraft(token, customerId, {
         pickup: {
-          formatted: pickup.formatted.trim(),
-          place_id: pickup.placeId ?? null,
-          lat: pickup.lat,
-          lng: pickup.lng,
+          formatted: pickupAddr.formatted.trim(),
+          place_id: pickupAddr.placeId ?? null,
+          lat: pickupAddr.lat,
+          lng: pickupAddr.lng,
         },
         dropoff: {
-          formatted: dropoff.formatted.trim(),
-          place_id: dropoff.placeId ?? null,
-          lat: dropoff.lat,
-          lng: dropoff.lng,
+          formatted: dropoffAddr.formatted.trim(),
+          place_id: dropoffAddr.placeId ?? null,
+          lat: dropoffAddr.lat,
+          lng: dropoffAddr.lng,
         },
         vehicle_class: vehicleClass,
         package_type: packageType,

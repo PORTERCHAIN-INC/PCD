@@ -17,7 +17,7 @@ export default function GoogleMapsProvider({
   }
 
   return (
-    <APIProvider apiKey={key} libraries={["places"]} language="en" region="CA">
+    <APIProvider apiKey={key} language="en" region="CA">
       {children}
     </APIProvider>
   );
