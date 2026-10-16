@@ -29,7 +29,6 @@
   "devDependencies": {
     "@porterchain/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.2",
-    "@types/google.maps": "^3.65.2",
     "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -1123,8 +1123,6 @@ class AdminSettingsService:
         if settings.app_env != "local":
             if not settings.stripe_secret and not settings.stripe_mock:
                 issues.append("Stripe secret key missing in non-local environment")
-            if not platform.google_maps_api_key:
-                warnings.append("Google Maps Places key not configured (tiles/autocomplete)")
             if not platform.firebase_project_id:
                 warnings.append("Firebase project not configured for push notifications")
 

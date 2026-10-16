@@ -243,7 +243,6 @@ jobs:
             ${{ matrix.image }}:${{ needs.plan.outputs.sha }}
             ${{ matrix.image }}:cid-${{ matrix.cid }}
           build-args: |
-            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
@@ -277,7 +276,6 @@ jobs:
             NEXT_PUBLIC_SITE_URL=${{ matrix.id == 'admin' && 'https://admin.porterchain.com' || matrix.id == 'merchant' && 'https://merchant.porterchain.com' || matrix.id == 'driver' && 'https://driver.porterchain.com' || 'https://customer.porterchain.com' }}
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ matrix.id == 'driver' && secrets.CLERK_DRIVER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
             NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
             NEXT_PUBLIC_APP_ENV=production

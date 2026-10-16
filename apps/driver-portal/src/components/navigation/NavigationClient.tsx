@@ -10,7 +10,6 @@ import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { DriverNavigationMap } from "@/components/navigation/DriverNavigationMap";
 import { useDriverNavigation } from "@/hooks/useDriverNavigation";
 import { hasDriverSession } from "@/lib/api";
-import { isGoogleMapsConfigured } from "@/lib/env";
 import { formatDistance, formatEta } from "@/lib/navigation";
 
 export default function NavigationClient() {
@@ -91,13 +90,6 @@ function NavigationPageContent() {
           </p>
         )}
       </header>
-
-      {!isGoogleMapsConfigured() && (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Set <code className="text-xs">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to render maps.
-          Routing data still loads from Porterchain API.
-        </p>
-      )}
 
       {loading && !session && (
         <div className="mt-6">
@@ -183,18 +175,12 @@ function NavigationPageContent() {
             </div>
           </div>
 
-          {isGoogleMapsConfigured() ? (
-            <DriverNavigationMap
-              session={session}
-              deviceLocation={deviceLocation}
-              showTraffic={showTraffic}
-              replayIndex={replayIndex ?? undefined}
-            />
-          ) : (
-            <div className="flex h-[440px] items-center justify-center rounded-2xl bg-white text-[var(--muted)]">
-              Map preview unavailable
-            </div>
-          )}
+          <DriverNavigationMap
+            session={session}
+            deviceLocation={deviceLocation}
+            showTraffic={showTraffic}
+            replayIndex={replayIndex ?? undefined}
+          />
 
           <div className="flex flex-wrap gap-4 text-xs text-[var(--muted)]">
             <span className="flex items-center gap-1">

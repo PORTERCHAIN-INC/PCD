@@ -366,7 +366,6 @@ else
     cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"
   fi
   cat > .env <<EOF
-GOOGLE_MAPS_SERVER_API_KEY=${GOOGLE_MAPS_SERVER_API_KEY:-}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 CLERK_MODE=platform_driver
 CLERK_UNIFIED_MODE=false

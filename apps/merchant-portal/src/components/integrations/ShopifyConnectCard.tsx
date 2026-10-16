@@ -297,7 +297,6 @@ export default function ShopifyConnectCard({
             value={pickupAddress.formatted}
             onChange={(formatted) => setPickupAddress({ formatted })}
             onPlaceSelect={setPickupAddress}
-            apiKey={publicEnv.googleMapsApiKey}
             placeholder="Pickup address"
             fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
           />
@@ -362,7 +361,6 @@ export default function ShopifyConnectCard({
               value={pickupAddress.formatted}
               onChange={(formatted) => setPickupAddress({ formatted })}
               onPlaceSelect={setPickupAddress}
-              apiKey={publicEnv.googleMapsApiKey}
               placeholder="Pickup address"
               fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
             />

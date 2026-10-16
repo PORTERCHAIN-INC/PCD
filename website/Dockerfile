@@ -32,7 +32,6 @@ COPY packages/config ./packages/config
 COPY packages/maps ./packages/maps
 COPY packages/ui ./packages/ui
 COPY docs/api ./docs/api
-ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ARG NEXT_PUBLIC_SITE_URL=https://porterchain.com
 # Leave empty in production so the site uses same-origin /v1/* (Caddy → API).
 ARG NEXT_PUBLIC_PORTERCHAIN_API_URL=
@@ -53,7 +52,6 @@ ARG NEXT_PUBLIC_DRIVER_PORTAL_URL=https://driver.porterchain.com
 # Build-time: next.config headers() are baked into the build. Default false = full CSP is report-only.
 ARG WEBSITE_CSP_ENFORCE=false
 ENV WEBSITE_CSP_ENFORCE=$WEBSITE_CSP_ENFORCE
-ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_PORTERCHAIN_API_URL=$NEXT_PUBLIC_PORTERCHAIN_API_URL
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY

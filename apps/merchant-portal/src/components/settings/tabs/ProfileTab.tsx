@@ -130,7 +130,6 @@ export function ProfileTab({
               value={billing.formatted}
               onChange={(formatted) => setBilling({ formatted })}
               onPlaceSelect={setBilling}
-              apiKey={publicEnv.googleMapsApiKey}
               placeholder="Ontario billing address"
               fallbackClassName="w-full rounded-lg border px-3 py-2 text-sm"
             />

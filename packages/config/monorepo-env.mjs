@@ -106,10 +106,6 @@ export function portalPublicEnv(portal, extras = {}) {
 /** Shared NEXT_PUBLIC_* vars injected into Next.js client bundles. */
 export function nextPublicEnv() {
   return {
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: pick(
-      "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
-      "GOOGLE_MAPS_BROWSER_API_KEY"
-    ),
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pick(
       "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
       "CLERK_CUSTOMER_PUBLISHABLE_KEY",

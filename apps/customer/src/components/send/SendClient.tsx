@@ -37,7 +37,7 @@ const PHONE_KEY = "pc_customer_phone";
 export default function SendClient() {
   return (
     <CustomerShell>
-      <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>
+      <GoogleMapsProvider>
         <PortalAuth>{(auth) => <SendBody auth={auth} />}</PortalAuth>
       </GoogleMapsProvider>
     </CustomerShell>
@@ -199,7 +199,6 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             onChange={setPickup}
             onPlaceSelect={(a) => setPickup(a.formatted)}
             placeholder={tx("placeholder")}
-            apiKey={publicEnv.googleMapsApiKey}
             className={field}
             fallbackClassName={field}
           />
@@ -224,7 +223,6 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
                     setDrops((x) => x.map((y, j) => (j === i ? a.formatted : y)))
                   }
                   placeholder={tx("placeholder")}
-                  apiKey={publicEnv.googleMapsApiKey}
                   className={field}
                   fallbackClassName={field}
                 />

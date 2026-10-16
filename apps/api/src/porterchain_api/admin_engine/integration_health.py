@@ -41,9 +41,9 @@ def build_integration_health(
         ),
         "dispatch": _entry(str(checks.get("dispatch", "porterchain"))),
         "google_maps": _entry(
-            "configured" if platform.google_maps_api_key else "unconfigured",
-            role="places_and_tiles_only",
-            note="Routing uses Valhalla/OSRM — not Google",
+            "configured",
+            role="maplibre_tiles_and_photon_search",
+            note="No Google services: MapLibre + self-hosted tiles, Photon/Nominatim search, Valhalla/OSRM routing",
         ),
         "firebase": _entry(
             "configured" if platform.firebase_project_id else "unconfigured",

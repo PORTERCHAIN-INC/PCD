@@ -102,7 +102,6 @@ export function LocationsTab({
           value={pickup.formatted}
           onChange={(formatted) => setPickup({ formatted })}
           onPlaceSelect={setPickup}
-          apiKey={publicEnv.googleMapsApiKey}
           placeholder="Ontario address"
           fallbackClassName="w-full rounded-lg border px-3 py-2 text-sm"
         />

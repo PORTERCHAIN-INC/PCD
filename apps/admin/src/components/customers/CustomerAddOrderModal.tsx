@@ -153,7 +153,6 @@ export function CustomerAddOrderModal({
               }
               onPlaceSelect={setPickup}
               placeholder="Start typing pickup address…"
-              apiKey={publicEnv.googleMapsApiKey}
               fallbackClassName="w-full rounded-xl border border-primary/15 bg-white px-3 py-2.5 text-sm text-primary outline-none focus:border-secondary"
             />
             {typeof pickup.lat === "number" && (
@@ -178,7 +177,6 @@ export function CustomerAddOrderModal({
               }
               onPlaceSelect={setDropoff}
               placeholder="Start typing dropoff address…"
-              apiKey={publicEnv.googleMapsApiKey}
               fallbackClassName="w-full rounded-xl border border-primary/15 bg-white px-3 py-2.5 text-sm text-primary outline-none focus:border-secondary"
             />
             {typeof dropoff.lat === "number" && (

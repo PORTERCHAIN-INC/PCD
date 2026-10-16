@@ -1,10 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { GoogleMapsProvider } from "@porterchain/maps";
-import { publicEnv } from "@/lib/env";
 
-/** Maps only on navigation — not the whole driver shell. */
+/** Former Google Maps wrapper; MapLibre and /v1/geo need no provider. */
 export default function WithGoogleMaps({ children }: { children: ReactNode }) {
-  return <GoogleMapsProvider apiKey={publicEnv.googleMapsApiKey}>{children}</GoogleMapsProvider>;
+  return <>{children}</>;
 }

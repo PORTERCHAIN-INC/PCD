@@ -15,11 +15,6 @@ export const publicEnv = {
     (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://porterchain.com")
   ).replace(/\/$/, ""),
   clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
-  googleMapsApiKey: (
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ??
-    process.env.GOOGLE_MAPS_BROWSER_API_KEY ??
-    ""
-  ).trim(),
   appEnv: (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? "production").trim(),
 } as const;
 
@@ -40,8 +35,4 @@ export function useClerkDevApiBypass() {
 
 export function isClerkConfigured() {
   return publicEnv.clerkPublishableKey.length > 0;
-}
-
-export function isGoogleMapsConfigured() {
-  return publicEnv.googleMapsApiKey.length > 0;
 }

@@ -7,7 +7,6 @@ import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { orderStateLabel } from "@/lib/catalog";
-import MapsMissingBanner from "@/components/maps/MapsMissingBanner";
 import {
   AmbiguousTrackingError,
   trackingApi,
@@ -175,8 +174,6 @@ function TrackPageInner() {
           ))}
         </ul>
       )}
-
-      <MapsMissingBanner />
 
       {live && (
         <LiveTrackingView

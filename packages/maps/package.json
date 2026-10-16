@@ -7,17 +7,23 @@
     "./provider": "./src/GoogleMapsProvider.tsx",
     "./address-autocomplete": "./src/AddressAutocompleteInput.tsx",
     "./track-map": "./src/TrackRouteMap.tsx",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./libre-map": "./src/LibreMap.tsx"
   },
   "dependencies": {
-    "@vis.gl/react-google-maps": "^1.9.0"
+    "maplibre-gl": "^5.6.0",
+    "pmtiles": "^4.3.0",
+    "@protomaps/basemaps": "^5.5.0",
+    "@turf/circle": "^7.2.0",
+    "@turf/bbox": "^7.2.0",
+    "@turf/helpers": "^7.2.0"
   },
   "peerDependencies": {
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "next": ">=15"
   },
   "devDependencies": {
-    "@types/google.maps": "^3.65.2",
     "@types/react": "^19",
     "typescript": "^6.0.3"
   }

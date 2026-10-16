@@ -19,7 +19,6 @@ function envOr(value: string | undefined, fallback: string): string {
 const isDev = process.env.NODE_ENV === "development";
 
 export const publicEnv = {
-  googleMapsApiKey: envText(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY),
   siteUrl: envOr(process.env.NEXT_PUBLIC_SITE_URL, "https://porterchain.com").replace(/\/$/, ""),
   merchantPortalUrl: envOr(
     process.env.NEXT_PUBLIC_MERCHANT_PORTAL_URL,
@@ -82,10 +81,6 @@ export const publicEnv = {
   googleRatingValue: envText(process.env.NEXT_PUBLIC_GOOGLE_RATING_VALUE),
   googleRatingCount: envText(process.env.NEXT_PUBLIC_GOOGLE_RATING_COUNT),
 } as const;
-
-export function isGoogleMapsConfigured(): boolean {
-  return publicEnv.googleMapsApiKey.length > 0;
-}
 
 export function isClerkConfigured(): boolean {
   return publicEnv.clerkPublishableKey.length > 0;

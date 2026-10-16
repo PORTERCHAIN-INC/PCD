@@ -56,8 +56,6 @@ const GOOGLE = [
   "https://googleads.g.doubleclick.net",
   "https://*.doubleclick.net",
   "https://www.google.com",
-  "https://maps.googleapis.com",
-  "https://maps.gstatic.com",
 ];
 const ADS = [
   "https://connect.facebook.net",
@@ -128,11 +126,9 @@ export function websiteCsp(opts = {}) {
 }
 
 const SHOPIFY = ["https://cdn.shopify.com", "https://admin.shopify.com", "https://*.myshopify.com"];
+// Self-hosted Protomaps PMTiles + fonts/sprites (MapLibre). No Google Maps hosts.
 const MAPS = [
-  "https://maps.googleapis.com",
-  "https://maps.gstatic.com",
-  // Places API (New): AutocompleteSuggestion / Place.fetchFields call this host (2026-10-15).
-  "https://places.googleapis.com",
+  "https://tiles.porterchain.com",
   "https://*.tile.openstreetmap.org",
   "https://tile.openstreetmap.org",
   "https://tiles.openfreemap.org",
@@ -169,7 +165,6 @@ export function portalCsp(opts) {
     ...clerk,
     ...stripe.slice(0, 1),
     ...shopify.slice(0, 1),
-    "https://maps.googleapis.com",
     "https://www.googletagmanager.com",
     ...firebase.slice(0, 1),
   ];
