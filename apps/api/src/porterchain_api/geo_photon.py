@@ -164,6 +164,7 @@ def photon_search_scored(q: str, limit: int) -> tuple[list[dict[str, Any]], bool
     if postal and picked:
         confident = True
 
+    picked = postal_consistent(picked)
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
     for props, (lat, lng) in picked:
@@ -194,6 +195,35 @@ def photon_search_scored(q: str, limit: int) -> tuple[list[dict[str, Any]], bool
         if len(out) >= limit:
             break
     return out, confident and bool(out)
+
+
+def postal_fits(props: dict[str, Any]) -> bool:
+    """Toronto postal codes start with M; GTA cities outside Toronto use L/N/K, never M."""
+    pc = (props.get("postcode") or "").strip().upper()
+    if not pc:
+        return True
+    in_toronto = (props.get("city") or "").strip().lower() == "toronto"
+    return pc.startswith("M") == in_toronto
+
+
+def postal_consistent(
+    picked: list[tuple[dict[str, Any], tuple[float, float]]],
+) -> list[tuple[dict[str, Any], tuple[float, float]]]:
+    """Demote hits whose postal code doesn't fit the city; drop them when the same address
+    is also present with a consistent postal code (OSM sometimes has both)."""
+
+    def key(p: dict[str, Any]) -> tuple[str, str, str, str]:
+        return (
+            (p.get("name") or "").lower(),
+            str(p.get("housenumber") or ""),
+            street_core(p.get("street")),
+            (p.get("city") or "").lower(),
+        )
+
+    good = [x for x in picked if postal_fits(x[0])]
+    good_keys = {key(x[0]) for x in good}
+    bad = [x for x in picked if not postal_fits(x[0]) and key(x[0]) not in good_keys]
+    return good + bad
 
 
 def photon_search(q: str, limit: int) -> list[dict[str, Any]]:
