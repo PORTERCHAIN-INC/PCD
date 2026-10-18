@@ -258,6 +258,10 @@ class MerchantBillingService:
             )
 
         line_sum = sum(int(x.get("amount_cents") or 0) for x in lines)
+        if (getattr(inv, "billing_kind", None) or "order") == "cycle":
+            # Cycle (Interac) invoice lines are pre-tax with their own HST/GST; the invoice
+            # amount is the gross total, so compare like with like.
+            line_sum += sum(int(x.get("tax_cents") or 0) for x in lines)
         # Prefer invoice total; if lines empty keep invoice amount.
         if not lines:
             lines = [
