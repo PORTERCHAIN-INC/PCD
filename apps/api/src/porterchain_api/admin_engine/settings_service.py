@@ -156,7 +156,7 @@ DEFAULTS: dict[str, Any] = {
         "default_tax_percent": 13.0,
         "tax_name": "HST",
         "gst_hst_number": "",
-        "etransfer_email": "billing@porterchain.com",
+        "etransfer_email": "porterchaininc@gmail.com",
         "etransfer_autodeposit": True,
         "merchant_cycle_invoicing": True,
         "tax_mode": "exclusive",

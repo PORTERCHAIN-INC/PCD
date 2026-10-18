@@ -3,14 +3,14 @@ Authentication-Results: mx.zohomail.com;
 	spf=pass smtp.mailfrom=notify@payments.interac.ca;
 	dmarc=pass header.from=payments.interac.ca
 From: INTERAC e-Transfer <notify@payments.interac.ca>
-To: billing@porterchain.com
+To: porterchaininc@gmail.com
 Subject: INTERAC e-Transfer: {SENDER} sent you money.
 Date: Thu, 08 Oct 2026 09:02:11 -0400
 Message-ID: <{MSGID}@payments.interac.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 
-Hi PORTERCHAIN LOGISTICS INC.,
+Hi PORTERCHAIN INC.,
 {SENDER} sent you ${AMOUNT} (CAD).
 
 Message: {MEMO}

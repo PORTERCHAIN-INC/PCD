@@ -242,7 +242,7 @@ def tax_label(db: Session) -> str:
 
 def etransfer_recipient_email(db: Session) -> str:
     raw = str(finance_settings(db).get("etransfer_email") or "").strip()
-    return raw or "billing@porterchain.com"
+    return raw or "porterchaininc@gmail.com"
 
 
 def etransfer_autodeposit(db: Session) -> bool:

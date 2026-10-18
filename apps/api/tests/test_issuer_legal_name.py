@@ -29,3 +29,26 @@ def test_order_documents_have_no_old_legal_name() -> None:
     source = inspect.getsource(order_documents)
     assert "Logistics Inc" not in source
     assert LEGAL in source
+
+
+ETRANSFER = "porterchaininc@gmail.com"
+
+
+def test_etransfer_email_default() -> None:
+    assert DEFAULTS["settings_finance"]["etransfer_email"] == ETRANSFER
+
+
+def test_etransfer_email_fallback_without_stored_settings() -> None:
+    from porterchain_api.admin_engine import platform_settings
+
+    class _NoRows:
+        def query(self, *_a, **_k):
+            return self
+
+        def filter(self, *_a, **_k):
+            return self
+
+        def first(self):
+            return None
+
+    assert platform_settings.etransfer_recipient_email(_NoRows()) == ETRANSFER  # type: ignore[arg-type]
