@@ -15,7 +15,7 @@ test.describe("footer @website", () => {
     }
     await expect(footer.getByTestId("footer-hours")).toContainText("Mon–Fri 8 AM–6 PM");
     await expect(footer.getByTestId("footer-hours")).toContainText("Sat 9 AM–2 PM");
-    await expect(footer.getByTestId("footer-coverage")).toContainText("362 postal areas");
+    await expect(footer.getByTestId("footer-coverage")).toContainText("334 postal areas");
     await expect(footer.getByTestId("footer-shopify-badge")).toBeVisible();
     await expect(footer.locator('a[href^="tel:"]')).toHaveCount(1);
     await expect(footer.locator('a[href^="mailto:"]')).toHaveCount(1);
@@ -84,23 +84,19 @@ test.describe("industries @website", () => {
       expect(new URL(res.headers().location!, "http://x").pathname).toBe(to);
     }
   });
-  test("area selector links are real anchors in the server HTML; one services strip; contact bar", async ({
+  test("industry hub: no links to retired industry × area pages; one services strip; contact bar", async ({
     request,
     page,
   }) => {
-    const html = await (await request.get("/en/delivery/pharmacy/mississauga")).text();
-    expect(html.match(/href="\/en\/delivery\/pharmacy\/[a-z-]+"/g)?.length ?? 0).toBeGreaterThan(
-      10
-    );
+    const html = await (await request.get("/en/delivery/pharmacy")).text();
+    expect(html.match(/href="\/en\/delivery\/pharmacy\/[a-z-]+"/g)?.length ?? 0).toBe(0);
+    const old = await request.get("/en/delivery/pharmacy/mississauga", { maxRedirects: 0 });
+    expect(old.status()).toBe(301);
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/en/delivery/pharmacy/mississauga");
+    await page.goto("/en/delivery/pharmacy");
     await expect(page.getByTestId("services-strip")).toHaveCount(1);
     await expect(page.getByTestId("contact-bar")).toContainText("+1 (647) 619-7951");
-    const selector = page.getByTestId("area-selector");
-    await expect(selector.getByRole("link", { name: "Brampton" })).toBeHidden(); // collapsed on mobile
-    await selector.getByRole("searchbox").fill("bramp");
-    await expect(selector.getByRole("link", { name: "Brampton" })).toBeVisible();
-    await expect(selector.getByRole("link", { name: "Markham" })).toBeHidden();
+    await expect(page.getByTestId("hub-areas")).toContainText("Mississauga");
   });
 });
 

@@ -57,7 +57,7 @@ const KEYWORDS: Partial<Record<NicheSlug, string[]>> = {
     "medical supply same-day Toronto",
     "clinic sample logistics",
     "B2B pharmacy courier overflow",
-    "temperature-aware medical capacity",
+    "medical courier with coolers",
   ],
   cosmetics: [
     "cosmetics delivery GTA",
@@ -68,7 +68,7 @@ const KEYWORDS: Partial<Record<NicheSlug, string[]>> = {
   chocolate: [
     "chocolate wholesale delivery GTA",
     "confectionery same-day Toronto",
-    "temperature-sensitive chocolate logistics",
+    "careful chocolate delivery",
     "candy distributor capacity Ontario",
   ],
   "lab-sample-delivery": [
@@ -142,9 +142,9 @@ export const INDUSTRY_CONFIGS: IndustryConfig[] = NICHE_SLUGS.map((slug) => ({
       slug === "cosmetics"
         ? ["beauty", "subscription", "D2C", "retail"]
         : slug === "chocolate"
-          ? ["temperature-aware", "specialty food", "wholesale"]
+          ? ["careful handling", "specialty food", "wholesale"]
           : slug === "lab-sample-delivery"
-            ? ["chain of custody", "time-critical", "clinical"]
+            ? ["photo proof", "time-critical", "clinical"]
             : undefined,
   },
 }));

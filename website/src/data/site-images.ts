@@ -43,7 +43,7 @@ export const ECOMMERCE_TRUCK = localImg(
 /** Full fleet lineup — sedan through box truck (MAIN brand image, 2560px source; served as AVIF/WebP). */
 export const BRAND_FLEET_LINEUP = localImg(
   "/images/brand/fleet-lineup.jpg",
-  "Porterchain green fleet — sedan, SUV, van, and box truck — moving commerce on chain",
+  "Porterchain green fleet — sedan, SUV, van, and box truck",
   2560,
   1454
 );
@@ -51,7 +51,7 @@ export const BRAND_FLEET_LINEUP = localImg(
 /** Brand fleet at the dock — box truck + trailer (legacy dock pair). */
 export const BRAND_DOCK_PAIR = localImg(
   "/images/brand/moving-commerce-on-chain.jpg",
-  "Porterchain box truck and trailer at a warehouse — moving commerce on chain",
+  "Porterchain box truck and trailer at a warehouse",
   2048,
   1176
 );
@@ -59,7 +59,7 @@ export const BRAND_DOCK_PAIR = localImg(
 /** Overhead fleet lined at the depot — network capacity at scale. */
 export const BRAND_FLEET_DEPOT = localImg(
   "/images/brand/fleet-depot.jpg",
-  "Porterchain green delivery fleet parked at the depot — moving commerce on chain",
+  "Porterchain green delivery fleet parked at the depot",
   2048,
   1162
 );
@@ -75,7 +75,7 @@ export const BRAND_WAREHOUSE_DOCK = localImg(
 /** Urban same-day run — truck in motion through the city. */
 export const BRAND_URBAN_DELIVERY = localImg(
   "/images/brand/urban-delivery.jpg",
-  "Porterchain green box truck on an urban delivery route — moving commerce on chain",
+  "Porterchain green box truck on an urban delivery route",
   2048,
   1176
 );
@@ -91,7 +91,7 @@ export const BRAND_WAREHOUSE_LOADING = localImg(
 /** Open road — branded box truck on the highway (business / services hero). */
 export const BRAND_OPEN_ROAD = localImg(
   "/images/brand/open-road.jpg",
-  "Porterchain green box truck on the open highway — moving commerce on chain",
+  "Porterchain green box truck on the open highway",
   2560,
   1454
 );
@@ -155,43 +155,43 @@ export const siteImages = {
   vehicles: {
     sedan: localImg(
       "/images/brand/vehicles/sedan.jpg",
-      "PorterChain branded sedan at a GTA warehouse — moving commerce on chain",
+      "PorterChain branded sedan at a GTA warehouse",
       1024,
       585
     ),
     suv: localImg(
       "/images/brand/vehicles/suv.jpg",
-      "PorterChain branded SUV for multi-stop delivery — moving commerce on chain",
+      "PorterChain branded SUV for multi-stop delivery",
       1024,
       585
     ),
     pickup: localImg(
       "/images/brand/vehicles/pickup.jpg",
-      "PorterChain branded pickup truck for jobsite and local freight — moving commerce on chain",
+      "PorterChain branded vehicle for jobsite and local freight",
       1024,
       585
     ),
     "cargo-van": localImg(
       "/images/brand/vehicles/cargo-van.jpg",
-      "PorterChain branded cargo van at a GTA warehouse — moving commerce on chain",
+      "PorterChain branded cargo van at a GTA warehouse",
       1024,
       581
     ),
     "high-roof": localImg(
       "/images/brand/vehicles/cargo-van.jpg",
-      "PorterChain branded high-roof cargo van for B2B delivery — moving commerce on chain",
+      "PorterChain branded high-roof cargo van for B2B delivery",
       1024,
       581
     ),
     "box-16": localImg(
       "/images/brand/vehicles/box-truck.jpg",
-      "PorterChain branded box truck at warehouse docks — moving commerce on chain",
+      "PorterChain branded box truck at warehouse docks",
       1024,
       585
     ),
     "box-20": localImg(
       "/images/brand/vehicles/box-truck.jpg",
-      "PorterChain branded box truck for palletized freight — moving commerce on chain",
+      "PorterChain branded box truck for palletized freight",
       1024,
       585
     ),

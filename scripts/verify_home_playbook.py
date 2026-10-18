@@ -15,7 +15,7 @@ EXPECTED = {
     "titleHighlight": "PorterChain can.",
     "primaryCta": "Get a quote",
     "secondaryCta": "See vehicles",
-    "trustLine": "Response within one business day · Quote-based, no platform fees",
+    "trustLine": "Exact price in 10 seconds · No sign-up · $2,500 coverage included",
 }
 
 
@@ -31,10 +31,8 @@ def _check(locale: str, path: Path, hero_key: str, primary_fr: str, trust_fr: st
     else:
         if hero.get("primaryCta") != primary_fr:
             failures.append(f"{locale} home.hero.primaryCta expected {primary_fr!r}")
-        if "devis" not in (hero.get("trustLine") or "").lower() and "quote" not in (
-            hero.get("trustLine") or ""
-        ).lower():
-            failures.append(f"{locale} home.hero.trustLine must mention quote-based pricing")
+        if "prix exact" not in (hero.get("trustLine") or "").lower():
+            failures.append(f"{locale} home.hero.trustLine must mention the instant exact price")
         if hero.get("trustLine") != trust_fr:
             failures.append(f"{locale} home.hero.trustLine expected {trust_fr!r}")
 
@@ -54,7 +52,7 @@ def main() -> int:
             CORPORATE_FR,
             "fr",
             "Obtenir un devis",
-            "Réponse en un jour ouvrable · Sur devis, sans frais plateforme",
+            "Prix exact en 10 secondes · Sans inscription · Protection de 2 500 $ incluse",
         )
     )
 

@@ -1,10 +1,10 @@
 {
   "metadata": {
     "home": {
-      "title": "Capacité de livraison RGT | Chauffeurs, véhicules et technologie | PorterChain",
-      "description": "Capacité de livraison dans le RGT : chauffeurs et véhicules pros pour le jour même, le débordement et les routes récurrentes, avec suivi et preuve.",
-      "ogTitle": "PorterChain — Réseau de capacité de transport pour le RGT",
-      "ogDescription": "Technologie, chauffeurs, véhicules et opérations logistiques pour les entreprises ontariennes — capacité quand votre flotte ne suffit pas."
+      "title": "Messagerie le jour même Toronto et GTA | Prix instantané | PorterChain",
+      "description": "Messagerie d'affaires le jour même et le lendemain à Toronto et dans le Grand Toronto. Berline, VUS, fourgon ou camion cube 16 pi. Prix exact en 10 secondes, TVH incluse.",
+      "ogTitle": "PorterChain : messagerie le jour même dans le Grand Toronto",
+      "ogDescription": "Réservez avant 11 h, livré entre 14 h et 21 h aujourd'hui. Prix exact en 10 secondes. Suivi en direct, preuve photo et 2 500 $ de couverture par colis."
     },
     "platform": {
       "title": "Comment nous opérons | Capacités pleine pile | PorterChain",
@@ -20,7 +20,7 @@
     },
     "vehicles": {
       "title": "Véhicules de livraison RGT | Fourgon, camion cube | Porterchain",
-      "description": "Capacité véhicule commerciale pour la livraison B2B en Ontario — fourgonnettes, camions cube et pickups avec chauffeurs professionnels, suivi et preuve.",
+      "description": "Capacité véhicule commerciale pour la livraison B2B en Ontario — fourgonnettes et camions cubes avec chauffeurs professionnels, suivi et preuve.",
       "ogTitle": "Véhicules de livraison Porterchain — RGT et Ontario",
       "ogDescription": "Associez la bonne classe de véhicule à votre fret — capacité le jour même et récurrente dans la RGT."
     },
@@ -62,33 +62,9 @@
     },
     "trust": {
       "title": "Confiance et assurance | Porterchain",
-      "description": "Assurance, engagements de livraison, COI et documentation sécurité pour les expéditeurs d'affaires en Ontario — annexes d'approvisionnement sur demande.",
+      "description": "Comment PorterChain protège vos livraisons : 2 500 $ de couverture inclus, suivi en direct, preuve photo, confidentialité LPRPDE et réponse aux réclamations en un jour ouvrable.",
       "ogTitle": "Centre de confiance Porterchain",
       "ogDescription": "Assurance commerciale, standards de preuve de livraison, escalade opérationnelle et documentation pour les programmes de capacité."
-    },
-    "subprocessors": {
-      "title": "Sous-traitants | Confiance Porterchain",
-      "description": "Sous-traitants actuels utilisés pour exploiter le réseau de capacité de transport, le portail marchand, les paiements, communications, analyses et infrastructure.",
-      "ogTitle": "Sous-traitants Porterchain",
-      "ogDescription": "Liste fournisseurs et rôles de traitement pour la revue d'approvisionnement entreprise."
-    },
-    "sla": {
-      "title": "Annexe SLA | Confiance Porterchain",
-      "description": "Bandes de niveau de service, délais de support, crédits et escalade pour les programmes de capacité dédiés et routes récurrentes.",
-      "ogTitle": "Résumé SLA Porterchain",
-      "ogDescription": "Engagements de livraison et d'opérations pour les programmes de capacité récurrents — disponibilité, support et escalade."
-    },
-    "dpa": {
-      "title": "Addendum de traitement des données | Confiance Porterchain",
-      "description": "Résumé de traitement aligné sur la LPRPDE pour l'approvisionnement entreprise.",
-      "ogTitle": "Résumé DPA Porterchain",
-      "ogDescription": "Comment Porterchain traite les renseignements personnels des marchands et expéditeurs."
-    },
-    "msa": {
-      "title": "Entente-cadre de services | Confiance Porterchain",
-      "description": "Cadre commercial pour les programmes de capacité de transport, services de livraison dédiés et approvisionnement entreprise.",
-      "ogTitle": "Résumé MSA Porterchain",
-      "ogDescription": "Cadre commercial pour programmes de capacité, intégrations optionnelles et services de livraison dédiés."
     },
     "customers": {
       "title": "Clients | Porterchain",
@@ -106,7 +82,7 @@
       "title": "Tarification livraison B2B RGT | Capacité sur devis | PorterChain",
       "description": "Tarification transparente sur devis pour livraison B2B dans le RGT — jour même, urgence, récurrent et débordement de flotte. Classe de véhicule, route et preuve. Demandez un devis écrit.",
       "ogTitle": "Tarification Porterchain",
-      "ogDescription": "Demandez un devis écrit pour berline, VUS, fourgon cargo, Sprinter et camion cube avec chauffeur professionnel."
+      "ogDescription": "Demandez un devis écrit pour berline, VUS, fourgon cargo, et camion cube avec chauffeur professionnel."
     },
     "accessibility": {
       "title": "Accessibilité | Porterchain",
@@ -135,10 +111,6 @@
     "founder": {
       "title": "Fondateur | Porterchain",
       "description": "Profil fondateur — non indexé jusqu'à approbation."
-    },
-    "insurance": {
-      "title": "Assurance et COI | Porterchain Trust",
-      "description": "Assurance commerciale — brouillon en attente de revue juridique."
     },
     "serviceStandards": {
       "title": "Normes de service | Porterchain Trust",
@@ -193,7 +165,7 @@
       },
       "medical": {
         "label": "Médical et santé",
-        "description": "Pharmacie, laboratoire et patients — preuve de chaîne de possession à chaque arrêt."
+        "description": "Pharmacie, laboratoire et clinique avec preuve photo; glacières pour les articles à garder au frais."
       },
       "foodBeverage": {
         "label": "Alimentation",
@@ -257,7 +229,7 @@
       },
       "trust": {
         "label": "Centre de confiance",
-        "description": "Sécurité, assurance, SLA et documentation d'approvisionnement."
+        "description": "Couverture, preuve de livraison, réclamations et confidentialité."
       },
       "claims": {
         "label": "Preuve et réclamations",
@@ -330,7 +302,7 @@
     "toggleMenu": "Ouvrir le menu",
     "price": "Prix",
     "track": "Suivi",
-    "shopifyApp": "App Shopify",
+    "shopifyApp": "Shopify (en examen)",
     "book": "Réserver",
     "primaryNavLabel": "Navigation principale"
   },
@@ -435,7 +407,7 @@
       "subtitle": "Livraison B2B le jour même, urgente, d'urgence et récurrente dans le RGT — logistique intra-urbaine et livraison locale avec chauffeurs professionnels, de la berline au camion cube, suivi en direct et preuve à chaque arrêt.",
       "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules",
-      "trustLine": "Réponse en un jour ouvrable · Sur devis, sans frais plateforme",
+      "trustLine": "Prix exact en 10 secondes · Sans inscription · Protection de 2 500 $ incluse",
       "trustProof": "Preuve de livraison à chaque arrêt",
       "trustAreas": "Toronto · Mississauga · Brampton · Peel · York · Durham",
       "slaLabel": "Réponse au devis d'ici",
@@ -456,7 +428,7 @@
       },
       "where": {
         "question": "Où PorterChain opère-t-il?",
-        "answer": "Nous desservons la RGT et les métropoles ontariennes incluant Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo et London."
+        "answer": "Nous desservons la RGT et les métropoles ontariennes incluant Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo."
       },
       "how": {
         "question": "Comment démarrer?",
@@ -465,8 +437,8 @@
     },
     "brandBand": {
       "eyebrow": "Notre signature",
-      "title": "Faire avancer le commerce sur la chaîne",
-      "body": "Chauffeurs professionnels et véhicules commerciaux — du camion cube à la remorque — pour que les marchandises continuent de bouger quand votre flotte ne peut pas tout couvrir."
+      "title": "Messagerie le jour même dans le Grand Toronto",
+      "body": "Chauffeurs professionnels et véhicules commerciaux — de la berline au camion cube — pour que les marchandises continuent de bouger quand votre flotte ne peut pas tout couvrir."
     },
     "story": {
       "problems": {
@@ -490,7 +462,7 @@
           "2": "Le client en a besoin aujourd'hui à Toronto, Mississauga ou Brampton.",
           "3": "Fret commercial sensible au temps avec livraison express suivie.",
           "4": "Créneaux horaires, accès chantier et fret palette vers les sites.",
-          "5": "Pharmacie, clinique et labo avec preuve de chaîne de possession.",
+          "5": "Pharmacie, clinique et labo avec preuve photo de livraison.",
           "6": "Comptoir-chantier et entrepôt-contracteur pour le gros.",
           "7": "Livraison locale multi-arrêts et réapprovisionnement détaillant dans le RGT."
         }
@@ -597,8 +569,8 @@
     },
     "stats": {
       "onTime": {
-        "value": "SLA",
-        "label": "Répartition structurée"
+        "value": "Preuve photo",
+        "label": "À chaque livraison"
       },
       "visibility": {
         "value": "En direct",
@@ -623,7 +595,7 @@
       },
       "routing": {
         "title": "Capacité de débordement",
-        "description": "Ajoutez une berline, un VUS, un fourgon cargo, un Sprinter ou un camion cube lorsque votre équipe est déjà prise."
+        "description": "Ajoutez une berline, un VUS, un fourgon cargo, ou un camion cube lorsque votre équipe est déjà prise."
       },
       "visibility": {
         "title": "Routes planifiées",
@@ -649,7 +621,7 @@
       "items": {
         "0": {
           "title": "Véhicule + chauffeur",
-          "description": "Berline, VUS, fourgon cargo, Sprinter et camion cube avec chauffeur professionnel assigné au travail."
+          "description": "Berline, VUS, fourgon cargo, et camion cube avec chauffeur professionnel assigné au travail."
         },
         "1": {
           "title": "Continuité d'affaires",
@@ -724,7 +696,7 @@
         },
         "1": {
           "title": "Véhicule adapté",
-          "description": "Choisissez berline, VUS, fourgon cargo, Sprinter ou camion cube selon la charge."
+          "description": "Choisissez berline, VUS, fourgon cargo, ou camion cube selon la charge."
         },
         "2": {
           "title": "L'urgence continue d'avancer",
@@ -973,7 +945,7 @@
     "hero": {
       "badge": "Capacité flotte",
       "title": "Véhicules commerciaux adaptés à votre fret",
-      "subtitle": "Fourgonnettes cargo, fourgons métier, camions cube et pickups — chauffeurs professionnels avec suivi et preuve à chaque arrêt dans la RGT et en Ontario.",
+      "subtitle": "Fourgonnettes cargo, fourgons métier et camions cubes — chauffeurs professionnels avec suivi et preuve à chaque arrêt dans la RGT et en Ontario.",
       "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les services"
     },
@@ -1010,7 +982,7 @@
         },
         "1": {
           "title": "Médical et santé",
-          "description": "Messagerie pharmacie, transport spécimens labo et fournitures cliniques — preuve de chaîne de possession, urgence jour même et routage sensible au temps pour envois B2B réglementés."
+          "description": "Messagerie pharmacie, transport spécimens labo et fournitures cliniques — preuve photo de livraison, urgence jour même et routage sensible au temps pour envois B2B réglementés."
         },
         "2": {
           "title": "Alimentation",
@@ -1105,7 +1077,7 @@
         },
         "3": {
           "q": "Tarification?",
-          "a": "Sur devis selon classe de véhicule, route et urgence — sans frais de plateforme ni licence logicielle."
+          "a": "Instantanée : deux codes postaux et un véhicule donnent le prix exact avec TVH en environ 10 secondes, sans frais de plateforme ni licence logicielle."
         }
       }
     },
@@ -1243,7 +1215,7 @@
           },
           "3": {
             "q": "Quelles zones couvrent les solutions construction?",
-            "a": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo et métropoles ontariennes en expansion."
+            "a": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo et environ 150 km autour."
           }
         }
       },
@@ -1422,7 +1394,7 @@
     "medical": {
       "meta": {
         "title": "Medical & Healthcare Delivery GTA | Pharmacy Courier | PorterChain",
-        "description": "Healthcare delivery capacity — pharmacy courier, lab specimens, clinic supply, and time-sensitive B2B shipments with chain-of-custody proof in the GTA.",
+        "description": "Healthcare delivery capacity — pharmacy courier, lab specimens, clinic supply, and time-sensitive B2B shipments with photo proof of delivery in the GTA.",
         "ogTitle": "Medical & healthcare solutions — PorterChain",
         "ogDescription": "Tracked delivery for pharmacies, labs, and healthcare suppliers in Ontario."
       },
@@ -1430,7 +1402,7 @@
       "hero": {
         "badge": "Medical solutions",
         "title": "Healthcare delivery capacity in the GTA",
-        "subtitle": "Pharmacy runs, lab specimen transport, and clinic supply — time-sensitive B2B delivery with chain-of-custody proof, same-day urgency, and audit-ready documentation.",
+        "subtitle": "Pharmacy runs, lab specimen transport, and clinic supply — time-sensitive B2B delivery with photo proof of delivery, same-day urgency, and photo proof of delivery.",
         "primaryCta": "Obtenir un devis",
         "secondaryCta": "Pharmacy delivery"
       },
@@ -1449,7 +1421,7 @@
             "description": "Prescription and pharmacy-to-patient logistics with compliance-friendly handling.",
             "cta": "Pharmacy delivery playbook",
             "bullets": {
-              "0": "Chain-of-custody on every shipment",
+              "0": "Photo proof on every delivery",
               "1": "Windows aligned to pharmacy ops",
               "2": "Shareable patient tracking links"
             }
@@ -1526,12 +1498,12 @@
             "a": "Yes. Same-day and scheduled transport subject to handling requirements — confirm during onboarding."
           },
           "2": {
-            "q": "Is chain of custody documented?",
+            "q": "Is proof of delivery documented?",
             "a": "Tracked pickup-to-delivery with timestamps, proof, and dashboard visibility."
           },
           "3": {
             "q": "What regions do you serve?",
-            "a": "GTA, Toronto, Mississauga, Hamilton, and expanding Ontario metros."
+            "a": "GTA, Toronto, Mississauga, Hamilton, and nearby areas within about 150 km."
           }
         }
       },
@@ -1594,7 +1566,7 @@
             "cta": "Coffee roaster playbook",
             "bullets": {
               "0": "Weekly café routes and same-day overflow",
-              "1": "Cargo bikes and vans for urban density",
+              "1": "Vans and vans for urban density",
               "2": "ETAs café partners can trust"
             }
           },
@@ -1675,7 +1647,7 @@
           },
           "3": {
             "q": "What areas do you serve?",
-            "a": "GTA, Toronto, Mississauga, Kitchener–Waterloo, Hamilton, and expanding regions."
+            "a": "GTA, Toronto, Mississauga, Kitchener–Waterloo, Hamilton, and nearby areas within about 150 km."
           }
         }
       },
@@ -1718,7 +1690,7 @@
       "hero": {
         "badge": "Solutions 3PL",
         "title": "Capacité pour entrepôts 3PL dans le RGT",
-        "subtitle": "Sorties multi-arrêts, libérations jour même et débordement quand le volume quai explose — chauffeurs professionnels et véhicules commerciaux avec suivi et preuve pour tenir les SLA sans ajouter de flotte.",
+        "subtitle": "Sorties multi-arrêts, libérations jour même et débordement quand le volume quai explose — chauffeurs professionnels et véhicules commerciaux avec suivi et preuve pour tenir leurs engagements sans ajouter de flotte.",
         "primaryCta": "Obtenir un devis",
         "secondaryCta": "Guide e-commerce"
       },
@@ -1783,7 +1755,7 @@
           },
           "3": {
             "title": "Finance et approvisionnement",
-            "description": "Preuve au niveau envoi et COI pour revue fournisseurs."
+            "description": "Preuve au niveau envoi et couverture de 2 500 $ par coliss."
           }
         }
       },
@@ -1999,14 +1971,14 @@
   "company": {
     "hero": {
       "badge": "Entreprise",
-      "title": "Construire le réseau de capacité de transport sur lequel les entreprises ontariennes comptent",
-      "subtitle": "Porterchain élimine les goulots de transport pour que les entreprises ne s'arrêtent jamais. Nous orchestrons chauffeurs professionnels, véhicules commerciaux et opérations logistiques dans un réseau intelligent.",
-      "primaryCta": "Obtenir un devis",
-      "secondaryCta": "Carrières"
+      "title": "Une messagerie d'affaires du Grand Toronto, pour les entreprises qui ne peuvent pas attendre",
+      "subtitle": "PorterChain livre le jour même, le lendemain et en urgence pour les entreprises du Grand Toronto, en berline, VUS, fourgon ou camion cube de 16 pi. Fondée par Ravi Chauhan. Prix instantané, suivi en direct et preuve photo à chaque livraison.",
+      "primaryCta": "Obtenir un prix instantané",
+      "secondaryCta": "Conduire avec PorterChain"
     },
     "brandBand": {
       "eyebrow": "Identité",
-      "title": "Faire avancer le commerce sur la chaîne",
+      "title": "Messagerie le jour même dans le Grand Toronto",
       "body": "Nous orchestrons entreprises, chauffeurs et véhicules comme un seul réseau de capacité — pour que le commerce ontarien n'attende jamais un camion."
     },
     "mission": {
@@ -2114,8 +2086,8 @@
           "href": "/platform"
         },
         "1": {
-          "title": "Confiance et assurance",
-          "description": "Résumé sécurité, COI et engagements de livraison.",
+          "title": "Confiance et couverture",
+          "description": "Couverture de 2 500 $ par colis, preuve photo et processus de réclamation.",
           "href": "/trust"
         },
         "2": {
@@ -2152,7 +2124,7 @@
         "ariaLabel": "Discuter avec Porterchain sur WhatsApp"
       },
       "hoursLabel": "Heures d'ouverture",
-      "hours": "Lundi – vendredi, 8 h – 18 h HE",
+      "hours": "Lundi – vendredi, 8 h – 18 h · samedi, 9 h – 14 h (heure de Toronto)",
       "emergencyLabel": "Répartition d'urgence",
       "emergency": "+1 (647) 619-7951",
       "emergencyDetail": "Exceptions actives · ops@porterchain.com",
@@ -2201,7 +2173,7 @@
           "suv": "VUS",
           "pickup": "Camionnette",
           "cargoVan": "Fourgonnette",
-          "highRoof": "Sprinter / fourgon haut",
+          "highRoof": "Fourgon à toit surélevé",
           "box16": "Camion cube 16 pi",
           "box20": "Camion cube 20 pi"
         },
@@ -2477,17 +2449,17 @@
       "items": {
         "0": {
           "quote": "Après dix ans en logistique, Porterchain est le premier endroit où technologie et opérations se parlent vraiment.",
-          "name": "Sarah Chen",
+          "name": "Partenaire chauffeur PorterChain",
           "role": "Opérations répartition"
         },
         "1": {
           "quote": "Nous construisons une vraie infrastructure. Les problèmes sont difficiles et l'équipe est solide.",
-          "name": "Marcus Okonkwo",
+          "name": "Partenaire chauffeur PorterChain",
           "role": "Ingénierie"
         },
         "2": {
           "quote": "Les clients nous confient des expéditions critiques. Cette responsabilité élève les standards de tous.",
-          "name": "Elena Vasquez",
+          "name": "Partenaire chauffeur PorterChain",
           "role": "Succès client"
         }
       }
@@ -2726,16 +2698,16 @@
   },
   "trust": {
     "hero": {
-      "badge": "Confiance et assurance",
-      "title": "Assurance, engagements de livraison et exécution responsable",
-      "subtitle": "Certificat d'assurance, standards de preuve de livraison et escalade opérationnelle pour les programmes de capacité en Ontario — plus documentation sécurité et approvisionnement sur demande.",
-      "primaryCta": "Demander un COI",
-      "secondaryCta": "Résumé SLA"
+      "badge": "Confiance et couverture",
+      "title": "Couverture, preuve et un processus de réclamation clair",
+      "subtitle": "2 500 $ de couverture inclus sur chaque colis, une preuve photo à chaque livraison et une réponse à chaque réclamation en un jour ouvrable.",
+      "primaryCta": "Voir le processus de réclamation",
+      "secondaryCta": "Obtenir un prix instantané"
     },
     "summary": {
       "label": "Aperçu",
-      "title": "Comment nous protégeons vos expéditions et votre entreprise",
-      "subtitle": "Porterchain exécute de la capacité de transport pour les expéditeurs B2B ontariens. Cette page résume l'assurance, les engagements de livraison et comment demander la documentation sécurité ou approvisionnement."
+      "title": "Comment nous protégeons vos livraisons",
+      "subtitle": "PorterChain est un service de messagerie d'affaires du Grand Toronto. Cette page présente la couverture, la preuve de livraison, la confidentialité et comment nous joindre en cas de problème."
     },
     "features": {
       "label": "Programme",
@@ -2743,245 +2715,72 @@
       "items": {
         "0": {
           "title": "Protection des données",
-          "description": "Chiffrement en transit, accès par rôle et sous-traitants documentés sur demande."
+          "description": "Chiffrement en transit et accès par rôle dans le portail marchand. Les paiements par carte sont traités par Stripe."
         },
         "1": {
           "title": "PIPEDA et confidentialité",
-          "description": "Alignement sur la confidentialité canadienne avec DPA disponible pour les clients d'entreprise."
+          "description": "Les renseignements personnels sont traités selon la LPRPDE. Le destinataire ne voit que le prénom du chauffeur, et les numéros de carte sont traités par Stripe, jamais conservés par nous."
         },
         "2": {
-          "title": "Engagements SLA",
-          "description": "Bandes de service pour les programmes d'entreprise avec crédits et escalade documentés."
+          "title": "Suivi en direct",
+          "description": "Vous et votre destinataire suivez le chauffeur du ramassage à la livraison."
         },
         "3": {
-          "title": "Feuille de route sécurité",
-          "description": "Programme SOC 2 en cours — contactez security@porterchain.com pour le statut actuel."
+          "title": "Couverture sur chaque colis",
+          "description": "Une couverture de 2 500 $ est incluse sur chaque colis. Ajoutez 25 000 $ de couverture pour 10 $ pour un envoi de valeur."
         },
         "4": {
-          "title": "Assurance et COI",
+          "title": "Preuve de livraison",
           "description": "Certificat d'assurance disponible pour les programmes marchands actifs."
         },
         "5": {
           "title": "Réponse aux incidents",
-          "description": "Escalade documentée via ops@porterchain.com pour exceptions et incidents plateforme."
+          "description": "Pour une livraison en cours, appelez-nous ou écrivez sur WhatsApp pendant les heures d'ouverture, ou écrivez à ops@porterchain.com."
         }
       }
     },
     "cta": {
-      "title": "Besoin de documentation pour l'approvisionnement?",
-      "subtitle": "Écrivez à security@porterchain.com avec votre questionnaire ou exigences d'intégration fournisseur.",
+      "title": "Questions de sécurité ou de confidentialité?",
+      "subtitle": "Écrivez à security@porterchain.com avec votre questionnaire; nous répondons en un jour ouvrable.",
       "primary": "Contacter la sécurité",
-      "secondary": "Parler aux ventes entreprise"
+      "secondary": "Obtenir un prix instantané"
     },
     "documents": {
       "label": "Documents",
-      "title": "Ressources d'approvisionnement",
-      "subtitle": "Demandez les ententes exécutées et annexes lors de l'intégration entreprise.",
+      "title": "Politiques",
+      "subtitle": "Les conditions qui s'appliquent à chaque livraison.",
       "items": {
         "0": {
-          "title": "Addendum de traitement des données (DPA)",
-          "description": "Conditions de traitement alignées sur la LPRPDE pour les renseignements personnels.",
-          "href": "/trust/dpa"
+          "title": "Preuve et réclamations",
+          "description": "Normes de preuve photo et dépôt d'une réclamation. Réponse en un jour ouvrable.",
+          "href": "/trust/claims"
         },
         "1": {
-          "title": "Entente-cadre de services (MSA)",
-          "description": "Cadre commercial pour programmes de capacité, services de livraison dédiés et approvisionnement entreprise.",
-          "href": "/trust/msa"
+          "title": "Politique de confidentialité",
+          "description": "Comment nous traitons les renseignements personnels selon la LPRPDE.",
+          "href": "/privacy"
         },
         "2": {
-          "title": "Annexe SLA",
-          "description": "Bandes de service, crédits et escalade pour les programmes Business et Enterprise.",
-          "href": "/trust/sla"
-        },
-        "3": {
-          "title": "Sous-traitants",
-          "description": "Liste fournisseurs et rôles de traitement pour authentification, paiements, infrastructure, communications et analyses.",
-          "href": "/trust/subprocessors"
-        },
-        "4": {
-          "title": "Preuve et réclamations",
-          "description": "Standards POD, dossiers d'exception et parcours de suivi des réclamations.",
-          "href": "/trust/claims"
+          "title": "Conditions d'utilisation",
+          "description": "Couverture, paiement et conditions de service pour marchands et clients.",
+          "href": "/terms"
         }
-      }
-    },
-    "subprocessors": {
-      "hero": {
-        "badge": "Sous-traitants",
-        "title": "Transparence fournisseur pour l'approvisionnement",
-        "subtitle": "Porterchain utilise un ensemble ciblé de sous-traitants pour exploiter le réseau de capacité de transport, le portail marchand, les paiements, les communications et l'infrastructure."
-      },
-      "list": {
-        "label": "Fournisseurs actuels",
-        "title": "Catégories de sous-traitants",
-        "items": {
-          "0": {
-            "title": "Authentification",
-            "description": "Clerk — authentification utilisateur, gestion des sessions et flux d'identité."
-          },
-          "1": {
-            "title": "Paiements",
-            "description": "Stripe — traitement des paiements, factures, événements de facturation et flux de conformité connexes."
-          },
-          "2": {
-            "title": "Infrastructure",
-            "description": "Fournisseurs cloud et hébergement — runtime applicatif, bases de données, stockage et observabilité."
-          },
-          "3": {
-            "title": "Communications",
-            "description": "Fournisseurs courriel, chat et notification — support, alertes opérationnelles et communications client."
-          },
-          "4": {
-            "title": "Cartes et routage",
-            "description": "Fournisseurs de cartographie, géocodage et routage — validation d'adresse, planification, ETA et zones de service."
-          },
-          "5": {
-            "title": "Analyses",
-            "description": "Fournisseurs d'analytique produit et marketing — attribution, mesure de conversion et rapports opérationnels."
-          }
-        }
-      },
-      "cta": {
-        "title": "Besoin du calendrier sous-traitants entreprise?",
-        "subtitle": "Les équipes sécurité et approvisionnement peuvent demander le calendrier exécuté et les conditions d'avis pendant la revue fournisseur.",
-        "primary": "Contacter la sécurité",
-        "secondary": "Retour au centre de confiance"
-      }
-    },
-    "sla": {
-      "hero": {
-        "badge": "SLA",
-        "title": "Résumé des niveaux de service Business et Enterprise",
-        "subtitle": "Ce résumé couvre disponibilité, délais de support et escalade. Les annexes SLA exécutées sont fournies lors de l'intégration entreprise."
-      },
-      "bands": {
-        "label": "Engagements",
-        "title": "Bandes de niveau de service",
-        "subtitle": "Les cibles s'appliquent aux programmes Business et Enterprise avec accords exécutés. Le palier Growth utilise un support au meilleur effort sauf contrat contraire.",
-        "items": {
-          "0": {
-            "title": "Disponibilité plateforme",
-            "description": "Cible de disponibilité mensuelle de 99,5 % pour les outils de coordination opérationnelle et le portail marchand, hors maintenance planifiée communiquée à l'avance."
-          },
-          "1": {
-            "title": "Réponse support",
-            "description": "Incidents P1 : accusé en 1 h, atténuation cible en 4 h. P2 : même jour ouvrable. P3 : 2 jours ouvrables."
-          },
-          "2": {
-            "title": "Escalade opérationnelle",
-            "description": "Exceptions d'expédition active via les opérations de répartition — ops@porterchain.com pour les routes en cours."
-          },
-          "3": {
-            "title": "Crédits de service",
-            "description": "Une disponibilité mensuelle sous la cible peut donner droit à des crédits selon l'annexe SLA exécutée."
-          }
-        }
-      },
-      "note": {
-        "title": "Annexe exécutée sur demande",
-        "body": "Les équipes d'approvisionnement reçoivent l'annexe SLA complète avec calcul des crédits, fenêtres de maintenance et gestion des changements lors de l'intégration MSA."
-      },
-      "cta": {
-        "title": "Besoin de l'annexe SLA exécutée?",
-        "subtitle": "Contactez les ventes entreprise pendant la revue fournisseur — nous alignons les bandes sur votre palier et vos régions.",
-        "primary": "Contacter les ventes entreprise",
-        "secondary": "Retour au centre de confiance"
-      }
-    },
-    "dpa": {
-      "hero": {
-        "badge": "DPA",
-        "title": "Résumé de l'addendum de traitement des données",
-        "subtitle": "Conditions de traitement alignées sur la LPRPDE pour les renseignements traités via les programmes de capacité et systèmes opérationnels Porterchain."
-      },
-      "sections": {
-        "label": "Couverture",
-        "title": "Ce que couvre le DPA",
-        "subtitle": "Les DPA exécutés sont fournis lors de l'intégration entreprise. Ce résumé soutient les questionnaires de sécurité.",
-        "items": {
-          "0": {
-            "title": "Rôles et responsabilités",
-            "description": "Porterchain agit comme sous-traitant pour les données opérationnelles marchandes et documente les rôles responsable/sous-traitant."
-          },
-          "1": {
-            "title": "Mesures de sécurité",
-            "description": "Chiffrement en transit, accès par rôle, pistes d'audit et notification d'incident pour les programmes entreprise."
-          },
-          "2": {
-            "title": "Sous-traitants",
-            "description": "Liste documentée des fournisseurs avec conditions d'avis de changement — voir /trust/subprocessors."
-          },
-          "3": {
-            "title": "Transferts transfrontaliers",
-            "description": "DPA fournisseurs et garanties contractuelles pour les sous-traitants pouvant traiter des données hors Canada."
-          }
-        }
-      },
-      "note": {
-        "title": "DPA exécuté sur demande",
-        "body": "Les équipes sécurité et approvisionnement reçoivent le DPA complet avec annexes lors de l'intégration. Écrivez à security@porterchain.com."
-      },
-      "cta": {
-        "title": "Besoin du DPA exécuté?",
-        "subtitle": "Nous partageons le modèle DPA actuel et alignons les annexes sur votre programme.",
-        "primary": "Demander le DPA",
-        "secondary": "Retour au centre de confiance"
-      }
-    },
-    "msa": {
-      "hero": {
-        "badge": "MSA",
-        "title": "Résumé de l'entente-cadre de services",
-        "subtitle": "Cadre commercial pour les programmes de capacité de transport, services d'intégration et intégrations optionnelles pour expéditeurs à fort volume."
-      },
-      "sections": {
-        "label": "Cadre",
-        "title": "Ce que couvre la MSA",
-        "subtitle": "Les MSA exécutées sont signées lors de l'approvisionnement entreprise. Ce résumé aide les équipes juridiques et opérations.",
-        "items": {
-          "0": {
-            "title": "Services de capacité",
-            "description": "Droits aux programmes de capacité de transport contractés, coordination d'expédition, accès portail marchand et intégrations standard."
-          },
-          "1": {
-            "title": "Programmes dédiés",
-            "description": "Routes récurrentes, couverture débordement, support répartition nommé et succès client pour les programmes de capacité contractés."
-          },
-          "2": {
-            "title": "Conditions commerciales",
-            "description": "Tarification de capacité par devis selon classe de véhicule et route, engagements de volume pour programmes récurrents, facturation et renouvellement."
-          },
-          "3": {
-            "title": "Annexes et SLA",
-            "description": "Annexe SLA, DPA, calendrier sous-traitants et annexe sécurité incorporés par référence."
-          }
-        }
-      },
-      "note": {
-        "title": "MSA exécutée sur demande",
-        "body": "Les ventes entreprise fournissent le modèle MSA, bon de commande et annexes pendant l'approvisionnement. Contactez enterprise@porterchain.com."
-      },
-      "cta": {
-        "title": "Prêt pour la revue MSA?",
-        "subtitle": "Partagez votre calendrier d'approvisionnement — nous alignons annexes, SLA et intégration.",
-        "primary": "Contacter les ventes entreprise",
-        "secondary": "Retour au centre de confiance"
       }
     },
     "claims": {
       "hero": {
         "badge": "Preuve et réclamations",
-        "title": "Vérification de livraison et dossiers prêts pour réclamations",
-        "subtitle": "Photo, signature et GPS à chaque arrêt — pour que facturation, litiges et suivi de pertes partent de preuves, pas de suppositions."
+        "title": "Une preuve à chaque livraison. Un recours clair en cas de problème.",
+        "subtitle": "Preuve photo et dossier horodaté à chaque livraison, 2 500 $ de couverture inclus et une réponse à chaque réclamation en un jour ouvrable."
       },
       "bands": {
         "label": "Clôture",
         "title": "Ce que comprend la preuve",
-        "subtitle": "Standards pour programmes Affaires et Entreprise. Le niveau Croissance inclut la POD de base; les annexes avancées sont fournies à l'intégration.",
+        "subtitle": "La même norme pour chaque livraison et chaque client.",
         "items": {
           "0": {
-            "title": "POD photo et signature",
-            "description": "Confirmation visuelle et signature destinataire — liées à l'envoi pour finance et clients."
+            "title": "Preuve photo de livraison",
+            "description": "Une photo à la livraison, liée au dossier et partagée avec vous."
           },
           "1": {
             "title": "Horodatage GPS",
@@ -2992,19 +2791,19 @@
             "description": "Accès impossible, fret refusé ou client absent — avec motif pour des briefs de redelivery exacts."
           },
           "3": {
-            "title": "Parcours de suivi des réclamations",
-            "description": "Contacts ops et entreprise pour perte ou dommage avec la même chaîne de preuves — pas un fil courriel déconnecté."
+            "title": "Déposer une réclamation",
+            "description": "Écrivez à ops@porterchain.com avec le numéro de commande et des photos dès que possible. Réponse en un jour ouvrable."
           }
         }
       },
       "note": {
-        "title": "Assurance et annexes exécutées",
-        "body": "Attestation d'assurance et processus de réclamation disponibles en revue fournisseur. Voir Confiance pour les demandes COI et les annexes SLA pour les délais contractuels."
+        "title": "Couverture incluse",
+        "body": "Chaque colis inclut 2 500 $ de couverture; jusqu'à 25 000 $ pour 10 $. Nous répondons à chaque réclamation en un jour ouvrable."
       },
       "cta": {
-        "title": "Besoin de capacité prête pour réclamations?",
-        "subtitle": "Partagez le type de fret, les exigences de preuve et les zones RGT — nous alignons les standards POD dans le devis.",
-        "primary": "Obtenir un devis",
+        "title": "Prêt à réserver avec une preuve à chaque livraison?",
+        "subtitle": "Deux codes postaux et un véhicule. Prix exact en environ 10 secondes.",
+        "primary": "Obtenir un prix instantané",
         "secondary": "Retour à la confiance"
       }
     }
@@ -3140,7 +2939,7 @@
       "items": {
         "0": {
           "title": "Classe de véhicule",
-          "description": "Berline, VUS, fourgon cargo, Sprinter et camion cube ont des coûts différents selon espace, poids et disponibilité chauffeur."
+          "description": "Berline, VUS, fourgon cargo, et camion cube ont des coûts différents selon espace, poids et disponibilité chauffeur."
         },
         "1": {
           "title": "Route et urgence",
@@ -3196,7 +2995,7 @@
         "1": {
           "name": "Compte entreprise",
           "price": "Devis par route",
-          "description": "Net 15/30 et facturation consolidée pour expéditeurs B2B réguliers.",
+          "description": "Interac e-Transfer billing et facturation consolidée pour expéditeurs B2B réguliers.",
           "feature0": "Couverture véhicule et chauffeur planifiée",
           "feature1": "Coordination multi-arrêts",
           "feature2": "Rapports opérationnels et historique de preuve",
@@ -3227,7 +3026,7 @@
         },
         "2": {
           "q": "Quels véhicules sont disponibles?",
-          "a": "Berline, VUS, fourgon cargo, Sprinter et camion cube avec chauffeurs professionnels, selon disponibilité et zone de service."
+          "a": "Berline, VUS, fourgon cargo, et camion cube avec chauffeurs professionnels, selon disponibilité et zone de service."
         }
       }
     },
@@ -3249,7 +3048,7 @@
     "hero": {
       "badge": "Industries",
       "title": "Industry delivery capacity across the GTA",
-      "subtitle": "PorterChain is a transportation capacity network. Each industry page explains who we serve, which vehicles fit your freight, and how to get a written quote for same-day, recurring, or overflow lanes.",
+      "subtitle": "PorterChain is a transportation capacity network. Each industry page explains who we serve, which vehicles fit your freight, and how to get an instant price for same-day, recurring, or overflow lanes.",
       "primaryCta": "Obtenir un devis",
       "secondaryCta": "Construction solutions"
     },
@@ -3287,7 +3086,7 @@
       },
       "pharmacy-medical": {
         "title": "Pharmacy & medical",
-        "description": "Prescription and healthcare supply with chain-of-custody proof."
+        "description": "Prescription and healthcare supply with photo proof of delivery."
       },
       "cosmetics": {
         "title": "Cosmetics & beauty",
@@ -3299,7 +3098,7 @@
       },
       "lab-sample-delivery": {
         "title": "Lab sample delivery",
-        "description": "Time-critical specimen courier with audit-ready tracking."
+        "description": "Time-critical specimen courier with clear tracking."
       },
       "ecommerce": {
         "title": "E-commerce & retail",
@@ -3326,7 +3125,7 @@
         },
         "3": {
           "title": "Procurement & finance",
-          "description": "Trust documentation and quote-based commercial terms."
+          "description": "Trust documentation and instant price commercial terms."
         }
       }
     },
@@ -3403,7 +3202,7 @@
         },
         "medical": {
           "title": "Médical et santé",
-          "description": "Courrier pharmacie, spécimens de labo et fournitures cliniques — preuve de chaîne de possession."
+          "description": "Courrier pharmacie, spécimens de labo et fournitures cliniques — preuve photo de livraison."
         },
         "foodBeverage": {
           "title": "Alimentation et boissons",

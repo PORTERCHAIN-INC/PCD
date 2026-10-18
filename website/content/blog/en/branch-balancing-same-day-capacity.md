@@ -22,4 +22,4 @@ When stock moves between locations first, customer same-day windows have a chanc
 
 ## Quote from real sites
 
-Share branch addresses, typical cube, and peak patterns. Written quotes beat phone roulette when every counter is busy.
+Share branch addresses, typical cube, and peak patterns. An instant price beats phone roulette when every counter is busy.

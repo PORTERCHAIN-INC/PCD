@@ -1,6 +1,6 @@
 ---
 title: "Pharmacy Same-Day Courier Capacity in the GTA"
-description: "Same-day pharmacy and clinic runs with chain-of-custody visibility — without adding in-house fleet."
+description: "Same-day pharmacy and clinic runs with live tracking and photo proof — without adding in-house fleet."
 date: "2026-08-10"
 category: "medical"
 author: "porterchain"
@@ -22,4 +22,4 @@ Clinic replenishment and patient exceptions can share one capacity partner so th
 
 ## Start with zones and windows
 
-Share typical lanes, temperature or handling notes, and GTA zones. Quote from real constraints — not a demo tour.
+Share typical lanes, handling notes (coolers for items that must stay cool), and GTA zones. Then price it in about 10 seconds on the calculator — no demo tour.

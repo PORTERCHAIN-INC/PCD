@@ -33,7 +33,7 @@
    "pod",
    "operations"
   ],
-  "content": "Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.\n\n## The proof chain\n\nPorterchain links every delivery confirmation to a **structured proof chain**:\n\n- **Photo capture** with timestamp and geolocation\n- **Signature** where required by customer or regulation\n- **OTP verification** for controlled handoff flows\n- **GPS coordinates** at completion event\n- **Shipment references** tying proof to order and billing records\n- **Status history** — immutable event log from ingest to complete\n\nEach element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._\n\n## Why audit-ready matters\n\nWholesale distributors dispute chargebacks. Medical suppliers face chain-of-custody questions. Construction firms need evidence that high-value materials arrived on site.\n\nAudit-ready proof is not overhead — it is **revenue protection.**\n\n## Built into every shipment\n\nProof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.\n\nWhen compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes."
+  "content": "Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.\n\n## The proof chain\n\nPorterchain links every delivery confirmation to a **structured proof chain**:\n\n- **Photo capture** with timestamp and geolocation\n- **Signature** where required by customer or regulation\n- **OTP verification** for controlled handoff flows\n- **GPS coordinates** at completion event\n- **Shipment references** tying proof to order and billing records\n- **Status history** — immutable event log from ingest to complete\n\nEach element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._\n\n## Why audit-ready matters\n\nWholesale distributors dispute chargebacks. Medical suppliers need to show when and where an item was handed over. Construction firms need evidence that high-value materials arrived on site.\n\nAudit-ready proof is not overhead — it is **revenue protection.**\n\n## Built into every shipment\n\nProof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.\n\nWhen compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes."
  },
  {
   "locale": "en",
@@ -70,7 +70,7 @@
    "same-day",
    "overflow"
   ],
-  "content": "Peak days empty one branch and overload another. Stretching your own fleet creates unsafe overtime and still misses cut-offs.\n\n## Overflow as a release valve\n\nBook backup capacity with the same proof standards as primary lanes so internal teams trust the transfer.\n\n## Keep customer promises intact\n\nWhen stock moves between locations first, customer same-day windows have a chance. Sequence the transfer, then the delivery.\n\n## Quote from real sites\n\nShare branch addresses, typical cube, and peak patterns. Written quotes beat phone roulette when every counter is busy."
+  "content": "Peak days empty one branch and overload another. Stretching your own fleet creates unsafe overtime and still misses cut-offs.\n\n## Overflow as a release valve\n\nBook backup capacity with the same proof standards as primary lanes so internal teams trust the transfer.\n\n## Keep customer promises intact\n\nWhen stock moves between locations first, customer same-day windows have a chance. Sequence the transfer, then the delivery.\n\n## Quote from real sites\n\nShare branch addresses, typical cube, and peak patterns. An instant price beats phone roulette when every counter is busy."
  },
  {
   "locale": "en",
@@ -113,7 +113,7 @@
   "locale": "en",
   "slug": "coffee-supply-chain-freshness",
   "title": "Coffee Supply Chain Freshness: Timing the Last Mile",
-  "description": "Tight delivery windows, temperature-aware scheduling, and exception alerts for perishable coffee distribution.",
+  "description": "Tight delivery windows, careful scheduling, and exception alerts for perishable coffee distribution.",
   "date": "2026-05-01",
   "category": "coffee",
   "authorId": "porterchain",
@@ -238,7 +238,7 @@
    "wholesale",
    "proof"
   ],
-  "content": "Electrical wholesalers live on cut-offs. A contractor waiting on wire, panels, or fixtures will call three suppliers before they call you back.\n\n## Why last-mile breaks for electrical distribution\n\nMost wholesalers run tight warehouses and strong counter sales — but last-mile delivery is often a patchwork of ad-hoc couriers, owner-operators, and overloaded inside sales staff chasing ETAs.\n\nThat creates:\n\n- **Missed contractor windows** when routes are not planned as a system\n- **No shareable tracking** for site supers and purchasers\n- **Weak proof** when quantities or timing are disputed\n\n## What a dedicated delivery partner changes\n\nA structured last-mile partner aligns capacity to your cut-off times and zones:\n\n1. **Recurring routes** to your top contractor accounts and job sites\n2. **Same-day capacity** for rush orders within agreed windows\n3. **Tracking links** on every shipment — counter staff stop fielding \"where is it?\" calls\n4. **Photo and signature proof** that stands up when a GC asks for documentation\n\n## Vehicles that match electrical freight\n\nCars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without jumping to full tractor-trailer complexity.\n\n## Porterchain for electrical distributors\n\nWe run recurring and same-day delivery for electrical wholesalers across the GTA, Hamilton, Kitchener-Waterloo, and surrounding Ontario regions — with one dashboard for dispatch visibility and customer-facing tracking.\n\nIf you are evaluating delivery for contractor accounts and job sites, start with your weekly stop count, zones, and cut-off times. That is enough to scope capacity and vehicle fit in days, not months."
+  "content": "Electrical wholesalers live on cut-offs. A contractor waiting on wire, panels, or fixtures will call three suppliers before they call you back.\n\n## Why last-mile breaks for electrical distribution\n\nMost wholesalers run tight warehouses and strong counter sales — but last-mile delivery is often a patchwork of ad-hoc couriers, owner-operators, and overloaded inside sales staff chasing ETAs.\n\nThat creates:\n\n- **Missed contractor windows** when routes are not planned as a system\n- **No shareable tracking** for site supers and purchasers\n- **Weak proof** when quantities or timing are disputed\n\n## What a dedicated delivery partner changes\n\nA structured last-mile partner aligns capacity to your cut-off times and zones:\n\n1. **Recurring routes** to your top contractor accounts and job sites\n2. **Same-day capacity** for rush orders within agreed windows\n3. **Tracking links** on every shipment — counter staff stop fielding \"where is it?\" calls\n4. **Photo and signature proof** that stands up when a GC asks for documentation\n\n## Vehicles that match electrical freight\n\nCars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without needing a tractor-trailer.\n\n## Porterchain for electrical distributors\n\nWe run recurring and same-day delivery for electrical wholesalers across the GTA, Hamilton, Kitchener-Waterloo, and surrounding Ontario regions — with one dashboard for dispatch visibility and customer-facing tracking.\n\nIf you are evaluating delivery for contractor accounts and job sites, start with your weekly stop count, zones, and cut-off times. That is enough to scope capacity and vehicle fit in days, not months."
  },
  {
   "locale": "en",
@@ -256,7 +256,7 @@
    "fleet",
    "gta"
   ],
-  "content": "Peak days and breakdowns do not wait for hiring cycles. GTA wholesalers, construction suppliers, and warehouses miss cut-offs when their own fleet is already booked — then scramble for ad-hoc couriers with no proof standard.\n\n## Overflow is capacity insurance\n\nTreat overflow as a planned release valve: the same vehicle classes you already use, professional drivers, shareable tracking, and proof on every stop. Receivers should not feel a scramble when volume spikes.\n\n## When teams book it\n\n- Promotion and launch days\n- A truck in the shop or a driver call-out\n- Hard afternoon cut-offs that outrun your own routes\n\n## How to start\n\nShare typical peak patterns, vehicle class, and zones. A written quote beats phone roulette when the dock is already full."
+  "content": "Peak days and breakdowns do not wait for hiring cycles. GTA wholesalers, construction suppliers, and warehouses miss cut-offs when their own fleet is already booked — then scramble for ad-hoc couriers with no proof standard.\n\n## Overflow is capacity insurance\n\nTreat overflow as a planned release valve: the same vehicle classes you already use, professional drivers, shareable tracking, and proof on every stop. Receivers should not feel a scramble when volume spikes.\n\n## When teams book it\n\n- Promotion and launch days\n- A truck in the shop or a driver call-out\n- Hard afternoon cut-offs that outrun your own routes\n\n## How to start\n\nShare typical peak patterns, vehicle class, and zones. An instant price beats phone roulette when the dock is already full."
  },
  {
   "locale": "en",
@@ -292,7 +292,7 @@
    "construction",
    "mississauga"
   ],
-  "content": "Jobsite delivery fails on access notes and wrong trucks more often than on distance. Mississauga and Peel sites need capacity that fits the gate and the pallet.\n\n## Capture the right contact\n\nGC or site supervisor — not only the purchasing office. Failed access burns the window.\n\n## Match truck to site\n\nBox truck for pallets; trade van for long stock when the site is tight. Confirm class in the quote.\n\n## Proof for billing\n\nPhoto POD closes GC disputes and keeps inside sales out of the evening chase."
+  "content": "Jobsite delivery fails on access notes and wrong trucks more often than on distance. Mississauga and Peel sites need capacity that fits the gate and the pallet.\n\n## Capture the right contact\n\nGC or site supervisor — not only the purchasing office. Failed access burns the window.\n\n## Match truck to site\n\nBox truck for pallets; cargo van for long stock when the site is tight. Confirm class in the quote.\n\n## Proof for billing\n\nPhoto POD closes GC disputes and keeps inside sales out of the evening chase."
  },
  {
   "locale": "en",
@@ -317,7 +317,7 @@
   "locale": "en",
   "slug": "medical-supply-chain-compliance",
   "title": "Medical Supply Chain Compliance in Local Delivery",
-  "description": "Chain-of-custody, time-sensitive routing, and documentation standards for regulated healthcare shipments.",
+  "description": "Proof of delivery, time-sensitive routing, and documentation standards for regulated healthcare shipments.",
   "date": "2026-05-28",
   "category": "medical",
   "authorId": "porterchain",
@@ -329,7 +329,7 @@
    "compliance",
    "healthcare"
   ],
-  "content": "Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.\n\n## Beyond speed: documentation\n\nMedical and healthcare suppliers need:\n\n- **Time-sensitive routing** with realistic ETAs\n- **Chain-of-custody documentation** at handoff\n- **Proof standards** that satisfy internal QA and external auditors\n- **Controlled escalations** when exceptions occur\n\nPorterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**\n\n## Partner network quality\n\nRegulated shipments cannot ride on unknown vehicles and undocumented processes. Our driver partner model emphasizes predictable workflows, clear instructions, and operational support — not race-to-the-bottom gig matching.\n\n## Compliance built into every delivery\n\nWhen documentation is part of every Porterchain shipment, compliance scales with volume. That is how local medical suppliers compete with national distributors on reliability without building an in-house fleet."
+  "content": "Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.\n\n## Beyond speed: documentation\n\nMedical and healthcare suppliers need:\n\n- **Time-sensitive routing** with realistic ETAs\n- **Photo proof of delivery** at handoff\n- **Proof standards** that satisfy internal QA and external auditors\n- **Controlled escalations** when exceptions occur\n\nPorterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**\n\n## Partner network quality\n\nRegulated shipments cannot ride on unknown vehicles and undocumented processes. Our driver partner model emphasizes predictable workflows, clear instructions, and operational support — not race-to-the-bottom gig matching.\n\n## Compliance built into every delivery\n\nWhen documentation is part of every Porterchain shipment, compliance scales with volume. That is how local medical suppliers compete with national distributors on reliability without building an in-house fleet."
  },
  {
   "locale": "en",
@@ -408,7 +408,7 @@
   "locale": "en",
   "slug": "pharmacy-same-day-courier-gta",
   "title": "Pharmacy Same-Day Courier Capacity in the GTA",
-  "description": "Same-day pharmacy and clinic runs with chain-of-custody visibility — without adding in-house fleet.",
+  "description": "Same-day pharmacy and clinic runs with live tracking and photo proof — without adding in-house fleet.",
   "date": "2026-08-10",
   "category": "medical",
   "authorId": "porterchain",
@@ -420,7 +420,7 @@
    "same-day",
    "compliance"
   ],
-  "content": "Pharmacy delivery is urgency plus accountability. Patients and clinics need ETAs; ops need a record that holds up when something goes wrong.\n\n## Same-day with a paper trail\n\nTracking and proof are not optional on regulated B2B runs. Status should live with the shipment.\n\n## Recurring plus urgent\n\nClinic replenishment and patient exceptions can share one capacity partner so the team is not juggling apps.\n\n## Start with zones and windows\n\nShare typical lanes, temperature or handling notes, and GTA zones. Quote from real constraints — not a demo tour."
+  "content": "Pharmacy delivery is urgency plus accountability. Patients and clinics need ETAs; ops need a record that holds up when something goes wrong.\n\n## Same-day with a paper trail\n\nTracking and proof are not optional on regulated B2B runs. Status should live with the shipment.\n\n## Recurring plus urgent\n\nClinic replenishment and patient exceptions can share one capacity partner so the team is not juggling apps.\n\n## Start with zones and windows\n\nShare typical lanes, handling notes (coolers for items that must stay cool), and GTA zones. Then price it in about 10 seconds on the calculator — no demo tour."
  },
  {
   "locale": "en",
@@ -621,7 +621,7 @@
    "courier",
    "strategy"
   ],
-  "content": "Ad-hoc couriers solve today's emergency and create tomorrow's inconsistency. A transportation capacity network sells completed runs: matched vehicles, professional drivers, ops recovery, and proof.\n\n## The product is the completed stop\n\nSoftware seats do not move freight. Capacity does. Technology coordinates; drivers and vehicles execute.\n\n## Primary and overflow together\n\nThe same partner can cover recurring lanes and peak overflow so customers never feel the scramble.\n\n## Evaluate coverage, not demos\n\nAsk about GTA zones, vehicle classes, POD standards, and written quotes. That is the commercial test."
+  "content": "Ad-hoc couriers solve today's emergency and create tomorrow's inconsistency. A transportation capacity network sells completed runs: matched vehicles, professional drivers, ops recovery, and proof.\n\n## The product is the completed stop\n\nSoftware seats do not move freight. Capacity does. Technology coordinates; drivers and vehicles execute.\n\n## Primary and overflow together\n\nThe same partner can cover recurring lanes and peak overflow so customers never feel the scramble.\n\n## Evaluate coverage, not demos\n\nAsk about GTA zones, vehicle classes, POD standards, and whether you can see a price before you book. That is the commercial test."
  },
  {
   "locale": "en",
@@ -694,7 +694,7 @@
    "pod",
    "operations"
   ],
-  "content": "Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.\n\n## The proof chain\n\nPorterchain links every delivery confirmation to a **structured proof chain**:\n\n- **Photo capture** with timestamp and geolocation\n- **Signature** where required by customer or regulation\n- **OTP verification** for controlled handoff flows\n- **GPS coordinates** at completion event\n- **Shipment references** tying proof to order and billing records\n- **Status history** — immutable event log from ingest to complete\n\nEach element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._\n\n## Why audit-ready matters\n\nWholesale distributors dispute chargebacks. Medical suppliers face chain-of-custody questions. Construction firms need evidence that high-value materials arrived on site.\n\nAudit-ready proof is not overhead — it is **revenue protection.**\n\n## Built into every shipment\n\nProof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.\n\nWhen compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes."
+  "content": "Proof of delivery is where logistics meets finance, compliance, and customer trust. A blurry photo and a checkbox are not enough when disputes, audits, or regulated shipments are involved.\n\n## The proof chain\n\nPorterchain links every delivery confirmation to a **structured proof chain**:\n\n- **Photo capture** with timestamp and geolocation\n- **Signature** where required by customer or regulation\n- **OTP verification** for controlled handoff flows\n- **GPS coordinates** at completion event\n- **Shipment references** tying proof to order and billing records\n- **Status history** — immutable event log from ingest to complete\n\nEach element reinforces the others. Together they answer: _who delivered what, where, when, and under which service level._\n\n## Why audit-ready matters\n\nWholesale distributors dispute chargebacks. Medical suppliers need to show when and where an item was handed over. Construction firms need evidence that high-value materials arrived on site.\n\nAudit-ready proof is not overhead — it is **revenue protection.**\n\n## Built into every shipment\n\nProof events are captured as part of Porterchain's delivery workflow and can be surfaced to billing and operations teams — so ERP systems can reconcile deliveries without manual data entry.\n\nWhen compliance is built into how every shipment runs — not bolted on after the fact — operations scale without scaling disputes."
  },
  {
   "locale": "fr",
@@ -774,7 +774,7 @@
   "locale": "fr",
   "slug": "coffee-supply-chain-freshness",
   "title": "Coffee Supply Chain Freshness: Timing the Last Mile",
-  "description": "Tight delivery windows, temperature-aware scheduling, and exception alerts for perishable coffee distribution.",
+  "description": "Tight delivery windows, careful scheduling, and exception alerts for perishable coffee distribution.",
   "date": "2026-05-01",
   "category": "coffee",
   "authorId": "porterchain",
@@ -978,7 +978,7 @@
   "locale": "fr",
   "slug": "medical-supply-chain-compliance",
   "title": "Medical Supply Chain Compliance in Local Delivery",
-  "description": "Chain-of-custody, time-sensitive routing, and documentation standards for regulated healthcare shipments.",
+  "description": "Proof of delivery, time-sensitive routing, and documentation standards for regulated healthcare shipments.",
   "date": "2026-05-28",
   "category": "medical",
   "authorId": "porterchain",
@@ -990,7 +990,7 @@
    "compliance",
    "healthcare"
   ],
-  "content": "Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.\n\n## Beyond speed: documentation\n\nMedical and healthcare suppliers need:\n\n- **Time-sensitive routing** with realistic ETAs\n- **Chain-of-custody documentation** at handoff\n- **Proof standards** that satisfy internal QA and external auditors\n- **Controlled escalations** when exceptions occur\n\nPorterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**\n\n## Partner network quality\n\nRegulated shipments cannot ride on unknown vehicles and undocumented processes. Our driver partner model emphasizes predictable workflows, clear instructions, and operational support — not race-to-the-bottom gig matching.\n\n## Compliance built into every delivery\n\nWhen documentation is part of every Porterchain shipment, compliance scales with volume. That is how local medical suppliers compete with national distributors on reliability without building an in-house fleet."
+  "content": "Healthcare logistics tolerates little ambiguity. A late delivery is not an inconvenience — it can disrupt patient care, clinic operations, or cold-chain integrity.\n\n## Beyond speed: documentation\n\nMedical and healthcare suppliers need:\n\n- **Time-sensitive routing** with realistic ETAs\n- **Photo proof of delivery** at handoff\n- **Proof standards** that satisfy internal QA and external auditors\n- **Controlled escalations** when exceptions occur\n\nPorterchain's compliance procedures capture photo, signature, OTP where needed, GPS, and reference-linked events — not as optional fields, but as **required workflow steps.**\n\n## Partner network quality\n\nRegulated shipments cannot ride on unknown vehicles and undocumented processes. Our driver partner model emphasizes predictable workflows, clear instructions, and operational support — not race-to-the-bottom gig matching.\n\n## Compliance built into every delivery\n\nWhen documentation is part of every Porterchain shipment, compliance scales with volume. That is how local medical suppliers compete with national distributors on reliability without building an in-house fleet."
  },
  {
   "locale": "fr",

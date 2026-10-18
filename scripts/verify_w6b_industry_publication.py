@@ -65,8 +65,8 @@ def main() -> int:
     subtitle = template.get("hero", {}).get("subtitlePattern", "")
     if "vehicle" not in subtitle.lower() and "capacity" not in subtitle.lower():
         failures.append("cityIndustryDelivery.hero.subtitlePattern must lead with B2B capacity")
-    if "quote" not in (template.get("faq", {}).get("a4") or "").lower():
-        failures.append("cityIndustryDelivery.faq.a4 must mention quote-based pricing")
+    if "instant" not in (template.get("faq", {}).get("a4") or "").lower():
+        failures.append("cityIndustryDelivery.faq.a4 must mention instant pricing")
 
     print("W6b industry publication guard")
     if failures:

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "PorterChain | GTA Delivery Capacity — Drivers, Vehicles & Technology",
-    "description": "GTA delivery capacity on demand: professional drivers and vehicles for same-day, overflow and recurring routes, with live tracking and proof. Get a quote.",
+    "description": "GTA delivery capacity on demand: professional drivers and vehicles for same-day, overflow and recurring routes, with live tracking and proof. Get instant price.",
     "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
     "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it.",
     "keywords": [
@@ -132,7 +132,7 @@
       "dispatch": {
         "label": "Merchant panel · Orders board",
         "title": "Kanban for every active shipment — same board your team opens daily",
-        "body": "Waiting, assigned, at pickup, in transit, delivered — cards show tracking, route, driver, and SLA. Scroll the board like the real merchant panel: no spreadsheet, no guessing where capacity sits."
+        "body": "Waiting, assigned, at pickup, in transit, delivered — cards show tracking, route, driver, and delivery window. Scroll the board like the real merchant panel: no spreadsheet, no guessing where capacity sits."
       },
       "notify": {
         "label": "Receiver updates",
@@ -432,7 +432,7 @@
   "homeChooser": {
     "eyebrow": "PorterChain · Greater Toronto Area",
     "headline": "Your delivery demand. Our logistics capacity.",
-    "subtitle": "Full-stack local logistics for GTA businesses — proprietary technology plus professional drivers and vehicles for same-day, overflow, and recurring capacity. Quote-based. No software seats.",
+    "subtitle": "Full-stack local logistics for GTA businesses — proprietary technology plus professional drivers and vehicles for same-day, overflow, and recurring capacity. Instant price. No software seats.",
     "primaryCta": "Get a quote",
     "primaryCtaHint": "Share lanes and vehicle needs — we respond with written capacity options.",
     "businessAccountCta": "Get Business Account",
@@ -502,7 +502,7 @@
         },
         "pricing": {
           "prompt": "How does pricing work?",
-          "answer": "Pricing is quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No software-seat fees. We confirm transportation capacity and price in writing before dispatch — start with Get a quote or a logistics specialist."
+          "answer": "Pricing is instant price on vehicle class, distance, stops, and urgency (same-day vs scheduled). No software-seat fees. We confirm transportation capacity and price in writing before dispatch — start with Get a quote or a logistics specialist."
         },
         "industries": {
           "prompt": "Which industries do you serve?",
@@ -510,11 +510,11 @@
         },
         "sameday": {
           "prompt": "Can you cover same-day overflow?",
-          "answer": "Yes — same-day and urgent capacity across the GTA when a driver is out, a truck is down, or demand spikes. We don’t replace your fleet; we add vehicles and drivers when you need them. Share pickup, drop, vehicle class, and window for a quote."
+          "answer": "Yes — same-day and urgent capacity across the GTA when a driver is out, a truck is down, or demand spikes. We don’t replace your fleet; we add vehicles and drivers when you need them. Share pickup, drop, vehicle class, and window for an instant price."
         },
         "vehicles": {
           "prompt": "What vehicles are available?",
-          "answer": "Sedan, SUV, pickup, cargo van, Sprinter van, and box trucks — each with a professional driver, matched to load, access, and urgency. Vehicle capacity is part of what you buy; see the fleet on the business page."
+          "answer": "Sedan, SUV, cargo van or 16 ft box truck, each with a professional driver, matched to your load. All are driven on a standard Ontario G licence."
         },
         "merchants": {
           "prompt": "I need a business account",
@@ -627,21 +627,21 @@
   },
   "homePage": {
     "hero": {
-      "eyebrow": "Same-day B2B delivery · Greater Toronto Area",
-      "headline": "Same-day delivery across the GTA.",
+      "eyebrow": "Business courier · Toronto & the GTA",
+      "headline": "Book it by 11.",
       "promise": "Order by {cutoff}. Delivered {window} same day, {days}.",
       "promiseDays": "Mon–Sat",
-      "subtitle": "Sedans, cargo vans and 16 ft box trucks for businesses — live tracking and proof of delivery on every stop.",
+      "subtitle": "Same-day and next-day delivery across the GTA by sedan, SUV, van or box truck. See your exact price in 10 seconds. No sign-up, no sales call.",
       "bookNow": "Book now",
-      "connectShopify": "Connect Shopify",
+      "connectShopify": "Shopify app: in review",
       "businessAccounts": "Business accounts",
-      "headlineAccent": "Priced in seconds.",
+      "headlineAccent": "Delivered today.",
       "shopifyBadge": "Shopify app",
-      "shopifyBadgeHint": "same-day rates at checkout"
+      "shopifyBadgeHint": "in review with Shopify"
     },
     "calculator": {
-      "title": "Get a price",
-      "subtitle": "Instant price. No sign-up.",
+      "title": "Get instant price",
+      "subtitle": "Two postal codes, one vehicle, about 10 seconds. HST included. No sign-up.",
       "pickup": "Pickup postal code",
       "dropoff": "Drop-off postal code",
       "pickupPlaceholder": "M5V 2T6",
@@ -661,7 +661,7 @@
           "hint": "Pallets and bulky freight"
         }
       },
-      "submit": "Get a price",
+      "submit": "Get instant price",
       "pricing": "Pricing…",
       "resultLabel": "Your price",
       "resultMeta": "{pickup} → {dropoff} · {vehicle}",
@@ -676,62 +676,62 @@
         "dropoff_outside_service_area": "That drop-off postal code is outside our GTA coverage.",
         "vehicle_class_not_available": "That vehicle is not available for instant pricing.",
         "rate_limited": "Too many price checks in a minute. Please wait a moment and try again.",
-        "calculator_disabled": "Instant pricing is paused right now. Please contact us for a quote.",
+        "calculator_disabled": "Instant pricing is paused right now. Please contact us for an instant price.",
         "generic": "We could not price that trip. Please try again.",
         "network": "We could not reach the pricing service. Please try again."
       }
     },
     "coverage": {
       "ariaLabel": "Coverage at a glance",
-      "postalAreas": "{count} postal areas",
-      "postalAreasHint": "GTA postal codes (FSAs) we deliver to, checked at quote time",
-      "areas": "{count} service areas",
-      "areasHint": "Toronto, Peel, York, Durham, Halton and Hamilton",
-      "vehicles": "{count} vehicle classes",
-      "vehiclesHint": "Sedan / SUV, cargo van, 16 ft box truck"
+      "postalAreas": "GTA + ~150 km",
+      "postalAreasHint": "{count} postal areas, checked instantly. Core areas: Vaughan, Concord, Brampton, Mississauga.",
+      "areas": "$2,500 covered",
+      "areasHint": "Included on every parcel. Need more? $25,000 coverage for $10.",
+      "vehicles": "{count} vehicle sizes",
+      "vehiclesHint": "Sedan / SUV (~80 kg), cargo van (~900 kg), 16 ft box truck (~3,000 kg)"
     },
     "industries": {
-      "eyebrow": "Industries",
-      "title": "Five industries. One same-day network.",
-      "all": "All industries",
+      "eyebrow": "Who uses us",
+      "title": "If it fits in a box truck, we move it.",
+      "all": "All delivery types",
       "items": {
         "shopify": {
-          "title": "Shopify brands",
-          "body": "Same-day rates at checkout, priced by the engine on this site."
+          "title": "Online stores",
+          "body": "Same-day and next-day orders to GTA customers, with a live tracking link."
         },
         "pharmacy": {
-          "title": "Pharmacy & labs",
-          "body": "Signature, ID check and chain-of-custody times on every run."
+          "title": "Pharmacy & medical",
+          "body": "Time-sensitive runs with photo proof. Coolers for items that must stay cool."
         },
         "furniture": {
-          "title": "Furniture & appliances",
-          "body": "Van or 16 ft box truck, two-person crews, booked windows."
+          "title": "Furniture & home",
+          "body": "Van or 16 ft box truck for furniture, appliances and kitchenware."
         },
         "construction": {
           "title": "Construction & trades",
-          "body": "Materials and parts to the site or van, photo proof at the gate."
+          "body": "Plumbing, electrical and safety supplies to the site or the van."
         },
         "warehouses": {
-          "title": "Warehouses & wholesale",
-          "body": "Dock-to-dock, pallets and multi-drop routes on demand."
+          "title": "Warehouses & suppliers",
+          "body": "Pallets, cartons and supply runs from dock to door."
         }
       }
     },
     "howItWorks": {
       "eyebrow": "How it works",
-      "title": "Three steps. No phone tag.",
+      "title": "Price it. Book it. Track it.",
       "steps": {
         "price": {
           "title": "Price it",
-          "body": "Enter two postal codes and a vehicle. You see the price instantly."
+          "body": "Two postal codes and a vehicle. Exact price with HST in about 10 seconds."
         },
         "book": {
           "title": "Book it",
-          "body": "Add pickup and drop-off details and confirm the delivery window."
+          "body": "Add pickup and drop-off details and confirm the window. About a minute."
         },
         "track": {
           "title": "Track it",
-          "body": "Follow the driver live and get proof of delivery when it lands."
+          "body": "Follow the driver live. Get photo proof the moment it lands."
         }
       }
     },
@@ -764,44 +764,86 @@
       "logosTitle": "Delivering for GTA businesses"
     },
     "final": {
-      "title": "Price your next delivery.",
+      "title": "Your next delivery, priced in 10 seconds.",
       "body": "Two postal codes. One price. Book when you are ready.",
-      "primary": "Get a price",
+      "primary": "Get instant price",
       "secondary": "Book now"
     },
     "brand": {
-      "operatedBy": "Operated by {legalName}, from our downtown Toronto hub."
+      "operatedBy": "Run by {legalName}, a GTA company founded by Ravi Chauhan."
     },
     "why": {
       "eyebrow": "Why PorterChain",
-      "title": "The edge: an exact price in seconds, on a GTA-dense same-day network.",
-      "lead": "Two postal codes give you the price you pay — no quote, no sales call. One local network covers {count} postal areas same day, Monday to Saturday.",
-      "caption": "What you need and what PorterChain provides",
-      "colNeed": "You need",
-      "colGet": "With PorterChain",
+      "title": "Why PorterChain beats the usual courier.",
+      "lead": "No quote forms, no guesswork. A fixed price, a set window, the right vehicle and proof on every drop, across {count} GTA postal areas, Monday to Saturday.",
+      "caption": "The usual courier compared with PorterChain",
+      "colNeed": "The usual courier",
+      "colGet": "PorterChain",
       "rows": {
         "price": {
-          "need": "A price now",
-          "title": "Instant pricing.",
-          "body": "Two postal codes and a vehicle give the price in seconds — the same engine as checkout, HST included, no sign-up."
+          "need": "Call or email for a quote",
+          "title": "Exact price in 10 seconds.",
+          "body": "Two postal codes and a vehicle. HST included, no sign-up, same engine we bill from."
         },
         "speed": {
-          "need": "Delivery today",
-          "title": "Same day.",
-          "body": "Order by 11 AM, delivered 2–9 PM, Monday to Saturday."
+          "need": "\"Sometime today\"",
+          "title": "A window you can plan around.",
+          "body": ""
+        },
+        "vehicle": {
+          "need": "One vehicle size for everything",
+          "title": "The right vehicle.",
+          "body": "Sedan, SUV, cargo van or 16 ft box truck, matched to your load."
         },
         "tracking": {
-          "need": "To know where it is",
-          "title": "Real-time tracking.",
-          "body": "You and your receiver follow the driver live, then get photo proof of delivery."
+          "need": "\"It's on the way\"",
+          "title": "Live map.",
+          "body": "You and your receiver follow the driver live."
         },
-        "team": {
-          "need": "Someone to call",
-          "title": "Local GTA team.",
-          "body": "Support from our Toronto team — office Monday–Friday 8 AM–6 PM, Saturday 9 AM–2 PM."
+        "proof": {
+          "need": "Proof on request, maybe",
+          "title": "Photo proof on every drop.",
+          "body": "Shared with you the moment it lands."
+        },
+        "coverage": {
+          "need": "Coverage in the fine print",
+          "title": "$2,500 coverage included.",
+          "body": "On every parcel. Up to $25,000 for $10."
+        },
+        "payment": {
+          "need": "Card only, or long credit forms",
+          "title": "Pay the way you work.",
+          "body": "Merchants pay by Interac e-Transfer per billing cycle; customers by card."
         }
       }
-    }
+    },
+    "pain": {
+      "eyebrow": "The problem",
+      "title": "Your order is ready. Your courier isn't.",
+      "items": {
+        "quote": "Chasing a quote by phone or email.",
+        "window": "A vague \"sometime today\" window.",
+        "where": "No idea where the driver is.",
+        "fit": "A load that will not fit the car that showed up."
+      },
+      "promise": "PorterChain fixes all four: a fixed price before you book, a delivery window you can plan around, the right vehicle for the load, and a live map until the photo proof lands.",
+      "cta": "Get instant price"
+    },
+    "whoUses": {
+      "label": "Also delivering for",
+      "items": {
+        "coffee-roasters": "Coffee roasters",
+        "cosmetics": "Beauty & cosmetics",
+        "chocolate": "Food & sweets",
+        "ecommerce": "E-commerce",
+        "lab-sample-delivery": "Labs",
+        "plumbing-supply": "Plumbing supply",
+        "electrical-distribution": "Electrical supply",
+        "construction-materials": "Building materials",
+        "pharmacy-medical": "Pharmacies"
+      }
+    },
+    "riskReversal": "Price includes HST · $2,500 parcel coverage included · Merchants pay by Interac e-Transfer"
   },
   "marketing": {
     "consent": {
@@ -826,11 +868,11 @@
     },
     "priceBar": {
       "label": "Instant GTA price, no sign-up",
-      "cta": "Get a price"
+      "cta": "Get instant price"
     },
     "trustBadges": {
       "ariaLabel": "Included with every delivery",
-      "insured": "Insured · COI on request",
+      "insured": "$2,500 coverage included",
       "tracked": "Live tracking",
       "pod": "Photo proof of delivery"
     }
@@ -949,13 +991,13 @@
       "pallet-ltl": "Pallet (LTL)",
       "full-truck-ftl": "Full Truck (FTL)",
       "fragile": "Fragile",
-      "temperature": "Temperature Sensitive"
+      "temperature": "Medical (cooler)"
     }
   },
   "vehicles": {
     "label": "Fleet",
     "title": "Choose your vehicle",
-    "subtitle": "From sedans to 20 ft box trucks — matched to your cargo.",
+    "subtitle": "From sedans to 16 ft box truck — matched to your cargo.",
     "capacity": "Capacity",
     "weight": "Weight",
     "bestFor": "Best For",
@@ -992,7 +1034,7 @@
         "bestFor": "Wholesale, restaurant distribution"
       },
       "high-roof": {
-        "name": "Sprinter Van",
+        "name": "High-roof cargo van",
         "capacity": "20+ boxes",
         "weight": "Up to 2,000 lbs",
         "bestFor": "Palletized LTL, bulk retail"
@@ -1167,7 +1209,7 @@
       },
       "medical": {
         "name": "Medical",
-        "description": "Pharmacy and medical courier with chain-of-custody proof"
+        "description": "Pharmacy and medical courier with photo proof; coolers for items that must stay cool"
       },
       "pharmacy": {
         "name": "Pharmacy",
@@ -1237,7 +1279,6 @@
     "delivered": "Delivered",
     "drivers": "Drivers",
     "weeklyDeliveries": "Weekly Deliveries",
-    "onTime": "98% On Time",
     "orderStatuses": {
       "medical": "Medical → Downtown",
       "coffee": "Coffee → Mississauga",
@@ -1311,8 +1352,8 @@
   },
   "faq": {
     "label": "FAQ",
-    "title": "B2B delivery FAQ",
-    "subtitle": "Common questions from Ontario businesses evaluating transportation capacity.",
+    "title": "Questions, answered",
+    "subtitle": "Straight answers before you book.",
     "items": [
       {
         "question": "Do you offer same-day delivery in Toronto and the GTA?",
@@ -1332,11 +1373,11 @@
       },
       {
         "question": "What areas do you serve?",
-        "answer": "We operate across the Greater Toronto Area — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London, and Niagara — with route expertise on 401, 427, and 407 corridors."
+        "answer": "We operate across the Greater Toronto Area — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, and Niagara — with route expertise on 401, 427, and 407 corridors."
       },
       {
         "question": "What vehicles are available?",
-        "answer": "Sedan, SUV, Pickup, Cargo Van, Sprinter Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence."
+        "answer": "Sedan, SUV, cargo van and 16 ft box truck. All are driven on a standard Ontario G licence."
       },
       {
         "question": "Is proof of delivery included?",
@@ -1344,7 +1385,7 @@
       },
       {
         "question": "How does pricing work?",
-        "answer": "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. No hidden platform fees."
+        "answer": "Instant and exact: two postal codes and a vehicle give the price with HST in about 10 seconds, before you book."
       }
     ]
   },
@@ -1405,7 +1446,7 @@
       "whoForTitle": "Who sedan delivery is for",
       "whoFor": "Merchants and operations that need fast, trackable urban delivery without the cost of a van or truck: same-day courier users, small retail and pharmacy routes, professional services, and businesses with recurring light-parcel runs in our service areas.",
       "serviceAreaTitle": "Local service area relevance",
-      "serviceAreaRelevance": "We run sedan delivery across the Greater Toronto Area (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Kitchener-Waterloo, London, Niagara, and Oshawa–Durham. Urban and suburban coverage with consistent cut-offs and tracking. Tell us your postal codes and we’ll confirm fit.",
+      "serviceAreaRelevance": "We run sedan delivery across the Greater Toronto Area (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Kitchener-Waterloo, Niagara, and Oshawa–Durham. Urban and suburban coverage with consistent cut-offs and tracking. Tell us your postal codes and we’ll confirm fit.",
       "ctaTitle": "Ready to use sedan delivery?",
       "ctaDescription": "Share your routes and volume. We’ll confirm coverage and get you set up through our merchant onboarding.",
       "ctaLabel": "Get started"
@@ -1422,7 +1463,7 @@
       "whoForTitle": "Who SUV delivery is for",
       "whoFor": "Merchants who have outgrown sedan capacity but don’t yet need a full van: subscription and D2C brands, coffee roasters and food producers doing café and retail drops, and any business with recurring multi-stop routes and medium-sized parcels in our coverage area.",
       "serviceAreaTitle": "Local service area relevance",
-      "serviceAreaRelevance": "SUV delivery runs across the GTA (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Kitchener-Waterloo, London, Niagara, and Oshawa–Durham. Same service areas and standards as our sedan and van options—we pick the right vehicle for your run.",
+      "serviceAreaRelevance": "SUV delivery runs across the GTA (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Kitchener-Waterloo, Niagara, and Oshawa–Durham. Same service areas and standards as our sedan and van options—we pick the right vehicle for your run.",
       "ctaTitle": "Ready to use SUV delivery?",
       "ctaDescription": "Share your routes and volume. We’ll confirm vehicle fit and get you set up through our merchant onboarding.",
       "ctaLabel": "Get started"
@@ -1431,11 +1472,11 @@
       "pageTitle": "Trade van delivery | Construction materials & multi-stop | Porterchain",
       "description": "Van delivery for construction materials, plumbing supply, and multi-stop B2B routes across the GTA. Pallets, pipe, fixtures, and bulk parcels with proof of delivery.",
       "headline": "Trade van delivery for construction and multi-stop routes",
-      "subheadline": "Vans handle building materials, plumbing stock, pallets, and multi-stop distributor runs across the GTA — with full tracking and jobsite-ready proof of delivery. Quote-based, no platform fees.",
+      "subheadline": "Vans handle building materials, plumbing stock, pallets, and multi-stop distributor runs across the GTA — with full tracking and jobsite-ready proof of delivery. Instant price, no platform fees.",
       "whenYouNeedTitle": "When to call for trade van capacity",
       "whenYouNeed": "Call when your own van or driver is out, jobsite material has to move today, or distributor routes exceed your fleet. We dispatch matched van capacity with live tracking and proof — same-day or recurring across the GTA.",
       "faqPricingQ": "How does pricing work for trade van delivery?",
-      "faqPricingA": "Quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No platform fees — request a quote and we confirm capacity for your GTA lanes in writing before dispatch.",
+      "faqPricingA": "Instant: enter two postal codes and pick the van to see the exact price with HST in about 10 seconds. No sign-up.",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "Construction material runs to job sites and trade customers: lumber, drywall, fixtures, and mid-size building supply. Plumbing and electrical distributor routes with pipe, wire, and palletized stock. Multi-stop B2B replenishment where payload size exceeds a car or SUV but does not need a full box truck.",
       "volumeTitle": "Delivery volume suitability",
@@ -1443,63 +1484,63 @@
       "whoForTitle": "Who van delivery is for",
       "whoFor": "Building supply distributors, plumbing and electrical wholesalers, and merchants with recurring multi-stop routes: jobsite delivery, trade accounts, and retail replenishment across the GTA and Ontario.",
       "serviceAreaTitle": "Local service area relevance",
-      "serviceAreaRelevance": "Van delivery operates across the GTA (Toronto, Mississauga, Brampton, Vaughan, Hamilton), Kitchener-Waterloo, London, Niagara, and Oshawa–Durham. Same coverage as our truck options; we assign the right asset for site access and load size.",
+      "serviceAreaRelevance": "Van delivery operates across the GTA (Toronto, Mississauga, Brampton, Vaughan, Hamilton), Kitchener-Waterloo, Niagara, and Oshawa–Durham. Same coverage as our truck options; we assign the right asset for site access and load size.",
       "ctaTitle": "Ready for van delivery on your routes?",
       "ctaDescription": "Share your construction, plumbing, or distributor routes. We'll confirm vehicle fit and get you set up.",
       "ctaLabel": "Get started"
     },
     "mediumTruck": {
-      "pageTitle": "Box Truck Delivery | Construction materials & pallet freight | Porterchain",
-      "description": "16 ft box truck delivery for construction materials, electrical distribution, and palletized B2B freight across Ontario. Jobsite drops, proof of delivery, GVWR under 11,000 kg.",
+      "pageTitle": "Box Truck Delivery GTA | 16 ft, Same-Day | PorterChain",
+      "description": "16 ft box truck delivery across the GTA for pallets, building materials and bulky freight. Up to about 3,000 kg, standard G licence. Exact price in 10 seconds.",
       "headline": "Box truck delivery for construction and pallet freight",
-      "subheadline": "16 ft box trucks for lumber, drywall, steel, electrical pallets, and heavy B2B loads across the GTA and Ontario. Recurring jobsite routes with tracking and proof on every drop. Quote-based, no platform fees.",
+      "subheadline": "16 ft box trucks (up to about 3,000 kg) for pallets, building materials, furniture and heavy business loads across the GTA. Tracking and photo proof on every drop. Instant price, no sign-up.",
       "whenYouNeedTitle": "When to call for box truck capacity",
       "whenYouNeed": "Call when pallet freight won't fit a van, your truck is down, or a jobsite deadline can't slip. We dispatch 16 ft box truck capacity with timed windows, site access notes, and photo proof on every drop.",
       "faqPricingQ": "How does pricing work for box truck delivery?",
-      "faqPricingA": "Quote-based on vehicle class, distance, stops, handling, and urgency. No platform fees — we confirm capacity and site requirements in writing before dispatch.",
-      "supportingText": "GVWR under 11,000 kg · 16 ft box",
+      "faqPricingA": "Instant: enter two postal codes and pick the 16 ft box truck to see the exact price with HST in about 10 seconds. No sign-up.",
+      "supportingText": "16 ft box · up to about 3,000 kg · G licence",
       "useCasesTitle": "Best-fit use cases",
-      "useCases": "Palletized construction materials to job sites and yards: lumber, drywall, steel, aggregates, and building supply. Electrical distributor runs with wire, panel, and equipment pallets. Heavy B2B freight where vans are not enough and full tractor-trailer is not required.",
+      "useCases": "Palletized construction materials to job sites and yards: lumber, drywall, steel, aggregates, and building supply. Electrical distributor runs with wire, panel, and equipment pallets. Heavy B2B freight where vans are not enough and a tractor-trailer is not required.",
       "volumeTitle": "Delivery volume suitability",
       "volumeSuitability": "Suited to pallet-level volume — single or multi-pallet drops per run, heavy materials, and consistent daily or weekly truck routes. We match box truck capacity to your jobsite windows and distributor cut-offs.",
       "whoForTitle": "Who box truck delivery is for",
       "whoFor": "Construction material distributors, electrical wholesalers, and industrial suppliers who need reliable pallet delivery to job sites and trade accounts without running their own fleet. Ideal for recurring routes in the GTA and Ontario.",
       "serviceAreaTitle": "Local service area relevance",
-      "serviceAreaRelevance": "Box truck delivery runs in the GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and Oshawa–Durham. We confirm dock access, tailgate needs, and site constraints during onboarding.",
+      "serviceAreaRelevance": "Box truck delivery across the GTA plus about 150 km, including Hamilton, Kitchener-Waterloo, Niagara and Durham. Core areas: Vaughan, Concord, Brampton and Mississauga.",
       "ctaTitle": "Ready for box truck delivery?",
-      "ctaDescription": "Share your pallet routes and jobsite requirements. We'll confirm capacity and vehicle fit.",
-      "ctaLabel": "Get started"
+      "ctaDescription": "Two postal codes, pick the 16 ft box truck, and see your exact price in about 10 seconds.",
+      "ctaLabel": "Get instant price"
     },
     "pickupTruck": {
       "pageTitle": "Pickup Truck Delivery | Jobsite & light B2B freight | Porterchain",
-      "description": "Pickup truck delivery for jobsite material, light B2B freight, and versatile local hauls across the GTA and Ontario. Open-bed capacity with full tracking.",
-      "headline": "Pickup truck delivery for jobsite and light B2B freight",
-      "subheadline": "Pickups handle jobsite material, appliances, open-bed freight, and B2B hauls across the GTA — with the same tracking and reliability as our van fleet. Quote-based, no platform fees.",
-      "whenYouNeedTitle": "When to call for pickup truck capacity",
-      "whenYouNeed": "Call when a van is too enclosed, a box truck is too large, or your driver is out on a light material run. We dispatch pickup capacity for jobsite drops, contractor hauls, and irregular B2B freight across the GTA.",
-      "faqPricingQ": "How does pricing work for pickup truck delivery?",
-      "faqPricingA": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — request a quote and we confirm capacity for your GTA lanes in writing.",
+      "description": "Cargo van delivery for jobsite material, light B2B freight, and versatile local hauls across the GTA and Ontario. Open-bed capacity with full tracking.",
+      "headline": "Cargo van delivery for jobsite and light B2B freight",
+      "subheadline": "Pickups handle jobsite material, appliances, open-bed freight, and B2B hauls across the GTA — with the same tracking and reliability as our van fleet. Instant price, no platform fees.",
+      "whenYouNeedTitle": "When to call for cargo van capacity",
+      "whenYouNeed": "Call when a van is too enclosed, a box truck is too large, or your driver is out on a light material run. We dispatch van capacity for jobsite drops, contractor hauls, and irregular B2B freight across the GTA.",
+      "faqPricingQ": "How does pricing work for cargo van delivery?",
+      "faqPricingA": "Instant: enter two postal codes and pick a vehicle to see the exact price with HST in about 10 seconds.",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "Jobsite material and light construction hauls, appliance and equipment delivery, open-bed B2B freight, and site deliveries where tailgate access matters.",
       "volumeTitle": "Delivery volume suitability",
-      "volumeSuitability": "Ideal for single-stop or multi-stop runs with bulky items, mixed loads, or site deliveries where tailgate access matters. Scale with additional pickup routes as volume grows.",
+      "volumeSuitability": "Ideal for single-stop or multi-stop runs with bulky items, mixed loads, or site deliveries where tailgate access matters. Scale with additional routes as volume grows.",
       "whoForTitle": "Who pickup delivery is for",
       "whoFor": "E-commerce furniture brands, appliance retailers, marketplace sellers, contractors needing light material runs, and merchants with irregular bulky freight across the GTA.",
       "serviceAreaTitle": "Local service area relevance",
-      "serviceAreaRelevance": "Pickup routes across the GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and Oshawa–Durham. Matched to urban, suburban, and jobsite access requirements.",
-      "ctaTitle": "Ready for pickup truck delivery?",
+      "serviceAreaRelevance": "Pickup routes across the GTA, Hamilton, Kitchener-Waterloo, Niagara, and Oshawa–Durham. Matched to urban, suburban, and jobsite access requirements.",
+      "ctaTitle": "Ready for cargo van delivery?",
       "ctaDescription": "Share your freight profile and routes. We'll confirm vehicle fit and capacity.",
       "ctaLabel": "Get started"
     },
     "cargoVan": {
-      "pageTitle": "Cargo Van Delivery | E-commerce & wholesale routes | Porterchain",
-      "description": "High-roof cargo van delivery for e-commerce, wholesale, and multi-stop B2B routes across the GTA. More capacity than an SUV, agile access than a box truck.",
+      "pageTitle": "Cargo Van Delivery GTA | Same-Day & Next-Day | PorterChain",
+      "description": "Cargo van delivery across the GTA for e-commerce, wholesale and multi-stop business runs. Up to about 900 kg. Exact price in 10 seconds, live tracking, photo proof.",
       "headline": "Cargo van delivery for high-volume parcel routes",
-      "subheadline": "High-roof cargo vans for e-commerce fulfillment, wholesale replenishment, and multi-stop routes across the GTA — enclosed capacity without a full box truck. Quote-based, no platform fees.",
+      "subheadline": "Cargo vans (up to about 900 kg) for e-commerce orders, wholesale replenishment and multi-stop runs across the GTA. Instant price, no sign-up.",
       "whenYouNeedTitle": "When to call for cargo van capacity",
-      "whenYouNeed": "Call when parcel volume outgrows sedans and SUVs, your van fleet is full, or wholesale routes need enclosed capacity today. We dispatch high-roof cargo vans with multi-stop tracking and proof across the GTA.",
+      "whenYouNeed": "Call when parcel volume outgrows a sedan or SUV, your own van is full, or a wholesale run needs enclosed space today. Every stop has live tracking and photo proof.",
       "faqPricingQ": "How does pricing work for cargo van delivery?",
-      "faqPricingA": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — we confirm capacity for your GTA routes in writing before dispatch.",
+      "faqPricingA": "Instant: enter two postal codes and pick the cargo van to see the exact price with HST in about 10 seconds. No sign-up.",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "E-commerce and D2C multi-stop routes, wholesale drops to retailers, plumbing and electrical counter stock, subscription boxes, and recurring B2B replenishment across the GTA.",
       "volumeTitle": "Delivery volume suitability",
@@ -1507,18 +1548,18 @@
       "whoForTitle": "Who cargo van delivery is for",
       "whoFor": "E-commerce brands, distributors, and merchants scaling parcel volume in Toronto and the GTA without owning a van fleet.",
       "serviceAreaTitle": "Local service area relevance",
-      "serviceAreaRelevance": "Cargo van delivery in Toronto, Mississauga, Brampton, Vaughan, Hamilton, and Ontario metros — same tracking and POD standards as our full vehicle lineup.",
+      "serviceAreaRelevance": "Cargo van delivery across the GTA plus about 150 km, with core areas in Vaughan, Concord, Brampton and Mississauga. Same tracking and photo proof on every vehicle.",
       "ctaTitle": "Ready for cargo van delivery?",
-      "ctaDescription": "Share your routes and parcel profile. We'll match van capacity to your program.",
-      "ctaLabel": "Get started"
+      "ctaDescription": "Two postal codes, pick the cargo van, and see your exact price in about 10 seconds.",
+      "ctaLabel": "Get instant price"
     }
   },
   "vehicle": {
     "title": "Vehicles Porterchain supports",
-    "description": "Cars (sedans/SUVs), vans, G-license trucks, and cargo bikes. We match the vehicle to your run: small parcels and urban same-day, multi-stop routes, pallets, or heavy B2B. Capacity scales to your volume.",
+    "description": "Sedans, SUVs, cargo vans and 16 ft box trucks. We match the vehicle to your run: small parcels, multi-stop routes, cartons or pallets.",
     "cars": "Cars",
     "vans": "Vans",
-    "bikes": "Cargo bikes",
+    "bikes": "Vans",
     "other": "Other"
   },
   "nicheLanding": {
@@ -1529,7 +1570,7 @@
       },
       "hero": {
         "title": "Construction material delivery in the GTA",
-        "subtitle": "For building supply distributors, general contractors, project managers, and site supers — same-day urgent, recurring yard-to-jobsite routes, and fleet overflow with timed windows, site access coordination, and proof on every drop. Quote-based capacity — request a written quote."
+        "subtitle": "For building supply distributors, general contractors, project managers, and site supers — same-day urgent, recurring yard-to-jobsite routes, and fleet overflow with timed windows, site access coordination, and proof on every drop. Instant price, no sign-up."
       },
       "painPoints": {
         "title": "Construction delivery challenges",
@@ -1560,13 +1601,13 @@
       },
       "coverage": {
         "title": "Ontario coverage for construction delivery",
-        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, and expanding regions — same reliability in every zone."
+        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, Niagara, and nearby areas within about 150 km — same reliability in every zone."
       },
       "onboarding": {
         "title": "Simple onboarding for distributors and contractors",
         "description": "Get set up for jobsite delivery without building an in-house fleet.",
         "step1Title": "Connect",
-        "step1Description": "Share volume, service areas, and typical materials. We align capacity and SLAs.",
+        "step1Description": "Share volume, service areas, and typical materials. We match the right vehicle and window.",
         "step2Title": "We deliver",
         "step2Description": "Drivers run your routes with live tracking and proof of delivery on every stop.",
         "step3Title": "You stay in control",
@@ -1587,11 +1628,11 @@
         "q6": "Is proof of delivery included for billing and disputes?",
         "a6": "Every stop includes photo proof, digital signature where required, GPS-backed timestamps, and a shareable tracking link — documentation your finance and legal teams can attach to invoices.",
         "q7": "What GTA areas do you serve for construction delivery?",
-        "a7": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo, and expanding Ontario metros — same process for yard, counter, and jobsite stops."
+        "a7": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo, and nearby areas within about 150 km — same process for yard, counter, and jobsite stops."
       },
       "cta": {
         "title": "Get a quote for your jobsite lanes",
-        "description": "Tell us your materials, urgency, and GTA service areas. Same-day, urgent, or recurring — we respond within one business day with vehicle fit and a written quote.",
+        "description": "Tell us your materials and GTA areas, or price it yourself in about 10 seconds with two postal codes and a vehicle.",
         "primary": "Get a quote",
         "secondary": "Contact us"
       },
@@ -1609,7 +1650,7 @@
           },
           "contractor": {
             "title": "General contractors & trade contractors",
-            "description": "When the supplier truck no-shows or sends the wrong vehicle, your crew still has a pour, inspection, or rough-in tomorrow. Timed jobsite windows, gate and access notes, pickup through box truck matched to site constraints."
+            "description": "When the supplier truck no-shows or sends the wrong vehicle, your crew still has a pour, inspection, or rough-in tomorrow. Timed jobsite windows, gate and access notes, sedan through box truck matched to site constraints."
           },
           "projectManager": {
             "title": "Project managers & site supers",
@@ -1629,7 +1670,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, commercial insurance and COI on request, and SLA or MSA exhibits for enterprise construction programs."
+            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, $2,500 parcel coverage."
           }
         }
       }
@@ -1641,7 +1682,7 @@
       },
       "hero": {
         "title": "Electrical distribution delivery in the GTA",
-        "subtitle": "For electrical wholesalers, contractors, project managers, and site supers — recurring counter-to-jobsite routes, same-day wire and panel capacity, and fleet overflow with tracking and proof on every shipment. Quote-based — request a written quote."
+        "subtitle": "For electrical wholesalers, contractors, project managers, and site supers — recurring counter-to-jobsite routes, same-day wire and panel capacity, and fleet overflow with tracking and proof on every shipment. Instant price, no sign-up."
       },
       "painPoints": {
         "title": "Delivery needs for electrical distributors",
@@ -1672,7 +1713,7 @@
       },
       "coverage": {
         "title": "Service areas for electrical delivery",
-        "description": "GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and Ontario regions — consistent local ops for wholesale delivery."
+        "description": "GTA, Hamilton, Kitchener-Waterloo, Niagara, and Ontario regions — consistent local ops for wholesale delivery."
       },
       "onboarding": {
         "title": "Onboarding for electrical wholesalers",
@@ -1699,7 +1740,7 @@
         "q6": "Is proof of delivery included for billing disputes?",
         "a6": "Photo proof, signatures where required, GPS timestamps, and tracking history on every stop — documentation for AR and commercial disputes.",
         "q7": "What areas do you serve for electrical wholesale delivery?",
-        "a7": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, London, Niagara, and surrounding Ontario regions."
+        "a7": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, Niagara, and surrounding Ontario regions."
       },
       "cta": {
         "title": "Get a quote for electrical delivery lanes",
@@ -1741,7 +1782,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Shipment-level proof with timestamps for billing disputes, commercial insurance and COI for vendor review, and MSA or SLA exhibits for enterprise electrical programs."
+            "description": "Shipment-level proof with timestamps for billing disputes, $2,500 parcel coverage."
           }
         }
       }
@@ -1853,7 +1894,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Proof of delivery with shipment reference for billing disputes, COI for vendor review, and enterprise SLA or MSA documentation on request."
+            "description": "Proof of delivery with shipment reference for billing disputes, $2,500 parcel coverage."
           }
         }
       }
@@ -1865,7 +1906,7 @@
       },
       "hero": {
         "title": "Delivery capacity built for coffee roasters",
-        "subtitle": "Wholesale, café, and subscription routes with matched capacity and tracking — you roast; we run the last mile. Quote-based — request a written quote."
+        "subtitle": "Wholesale, café and subscription deliveries across the GTA by sedan, SUV, van or box truck, with tracking and photo proof. Instant price, no sign-up."
       },
       "painPoints": {
         "title": "Delivery challenges for coffee roasters",
@@ -1877,12 +1918,12 @@
         "title": "Porterchain for coffee: local delivery capacity",
         "description": "We partner with local coffee brands to run recurring and same-day delivery. One partner for wholesale drops, café routes, and subscription — predictable capacity and tracking your cafés and subscribers expect.",
         "bullet1": "Scheduled and same-day routes that match your roast and ship cycles",
-        "bullet2": "Cargo bikes and vans where density and freshness matter",
+        "bullet2": "Vans and vans where density and freshness matter",
         "bullet3": "Live tracking and ETAs for cafés and subscription customers"
       },
       "vehicleFit": {
         "title": "Vehicle fit for coffee delivery",
-        "description": "Cargo bikes for urban café drops and high-density runs; vans for wholesale routes and equipment. We match the right vehicle to the run so beans and gear get there when you need them."
+        "description": "Vans for urban café drops and high-density runs; vans for wholesale routes and equipment. We match the right vehicle to the run so beans and gear get there when you need them."
       },
       "workflow": {
         "title": "Typical delivery workflow for roasters",
@@ -1931,24 +1972,24 @@
       },
       "hero": {
         "title": "Delivery built for pharmacy and medical",
-        "subtitle": "Vehicle-and-driver capacity for GTA pharmacy and medical lanes — prescription runs, recurring routes, and fleet overflow with chain-of-custody proof. Quote-based; request a written quote."
+        "subtitle": "Same-day and next-day pharmacy and medical delivery across the GTA, with live tracking and photo proof. Coolers for items that must stay cool. Instant price, no sign-up."
       },
       "painPoints": {
         "title": "Delivery needs for pharmacies and healthcare",
-        "item1": "Prescription deliveries to patients on time, with clear chain of custody",
+        "item1": "Prescription deliveries to patients on time, with clear proof of delivery",
         "item2": "Pharmacy-to-patient logistics and recurring delivery routes without in-house fleet",
-        "item3": "Managing time-sensitive and temperature-controlled runs at scale"
+        "item3": "Keeping time-sensitive medical items on schedule"
       },
       "solution": {
         "title": "Porterchain for pharmacy: reliable delivery for local pharmacies",
         "description": "We partner with local pharmacies and healthcare suppliers for prescription and medical supply delivery. Trackable handling, route efficiency, and full visibility so you and your patients stay informed.",
-        "bullet1": "Trackable handling and chain-of-custody proof for audit-ready workflows",
+        "bullet1": "Live tracking and photo proof of delivery on every run",
         "bullet2": "Efficient recurring routes and time windows that fit your pharmacy operations",
         "bullet3": "One dashboard for dispatch, status, and reporting — and shareable tracking for patients"
       },
       "vehicleFit": {
         "title": "Vehicle fit for pharmacy and medical delivery",
-        "description": "Cars and vans for prescription and standard medical runs; we work with you on temperature-controlled and specialty handling where required. Vehicles and processes aligned to your workflow needs."
+        "description": "Sedans, SUVs and vans for prescription and medical runs. Items that must stay cool travel in coolers; we do not run refrigerated vehicles."
       },
       "workflow": {
         "title": "Route efficiency and delivery workflow",
@@ -1975,14 +2016,14 @@
       },
       "faq": {
         "title": "Frequently asked questions",
-        "q1": "Do you support temperature-controlled delivery?",
-        "a1": "We work with you on requirements. Our capacity and processes can support temperature-controlled and specialty handling where we operate.",
-        "q2": "How is chain of custody handled?",
+        "q1": "Can you keep medical items cool?",
+        "a1": "Yes, with coolers. For medical deliveries that need to stay cool we pack them in coolers. We do not run refrigerated vehicles.",
+        "q2": "How is proof of delivery handled?",
         "a2": "Every shipment is tracked from pickup to delivery. You get a clear audit trail and status in one dashboard.",
         "q3": "Can patients or partners track their delivery?",
         "a3": "Yes. Each shipment has a tracking link you can share, with status and ETA in real time.",
         "q4": "How does pricing work for pharmacy and medical delivery?",
-        "a4": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — request a quote and we confirm capacity for your lanes."
+        "a4": "Instant: enter two postal codes and a vehicle to see the exact price with HST in about 10 seconds."
       },
       "cta": {
         "title": "Ready to run your pharmacy delivery with us?",
@@ -2062,16 +2103,16 @@
     "chocolate": {
       "meta": {
         "title": "Chocolate & confectionery delivery | Local & recurring routes for makers and retailers",
-        "description": "Porterchain delivers for chocolate makers and confectioners. Recurring and same-day routes to retailers, cafés, and partners. Temperature-aware, trackable, one partner."
+        "description": "Same-day and next-day delivery for chocolate makers and confectioners across the GTA: careful handling, live tracking and photo proof."
       },
       "hero": {
         "title": "Delivery built for chocolate and confectionery",
-        "subtitle": "Get product to retailers, cafés, and partners on schedule. We handle the last mile so you focus on the craft — temperature-aware handling and trackable delivery."
+        "subtitle": "Get product to retailers, cafés and partners on schedule. We handle the last mile with careful handling, live tracking and photo proof."
       },
       "painPoints": {
         "title": "Delivery challenges for chocolate makers",
         "item1": "Getting product to retailers and cafés on time without in-house fleet",
-        "item2": "Temperature and handling that protect quality in transit",
+        "item2": "Careful handling that protects product in transit",
         "item3": "Recurring routes and same-day drops that scale with seasonal demand"
       },
       "solution": {
@@ -2097,13 +2138,13 @@
       },
       "vehicleFit": {
         "title": "Vehicle fit for chocolate and confectionery",
-        "description": "Cargo vans and sedans for café drops and retail replenishment; careful handling for temperature-sensitive product in transit."
+        "description": "Cargo vans and sedans for café drops and retail replenishment, with careful handling in transit."
       },
       "onboarding": {
         "title": "Simple onboarding for chocolate makers",
         "description": "Three steps to predictable local delivery. No fleet to run.",
         "step1Title": "Connect",
-        "step1Description": "Share your volume, routes, and handling needs. We align capacity and SLAs.",
+        "step1Description": "Share your volume, routes, and handling needs. We match the right vehicle and window.",
         "step2Title": "We deliver",
         "step2Description": "Drivers complete pickup and delivery with tracking on every shipment.",
         "step3Title": "You stay in control",
@@ -2130,7 +2171,7 @@
     "labSampleDelivery": {
       "meta": {
         "title": "Lab sample delivery | Specimen transport & recurring routes for labs",
-        "description": "Porterchain supports lab sample transportation and specimen delivery. Scheduled pickup, recurring routes, and reliable transport with chain-of-custody proof."
+        "description": "Lab sample and specimen delivery across the GTA: scheduled pickups, same-day runs, live tracking and photo proof. Coolers for samples that must stay cool."
       },
       "hero": {
         "title": "Delivery built for lab sample and specimen transport",
@@ -2185,7 +2226,7 @@
         "q3": "Can we run recurring routes for multiple collection sites?",
         "a3": "Yes. We align capacity to your recurring routes and service areas — one partner for your lab sample workflows.",
         "q4": "How does pricing work for lab sample delivery?",
-        "a4": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — request a quote and we confirm capacity for your specimen routes."
+        "a4": "Instant: enter two postal codes and a vehicle to see the exact price with HST in about 10 seconds."
       },
       "cta": {
         "title": "Ready to run your lab sample delivery with us?",
@@ -2199,7 +2240,7 @@
     "ecommerce": {
       "meta": {
         "title": "E-commerce delivery Toronto & GTA | Last-mile fulfillment | Porterchain",
-        "description": "Last-mile delivery capacity for e-commerce brands in the GTA and Ontario. Same-day, recurring routes, vans and trucks, full tracking — one capacity partner for D2C and retail fulfillment. Quote-based — request a written quote."
+        "description": "Last-mile delivery capacity for e-commerce brands in the GTA and Ontario. Same-day, recurring routes, vans and trucks, full tracking — one capacity partner for D2C and retail fulfillment. Instant price, no sign-up."
       },
       "hero": {
         "title": "E-commerce delivery built for the GTA",
@@ -2220,7 +2261,7 @@
       },
       "vehicleFit": {
         "title": "Right vehicle for every order",
-        "description": "Sedans and SUVs for small parcels; cargo vans for multi-stop D2C; pickups and box trucks for furniture, appliances, and bulk fulfillment."
+        "description": "Sedans and SUVs for small parcels; cargo vans for multi-stop D2C; box trucks for furniture, appliances, and bulk fulfillment."
       },
       "workflow": {
         "title": "How e-commerce delivery works",
@@ -2234,7 +2275,7 @@
       },
       "coverage": {
         "title": "GTA and Ontario coverage",
-        "description": "Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, and surrounding regions."
+        "description": "Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, Niagara, and surrounding regions."
       },
       "onboarding": {
         "title": "Onboarding for e-commerce brands",
@@ -2251,11 +2292,11 @@
         "q1": "Do you handle same-day e-commerce delivery in Toronto?",
         "a1": "Yes. Same-day delivery is available in our GTA service areas subject to cut-off times and capacity. We confirm windows during onboarding.",
         "q2": "What vehicles do you use for e-commerce?",
-        "a2": "Sedans and SUVs for small parcels; cargo vans for multi-stop D2C; pickups and box trucks for larger items like furniture and appliances.",
+        "a2": "Sedans and SUVs for small parcels; cargo vans for multi-stop D2C; box trucks for larger items like furniture and appliances.",
         "q3": "Can we integrate via API or CSV?",
         "a3": "Yes. Start with CSV or email and move to API when ready. We support structured order intake for recurring and on-demand runs.",
         "q4": "How does pricing work for e-commerce delivery?",
-        "a4": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — request a quote and we confirm capacity for your GTA fulfillment lanes."
+        "a4": "Instant: enter two postal codes and a vehicle to see the exact price with HST in about 10 seconds."
       },
       "cta": {
         "title": "Ready for reliable e-commerce delivery?",
@@ -2391,7 +2432,7 @@
         "title": "When food distributors and wholesalers need capacity",
         "item1": "Time-sensitive wholesale food drops",
         "item2": "Recurring routes to restaurants and retail",
-        "item3": "Chain-of-custody style proof on every stop"
+        "item3": "Photo proof on every stop"
       },
       "solution": {
         "title": "Porterchain capacity (draft)",
@@ -2508,7 +2549,7 @@
     },
     "webhooks": {
       "title": "Webhooks & delivery events",
-      "description": "Push status, exception, and proof events to your WMS or OMS. Schemas and signing live in developer docs; commercial capacity still starts with a written quote."
+      "description": "Push status, exception and proof events to your WMS or OMS. Schemas and signing live in the developer docs."
     }
   },
   "pricing": {
@@ -2537,7 +2578,7 @@
     },
     "customProfile": {
       "title": "Custom pricing by merchant profile",
-      "description": "Your volume, frequency, vehicle needs, and special requirements (e.g. time windows, temperature) shape a custom profile. We don't apply a single public rate card — we propose pricing that fits your operations and confirm it in writing before launch."
+      "description": "Your volume, frequency and vehicle needs shape a merchant rate card. Every single delivery is still priced instantly by the calculator."
     },
     "trust": {
       "description": "We confirm pricing and terms before you commit. No hidden fees. You'll know your cost structure and can plan with confidence."
@@ -2673,13 +2714,13 @@
   "serviceAreasIndex": {
     "meta": {
       "title": "B2B Delivery Service Areas GTA | Toronto, Mississauga, Brampton & Ontario | PorterChain",
-      "description": "B2B delivery capacity across Ontario metros — Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, London, Niagara. Same-day, recurring routes, fleet overflow with tracking and proof."
+      "description": "B2B delivery capacity across Ontario metros — Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, Niagara. Same-day, recurring routes, fleet overflow with tracking and proof."
     },
     "breadcrumb": "Service areas",
     "title": "Where we deliver",
     "description": "B2B delivery capacity across Ontario metros — select your city for local routes, vehicle options, and quote paths.",
     "regionsListTitle": "Major regions we serve",
-    "hubIntro": "Same-day urgent, recurring routes, and fleet overflow — each city page includes coverage detail, industries served, and how to get a written quote.",
+    "hubIntro": "Same-day and next-day delivery across the GTA plus about 150 km. Each core-area page shows coverage, vehicles and how to get an instant price.",
     "hero": {
       "badge": "Service areas",
       "title": "B2B delivery capacity across Ontario metros",
@@ -2687,7 +2728,7 @@
     },
     "coverage": {
       "title": "Local B2B delivery coverage",
-      "description": "GTA (Toronto, Mississauga, Brampton, Vaughan, Markham), Durham (Ajax, Pickering, Oshawa), Halton (Oakville, Burlington), Southwestern Ontario (Kitchener–Waterloo, Cambridge, Guelph, Hamilton, London), and Niagara — same reliability and local ops in every zone."
+      "description": "GTA (Toronto, Mississauga, Brampton, Vaughan, Markham), Durham (Ajax, Pickering, Oshawa), Halton (Oakville, Burlington), Southwestern Ontario (Kitchener–Waterloo, Cambridge, Guelph, Hamilton, ), and Niagara — same reliability and local ops in every zone."
     },
     "regions": {
       "gta": {
@@ -2704,7 +2745,7 @@
       },
       "southwest": {
         "label": "Southwestern Ontario",
-        "description": "Kitchener–Waterloo, Hamilton, London, Cambridge, and Guelph — manufacturing, food, and medical freight."
+        "description": "Kitchener–Waterloo, Hamilton, Cambridge, and Guelph — manufacturing, food, and medical freight."
       },
       "niagara": {
         "label": "Niagara",
@@ -2874,7 +2915,7 @@
         "title": "Porterchain in your area",
         "description": "One partner for recurring routes and same-day runs. Local drivers and capacity that match your volume.",
         "bullet1": "Scheduled and same-day routes that fit your operations",
-        "bullet2": "Cars, vans, trucks, and cargo bikes where you need them",
+        "bullet2": "Sedan, SUV, cargo van or 16 ft box truck, matched to your load",
         "bullet3": "Live tracking and ETAs for you and your customers"
       },
       "industries": {
@@ -2897,7 +2938,7 @@
       },
       "vehicles": {
         "title": "Vehicle options",
-        "description": "Cars, vans, trucks, and cargo bikes where you need them. We match the right vehicle to your volume and service area — urban same-day, multi-stop routes, or B2B. One partner, one dashboard, predictable capacity."
+        "description": "Sedan, SUV, cargo van or 16 ft box truck. We match the right vehicle to your load and area."
       },
       "onboarding": {
         "title": "Simple onboarding",
@@ -2926,7 +2967,7 @@
     "toronto": {
       "meta": {
         "title": "B2B delivery Toronto & GTA | Same-day, recurring & fleet overflow | Porterchain",
-        "description": "B2B delivery in Toronto and the GTA. Same-day, recurring routes, jobsite delivery, wholesale distribution, and fleet overflow for businesses. Cargo vans, pickups, and box trucks with live tracking. Get a quote."
+        "description": "B2B delivery in Toronto and the GTA. Same-day, recurring routes, jobsite delivery, wholesale distribution, and fleet overflow for businesses. Sedans, SUVs, cargo vans and box trucks with live tracking. Get instant price."
       },
       "hero": {
         "title": "B2B delivery capacity in Toronto and the GTA",
@@ -2942,7 +2983,7 @@
         "title": "Porterchain in Toronto and the GTA",
         "description": "One capacity partner for downtown runs, Peel-York cross-GTA lanes, and suburban multi-stop distribution. Professional drivers, vehicles matched to pallet weight and site access, and full tracking from warehouse to jobsite or store.",
         "bullet1": "Same-day urgent, scheduled recurring, and fleet overflow across Toronto, Mississauga, Brampton, Vaughan, and Markham",
-        "bullet2": "Sedans through 20 ft box trucks for documents, trade freight, construction materials, and retail replenishment",
+        "bullet2": "Sedans through 16 ft box truck for documents, trade freight, construction materials, and retail replenishment",
         "bullet3": "Live tracking, photo proof, and digital signatures on every B2B shipment"
       },
       "industries": {
@@ -2965,7 +3006,7 @@
       },
       "vehicles": {
         "title": "Vehicle options in Toronto",
-        "description": "Cars, vans, trucks, and cargo bikes across the GTA. We match the right vehicle to your volume — downtown same-day, suburban multi-stop routes, or cross-GTA B2B. One partner, one dashboard, predictable capacity."
+        "description": "Sedan, SUV, cargo van or 16 ft box truck across the GTA, matched to your load."
       },
       "onboarding": {
         "title": "Simple onboarding for Toronto merchants",
@@ -2999,7 +3040,7 @@
     "mississauga": {
       "meta": {
         "title": "B2B delivery Mississauga & Peel | Distribution, overflow & same-day | Porterchain",
-        "description": "B2B delivery in Mississauga and Peel Region. Warehouse-to-store, wholesale distribution, fleet overflow, and same-day capacity for businesses near Pearson and the 401 corridor. Cargo vans and box trucks. Get a quote."
+        "description": "B2B delivery in Mississauga and Peel Region. Warehouse-to-store, wholesale distribution, fleet overflow, and same-day capacity for businesses near Pearson and the 401 corridor. Cargo vans and box trucks. Get instant price."
       },
       "hero": {
         "title": "B2B delivery capacity in Mississauga and Peel",
@@ -3015,7 +3056,7 @@
         "title": "Porterchain in Mississauga and Peel",
         "description": "One capacity partner for warehouse distribution, counter-to-jobsite trade delivery, and cross-Peel lanes. Professional drivers who know business parks, loading docks, and suburban congestion patterns.",
         "bullet1": "Recurring wholesale routes, same-day urgent, and fleet overflow across Mississauga, Brampton, and Peel",
-        "bullet2": "Cargo vans, Sprinter vans, pickups, and box trucks for pallet freight, trade stock, and retail replenishment",
+        "bullet2": "Cargo vans and 16 ft box trucks for pallets, trade stock and retail replenishment",
         "bullet3": "Live tracking and proof of delivery for ops teams and customer-facing ETAs"
       },
       "industries": {
@@ -3072,7 +3113,7 @@
     "brampton": {
       "meta": {
         "title": "B2B delivery Brampton & Peel | Wholesale, construction & overflow | Porterchain",
-        "description": "B2B delivery in Brampton and Peel. Wholesale distribution, construction supply, fleet overflow, and recurring routes for one of Canada's fastest-growing logistics corridors. Box trucks and cargo vans. Get a quote."
+        "description": "B2B delivery in Brampton and Peel. Wholesale distribution, construction supply, fleet overflow, and recurring routes for one of Canada's fastest-growing logistics corridors. Box trucks and cargo vans. Get instant price."
       },
       "hero": {
         "title": "B2B delivery capacity in Brampton and Peel",
@@ -3086,7 +3127,7 @@
       },
       "solution": {
         "title": "Porterchain in Brampton and Peel",
-        "description": "One capacity partner for trade counter runs, warehouse distribution, and jobsite delivery across Brampton and Peel. Pickups, cargo vans, and box trucks matched to pipe, pallet, and construction freight.",
+        "description": "One capacity partner for trade counter runs, warehouse distribution, and jobsite delivery across Brampton and Peel. Cargo vans and box trucks matched to pipe, pallet, and construction freight.",
         "bullet1": "Recurring wholesale routes, same-day urgent, and fleet overflow from Heart Lake to the 407 corridor",
         "bullet2": "Pickups and box trucks for construction materials, electrical, plumbing, and palletized stock",
         "bullet3": "Live tracking, photo proof, and digital signatures on every B2B shipment"
@@ -3145,7 +3186,7 @@
     "vaughan": {
       "meta": {
         "title": "Local delivery Vaughan | Same-day courier York Region | Porterchain",
-        "description": "Porterchain delivers in Vaughan and York Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Vaughan and York Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Vaughan and York Region",
@@ -3205,7 +3246,7 @@
     "markham": {
       "meta": {
         "title": "Local delivery Markham | Same-day courier York Region | Porterchain",
-        "description": "Porterchain delivers in Markham and York Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Markham and York Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Markham and York Region",
@@ -3265,7 +3306,7 @@
     "oakville": {
       "meta": {
         "title": "Local delivery Oakville | Same-day courier Halton | Porterchain",
-        "description": "Porterchain delivers in Oakville and Halton. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Oakville and Halton. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Oakville and Halton",
@@ -3325,7 +3366,7 @@
     "burlington": {
       "meta": {
         "title": "Local delivery Burlington | Same-day courier Halton | Porterchain",
-        "description": "Porterchain delivers in Burlington and Halton. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Burlington and Halton. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Burlington and Halton",
@@ -3385,7 +3426,7 @@
     "cambridge": {
       "meta": {
         "title": "Local delivery Cambridge | Same-day courier Region of Waterloo | Porterchain",
-        "description": "Porterchain delivers in Cambridge and the Region of Waterloo. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Cambridge and the Region of Waterloo. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Cambridge and the Region of Waterloo",
@@ -3445,7 +3486,7 @@
     "guelph": {
       "meta": {
         "title": "Local delivery Guelph | Same-day courier Guelph | Porterchain",
-        "description": "Porterchain delivers in Guelph. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Guelph. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Guelph",
@@ -3505,7 +3546,7 @@
     "hamilton": {
       "meta": {
         "title": "Local delivery Hamilton | Same-day courier Hamilton | Porterchain",
-        "description": "Porterchain delivers in Hamilton and the Golden Horseshoe. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Hamilton and the Golden Horseshoe. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Hamilton and the Golden Horseshoe",
@@ -3565,7 +3606,7 @@
     "ajax": {
       "meta": {
         "title": "Local delivery Ajax | Same-day courier Durham | Porterchain",
-        "description": "Porterchain delivers in Ajax and Durham Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Ajax and Durham Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Ajax and Durham Region",
@@ -3625,7 +3666,7 @@
     "pickering": {
       "meta": {
         "title": "Local delivery Pickering | Same-day courier Durham | Porterchain",
-        "description": "Porterchain delivers in Pickering and Durham Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Porterchain delivers in Pickering and Durham Region. Recurring and same-day parcel delivery for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Pickering and Durham Region",
@@ -3685,7 +3726,7 @@
     "kitchenerWaterloo": {
       "meta": {
         "title": "Same day courier Kitchener | Local delivery Waterloo | Porterchain",
-        "description": "Same-day courier in Kitchener and Waterloo. Local delivery across the Region of Waterloo. Recurring routes, trackable delivery, local fleet. Get a quote."
+        "description": "Same-day courier in Kitchener and Waterloo. Local delivery across the Region of Waterloo. Recurring routes, trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Kitchener-Waterloo and the Region of Waterloo",
@@ -3754,7 +3795,7 @@
     "niagara": {
       "meta": {
         "title": "Same day courier Niagara | Local delivery St. Catharines | Porterchain",
-        "description": "Same-day courier and local delivery in Niagara, St. Catharines, Niagara Falls. Recurring routes for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Same-day courier and local delivery in Niagara, St. Catharines, Niagara Falls. Recurring routes for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery across the Niagara region",
@@ -3823,7 +3864,7 @@
     "oshawa": {
       "meta": {
         "title": "Same day courier Oshawa | Local delivery Durham | Porterchain",
-        "description": "Same-day courier in Oshawa and Durham Region. Local delivery and recurring routes for merchants. Trackable delivery, local fleet. Get a quote."
+        "description": "Same-day courier in Oshawa and Durham Region. Local delivery and recurring routes for merchants. Trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in Oshawa and Durham that scales with you",
@@ -3864,7 +3905,7 @@
     "london": {
       "meta": {
         "title": "Courier in London ON | Local & same-day delivery | Porterchain",
-        "description": "Courier in London, Ontario. Local delivery and same-day courier for merchants. Recurring routes, trackable delivery, local fleet. Get a quote."
+        "description": "Courier in London, Ontario. Local delivery and same-day courier for merchants. Recurring routes, trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in London, Ontario that scales with you",
@@ -3905,7 +3946,7 @@
     "stCatharines": {
       "meta": {
         "title": "Courier in St. Catharines | Local & same-day delivery | Porterchain",
-        "description": "Courier in St. Catharines and the Niagara region. Local delivery and same-day courier for merchants. Recurring routes, trackable delivery, local fleet. Get a quote."
+        "description": "Courier in St. Catharines and the Niagara region. Local delivery and same-day courier for merchants. Recurring routes, trackable delivery, local fleet. Get instant price."
       },
       "hero": {
         "title": "Delivery in St. Catharines that scales with you",
@@ -3973,7 +4014,7 @@
         "step1Title": "Share routes",
         "step1Description": "Tell us pickup, drop, and timing.",
         "step2Title": "We confirm capacity",
-        "step2Description": "Written quote typically within one business day.",
+        "step2Description": "See the exact price instantly; we confirm the window within one business day.",
         "step3Title": "We deliver",
         "step3Description": "Tracking and proof on every stop."
       },
@@ -4012,7 +4053,7 @@
         "step1Title": "Share routes",
         "step1Description": "Tell us pickup, drop, and timing.",
         "step2Title": "We confirm capacity",
-        "step2Description": "Written quote typically within one business day.",
+        "step2Description": "See the exact price instantly; we confirm the window within one business day.",
         "step3Title": "We deliver",
         "step3Description": "Tracking and proof on every stop."
       },
@@ -4051,7 +4092,7 @@
         "step1Title": "Share routes",
         "step1Description": "Tell us pickup, drop, and timing.",
         "step2Title": "We confirm capacity",
-        "step2Description": "Written quote typically within one business day.",
+        "step2Description": "See the exact price instantly; we confirm the window within one business day.",
         "step3Title": "We deliver",
         "step3Description": "Tracking and proof on every stop."
       },
@@ -4090,7 +4131,7 @@
         "step1Title": "Share routes",
         "step1Description": "Tell us pickup, drop, and timing.",
         "step2Title": "We confirm capacity",
-        "step2Description": "Written quote typically within one business day.",
+        "step2Description": "See the exact price instantly; we confirm the window within one business day.",
         "step3Title": "We deliver",
         "step3Description": "Tracking and proof on every stop."
       },
@@ -4129,7 +4170,7 @@
         "step1Title": "Share routes",
         "step1Description": "Tell us pickup, drop, and timing.",
         "step2Title": "We confirm capacity",
-        "step2Description": "Written quote typically within one business day.",
+        "step2Description": "See the exact price instantly; we confirm the window within one business day.",
         "step3Title": "We deliver",
         "step3Description": "Tracking and proof on every stop."
       },
@@ -4168,7 +4209,7 @@
         "step1Title": "Share routes",
         "step1Description": "Tell us pickup, drop, and timing.",
         "step2Title": "We confirm capacity",
-        "step2Description": "Written quote typically within one business day.",
+        "step2Description": "See the exact price instantly; we confirm the window within one business day.",
         "step3Title": "We deliver",
         "step3Description": "Tracking and proof on every stop."
       },
@@ -4194,7 +4235,7 @@
       "sedan": "Sedan delivery",
       "suv": "SUV delivery",
       "van": "Van delivery",
-      "pickupTruck": "Pickup truck delivery",
+      "pickupTruck": "Cargo van delivery",
       "cargoVan": "Cargo van delivery",
       "mediumTruck": "Box truck delivery"
     },
@@ -4230,7 +4271,7 @@
     "vehicle": {
       "meta": {
         "titlePattern": "{segmentLabel} in {cityLabel} | Porterchain",
-        "descriptionPattern": "{segmentLabel} in {cityLabel} and {region}. Same-day and recurring routes, full tracking, proof of delivery. Get a quote."
+        "descriptionPattern": "{segmentLabel} in {cityLabel} and {region}. Same-day and recurring routes, full tracking, proof of delivery. Get instant price."
       },
       "hero": {
         "titlePattern": "{segmentLabel} in {cityLabel}",
@@ -4260,9 +4301,9 @@
         "q2": "Can I mix same-day and recurring routes?",
         "a2": "Yes. Many merchants run recurring routes and use same-day capacity for peak demand — one partner and one dashboard.",
         "q3": "How do I get a quote for {cityLabel}?",
-        "a3": "Share your typical stops, zones, and freight profile. We'll confirm vehicle fit and send a written quote for {segmentLabel} in {cityLabel}.",
+        "a3": "Share your typical stops, zones, and freight profile. We'll confirm vehicle fit and show you an exact price for {segmentLabel} in {cityLabel}.",
         "q4": "How does pricing work for {segmentLabel} in {cityLabel}?",
-        "a4": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — we confirm numbers in writing before dispatch."
+        "a4": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds."
       },
       "cta": {
         "titlePattern": "Ready for {segmentLabel} in {cityLabel}?",
@@ -4293,7 +4334,7 @@
         "descriptionPattern": "Structured logistics — not ad-hoc drivers — built for {region} merchants.",
         "bullet1": "Recurring and on-demand capacity in the same system",
         "bullet2": "Vehicles from sedans to box trucks matched to your freight",
-        "bullet3": "Audit-ready proof of delivery and live tracking"
+        "bullet3": "clear proof of delivery and live tracking"
       },
       "faq": {
         "titlePattern": "FAQ — {segmentLabel} in {cityLabel}",
@@ -4304,7 +4345,7 @@
         "q3": "How fast can we get started?",
         "a3": "Most merchants onboard in days via CSV, email, or API — we'll confirm fit for {cityLabel} on a short call.",
         "q4": "How does pricing work for {segmentLabel} in {cityLabel}?",
-        "a4": "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — confirmed in writing before dispatch."
+        "a4": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds."
       },
       "cta": {
         "titlePattern": "Start {segmentLabel} in {cityLabel}",
@@ -4345,7 +4386,7 @@
     },
     "meta": {
       "titlePattern": "{industryLabel} delivery in {cityLabel} | Porterchain",
-      "descriptionPattern": "B2B {industryLabel} delivery in {cityLabel} and {region}. Same-day, urgent, and recurring vehicle capacity with tracking and proof. Get a quote."
+      "descriptionPattern": "B2B {industryLabel} delivery in {cityLabel} and {region}. Same-day, urgent, and recurring vehicle capacity with tracking and proof. Get instant price."
     },
     "hero": {
       "titlePattern": "{industryLabel} delivery in {cityLabel}",
@@ -4359,7 +4400,7 @@
     },
     "localIntro": {
       "paragraph1": "We provide B2B vehicle-and-driver capacity for {industryLabel} shippers in {cityLabel} and the surrounding area — same-day urgent, recurring routes, and fleet overflow without hiring drivers.",
-      "paragraph2": "You share volume, zones, and urgency; we dispatch matched capacity with live tracking and proof on every stop. In {cityLabel}, routes run with quote-based pricing and no platform fees."
+      "paragraph2": "You share volume, zones, and urgency; we dispatch matched capacity with live tracking and proof on every stop. In {cityLabel}, routes run with Instant pricing and no platform fees."
     },
     "faq": {
       "titlePattern": "Frequently asked questions — {industryLabel} delivery in {cityLabel}",
@@ -4370,7 +4411,7 @@
       "q3": "Can my customers track their {industryLabel} delivery in {cityLabel}?",
       "a3": "Every shipment gets a tracking link. You can share it so customers see status and ETA in real time — same reliability whether you're in {cityLabel} or elsewhere.",
       "q4": "How does pricing work for {industryLabel} delivery in {cityLabel}?",
-      "a4": "Quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No platform fees — request a quote and we confirm capacity for {cityLabel} and {region}."
+      "a4": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds."
     },
     "cta": {
       "titlePattern": "Ready for {industryLabel} delivery in {cityLabel}?",
@@ -4448,21 +4489,21 @@
       "pharmacyMedical_toronto": {
         "meta": {
           "title": "Pharmacy & medical delivery in Toronto & GTA | Porterchain",
-          "description": "Reliable pharmacy and medical delivery across Toronto and the GTA. Temperature-sensitive handling where agreed. Trackable last-mile for patients and partners."
+          "description": "Reliable pharmacy and medical delivery across Toronto and the GTA. Coolers for medical items that must stay cool. Trackable last-mile for patients and partners."
         },
         "hero": {
           "title": "Pharmacy and medical delivery in Toronto and the GTA",
           "subtitle": "We handle the last mile for pharmacies and medical suppliers across Toronto and the GTA — trackable, auditable delivery so patients and partners get prescriptions and supplies on time."
         },
         "localIntro": {
-          "paragraph1": "Pharmacies, clinics, and medical suppliers in Toronto and the GTA need a delivery partner that takes compliance and reliability seriously. We help you get prescriptions, medical supplies, and time-sensitive shipments to patients and B2B partners across the city and surrounding regions — with clear tracking and chain-of-custody visibility.",
+          "paragraph1": "Pharmacies, clinics, and medical suppliers in Toronto and the GTA need a delivery partner that takes compliance and reliability seriously. We help you get prescriptions, medical supplies, and time-sensitive shipments to patients and B2B partners across the city and surrounding regions — with clear tracking and proof-of-delivery visibility.",
           "paragraph2": "Our Toronto-area operations are built for predictable routes and time windows. You share volume and requirements; we align capacity and handle pickup and last-mile delivery. Every shipment is tracked from pickup to drop-off, and you get a single dashboard for status and reporting. Same reliability across the core, North York, Scarborough, and the wider GTA."
         },
         "faq": {
           "title": "Frequently asked questions — Pharmacy delivery in Toronto",
           "q1": "Do you support pharmacy and medical delivery across the GTA?",
-          "a1": "Yes. We operate across Toronto and the Greater Toronto Area. We work with you on temperature-controlled and specialty handling where required. Share your zones and requirements and we'll confirm coverage and capacity for your pharmacy or medical delivery needs.",
-          "q2": "How is chain of custody handled for medical delivery in Toronto?",
+          "a1": "Yes. We operate across Toronto and the Greater Toronto Area. We work with you on cooler-packed medical items where needed. Share your zones and requirements and we'll confirm coverage and capacity for your pharmacy or medical delivery needs.",
+          "q2": "How is proof of delivery handled for medical delivery in Toronto?",
           "a2": "Every shipment is tracked from pickup to delivery. You get a clear audit trail and status in one dashboard. We align our processes to your compliance needs and time windows so patients and partners receive shipments on time.",
           "q3": "Can patients or partners track their pharmacy delivery in the GTA?",
           "a3": "Yes. Each shipment has a tracking link you can share, with status and ETA in real time. Same visibility and reliability whether you're serving the core, the suburbs, or the wider Toronto area."
@@ -4541,21 +4582,21 @@
       "pharmacyMedical_vaughan": {
         "meta": {
           "title": "Pharmacy delivery in Vaughan & York Region | Porterchain",
-          "description": "Reliable pharmacy and medical delivery in Vaughan and York Region. Temperature-controlled, auditable last-mile for patients and clinics. Compliant, trackable."
+          "description": "Reliable pharmacy and medical delivery in Vaughan and York Region. cooler-packed, auditable last-mile for patients and clinics. Compliant, trackable."
         },
         "hero": {
           "title": "Pharmacy and medical delivery in Vaughan and York Region",
           "subtitle": "We handle the last mile for pharmacies and medical suppliers across Vaughan and York Region — trackable, auditable delivery so patients and partners get prescriptions and supplies on time."
         },
         "localIntro": {
-          "paragraph1": "Pharmacies, clinics, and medical suppliers in Vaughan and York Region need a delivery partner that takes compliance and reliability seriously. We help you get prescriptions, medical supplies, and time-sensitive shipments to patients and B2B partners across Vaughan, Woodbridge, Thornhill, and the wider York area — with clear tracking and chain-of-custody visibility.",
+          "paragraph1": "Pharmacies, clinics, and medical suppliers in Vaughan and York Region need a delivery partner that takes compliance and reliability seriously. We help you get prescriptions, medical supplies, and time-sensitive shipments to patients and B2B partners across Vaughan, Woodbridge, Thornhill, and the wider York area — with clear tracking and proof-of-delivery visibility.",
           "paragraph2": "Our Vaughan-area operations are built for predictable routes and time windows. You share volume and requirements; we align capacity and handle pickup and last-mile delivery. Every shipment is tracked from pickup to drop-off, and you get a single dashboard for status and reporting. Same reliability whether you serve the 400 corridor, corporate campuses, or residential zones."
         },
         "faq": {
           "title": "Frequently asked questions — Pharmacy delivery in Vaughan",
           "q1": "Do you support pharmacy and medical delivery across Vaughan and York Region?",
-          "a1": "Yes. We operate across Vaughan and York Region. We work with you on temperature-controlled and specialty handling where required. Share your zones and requirements and we'll confirm coverage and capacity for your pharmacy or medical delivery needs.",
-          "q2": "How is chain of custody handled for medical delivery in Vaughan?",
+          "a1": "Yes. We operate across Vaughan and York Region. We work with you on cooler-packed medical items where needed. Share your zones and requirements and we'll confirm coverage and capacity for your pharmacy or medical delivery needs.",
+          "q2": "How is proof of delivery handled for medical delivery in Vaughan?",
           "a2": "Every shipment is tracked from pickup to delivery. You get a clear audit trail and status in one dashboard. We align our processes to your compliance needs and time windows so patients and partners receive shipments on time.",
           "q3": "Can patients or partners track their pharmacy delivery in Vaughan?",
           "a3": "Yes. Each shipment has a tracking link you can share, with status and ETA in real time. Same visibility and reliability across Vaughan and York Region."
@@ -4634,20 +4675,20 @@
       "chocolate_niagara": {
         "meta": {
           "title": "Chocolate & confectionery delivery in Niagara | Porterchain",
-          "description": "Recurring chocolate and confectionery delivery across the Niagara region. Temperature-aware handling, trackable delivery for craft chocolatiers and food producers. One partner."
+          "description": "Recurring chocolate and confectionery delivery across the Niagara region. Careful handling, trackable delivery for craft chocolatiers and food producers. One partner."
         },
         "hero": {
           "title": "Chocolate and confectionery delivery in the Niagara region",
-          "subtitle": "We handle the last mile for chocolatiers and food producers across Niagara — temperature-aware, trackable delivery so your product arrives in condition and on time."
+          "subtitle": "We handle the last mile for chocolatiers and food producers across Niagara — careful, trackable delivery so your product arrives in condition and on time."
         },
         "localIntro": {
-          "paragraph1": "Chocolatiers and confectionery producers in the Niagara region need a delivery partner that understands temperature sensitivity and careful handling. We help you get product to retailers, gift shops, hotels, and direct customers across St. Catharines, Niagara Falls, Niagara-on-the-Lake, and the wider Niagara area — with tracking and delivery windows that protect quality.",
+          "paragraph1": "Chocolatiers and confectionery producers in the Niagara region need a delivery partner that handles product with care. We help you get product to retailers, gift shops, hotels, and direct customers across St. Catharines, Niagara Falls, Niagara-on-the-Lake, and the wider Niagara area — with tracking and delivery windows that protect quality.",
           "paragraph2": "Whether you ship from the Bench or the Lakeshore, we align our capacity to your volume and time windows. You share routes and requirements; we handle pickup and last-mile delivery. Every shipment is tracked so you and your customers see status and ETA. Same reliability across the Niagara region — from winery partners to downtown retail."
         },
         "faq": {
           "title": "Frequently asked questions — Chocolate delivery in Niagara",
           "q1": "Do you deliver chocolate and confectionery across the Niagara region?",
-          "a1": "Yes. We cover the Niagara region including St. Catharines, Niagara Falls, Niagara-on-the-Lake, and surrounding areas. We work with you on temperature-aware handling and packaging requirements. Share your zones and we'll confirm coverage and capacity.",
+          "a1": "Yes. We cover the Niagara region including St. Catharines, Niagara Falls, Niagara-on-the-Lake, and surrounding areas. We work with you on careful handling and packaging requirements. Share your zones and we'll confirm coverage and capacity.",
           "q2": "How do you handle temperature-sensitive chocolate delivery in Niagara?",
           "a2": "We align our processes to your requirements — from ambient to cool-chain where needed. You specify handling and we plan routes and time windows accordingly. Every shipment is tracked so you and your customers have visibility from pickup to delivery.",
           "q3": "Can my retail and hotel partners track their chocolate delivery in Niagara?",
@@ -4665,28 +4706,28 @@
       "labSampleDelivery_kitchenerWaterloo": {
         "meta": {
           "title": "Lab sample delivery in Kitchener-Waterloo & Region of Waterloo | Porterchain",
-          "description": "Reliable lab sample and specimen delivery in Kitchener-Waterloo and the Region of Waterloo. Chain-of-custody, time-sensitive pickup and delivery. One partner."
+          "description": "Reliable lab sample and specimen delivery in Kitchener-Waterloo and the Region of Waterloo. proof-of-delivery, time-sensitive pickup and delivery. One partner."
         },
         "hero": {
           "title": "Lab sample delivery in Kitchener-Waterloo and the Region of Waterloo",
-          "subtitle": "We handle pickup and last-mile delivery for labs, clinics, and healthcare providers across Kitchener-Waterloo and the Region of Waterloo — trackable, auditable chain of custody so samples arrive on time."
+          "subtitle": "We handle pickup and last-mile delivery for labs, clinics, and healthcare providers across Kitchener-Waterloo and the Region of Waterloo — trackable, auditable proof of delivery so samples arrive on time."
         },
         "localIntro": {
-          "paragraph1": "Labs, clinics, and healthcare providers in Kitchener-Waterloo and the Region of Waterloo need a delivery partner that takes chain of custody and timing seriously. We help you move specimens, samples, and time-sensitive materials between sites, to reference labs, and to partners across Kitchener, Waterloo, Cambridge, and the wider region — with clear tracking and audit trails.",
+          "paragraph1": "Labs, clinics, and healthcare providers in Kitchener-Waterloo and the Region of Waterloo need a delivery partner that takes proof of delivery and timing seriously. We help you move specimens, samples, and time-sensitive materials between sites, to reference labs, and to partners across Kitchener, Waterloo, Cambridge, and the wider region — with clear tracking and audit trails.",
           "paragraph2": "Our Kitchener-Waterloo operations are built for predictable routes and time windows. You share volume and requirements; we align capacity and handle pickup and delivery. Every shipment is tracked from pickup to drop-off, and you get visibility for compliance and reporting. Same reliability across the Region of Waterloo."
         },
         "faq": {
           "title": "Frequently asked questions — Lab sample delivery in Kitchener-Waterloo",
           "q1": "Do you support lab sample and specimen delivery across Kitchener-Waterloo and the Region of Waterloo?",
-          "a1": "Yes. We operate across Kitchener, Waterloo, Cambridge, and the Region of Waterloo. We work with you on chain-of-custody and any special handling. Share your zones and requirements and we'll confirm coverage and capacity for your lab or clinic delivery needs.",
-          "q2": "How is chain of custody handled for lab sample delivery in Kitchener-Waterloo?",
+          "a1": "Yes. We operate across Kitchener, Waterloo, Cambridge, and the Region of Waterloo. We work with you on proof-of-delivery and any special handling. Share your zones and requirements and we'll confirm coverage and capacity for your lab or clinic delivery needs.",
+          "q2": "How is proof of delivery handled for lab sample delivery in Kitchener-Waterloo?",
           "a2": "Every shipment is tracked from pickup to delivery. You get a clear audit trail and status in one dashboard. We align our processes to your compliance and time-window requirements so samples and specimens arrive on time and with full visibility.",
           "q3": "Can sending and receiving sites track lab sample delivery in the Region of Waterloo?",
           "a3": "Yes. Each shipment has a tracking link you can share, with status and ETA in real time. Same visibility and reliability for labs and clinics across Kitchener-Waterloo and the region."
         },
         "cta": {
           "title": "Ready for lab sample delivery in Kitchener-Waterloo?",
-          "description": "Tell us your volume and requirements for the Region of Waterloo. We'll show you how we can run your lab sample delivery — reliably and with full chain-of-custody visibility."
+          "description": "Tell us your volume and requirements for the Region of Waterloo. We'll show you how we can run your lab sample delivery — reliably and with full proof-of-delivery visibility."
         },
         "inquiry": {
           "heading": "Get started with lab sample delivery in Kitchener-Waterloo",
@@ -4715,7 +4756,7 @@
         "title": "Porterchain fixes that",
         "description": "One partner for recurring and same-day routes. Local drivers and capacity that match your volume.",
         "bullet1": "Scheduled and same-day routes that fit your operations",
-        "bullet2": "Cars, vans, and cargo bikes — we match the right vehicle",
+        "bullet2": "Cars, vans — we match the right vehicle",
         "bullet3": "Live tracking and ETAs for you and your customers"
       },
       "vehicleFit": {
@@ -4730,7 +4771,7 @@
         "title": "Simple onboarding",
         "description": "Three steps to predictable delivery.",
         "step1Title": "Connect",
-        "step1Description": "Share your volume and service areas. We align capacity and SLAs.",
+        "step1Description": "Share your volume and service areas. We match the right vehicle and window.",
         "step2Title": "We deliver",
         "step2Description": "Our drivers pick up and deliver. You get a tracking link per shipment.",
         "step3Title": "You stay in control",
@@ -4788,12 +4829,12 @@
         "title": "Porterchain for coffee",
         "description": "One partner for recurring and same-day routes. Capacity and tracking your cafés and subscribers expect.",
         "bullet1": "Scheduled and same-day routes that match your roast and ship cycles",
-        "bullet2": "Cargo bikes and vans where density and freshness matter",
+        "bullet2": "Vans and vans where density and freshness matter",
         "bullet3": "Live tracking and ETAs — share with cafés and subscribers"
       },
       "vehicleFit": {
         "title": "Vehicle fit for coffee",
-        "description": "Cargo bikes for urban café drops; vans for wholesale and equipment. We match the right vehicle to the run."
+        "description": "Vans for urban café drops; vans for wholesale and equipment. We match the right vehicle to the run."
       },
       "serviceAreaRelevance": {
         "title": "Where we deliver",
@@ -4803,7 +4844,7 @@
         "title": "Get started in days",
         "description": "Three steps to predictable coffee delivery. No fleet to run.",
         "step1Title": "Connect",
-        "step1Description": "Share your volume, zones, and time windows. We align capacity and SLAs.",
+        "step1Description": "Share your volume, zones, and time windows. We match the right vehicle and window.",
         "step2Title": "We deliver",
         "step2Description": "Our drivers collect from your roastery and complete the route. Tracking link per shipment.",
         "step3Title": "You stay in control",
@@ -4821,7 +4862,7 @@
     "pharmacyMedical": {
       "meta": {
         "title": "Pharmacy & medical delivery | Porterchain",
-        "description": "Reliable vehicle-and-driver capacity for pharmacies and medical suppliers. Trackable handling with chain-of-custody proof. Get started in days."
+        "description": "Reliable vehicle-and-driver capacity for pharmacies and medical suppliers. Trackable handling with photo proof of delivery. Get started in days."
       },
       "hero": {
         "title": "Delivery built for pharmacy and medical",
@@ -4829,20 +4870,20 @@
       },
       "painPoints": {
         "title": "Delivery challenges in pharmacy and medical",
-        "item1": "Meeting compliance and chain-of-custody without extra overhead",
-        "item2": "Time-sensitive and temperature-controlled runs that can't slip",
+        "item1": "Meeting compliance and proof-of-delivery without extra overhead",
+        "item2": "Time-sensitive and cooler-packed runs that can't slip",
         "item3": "Scaling patient and B2B delivery without in-house fleet"
       },
       "solution": {
         "title": "Porterchain for pharmacy and medical",
-        "description": "A delivery partner focused on reliability and trackable handling. Chain-of-custody proof built for recurring volume.",
-        "bullet1": "Structured workflows and tracking for chain of custody and audit",
+        "description": "A delivery partner focused on reliability and trackable handling. proof-of-delivery proof built for recurring volume.",
+        "bullet1": "Structured workflows and tracking for proof of delivery and audit",
         "bullet2": "Capacity that fits time windows and temperature needs where required",
         "bullet3": "One dashboard for dispatch, status, and reporting"
       },
       "vehicleFit": {
         "title": "Vehicle fit",
-        "description": "Cars and vans for standard runs; we work with you on temperature-controlled and specialty requirements."
+        "description": "Cars and vans for standard runs; we work with you on cooler-packed medical items where needed."
       },
       "serviceAreaRelevance": {
         "title": "Where we deliver",
@@ -4901,7 +4942,7 @@
         "title": "Get started in days",
         "description": "Three steps to predictable beauty delivery. No fleet to run.",
         "step1Title": "Connect",
-        "step1Description": "Share your volume, channels, and service areas. We align capacity and SLAs.",
+        "step1Description": "Share your volume, channels, and service areas. We match the right vehicle and window.",
         "step2Title": "We deliver",
         "step2Description": "Our drivers handle pickup and last-mile delivery. Every order gets a tracking link.",
         "step3Title": "You stay in control",
@@ -4923,7 +4964,7 @@
       },
       "hero": {
         "title": "Delivery for construction materials",
-        "subtitle": "Vehicle-and-driver capacity for construction distributors and jobsite delivery. Vans, pickups, and trucks — predictable capacity and live tracking. Quote-based — request a written quote."
+        "subtitle": "Vehicle-and-driver capacity for construction distributors and jobsite delivery. Vans and box trucks — predictable capacity and live tracking. Instant price, no sign-up."
       },
       "painPoints": {
         "title": "Construction delivery challenges",
@@ -4954,13 +4995,13 @@
       },
       "coverage": {
         "title": "Ontario coverage for construction delivery",
-        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, and expanding regions — same reliability in every zone."
+        "description": "GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, Niagara, and nearby areas within about 150 km — same reliability in every zone."
       },
       "onboarding": {
         "title": "Simple onboarding for distributors and contractors",
         "description": "Get set up for jobsite delivery without building an in-house fleet.",
         "step1Title": "Connect",
-        "step1Description": "Share volume, service areas, and typical materials. We align capacity and SLAs.",
+        "step1Description": "Share volume, service areas, and typical materials. We match the right vehicle and window.",
         "step2Title": "We deliver",
         "step2Description": "Drivers run your routes with live tracking and proof of delivery on every stop.",
         "step3Title": "You stay in control",
@@ -5022,7 +5063,7 @@
       },
       "coverage": {
         "title": "Service areas for electrical delivery",
-        "description": "GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and Ontario regions — consistent local ops for wholesale delivery."
+        "description": "GTA, Hamilton, Kitchener-Waterloo, Niagara, and Ontario regions — consistent local ops for wholesale delivery."
       },
       "onboarding": {
         "title": "Onboarding for electrical wholesalers",
@@ -5144,7 +5185,7 @@
   "sections": {
     "coverage": {
       "title": "Where Porterchain operates",
-      "description": "Porterchain delivers in Ontario, Canada. Service areas include the Greater Toronto Area (GTA), Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, London, St. Catharines, and Niagara. Same-day and recurring routes in every zone."
+      "description": "Porterchain delivers in Ontario, Canada. Service areas include the Greater Toronto Area (GTA), Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, St. Catharines, and Niagara. Same-day and recurring routes in every zone."
     },
     "onboarding": {
       "title": "How merchant onboarding works",
@@ -5173,7 +5214,7 @@
     },
     "reliability": {
       "title": "Reliability you can count on",
-      "description": "We run delivery so your operations don't have to. Clear SLAs, live tracking, and one dashboard so you and your customers always know where things stand.",
+      "description": "We run delivery so your operations don't have to. Clear delivery windows, live tracking, and one dashboard so you and your customers always know where things stand.",
       "bullet1": "On-time delivery with agreed windows",
       "bullet2": "Live tracking and ETAs for every shipment",
       "bullet3": "Dedicated ops support when you need it"
@@ -5197,9 +5238,9 @@
       "q2": "Who does Porterchain serve?",
       "a2": "Merchants and brands with recurring parcel volume: e‑commerce, retail, subscriptions, B2B. We're built for daily or weekly delivery needs (e.g. café drops, prescription runs, D2C), not one-off moves.",
       "q3": "Where does Porterchain deliver?",
-      "a3": "Ontario, Canada. Service areas include the Greater Toronto Area, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, London, St. Catharines, and Niagara. Same-day and recurring routes in every zone.",
+      "a3": "Ontario, Canada. Service areas include the Greater Toronto Area, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, St. Catharines, and Niagara. Same-day and recurring routes in every zone.",
       "q4": "What vehicles does Porterchain use?",
-      "a4": "Cars, vans, G-license trucks, and cargo bikes. We match the vehicle to your run: sedans/SUVs for small parcels and urban same-day; vans for multi-stop and pallets; trucks for heavy B2B; cargo bikes where density and freshness matter.",
+      "a4": "Sedans, SUVs, cargo vans and 16 ft box trucks, all driven on a standard Ontario G licence. Small parcels go by sedan or SUV; cartons and multi-stop runs by van; pallets by box truck.",
       "q5": "How does merchant onboarding work?",
       "a5": "Share your volume and service areas; we confirm coverage and align capacity. Order intake can be spreadsheets, email, admin-assisted entry, or API. We agree on pricing and launch your first runs. No long forms; typically live in days, not weeks. No commitment until we've confirmed fit and pricing.",
       "q6": "How is every delivery tracked?",
@@ -5212,9 +5253,9 @@
       "whoServes": "Who Porterchain serves",
       "whoServesDesc": "Merchants and brands with recurring parcel volume: e‑commerce, retail, subscriptions, B2B. Industries we serve include coffee roasters, pharmacy and medical, cosmetics and beauty, chocolate, and lab sample delivery.",
       "whereOperates": "Where Porterchain operates",
-      "whereOperatesDesc": "Ontario, Canada. Service areas: Greater Toronto Area, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, London, St. Catharines, and Niagara.",
+      "whereOperatesDesc": "Ontario, Canada. Service areas: Greater Toronto Area, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, St. Catharines, and Niagara.",
       "vehicles": "Vehicles Porterchain supports",
-      "vehiclesDesc": "Cars (sedans/SUVs), vans, G-license trucks, and cargo bikes. We match the vehicle to your run: small parcels and urban same-day, multi-stop routes, pallets, or heavy B2B.",
+      "vehiclesDesc": "Sedans, SUVs, cargo vans and 16 ft box trucks. We match the vehicle to your run: small parcels, multi-stop routes, cartons or pallets.",
       "onboarding": "How onboarding works",
       "onboardingDesc": "Share your volume and service areas; we confirm coverage and set up order intake (spreadsheets, email, admin-assisted, or API). We agree on pricing and launch your first runs. Typically live in days, not weeks; no commitment until fit and pricing are confirmed."
     },

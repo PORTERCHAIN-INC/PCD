@@ -11,6 +11,7 @@ import HomeHowItWorks from "@/components/marketing/home/sections/HomeHowItWorks"
 import HomeTrackingDemo from "@/components/marketing/home/sections/HomeTrackingDemo";
 import HomeFaq from "@/components/marketing/home/sections/HomeFaq";
 import HomeWhy from "@/components/marketing/home/sections/HomeWhy";
+import HomePain from "@/components/marketing/home/sections/HomePain";
 import HomeCaseStudy from "@/components/marketing/home/sections/HomeCaseStudy";
 import CtaBand from "@/components/marketing/ui/CtaBand";
 import TrustBadges from "@/components/marketing/ui/TrustBadges";
@@ -35,7 +36,7 @@ function clockRange(start: string, end: string, locale: string): string {
   return `${a}–${b}`;
 }
 
-/** Connect Shopify → public Shopify-merchants page until the app has a public App Store listing. */
+/** Shopify app is submitted and in review: link to the Shopify-merchants page, labelled "in review". */
 const SHOPIFY_HREF = "/delivery/shopify-merchants";
 
 /**
@@ -109,18 +110,26 @@ export default async function HomeChooser({ locale }: { locale: string }) {
             <p className="mt-4 hidden max-w-lg text-base leading-relaxed text-white/75 sm:block sm:text-lg">
               {t("hero.subtitle")}
             </p>
+            <p className="mt-4 text-sm font-medium text-white/80" data-testid="home-risk-reversal">
+              {t("riskReversal")}
+            </p>
             <div className="mt-7 hidden flex-wrap items-center gap-3 lg:flex">
-              <LinkButton href={quoteHref} size="lg" trackSource="home-hero" trackLabel="book_now">
-                {t("hero.bookNow")}
+              <LinkButton
+                href={`#${HOME_PRICE_ANCHOR_ID}`}
+                size="lg"
+                trackSource="home-hero"
+                trackLabel="get_instant_price"
+              >
+                {t("calculator.submit")}
               </LinkButton>
               <LinkButton
-                href={SHOPIFY_HREF}
+                href={quoteHref}
                 size="lg"
                 variant="outlineOnDark"
                 trackSource="home-hero"
-                trackLabel="connect_shopify"
+                trackLabel="book_now"
               >
-                {t("hero.connectShopify")}
+                {t("hero.bookNow")}
               </LinkButton>
             </div>
             <div className="mt-8 hidden lg:block">
@@ -156,13 +165,16 @@ export default async function HomeChooser({ locale }: { locale: string }) {
       {/* 2 — Credibility: coverage facts from data + brand (no customer logos, reviews hidden) */}
       <HomeTrustStrip locale={locale} />
 
+      {/* 2b — Problem → solution */}
+      <HomePain locale={locale} />
+
       {/* 3 — Industries */}
       <HomeIndustries locale={locale} />
 
       {/* 4 — How it works */}
       <HomeHowItWorks locale={locale} />
 
-      {/* 5 — Why PorterChain (factual comparison) */}
+      {/* 5 — The usual courier vs PorterChain (contrast block, no names or prices) */}
       <HomeWhy locale={locale} promise={promise} />
 
       {/* 6 — Live tracking (static sample) */}

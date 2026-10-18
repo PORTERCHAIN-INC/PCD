@@ -120,15 +120,10 @@ export async function VehicleDeliveryPageContent({
         ]
       : []),
     ...(key === "cargoVan"
-      ? [
-          {
-            href: localePath(locale, "trade-van-delivery"),
-            label: "Trade van delivery (construction & plumbing)",
-          },
-        ]
+      ? [{ href: localePath(locale, "box-truck-delivery"), label: "16 ft box truck delivery" }]
       : []),
     ...(key === "mediumTruck"
-      ? [{ href: localePath(locale, "trade-van-delivery"), label: "Trade van delivery" }]
+      ? [{ href: localePath(locale, "cargo-van-delivery"), label: "Cargo van delivery" }]
       : []),
   ];
   const intro = v.intro ?? v.subheadline ?? v.description ?? "";

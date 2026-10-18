@@ -63,8 +63,10 @@ def main() -> int:
                     failures.append(f"{name}: missing playbook FAQ question: {expected!r}")
 
         subtitle = faq.get("subtitle", "")
-        if name == "en.json" and "businesses evaluating" not in subtitle.lower():
-            failures.append(f"{name}: faq.subtitle should target B2B evaluators")
+        if name == "en.json" and "before you book" not in subtitle.lower():
+            failures.append(
+                f"{name}: faq.subtitle should speak to people about to book"
+            )
 
     print("Home FAQ guard")
     if failures:

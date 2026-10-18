@@ -1,83 +1,84 @@
 # PorterChain — public website index for AI systems
 # https://porterchain.com
-# Navigation aid only — not a substitute for on-page content.
-# Primary human chrome: Merchants (/en/business) + Drivers (/en/vehicle-partner); SEO URLs remain indexed.
+# Navigation aid only — not a substitute for on-page content. Last reviewed: October 2026.
 
-## Primary hubs
-- https://porterchain.com/en/ — Chooser (Merchants / Drivers)
-- https://porterchain.com/en/business — Merchants hub (primary B2B capacity CTA)
-- https://porterchain.com/en/vehicle-partner — Drivers / vehicle partners hub
-- https://porterchain.com/en/merchants — Vanity → /en/business
-- https://porterchain.com/en/drivers — Vanity → /en/vehicle-partner
-
-## Key facts
-- Same-day local delivery for businesses in the Greater Toronto Area (about 150 km around downtown Toronto; 334 postal areas / FSAs).
-- Vehicles: sedan/SUV, cargo van, 16 ft box truck, all driven on a standard Ontario G licence.
-- Same-day promise: order by 11 AM, delivered 2-9 PM the same day, Monday-Saturday; each quote shows the exact window.
-- Pricing: per delivery from driving distance and vehicle, base distance included, HST shown; instant price at /en/delivery-cost-calculator.
+## What PorterChain is
+- PorterChain is a GTA business courier: same-day, next-day and urgent local delivery, supply runs and business courier for any business, by sedan, SUV, van or 16 ft box truck.
+- Run by Porterchain Inc., a GTA company founded by Ravi Chauhan. Core areas: Vaughan, Concord, Brampton and Mississauga.
 - Full entity facts: https://porterchain.com/en/facts
 
-## Company
-- https://porterchain.com/en/facts — Entity facts: coverage, hours, vehicles, pricing approach
-- https://porterchain.com/en/company — About PorterChain (entity reference)
-- https://porterchain.com/en/contact — Contact and quote requests
-- https://porterchain.com/en/trust — Trust center (SLA, DPA, MSA)
+## Key facts
+- Coverage: the GTA plus about 150 km; 334 postal areas (FSAs), checked by postal code when you price a trip.
+- Same-day promise: book by 11 AM, delivered 2-9 PM the same day, Monday to Saturday. Later bookings go the next operating day.
+- Vehicles: sedan/SUV (up to about 80 kg), cargo van (up to about 900 kg), 16 ft box truck (up to about 3,000 kg); all driven on a standard Ontario G licence.
+- Price: instant and exact from two postal codes and a vehicle, HST included, no sign-up: https://porterchain.com/en/delivery-cost-calculator
+- Coverage on parcels: $2,500 included on every parcel; optional coverage up to $25,000 for $10.
+- Proof: live tracking link and photo proof of delivery on every order.
+- Medical deliveries: items that must stay cool travel in coolers; no refrigerated vehicles.
+- Payment: merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe).
+- Office hours (Toronto time): Monday-Friday 8 AM-6 PM, Saturday 9 AM-2 PM.
+- Shopify: the PorterChain Shopify app is submitted and in review with Shopify (not yet listed in the App Store).
 
-## Services & capacity
-- https://porterchain.com/en/local-delivery — Same-day, urgent, and scheduled B2B delivery in Ontario
-- https://porterchain.com/en/business#pricing — How pricing works (quote-based capacity on merchants hub)
-- https://porterchain.com/en/platform — How PorterChain operates capacity behind the network
-- https://porterchain.com/en/how-porterchain-works — How capacity booking works
+## Start here
+- https://porterchain.com/en — Home: instant price, how it works, FAQ
+- https://porterchain.com/en/delivery-cost-calculator — Instant price between two GTA postal codes
+- https://porterchain.com/en/business — Business accounts (merchant rate cards, Interac billing)
+- https://porterchain.com/en/faq — Questions, answered
+- https://porterchain.com/en/track — Track a delivery
+- https://porterchain.com/en/contact — Contact
 
-## Same-day delivery by industry and area
-- https://porterchain.com/en/delivery — Hub: 5 industries x 18 GTA areas (answer-first area guides)
-- https://porterchain.com/en/delivery-cost-calculator — Instant price between two GTA postal codes (live pricing engine, HST included, no sign-up)
-- https://porterchain.com/en/delivery/shopify-merchants — Shopify & e-commerce merchants (same-day rates at checkout)
-- https://porterchain.com/en/delivery/pharmacy — Pharmacy & lab courier (signature, ID check, chain-of-custody times)
+## Same-day delivery by type (5 delivery types)
+- https://porterchain.com/en/delivery — Hub: same-day delivery by type
+- https://porterchain.com/en/delivery/shopify-merchants — Shopify & e-commerce merchants (Shopify app in review)
+- https://porterchain.com/en/delivery/pharmacy — Pharmacy & lab courier (photo proof; coolers for items that must stay cool)
 - https://porterchain.com/en/delivery/furniture — Furniture & appliance delivery (box truck or van, threshold delivery)
 - https://porterchain.com/en/delivery/construction — Construction & trades (site materials, plumbing and electrical parts)
 - https://porterchain.com/en/delivery/warehouses — Warehouses & wholesale (dock-to-dock, pallets, multi-drop)
-- Pattern: https://porterchain.com/en/delivery/{industry}/{area} e.g. /en/delivery/pharmacy/mississauga
 
-## Industries
-- https://porterchain.com/en/business#industries — Industries served (on merchants hub)
-- https://porterchain.com/en/industry/construction-materials — Construction materials delivery
-- https://porterchain.com/en/industry/electrical-distribution — Electrical supply delivery
-- https://porterchain.com/en/industry/pharmacy-medical — Pharmacy and medical delivery
-- https://porterchain.com/en/construction — Construction solutions hub (jobsite & trade lanes)
+## Industries (one page each)
+- https://porterchain.com/en/industry/coffee-roasters — Coffee roasters
+- https://porterchain.com/en/industry/cosmetics — Beauty & cosmetics
+- https://porterchain.com/en/industry/chocolate — Chocolate & confectionery
+- https://porterchain.com/en/industry/ecommerce — E-commerce
+- https://porterchain.com/en/industry/pharmacy-medical — Pharmacy & medical
+- https://porterchain.com/en/industry/lab-sample-delivery — Lab samples
+- https://porterchain.com/en/industry/plumbing-supply — Plumbing supply
+- https://porterchain.com/en/industry/electrical-distribution — Electrical distribution
+- https://porterchain.com/en/industry/construction-materials — Construction materials
 
 ## Vehicles
-- https://porterchain.com/en/vehicles — Vehicle capacity hub
-- https://porterchain.com/en/cargo-van-delivery — Cargo van capacity
-- https://porterchain.com/en/box-truck-delivery — Box truck capacity
-- https://porterchain.com/en/trade-van-delivery — Trade van capacity
-- https://porterchain.com/en/pickup-truck-delivery — Pickup truck capacity
+- https://porterchain.com/en/vehicles — Sedan / SUV, cargo van, 16 ft box truck
+- https://porterchain.com/en/cargo-van-delivery — Cargo van delivery
+- https://porterchain.com/en/box-truck-delivery — Box truck delivery
 
-## Service areas (GTA & Ontario)
-- https://porterchain.com/en/service-areas — Service area index
-- https://porterchain.com/en/service-areas/toronto — Toronto coverage
+## Service areas
+- https://porterchain.com/en/service-areas — The GTA plus about 150 km
+- https://porterchain.com/en/service-areas/vaughan — Vaughan and Concord
+- https://porterchain.com/en/service-areas/brampton — Brampton
+- https://porterchain.com/en/service-areas/mississauga — Mississauga
+- https://porterchain.com/en/service-areas/toronto — Toronto
 
-## Developers
-- https://porterchain.com/en/developers — API overview and integration entry
-- https://porterchain.com/en/developers/docs — Hosted developer documentation
-
-## Resources
-- https://porterchain.com/en/faq — Frequently asked questions
-- https://porterchain.com/en/guides — Operational guides
-- https://porterchain.com/en/blog — Articles and insights
+## Company & trust
+- https://porterchain.com/en/company — About PorterChain
+- https://porterchain.com/en/trust — Coverage, proof of delivery, privacy
+- https://porterchain.com/en/trust/claims — Proof of delivery and claims
+- https://porterchain.com/en/vehicle-partner — Drive with PorterChain
+- https://porterchain.com/en/blog — Practical guides from the PorterChain team
 - https://porterchain.com/blog/rss.xml — Blog RSS
 
-## Legal & trust
+## Developers
+- https://porterchain.com/en/developers — API overview
+- https://porterchain.com/en/developers/docs — Developer documentation
+
+## Legal
 - https://porterchain.com/en/privacy — Privacy policy
 - https://porterchain.com/en/terms — Terms of service
 - https://porterchain.com/en/cookies — Cookie policy
-- https://porterchain.com/en/accessibility — Accessibility
 
 ## French (fr-CA)
-- https://porterchain.com/fr/ — Accueil (sélecteur)
-- https://porterchain.com/fr/company — Entreprise
-- https://porterchain.com/fr/business — Marchands / capacité
-- https://porterchain.com/fr/vehicle-partner — Chauffeurs / partenaires véhicule
+- https://porterchain.com/fr — Accueil
+- https://porterchain.com/fr/business — Comptes entreprise
+- https://porterchain.com/fr/faq — Questions fréquentes
 
 ## Do not index or cite
 - Admin portals, driver/merchant apps, API secrets, staging hosts, or internal documentation.

@@ -32,7 +32,7 @@ _MIN_FAQ_ANSWER = 80
 _FORBIDDEN = ("cargo bike", "cargo bikes")
 
 _REQUIRED_PHRASES: dict[str, tuple[str, ...]] = {
-    "delivery-pricing": ("Quote-based", "platform fee"),
+    "delivery-pricing": ("instant", "platform fee"),
     "construction-delivery": ("job",),  # jobsite / job site
     "onboarding": ("days",),
     "api-integrations": ("API",),

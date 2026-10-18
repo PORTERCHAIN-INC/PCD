@@ -1,5 +1,5 @@
 /**
- * Website Phase 1 decisions + design pass — approved promise, 362-area coverage, furniture hub,
+ * Website Phase 1 decisions + design pass — approved promise, 334-area coverage, furniture hub,
  * calculator page, factual trust badges, hidden reviews / case study.
  *
  *   WEBSITE_RUN_LIVE=1 pnpm --filter @porterchain/website test:e2e -- website-phase2
@@ -43,11 +43,11 @@ test.describe("website phase 2 @phase1", () => {
     // Comparison block + final CTA band.
     await expect(
       page.getByRole("heading", {
-        name: /exact price in seconds, on a GTA-dense same-day network/i,
+        name: /why porterchain beats the usual courier/i,
       })
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: /price your next delivery/i })).toBeVisible();
-    await expect(page.getByText(/^362 postal areas$/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /priced in 10 seconds/i })).toBeVisible();
+    await expect(page.getByText(/334 postal areas/).first()).toBeVisible();
   });
 
   test("French home renders the promise in French", async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe("website phase 2 @phase1", () => {
     await expect(body).toContainText(/50 lb \(23 kg\)/);
     await expect(body).toContainText(/liftgate/i);
     await expect(body).toContainText(/assembly/i);
-    await expect(body).toContainText("362 FSAs");
+    await expect(body).toContainText("334 FSAs");
     const all = await schemas(page);
     const faq = all.find((s) => s["@type"] === "FAQPage") as { mainEntity?: unknown[] } | undefined;
     expect(faq?.mainEntity?.length).toBe(8);
@@ -107,7 +107,7 @@ test.describe("website phase 2 @phase1", () => {
     await page.goto("/en/delivery");
     await expect(page.locator('main a[href="/en/delivery/furniture"]').first()).toBeVisible();
     const llms = await (await request.get("/llms.txt")).text();
-    expect(llms).toContain("362 postal areas");
+    expect(llms).toContain("334 postal areas");
     expect(llms).toContain("/en/delivery/furniture");
   });
 
@@ -116,12 +116,12 @@ test.describe("website phase 2 @phase1", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/calculator/i);
     await expect(page.getByRole("heading", { name: /how the price is built/i })).toBeVisible();
     await expect(page.getByLabel(/pickup postal code/i).first()).toBeVisible();
-    await expect(page.locator("main")).toContainText("362 FSAs");
+    await expect(page.locator("main")).toContainText("334 FSAs");
   });
 
-  test("facts page states 362 postal areas", async ({ page }) => {
+  test("facts page states 334 postal areas", async ({ page }) => {
     await page.goto("/en/facts");
-    await expect(page.locator("main")).toContainText("362");
+    await expect(page.locator("main")).toContainText("334");
     await expect(page.locator("main")).not.toContainText(/\b357\b/);
   });
 });

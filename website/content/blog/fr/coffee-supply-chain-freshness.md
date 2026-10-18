@@ -1,6 +1,6 @@
 ---
 title: "Coffee Supply Chain Freshness: Timing the Last Mile"
-description: "Tight delivery windows, temperature-aware scheduling, and exception alerts for perishable coffee distribution."
+description: "Tight delivery windows, careful scheduling, and exception alerts for perishable coffee distribution."
 date: "2026-05-01"
 category: "coffee"
 author: "porterchain"

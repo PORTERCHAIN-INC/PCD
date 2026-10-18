@@ -42,7 +42,9 @@ function assertFinal(from: string, location: string) {
 test("every sitemap path passes untouched", () => {
   // Oct 2026 focus: ~40 strong pages per locale, no city × segment / campaign doorway pages.
   assert.ok(manifest.length > 60 && manifest.length < 120, String(manifest.length));
-  assert.ok(!manifest.some((p) => /^\/(en|fr)\/(campaigns|guides|compare|onboarding-education)\//.test(p)));
+  assert.ok(
+    !manifest.some((p) => /^\/(en|fr)\/(campaigns|guides|compare|onboarding-education)\//.test(p))
+  );
   assert.ok(!manifest.some((p) => /^\/(en|fr)\/(toronto|vaughan|brampton|mississauga)\//.test(p)));
   for (const p of manifest) assert.deepEqual(resolveUrlPolicy(p), { action: "pass" }, p);
 });

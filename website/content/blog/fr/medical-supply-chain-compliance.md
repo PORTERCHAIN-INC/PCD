@@ -1,6 +1,6 @@
 ---
 title: "Medical Supply Chain Compliance in Local Delivery"
-description: "Chain-of-custody, time-sensitive routing, and documentation standards for regulated healthcare shipments."
+description: "Proof of delivery, time-sensitive routing, and documentation standards for regulated healthcare shipments."
 date: "2026-05-28"
 category: "medical"
 author: "porterchain"
@@ -17,7 +17,7 @@ Healthcare logistics tolerates little ambiguity. A late delivery is not an incon
 Medical and healthcare suppliers need:
 
 - **Time-sensitive routing** with realistic ETAs
-- **Chain-of-custody documentation** at handoff
+- **Photo proof of delivery** at handoff
 - **Proof standards** that satisfy internal QA and external auditors
 - **Controlled escalations** when exceptions occur
 

@@ -268,7 +268,7 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
       },
       {
         heading: "Start with docs, finish with a quote path",
-        body: "Read the partner API and webhook guides on Developers for schemas. Commercial capacity and cut-offs still start with a written quote — webhooks do not replace vehicle-and-driver coverage.",
+        body: "Read the partner API and webhook guides on Developers for schemas. Commercial capacity and cut-offs still start with an instant price — webhooks do not replace vehicle-and-driver coverage.",
       },
     ],
     industrySlugs: ["ecommerce", "coffee-roasters", "electrical-distribution"],

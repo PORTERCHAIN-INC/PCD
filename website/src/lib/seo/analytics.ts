@@ -119,6 +119,12 @@ export const ANALYTICS_EVENTS = {
   INDUSTRY_PAGE_CONVERSION: "industry_page_conversion",
   LOCATION_PAGE_CONVERSION: "location_page_conversion",
   RETURNING_VISITOR: "returning_visitor",
+  /** Instant-price funnel (mirrors CONVERSION_EVENTS in lib/marketing/conversion.ts) */
+  PRICE_REQUESTED: "price_requested",
+  CALCULATOR_ESTIMATE: "calculator_estimate",
+  PRICE_OUT_OF_AREA: "price_out_of_area",
+  BOOK_STARTED: "book_started",
+  SHOPIFY_CTA_CLICK: "shopify_cta_click",
 } as const;
 
 /**
@@ -127,6 +133,8 @@ export const ANALYTICS_EVENTS = {
  * lives on the customer portal (BOOKING_* kept in ANALYTICS_EVENTS for taxonomy).
  */
 export const GA4_CONVERSION_EVENTS: readonly string[] = [
+  ANALYTICS_EVENTS.CALCULATOR_ESTIMATE,
+  ANALYTICS_EVENTS.BOOK_STARTED,
   ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT_SUCCESS,
   ANALYTICS_EVENTS.QUOTE_REQUEST,
   ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT,

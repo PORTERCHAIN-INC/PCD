@@ -22,4 +22,4 @@ The same partner can cover recurring lanes and peak overflow so customers never 
 
 ## Evaluate coverage, not demos
 
-Ask about GTA zones, vehicle classes, POD standards, and written quotes. That is the commercial test.
+Ask about GTA zones, vehicle classes, POD standards, and whether you can see a price before you book. That is the commercial test.

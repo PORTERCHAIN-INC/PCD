@@ -1,5 +1,5 @@
 {
-  "tagline": "Moving Commerce On-Chain",
+  "tagline": "Messagerie le jour même dans le Grand Toronto",
   "corporateTagline": "Des chauffeurs et véhicules professionnels quand votre flotte ne suffit pas.",
   "businessTagline": "Capacité de livraison urgente, de débordement, récurrente et dédiée pour les entreprises en croissance.",
   "copyright": "© {year} Porterchain Inc. Tous droits réservés.",
@@ -67,9 +67,9 @@
   "contactTitle": "Parlez-nous",
   "hoursLabel": "Heures de bureau",
   "hours": "Lun–ven 8 h–18 h · sam 9 h–14 h (heure de Toronto)",
-  "coverage": "Livraison le jour même dans {count} zones postales du Grand Toronto, du lundi au samedi.",
+  "coverage": "Livraison le jour même et le lendemain dans le Grand Toronto et environ 150 km autour ({count} zones postales), du lundi au samedi.",
   "shopifyBadge": "Application Shopify",
-  "shopifyBadgeHint": "Tarifs le jour même au paiement",
+  "shopifyBadgeHint": "En cours d'examen par Shopify",
   "emailLabel": "Courriel",
   "phoneLabel": "Téléphone"
 }

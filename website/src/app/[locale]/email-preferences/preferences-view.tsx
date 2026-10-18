@@ -32,7 +32,7 @@ const COPY = {
       ],
       marketing: [
         "Tips and offers",
-        "Occasional news and offers from PorterChain Logistics Inc. Only with your consent.",
+        "Occasional news and offers from Porterchain Inc. Only with your consent.",
       ],
     } as Record<Key, [string, string]>,
     consentGiven: (d: string) => `Consent given ${d}`,
@@ -74,7 +74,7 @@ const COPY = {
       ],
       marketing: [
         "Conseils et offres",
-        "Nouvelles et offres occasionnelles de PorterChain Logistics Inc. Seulement avec votre consentement.",
+        "Nouvelles et offres occasionnelles de Porterchain Inc. Seulement avec votre consentement.",
       ],
     } as Record<Key, [string, string]>,
     consentGiven: (d: string) => `Consentement donné le ${d}`,

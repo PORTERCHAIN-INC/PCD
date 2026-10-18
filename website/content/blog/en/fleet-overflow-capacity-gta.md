@@ -24,4 +24,4 @@ Treat overflow as a planned release valve: the same vehicle classes you already 
 
 ## How to start
 
-Share typical peak patterns, vehicle class, and zones. A written quote beats phone roulette when the dock is already full.
+Share typical peak patterns, vehicle class, and zones. An instant price beats phone roulette when the dock is already full.

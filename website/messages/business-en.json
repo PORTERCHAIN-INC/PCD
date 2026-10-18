@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "B2B Delivery Services GTA | Same-Day, Urgent & Emergency | PorterChain",
-    "description": "GTA B2B delivery: same-day, urgent and overflow capacity, jobsite and wholesale routes, cargo van to box truck. Tracking and proof on every stop.",
+    "title": "Business Courier GTA | Same-Day & Next-Day Delivery | PorterChain",
+    "description": "Business courier across the GTA: same-day and next-day delivery by sedan, SUV, van or 16 ft box truck. Instant price, live tracking, photo proof, $2,500 coverage. Merchants pay by Interac.",
     "ogTitle": "Porterchain — B2B Delivery Services for the GTA",
     "ogDescription": "Professional drivers and vehicles for construction supply, wholesale distribution, pharmacy courier, and business continuity when your fleet is not enough."
   },
@@ -25,14 +25,14 @@
     "badge": "B2B delivery services · GTA",
     "titleLine1": "Vehicle and driver capacity",
     "titleLine2": "for every delivery scenario.",
-    "subtitle": "From emergency delivery and same-day urgent runs to recurring intra-city logistics — one commercial delivery partner across Toronto, Peel, York, and Durham. Live tracking and proof on every stop · quote-based, no platform fees.",
+    "subtitle": "From emergency delivery and same-day urgent runs to recurring intra-city logistics — one commercial delivery partner across Toronto, Peel, York, and Durham. Live tracking and proof on every stop · instant price, no platform fees.",
     "ctaPrimary": "Get a quote",
     "ctaSecondary": "See vehicles"
   },
   "brandBand": {
-    "eyebrow": "Moving Commerce On-Chain",
+    "eyebrow": "Business courier for the GTA",
     "title": "Capacity you can put on the road today",
-    "body": "Box truck to trailer — branded network capacity when overflow, same-day, or recurring GTA routes need a professional driver now."
+    "body": "Sedan to box truck — branded network capacity when overflow, same-day, or recurring GTA routes need a professional driver now."
   },
   "answers": {
     "eyebrow": "Quick answers",
@@ -48,7 +48,7 @@
     },
     "where": {
       "question": "Where do you operate?",
-      "answer": "Primary coverage is the Greater Toronto Area and Ontario metros, with quote-based lanes for your pickup and delivery geographies."
+      "answer": "The GTA plus about 150 km: 334 postal areas, including Hamilton, Niagara, Kitchener-Waterloo, Guelph, Barrie, Oshawa and Peterborough. Our core areas are Vaughan, Concord, Brampton and Mississauga."
     },
     "how": {
       "question": "How do I get capacity?",
@@ -68,7 +68,7 @@
     "chip": "Illustrative",
     "illustrativeNote": "Example capacity programs — not a live load board.",
     "mapTitle": "Route overview",
-    "mapSubtitle": "GTA and Ontario lanes matched to vehicle class and SLAs.",
+    "mapSubtitle": "GTA and Ontario lanes matched to the right vehicle class.",
     "timelineTitle": "How a run moves",
     "offers": {
       "sameDay": {
@@ -214,11 +214,11 @@
       "sameDay": "Urgent B2B delivery across the GTA when your customer needs it today — subject to cut-off and capacity.",
       "multiStop": "One pickup, many drops — efficient intra-city logistics for distributors and clinics.",
       "wholesale": "Counter-to-jobsite and warehouse-to-contractor — electrical, plumbing, and industrial B2B delivery.",
-      "ltlFreight": "Palletized local freight delivery — 16 ft and 20 ft box truck capacity.",
+      "ltlFreight": "Palletized local freight delivery — 16 ft box truck capacity.",
       "urgentEmergency": "Emergency delivery for driver call-offs, breakdowns, forgotten jobsite material, and deadline freight.",
       "quickExpress": "Quick and express B2B delivery for time-sensitive commercial shipments — tracked from pickup to proof.",
       "construction": "Jobsite delivery with timed windows, site access notes, and pallet freight.",
-      "medical": "Time-sensitive medical courier and pharmacy runs with chain-of-custody proof.",
+      "medical": "Time-sensitive pharmacy and medical runs with photo proof; coolers for items that must stay cool.",
       "fleetOverflow": "Fleet overflow and backup driver capacity when your trucks are full or your driver is out.",
       "lastMile": "Last mile delivery and store replenishment with appointment windows and POD."
     }
@@ -255,7 +255,7 @@
       "proofOfDelivery": "Proof of delivery",
       "photoConfirmation": "Photo confirmation",
       "digitalSignature": "Digital signature",
-      "flexibleBilling": "Quote-based billing",
+      "flexibleBilling": "Interac billing for merchants",
       "instantQuotes": "Transparent quotes",
       "accountManager": "Dedicated support"
     },
@@ -265,7 +265,7 @@
       "photoConfirmation": "Photo proof captured at delivery when required.",
       "digitalSignature": "Recipient signatures stored with the delivery record.",
       "flexibleBilling": "Pay per shipment or on business terms — no software-seat fees.",
-      "instantQuotes": "Quote-based pricing on vehicle, distance, urgency, and handling.",
+      "instantQuotes": "Exact price from two postal codes and a vehicle, HST included, in about 10 seconds.",
       "accountManager": "Named support for recurring and enterprise programs."
     }
   },
@@ -314,7 +314,7 @@
         "useCase": "Bulky items, multi-piece deliveries"
       },
       "highRoof": {
-        "name": "Sprinter Van",
+        "name": "High-roof cargo van",
         "payload": "Up to 3,500 lbs",
         "cargo": "350 cu ft",
         "useCase": "Tall items, high-volume runs"
@@ -382,24 +382,6 @@
       "reports": "Reports",
       "payments": "Payments",
       "settings": "Merchant Settings"
-    },
-    "stats": {
-      "deliveries": {
-        "value": "247",
-        "label": "Deliveries Today"
-      },
-      "onTime": {
-        "value": "98%",
-        "label": "On-Time Rate"
-      },
-      "revenue": {
-        "value": "$12.4k",
-        "label": "This Week"
-      },
-      "active": {
-        "value": "18",
-        "label": "Active Drivers"
-      }
     }
   },
   "technology": {
@@ -485,7 +467,7 @@
       "creditAccount": {
         "name": "Business account",
         "price": "Route-based quote",
-        "description": "Net 15/30 and consolidated invoicing for regular B2B shippers.",
+        "description": "Interac e-Transfer billing and consolidated invoicing for regular B2B shippers.",
         "features": [
           "Planned vehicle and driver coverage",
           "Multi-stop route coordination",
@@ -573,11 +555,11 @@
       },
       "vehicles": {
         "question": "What vehicles are available?",
-        "answer": "Sedan, SUV, Pickup, Cargo Van, Sprinter Van, 16 ft Box Truck, and 20 ft Box Truck. All require a standard Ontario G Licence."
+        "answer": "Sedan or SUV (up to about 80 kg), cargo van (up to about 900 kg) and 16 ft box truck (up to about 3,000 kg). All are driven on a standard Ontario G licence."
       },
       "pricing": {
         "question": "How does pricing work?",
-        "answer": "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. No software-seat fees and no published SaaS tiers — capacity price is confirmed in writing before dispatch."
+        "answer": "Instant and exact: enter two postal codes and a vehicle and you see the price with HST in about 10 seconds, before you book. No platform fees or software seats. Volume accounts can have a merchant rate card."
       },
       "whatsIncluded": {
         "question": "What is included in a capacity quote?",
@@ -589,15 +571,15 @@
       },
       "monthly": {
         "question": "Can I pay monthly?",
-        "answer": "Yes. Business credit accounts offer Net 15 and Net 30 terms with consolidated monthly invoicing."
+        "answer": "Yes. Merchant accounts are billed per billing cycle and pay by Interac e-Transfer. Customers pay by card when they book."
       },
       "pod": {
         "question": "Do you provide proof of delivery?",
-        "answer": "Photo proof, digital signatures, and status updates are provided where agreed for your lanes — visible in your dashboard."
+        "answer": "Every delivery has a live tracking link and photo proof at drop-off, visible in your dashboard."
       },
       "sameDay": {
         "question": "Do you offer same-day delivery in Toronto and the GTA?",
-        "answer": "Yes. Same-day and urgent delivery are available across our GTA service areas subject to cut-off times, vehicle class, and capacity. Request a quote and we confirm the window."
+        "answer": "Yes. Book by the 11 AM cut-off and it is delivered between 2 and 9 PM the same day, Monday to Saturday, across the GTA plus about 150 km. Later bookings go the next operating day."
       },
       "multiStop": {
         "question": "Can you handle multi-stop routes?",
@@ -613,7 +595,7 @@
       },
       "gta": {
         "question": "What areas do you serve?",
-        "answer": "We operate across the Greater Toronto Area — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London, and Niagara — with route expertise on 401, 427, and 407 corridors."
+        "answer": "We operate across the Greater Toronto Area — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, and Niagara — with route expertise on 401, 427, and 407 corridors."
       },
       "overflow": {
         "question": "Can you handle emergency delivery when our driver is unavailable?",
@@ -621,7 +603,7 @@
       },
       "jobsite": {
         "question": "Do you deliver construction materials to job sites?",
-        "answer": "Yes. We run jobsite delivery for construction distributors and contractors — pickups, cargo vans, and box trucks with timed windows, site access notes, and photo proof for foreman and billing teams."
+        "answer": "Yes. We run jobsite delivery for construction distributors and contractors — cargo vans and box trucks with timed windows, site access notes, and photo proof for foreman and billing teams."
       },
       "lastMile": {
         "question": "Do you provide quick or express delivery for businesses?",
@@ -641,7 +623,7 @@
       },
       "billing": {
         "question": "How does billing work?",
-        "answer": "Choose pay-as-you-go with credit card, business credit terms (Net 15/30), or custom enterprise invoicing."
+        "answer": "Choose pay-as-you-go with credit card, Interac e-Transfer per billing cycle for merchants, or custom enterprise invoicing."
       },
       "tracking": {
         "question": "Is real-time tracking included?",

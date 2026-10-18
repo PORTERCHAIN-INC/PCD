@@ -31,6 +31,7 @@ export function buildGoogleSameAsLinks(): string[] {
     publicEnv.socialFacebook,
     publicEnv.socialInstagram,
     publicEnv.socialYouTube,
+    "https://x.com/porterchain",
     publicEnv.googleBusinessProfileUrl,
   ]
     .map((url) => url.trim())

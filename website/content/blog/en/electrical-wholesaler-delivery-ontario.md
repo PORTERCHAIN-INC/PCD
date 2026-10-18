@@ -32,7 +32,7 @@ A structured last-mile partner aligns capacity to your cut-off times and zones:
 
 ## Vehicles that match electrical freight
 
-Cars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without jumping to full tractor-trailer complexity.
+Cars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without needing a tractor-trailer.
 
 ## Porterchain for electrical distributors
 

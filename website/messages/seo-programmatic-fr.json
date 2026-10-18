@@ -238,7 +238,7 @@
         },
         {
           "question": "Quelles zones pour construction?",
-          "answer": "RGT, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, Oshawa et régions ontariennes environnantes."
+          "answer": "RGT, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, Niagara, Oshawa et régions ontariennes environnantes."
         }
       ],
       "extraLinks": [
@@ -271,7 +271,7 @@
         },
         {
           "question": "Quelles villes pour livraison électrique?",
-          "answer": "RGT, Hamilton, Kitchener-Waterloo, London, Niagara et autres régions ontariennes."
+          "answer": "RGT, Hamilton, Kitchener-Waterloo, Niagara et autres régions ontariennes."
         }
       ],
       "extraLinks": [
@@ -329,7 +329,7 @@
         },
         {
           "question": "Voir tarification pour ma zone?",
-          "answer": "Nous desservons RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions. Contactez-nous avec volume et zones pour tarification."
+          "answer": "Nous desservons RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa et autres régions. Contactez-nous avec volume et zones pour tarification."
         }
       ],
       "extraLinks": [
@@ -346,7 +346,7 @@
     "onboarding": {
       "title": "Intégration marchand: comment démarrer",
       "description": "Comment fonctionne l'intégration Porterchain. Étapes, délais et attentes.",
-      "intro": "Démarrer avec Porterchain est conçu pour être rapide. Nous ciblons volume, zones et flux pour aligner capacité et SLA sans longs formulaires.",
+      "intro": "Démarrer avec Porterchain est conçu pour être rapide. Nous ciblons volume, zones et flux pour adapter véhicule et plage sans longs formulaires.",
       "items": [
         {
           "question": "Combien de temps prend l'intégration?",
@@ -362,7 +362,7 @@
         },
         {
           "question": "Démarrer dans ma ville?",
-          "answer": "Nous opérons RGT, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, London, St. Catharines et Niagara."
+          "answer": "Nous opérons RGT, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, St. Catharines et Niagara."
         }
       ],
       "extraLinks": [
@@ -432,12 +432,12 @@
     },
     "local-service-areas": {
       "title": "Zones desservies: où nous livrons",
-      "description": "Couverture Porterchain: RGT, Toronto, Mississauga, Kitchener-Waterloo, London, Niagara, Oshawa et plus.",
+      "description": "Couverture Porterchain: RGT, Toronto, Mississauga, Kitchener-Waterloo, Niagara, Oshawa et plus.",
       "intro": "Nous exécutons livraison récurrente et jour même dans des zones locales définies en Ontario. Chaque région a couverture dédiée pour livraison fiable.",
       "items": [
         {
           "question": "Quelles villes et régions desservez-vous?",
-          "answer": "RGT (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Oshawa et Durham, Kitchener-Waterloo, London, St. Catharines et Niagara. Page dédiée par zone."
+          "answer": "RGT (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Oshawa et Durham, Kitchener-Waterloo, St. Catharines et Niagara. Page dédiée par zone."
         },
         {
           "question": "Livrez-vous à mon adresse?",
@@ -445,7 +445,7 @@
         },
         {
           "question": "Hors du RGT?",
-          "answer": "Oui. Kitchener-Waterloo, London, Niagara, St. Catharines, Oshawa et autres régions. Voir le hub zones desservies."
+          "answer": "Oui. Kitchener-Waterloo, Niagara, St. Catharines, Oshawa et autres régions. Voir le hub zones desservies."
         },
         {
           "question": "Jour même dans ma zone?",
@@ -474,7 +474,7 @@
         },
         {
           "question": "Zones pour pharmacie?",
-          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, St. Catharines et autres régions."
+          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, St. Catharines et autres régions."
         },
         {
           "question": "Tournées récurrentes cliniques ou patients?",
@@ -503,11 +503,11 @@
         },
         {
           "question": "Quels véhicules pour café?",
-          "answer": "Voitures, fourgons ou vélos cargo selon volume et densité urbaine."
+          "answer": "Voitures, fourgons ou selon volume et densité urbaine."
         },
         {
           "question": "Où livrez-vous pour torréfacteurs?",
-          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions."
+          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa et autres régions."
         }
       ],
       "extraLinks": [
@@ -536,7 +536,7 @@
         },
         {
           "question": "Régions pour beauté?",
-          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa et autres zones."
+          "answer": "RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa et autres zones."
         }
       ],
       "extraLinks": [
@@ -561,7 +561,7 @@
         },
         {
           "question": "Jour même dans ma ville?",
-          "answer": "Offert dans RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, St. Catharines et autres."
+          "answer": "Offert dans RGT, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, St. Catharines et autres."
         },
         {
           "question": "Mélanger jour même et récurrent?",
@@ -586,7 +586,7 @@
         },
         {
           "question": "Qu'est-ce qui affecte le coût?",
-          "answer": "Nombre d'arrêts, récurrent vs jour même, plages horaires et véhicule (vélo cargo vs fourgon)."
+          "answer": "Nombre d'arrêts, récurrent vs jour même, plages horaires et véhicule (berline vs fourgon)."
         },
         {
           "question": "Obtenir un devis Toronto?",
@@ -594,7 +594,7 @@
         },
         {
           "question": "Ailleurs en Ontario?",
-          "answer": "Oui. Kitchener-Waterloo, London, Niagara, St. Catharines, Oshawa et autres. Page zone par région."
+          "answer": "Oui. Kitchener-Waterloo, Niagara, St. Catharines, Oshawa et autres. Page zone par région."
         }
       ],
       "extraLinks": [
@@ -615,7 +615,7 @@
       "items": [
         {
           "question": "Que fournir pour démarrer?",
-          "answer": "Volume hebdomadaire, zones et plages (ex. matin pour cafés). Feuille de calcul ou modèle CSV. Confirmation capacité et SLA."
+          "answer": "Volume hebdomadaire, zones et plages (ex. matin pour cafés). Feuille de calcul ou modèle CSV. Confirmation du véhicule et de la plage."
         },
         {
           "question": "Grossiste et abonnement avec un partenaire?",
@@ -627,7 +627,7 @@
         },
         {
           "question": "Zones pour torréfacteurs?",
-          "answer": "RGT, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions ontariennes."
+          "answer": "RGT, Kitchener-Waterloo, Niagara, Oshawa et autres régions ontariennes."
         }
       ],
       "extraLinks": [
@@ -656,7 +656,7 @@
         },
         {
           "question": "Zones RGT pharmacie?",
-          "answer": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa et RGT élargi. Aussi Kitchener-Waterloo, London, Niagara."
+          "answer": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa et RGT élargi. Aussi Kitchener-Waterloo, Niagara."
         },
         {
           "question": "Démarrer livraison pharmacie?",
@@ -718,7 +718,7 @@
         },
         {
           "question": "Petit volume ou colis légers?",
-          "answer": "Voitures ou vélos cargo pour densité urbaine et petits colis (cafés, pharmacie légère, D2C)."
+          "answer": "Voitures ou pour densité urbaine et petits colis (cafés, pharmacie légère, D2C)."
         },
         {
           "question": "Palettes ou matériaux construction?",
@@ -763,7 +763,7 @@
         },
         {
           "question": "Quelles zones pour la distribution retail?",
-          "answer": "RGT — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton — plus Kitchener-Waterloo, London, Niagara et Oshawa. Demandez un devis avec votre liste de magasins."
+          "answer": "RGT — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton — plus Kitchener-Waterloo, Niagara et Oshawa. Demandez un devis avec votre liste de magasins."
         }
       ],
       "extraLinks": [
@@ -823,7 +823,7 @@
       "sections": [
         {
           "heading": "Capacité alignée à votre volume et zones",
-          "body": "Nous ne traitons pas chaque course comme un one-shot. Pour tournées récurrentes, nous alignons chauffeurs et véhicules à votre horaire et zones. Le jour même utilise la même flotte locale; heures limites et plages sont convenues. Capacité planifiée par région — Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara."
+          "body": "Nous ne traitons pas chaque course comme un one-shot. Pour tournées récurrentes, nous alignons chauffeurs et véhicules à votre horaire et zones. Le jour même utilise la même flotte locale; heures limites et plages sont convenues. Capacité planifiée par région — Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara."
         },
         {
           "heading": "Routage et plages horaires",
@@ -831,7 +831,7 @@
         },
         {
           "heading": "De la collecte à la livraison, une chaîne",
-          "body": "De la collecte chez vous à la remise à destination, chaque arrêt est suivi. Chauffeurs formés sur manutention et plages; statut et ETA tout au long. Pour industries avec conformité (pharmacie, température), nous travaillons avec vous à l'intégration."
+          "body": "De la collecte chez vous à la remise à destination, chaque arrêt est suivi. Chauffeurs formés sur manutention et plages; statut et ETA tout au long. Pour industries avec conformité (pharmacie), nous travaillons avec vous à l'intégration."
         }
       ],
       "extraLinks": [
@@ -860,7 +860,7 @@
         },
         {
           "heading": "Couverture et capacité",
-          "body": "Nous confirmons que nous desservons vos zones: RGT, Kitchener-Waterloo, London, Niagara, Oshawa et autres régions ontariennes. Une fois la couverture confirmée, nous alignons capacité et SLA. Vous savez où nous livrons avant de vous engager."
+          "body": "Nous confirmons que nous desservons vos zones: RGT, Kitchener-Waterloo, Niagara, Oshawa et autres régions ontariennes. Une fois la couverture confirmée, nous adaptons véhicule et plage. Vous savez où nous livrons avant de vous engager."
         },
         {
           "heading": "Mise en service",
@@ -897,7 +897,7 @@
         },
         {
           "heading": "Partager le suivi avec les clients",
-          "body": "Chaque livraison peut avoir un lien de suivi partageable. Réduit les appels « où est ma commande? » et aligne tout le monde. Même expérience dans le RGT, Kitchener-Waterloo, London, Niagara et au-delà."
+          "body": "Chaque livraison peut avoir un lien de suivi partageable. Réduit les appels « où est ma commande? » et aligne tout le monde. Même expérience dans le RGT, Kitchener-Waterloo, Niagara et au-delà."
         }
       ],
       "extraLinks": [

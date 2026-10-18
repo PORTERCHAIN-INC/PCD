@@ -1,19 +1,31 @@
 import { getTranslations } from "next-intl/server";
-import { Calculator, Clock3, Headset, MapPinned } from "lucide-react";
+import {
+  Calculator,
+  Camera,
+  Clock3,
+  CreditCard,
+  MapPinned,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 import { COVERAGE_FSA_COUNT } from "@/lib/seo/delivery-programmatic";
 import Container from "@/components/ui/Container";
 import SectionHeader from "@/components/marketing/ui/SectionHeader";
 
 /**
- * "Why PorterChain" — a need → what-you-get comparison. Every row is a shipped capability or a
- * published fact (instant price API, delivery promise, tracking + POD, office hours); no claims
- * about competitors and no invented numbers.
+ * Contrast block: "the usual courier" vs PorterChain. The left column describes common industry
+ * friction in general terms (no competitor names, no competitor prices); the right column is a
+ * shipped capability or a published fact (instant price API, delivery promise, vehicle classes,
+ * tracking + photo POD, $2,500 coverage, Interac billing). No invented numbers.
  */
 const ROWS = [
   { id: "price", Icon: Calculator },
   { id: "speed", Icon: Clock3 },
+  { id: "vehicle", Icon: Truck },
   { id: "tracking", Icon: MapPinned },
-  { id: "team", Icon: Headset },
+  { id: "proof", Icon: Camera },
+  { id: "coverage", Icon: ShieldCheck },
+  { id: "payment", Icon: CreditCard },
 ] as const;
 
 export default async function HomeWhy({ locale, promise }: { locale: string; promise: string }) {

@@ -13,8 +13,25 @@ const TILES = [
   { id: "warehouses", href: "/delivery/warehouses", Icon: Building2 },
 ] as const;
 
+/**
+ * Compact "who uses us" strip → the existing /industry/{slug} pages (one page per industry; no
+ * industry × city pages). Keep this list in sync with the industry pages in sitemap-entries.ts.
+ */
+export const WHO_USES_US = [
+  "coffee-roasters",
+  "cosmetics",
+  "chocolate",
+  "ecommerce",
+  "pharmacy-medical",
+  "lab-sample-delivery",
+  "plumbing-supply",
+  "electrical-distribution",
+  "construction-materials",
+] as const;
+
 export default async function HomeIndustries({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: "homePage.industries" });
+  const tw = await getTranslations({ locale, namespace: "homePage.whoUses" });
   return (
     <section className="bg-gray-bg" aria-labelledby="home-industries-heading">
       <Container className="py-16 sm:py-24">
@@ -54,6 +71,24 @@ export default async function HomeIndustries({ locale }: { locale: string }) {
             </li>
           ))}
         </ul>
+        <div
+          className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2"
+          data-testid="home-who-uses"
+        >
+          <span className="text-sm font-semibold text-primary">{tw("label")}</span>
+          <ul className="flex flex-wrap gap-2">
+            {WHO_USES_US.map((slug) => (
+              <li key={slug}>
+                <Link
+                  href={`/industry/${slug}`}
+                  className="inline-flex min-h-[2.25rem] items-center rounded-full border border-primary/10 bg-white px-3.5 text-sm text-primary/85 transition-colors hover:border-secondary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                >
+                  {tw(`items.${slug}`)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </Container>
     </section>
   );

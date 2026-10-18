@@ -129,16 +129,6 @@ export const SCHEMA_SERVICE_AREAS: readonly SchemaPlace[] = [
   },
   {
     "@type": "Place",
-    name: "London",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "London",
-      addressRegion: "ON",
-      addressCountry: "CA",
-    },
-  },
-  {
-    "@type": "Place",
     name: "St. Catharines",
     address: {
       "@type": "PostalAddress",
@@ -220,11 +210,11 @@ export const SCHEMA_DELIVERY_SERVICE_TYPES = [
 
 /** Description for Organization schema — capacity network (Lane A). */
 const ORGANIZATION_DESCRIPTION =
-  "Porterchain is a transportation capacity network for Ontario businesses — reliable vehicle-and-driver capacity orchestrated through intelligent operations software.";
+  "PorterChain is a GTA business courier: same-day, next-day and urgent local delivery by sedan, SUV, van or 16 ft box truck, with an instant price, live tracking and photo proof.";
 
 /** Description for LocalBusiness schema — delivery capacity. */
 const LOCAL_BUSINESS_DESCRIPTION =
-  "Porterchain provides transportation capacity for Ontario B2B businesses — professional drivers and commercial vehicles with tracking and proof of delivery.";
+  "PorterChain delivers same-day and next-day across the GTA plus about 150 km by sedan, SUV, van or 16 ft box truck. Instant price with HST, live tracking, photo proof and $2,500 coverage on every parcel.";
 
 export type SoftwareApplicationSchema = {
   "@context": "https://schema.org";
@@ -248,9 +238,11 @@ export type OrganizationSchema = {
   "@id"?: string;
   name: string;
   url: string;
+  legalName?: string;
   slogan?: string;
   description?: string;
   logo?: string;
+  founder?: { "@type": "Person"; name: string; jobTitle?: string };
   knowsAbout?: string[];
   sameAs?: string[];
 };
@@ -291,7 +283,7 @@ export type LocalBusinessSchema = {
   serviceType?: string | string[];
   address?: {
     "@type": "PostalAddress";
-    addressLocality: string;
+    addressLocality?: string;
     addressRegion: string;
     addressCountry: string;
   };
@@ -407,16 +399,18 @@ export function buildOrganizationSchema(options?: { baseUrl?: string }): Organiz
     "@type": "Organization",
     "@id": organizationId(base),
     name: siteConfig.name,
+    legalName: siteConfig.legalName,
     url: base,
-    slogan: siteConfig.tagline,
     description: ORGANIZATION_DESCRIPTION,
+    founder: { "@type": "Person", name: "Ravi Chauhan", jobTitle: "Founder" },
     logo: `${base}/icon.svg`,
     knowsAbout: [
-      "B2B delivery",
       "Same-day delivery",
-      "Fleet overflow capacity",
-      "Construction jobsite delivery",
-      "Wholesale distribution delivery",
+      "Next-day delivery",
+      "Business courier",
+      "Urgent local delivery",
+      "Box truck delivery",
+      "Cargo van delivery",
       "Pharmacy courier delivery",
       "Proof of delivery",
     ],
@@ -497,9 +491,9 @@ export function buildLocalBusinessSchema(options?: { baseUrl?: string }): LocalB
     image: `${base}/icon.svg`,
     areaServed: [...SCHEMA_SERVICE_AREAS],
     serviceType: [...SCHEMA_DELIVERY_SERVICE_TYPES],
+    // Service-area business: region only, no street address (Oct 2026 decision).
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Toronto",
       addressRegion: "ON",
       addressCountry: "CA",
     },
@@ -509,6 +503,12 @@ export function buildLocalBusinessSchema(options?: { baseUrl?: string }): LocalB
         dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         opens: "08:00",
         closes: "18:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Saturday"],
+        opens: "09:00",
+        closes: "14:00",
       },
     ],
   };

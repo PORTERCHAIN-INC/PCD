@@ -115,7 +115,7 @@
         "title": "Merchant accounts",
         "paragraphs": [
           "Business customers may be required to complete merchant onboarding including company profile, compliance documents, and acceptance of commercial shipping terms before dashboard access is granted.",
-          "Merchant billing terms (including Net 30/45 or card payment) are established during onboarding and reflected on invoices. Overdue accounts may be suspended until payment is received."
+          "Merchant accounts are billed per billing cycle and pay by Interac e-Transfer; invoices show HST. Customers pay by card at booking, processed by Stripe. Overdue merchant accounts may be paused until payment is received."
         ]
       },
       {
@@ -128,7 +128,7 @@
       {
         "title": "Liability and claims",
         "paragraphs": [
-          "Porterchain maintains commercial insurance and WSIB registration for its operations. Liability for loss or damage is limited as set out in your quote, merchant agreement, or applicable tariff, except where prohibited by law.",
+          "Every parcel includes coverage for loss or damage up to $2,500. Optional extended coverage up to $25,000 is available for $10 per parcel when selected at booking. Coverage is subject to the exclusions in these terms and in your merchant agreement, except where prohibited by law.",
           "Claims for loss, damage, or service issues must be reported promptly with shipment references and supporting documentation. Contact ops@porterchain.com for claims assistance."
         ]
       },

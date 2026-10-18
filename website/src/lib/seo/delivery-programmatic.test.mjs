@@ -240,10 +240,20 @@ test("llms.txt lists every industry hub and the industry count", () => {
   for (const v of DELIVERY_VERTICALS) {
     assert.ok(llms.includes(`https://porterchain.com/en/delivery/${v.slug} `), v.slug);
   }
-  assert.ok(
-    llms.includes(`${DELIVERY_VERTICALS.length} industries x ${DELIVERY_AREAS.length} GTA areas`),
-    "hub line counts"
-  );
+  assert.ok(llms.includes(`(${DELIVERY_VERTICALS.length} delivery types)`), "hub line counts");
+  // Oct 2026 focus: one page per industry, no industry × city pages listed for AI systems.
+  assert.ok(!/\/en\/delivery\/[a-z-]+\/[a-z-]+/.test(llms), "no industry × area URLs");
+  for (const banned of [
+    "SLA",
+    "MSA",
+    "DPA",
+    "chain-of-custody",
+    "ID check",
+    "Sprinter",
+    "quote-based",
+  ]) {
+    assert.ok(!llms.includes(banned), banned);
+  }
 });
 
 test("furniture hub states the service limits from the commercial terms", () => {

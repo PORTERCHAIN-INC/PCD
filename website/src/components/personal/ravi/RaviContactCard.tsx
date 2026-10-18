@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const MARQUEE_CHIPS = [
   "Porterchain",
-  "Moving Commerce On-Chain",
+  "Same-day courier for the GTA",
   "GTA capacity",
   "B2B delivery",
   raviContact.role,

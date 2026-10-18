@@ -2,10 +2,11 @@ import { publicEnv } from "@/lib/env";
 import { routing, type Locale } from "@/i18n/routing";
 
 export const siteConfig = {
-  name: "Porterchain",
-  tagline: "Moving Commerce On-Chain",
+  name: "PorterChain",
+  legalName: "Porterchain Inc.",
+  tagline: "Same-day courier for the GTA",
   description:
-    "Reliable vehicle-and-driver capacity for Ontario businesses — overflow, urgent delivery, and recurring distribution with tracking and proof.",
+    "Same-day and next-day business courier across Toronto and the GTA by sedan, SUV, van or 16 ft box truck. Instant price, live tracking, photo proof.",
   baseUrl: publicEnv.siteUrl,
 } as const;
 

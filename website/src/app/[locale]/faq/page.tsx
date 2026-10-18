@@ -18,14 +18,14 @@ const COPY = {
     desc: "Ten straight answers: what a delivery costs, where and when we deliver, vehicles, Shopify, proof of delivery, insurance, payment and claims.",
     h1: "Questions, answered.",
     lead: "Ten things buyers ask before their first delivery. Short answers, each with the page that proves it.",
-    guides: "Longer reads are in the guides",
+    guides: "Practical guides on the blog",
   },
   fr: {
     meta: "FAQ : prix, couverture, heure limite, Shopify, assurance | Porterchain",
     desc: "Dix réponses directes : prix, zones et horaires, véhicules, Shopify, preuve de livraison, assurance, paiement et réclamations.",
     h1: "Vos questions, nos réponses.",
     lead: "Les dix questions posées avant une première livraison. Des réponses courtes, chacune avec la page qui le prouve.",
-    guides: "Les guides vont plus loin",
+    guides: "Guides pratiques sur le blogue",
   },
 };
 
@@ -50,7 +50,7 @@ export default async function FaqPage({ params }: Props) {
             <CoreFaqList locale={locale} grouped filter />
           </div>
           <Link
-            href="/guides"
+            href="/blog"
             className="mt-10 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-secondary underline-offset-4 hover:underline"
           >
             {c.guides}

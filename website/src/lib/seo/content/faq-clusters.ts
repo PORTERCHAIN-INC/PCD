@@ -66,7 +66,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which areas do you serve for construction delivery?",
         answer:
-          "We serve the GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, London, Niagara, Oshawa, and surrounding Ontario regions.",
+          "We serve the GTA, Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener-Waterloo, Niagara, Oshawa, and surrounding Ontario regions.",
       },
     ],
     industrySlugs: ["construction-materials", "electrical-distribution", "plumbing-supply"],
@@ -102,7 +102,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which cities do you cover for electrical delivery?",
         answer:
-          "We operate across the GTA, Hamilton, Kitchener-Waterloo, London, Niagara, and other Ontario regions. Check our electrical distribution industry page and service area pages for your city.",
+          "We operate across the GTA, Hamilton, Kitchener-Waterloo, Niagara, and other areas within about 150 km of Toronto. Check our electrical distribution industry page and service area pages for your city.",
       },
     ],
     industrySlugs: ["electrical-distribution", "construction-materials"],
@@ -148,12 +148,12 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     description:
       "How Porterchain prices recurring and same-day delivery for merchants. Stop-based, zone-based, and volume pricing.",
     intro:
-      "Porterchain prices B2B delivery capacity — not software seats. Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes and fleet overflow use the same model: predictable cost aligned to your lanes without hidden platform fees. Share your stops, zones, and freight profile and we confirm numbers in writing before dispatch.",
+      "Porterchain prices B2B delivery capacity — not software seats. Pricing is instant: two postal codes and a vehicle give the exact price with HST; it reflects vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes and fleet overflow use the same model: predictable cost aligned to your lanes without hidden platform fees. Share your stops, zones, and freight profile and we confirm numbers in writing before dispatch.",
     items: [
       {
         question: "How is delivery pricing structured?",
         answer:
-          "Quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes often use per-stop or per-route rates; same-day runs factor zone and cut-off time. We confirm pricing in writing after understanding your volume and service areas — no hidden platform fees.",
+          "Instant and exact from two postal codes and a vehicle, HST included; it reflects vehicle class, distance, stops, urgency and handling. Recurring routes often use per-stop or per-route rates; same-day runs factor zone and cut-off time. Volume accounts can have a merchant rate card. No hidden platform fees.",
       },
       {
         question: "Is there a minimum volume or commitment?",
@@ -168,7 +168,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Where can I see pricing for my area?",
         answer:
-          "We deliver across the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, and other Ontario regions. Contact us with your volume and service areas and we'll provide pricing for your zones.",
+          "We deliver across the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, and other areas within about 150 km of Toronto. Contact us with your volume and service areas and we'll provide pricing for your zones.",
       },
     ],
     industrySlugs: [
@@ -211,7 +211,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Can I get started in my city?",
         answer:
-          "We operate in the GTA, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, London, St. Catharines, and Niagara. If you're in one of these areas, we can typically get you started.",
+          "We operate in the GTA, Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, Kitchener-Waterloo, St. Catharines, and Niagara. If you're in one of these areas, we can typically get you started.",
       },
     ],
     industrySlugs: [
@@ -289,7 +289,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Is the API available in all service areas?",
         answer:
-          "Yes. API access is available for all our service areas (GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, and others). Coverage is the same whether you use API, CSV, or another method.",
+          "Yes. API access is available for all our service areas (GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, and others). Coverage is the same whether you use API, CSV, or another method.",
       },
     ],
     industrySlugs: [
@@ -307,14 +307,14 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     slug: "local-service-areas",
     title: "Local service areas: where we deliver",
     description:
-      "Porterchain delivery coverage: GTA, Toronto, Mississauga, Kitchener-Waterloo, London, Niagara, Oshawa, and more.",
+      "Porterchain delivery coverage: GTA, Toronto, Mississauga, Kitchener-Waterloo, Niagara, Oshawa, and more.",
     intro:
       "We run recurring and same-day delivery in defined local service areas across Ontario. Each region has dedicated coverage so merchants get consistent, reliable delivery. Below we answer questions about where we deliver and how to confirm coverage for your area.",
     items: [
       {
         question: "Which cities and regions do you serve?",
         answer:
-          "We serve the Greater Toronto Area (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Oshawa and Durham, Kitchener-Waterloo, London, St. Catharines, and the Niagara region. Each area has a dedicated page with delivery details.",
+          "We serve the Greater Toronto Area (Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington), Oshawa and Durham, Kitchener-Waterloo, St. Catharines, and the Niagara region. Each area has a dedicated page with delivery details.",
       },
       {
         question: "How do I know if you deliver to my address?",
@@ -324,7 +324,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Do you deliver outside the GTA?",
         answer:
-          "Yes. We deliver in Kitchener-Waterloo, London, Niagara, St. Catharines, Oshawa, and other Ontario regions. Coverage is expanding; see our service areas hub for the full list.",
+          "Yes. We deliver in Kitchener-Waterloo, Niagara, St. Catharines, Oshawa, and other areas within about 150 km of Toronto. Coverage is expanding; see our service areas hub for the full list.",
       },
       {
         question: "Is same-day delivery available in my area?",
@@ -356,9 +356,9 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     slug: "pharmacy-delivery",
     title: "Pharmacy delivery: compliance and patient delivery",
     description:
-      "FAQ on pharmacy and prescription delivery: compliance, chain of custody, and service areas.",
+      "FAQ on pharmacy and prescription delivery: photo proof, coolers for items that must stay cool, and service areas.",
     intro:
-      "Porterchain supports pharmacy and patient delivery with tracking and chain-of-custody visibility. We work with community pharmacies and clinics that need reliable, compliant delivery. Here are common questions about pharmacy delivery.",
+      "Porterchain supports pharmacy and patient delivery with live tracking and photo proof of delivery. We work with community pharmacies and clinics that need reliable, compliant delivery. Here are common questions about pharmacy delivery.",
     items: [
       {
         question: "Do you handle prescription delivery?",
@@ -366,14 +366,14 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
           "Yes. We work with pharmacies on prescription and patient delivery. Routes are set up with appropriate handling and tracking so you have visibility from pickup to delivery.",
       },
       {
-        question: "How is chain of custody and compliance handled?",
+        question: "How is proof of delivery handled?",
         answer:
           "We provide full tracking and status visibility for each run. You can see when a shipment was picked up, in transit, and delivered. This supports compliance and audit requirements. Specific compliance needs are discussed during onboarding.",
       },
       {
         question: "Which areas do you serve for pharmacy delivery?",
         answer:
-          "We serve the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, St. Catharines, and other Ontario regions. Check the pharmacy delivery page and service area pages for your region.",
+          "We serve the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, St. Catharines, and other areas within about 150 km of Toronto. Check the pharmacy delivery page and service area pages for your region.",
       },
       {
         question: "Can you do recurring routes for clinics or patients?",
@@ -418,7 +418,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Where do you deliver for roasters?",
         answer:
-          "We deliver across the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, and other Ontario regions. See our coffee roaster delivery page and service area pages for your city.",
+          "We deliver across the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, and other areas within about 150 km of Toronto. See our coffee roaster delivery page and service area pages for your city.",
       },
     ],
     industrySlugs: ["coffee-roasters"],
@@ -451,7 +451,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which regions do you serve for beauty brands?",
         answer:
-          "We serve the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, and other Ontario regions. Check our cosmetics delivery page and service area pages for your city.",
+          "We serve the GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, and other areas within about 150 km of Toronto. Check our cosmetics delivery page and service area pages for your city.",
       },
     ],
     industrySlugs: ["cosmetics"],
@@ -478,7 +478,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Is same-day available in my city?",
         answer:
-          "Same-day delivery is offered in our service areas: GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, London, Niagara, Oshawa, St. Catharines, and others. Check the service area page for your city.",
+          "Same-day delivery is offered in our service areas: GTA, Toronto, Mississauga, Brampton, Kitchener-Waterloo, Niagara, Oshawa, St. Catharines, and others. Check the service area page for your city.",
       },
       {
         question: "Can I mix same-day and recurring routes?",
@@ -533,7 +533,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Do you deliver elsewhere in Ontario?",
         answer:
-          "Yes. We also serve Kitchener-Waterloo, London, Niagara, St. Catharines, Oshawa, and other Ontario regions. Each area has a dedicated service area page with delivery details.",
+          "Yes. We also serve Kitchener-Waterloo, Niagara, St. Catharines, Oshawa, and other areas within about 150 km of Toronto. Each area has a dedicated service area page with delivery details.",
       },
     ],
     industrySlugs: [
@@ -576,7 +576,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which areas do you serve for coffee roasters?",
         answer:
-          "We deliver across the GTA (Toronto, Mississauga, Brampton, and surrounding), Kitchener-Waterloo, London, Niagara, Oshawa, and other Ontario regions. See our coffee roaster delivery page and service area pages for your city.",
+          "We deliver across the GTA (Toronto, Mississauga, Brampton, and surrounding), Kitchener-Waterloo, Niagara, Oshawa, and other areas within about 150 km of Toronto. See our coffee roaster delivery page and service area pages for your city.",
       },
     ],
     industrySlugs: ["coffee-roasters"],
@@ -592,10 +592,10 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     description:
       "How Porterchain runs pharmacy and patient delivery in the GTA: compliance, tracking, recurring routes, and service areas.",
     intro:
-      "Pharmacy courier delivery in the GTA with Porterchain works like this: you share your delivery needs (e.g. patient deliveries, clinic pickups, recurring routes), we confirm coverage for Toronto, Mississauga, Brampton, and other GTA areas and set up routes with full tracking and chain-of-custody visibility. We run the fleet and last mile; you get one dashboard for status and ETAs so you and your patients know when to expect delivery. Recurring and same-day options are available. Compliance and handling requirements are discussed during onboarding so we meet your standards.",
+      "Pharmacy courier delivery in the GTA with Porterchain works like this: you share your delivery needs (e.g. patient deliveries, clinic pickups, recurring routes), we confirm coverage for Toronto, Mississauga, Brampton, and other GTA areas and set up routes with full live tracking and photo proof of delivery. We run the fleet and last mile; you get one dashboard for status and ETAs so you and your patients know when to expect delivery. Recurring and same-day options are available. Compliance and handling requirements are discussed during onboarding so we meet your standards.",
     items: [
       {
-        question: "How is tracking and chain of custody handled?",
+        question: "How are tracking and proof of delivery handled?",
         answer:
           "Every run has full tracking from pickup to delivery. You can see status and ETA in your dashboard, and we maintain visibility so you have an audit trail. Specific compliance or documentation needs are discussed during onboarding.",
       },
@@ -607,7 +607,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which GTA areas do you serve for pharmacy delivery?",
         answer:
-          "We serve Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, and the broader GTA. Each area has a dedicated service area page. We also serve Kitchener-Waterloo, London, and Niagara.",
+          "We serve Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Burlington, Oshawa, and the broader GTA. Each area has a dedicated service area page. We also serve Kitchener-Waterloo, and Niagara.",
       },
       {
         question: "How do I get started with pharmacy delivery?",
@@ -739,7 +739,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "Which areas do you serve for retail distribution?",
         answer:
-          "We serve the GTA — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton — and Kitchener-Waterloo, London, Niagara, and Oshawa. Request a quote with your store list and zones.",
+          "We serve the GTA — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton — and Kitchener-Waterloo, Niagara, and Oshawa. Request a quote with your store list and zones.",
       },
     ],
     industrySlugs: ["cosmetics", "coffee-roasters", "construction-materials"],
@@ -775,12 +775,12 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "How quickly can you dispatch overflow capacity?",
         answer:
-          "Same-day overflow is available in our service areas subject to cut-off times and vehicle class. Emergency and urgent runs are a core service — request a quote and we confirm the window in writing.",
+          "Same-day overflow is available in our service areas subject to cut-off times and vehicle class. Book by 11 AM for delivery between 2 and 9 PM the same day; the price is shown before you book.",
       },
       {
         question: "How does pricing work for overflow lanes?",
         answer:
-          "Quote-based on vehicle class, distance, stops, and urgency. No platform fees — we confirm pricing in writing before dispatch so overflow lanes stay predictable alongside your in-house fleet costs.",
+          "Instant price from two postal codes and a vehicle, HST included. No platform fees — you see the price before you book so overflow lanes stay predictable alongside your in-house fleet costs.",
       },
     ],
     industrySlugs: ["electrical-distribution", "plumbing-supply", "construction-materials"],

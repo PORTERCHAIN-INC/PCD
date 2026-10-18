@@ -234,19 +234,16 @@ export default async function DeliveryIndustryHubPage({ params }: Props) {
 
       <section aria-label="Areas" className="bg-white">
         <Container className="py-10 sm:py-12">
-          <AreaSelector
-            title={`${vertical.name} by area`}
-            groups={groupByRegion(
-              areas.map((a) => ({
-                slug: a.slug,
-                href: `/${deliveryPagePath(vertical.slug, a.slug)}`,
-                label: a.name,
-                note: `${a.fsas.length} postal areas · ≈ ${a.distanceKm} km${
-                  indexability(vertical, a).index ? "" : " · by confirmation"
-                }`,
-              }))
-            )}
-          />
+          <h2 className="text-xl font-semibold tracking-tight text-primary">
+            {`${vertical.name} across the GTA`}
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted" data-testid="hub-areas">
+            {`We cover the GTA plus about 150 km (${ENTITY_FACTS.coverageFsaCount} postal areas), including ${areas
+              .map((a) => a.name)
+              .join(
+                ", "
+              )}. Enter two postal codes in the calculator to confirm coverage and see the price.`}
+          </p>
         </Container>
       </section>
 

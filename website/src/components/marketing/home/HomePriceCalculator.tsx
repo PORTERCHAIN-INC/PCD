@@ -10,7 +10,7 @@ import {
   normalizeFsa,
   type CalculatorVehicle,
 } from "@/lib/marketing/calculator-lead";
-import { CONVERSION_EVENTS, trackConversion } from "@/lib/marketing/conversion";
+import { CONVERSION_EVENTS, OUT_OF_AREA_ERRORS, trackConversion } from "@/lib/marketing/conversion";
 import { HOME_PRICE_ANCHOR_ID } from "@/lib/marketing/price-bar";
 import { track, ANALYTICS_EVENTS } from "@/lib/seo/analytics";
 import { cn } from "@/lib/utils";
@@ -70,6 +70,12 @@ export default function HomePriceCalculator() {
       return;
     }
     setPricing(true);
+    trackConversion(CONVERSION_EVENTS.PRICE_REQUESTED, {
+      vehicle,
+      pickup_fsa: p,
+      dropoff_fsa: d,
+      source_section: "home-hero",
+    });
     try {
       const res = await fetch("/api/estimate", {
         method: "POST",
@@ -80,6 +86,14 @@ export default function HomePriceCalculator() {
       if (!res.ok) {
         setEstimate(null);
         const code = typeof data.error === "string" ? data.error : "";
+        if (OUT_OF_AREA_ERRORS.has(code)) {
+          trackConversion(CONVERSION_EVENTS.PRICE_OUT_OF_AREA, {
+            reason: code,
+            pickup_fsa: p,
+            dropoff_fsa: d,
+            source_section: "home-hero",
+          });
+        }
         setError(KNOWN_ERRORS.has(code) ? t(`errors.${code}`) : t("errors.generic"));
         return;
       }
@@ -243,12 +257,17 @@ export default function HomePriceCalculator() {
               <Link
                 href={`/book?pickup=${encodeURIComponent(pickup.trim().toUpperCase())}&dropoff=${encodeURIComponent(dropoff.trim().toUpperCase())}&vehicle=${encodeURIComponent(estimate.vehicle_class)}`}
                 data-testid="home-price-book"
-                onClick={() =>
+                onClick={() => {
                   track(ANALYTICS_EVENTS.CTA_CLICK, {
                     source_section: "home-price",
                     cta_label: "book_this_delivery",
-                  })
-                }
+                  });
+                  trackConversion(CONVERSION_EVENTS.BOOK_STARTED, {
+                    vehicle: estimate.vehicle_class,
+                    amount_cents: estimate.amount_cents,
+                    source_section: "home-price",
+                  });
+                }}
                 className="inline-flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-white hover:bg-[#152238] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 {t("book")} · {money(estimate.amount_cents)}

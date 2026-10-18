@@ -85,6 +85,12 @@ MARKERS: dict[str, tuple[str, ...]] = {
     ),
     "next": (r"get a quote", r"obtenir un devis", r"request a quote", r"quote"),
     "price": (
+        # Oct 2026: pricing is instant and exact (two postal codes + vehicle).
+        r"exact price",
+        r"instant price",
+        r"your price",
+        r"prix exact",
+        r"prix instantan",
         r"quote-based",
         r"written quote",
         r"no platform fees",

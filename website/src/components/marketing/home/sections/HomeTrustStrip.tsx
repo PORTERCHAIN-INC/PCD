@@ -22,7 +22,7 @@ export default async function HomeTrustStrip({ locale }: { locale: string }) {
   const facts = [
     {
       value: t("coverage.postalAreas", { count: GTA150_FSA_CODES.size }),
-      hint: t("coverage.postalAreasHint"),
+      hint: t("coverage.postalAreasHint", { count: GTA150_FSA_CODES.size }),
     },
     { value: t("coverage.areas", { count: DELIVERY_AREAS.length }), hint: t("coverage.areasHint") },
     {

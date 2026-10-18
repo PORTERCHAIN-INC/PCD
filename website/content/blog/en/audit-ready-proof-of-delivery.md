@@ -26,7 +26,7 @@ Each element reinforces the others. Together they answer: _who delivered what, w
 
 ## Why audit-ready matters
 
-Wholesale distributors dispute chargebacks. Medical suppliers face chain-of-custody questions. Construction firms need evidence that high-value materials arrived on site.
+Wholesale distributors dispute chargebacks. Medical suppliers need to show when and where an item was handed over. Construction firms need evidence that high-value materials arrived on site.
 
 Audit-ready proof is not overhead — it is **revenue protection.**
 

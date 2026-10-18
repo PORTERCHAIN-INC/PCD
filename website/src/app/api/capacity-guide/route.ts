@@ -163,7 +163,7 @@ export async function POST(req: Request) {
             })),
             message:
               hits.length === 0
-                ? "No strong matches — avoid inventing facts; offer a written quote and ask for email + phone so the team can follow up."
+                ? "No strong matches — avoid inventing facts; point them to the instant price at /delivery-cost-calculator and ask for email + phone so the team can follow up."
                 : "Ground your answer in these snippets. Do not invent prices. After answering, ask for work email and mobile if not yet captured.",
           };
         },
