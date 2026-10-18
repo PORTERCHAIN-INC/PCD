@@ -222,25 +222,14 @@ class E2EValidationMerchantMixin:
             return "FAIL"
 
         def _invoice_for_order(order_id: str):
-            """Per-order invoice (Invoice.order_id) or the cycle invoice carrying its line."""
-            from porterchain_api.billing_engine.models import InvoiceLine
-            from porterchain_api.booking_models import Invoice
+            from porterchain_api.platform.invoice_lines import invoice_for_order
 
-            inv = db.query(Invoice).filter(Invoice.order_id == order_id).first()
-            if inv is not None:
-                return inv
-            return (
-                db.query(Invoice)
-                .join(InvoiceLine, InvoiceLine.invoice_id == Invoice.id)
-                .filter(InvoiceLine.order_id == order_id)
-                .first()
-            )
+            return invoice_for_order(db, order_id)
 
         def do_invoice_assert():
-            from porterchain_api.billing_engine.models import InvoiceLine
             from porterchain_api.booking_models import Order
             from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-            from porterchain_api.platform.invoice_lines import ensure_invoice_line
+            from porterchain_api.platform.invoice_lines import ensure_invoice_line, invoice_lines_for
 
             if not order_ids:
                 return "FAIL"
@@ -270,11 +259,11 @@ class E2EValidationMerchantMixin:
             tax = int(inv.tax_cents or 0)
             if int(detail.get("amount_cents") or 0) != amount:
                 fail("detail_amount_vs_invoice", detail=detail.get("amount_cents"), invoice=amount)
-            rows = db.query(InvoiceLine).filter(InvoiceLine.invoice_id == inv.id).all()
+            rows = invoice_lines_for(db, inv.id)
             if cycle:
                 # Cycle (Interac) invoice: lines are pre-tax + their own tax, invoice is the
                 # gross total of all lines (deliveries + waiting/failed-delivery fees).
-                from porterchain_api.billing_engine.tax import order_tax_split
+                from porterchain_api.platform.merchant_billing import order_tax_split
 
                 line_gross = sum(int(r.amount_cents or 0) + int(r.tax_cents or 0) for r in rows)
                 line_tax = sum(int(r.tax_cents or 0) for r in rows)
