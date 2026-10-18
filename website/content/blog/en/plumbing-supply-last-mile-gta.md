@@ -3,7 +3,7 @@ title: "Plumbing Supply Last-Mile in the GTA: Wholesaler Delivery That Scales"
 description: "Recurring routes, pipe and fixture handling, and proof of delivery for plumbing supply houses serving contractors across the Greater Toronto Area."
 date: "2026-06-22"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "plumbing", "wholesale", "same-day-delivery"]
 ---
 

@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return buildPageMetadata(
     locale,
     "facts",
-    "PorterChain at a glance — coverage, hours, vehicles, pricing",
-    `Plain facts about PorterChain: same-day GTA business delivery, ${ENTITY_FACTS.coverageFsaCount} postal areas, sedan to 16 ft box truck on a G licence, distance-and-vehicle pricing with HST shown.`,
+    "PorterChain at a glance: coverage, hours, vehicles, pricing",
+    `Plain facts about PorterChain: same-day and next-day GTA business courier, ${ENTITY_FACTS.coverageFsaCount} postal areas, sedan to 16 ft box truck on a G licence, instant price with HST, $2,500 coverage included.`,
     { index: locale === "en" }
   );
 }
@@ -37,7 +37,8 @@ export default async function FactsPage({ params }: Props) {
   const rows: Array<[string, string]> = [
     ["What PorterChain does", ENTITY_FACTS.what],
     ["Company", `${ENTITY_FACTS.name} (${ENTITY_FACTS.legalName})`],
-    ["Hub", ENTITY_FACTS.hub],
+    ["Based", ENTITY_FACTS.based],
+    ["Founder", ENTITY_FACTS.founder],
     [
       "Coverage",
       `${ENTITY_FACTS.coverage} ${ENTITY_FACTS.coverageFsaCount} postal areas (FSAs) in the pricing registry.`,
@@ -47,7 +48,11 @@ export default async function FactsPage({ params }: Props) {
     ["Vehicles", ENTITY_FACTS.vehicles.join("; ")],
     ["Licence", ENTITY_FACTS.licence],
     ["Pricing approach", ENTITY_FACTS.pricing],
-    ["Industries", ENTITY_FACTS.verticals.join(", ")],
+    ["Coverage & proof", ENTITY_FACTS.protection],
+    ["Payment", ENTITY_FACTS.payment],
+    ["Delivery types", ENTITY_FACTS.verticals.join(", ")],
+    ["Industry pages", ENTITY_FACTS.industries.join(", ")],
+    ["Shopify", ENTITY_FACTS.shopify],
     ["Privacy & consent", ENTITY_FACTS.privacy],
   ];
   return (

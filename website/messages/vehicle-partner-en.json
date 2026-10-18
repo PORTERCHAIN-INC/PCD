@@ -1,12 +1,12 @@
 {
   "meta": {
     "title": "Vehicle Partner Portal | Join the Porterchain driver network",
-    "description": "Partner with Porterchain using your sedan, SUV, pickup truck, van, or box truck. Ontario G licence. Structured routes, clear workflows, and operational support across the GTA."
+    "description": "Partner with Porterchain using your sedan, SUV, van, or box truck. Ontario G licence. Structured routes, clear workflows, and operational support across the GTA."
   },
   "hero": {
     "badge": "Vehicle Partner Portal",
     "title": "Partner with Porterchain using the vehicles you already operate",
-    "subtitle": "A structured driver partner program for Ontario operators with eligible sedan, SUV, pickup truck, van, or box truck capacity across the GTA. Clear instructions, predictable workflows, and route opportunities aligned to merchant demand. Compensation is set in your partner agreement — we don’t publish guaranteed earnings or dollar rates on this page.",
+    "subtitle": "A structured driver partner program for Ontario operators with eligible sedan, SUV, van, or box truck capacity across the GTA. Clear instructions, predictable workflows, and route opportunities aligned to merchant demand. Compensation is set in your partner agreement — we don’t publish guaranteed earnings or dollar rates on this page.",
     "primaryCta": "Start partner application",
     "secondaryCta": "Questions? Contact us"
   },
@@ -24,7 +24,7 @@
         "description": "Additional cargo space for multi-stop routes and medium-sized deliveries without stepping up to a van."
       },
       "pickup": {
-        "title": "Pickup truck",
+        "title": "Cargo van",
         "description": "Open-bed and mixed loads for merchants that need flexible local freight within standard G-licence limits."
       },
       "van": {
@@ -110,7 +110,7 @@
     "items": [
       {
         "question": "What vehicles are eligible for the partner program?",
-        "answer": "We partner with operators using sedan, SUV, pickup truck, cargo van, and box truck (typically up to 16 ft) capacity, subject to Ontario G-licence requirements and onboarding review. Vehicle fit is confirmed for your service area and the types of routes available."
+        "answer": "We partner with operators using sedan, SUV, cargo van, and box truck (typically up to 16 ft) capacity, subject to Ontario G-licence requirements and onboarding review. Vehicle fit is confirmed for your service area and the types of routes available."
       },
       {
         "question": "Do I need an Ontario G licence?",
@@ -175,7 +175,7 @@
     "vehicles": {
       "sedan": "Sedan / SUV",
       "suv": "SUV",
-      "pickup": "Pickup truck",
+      "pickup": "Cargo van",
       "van": "Cargo van",
       "boxTruck": "Box truck (16 ft)",
       "box20": "Box truck (20 ft)",
@@ -204,7 +204,7 @@
       "c": {
         "title": "Jobsite overflow",
         "badge": "Construction",
-        "meta": "Pickup truck / van when fleets are full"
+        "meta": "Cargo van / van when fleets are full"
       }
     }
   },

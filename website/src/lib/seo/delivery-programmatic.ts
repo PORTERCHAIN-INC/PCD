@@ -386,7 +386,8 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
   {
     slug: "shopify-merchants",
     name: "Shopify & e-commerce merchants",
-    valueProp: "Same-day rates at your Shopify checkout, priced by the same engine as this site.",
+    valueProp:
+      "Same-day and next-day delivery for your online orders, priced by the same engine as this site. Our Shopify app is in review with Shopify.",
     noun: "e-commerce order",
     audience: "Shopify and online stores shipping to GTA customers",
     goods: "customer orders, local same-day parcels and returns",
@@ -395,16 +396,16 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
     industrialOnly: false,
     industryPageSlug: "ecommerce",
     handling: [
-      "Orders flow in from the PorterChain Shopify app — no CSV uploads",
+      "Book each order in the merchant portal today; the PorterChain Shopify app (in review with Shopify) will bring orders in automatically",
       "Customers get a live tracking link and photo proof of delivery",
       "Failed attempts follow your re-attempt / return policy",
     ],
     compliance:
       "Delivery and tracking messages are transactional; marketing messages to your customers stay under your own CASL consent.",
     specialistFaq: {
-      question: "Can I offer same-day delivery at Shopify checkout?",
+      question: "Is the PorterChain Shopify app available?",
       answer:
-        "Yes. The PorterChain Shopify app adds a same-day rate at checkout using the same pricing engine as this page's calculator, then books the run when the order is paid.",
+        "It is submitted and in review with Shopify. Once approved it adds a same-day rate at checkout using the same pricing engine as this page's calculator. Until then, price and book each order here or in the merchant portal.",
     },
     cta: {
       label: "Price a Shopify delivery",
@@ -419,7 +420,7 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
     slug: "pharmacy",
     name: "Pharmacy & lab courier",
     valueProp:
-      "Sedan couriers for prescriptions and specimens, with signature, ID check and chain-of-custody times.",
+      "Sedan and SUV couriers for prescriptions, supplies and specimens, with photo proof and coolers for items that must stay cool.",
     noun: "prescription",
     audience: "pharmacies, clinics and medical labs",
     goods: "prescriptions, medical supplies, specimens and test kits",
@@ -428,17 +429,17 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
     industrialOnly: false,
     industryPageSlug: "pharmacy-medical",
     handling: [
-      "Signature or ID check on delivery when you require it",
+      "Items that must stay cool travel in coolers (we do not run refrigerated vehicles)",
       "No safe-place drops for controlled items",
       "Sealed bags stay closed; drivers never handle patient information beyond the label",
-      "Scheduled lab pickups or on-demand STAT runs with chain-of-custody timestamps",
+      "Scheduled lab pickups or same-day runs, with timestamped photo proof at drop-off",
     ],
     compliance:
       "Patient details are limited to what the driver needs to deliver (name, address, phone) and are handled under PIPEDA.",
     specialistFaq: {
-      question: "Can drivers collect a signature or check ID for prescriptions?",
+      question: "Can you keep medical items cool?",
       answer:
-        "Yes. Turn on signature and ID requirements in your delivery rules; the requirement is shown to the driver for every stop and the proof is stored with the order.",
+        "Yes, with coolers. Medical deliveries that need to stay cool are packed in coolers for the run. We do not run refrigerated vehicles, so we do not take items that need a refrigerated truck.",
     },
     cta: {
       label: "Price a prescription run",
@@ -452,8 +453,7 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
   {
     slug: "furniture",
     name: "Furniture & appliance delivery",
-    valueProp:
-      "Cargo van or 16 ft box truck, two-person crews for heavy items, a booked delivery window.",
+    valueProp: "Cargo van or 16 ft box truck, one professional driver, a booked delivery window.",
     noun: "furniture order",
     audience:
       "furniture and appliance retailers, showrooms, online home brands and interior designers",
@@ -982,11 +982,11 @@ export function deliveryBreadcrumbs(
 /** Facts used by /facts, llms.txt and Organization copy — keep in sync with the API. */
 export const ENTITY_FACTS = {
   name: "PorterChain",
-  legalName: "Porterchain Logistics Inc.",
-  what: "Same-day local delivery for businesses in the Greater Toronto Area, booked online or through the Shopify app.",
-  hub: "Downtown Toronto (43.6532, -79.3832)",
+  legalName: "Porterchain Inc.",
+  what: "Same-day, next-day and urgent local delivery, supply runs and business courier across the Greater Toronto Area, by sedan, SUV, van or 16 ft box truck, booked online with an instant price.",
+  based: "A GTA company. Core areas: Vaughan, Concord, Brampton and Mississauga.",
   coverage:
-    "About 150 km around downtown Toronto: Toronto, Peel, York, Durham, Halton and Hamilton — checked by postal code (FSA) at quote time.",
+    "The GTA plus about 150 km (Toronto, Peel, York, Durham, Halton, Hamilton and beyond), checked by postal code (FSA) when you price a trip.",
   coverageFsaCount: COVERAGE_FSA_COUNT,
   hours:
     "Office Monday–Friday 08:00–18:00, Saturday 09:00–14:00 (Toronto time); deliveries Monday–Saturday.",
@@ -996,6 +996,23 @@ export const ENTITY_FACTS = {
     "Per-delivery price from driving distance and vehicle type, with a base distance included; a downtown surcharge applies where relevant. Prices are shown including 13% HST before booking. Volume accounts can have a merchant rate card.",
   promise: promiseSentence(),
   verticals: DELIVERY_VERTICALS.map((v) => v.name),
+  /** One page per industry at /{locale}/industry/{slug} (no industry × city pages). */
+  industries: [
+    "Coffee roasters",
+    "Beauty & cosmetics",
+    "Chocolate & confectionery",
+    "E-commerce",
+    "Pharmacy & medical",
+    "Lab samples",
+    "Plumbing supply",
+    "Electrical distribution",
+    "Construction materials",
+  ],
+  protection:
+    "$2,500 coverage included on every parcel; optional coverage up to $25,000 for $10. Live tracking and photo proof of delivery on every order.",
+  payment: "Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe).",
+  shopify: "PorterChain Shopify app: submitted and in review with Shopify.",
+  founder: "Ravi Chauhan, founder.",
   privacy:
     "Personal information is handled under PIPEDA; marketing email requires separate CASL consent and every message carries an unsubscribe link.",
 } as const;

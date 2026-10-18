@@ -1,5 +1,5 @@
 /**
- * Next quote-response deadline for SLA countdown (Mon–Fri, 5 PM America/Toronto).
+ * Next quote-response deadline for the reply countdown (Mon–Fri, 5 PM America/Toronto).
  * Matches marketing copy: "Response within one business day."
  */
 

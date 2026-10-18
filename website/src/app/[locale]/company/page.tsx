@@ -79,10 +79,10 @@ export default async function CompanyPage({ params }: Props) {
         badge={t("hero.badge")}
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
-        primaryCta={tCta("quote")}
-        primaryHref="/sign-up?intent=quote&from=company"
+        primaryCta={t("hero.primaryCta")}
+        primaryHref="/delivery-cost-calculator"
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref="/careers"
+        secondaryHref="/vehicle-partner"
         variant="minimal"
       />
       <BrandMergeBand

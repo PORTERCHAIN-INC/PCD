@@ -12,7 +12,7 @@ REQUIRED_SNIPPETS = (
     "porterchain.com/en/company",
     "porterchain.com/en/business",
     "porterchain.com/en/developers",
-    "porterchain.com/en/local-delivery",
+    "porterchain.com/en/delivery-cost-calculator",
 )
 
 

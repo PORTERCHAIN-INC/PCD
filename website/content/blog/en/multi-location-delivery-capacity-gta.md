@@ -3,7 +3,7 @@ title: "Multi-Location Delivery Capacity Across the GTA"
 description: "How multi-branch Ontario businesses coordinate pickups, cut-offs, and proof without inventing a courier habit per location."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["multi-location", "gta", "capacity"]
 featured: false
 ---

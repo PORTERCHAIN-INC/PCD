@@ -3,7 +3,7 @@ title: "Supply Chain Visibility Starts at Dispatch"
 description: "Why end-to-end visibility is impossible without a connected planning and execution layer."
 date: "2026-04-24"
 category: "supply-chain"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["supply-chain", "visibility", "data"]
 ---
 

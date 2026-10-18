@@ -3,7 +3,7 @@ title: "Coursier vs partenaire de capacité pour la livraison B2B au RGT"
 description: "Quand les réservations de coursier ponctuelles cessent de scaler — et quand il faut de la capacité véhicule + chauffeur avec répartition, suivi et preuve."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["coursier", "capacité", "rgt", "b2b"]
 featured: false
 ---

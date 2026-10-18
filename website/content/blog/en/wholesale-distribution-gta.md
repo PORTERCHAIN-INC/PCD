@@ -3,7 +3,7 @@ title: "Wholesale Distribution Logistics in the GTA"
 description: "Recurring routes, multi-stop sequencing, and B2B visibility for Ontario wholesale operators."
 date: "2026-06-05"
 category: "wholesale"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["wholesale", "b2b", "gta"]
 ---
 

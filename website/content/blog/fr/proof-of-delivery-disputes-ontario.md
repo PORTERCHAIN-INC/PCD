@@ -3,7 +3,7 @@ title: "Preuve de livraison qui survit aux litiges de facturation en Ontario"
 description: "Dossiers de clôture photo, signature et GPS qui aident les équipes B2B ontariennes à régler les litiges sans savoir tribal."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["pod", "claims", "ontario"]
 featured: false
 ---

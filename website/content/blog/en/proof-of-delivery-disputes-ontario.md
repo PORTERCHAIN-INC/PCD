@@ -3,7 +3,7 @@ title: "Proof of Delivery That Survives Ontario Billing Disputes"
 description: "Photo, signature, and GPS closeout records that help Ontario B2B teams settle delivery disputes without tribal knowledge."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["pod", "claims", "ontario"]
 featured: false
 ---

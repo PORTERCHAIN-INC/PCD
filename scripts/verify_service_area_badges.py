@@ -14,15 +14,13 @@ CORPORATE_EN = ROOT / "website/messages/corporate-en.json"
 CORPORATE_FR = ROOT / "website/messages/corporate-fr.json"
 FR_ROOT = ROOT / "website/messages/fr.json"
 
+# Oct 2026: core areas are Vaughan (incl. Concord), Brampton and Mississauga,
+# plus the Toronto hub page; everything else is "GTA + ~150 km" coverage.
 EXPECTED_CORE = (
     "toronto",
-    "mississauga",
-    "brampton",
     "vaughan",
-    "markham",
-    "oakville",
-    "hamilton",
-    "kitchener-waterloo",
+    "brampton",
+    "mississauga",
 )
 FR_CONFIRMATION_MARKETS = ("oshawa", "london", "stCatharines", "niagara")
 BANNED_FR_CONSUMER_MARKERS = ("last-mile récurrent pour marchands", "volume de colis")

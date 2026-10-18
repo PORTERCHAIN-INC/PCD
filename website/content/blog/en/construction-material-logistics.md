@@ -3,7 +3,7 @@ title: "Construction Material Logistics: Site Delivery Done Right"
 description: "Heavy-capacity matching, site coordination, and proof for high-value materials on Ontario job sites."
 date: "2026-05-15"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "heavy-freight", "proof"]
 ---
 

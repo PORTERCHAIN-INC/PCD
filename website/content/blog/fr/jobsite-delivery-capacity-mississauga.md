@@ -3,7 +3,7 @@ title: "Capacité de livraison chantier à Mississauga et Peel"
 description: "Dépôts palettes et matériaux sur chantiers Mississauga — véhicule adapté, accès site et POD acceptée par les EG."
 date: "2026-08-10"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["jobsite", "construction", "mississauga"]
 featured: false
 ---

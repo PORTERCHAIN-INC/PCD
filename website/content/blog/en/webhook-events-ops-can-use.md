@@ -3,7 +3,7 @@ title: "Webhook Events Your Ops Team Can Actually Use"
 description: "Delivery webhooks are worthless if they only say “updated.” Map events to dispatch, CS, and finance actions."
 date: "2026-08-11"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["webhooks", "api", "ops", "integrations"]
 featured: false
 ---

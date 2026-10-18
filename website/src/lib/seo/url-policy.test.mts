@@ -40,7 +40,12 @@ function assertFinal(from: string, location: string) {
 }
 
 test("every sitemap path passes untouched", () => {
-  assert.ok(manifest.length > 500);
+  // Oct 2026 focus: ~40 strong pages per locale, no city × segment / campaign doorway pages.
+  assert.ok(manifest.length > 60 && manifest.length < 120, String(manifest.length));
+  assert.ok(
+    !manifest.some((p) => /^\/(en|fr)\/(campaigns|guides|compare|onboarding-education)\//.test(p))
+  );
+  assert.ok(!manifest.some((p) => /^\/(en|fr)\/(toronto|vaughan|brampton|mississauga)\//.test(p)));
   for (const p of manifest) assert.deepEqual(resolveUrlPolicy(p), { action: "pass" }, p);
 });
 
@@ -87,7 +92,7 @@ const EXPECTED: Array<[string, string | "gone"]> = [
   ["/en/en/business", "/en/business"],
   ["/about", "/en/company"],
   ["/standards", "/en/trust"],
-  ["/en/brampton/medium-truck", "/en/brampton/box-truck-delivery"],
+  ["/en/brampton/medium-truck", "/en/service-areas/brampton"],
   ["/en/london/sedan-delivery", "redirect"],
   ["/en/campaigns", "/en/delivery"],
   // FAQ consolidation (Oct 2026).
@@ -97,17 +102,17 @@ const EXPECTED: Array<[string, string | "gone"]> = [
   ["/en/faq/some-unknown-cluster", "/en/faq"],
   // Industry merges (Oct 2026).
   ["/en/delivery/labs", "/en/delivery/pharmacy"],
-  ["/en/delivery/labs/mississauga", "/en/delivery/pharmacy/mississauga"],
+  ["/en/delivery/labs/mississauga", "/en/delivery/pharmacy"],
   ["/en/delivery/plumbing-electrical", "/en/delivery/construction"],
-  ["/en/delivery/plumbing-electrical/vaughan", "/en/delivery/construction/vaughan"],
+  ["/en/delivery/plumbing-electrical/vaughan", "/en/delivery/construction"],
   ["/en/delivery/wholesale-traders", "/en/delivery/warehouses"],
-  ["/en/delivery/wholesale-traders/brampton", "/en/delivery/warehouses/brampton"],
+  ["/en/delivery/wholesale-traders/brampton", "/en/delivery/warehouses"],
   // Footer consolidation (Oct 2026): merged pages → one 301 to the surviving page.
-  ["/en/capabilities", "/en/platform"],
-  ["/en/capabilities/multi-stop-delivery", "/en/platform"],
-  ["/en/capabilities/exception-recovery", "/en/guides/delivery-failure-modes-and-recovery"],
-  ["/fr/capabilities/inventory-transfers", "/fr/guides/inventory-transfers-between-locations"],
-  ["/en/integrations-education/sms-status-notifications", "/en/integrations"],
+  ["/en/capabilities", "/en/business"],
+  ["/en/capabilities/multi-stop-delivery", "/en/business"],
+  ["/en/capabilities/exception-recovery", "/en/faq"],
+  ["/fr/capabilities/inventory-transfers", "/fr/faq"],
+  ["/en/integrations-education/sms-status-notifications", "/en/delivery/shopify-merchants"],
   ["/en/integrations-education/webhooks-delivery-events", "/en/developers"],
   ["/en/solutions", "/en/delivery"],
   ["/en/solutions/medical", "/en/delivery/pharmacy"],
@@ -116,8 +121,8 @@ const EXPECTED: Array<[string, string | "gone"]> = [
   ["/en/solutions/fleet-overflow", "/en/business"],
   ["/fr/solutions/medical", "/en/delivery/pharmacy"],
   ["/en/construction", "/en/delivery/construction"],
-  ["/en/how-porterchain-works", "/en/platform"],
-  ["/how-it-works", "/en/platform"],
+  ["/en/how-porterchain-works", "/en/business"],
+  ["/how-it-works", "/en/business"],
   ["/industries", "/en/delivery"],
   ["/ca/en/solutions/construction", "/en/delivery/construction"],
   // Legacy furniture URLs → the furniture industry hub (single hop).
@@ -129,12 +134,31 @@ const EXPECTED: Array<[string, string | "gone"]> = [
   ["/en/solutions/furniture", "/en/delivery/furniture"],
   ["/en/campaigns/furniture-delivery", "/en/delivery/furniture"],
   ["/en/toronto/furniture-delivery", "/en/delivery/furniture"],
-  ["/en/delivery/furniture-delivery/mississauga", "/en/delivery/furniture/mississauga"],
+  ["/en/delivery/furniture-delivery/mississauga", "/en/delivery/furniture"],
   ["/en/delivery/furniture/milton", "/en/delivery/furniture"],
-  ["/api-integrations", "/en/integrations"],
+  ["/api-integrations", "/en/delivery/shopify-merchants"],
   ["/index.html", "/en"],
   ["/blog/rss.xml", "pass"],
   ["/openapi.json", "/en/developers"],
+  // Focus consolidation (Oct 2026): retired / fictional / unsupported pages → closest kept page.
+  ["/en/integrations/shopify", "/en/delivery/shopify-merchants"],
+  ["/en/platform", "/en/business"],
+  ["/en/enterprise", "/en/business"],
+  ["/en/careers", "/en/vehicle-partner"],
+  ["/en/guides/multi-location-capacity-gta", "/en/faq"],
+  ["/en/compare/porterchain-vs-in-house-delivery", "/en/business"],
+  ["/en/trust/sla", "/en/trust"],
+  ["/en/trust/msa", "/en/trust"],
+  ["/en/trust/dpa", "/en/trust"],
+  ["/en/trade-van-delivery", "/en/cargo-van-delivery"],
+  ["/en/pickup-truck-delivery", "/en/cargo-van-delivery"],
+  ["/en/authors/sarah-chen", "/en/authors/porterchain"],
+  ["/fr/authors/peter-porter", "/fr/authors/porterchain"],
+  ["/en/blog/case-study-construction-distributor-gta", "/en/blog"],
+  ["/en/campaigns/pharmacy-medical", "/en/industry/pharmacy-medical"],
+  ["/en/toronto/pharmacy-delivery", "/en/service-areas/toronto"],
+  ["/en/service-areas/kitchener-waterloo", "/en/service-areas"],
+  ["/en/delivery/pharmacy/mississauga", "/en/delivery/pharmacy"],
 ];
 
 test("Search Console examples map to the agreed destinations", () => {

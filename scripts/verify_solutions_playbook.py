@@ -12,7 +12,7 @@ CORPORATE_FR = ROOT / "website/messages/corporate-fr.json"
 
 EN_META_TITLE = "B2B Delivery Solutions GTA | Construction, Wholesale, Medical | Porterchain"
 EN_HERO_TITLE = "Transportation capacity for GTA businesses"
-EN_PRICING_FAQ_MARKERS = ("quote-based", "platform fees")
+EN_PRICING_FAQ_MARKERS = ("instant", "platform fees")
 
 
 def _check(locale: str, path: Path) -> list[str]:
@@ -44,8 +44,8 @@ def _check(locale: str, path: Path) -> list[str]:
         if "capacité" not in hero_title.lower() or "rgt" not in hero_title.lower():
             failures.append(f"{locale} solutions.hero.title must lead with GTA capacity framing")
         answer = (faq_pricing.get("a") or "").lower()
-        if "devis" not in answer:
-            failures.append(f"{locale} solutions.faq.items.3.a must mention quote-based (devis)")
+        if "instantan" not in answer:
+            failures.append(f"{locale} solutions.faq.items.3.a must mention instant pricing")
         if "plateforme" not in answer and "licence" not in answer:
             failures.append(f"{locale} solutions.faq.items.3.a must deny platform/software fees")
 

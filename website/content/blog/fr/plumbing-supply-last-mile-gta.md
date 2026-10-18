@@ -3,7 +3,7 @@ title: "Dernier kilomètre plomberie dans le RGT : livraison grossiste à l'éch
 description: "Tournées récurrentes, manutention tuyaux et fixtures, et preuve de livraison pour maisons de plomberie desservant entrepreneurs du Grand Toronto."
 date: "2026-06-22"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "plumbing", "wholesale", "same-day-delivery"]
 ---
 

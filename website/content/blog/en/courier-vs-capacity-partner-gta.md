@@ -3,7 +3,7 @@ title: "Courier vs Capacity Partner for GTA B2B Delivery"
 description: "When ad-hoc courier bookings stop scaling — and when you need vehicle-and-driver capacity with dispatch, tracking, and proof."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["courier", "capacity", "gta", "b2b"]
 featured: false
 ---

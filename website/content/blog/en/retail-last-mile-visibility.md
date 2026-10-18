@@ -3,7 +3,7 @@ title: "Retail Last-Mile Visibility Customers Actually Use"
 description: "Branded tracking, live ETA, and delivery confirmation that reduce WISMO calls and build trust."
 date: "2026-05-08"
 category: "retail"
-author: "peter-porter"
+author: "porterchain"
 tags: ["retail", "visibility", "customer-experience"]
 ---
 

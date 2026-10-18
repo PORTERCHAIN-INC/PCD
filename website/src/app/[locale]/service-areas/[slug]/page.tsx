@@ -98,14 +98,12 @@ export default async function ServiceAreaPage({ params }: Props) {
     ...collectNicheFaqItems(area.faq),
     { question: tSeo("pricingFaqQ"), answer: tSeo("pricingFaqA") },
   ];
-  const hasPriceSignal = /quote-based|written quote|sur devis|devis écrit/i.test(
-    area.hero.subtitle
-  );
+  const hasPriceSignal = /instant price|prix instantané/i.test(area.hero.subtitle);
   const heroSubtitle = hasPriceSignal
     ? area.hero.subtitle
     : locale === "fr"
-      ? `${area.hero.subtitle} Capacité sur devis — demandez un devis écrit.`
-      : `${area.hero.subtitle} Quote-based capacity — request a written quote.`;
+      ? `${area.hero.subtitle} Prix instantané, sans inscription.`
+      : `${area.hero.subtitle} Instant price, no sign-up.`;
   const industryLinks = buildIndustryPageLinksForCityPage(loc);
   const deliveryLinks = buildIndustryDeliveryLinksForCityPage(loc, slug, messages as never);
   const titleBySlug: Partial<Record<(typeof INTENT_HUB_FAQ_SLUGS)[number], string>> = {};

@@ -23,8 +23,6 @@ export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
     { id: "track", href: "/track" },
     { id: "serviceAreas", href: "/service-areas" },
     { id: "vehicles", href: "/vehicles" },
-    { id: "howItWorks", href: "/platform" },
-    { id: "integrations", href: "/integrations" },
     { id: "developers", href: "/developers" },
   ],
   industries: [
@@ -39,13 +37,11 @@ export const footerNavigation: Record<FooterSectionId, FooterLink[]> = {
     { id: "about", href: "/company" },
     { id: "trust", href: "/trust" },
     { id: "drivers", href: "/vehicle-partner" },
-    { id: "careers", href: "/careers" },
     { id: "blog", href: "/blog" },
   ],
   support: [
     { id: "contact", href: "/contact" },
     { id: "faq", href: "/faq" },
-    { id: "guides", href: "/guides" },
     { id: "claims", href: "/trust/claims" },
     { id: "merchantPortal", href: "__MERCHANT_PORTAL__" },
     { id: "driverPortal", href: "__DRIVER_PORTAL__" },

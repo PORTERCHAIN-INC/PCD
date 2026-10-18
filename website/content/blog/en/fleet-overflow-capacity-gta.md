@@ -3,7 +3,7 @@ title: "Fleet Overflow Capacity for GTA Businesses"
 description: "When your trucks are full or a unit is down, overflow capacity keeps GTA cut-offs — without permanent headcount."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["overflow", "fleet", "gta"]
 featured: false
 ---
@@ -24,4 +24,4 @@ Treat overflow as a planned release valve: the same vehicle classes you already 
 
 ## How to start
 
-Share typical peak patterns, vehicle class, and zones. A written quote beats phone roulette when the dock is already full.
+Share typical peak patterns, vehicle class, and zones. An instant price beats phone roulette when the dock is already full.

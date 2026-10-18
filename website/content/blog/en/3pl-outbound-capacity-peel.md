@@ -3,7 +3,7 @@ title: "3PL Outbound Capacity from Peel Warehouses"
 description: "How GTA 3PLs cover outbound multi-stop and peak overflow from Peel docks without adding permanent fleet."
 date: "2026-08-10"
 category: "supply-chain"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["3pl", "warehouse", "peel"]
 featured: false
 ---

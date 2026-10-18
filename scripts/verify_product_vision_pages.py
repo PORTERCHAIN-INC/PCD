@@ -168,9 +168,11 @@ def main() -> int:
     if not dev_docs.is_file():
         failures.append("missing hosted developer docs hub at /developers/docs")
 
-    for trust_exhibit in ("dpa", "msa"):
-        if not (APP / "trust" / trust_exhibit / "page.tsx").is_file():
-            failures.append(f"missing trust exhibit page /trust/{trust_exhibit} (P1.14)")
+    # Oct 2026: no MSA/DPA/SLA is offered, so these exhibit pages must not exist
+    # (the URLs 301 to /trust via the focus redirect registry).
+    for trust_exhibit in ("dpa", "msa", "sla"):
+        if (APP / "trust" / trust_exhibit / "page.tsx").is_file():
+            failures.append(f"unoffered trust exhibit page /trust/{trust_exhibit} must not exist")
 
     corporate_en = WEBSITE / "messages/corporate-en.json"
     if corporate_en.is_file():

@@ -30,7 +30,7 @@
     "ctaSecondary": "Voir les véhicules"
   },
   "brandBand": {
-    "eyebrow": "Faire avancer le commerce sur la chaîne",
+    "eyebrow": "Messagerie d'affaires pour le Grand Toronto",
     "title": "De la capacité sur la route dès aujourd'hui",
     "body": "Du camion cube à la remorque — capacité du réseau avec marque Porterchain quand le débordement, le jour même ou les routes récurrentes du RGT ont besoin d'un chauffeur professionnel maintenant."
   },
@@ -68,7 +68,7 @@
     "chip": "Illustratif",
     "illustrativeNote": "Exemples de programmes de capacité — pas un babillard de charges en direct.",
     "mapTitle": "Aperçu d'itinéraire",
-    "mapSubtitle": "Corridors RGT et Ontario assortis à la classe de véhicule et aux SLA.",
+    "mapSubtitle": "Corridors RGT et Ontario assortis à la classe de véhicule .",
     "timelineTitle": "Comment une course avance",
     "offers": {
       "sameDay": {
@@ -214,11 +214,11 @@
       "sameDay": "Livraison B2B urgente dans le RGT quand votre client en a besoin aujourd'hui — selon coupure et capacité.",
       "multiStop": "Un ramassage, plusieurs livraisons — logistique intra-ville efficace pour distributeurs et cliniques.",
       "wholesale": "Comptoir-chantier et entrepôt-entrepreneur — livraison B2B électrique, plomberie et industrielle.",
-      "ltlFreight": "Fret local palettisé — capacité camion cube 16 et 20 pi.",
+      "ltlFreight": "Fret local palettisé — capacité camion cube 16 pi.",
       "urgentEmergency": "Livraison d'urgence pour absence chauffeur, panne, matériel oublié sur chantier et fret à échéance.",
       "quickExpress": "Livraison B2B rapide et express pour envois commerciaux sensibles au délai — suivi du ramassage à la preuve.",
       "construction": "Livraison chantier avec créneaux horaires, notes d'accès et fret palettisé.",
-      "medical": "Messagerie médicale et pharmacie sensible au délai avec preuve de chaîne de possession.",
+      "medical": "Courses pharmacie et médicales urgentes avec preuve photo; glacières pour les articles à garder au frais.",
       "fleetOverflow": "Débordement de flotte et capacité chauffeur de relève quand vos camions sont pleins ou votre chauffeur est absent.",
       "lastMile": "Dernier kilomètre et réapprovisionnement magasins avec créneaux et POD."
     }
@@ -302,7 +302,7 @@
         "useCase": "Colis moyens, fournitures médicales"
       },
       "pickup": {
-        "name": "Camionnette",
+        "name": "Fourgon",
         "payload": "Jusqu'à 1 500 lb",
         "cargo": "Caisse 6 pi",
         "useCase": "Meubles, matériaux de construction"
@@ -314,7 +314,7 @@
         "useCase": "Articles volumineux, livraisons multiples"
       },
       "highRoof": {
-        "name": "Fourgon Sprinter",
+        "name": "Fourgon à toit surélevé",
         "payload": "Jusqu'à 3 500 lb",
         "cargo": "350 pi³",
         "useCase": "Articles hauts, courses à grand volume"
@@ -382,24 +382,6 @@
       "reports": "Rapports",
       "payments": "Paiements",
       "settings": "Paramètres marchand"
-    },
-    "stats": {
-      "deliveries": {
-        "value": "247",
-        "label": "Livraisons aujourd'hui"
-      },
-      "onTime": {
-        "value": "98%",
-        "label": "Taux à l'heure"
-      },
-      "revenue": {
-        "value": "12,4 k$",
-        "label": "Cette semaine"
-      },
-      "active": {
-        "value": "18",
-        "label": "Chauffeurs actifs"
-      }
     }
   },
   "technology": {
@@ -485,7 +467,7 @@
       "creditAccount": {
         "name": "Compte d'affaires",
         "price": "Devis par itinéraire",
-        "description": "Net 15/30 et facturation consolidée pour expéditeurs B2B réguliers.",
+        "description": "Interac e-Transfer billing et facturation consolidée pour expéditeurs B2B réguliers.",
         "features": [
           "Couverture véhicule et chauffeur planifiée",
           "Coordination multi-arrêts",
@@ -573,7 +555,7 @@
       },
       "vehicles": {
         "question": "Quels véhicules sont disponibles?",
-        "answer": "Berline, VUS, Camionnette, Fourgonnette, Fourgon Sprinter, Camion 16 pi et 20 pi. Tous requièrent un permis G."
+        "answer": "Berline ou VUS (jusqu'à environ 80 kg), fourgon (jusqu'à environ 900 kg) et camion cube de 16 pi (jusqu'à environ 3 000 kg). Tous conduits avec un permis G standard."
       },
       "pricing": {
         "question": "Comment fonctionne la tarification?",
@@ -589,7 +571,7 @@
       },
       "monthly": {
         "question": "Puis-je payer mensuellement?",
-        "answer": "Oui. Les comptes de crédit offrent des conditions Net 15 et Net 30 avec facturation mensuelle consolidée."
+        "answer": "Oui. Les comptes marchands sont facturés par cycle et paient par virement Interac. Les clients paient par carte à la réservation."
       },
       "pod": {
         "question": "Fournissez-vous une preuve de livraison?",
@@ -613,7 +595,7 @@
       },
       "gta": {
         "question": "Quelles régions servez-vous?",
-        "answer": "Nous opérons dans la région du Grand Toronto — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo, London et Niagara — avec expertise sur les couloirs 401, 427 et 407."
+        "answer": "Nous opérons dans la région du Grand Toronto — Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener-Waterloo et Niagara — avec expertise sur les couloirs 401, 427 et 407."
       },
       "overflow": {
         "question": "Pouvez-vous gérer une livraison d'urgence quand notre chauffeur est indisponible?",
@@ -621,7 +603,7 @@
       },
       "jobsite": {
         "question": "Livrez-vous des matériaux de construction sur chantier?",
-        "answer": "Oui. Nous assurons la livraison chantier pour distributeurs construction et entrepreneurs — pickups, fourgons cargo et camions cube avec créneaux horaires, notes d'accès et preuve photo pour contremaîtres et facturation."
+        "answer": "Oui. Nous assurons la livraison chantier pour distributeurs construction et entrepreneurs — fourgons et camions cubes avec créneaux horaires, notes d'accès et preuve photo pour contremaîtres et facturation."
       },
       "lastMile": {
         "question": "Offrez-vous une livraison rapide ou express pour les entreprises?",
@@ -641,7 +623,7 @@
       },
       "billing": {
         "question": "Comment fonctionne la facturation?",
-        "answer": "Choisissez paiement à l'utilisation, conditions de crédit (Net 15/30) ou facturation entreprise personnalisée."
+        "answer": "Choisissez paiement à l'utilisation, conditions de crédit (Interac e-Transfer billing) ou facturation entreprise personnalisée."
       },
       "tracking": {
         "question": "Le suivi en temps réel est-il inclus?",

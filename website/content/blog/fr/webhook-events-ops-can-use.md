@@ -3,7 +3,7 @@ title: "Événements webhook que vos ops peuvent vraiment utiliser"
 description: "Les webhooks de livraison ne servent à rien s'ils disent seulement « mis à jour ». Mappez les événements aux actions répartition, CS et finance."
 date: "2026-08-11"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["webhooks", "api", "ops", "intégrations"]
 featured: false
 ---

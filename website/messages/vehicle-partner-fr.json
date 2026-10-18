@@ -1,12 +1,12 @@
 {
   "meta": {
     "title": "Portail partenaire véhicule | Rejoindre le réseau chauffeur Porterchain",
-    "description": "Partenaire Porterchain avec berline, VUS, camionnette, fourgonnette ou camion boîte. Permis G Ontario. Tournées structurées et soutien opérationnel dans le RGT."
+    "description": "Partenaire Porterchain avec berline, VUS, fourgonnette ou camion boîte. Permis G Ontario. Tournées structurées et soutien opérationnel dans le RGT."
   },
   "hero": {
     "badge": "Portail partenaire véhicule",
     "title": "Partenaire Porterchain avec les véhicules que vous exploitez déjà",
-    "subtitle": "Programme partenaire chauffeur structuré pour opérateurs ontariens avec berline, VUS, camionnette, fourgonnette ou camion boîte admissible dans le RGT. Instructions claires, flux prévisibles et tournées alignées sur la demande marchande. La rémunération est définie dans votre entente partenaire — nous ne publions pas de gains garantis ni de tarifs en dollars sur cette page.",
+    "subtitle": "Programme partenaire chauffeur structuré pour opérateurs ontariens avec berline, VUS, fourgonnette ou camion boîte admissible dans le RGT. Instructions claires, flux prévisibles et tournées alignées sur la demande marchande. La rémunération est définie dans votre entente partenaire — nous ne publions pas de gains garantis ni de tarifs en dollars sur cette page.",
     "primaryCta": "Commencer la demande",
     "secondaryCta": "Questions? Contactez-nous"
   },
@@ -110,7 +110,7 @@
     "items": [
       {
         "question": "Quels véhicules sont admissibles?",
-        "answer": "Berline, VUS, camionnette, fourgonnette et camion boîte (typiquement 16 pi), sous réserve du permis G Ontario et de la révision d'intégration."
+        "answer": "Berline, VUS, fourgonnette et camion boîte (typiquement 16 pi), sous réserve du permis G Ontario et de la révision d'intégration."
       },
       {
         "question": "Ai-je besoin du permis G Ontario?",

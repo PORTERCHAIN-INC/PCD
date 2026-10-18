@@ -37,77 +37,79 @@ const EN: CoreFaq[] = [
     group: "price",
     question: "How much does a delivery cost?",
     answer:
-      "Enter two postal codes and a vehicle: the calculator shows the exact price with HST in seconds, no sign-up. It is the same engine we bill from.",
-    link: { href: "/delivery-cost-calculator", label: "Get a price" },
+      "Enter two postal codes and a vehicle. You see the exact price, HST included, in about 10 seconds, before you share any details. It is the same engine we bill from.",
+    link: { href: "/delivery-cost-calculator", label: "Get instant price" },
   },
   {
-    id: "start",
-    group: "price",
-    question: "How do I start?",
+    id: "cutoff",
+    group: "coverage",
+    question: "Can you deliver today?",
     answer:
-      "Get a price and book it online in a few minutes. For regular volume, open a free business account; there is no contract or minimum.",
-    link: { href: "/sign-up?intent=merchant&from=faq", label: "Open a business account" },
-  },
-  {
-    id: "payment",
-    group: "price",
-    question: "How do I pay?",
-    answer: "Pay by card when you book. Business accounts can apply for monthly invoicing.",
-    link: { href: "/business", label: "Business accounts" },
+      "Yes. Book by 11 AM and it is delivered between 2 and 9 PM the same day, Monday to Saturday. Book later and it goes the next operating day, or pick a date.",
+    link: { href: "/delivery", label: "How same-day works" },
   },
   {
     id: "coverage",
     group: "coverage",
     question: "Where do you deliver?",
-    answer: `Same day across ${COVERAGE_FSA_COUNT} postal areas of the Greater Toronto Area, from Hamilton to Oshawa and north to Newmarket.`,
+    answer: `The GTA plus about 150 km: ${COVERAGE_FSA_COUNT} postal areas, from Hamilton to Oshawa and north to Newmarket. Our core areas are Vaughan, Concord, Brampton and Mississauga. The calculator confirms your postal codes instantly.`,
     link: { href: "/service-areas", label: "See service areas" },
-  },
-  {
-    id: "cutoff",
-    group: "coverage",
-    question: "What is the same-day cut-off?",
-    answer:
-      "Order by 11 AM and it is delivered between 2 and 9 PM the same day, Monday to Saturday. Later orders go out the next operating day.",
-    link: { href: "/delivery", label: "How same-day works" },
   },
   {
     id: "vehicles",
     group: "service",
-    question: "Which vehicles can I book?",
+    question: "Which vehicle do I need?",
     answer:
-      "Sedan or SUV for parcels, cargo van for cartons and small pallets, 16 ft box truck for pallets and bulky freight. The calculator suggests the right one.",
+      "Sedan or SUV up to about 80 kg, cargo van up to about 900 kg, 16 ft box truck up to about 3,000 kg. All are driven on a standard Ontario G licence. The calculator suggests one.",
     link: { href: "/vehicles", label: "Compare vehicles" },
   },
   {
-    id: "shopify",
-    group: "service",
-    question: "Does it work with Shopify?",
+    id: "insurance",
+    group: "trust",
+    question: "What if something is lost or damaged?",
     answer:
-      "Yes. The PorterChain Shopify app adds a same-day rate at checkout and books the delivery when the order is paid.",
-    link: { href: "/delivery/shopify-merchants", label: "Shopify delivery" },
+      "Every parcel includes $2,500 coverage. Shipping something valuable? Add $25,000 coverage for $10. Report it with the tracking number and photos; we reply within one business day.",
+    link: { href: "/trust/claims", label: "Claims process" },
+  },
+  {
+    id: "payment",
+    group: "price",
+    question: "How do I pay?",
+    answer:
+      "Businesses with a merchant account pay by Interac e-Transfer for each billing cycle. Customers pay by card when they book, processed by Stripe; we never store card numbers.",
+    link: { href: "/business", label: "Business accounts" },
+  },
+  {
+    id: "start",
+    group: "price",
+    question: "Do I need a contract?",
+    answer:
+      "No contract and no minimum. Price it, book it online in about a minute, and open a free business account when you have regular volume.",
+    link: { href: "/sign-up?intent=merchant&from=faq", label: "Open a business account" },
   },
   {
     id: "pod",
     group: "trust",
     question: "Do I get tracking and proof of delivery?",
     answer:
-      "Every delivery has a live tracking link for you and your receiver, and photo proof at drop-off. Signature or ID check is available when you need it.",
+      "Every delivery has a live tracking link for you and your receiver, and photo proof at drop-off. Receivers see the driver's first name only.",
     link: { href: "/track", label: "Track a delivery" },
   },
   {
-    id: "insurance",
-    group: "trust",
-    question: "Are deliveries insured?",
-    answer: "Yes. Deliveries are insured, and we send a certificate of insurance on request.",
-    link: { href: "/trust", label: "Trust center" },
+    id: "medical",
+    group: "service",
+    question: "Can you carry medical deliveries that must stay cool?",
+    answer:
+      "Yes. For medical deliveries that need to stay cool we use coolers. We do not run refrigerated vehicles.",
+    link: { href: "/delivery/pharmacy", label: "Medical & pharmacy delivery" },
   },
   {
-    id: "claims",
-    group: "trust",
-    question: "What if something is damaged or missing?",
+    id: "shopify",
+    group: "service",
+    question: "Do you work with Shopify?",
     answer:
-      "Tell us with the tracking number and photos; we review it against the pickup and drop-off proof and reply within one business day.",
-    link: { href: "/trust/claims", label: "Claims process" },
+      "Our Shopify app is in review with Shopify. When it is live it will add a same-day rate at checkout. Until then, book Shopify orders online in about a minute.",
+    link: { href: "/delivery/shopify-merchants", label: "Shopify delivery" },
   },
 ];
 
@@ -117,79 +119,79 @@ const FR: CoreFaq[] = [
     group: "price",
     question: "Combien coûte une livraison?",
     answer:
-      "Entrez deux codes postaux et un véhicule : le calculateur affiche le prix exact, TVH incluse, en quelques secondes, sans inscription.",
-    link: { href: "/delivery-cost-calculator", label: "Obtenir un prix" },
+      "Entrez deux codes postaux et un véhicule. Vous voyez le prix exact, TVH incluse, en environ 10 secondes, sans donner vos coordonnées. C'est le même moteur que notre facturation.",
+    link: { href: "/delivery-cost-calculator", label: "Obtenir un prix instantané" },
   },
   {
-    id: "start",
-    group: "price",
-    question: "Comment commencer?",
+    id: "cutoff",
+    group: "coverage",
+    question: "Pouvez-vous livrer aujourd'hui?",
     answer:
-      "Obtenez un prix et réservez en ligne en quelques minutes. Pour un volume régulier, ouvrez un compte entreprise gratuit, sans contrat ni minimum.",
-    link: { href: "/sign-up?intent=merchant&from=faq", label: "Ouvrir un compte entreprise" },
+      "Oui. Réservez avant 11 h et c'est livré entre 14 h et 21 h le jour même, du lundi au samedi. Plus tard, la livraison part le jour ouvrable suivant, ou à la date choisie.",
+    link: { href: "/delivery", label: "Livraison le jour même" },
+  },
+  {
+    id: "coverage",
+    group: "coverage",
+    question: "Où livrez-vous?",
+    answer: `Le Grand Toronto et environ 150 km autour : ${COVERAGE_FSA_COUNT} zones postales, de Hamilton à Oshawa et jusqu'à Newmarket au nord. Nos zones principales : Vaughan, Concord, Brampton et Mississauga. Le calculateur confirme vos codes postaux instantanément.`,
+    link: { href: "/service-areas", label: "Zones desservies" },
+  },
+  {
+    id: "vehicles",
+    group: "service",
+    question: "Quel véhicule me faut-il?",
+    answer:
+      "Berline ou VUS jusqu'à environ 80 kg, fourgon jusqu'à environ 900 kg, camion de 16 pi jusqu'à environ 3 000 kg. Tous conduits avec un permis G standard de l'Ontario.",
+    link: { href: "/vehicles", label: "Comparer les véhicules" },
+  },
+  {
+    id: "insurance",
+    group: "trust",
+    question: "Et si un colis est perdu ou endommagé?",
+    answer:
+      "Chaque colis inclut une couverture de 2 500 $. Pour un envoi de valeur, ajoutez une couverture de 25 000 $ pour 10 $. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
+    link: { href: "/trust/claims", label: "Réclamations" },
   },
   {
     id: "payment",
     group: "price",
     question: "Comment payer?",
     answer:
-      "Par carte à la réservation. Les comptes entreprise peuvent demander la facturation mensuelle.",
+      "Les entreprises avec un compte marchand paient par virement Interac pour chaque cycle de facturation. Les clients paient par carte à la réservation, via Stripe; nous ne conservons jamais les numéros de carte.",
     link: { href: "/business", label: "Comptes entreprise" },
   },
   {
-    id: "coverage",
-    group: "coverage",
-    question: "Où livrez-vous?",
-    answer: `Le jour même dans ${COVERAGE_FSA_COUNT} zones postales du Grand Toronto, de Hamilton à Oshawa et jusqu'à Newmarket au nord.`,
-    link: { href: "/service-areas", label: "Zones desservies" },
-  },
-  {
-    id: "cutoff",
-    group: "coverage",
-    question: "Quelle est l'heure limite le jour même?",
+    id: "start",
+    group: "price",
+    question: "Faut-il un contrat?",
     answer:
-      "Commandez avant 11 h pour une livraison entre 14 h et 21 h le jour même, du lundi au samedi. Les commandes plus tardives partent le jour ouvrable suivant.",
-    link: { href: "/delivery", label: "Livraison le jour même" },
-  },
-  {
-    id: "vehicles",
-    group: "service",
-    question: "Quels véhicules puis-je réserver?",
-    answer:
-      "Berline ou VUS pour les colis, fourgon pour les cartons et petites palettes, camion de 16 pi pour les palettes et le volumineux.",
-    link: { href: "/vehicles", label: "Comparer les véhicules" },
-  },
-  {
-    id: "shopify",
-    group: "service",
-    question: "Est-ce compatible avec Shopify?",
-    answer:
-      "Oui. L'application Shopify de PorterChain ajoute un tarif le jour même au paiement et réserve la livraison une fois la commande payée.",
-    link: { href: "/delivery/shopify-merchants", label: "Livraison Shopify" },
+      "Aucun contrat ni minimum. Obtenez un prix, réservez en ligne en environ une minute et ouvrez un compte entreprise gratuit quand votre volume devient régulier.",
+    link: { href: "/sign-up?intent=merchant&from=faq", label: "Ouvrir un compte entreprise" },
   },
   {
     id: "pod",
     group: "trust",
     question: "Ai-je le suivi et une preuve de livraison?",
     answer:
-      "Chaque livraison a un lien de suivi en direct et une photo à la livraison. Signature ou vérification d'identité sur demande.",
+      "Chaque livraison a un lien de suivi en direct pour vous et votre destinataire, et une photo à la livraison. Le destinataire ne voit que le prénom du chauffeur.",
     link: { href: "/track", label: "Suivre une livraison" },
   },
   {
-    id: "insurance",
-    group: "trust",
-    question: "Les livraisons sont-elles assurées?",
+    id: "medical",
+    group: "service",
+    question: "Transportez-vous des livraisons médicales à garder au frais?",
     answer:
-      "Oui. Les livraisons sont assurées et nous envoyons un certificat d'assurance sur demande.",
-    link: { href: "/trust", label: "Centre de confiance" },
+      "Oui. Pour les livraisons médicales à garder au frais, nous utilisons des glacières. Nous n'avons pas de véhicules réfrigérés.",
+    link: { href: "/delivery/pharmacy", label: "Livraison médicale et pharmacie" },
   },
   {
-    id: "claims",
-    group: "trust",
-    question: "Et si un article est endommagé ou manquant?",
+    id: "shopify",
+    group: "service",
+    question: "Travaillez-vous avec Shopify?",
     answer:
-      "Écrivez-nous avec le numéro de suivi et des photos; nous comparons avec les preuves de ramassage et de livraison et répondons en un jour ouvrable.",
-    link: { href: "/trust/claims", label: "Réclamations" },
+      "Notre application Shopify est en cours d'examen par Shopify. Une fois en ligne, elle ajoutera un tarif le jour même au paiement. D'ici là, réservez vos commandes Shopify en ligne en environ une minute.",
+    link: { href: "/delivery/shopify-merchants", label: "Livraison Shopify" },
   },
 ];
 

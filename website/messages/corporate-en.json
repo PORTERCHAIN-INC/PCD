@@ -1,10 +1,10 @@
 {
   "metadata": {
     "home": {
-      "title": "GTA Delivery Capacity | Drivers, Vehicles & Technology | PorterChain",
-      "description": "GTA delivery capacity on demand: professional drivers and vehicles for same-day, overflow and recurring routes, with live tracking and proof. Get a quote.",
-      "ogTitle": "PorterChain — Transportation Capacity Network for the GTA",
-      "ogDescription": "Technology, drivers, vehicles, and logistics operations for Ontario businesses — capacity when your own fleet cannot cover it."
+      "title": "Same-Day Courier Toronto & GTA | Instant Price | PorterChain",
+      "description": "Same-day and next-day business courier across Toronto and the GTA. Sedan, SUV, van or 16 ft box truck. Exact price in 10 seconds, HST included. Book by 11 AM, delivered today.",
+      "ogTitle": "PorterChain: same-day courier for Toronto & the GTA",
+      "ogDescription": "Book by 11 AM, delivered 2–9 PM today. Exact price in 10 seconds. Live tracking, photo proof and $2,500 coverage on every parcel."
     },
     "platform": {
       "title": "How We Operate | Full-Stack Capacity Capabilities | PorterChain",
@@ -19,8 +19,8 @@
       "ogDescription": "Same-day, recurring, and overflow capacity with tracking and proof of delivery for Ontario's highest-demand B2B logistics verticals."
     },
     "vehicles": {
-      "title": "Delivery Vehicles GTA | Cargo Van, Trade Van, Box Truck | Porterchain",
-      "description": "Commercial vehicle capacity for Ontario B2B delivery — cargo vans, trade vans, box trucks, and pickup trucks with professional drivers, tracking, and proof.",
+      "title": "Delivery Vehicles GTA | Sedan, SUV, Cargo Van, Box Truck | PorterChain",
+      "description": "Sedan, SUV, cargo van or 16 ft box truck for GTA business delivery, all driven on a standard Ontario G licence. Exact price in 10 seconds.",
       "ogTitle": "Porterchain Delivery Vehicles — GTA & Ontario",
       "ogDescription": "Match the right vehicle class to your freight — same-day and recurring capacity across the GTA."
     },
@@ -62,33 +62,9 @@
     },
     "trust": {
       "title": "Trust & Security | Porterchain",
-      "description": "Insurance, delivery commitments, COI, and security documentation for Ontario business shippers — procurement exhibits available on request.",
+      "description": "How PorterChain protects your deliveries: $2,500 coverage included, live tracking, photo proof of delivery, PIPEDA privacy and a one-business-day claims reply.",
       "ogTitle": "Porterchain Trust Center",
       "ogDescription": "Commercial insurance, proof-of-delivery standards, operational escalation, and security documentation for capacity programs."
-    },
-    "subprocessors": {
-      "title": "Subprocessors | Porterchain Trust",
-      "description": "Current subprocessors used to operate Porterchain's transportation capacity network, merchant portal, payments, communications, analytics, and infrastructure.",
-      "ogTitle": "Porterchain Subprocessors",
-      "ogDescription": "Vendor list and data-processing roles for enterprise procurement review."
-    },
-    "sla": {
-      "title": "SLA Exhibit | Porterchain Trust",
-      "description": "Service-level bands, support response targets, credits, and escalation paths for dedicated capacity and recurring delivery programs.",
-      "ogTitle": "Porterchain SLA Summary",
-      "ogDescription": "Delivery and operations commitments for recurring capacity programs — availability, support, and escalation."
-    },
-    "dpa": {
-      "title": "Data Processing Addendum | Porterchain Trust",
-      "description": "PIPEDA-aligned data processing summary for enterprise procurement — roles, subprocessors, and security commitments.",
-      "ogTitle": "Porterchain DPA Summary",
-      "ogDescription": "How Porterchain processes merchant and shipper personal information under Canadian privacy law."
-    },
-    "msa": {
-      "title": "Master Service Agreement | Porterchain Trust",
-      "description": "Commercial framework for transportation capacity programs, dedicated delivery services, and enterprise procurement.",
-      "ogTitle": "Porterchain MSA Summary",
-      "ogDescription": "Commercial framework for capacity programs, optional integrations, and dedicated delivery services."
     },
     "customers": {
       "title": "Customers | Porterchain",
@@ -103,10 +79,10 @@
       "ogDescription": "Capacity programs for businesses with structured routes, overflow needs, and operational accountability requirements."
     },
     "pricing": {
-      "title": "B2B Delivery Pricing GTA | Quote-Based Capacity | PorterChain",
-      "description": "Transparent quote-based pricing for GTA B2B delivery — same-day, urgent, recurring, and fleet overflow. Vehicle class, route, and proof requirements. Request a written quote.",
+      "title": "Delivery Pricing GTA | Instant Price, HST Included | PorterChain",
+      "description": "Transparent Instant pricing for GTA B2B delivery — same-day, urgent, recurring, and fleet overflow. Vehicle class, route, and proof requirements. Request an exact price.",
       "ogTitle": "Porterchain B2B Delivery Pricing — GTA & Ontario",
-      "ogDescription": "Request a written quote for cargo van, Sprinter van, pickup, and box truck capacity with professional drivers across the Greater Toronto Area."
+      "ogDescription": "Request an exact price for sedan, SUV, cargo van and box truck capacity with professional drivers across the Greater Toronto Area."
     },
     "accessibility": {
       "title": "Accessibility | Porterchain",
@@ -136,19 +112,15 @@
       "title": "Founder | Porterchain",
       "description": "Founder and operator context for PorterChain — noindex until approved."
     },
-    "insurance": {
-      "title": "Insurance & COI | Porterchain Trust",
-      "description": "Commercial insurance and COI process — scaffold pending legal review."
-    },
     "serviceStandards": {
       "title": "Service Standards | Porterchain Trust",
       "description": "Delivery proof, windows, and escalation standards — scaffold pending ops approval."
     },
     "claims": {
       "title": "Proof of Delivery & Claims | PorterChain Trust",
-      "description": "Delivery verification, photo POD, GPS timestamps, and claims-ready records for PorterChain capacity programs in Ontario.",
+      "description": "Delivery verification, photo POD, GPS timestamps, and the claims process for every PorterChain delivery.",
       "ogTitle": "PorterChain delivery verification & claims",
-      "ogDescription": "How photo, signature, and GPS proof close every stop — and support dispute follow-up."
+      "ogDescription": "How photo proof and timestamps close every stop, and how to file a claim."
     }
   },
   "nav": {
@@ -180,7 +152,7 @@
       "cargoVan": "Cargo van",
       "tradeVan": "Trade van",
       "boxTruck": "Box truck",
-      "pickupTruck": "Pickup truck"
+      "pickupTruck": "Cargo van"
     },
     "solutionsMenu": {
       "overview": {
@@ -193,7 +165,7 @@
       },
       "medical": {
         "label": "Medical & healthcare",
-        "description": "Pharmacy, lab, and patient runs with chain-of-custody proof on every stop."
+        "description": "Pharmacy, lab and clinic runs with photo proof; coolers for items that must stay cool."
       },
       "foodBeverage": {
         "label": "Food & beverage",
@@ -234,7 +206,7 @@
         "description": "Pallet and jobsite freight — construction, industrial, and wholesale lanes."
       },
       "pickupTruck": {
-        "label": "Pickup truck",
+        "label": "Cargo van",
         "description": "Light construction and trade overflow when your fleet is booked."
       }
     },
@@ -257,7 +229,7 @@
       },
       "trust": {
         "label": "Trust center",
-        "description": "Security, insurance, SLA, and procurement documentation."
+        "description": "Coverage, proof of delivery, claims and privacy."
       },
       "claims": {
         "label": "Proof & claims",
@@ -330,7 +302,7 @@
     "toggleMenu": "Toggle navigation menu",
     "price": "Price",
     "track": "Track",
-    "shopifyApp": "Shopify app",
+    "shopifyApp": "Shopify (in review)",
     "book": "Book now",
     "primaryNavLabel": "Primary"
   },
@@ -414,7 +386,7 @@
       "intentGuides": "Delivery guides by intent",
       "relatedPages": "Related pages",
       "pricingFaqQ": "How does pricing work for delivery in this area?",
-      "pricingFaqA": "Quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No platform fees — we confirm capacity in writing before dispatch.",
+      "pricingFaqA": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds.",
       "neighbourhoodCoverage": "Neighbourhoods and districts we cover",
       "fsaPrefixes": "Sample FSAs",
       "neighbourhoodCoverageNote": "Coverage is confirmed by route and postal code on quote — we do not publish separate zip landing pages.",
@@ -435,7 +407,7 @@
       "subtitle": "Same-day, urgent, emergency, and recurring B2B delivery across the GTA — intra-city logistics and local delivery with professional drivers, sedan through box truck, live tracking and proof on every stop.",
       "primaryCta": "Get a quote",
       "secondaryCta": "See vehicles",
-      "trustLine": "Response within one business day · Quote-based, no platform fees",
+      "trustLine": "Exact price in 10 seconds · No sign-up · $2,500 coverage included",
       "trustProof": "Proof of delivery on every stop",
       "trustAreas": "Toronto · Mississauga · Brampton · Peel · York · Durham",
       "slaLabel": "Quote response by",
@@ -456,7 +428,7 @@
       },
       "where": {
         "question": "Where does PorterChain operate?",
-        "answer": "We serve the Greater Toronto Area and Ontario metros including Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo, and London."
+        "answer": "We serve the Greater Toronto Area and Ontario metros including Toronto, Mississauga, Brampton, Vaughan, Hamilton, Kitchener–Waterloo."
       },
       "how": {
         "question": "How do I get started?",
@@ -465,8 +437,8 @@
     },
     "brandBand": {
       "eyebrow": "Our tagline",
-      "title": "Moving Commerce On-Chain",
-      "body": "Professional drivers and commercial vehicles — from box truck to trailer — so goods keep moving when your own fleet can't cover it."
+      "title": "Same-day courier for the GTA",
+      "body": "Professional drivers and commercial vehicles — from sedan to box truck — so goods keep moving when your own fleet can't cover it."
     },
     "story": {
       "problems": {
@@ -490,7 +462,7 @@
           "2": "Customer needs it today across Toronto, Mississauga, or Brampton.",
           "3": "Time-sensitive commercial freight with tracked express delivery.",
           "4": "Timed windows, site access, and pallet freight to construction sites.",
-          "5": "Pharmacy, clinic, and lab runs with chain-of-custody proof.",
+          "5": "Pharmacy, clinic, and lab runs with photo proof of delivery.",
           "6": "Counter-to-jobsite and warehouse-to-contractor wholesale lanes.",
           "7": "Multi-stop local delivery and retail replenishment across the GTA."
         }
@@ -588,7 +560,7 @@
       },
       "cta": {
         "title": "Get delivery capacity on your lanes",
-        "subtitle": "Tell us your shipments, urgency, and GTA service areas. Same-day, urgent, or recurring — we respond within one business day with vehicle fit and a written quote.",
+        "subtitle": "Tell us your shipments, urgency, and GTA service areas. Same-day, urgent, or recurring — we respond within one business day with vehicle fit and an exact price.",
         "primary": "Get a quote"
       }
     },
@@ -597,8 +569,8 @@
     },
     "stats": {
       "onTime": {
-        "value": "SLA-first",
-        "label": "Structured dispatch programs"
+        "value": "Photo proof",
+        "label": "On every delivery"
       },
       "visibility": {
         "value": "Live",
@@ -610,7 +582,7 @@
       },
       "audit": {
         "value": "Full",
-        "label": "Audit-ready proof chain"
+        "label": "clear proof chain"
       }
     },
     "bento": {
@@ -623,7 +595,7 @@
       },
       "routing": {
         "title": "Overflow capacity",
-        "description": "Add sedan, SUV, cargo van, Sprinter van, or box truck capacity when your team is already committed."
+        "description": "Add sedan, SUV, cargo van, or box truck capacity when your team is already committed."
       },
       "visibility": {
         "title": "Scheduled routes",
@@ -649,7 +621,7 @@
       "items": {
         "0": {
           "title": "Vehicle + driver",
-          "description": "Sedan, SUV, cargo van, Sprinter van, and box truck options with a professional driver assigned to the job."
+          "description": "Sedan, SUV, cargo van, and box truck options with a professional driver assigned to the job."
         },
         "1": {
           "title": "Business continuity",
@@ -724,7 +696,7 @@
         },
         "1": {
           "title": "Right-sized vehicle capacity",
-          "description": "Choose sedan, SUV, cargo van, Sprinter van, or box truck capacity based on the load."
+          "description": "Choose sedan, SUV, cargo van, or box truck capacity based on the load."
         },
         "2": {
           "title": "Urgent work stays moving",
@@ -746,7 +718,7 @@
     },
     "cta": {
       "title": "Need transportation capacity?",
-      "subtitle": "Share the shipment, vehicle class, service area, and timing. We will help map the right capacity and send a written quote.",
+      "subtitle": "Share the shipment, vehicle class, service area, and timing. We will help map the right capacity and show you an exact price.",
       "primary": "Get a quote",
       "secondary": "View solutions"
     },
@@ -764,7 +736,7 @@
         },
         "2": {
           "q": "What proof does each shipment include?",
-          "a": "Photo, signature, GPS coordinates, shipment references, and a complete audit-ready status history for every delivery."
+          "a": "Photo, signature, GPS coordinates, shipment references, and a complete clear status history for every delivery."
         },
         "3": {
           "q": "Do customers buy Porterchain software?",
@@ -973,7 +945,7 @@
     "hero": {
       "badge": "Fleet capacity",
       "title": "Commercial vehicles matched to your freight",
-      "subtitle": "Cargo vans, trade vans, box trucks, and pickup trucks — professional drivers with tracking and proof on every stop across the GTA and Ontario.",
+      "subtitle": "Sedan / SUV, cargo van and 16 ft box truck, all driven on a standard Ontario G licence, with live tracking and photo proof on every stop across the GTA.",
       "primaryCta": "Get a quote",
       "secondaryCta": "See services"
     },
@@ -984,7 +956,7 @@
     },
     "cta": {
       "title": "Need the right vehicle for your next run?",
-      "subtitle": "Share freight size, stops, and timing — we confirm vehicle class and send a written quote.",
+      "subtitle": "Pick a vehicle and two postal codes; the calculator shows your exact price in about 10 seconds.",
       "primary": "Get a quote",
       "secondary": "Browse solutions"
     }
@@ -1010,7 +982,7 @@
         },
         "1": {
           "title": "Medical & healthcare",
-          "description": "Pharmacy courier, lab specimen transport, and clinic supply runs — chain-of-custody proof, same-day urgency, and time-sensitive routing for regulated B2B shipments."
+          "description": "Pharmacy courier, lab specimen transport, and clinic supply runs — photo proof of delivery, same-day urgency, and time-sensitive routing for regulated B2B shipments."
         },
         "2": {
           "title": "Food & beverage",
@@ -1043,7 +1015,7 @@
       "steps": {
         "0": {
           "title": "Discovery",
-          "description": "Map your routes, volumes, SLAs, and integration requirements with our team."
+          "description": "Map your routes, volumes and integration needs with our team."
         },
         "1": {
           "title": "Configuration",
@@ -1105,7 +1077,7 @@
         },
         "3": {
           "q": "How does pricing work?",
-          "a": "Quote-based on vehicle class, distance, stops, and urgency (same-day vs scheduled). No hidden platform fees — request a written quote."
+          "a": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds. No platform fees or software seats."
         }
       }
     },
@@ -1243,7 +1215,7 @@
           },
           "3": {
             "q": "What areas do construction solutions cover?",
-            "a": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo, and expanding Ontario metros."
+            "a": "Toronto, Mississauga, Brampton, Vaughan, Markham, Oakville, Hamilton, Kitchener–Waterloo, and nearby areas within about 150 km."
           }
         }
       },
@@ -1422,7 +1394,7 @@
     "medical": {
       "meta": {
         "title": "Medical & Healthcare Delivery GTA | Pharmacy Courier | PorterChain",
-        "description": "Healthcare delivery capacity — pharmacy courier, lab specimens, clinic supply, and time-sensitive B2B shipments with chain-of-custody proof in the GTA.",
+        "description": "Healthcare delivery capacity — pharmacy courier, lab specimens, clinic supply, and time-sensitive B2B shipments with photo proof of delivery in the GTA.",
         "ogTitle": "Medical & healthcare solutions — PorterChain",
         "ogDescription": "Tracked delivery for pharmacies, labs, and healthcare suppliers in Ontario."
       },
@@ -1430,7 +1402,7 @@
       "hero": {
         "badge": "Medical solutions",
         "title": "Healthcare delivery capacity in the GTA",
-        "subtitle": "Pharmacy runs, lab specimen transport, and clinic supply — time-sensitive B2B delivery with chain-of-custody proof, same-day urgency, and audit-ready documentation.",
+        "subtitle": "Pharmacy runs, lab specimen transport, and clinic supply — time-sensitive B2B delivery with photo proof of delivery, same-day urgency, and photo proof of delivery.",
         "primaryCta": "Get a quote",
         "secondaryCta": "Pharmacy delivery"
       },
@@ -1449,7 +1421,7 @@
             "description": "Prescription and pharmacy-to-patient logistics with compliance-friendly handling.",
             "cta": "Pharmacy delivery playbook",
             "bullets": {
-              "0": "Chain-of-custody on every shipment",
+              "0": "Photo proof on every delivery",
               "1": "Windows aligned to pharmacy ops",
               "2": "Shareable patient tracking links"
             }
@@ -1526,12 +1498,12 @@
             "a": "Yes. Same-day and scheduled transport subject to handling requirements — confirm during onboarding."
           },
           "2": {
-            "q": "Is chain of custody documented?",
+            "q": "Is proof of delivery documented?",
             "a": "Tracked pickup-to-delivery with timestamps, proof, and dashboard visibility."
           },
           "3": {
             "q": "What regions do you serve?",
-            "a": "GTA, Toronto, Mississauga, Hamilton, and expanding Ontario metros."
+            "a": "GTA, Toronto, Mississauga, Hamilton, and nearby areas within about 150 km."
           }
         }
       },
@@ -1557,7 +1529,7 @@
           },
           "2": {
             "title": "Pharmacy same-day blog",
-            "description": "Chain-of-custody visibility without in-house fleet.",
+            "description": "proof-of-delivery visibility without in-house fleet.",
             "href": "/blog/pharmacy-same-day-courier-gta"
           }
         }
@@ -1594,7 +1566,7 @@
             "cta": "Coffee roaster playbook",
             "bullets": {
               "0": "Weekly café routes and same-day overflow",
-              "1": "Cargo bikes and vans for urban density",
+              "1": "Vans and vans for urban density",
               "2": "ETAs café partners can trust"
             }
           },
@@ -1675,7 +1647,7 @@
           },
           "3": {
             "q": "What areas do you serve?",
-            "a": "GTA, Toronto, Mississauga, Kitchener–Waterloo, Hamilton, and expanding regions."
+            "a": "GTA, Toronto, Mississauga, Kitchener–Waterloo, Hamilton, and nearby areas within about 150 km."
           }
         }
       },
@@ -1718,7 +1690,7 @@
       "hero": {
         "badge": "3PL solutions",
         "title": "Capacity for 3PL warehouses in the GTA",
-        "subtitle": "Outbound multi-stop, same-day releases, and overflow when your dock volume spikes — professional drivers and commercial vehicles with tracking and proof so warehouse ops keep SLAs without adding fleet headcount.",
+        "subtitle": "Outbound multi-stop, same-day releases, and overflow when your dock volume spikes — professional drivers and commercial vehicles with tracking and proof so warehouse ops keep their commitments without adding fleet headcount.",
         "primaryCta": "Get a quote",
         "secondaryCta": "E-commerce playbook"
       },
@@ -1783,7 +1755,7 @@
           },
           "3": {
             "title": "Finance & procurement",
-            "description": "Shipment-level proof and COI for vendor and claim reviews."
+            "description": "Shipment-level photo proof for claim reviews."
           }
         }
       },
@@ -1951,7 +1923,7 @@
         "items": {
           "0": {
             "q": "How fast can overflow capacity start?",
-            "a": "Often same day when freight is staged and the zone is covered — share cut-off and vehicle class for a written quote."
+            "a": "Often same day when freight is staged and the zone is covered — share cut-off and vehicle class for an exact price."
           },
           "1": {
             "q": "Is overflow the same quality as primary lanes?",
@@ -2007,7 +1979,7 @@
     "hero": {
       "badge": "Industries",
       "title": "Industry delivery capacity across the GTA",
-      "subtitle": "PorterChain is a transportation capacity network. Each industry page explains who we serve, which vehicles fit your freight, and how to get a written quote for same-day, recurring, or overflow lanes.",
+      "subtitle": "Each industry page explains who we deliver for, which vehicle fits, and how to get an instant price.",
       "primaryCta": "Get a quote",
       "secondaryCta": "Construction solutions"
     },
@@ -2045,7 +2017,7 @@
       },
       "pharmacy-medical": {
         "title": "Pharmacy & medical",
-        "description": "Prescription and healthcare supply with chain-of-custody proof."
+        "description": "Prescription and healthcare supply runs with photo proof; coolers where items must stay cool."
       },
       "cosmetics": {
         "title": "Cosmetics & beauty",
@@ -2057,7 +2029,7 @@
       },
       "lab-sample-delivery": {
         "title": "Lab sample delivery",
-        "description": "Time-critical specimen courier with audit-ready tracking."
+        "description": "Time-critical specimen courier with clear tracking."
       },
       "ecommerce": {
         "title": "E-commerce & retail",
@@ -2084,7 +2056,7 @@
         },
         "3": {
           "title": "Procurement & finance",
-          "description": "Trust documentation and quote-based commercial terms."
+          "description": "Trust documentation and instant price commercial terms."
         }
       }
     },
@@ -2120,14 +2092,14 @@
   "company": {
     "hero": {
       "badge": "Company",
-      "title": "Building the transportation capacity network Ontario businesses rely on",
-      "subtitle": "Porterchain removes transportation bottlenecks so businesses never stop operating. We orchestrate professional drivers, commercial vehicles, and logistics operations through one intelligent network.",
-      "primaryCta": "Get a quote",
-      "secondaryCta": "View careers"
+      "title": "A GTA business courier, built for businesses that cannot wait",
+      "subtitle": "PorterChain delivers same-day, next-day and urgent local runs for businesses across the GTA by sedan, SUV, van or 16 ft box truck. Founded by Ravi Chauhan. Instant price, live tracking and photo proof on every delivery.",
+      "primaryCta": "Get instant price",
+      "secondaryCta": "Drive with PorterChain"
     },
     "brandBand": {
       "eyebrow": "Identity",
-      "title": "Moving Commerce On-Chain",
+      "title": "Same-day courier for the GTA",
       "body": "We orchestrate businesses, drivers, and vehicles as one capacity network — so Ontario commerce never stalls waiting on a truck."
     },
     "mission": {
@@ -2177,7 +2149,7 @@
       "items": {
         "0": {
           "title": "Compliance-first",
-          "description": "Documented processes, insurance coverage, and audit-ready workflows on every shipment."
+          "description": "Documented processes, insurance coverage, and clear workflows on every shipment."
         },
         "1": {
           "title": "Accountability",
@@ -2235,8 +2207,8 @@
           "href": "/platform"
         },
         "1": {
-          "title": "Trust & insurance",
-          "description": "Security summary, COI, and delivery commitments.",
+          "title": "Trust & coverage",
+          "description": "$2,500 parcel coverage, photo proof and the claims process.",
           "href": "/trust"
         },
         "2": {
@@ -2273,8 +2245,8 @@
         "ariaLabel": "Chat with Porterchain on WhatsApp"
       },
       "hoursLabel": "Business Hours",
-      "hours": "Monday – Friday, 8:00 AM – 6:00 PM ET",
-      "emergencyLabel": "Emergency Dispatch",
+      "hours": "Monday – Friday, 8:00 AM – 6:00 PM · Saturday, 9:00 AM – 2:00 PM (Toronto time)",
+      "emergencyLabel": "Active delivery help",
       "emergency": "+1 (647) 619-7951",
       "emergencyDetail": "Active shipment exceptions · ops@porterchain.com",
       "googleBusinessLabel": "Find us on Google",
@@ -2320,11 +2292,11 @@
           "unsure": "Not sure — recommend for me",
           "sedan": "Sedan",
           "suv": "SUV",
-          "pickup": "Pickup truck",
+          "pickup": "Cargo van",
           "cargoVan": "Cargo van",
-          "highRoof": "Sprinter / high-roof van",
+          "highRoof": "High-roof cargo van",
           "box16": "16 ft box truck",
-          "box20": "20 ft box truck"
+          "box20": "16 ft box truck"
         },
         "lanes": "Pickup and delivery areas",
         "lanesPlaceholder": "e.g. Mississauga warehouse → downtown Toronto jobsite",
@@ -2352,7 +2324,7 @@
         },
         "2": {
           "title": "Business Accounts",
-          "description": "Account setup, billing, recurring routes, and SLA configuration.",
+          "description": "Account setup, billing and recurring routes.",
           "contact": "enterprise@porterchain.com"
         },
         "3": {
@@ -2377,7 +2349,7 @@
       "items": {
         "0": {
           "q": "How quickly will someone respond?",
-          "a": "We respond to all inquiries within one business day. Emergency dispatch lines are monitored during active operations."
+          "a": "We reply to every inquiry within one business day. For a delivery in progress, call or WhatsApp us during office hours."
         },
         "1": {
           "q": "Can I meet with your team in person?",
@@ -2446,7 +2418,7 @@
       "items": {
         "0": {
           "title": "Compliance-first",
-          "description": "We build trust through documented processes, insurance, and audit-ready workflows."
+          "description": "We build trust through documented processes, insurance, and clear workflows."
         },
         "1": {
           "title": "Accountability",
@@ -2598,17 +2570,17 @@
       "items": {
         "0": {
           "quote": "I've worked in logistics for a decade. Porterchain is the first place where technology and operations actually talk to each other — you see the impact of your work on every route.",
-          "name": "Sarah Chen",
+          "name": "PorterChain driver partner",
           "role": "Dispatch Operations"
         },
         "1": {
           "quote": "We're building real infrastructure, not features for a pitch deck. The problems are hard, the team is sharp, and there's genuine room to shape the platform.",
-          "name": "Marcus Okonkwo",
+          "name": "PorterChain driver partner",
           "role": "Engineering"
         },
         "2": {
           "quote": "Customers trust us with business-critical shipments. That responsibility pushes everyone to higher standards — and it's rewarding when we deliver.",
-          "name": "Elena Vasquez",
+          "name": "PorterChain driver partner",
           "role": "Customer Success"
         }
       }
@@ -2818,7 +2790,7 @@
       "title": "Security overview",
       "description": "High-level security summary for procurement — full questionnaire on request.",
       "breadcrumb": "Security",
-      "body": "Porterchain uses encryption in transit, role-based access in product systems, and documented subprocessors (see /trust/subprocessors).\n\nDetailed security questionnaires and SOC 2 status are available via security@porterchain.com. This scaffold is noindex until legal review completes."
+      "body": "Porterchain uses encryption in transit, role-based access in product systems, and documented subprocessors (see /trust/subprocessors).\n\nDetailed security questionnaires are available via security@porterchain.com. This scaffold is noindex until legal review completes."
     },
     "founder": {
       "title": "Founder profile",
@@ -2828,7 +2800,7 @@
     },
     "insurance": {
       "title": "Insurance & COI",
-      "description": "Certificate of insurance process for merchant programs.",
+      "description": "$2,500 parcel coverage process for merchant programs.",
       "breadcrumb": "Insurance",
       "body": "COI is available for active merchant programs on request.\n\nThis page is a noindex scaffold until legal finalizes public insurance language.\n\nSee /trust for the trust center overview."
     },
@@ -2847,16 +2819,16 @@
   },
   "trust": {
     "hero": {
-      "badge": "Trust & insurance",
-      "title": "Insurance, delivery commitments, and accountable execution",
-      "subtitle": "Certificate of insurance, proof-of-delivery standards, and operational escalation for Ontario capacity programs — plus security and procurement documentation on request.",
-      "primaryCta": "Request COI",
-      "secondaryCta": "View SLA summary"
+      "badge": "Trust & coverage",
+      "title": "Coverage, proof and a clear claims process",
+      "subtitle": "$2,500 coverage included on every parcel, photo proof on every drop, and a reply to every claim within one business day.",
+      "primaryCta": "See the claims process",
+      "secondaryCta": "Get instant price"
     },
     "summary": {
       "label": "Overview",
-      "title": "How we protect your shipments and your business",
-      "subtitle": "Porterchain runs transportation capacity for Ontario B2B shippers. This page summarizes insurance, delivery commitments, and how to request security or procurement documentation."
+      "title": "How we protect your deliveries",
+      "subtitle": "PorterChain is a GTA business courier. This page covers parcel coverage, proof of delivery, privacy, and how to reach us when something goes wrong."
     },
     "features": {
       "label": "Program",
@@ -2864,245 +2836,72 @@
       "items": {
         "0": {
           "title": "Data protection",
-          "description": "Encryption in transit, role-based access in product, and documented subprocessors available on request."
+          "description": "Encryption in transit and role-based access in the merchant portal. Card payments are handled by Stripe."
         },
         "1": {
           "title": "PIPEDA & privacy",
-          "description": "Canadian privacy alignment with DPA available for enterprise customers during procurement."
+          "description": "Personal information is handled under PIPEDA. Receivers see the driver's first name only, and card numbers are processed by Stripe, never stored by us."
         },
         "2": {
-          "title": "SLA commitments",
-          "description": "Service-level bands for enterprise programs with credits and escalation paths documented in our SLA exhibit."
+          "title": "Live tracking",
+          "description": "You and your receiver follow the driver live from pickup to drop-off."
         },
         "3": {
-          "title": "Security roadmap",
-          "description": "SOC 2 readiness program in progress — contact security@porterchain.com for current status and questionnaire responses."
+          "title": "Coverage on every parcel",
+          "description": "$2,500 coverage is included on every parcel. Add $25,000 coverage for $10 when you book something valuable."
         },
         "4": {
-          "title": "Insurance & COI",
-          "description": "Certificate of insurance available for active merchant programs — request through your account team."
+          "title": "Proof of delivery",
+          "description": "Photo proof at drop-off and a live tracking link for you and your receiver on every delivery."
         },
         "5": {
           "title": "Incident response",
-          "description": "Documented escalation for active shipment exceptions and platform incidents via ops@porterchain.com."
+          "description": "For a delivery in progress, call or WhatsApp us during office hours, or email ops@porterchain.com."
         }
       }
     },
     "cta": {
-      "title": "Need security documentation for procurement?",
-      "subtitle": "Email security@porterchain.com with your questionnaire or vendor onboarding requirements.",
+      "title": "Questions about security or privacy?",
+      "subtitle": "Email security@porterchain.com with your questionnaire and we will reply within one business day.",
       "primary": "Contact security",
-      "secondary": "Talk to enterprise sales"
+      "secondary": "Get instant price"
     },
     "documents": {
       "label": "Documents",
-      "title": "Procurement resources",
-      "subtitle": "Request executed agreements and exhibits during enterprise onboarding.",
+      "title": "Policies",
+      "subtitle": "The terms that apply to every delivery.",
       "items": {
         "0": {
-          "title": "Data Processing Addendum (DPA)",
-          "description": "PIPEDA-aligned data processing terms for merchant and shipper personal information.",
-          "href": "/trust/dpa"
+          "title": "Proof & claims",
+          "description": "Photo proof standards and how to file a claim. We reply within one business day.",
+          "href": "/trust/claims"
         },
         "1": {
-          "title": "Master Service Agreement (MSA)",
-          "description": "Commercial framework for capacity programs, dedicated delivery services, and enterprise procurement.",
-          "href": "/trust/msa"
+          "title": "Privacy policy",
+          "description": "How we handle personal information under PIPEDA.",
+          "href": "/privacy"
         },
         "2": {
-          "title": "SLA exhibit",
-          "description": "Service-level bands, credits, and escalation paths for Business and Enterprise programs.",
-          "href": "/trust/sla"
-        },
-        "3": {
-          "title": "Subprocessors",
-          "description": "Vendor list and processing roles for authentication, payments, infrastructure, communications, and analytics.",
-          "href": "/trust/subprocessors"
-        },
-        "4": {
-          "title": "Proof & claims",
-          "description": "POD standards, exception records, and claims follow-up path for capacity programs.",
-          "href": "/trust/claims"
+          "title": "Terms of service",
+          "description": "Coverage, payment and service terms for merchants and customers.",
+          "href": "/terms"
         }
-      }
-    },
-    "subprocessors": {
-      "hero": {
-        "badge": "Subprocessors",
-        "title": "Vendor transparency for procurement",
-        "subtitle": "Porterchain uses a focused set of subprocessors to operate the transportation capacity network, merchant portal, payment flows, communications, and infrastructure."
-      },
-      "list": {
-        "label": "Current vendors",
-        "title": "Subprocessor categories",
-        "items": {
-          "0": {
-            "title": "Authentication",
-            "description": "Clerk — user authentication, session management, and identity workflows."
-          },
-          "1": {
-            "title": "Payments",
-            "description": "Stripe — payment processing, invoices, billing events, and related compliance workflows."
-          },
-          "2": {
-            "title": "Infrastructure",
-            "description": "Cloud and hosting providers — application runtime, databases, storage, and observability infrastructure."
-          },
-          "3": {
-            "title": "Communications",
-            "description": "Email, chat, and notification providers — support, operational alerts, and customer communications."
-          },
-          "4": {
-            "title": "Maps and routing",
-            "description": "Mapping, geocoding, and routing providers — address validation, route planning, ETA, and service-area logic."
-          },
-          "5": {
-            "title": "Analytics",
-            "description": "Product and marketing analytics providers — attribution, conversion measurement, and operational reporting."
-          }
-        }
-      },
-      "cta": {
-        "title": "Need the current enterprise subprocessor schedule?",
-        "subtitle": "Security and procurement teams can request the executed schedule and change-notice terms during vendor review.",
-        "primary": "Contact security",
-        "secondary": "Back to trust"
-      }
-    },
-    "sla": {
-      "hero": {
-        "badge": "SLA",
-        "title": "Service-level summary for Business and Enterprise",
-        "subtitle": "This summary outlines availability, support response, and escalation paths. Executed SLA exhibits are provided during enterprise onboarding."
-      },
-      "bands": {
-        "label": "Commitments",
-        "title": "Service-level bands",
-        "subtitle": "Targets apply to Business and Enterprise programs with executed agreements. Growth tier uses best-effort support unless otherwise contracted.",
-        "items": {
-          "0": {
-            "title": "Platform availability",
-            "description": "99.5% monthly uptime target for operations coordination tools and the merchant portal, excluding scheduled maintenance windows communicated in advance."
-          },
-          "1": {
-            "title": "Support response",
-            "description": "P1 production incidents: 1-hour acknowledgement, 4-hour mitigation target. P2 issues: same business day. P3 requests: 2 business days."
-          },
-          "2": {
-            "title": "Operational escalation",
-            "description": "Active shipment exceptions escalate through dispatch ops with documented handoffs — ops@porterchain.com for live routes."
-          },
-          "3": {
-            "title": "Service credits",
-            "description": "Monthly uptime below target may qualify for service credits per the executed SLA exhibit — contact enterprise sales for tier-specific terms."
-          }
-        }
-      },
-      "note": {
-        "title": "Executed exhibit on request",
-        "body": "Procurement teams receive the full SLA exhibit with credit calculations, maintenance windows, and change management as part of MSA onboarding."
-      },
-      "cta": {
-        "title": "Need the executed SLA exhibit?",
-        "subtitle": "Contact enterprise sales during vendor review — we'll align bands to your program tier and regions.",
-        "primary": "Contact enterprise sales",
-        "secondary": "Back to trust"
-      }
-    },
-    "dpa": {
-      "hero": {
-        "badge": "DPA",
-        "title": "Data Processing Addendum summary",
-        "subtitle": "PIPEDA-aligned processing terms for merchant, shipper, and driver personal information processed through Porterchain capacity programs and operations systems."
-      },
-      "sections": {
-        "label": "Coverage",
-        "title": "What the DPA addresses",
-        "subtitle": "Executed DPAs are provided during enterprise onboarding. This summary supports security questionnaires and vendor review.",
-        "items": {
-          "0": {
-            "title": "Roles & responsibilities",
-            "description": "Porterchain acts as processor for merchant operational data and documents controller/processor roles for shipper and end-customer information."
-          },
-          "1": {
-            "title": "Security measures",
-            "description": "Encryption in transit, role-based access, audit trails, and incident notification commitments aligned to enterprise programs."
-          },
-          "2": {
-            "title": "Subprocessors",
-            "description": "Documented vendor list (authentication, payments, infrastructure, communications) with change-notice terms — see /trust/subprocessors."
-          },
-          "3": {
-            "title": "Cross-border transfers",
-            "description": "Vendor DPAs and contractual safeguards for subprocessors that may process data outside Canada, including US-based auth and payments providers."
-          }
-        }
-      },
-      "note": {
-        "title": "Executed DPA on request",
-        "body": "Procurement and security teams receive the full Data Processing Addendum with exhibit schedules during vendor onboarding. Email security@porterchain.com with your questionnaire or redline process."
-      },
-      "cta": {
-        "title": "Need the executed DPA?",
-        "subtitle": "We'll share the current DPA template and align exhibits to your enterprise program.",
-        "primary": "Request DPA",
-        "secondary": "Back to trust"
-      }
-    },
-    "msa": {
-      "hero": {
-        "badge": "MSA",
-        "title": "Master Service Agreement summary",
-        "subtitle": "Commercial framework for transportation capacity programs, onboarding services, and optional integrations for high-volume shippers."
-      },
-      "sections": {
-        "label": "Framework",
-        "title": "What the MSA covers",
-        "subtitle": "Executed MSAs are countersigned during enterprise procurement. This summary helps legal and operations teams evaluate fit.",
-        "items": {
-          "0": {
-            "title": "Capacity services",
-            "description": "Rights to contracted transportation capacity programs, shipment coordination, merchant portal access, and standard integrations for your organization and authorized users."
-          },
-          "1": {
-            "title": "Dedicated programs",
-            "description": "Recurring routes, overflow coverage, named dispatch support, and customer success services layered on capacity programs where contracted."
-          },
-          "2": {
-            "title": "Commercial terms",
-            "description": "Quote-based capacity pricing by vehicle class and route, volume commitments for recurring programs, invoicing, and renewal mechanics tailored to program size."
-          },
-          "3": {
-            "title": "Exhibits & SLAs",
-            "description": "SLA exhibit, DPA, subprocessors schedule, and security appendix incorporated by reference for enterprise deployments."
-          }
-        }
-      },
-      "note": {
-        "title": "Executed MSA on request",
-        "body": "Enterprise sales provides the current MSA template, order form, and exhibits during procurement. Contact enterprise@porterchain.com to start vendor review."
-      },
-      "cta": {
-        "title": "Ready for MSA review?",
-        "subtitle": "Share your procurement timeline — we'll align exhibits, SLAs, and onboarding to your rollout plan.",
-        "primary": "Contact enterprise sales",
-        "secondary": "Back to trust"
       }
     },
     "claims": {
       "hero": {
         "badge": "Proof & claims",
-        "title": "Delivery verification and claims-ready records",
-        "subtitle": "Photo, signature, and GPS proof on every stop — so billing, disputes, and loss follow-up start from evidence instead of guesswork."
+        "title": "Proof on every drop. A clear path if something goes wrong.",
+        "subtitle": "Photo proof and a timestamped record on every delivery, $2,500 coverage included, and a reply to every claim within one business day."
       },
       "bands": {
         "label": "Closeout",
         "title": "What proof includes",
-        "subtitle": "Standards apply to Business and Enterprise capacity programs. Growth tier includes core POD; advanced exhibits are provided during onboarding.",
+        "subtitle": "The same standard on every delivery, for every customer.",
         "items": {
           "0": {
-            "title": "Photo & signature POD",
-            "description": "Visual confirmation and receiver signature captured at delivery — tied to the shipment record for finance and customers."
+            "title": "Photo proof of delivery",
+            "description": "A photo at drop-off, tied to the delivery record and shared with you."
           },
           "1": {
             "title": "GPS timestamps",
@@ -3113,19 +2912,19 @@
             "description": "Failed access, refused freight, or customer not available — recorded with reason so redelivery briefs stay accurate."
           },
           "3": {
-            "title": "Claims follow-up path",
-            "description": "Ops and enterprise contacts for loss or damage review using the same shipment evidence chain — not a disconnected email thread."
+            "title": "How to file a claim",
+            "description": "Email ops@porterchain.com with the order number and photos as soon as you can. We reply within one business day."
           }
         }
       },
       "note": {
-        "title": "Insurance and executed exhibits",
-        "body": "Certificate of insurance and claims process details are available during vendor review. See Trust for COI requests and SLA exhibits for contracted response bands."
+        "title": "Coverage included",
+        "body": "Every parcel includes $2,500 coverage; up to $25,000 for $10. We reply to every claim within one business day."
       },
       "cta": {
-        "title": "Need claims-ready capacity for your lanes?",
-        "subtitle": "Share freight type, proof requirements, and GTA zones — we align POD standards in the quote.",
-        "primary": "Get a quote",
+        "title": "Ready to book with proof on every drop?",
+        "subtitle": "Two postal codes and a vehicle. Exact price in about 10 seconds.",
+        "primary": "Get instant price",
         "secondary": "Back to trust"
       }
     }
@@ -3261,7 +3060,7 @@
       "items": {
         "0": {
           "title": "Vehicle class",
-          "description": "Sedan, SUV, cargo van, Sprinter van, and box truck capacity have different economics based on space, weight, and driver availability."
+          "description": "Sedan, SUV, cargo van, and box truck capacity have different economics based on space, weight, and driver availability."
         },
         "1": {
           "title": "Route and urgency",
@@ -3317,7 +3116,7 @@
         "1": {
           "name": "Business account",
           "price": "Route-based quote",
-          "description": "Net 15/30 and consolidated invoicing for regular B2B delivery shippers.",
+          "description": "Interac e-Transfer billing and consolidated invoicing for regular B2B delivery shippers.",
           "feature0": "Planned vehicle and driver coverage",
           "feature1": "Multi-stop route coordination",
           "feature2": "Operational reporting and proof history",
@@ -3348,7 +3147,7 @@
         },
         "2": {
           "q": "What vehicles are available?",
-          "a": "Sedan, SUV, cargo van, Sprinter van, and box truck capacity with professional drivers, subject to availability and service area."
+          "a": "Sedan, SUV, cargo van, and box truck capacity with professional drivers, subject to availability and service area."
         }
       }
     },
@@ -3374,7 +3173,7 @@
       "items": {
         "0": {
           "title": "Request capacity",
-          "description": "Share pickup, dropoff, vehicle class, timing, and proof needs. We confirm coverage and send a written quote before wheels roll."
+          "description": "Share pickup, dropoff, vehicle class, timing, and proof needs. We confirm coverage and show you an exact price before wheels roll."
         },
         "1": {
           "title": "Match vehicle + driver",
@@ -3403,7 +3202,7 @@
         },
         "medical": {
           "title": "Medical & healthcare",
-          "description": "Pharmacy courier, lab specimens, and clinic supply — chain-of-custody proof and time-sensitive same-day runs."
+          "description": "Pharmacy courier, lab specimens, and clinic supply — photo proof of delivery and time-sensitive same-day runs."
         },
         "foodBeverage": {
           "title": "Food & beverage",

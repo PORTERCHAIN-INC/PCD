@@ -3,7 +3,7 @@ title: "SLA-Based Dispatch vs. Marketplace Delivery"
 description: "Why accountable workflows outperform ad-hoc driver marketplaces for business-critical shipments."
 date: "2026-06-14"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 trending: true
 tags: ["dispatch", "sla", "operations"]
 ---

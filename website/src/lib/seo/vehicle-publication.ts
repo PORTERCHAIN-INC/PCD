@@ -3,20 +3,14 @@
  * Sedan/SUV remain noindex (consumer-adjacent); trade van, box truck, cargo van, pickup index when copy passes gate.
  */
 
-export const INDEXABLE_VEHICLE_SEGMENTS = [
-  "trade-van-delivery",
-  "box-truck-delivery",
-  "cargo-van-delivery",
-  "pickup-truck-delivery",
-] as const;
+/** Oct 2026: we sell sedan / SUV, van and box truck only — trade van and pickup are retired. */
+export const INDEXABLE_VEHICLE_SEGMENTS = ["box-truck-delivery", "cargo-van-delivery"] as const;
 
 export type IndexableVehicleSegment = (typeof INDEXABLE_VEHICLE_SEGMENTS)[number];
 
 const SEGMENT_TO_MESSAGE_KEY: Record<IndexableVehicleSegment, string> = {
-  "trade-van-delivery": "van",
   "box-truck-delivery": "mediumTruck",
   "cargo-van-delivery": "cargoVan",
-  "pickup-truck-delivery": "pickupTruck",
 };
 
 type VehicleCopy = {

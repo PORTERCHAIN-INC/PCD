@@ -3,7 +3,7 @@ title: "How Route Optimization Reduces Empty Miles"
 description: "Intelligent sequencing and load matching cut fuel use, emissions, and idle time across commercial delivery networks."
 date: "2026-06-18"
 category: "route-optimization"
-author: "marcus-okonkwo"
+author: "porterchain"
 trending: true
 tags: ["routing", "sustainability", "valhalla"]
 ---

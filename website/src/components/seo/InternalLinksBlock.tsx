@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import Container from "@/components/ui/Container";
 import { routing } from "@/i18n/routing";
+import { resolveUrlPolicy } from "@/lib/seo/url-policy";
 
 const LOCALE_PREFIX = new RegExp(`^/(?:${routing.locales.join("|")})(?=/|\\?|#|$)`);
 
@@ -20,7 +21,17 @@ interface InternalLinksBlockProps {
   links: { href: string; label: string }[];
 }
 
-export default function InternalLinksBlock({ title, links }: InternalLinksBlockProps) {
+/** Drop links whose target now 301s (retired / consolidated pages), so we never link a redirect. */
+export function liveInternalLinks<T extends { href: string }>(links: readonly T[]): T[] {
+  return links.filter((link) => {
+    if (!link.href.startsWith("/")) return true;
+    const path = link.href.split(/[?#]/)[0] || "/";
+    return resolveUrlPolicy(path).action === "pass";
+  });
+}
+
+export default function InternalLinksBlock({ title, links: allLinks }: InternalLinksBlockProps) {
+  const links = liveInternalLinks(allLinks);
   if (!links.length) return null;
   return (
     <section className="py-10 md:py-12 bg-gray-bg border-y border-primary/[0.04]">

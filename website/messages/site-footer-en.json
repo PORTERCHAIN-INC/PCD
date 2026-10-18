@@ -1,5 +1,5 @@
 {
-  "tagline": "Moving Commerce On-Chain",
+  "tagline": "Same-day courier for the GTA",
   "corporateTagline": "Professional drivers and vehicles when your own fleet is not enough.",
   "businessTagline": "Urgent, overflow, recurring, and dedicated delivery capacity for growing businesses.",
   "copyright": "© {year} Porterchain Inc. All rights reserved.",
@@ -67,9 +67,9 @@
   "contactTitle": "Talk to us",
   "hoursLabel": "Office hours",
   "hours": "Mon–Fri 8 AM–6 PM · Sat 9 AM–2 PM (Toronto)",
-  "coverage": "Same-day delivery to {count} postal areas across the GTA, Monday to Saturday.",
+  "coverage": "Same-day and next-day delivery across the GTA plus about 150 km ({count} postal areas), Monday to Saturday.",
   "shopifyBadge": "Shopify app",
-  "shopifyBadgeHint": "Same-day rates at checkout",
+  "shopifyBadgeHint": "In review with Shopify",
   "emailLabel": "Email",
   "phoneLabel": "Phone"
 }

@@ -33,8 +33,8 @@ def main() -> int:
     hero = corporate.get("home", {}).get("hero", {})
     if hero.get("primaryCta") != "Get a quote":
         failures.append("home primaryCta must be Get a quote")
-    if "quote-based" not in (hero.get("trustLine") or "").lower():
-        failures.append("home trustLine must state quote-based pricing")
+    if "exact price" not in (hero.get("trustLine") or "").lower():
+        failures.append("home trustLine must state the instant exact price")
 
     biz_hero = business.get("hero", {})
     if "vehicle and driver capacity" not in (biz_hero.get("titleLine1") or "").lower():

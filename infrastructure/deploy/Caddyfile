@@ -102,6 +102,12 @@ console.porterchain.com {
 porterchain.com {
 	import common
 
+	# Root → English home in ONE permanent hop at the edge (was "/" → 307 → "/en" from the app,
+	# which Search Console reports as a temporary redirect on the canonical homepage). Query
+	# strings (UTM, gclid) are carried. French visitors use /fr links and the language switcher.
+	@root path /
+	redir @root /en{?query} 308
+
 	@static path /_next/static/*
 	handle @static {
 		header >Cache-Control "public, max-age=31536000, immutable"

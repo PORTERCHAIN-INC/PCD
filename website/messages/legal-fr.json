@@ -115,7 +115,7 @@
         "title": "Comptes marchands",
         "paragraphs": [
           "Les clients entreprise peuvent devoir compléter l'intégration marchande incluant le profil d'entreprise, les documents de conformité et l'acceptation des conditions d'expédition commerciale avant l'accès au tableau de bord.",
-          "Les conditions de facturation marchande (Net 30/45 ou carte) sont établies lors de l'intégration et reflétées sur les factures. Les comptes en souffrance peuvent être suspendus jusqu'au paiement."
+          "Les comptes marchands sont facturés par cycle de facturation et paient par virement Interac; les factures indiquent la TVH. Les clients paient par carte à la réservation, via Stripe. Les comptes marchands en souffrance peuvent être suspendus jusqu'au paiement."
         ]
       },
       {
@@ -128,7 +128,7 @@
       {
         "title": "Responsabilité et réclamations",
         "paragraphs": [
-          "Porterchain maintient une assurance commerciale et une inscription à la CNESST pour ses opérations. La responsabilité en cas de perte ou de dommage est limitée selon votre devis, entente marchande ou tarif applicable, sauf interdiction légale.",
+          "Chaque colis inclut une couverture en cas de perte ou de dommage jusqu'à 2 500 $. Une couverture prolongée jusqu'à 25 000 $ est offerte pour 10 $ par colis lorsqu'elle est choisie à la réservation. La couverture est soumise aux exclusions des présentes conditions et de votre entente marchande, sauf si la loi l'interdit.",
           "Les réclamations doivent être signalées rapidement avec les références d'expédition et la documentation à l'appui. Contactez ops@porterchain.com pour assistance."
         ]
       },

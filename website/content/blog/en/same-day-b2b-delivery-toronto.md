@@ -3,7 +3,7 @@ title: "Same-Day B2B Delivery in Toronto: Cut-Offs That Hold"
 description: "Same-day B2B delivery in Toronto works when cut-offs, vehicle class, and staging match the zone — not when sales overpromises."
 date: "2026-08-10"
 category: "same-day-delivery"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["same-day", "toronto", "b2b"]
 featured: false
 ---

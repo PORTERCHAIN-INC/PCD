@@ -3,7 +3,7 @@ title: "Electrical Wholesaler Delivery in Ontario: Last-Mile Without the Fleet"
 description: "How electrical distributors run same-day and recurring delivery to contractors across the GTA — tracking, cut-offs, and proof on every run."
 date: "2026-06-20"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "electrical", "wholesale", "proof"]
 ---
 
@@ -32,7 +32,7 @@ A structured last-mile partner aligns capacity to your cut-off times and zones:
 
 ## Vehicles that match electrical freight
 
-Cars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without jumping to full tractor-trailer complexity.
+Cars and vans handle counter runs and smaller contractor drops. When palletized wire, panels, or equipment are standard, box trucks keep cost predictable without needing a tractor-trailer.
 
 ## Porterchain for electrical distributors
 

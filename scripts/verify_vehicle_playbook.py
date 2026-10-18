@@ -11,14 +11,15 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLICATION_TS = ROOT / "website/src/lib/seo/vehicle-publication.ts"
 MESSAGES_DIR = ROOT / "website/messages"
 
+# Oct 2026: the fleet is sedan, SUV, van and box truck only; trade-van and
+# pickup-truck pages were retired (301) because PorterChain does not run them.
 INDEXABLE_SEGMENTS = (
-    "trade-van-delivery",
     "box-truck-delivery",
     "cargo-van-delivery",
-    "pickup-truck-delivery",
 )
+RETIRED_SEGMENTS = ("trade-van-delivery", "pickup-truck-delivery")
 NON_INDEXABLE_SEGMENTS = ("sedan-delivery", "suv-delivery")
-MESSAGE_KEYS = ("van", "mediumTruck", "cargoVan", "pickupTruck")
+MESSAGE_KEYS = ("mediumTruck", "cargoVan")
 MIN_COPY_CHARS = 200
 PRICE_FAQ_KEYS = ("faqPricingQ", "faqPricingA")
 GEO_MARKERS = ("GTA", "RGT", "Greater Toronto", "Ontario")

@@ -18,7 +18,7 @@ import {
   type LeadErrors,
   type LeadForm,
 } from "@/lib/marketing/calculator-lead";
-import { CONVERSION_EVENTS, trackConversion } from "@/lib/marketing/conversion";
+import { CONVERSION_EVENTS, OUT_OF_AREA_ERRORS, trackConversion } from "@/lib/marketing/conversion";
 import { getStoredAttribution } from "@/lib/seo/attribution";
 import { getOrCreateVisitorId } from "@/lib/visitor-tracking";
 
@@ -90,6 +90,12 @@ export default function PriceCalculator() {
       return;
     }
     setPricing(true);
+    trackConversion(CONVERSION_EVENTS.PRICE_REQUESTED, {
+      vehicle,
+      pickup_fsa: p,
+      dropoff_fsa: d,
+      source_section: "calculator-page",
+    });
     try {
       const res = await fetch("/api/estimate", {
         method: "POST",
@@ -99,6 +105,14 @@ export default function PriceCalculator() {
       const data = await res.json();
       if (!res.ok) {
         setEstimate(null);
+        if (OUT_OF_AREA_ERRORS.has(data.error)) {
+          trackConversion(CONVERSION_EVENTS.PRICE_OUT_OF_AREA, {
+            reason: data.error,
+            pickup_fsa: p,
+            dropoff_fsa: d,
+            source_section: "calculator-page",
+          });
+        }
         setPriceError(ERROR_COPY[data.error] ?? "We could not price that trip. Please try again.");
         return;
       }
@@ -275,10 +289,10 @@ export default function PriceCalculator() {
               href={`/book?pickup=${encodeURIComponent(pickup.trim().toUpperCase())}&dropoff=${encodeURIComponent(dropoff.trim().toUpperCase())}&vehicle=${encodeURIComponent(estimate.vehicle_class)}`}
               data-testid="calculator-book"
               onClick={() =>
-                trackConversion(CONVERSION_EVENTS.CALCULATOR_ESTIMATE, {
+                trackConversion(CONVERSION_EVENTS.BOOK_STARTED, {
                   vehicle: estimate.vehicle_class,
                   amount_cents: estimate.amount_cents,
-                  action: "book",
+                  source_section: "calculator-page",
                 })
               }
               className="mt-4 flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-3.5 text-white hover:bg-primary/90"

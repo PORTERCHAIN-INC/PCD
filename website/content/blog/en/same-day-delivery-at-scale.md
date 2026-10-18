@@ -3,7 +3,7 @@ title: "Same-Day Delivery Operations at Scale"
 description: "How structured dispatch and live monitoring make same-day service reliable — not heroic."
 date: "2026-05-22"
 category: "same-day-delivery"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["same-day", "dispatch", "sla"]
 ---
 

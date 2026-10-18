@@ -67,9 +67,9 @@ export default async function TrustPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={t("hero.primaryCta")}
-        primaryHref="mailto:enterprise@porterchain.com"
+        primaryHref="/trust/claims"
         secondaryCta={t("hero.secondaryCta")}
-        secondaryHref="/trust/sla"
+        secondaryHref="/delivery-cost-calculator"
         variant="light-centered"
       />
       <section className="site-section bg-gray-bg">
@@ -94,7 +94,7 @@ export default async function TrustPage({ params }: Props) {
         primaryLabel={t("cta.primary")}
         primaryHref="mailto:security@porterchain.com"
         secondaryLabel={t("cta.secondary")}
-        secondaryHref="/sign-up?intent=quote&from=business"
+        secondaryHref="/delivery-cost-calculator"
         variant="gradient"
       />
     </CorporateShell>

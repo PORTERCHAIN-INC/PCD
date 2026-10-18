@@ -35,14 +35,14 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-pricing",
     title: "How pricing works",
-    body: "Pricing is quote-based on vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. No software-seat fees. Never invent dollar amounts. Business accounts bring quotes, booking, and tracking together; transportation capacity and price are confirmed in writing before dispatch. Request via /sign-up?intent=quote&from=business or /business.",
+    body: "Pricing is instant and exact: two postal codes and a vehicle give the price with 13% HST in about 10 seconds at /delivery-cost-calculator, no sign-up. Never invent dollar amounts; send people to the calculator. Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe). Volume accounts can have a merchant rate card via /business. $2,500 coverage is included on every parcel; optional coverage up to $25,000 costs $10.",
     tags: ["pricing", "quote", "billing", "cost", "rate", "business account"],
     source: "charter",
   },
   {
     id: "charter-coverage",
     title: "Coverage",
-    body: "Service focuses on the Greater Toronto Area — Toronto, Peel (Mississauga, Brampton), York (Vaughan, Markham), and Durham. Lanes are quote-based for pickup and delivery within the GTA.",
+    body: "Coverage is the GTA plus about 150 km (334 postal areas), checked by postal code in the calculator. Core areas: Vaughan, Concord, Brampton and Mississauga. Same-day: book by 11 AM, delivered 2-9 PM, Monday to Saturday; later bookings go the next operating day. PorterChain is a GTA company; never give a street address.",
     tags: [
       "coverage",
       "gta",
@@ -60,7 +60,7 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-vehicles",
     title: "Vehicles",
-    body: "Vehicle capacity is part of what customers buy: sedan, SUV, pickup, cargo van, sprinter van, 16 ft box truck, and 20 ft box truck — each with a professional driver. Match vehicle to weight, dimensions, and site access across GTA lanes.",
+    body: "Vehicles: sedan or SUV (up to about 80 kg), cargo van (up to about 900 kg) and 16 ft box truck (up to about 3,000 kg), one professional driver each, all on a standard Ontario G licence. No cargo bikes, pickups, Sprinter vans, trailers or two-person crews. Medical items that must stay cool travel in coolers; there are no refrigerated vehicles.",
     tags: [
       "vehicles",
       "fleet",
@@ -78,14 +78,14 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-tracking",
     title: "Tracking and proof of delivery",
-    body: "Live tracking and proof of delivery (photo, signature where agreed) are included with capacity. Guests look up status at /track. If a tracking number is known, open /track/{number}. Never invent live status — only point to the tracking page or ask for the number.",
+    body: "Live tracking and photo proof of delivery are included on every order. Guests look up status at /track. If a tracking number is known, open /track/{number}. Never invent live status — only point to the tracking page or ask for the number.",
     tags: ["tracking", "pod", "proof", "status", "signature", "photo"],
     source: "charter",
   },
   {
     id: "charter-paths",
     title: "Next steps and paths",
-    body: "Get a quote at /sign-up?intent=quote&from=business. Open a Business Account at /business for an ops workspace. Drivers join as vehicle partners at /vehicle-partner. Track a shipment at /track. Always collect work email and mobile so the team can follow up.",
+    body: "Get an instant price at /delivery-cost-calculator and book at /book. Open a Business Account at /business for an ops workspace. Drivers join as vehicle partners at /vehicle-partner. Track a shipment at /track. Always collect work email and mobile so the team can follow up.",
     tags: ["cta", "merchants", "drivers", "quote", "business account", "contact", "email", "phone"],
     source: "charter",
   },

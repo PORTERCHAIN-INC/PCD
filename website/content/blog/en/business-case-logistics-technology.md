@@ -3,7 +3,7 @@ title: "Building a Business Case for Managed Logistics"
 description: "How operations leaders quantify ROI from professional delivery partners — fewer exceptions, better SLAs, audit confidence."
 date: "2026-04-18"
 category: "business"
-author: "peter-porter"
+author: "porterchain"
 tags: ["business", "roi", "enterprise"]
 ---
 

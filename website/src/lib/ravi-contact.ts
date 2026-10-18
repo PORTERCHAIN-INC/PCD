@@ -3,9 +3,9 @@
 export const raviContact = {
   name: "Ravi Chauhan",
   nameDisplay: "RAVI CHAUHAN",
-  role: "Head of Marketing",
-  company: "Porterchain",
-  tagline: "Moving Commerce On-Chain",
+  role: "Founder",
+  company: "PorterChain",
+  tagline: "Same-day courier for the GTA",
   phone: "+1 647 619 7951",
   phoneE164: "+16476197951",
   email: "sales@porterchain.com",

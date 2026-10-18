@@ -3,7 +3,7 @@ title: "Same-Day Branch Balancing Without Stretching Your Fleet"
 description: "Use overflow capacity to rebalance GTA branches on peak days — without overtime that burns your team."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["branch", "same-day", "overflow"]
 featured: false
 ---
@@ -22,4 +22,4 @@ When stock moves between locations first, customer same-day windows have a chanc
 
 ## Quote from real sites
 
-Share branch addresses, typical cube, and peak patterns. Written quotes beat phone roulette when every counter is busy.
+Share branch addresses, typical cube, and peak patterns. An instant price beats phone roulette when every counter is busy.

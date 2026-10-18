@@ -53,7 +53,7 @@ export default async function ClaimsPage({ params }: Props) {
         title={t("hero.title")}
         subtitle={t("hero.subtitle")}
         primaryCta={tCta("quote")}
-        primaryHref="/sign-up?intent=quote&from=trust-claims"
+        primaryHref="/delivery-cost-calculator"
         secondaryCta={t("cta.secondary")}
         secondaryHref="/trust"
         variant="light-centered"
@@ -76,7 +76,7 @@ export default async function ClaimsPage({ params }: Props) {
         title={t("cta.title")}
         subtitle={t("cta.subtitle")}
         primaryLabel={tCta("quote")}
-        primaryHref="/sign-up?intent=quote&from=trust-claims"
+        primaryHref="/delivery-cost-calculator"
         secondaryLabel={t("cta.secondary")}
         secondaryHref="/trust"
         variant="gradient"

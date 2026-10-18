@@ -1,6 +1,6 @@
 /** Tab destinations formerly in the Vehicles navbar dropdown. */
 
-export type VehiclesTabId = "overview" | "cargoVan" | "tradeVan" | "boxTruck" | "pickupTruck";
+export type VehiclesTabId = "overview" | "cargoVan" | "boxTruck";
 
 export type VehiclesTabItem = {
   id: VehiclesTabId;
@@ -10,9 +10,7 @@ export type VehiclesTabItem = {
 export const VEHICLES_TAB_ITEMS: readonly VehiclesTabItem[] = [
   { id: "overview", href: "/vehicles" },
   { id: "cargoVan", href: "/cargo-van-delivery" },
-  { id: "tradeVan", href: "/trade-van-delivery" },
   { id: "boxTruck", href: "/box-truck-delivery" },
-  { id: "pickupTruck", href: "/pickup-truck-delivery" },
 ] as const;
 
 /** Paths that keep the top-level Vehicles nav item active. */

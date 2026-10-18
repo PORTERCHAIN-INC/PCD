@@ -3,7 +3,7 @@ title: "Electrical Counter-to-Jobsite Windows That Hold"
 description: "Trade counters lose the afternoon when jobsite windows slip. Reserved capacity and POD close the loop."
 date: "2026-08-11"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["electrical", "jobsite", "wholesale", "gta"]
 featured: false
 ---

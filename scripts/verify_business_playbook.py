@@ -58,7 +58,7 @@ def main() -> int:
         "overflow": ("emergency", "fleet overflow"),
         "intraCity": ("intra-city", "GTA"),
         "pod": ("proof",),
-        "pricing": ("Quote-based",),
+        "pricing": ("Instant", "HST"),  # Oct 2026: instant exact pricing
     }
     for key, phrases in _PLAYBOOK_FAQ_PHRASES.items():
         item = faq.get(key, {})
@@ -72,7 +72,7 @@ def main() -> int:
         for marker in ("platform fees", "software-seat fees", "SaaS")
     ):
         failures.append(
-            "faq.items.pricing must say quote-based capacity with no platform/software-seat/SaaS fees"
+            "faq.items.pricing must say instant pricing with no platform/software-seat/SaaS fees"
         )
 
     print("Business playbook guard")

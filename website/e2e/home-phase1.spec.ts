@@ -42,13 +42,13 @@ test.describe("homepage calculator @phase1", () => {
     const requests = await mockEstimate(page);
     await page.goto("/en");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      /same-day delivery across the gta/i
+      /book it by 11\. delivered today\./i
     );
     await form(page).getByLabel("Pickup postal code").fill("m5v 2t6");
     await form(page).getByLabel("Drop-off postal code").fill("L4W 1N7");
     await form(page).getByText("Cargo van", { exact: true }).click();
     await form(page)
-      .getByRole("button", { name: /get a price/i })
+      .getByRole("button", { name: /get instant price/i })
       .click();
 
     const result = page.getByTestId("home-price-result");
@@ -73,7 +73,7 @@ test.describe("homepage calculator @phase1", () => {
     await page.goto("/en");
     await form(page).getByLabel("Pickup postal code").fill("12345");
     await form(page)
-      .getByRole("button", { name: /get a price/i })
+      .getByRole("button", { name: /get instant price/i })
       .click();
     await expect(page.locator("#home-price").getByRole("alert")).toContainText(
       /valid postal code/i
@@ -87,7 +87,7 @@ test.describe("homepage calculator @phase1", () => {
     await form(page).getByLabel("Pickup postal code").fill("M5V");
     await form(page).getByLabel("Drop-off postal code").fill("K1A 0B1");
     await form(page)
-      .getByRole("button", { name: /get a price/i })
+      .getByRole("button", { name: /get instant price/i })
       .click();
     await expect(page.locator("#home-price").getByRole("alert")).toContainText(
       /outside our GTA coverage/i
@@ -116,7 +116,7 @@ test.describe("homepage calculator @phase1", () => {
     await form(page).getByLabel("Drop-off postal code").fill("L4W");
     await form(page).getByText("Sedan / SUV", { exact: true }).click();
     await form(page)
-      .getByRole("button", { name: /get a price/i })
+      .getByRole("button", { name: /get instant price/i })
       .click();
     await expect(page.getByTestId("home-price-result")).toContainText(
       `$${(expected / 100).toFixed(2)}`
@@ -134,7 +134,11 @@ test.describe("homepage calculator @phase1", () => {
     const sample = page.getByTestId("tracking-sample");
     await expect(sample).toContainText("Sample");
     await expect(sample).toContainText(/not a real order/i);
-    await expect(page.getByText(/^\d+ postal areas$/)).toBeVisible();
+    await expect(page.getByText(/334 postal areas/).first()).toBeVisible();
+    await expect(page.getByTestId("home-risk-reversal")).toContainText(
+      "$2,500 parcel coverage included"
+    );
+    await expect(page.getByTestId("home-who-uses").getByRole("link")).toHaveCount(9);
   });
 });
 
@@ -147,7 +151,7 @@ test.describe("navigation @phase1", () => {
     ["Price", "/en/delivery-cost-calculator"],
     ["Industries", "/en/delivery"],
     ["Track", "/en/track"],
-    ["Shopify app", "/en/delivery/shopify-merchants"],
+    ["Shopify (in review)", "/en/delivery/shopify-merchants"],
     ["Sign in", "/en/login"],
   ] as const;
 
@@ -202,7 +206,7 @@ test.describe("navigation @phase1", () => {
     await expect(bar).not.toHaveClass(/price-bar--on/);
     await page.mouse.wheel(0, 1800);
     await expect(bar).toHaveClass(/price-bar--on/);
-    await bar.getByRole("link", { name: /get a price/i }).click();
+    await bar.getByRole("link", { name: /get instant price/i }).click();
     await expect(page.locator("#home-price")).toBeInViewport();
     await expect(bar).not.toHaveClass(/price-bar--on/);
   });

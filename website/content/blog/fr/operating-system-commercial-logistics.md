@@ -3,7 +3,7 @@ title: "Des opérations structurées pour la logistique commerciale"
 description: "Pourquoi les entreprises en croissance ont besoin d'un partenaire logistique géré — pas d'une autre application de messagerie — pour la répartition, le routage et la preuve à grande échelle."
 date: "2026-06-20"
 category: "logistics"
-author: "peter-porter"
+author: "porterchain"
 featured: true
 trending: true
 tags: ["operations", "dispatch", "logistics"]

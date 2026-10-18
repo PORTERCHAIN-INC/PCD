@@ -3,7 +3,7 @@ title: "Capacité coursier pharmacie jour même dans le RGT"
 description: "Courses pharmacie et clinique jour même avec visibilité de chaîne de custody — sans flotte interne."
 date: "2026-08-10"
 category: "medical"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["pharmacy", "same-day", "compliance"]
 featured: false
 ---

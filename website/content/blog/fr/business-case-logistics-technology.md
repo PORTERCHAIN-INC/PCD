@@ -3,7 +3,7 @@ title: "Construire un dossier d'affaires pour la logistique gérée"
 description: "Comment les responsables des opérations quantifient le ROI d'un partenaire de livraison professionnel — moins d'exceptions, meilleurs SLA, confiance en audit."
 date: "2026-04-18"
 category: "business"
-author: "peter-porter"
+author: "porterchain"
 tags: ["business", "roi", "enterprise"]
 ---
 

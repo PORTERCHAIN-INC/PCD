@@ -3,7 +3,7 @@ title: "Transportation Capacity Network vs Ad-Hoc Courier"
 description: "Why GTA operators choose a capacity network — vehicles, drivers, ops, and proof — over courier roulette."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["capacity", "courier", "strategy"]
 featured: false
 ---
@@ -22,4 +22,4 @@ The same partner can cover recurring lanes and peak overflow so customers never 
 
 ## Evaluate coverage, not demos
 
-Ask about GTA zones, vehicle classes, POD standards, and written quotes. That is the commercial test.
+Ask about GTA zones, vehicle classes, POD standards, and whether you can see a price before you book. That is the commercial test.

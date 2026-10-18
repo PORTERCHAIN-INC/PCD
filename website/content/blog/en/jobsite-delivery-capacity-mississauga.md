@@ -3,7 +3,7 @@ title: "Jobsite Delivery Capacity in Mississauga and Peel"
 description: "Pallet and material drops to Mississauga jobsites — vehicle fit, site access, and POD GCs will accept."
 date: "2026-08-10"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["jobsite", "construction", "mississauga"]
 featured: false
 ---
@@ -18,7 +18,7 @@ GC or site supervisor — not only the purchasing office. Failed access burns th
 
 ## Match truck to site
 
-Box truck for pallets; trade van for long stock when the site is tight. Confirm class in the quote.
+Box truck for pallets; cargo van for long stock when the site is tight. Confirm class in the quote.
 
 ## Proof for billing
 

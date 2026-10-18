@@ -4,11 +4,11 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * Factual badge row: insured (COI on request — the claim already published on /trust/insurance),
+ * Factual badge row: $2,500 parcel coverage included (explained on /trust/claims),
  * live tracking and photo proof of delivery (both shipped product features). No ratings, no counts.
  */
 const BADGES = [
-  { id: "insured", Icon: ShieldCheck, href: "/trust/insurance" },
+  { id: "insured", Icon: ShieldCheck, href: "/trust/claims" },
   { id: "tracked", Icon: MapPinned, href: "/track" },
   { id: "pod", Icon: Camera, href: null },
 ] as const;
