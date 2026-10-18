@@ -191,11 +191,17 @@ class E2EValidationMerchantMixin:
 
         record("Dispatch", do_dispatch_assert)
         record("Delivery", do_delivery_assert)
+        # The billing run invoices *every* uninvoiced delivered order of the merchant it
+        # picks (the first active one), so it must never run against live data.
+        live_env = str(getattr(settings, "app_env", "") or "").lower() == "production"
+        billing_skip = {"skipped": "production: billing run would invoice a real merchant"}
+
         def do_billing_run():
             if not order_ids:
                 return "FAIL"
+            if live_env:
+                return billing_skip
             from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
-            from porterchain_api.booking_models import Invoice
 
             admin_ctx = self._resolve_admin_context(db)
             if not admin_ctx:
@@ -210,46 +216,87 @@ class E2EValidationMerchantMixin:
                 period_end=end,
             )
             created = int(result.get("created_count") or 0)
-            has_inv = (
-                db.query(Invoice).filter(Invoice.order_id.in_(order_ids)).count() > 0
-            )
+            has_inv = _invoice_for_order(order_ids[0]) is not None
             if created > 0 or has_inv:
                 return {"created_count": created, "invoiced": has_inv}
             return "FAIL"
 
+        def _invoice_for_order(order_id: str):
+            from porterchain_api.platform.invoice_lines import invoice_for_order
+
+            return invoice_for_order(db, order_id)
+
         def do_invoice_assert():
-            from porterchain_api.platform.invoice_lines import ensure_invoice_line
-            from porterchain_api.booking_models import Invoice, Order
+            from porterchain_api.booking_models import Order
             from porterchain_api.merchant_engine.billing_service import MerchantBillingService
-            from porterchain_api.merchant_engine.commerce_metrics import check_invoice_detail_consistency
+            from porterchain_api.platform.invoice_lines import ensure_invoice_line, invoice_lines_for
 
             if not order_ids:
                 return "FAIL"
+            if live_env:
+                return billing_skip
             order = db.query(Order).filter(Order.id == order_ids[0]).first()
-            inv = db.query(Invoice).filter(Invoice.order_id == order_ids[0]).first()
+            inv = _invoice_for_order(order_ids[0])
             if not inv or not order:
                 return "FAIL"
-            # Persist a line when cycle skipped an older invoice row.
-            ensure_invoice_line(db, inv, order)
-            db.flush()
+
+            def fail(reason: str, **extra: Any):
+                # Raise so the step records why (record() keeps str(exc) as root_cause).
+                raise AssertionError(f"{reason}: {extra}" if extra else reason)
+
+            cycle = (getattr(inv, "billing_kind", None) or "order") == "cycle"
+            if not cycle:
+                # Legacy 1:1 invoice: persist its single line if an older row lacks one.
+                ensure_invoice_line(db, inv, order)
+                db.flush()
             try:
                 detail = MerchantBillingService().invoice_detail(db, merchant_ctx, inv.id)
-            except Exception:
-                return "FAIL"
+            except Exception as exc:  # noqa: BLE001
+                fail("invoice_detail_error", error=str(exc)[:120])
             if not detail.get("lines"):
-                return "FAIL"
-            if int(detail.get("amount_cents") or 0) != int(order.amount_cents or 0):
-                return "FAIL"
-            if int(detail.get("lines_total_cents") or 0) != int(detail.get("amount_cents") or 0):
-                return "FAIL"
-            if check_invoice_detail_consistency(detail):
-                return "FAIL"
+                fail("no_lines")
+            amount = int(inv.amount_cents or 0)
+            tax = int(inv.tax_cents or 0)
+            if int(detail.get("amount_cents") or 0) != amount:
+                fail("detail_amount_vs_invoice", detail=detail.get("amount_cents"), invoice=amount)
+            rows = invoice_lines_for(db, inv.id)
+            if cycle:
+                # Cycle (Interac) invoice: lines are pre-tax + their own tax, invoice is the
+                # gross total of all lines (deliveries + waiting/failed-delivery fees).
+                from porterchain_api.platform.merchant_billing import order_tax_split
+
+                line_gross = sum(int(r.amount_cents or 0) + int(r.tax_cents or 0) for r in rows)
+                line_tax = sum(int(r.tax_cents or 0) for r in rows)
+                if line_gross != amount:
+                    fail("lines_plus_tax_vs_invoice", lines=line_gross, invoice=amount)
+                if line_tax != tax:
+                    fail("line_tax_vs_invoice_tax", lines=line_tax, invoice=tax)
+                mine = [
+                    r for r in rows
+                    if r.order_id == order.id and (r.description or "").startswith("Delivery")
+                ]
+                if len(mine) != 1:
+                    fail("delivery_line_count", count=len(mine))
+                split = order_tax_split(db, order)
+                if (int(mine[0].amount_cents or 0), int(mine[0].tax_cents or 0)) != (split.pretax_cents, split.tax_cents):
+                    fail(
+                        "delivery_line_vs_tax_split",
+                        line=(mine[0].amount_cents, mine[0].tax_cents),
+                        expected=(split.pretax_cents, split.tax_cents),
+                    )
+            else:
+                if amount != int(order.amount_cents or 0):
+                    fail("invoice_vs_order", invoice=amount, order=order.amount_cents)
+                if int(detail.get("lines_total_cents") or 0) != amount:
+                    fail("lines_total_vs_invoice", lines=detail.get("lines_total_cents"), invoice=amount)
             channel = (detail["lines"][0] or {}).get("channel")
             if not channel:
-                return "FAIL"
+                fail("no_channel")
             return {
                 "invoice_id": inv.id,
-                "amount_cents": inv.amount_cents,
+                "billing_kind": "cycle" if cycle else "order",
+                "amount_cents": amount,
+                "tax_cents": tax,
                 "channel": channel,
                 "ar_ok": True,
             }
