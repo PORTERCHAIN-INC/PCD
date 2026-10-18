@@ -207,6 +207,43 @@ class E2EValidationCoreMixin:
         order_ids = [row[0] for row in db.query(Order.id).filter(Order.internal_reference == E2E_MARKER).all()]
         if not order_ids:
             return 0
+        ids = {"ids": order_ids}
+
+        def _delete(sql: str, params: dict[str, Any]) -> None:
+            # Savepoint per statement: a missing table/column must not undo earlier deletes.
+            try:
+                with db.begin_nested():
+                    db.execute(text(sql), params)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("E2E cleanup skipped (%s): %s", sql.split(" WHERE")[0], exc)
+
+        # Cycle invoices carry orders through invoice_lines (invoice.order_id is NULL).
+        # Remove only cycle invoices made up entirely of E2E orders; then every line
+        # that still points at an E2E order, before the orders themselves.
+        cycle_ids = [
+            row[0]
+            for row in db.execute(
+                text(
+                    "SELECT l.invoice_id FROM invoice_lines l "
+                    "JOIN invoices i ON i.id = l.invoice_id "
+                    "WHERE i.order_id IS NULL GROUP BY l.invoice_id "
+                    "HAVING bool_and(l.order_id = ANY(:ids))"
+                ),
+                ids,
+            ).all()
+        ]
+        inv = {"inv": cycle_ids}
+        if cycle_ids:
+            for table in (
+                "billing_ledger_entries",
+                "payments",
+                "credit_notes",
+                "interac_transfers",
+                "invoice_lines",
+            ):
+                _delete(f"DELETE FROM {table} WHERE invoice_id = ANY(:inv)", inv)
+            _delete("UPDATE crm_invoices SET operational_invoice_id = NULL WHERE operational_invoice_id = ANY(:inv)", inv)
+        _delete("DELETE FROM invoice_lines WHERE order_id = ANY(:ids)", ids)
         for table in (
             "billing_ledger_entries",
             "claims",
@@ -216,20 +253,16 @@ class E2EValidationCoreMixin:
             "bookings",
             "support_tickets",
         ):
-            try:
-                db.execute(text(f"DELETE FROM {table} WHERE order_id = ANY(:ids)"), {"ids": order_ids})
-            except Exception:  # noqa: BLE001
-                db.rollback()
-        try:
-            db.execute(
-                text("DELETE FROM notification_records WHERE context::text LIKE :marker"),
-                {"marker": f"%{E2E_MARKER}%"},
-            )
-        except Exception:  # noqa: BLE001
-            db.rollback()
+            _delete(f"DELETE FROM {table} WHERE order_id = ANY(:ids)", ids)
+        if cycle_ids:
+            _delete("DELETE FROM invoices WHERE id = ANY(:inv)", inv)
+        _delete(
+            "DELETE FROM notification_records WHERE context::text LIKE :marker",
+            {"marker": f"%{E2E_MARKER}%"},
+        )
         db.execute(
             text("DELETE FROM domain_events WHERE aggregate_id = ANY(:ids)"),
-            {"ids": order_ids},
+            ids,
         )
         db.query(Order).filter(Order.internal_reference == E2E_MARKER).delete(synchronize_session=False)
         db.commit()
