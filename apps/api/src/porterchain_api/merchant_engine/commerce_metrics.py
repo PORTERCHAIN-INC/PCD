@@ -46,6 +46,9 @@ def note_ar_mismatch(reason: str) -> None:
     note_commerce_event("ar_mismatch", (reason or "unknown").strip() or "unknown")
 
 
+_FEE_LINE_PREFIXES = ("Waiting time", "Failed delivery", "Additional ")
+
+
 def check_invoice_detail_consistency(detail: dict[str, Any]) -> list[str]:
     """Return mismatch reasons (also increments metrics). Empty = OK."""
     reasons: list[str] = []
@@ -62,9 +65,14 @@ def check_invoice_detail_consistency(detail: dict[str, Any]) -> list[str]:
         if not isinstance(ln, dict):
             continue
         rq = ln.get("rate_quote_cents")
-        if rq is None:
+        if rq is None or str(ln.get("description") or "").startswith(_FEE_LINE_PREFIXES):
+            # Waiting / failed-delivery / additional-charge lines carry the order's quote
+            # but are not the delivery price.
             continue
-        if int(rq) != int(ln.get("amount_cents") or 0):
+        amt = int(ln.get("amount_cents") or 0)
+        # Cycle invoice lines are pre-tax; the rate quote is what the merchant was quoted
+        # (tax included when the quote added it), so either form matches.
+        if int(rq) not in (amt, amt + int(ln.get("tax_cents") or 0)):
             reasons.append("quote_vs_line")
             note_ar_mismatch("quote_vs_line")
             break
