@@ -89,7 +89,7 @@ def statement_data(db: Session, merchant: Any, *, now: datetime | None = None) -
     }
 
 
-def statement_pdf(data: dict[str, Any], *, issuer: str = "Porterchain Logistics Inc.", tax_number: str = "") -> bytes:
+def statement_pdf(data: dict[str, Any], *, issuer: str = "Porterchain Inc.", tax_number: str = "") -> bytes:
     from reportlab.lib.colors import HexColor, white
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import ParagraphStyle

@@ -98,7 +98,7 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-muted">From</dt>
-            <dd className="font-medium text-primary">Porterchain Logistics Inc.</dd>
+            <dd className="font-medium text-primary">Porterchain Inc.</dd>
           </div>
           <div>
             <dt className="text-muted">Bill to</dt>

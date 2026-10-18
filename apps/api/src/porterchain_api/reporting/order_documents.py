@@ -78,7 +78,7 @@ def _money(cents: int | None, currency: str) -> str:
 def _issuer_from_db(db: Any) -> tuple[str, str, str]:
     """Platform name, legal name, support email. Defaults if settings are unavailable."""
     name = "PorterChain"
-    legal = "Porterchain Logistics Inc."
+    legal = "Porterchain Inc."
     email = "support@porterchain.com"
     try:
         from porterchain_api.admin_engine.platform_settings import (
@@ -127,7 +127,7 @@ def render_branded_invoice_pdf(
     delivery: str | None = None,
     lines: Sequence[dict[str, Any]] | None = None,
     issuer_name: str = "PorterChain",
-    issuer_legal_name: str = "Porterchain Logistics Inc.",
+    issuer_legal_name: str = "Porterchain Inc.",
     support_email: str = "support@porterchain.com",
     compliance: dict[str, Any] | None = None,
 ) -> bytes:
@@ -455,7 +455,7 @@ def build_invoice_pdf(
         delivery=_addr_line(order.dropoff if isinstance(getattr(order, "dropoff", None), dict) else None),
         lines=lines,
         issuer_name=issuer_name or "PorterChain",
-        issuer_legal_name=issuer_legal_name or "Porterchain Logistics Inc.",
+        issuer_legal_name=issuer_legal_name or "Porterchain Inc.",
         support_email=support_email or "support@porterchain.com",
         compliance=compliance,
     )

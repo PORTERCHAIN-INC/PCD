@@ -7,7 +7,7 @@ from typing import Any
 from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
 from porterchain_api.merchant_models import Merchant
 
-PAYEE_LEGAL_NAME = "Porterchain Logistics Inc."
+PAYEE_LEGAL_NAME = "Porterchain Inc."
 
 BILLING_GLOSSARY: list[dict[str, str]] = [
     {
