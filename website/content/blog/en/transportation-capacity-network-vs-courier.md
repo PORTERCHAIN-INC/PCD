@@ -3,7 +3,7 @@ title: "Transportation Capacity Network vs Ad-Hoc Courier"
 description: "Why GTA operators choose a capacity network — vehicles, drivers, ops, and proof — over courier roulette."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["capacity", "courier", "strategy"]
 featured: false
 ---

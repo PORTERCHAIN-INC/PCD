@@ -53,6 +53,14 @@ export const SITEMAP_PARTITION_IDS: SitemapPartitionId[] = [
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
+/** Oct 2026 focus: no campaign pages in the index (kept as code for paid landing tests). */
+const INDEXED_CAMPAIGN_SLUGS: readonly (typeof CAMPAIGN_SLUGS)[number][] = [];
+
+const INDEX_CITY_SEGMENT_PAGES = false;
+
+/** Only real authors get an indexed profile page. */
+const INDEXED_AUTHOR_IDS = new Set(["porterchain"]);
+
 const frNicheLanding = frMessages.nicheLanding as Record<string, Partial<NicheLandingContent>>;
 const frCampaignLanding = (frMessages as unknown as Record<string, unknown>).campaignLanding as
   Record<string, Partial<NicheLandingContent>> | undefined;
@@ -72,27 +80,19 @@ const STATIC_PATHS: {
   { segment: "business", priority: 0.95 },
   { segment: "contact", priority: 0.9 },
   { segment: "company", priority: 0.85 },
-  { segment: "careers", priority: 0.8 },
   { segment: "developers", priority: 0.75 },
   { segment: "blog", priority: 0.85, freq: "weekly" },
-  { segment: "authors", priority: 0.7, freq: "monthly" },
   { segment: "track", priority: 0.8 },
   { segment: "vehicle-partner", priority: 0.85 },
   // "drive" omitted: it 308-redirects to /vehicle-partner (sitemaps must list final URLs).
-  { segment: "platform", priority: 0.8, freq: "weekly" },
-  { segment: "integrations", priority: 0.85 },
-  { segment: "enterprise", priority: 0.85 },
   { segment: "vehicles", priority: 0.9 },
   { segment: "service-areas", priority: 0.85 },
   { segment: "faq", priority: 0.85 },
-  { segment: "guides", priority: 0.85, freq: "weekly" },
-  { segment: "compare", priority: 0.8 },
   { segment: "privacy", priority: 0.3 },
   { segment: "terms", priority: 0.3 },
   { segment: "cookies", priority: 0.3 },
   { segment: "trust", priority: 0.4 },
   { segment: "trust/claims", priority: 0.55 },
-  { segment: "trust/sla", priority: 0.45 },
 ];
 
 function skipFrenchEnOnlyContent(locale: Locale): boolean {
@@ -138,7 +138,9 @@ export function buildStaticSitemapEntries(): SitemapEntry[] {
       if (locale === "fr" && EN_ONLY_STATIC_SEGMENTS.has(segment)) continue;
       push(entries, locale, segment, priority, freq);
     }
-    for (const slug of CAMPAIGN_SLUGS) {
+    // Campaign pages duplicate the industry pages (Oct 2026 focus): not indexed; url-policy
+    // 301s them to the industry page.
+    for (const slug of INDEXED_CAMPAIGN_SLUGS) {
       // FR campaigns without a full translation render the EN copy with noindex — keep them out.
       if (
         locale === "fr" &&
@@ -197,10 +199,14 @@ export function buildLocationSitemapEntries(): SitemapEntry[] {
       }
       push(entries, locale, `service-areas/${slug}`, 0.8);
     }
-    for (const { city, segmentSlug } of getAllCitySegmentPairs()) {
-      const messages = locale === "en" ? enMessages : frMessages;
-      if (!isPublishableCitySegment(locale, city, segmentSlug, messages)) continue;
-      push(entries, locale, `${city}/${segmentSlug}`, 0.65);
+    // City × industry / city × vehicle pages are not indexed (Oct 2026 focus: no doorway
+    // pages). url-policy 301s them to the city's service-area page.
+    if (INDEX_CITY_SEGMENT_PAGES) {
+      for (const { city, segmentSlug } of getAllCitySegmentPairs()) {
+        const messages = locale === "en" ? enMessages : frMessages;
+        if (!isPublishableCitySegment(locale, city, segmentSlug, messages)) continue;
+        push(entries, locale, `${city}/${segmentSlug}`, 0.65);
+      }
     }
   }
   return entries;
@@ -211,20 +217,15 @@ export async function buildResourceSitemapEntries(): Promise<SitemapEntry[]> {
   const authors = await listBlogAuthors();
   const authorIds = authors.map((a) => a.id);
   for (const locale of routing.locales) {
-    for (const page of AUTHORITY_PAGES) {
-      if (page.slug === "how-porterchain-works") continue; // merged into /platform
-      if (locale === "fr" && !hasFrProgrammaticSlug("guides", page.slug)) continue;
-      push(entries, locale, `guides/${page.slug}`, 0.75);
-    }
-    for (const page of COMPARISON_PAGES) {
-      if (locale === "fr" && !hasFrProgrammaticSlug("compare", page.slug)) continue;
-      push(entries, locale, `compare/${page.slug}`, 0.7);
-    }
-    for (const slug of getAllOnboardingEducationSlugs()) {
-      if (skipFrenchEnOnlyContent(locale)) continue;
-      push(entries, locale, `onboarding-education/${slug}`, 0.75);
-    }
+    // Guides, comparison and onboarding-education pages are not indexed (Oct 2026 focus):
+    // their answers live in /faq and the money pages; url-policy 301s them there.
+    void AUTHORITY_PAGES;
+    void COMPARISON_PAGES;
+    void getAllOnboardingEducationSlugs;
+    void hasFrProgrammaticSlug;
+    void skipFrenchEnOnlyContent;
     for (const id of authorIds) {
+      if (!INDEXED_AUTHOR_IDS.has(id)) continue;
       push(entries, locale, `authors/${id}`, 0.55, "monthly");
     }
   }
@@ -276,9 +277,8 @@ export function buildDeliverySitemapEntries(): SitemapEntry[] {
   for (const vertical of DELIVERY_VERTICALS) {
     push(entries, locale, deliveryPagePath(vertical.slug), 0.8);
   }
-  for (const page of listDeliveryPages()) {
-    if (page.index) push(entries, locale, page.path, 0.7);
-  }
+  // Industry × area pages are not indexed (Oct 2026 focus: one strong page per industry).
+  void listDeliveryPages;
   return entries;
 }
 

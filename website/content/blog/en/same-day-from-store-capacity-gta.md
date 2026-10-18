@@ -3,7 +3,7 @@ title: "Same-Day From Your GTA Store — Without Building a Courier Desk"
 description: "Fulfill local online and counter orders from the nearest store with vehicle-and-driver capacity, tracking, and proof."
 date: "2026-08-11"
 category: "logistics"
-author: "peter-porter"
+author: "porterchain"
 tags: ["store", "same-day", "retail", "capacity"]
 featured: true
 ---

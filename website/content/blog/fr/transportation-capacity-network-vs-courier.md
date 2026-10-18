@@ -3,7 +3,7 @@ title: "Réseau de capacité de transport vs coursier ponctuel"
 description: "Pourquoi les opérateurs du RGT choisissent un réseau de capacité — véhicules, chauffeurs, ops et preuve — plutôt que la roulette de coursiers."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["capacity", "courier", "strategy"]
 featured: false
 ---

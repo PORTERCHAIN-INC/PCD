@@ -3,7 +3,7 @@ title: "Warehouse-to-Store Inventory Transfers in the GTA"
 description: "Same-day and scheduled transfer capacity between Ontario warehouses and stores — vehicle fit, dock contacts, and proof."
 date: "2026-08-10"
 category: "supply-chain"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["inventory", "transfers", "warehouse"]
 featured: false
 ---

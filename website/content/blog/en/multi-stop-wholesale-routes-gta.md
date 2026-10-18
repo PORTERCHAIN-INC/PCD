@@ -3,7 +3,7 @@ title: "Multi-Stop Wholesale Routes Across the GTA"
 description: "How wholesale operators run multi-stop GTA loops with density, vehicle fit, and proof — without stretching night shift."
 date: "2026-08-10"
 category: "wholesale"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["multi-stop", "wholesale", "gta"]
 featured: false
 ---

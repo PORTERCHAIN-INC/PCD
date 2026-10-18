@@ -3,7 +3,7 @@ title: "Capacité de livraison multi-emplacements dans le RGT"
 description: "Comment les entreprises multi-succursales ontariennes coordonnent collectes, cut-offs et preuve sans inventer une habitude coursier par site."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["multi-location", "gta", "capacity"]
 featured: false
 ---

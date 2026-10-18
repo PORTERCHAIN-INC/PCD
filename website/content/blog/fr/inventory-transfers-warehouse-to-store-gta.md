@@ -3,7 +3,7 @@ title: "Transferts d'inventaire entrepôt-magasin dans le RGT"
 description: "Capacité de transfert jour même et planifiée entre entrepôts et magasins ontariens — véhicule adapté, contacts quai et preuve."
 date: "2026-08-10"
 category: "supply-chain"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["inventory", "transfers", "warehouse"]
 featured: false
 ---

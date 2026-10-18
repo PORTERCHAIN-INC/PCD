@@ -3,7 +3,7 @@ title: "Livraison grossiste électrique en Ontario : dernier kilomètre sans flo
 description: "Comment les grossistes électriques gèrent livraison même jour et tournées récurrentes vers entrepreneurs — suivi, cut-offs et preuve sur chaque envoi."
 date: "2026-06-20"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "electrical", "wholesale", "proof"]
 ---
 

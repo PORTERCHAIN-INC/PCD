@@ -3,7 +3,7 @@ title: "Capacité sortante 3PL depuis les entrepôts de Peel"
 description: "Comment les 3PL du RGT couvrent multi-arrêts sortants et débordement de pointe depuis les quais de Peel sans flotte permanente."
 date: "2026-08-10"
 category: "supply-chain"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["3pl", "warehouse", "peel"]
 featured: false
 ---

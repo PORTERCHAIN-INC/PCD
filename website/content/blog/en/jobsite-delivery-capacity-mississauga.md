@@ -3,7 +3,7 @@ title: "Jobsite Delivery Capacity in Mississauga and Peel"
 description: "Pallet and material drops to Mississauga jobsites — vehicle fit, site access, and POD GCs will accept."
 date: "2026-08-10"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["jobsite", "construction", "mississauga"]
 featured: false
 ---

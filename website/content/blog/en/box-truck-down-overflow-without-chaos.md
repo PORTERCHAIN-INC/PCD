@@ -3,7 +3,7 @@ title: "When Your Box Truck Is Down: Overflow Without Chaos"
 description: "A unit in the shop should not break customer windows. Brief overflow like primary capacity."
 date: "2026-08-11"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["overflow", "fleet", "box-truck", "gta"]
 featured: false
 ---

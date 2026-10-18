@@ -305,6 +305,47 @@ function industryMergeRedirects(): WebsiteRedirect[] {
   );
 }
 
+/**
+ * Focus consolidation (Oct 2026, Ravi): delete what does not help a buyer get a price, book or
+ * trust us. Retired hubs and fictional/unsupported pages 301 to the closest kept page.
+ * Listed first so these win over older registry rows (url-policy collapses chains to one hop).
+ */
+function focusConsolidationRedirects(): WebsiteRedirect[] {
+  const map: Array<[string, string]> = [
+    ["platform", "business"],
+    ["enterprise", "business"],
+    ["careers", "vehicle-partner"],
+    ["integrations", "delivery/shopify-merchants"],
+    ["integrations/:rest*", "delivery/shopify-merchants"],
+    ["guides", "faq"],
+    ["guides/:slug", "faq"],
+    ["compare", "business"],
+    ["compare/:slug", "business"],
+    ["onboarding-education/:slug", "faq"],
+    ["trust/sla", "trust"],
+    ["trust/dpa", "trust"],
+    ["trust/msa", "trust"],
+    ["trust/insurance", "trust/claims"],
+    ["trust/subprocessors", "privacy"],
+    ["trade-van-delivery", "cargo-van-delivery"],
+    ["pickup-truck-delivery", "cargo-van-delivery"],
+    ["sedan-delivery", "vehicles"],
+    ["authors", "blog"],
+    ["authors/peter-porter", "authors/porterchain"],
+    ["authors/sarah-chen", "authors/porterchain"],
+    ["authors/marcus-okonkwo", "authors/porterchain"],
+    ["blog/case-study-construction-distributor-gta", "blog"],
+  ];
+  return LOCALES.flatMap((locale) =>
+    map.map(([from, to]) => ({
+      source: `/${locale}/${from}`,
+      destination: `/${locale}/${to}`,
+      permanent: true,
+      note: "Focus consolidation (Oct 2026)",
+    }))
+  );
+}
+
 /** FAQ consolidation (Oct 2026): every /faq/{cluster} page merged into /faq or its topic page. */
 export const FAQ_CLUSTER_DESTINATION: Record<string, string> = {
   "construction-delivery": "delivery/construction",
@@ -346,6 +387,7 @@ function faqConsolidationRedirects(): WebsiteRedirect[] {
 }
 
 export const WEBSITE_REDIRECTS: WebsiteRedirect[] = [
+  ...focusConsolidationRedirects(),
   ...faqConsolidationRedirects(),
   ...industryMergeRedirects(),
   ...footerConsolidationRedirects(),

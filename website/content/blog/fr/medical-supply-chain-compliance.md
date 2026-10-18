@@ -3,7 +3,7 @@ title: "Medical Supply Chain Compliance in Local Delivery"
 description: "Chain-of-custody, time-sensitive routing, and documentation standards for regulated healthcare shipments."
 date: "2026-05-28"
 category: "medical"
-author: "peter-porter"
+author: "porterchain"
 trending: true
 tags: ["medical", "compliance", "healthcare"]
 ---

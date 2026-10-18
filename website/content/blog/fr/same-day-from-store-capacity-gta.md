@@ -3,7 +3,7 @@ title: "Jour même depuis votre magasin du RGT — sans bâtir un bureau coursie
 description: "Exécutez commandes locales en ligne et comptoir depuis le magasin le plus proche avec capacité véhicule + chauffeur, suivi et preuve."
 date: "2026-08-11"
 category: "logistics"
-author: "peter-porter"
+author: "porterchain"
 tags: ["magasin", "jour-même", "détail", "capacité"]
 featured: true
 ---

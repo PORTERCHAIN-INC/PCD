@@ -3,7 +3,7 @@ title: "Overflow vs Dedicated vs Recurring Capacity in the GTA"
 description: "A practical checklist for choosing overflow, dedicated, or recurring delivery capacity — without SaaS pricing tiers."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["overflow", "dedicated", "recurring", "pricing"]
 featured: true
 ---

@@ -3,7 +3,7 @@ title: "Pharmacy Same-Day Courier Capacity in the GTA"
 description: "Same-day pharmacy and clinic runs with chain-of-custody visibility — without adding in-house fleet."
 date: "2026-08-10"
 category: "medical"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["pharmacy", "same-day", "compliance"]
 featured: false
 ---

@@ -3,7 +3,7 @@ title: "Same-Day Branch Balancing Without Stretching Your Fleet"
 description: "Use overflow capacity to rebalance GTA branches on peak days — without overtime that burns your team."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["branch", "same-day", "overflow"]
 featured: false
 ---

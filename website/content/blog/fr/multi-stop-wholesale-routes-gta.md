@@ -3,7 +3,7 @@ title: "Routes de gros multi-arrêts dans le RGT"
 description: "Comment les opérateurs de gros gèrent des boucles multi-arrêts dans le RGT avec densité, véhicule adapté et preuve — sans étirer l'équipe de nuit."
 date: "2026-08-10"
 category: "wholesale"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["multi-stop", "wholesale", "gta"]
 featured: false
 ---

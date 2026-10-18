@@ -3,7 +3,7 @@ title: "Jobsite Delivery Time Windows and Proof of Delivery: What GCs Expect"
 description: "Why construction sites demand tight delivery windows, site access coordination, and audit-ready proof — and how distributors meet that bar."
 date: "2026-06-25"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "heavy-freight", "proof", "jobsite"]
 ---
 

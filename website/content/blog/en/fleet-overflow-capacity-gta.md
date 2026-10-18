@@ -3,7 +3,7 @@ title: "Fleet Overflow Capacity for GTA Businesses"
 description: "When your trucks are full or a unit is down, overflow capacity keeps GTA cut-offs — without permanent headcount."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["overflow", "fleet", "gta"]
 featured: false
 ---

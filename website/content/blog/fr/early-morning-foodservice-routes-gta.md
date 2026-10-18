@@ -3,7 +3,7 @@ title: "Routes foodservice tôt le matin dans le RGT"
 description: "Comment torréfacteurs et distributeurs alimentaires tiennent les fenêtres café et cuisine avec capacité récurrente — plus débordement jour même."
 date: "2026-08-10"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["foodservice", "café", "récurrent", "rgt"]
 featured: false
 ---

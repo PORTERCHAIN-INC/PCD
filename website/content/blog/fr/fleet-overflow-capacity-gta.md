@@ -3,7 +3,7 @@ title: "Capacité de débordement de flotte pour entreprises du RGT"
 description: "Quand vos camions sont pleins ou une unité immobilisée, le débordement tient les cut-offs du RGT — sans effectif permanent."
 date: "2026-08-10"
 category: "business"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["overflow", "fleet", "gta"]
 featured: false
 ---

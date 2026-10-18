@@ -3,7 +3,7 @@ title: "Équilibrage de succursales jour même sans étirer votre flotte"
 description: "Utilisez la capacité de débordement pour rééquilibrer les succursales du RGT les jours de pointe — sans heures sup qui brûlent l'équipe."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["branch", "same-day", "overflow"]
 featured: false
 ---

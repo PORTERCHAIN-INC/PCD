@@ -3,7 +3,7 @@ title: "Clinic Supply Loops Without Phone-Tree Dispatch"
 description: "Multi-stop clinic replenishment in the GTA needs reserved capacity, access notes, and proof — not another group chat."
 date: "2026-08-11"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["clinic", "medical", "multi-stop", "gta"]
 featured: false
 ---

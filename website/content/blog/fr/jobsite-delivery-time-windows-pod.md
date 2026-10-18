@@ -3,7 +3,7 @@ title: "Fenêtres horaires chantier et preuve de livraison : attentes des entrep
 description: "Pourquoi les chantiers exigent fenêtres serrées, coordination d'accès et preuve prête pour audit — et comment les distributeurs y répondent."
 date: "2026-06-25"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "heavy-freight", "proof", "jobsite"]
 ---
 

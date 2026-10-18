@@ -3,7 +3,7 @@ title: "Livraison B2B jour même à Toronto : des cut-offs qui tiennent"
 description: "La livraison B2B jour même à Toronto fonctionne quand cut-offs, classe de véhicule et staging correspondent à la zone — pas quand les ventes surpromettent."
 date: "2026-08-10"
 category: "same-day-delivery"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["same-day", "toronto", "b2b"]
 featured: false
 ---

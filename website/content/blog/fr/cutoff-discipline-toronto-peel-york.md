@@ -3,7 +3,7 @@ title: "Discipline des cut-offs à Toronto, Peel et York"
 description: "La capacité jour même échoue quand chaque zone partage un seul cut-off. Publiez des fenêtres réalistes par corridor."
 date: "2026-08-11"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["cut-off", "jour-même", "rgt", "ops"]
 featured: false
 ---

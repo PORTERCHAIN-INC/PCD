@@ -3,7 +3,7 @@ title: "Quand votre camion cube est immobilisé : débordement sans chaos"
 description: "Une unité à l'atelier ne doit pas casser les fenêtres clients. Briefez le débordement comme la capacité principale."
 date: "2026-08-11"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["débordement", "flotte", "camion-cube", "rgt"]
 featured: false
 ---

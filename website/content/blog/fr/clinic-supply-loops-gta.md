@@ -3,7 +3,7 @@ title: "Boucles d'approvisionnement clinique sans répartition par téléphone"
 description: "Le réapprovisionnement multi-arrêts de cliniques dans le RGT exige capacité réservée, notes d'accès et preuve — pas un autre clavardage de groupe."
 date: "2026-08-11"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["clinique", "médical", "multi-arrêts", "rgt"]
 featured: false
 ---

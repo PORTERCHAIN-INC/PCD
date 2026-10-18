@@ -3,7 +3,7 @@ title: "Structured Operations for Commercial Logistics"
 description: "Why growing businesses need a managed logistics partner — not another courier app — to run dispatch, routing, and proof at scale."
 date: "2026-06-20"
 category: "logistics"
-author: "peter-porter"
+author: "porterchain"
 featured: true
 trending: true
 tags: ["operations", "dispatch", "logistics"]

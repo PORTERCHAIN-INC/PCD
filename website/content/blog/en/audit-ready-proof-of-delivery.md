@@ -3,7 +3,7 @@ title: "Building Audit-Ready Proof of Delivery"
 description: "Photo, signature, GPS, and reference-linked status history — the compliance layer modern logistics requires."
 date: "2026-06-10"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["compliance", "pod", "operations"]
 ---
 

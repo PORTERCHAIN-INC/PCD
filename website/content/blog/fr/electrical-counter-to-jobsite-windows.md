@@ -3,7 +3,7 @@ title: "Fenêtres comptoir électrique–chantier qui tiennent"
 description: "Les comptoirs métier perdent l'après-midi quand les fenêtres chantier glissent. Capacité réservée et POD ferment la boucle."
 date: "2026-08-11"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["électrique", "chantier", "gros", "rgt"]
 featured: false
 ---

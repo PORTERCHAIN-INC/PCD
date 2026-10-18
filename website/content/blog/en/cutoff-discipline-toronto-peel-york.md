@@ -3,7 +3,7 @@ title: "Cut-Off Discipline Across Toronto, Peel, and York"
 description: "Same-day capacity fails when every zone shares one cut-off. Publish realistic windows by corridor."
 date: "2026-08-11"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["cut-off", "same-day", "gta", "ops"]
 featured: false
 ---

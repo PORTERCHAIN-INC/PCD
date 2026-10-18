@@ -1,6 +1,7 @@
 /**
  * Blog author fallback SSOT — seeded into Postgres `blog_authors` on migrate.
  * Prefer CMS/API rows when available; keep ids in sync with BlogPost.author_id.
+ * Only real authors: the PorterChain team (fictional personas removed Oct 2026).
  */
 export type BlogAuthor = {
   id: string;
@@ -12,27 +13,9 @@ export type BlogAuthor = {
 export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
   porterchain: {
     id: "porterchain",
-    name: "Porterchain Team",
+    name: "PorterChain team",
     role: "Editorial",
-    bio: "Insights from the Porterchain commercial logistics team.",
-  },
-  "peter-porter": {
-    id: "peter-porter",
-    name: "Peter Porter",
-    role: "Founder & CEO",
-    bio: "Building Canada's most trusted commercial logistics partner for local businesses.",
-  },
-  "sarah-chen": {
-    id: "sarah-chen",
-    name: "Sarah Chen",
-    role: "Head of Dispatch Operations",
-    bio: "Operations leader focused on SLA execution, route planning, and partner network quality.",
-  },
-  "marcus-okonkwo": {
-    id: "marcus-okonkwo",
-    name: "Marcus Okonkwo",
-    role: "Principal Engineer",
-    bio: "Engineering lead for routing, tracking systems, and delivery operations reliability.",
+    bio: "Practical guides from the PorterChain team in the GTA.",
   },
 };
 
@@ -40,9 +23,9 @@ export function getBlogAuthor(id: string): BlogAuthor {
   return (
     BLOG_AUTHORS[id] ?? {
       id: "porterchain",
-      name: "Porterchain Team",
+      name: "PorterChain team",
       role: "Editorial",
-      bio: "Insights from the Porterchain commercial logistics team.",
+      bio: "Practical guides from the PorterChain team in the GTA.",
     }
   );
 }

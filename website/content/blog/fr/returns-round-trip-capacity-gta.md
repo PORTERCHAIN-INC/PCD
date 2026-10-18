@@ -3,7 +3,7 @@ title: "Capacité retours et aller-retour dans le RGT"
 description: "Traitez retours B2B, échanges et récupération d'échecs comme une capacité à deux jambes — pas un appel coursier après coup."
 date: "2026-08-10"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["retours", "aller-retour", "capacité", "rgt"]
 featured: false
 ---

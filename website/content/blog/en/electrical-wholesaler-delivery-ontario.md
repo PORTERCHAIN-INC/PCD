@@ -3,7 +3,7 @@ title: "Electrical Wholesaler Delivery in Ontario: Last-Mile Without the Fleet"
 description: "How electrical distributors run same-day and recurring delivery to contractors across the GTA — tracking, cut-offs, and proof on every run."
 date: "2026-06-20"
 category: "construction"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["construction", "electrical", "wholesale", "proof"]
 ---
 

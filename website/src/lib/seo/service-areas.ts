@@ -61,16 +61,8 @@ export function isValidServiceAreaSlug(slug: string): slug is ServiceAreaSlug {
 }
 
 /** Playbook §4.5 — eight metros with established operational evidence. */
-export const CORE_SERVICE_AREA_SLUGS = [
-  "toronto",
-  "mississauga",
-  "brampton",
-  "vaughan",
-  "markham",
-  "oakville",
-  "hamilton",
-  "kitchener-waterloo",
-] as const;
+/** Indexed city pages (Oct 2026): our core areas + Toronto. Others 301 to /service-areas. */
+export const CORE_SERVICE_AREA_SLUGS = ["toronto", "vaughan", "brampton", "mississauga"] as const;
 
 export type CoreServiceAreaSlug = (typeof CORE_SERVICE_AREA_SLUGS)[number];
 

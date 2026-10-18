@@ -3,7 +3,7 @@ title: "Returns and Round-Trip Capacity in the GTA"
 description: "Treat B2B returns, swaps, and failed-delivery recovery as two-leg capacity — not an afterthought courier call."
 date: "2026-08-10"
 category: "logistics"
-author: "marcus-okonkwo"
+author: "porterchain"
 tags: ["returns", "round-trip", "capacity", "gta"]
 featured: false
 ---

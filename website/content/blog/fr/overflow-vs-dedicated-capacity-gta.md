@@ -3,7 +3,7 @@ title: "Débordement vs capacité dédiée vs récurrente dans le RGT"
 description: "Grille pratique pour choisir débordement, dédié ou récurrent — sans forfaits tarifaires SaaS."
 date: "2026-08-10"
 category: "logistics"
-author: "sarah-chen"
+author: "porterchain"
 tags: ["débordement", "dédié", "récurrent", "tarification"]
 featured: true
 ---
