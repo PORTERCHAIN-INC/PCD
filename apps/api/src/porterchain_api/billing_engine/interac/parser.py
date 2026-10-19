@@ -40,15 +40,74 @@ _SENT_FR = re.compile(
     r"(?P<name>[^\n]+?)\s+vous a envoy[ée]\s+(?P<amt>[\d\s\u00a0\u202f.]+,\d{2})\s*\$\s*\(?(?P<cur>CAD|USD)?\)?",
     re.I,
 )
-_AUTODEP = re.compile(r"automatically deposited|d[ée]pos[ée] automatiquement|automatiquement d[ée]pos", re.I)
+_AUTODEP = re.compile(
+    r"automatically deposited|d[ée]pos[ée]e?s? automatiquement|automatiquement d[ée]pos",
+    re.I,
+)
 _DEPOSITED = re.compile(r"has been deposited|a [ée]t[ée] d[ée]pos[ée]", re.I)
-_MESSAGE = re.compile(r"^\s*(?:Message|Message de l'exp[ée]diteur)\s*:\s*(?P<memo>.+?)\s*$", re.I | re.M)
+_MESSAGE = re.compile(
+    r"^\s*(?:Message|Message from (?:the )?sender|Memo|Message de l'exp[ée]diteur)\s*:\s*(?P<memo>.+?)\s*$",
+    re.I | re.M,
+)
 _REFERENCE = re.compile(
     r"(?:Reference Number|Reference number|Num[ée]ro de r[ée]f[ée]rence)\s*:\s*(?P<ref>[A-Za-z0-9]{6,40})",
     re.I,
 )
-_SENDER_EMAIL = re.compile(r"(?:Sender'?s? email|Courriel de l'exp[ée]diteur)\s*:\s*(?P<em>[^\s<>]+@[^\s<>]+)", re.I)
+_SENDER_EMAIL = re.compile(
+    r"(?:Sender'?s? email|Courriel de l'exp[ée]diteur)\s*:\s*(?P<em>[^\s<>]+@[^\s<>]+)",
+    re.I,
+)
 _HI_PREFIX = re.compile(r"^(?:Hi|Hello|Bonjour)\s+[^,]{1,120},\s*", re.I)
+
+# Current (2026) Interac layout: a "Transfer Details" block with labelled lines, and the
+# amount/sender also in the subject. Older layouts put "<name> sent you $X" in the body.
+_AMOUNT_LABEL_EN = re.compile(
+    r"^\s*Amount\s*:\s*\$\s?(?P<amt>[\d,]+\.\d{2})\s*\(?(?P<cur>CAD|USD)?\)?",
+    re.I | re.M,
+)
+_AMOUNT_LABEL_FR = re.compile(
+    r"^\s*Montant\s*:\s*(?P<amt>[\d\s\u00a0\u202f.]+,\d{2})\s*\$\s*\(?(?P<cur>CAD|USD)?\)?",
+    re.I | re.M,
+)
+_SENT_FROM = re.compile(
+    r"^\s*(?:Sent From|Sender|Envoy[ée] par|Exp[ée]diteur)\s*:\s*(?P<name>[^\n]{1,200}?)\s*$",
+    re.I | re.M,
+)
+# Subject forms (folded subjects are whitespace-normalised first):
+#   "Interac e-Transfer: NAME sent you $1,130.00. Complete your deposit!"
+#   "Interac e-Transfer: RECIPIENT received $1,130.00 from NAME and it has been automatically deposited."
+#   "Virement Interac : NAME vous a envoyé 1 130,00 $"
+_SUBJ_SENT_EN = re.compile(
+    r":\s*(?P<name>.+?)\s+sent you\s+\$\s?(?P<amt>[\d,]+\.\d{2})", re.I
+)
+_SUBJ_RECEIVED_EN = re.compile(
+    r"received\s+\$\s?(?P<amt>[\d,]+\.\d{2})\s+from\s+(?P<name>.+?)\s+and it has been",
+    re.I,
+)
+_SUBJ_SENT_FR = re.compile(
+    r":\s*(?P<name>.+?)\s+vous a envoy[ée]\s+(?P<amt>[\d\s\u00a0\u202f.]+,\d{2})\s*\$",
+    re.I,
+)
+# Interac emails that are not money received: requests, cancellations, declines, expiry
+# reminders for a transfer already notified, and Autodeposit registration notices.
+_NOT_PAYMENT = (
+    (
+        "request",
+        re.compile(
+            r"has requested|requested \$|request to register|a demand[ée]|demande de",
+            re.I,
+        ),
+    ),
+    ("cancelled", re.compile(r"cancell?ed|annul[ée]", re.I)),
+    ("declined", re.compile(r"declined|refus[ée]", re.I)),
+    (
+        "reminder",
+        re.compile(
+            r"expire soon|expirent bient[ôo]t|^\s*Interac e-Transfer:\s*Deposit your\b",
+            re.I,
+        ),
+    ),
+)
 
 
 def _text_of(msg: Message) -> str:
@@ -107,24 +166,69 @@ def _decoded_subject(msg: Message) -> str:
         return str(raw)
 
 
+def _not_payment_reason(subject: str, body_flat: str) -> str | None:
+    head = body_flat[:600]
+    for reason, pattern in _NOT_PAYMENT:
+        if pattern.search(subject):
+            return reason
+    if re.search(r"expire soon|expirent bient[ôo]t", head, re.I):
+        return "reminder"
+    return None
+
+
 def parse_interac_email(msg: Message) -> ParsedTransfer:
-    subject = _decoded_subject(msg)
+    subject = re.sub(r"\s+", " ", _decoded_subject(msg)).strip()
     if not (_SUBJECT_EN.search(subject) or _SUBJECT_FR.search(subject)):
         raise NotInteracEmail("subject")
     body = _text_of(msg)
     body_flat = re.sub(r"[ \t]+", " ", body)
+    reason = _not_payment_reason(subject, body_flat)
+    if reason:
+        raise NotInteracEmail(reason)
 
-    m = _SENT_EN.search(body_flat)
+    name: str | None = None
+    m = _SENT_EN.search(
+        body_flat
+    )  # legacy layout: "<name> sent you $X (CAD)" in the body
     if m:
-        amount = _amount_en(m.group("amt"))
+        amount, currency, name = (
+            _amount_en(m.group("amt")),
+            m.group("cur"),
+            m.group("name"),
+        )
+    elif m := _SENT_FR.search(body_flat):
+        amount, currency, name = (
+            _amount_fr(m.group("amt")),
+            m.group("cur"),
+            m.group("name"),
+        )
+    elif m := _AMOUNT_LABEL_EN.search(body):  # current layout: "Amount: $X (CAD)"
+        amount, currency = _amount_en(m.group("amt")), m.group("cur")
+    elif m := _AMOUNT_LABEL_FR.search(body):
+        amount, currency = _amount_fr(m.group("amt")), m.group("cur")
+    elif m := (_SUBJ_SENT_EN.search(subject) or _SUBJ_RECEIVED_EN.search(subject)):
+        amount, currency = _amount_en(m.group("amt")), None
+    elif m := _SUBJ_SENT_FR.search(subject):
+        amount, currency = _amount_fr(m.group("amt")), None
     else:
-        m = _SENT_FR.search(body_flat)
-        if not m:
-            raise NotInteracEmail("no_amount")
-        amount = _amount_fr(m.group("amt"))
+        raise NotInteracEmail("no_amount")
     if amount <= 0:
         raise NotInteracEmail("zero_amount")
-    currency = (m.group("cur") or "CAD").lower()
+    currency = (currency or "CAD").lower()
+
+    if not name:
+        sent_from = _SENT_FROM.search(body)
+        subj_name = (
+            _SUBJ_SENT_EN.search(subject)
+            or _SUBJ_RECEIVED_EN.search(subject)
+            or _SUBJ_SENT_FR.search(subject)
+        )
+        if sent_from:
+            name = sent_from.group("name")
+        elif subj_name:
+            name = subj_name.group("name")
+    if name is None:
+        raise NotInteracEmail("no_sender")
 
     if _AUTODEP.search(body_flat) or _AUTODEP.search(subject):
         kind = "autodeposit"
@@ -148,8 +252,12 @@ def parse_interac_email(msg: Message) -> ParsedTransfer:
     return ParsedTransfer(
         message_id=message_id[:255],
         kind=kind,
-        sender_name=_clean_name(m.group("name"))[:255] or None,
-        sender_email=(sender_email_m.group("em").strip(".").lower()[:255] if sender_email_m else None),
+        sender_name=_clean_name(name)[:255] or None,
+        sender_email=(
+            sender_email_m.group("em").strip(".").lower()[:255]
+            if sender_email_m
+            else None
+        ),
         amount_cents=amount,
         currency=currency,
         memo=(memo_m.group("memo").strip()[:512] if memo_m else None),

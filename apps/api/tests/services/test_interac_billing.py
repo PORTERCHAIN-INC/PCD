@@ -35,6 +35,7 @@ def _eml(name: str, **subs: str):
         "AMOUNT_FR": "10,00",
         "MEMO": "",
         "IREF": "CA" + uuid.uuid4().hex[:10],
+        "MEMOLINE": "",
     }
     base.update(subs)
     for k, v in base.items():
@@ -200,6 +201,47 @@ def test_duplicate_interac_reference_is_flagged(db: Session):
     db.commit()
     assert first.status != "duplicate"
     assert second.status == "duplicate"
+
+
+GMAIL_AUTHSERV = "mx.google.com"
+
+
+def test_current_layout_reference_match_is_proposed_never_applied(db: Session):
+    inv = _cycle_invoice(db)
+    total = int(inv.amount_cents)
+    msg = _eml(
+        "received_autodeposit_2026.eml",
+        AMOUNT=_money(total),
+        MEMOLINE=f"Message: {inv.payment_reference}",
+    )
+    row = ingest_message(db, msg, authserv_id=GMAIL_AUTHSERV)
+    db.commit()
+    assert row.status == "proposed"
+    assert row.invoice_id == inv.id and row.match_method == "reference"
+    assert row.payment_id is None
+    db.refresh(inv)
+    assert invoice_status(inv, None, None) != "paid"
+    assert db.query(Payment).filter(Payment.invoice_id == inv.id).count() == 0
+
+
+def test_current_layout_without_memo_goes_to_review(db: Session):
+    row = ingest_message(db, _eml("received_notification_2026.eml", AMOUNT="12.34"), authserv_id=GMAIL_AUTHSERV)
+    db.commit()
+    assert row.status == "needs_review"
+    assert row.payment_id is None
+
+
+def test_current_layout_reminder_and_cancellation_create_nothing(db: Session):
+    iref = "CA" + uuid.uuid4().hex[:10]
+    first = ingest_message(db, _eml("received_notification_2026.eml", IREF=iref), authserv_id=GMAIL_AUTHSERV)
+    db.commit()
+    assert first is not None
+    for name in ("reminder_2026.eml", "cancelled_2026.eml", "declined_2026.eml", "request_2026.eml"):
+        assert ingest_message(db, _eml(name, IREF=iref), authserv_id=GMAIL_AUTHSERV) is None
+    # The same transfer arriving again (e.g. a later autodeposit email) is flagged, not double-counted.
+    again = ingest_message(db, _eml("received_autodeposit_2026.eml", IREF=iref), authserv_id=GMAIL_AUTHSERV)
+    db.commit()
+    assert again.status == "duplicate"
 
 
 def test_imap_reader_is_read_only_and_flag_gated(db: Session):

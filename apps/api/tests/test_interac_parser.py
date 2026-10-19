@@ -10,8 +10,14 @@ import pytest
 
 from porterchain_api.billing_engine.interac.auth import verify_interac_sender
 from porterchain_api.billing_engine.interac.matcher import normalize_name
-from porterchain_api.billing_engine.interac.parser import NotInteracEmail, parse_interac_email
-from porterchain_api.billing_engine.invoice_numbering import new_reference_code, normalize_reference
+from porterchain_api.billing_engine.interac.parser import (
+    NotInteracEmail,
+    parse_interac_email,
+)
+from porterchain_api.billing_engine.invoice_numbering import (
+    new_reference_code,
+    normalize_reference,
+)
 
 FIX = Path(__file__).parent / "fixtures" / "interac"
 AUTHSERV = "mx.zohomail.com"
@@ -26,6 +32,7 @@ def load(name: str, **subs: str):
         "AMOUNT_FR": "1 130,00",
         "MEMO": "PC-4F7K2 thanks",
         "IREF": "CA1MRf8Gk2Lp",
+        "MEMOLINE": "",
     }
     defaults.update(subs)
     for k, v in defaults.items():
@@ -46,7 +53,9 @@ def test_autodeposit_english():
 
 
 def test_notification_english_not_yet_deposited():
-    p = parse_interac_email(load("notification_en.eml", AMOUNT="250.00", MEMO="invoice"))
+    p = parse_interac_email(
+        load("notification_en.eml", AMOUNT="250.00", MEMO="invoice")
+    )
     assert p.kind == "notification"
     assert p.amount_cents == 25000
     assert p.memo == "invoice"
@@ -84,7 +93,9 @@ def test_lookalike_domain_is_rejected():
 
 
 def test_wrong_authserv_id_is_untrusted():
-    verdict = verify_interac_sender(load("autodeposit_en.eml"), authserv_id="mx.other.example")
+    verdict = verify_interac_sender(
+        load("autodeposit_en.eml"), authserv_id="mx.other.example"
+    )
     assert not verdict.ok
     assert verdict.detail == "no_trusted_auth_results"
 
@@ -115,3 +126,88 @@ def test_reference_codes_are_unambiguous():
 def test_normalize_name_strips_corporate_suffixes():
     assert normalize_name("ACME Widgets Inc.") == normalize_name("acme widgets")
     assert normalize_name("Boulangerie St-Denis Ltée") == "boulangerie st denis"
+
+
+# --- Current (2026) Interac layout: "Transfer Details" block + amount/sender in the subject.
+# Fixtures are masked copies of the real structure; names, amounts and references are fake.
+GMAIL_AUTHSERV = "mx.google.com"
+
+
+def test_current_notification_funds_await():
+    p = parse_interac_email(
+        load(
+            "received_notification_2026.eml", SENDER="JANE Q. SAMPLE", AMOUNT="1,250.00"
+        )
+    )
+    assert p.kind == "notification"
+    assert p.amount_cents == 125000
+    assert p.currency == "cad"
+    assert p.sender_name == "JANE Q. SAMPLE"
+    assert p.interac_reference == "CA1MRf8Gk2Lp"
+    assert p.memo is None
+
+
+def test_current_autodeposit_html_only_numbered_company():
+    p = parse_interac_email(
+        load(
+            "received_autodeposit_2026.eml",
+            SENDER="12345678 Canada Inc",
+            AMOUNT="99.99",
+            IREF="C1AbCdEf9Z",
+        )
+    )
+    assert p.kind == "autodeposit"
+    assert p.amount_cents == 9999
+    assert p.sender_name == "12345678 Canada Inc"
+    assert p.interac_reference == "C1AbCdEf9Z"
+
+
+def test_current_layout_memo_carries_invoice_reference():
+    p = parse_interac_email(
+        load("received_autodeposit_2026.eml", MEMOLINE="Message: PC-4F7K2 thanks")
+    )
+    assert p.memo == "PC-4F7K2 thanks"
+    assert normalize_reference(p.memo) == "PC-4F7K2"
+
+
+def test_current_layout_french():
+    p = parse_interac_email(
+        load("received_autodeposit_fr_2026.eml", SENDER="BOULANGERIE ST-DENIS")
+    )
+    assert p.kind == "autodeposit"
+    assert p.amount_cents == 113000
+    assert p.sender_name == "BOULANGERIE ST-DENIS"
+    assert p.interac_reference == "CA1MRf8Gk2Lp"
+
+
+def test_amount_falls_back_to_subject(monkeypatch):
+    # Body without the "Amount:" line (e.g. a trimmed HTML render): the subject still has it.
+    msg = load("received_notification_2026.eml", AMOUNT="40.00")
+    for part in msg.walk():
+        if part.get_content_maintype() == "text":
+            part.set_payload(part.get_payload().replace("Amount: $40.00 (CAD)", ""))
+    p = parse_interac_email(msg)
+    assert p.amount_cents == 4000
+    assert p.sender_name == "ACME WIDGETS INC"
+
+
+@pytest.mark.parametrize(
+    ("fixture", "reason"),
+    [
+        ("reminder_2026.eml", "reminder"),
+        ("cancelled_2026.eml", "cancelled"),
+        ("declined_2026.eml", "declined"),
+        ("request_2026.eml", "request"),
+        ("autodeposit_registration_2026.eml", "request"),
+    ],
+)
+def test_non_payment_interac_emails_are_ignored(fixture, reason):
+    with pytest.raises(NotInteracEmail) as exc:
+        parse_interac_email(load(fixture))
+    assert str(exc.value) == reason
+
+
+def test_current_layout_passes_gmail_auth():
+    for name in ("received_notification_2026.eml", "received_autodeposit_2026.eml"):
+        verdict = verify_interac_sender(load(name), authserv_id=GMAIL_AUTHSERV)
+        assert verdict.ok, (name, verdict.detail)
