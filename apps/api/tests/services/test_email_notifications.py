@@ -118,7 +118,7 @@ def test_delivered_email_has_signed_pod_link_report_problem_and_casl_footer(db, 
     assert "View proof of delivery" in row.html_body
     assert f"/en/track/{order.tracking_number}?t=" in row.html_body
     assert "Report a problem" in row.html_body and "mailto:" in row.html_body
-    assert "PorterChain Logistics Inc." in row.body and "not marketing" in row.body
+    assert "Porterchain Inc." in row.body and "not marketing" in row.body
     assert merchant_ctx.merchant.company_name in row.title
     # PIPEDA: no street address in the email.
     assert "9 Main St" not in row.html_body and "9 Main St" not in row.body

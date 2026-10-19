@@ -1,6 +1,6 @@
 > **Final — version 2026-10, effective 2026-10-10 (Ontario ESA Part XI.1).** Shown to drivers in the driver app/portal (onboarding acknowledgment with timestamp + version, settings, GPS consent prompt) and in admin Settings → Compliance. The in-app text is served from `apps/api/src/porterchain_api/platform/monitoring_policy.py`; keep both in sync and bump `POLICY_VERSION` on any change (drivers re-acknowledge; give the changed policy to employees within 30 days).
 
-# Electronic Monitoring Policy — PorterChain Logistics Inc.
+# Electronic Monitoring Policy — Porterchain Inc.
 
 **Date prepared:** 2026-10-10 · **Last changed:** 2026-10-10 · **Version:** 2026-10
 

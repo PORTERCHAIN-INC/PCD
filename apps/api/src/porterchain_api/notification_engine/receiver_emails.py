@@ -30,7 +30,7 @@ OK = "#047857"
 OK_SOFT = "#ecfdf5"
 FONT = "Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
 
-LEGAL_ENTITY = "PorterChain Logistics Inc."
+LEGAL_ENTITY = "Porterchain Inc."
 LEGAL_ADDRESS = "Toronto, ON, Canada"
 
 #: template -> (kind, tone, progress step or None)

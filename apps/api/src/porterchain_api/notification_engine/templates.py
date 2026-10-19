@@ -99,7 +99,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "body": (
             "Your delivery {tracking_number} was delivered.\n"
             "Need the same trip again? Book it in one tap: {send_again_url}\n\n"
-            "Sent by PorterChain Logistics Inc., Toronto, ON. "
+            "Sent by Porterchain Inc., Toronto, ON. "
             "Stop these reminders: {unsubscribe_url}"
         ),
     },
@@ -187,7 +187,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "body": (
             "Please confirm you want PorterChain delivery news by email:\n{confirm_url}\n\n"
             "If you didn't ask for this, ignore this email and you won't hear from us.\n"
-            "PorterChain Logistics Inc., Toronto ON"
+            "Porterchain Inc., Toronto ON"
         ),
     },
     "lead_sla_escalation": {

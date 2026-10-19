@@ -52,3 +52,29 @@ def test_etransfer_email_fallback_without_stored_settings() -> None:
             return None
 
     assert platform_settings.etransfer_recipient_email(_NoRows()) == ETRANSFER  # type: ignore[arg-type]
+
+
+def test_no_old_legal_name_anywhere_in_api_source() -> None:
+    from pathlib import Path
+
+    import porterchain_api
+
+    root = Path(porterchain_api.__file__).resolve().parent
+    hits = [
+        str(p.relative_to(root))
+        for p in root.rglob("*.py")
+        if "logistics inc" in p.read_text(encoding="utf-8").lower()
+    ]
+    assert hits == []
+
+
+def test_casl_form_text_matches_legal_name() -> None:
+    from porterchain_api.collaboration_engine.lead_consent import (
+        CASL_FORM_TEXT,
+        CASL_FORM_TEXT_VERSION,
+    )
+
+    assert CASL_FORM_TEXT_VERSION == "casl_v3_form_marketing"
+    for text in CASL_FORM_TEXT.values():
+        assert LEGAL in text
+        assert "Toronto" not in text

@@ -148,7 +148,7 @@ export const BOOKING_COPY = {
     email: "Email",
     phone: "Phone",
     marketing:
-      "Yes, PorterChain Logistics Inc. may email me delivery tips and offers. I can unsubscribe at any time.",
+      "Yes, Porterchain Inc. may email me delivery tips and offers. I can unsubscribe at any time.",
     optional: "(Optional)",
     pay: "Book & pay",
     paying: "Starting secure payment…",
@@ -181,7 +181,7 @@ export const BOOKING_COPY = {
     email: "Courriel",
     phone: "Téléphone",
     marketing:
-      "Oui, PorterChain Logistics Inc. peut m'envoyer des conseils et des offres par courriel. Je peux me désabonner en tout temps.",
+      "Oui, Porterchain Inc. peut m'envoyer des conseils et des offres par courriel. Je peux me désabonner en tout temps.",
     optional: "(Facultatif)",
     pay: "Réserver et payer",
     paying: "Ouverture du paiement sécurisé…",

@@ -251,7 +251,7 @@ def test_send_again_template_is_casl_complete() -> None:
         "fast_send_again",
         {"tracking_number": "PC1", "send_again_url": "https://x/book?again=1", "unsubscribe_url": "https://x/u"},
     )
-    assert "PorterChain Logistics Inc." in text and "https://x/u" in text
+    assert "Porterchain Inc." in text and "https://x/u" in text
     assert "Send again" in html and "https://x/u" in html
     from porterchain_api.notification_engine.templates import TEMPLATE_META
 

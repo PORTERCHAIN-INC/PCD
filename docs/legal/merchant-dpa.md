@@ -2,7 +2,7 @@
 
 # Data Processing Agreement (Merchants)
 
-Between **[Merchant legal name]** ("Merchant", controller) and **PorterChain Logistics Inc.** ("PorterChain", processor). This DPA forms part of the PorterChain Terms of Service / Conditions of Carriage.
+Between **[Merchant legal name]** ("Merchant", controller) and **Porterchain Inc.** ("PorterChain", processor). This DPA forms part of the PorterChain Terms of Service / Conditions of Carriage.
 
 ## 1. Scope
 
@@ -60,10 +60,10 @@ Data is stored in Canada by default. Some subprocessors are in the USA. For EU p
 
 Liability follows the main agreement. If this DPA conflicts with the main agreement on data protection, this DPA prevails.
 
-|                  | Merchant | PorterChain Logistics Inc. |
-| ---------------- | -------- | -------------------------- |
-| Name / title     |          |                            |
-| Signature / date |          |                            |
+|                  | Merchant | Porterchain Inc. |
+| ---------------- | -------- | ---------------- |
+| Name / title     |          |                  |
+| Signature / date |          |                  |
 
 **Annex 1:** Subprocessor List (see `subprocessors.md`). **Annex 2:** Security measures (section 4).
 

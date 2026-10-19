@@ -3,7 +3,7 @@
 
 # PorterChain Privacy Policy
 
-**PorterChain Logistics Inc.** ("PorterChain", "we") runs same-day and scheduled delivery in Toronto and within about 150 km. This policy explains what personal information we collect, why, who we share it with, how long we keep it, and your rights. It follows Canada's _Personal Information Protection and Electronic Documents Act_ (PIPEDA) and Canada's Anti-Spam Legislation (CASL), and is written to meet the EU GDPR where it applies.
+**Porterchain Inc.** ("PorterChain", "we") runs same-day and scheduled delivery in Toronto and within about 150 km. This policy explains what personal information we collect, why, who we share it with, how long we keep it, and your rights. It follows Canada's _Personal Information Protection and Electronic Documents Act_ (PIPEDA) and Canada's Anti-Spam Legislation (CASL), and is written to meet the EU GDPR where it applies.
 
 **Accountable person (privacy):** Ravi Chauhan, Owner (no separate Privacy Officer appointed), privacy@porterchain.com or sales@porterchain.com, [mailing address], Toronto, ON.
 

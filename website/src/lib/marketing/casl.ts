@@ -2,7 +2,7 @@
  * CASL express-consent wording. Must match the API's CASL_FORM_TEXT
  * (apps/api/.../lead_consent.py) — the server records its own copy + version.
  */
-export const CASL_FORM_TEXT_VERSION = "casl_v2_form_marketing";
+export const CASL_FORM_TEXT_VERSION = "casl_v3_form_marketing";
 
 export const CASL_FORM_TEXT = {
   en:

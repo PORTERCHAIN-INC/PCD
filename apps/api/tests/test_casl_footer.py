@@ -12,7 +12,7 @@ def test_transactional_untouched():
 def test_marketing_gets_identity_and_link_from_header():
     h = {"List-Unsubscribe": "<https://api/u?t=1>, <mailto:u@x>"}
     t, html = casl_footer(S, {"category": "marketing"}, "Spring promo", "<p>Promo</p>", h)
-    assert "https://api/u?t=1" in t and "PorterChain Logistics Inc." in t
+    assert "https://api/u?t=1" in t and "Porterchain Inc." in t
     assert 'href="https://api/u?t=1"' in html
 
 

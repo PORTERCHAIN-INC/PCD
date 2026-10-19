@@ -24,7 +24,7 @@ from porterchain_api.customer_fast import guard, tokens
 logger = logging.getLogger(__name__)
 
 MARKETING_WORDING = (
-    "Yes, PorterChain Logistics Inc. may email me delivery tips and offers. "
+    "Yes, Porterchain Inc. may email me delivery tips and offers. "
     "I can unsubscribe at any time."
 )
 TERMS_VERSION = "2026-10"

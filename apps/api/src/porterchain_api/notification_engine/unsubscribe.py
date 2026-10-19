@@ -81,7 +81,7 @@ def list_unsubscribe_headers(settings: Any, context: dict[str, Any]) -> dict[str
     }
 
 
-SENDER_IDENTITY = "PorterChain Logistics Inc., Toronto, ON, Canada"
+SENDER_IDENTITY = "Porterchain Inc., Toronto, ON, Canada"
 
 
 def casl_footer(

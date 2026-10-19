@@ -73,17 +73,17 @@ Bootstrap / harden: `bootstrap-droplet.sh`, `harden-droplet.sh`.
 
 **SSOT:** [`deploy-rules.json`](./deploy-rules.json). Resolver: `python3 scripts/resolve_deploy_plan.py`. Guard: `pnpm validate:deploy-plan`. Cursor rule: [`.cursor/rules/deploy-scopes.mdc`](../../.cursor/rules/deploy-scopes.mdc). Do not add images or globs only in `deploy.yml`.
 
-| Scope                           | Builds                                               | Droplet action                     | Smoke                               |
-| ------------------------------- | ---------------------------------------------------- | ---------------------------------- | ----------------------------------- |
-| `auto` (CI default)             | Union of images whose `input_globs` match the commit | Same as resolved scope             | Same as resolved scope              |
-| `full`                          | All six images                                       | Pull all, migrate, recover stack   | API + portals + quotes              |
-| `portals`                       | admin + merchant + driver + customer                 | Recreate those four                | Admin + merchant sign-in            |
-| `website`                       | Website only                                         | Recreate `web`                     | Site + sitemap                      |
-| `api`                           | API image                                            | Recreate `api` + `worker`, migrate | `/health`                           |
-| `merchant`                      | Merchant portal                                      | Recreate `merchant`                | `/sign-in` + `/shopify?connected=1` |
-| `admin` / `driver` / `customer` | That portal only                                     | Recreate that service              | —                                   |
-| `selected` (auto only)          | Mixed set, e.g. api + merchant                       | Recreate those services            | Per pinned image                    |
-| `none`                          | Nothing                                              | Skip                               | —                                   |
+| Scope                           | Builds                                               | Droplet action                     | Smoke                                                  |
+| ------------------------------- | ---------------------------------------------------- | ---------------------------------- | ------------------------------------------------------ |
+| `auto` (CI default)             | Union of images whose `input_globs` match the commit | Same as resolved scope             | Same as resolved scope                                 |
+| `full`                          | All six images                                       | Pull all, migrate, recover stack   | API + portals + quotes                                 |
+| `portals`                       | admin + merchant + driver + customer                 | Recreate those four                | Admin + merchant sign-in                               |
+| `website`                       | Website only                                         | Recreate `web`                     | Site + sitemap                                         |
+| `api`                           | API image                                            | Recreate `api` + `worker`, migrate | `/health`                                              |
+| `merchant`                      | Merchant portal                                      | Recreate `merchant`                | `/sign-in` + `/shopify-app` (200 + App Bridge markers) |
+| `admin` / `driver` / `customer` | That portal only                                     | Recreate that service              | —                                                      |
+| `selected` (auto only)          | Mixed set, e.g. api + merchant                       | Recreate those services            | Per pinned image                                       |
+| `none`                          | Nothing                                              | Skip                               | —                                                      |
 
 **Auto rules:** one app path → that image; two+ portals → `portals`; mixed flavors (api + merchant) → `selected` (not full); `packages/*` / deploy infra / lockfile / unknown paths → `full`; docs-only → `none`.
 
