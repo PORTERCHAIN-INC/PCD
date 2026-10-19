@@ -265,7 +265,7 @@
       "photoConfirmation": "Photo proof captured at delivery when required.",
       "digitalSignature": "Recipient signatures stored with the delivery record.",
       "flexibleBilling": "Pay per shipment or on business terms — no software-seat fees.",
-      "instantQuotes": "Exact price from two postal codes and a vehicle, HST included, in about 10 seconds.",
+      "instantQuotes": "Exact price from two postal codes and a vehicle, HST extra, in about 10 seconds.",
       "accountManager": "Named support for recurring and enterprise programs."
     }
   },
@@ -559,7 +559,7 @@
       },
       "pricing": {
         "question": "How does pricing work?",
-        "answer": "Instant and exact: enter two postal codes and a vehicle and you see the price with HST in about 10 seconds, before you book. No platform fees or software seats. Volume accounts can have a merchant rate card."
+        "answer": "Instant and exact: enter two postal codes and a vehicle and you see the price in about 10 seconds, HST extra, before you book. No platform fees or software seats. Volume accounts can have a merchant rate card."
       },
       "whatsIncluded": {
         "question": "What is included in a capacity quote?",

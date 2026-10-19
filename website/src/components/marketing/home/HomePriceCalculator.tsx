@@ -239,7 +239,7 @@ export default function HomePriceCalculator() {
               <p className="text-sm font-medium text-muted">{t("resultLabel")}</p>
             </div>
             <p className="mt-0.5 text-3xl font-bold tracking-tight">
-              {money(estimate.amount_cents)}
+              {money(estimate.amount_cents - estimate.tax_cents)}
             </p>
             <p className="mt-1 text-sm text-muted">
               {t("resultMeta", {
@@ -251,7 +251,10 @@ export default function HomePriceCalculator() {
                 ? ` · ${t("distance", { km: Math.round(estimate.distance_km) })}`
                 : ""}
               {" · "}
-              {t("taxIncluded", { tax: money(estimate.tax_cents) })}
+              {t("taxIncluded", {
+                tax: money(estimate.tax_cents),
+                total: money(estimate.amount_cents),
+              })}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <Link

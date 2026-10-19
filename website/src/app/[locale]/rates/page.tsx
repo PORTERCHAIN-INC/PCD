@@ -11,7 +11,7 @@ type Props = { params: Promise<{ locale: string }> };
 
 const TITLE = "Porterchain — Same-day delivery across the GTA";
 const DESCRIPTION =
-  "Business delivery rates for the GTA: van from $30 / stop, compact sedan or SUV from $6 / stop. Live tracking included. CAD, HST extra.";
+  "Business delivery rates for the GTA: van from $30 / stop, compact sedan or SUV from $6 / stop. Live tracking included. All prices in CAD. 13% HST extra.";
 const PHONE_DISPLAY = "+1 (647) 619-7951";
 const PHONE_TEL = "+16476197951";
 const EMAIL = "enterprise@porterchain.com";
@@ -117,7 +117,7 @@ const FAQ = [
     q: "Are deliveries covered?",
     a: "Standard Coverage up to $1,000 is included per route. Enhanced Coverage up to $25,000 is optional at + $10 per stop and replaces standard. Claims must be notified in writing within 5 business days.",
   },
-  { q: "Are taxes included?", a: "Rates are in CAD and HST is extra." },
+  { q: "Are taxes included?", a: "All prices in CAD. 13% HST extra." },
   { q: "Is tracking included?", a: "Yes. Live tracking and recipient notices are included." },
 ];
 
@@ -170,8 +170,8 @@ export default async function RatesPage({ params }: Props) {
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-white/80 md:text-xl">
               Van delivery from <b className="text-white">$30 / stop</b>. Compact sedan or SUV
-              delivery from <b className="text-white">$6 / stop</b>. Live tracking included. CAD,
-              HST extra.
+              delivery from <b className="text-white">$6 / stop</b>. Live tracking included. All
+              prices in CAD. 13% HST extra.
             </p>
             <p className="mt-2 text-white/60">Sedan · SUV · Van · Box truck</p>
             <div className="mt-8">

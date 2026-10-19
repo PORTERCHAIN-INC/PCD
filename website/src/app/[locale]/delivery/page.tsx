@@ -121,7 +121,7 @@ export default async function DeliveryHubPage({ params }: Props) {
       <CtaBand
         id="delivery-final-heading"
         title="Price your next delivery."
-        body="Two postal codes and a vehicle. The price includes HST and needs no sign-up."
+        body="Two postal codes and a vehicle. Prices are before tax (HST extra) and need no sign-up."
         primary={{ href: "/delivery-cost-calculator?from=delivery", label: "Get a price" }}
         secondary={{
           href: "/sign-up?intent=merchant&from=delivery",

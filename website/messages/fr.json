@@ -600,7 +600,7 @@
       "pricing": "Calcul…",
       "resultLabel": "Votre prix",
       "resultMeta": "{pickup} → {dropoff} · {vehicle}",
-      "taxIncluded": "Taxes incluses : {tax}",
+      "taxIncluded": "+ {tax} TVH (13 %) · total {total}",
       "distance": "≈ {km} km",
       "book": "Réserver cette livraison",
       "details": "Voir le détail",

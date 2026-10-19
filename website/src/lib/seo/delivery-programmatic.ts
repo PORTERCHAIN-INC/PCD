@@ -599,7 +599,7 @@ export const DELIVERY_VERTICALS: DeliveryVertical[] = [
         {
           question: "How much does furniture delivery cost?",
           answer:
-            "The price depends on the driving distance and the vehicle — a cargo van or a 16 ft box truck. The calculator uses the same pricing engine as checkout and shows the total including HST, with no sign-up.",
+            "The price depends on the driving distance and the vehicle — a cargo van or a 16 ft box truck. The calculator uses the same pricing engine as checkout and shows the price before tax, with 13% HST extra and no sign-up.",
         },
         {
           question: "Can my Shopify store offer this at checkout?",
@@ -837,7 +837,7 @@ export function buildDeliveryPageContent(
     {
       question: `How much does ${vertical.noun} delivery in ${area.name} cost?`,
       answer:
-        "Price depends on the driving distance and the vehicle. The calculator on this site uses the same pricing engine as checkout and shows the total including HST before you share any contact details.",
+        "Price depends on the driving distance and the vehicle. The calculator on this site uses the same pricing engine as checkout and shows the price before tax, with 13% HST extra, before you share any contact details.",
     },
     {
       question: `How far is ${area.name} from downtown Toronto?`,
@@ -884,7 +884,7 @@ export function buildQuoteOffer(baseUrl: string, locale: string): JsonObject {
     availability: "https://schema.org/InStock",
     url: abs(baseUrl, `/${locale}/delivery-cost-calculator`),
     description:
-      "Price is calculated per delivery from driving distance and vehicle type; the calculator shows the total including HST.",
+      "Price is calculated per delivery from driving distance and vehicle type; the calculator shows the price before tax, with 13% HST extra.",
     priceSpecification: {
       "@type": "PriceSpecification",
       priceCurrency: "CAD",
@@ -993,7 +993,7 @@ export const ENTITY_FACTS = {
   vehicles: Object.values(DELIVERY_VEHICLES).map((v) => `${v.label} (${v.capacity})`),
   licence: "Every vehicle class is driven on a standard Ontario G licence.",
   pricing:
-    "Per-delivery price from driving distance and vehicle type, with a base distance included; a downtown surcharge applies where relevant. Prices are shown including 13% HST before booking. Volume accounts can have a merchant rate card.",
+    "Per-delivery price from driving distance and vehicle type, with a base distance included; a downtown surcharge applies where relevant. Prices are shown before tax; 13% HST is extra. Volume accounts can have a merchant rate card.",
   promise: promiseSentence(),
   verticals: DELIVERY_VERTICALS.map((v) => v.name),
   /** One page per industry at /{locale}/industry/{slug} (no industry × city pages). */

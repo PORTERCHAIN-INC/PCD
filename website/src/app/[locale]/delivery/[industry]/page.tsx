@@ -90,7 +90,7 @@ function hubFaqs(vertical: DeliveryVertical, areaCount: number): DeliveryFaq[] {
     {
       question: `How much does ${vertical.noun} delivery cost?`,
       answer:
-        "Price depends on the driving distance and the vehicle. The calculator uses the same pricing engine as checkout and shows the total including HST before you share any contact details.",
+        "Price depends on the driving distance and the vehicle. The calculator uses the same pricing engine as checkout and shows the price before tax, with 13% HST extra, before you share any contact details.",
     },
     vertical.specialistFaq,
   ];

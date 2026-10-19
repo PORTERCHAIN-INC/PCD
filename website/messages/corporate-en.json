@@ -2,7 +2,7 @@
   "metadata": {
     "home": {
       "title": "Same-Day Courier Toronto & GTA | Instant Price | PorterChain",
-      "description": "Same-day and next-day business courier across Toronto and the GTA. Sedan, SUV, van or 16 ft box truck. Exact price in 10 seconds, HST included. Book by 11 AM, delivered today.",
+      "description": "Same-day and next-day business courier across Toronto and the GTA. Sedan, SUV, van or 16 ft box truck. Exact price in 10 seconds, HST extra. Book by 11 AM, delivered today.",
       "ogTitle": "PorterChain: same-day courier for Toronto & the GTA",
       "ogDescription": "Book by 11 AM, delivered 2–9 PM today. Exact price in 10 seconds. Live tracking, photo proof and $2,500 coverage on every parcel."
     },
@@ -79,7 +79,7 @@
       "ogDescription": "Capacity programs for businesses with structured routes, overflow needs, and operational accountability requirements."
     },
     "pricing": {
-      "title": "Delivery Pricing GTA | Instant Price, HST Included | PorterChain",
+      "title": "Delivery Pricing GTA | Instant Price, HST Extra | PorterChain",
       "description": "Transparent Instant pricing for GTA B2B delivery — same-day, urgent, recurring, and fleet overflow. Vehicle class, route, and proof requirements. Request an exact price.",
       "ogTitle": "Porterchain B2B Delivery Pricing — GTA & Ontario",
       "ogDescription": "Request an exact price for sedan, SUV, cargo van and box truck capacity with professional drivers across the Greater Toronto Area."
@@ -386,7 +386,7 @@
       "intentGuides": "Delivery guides by intent",
       "relatedPages": "Related pages",
       "pricingFaqQ": "How does pricing work for delivery in this area?",
-      "pricingFaqA": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds.",
+      "pricingFaqA": "Instant: two postal codes and a vehicle give the exact price in about 10 seconds, HST extra.",
       "neighbourhoodCoverage": "Neighbourhoods and districts we cover",
       "fsaPrefixes": "Sample FSAs",
       "neighbourhoodCoverageNote": "Coverage is confirmed by route and postal code on quote — we do not publish separate zip landing pages.",
@@ -1077,7 +1077,7 @@
         },
         "3": {
           "q": "How does pricing work?",
-          "a": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds. No platform fees or software seats."
+          "a": "Instant: two postal codes and a vehicle give the exact price in about 10 seconds, HST extra. No platform fees or software seats."
         }
       }
     },

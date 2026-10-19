@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale,
     "facts",
     "PorterChain at a glance: coverage, hours, vehicles, pricing",
-    `Plain facts about PorterChain: same-day and next-day GTA business courier, ${ENTITY_FACTS.coverageFsaCount} postal areas, sedan to 16 ft box truck on a G licence, instant price with HST, $2,500 coverage included.`,
+    `Plain facts about PorterChain: same-day and next-day GTA business courier, ${ENTITY_FACTS.coverageFsaCount} postal areas, sedan to 16 ft box truck on a G licence, instant price (HST extra), $2,500 coverage included.`,
     { index: locale === "en" }
   );
 }

@@ -37,7 +37,7 @@ const EN: CoreFaq[] = [
     group: "price",
     question: "How much does a delivery cost?",
     answer:
-      "Enter two postal codes and a vehicle. You see the exact price, HST included, in about 10 seconds, before you share any details. It is the same engine we bill from.",
+      "Enter two postal codes and a vehicle. You see the exact price, HST extra, in about 10 seconds, before you share any details. It is the same engine we bill from.",
     link: { href: "/delivery-cost-calculator", label: "Get instant price" },
   },
   {

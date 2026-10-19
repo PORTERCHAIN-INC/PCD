@@ -214,7 +214,7 @@ const ORGANIZATION_DESCRIPTION =
 
 /** Description for LocalBusiness schema — delivery capacity. */
 const LOCAL_BUSINESS_DESCRIPTION =
-  "PorterChain delivers same-day and next-day across the GTA plus about 150 km by sedan, SUV, van or 16 ft box truck. Instant price with HST, live tracking, photo proof and $2,500 coverage on every parcel.";
+  "PorterChain delivers same-day and next-day across the GTA plus about 150 km by sedan, SUV, van or 16 ft box truck. Instant price (HST extra), live tracking, photo proof and $2,500 coverage on every parcel.";
 
 export type SoftwareApplicationSchema = {
   "@context": "https://schema.org";
