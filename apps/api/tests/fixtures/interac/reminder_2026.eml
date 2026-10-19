@@ -1,0 +1,43 @@
+Return-Path: <notify@payments.interac.ca>
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@payments.interac.ca header.s=selector1 header.b=AbCdEf12;
+       spf=pass (google.com: domain of notify@payments.interac.ca designates 205.206.220.15 as permitted sender) smtp.mailfrom=notify@payments.interac.ca;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=payments.interac.ca
+Received: from mta5.payments.interac.ca (mta5.payments.interac.ca. [205.206.220.15])
+        by mx.google.com with ESMTPS id x1si123456qkx.1; Wed, 07 Oct 2026 10:14:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=payments.interac.ca; s=selector1; h=from:subject:date; bh=abc=; b=def=
+From: "Interac e-Transfer" <notify@payments.interac.ca>
+To: porterchaininc@gmail.com
+Subject: Interac e-Transfer: Deposit your ${AMOUNT} from {SENDER} by Nov 6, 2026
+Date: Wed, 07 Oct 2026 13:14:20 -0400
+Message-ID: <{MSGID}@payments.interac.ca>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Hi porterchain,
+
+Your funds expire soon!
+
+${AMOUNT}
+
+Select your financial institution to deposit funds.
+
+Transfer Details
+Date: Oct 7, 2026
+Reference Number: {IREF}
+Sent From: {SENDER}
+Amount: ${AMOUNT} (CAD)
+{MEMOLINE}
+This email was sent to you by Interac Corp., the owner of the Interac e-Transfer service.
+Interac Corp. will never ask you for personal or financial information by email.
+
+--b1
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<html><body><table><tr><td><p>Hi porterchain,</p></td></tr><tr><td><p>Your funds expire soon!</p></td></tr><tr><td><p>${AMOUNT}</p></td></tr><tr><td><p>Select your financial institution to deposit funds.</p></td></tr><tr><td><p>Transfer Details</p></td></tr><tr><td><p>Date: Oct 7, 2026</p></td></tr><tr><td><p>Reference Number: {IREF}</p></td></tr><tr><td><p>Sent From: {SENDER}</p></td></tr><tr><td><p>Amount: ${AMOUNT} (CAD)</p></td></tr><tr><td><p>{MEMOLINE}</p></td></tr><tr><td><p>This email was sent to you by Interac Corp., the owner of the Interac e-Transfer service.</p></td></tr><tr><td><p>Interac Corp. will never ask you for personal or financial information by email.</p></td></tr></table></body></html>
+--b1--

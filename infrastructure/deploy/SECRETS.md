@@ -26,7 +26,7 @@ Read-only IMAP pull of Interac notifications into Admin → Finance → Interac 
 | `INTERAC_IMAP_PASSWORD`      | Gmail app password (2-Step Verification on); secret    |
 | `INTERAC_AUTHSERV_ID`        | `mx.google.com` (Gmail's Authentication-Results stamp) |
 | `INTERAC_IMAP_FOLDER`        | Optional, default `INBOX`                              |
-| `INTERAC_IMAP_LOOKBACK_DAYS` | Optional, default `7`                                  |
+| `INTERAC_IMAP_LOOKBACK_DAYS` | Optional, default `60`                                 |
 
 ## Lead ingest bus (optional until channel goes live)
 

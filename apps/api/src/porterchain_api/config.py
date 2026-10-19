@@ -132,7 +132,7 @@ class Settings(BaseSettings):
         default="INBOX", validation_alias=AliasChoices("interac_imap_folder", "INTERAC_IMAP_FOLDER")
     )
     interac_imap_lookback_days: int = Field(
-        default=7, validation_alias=AliasChoices("interac_imap_lookback_days", "INTERAC_IMAP_LOOKBACK_DAYS")
+        default=60, validation_alias=AliasChoices("interac_imap_lookback_days", "INTERAC_IMAP_LOOKBACK_DAYS")
     )
     # authserv-id of OUR receiving server's Authentication-Results header (Zoho: mx.zohomail.com).
     # Only that header is trusted; a sender can forge others.

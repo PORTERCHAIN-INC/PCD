@@ -1,0 +1,39 @@
+Return-Path: <notify@payments.interac.ca>
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@payments.interac.ca header.s=selector1 header.b=AbCdEf12;
+       spf=pass (google.com: domain of notify@payments.interac.ca designates 205.206.220.15 as permitted sender) smtp.mailfrom=notify@payments.interac.ca;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=payments.interac.ca
+Received: from mta5.payments.interac.ca (mta5.payments.interac.ca. [205.206.220.15])
+        by mx.google.com with ESMTPS id x1si123456qkx.1; Wed, 07 Oct 2026 10:14:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=payments.interac.ca; s=selector1; h=from:subject:date; bh=abc=; b=def=
+From: "Interac e-Transfer" <notify@payments.interac.ca>
+To: porterchaininc@gmail.com
+Subject: Virement Interac : {SENDER} vous a envoyé {AMOUNT_FR} $ et l'argent a été déposé automatiquement.
+Date: Wed, 07 Oct 2026 13:14:20 -0400
+Message-ID: <{MSGID}@payments.interac.ca>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Bonjour PORTERCHAIN INC.,
+
+Vos fonds ont été déposés automatiquement dans votre compte à RBC Banque Royale.
+
+Détails du virement
+Date : 7 oct. 2026
+Numéro de référence : {IREF}
+Envoyé par : {SENDER}
+Montant : {AMOUNT_FR} $ (CAD)
+{MEMOLINE}
+This email was sent to you by Interac Corp., the owner of the Interac e-Transfer service.
+Interac Corp. will never ask you for personal or financial information by email.
+
+--b1
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<html><body><table><tr><td><p>Bonjour PORTERCHAIN INC.,</p></td></tr><tr><td><p>Vos fonds ont été déposés automatiquement dans votre compte à RBC Banque Royale.</p></td></tr><tr><td><p>Détails du virement</p></td></tr><tr><td><p>Date : 7 oct. 2026</p></td></tr><tr><td><p>Numéro de référence : {IREF}</p></td></tr><tr><td><p>Envoyé par : {SENDER}</p></td></tr><tr><td><p>Montant : {AMOUNT_FR} $ (CAD)</p></td></tr><tr><td><p>{MEMOLINE}</p></td></tr><tr><td><p>This email was sent to you by Interac Corp., the owner of the Interac e-Transfer service.</p></td></tr><tr><td><p>Interac Corp. will never ask you for personal or financial information by email.</p></td></tr></table></body></html>
+--b1--
