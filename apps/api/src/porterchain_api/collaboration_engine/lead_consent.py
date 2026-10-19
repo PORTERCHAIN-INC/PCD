@@ -13,15 +13,16 @@ from sqlalchemy.orm import Session
 CASL_TEXT_VERSION = "casl_v1_marketing"
 # Express-consent checkbox shown (unchecked) on every website form. The server
 # records this canonical wording, never text supplied by the browser.
-CASL_FORM_TEXT_VERSION = "casl_v2_form_marketing"
+# v3 (Oct 2026): legal name Porterchain Inc.; wording matches website/src/lib/marketing/casl.ts
+CASL_FORM_TEXT_VERSION = "casl_v3_form_marketing"
 CASL_FORM_TEXT = {
     "en": (
         "Yes, send me PorterChain delivery news, offers and tips by email. "
-        "I can unsubscribe at any time. PorterChain Logistics Inc., Toronto ON, sales@porterchain.com"
+        "I can unsubscribe at any time. Porterchain Inc., sales@porterchain.com"
     ),
     "fr": (
         "Oui, envoyez-moi par courriel les nouvelles, offres et conseils de livraison de PorterChain. "
-        "Je peux me désabonner en tout temps. PorterChain Logistics Inc., Toronto ON, sales@porterchain.com"
+        "Je peux me désabonner en tout temps. Porterchain Inc., sales@porterchain.com"
     ),
 }
 # Cookie-banner (CMP) choices govern cookies/tags only — never CASL email consent.

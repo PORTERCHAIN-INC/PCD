@@ -36,7 +36,7 @@ FR: dict[str, tuple[str, str, str, str]] = {
 }
 
 LABELS = {"Order": "Commande", "Tracking": "Suivi", "Amount": "Montant", "Invoice": "Facture", "Receipt #": "Reçu no"}
-FOOTER = "Message de service de PorterChain Logistics Inc., Toronto (Ontario), Canada. Ce n'est pas un message publicitaire."
+FOOTER = "Message de service de Porterchain Inc., Toronto (Ontario), Canada. Ce n'est pas un message publicitaire."
 
 
 def _g(ctx: dict[str, Any], *keys: str) -> str:

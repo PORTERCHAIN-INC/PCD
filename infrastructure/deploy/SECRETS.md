@@ -13,6 +13,21 @@ Sync to droplet: `infrastructure/deploy/sync-secrets.sh` (prefers runner-staged 
 | `scripts/upload-leads-to-doppler.sh`  | Lead webhook / CAPI / territory keys from local env |
 | `scripts/upload-mail-to-doppler.sh`   | ZeptoMail HTTPS (`mail-keys.local.env`)             |
 
+## Interac e-Transfer inbox (optional)
+
+Read-only IMAP pull of Interac notifications into Admin → Finance → Interac (proposals only; an admin approves every payment). Off unless `INTERAC_IMAP_ENABLED=true` and host, user and password are set. Passed to `api` and `worker` in `docker-compose.prod.yml`.
+
+| Key                          | Value / notes                                          |
+| ---------------------------- | ------------------------------------------------------ |
+| `INTERAC_IMAP_ENABLED`       | `true` to turn the reader on                           |
+| `INTERAC_IMAP_HOST`          | `imap.gmail.com`                                       |
+| `INTERAC_IMAP_PORT`          | `993`                                                  |
+| `INTERAC_IMAP_USER`          | `porterchaininc@gmail.com`                             |
+| `INTERAC_IMAP_PASSWORD`      | Gmail app password (2-Step Verification on); secret    |
+| `INTERAC_AUTHSERV_ID`        | `mx.google.com` (Gmail's Authentication-Results stamp) |
+| `INTERAC_IMAP_FOLDER`        | Optional, default `INBOX`                              |
+| `INTERAC_IMAP_LOOKBACK_DAYS` | Optional, default `7`                                  |
+
 ## Lead ingest bus (optional until channel goes live)
 
 Set in Doppler when you enable that channel. Empty = webhook/CAPI stays dark (safe).

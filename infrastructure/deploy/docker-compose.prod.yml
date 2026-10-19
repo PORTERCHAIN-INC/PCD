@@ -342,6 +342,16 @@ services:
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
       GEO_GOOGLE_FALLBACK: ${GEO_GOOGLE_FALLBACK:-1}
       GEO_GOOGLE_DAILY_CAP: ${GEO_GOOGLE_DAILY_CAP:-300}
+      # Interac e-Transfer inbox reader (read-only IMAP → Admin review queue; never applies money).
+      # Off unless INTERAC_IMAP_ENABLED=true AND host/user/password are set in Doppler → .env.
+      INTERAC_IMAP_ENABLED: ${INTERAC_IMAP_ENABLED:-false}
+      INTERAC_IMAP_HOST: ${INTERAC_IMAP_HOST:-imap.gmail.com}
+      INTERAC_IMAP_PORT: ${INTERAC_IMAP_PORT:-993}
+      INTERAC_IMAP_USER: ${INTERAC_IMAP_USER:-}
+      INTERAC_IMAP_PASSWORD: ${INTERAC_IMAP_PASSWORD:-}
+      INTERAC_IMAP_FOLDER: ${INTERAC_IMAP_FOLDER:-INBOX}
+      INTERAC_IMAP_LOOKBACK_DAYS: ${INTERAC_IMAP_LOOKBACK_DAYS:-7}
+      INTERAC_AUTHSERV_ID: ${INTERAC_AUTHSERV_ID:-mx.google.com}
       # Shopify partner app (merchant OAuth + CarrierService). Keys live in Doppler → .env;
       # must be passed explicitly — compose does not auto-inject unused .env keys.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
@@ -481,6 +491,16 @@ services:
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
       GEO_GOOGLE_FALLBACK: ${GEO_GOOGLE_FALLBACK:-1}
       GEO_GOOGLE_DAILY_CAP: ${GEO_GOOGLE_DAILY_CAP:-300}
+      # Interac e-Transfer inbox reader (read-only IMAP → Admin review queue; never applies money).
+      # Off unless INTERAC_IMAP_ENABLED=true AND host/user/password are set in Doppler → .env.
+      INTERAC_IMAP_ENABLED: ${INTERAC_IMAP_ENABLED:-false}
+      INTERAC_IMAP_HOST: ${INTERAC_IMAP_HOST:-imap.gmail.com}
+      INTERAC_IMAP_PORT: ${INTERAC_IMAP_PORT:-993}
+      INTERAC_IMAP_USER: ${INTERAC_IMAP_USER:-}
+      INTERAC_IMAP_PASSWORD: ${INTERAC_IMAP_PASSWORD:-}
+      INTERAC_IMAP_FOLDER: ${INTERAC_IMAP_FOLDER:-INBOX}
+      INTERAC_IMAP_LOOKBACK_DAYS: ${INTERAC_IMAP_LOOKBACK_DAYS:-7}
+      INTERAC_AUTHSERV_ID: ${INTERAC_AUTHSERV_ID:-mx.google.com}
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
       SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
       SHOPIFY_EXTRA_APPS: ${SHOPIFY_EXTRA_APPS:-}

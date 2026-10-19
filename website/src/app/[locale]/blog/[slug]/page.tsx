@@ -14,6 +14,7 @@ import {
   getRelatedPosts,
   getTrendingPosts,
   getCategoryPostCounts,
+  getBlogAuthorRemote,
 } from "@/lib/blog";
 import { isBlogCategory, type BlogCategory } from "@/data/blog-categories";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
@@ -78,16 +79,19 @@ export default async function BlogArticlePage({ params }: Props) {
   const siteUrl = publicEnv.siteUrl;
   const articleUrl = `${siteUrl}/${locale}/blog/${slug}`;
 
+  const author = await getBlogAuthorRemote(post.authorId);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.description,
     datePublished: post.date,
-    author: {
-      "@type": "Person",
-      name: post.authorId,
-    },
+    // Structured data uses the author's display name (e.g. "PorterChain team"), not the id.
+    // The house author is the company, so it is an Organization rather than a Person.
+    author:
+      post.authorId === "porterchain"
+        ? { "@type": "Organization", name: author.name, url: siteUrl }
+        : { "@type": "Person", name: author.name },
   };
 
   return (
