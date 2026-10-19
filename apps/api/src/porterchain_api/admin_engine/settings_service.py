@@ -116,7 +116,7 @@ CONFIG_KEYS = {
 DEFAULTS: dict[str, Any] = {
     "settings_general": {
         "company_name": "Porterchain",
-        "legal_name": "Porterchain Logistics Inc.",
+        "legal_name": "Porterchain Inc.",
         "timezone": "America/Toronto",
         "support_email": "support@porterchain.com",
         "business_hours": {"mon_fri": "08:00-18:00", "sat": "09:00-14:00"},
@@ -156,7 +156,7 @@ DEFAULTS: dict[str, Any] = {
         "default_tax_percent": 13.0,
         "tax_name": "HST",
         "gst_hst_number": "",
-        "etransfer_email": "billing@porterchain.com",
+        "etransfer_email": "porterchaininc@gmail.com",
         "etransfer_autodeposit": True,
         "merchant_cycle_invoicing": True,
         "tax_mode": "exclusive",
