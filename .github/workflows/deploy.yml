@@ -681,7 +681,12 @@ jobs:
           http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
           body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
           retry_smoke "merchant sign-in" http_code_is https://merchant.porterchain.com/sign-in '200|307|308'
-          retry_smoke "merchant shopify" http_code_is "https://merchant.porterchain.com/shopify?shop=demo.myshopify.com&connected=1" 200
+          # /shopify is behind sign-in since the Oct 10 embedded-app change; the public
+          # Shopify entry point is /shopify-app. Require 200 AND the real page markers
+          # (Shopify API key meta + App Bridge), not just any response.
+          retry_smoke "merchant shopify-app" http_code_is "https://merchant.porterchain.com/shopify-app?shop=demo.myshopify.com" 200
+          retry_smoke "merchant shopify-app content" body_has "https://merchant.porterchain.com/shopify-app?shop=demo.myshopify.com" 'name="shopify-api-key"'
+          retry_smoke "merchant shopify-app bridge" body_has "https://merchant.porterchain.com/shopify-app?shop=demo.myshopify.com" 'app-bridge'
           echo "Merchant prod smoke passed"
 
       - name: Prod API smoke
