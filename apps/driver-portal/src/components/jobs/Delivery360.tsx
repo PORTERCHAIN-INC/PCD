@@ -19,6 +19,7 @@ import { enqueueOfflineAction } from "@/lib/offline-client";
 import type { DriverJobDetail, JobActionKey } from "@/lib/jobs";
 import {
   actionErrorMessage,
+  scanResultMessage,
   getJobLeg,
   getPrimaryAction,
   isInDeliveryPhase,
@@ -158,8 +159,8 @@ export default function Delivery360({
     setMessage("");
     setMessageError(false);
     try {
-      await fn();
-      setMessage(`${action.replace(/_/g, " ")} recorded`);
+      const result = await fn();
+      setMessage(typeof result === "string" ? result : `${action.replace(/_/g, " ")} recorded`);
       onUpdated();
     } catch (e) {
       const raw = e instanceof Error ? e.message : "action_failed";
@@ -532,11 +533,12 @@ export default function Delivery360({
                 disabled={pending === "scan" || !scanInput.trim()}
                 onClick={() =>
                   run("scan", async () => {
-                    await driverApi.scanPackage(job.order_id, {
+                    const res = await driverApi.scanPackage(job.order_id, {
                       qr_payload: scanInput.trim(),
                       phase: scanPhase,
                     });
                     setScanInput("");
+                    return scanResultMessage(res);
                   })
                 }
                 className="rounded-xl bg-[var(--secondary)] px-3 text-xs font-bold text-white disabled:opacity-50"

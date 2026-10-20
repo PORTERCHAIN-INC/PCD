@@ -312,6 +312,21 @@ export function actionErrorMessage(code: string): string {
   return map[code] ?? code.replace(/_/g, " ");
 }
 
+/** Driver-facing line after a label scan. A repeat scan is flagged, not counted twice. */
+export function scanResultMessage(res: {
+  duplicate?: boolean;
+  tracking_suffix?: string;
+  scanned?: number;
+  required?: number;
+}): string {
+  const label = res.tracking_suffix ?? "label";
+  const count =
+    typeof res.scanned === "number" && typeof res.required === "number"
+      ? ` (${res.scanned} of ${res.required})`
+      : "";
+  return res.duplicate ? `Already scanned: ${label}${count}` : `Scanned ${label}${count}`;
+}
+
 export function jobStatusLabel(state: string): string {
   return state
     .replace(/_/g, " ")

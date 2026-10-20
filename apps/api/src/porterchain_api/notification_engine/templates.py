@@ -722,6 +722,13 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
     context = _with_copy_override(template, context)
     if is_receiver_email(template, context):
         return render_receiver_email(template, context)
+    from porterchain_api.notification_engine.merchant_parcel_emails import (
+        is_merchant_parcel_email,
+        render_merchant_parcel_email,
+    )
+
+    if is_merchant_parcel_email(template, context):
+        return render_merchant_parcel_email(template, context)
     if context.get("audience") == "receiver" and str(context.get("lang") or "")[:2] == "fr":
         from porterchain_api.notification_engine.customer_fr import (
             has_french,
