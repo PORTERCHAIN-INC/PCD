@@ -148,12 +148,12 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
     description:
       "How Porterchain prices recurring and same-day delivery for merchants. Stop-based, zone-based, and volume pricing.",
     intro:
-      "Porterchain prices B2B delivery capacity — not software seats. Pricing is instant: two postal codes and a vehicle give the exact price with HST; it reflects vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes and fleet overflow use the same model: predictable cost aligned to your lanes without hidden platform fees. Share your stops, zones, and freight profile and we confirm numbers in writing before dispatch.",
+      "Porterchain prices B2B delivery capacity — not software seats. Pricing is instant: two postal codes and a vehicle give the exact price, HST extra; it reflects vehicle class, distance, stops, urgency (same-day vs scheduled), and handling. Recurring routes and fleet overflow use the same model: predictable cost aligned to your lanes without hidden platform fees. Share your stops, zones, and freight profile and we confirm numbers in writing before dispatch.",
     items: [
       {
         question: "How is delivery pricing structured?",
         answer:
-          "Instant and exact from two postal codes and a vehicle, HST included; it reflects vehicle class, distance, stops, urgency and handling. Recurring routes often use per-stop or per-route rates; same-day runs factor zone and cut-off time. Volume accounts can have a merchant rate card. No hidden platform fees.",
+          "Instant and exact from two postal codes and a vehicle, HST extra; it reflects vehicle class, distance, stops, urgency and handling. Recurring routes often use per-stop or per-route rates; same-day runs factor zone and cut-off time. Volume accounts can have a merchant rate card. No hidden platform fees.",
       },
       {
         question: "Is there a minimum volume or commitment?",
@@ -780,7 +780,7 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
       {
         question: "How does pricing work for overflow lanes?",
         answer:
-          "Instant price from two postal codes and a vehicle, HST included. No platform fees — you see the price before you book so overflow lanes stay predictable alongside your in-house fleet costs.",
+          "Instant price from two postal codes and a vehicle, HST extra. No platform fees — you see the price before you book so overflow lanes stay predictable alongside your in-house fleet costs.",
       },
     ],
     industrySlugs: ["electrical-distribution", "plumbing-supply", "construction-materials"],

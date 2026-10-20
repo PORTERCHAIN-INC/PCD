@@ -59,7 +59,7 @@ def test_b4_contract_coverage_overrides_platform_default():
     b = _price(["L5M", "M5V"])
     cov = b.metadata["coverage"]
     assert (
-        cov["covered_up_to_cents"] == 100000
+        cov["covered_up_to_cents"] == 250000
         and cov["covered_per"] == "route"
         and cov["charge_cents"] == 0
     )

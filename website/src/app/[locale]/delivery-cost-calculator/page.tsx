@@ -37,8 +37,8 @@ const PRICE_PARTS = [
   },
   {
     Icon: Receipt,
-    title: "HST included",
-    body: "The total shows 13% HST. Your exact addresses are confirmed before you pay.",
+    title: "HST extra",
+    body: "Prices are shown before tax, with 13% HST shown separately as extra. Your exact addresses are confirmed before you pay.",
   },
 ] as const;
 
@@ -48,7 +48,7 @@ const FAQS = [
   {
     question: "How is the price calculated?",
     answer:
-      "From the driving distance between the two postal areas and the vehicle you pick: a base price covers the first kilometres, then a per-kilometre rate; a downtown Toronto surcharge applies where relevant. The total shown includes 13% HST.",
+      "From the driving distance between the two postal areas and the vehicle you pick: a base price covers the first kilometres, then a per-kilometre rate; a downtown Toronto surcharge applies where relevant. Prices are shown before tax; 13% HST is extra.",
   },
   {
     question: "Is this the price I will pay?",
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale,
     "delivery-cost-calculator",
     "Same-day delivery cost calculator (GTA) | PorterChain",
-    "Instant same-day delivery price between any two GTA postal codes for a sedan, cargo van or box truck. Live pricing, HST included, no sign-up.",
+    "Instant same-day delivery price between any two GTA postal codes for a sedan, cargo van or box truck. Live pricing, HST extra, no sign-up.",
     { index: locale === "en" }
   );
 }
@@ -117,7 +117,7 @@ export default async function DeliveryCostCalculatorPage({ params }: Props) {
             Same-day delivery cost calculator
           </h1>
         }
-        answer="Enter two GTA postal codes and pick a vehicle to see the live same-day price, HST included. No account or contact details needed."
+        answer="Enter two GTA postal codes and pick a vehicle to see the live same-day price, HST extra. No account or contact details needed."
         facts={[
           {
             label: "Same-day cut-off",

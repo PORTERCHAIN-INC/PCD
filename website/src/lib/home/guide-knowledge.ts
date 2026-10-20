@@ -35,7 +35,7 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-pricing",
     title: "How pricing works",
-    body: "Pricing is instant and exact: two postal codes and a vehicle give the price with 13% HST in about 10 seconds at /delivery-cost-calculator, no sign-up. Never invent dollar amounts; send people to the calculator. Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe). Volume accounts can have a merchant rate card via /business. $2,500 coverage is included on every parcel; optional coverage up to $25,000 costs $10.",
+    body: "Pricing is instant and exact: two postal codes and a vehicle give the price in about 10 seconds, HST extra at /delivery-cost-calculator, no sign-up. Never invent dollar amounts; send people to the calculator. Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe). Volume accounts can have a merchant rate card via /business. $2,500 goods insurance is included; optional enhanced coverage up to $25,000 costs +$10 per stop.",
     tags: ["pricing", "quote", "billing", "cost", "rate", "business account"],
     source: "charter",
   },

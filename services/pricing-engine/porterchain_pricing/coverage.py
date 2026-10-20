@@ -1,8 +1,9 @@
 """Parcel coverage (declared value cover) — pure, no I/O.
 
-Every delivery is covered up to ``included_cents`` ($2,500) at no charge. An opt-in
-upgrade covers up to ``upgrade_cents`` ($25,000) for ``upgrade_price_cents`` ($10),
-charged per delivery or per parcel (``unit``). Declared values above the upgrade
+Goods (cargo) insurance up to ``included_cents`` ($2,500) is included at no charge,
+applied per ``included_per`` (default: route). An opt-in upgrade covers up to
+``upgrade_cents`` ($25,000) for ``upgrade_price_cents`` ($10), charged per ``unit``
+(default: stop) and replacing the included cover (limits do not stack). Declared values above the upgrade
 ceiling are flagged (``over_max``) so booking can block or route to manual review.
 ``recommend`` picks the tier from declared value + item category.
 """
@@ -17,9 +18,9 @@ PER = ("delivery", "route", "parcel")
 
 DEFAULT_COVERAGE: dict[str, Any] = {
     "schema": 1,
-    # B4 Cargo Coverage (universal terms): $1,000 included per route; enhanced
+    # B4 Cargo Coverage (universal terms): $2,500 goods insurance included; enhanced
     # $25,000 for +$10 per stop, replacing standard (limits do not stack).
-    "included_cents": 100_000,
+    "included_cents": 250_000,
     "upgrade_cents": 2_500_000,
     "upgrade_price_cents": 1_000,
     "unit": "stop",

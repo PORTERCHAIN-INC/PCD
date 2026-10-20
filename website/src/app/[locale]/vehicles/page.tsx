@@ -74,7 +74,7 @@ export default async function VehiclesHubPage({ params }: Props) {
           <p className="mt-2 max-w-2xl text-muted">
             {locale === "fr"
               ? "Trois classes, toutes conduites avec un permis G standard. Le prix dépend de la distance et du véhicule, TVH incluse."
-              : "Three classes, all driven on a standard Ontario G licence. Price depends on distance and vehicle, HST included."}
+              : "Three classes, all driven on a standard Ontario G licence. Price depends on distance and vehicle, HST extra."}
           </p>
           <div
             className="mt-8 overflow-x-auto"

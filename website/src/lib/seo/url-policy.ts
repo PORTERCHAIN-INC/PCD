@@ -59,6 +59,7 @@ export const LOCALE_APP_SECTIONS = new Set([
   "platform",
   "privacy",
   "quote",
+  "rates",
   "research",
   "sedan-delivery",
   "service-areas",

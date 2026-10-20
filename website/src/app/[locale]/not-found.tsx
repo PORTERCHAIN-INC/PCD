@@ -12,7 +12,7 @@ const COPY = {
       {
         href: "/delivery-cost-calculator",
         label: "Get an instant price",
-        note: "Two postal codes, exact price with HST",
+        note: "Two postal codes, exact price, HST extra",
       },
       { href: "/track", label: "Track a delivery", note: "Enter your tracking number" },
       {

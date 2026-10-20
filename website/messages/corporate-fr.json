@@ -4,7 +4,7 @@
       "title": "Messagerie le jour même Toronto et GTA | Prix instantané | PorterChain",
       "description": "Messagerie d'affaires le jour même et le lendemain à Toronto et dans le Grand Toronto. Berline, VUS, fourgon ou camion cube 16 pi. Prix exact en 10 secondes, TVH incluse.",
       "ogTitle": "PorterChain : messagerie le jour même dans le Grand Toronto",
-      "ogDescription": "Réservez avant 11 h, livré entre 14 h et 21 h aujourd'hui. Prix exact en 10 secondes. Suivi en direct, preuve photo et 2 500 $ de couverture par colis."
+      "ogDescription": "Réservez avant 11 h, livré entre 14 h et 21 h aujourd'hui. Prix exact en 10 secondes. Suivi en direct, preuve photo et assurance marchandises de 2 500 $ incluse."
     },
     "platform": {
       "title": "Comment nous opérons | Capacités pleine pile | PorterChain",
@@ -62,7 +62,7 @@
     },
     "trust": {
       "title": "Confiance et assurance | Porterchain",
-      "description": "Comment PorterChain protège vos livraisons : 2 500 $ de couverture inclus, suivi en direct, preuve photo, confidentialité LPRPDE et réponse aux réclamations en un jour ouvrable.",
+      "description": "Comment PorterChain protège vos livraisons : assurance marchandises de 2 500 $ incluse, suivi en direct, preuve photo, confidentialité LPRPDE et réponse aux réclamations en un jour ouvrable.",
       "ogTitle": "Centre de confiance Porterchain",
       "ogDescription": "Assurance commerciale, standards de preuve de livraison, escalade opérationnelle et documentation pour les programmes de capacité."
     },
@@ -407,7 +407,7 @@
       "subtitle": "Livraison B2B le jour même, urgente, d'urgence et récurrente dans le RGT — logistique intra-urbaine et livraison locale avec chauffeurs professionnels, de la berline au camion cube, suivi en direct et preuve à chaque arrêt.",
       "primaryCta": "Obtenir un devis",
       "secondaryCta": "Voir les véhicules",
-      "trustLine": "Prix exact en 10 secondes · Sans inscription · Protection de 2 500 $ incluse",
+      "trustLine": "Prix exact en 10 secondes · Sans inscription · Assurance marchandises de 2 500 $ incluse",
       "trustProof": "Preuve de livraison à chaque arrêt",
       "trustAreas": "Toronto · Mississauga · Brampton · Peel · York · Durham",
       "slaLabel": "Réponse au devis d'ici",
@@ -1755,7 +1755,7 @@
           },
           "3": {
             "title": "Finance et approvisionnement",
-            "description": "Preuve au niveau envoi et couverture de 2 500 $ par coliss."
+            "description": "Preuve au niveau envoi et assurance marchandises de 2 500 $ incluse."
           }
         }
       },
@@ -2087,7 +2087,7 @@
         },
         "1": {
           "title": "Confiance et couverture",
-          "description": "Couverture de 2 500 $ par colis, preuve photo et processus de réclamation.",
+          "description": "Assurance marchandises de 2 500 $ incluse, preuve photo et processus de réclamation.",
           "href": "/trust"
         },
         "2": {
@@ -2700,7 +2700,7 @@
     "hero": {
       "badge": "Confiance et couverture",
       "title": "Couverture, preuve et un processus de réclamation clair",
-      "subtitle": "2 500 $ de couverture inclus sur chaque colis, une preuve photo à chaque livraison et une réponse à chaque réclamation en un jour ouvrable.",
+      "subtitle": "Assurance marchandises de 2 500 $ incluse, une preuve photo à chaque livraison et une réponse à chaque réclamation en un jour ouvrable.",
       "primaryCta": "Voir le processus de réclamation",
       "secondaryCta": "Obtenir un prix instantané"
     },
@@ -2727,7 +2727,7 @@
         },
         "3": {
           "title": "Couverture sur chaque colis",
-          "description": "Une couverture de 2 500 $ est incluse sur chaque colis. Ajoutez 25 000 $ de couverture pour 10 $ pour un envoi de valeur."
+          "description": "L'assurance marchandises de 2 500 $ est incluse. Ajoutez une couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt pour un envoi de valeur."
         },
         "4": {
           "title": "Preuve de livraison",
@@ -2771,7 +2771,7 @@
       "hero": {
         "badge": "Preuve et réclamations",
         "title": "Une preuve à chaque livraison. Un recours clair en cas de problème.",
-        "subtitle": "Preuve photo et dossier horodaté à chaque livraison, 2 500 $ de couverture inclus et une réponse à chaque réclamation en un jour ouvrable."
+        "subtitle": "Preuve photo et dossier horodaté à chaque livraison, assurance marchandises de 2 500 $ incluse et une réponse à chaque réclamation en un jour ouvrable."
       },
       "bands": {
         "label": "Clôture",
@@ -2798,7 +2798,7 @@
       },
       "note": {
         "title": "Couverture incluse",
-        "body": "Chaque colis inclut 2 500 $ de couverture; jusqu'à 25 000 $ pour 10 $. Nous répondons à chaque réclamation en un jour ouvrable."
+        "body": "Assurance marchandises de 2 500 $ incluse; couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt. Nous répondons à chaque réclamation en un jour ouvrable."
       },
       "cta": {
         "title": "Prêt à réserver avec une preuve à chaque livraison?",

@@ -641,7 +641,7 @@
     },
     "calculator": {
       "title": "Get instant price",
-      "subtitle": "Two postal codes, one vehicle, about 10 seconds. HST included. No sign-up.",
+      "subtitle": "Two postal codes, one vehicle, about 10 seconds. HST extra. No sign-up.",
       "pickup": "Pickup postal code",
       "dropoff": "Drop-off postal code",
       "pickupPlaceholder": "M5V 2T6",
@@ -665,7 +665,7 @@
       "pricing": "Pricing…",
       "resultLabel": "Your price",
       "resultMeta": "{pickup} → {dropoff} · {vehicle}",
-      "taxIncluded": "Includes {tax} tax",
+      "taxIncluded": "+ {tax} HST (13%) · {total} total",
       "distance": "≈ {km} km",
       "book": "Book this delivery",
       "details": "See full breakdown",
@@ -685,8 +685,8 @@
       "ariaLabel": "Coverage at a glance",
       "postalAreas": "GTA + ~150 km",
       "postalAreasHint": "{count} postal areas, checked instantly. Core areas: Vaughan, Concord, Brampton, Mississauga.",
-      "areas": "$2,500 covered",
-      "areasHint": "Included on every parcel. Need more? $25,000 coverage for $10.",
+      "areas": "$2,500 goods insurance",
+      "areasHint": "Included. Need more? Enhanced coverage up to $25,000 for +$10 per stop.",
       "vehicles": "{count} vehicle sizes",
       "vehiclesHint": "Sedan / SUV (~80 kg), cargo van (~900 kg), 16 ft box truck (~3,000 kg)"
     },
@@ -723,7 +723,7 @@
       "steps": {
         "price": {
           "title": "Price it",
-          "body": "Two postal codes and a vehicle. Exact price with HST in about 10 seconds."
+          "body": "Two postal codes and a vehicle. Exact price, HST extra in about 10 seconds."
         },
         "book": {
           "title": "Book it",
@@ -783,7 +783,7 @@
         "price": {
           "need": "Call or email for a quote",
           "title": "Exact price in 10 seconds.",
-          "body": "Two postal codes and a vehicle. HST included, no sign-up, same engine we bill from."
+          "body": "Two postal codes and a vehicle. HST extra, no sign-up, same engine we bill from."
         },
         "speed": {
           "need": "\"Sometime today\"",
@@ -807,8 +807,8 @@
         },
         "coverage": {
           "need": "Coverage in the fine print",
-          "title": "$2,500 coverage included.",
-          "body": "On every parcel. Up to $25,000 for $10."
+          "title": "$2,500 goods insurance included.",
+          "body": "Enhanced coverage up to $25,000 for +$10 per stop."
         },
         "payment": {
           "need": "Card only, or long credit forms",
@@ -843,7 +843,7 @@
         "pharmacy-medical": "Pharmacies"
       }
     },
-    "riskReversal": "Price includes HST · $2,500 parcel coverage included · Merchants pay by Interac e-Transfer"
+    "riskReversal": "HST extra · $2,500 goods insurance included · Merchants pay by Interac e-Transfer"
   },
   "marketing": {
     "consent": {
@@ -872,7 +872,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Included with every delivery",
-      "insured": "$2,500 coverage included",
+      "insured": "$2,500 goods insurance included",
       "tracked": "Live tracking",
       "pod": "Photo proof of delivery"
     }
@@ -1385,7 +1385,7 @@
       },
       {
         "question": "How does pricing work?",
-        "answer": "Instant and exact: two postal codes and a vehicle give the price with HST in about 10 seconds, before you book."
+        "answer": "Instant and exact: two postal codes and a vehicle give the price in about 10 seconds, HST extra, before you book."
       }
     ]
   },
@@ -1476,7 +1476,7 @@
       "whenYouNeedTitle": "When to call for trade van capacity",
       "whenYouNeed": "Call when your own van or driver is out, jobsite material has to move today, or distributor routes exceed your fleet. We dispatch matched van capacity with live tracking and proof — same-day or recurring across the GTA.",
       "faqPricingQ": "How does pricing work for trade van delivery?",
-      "faqPricingA": "Instant: enter two postal codes and pick the van to see the exact price with HST in about 10 seconds. No sign-up.",
+      "faqPricingA": "Instant: enter two postal codes and pick the van to see the exact price in about 10 seconds, HST extra. No sign-up.",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "Construction material runs to job sites and trade customers: lumber, drywall, fixtures, and mid-size building supply. Plumbing and electrical distributor routes with pipe, wire, and palletized stock. Multi-stop B2B replenishment where payload size exceeds a car or SUV but does not need a full box truck.",
       "volumeTitle": "Delivery volume suitability",
@@ -1497,7 +1497,7 @@
       "whenYouNeedTitle": "When to call for box truck capacity",
       "whenYouNeed": "Call when pallet freight won't fit a van, your truck is down, or a jobsite deadline can't slip. We dispatch 16 ft box truck capacity with timed windows, site access notes, and photo proof on every drop.",
       "faqPricingQ": "How does pricing work for box truck delivery?",
-      "faqPricingA": "Instant: enter two postal codes and pick the 16 ft box truck to see the exact price with HST in about 10 seconds. No sign-up.",
+      "faqPricingA": "Instant: enter two postal codes and pick the 16 ft box truck to see the exact price in about 10 seconds, HST extra. No sign-up.",
       "supportingText": "16 ft box · up to about 3,000 kg · G licence",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "Palletized construction materials to job sites and yards: lumber, drywall, steel, aggregates, and building supply. Electrical distributor runs with wire, panel, and equipment pallets. Heavy B2B freight where vans are not enough and a tractor-trailer is not required.",
@@ -1519,7 +1519,7 @@
       "whenYouNeedTitle": "When to call for cargo van capacity",
       "whenYouNeed": "Call when a van is too enclosed, a box truck is too large, or your driver is out on a light material run. We dispatch van capacity for jobsite drops, contractor hauls, and irregular B2B freight across the GTA.",
       "faqPricingQ": "How does pricing work for cargo van delivery?",
-      "faqPricingA": "Instant: enter two postal codes and pick a vehicle to see the exact price with HST in about 10 seconds.",
+      "faqPricingA": "Instant: enter two postal codes and pick a vehicle to see the exact price in about 10 seconds, HST extra.",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "Jobsite material and light construction hauls, appliance and equipment delivery, open-bed B2B freight, and site deliveries where tailgate access matters.",
       "volumeTitle": "Delivery volume suitability",
@@ -1540,7 +1540,7 @@
       "whenYouNeedTitle": "When to call for cargo van capacity",
       "whenYouNeed": "Call when parcel volume outgrows a sedan or SUV, your own van is full, or a wholesale run needs enclosed space today. Every stop has live tracking and photo proof.",
       "faqPricingQ": "How does pricing work for cargo van delivery?",
-      "faqPricingA": "Instant: enter two postal codes and pick the cargo van to see the exact price with HST in about 10 seconds. No sign-up.",
+      "faqPricingA": "Instant: enter two postal codes and pick the cargo van to see the exact price in about 10 seconds, HST extra. No sign-up.",
       "useCasesTitle": "Best-fit use cases",
       "useCases": "E-commerce and D2C multi-stop routes, wholesale drops to retailers, plumbing and electrical counter stock, subscription boxes, and recurring B2B replenishment across the GTA.",
       "volumeTitle": "Delivery volume suitability",
@@ -1670,7 +1670,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, $2,500 parcel coverage."
+            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, $2,500 goods insurance included."
           }
         }
       }
@@ -1782,7 +1782,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Shipment-level proof with timestamps for billing disputes, $2,500 parcel coverage."
+            "description": "Shipment-level proof with timestamps for billing disputes, $2,500 goods insurance included."
           }
         }
       }
@@ -1894,7 +1894,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Proof of delivery with shipment reference for billing disputes, $2,500 parcel coverage."
+            "description": "Proof of delivery with shipment reference for billing disputes, $2,500 goods insurance included."
           }
         }
       }
@@ -2023,7 +2023,7 @@
         "q3": "Can patients or partners track their delivery?",
         "a3": "Yes. Each shipment has a tracking link you can share, with status and ETA in real time.",
         "q4": "How does pricing work for pharmacy and medical delivery?",
-        "a4": "Instant: enter two postal codes and a vehicle to see the exact price with HST in about 10 seconds."
+        "a4": "Instant: enter two postal codes and a vehicle to see the exact price in about 10 seconds, HST extra."
       },
       "cta": {
         "title": "Ready to run your pharmacy delivery with us?",
@@ -2226,7 +2226,7 @@
         "q3": "Can we run recurring routes for multiple collection sites?",
         "a3": "Yes. We align capacity to your recurring routes and service areas — one partner for your lab sample workflows.",
         "q4": "How does pricing work for lab sample delivery?",
-        "a4": "Instant: enter two postal codes and a vehicle to see the exact price with HST in about 10 seconds."
+        "a4": "Instant: enter two postal codes and a vehicle to see the exact price in about 10 seconds, HST extra."
       },
       "cta": {
         "title": "Ready to run your lab sample delivery with us?",
@@ -2296,7 +2296,7 @@
         "q3": "Can we integrate via API or CSV?",
         "a3": "Yes. Start with CSV or email and move to API when ready. We support structured order intake for recurring and on-demand runs.",
         "q4": "How does pricing work for e-commerce delivery?",
-        "a4": "Instant: enter two postal codes and a vehicle to see the exact price with HST in about 10 seconds."
+        "a4": "Instant: enter two postal codes and a vehicle to see the exact price in about 10 seconds, HST extra."
       },
       "cta": {
         "title": "Ready for reliable e-commerce delivery?",
@@ -4303,7 +4303,7 @@
         "q3": "How do I get a quote for {cityLabel}?",
         "a3": "Share your typical stops, zones, and freight profile. We'll confirm vehicle fit and show you an exact price for {segmentLabel} in {cityLabel}.",
         "q4": "How does pricing work for {segmentLabel} in {cityLabel}?",
-        "a4": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds."
+        "a4": "Instant: two postal codes and a vehicle give the exact price in about 10 seconds, HST extra."
       },
       "cta": {
         "titlePattern": "Ready for {segmentLabel} in {cityLabel}?",
@@ -4345,7 +4345,7 @@
         "q3": "How fast can we get started?",
         "a3": "Most merchants onboard in days via CSV, email, or API — we'll confirm fit for {cityLabel} on a short call.",
         "q4": "How does pricing work for {segmentLabel} in {cityLabel}?",
-        "a4": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds."
+        "a4": "Instant: two postal codes and a vehicle give the exact price in about 10 seconds, HST extra."
       },
       "cta": {
         "titlePattern": "Start {segmentLabel} in {cityLabel}",
@@ -4411,7 +4411,7 @@
       "q3": "Can my customers track their {industryLabel} delivery in {cityLabel}?",
       "a3": "Every shipment gets a tracking link. You can share it so customers see status and ETA in real time — same reliability whether you're in {cityLabel} or elsewhere.",
       "q4": "How does pricing work for {industryLabel} delivery in {cityLabel}?",
-      "a4": "Instant: two postal codes and a vehicle give the exact price with HST in about 10 seconds."
+      "a4": "Instant: two postal codes and a vehicle give the exact price in about 10 seconds, HST extra."
     },
     "cta": {
       "titlePattern": "Ready for {industryLabel} delivery in {cityLabel}?",

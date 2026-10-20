@@ -270,8 +270,8 @@ export default function PriceCalculator() {
               {estimate.distance_km ? ` · ${estimate.distance_km} km` : ""}
             </p>
             <p className="mt-1 text-4xl font-bold text-primary" data-testid="calculator-price">
-              {formatCad(estimate.amount_cents)}{" "}
-              <span className="text-base font-medium text-muted">CAD incl. HST</span>
+              {formatCad(estimate.amount_cents - estimate.tax_cents)}{" "}
+              <span className="text-base font-medium text-muted">CAD + HST</span>
             </p>
             <ul className="mt-3 space-y-1 text-sm text-primary/90">
               {estimate.lines.map((line) => (
@@ -283,6 +283,10 @@ export default function PriceCalculator() {
               <li className="flex justify-between gap-4 text-muted">
                 <span>HST (13%)</span>
                 <span>{formatCad(estimate.tax_cents)}</span>
+              </li>
+              <li className="flex justify-between gap-4 font-semibold">
+                <span>Total with HST</span>
+                <span>{formatCad(estimate.amount_cents)}</span>
               </li>
             </ul>
             <Link
