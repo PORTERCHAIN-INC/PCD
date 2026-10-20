@@ -6,7 +6,8 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [main, base-code]
+    # main only: base-code pushes also run CI and used to start a duplicate deploy.
+    branches: [main]
   workflow_dispatch:
     inputs:
       scope:
@@ -25,8 +26,9 @@ on:
           - driver
           - customer
 
+# One production deploy at a time, whatever started it (CI on main or a manual run).
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-production
   cancel-in-progress: false
 
 env:
@@ -49,6 +51,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
+      actions: read
     outputs:
       ready: ${{ steps.check.outputs.ready }}
       sha: ${{ steps.sha.outputs.value }}
@@ -66,6 +69,34 @@ jobs:
       pin_customer: ${{ steps.plan.outputs.pin_customer }}
       matrix: ${{ steps.plan.outputs.matrix }}
     steps:
+      # Manual deploys must ship a commit that is on main AND passed CI for that
+      # exact SHA. Without this gate, workflow_dispatch could deploy untested code.
+      - name: Gate manual deploy (SHA on main + CI green)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "::error::Manual deploys must be run from main (got $REF)."
+            exit 1
+          fi
+          status="$(gh api "repos/$REPO/compare/$SHA...main" --jq .status)"
+          case "$status" in
+            identical|ahead) echo "SHA $SHA is on main ($status)" ;;
+            *) echo "::error::SHA $SHA is not on main (compare status: $status)."; exit 1 ;;
+          esac
+          ok="$(gh api "repos/$REPO/actions/workflows/ci.yml/runs?head_sha=$SHA&branch=main&status=completed&per_page=50" \
+            --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')"
+          if [ "${ok:-0}" -lt 1 ]; then
+            echo "::error::No successful CI run on main for $SHA. Refusing to deploy untested code."
+            exit 1
+          fi
+          echo "CI passed for $SHA ($ok successful run(s))."
+
       - name: Check deploy secrets are configured
         id: check
         env:
@@ -287,6 +318,8 @@ jobs:
     needs: [plan, build]
     if: ${{ always() && needs.plan.outputs.ready == 'true' && needs.plan.outputs.skip != 'true' && needs.plan.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: ubuntu-24.04
+    # GitHub environment restricted to the main branch (Settings > Environments).
+    environment: production
     permissions:
       contents: read
       packages: read
@@ -324,7 +357,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh"
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/deploy-paths.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/backup-porterchain-postgres.sh,infrastructure/deploy/scripts/restore-porterchain-postgres.sh,infrastructure/deploy/scripts/snapshot-before-migrate.sh,infrastructure/deploy/scripts/rollback-prod.sh"
           target: "/opt/porterchain"
           strip_components: 2
 
@@ -437,7 +470,7 @@ jobs:
               rollback_and_exit "API did not become healthy after migrate"
             fi
             docker image prune -f
-            docker ps --format '{{.Image}}' | sort -u > /tmp/pcd-running-images
+            { docker ps --format '{{.Image}}'; cat backups/pre-*-latest.manifest 2>/dev/null | grep -E '_IMAGE=' | cut -d= -f2-; } | sort -u > /tmp/pcd-running-images
             repos="$(docker images --format '{{.Repository}}' | grep -E 'ghcr.io/.*/pcd-' | sort -u || true)"
             for repo in $repos; do
               kept_rollback=0
@@ -527,6 +560,17 @@ jobs:
               exit 1
             fi
             echo "Compose env file ready ($(wc -c < .env) bytes)"
+            # Rollback point for this scoped deploy: record every running app image
+            # (and dump Postgres when this deploy migrates) before anything changes.
+            rm -f backups/pre-partial-latest.manifest
+            bash scripts/snapshot-before-migrate.sh capture-images
+            if [ "$MIGRATE" = "true" ]; then
+              bash scripts/snapshot-before-migrate.sh capture-database
+              cp backups/pre-migrate-latest.manifest backups/pre-partial-latest.manifest
+            else
+              mv backups/pre-migrate-pending.manifest backups/pre-partial-latest.manifest
+            fi
+            echo "Rollback manifest: backups/pre-partial-latest.manifest"
             # shellcheck disable=SC2086
             docker compose -f docker-compose.prod.yml pull $SERVICES
             # shellcheck disable=SC2086
@@ -610,6 +654,8 @@ jobs:
           retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
           retry_smoke "merchant login" http_code_is https://merchant.porterchain.com/login '200|307|308'
           retry_smoke "customer login" http_code_is https://customer.porterchain.com/login '200|307|308'
+          retry_smoke "driver login" http_code_is https://driver.porterchain.com/login 200
+          retry_smoke "public tracking" http_code_is https://porterchain.com/en/track 200
           # Retired Fleetbase hosts must 404 (never fall through to marketing).
           retry_smoke "console 404" http_code_is https://console.porterchain.com/ 404
           # The record may also be deleted from DNS entirely (retired); that passes too.
@@ -617,19 +663,6 @@ jobs:
           retry_smoke "fleetbase 404 or no DNS" fleetbase_retired
           retry_smoke "public quote" quote_ok
           echo "Prod D3 smoke passed"
-
-      - name: Roll back pre-migrate snapshot when prod smoke fails
-        if: needs.plan.outputs.rollout == 'full' && steps.public-smoke.outcome == 'failure'
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          script: |
-            set -euo pipefail
-            cd /opt/porterchain
-            CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh
 
       - name: Prod website smoke
         if: needs.plan.outputs.pin_website == 'true' && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
@@ -740,3 +773,92 @@ jobs:
           retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
           retry_smoke "merchant sign-in" http_code_is https://merchant.porterchain.com/sign-in '200|307|308'
           echo "Portals prod smoke passed"
+
+      # Every scoped rollout also checks the core public surfaces, not just the
+      # service it touched (a shared Caddy/env change can break the others).
+      - name: Prod core smoke (scoped rollouts)
+        if: needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome == 'success'
+        run: |
+          set -e
+          retry_smoke() {
+            local desc="$1"; shift
+            local attempt=1
+            for delay in 5 10 15 15 20 0; do
+              if "$@"; then return 0; fi
+              if [ "$delay" = 0 ]; then
+                echo "::error::smoke failed after $attempt attempts: $desc"
+                return 1
+              fi
+              echo "smoke retry $attempt/5 in ${delay}s: $desc"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
+          }
+          http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
+          body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
+          retry_smoke "api health" body_has https://api.porterchain.com/health '"status":"ok"'
+          retry_smoke "website /en" http_code_is https://porterchain.com/en 200
+          retry_smoke "public tracking" http_code_is https://porterchain.com/en/track 200
+          retry_smoke "driver login" http_code_is https://driver.porterchain.com/login 200
+          retry_smoke "merchant login" http_code_is https://merchant.porterchain.com/login '200|307|308'
+          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
+          echo "Core prod smoke passed"
+
+      # The worker's compose healthcheck asserts a fresh Redis heartbeat
+      # (porterchain:worker:heartbeat, 120s TTL). Wait up to ~3 min for "healthy".
+      - name: Worker heartbeat smoke
+        id: worker-smoke
+        if: steps.deploy-full.outcome == 'success' || steps.deploy-partial.outcome == 'success'
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            for i in $(seq 1 36); do
+              state="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' pcd-worker 2>/dev/null || echo missing)"
+              if [ "$state" = "healthy" ]; then
+                echo "Worker heartbeat healthy"
+                exit 0
+              fi
+              echo "worker health=$state (attempt $i/36)"
+              sleep 5
+            done
+            echo "::error::worker heartbeat not healthy after deploy"
+            docker logs --tail 60 pcd-worker 2>&1 | grep -viE 'token|secret|password|dsn' || true
+            exit 1
+
+      # Automatic rollback when any post-deploy smoke fails, for full AND scoped
+      # rollouts. failure() is required: without it this step is skipped after a
+      # failed smoke step, so the old rollback never actually ran.
+      - name: Roll back full deploy when prod smoke fails
+        if: failure() && needs.plan.outputs.rollout == 'full' && steps.deploy-full.outcome == 'success'
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd /opt/porterchain
+            CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh
+
+      - name: Roll back scoped deploy when prod smoke fails
+        if: failure() && needs.plan.outputs.rollout == 'partial' && steps.deploy-partial.outcome != 'skipped'
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd /opt/porterchain
+            if [ ! -f backups/pre-partial-latest.manifest ]; then
+              echo "::error::no rollback manifest for this scoped deploy (failed before snapshot); nothing was changed by it"
+              exit 1
+            fi
+            CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh backups/pre-partial-latest.manifest
