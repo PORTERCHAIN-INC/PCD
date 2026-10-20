@@ -332,9 +332,14 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [cmdk, setCmdk] = useState(false);
+  // Width animation only after the saved collapsed state is restored, so a collapsed
+  // sidebar does not visibly slide 240px → 72px on every full page load.
+  const [navReady, setNavReady] = useState(false);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(storageKey) === "1");
+    const id = window.requestAnimationFrame(() => setNavReady(true));
+    return () => window.cancelAnimationFrame(id);
   }, [storageKey]);
   const toggle = useCallback(() => {
     setCollapsed((c) => {
@@ -416,7 +421,8 @@ export function AppShell({
     <div className="flex h-dvh min-w-0 bg-gray-bg">
       <aside
         className={cn(
-          "hidden shrink-0 flex-col border-r border-primary/10 bg-white transition-[width] lg:flex",
+          "hidden shrink-0 flex-col border-r border-primary/10 bg-white lg:flex",
+          navReady && "transition-[width]",
           collapsed ? "w-[72px]" : "w-60"
         )}
       >

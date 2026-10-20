@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import Container from "@/components/ui/Container";
 import DriverAccessGate from "@/components/DriverAccessGate";
 import DriverAccountMenu from "@/components/nav/DriverAccountMenu";
@@ -43,9 +42,7 @@ export default function DriverShell({ children }: { children: React.ReactNode })
               </div>
             </header>
             <Container className="py-6">
-              <Suspense fallback={<PageSkeleton />}>
-                <RouteViewTransition>{children}</RouteViewTransition>
-              </Suspense>
+              <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
             </Container>
           </div>
         </DriverAccessGate>
@@ -109,9 +106,7 @@ function DriverChrome({ children }: { children: React.ReactNode }) {
       }
     >
       <Container className="min-w-0 py-4 sm:py-6">
-        <Suspense fallback={<PageSkeleton />}>
-          <RouteViewTransition>{children}</RouteViewTransition>
-        </Suspense>
+        <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
       </Container>
     </AppShell>
   );
