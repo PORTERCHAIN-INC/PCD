@@ -288,6 +288,37 @@ class ClerkClient:
         except Exception:
             logger.warning("clerk_metadata_update_failed user=%s", clerk_user_id, exc_info=True)
 
+    def revoke_pending_invitations(self, email: str) -> int:
+        """Revoke pending Clerk invitations for ``email``. Best-effort; returns count revoked."""
+        normalized = email.lower().strip()
+        revoked = 0
+        with httpx.Client(timeout=20.0) as client:
+            res = client.get(
+                f"{CLERK_API}/invitations",
+                headers=self._headers(),
+                params={"query": normalized, "status": "pending", "limit": 50},
+            )
+            if res.status_code >= 400:
+                logger.warning("clerk_invitation_list_failed status=%s", res.status_code)
+                return 0
+            body = res.json()
+            rows = body if isinstance(body, list) else (body or {}).get("data", [])
+            for row in rows or []:
+                if not isinstance(row, dict):
+                    continue
+                if str(row.get("email_address", "")).lower().strip() != normalized:
+                    continue
+                if row.get("status") != "pending" or not row.get("id"):
+                    continue
+                rv = client.post(
+                    f"{CLERK_API}/invitations/{row['id']}/revoke", headers=self._headers()
+                )
+                if rv.status_code < 400:
+                    revoked += 1
+                else:
+                    logger.warning("clerk_invitation_revoke_failed status=%s", rv.status_code)
+        return revoked
+
     def invite_user(
         self,
         email: str,

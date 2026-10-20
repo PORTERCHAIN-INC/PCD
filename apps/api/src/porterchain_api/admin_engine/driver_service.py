@@ -108,9 +108,10 @@ class AdminDriverService(DriverAccountOps):
 
         if settings and is_clerk_secret_configured(settings, "driver"):
             try:
-                InvitationService().invite_driver(db, ctx, settings, driver)
+                InvitationService().provision_driver_account(db, ctx, settings, driver)
+                db.refresh(driver)
             except Exception as exc:
-                logger.warning("driver_clerk_invite_failed: %s", exc)
+                logger.warning("driver_clerk_provision_failed: %s", exc)
 
         return driver
 
@@ -178,6 +179,17 @@ class AdminDriverService(DriverAccountOps):
         )
         db.commit()
         db.refresh(driver)
+        if (
+            settings
+            and not driver.clerk_user_id
+            and getattr(driver, "email", None)
+            and is_clerk_secret_configured(settings, "driver")
+        ):
+            try:
+                InvitationService().provision_driver_account(db, ctx, settings, driver)
+                db.refresh(driver)
+            except Exception as exc:
+                logger.warning("driver_clerk_provision_failed %s: %s", driver_id, exc)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.clerk_user_id)
@@ -190,7 +202,11 @@ class AdminDriverService(DriverAccountOps):
                     db,
                     driver,
                     "email",
-                    "You are approved. You can be assigned once license, insurance, and background check are marked.",
+                    (
+                        "You are approved. Sign in at driver.porterchain.com/login with your "
+                        "email address; we will email you a one-time code. You can be assigned "
+                        "once license, insurance, and background check are marked."
+                    ),
                     ctx.user.id if ctx.user else None,
                 )
         except Exception as exc:
