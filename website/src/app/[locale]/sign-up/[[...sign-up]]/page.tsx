@@ -11,6 +11,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import {
+  AuthStallNotice,
   PasswordRequirements,
   isDevelopmentBuild,
   porterchainClerkAppearance,
@@ -153,6 +154,7 @@ function SignUpContent() {
           appearance={porterchainClerkAppearance}
           unsafeMetadata={{ signup_attribution: signupAttribution }}
         />
+        <AuthStallNotice />
         <PasswordRequirements
           copy={{
             title: t("passwordTitle"),

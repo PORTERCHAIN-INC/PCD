@@ -61,3 +61,6 @@ export { hasClerkSessionHint } from "./clerkEdgeSession";
 export type { CookieReader } from "./clerkEdgeSession";
 export { humanAuthError } from "./authErrors";
 export { signInUnavailableCopy, signUpUnavailableCopy } from "./authUnavailable";
+export { AuthStallNotice } from "./AuthStallNotice";
+export type { AuthStallNoticeCopy } from "./AuthStallNotice";
+export { AUTH_STALL_TIMEOUT_MS, isPrimaryButtonBusy, nextStallState } from "./authStall";
