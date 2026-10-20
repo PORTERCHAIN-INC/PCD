@@ -160,9 +160,7 @@ export default function Delivery360({
     setMessageError(false);
     try {
       const result = await fn();
-      setMessage(
-        typeof result === "string" ? result : `${action.replace(/_/g, " ")} recorded`
-      );
+      setMessage(typeof result === "string" ? result : `${action.replace(/_/g, " ")} recorded`);
       onUpdated();
     } catch (e) {
       const raw = e instanceof Error ? e.message : "action_failed";
