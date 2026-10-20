@@ -13,6 +13,12 @@ import {
 } from "@porterchain/auth";
 import { isClerkConfigured, isDevEmailLogin } from "@/lib/env";
 
+/**
+ * Fixed-height slot for the Clerk card. Without it the page re-centres twice while Clerk
+ * loads (48px "Loading sign-in…" → ~270px card → +logo), which reads as the page jumping.
+ */
+const SIGN_IN_SLOT = "flex min-h-[19rem] flex-col items-center justify-center";
+
 type DevDriver = { driver_id: string; email: string; full_name: string };
 
 function DevEmailLogin({ redirectUrl }: { redirectUrl: string }) {
@@ -127,29 +133,33 @@ function ClerkDriverContinue({ redirectUrl }: { redirectUrl: string }) {
 
   if (!isLoaded) {
     return (
-      <p className="text-center text-sm text-muted" role="status">
-        Loading sign-in…
-      </p>
+      <div className={SIGN_IN_SLOT} role="status">
+        <p className="text-center text-sm text-muted">Loading sign-in…</p>
+      </div>
     );
   }
 
   if (isSignedIn) {
     return (
-      <p className="text-center text-sm text-muted" role="status">
-        {continuing ? "Opening driver portal…" : "Preparing…"}
-      </p>
+      <div className={SIGN_IN_SLOT} role="status">
+        <p className="text-center text-sm text-muted">
+          {continuing ? "Opening driver portal…" : "Preparing…"}
+        </p>
+      </div>
     );
   }
 
   return (
-    <SignIn
-      routing="path"
-      path="/login"
-      signUpUrl={undefined}
-      forceRedirectUrl={redirectUrl}
-      fallbackRedirectUrl={redirectUrl}
-      appearance={porterchainClerkAppearanceInviteOnly}
-    />
+    <div className={SIGN_IN_SLOT}>
+      <SignIn
+        routing="path"
+        path="/login"
+        signUpUrl={undefined}
+        forceRedirectUrl={redirectUrl}
+        fallbackRedirectUrl={redirectUrl}
+        appearance={porterchainClerkAppearanceInviteOnly}
+      />
+    </div>
   );
 }
 
@@ -223,8 +233,14 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <PortalAuthScreen portalLabel="Driver" title="Loading" subtitle="Preparing sign-in…">
-          <p className="text-center text-sm text-muted">Loading…</p>
+        <PortalAuthScreen
+          portalLabel="Driver"
+          title="Driver sign-in"
+          subtitle="Invitation-only. Returning drivers stay signed in until the Clerk session expires."
+        >
+          <div className={SIGN_IN_SLOT} role="status">
+            <p className="text-center text-sm text-muted">Loading sign-in…</p>
+          </div>
         </PortalAuthScreen>
       }
     >
