@@ -6,7 +6,6 @@ import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import {
   humanAuthError,
-  platformLoginUrl,
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
@@ -79,7 +78,7 @@ function DriverAccessGateWithClerk({ children }: Props) {
   }
 
   if (errorDetail) {
-    const loginUrl = platformLoginUrl(publicEnv.websiteUrl);
+    const loginUrl = "/login";
     return (
       <div className="flex min-h-dvh items-center justify-center bg-gray-bg p-6">
         <div className="max-w-md rounded-2xl border border-primary/10 bg-white p-8 text-center shadow-sm">
@@ -98,7 +97,7 @@ function DriverAccessGateWithClerk({ children }: Props) {
             href={loginUrl}
             className="mt-6 flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold text-white hover:bg-secondary/90"
           >
-            Back to Platform login
+            Back to sign in
           </a>
           <SignOutButton redirectUrl={loginUrl}>
             <button

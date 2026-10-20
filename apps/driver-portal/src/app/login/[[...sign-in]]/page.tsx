@@ -11,7 +11,7 @@ import {
   safeAppRedirect,
   signInUnavailableCopy,
 } from "@porterchain/auth";
-import { isClerkConfigured, isDevEmailLogin, publicEnv } from "@/lib/env";
+import { isClerkConfigured, isDevEmailLogin } from "@/lib/env";
 
 type DevDriver = { driver_id: string; email: string; full_name: string };
 
@@ -180,8 +180,6 @@ function LoginPageContent() {
         portalLabel="Driver"
         title="Local development"
         subtitle="Clerk is not configured for this environment."
-        websiteUrl={publicEnv.websiteUrl}
-        showPlatformLogin
       >
         <p className="text-sm leading-relaxed text-muted">
           Add Driver Clerk keys via <code className="text-primary">pnpm clerk:sync</code>, then
@@ -200,8 +198,6 @@ function LoginPageContent() {
           ? "Local email picker or Clerk invitation for approved partners."
           : "Invitation-only. Returning drivers stay signed in until the Clerk session expires."
       }
-      websiteUrl={publicEnv.websiteUrl}
-      showPlatformLogin
       footer={
         <>Need access? Contact Porterchain operations after your partner application is approved.</>
       }
