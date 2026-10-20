@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.5.14",
+    "@clerk/nextjs": "7.9.14",
     "@porterchain/auth": "workspace:*",
     "@porterchain/config": "workspace:*",
     "@porterchain/maps": "workspace:*",

@@ -48,6 +48,18 @@ const CLERK = [
   "https://*.clerk.com",
   "https://challenges.cloudflare.com",
 ];
+/**
+ * Clerk bot/abuse protection (Clerk CSP docs). script-src + frame-src take the bare host;
+ * connect-src needs the `:*` port wildcard because protect hosts serve on non-443 ports.
+ * Required by Clerk's "Challenge suspicious sign-ups" check (Shopify review 4.5.5 hang).
+ */
+const CLERK_PROTECT = "https://*.protect.clerk.com";
+const CLERK_PROTECT_CONNECT = "https://*.protect.clerk.com:*";
+const CLERK_IMG = "https://img.clerk.com";
+const CLERK_TELEMETRY = ["https://clerk-telemetry.com", "https://*.clerk-telemetry.com"];
+const CLERK_SCRIPT = [...CLERK, CLERK_PROTECT];
+const CLERK_CONNECT = [...CLERK, CLERK_PROTECT_CONNECT, CLERK_IMG, ...CLERK_TELEMETRY];
+const CLERK_FRAME = [...CLERK, CLERK_PROTECT];
 const GOOGLE = [
   "https://www.googletagmanager.com",
   "https://*.google-analytics.com",
@@ -90,7 +102,7 @@ export function websiteCsp(opts = {}) {
     api,
     "https://porterchain.com",
     "https://*.porterchain.com",
-    ...CLERK,
+    ...CLERK_CONNECT,
     ...GOOGLE,
     ...ADS,
     ...STRIPE,
@@ -101,7 +113,7 @@ export function websiteCsp(opts = {}) {
   const scriptSrc = [
     "'self'",
     "'unsafe-inline'",
-    ...CLERK,
+    ...CLERK_SCRIPT,
     ...GOOGLE,
     ...ADS,
     "https://js.stripe.com",
@@ -114,7 +126,7 @@ export function websiteCsp(opts = {}) {
     "img-src 'self' data: blob: https:" + (opts.dev ? " http://localhost:*" : ""),
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src ${[...new Set(connect)].join(" ")}`,
-    `frame-src 'self' ${[...CLERK, "https://js.stripe.com", "https://hooks.stripe.com", "https://www.googletagmanager.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.google.com"].join(" ")}`,
+    `frame-src 'self' ${[...CLERK_FRAME, "https://js.stripe.com", "https://hooks.stripe.com", "https://www.googletagmanager.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.google.com"].join(" ")}`,
     "worker-src 'self' blob:",
     "media-src 'self' https: blob:",
     "manifest-src 'self'",
@@ -153,6 +165,9 @@ const FIREBASE = [
 export function portalCsp(opts) {
   const app = opts.app;
   const clerk = app === "admin" ? [] : CLERK;
+  const clerkScript = app === "admin" ? [] : CLERK_SCRIPT;
+  const clerkConnect = app === "admin" ? [] : CLERK_CONNECT;
+  const clerkFrame = app === "admin" ? [] : CLERK_FRAME;
   const stripe = app === "customer" || app === "merchant" ? STRIPE : [];
   const shopify = app === "merchant" ? SHOPIFY : [];
   const firebase = app === "driver" || app === "admin" ? FIREBASE : [];
@@ -162,7 +177,7 @@ export function portalCsp(opts) {
   const scriptSrc = [
     "'self'",
     "'unsafe-inline'",
-    ...clerk,
+    ...clerkScript,
     ...stripe.slice(0, 1),
     ...shopify.slice(0, 1),
     "https://www.googletagmanager.com",
@@ -175,7 +190,7 @@ export function portalCsp(opts) {
     "https://*.porterchain.com",
     "wss://*.porterchain.com",
     ...extraOrigins,
-    ...clerk,
+    ...clerkConnect,
     ...stripe,
     ...shopify,
     ...MAPS,
@@ -192,7 +207,7 @@ export function portalCsp(opts) {
     "img-src 'self' data: blob: https:" + (opts.dev ? " http://localhost:*" : ""),
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src ${[...new Set(connect)].join(" ")}`,
-    `frame-src 'self' ${[...clerk, ...stripe, ...shopify].join(" ")}`.trim(),
+    `frame-src 'self' ${[...clerkFrame, ...stripe, ...shopify].join(" ")}`.trim(),
     "worker-src 'self' blob:",
     "child-src 'self' blob:",
     "media-src 'self' blob: https:",

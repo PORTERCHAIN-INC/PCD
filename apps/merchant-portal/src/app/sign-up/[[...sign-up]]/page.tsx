@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SignUp, useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
 import {
+  AuthStallNotice,
   PasswordRequirements,
   porterchainClerkAppearance,
   signUpUnavailableCopy,
@@ -95,6 +96,7 @@ function SignUpWithClerk() {
         fallbackRedirectUrl="/dashboard"
         appearance={porterchainClerkAppearance}
       />
+      <AuthStallNotice />
       <PasswordRequirements />
     </MerchantAuthScreen>
   );
