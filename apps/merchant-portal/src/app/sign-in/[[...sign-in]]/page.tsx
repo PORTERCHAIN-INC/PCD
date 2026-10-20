@@ -101,7 +101,6 @@ function SignInWithClerk() {
     <MerchantAuthScreen
       title="Business sign-in"
       subtitle="Access capacity, shipments, and billing for your organization."
-      showPlatformLogin
       footer={
         <>
           New organization?{" "}

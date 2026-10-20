@@ -7,7 +7,6 @@ import { LogOut } from "lucide-react";
 import { fetchCustomerOnboarding, isPendingCustomerPath } from "@/lib/onboarding";
 import { isClerkConfigured, publicEnv } from "@/lib/env";
 import {
-  platformLoginUrl,
   readImpersonationBearer,
   useOptionalSessionContext,
   usePortalSessionGate,
@@ -80,7 +79,7 @@ function CustomerAccessGateWithClerk({ children }: Props) {
   });
 
   if ((denied || errorDetail) && !impToken) {
-    const loginUrl = platformLoginUrl(publicEnv.websiteUrl);
+    const loginUrl = "/sign-in";
     const deniedAccess = errorDetail === "missing_portal_permission" || denied;
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center gap-3 p-6 text-center">
@@ -98,7 +97,7 @@ function CustomerAccessGateWithClerk({ children }: Props) {
           href={loginUrl}
           className="mt-2 inline-flex rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold text-white"
         >
-          Back to Platform login
+          Back to sign in
         </a>
         <SignOutButton redirectUrl={loginUrl}>
           <button

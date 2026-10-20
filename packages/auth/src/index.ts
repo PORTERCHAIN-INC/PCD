@@ -9,7 +9,6 @@ export {
   workspacesForPortal,
 } from "./session-context";
 export type { PorterchainPortal, SessionContext } from "./session-context";
-export { platformLoginUrl } from "./portal-login";
 export {
   SessionContextProvider,
   useOptionalSessionContext,
