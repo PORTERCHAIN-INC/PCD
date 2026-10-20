@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { platformLoginUrl } from "@porterchain/auth";
 import CustomerMotion from "@/components/motion/CustomerMotion";
 import { publicEnv } from "@/lib/env";
 
@@ -13,7 +12,6 @@ type Props = {
   title: string;
   subtitle: string;
   mode?: CustomerAuthMode;
-  showPlatformLogin?: boolean;
   footer?: ReactNode;
   children: ReactNode;
 };
@@ -22,16 +20,7 @@ type Props = {
  * Customer portal auth chrome — brand plane + form, one composition.
  * Delivery / tracking messaging; Clerk widget stays the only interactive card.
  */
-export function CustomerAuthScreen({
-  title,
-  subtitle,
-  mode = "sign-in",
-  showPlatformLogin = false,
-  footer,
-  children,
-}: Props) {
-  const platformUrl = showPlatformLogin ? platformLoginUrl(publicEnv.websiteUrl) : null;
-
+export function CustomerAuthScreen({ title, subtitle, mode = "sign-in", footer, children }: Props) {
   return (
     <div className="relative flex min-h-dvh flex-col lg:flex-row" style={{ fontFamily: AUTH_FONT }}>
       <BrandPanel mode={mode} />
@@ -48,17 +37,6 @@ export function CustomerAuthScreen({
             <p className="mt-2.5 text-sm leading-relaxed text-muted sm:text-[0.95rem]">
               {subtitle}
             </p>
-            {platformUrl ? (
-              <p className="mt-4 text-xs leading-relaxed text-muted">
-                Prefer one login for every portal?{" "}
-                <a
-                  href={platformUrl}
-                  className="font-semibold text-secondary underline-offset-2 transition-colors hover:text-[#1d4ed8] hover:underline"
-                >
-                  Use Platform sign-in
-                </a>
-              </p>
-            ) : null}
           </header>
 
           <div

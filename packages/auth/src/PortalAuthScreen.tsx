@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { platformLoginUrl } from "./portal-login";
 
 export type PortalAuthMode = "sign-in" | "sign-up";
 
@@ -11,9 +10,6 @@ type PortalAuthScreenBase = {
   title: string;
   subtitle: string;
   mode?: PortalAuthMode;
-  /** Prefer Platform login (invite-only surfaces). */
-  websiteUrl?: string;
-  showPlatformLogin?: boolean;
   footer?: ReactNode;
 };
 
@@ -26,15 +22,7 @@ export type PortalAuthScreenProps =
  * Brand-first composition: wordmark → title → subtitle → form → footnotes.
  */
 export function PortalAuthScreen(props: PortalAuthScreenProps) {
-  const {
-    portalLabel,
-    title,
-    subtitle,
-    mode = "sign-in",
-    websiteUrl,
-    showPlatformLogin = false,
-    footer,
-  } = props;
+  const { portalLabel, title, subtitle, mode = "sign-in", footer } = props;
 
   if ("unavailable" in props && props.unavailable != null) {
     return (
@@ -46,8 +34,6 @@ export function PortalAuthScreen(props: PortalAuthScreenProps) {
       </div>
     );
   }
-
-  const platformUrl = websiteUrl ? platformLoginUrl(websiteUrl) : null;
   const children = "children" in props ? props.children : null;
 
   return (
@@ -65,14 +51,6 @@ export function PortalAuthScreen(props: PortalAuthScreenProps) {
           {title}
         </h1>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted">{subtitle}</p>
-        {showPlatformLogin && platformUrl ? (
-          <p className="mt-3 max-w-sm text-xs text-muted">
-            Prefer one login for every portal?{" "}
-            <a href={platformUrl} className="font-semibold text-secondary hover:underline">
-              Use Platform sign-in
-            </a>
-          </p>
-        ) : null}
       </div>
 
       <div

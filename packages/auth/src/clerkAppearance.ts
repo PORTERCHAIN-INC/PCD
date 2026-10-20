@@ -48,7 +48,7 @@ export const porterchainClerkAppearance = {
   },
 } as const;
 
-/** Invite-only portals + Platform login: hide Clerk sign-up footer. */
+/** Invite-only portals: hide Clerk sign-up footer. */
 export const porterchainClerkAppearanceInviteOnly = {
   variables: baseVariables,
   elements: {

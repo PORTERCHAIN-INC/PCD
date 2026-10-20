@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { platformLoginUrl } from "@porterchain/auth";
 import { publicEnv } from "@/lib/env";
 
 const AUTH_FONT = 'Calibri, var(--font-brand), Carlito, Candara, "Segoe UI", Arial, sans-serif';
@@ -12,7 +11,6 @@ type Props = {
   title: string;
   subtitle: string;
   mode?: MerchantAuthMode;
-  showPlatformLogin?: boolean;
   footer?: ReactNode;
   children: ReactNode;
 };
@@ -21,16 +19,7 @@ type Props = {
  * Merchant portal auth chrome — brand plane + form, one composition.
  * Capacity-network messaging; Clerk widget stays the only interactive card.
  */
-export function MerchantAuthScreen({
-  title,
-  subtitle,
-  mode = "sign-in",
-  showPlatformLogin = false,
-  footer,
-  children,
-}: Props) {
-  const platformUrl = showPlatformLogin ? platformLoginUrl(publicEnv.websiteUrl) : null;
-
+export function MerchantAuthScreen({ title, subtitle, mode = "sign-in", footer, children }: Props) {
   return (
     <div className="relative flex min-h-dvh flex-col lg:flex-row" style={{ fontFamily: AUTH_FONT }}>
       <BrandPanel mode={mode} />
@@ -47,17 +36,6 @@ export function MerchantAuthScreen({
             <p className="mt-2.5 text-sm leading-relaxed text-muted sm:text-[0.95rem]">
               {subtitle}
             </p>
-            {platformUrl ? (
-              <p className="mt-4 text-xs leading-relaxed text-muted">
-                Prefer one login for every portal?{" "}
-                <a
-                  href={platformUrl}
-                  className="font-semibold text-secondary underline-offset-2 transition-colors hover:text-[#1d4ed8] hover:underline"
-                >
-                  Use Platform sign-in
-                </a>
-              </p>
-            ) : null}
           </header>
 
           <div
