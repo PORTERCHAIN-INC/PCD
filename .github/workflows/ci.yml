@@ -179,3 +179,129 @@ jobs:
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           python scripts/validate_postgres_modules.py
+
+  # Per-app gates: each app is typechecked, linted, unit-tested (when it has
+  # tests) and built on its own, so a broken portal can never reach main.
+  # Check names ("App: <name>") are required by branch protection on main.
+  app:
+    name: "App: ${{ matrix.name }}"
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Website
+            pkg: "@porterchain/website"
+            dir: website
+            test: ""
+          - name: Merchant portal
+            pkg: "@porterchain/merchant-portal"
+            dir: apps/merchant-portal
+            test: test
+          - name: Driver portal
+            pkg: "@porterchain/driver-portal"
+            dir: apps/driver-portal
+            test: test
+          - name: Customer
+            pkg: "@porterchain/customer"
+            dir: apps/customer
+            test: ""
+    env:
+      # Dummy public values only. Never real keys: builds just need a
+      # well-formed Clerk publishable key and a site URL.
+      NEXT_PUBLIC_SITE_URL: https://porterchain.com
+      NEXT_PUBLIC_API_URL: https://api.porterchain.com
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with:
+          version: 11.10.0
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: ${{ matrix.dir }}
+        run: pnpm exec tsc --noEmit -p .
+
+      - name: Lint
+        run: pnpm --filter "${{ matrix.pkg }}" lint
+
+      - name: Unit tests
+        if: matrix.test != ''
+        run: pnpm --filter "${{ matrix.pkg }}" ${{ matrix.test }}
+
+      - name: Build
+        run: pnpm turbo build --filter="${{ matrix.pkg }}"
+
+  # The Shopify app is the embedded merchant-portal surface plus the API's
+  # Shopify integration (OAuth, carrier rates, webhooks, GDPR, billing).
+  shopify-app:
+    name: Shopify app
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18-alpine3.24
+        env:
+          POSTGRES_USER: porterchain
+          POSTGRES_PASSWORD: porterchain
+          POSTGRES_DB: porterchain
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U porterchain -d porterchain"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:8.8.0-alpine3.23
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: apps/api
+    env:
+      DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+      APP_ENV: local
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.14.6"
+          cache: pip
+          cache-dependency-path: |
+            apps/api/requirements.txt
+            apps/api/requirements.lock.txt
+
+      - name: Install API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -c requirements.lock.txt
+          pip install pytest pytest-asyncio
+
+      - name: Alembic upgrade head
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
+          alembic upgrade head
+
+      - name: Shopify app tests
+        run: |
+          export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
+          files=$(find tests -name 'test_*shopify*.py' | sort)
+          test -n "$files"
+          echo "$files"
+          pytest $files -v
