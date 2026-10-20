@@ -24,6 +24,8 @@ export function DocumentsTab({
   const [docVersion, setDocVersion] = useState(0);
   const [reasonFor, setReasonFor] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+  const [abstractOpen, setAbstractOpen] = useState(false);
+  const [abstractNote, setAbstractNote] = useState("");
   const [docError, setDocError] = useState<string | null>(null);
   const { data, error } = useApiData((t) => drivers.documents(t, id), [id, docVersion], {
     key: `driver-documents-${id}`,
@@ -48,6 +50,8 @@ export function DocumentsTab({
       await drivers.decideDocument(token, id, { doc_type: docType, decision, reason: why });
       setReasonFor(null);
       setReason("");
+      setAbstractOpen(false);
+      setAbstractNote("");
       refreshDocs();
     } catch (err) {
       setDocError(err instanceof Error ? err.message : "Could not update document");
@@ -83,7 +87,32 @@ export function DocumentsTab({
                 Verify {item.label}
               </Button>
             ))}
+            <Button variant="outline" onClick={() => setAbstractOpen((o) => !o)}>
+              Verify Ontario abstract
+            </Button>
           </div>
+          {abstractOpen && (
+            <form
+              className="flex flex-wrap items-center gap-2 px-5 pb-5"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (abstractNote.trim().length < 3) return;
+                void decide("abstract", "verified", abstractNote.trim());
+              }}
+            >
+              <input
+                aria-label="Abstract verification note"
+                value={abstractNote}
+                onChange={(e) => setAbstractNote(e.target.value)}
+                maxLength={500}
+                placeholder="Abstract date or how it was checked (required)"
+                className="min-w-[16rem] flex-1 rounded-lg border border-primary/15 px-3 py-2 text-sm"
+              />
+              <Button type="submit" disabled={abstractNote.trim().length < 3}>
+                Confirm verified
+              </Button>
+            </form>
+          )}
         </SectionCard>
       )}
       <div className="grid gap-5 md:grid-cols-2">

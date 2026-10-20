@@ -168,16 +168,27 @@ def decide_document(
     docs = dict(driver.documents or {})
     entry = docs.get(key)
     entry = dict(entry) if isinstance(entry, dict) else {}
+    has_file = bool(entry.get("url") or entry.get("file_url"))
+    without_file = decision == "verified" and key == "abstract" and not has_file
+    if without_file and len(note) < 3:
+        # Abstract can be confirmed without an upload (e.g. checked on the MTO
+        # portal), but ops must say how/when so the decision is traceable.
+        raise ValueError("abstract_note_required")
     verified = decision == "verified"
     entry["verified"] = verified
     if decision == "verified":
         entry["status"] = "verified"
         entry.pop("rejection_reason", None)
+        if key == "abstract":
+            entry["verified_at"] = datetime.now(UTC).isoformat()
+            entry["verified_by"] = ctx.user.id if getattr(ctx, "user", None) else None
+            entry["verified_without_file"] = without_file
+            if note:
+                entry["verification_note"] = note
     elif decision == "rejected":
         entry["status"] = "rejected"
         entry["rejection_reason"] = note
     else:
-        has_file = bool(entry.get("url") or entry.get("file_url"))
         entry["status"] = "pending_review" if has_file else "missing"
         entry.pop("rejection_reason", None)
     docs[key] = entry
@@ -225,7 +236,14 @@ def decide_document(
         "driver.document_decided",
         "driver",
         driver.id,
-        {"doc_type": key, "decision": decision, "reason": note or None},
+        {
+            "doc_type": key,
+            "decision": decision,
+            "reason": note or None,
+            "without_file": without_file,
+            "verified_by": ctx.user.id if getattr(ctx, "user", None) else None,
+            "decided_at": datetime.now(UTC).isoformat(),
+        },
     )
 
 
