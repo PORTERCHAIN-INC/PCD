@@ -185,3 +185,88 @@ def test_admin_review_files_does_not_duplicate_files_array() -> None:
     )
     assert len(files) == 1
     assert files[0]["file_url"] == "https://files.test/license.pdf"
+
+
+def _abstract_driver(documents: dict):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        id="d1",
+        documents=documents,
+        license_verified=False,
+        insurance_verified=False,
+        vehicle_verified=False,
+        background_check_status="pending",
+    )
+
+
+def test_abstract_verify_without_file_requires_note() -> None:
+    from types import SimpleNamespace
+
+    from porterchain_api.admin_engine.driver_documents import decide_document
+
+    driver = _abstract_driver({})
+    try:
+        decide_document(
+            None,
+            SimpleNamespace(user=SimpleNamespace(id="a")),
+            driver,
+            doc_type="abstract",
+            decision="verified",
+            reason=" ",
+            audit=lambda *args, **kwargs: None,
+        )
+    except ValueError as exc:
+        assert str(exc) == "abstract_note_required"
+    else:
+        raise AssertionError("expected abstract_note_required")
+
+
+def test_abstract_verify_without_file_records_who_and_when() -> None:
+    from types import SimpleNamespace
+
+    from porterchain_api.admin_engine.driver_documents import decide_document
+
+    calls: list[tuple] = []
+    driver = _abstract_driver({})
+    decide_document(
+        None,
+        SimpleNamespace(user=SimpleNamespace(id="admin-1")),
+        driver,
+        doc_type="abstract",
+        decision="verified",
+        reason="MTO abstract dated 2026-10-15, checked on portal",
+        audit=lambda *args: calls.append(args),
+    )
+    entry = driver.documents["abstract"]
+    assert entry["verified"] is True
+    assert entry["status"] == "verified"
+    assert entry["verified_by"] == "admin-1"
+    assert entry["verified_at"]
+    assert entry["verified_without_file"] is True
+    assert entry["verification_note"].startswith("MTO abstract")
+    assert entry["verification_source"] == "manual"
+    payload = calls[0][5]
+    assert calls[0][2] == "driver.document_decided"
+    assert payload["without_file"] is True
+    assert payload["verified_by"] == "admin-1"
+    assert payload["reason"].startswith("MTO abstract")
+
+
+def test_abstract_verify_with_file_needs_no_note() -> None:
+    from types import SimpleNamespace
+
+    from porterchain_api.admin_engine.driver_documents import decide_document
+
+    driver = _abstract_driver({"abstract": {"url": "https://x/a.pdf", "status": "pending_review"}})
+    decide_document(
+        None,
+        SimpleNamespace(user=SimpleNamespace(id="a")),
+        driver,
+        doc_type="abstract",
+        decision="verified",
+        audit=lambda *args, **kwargs: None,
+    )
+    entry = driver.documents["abstract"]
+    assert entry["verified"] is True
+    assert entry["verified_without_file"] is False
