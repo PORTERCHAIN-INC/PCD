@@ -4,7 +4,7 @@
       "title": "Same-Day Courier Toronto & GTA | Instant Price | PorterChain",
       "description": "Same-day and next-day business courier across Toronto and the GTA. Sedan, SUV, van or 16 ft box truck. Exact price in 10 seconds, HST extra. Book by 11 AM, delivered today.",
       "ogTitle": "PorterChain: same-day courier for Toronto & the GTA",
-      "ogDescription": "Book by 11 AM, delivered 2–9 PM today. Exact price in 10 seconds. Live tracking, photo proof and $2,500 coverage on every parcel."
+      "ogDescription": "Book by 11 AM, delivered 2–9 PM today. Exact price in 10 seconds. Live tracking, photo proof and $2,500 goods insurance included."
     },
     "platform": {
       "title": "How We Operate | Full-Stack Capacity Capabilities | PorterChain",
@@ -62,7 +62,7 @@
     },
     "trust": {
       "title": "Trust & Security | Porterchain",
-      "description": "How PorterChain protects your deliveries: $2,500 coverage included, live tracking, photo proof of delivery, PIPEDA privacy and a one-business-day claims reply.",
+      "description": "How PorterChain protects your deliveries: $2,500 goods insurance included, live tracking, photo proof of delivery, PIPEDA privacy and a one-business-day claims reply.",
       "ogTitle": "Porterchain Trust Center",
       "ogDescription": "Commercial insurance, proof-of-delivery standards, operational escalation, and security documentation for capacity programs."
     },
@@ -407,7 +407,7 @@
       "subtitle": "Same-day, urgent, emergency, and recurring B2B delivery across the GTA — intra-city logistics and local delivery with professional drivers, sedan through box truck, live tracking and proof on every stop.",
       "primaryCta": "Get a quote",
       "secondaryCta": "See vehicles",
-      "trustLine": "Exact price in 10 seconds · No sign-up · $2,500 coverage included",
+      "trustLine": "Exact price in 10 seconds · No sign-up · $2,500 goods insurance included",
       "trustProof": "Proof of delivery on every stop",
       "trustAreas": "Toronto · Mississauga · Brampton · Peel · York · Durham",
       "slaLabel": "Quote response by",
@@ -2208,7 +2208,7 @@
         },
         "1": {
           "title": "Trust & coverage",
-          "description": "$2,500 parcel coverage, photo proof and the claims process.",
+          "description": "$2,500 goods insurance included, photo proof and the claims process.",
           "href": "/trust"
         },
         "2": {
@@ -2800,7 +2800,7 @@
     },
     "insurance": {
       "title": "Insurance & COI",
-      "description": "$2,500 parcel coverage process for merchant programs.",
+      "description": "$2,500 goods insurance and the claims process for merchant programs.",
       "breadcrumb": "Insurance",
       "body": "COI is available for active merchant programs on request.\n\nThis page is a noindex scaffold until legal finalizes public insurance language.\n\nSee /trust for the trust center overview."
     },
@@ -2821,7 +2821,7 @@
     "hero": {
       "badge": "Trust & coverage",
       "title": "Coverage, proof and a clear claims process",
-      "subtitle": "$2,500 coverage included on every parcel, photo proof on every drop, and a reply to every claim within one business day.",
+      "subtitle": "$2,500 goods insurance included, photo proof on every drop, and a reply to every claim within one business day.",
       "primaryCta": "See the claims process",
       "secondaryCta": "Get instant price"
     },
@@ -2848,7 +2848,7 @@
         },
         "3": {
           "title": "Coverage on every parcel",
-          "description": "$2,500 coverage is included on every parcel. Add $25,000 coverage for $10 when you book something valuable."
+          "description": "$2,500 goods insurance is included. Add enhanced coverage up to $25,000 for +$10 per stop when you book something valuable."
         },
         "4": {
           "title": "Proof of delivery",
@@ -2892,7 +2892,7 @@
       "hero": {
         "badge": "Proof & claims",
         "title": "Proof on every drop. A clear path if something goes wrong.",
-        "subtitle": "Photo proof and a timestamped record on every delivery, $2,500 coverage included, and a reply to every claim within one business day."
+        "subtitle": "Photo proof and a timestamped record on every delivery, $2,500 goods insurance included, and a reply to every claim within one business day."
       },
       "bands": {
         "label": "Closeout",
@@ -2919,7 +2919,7 @@
       },
       "note": {
         "title": "Coverage included",
-        "body": "Every parcel includes $2,500 coverage; up to $25,000 for $10. We reply to every claim within one business day."
+        "body": "$2,500 goods insurance is included; enhanced coverage up to $25,000 for +$10 per stop. We reply to every claim within one business day."
       },
       "cta": {
         "title": "Ready to book with proof on every drop?",

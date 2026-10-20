@@ -16,7 +16,7 @@ import SectionHeader from "@/components/marketing/ui/SectionHeader";
  * Contrast block: "the usual courier" vs PorterChain. The left column describes common industry
  * friction in general terms (no competitor names, no competitor prices); the right column is a
  * shipped capability or a published fact (instant price API, delivery promise, vehicle classes,
- * tracking + photo POD, $2,500 coverage, Interac billing). No invented numbers.
+ * tracking + photo POD, $2,500 goods insurance, Interac billing). No invented numbers.
  */
 const ROWS = [
   { id: "price", Icon: Calculator },

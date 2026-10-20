@@ -620,8 +620,8 @@
       "ariaLabel": "Couverture en bref",
       "postalAreas": "Grand Toronto + ~150 km",
       "postalAreasHint": "{count} zones postales, vérifiées instantanément. Zones principales : Vaughan, Concord, Brampton, Mississauga.",
-      "areas": "2 500 $ de couverture",
-      "areasHint": "Incluse sur chaque colis. Besoin de plus? 25 000 $ pour 10 $.",
+      "areas": "Assurance marchandises de 2 500 $",
+      "areasHint": "Incluse. Besoin de plus? Couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt.",
       "vehicles": "{count} tailles de véhicule",
       "vehiclesHint": "Berline / VUS (~80 kg), fourgon (~900 kg), camion cube 16 pi (~3 000 kg)"
     },
@@ -742,8 +742,8 @@
         },
         "coverage": {
           "need": "Couverture en petits caractères",
-          "title": "2 500 $ de couverture inclus.",
-          "body": "Sur chaque colis. Jusqu'à 25 000 $ pour 10 $."
+          "title": "Assurance marchandises de 2 500 $ incluse.",
+          "body": "Couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt."
         },
         "payment": {
           "need": "Carte seulement, ou longs formulaires de crédit",
@@ -778,7 +778,7 @@
         "pharmacy-medical": "Pharmacies"
       }
     },
-    "riskReversal": "TVH incluse · 2 500 $ de couverture inclus par colis · Les marchands paient par virement Interac"
+    "riskReversal": "TVH en sus · Assurance marchandises de 2 500 $ incluse · Les marchands paient par virement Interac"
   },
   "marketing": {
     "consent": {
@@ -807,7 +807,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Inclus dans chaque livraison",
-      "insured": "2 500 $ de couverture incluse",
+      "insured": "Assurance marchandises de 2 500 $ incluse",
       "tracked": "Suivi en direct",
       "pod": "Preuve de livraison photo"
     }
@@ -1688,7 +1688,7 @@
           },
           "legalProcurement": {
             "title": "Juridique, approvisionnement et finance",
-            "description": "Preuve photo et signature avec référence d'envoi, horodatage GPS, couverture de 2 500 $ par colis."
+            "description": "Preuve photo et signature avec référence d'envoi, horodatage GPS, assurance marchandises de 2 500 $ incluse."
           }
         }
       }
@@ -1800,7 +1800,7 @@
           },
           "legalProcurement": {
             "title": "Juridique, approvisionnement et finance",
-            "description": "Preuve par envoi avec horodatage pour litiges facturation, couverture de 2 500 $ par colis."
+            "description": "Preuve par envoi avec horodatage pour litiges facturation, assurance marchandises de 2 500 $ incluse."
           }
         }
       }
@@ -1912,7 +1912,7 @@
           },
           "legalProcurement": {
             "title": "Juridique, approvisionnement et finance",
-            "description": "Preuve de livraison avec référence d'envoi pour litiges, couverture de 2 500 $ par colis."
+            "description": "Preuve de livraison avec référence d'envoi pour litiges, assurance marchandises de 2 500 $ incluse."
           }
         }
       }

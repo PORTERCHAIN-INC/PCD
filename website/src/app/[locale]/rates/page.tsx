@@ -115,7 +115,7 @@ const FAQ = [
   },
   {
     q: "Are deliveries covered?",
-    a: "Standard Coverage up to $1,000 is included per route. Enhanced Coverage up to $25,000 is optional at + $10 per stop and replaces standard. Claims must be notified in writing within 5 business days.",
+    a: "$2,500 goods insurance is included. Enhanced coverage up to $25,000 is optional at +$10 per stop and replaces the included cover. Claims must be notified in writing within 5 business days.",
   },
   { q: "Are taxes included?", a: "All prices in CAD. 13% HST extra." },
   { q: "Is tracking included?", a: "Yes. Live tracking and recipient notices are included." },

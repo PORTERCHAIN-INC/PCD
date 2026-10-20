@@ -68,7 +68,7 @@ const EN: CoreFaq[] = [
     group: "trust",
     question: "What if something is lost or damaged?",
     answer:
-      "Every parcel includes $2,500 coverage. Shipping something valuable? Add $25,000 coverage for $10. Report it with the tracking number and photos; we reply within one business day.",
+      "$2,500 goods insurance is included. Shipping something valuable? Add enhanced coverage up to $25,000 for +$10 per stop. Report it with the tracking number and photos; we reply within one business day.",
     link: { href: "/trust/claims", label: "Claims process" },
   },
   {
@@ -150,7 +150,7 @@ const FR: CoreFaq[] = [
     group: "trust",
     question: "Et si un colis est perdu ou endommagé?",
     answer:
-      "Chaque colis inclut une couverture de 2 500 $. Pour un envoi de valeur, ajoutez une couverture de 25 000 $ pour 10 $. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
+      "L'assurance marchandises de 2 500 $ est incluse. Pour un envoi de valeur, ajoutez une couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
     link: { href: "/trust/claims", label: "Réclamations" },
   },
   {

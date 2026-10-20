@@ -12,7 +12,7 @@
 - Same-day promise: book by 11 AM, delivered 2-9 PM the same day, Monday to Saturday. Later bookings go the next operating day.
 - Vehicles: sedan/SUV (up to about 80 kg), cargo van (up to about 900 kg), 16 ft box truck (up to about 3,000 kg); all driven on a standard Ontario G licence.
 - Price: instant and exact from two postal codes and a vehicle, HST extra, no sign-up: https://porterchain.com/en/delivery-cost-calculator
-- Coverage on parcels: $2,500 included on every parcel; optional coverage up to $25,000 for $10.
+- Goods insurance: $2,500 included; optional enhanced coverage up to $25,000 for +$10 per stop.
 - Proof: live tracking link and photo proof of delivery on every order.
 - Medical deliveries: items that must stay cool travel in coolers; no refrigerated vehicles.
 - Payment: merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe).

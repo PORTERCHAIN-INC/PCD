@@ -1009,7 +1009,7 @@ export const ENTITY_FACTS = {
     "Construction materials",
   ],
   protection:
-    "$2,500 coverage included on every parcel; optional coverage up to $25,000 for $10. Live tracking and photo proof of delivery on every order.",
+    "$2,500 goods insurance included; optional enhanced coverage up to $25,000 for +$10 per stop. Live tracking and photo proof of delivery on every order.",
   payment: "Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe).",
   shopify: "PorterChain Shopify app: submitted and in review with Shopify.",
   founder: "Ravi Chauhan, founder.",

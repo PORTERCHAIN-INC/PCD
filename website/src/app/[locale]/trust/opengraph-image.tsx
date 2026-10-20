@@ -7,7 +7,7 @@ export const contentType = "image/png";
 export default function TrustOpenGraphImage() {
   return ogImageResponse({
     eyebrow: "Trust",
-    title: "$2,500 coverage, photo proof, clear claims",
+    title: "$2,500 goods insurance, photo proof, clear claims",
     subtitle: "Documents and commitments for procurement and ops partners",
     tone: "slate",
   });

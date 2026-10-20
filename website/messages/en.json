@@ -685,8 +685,8 @@
       "ariaLabel": "Coverage at a glance",
       "postalAreas": "GTA + ~150 km",
       "postalAreasHint": "{count} postal areas, checked instantly. Core areas: Vaughan, Concord, Brampton, Mississauga.",
-      "areas": "$2,500 covered",
-      "areasHint": "Included on every parcel. Need more? $25,000 coverage for $10.",
+      "areas": "$2,500 goods insurance",
+      "areasHint": "Included. Need more? Enhanced coverage up to $25,000 for +$10 per stop.",
       "vehicles": "{count} vehicle sizes",
       "vehiclesHint": "Sedan / SUV (~80 kg), cargo van (~900 kg), 16 ft box truck (~3,000 kg)"
     },
@@ -807,8 +807,8 @@
         },
         "coverage": {
           "need": "Coverage in the fine print",
-          "title": "$2,500 coverage included.",
-          "body": "On every parcel. Up to $25,000 for $10."
+          "title": "$2,500 goods insurance included.",
+          "body": "Enhanced coverage up to $25,000 for +$10 per stop."
         },
         "payment": {
           "need": "Card only, or long credit forms",
@@ -843,7 +843,7 @@
         "pharmacy-medical": "Pharmacies"
       }
     },
-    "riskReversal": "HST extra · $2,500 parcel coverage included · Merchants pay by Interac e-Transfer"
+    "riskReversal": "HST extra · $2,500 goods insurance included · Merchants pay by Interac e-Transfer"
   },
   "marketing": {
     "consent": {
@@ -872,7 +872,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Included with every delivery",
-      "insured": "$2,500 coverage included",
+      "insured": "$2,500 goods insurance included",
       "tracked": "Live tracking",
       "pod": "Photo proof of delivery"
     }
@@ -1670,7 +1670,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, $2,500 parcel coverage."
+            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, $2,500 goods insurance included."
           }
         }
       }
@@ -1782,7 +1782,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Shipment-level proof with timestamps for billing disputes, $2,500 parcel coverage."
+            "description": "Shipment-level proof with timestamps for billing disputes, $2,500 goods insurance included."
           }
         }
       }
@@ -1894,7 +1894,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Proof of delivery with shipment reference for billing disputes, $2,500 parcel coverage."
+            "description": "Proof of delivery with shipment reference for billing disputes, $2,500 goods insurance included."
           }
         }
       }

@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * Factual badge row: $2,500 parcel coverage included (explained on /trust/claims),
+ * Factual badge row: $2,500 goods insurance included (explained on /trust/claims),
  * live tracking and photo proof of delivery (both shipped product features). No ratings, no counts.
  */
 const BADGES = [
