@@ -2,9 +2,9 @@ name: Security
 
 on:
   push:
-    branches: [main, base-code]
+    branches: [main]
   pull_request:
-    branches: [main, base-code]
+    branches: [main]
 
 concurrency:
   group: security-${{ github.ref }}

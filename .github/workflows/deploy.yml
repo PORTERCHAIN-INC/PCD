@@ -6,7 +6,7 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    # main only: base-code pushes also run CI and used to start a duplicate deploy.
+    # main only (main is the default branch; base-code is a stale, retired branch).
     branches: [main]
   workflow_dispatch:
     inputs:
