@@ -250,7 +250,7 @@ jobs:
 
       - name: Build and push API image
         if: matrix.flavor == 'api' && steps.reuse.outputs.hit != 'true'
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -264,7 +264,7 @@ jobs:
 
       - name: Build and push website image
         if: matrix.flavor == 'website' && steps.reuse.outputs.hit != 'true'
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -294,7 +294,7 @@ jobs:
 
       - name: Build and push portal image
         if: matrix.flavor == 'portal' && steps.reuse.outputs.hit != 'true'
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ${{ matrix.dockerfile }}
