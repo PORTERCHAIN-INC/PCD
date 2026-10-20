@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 # All AdminRole values are enrollable via Staff IdP (real-world role matrix).
 INVITABLE_ADMIN_ROLES = frozenset(role.value for role in AdminRole)
 
+ACCEPTED_ACTIONS = frozenset({"found", "created"})
+
 OPEN_SIGNUP_USER_TYPES = frozenset({"customer", "merchant"})
 
 
@@ -80,6 +82,100 @@ class InvitationService:
             )
         db.commit()
         db.refresh(invitation)
+        return invitation
+
+    def provision_driver_account(
+        self,
+        db: Session,
+        ctx: AdminContext | None,
+        settings: Settings,
+        driver: Any,
+    ) -> UserInvitation:
+        """Create (or link) the driver's Clerk user directly — no invite link needed.
+
+        Idempotent: an existing Clerk user with the same email is linked, never duplicated.
+        Backend-created email addresses are verified, and no password is set, so the
+        driver signs in with an email code. Pending invites are revoked in Clerk and
+        closed locally. On any Clerk failure we fall back to the invite flow.
+        """
+        normalized = driver.email.lower().strip()
+        redirect = f"{settings.driver_portal_url.rstrip('/')}/login"
+        metadata = {
+            "role": "driver",
+            "porterchain_role": "driver",
+            "user_type": "driver",
+            "driver_id": driver.id,
+            "invitation_only": True,
+        }
+        try:
+            clerk = clerk_client_for_kind(settings, "driver")
+            existing = clerk.find_user_by_email(normalized)
+            if existing:
+                clerk_user_id = str(existing["id"])
+                clerk.update_user_metadata(clerk_user_id, metadata)
+                action = "found"
+            else:
+                first, _, last = (driver.full_name or "").strip().partition(" ")
+                created = clerk.create_user(
+                    normalized,
+                    first_name=first or None,
+                    last_name=last.strip() or None,
+                    public_metadata=metadata,
+                    skip_password_requirement=True,
+                )
+                clerk_user_id = str(created["id"])
+                action = "created"
+            try:
+                clerk.revoke_pending_invitations(normalized)
+            except Exception:
+                logger.warning("driver_invite_revoke_failed driver=%s", driver.id, exc_info=True)
+        except Exception as exc:
+            logger.warning("driver_clerk_provision_failed driver=%s: %s", driver.id, exc)
+            return self.invite_driver(db, ctx, settings, driver)
+
+        driver.clerk_user_id = clerk_user_id
+        now = datetime.now(UTC)
+        for row in (
+            db.query(UserInvitation)
+            .filter(
+                UserInvitation.platform_user_id == driver.id,
+                UserInvitation.user_type == "driver",
+                UserInvitation.status == "pending",
+            )
+            .all()
+        ):
+            row.status = "accepted"
+            row.clerk_user_id = clerk_user_id
+            row.accepted_at = now
+
+        invitation = self._record_invitation(
+            db,
+            email=normalized,
+            user_type="driver",
+            role="driver",
+            clerk_result=ClerkInviteResult(action=action, clerk_user_id=clerk_user_id),
+            platform_user_id=driver.id,
+            invited_by=ctx.user.id if ctx and ctx.user else None,
+            redirect_url=redirect,
+            metadata={"full_name": driver.full_name},
+        )
+        if ctx:
+            log_admin_audit(
+                db,
+                ctx,
+                action="driver.clerk_provisioned",
+                resource_type="driver",
+                resource_id=driver.id,
+                payload={"email": normalized, "clerk_action": action},
+            )
+        db.commit()
+        db.refresh(invitation)
+        try:
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+            sync_authz_after_persona_mutation(db, clerk_user_id)
+        except Exception:
+            logger.warning("driver_authz_sync_failed driver=%s", driver.id, exc_info=True)
         return invitation
 
     def invite_existing_driver(
@@ -183,7 +279,7 @@ class InvitationService:
             email=email,
             user_type=user_type,
             role=role,
-            status="accepted" if clerk_result.action == "found" else "pending",
+            status="accepted" if clerk_result.action in ACCEPTED_ACTIONS else "pending",
             clerk_invitation_id=clerk_result.clerk_invitation_id,
             clerk_user_id=clerk_result.clerk_user_id,
             platform_user_id=platform_user_id,
@@ -191,7 +287,7 @@ class InvitationService:
             invited_by=invited_by,
             redirect_url=redirect_url,
             invitation_metadata={**(metadata or {}), "clerk_action": clerk_result.action},
-            accepted_at=datetime.now(UTC) if clerk_result.action == "found" else None,
+            accepted_at=datetime.now(UTC) if clerk_result.action in ACCEPTED_ACTIONS else None,
         )
         db.add(invitation)
         return invitation
