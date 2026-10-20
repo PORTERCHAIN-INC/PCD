@@ -15,7 +15,7 @@ EXPECTED = {
     "titleHighlight": "PorterChain can.",
     "primaryCta": "Get a quote",
     "secondaryCta": "See vehicles",
-    "trustLine": "Exact price in 10 seconds · No sign-up · $2,500 coverage included",
+    "trustLine": "Exact price in 10 seconds · No sign-up · $2,500 goods insurance included",
 }
 
 
@@ -52,7 +52,7 @@ def main() -> int:
             CORPORATE_FR,
             "fr",
             "Obtenir un devis",
-            "Prix exact en 10 secondes · Sans inscription · Protection de 2 500 $ incluse",
+            "Prix exact en 10 secondes · Sans inscription · Assurance marchandises de 2 500 $ incluse",
         )
     )
 
