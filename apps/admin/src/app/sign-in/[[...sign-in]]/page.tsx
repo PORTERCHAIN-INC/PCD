@@ -196,7 +196,6 @@ function StaffSignIn() {
       portalLabel="Admin"
       title="Staff sign-in"
       subtitle="Passkey when enrolled — email link is recovery only."
-      websiteUrl={publicEnv.websiteUrl}
       footer={
         <>Need first-time access? Ask a super admin to enroll you in Settings → Users → Staff.</>
       }

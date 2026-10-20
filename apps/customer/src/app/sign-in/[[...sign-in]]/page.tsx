@@ -87,7 +87,6 @@ function SignInContent() {
     <CustomerAuthScreen
       title="Customer sign-in"
       subtitle="View deliveries, invoices, and support for your shipments."
-      showPlatformLogin
       footer={
         <>
           New here?{" "}
