@@ -226,12 +226,16 @@ class ScanGateService:
     ) -> dict[str, Any]:
         pkg = self._package_for_scan(db, order, qr_payload)
 
+        # A repeat scan stays a 200 (offline retries replay safely) but is flagged
+        # ``duplicate`` so the driver sees "Already scanned" instead of a fresh tick.
         if phase == "pickup":
-            if pkg.status not in _PICKUP_DONE:
+            duplicate = pkg.status in _PICKUP_DONE
+            if not duplicate:
                 pkg.status = STATUS_PICKED_UP
         else:
             if pkg.status in (STATUS_MANIFESTED, STATUS_MISSING_AT_PICKUP):
                 raise ValueError("scan_pickup_required_first")
+            duplicate = pkg.status == STATUS_DELIVERED
             pkg.status = STATUS_DELIVERED
 
         db.add(pkg)
@@ -242,6 +246,7 @@ class ScanGateService:
             "tracking_suffix": pkg.tracking_suffix,
             "status": pkg.status,
             "actor_id": actor_id,
+            "duplicate": duplicate,
             **progress,
         }
         db.commit()

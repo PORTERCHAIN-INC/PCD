@@ -366,6 +366,7 @@ export const driverApi = {
       required: number;
       complete: boolean;
       missing_suffixes: string[];
+      duplicate?: boolean;
     }>(`/v1/orders/${orderId}/packages/scan`, {
       method: "POST",
       body: JSON.stringify(body),

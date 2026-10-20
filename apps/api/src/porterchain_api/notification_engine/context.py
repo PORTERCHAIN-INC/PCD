@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 
 def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:
@@ -84,6 +87,8 @@ def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:
             out["email"] = customer.email
             out["contact_email"] = customer.email
 
+    _add_business_order_details(db, order, out)
+
     merchant = db.get(Merchant, order.merchant_id) if order.merchant_id else None
     if merchant:
         out["merchant_name"] = merchant.company_name
@@ -108,6 +113,45 @@ def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:
         out.setdefault("lang", "en")
 
     return {k: v for k, v in out.items() if v is not None}
+
+
+def _address_line(value: Any) -> str | None:
+    if isinstance(value, dict):
+        text = str(value.get("formatted") or value.get("address") or "").strip()
+        return text or None
+    if isinstance(value, str):
+        return value.strip() or None
+    return None
+
+
+def _add_business_order_details(db: Session, order: Any, out: dict[str, Any]) -> None:
+    """Merchant pickup/delivered mail: driver's name only (never phone/email), addresses, portal link."""
+    driver_id = getattr(order, "assigned_driver_id", None)
+    if driver_id:
+        try:
+            from porterchain_api.admin_models import Driver
+
+            driver = db.get(Driver, driver_id)
+            name = (getattr(driver, "full_name", None) or "").strip() if driver else ""
+            if name:
+                out["driver_name"] = name
+        except Exception:  # the notice still sends without a name
+            logger.debug("driver name lookup failed for order %s", order.id, exc_info=True)
+    pickup = _address_line(getattr(order, "pickup", None))
+    dropoff = _address_line(getattr(order, "dropoff", None))
+    if pickup:
+        out["pickup_address"] = pickup
+    if dropoff:
+        out["dropoff_address"] = dropoff
+    if getattr(order, "merchant_id", None):
+        try:
+            from porterchain_api.config import get_settings
+
+            base = (get_settings().merchant_portal_url or "").rstrip("/")
+            if base.startswith("http"):
+                out["merchant_order_url"] = f"{base}/orders/{order.id}"
+        except Exception:  # the notice falls back to public tracking
+            logger.debug("merchant portal url unavailable", exc_info=True)
 
 
 def merge_notification_context(

@@ -129,6 +129,7 @@ class NotificationEngine:
         ``hold_until`` parks the row (status ``held``) instead of sending now.
         """
         ctx = dict(context or {})
+        ctx["recipient_role"] = recipient_type
         # Receivers (booker/consignee) get the receiver layout in their language;
         # business copies (merchant/driver/admin) stay English and business-styled.
         if recipient_type in RECEIVER_TYPES:
