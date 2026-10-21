@@ -10,7 +10,14 @@ import OrdersGrid from "@/components/orders/OrdersGrid";
 import dynamic from "next/dynamic";
 import { ListPager } from "@/components/crm/ListPager";
 import { Button } from "@/components/crm/primitives";
-import { ORDER_PAGE_SIZE, ORDER_STATES, ordersApi, type OrderFilters } from "@/lib/orders";
+import {
+  ORDER_PAGE_SIZE,
+  ORDER_STATES,
+  canAssignDriver,
+  isDeliveryLeg,
+  ordersApi,
+  type OrderFilters,
+} from "@/lib/orders";
 import { boardQuery, boardSummary, type OrderPeriod, type OrderQueue } from "@/lib/orderBoard";
 import AdminPage from "@/components/layout/AdminPage";
 import OpsPageHero from "@/components/layout/OpsPageHero";
@@ -19,6 +26,11 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 const OrderBuilderModal = dynamic(
   () => import("@/components/orders/OrderBuilderModal").then((m) => m.OrderBuilderModal),
   { ssr: false, loading: () => <PageSkeleton rows={3} /> }
+);
+
+const BulkAssignDriverModal = dynamic(
+  () => import("@/components/orders/BulkAssignDriverModal").then((m) => m.BulkAssignDriverModal),
+  { ssr: false }
 );
 
 export default function OrdersPage() {
@@ -33,6 +45,7 @@ export default function OrdersPage() {
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [builderOpen, setBuilderOpen] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [showMoreMetrics, setShowMoreMetrics] = useState(false);
   const board = useMemo(
     () => boardQuery(period, queue, customFrom, customTo, filters.state),
@@ -54,6 +67,11 @@ export default function OrdersPage() {
   });
   const rows = page?.items ?? [];
   const total = page?.total ?? 0;
+  const selectedRows = rows.filter((r) => selected.includes(r.order_id));
+  const assignableIds = selectedRows
+    .filter((r) => canAssignDriver(String(r.state)))
+    .map((r) => r.order_id);
+  const deliveryLegCount = selectedRows.filter((r) => isDeliveryLeg(String(r.state))).length;
 
   function changeFilters(next: OrderFilters | ((current: OrderFilters) => OrderFilters)) {
     setOffset(0);
@@ -313,8 +331,35 @@ export default function OrdersPage() {
             >
               Bulk cancel
             </Button>
+            <Button
+              variant="outline"
+              disabled={assignableIds.length === 0}
+              title={
+                assignableIds.length === 0
+                  ? "None of the selected orders can take a driver"
+                  : undefined
+              }
+              onClick={() => setBulkAssignOpen(true)}
+            >
+              {deliveryLegCount > 0 ? "Assign / reassign driver" : "Assign driver"}
+              {assignableIds.length !== selected.length ? ` (${assignableIds.length})` : ""}
+            </Button>
           </div>
         )}
+
+        {bulkAssignOpen ? (
+          <BulkAssignDriverModal
+            open={bulkAssignOpen}
+            orderIds={assignableIds}
+            deliveryLegCount={deliveryLegCount}
+            onClose={() => setBulkAssignOpen(false)}
+            onDone={() => {
+              setSelected([]);
+              void qc.invalidateQueries({ queryKey: ["orders"] });
+              void refetch();
+            }}
+          />
+        ) : null}
 
         <OrdersGrid rows={rows} selected={selected} onSelect={setSelected} loading={isLoading} />
         <ListPager

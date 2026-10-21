@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { SLA_TONE } from "@/lib/operations";
-import { type OrderDetail } from "@/lib/orders";
+import { isDeliveryLeg, type OrderDetail } from "@/lib/orders";
 import { dateTime, titleCase } from "@/lib/crmFormat";
 import { Badge } from "@/components/crm/primitives";
 import type { ExceptionColumn } from "@/components/orders/ExceptionReasonModal";
@@ -235,6 +235,14 @@ export function nextActionFor(detail: OrderDetail): NextAction {
       label: "Watch on Operations",
       hint: "Accept, pickup, and deliver stay on the PorterChain order",
       kind: "operations",
+    };
+  }
+  if (isDeliveryLeg(state)) {
+    return {
+      key: "assign",
+      label: detail.driver_name ? "Reassign delivery driver" : "Assign delivery driver",
+      hint: "Picked up — hand the delivery leg to another driver (hub / cross-dock / swap)",
+      kind: "assign",
     };
   }
   if (

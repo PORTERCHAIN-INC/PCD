@@ -57,6 +57,8 @@ class DomainEventType(StrEnum):
     DRIVER_REJECTED = "order.driver_rejected"
     #: Dispatch took a not-yet-accepted job back (e.g. Ops Today plan Undo) — tell the driver.
     DRIVER_JOB_REMOVED = "order.driver_job_removed"
+    #: Admin moved an in-flight job (accepted … at destination) to another driver, state unchanged.
+    DRIVER_HANDOFF = "order.driver_handoff"
     ORDER_NEAR_DELIVERY = "order.near_delivery"
     ORDER_LOCATION_UPDATED = "order.tracking_updated"
     ORDER_TEMP_EXCURSION = "order.temp_excursion"

@@ -5,6 +5,7 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import { Button, Modal } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { api } from "@/lib/api";
+import { assignDriverLabel, isDeliveryLeg } from "@/lib/orders";
 import { ops, type SuggestedDriver } from "@/lib/operations";
 import { titleCase } from "@/lib/crmFormat";
 import { formatSuggestionEta } from "@/lib/telemetryLabels";
@@ -14,6 +15,8 @@ type Props = {
   orderId: string | null;
   trackingNumber?: string | null;
   currentDriverName?: string | null;
+  /** Order state — picked-up orders get the delivery-leg wording. */
+  orderState?: string | null;
   onClose: () => void;
   onAssigned?: () => void;
 };
@@ -23,9 +26,12 @@ export function AssignDriverModal({
   orderId,
   trackingNumber,
   currentDriverName,
+  orderState,
   onClose,
   onAssigned,
 }: Props) {
+  const title = assignDriverLabel(orderState, Boolean(currentDriverName));
+  const deliveryLeg = isDeliveryLeg(orderState);
   const { getApiToken } = useAdminAuth();
   const [drivers, setDrivers] = useState<SuggestedDriver[]>([]);
   const [loading, setLoading] = useState(false);
@@ -122,7 +128,7 @@ export function AssignDriverModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={currentDriverName ? "Reassign driver" : "Assign driver"}
+      title={title}
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={busy}>
@@ -151,6 +157,16 @@ export function AssignDriverModal({
             "Select a driver. Scores use ETA, load, and rating when available."
           )}
         </p>
+        {deliveryLeg && (
+          <p
+            className="rounded-xl bg-secondary/5 px-3 py-2 text-xs text-muted"
+            data-testid="delivery-leg-note"
+          >
+            Already picked up. The order keeps its status; the new driver takes the delivery and
+            gets a notification, and the current driver&apos;s job is removed. The merchant and
+            customer see only the new driver&apos;s name.
+          </p>
+        )}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {unranked && !loading && (
           <p className="text-xs font-medium text-amber-700">Unranked — ETAs not ready</p>

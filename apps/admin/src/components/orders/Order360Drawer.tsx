@@ -8,7 +8,7 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import { cn } from "@porterchain/ui/utils";
 import { useApiData } from "@/hooks/useApiData";
 import { ops } from "@/lib/operations";
-import { ordersApi } from "@/lib/orders";
+import { assignDriverLabel, canAssignDriver, ordersApi } from "@/lib/orders";
 import { dateTime, titleCase } from "@/lib/crmFormat";
 import { Badge, Button, Drawer } from "@/components/crm/primitives";
 import { ActionFlash } from "@/components/orders/sections";
@@ -139,15 +139,9 @@ export function Order360Drawer({
               <Button
                 className="px-3 py-1.5 text-xs"
                 onClick={() => setAssignOpen(true)}
-                disabled={[
-                  "DELIVERED",
-                  "POD_COMPLETED",
-                  "INVOICED",
-                  "CLOSED",
-                  "CANCELLED",
-                ].includes(detail.state)}
+                disabled={!canAssignDriver(detail.state)}
               >
-                {detail.driver_name ? "Reassign" : "Assign driver"}
+                {assignDriverLabel(detail.state, Boolean(detail.driver_name))}
               </Button>
               <Button
                 variant="danger"
@@ -219,7 +213,7 @@ export function Order360Drawer({
                 <div className="flex flex-wrap gap-2">
                   {next.kind === "assign" && (
                     <Button className="px-3 py-1.5 text-xs" onClick={() => setAssignOpen(true)}>
-                      Assign driver
+                      {next.label}
                     </Button>
                   )}
                   {next.kind === "operations" && (
@@ -345,6 +339,7 @@ export function Order360Drawer({
           orderId={orderId}
           trackingNumber={detail?.tracking_number}
           currentDriverName={detail?.driver_name}
+          orderState={detail?.state}
           onClose={() => setAssignOpen(false)}
           onAssigned={() => {
             void refetch();

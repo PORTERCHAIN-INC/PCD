@@ -50,6 +50,7 @@ export const DomainEvents = {
   ORDER_CANCELLED: "order.cancelled",
   DRIVER_REJECTED: "order.driver_rejected",
   DRIVER_JOB_REMOVED: "order.driver_job_removed",
+  DRIVER_HANDOFF: "order.driver_handoff",
   ORDER_NEAR_DELIVERY: "order.near_delivery",
   ORDER_LOCATION_UPDATED: "order.tracking_updated",
   ORDER_TEMP_EXCURSION: "order.temp_excursion",
