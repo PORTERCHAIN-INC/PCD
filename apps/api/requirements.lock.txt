@@ -80,7 +80,7 @@ qrcode==8.2
 redis==8.1.0
 reportlab==5.0.1
 requests==2.34.2
-sentry-sdk==2.71.0
+sentry-sdk==2.72.0
 six==1.17.0
 sqlalchemy==2.1.4
 starlette==1.7.0
