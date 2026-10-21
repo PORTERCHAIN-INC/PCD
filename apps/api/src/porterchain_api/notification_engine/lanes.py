@@ -21,6 +21,7 @@ FAST_TEMPLATES = frozenset(
     {
         "job_assigned",  # driver job offer (push, FCM category job_offer)
         "job_removed",  # dispatch took the job back — must beat the driver driving to it
+        "job_handoff",  # dispatch handed an in-flight job to this driver
         "cx_out_for_delivery",
         "cx_eta",
         "cx_eta_20",

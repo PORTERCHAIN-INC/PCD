@@ -553,3 +553,33 @@ export function shopifyAdminUrl(
   if (!domain || !id || !domain.includes(".")) return null;
   return `https://${domain}/admin/orders/${encodeURIComponent(id)}`;
 }
+
+/** Picked up and not yet delivered: a new driver here takes the delivery leg. */
+export const DELIVERY_LEG_STATES = ["PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"] as const;
+
+/** States where admin can assign or reassign a driver (API hands off in place once accepted). */
+export const ASSIGNABLE_STATES = [
+  "BOOKED",
+  "DISPATCH_READY",
+  "DRIVER_REJECTED",
+  "DRIVER_ASSIGNED",
+  "DRIVER_ACCEPTED",
+  "DRIVER_EN_ROUTE",
+  "AT_PICKUP",
+  ...DELIVERY_LEG_STATES,
+] as const;
+
+export function isDeliveryLeg(state?: string | null): boolean {
+  return (DELIVERY_LEG_STATES as readonly string[]).includes(String(state ?? "").toUpperCase());
+}
+
+export function canAssignDriver(state?: string | null): boolean {
+  return (ASSIGNABLE_STATES as readonly string[]).includes(String(state ?? "").toUpperCase());
+}
+
+/** Button / modal label for the assign action, by order state. */
+export function assignDriverLabel(state?: string | null, hasDriver?: boolean): string {
+  if (isDeliveryLeg(state))
+    return hasDriver ? "Reassign delivery driver" : "Assign delivery driver";
+  return hasDriver ? "Reassign driver" : "Assign driver";
+}

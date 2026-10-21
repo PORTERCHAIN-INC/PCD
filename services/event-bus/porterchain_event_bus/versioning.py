@@ -26,6 +26,7 @@ EVENT_SCHEMA_VERSIONS: dict[str, int] = {
     "order.dispatch_ready": 1,
     "order.dispatch_requested": 1,
     "order.driver_assigned": 1,
+    "order.driver_handoff": 1,
     "order.driver_accepted": 1,
     "order.arrived_pickup": 1,
     "order.pickup_completed": 1,

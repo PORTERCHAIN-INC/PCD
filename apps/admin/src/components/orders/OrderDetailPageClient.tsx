@@ -334,6 +334,7 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
         orderId={id}
         trackingNumber={detail?.tracking_number}
         currentDriverName={detail?.driver_name}
+        orderState={detail?.state}
         onClose={() => setAssignOpen(false)}
         onAssigned={() => {
           flashNotice("Driver assignment updated.");

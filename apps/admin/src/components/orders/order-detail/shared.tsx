@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@porterchain/ui/utils";
 import { Button } from "@/components/crm/primitives";
-import type { OrderDetail } from "@/lib/orders";
+import { assignDriverLabel, canAssignDriver, type OrderDetail } from "@/lib/orders";
 import type { Order360Actions } from "./types";
 
 export function Meta({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
@@ -66,8 +66,15 @@ export function QuickActions({
     primary?: boolean;
     danger?: boolean;
   }> = [
-    { label: "Assign driver", onClick: actions.onAssignDriver, primary: true },
-    { label: "Reassign driver", onClick: actions.onReassignDriver },
+    ...(canAssignDriver(detail.state)
+      ? [
+          {
+            label: assignDriverLabel(detail.state, Boolean(detail.driver_name)),
+            onClick: detail.driver_name ? actions.onReassignDriver : actions.onAssignDriver,
+            primary: true,
+          },
+        ]
+      : []),
     { label: "Mark exception", onClick: () => actions.onMarkException(), danger: true },
     { label: "Cancel order", onClick: actions.onCancel, danger: true },
     { label: "Duplicate order", onClick: actions.onDuplicate },
