@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SignIn, useAuth, useUser } from "@clerk/nextjs";
+import { SignIn, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 import {
   PortalAuthScreen,
   humanAuthError,
@@ -12,6 +12,7 @@ import {
   signInUnavailableCopy,
 } from "@porterchain/auth";
 import { isClerkConfigured, isDevEmailLogin } from "@/lib/env";
+import { hasDriverSession } from "@/lib/api";
 
 /**
  * Fixed-height slot for the Clerk card. Without it the page re-centres twice while Clerk
@@ -124,17 +125,54 @@ function ClerkDriverContinue({ redirectUrl }: { redirectUrl: string }) {
   const { user } = useUser();
   const [continuing, setContinuing] = useState(false);
 
+  const [serverRejected, setServerRejected] = useState(false);
+
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
     if (!user?.primaryEmailAddress?.emailAddress) return;
-    setContinuing(true);
-    router.replace(redirectUrl);
+    let cancelled = false;
+    // Only leave /login once the server also accepts the session. If the browser is signed
+    // in but the server is not (e.g. Clerk key mismatch), bouncing to a protected page just
+    // sends us straight back here: an endless /login <-> /onboarding flicker loop.
+    void hasDriverSession()
+      .catch(() => false)
+      .then((ok) => {
+        if (cancelled) return;
+        if (!ok) {
+          setServerRejected(true);
+          return;
+        }
+        setContinuing(true);
+        router.replace(redirectUrl);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isLoaded, isSignedIn, redirectUrl, router, user]);
 
   if (!isLoaded) {
     return (
       <div className={SIGN_IN_SLOT} role="status">
         <p className="text-center text-sm text-muted">Loading sign-in…</p>
+      </div>
+    );
+  }
+
+  if (isSignedIn && serverRejected) {
+    return (
+      <div className={SIGN_IN_SLOT} role="alert">
+        <p className="text-center text-sm text-muted">
+          We couldn&apos;t confirm your sign-in. Please sign out and try again, or contact
+          Porterchain operations if this keeps happening.
+        </p>
+        <SignOutButton redirectUrl="/login">
+          <button
+            type="button"
+            className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-primary"
+          >
+            Sign out
+          </button>
+        </SignOutButton>
       </div>
     );
   }
