@@ -69,7 +69,7 @@ pyasn1-modules==0.4.2
 pycparser==3.11
 pydantic==2.14.0
 pydantic-core==2.50.0
-pydantic-settings==2.15.0
+pydantic-settings==2.16.0
 pyjwt==2.15.1
 pyopenssl==26.4.0
 python-dateutil==2.9.0.post0
