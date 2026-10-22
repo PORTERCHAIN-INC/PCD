@@ -656,6 +656,7 @@ class JobsService:
             "delivery_stop_id": f"{order.id}-dropoff",
             "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
             "special_instructions": order.special_instructions,
+            "delivery_notes": _delivery_lines(dropoff),
             "urgency": urgency,
             "high_priority": urgency in ("critical", "high"),
             "priority_rank": ranks.get(order.id),
@@ -719,3 +720,9 @@ def _pod_gate(db: Session, driver: Any, order: Any) -> dict[str, Any]:
         "pod_missing": missing,
         "on_duty": is_on_duty(db, driver) if duty_enforced() else True,
     }
+
+
+def _delivery_lines(dropoff: Any) -> list[str]:
+    from porterchain_api.domain.delivery_options import summary_lines
+
+    return summary_lines(dropoff)

@@ -11,7 +11,26 @@ import {
 import type { OrderDetail } from "@/lib/orders";
 import { formatCents, formatDate } from "@/lib/utils";
 import Link from "next/link";
+import type { DeliveryOptions } from "@porterchain/types/delivery-options";
+import OrderDeliveryOptionsEditor from "@/components/delivery/OrderDeliveryOptionsEditor";
 import { Card, pickupWindowFromStops } from "./shared";
+
+/** Mirrors API domain/delivery_options.EDITABLE_STATES (server re-checks). */
+const DELIVERY_OPTIONS_EDITABLE = new Set([
+  "DRAFT",
+  "PENDING_PAYMENT",
+  "PAID",
+  "CONFIRMED",
+  "DISPATCH_READY",
+  "DRIVER_ASSIGNED",
+  "DRIVER_EN_ROUTE",
+  "AT_PICKUP",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "SCHEDULED",
+  "ON_HOLD",
+  "REJECTED",
+]);
 
 function shopifyEventLabel(status: string | null | undefined): string {
   if (!status) return "Not sent yet";
@@ -31,6 +50,13 @@ export function OverviewTab({ detail }: { detail: OrderDetail }) {
       </Card>
       <Card title="Delivery">
         <p>{String(detail.dropoff_detail?.formatted ?? detail.destination)}</p>
+        <div className="mt-2">
+          <OrderDeliveryOptionsEditor
+            orderId={detail.order_id}
+            value={detail.dropoff_detail?.delivery_options as DeliveryOptions | undefined}
+            editable={DELIVERY_OPTIONS_EDITABLE.has(String(detail.state).toUpperCase())}
+          />
+        </div>
       </Card>
       <Card title="References">
         <p>Source: {detail.order_source_label || orderSourceLabel(detail.order_source)}</p>

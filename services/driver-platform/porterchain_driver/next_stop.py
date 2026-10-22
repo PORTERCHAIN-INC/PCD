@@ -55,7 +55,19 @@ def mask_phone(raw: str | None) -> str | None:
 
 
 def _access_fields(stop: Any) -> dict[str, Any]:
+    from porterchain_api.domain.delivery_options import of as delivery_options_of
+    from porterchain_api.domain.delivery_options import summary_lines
+
     addr = stop.address if isinstance(getattr(stop, "address", None), dict) else {}
+    is_drop = str(getattr(stop, "stop_type", "") or "").lower() != "pickup"
+    opts = delivery_options_of(addr) if is_drop else {}
+    # Shared delivery options fill the classic access keys when the address has none.
+    addr = {
+        **({"unit": opts["unit"]} if opts.get("unit") else {}),
+        **({"buzzer": opts["buzzer"]} if opts.get("buzzer") else {}),
+        **({"call_on_arrival": True} if opts.get("call_on_arrival") else {}),
+        **addr,
+    }
     instructions = getattr(stop, "special_instructions", None)
     if isinstance(instructions, str):
         instructions = instructions.strip() or None
@@ -68,6 +80,9 @@ def _access_fields(stop: Any) -> dict[str, Any]:
         "access_dock": _first_str(addr, _DOCK_KEYS),
         "call_on_arrival": _truthy(addr, _CALL_KEYS),
         "contact_phone_masked": mask_phone(_first_str(addr, _PHONE_KEYS)),
+        "drop_method": opts.get("drop_method"),
+        "load_help": bool(opts.get("load_help")),
+        "delivery_notes": summary_lines(addr) if is_drop else [],
     }
 
 
@@ -271,6 +286,9 @@ class NextStopResolver:
             "access_dock": access["access_dock"],
             "call_on_arrival": access["call_on_arrival"],
             "contact_phone_masked": access["contact_phone_masked"],
+            "drop_method": access["drop_method"],
+            "load_help": access["load_help"],
+            "delivery_notes": access["delivery_notes"],
             "delivery_attempts": attempts,
             "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
             "hub_leg": getattr(stop, "hub_leg", None),

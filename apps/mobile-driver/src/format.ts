@@ -16,6 +16,8 @@ export function formatAccessLine(bits: {
   access_dock?: string | null;
   call_on_arrival?: boolean | null;
   contact_phone_masked?: string | null;
+  /** Shared delivery options + site access, already worded by the API. */
+  delivery_notes?: string[] | null;
 }): string | null {
   const parts: string[] = [];
   if (bits.access_unit) parts.push(`Unit ${bits.access_unit}`);
@@ -23,6 +25,9 @@ export function formatAccessLine(bits: {
   if (bits.access_dock) parts.push(`Dock ${bits.access_dock}`);
   if (bits.call_on_arrival) parts.push("Call on arrival");
   if (bits.contact_phone_masked) parts.push(bits.contact_phone_masked);
+  for (const line of bits.delivery_notes ?? []) {
+    if (line && !parts.includes(line)) parts.push(line);
+  }
   if (bits.special_instructions) parts.push(bits.special_instructions);
   return parts.length ? parts.join(" · ") : null;
 }

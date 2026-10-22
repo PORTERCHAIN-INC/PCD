@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  deliveryOptionLines,
+  normalizeDeliveryOptions,
+  type DeliveryOptions,
+} from "@porterchain/types/delivery-options";
+import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
 import Button from "@/components/ui/Button";
 import { useBookingPreview } from "@/hooks/useBookingPreview";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
@@ -133,6 +139,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   const [costCentre, setCostCentre] = useState("");
   const [instructions, setInstructions] = useState("");
   const [siteAccessNotes, setSiteAccessNotes] = useState("");
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptions>({});
   const [requiresLiftgate, setRequiresLiftgate] = useState(false);
   const [otpRequired, setOtpRequired] = useState(false);
   const [custodianName, setCustodianName] = useState("");
@@ -174,7 +181,10 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     const legacy = filledCargo.length ? serializeParcelsForLegacyAPI(filledCargo) : null;
     return {
       pickup: addressToPayload(pickup),
-      dropoff: addressToPayload(dropoff),
+      dropoff: {
+        ...addressToPayload(dropoff),
+        delivery_options: normalizeDeliveryOptions(deliveryOptions),
+      },
       vehicle_class: vehicleClass,
       package_type: packageType,
       weight_kg: legacy && legacy.weight_kg > 0 ? legacy.weight_kg : undefined,
@@ -229,6 +239,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     pickupBy,
     instructions,
     siteAccessNotes,
+    deliveryOptions,
     requiresLiftgate,
     otpRequired,
     custodianName,
@@ -274,6 +285,10 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       setDraftId(draft.draft_id);
       setPickup(payloadToAddress(draft.pickup));
       setDropoff(payloadToAddress(draft.dropoff));
+      setDeliveryOptions(
+        ((draft.dropoff as Record<string, unknown> | undefined)?.delivery_options as
+          DeliveryOptions | undefined) ?? {}
+      );
       setVehicleClass(draft.vehicle_class || "cargo_van");
       setPackageType(draft.package_type || "looseParcel");
       setInstructions(draft.special_instructions || "");
@@ -372,6 +387,8 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     if (typeof p.cost_centre === "string") setCostCentre(p.cost_centre);
     if (typeof p.special_instructions === "string") setInstructions(p.special_instructions);
     if (typeof p.site_access_notes === "string") setSiteAccessNotes(p.site_access_notes);
+    const tplOpts = (p.dropoff as Record<string, unknown> | undefined)?.delivery_options;
+    if (tplOpts && typeof tplOpts === "object") setDeliveryOptions(tplOpts as DeliveryOptions);
     if (typeof p.consignee_email === "string") setConsigneeEmail(p.consignee_email);
     if (typeof p.recipient_id === "string") setRecipientId(p.recipient_id);
     if (typeof p.requires_liftgate === "boolean") setRequiresLiftgate(p.requires_liftgate);
@@ -1085,6 +1102,12 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     </div>
                   </div>
                 )}
+                <DeliveryOptionsFields
+                  value={deliveryOptions}
+                  onChange={setDeliveryOptions}
+                  idPrefix="book-dlv"
+                  hideNote
+                />
                 <div>
                   <label
                     htmlFor="book-special-instructions"
@@ -1151,6 +1174,12 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                 {consigneeEmail && <ReviewRow label="Receiver email" value={consigneeEmail} />}
                 {internalRef && <ReviewRow label="Reference" value={internalRef} />}
                 {siteAccessNotes && <ReviewRow label="Site access" value={siteAccessNotes} />}
+                {deliveryOptionLines(deliveryOptions).length > 0 && (
+                  <ReviewRow
+                    label="Delivery options"
+                    value={deliveryOptionLines(deliveryOptions).join(" · ")}
+                  />
+                )}
                 {requiresLiftgate && <ReviewRow label="Liftgate" value="Required (+$45)" />}
                 {otpRequired && <ReviewRow label="Delivery OTP" value="Required" />}
                 {packageType === "medical" && specimenId && (

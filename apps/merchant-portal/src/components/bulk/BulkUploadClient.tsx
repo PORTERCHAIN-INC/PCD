@@ -394,7 +394,9 @@ export default function BulkPage() {
               Select vehicle once, then upload stops (CSV / XLSX). Repeat a sequence to add another
               parcel to that stop. Optional columns: length, width, height, dimensions_unit (cm, in,
               ft), weight, weight_unit (kg, lbs), sku, quantity. Confirm uses the same billing path
-              as the route planner. Weight is recorded, not charged separately.
+              as the route planner. Weight is recorded, not charged separately. Delivery options per
+              stop: drop_method (leave_at_door, hand_to_recipient, concierge), buzzer,
+              call_on_arrival (yes/no), load_help (yes/no) — your settings default fills blanks.
             </p>
             <div className="flex flex-wrap items-end gap-4">
               <label className="text-sm">

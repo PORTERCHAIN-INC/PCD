@@ -122,7 +122,7 @@ class DriverRouteService:
                 **g, "status": stop_status(g["kind"], evs), "order_number": o.order_number if o else None,
                 "address": addr.get("formatted"), "lat": addr.get("lat"), "lng": addr.get("lng"),
                 "boxes": boxes, "needs_pod": g["kind"] in POD_KINDS,
-                "notes": (o.special_instructions or None) if o is not None else None,
+                "notes": _stop_notes(o, g["kind"]),
                 "liftgate": o is not None and order_needs_liftgate(o),
             })
         nxt = next((i for i, s in enumerate(stops) if s["status"] in {"pending", "arrived"}), None)
@@ -287,3 +287,15 @@ class DriverRouteService:
             DispatchStopEvent.route_id.in_(route_ids), DispatchStopEvent.event.in_(tuple(DONE_EVENTS))
         )
         return {r[0] for r in rows}
+
+
+def _stop_notes(order: Any, kind: str) -> str | None:
+    """Driver notes for one route stop: shared delivery options on drops, then instructions."""
+    if order is None:
+        return None
+    from porterchain_api.domain.delivery_options import summary_lines
+
+    lines = summary_lines(order.dropoff) if kind in POD_KINDS else []
+    if order.special_instructions:
+        lines.append(order.special_instructions)
+    return " · ".join(lines) or None

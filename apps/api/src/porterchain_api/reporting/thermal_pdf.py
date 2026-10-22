@@ -47,7 +47,8 @@ def render_thermal_labels(pages: list[dict[str, Any]]) -> bytes:
     Each page dict keys:
       route_hint, stop_sequence, from_line, to_line, order_number, tracking_base,
       cod_line, qr_payload, tracking_suffix, parcel_index, total_parcels,
-      item_line ("Item 2 · box 1 of 3" for multi-box items; never contents)
+      item_line ("Item 2 · box 1 of 3" for multi-box items; never contents),
+      delivery_line (optional: "Leave at door · Unit 4 · Buzz 1234" — delivery options)
     """
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(LABEL_WIDTH, LABEL_HEIGHT))
@@ -102,6 +103,11 @@ def _draw_page(c: canvas.Canvas, page: dict[str, Any]) -> None:
     if len(from_line) > 42 or len(to_line) > 42:
         c.drawString(margin, y, from_line[42:84])
         c.drawString(LABEL_WIDTH / 2, y, to_line[42:84])
+        y -= 11
+    delivery_line = str(page.get("delivery_line") or "").strip()
+    if delivery_line:
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(margin, y, delivery_line[:72])
         y -= 11
 
     y -= 4

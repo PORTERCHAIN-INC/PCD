@@ -3,10 +3,50 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_serializer
 
 
-class AddressInput(BaseModel):
+class DeliveryOptionsInput(BaseModel):
+    """Shared delivery options (domain/delivery_options.py). All optional."""
+
+    drop_method: Literal["leave_at_door", "hand_to_recipient", "concierge"] | None = None
+    call_on_arrival: bool = False
+    load_help: bool = False
+    unit: str | None = Field(default=None, max_length=40)
+    buzzer: str | None = Field(default=None, max_length=40)
+    note: str | None = Field(default=None, max_length=500)
+
+
+class _DeliveryOptionsMixin(BaseModel):
+    """Dropoff addresses carry ``delivery_options``; omitted from dumps when unset."""
+
+    delivery_options: DeliveryOptionsInput | None = None
+
+    @field_validator("delivery_options", mode="after")
+    @classmethod
+    def _empty_is_none(cls, v: DeliveryOptionsInput | None) -> DeliveryOptionsInput | None:
+        from porterchain_api.domain.delivery_options import normalize
+
+        if v is None:
+            return None
+        clean = normalize(v.model_dump())
+        return DeliveryOptionsInput(**clean) if clean else None
+
+    @model_serializer(mode="wrap")
+    def _drop_unset_options(self, handler: Any) -> Any:
+        data = handler(self)
+        if isinstance(data, dict):
+            opts = data.get("delivery_options")
+            if opts is None:
+                data.pop("delivery_options", None)
+            else:
+                from porterchain_api.domain.delivery_options import normalize
+
+                data["delivery_options"] = normalize(opts)
+        return data
+
+
+class AddressInput(_DeliveryOptionsMixin):
     formatted: str
     place_id: str | None = None
     lat: float | None = None

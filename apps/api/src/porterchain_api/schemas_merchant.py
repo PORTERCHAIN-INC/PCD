@@ -5,9 +5,10 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from porterchain_api.schemas_admin import OrderDetail360Response
+from porterchain_api.schemas_booking import _DeliveryOptionsMixin
 
 
-class AddressInput(BaseModel):
+class AddressInput(_DeliveryOptionsMixin):
     formatted: str
     place_id: str | None = None
     lat: float | None = None
@@ -361,6 +362,8 @@ class RouteImportStopInput(BaseModel):
     contact_email: str | None = None
     external_ref: str | None = None
     notes: str | None = None
+    #: Same set as single booking (drop_method, unit, buzzer, call_on_arrival, load_help, note).
+    delivery_options: dict[str, Any] | None = None
     packages: list[RouteImportPackageInput] | None = None
 
 

@@ -9,7 +9,8 @@
     ".": "./src/index.ts",
     "./blog": "./src/blog.ts",
     "./booking": "./src/booking.ts",
-    "./capacity": "./src/capacity.ts"
+    "./capacity": "./src/capacity.ts",
+    "./delivery-options": "./src/deliveryOptions.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",

@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_api.domain.delivery_options import from_shopify as from_shopify_delivery_options
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 
 
@@ -219,6 +220,8 @@ def map_shopify_order(
         lat=_as_float(address.get("latitude")),
         lng=_as_float(address.get("longitude")),
         postal=_as_str(address.get("zip")) or None,
+        # Shopper's order note + delivery cart attributes -> shared delivery options.
+        delivery_options=from_shopify_delivery_options(payload),
     )
     contact = " ".join(
         p

@@ -131,6 +131,7 @@ def resolve_stops(
             "contact_email": s.get("contact_email"),
             "external_ref": s.get("external_ref"),
             "notes": s.get("notes"),
+            "delivery_options": s.get("delivery_options"),
             "packages": packages_clean(s.get("packages")),
             "time_window_start": s.get("time_window_start"),
             "time_window_end": s.get("time_window_end"),

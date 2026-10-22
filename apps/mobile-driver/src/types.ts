@@ -122,6 +122,9 @@ export type DriverNextStop = {
   access_buzzer?: string | null;
   access_dock?: string | null;
   call_on_arrival?: boolean;
+  drop_method?: string | null;
+  load_help?: boolean;
+  delivery_notes?: string[];
   contact_phone_masked?: string | null;
   delivery_attempts?: number;
   max_delivery_attempts?: number;
