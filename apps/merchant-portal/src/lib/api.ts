@@ -101,6 +101,8 @@ export interface AddressPayload {
   lat?: number;
   lng?: number;
   postal?: string;
+  /** Shared delivery options (dropoff only). */
+  delivery_options?: import("@porterchain/types/delivery-options").DeliveryOptions;
 }
 
 export interface BookPackagePayload {

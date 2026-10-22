@@ -100,6 +100,14 @@ export function JobCard({
             <p className="text-xs font-semibold text-[var(--primary)]">{parcels}</p>
           ) : null}
         </div>
+        {job.delivery_notes && job.delivery_notes.length > 0 ? (
+          <p
+            className="mt-2 line-clamp-2 rounded-lg bg-sky-50 px-2 py-1 text-xs text-sky-900"
+            data-testid="job-delivery-notes"
+          >
+            {job.delivery_notes.join(" · ")}
+          </p>
+        ) : null}
         {job.special_instructions && (
           <p className="mt-2 line-clamp-2 text-xs text-amber-800 bg-amber-50 rounded-lg px-2 py-1">
             {job.special_instructions}

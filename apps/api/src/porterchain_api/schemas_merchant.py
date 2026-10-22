@@ -5,9 +5,10 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from porterchain_api.schemas_admin import OrderDetail360Response
+from porterchain_api.schemas_booking import _DeliveryOptionsMixin
 
 
-class AddressInput(BaseModel):
+class AddressInput(_DeliveryOptionsMixin):
     formatted: str
     place_id: str | None = None
     lat: float | None = None

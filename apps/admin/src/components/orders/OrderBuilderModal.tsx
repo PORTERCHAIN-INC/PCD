@@ -7,6 +7,11 @@ import { adminFetch } from "@/lib/api";
 import { merchants, type MerchantRow } from "@/lib/merchants";
 import { Badge, Button, Drawer, Select } from "@/components/crm/primitives";
 import { DateTimeField, parseDateString } from "@porterchain/ui/date-fields";
+import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
+import {
+  normalizeDeliveryOptions,
+  type DeliveryOptions,
+} from "@porterchain/types/delivery-options";
 
 export type OrderKind = "single" | "hub_spoke" | "multi_pickup_delivery" | "scheduled_pickup";
 
@@ -101,6 +106,7 @@ export function OrderBuilderModal({
   const [vehicleClass, setVehicleClass] = useState("cargo_van");
   const [scheduledAt, setScheduledAt] = useState(defaultSchedule);
   const [instructions, setInstructions] = useState("");
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptions>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,6 +124,7 @@ export function OrderBuilderModal({
     setMerchantId(prefill?.merchant_id?.trim() || "");
     setVehicleClass(prefill?.vehicle_class?.trim() || "cargo_van");
     setInstructions(prefill?.special_instructions?.trim() || "");
+    setDeliveryOptions({});
   }, [open, prefill]);
 
   useEffect(() => {
@@ -166,6 +173,7 @@ export function OrderBuilderModal({
         scheduled_at: new Date(scheduledAt).toISOString(),
         schedule_mode: kind === "scheduled_pickup" ? "later" : "now",
         special_instructions: instructions || null,
+        delivery_options: normalizeDeliveryOptions(deliveryOptions) ?? null,
         stops: stops.map((s, i) => ({
           type: s.type,
           sequence: i,
@@ -414,6 +422,13 @@ export function OrderBuilderModal({
             ))}
           </div>
         </div>
+
+        <DeliveryOptionsFields
+          value={deliveryOptions}
+          onChange={setDeliveryOptions}
+          idPrefix="admin-dlv"
+          hideNote
+        />
 
         <label className="block text-sm">
           <span className="text-xs font-medium text-muted">Special instructions</span>

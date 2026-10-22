@@ -404,6 +404,8 @@ class AdminCreateOrderRequest(BaseModel):
     schedule_mode: str = "now"
     special_instructions: str | None = None
     internal_reference: str | None = None
+    # Shared delivery options for the final drop (domain/delivery_options.py).
+    delivery_options: dict[str, Any] | None = None
 
 
 class AdminCreateOrderResponse(BaseModel):

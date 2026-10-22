@@ -26,6 +26,7 @@ export interface DriverNextStop {
   access_unit?: string | null;
   access_buzzer?: string | null;
   access_dock?: string | null;
+  delivery_notes?: string[];
   call_on_arrival?: boolean;
   contact_phone_masked?: string | null;
   delivery_attempts?: number;
@@ -52,6 +53,8 @@ export interface DriverJobSummary {
   delivery_stop_id: string;
   scheduled_at: string | null;
   special_instructions?: string | null;
+  /** Shared delivery options + site access for the drop (API-worded lines). */
+  delivery_notes?: string[];
   urgency: JobUrgency;
   high_priority: boolean;
   priority_rank: number | null;
@@ -461,6 +464,8 @@ export function formatAccessLine(bits: {
   access_dock?: string | null;
   call_on_arrival?: boolean | null;
   contact_phone_masked?: string | null;
+  /** Shared delivery options + site access, worded by the API. */
+  delivery_notes?: string[] | null;
 }): string | null {
   const parts: string[] = [];
   if (bits.access_unit) parts.push(`Unit ${bits.access_unit}`);
@@ -468,6 +473,9 @@ export function formatAccessLine(bits: {
   if (bits.access_dock) parts.push(`Dock ${bits.access_dock}`);
   if (bits.call_on_arrival) parts.push("Call on arrival");
   if (bits.contact_phone_masked) parts.push(bits.contact_phone_masked);
+  for (const line of bits.delivery_notes ?? []) {
+    if (line && !parts.includes(line)) parts.push(line);
+  }
   if (bits.special_instructions) parts.push(bits.special_instructions);
   return parts.length ? parts.join(" · ") : null;
 }
