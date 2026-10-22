@@ -263,3 +263,56 @@ def contract_document_download(
             "X-Content-Type-Options": "nosniff",
         },
     )
+
+
+# ---------------------------------------------------------------- delivery options
+@router.get("/settings/delivery-defaults")
+def delivery_defaults(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+):
+    """Default delivery options used when a booking/Shopify order chose none."""
+    require_module(ctx, "settings")
+    from porterchain_api.merchant_engine.delivery_options_service import get_default
+
+    return {"delivery_options": get_default(ctx)}
+
+
+@router.put("/settings/delivery-defaults")
+def put_delivery_defaults(
+    body: dict,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "settings")
+    from porterchain_api.merchant_engine.delivery_options_service import set_default
+
+    return {"delivery_options": set_default(db, ctx, body.get("delivery_options"))}
+
+
+@router.patch("/orders/{order_id}/delivery-options")
+def patch_order_delivery_options(
+    order_id: str,
+    body: dict,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "orders")
+    from porterchain_api.merchant_engine.delivery_options_service import DeliveryOptionsError, update_order
+
+    try:
+        return update_order(db, ctx, order_id, body.get("delivery_options"))
+    except DeliveryOptionsError as exc:
+        code = 404 if str(exc) == "order_not_found" else 409
+        raise HTTPException(status_code=code, detail=str(exc)) from exc
+
+
+@router.get("/shopify/orders")
+def shopify_orders_list(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    limit: int = 50,
+):
+    require_module(ctx, "orders")
+    from porterchain_api.merchant_engine.delivery_options_service import shopify_orders
+
+    return {"orders": shopify_orders(db, ctx, limit=limit)}

@@ -1,5 +1,6 @@
 "use client";
 
+import ShopifyOrdersDeliveryCard from "@/components/delivery/ShopifyOrdersDeliveryCard";
 import ConnectionsStatus, {
   useConnectionsStatus,
 } from "@/components/integrations/ConnectionsStatus";
@@ -78,6 +79,7 @@ export default function ShopifyAppClient() {
         </p>
       ) : null}
       <ConnectionsStatus title="PorterChain for Shopify" />
+      {hasStore ? <ShopifyOrdersDeliveryCard /> : null}
       <details
         open={linked || (!hasStore && status.isSuccess)}
         className="group rounded-3xl border border-primary/10 bg-white"

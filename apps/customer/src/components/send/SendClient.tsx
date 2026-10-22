@@ -14,6 +14,11 @@ import {
   type VehicleId,
 } from "@porterchain/types/booking";
 import { AddressAutocompleteInput, GoogleMapsProvider } from "@porterchain/maps";
+import {
+  normalizeDeliveryOptions,
+  type DeliveryOptions,
+} from "@porterchain/types/delivery-options";
+import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
 import CustomerShell from "@/components/CustomerShell";
 import { publicEnv } from "@/lib/env";
 import PortalAuth, { type PortalAuthValue } from "@/components/auth/PortalAuth";
@@ -54,6 +59,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
   const [drops, setDrops] = useState<string[]>([""]);
   const [vehicle, setVehicle] = useState<VehicleId>("sedan_suv");
   const [phone, setPhone] = useState("");
+  const [dlv, setDlv] = useState<DeliveryOptions>({});
   const [book, setBook] = useState<SavedAddress[]>([]);
   const [focus, setFocus] = useState<number | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -129,7 +135,14 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
       if (!token) throw new Error("Sign in again to continue.");
       const quoteId =
         resumed ??
-        (await createQuote({ ...input!, booking_mode: "vehicle", schedule_mode: "now" })).quote_id;
+        (
+          await createQuote({
+            ...input!,
+            dropoff: { ...input!.dropoff, delivery_options: normalizeDeliveryOptions(dlv) },
+            booking_mode: "vehicle",
+            schedule_mode: "now",
+          })
+        ).quote_id;
       localStorage.setItem(PHONE_KEY, phone.trim());
       const booking = await startBooking(token, {
         quote_id: quoteId,
@@ -294,6 +307,20 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             />
           </label>
         ) : null}
+        <details
+          className="rounded-2xl border border-primary/10 p-3"
+          data-testid="send-delivery-options"
+        >
+          <summary className="cursor-pointer text-sm font-semibold text-primary">
+            Delivery instructions (optional)
+          </summary>
+          <DeliveryOptionsFields
+            className="mt-3"
+            value={dlv}
+            onChange={setDlv}
+            idPrefix="send-dlv"
+          />
+        </details>
       </div>
 
       <div

@@ -12,6 +12,8 @@ export type Address = {
   lat?: number;
   lng?: number;
   postal?: string;
+  /** Shared delivery options (dropoff only). */
+  delivery_options?: import("@porterchain/types").DeliveryOptions;
 };
 
 export type OrderResult = {

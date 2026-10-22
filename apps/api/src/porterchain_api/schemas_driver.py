@@ -229,6 +229,9 @@ class DriverNextStop(BaseModel):
     access_dock: str | None = None
     call_on_arrival: bool = False
     contact_phone_masked: str | None = None
+    drop_method: str | None = None
+    load_help: bool = False
+    delivery_notes: list[str] = Field(default_factory=list)
     delivery_attempts: int = 0
     max_delivery_attempts: int = 2
 
@@ -253,6 +256,7 @@ class DriverJobSummary(BaseModel):
     delivery_stop_id: str
     scheduled_at: str | None = None
     special_instructions: str | None = None
+    delivery_notes: list[str] = Field(default_factory=list)
     urgency: str = "normal"
     high_priority: bool = False
     priority_rank: int | None = None

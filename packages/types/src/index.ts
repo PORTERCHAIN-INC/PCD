@@ -81,3 +81,11 @@ export {
   toAddress,
 } from "./booking";
 export type { BookingAddress, BookingDraft, BookingLocale, QuoteInput, VehicleId } from "./booking";
+export type { DeliveryOptions, DropMethod } from "./deliveryOptions";
+export {
+  DELIVERY_FLAGS,
+  DELIVERY_TEXT_LIMITS,
+  DROP_METHODS,
+  deliveryOptionLines,
+  normalizeDeliveryOptions,
+} from "./deliveryOptions";

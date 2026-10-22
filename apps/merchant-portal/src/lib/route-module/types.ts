@@ -5,6 +5,8 @@
  * in units.ts — they are not the source of truth.
  */
 
+import type { DeliveryOptions } from "@porterchain/types/delivery-options";
+
 export const DimensionUnit = {
   IN: "in",
   FT: "ft",
@@ -88,6 +90,8 @@ export interface RouteStop {
   customerPhone?: string;
   customerEmail?: string;
   deliveryNotes?: string;
+  /** Leave at door / concierge / buzzer / call on arrival / load help — same set as single booking. */
+  deliveryOptions?: DeliveryOptions;
   parcels: Parcel[];
 }
 
@@ -137,6 +141,7 @@ export interface RouteImportStopPayload {
   contact_phone?: string;
   contact_email?: string;
   notes?: string;
+  delivery_options?: DeliveryOptions;
   packages?: RouteImportPackagePayload[];
 }
 

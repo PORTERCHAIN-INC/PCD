@@ -7,6 +7,11 @@ import {
   type RouteStop,
 } from "./types.ts";
 import { canonicalizeCapacityClassId } from "../capacity-catalog";
+import {
+  normalizeDeliveryOptions,
+  type DeliveryOptions,
+  type DropMethod,
+} from "@porterchain/types/delivery-options";
 import { withVolumetricWeight } from "./units.ts";
 
 /** Columns match the route planner form. Repeat sequence to add another parcel to the same stop. */
@@ -32,6 +37,11 @@ export const ROUTE_CSV_COLUMNS = [
   "site_access",
   "internal_reference",
   "scheduled_at",
+  // Delivery options (same set as single booking): leave_at_door | hand_to_recipient | concierge
+  "drop_method",
+  "buzzer",
+  "call_on_arrival",
+  "load_help",
 ] as const;
 
 const SAMPLE = [
@@ -58,6 +68,10 @@ const SAMPLE = [
     "",
     "PO-100",
     "",
+    "",
+    "",
+    "",
+    "",
   ].join(","),
   [
     "2",
@@ -81,6 +95,10 @@ const SAMPLE = [
     "Gate code 441",
     "",
     "",
+    "leave_at_door",
+    "4412",
+    "yes",
+    "",
   ].join(","),
   [
     "2",
@@ -99,6 +117,10 @@ const SAMPLE = [
     "in",
     "15",
     "lbs",
+    "",
+    "",
+    "",
+    "",
     "",
     "",
     "",
@@ -170,6 +192,30 @@ function cell(row: string[], index: Map<string, number>, name: string): string {
   const at = index.get(name);
   if (at == null) return "";
   return row[at] ?? "";
+}
+
+const TRUE = new Set(["1", "true", "yes", "y", "on"]);
+const METHODS: Record<string, DropMethod> = {
+  leave_at_door: "leave_at_door",
+  door: "leave_at_door",
+  "leave at door": "leave_at_door",
+  hand_to_recipient: "hand_to_recipient",
+  hand: "hand_to_recipient",
+  "hand delivery": "hand_to_recipient",
+  concierge: "concierge",
+  reception: "concierge",
+};
+
+/** CSV cells → delivery options (same forgiving rules as the API import). */
+export function deliveryOptionsFromCells(c: Record<string, string>): DeliveryOptions | undefined {
+  const method = METHODS[(c.drop_method ?? "").trim().toLowerCase()];
+  return normalizeDeliveryOptions({
+    drop_method: method,
+    unit: c.unit,
+    buzzer: c.buzzer,
+    call_on_arrival: TRUE.has((c.call_on_arrival ?? "").trim().toLowerCase()),
+    load_help: TRUE.has((c.load_help ?? "").trim().toLowerCase()),
+  });
 }
 
 function asNumber(value: string): number {
@@ -301,6 +347,13 @@ export function parseRouteCsv(
       customerPhone: cell(first, columns, "contact_phone") || undefined,
       customerEmail: cell(first, columns, "contact_email") || undefined,
       deliveryNotes: cell(first, columns, "notes") || undefined,
+      deliveryOptions: deliveryOptionsFromCells({
+        drop_method: cell(first, columns, "drop_method"),
+        unit: cell(first, columns, "unit"),
+        buzzer: cell(first, columns, "buzzer"),
+        call_on_arrival: cell(first, columns, "call_on_arrival"),
+        load_help: cell(first, columns, "load_help"),
+      }),
       parcels: parcels.length > 0 ? parcels : [],
     });
   }

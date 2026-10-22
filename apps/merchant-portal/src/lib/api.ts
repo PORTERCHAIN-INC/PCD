@@ -1,3 +1,4 @@
+import type { DeliveryOptions } from "@porterchain/types/delivery-options";
 import { publicEnv } from "@/lib/env";
 
 const API_BASE = publicEnv.porterchainApiUrl;
@@ -101,6 +102,8 @@ export interface AddressPayload {
   lat?: number;
   lng?: number;
   postal?: string;
+  /** Shared delivery options (dropoff only). */
+  delivery_options?: import("@porterchain/types/delivery-options").DeliveryOptions;
 }
 
 export interface BookPackagePayload {
@@ -637,4 +640,57 @@ export function setRoutePricing(
     method: "POST",
     body: JSON.stringify({ action }),
   });
+}
+
+// ---------------------------------------------------------------- delivery options
+export type MerchantShopifyOrderRow = {
+  order_id: string;
+  order_number?: string | null;
+  tracking_number?: string | null;
+  shopify_order_name?: string | null;
+  state: string;
+  dropoff?: string | null;
+  created_at?: string | null;
+  delivery_options: DeliveryOptions;
+  editable: boolean;
+};
+
+export async function getDeliveryDefaults(token: string, orgId?: string) {
+  const data = await merchantFetch<{ delivery_options: DeliveryOptions }>(
+    "/v1/merchant/settings/delivery-defaults",
+    token,
+    { orgId }
+  );
+  return data.delivery_options ?? {};
+}
+
+export async function saveDeliveryDefaults(token: string, value: DeliveryOptions, orgId?: string) {
+  const data = await merchantFetch<{ delivery_options: DeliveryOptions }>(
+    "/v1/merchant/settings/delivery-defaults",
+    token,
+    { method: "PUT", orgId, body: JSON.stringify({ delivery_options: value }) }
+  );
+  return data.delivery_options ?? {};
+}
+
+export function updateOrderDeliveryOptions(
+  token: string,
+  orderId: string,
+  value: DeliveryOptions,
+  orgId?: string
+) {
+  return merchantFetch<{ order_id: string; delivery_options: DeliveryOptions; summary: string[] }>(
+    `/v1/merchant/orders/${orderId}/delivery-options`,
+    token,
+    { method: "PATCH", orgId, body: JSON.stringify({ delivery_options: value }) }
+  );
+}
+
+export async function listShopifyOrdersForDelivery(token: string, orgId?: string) {
+  const data = await merchantFetch<{ orders: MerchantShopifyOrderRow[] }>(
+    "/v1/merchant/shopify/orders",
+    token,
+    { orgId }
+  );
+  return data.orders ?? [];
 }

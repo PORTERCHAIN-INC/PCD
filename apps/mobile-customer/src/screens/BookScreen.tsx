@@ -1,4 +1,5 @@
 import { pickDocuments, uploadAll, type PendingDoc } from "../attachments";
+import { DeliveryOptionsField } from "../ui/DeliveryOptionsField";
 import { openDocuments } from "../documents";
 import { useEffect, useState } from "react";
 import {
@@ -31,6 +32,8 @@ import {
   Txt,
 } from "../ui/kit";
 import {
+  normalizeDeliveryOptions,
+  type DeliveryOptions,
   CAPACITY_CLASS_OPTIONS,
   MAX_DROPS,
   bookingText,
@@ -238,6 +241,7 @@ export function BookScreen({
   const [stopManual, setStopManual] = useState(false);
   const [declared, setDeclared] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [dlv, setDlv] = useState<DeliveryOptions>({});
   const [promo, setPromo] = useState("");
   const [phone, setPhone] = useState("");
   const [later, setLater] = useState(false);
@@ -344,7 +348,7 @@ export function BookScreen({
   function quoteBody() {
     return {
       pickup,
-      dropoff,
+      dropoff: { ...dropoff, delivery_options: normalizeDeliveryOptions(dlv) },
       vehicle_class: vehicleClass,
       booking_mode: bookingMode,
       parcels:
@@ -1010,6 +1014,11 @@ export function BookScreen({
                       onChange={setInstructions}
                       placeholder="Optional"
                       suggestions={INSTRUCTIONS}
+                      accessoryId={KEYBOARD_BAR}
+                    />
+                    <DeliveryOptionsField
+                      value={dlv}
+                      onChange={setDlv}
                       accessoryId={KEYBOARD_BAR}
                     />
                   </Card>

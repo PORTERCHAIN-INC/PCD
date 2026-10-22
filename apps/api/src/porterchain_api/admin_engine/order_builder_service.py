@@ -17,6 +17,7 @@ from porterchain_api.booking_engine.order_metadata import resolve_order_type
 from porterchain_api.booking_engine.order_transitions import transition_to_dispatch_ready
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
+from porterchain_api.domain.delivery_options import apply as apply_delivery_options
 from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.booking_validation import MerchantSyncService
 from porterchain_api.merchant_engine.booking_validation import BookingValidationError, assert_not_fsa_refused
@@ -81,6 +82,7 @@ def _stop_addr(stop: dict[str, Any]) -> dict[str, Any]:
         "lng": stop.get("lng"),
         "city": stop.get("city"),
     }
+
 
 
 class OrderBuilderService:
@@ -173,7 +175,7 @@ class OrderBuilderService:
             payment_terms=merchant.payment_terms,
             amount_cents=amount_cents,
             pickup=_stop_addr(pickup),
-            dropoff=_stop_addr(dropoff),
+            dropoff=apply_delivery_options(_stop_addr(dropoff), body.delivery_options),
             scheduled_at=body.scheduled_at,
             internal_reference=body.internal_reference,
             special_instructions=body.special_instructions,
