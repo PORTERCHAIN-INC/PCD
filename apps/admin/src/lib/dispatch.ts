@@ -338,6 +338,72 @@ export const STOP_KIND_LABEL: Record<PlanStop["kind"], string> = {
   handoff: "Handoff",
 };
 
+/** Tooltips for each stop kind on the plan. */
+export const STOP_KIND_HINT: Record<PlanStop["kind"], string> = {
+  pickup: "Driver collects the parcel from the sender",
+  drop: "Driver hands the parcel to the receiver",
+  return_pickup: "Driver collects a return from the receiver",
+  return_drop: "Driver brings the return back to the sender",
+  hub: "Warehouse stop: drop the parcel at our hub (pickup leg) or collect it there (delivery leg)",
+  handoff: "Parcel changes driver here",
+};
+
+export type RoutePattern = { id: string; label: string; hint: string };
+
+const isPick = (s: PlanStop) => s.kind === "pickup" || s.kind === "return_pickup";
+const isDrop = (s: PlanStop) => s.kind === "drop" || s.kind === "return_drop";
+
+/**
+ * Plain-words shape of a route so dispatch can see every combination at a glance:
+ * pickup-only to warehouse, warehouse → delivery, same driver pickup + delivery,
+ * mixed pickups and deliveries, multi-pickup / multi-drop.
+ */
+export function routePatterns(stops: PlanStop[]): RoutePattern[] {
+  const out: RoutePattern[] = [];
+  const picks = stops.filter(isPick);
+  const drops = stops.filter(isDrop);
+  const hubIdx = stops.map((s, i) => (s.kind === "hub" ? i : -1)).filter((i) => i >= 0);
+  const pickOrders = new Set(picks.map((s) => s.order_id));
+  const dropOrders = new Set(drops.map((s) => s.order_id));
+  const hubOrders = new Set(stops.filter((s) => s.kind === "hub").map((s) => s.order_id));
+  const toHub = [...hubOrders].filter((o) => pickOrders.has(o) && !dropOrders.has(o));
+  const fromHub = [...hubOrders].filter((o) => dropOrders.has(o) && !pickOrders.has(o));
+  if (toHub.length)
+    out.push({
+      id: "pickup_to_warehouse",
+      label: "Pickup only → warehouse",
+      hint: "This driver collects and drops at our warehouse; another driver delivers later",
+    });
+  if (fromHub.length)
+    out.push({
+      id: "warehouse_to_delivery",
+      label: "Warehouse → delivery",
+      hint: "This driver collects from our warehouse and delivers to the receiver",
+    });
+  const same = [...pickOrders].filter((o) => dropOrders.has(o));
+  if (same.length)
+    out.push({
+      id: "same_driver",
+      label: "Same driver pickup + delivery",
+      hint: "One driver picks up and delivers the same order, no warehouse stop",
+    });
+  const firstDrop = stops.findIndex(isDrop);
+  const lastPick = stops.map((s, i) => (isPick(s) ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
+  if (firstDrop >= 0 && lastPick > firstDrop)
+    out.push({
+      id: "mixed",
+      label: "Mixed pickups and deliveries",
+      hint: "Pickups and deliveries are interleaved on one route to save driving",
+    });
+  if (pickOrders.size > 1 || dropOrders.size > 1)
+    out.push({
+      id: "multi",
+      label: `Multi-pickup / multi-drop (${picks.length}↑ ${drops.length + hubIdx.length}↓)`,
+      hint: "Several orders share this vehicle; capacity and time windows are checked per stop",
+    });
+  return out;
+}
+
 /** Pickups/drops per route — a 1→N route reads "1 pickup · 3 drops". */
 export function routeMix(stops: PlanStop[]): string {
   const p = stops.filter((s) => s.kind === "pickup" || s.kind === "return_pickup").length;
