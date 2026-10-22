@@ -11,6 +11,8 @@ type Args = {
   otpRequired: boolean;
   podRequirements?: PodRequirements | null;
   pod: PodDraft;
+  /** Middle drop of a multi-stop order: its own proof, no pod_complete (that closes the order). */
+  midStop?: boolean;
 };
 
 /**
@@ -26,6 +28,7 @@ export async function completeStop({
   otpRequired,
   podRequirements,
   pod,
+  midStop = false,
 }: Args): Promise<"online" | "queued"> {
   if (!routeId || !stopId) throw new Error("no_stop");
   const ids = { stop_id: stopId, route_id: routeId };
@@ -47,6 +50,9 @@ export async function completeStop({
       await runOnlineOrQueue("pod_signature", { ...ids, signature_data: signature }, () =>
         podSignature(routeId, stopId, signature)
       );
+    }
+    if (midStop) {
+      return runOnlineOrQueue("deliver_stop", ids, () => deliverStop(routeId, stopId));
     }
     if (pod.idType && pod.idNameMatches) {
       await runOnlineOrQueue(

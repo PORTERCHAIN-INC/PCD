@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { driverApi } from "@/lib/api";
 import { StopDocuments } from "./StopDocuments";
+import { OrderStops } from "./OrderStops";
+import { midStopIsCurrent } from "@/lib/multi-stops";
 import { enqueueOfflineAction } from "@/lib/offline-client";
 import type { DriverJobDetail, JobActionKey } from "@/lib/jobs";
 import {
@@ -268,7 +270,9 @@ export default function Delivery360({
         </p>
       )}
 
-      {!completed && primary && (
+      <OrderStops stops={job.stops} routeId={rid} onUpdated={onUpdated} />
+
+      {!completed && primary && !midStopIsCurrent(job.stops) && (
         <div className="rounded-2xl border border-[var(--secondary)]/25 bg-gradient-to-br from-[var(--secondary)]/8 to-transparent p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--secondary)]">
             Next action
