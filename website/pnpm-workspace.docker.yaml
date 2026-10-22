@@ -19,6 +19,7 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - "@clerk/backend@3.26.1"
   - "@clerk/nextjs@7.9.19"
+  - "@clerk/expo@4.14.0"
   - "@clerk/backend@3.11.1"
   - "@clerk/nextjs@7.5.14"
   - "@clerk/react@6.12.0"
