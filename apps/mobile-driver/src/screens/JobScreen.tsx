@@ -26,8 +26,10 @@ import { scanFix, type ScanOutcome } from "../scanFeedback";
 import { capturePodPhotoDataUrl } from "../pod";
 import { completeStop } from "../stop/completeStop";
 import { emptyPodDraft, type PodDraft } from "../stop/podDraft";
+import { isMidStopId, stopInputFor, stopPosition } from "../stop/multiStop";
 import { deriveStop, needsAccept, type PrimaryAction } from "../stop/stopFlow";
 import { BarcodeScannerModal } from "../ui/BarcodeScannerModal";
+import { OrderStopsCard } from "../ui/job/OrderStopsCard";
 import { ProblemSheet } from "../ui/job/ProblemSheet";
 import { ProofSheets, type ProofSheet } from "../ui/job/ProofSheets";
 import { StepRail } from "../ui/job/StepRail";
@@ -78,20 +80,25 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
 
   const scanPhase = (h.nextStopType ?? "").toLowerCase() === "pickup" ? "pickup" : "delivery";
   const scan = scanPhase === "pickup" ? h.scanPickup : h.scanDelivery;
-  const view = deriveStop({
-    orderState: h.currentOrderState,
-    stopType: h.nextStopType,
-    stopStatus: h.stopStatus,
-    hasStop: Boolean(h.routeId && h.stopId),
-    onDuty: Boolean(h.online),
-    syncing: Boolean(h.stopId && syncingStopIds.includes(h.stopId)),
-    scanRequired: scan?.required ?? 0,
-    scanComplete: Boolean(scan?.complete),
-    pod,
-    podRequirements: h.podRequirements,
-    otpRequired: h.otpRequired,
-    hubLeg: h.hubLeg,
-  });
+  const midStop = isMidStopId(h.stopId);
+  const stopInput = stopInputFor(
+    {
+      orderState: h.currentOrderState,
+      stopType: h.nextStopType,
+      stopStatus: h.stopStatus,
+      hasStop: Boolean(h.routeId && h.stopId),
+      onDuty: Boolean(h.online),
+      syncing: Boolean(h.stopId && syncingStopIds.includes(h.stopId)),
+      scanRequired: scan?.required ?? 0,
+      scanComplete: Boolean(scan?.complete),
+      pod,
+      podRequirements: h.podRequirements,
+      otpRequired: h.otpRequired,
+      hubLeg: h.hubLeg,
+    },
+    h.stopId
+  );
+  const view = deriveStop(stopInput);
   const routeId = h.routeId ?? "";
   const stopId = h.stopId ?? "";
   const orderId = h.currentOrderId ?? "";
@@ -198,9 +205,10 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
             routeId,
             stopId,
             kind: view.kind,
-            otpRequired: h.otpRequired,
-            podRequirements: h.podRequirements,
+            otpRequired: stopInput.otpRequired,
+            podRequirements: stopInput.podRequirements,
             pod,
+            midStop,
           });
           setPod(emptyPodDraft());
         });
@@ -280,7 +288,8 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   }
 
   const kindLabel = view.kind === "pickup" ? "Pickup" : "Drop-off";
-  const policy = h.podRequirements ?? { enforced: true, photo_or_signature: true };
+  const policy = stopInput.podRequirements ?? { enforced: true, photo_or_signature: true };
+  const position = stopPosition(h.orderStops, h.stopId);
   const strictPhotoOrSig = Boolean(policy.photo || policy.signature);
   const proofRows = [
     ...(policy.photo_or_signature && !strictPhotoOrSig
@@ -301,7 +310,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
     ...(policy.id_check
       ? [{ label: "ID checked", done: pod.idNameMatches, redo: () => setSheet("id_check") }]
       : []),
-    ...(h.otpRequired || policy.otp
+    ...(stopInput.otpRequired || policy.otp
       ? [{ label: "Receiver code", done: Boolean(pod.otp), redo: () => setSheet("otp") }]
       : []),
   ];
@@ -395,6 +404,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         <Label style={view.kind === "pickup" ? styles.kindPickup : styles.kindDrop}>
           {view.step === "offer" ? "New job" : kindLabel}
           {h.currentOrderNumber ? ` · #${h.currentOrderNumber}` : ""}
+          {position ? ` · ${position}` : ""}
         </Label>
         <Title testID="stop-address" accessibilityRole="header">
           {h.nextStop ?? "Address loading…"}
@@ -404,6 +414,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         ) : null}
       </View>
       <StepRail steps={view.rail} />
+      <OrderStopsCard stops={h.orderStops} currentStopId={h.stopId} />
       {orderId && view.step !== "offer" ? <StopDocumentsCard orderId={orderId} /> : null}
 
       {h.accessNotes ? (

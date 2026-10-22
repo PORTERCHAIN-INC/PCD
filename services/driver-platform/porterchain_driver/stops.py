@@ -310,7 +310,15 @@ class StopsService:
         skip_presence: bool = False,
     ) -> StopView:
         order = self._order_for_stop(db, driver.id, stop_id)
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            if enforce_sequence:
+                _validate_current_stop(db, driver, stop_id)
+            return multi_stops.arrive(db, driver, order, stop_id, skip_presence=skip_presence)
         _validate_stop_action(order, stop_id, "arrive")
+        if not stop_id.endswith("-pickup"):
+            multi_stops.assert_final_drop_ready(db, order)
         if enforce_sequence:
             _validate_current_stop(db, driver, stop_id)
         split = None if stop_id.endswith("-pickup") else _hub_split(order)
@@ -350,6 +358,11 @@ class StopsService:
         link. Idempotent: already in transit / at the door is a no-op. Works for a
         driver who took the delivery over by admin handoff (state stays PICKED_UP).
         """
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            order = self._order_for_stop(db, driver.id, stop_id)
+            return multi_stops.start_delivery(db, driver, order, stop_id)
         if stop_id.endswith("-pickup"):
             raise ValueError("not_a_delivery_stop")
         order = self._order_for_stop(db, driver.id, stop_id)
@@ -383,7 +396,16 @@ class StopsService:
         from porterchain_api.domain.states import OrderState
         from porterchain_driver.earnings import EarningsService
 
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            if enforce_sequence:
+                _validate_current_stop(db, driver, stop_id)
+            return multi_stops.deliver(db, driver, order, stop_id, pod_override=pod_override,
+                                       duty_override=duty_override)
         _validate_stop_action(order, stop_id, "deliver")
+        if not stop_id.endswith("-pickup"):
+            multi_stops.assert_final_drop_ready(db, order)
         split = None if stop_id.endswith("-pickup") else _hub_split(order)
         if split is not None and split.stage == "to_hub":
             return self._drop_at_hub(db, driver, order, split)
@@ -683,6 +705,31 @@ class StopsService:
         unpicked parcels stay ``locked`` via ``stop_status_for_leg``.
         """
         by_id = {str(o.id): o for o in orders}
+        from sqlalchemy.orm import object_session
+
+        from porterchain_driver import multi_stops
+
+        groups: dict[str, tuple[list[StopView], list[StopView]]] = {}
+        for o in orders:
+            if multi_stops.plan_for(o) is None:
+                continue  # plain pickup -> drop
+            try:
+                sess = object_session(o)
+            except Exception:  # noqa: BLE001 -- not an ORM row
+                sess = None
+            got = multi_stops.leg_groups(sess, o) if sess is not None and _hub_split(o) is None else None
+            if got is not None:
+                groups[str(o.id)] = got
+
+        def leg_views(order: Any, leg: str, seq: int) -> list[StopView]:
+            got = groups.get(str(order.id))
+            if got is None:
+                return [self._order_to_stop(order, leg, sequence=seq)]
+            views = got[0] if leg == "pickup" else got[1]
+            for j, v in enumerate(views):
+                v.sequence = seq + j
+            return views
+
         waypoints: list[dict] = []
         if driver_id:
             from porterchain_driver.sequence_store import read_sequence
@@ -706,20 +753,18 @@ class StopsService:
                 if key in seen:
                     continue
                 seen.add(key)
-                stops.append(self._order_to_stop(by_id[oid], leg, sequence=i))
+                stops.extend(leg_views(by_id[oid], leg, len(stops)))
             # Append any legs missing from the plan so nothing is dropped.
             for order in orders:
                 oid = str(order.id)
                 for leg in ("pickup", "dropoff"):
                     if (oid, leg) not in seen:
-                        stops.append(
-                            self._order_to_stop(order, leg, sequence=len(stops))
-                        )
+                        stops.extend(leg_views(order, leg, len(stops)))
             return stops
 
-        for i, order in enumerate(orders):
-            stops.append(self._order_to_stop(order, "pickup", sequence=i * 2))
-            stops.append(self._order_to_stop(order, "dropoff", sequence=i * 2 + 1))
+        for order in orders:
+            stops.extend(leg_views(order, "pickup", len(stops)))
+            stops.extend(leg_views(order, "dropoff", len(stops)))
         return stops
 
     def _drop_at_hub(self, db: Session, driver: Any, order: Any, split: Any) -> StopView:

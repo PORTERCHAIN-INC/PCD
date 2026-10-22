@@ -274,4 +274,8 @@ class NextStopResolver:
             "delivery_attempts": attempts,
             "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
             "hub_leg": getattr(stop, "hub_leg", None),
+            "stop_key": getattr(stop, "stop_key", None),
+            "stop_index": getattr(stop, "stop_index", None),
+            "stop_total": getattr(stop, "stop_total", None),
+            "stop_label": getattr(stop, "stop_label", None),
         }

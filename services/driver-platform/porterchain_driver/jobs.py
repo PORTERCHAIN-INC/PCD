@@ -420,6 +420,7 @@ class JobsService:
 
         pickup_stop = self._stops._order_to_stop(order, "pickup")  # noqa: SLF001
         delivery_stop = self._stops._order_to_stop(order, "dropoff")  # noqa: SLF001
+        all_stops = self._all_stops(db, order, pickup_stop, delivery_stop)
 
         from porterchain_driver.stop_exceptions import MAX_DELIVERY_ATTEMPTS, prior_attempt_rows
 
@@ -473,6 +474,7 @@ class JobsService:
             "delivery_detail": dropoff,
             "pickup_stop": self._stop_dict(pickup_stop),
             "delivery_stop": self._stop_dict(delivery_stop),
+            "stops": all_stops,
             **leg_meta,
             "next_stop": next_stop,
             "is_current_job": bool(next_stop and next_stop.get("order_id") == order_id),
@@ -692,6 +694,24 @@ class JobsService:
             return "current" if next_order_id == order_id else "upcoming"
         return "upcoming"
 
+    def _all_stops(self, db: Session, order: Any, pickup_stop: Any, delivery_stop: Any) -> list[dict[str, Any]]:
+        """Every stop of the order in plan order, each with what the driver can do there now."""
+        from porterchain_driver import multi_stops
+        from porterchain_driver.stops import _hub_split
+
+        views = None if _hub_split(order) is not None else multi_stops.stop_views(db, order)
+        if views is None:
+            views = [pickup_stop, delivery_stop]
+            for i, v in enumerate(views):
+                v.sequence = i
+        state = str(order.state).upper()
+        out = []
+        for v in views:
+            row = self._stop_dict(v)
+            row["actions"] = _stop_actions(v, state)
+            out.append(row)
+        return out
+
     @staticmethod
     def _stop_dict(stop: Any) -> dict[str, Any]:
         return {
@@ -702,7 +722,26 @@ class JobsService:
             "scheduled_at": stop.scheduled_at.isoformat() if stop.scheduled_at else None,
             "otp_required": stop.otp_required,
             "pod_required": stop.pod_required,
+            "sequence": getattr(stop, "sequence", 0),
+            "hub_leg": getattr(stop, "hub_leg", None),
+            "stop_key": getattr(stop, "stop_key", None),
+            "stop_index": getattr(stop, "stop_index", None),
+            "stop_total": getattr(stop, "stop_total", None),
+            "stop_label": getattr(stop, "stop_label", None),
         }
+
+
+def _stop_actions(stop: Any, state: str) -> list[str]:
+    """What the driver can do at one stop right now: start_delivery / arrive / complete."""
+    status = str(stop.status or "").lower()
+    if status in ("locked", "picked_up", "delivered", "pod_completed", "completed"):
+        return []
+    if state == "DRIVER_ASSIGNED":
+        return ["accept"] if stop.stop_type == "pickup" else []
+    arrived = status in ("arrived", "at_pickup", "at_destination")
+    if stop.stop_type == "dropoff" and state == "PICKED_UP" and not arrived and stop.hub_leg != "to_hub":
+        return ["start_delivery", "arrive", "complete"]
+    return ["complete"] if arrived else ["arrive", "complete"]
 
 
 def _pod_gate(db: Session, driver: Any, order: Any) -> dict[str, Any]:

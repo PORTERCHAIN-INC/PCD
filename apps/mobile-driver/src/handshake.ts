@@ -13,6 +13,7 @@ import {
 import { formatAccessLine, formatKm } from "./format";
 import { idleLocation } from "./location";
 import { collectPush } from "./push";
+import { isMidStopId } from "./stop/multiStop";
 import type { DriverJobSummary, Handshake, LocationState, PushState } from "./types";
 
 const PUSH_IDLE: PushState = {
@@ -39,6 +40,7 @@ export const idleHandshake = (): Handshake => ({
   stopId: null,
   stopStatus: null,
   hubLeg: null,
+  orderStops: [],
   nextStop: null,
   nextStopType: null,
   etaMinutes: null,
@@ -145,10 +147,14 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
           const name = pkg.preset_label || "Parcel";
           return pkg.instructions ? `${name}: ${pkg.instructions}` : name;
         });
+        next.orderStops = Array.isArray(job.stops) ? job.stops : [];
         next.deliveryAttempts = job.delivery_attempts ?? next.deliveryAttempts;
         next.maxDeliveryAttempts = job.max_delivery_attempts ?? next.maxDeliveryAttempts;
       }
-      if (nav && !nav.idle) {
+      // A middle stop of a multi-stop order: navigate to that stop, not the order's final drop.
+      if (nav && !nav.idle && isMidStopId(next.stopId)) {
+        next.etaLabel = nav.eta?.eta_label ?? null;
+      } else if (nav && !nav.idle) {
         const dest = next.nextStopType === "pickup" ? nav.pickup : (nav.dropoff ?? nav.pickup);
         next.navigationUrl = nav.navigation_url ?? null;
         next.destLat = coord(dest?.lat) ?? next.destLat;

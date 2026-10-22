@@ -110,6 +110,7 @@ export interface DriverJobDetail extends DriverJobSummary {
   delivery_detail: Record<string, unknown>;
   pickup_stop: Record<string, unknown>;
   delivery_stop: Record<string, unknown>;
+  stops?: import("./multi-stops").OrderStop[];
   allowed_actions: JobActionKey[];
   next_stop: DriverNextStop | null;
   is_current_job: boolean;
@@ -299,6 +300,7 @@ export function getPrimaryAction(
 export function actionErrorMessage(code: string): string {
   const map: Record<string, string> = {
     pickup_required: "Complete pickup before starting delivery.",
+    earlier_stops_open: "Finish the earlier stops on this order first (see All stops).",
     pickup_already_completed: "Parcel already picked up.",
     not_current_stop: "This is not your next stop — finish the current job first.",
     not_at_stop:

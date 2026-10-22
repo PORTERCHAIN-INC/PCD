@@ -135,7 +135,12 @@ def captured_types(db: Session, order_id: str) -> set[str]:
 
     row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order_id).first()
     proofs = list((row.meta or {}).get("proofs", [])) if row else []
-    return {str(p.get("type") or "") for p in proofs if isinstance(p, dict)}
+    # Proofs tagged with a middle stop's key belong to that stop, not to the final drop.
+    return {
+        str(p.get("type") or "")
+        for p in proofs
+        if isinstance(p, dict) and not p.get("stop_key")
+    }
 
 
 def missing_for(db: Session, order: Any, *, requirements: dict[str, Any] | None = None) -> list[str]:

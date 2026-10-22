@@ -16,27 +16,76 @@ import {
 export interface RouteValidation {
   ok: boolean;
   errors: string[];
+  /** Not blocking: e.g. a stop without a map pin (the server geocodes the address). */
+  warnings: string[];
 }
 
-export function validateRouteJob(job: RouteJob): RouteValidation {
+/** Text from a field that may be missing on imported / saved / older data. */
+export function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function coordIssue(lat: unknown, lng: unknown): "missing" | "invalid" | null {
+  if (lat == null && lng == null) return "missing";
+  const la = typeof lat === "number" ? lat : Number.NaN;
+  const ln = typeof lng === "number" ? lng : Number.NaN;
+  if (!Number.isFinite(la) || !Number.isFinite(ln)) return "invalid";
+  if (Math.abs(la) > 90 || Math.abs(ln) > 180 || (la === 0 && ln === 0)) return "invalid";
+  return null;
+}
+
+/**
+ * Every problem with the planned route, in words the merchant can act on. Never throws:
+ * a pickup, stop or parcel with missing fields (CSV, saved address, Shopify, older drafts)
+ * becomes a validation message instead of crashing the planner.
+ */
+export function validateRouteJob(job: Partial<RouteJob> | null | undefined): RouteValidation {
   const errors: string[] = [];
-  if (!job.pickupLocation.formattedAddress.trim()) {
+  const warnings: string[] = [];
+  const pickup = (job?.pickupLocation ?? {}) as Partial<RouteJob["pickupLocation"]>;
+  if (!text(pickup.formattedAddress)) {
     errors.push("Pickup address is required");
+  } else {
+    const issue = coordIssue(pickup.latitude, pickup.longitude);
+    if (issue === "invalid") {
+      errors.push(
+        "Pickup: the map location is invalid. Pick the address again from the suggestions"
+      );
+    } else if (issue === "missing") {
+      warnings.push("Pickup: no map pin yet. Pick the address from the suggestions to be exact");
+    }
   }
-  if (job.stops.length === 0) {
+  const stops = Array.isArray(job?.stops) ? job.stops : [];
+  if (stops.length === 0) {
     errors.push("Add at least one delivery stop");
   }
-  job.stops.forEach((stop, index) => {
+  stops.forEach((raw, index) => {
     const label = `Stop ${index + 1}`;
-    if (!stop.formattedAddress.trim()) errors.push(`${label}: address is required`);
-    if (!stop.customerName.trim()) errors.push(`${label}: customer name is required`);
-    if (!isOntarioPostal(postalFromAddress(stop.formattedAddress, stop.postalCode))) {
+    const stop = (raw ?? {}) as Partial<RouteStop>;
+    const address = text(stop.formattedAddress);
+    if (!address) errors.push(`${label}: address is required`);
+    if (!text(stop.customerName)) errors.push(`${label}: customer name is required`);
+    if (!isOntarioPostal(postalFromAddress(address, text(stop.postalCode)))) {
       errors.push(`${label}: postal code must be an Ontario code (FSA K, L, M, N, or P)`);
     }
-    if (stop.parcels.length === 0) errors.push(`${label}: add at least one parcel`);
-    stop.parcels.forEach((parcel, parcelIndex) => {
+    if (address) {
+      const issue = coordIssue(stop.latitude, stop.longitude);
+      if (issue === "invalid") {
+        errors.push(
+          `${label}: the map location is invalid. Pick the address again from the suggestions`
+        );
+      } else if (issue === "missing") {
+        warnings.push(
+          `${label}: no map pin yet. Pick the address from the suggestions to be exact`
+        );
+      }
+    }
+    const parcels = Array.isArray(stop.parcels) ? stop.parcels : [];
+    if (parcels.length === 0) errors.push(`${label}: add at least one parcel`);
+    parcels.forEach((rawParcel, parcelIndex) => {
       const parcelLabel = `${label} parcel ${parcelIndex + 1}`;
-      if (!Number.isFinite(parcel.weight) || parcel.weight <= 0) {
+      const parcel = (rawParcel ?? {}) as Partial<Parcel>;
+      if (!Number.isFinite(parcel.weight) || (parcel.weight as number) <= 0) {
         errors.push(`${parcelLabel}: weight must be greater than 0`);
       }
       for (const [name, value] of [
@@ -44,13 +93,13 @@ export function validateRouteJob(job: RouteJob): RouteValidation {
         ["width", parcel.width],
         ["height", parcel.height],
       ] as const) {
-        if (!Number.isFinite(value) || value < 0) {
+        if (!Number.isFinite(value) || (value as number) < 0) {
           errors.push(`${parcelLabel}: ${name} must be a non-negative number`);
         }
       }
     });
   });
-  return { ok: errors.length === 0, errors };
+  return { ok: errors.length === 0, errors, warnings };
 }
 
 function siteAccessNotes(job: RouteJob): string | undefined {
@@ -101,20 +150,20 @@ function stopPayload(stop: RouteStop, sequence: number): RouteImportCreatePayloa
   return {
     sequence,
     stop_type: "drop",
-    address: stop.formattedAddress.trim(),
-    postal: postalFromAddress(stop.formattedAddress, stop.postalCode) || undefined,
+    address: text(stop.formattedAddress),
+    postal: postalFromAddress(text(stop.formattedAddress), stop.postalCode) || undefined,
     lat: stop.latitude,
     lng: stop.longitude,
-    contact_name: stop.customerName.trim(),
+    contact_name: text(stop.customerName),
     contact_phone: stop.customerPhone?.trim() || undefined,
     contact_email: stop.customerEmail?.trim() || undefined,
     notes: stop.deliveryNotes?.trim() || undefined,
-    packages: stop.parcels.map(packagePayload),
+    packages: (stop.parcels ?? []).map(packagePayload),
   };
 }
 
 export function toRouteImportPayload(job: RouteJob): RouteImportCreatePayload {
-  const parcels = job.stops.flatMap((stop) => stop.parcels);
+  const parcels = job.stops.flatMap((stop) => stop.parcels ?? []);
   const legacy = serializeParcelsForLegacyAPI(parcels);
   const pickup = job.pickupLocation;
 
@@ -133,7 +182,7 @@ export function toRouteImportPayload(job: RouteJob): RouteImportCreatePayload {
       {
         sequence: 1,
         stop_type: "pickup",
-        address: pickup.formattedAddress.trim(),
+        address: text(pickup.formattedAddress),
         unit: pickup.unit?.trim() || undefined,
         postal: pickup.postalCode?.trim() || undefined,
         lat: pickup.latitude,

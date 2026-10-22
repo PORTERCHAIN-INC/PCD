@@ -22,6 +22,11 @@ class StopView:
     otp_required: bool = False
     pod_required: bool = True
     hub_leg: str | None = None  # "to_hub" | "at_hub" when the order is split at a warehouse
+    # Multi-stop orders (porterchain_driver.multi_stops): position in the order's own plan.
+    stop_key: str | None = None
+    stop_index: int | None = None
+    stop_total: int | None = None
+    stop_label: str | None = None
 
 
 @dataclass

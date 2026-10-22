@@ -335,11 +335,13 @@ export const billingApi = {
     ),
 };
 
-export function formatTerms(terms: string) {
+export function formatTerms(terms: string | null | undefined) {
+  if (!terms) return "—";
   return terms.replace(/_/g, " ").replace(/\bnet\b/i, "Net");
 }
 
-export function formatCycle(cycle: string) {
+export function formatCycle(cycle: string | null | undefined) {
+  if (!cycle) return "—";
   return cycle.charAt(0) + cycle.slice(1).toLowerCase();
 }
 

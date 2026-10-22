@@ -62,7 +62,7 @@ class ProofOfDeliveryService:
             from porterchain_api.driver_engine.pod_store import save_data_url
 
             value = save_data_url(order.id, file_url)
-        self._record_pod(db, order.id, driver.id, "photo", value)
+        self._record_pod(db, order.id, driver.id, "photo", value, stop_id=stop_id)
         return PodCaptureResult(success=True, proof_type="photo", proof_id=order.id)
 
     def capture_signature(
@@ -74,7 +74,7 @@ class ProofOfDeliveryService:
         signature_data: str,
     ) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
-        self._record_pod(db, order.id, driver.id, "signature", signature_data[:200])
+        self._record_pod(db, order.id, driver.id, "signature", signature_data[:200], stop_id=stop_id)
         return PodCaptureResult(success=True, proof_type="signature", proof_id=order.id)
 
     def capture_id_check(
@@ -122,6 +122,18 @@ class ProofOfDeliveryService:
         *,
         otp: str | None = None) -> PodCaptureResult:
         order = _order_for_stop(db, driver, stop_id)
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            # A middle drop's proof is checked when that stop is delivered; POD completion
+            # (which closes the order) only happens at the final drop.
+            return PodCaptureResult(success=False, proof_type="complete", proof_id=None,
+                                    message="not_final_stop")
+        try:
+            multi_stops.assert_final_drop_ready(db, order)
+        except ValueError as exc:
+            return PodCaptureResult(success=False, proof_type="complete", proof_id=None,
+                                    message=str(exc))
         from porterchain_api.booking_engine.compliance_metadata import otp_required_at_delivery
         from porterchain_api.domain.states import OrderState as _OS
         from porterchain_driver.pod_policy import (
@@ -204,6 +216,7 @@ class ProofOfDeliveryService:
             message="pod_completed")
 
     def _record_pod(self, db: Session, order_id: str, driver_id: str, proof_type: str, value: str,
+                    *, stop_id: str | None = None,
     ) -> None:
         from porterchain_api.driver_models import DriverStopMeta
 
@@ -213,7 +226,14 @@ class ProofOfDeliveryService:
             db.add(meta_row)
         meta = dict(meta_row.meta or {})
         proofs = list(meta.get("proofs", []))
-        proofs.append({"type": proof_type, "value": value[:500]})
+        proof = {"type": proof_type, "value": value[:500]}
+        if stop_id:
+            from porterchain_driver.multi_stops import split_stop_id
+
+            key = split_stop_id(stop_id)[2]
+            if key:  # a middle stop of a multi-stop order: not the final drop's proof
+                proof["stop_key"] = key
+        proofs.append(proof)
         meta["proofs"] = proofs
         meta_row.meta = meta
         db.flush()
