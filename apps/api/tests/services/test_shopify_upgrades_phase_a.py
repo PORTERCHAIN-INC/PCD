@@ -77,15 +77,17 @@ def test_go_live_advisories_never_block() -> None:
 
 def _register(scopes: str):
     shop = SimpleNamespace(shop_domain="x.myshopify.com", scopes=scopes)
-    helpers = SimpleNamespace(_admin_get=MagicMock(return_value={"webhooks": []}), _admin_post=MagicMock(return_value={}))
     with (
         patch.object(ops, "access_token_for", return_value="tok"),
-        patch.object(ops, "_helpers", return_value=helpers),
         patch.object(ops, "webhook_url", return_value="https://api/x"),
+        patch(
+            "porterchain_api.merchant_engine.shopify_admin_graphql.webhook_subscriptions_sync",
+            return_value=[],
+        ) as sync,
         patch("porterchain_api.merchant_engine.shopify_admin_graphql.webhook_subscriptions_ensure") as ensure,
     ):
         ops._register_webhooks(shop, SimpleNamespace(shopify_fulfillment_service_enabled=False))
-    topics = [c.args[4]["webhook"]["topic"] for c in helpers._admin_post.call_args_list]
+    topics = sync.call_args.kwargs["topics"]
     return topics, ensure
 
 

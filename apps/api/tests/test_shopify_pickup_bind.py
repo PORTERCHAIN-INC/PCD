@@ -162,8 +162,9 @@ def test_webhook_register_failure_is_reported(db, settings, monkeypatch):
     ctx = _merchant(db)
     shop = _shop(db, ctx.merchant.id)
     monkeypatch.setattr(shopify, "_decrypt", lambda *a, **k: "token")
-    monkeypatch.setattr(shopify, "_admin_get", lambda *a, **k: {"webhooks": []})
-    monkeypatch.setattr(shopify, "_admin_post", lambda *a, **k: None)
+    from porterchain_api.merchant_engine import shopify_admin_graphql as gql
+
+    monkeypatch.setattr(gql, "webhook_subscriptions_sync", lambda *a, **k: ["orders/create"])
     monkeypatch.setattr(ops, "_register_carrier_service", lambda *a, **k: None)
     monkeypatch.setattr(ops, "_register_fulfillment_service", lambda *a, **k: None)
 

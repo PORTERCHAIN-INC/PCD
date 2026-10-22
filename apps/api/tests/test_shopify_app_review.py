@@ -99,7 +99,6 @@ def test_carrier_failure_is_surfaced_not_swallowed(db, message, code) -> None:
         patch(f"{_GQL}.carrier_service_update", side_effect=ShopifyAdminError(message)),
         patch(f"{_GQL}.carrier_service_create", side_effect=ShopifyAdminError(message)),
         patch(f"{_GQL}.carrier_service_find", return_value=None),
-        patch.object(shopify, "_admin_post", return_value=None),
         patch("porterchain_api.merchant_engine.shopify_fulfillment_service._register_webhooks"),
     ):
         with pytest.raises(RuntimeError, match=code):
