@@ -23,7 +23,7 @@
     "ios:device": "EXPO_PUBLIC_API_URL=https://api.porterchain.com EXPO_PUBLIC_ALLOW_DEV_AUTH=false expo run:ios --device"
   },
   "dependencies": {
-    "@clerk/expo": "^4.6.6",
+    "@clerk/expo": "4.14.0",
     "@porterchain/mobile-theme": "file:./vendor/mobile-theme",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "12.0.1",
