@@ -1,5 +1,6 @@
 "use client";
 
+import DeliveryDefaultsCard from "@/components/delivery/DeliveryDefaultsCard";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -21,12 +22,14 @@ type Tab =
   | "experience"
   | "tax"
   | "documents"
-  | "privacy";
+  | "privacy"
+  | "delivery";
 
 const TABS: { id: Tab; label: string; module?: string }[] = [
   { id: "profile", label: "Business profile" },
   { id: "locations", label: "Locations" },
   { id: "recipients", label: "Delivery contacts" },
+  { id: "delivery", label: "Delivery defaults" },
   { id: "notifications", label: "Alert preferences" },
   { id: "branding", label: "Branding" },
   { id: "experience", label: "Customer experience" },
@@ -193,6 +196,7 @@ export default function SettingsClient() {
           />
         </WithGoogleMaps>
       )}
+      {tab === "delivery" && <DeliveryDefaultsCard />}
       {tab === "recipients" && (
         <RecipientsTab
           recipients={recipients}

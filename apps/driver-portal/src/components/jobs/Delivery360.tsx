@@ -146,6 +146,7 @@ export default function Delivery360({
     access_dock: job.next_stop?.access_dock ?? null,
     call_on_arrival: job.next_stop?.call_on_arrival ?? false,
     contact_phone_masked: job.next_stop?.contact_phone_masked ?? null,
+    delivery_notes: job.delivery_notes ?? job.next_stop?.delivery_notes ?? [],
   });
   const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
   // Warehouse split, pickup leg: the drop is our hub — no receiver proof, no scan gate.

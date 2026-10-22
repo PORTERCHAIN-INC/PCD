@@ -8,6 +8,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from porterchain_api.domain.delivery_options import normalize as normalize_delivery_options, summary_lines
 from porterchain_api.config import Settings
 from porterchain_api.domain.customer_goods import persist_vehicle_class
 from porterchain_api.domain.merchant_states import BulkImportStatus
@@ -28,10 +29,13 @@ def driver_notes(stops: list[dict[str, Any]]) -> str | None:
     bits: list[str] = []
     for s in stops:
         unit = s.get("unit")
-        if unit:
+        if unit and not (s.get("delivery_options") or {}).get("unit"):
             bits.append(f"Stop {s.get('sequence')}: unit {unit}")
         if s.get("notes"):
             bits.append(f"Stop {s.get('sequence')}: {s['notes']}")
+        opts = summary_lines({"delivery_options": s.get("delivery_options")})
+        if opts:
+            bits.append(f"Stop {s.get('sequence')}: {' · '.join(opts)}")
     return " | ".join(bits) if bits else None
 
 
@@ -43,6 +47,7 @@ def _address_input(stop: dict[str, Any]) -> AddressInput:
         lng=stop.get("lng"),
         place_id=stop.get("place_id"),
         postal=stop.get("postal"),
+        delivery_options=normalize_delivery_options(stop.get("delivery_options")),
     )
 
 

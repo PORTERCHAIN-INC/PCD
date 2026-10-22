@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from porterchain_api.domain.delivery_options import with_default as with_default_delivery_options
 from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
 from porterchain_api.booking_engine.site_access import enrich_dropoff
 from porterchain_api.services import collect_only as co
@@ -155,10 +156,8 @@ class MerchantBookingService:
         db: Any = None,
     ) -> PricingRequest:
         # Collect-only / warehouse split: ONE normal charge, pickup -> final receiver (``db`` unused).
-        pickup = body.pickup
-        dropoff = body.dropoff
-        pickup_geo = _geo(pickup)
-        dropoff_geo = _geo(dropoff)
+        pickup, dropoff = body.pickup, body.dropoff
+        pickup_geo, dropoff_geo = _geo(pickup), _geo(dropoff)
         stops = [_geo(s) for s in (body.additional_stops or [])]
         distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo, stops)
         _check_declarations(body)
@@ -278,8 +277,7 @@ class MerchantBookingService:
         assert_not_fsa_refused(breakdown)
         amount_cents = breakdown.final_cents
 
-        # WORKFLOW: validate merchant → pricing → contract → payment terms
-        # before an order is generated.
+        # WORKFLOW: validate merchant → pricing → contract → payment terms before an order is generated.
         validated = MerchantSyncService().validate_booking(db, ctx.merchant, amount_cents=amount_cents)
 
         pricing = get_pricing_service(db)
@@ -358,7 +356,9 @@ class MerchantBookingService:
             payment_terms=ctx.merchant.payment_terms,
             amount_cents=amount_cents,
             pickup=pickup.model_dump(),
-            dropoff=enrich_dropoff(dropoff.model_dump(), body.site_access_notes),
+            dropoff=with_default_delivery_options(
+                enrich_dropoff(dropoff.model_dump(), body.site_access_notes), ctx.merchant
+            ),
             scheduled_at=scheduled_at,
             internal_reference=body.internal_reference,
             idempotency_key=idempotency_key,
@@ -416,8 +416,7 @@ class MerchantBookingService:
             db.refresh(order)
             return order
 
-        # Bulky gate (per-merchant, off by default): hold at BOOKED until the
-        # recipient picks a delivery window via the signed self-service link.
+        # Bulky gate (per-merchant, default off): hold at BOOKED until the recipient picks a window.
         from porterchain_api.customer_experience.scheduling import hold_for_schedule
 
         if not hold_for_schedule(db, settings, order):

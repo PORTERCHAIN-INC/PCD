@@ -7,6 +7,7 @@ from typing import Any, Sequence
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
+from porterchain_api.domain.delivery_options import label_line as delivery_label_line
 from porterchain_api.domain.sandbox import order_is_sandbox
 from porterchain_api.merchant_engine.package_service import PackageService, item_box_line, item_ordinals
 from porterchain_api.reporting.qr_codec import encode_label_qr
@@ -160,6 +161,7 @@ class LabelService:
                     "stop_sequence": pkg.stop_sequence,
                     "from_line": from_line,
                     "to_line": to_line,
+                    "delivery_line": delivery_label_line(order.dropoff),
                     "order_number": order.order_number,
                     "tracking_base": order.tracking_number,
                     "cod_line": cod_line,

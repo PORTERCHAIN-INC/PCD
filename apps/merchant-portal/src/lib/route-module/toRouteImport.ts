@@ -1,3 +1,4 @@
+import { normalizeDeliveryOptions } from "@porterchain/types/delivery-options";
 import { isOntarioPostal, postalFromAddress } from "./ontario.ts";
 import type {
   Parcel,
@@ -158,6 +159,7 @@ function stopPayload(stop: RouteStop, sequence: number): RouteImportCreatePayloa
     contact_phone: stop.customerPhone?.trim() || undefined,
     contact_email: stop.customerEmail?.trim() || undefined,
     notes: stop.deliveryNotes?.trim() || undefined,
+    delivery_options: normalizeDeliveryOptions(stop.deliveryOptions),
     packages: (stop.parcels ?? []).map(packagePayload),
   };
 }
