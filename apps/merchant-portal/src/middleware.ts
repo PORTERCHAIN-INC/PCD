@@ -7,6 +7,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/impersonate(.*)",
+  // Browser reports sign-in failures before anyone is signed in.
+  "/api/auth-telemetry",
   // Embedded Shopify app: App Bridge session token is the identity, not Clerk.
   "/shopify-app(.*)",
 ]);

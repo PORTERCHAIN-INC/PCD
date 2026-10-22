@@ -27,9 +27,11 @@ export function waitCopy(data: PortalOnboardingStatus, statusLabel: StatusLabell
   }
   if (data.status === "ONBOARDING" || data.status === "PENDING") {
     const wait = `PorterChain is reviewing this company. Status is ${label} until we activate it. Bookings stay locked until ${statusLabel("ACTIVE")}.`;
+    const shopify =
+      " Selling on Shopify? Open PorterChain Delivery in your Shopify admin and click Link store to activate this company right away.";
     return data.can_edit_company
-      ? `${wait} You can finish the company file while you wait.`
-      : `${wait} Your owner finishes the company file.`;
+      ? `${wait} You can finish the company file while you wait.${shopify}`
+      : `${wait} Your owner finishes the company file.${shopify}`;
   }
   return `Your dashboard opens when this company is ${statusLabel("ACTIVE")}.`;
 }

@@ -341,44 +341,54 @@ export default function ShopifyConnectCard({
       {!connected && !blockedElsewhere && !(initialShop && linkedElsewhere) ? (
         <div className="mt-4 space-y-3">
           {initialShop ? (
-            <p className="text-sm text-primary">
-              Store <span className="font-medium">{initialShop}</span>
-            </p>
+            <>
+              <p className="text-sm text-primary">
+                Store <span className="font-medium">{initialShop}</span>
+              </p>
+              {needsAddress ? (
+                <AddressAutocompleteInput
+                  id="shopify-pickup-connect"
+                  value={pickupAddress.formatted}
+                  onChange={(formatted) => setPickupAddress({ formatted })}
+                  onPlaceSelect={setPickupAddress}
+                  placeholder="Pickup address"
+                  fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                />
+              ) : (
+                <p className="text-sm text-muted">Pickup: {defaultWarehouse?.formatted}</p>
+              )}
+              {oneClick ? (
+                <Button
+                  size="sm"
+                  disabled={
+                    busy || !shopDomain || (needsAddress && !pickupAddress.formatted.trim())
+                  }
+                  onClick={() => void startOAuth()}
+                >
+                  Connect
+                </Button>
+              ) : (
+                <p className="text-sm text-amber-800">
+                  One-click connect is offline until Shopify partner credentials are on the API.
+                </p>
+              )}
+            </>
           ) : (
-            <label className="block text-sm">
-              Store
-              <input
-                className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
-                placeholder="store.myshopify.com"
-                value={shop}
-                onChange={(e) => setShop(e.target.value)}
-              />
-            </label>
-          )}
-          {needsAddress ? (
-            <AddressAutocompleteInput
-              id="shopify-pickup-connect"
-              value={pickupAddress.formatted}
-              onChange={(formatted) => setPickupAddress({ formatted })}
-              onPlaceSelect={setPickupAddress}
-              placeholder="Pickup address"
-              fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
-            />
-          ) : (
-            <p className="text-sm text-muted">Pickup: {defaultWarehouse?.formatted}</p>
-          )}
-          {oneClick ? (
-            <Button
-              size="sm"
-              disabled={busy || !shopDomain || (needsAddress && !pickupAddress.formatted.trim())}
-              onClick={() => void startOAuth()}
-            >
-              Connect
-            </Button>
-          ) : (
-            <p className="text-sm text-amber-800">
-              One-click connect is offline until Shopify partner credentials are on the API.
-            </p>
+            <div className="space-y-2 text-sm text-primary">
+              <p>
+                Install PorterChain Delivery from the Shopify App Store. After you approve it in
+                Shopify admin, open the app there and click Link store. Your store connects to this
+                account automatically, with no store address to type.
+              </p>
+              <a
+                className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 font-semibold text-white"
+                href="https://apps.shopify.com/search?q=PorterChain%20Delivery"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Find PorterChain Delivery on the Shopify App Store
+              </a>
+            </div>
           )}
           <button
             type="button"
@@ -389,6 +399,27 @@ export default function ShopifyConnectCard({
           </button>
           {showAdvanced ? (
             <div className="space-y-3 rounded-xl border border-primary/10 bg-gray-bg/40 p-3">
+              {!initialShop ? (
+                <label className="block text-sm">
+                  Store (custom apps only)
+                  <input
+                    className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    placeholder="store.myshopify.com"
+                    value={shop}
+                    onChange={(e) => setShop(e.target.value)}
+                  />
+                </label>
+              ) : null}
+              {needsAddress && !initialShop ? (
+                <AddressAutocompleteInput
+                  id="shopify-pickup-custom"
+                  value={pickupAddress.formatted}
+                  onChange={(formatted) => setPickupAddress({ formatted })}
+                  onPlaceSelect={setPickupAddress}
+                  placeholder="Pickup address"
+                  fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                />
+              ) : null}
               <label className="block text-sm">
                 Admin API token
                 <input

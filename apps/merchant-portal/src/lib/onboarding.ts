@@ -129,7 +129,11 @@ export async function saveMerchantCompanyFile(
   return res.json();
 }
 
-export const PENDING_MERCHANT_PATHS = ["/onboarding"] as const;
+/**
+ * Pages a not-yet-activated seat may open. `/shopify` lets a merchant who just signed up
+ * from the embedded Shopify app claim that store; the link activates them (trusted channel).
+ */
+export const PENDING_MERCHANT_PATHS = ["/onboarding", "/shopify"] as const;
 
 export function isPendingMerchantPath(pathname: string): boolean {
   return PENDING_MERCHANT_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

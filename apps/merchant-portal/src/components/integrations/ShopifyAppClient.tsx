@@ -34,7 +34,7 @@ export default function ShopifyAppClient() {
   const searchParams = useSearchParams();
   const shop = normalizeShop(searchParams.get("shop"));
   const linkToken = searchParams.get("link");
-  const [linked, setLinked] = useState(false);
+  const [linked, setLinked] = useState(searchParams.get("linked") === "1");
   const [linkError, setLinkError] = useState<string | null>(null);
   const linking = useRef(false);
   const hasStore = (status.data?.shopify.shops.length ?? 0) > 0;
@@ -47,12 +47,15 @@ export default function ShopifyAppClient() {
         await integrationsApi.shopifyLink(await getApiToken(), linkToken, orgId);
         setLinked(true);
         await qc.invalidateQueries();
+        // Linking a Shopify store activates a new company: reload so the portal
+        // session (and its onboarding gate) picks up the new status.
+        window.location.replace("/shopify?linked=1");
+        return;
       } catch (e) {
         const code = e instanceof Error ? e.message : "";
         setLinkError(shopifyInstallError(code) ?? code);
-      } finally {
-        router.replace("/shopify");
       }
+      router.replace("/shopify");
     })();
   }, [isSignedIn, orgId, linkToken, getApiToken, qc, router]);
 
