@@ -19,6 +19,8 @@ TZ = ZoneInfo("America/Toronto")
 PICKED = {"PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"}
 DONE = {"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED", "CANCELLED", "RETURN_TO_SENDER"}
 POOL = ("BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "FAILED")
+# Picked up with no driver: parcel is at our hub (split at warehouse) waiting for a delivery van.
+AWAITING_DELIVERY = "PICKED_UP"
 MAX_ORDERS = 300
 CUSTOMER_DROPS = {"drop", "return_drop"}  # a hub/partner handoff never inherits the customer's window
 Matrix = Callable[[list[tuple[float, float]]], list[list[int]] | None]
@@ -69,33 +71,28 @@ class FleetPlanService:
             q = q.filter(Order.id.in_(order_ids))
         else:
             end = datetime.combine(datetime.now(TZ).date() + timedelta(days=1), time.min, TZ)
-            q = q.filter(Order.assigned_driver_id.is_(None), Order.state.in_(POOL), Order.scheduled_at < end)
-        return q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
+            from sqlalchemy import or_
+
+            q = q.filter(
+                Order.assigned_driver_id.is_(None),
+                or_(
+                    Order.state.in_(POOL) & (Order.scheduled_at < end),
+                    Order.state == AWAITING_DELIVERY,  # any day: it is already in our hands
+                ),
+            )
+        rows = q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
+        if order_ids:
+            return rows
+        from porterchain_api.services import collect_only as co
+
+        # Collect-only parcels wait in the warehouse until an admin releases the delivery leg.
+        return [o for o in rows if not (co.awaiting_delivery(db, o) and co.is_held(db, o.id))]
 
     def _hub_override(self, db: Session, order: Any) -> Any:
-        """First planned leg ends at a warehouse/partner → the van's drop is that hub."""
-        from porterchain_api.dispatch_engine.models import OrderLeg
+        """Where the van really collects/drops (warehouse split, or parcel already on the road)."""
+        from porterchain_api.dispatch_engine.hub_legs import planning_view
 
-        leg = (
-            db.query(OrderLeg)
-            .filter(OrderLeg.order_id == order.id, OrderLeg.status.in_(("planned", "requested", "accepted")))
-            .order_by(OrderLeg.seq)
-            .first()
-        )
-        meta = (leg.meta or {}) if leg is not None else {}
-        if leg is None or leg.mode != "local" or meta.get("to_lat") is None:
-            return order
-        hub = {"lat": meta["to_lat"], "lng": meta["to_lng"], "formatted": leg.to_label,
-               "kind": meta.get("stop_kind", "hub"), "partner_id": leg.partner_id}
-
-        class _View:  # read-only view; never mutates the ORM row
-            pass
-
-        v = _View()
-        for attr in ("id", "pickup", "order_type", "state", "compliance_metadata"):
-            setattr(v, attr, getattr(order, attr))
-        v.dropoff = hub  # type: ignore[attr-defined]
-        return v
+        return planning_view(db, order, awaiting_state=AWAITING_DELIVERY)
 
     def _stops(self, db: Session, orders: list[Any]) -> tuple[list[StopSpec], list[tuple[str, str]], list[dict], dict]:
         """Orders → stops with load (kg, m³, boxes), time windows and learned service times."""
@@ -265,13 +262,15 @@ class FleetPlanService:
         new_ids = [o.id for o in self._orders(db, None)]
         orders = self._orders(db, list(dict.fromkeys(planned_ids + new_ids)))
         state = {o.id: o.state for o in orders}
+        at_hub = {o.id for o in orders if o.state == AWAITING_DELIVERY and not o.assigned_driver_id}
         stops, pairs, skipped, shapes = self._stops(db, orders)
         done: set[str] = set()
         for p, d in pairs:
-            st = state.get(p.split(":", 1)[0])
+            oid = p.split(":", 1)[0]
+            st = state.get(oid)
             if st in DONE:
                 done |= {p, d}
-            elif st in PICKED:
+            elif st in PICKED and oid not in at_hub:  # at-hub parcels still need collecting
                 done.add(p)
         # Exact stop-level check-ins from the driver app beat order-state inference.
         from porterchain_api.dispatch_engine.driver_route import DriverRouteService
@@ -387,13 +386,15 @@ class FleetPlanService:
                 o = db.get(Order, oid)
                 if o is None or o.assigned_driver_id == r.driver_id:
                     continue
-                if o.assigned_driver_id or o.state not in POOL:
+                awaiting = o.state == AWAITING_DELIVERY and not o.assigned_driver_id
+                if not awaiting and (o.assigned_driver_id or o.state not in POOL):
                     skipped.append({"order_id": oid, "reason": f"already {o.state.lower()}"})
                     continue
                 try:
                     ops.assign_driver(db, settings, ctx, oid, r.driver_id)
                     assigned += 1
-                    assigned_ids.append({"order_id": oid, "driver_id": r.driver_id})
+                    assigned_ids.append({"order_id": oid, "driver_id": r.driver_id,
+                                         **({"handoff": True} if awaiting else {})})
                 except (ValueError, LookupError, PermissionError) as exc:
                     db.rollback()
                     skipped.append({"order_id": oid, "reason": str(exc)})
@@ -438,6 +439,14 @@ class FleetPlanService:
         for row in commit.get("assigned_ids") or []:
             o = db.get(Order, row["order_id"])
             if o is None:
+                continue
+            if row.get("handoff"):
+                # Picked-up parcel at our hub: release only if the driver has not started yet.
+                if o.assigned_driver_id != row["driver_id"] or o.state != AWAITING_DELIVERY:
+                    kept.append({"order_id": o.id, "reason": f"already {o.state.lower()}"})
+                    continue
+                AdminOperationsService.release_handoff_no_commit(db, ctx, o, plan_id=plan.id)
+                released.append(o.id)
                 continue
             if o.assigned_driver_id != row["driver_id"] or o.state != OrderState.DRIVER_ASSIGNED.value:
                 kept.append({"order_id": o.id, "reason": f"already {o.state.lower()}"})

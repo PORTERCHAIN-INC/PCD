@@ -634,6 +634,15 @@ class JobsService:
         urgency = compute_urgency(order)
         ranks = priority_ranks or {}
         scan_block = scan or {}
+        from porterchain_driver.stops import _hub_split
+
+        split = _hub_split(order)
+        if split is not None:
+            hub_addr = split.hub.get("formatted") or "—"
+            if split.stage == "to_hub":
+                dropoff = {"formatted": hub_addr}
+            else:
+                pickup = {"formatted": hub_addr}
         return {
             "order_id": order.id,
             "order_number": order.order_number,
@@ -659,6 +668,7 @@ class JobsService:
             "scan_pickup": self._scan_view(scan_block.get("scan_pickup")),
             "scan_delivery": self._scan_view(scan_block.get("scan_delivery")),
             "shopify_order_label": _shopify_order_label(order),
+            "hub_leg": split.stage if split is not None else None,
         }
 
     @staticmethod

@@ -1,7 +1,7 @@
 """Merchant booking — Net terms flow per BUSINESS_WORKFLOW.md §2.3."""
 
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.domain.delivery_options import with_default as with_default_delivery_options
 from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
 from porterchain_api.booking_engine.site_access import enrich_dropoff
+from porterchain_api.services import collect_only as co
 from porterchain_api.booking_engine._core import emit_event
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_engine.order_transitions import transition_order_state, transition_to_dispatch_ready
@@ -152,11 +153,11 @@ class MerchantBookingService:
         *,
         vehicle_class: str | None = None,
         volume_units: int = 1,
+        db: Any = None,
     ) -> PricingRequest:
-        pickup = body.pickup
-        dropoff = body.dropoff
-        pickup_geo = _geo(pickup)
-        dropoff_geo = _geo(dropoff)
+        # Collect-only / warehouse split: ONE normal charge, pickup -> final receiver (``db`` unused).
+        pickup, dropoff = body.pickup, body.dropoff
+        pickup_geo, dropoff_geo = _geo(pickup), _geo(dropoff)
         stops = [_geo(s) for s in (body.additional_stops or [])]
         distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo, stops)
         _check_declarations(body)
@@ -265,7 +266,8 @@ class MerchantBookingService:
 
         pickup = body.pickup
         dropoff = body.dropoff
-        pricing_request = self.build_pricing_request(ctx, body)
+        hub = co.for_booking(db, body)  # collect-only: priced pickup -> receiver
+        pricing_request = self.build_pricing_request(ctx, body, db=db)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
         if (breakdown.metadata.get("coverage") or {}).get("over_max"):
             raise BookingValidationError(
@@ -275,8 +277,7 @@ class MerchantBookingService:
         assert_not_fsa_refused(breakdown)
         amount_cents = breakdown.final_cents
 
-        # WORKFLOW: validate merchant → pricing → contract → payment terms
-        # before an order is generated.
+        # WORKFLOW: validate merchant → pricing → contract → payment terms before an order is generated.
         validated = MerchantSyncService().validate_booking(db, ctx.merchant, amount_cents=amount_cents)
 
         pricing = get_pricing_service(db)
@@ -304,6 +305,7 @@ class MerchantBookingService:
         compliance["package_type"] = body.package_type
         if consignee_email:
             compliance["consignee"] = {"email": consignee_email}
+        co.mark(compliance, hub)
 
         scheduled_at, schedule_mode = schedule_from_body(body)
         weight_kg, dimensions = cargo_rollup(body)
@@ -370,6 +372,7 @@ class MerchantBookingService:
         )
         db.add(order)
         db.flush()
+        co.attach_legs(db, order, hub, actor_type="merchant", actor_id=ctx.user.id)
         from porterchain_api.booking_engine.stop_sync import dual_write_stops
 
         dual_write_stops(db, order)
@@ -413,8 +416,7 @@ class MerchantBookingService:
             db.refresh(order)
             return order
 
-        # Bulky gate (per-merchant, off by default): hold at BOOKED until the
-        # recipient picks a delivery window via the signed self-service link.
+        # Bulky gate (per-merchant, default off): hold at BOOKED until the recipient picks a window.
         from porterchain_api.customer_experience.scheduling import hold_for_schedule
 
         if not hold_for_schedule(db, settings, order):

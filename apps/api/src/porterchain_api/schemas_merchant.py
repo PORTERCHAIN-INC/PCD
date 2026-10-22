@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -28,6 +28,10 @@ class MerchantBookDeliveryRequest(BaseModel):
     dimensions: str | None = None
     scheduled_at: datetime
     schedule_mode: str = "now"
+    service_mode: Literal["standard", "collect_only"] = Field(
+        default="standard",
+        description="collect_only = pick up and bring to our warehouse; delivery is planned later",
+    )
     special_instructions: str | None = None
     site_access_notes: str | None = Field(
         default=None,

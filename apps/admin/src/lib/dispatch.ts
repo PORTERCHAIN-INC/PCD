@@ -338,6 +338,72 @@ export const STOP_KIND_LABEL: Record<PlanStop["kind"], string> = {
   handoff: "Handoff",
 };
 
+/** Tooltips for each stop kind on the plan. */
+export const STOP_KIND_HINT: Record<PlanStop["kind"], string> = {
+  pickup: "Driver collects the parcel from the sender",
+  drop: "Driver hands the parcel to the receiver",
+  return_pickup: "Driver collects a return from the receiver",
+  return_drop: "Driver brings the return back to the sender",
+  hub: "Warehouse stop: drop the parcel at our hub (pickup leg) or collect it there (delivery leg)",
+  handoff: "Parcel changes driver here",
+};
+
+export type RoutePattern = { id: string; label: string; hint: string };
+
+const isPick = (s: PlanStop) => s.kind === "pickup" || s.kind === "return_pickup";
+const isDrop = (s: PlanStop) => s.kind === "drop" || s.kind === "return_drop";
+
+/**
+ * Plain-words shape of a route so dispatch can see every combination at a glance:
+ * pickup-only to warehouse, warehouse → delivery, same driver pickup + delivery,
+ * mixed pickups and deliveries, multi-pickup / multi-drop.
+ */
+export function routePatterns(stops: PlanStop[]): RoutePattern[] {
+  const out: RoutePattern[] = [];
+  const picks = stops.filter(isPick);
+  const drops = stops.filter(isDrop);
+  const hubIdx = stops.map((s, i) => (s.kind === "hub" ? i : -1)).filter((i) => i >= 0);
+  const pickOrders = new Set(picks.map((s) => s.order_id));
+  const dropOrders = new Set(drops.map((s) => s.order_id));
+  const hubOrders = new Set(stops.filter((s) => s.kind === "hub").map((s) => s.order_id));
+  const toHub = [...hubOrders].filter((o) => pickOrders.has(o) && !dropOrders.has(o));
+  const fromHub = [...hubOrders].filter((o) => dropOrders.has(o) && !pickOrders.has(o));
+  if (toHub.length)
+    out.push({
+      id: "pickup_to_warehouse",
+      label: "Pickup only → warehouse",
+      hint: "This driver collects and drops at our warehouse; another driver delivers later",
+    });
+  if (fromHub.length)
+    out.push({
+      id: "warehouse_to_delivery",
+      label: "Warehouse → delivery",
+      hint: "This driver collects from our warehouse and delivers to the receiver",
+    });
+  const same = [...pickOrders].filter((o) => dropOrders.has(o));
+  if (same.length)
+    out.push({
+      id: "same_driver",
+      label: "Same driver pickup + delivery",
+      hint: "One driver picks up and delivers the same order, no warehouse stop",
+    });
+  const firstDrop = stops.findIndex(isDrop);
+  const lastPick = stops.map((s, i) => (isPick(s) ? i : -1)).reduce((a, b) => Math.max(a, b), -1);
+  if (firstDrop >= 0 && lastPick > firstDrop)
+    out.push({
+      id: "mixed",
+      label: "Mixed pickups and deliveries",
+      hint: "Pickups and deliveries are interleaved on one route to save driving",
+    });
+  if (pickOrders.size > 1 || dropOrders.size > 1)
+    out.push({
+      id: "multi",
+      label: `Multi-pickup / multi-drop (${picks.length}↑ ${drops.length + hubIdx.length}↓)`,
+      hint: "Several orders share this vehicle; capacity and time windows are checked per stop",
+    });
+  return out;
+}
+
 /** Pickups/drops per route — a 1→N route reads "1 pickup · 3 drops". */
 export function routeMix(stops: PlanStop[]): string {
   const p = stops.filter((s) => s.kind === "pickup" || s.kind === "return_pickup").length;
@@ -373,7 +439,58 @@ export function minutes(seconds: number): string {
 
 const J = { "Content-Type": "application/json" };
 
+/** Split at warehouse: pickup leg to our hub, delivery leg from the hub (own drivers). */
+export type HubSplit = {
+  order_id: string;
+  split: boolean;
+  stage?: "to_hub" | "at_hub";
+  hub?: { name?: string; formatted?: string; lat?: number; lng?: number };
+  pickup_driver_id?: string | null;
+  delivery_driver_id?: string | null;
+  arrived_at_hub?: boolean;
+  collect_only?: boolean;
+  /** Delivery leg not released yet: Plan the day skips it. */
+  delivery_held?: boolean;
+  awaiting_delivery?: boolean;
+  status_label?: string | null;
+};
+
+export const HUB_STAGE_LABEL: Record<NonNullable<HubSplit["stage"]>, string> = {
+  to_hub: "Pickup leg: on the way to the warehouse",
+  at_hub: "At the warehouse: waiting for / out with the delivery driver",
+};
+
+/** States where "Split at warehouse" is offered (mirrors HubSplitService.SPLITTABLE). */
+export const HUB_SPLITTABLE = new Set([
+  "BOOKED",
+  "DISPATCH_READY",
+  "DRIVER_REJECTED",
+  "DRIVER_ASSIGNED",
+  "DRIVER_ACCEPTED",
+  "DRIVER_EN_ROUTE",
+  "AT_PICKUP",
+  "PICKED_UP",
+]);
+
 export const dispatch = {
+  hubSplit: (t: string, orderId: string) =>
+    adminFetch<HubSplit>(`${B}/orders/${encodeURIComponent(orderId)}/hub-split`, t),
+  splitAtHub: (
+    t: string,
+    orderId: string,
+    body: { hub_partner_id: string; pickup_driver_id?: string; delivery_driver_id?: string }
+  ) =>
+    adminFetch<HubSplit>(`${B}/orders/${encodeURIComponent(orderId)}/hub-split`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: J,
+    }),
+  releaseDeliveryLeg: (t: string, orderId: string, body: { driver_id?: string } = {}) =>
+    adminFetch<{ order_id: string; released: boolean }>(
+      `${B}/orders/${encodeURIComponent(orderId)}/delivery-leg`,
+      t,
+      { method: "POST", body: JSON.stringify(body), headers: J }
+    ),
   metrics: (t: string, days = 7) => adminFetch<DispatchMetrics>(`${B}/metrics?days=${days}`, t),
   exceptions: (t: string, offset = 0) =>
     adminFetch<DispatchExceptions>(`${B}/exceptions?offset=${offset}&limit=${EXCEPTIONS_PAGE}`, t),

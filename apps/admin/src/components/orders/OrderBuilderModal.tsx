@@ -13,7 +13,8 @@ import {
   type DeliveryOptions,
 } from "@porterchain/types/delivery-options";
 
-export type OrderKind = "single" | "hub_spoke" | "multi_pickup_delivery" | "scheduled_pickup";
+export type OrderKind =
+  "single" | "hub_spoke" | "multi_pickup_delivery" | "scheduled_pickup" | "collect_only";
 
 type StopDraft = {
   key: string;
@@ -32,6 +33,11 @@ const KINDS: { id: OrderKind; label: string; hint: string }[] = [
   { id: "hub_spoke", label: "Hub & spoke", hint: "One pickup, many deliveries" },
   { id: "multi_pickup_delivery", label: "Multi P/D", hint: "Multiple pickups and deliveries" },
   { id: "scheduled_pickup", label: "Scheduled pickup", hint: "Merchant appointment window" },
+  {
+    id: "collect_only",
+    label: "Collect only",
+    hint: "Pick up to our warehouse; deliver later",
+  },
 ];
 
 function seedStops(kind: OrderKind): StopDraft[] {
@@ -249,6 +255,14 @@ export function OrderBuilderModal({
               </button>
             ))}
           </div>
+          {kind === "collect_only" ? (
+            <p className="mt-2 text-xs text-muted" data-testid="collect-only-note">
+              One normal charge, priced pickup → receiver (contract rates apply, HST extra); the
+              warehouse stop and delivery leg never add a charge. The driver drops at the warehouse
+              with no receiver code or photo. Keep the receiver address below: the parcel waits as
+              &ldquo;At warehouse – awaiting delivery&rdquo; until you create the delivery leg.
+            </p>
+          ) : null}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">

@@ -21,6 +21,7 @@ class StopView:
     special_instructions: str | None = None
     otp_required: bool = False
     pod_required: bool = True
+    hub_leg: str | None = None  # "to_hub" | "at_hub" when the order is split at a warehouse
 
 
 @dataclass

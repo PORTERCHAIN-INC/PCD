@@ -38,6 +38,7 @@ export const idleHandshake = (): Handshake => ({
   routeId: null,
   stopId: null,
   stopStatus: null,
+  hubLeg: null,
   nextStop: null,
   nextStopType: null,
   etaMinutes: null,
@@ -109,6 +110,7 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
     next.routeId = jobs.route_id ?? dash?.active_route_id ?? null;
     next.stopId = stop?.stop_id ?? null;
     next.stopStatus = stop?.status ?? null;
+    next.hubLeg = stop?.hub_leg ?? null;
     next.nextStop = stop?.formatted_address ?? null;
     next.nextStopType = stop?.stop_type ?? null;
     next.etaMinutes = stop?.eta_minutes ?? null;

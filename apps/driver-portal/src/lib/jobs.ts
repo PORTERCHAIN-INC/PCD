@@ -62,6 +62,8 @@ export interface DriverJobSummary {
   pickup_completed?: boolean;
   delivery_completed?: boolean;
   is_current_job?: boolean;
+  /** "to_hub": drop at our warehouse (order split at a hub); "at_hub": collect there first. */
+  hub_leg?: "to_hub" | "at_hub" | null;
   route_id?: string | null;
   scan_pickup?: DriverScanProgress;
   scan_delivery?: DriverScanProgress;
@@ -265,11 +267,16 @@ export function resolveScanProgress(
 
 export function getPrimaryAction(
   state: string,
-  allowed: JobActionKey[] = []
+  allowed: JobActionKey[] = [],
+  hubLeg?: string | null
 ): { key: JobActionKey; label: string } | null {
   const s = state.toUpperCase();
   const leg = getJobLeg(s);
   if (leg === "completed") return null;
+  // Warehouse split, pickup leg: the parcel goes to our hub, not to the receiver.
+  if (hubLeg === "to_hub" && s === "PICKED_UP") {
+    return { key: "confirm_delivery", label: "Dropped at Warehouse" };
+  }
 
   if (leg === "pickup") {
     if (s === "AT_PICKUP") {

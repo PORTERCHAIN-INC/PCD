@@ -28,7 +28,7 @@ from porterchain_api.schemas_admin import AdminCreateOrderRequest, AdminOrderSto
 from porterchain_api.services.routing import resolve_route_distance
 from porterchain_pricing import GeoPoint, PricingRequest
 
-VALID_KINDS = frozenset({"single", "hub_spoke", "multi_pickup_delivery", "scheduled_pickup"})
+VALID_KINDS = frozenset({"single", "hub_spoke", "multi_pickup_delivery", "scheduled_pickup", "collect_only"})
 
 
 def _normalize_stops(stops: list[AdminOrderStopInput]) -> list[dict[str, Any]]:
@@ -67,7 +67,7 @@ def _validate_kind(kind: str, stops: list[dict[str, Any]]) -> None:
     dropoffs = [s for s in stops if s["type"] == "dropoff"]
     if not pickups or not dropoffs:
         raise ValueError("need_pickup_and_dropoff")
-    if kind == "single" and (len(pickups) != 1 or len(dropoffs) != 1):
+    if kind in ("single", "collect_only") and (len(pickups) != 1 or len(dropoffs) != 1):
         raise ValueError("single_requires_one_pickup_one_dropoff")
     if kind == "hub_spoke" and (len(pickups) != 1 or len(dropoffs) < 2):
         raise ValueError("hub_spoke_requires_one_pickup_and_multi_dropoff")
@@ -113,6 +113,10 @@ class OrderBuilderService:
         mid_geo = [
             GeoPoint(lat=s.get("lat"), lng=s.get("lng"), formatted=s["formatted"]) for s in middles
         ]
+        from porterchain_api.services import collect_only as co
+
+        # Collect-only: ONE normal charge priced pickup -> receiver; the warehouse leg is internal.
+        hub = co.warehouse(db) if body.order_kind == co.COLLECT_ONLY else None
         distance, duration_seconds, routing_source = resolve_route_distance(
             pickup_geo, dropoff_geo, mid_geo
         )
@@ -158,6 +162,7 @@ class OrderBuilderService:
             "vehicle_class": persist_vehicle_class(body.vehicle_class),
             "additional_stops": [_stop_addr(s) for s in middles],
         }
+        co.mark(compliance, hub)
 
         order_type = resolve_order_type(
             schedule_mode=schedule_mode,
@@ -184,6 +189,7 @@ class OrderBuilderService:
 
         db.add(order)
         db.flush()
+        co.attach_legs(db, order, hub, actor_type="admin", actor_id=ctx.user.id)
 
         try:
             from porterchain_api.authz.tuples import TupleWriter

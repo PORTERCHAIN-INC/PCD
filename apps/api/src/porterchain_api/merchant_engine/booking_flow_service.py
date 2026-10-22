@@ -135,7 +135,7 @@ class MerchantBookingFlowService:
         )
         vehicle_class = body.vehicle_class or vehicle_hint["recommended_vehicle"]
 
-        pricing_request = self._booking.build_pricing_request(ctx, body, vehicle_class=vehicle_class)
+        pricing_request = self._booking.build_pricing_request(ctx, body, vehicle_class=vehicle_class, db=db)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
         if (breakdown.metadata.get("coverage") or {}).get("over_max"):
             raise BookingValidationError(

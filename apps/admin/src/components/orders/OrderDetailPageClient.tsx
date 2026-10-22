@@ -1,5 +1,6 @@
 "use client";
 
+import { HubSplitPanel } from "@/components/orders/HubSplitPanel";
 import { useCallback, useMemo, useState } from "react";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
@@ -329,6 +330,17 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
         onRefresh={() => void invalidate()}
       />
       {detail ? <OrderAttachmentsPanel orderId={id} getApiToken={getApiToken} /> : null}
+      {detail ? (
+        <HubSplitPanel
+          orderId={id}
+          orderState={detail.state}
+          getApiToken={getApiToken}
+          onChanged={() => {
+            flashNotice("Order split at the warehouse.");
+            void invalidate();
+          }}
+        />
+      ) : null}
       <AssignDriverModal
         open={assignOpen}
         orderId={id}

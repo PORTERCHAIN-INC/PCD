@@ -126,7 +126,7 @@ export default function Delivery360({
   const pickupPhase = isInPickupPhase(job);
   const deliveryPhase = isInDeliveryPhase(job);
   const completed = isJobCompleted(job);
-  const primary = getPrimaryAction(job.state, job.allowed_actions ?? []);
+  const primary = getPrimaryAction(job.state, job.allowed_actions ?? [], job.hub_leg);
   const scanPhase: "pickup" | "delivery" = deliveryPhase ? "delivery" : "pickup";
   const scanProgress = resolveScanProgress(job, scanPhase);
   const wholeVehicle = job.booking_mode === "vehicle";
@@ -147,6 +147,8 @@ export default function Delivery360({
     delivery_notes: job.delivery_notes ?? job.next_stop?.delivery_notes ?? [],
   });
   const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
+  // Warehouse split, pickup leg: the drop is our hub — no receiver proof, no scan gate.
+  const toHub = job.hub_leg === "to_hub" && job.state.toUpperCase() === "PICKED_UP";
   const podEnforced = Boolean(job.pod_requirements?.enforced);
   const podMissing = job.pod_missing ?? [];
   const requiredItems = [
@@ -280,7 +282,7 @@ export default function Delivery360({
               Attempt {job.delivery_attempts} of {job.max_delivery_attempts ?? 2}
             </p>
           ) : null}
-          {primary.key.startsWith("confirm_") && !scansComplete ? (
+          {primary.key.startsWith("confirm_") && !scansComplete && !toHub ? (
             <p className="mt-2 text-sm text-amber-800">
               Scan or report every package first ({scanProgress.scanned}/{scanProgress.required})
             </p>
@@ -293,7 +295,8 @@ export default function Delivery360({
           <button
             type="button"
             disabled={
-              pending === primary.key || (primary.key.startsWith("confirm_") && !scansComplete)
+              pending === primary.key ||
+              (primary.key.startsWith("confirm_") && !scansComplete && !toHub)
             }
             onClick={() => runPrimary(primary.key)}
             className={cn(
@@ -560,7 +563,7 @@ export default function Delivery360({
         </Section>
       )}
 
-      {deliveryPhase && !completed && (
+      {deliveryPhase && !completed && !toHub && (
         <Section title="Proof of Delivery" icon={CheckCircle2}>
           {job.on_duty === false ? (
             <p

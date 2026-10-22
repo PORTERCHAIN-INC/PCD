@@ -291,4 +291,5 @@ class NextStopResolver:
             "delivery_notes": access["delivery_notes"],
             "delivery_attempts": attempts,
             "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
+            "hub_leg": getattr(stop, "hub_leg", None),
         }

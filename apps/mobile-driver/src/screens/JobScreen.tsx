@@ -90,6 +90,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
     pod,
     podRequirements: h.podRequirements,
     otpRequired: h.otpRequired,
+    hubLeg: h.hubLeg,
   });
   const routeId = h.routeId ?? "";
   const stopId = h.stopId ?? "";
