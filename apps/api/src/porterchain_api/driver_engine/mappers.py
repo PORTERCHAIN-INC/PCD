@@ -39,6 +39,7 @@ def stop_response(s) -> StopResponse:
         special_instructions=s.special_instructions,
         otp_required=s.otp_required,
         pod_required=s.pod_required,
+        hub_leg=getattr(s, "hub_leg", None),
     )
 
 

@@ -273,4 +273,5 @@ class NextStopResolver:
             "contact_phone_masked": access["contact_phone_masked"],
             "delivery_attempts": attempts,
             "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
+            "hub_leg": getattr(stop, "hub_leg", None),
         }

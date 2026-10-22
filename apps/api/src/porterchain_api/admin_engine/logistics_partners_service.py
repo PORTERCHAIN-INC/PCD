@@ -223,3 +223,94 @@ class LogisticsPartnersService:
             _audit(db, ctx, "dispatch.retention.purged", "dispatch_retention", res)
             db.commit()
         return res
+
+
+# ---------------------------------------------------------------- split at warehouse
+# Before pickup (any driver state) or picked up but not yet out for delivery.
+SPLITTABLE = frozenset({
+    "BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "DRIVER_ASSIGNED", "DRIVER_ACCEPTED",
+    "DRIVER_EN_ROUTE", "AT_PICKUP", "PICKED_UP",
+})
+
+
+class HubSplitService:
+    def split(
+        self,
+        db: Session,
+        settings: Any,
+        ctx: Any,
+        order_id: str,
+        *,
+        hub_partner_id: str,
+        pickup_driver_id: str | None = None,
+        delivery_driver_id: str | None = None,
+    ) -> dict[str, Any]:
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+        from porterchain_api.admin_models import AdminAuditLog
+        from porterchain_api.booking_models import Order, OrderEvent
+        from porterchain_api.dispatch_engine.hub_legs import hub_leg
+        from porterchain_api.dispatch_engine.models import LogisticsPartner, OrderLeg
+        from porterchain_api.domain.sandbox import order_is_sandbox
+
+        order = db.get(Order, order_id)
+        if order is None:
+            raise LookupError("order_not_found")
+        if order_is_sandbox(order):
+            raise ValueError("sandbox_orders_block_live_assign")
+        if order.state not in SPLITTABLE:
+            raise ValueError("split_not_allowed_in_state")
+        if hub_leg(db, order.id) is not None:
+            raise ValueError("already_split")
+        hub = db.get(LogisticsPartner, hub_partner_id)
+        if hub is None or hub.kind != "warehouse" or not hub.active:
+            raise LookupError("hub_not_found")
+        if hub.lat is None or hub.lng is None:
+            raise ValueError("hub_not_geocoded")
+
+        # Replace any still-planned local legs (rules planner output) with the split.
+        db.query(OrderLeg).filter(
+            OrderLeg.order_id == order.id, OrderLeg.status == "planned", OrderLeg.mode == "local"
+        ).delete(synchronize_session=False)
+        picked = order.state == "PICKED_UP"
+        first_driver = pickup_driver_id or (order.assigned_driver_id if picked else None)
+        db.add(OrderLeg(
+            order_id=order.id, seq=0, mode="local", partner_id=hub.id, from_label="pickup",
+            to_label=hub.name[:64], status="picked_up" if picked else "planned",
+            meta={"hub_split": True, "stop_kind": "hub", "to_lat": hub.lat, "to_lng": hub.lng,
+                  "hub_formatted": hub.name, "driver_id": first_driver},
+        ))
+        db.add(OrderLeg(
+            order_id=order.id, seq=1, mode="local", partner_id=hub.id, from_label=hub.name[:64],
+            to_label="customer", status="planned",
+            meta={"hub_split": True, "from_lat": hub.lat, "from_lng": hub.lng,
+                  "driver_id": delivery_driver_id},
+        ))
+        db.add(OrderEvent(order_id=order.id, event_type="order.hub_split", from_state=order.state,
+                          to_state=order.state, actor_type="admin", actor_id=ctx.user.id,
+                          payload={"hub_partner_id": hub.id, "pickup_driver_id": first_driver,
+                                   "delivery_driver_id": delivery_driver_id}))
+        db.add(AdminAuditLog(actor_user_id=ctx.user.id, action="dispatch.hub_split", resource_type="order",
+                             resource_id=order.id,
+                             payload={"hub_partner_id": hub.id, "state": order.state,
+                                      "pickup_driver_id": first_driver,
+                                      "delivery_driver_id": delivery_driver_id}))
+        db.commit()
+        if pickup_driver_id and pickup_driver_id != order.assigned_driver_id:
+            AdminOperationsService().assign_driver(db, settings, ctx, order.id, pickup_driver_id)
+        return self.view(db, order.id)
+
+    def view(self, db: Session, order_id: str) -> dict[str, Any]:
+        from porterchain_api.dispatch_engine.hub_legs import hub_leg
+
+        leg = hub_leg(db, order_id)
+        if leg is None:
+            return {"order_id": order_id, "split": False}
+        return {
+            "order_id": order_id,
+            "split": True,
+            "stage": leg.stage,
+            "hub": leg.hub,
+            "pickup_driver_id": (leg.first.meta or {}).get("driver_id"),
+            "delivery_driver_id": leg.delivery_driver_id,
+            "arrived_at_hub": leg.arrived_at_hub,
+        }

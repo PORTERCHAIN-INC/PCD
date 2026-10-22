@@ -19,3 +19,15 @@ describe("delivery leg after pickup", () => {
     expect(getPrimaryAction("AT_DESTINATION", ["confirm_delivery"])?.key).toBe("confirm_delivery");
   });
 });
+
+describe("warehouse split", () => {
+  it("pickup leg to the hub ends with Dropped at Warehouse, not Start Delivery", () => {
+    expect(getPrimaryAction("PICKED_UP", ["start_delivery"], "to_hub")).toEqual({
+      key: "confirm_delivery",
+      label: "Dropped at Warehouse",
+    });
+  });
+  it("delivery leg from the hub is a normal Start Delivery", () => {
+    expect(getPrimaryAction("PICKED_UP", ["start_delivery"], "at_hub")?.key).toBe("start_delivery");
+  });
+});

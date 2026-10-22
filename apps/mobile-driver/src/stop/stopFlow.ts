@@ -51,6 +51,8 @@ export type StopInput = {
   pod: PodDraft;
   podRequirements: PodRequirements | null | undefined;
   otpRequired: boolean;
+  /** "to_hub": this drop is our warehouse (split order), not the receiver. */
+  hubLeg?: string | null;
 };
 
 export type StopView = {
@@ -142,14 +144,17 @@ export function deriveStop(input: StopInput): StopView {
   const arrived = atSet.has(state) || (input.stopStatus ?? "").toLowerCase().includes("arriv");
   const needsScan = input.scanRequired > 0;
   const scanned = !needsScan || input.scanComplete;
+  const toHub = kind === "delivery" && input.hubLeg === "to_hub";
   const podNeeds =
-    kind === "delivery" ? podMissing(input.pod, input.podRequirements, input.otpRequired) : [];
+    kind === "delivery" && !toHub
+      ? podMissing(input.pod, input.podRequirements, input.otpRequired)
+      : [];
 
   const railFor = (now: RailStep["id"] | "all_done"): RailStep[] => {
     const ids: Array<{ id: RailStep["id"]; label: string }> = [
       { id: "arrive", label: "Arrive" },
       ...(needsScan ? [{ id: "scan" as const, label: "Scan" }] : []),
-      ...(kind === "delivery" ? [{ id: "proof" as const, label: "Proof" }] : []),
+      ...(kind === "delivery" && !toHub ? [{ id: "proof" as const, label: "Proof" }] : []),
       { id: "done", label: "Done" },
     ];
     const at = now === "all_done" ? ids.length : ids.findIndex((x) => x.id === now);
@@ -171,6 +176,9 @@ export function deriveStop(input: StopInput): StopView {
   if (input.syncing) return view("syncing", "all_done", null);
   if (!input.onDuty)
     return view("off_duty", "arrive", { action: "go_on_duty", label: "Go on duty" });
+  if (!arrived && toHub) {
+    return view("arrive", "arrive", { action: "arrive", label: "Arrived at warehouse" });
+  }
   if (!arrived && kind === "delivery" && state === "PICKED_UP") {
     return view("start", "arrive", { action: "start", label: "Start delivery" });
   }
@@ -184,6 +192,11 @@ export function deriveStop(input: StopInput): StopView {
   if (podNeeds.length) return view("proof", "proof", POD_ACTION[podNeeds[0]]);
   return view("complete", "done", {
     action: "complete",
-    label: kind === "pickup" ? "Picked up — complete" : "Delivered — complete",
+    label:
+      kind === "pickup"
+        ? "Picked up — complete"
+        : toHub
+          ? "Dropped at warehouse — complete"
+          : "Delivered — complete",
   });
 }

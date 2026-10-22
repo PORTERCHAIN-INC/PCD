@@ -126,7 +126,7 @@ export default function Delivery360({
   const pickupPhase = isInPickupPhase(job);
   const deliveryPhase = isInDeliveryPhase(job);
   const completed = isJobCompleted(job);
-  const primary = getPrimaryAction(job.state, job.allowed_actions ?? []);
+  const primary = getPrimaryAction(job.state, job.allowed_actions ?? [], job.hub_leg);
   const scanPhase: "pickup" | "delivery" = deliveryPhase ? "delivery" : "pickup";
   const scanProgress = resolveScanProgress(job, scanPhase);
   const wholeVehicle = job.booking_mode === "vehicle";

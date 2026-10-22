@@ -149,3 +149,33 @@ describe("openStopAvailable — never 'Open stop' with nothing behind it", () =>
     expect(openStopAvailable({ ...job, currentOrderId: null })).toBe(false);
   });
 });
+
+describe("deriveStop — warehouse split (pickup leg ends at our hub)", () => {
+  const hub = (over: Partial<StopInput> = {}) =>
+    deriveStop(
+      base({
+        orderState: "PICKED_UP",
+        stopType: "dropoff",
+        hubLeg: "to_hub",
+        otpRequired: true,
+        ...over,
+      })
+    );
+
+  it("goes straight to Arrived at warehouse, no Start delivery", () => {
+    const v = hub();
+    expect(v.primary).toEqual({ action: "arrive", label: "Arrived at warehouse" });
+    expect(v.rail.map((r) => r.id)).not.toContain("proof");
+  });
+
+  it("no receiver code or photo at the hub", () => {
+    const v = hub({ stopStatus: "arrived" });
+    expect(v.podNeeds).toEqual([]);
+    expect(v.primary?.label).toBe("Dropped at warehouse — complete");
+  });
+
+  it("delivery leg from the hub is a normal delivery", () => {
+    const v = deriveStop(base({ orderState: "PICKED_UP", stopType: "dropoff", hubLeg: "at_hub" }));
+    expect(v.primary?.action).toBe("start");
+  });
+});

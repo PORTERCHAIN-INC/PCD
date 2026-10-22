@@ -62,10 +62,18 @@ class AdminOperationsService:
             raise LookupError("order_not_found")
         if order_is_sandbox(order):
             raise ValueError("sandbox_orders_block_live_assign")
-        if order.state in HANDOFF_STATES and order.assigned_driver_id:
+        if order.state in HANDOFF_STATES and (
+            order.assigned_driver_id or order.state in ONBOARD_STATES
+        ):
             # Already accepted / on the road / picked up: the state machine has no way back to
-            # DRIVER_ASSIGNED, so hand the job to the new driver in place (delivery leg).
+            # DRIVER_ASSIGNED, so hand the job to the new driver in place (delivery leg). A
+            # picked-up order with no driver is a parcel waiting at our hub (hub split).
             order = self._handoff_driver_no_commit(db, ctx, order, driver_id)
+            from porterchain_api.dispatch_engine.hub_legs import AT_HUB, hub_leg, set_delivery_driver
+
+            split = hub_leg(db, order.id)
+            if split is not None and split.stage == AT_HUB:
+                set_delivery_driver(split, driver_id)
         else:
             order = self._assign_driver_no_commit(db, ctx, order_id, driver_id)
         db.commit()

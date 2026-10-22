@@ -19,6 +19,8 @@ TZ = ZoneInfo("America/Toronto")
 PICKED = {"PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"}
 DONE = {"DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED", "CANCELLED", "RETURN_TO_SENDER"}
 POOL = ("BOOKED", "DISPATCH_READY", "DRIVER_REJECTED", "FAILED")
+# Picked up with no driver: parcel is at our hub (split at warehouse) waiting for a delivery van.
+AWAITING_DELIVERY = "PICKED_UP"
 MAX_ORDERS = 300
 CUSTOMER_DROPS = {"drop", "return_drop"}  # a hub/partner handoff never inherits the customer's window
 Matrix = Callable[[list[tuple[float, float]]], list[list[int]] | None]
@@ -69,7 +71,15 @@ class FleetPlanService:
             q = q.filter(Order.id.in_(order_ids))
         else:
             end = datetime.combine(datetime.now(TZ).date() + timedelta(days=1), time.min, TZ)
-            q = q.filter(Order.assigned_driver_id.is_(None), Order.state.in_(POOL), Order.scheduled_at < end)
+            from sqlalchemy import or_
+
+            q = q.filter(
+                Order.assigned_driver_id.is_(None),
+                or_(
+                    Order.state.in_(POOL) & (Order.scheduled_at < end),
+                    Order.state == AWAITING_DELIVERY,  # any day: it is already in our hands
+                ),
+            )
         return q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
 
     def _hub_override(self, db: Session, order: Any) -> Any:
@@ -83,18 +93,25 @@ class FleetPlanService:
             .first()
         )
         meta = (leg.meta or {}) if leg is not None else {}
-        if leg is None or leg.mode != "local" or meta.get("to_lat") is None:
+        if leg is None or leg.mode != "local":
             return order
-        hub = {"lat": meta["to_lat"], "lng": meta["to_lng"], "formatted": leg.to_label,
-               "kind": meta.get("stop_kind", "hub"), "partner_id": leg.partner_id}
+        at_hub = meta.get("from_lat") is not None and order.state == AWAITING_DELIVERY
+        if meta.get("to_lat") is None and not at_hub:
+            return order
 
         class _View:  # read-only view; never mutates the ORM row
             pass
 
         v = _View()
-        for attr in ("id", "pickup", "order_type", "state", "compliance_metadata"):
+        for attr in ("id", "pickup", "dropoff", "order_type", "state", "compliance_metadata"):
             setattr(v, attr, getattr(order, attr))
-        v.dropoff = hub  # type: ignore[attr-defined]
+        if at_hub:  # delivery leg of a warehouse split: the van collects at the hub
+            v.pickup = {"lat": meta["from_lat"], "lng": meta["from_lng"],  # type: ignore[attr-defined]
+                        "formatted": leg.from_label, "kind": "hub", "partner_id": leg.partner_id}
+        else:
+            v.dropoff = {"lat": meta["to_lat"], "lng": meta["to_lng"],  # type: ignore[attr-defined]
+                         "formatted": leg.to_label, "kind": meta.get("stop_kind", "hub"),
+                         "partner_id": leg.partner_id}
         return v
 
     def _stops(self, db: Session, orders: list[Any]) -> tuple[list[StopSpec], list[tuple[str, str]], list[dict], dict]:
@@ -265,13 +282,15 @@ class FleetPlanService:
         new_ids = [o.id for o in self._orders(db, None)]
         orders = self._orders(db, list(dict.fromkeys(planned_ids + new_ids)))
         state = {o.id: o.state for o in orders}
+        at_hub = {o.id for o in orders if o.state == AWAITING_DELIVERY and not o.assigned_driver_id}
         stops, pairs, skipped, shapes = self._stops(db, orders)
         done: set[str] = set()
         for p, d in pairs:
-            st = state.get(p.split(":", 1)[0])
+            oid = p.split(":", 1)[0]
+            st = state.get(oid)
             if st in DONE:
                 done |= {p, d}
-            elif st in PICKED:
+            elif st in PICKED and oid not in at_hub:  # at-hub parcels still need collecting
                 done.add(p)
         # Exact stop-level check-ins from the driver app beat order-state inference.
         from porterchain_api.dispatch_engine.driver_route import DriverRouteService
@@ -387,7 +406,8 @@ class FleetPlanService:
                 o = db.get(Order, oid)
                 if o is None or o.assigned_driver_id == r.driver_id:
                     continue
-                if o.assigned_driver_id or o.state not in POOL:
+                awaiting = o.state == AWAITING_DELIVERY and not o.assigned_driver_id
+                if not awaiting and (o.assigned_driver_id or o.state not in POOL):
                     skipped.append({"order_id": oid, "reason": f"already {o.state.lower()}"})
                     continue
                 try:

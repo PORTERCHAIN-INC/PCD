@@ -36,6 +36,8 @@ export type Handshake = {
   routeId: string | null;
   stopId: string | null;
   stopStatus: string | null;
+  /** "to_hub" when the next drop is our warehouse (order split at a hub). */
+  hubLeg: string | null;
   nextStop: string | null;
   nextStopType: string | null;
   etaMinutes: number | null;
@@ -123,6 +125,7 @@ export type DriverNextStop = {
   contact_phone_masked?: string | null;
   delivery_attempts?: number;
   max_delivery_attempts?: number;
+  hub_leg?: string | null;
 };
 
 export type DriverJobSummary = {

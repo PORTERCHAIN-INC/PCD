@@ -373,7 +373,47 @@ export function minutes(seconds: number): string {
 
 const J = { "Content-Type": "application/json" };
 
+/** Split at warehouse: pickup leg to our hub, delivery leg from the hub (own drivers). */
+export type HubSplit = {
+  order_id: string;
+  split: boolean;
+  stage?: "to_hub" | "at_hub";
+  hub?: { name?: string; formatted?: string; lat?: number; lng?: number };
+  pickup_driver_id?: string | null;
+  delivery_driver_id?: string | null;
+  arrived_at_hub?: boolean;
+};
+
+export const HUB_STAGE_LABEL: Record<NonNullable<HubSplit["stage"]>, string> = {
+  to_hub: "Pickup leg: on the way to the warehouse",
+  at_hub: "At the warehouse: waiting for / out with the delivery driver",
+};
+
+/** States where "Split at warehouse" is offered (mirrors HubSplitService.SPLITTABLE). */
+export const HUB_SPLITTABLE = new Set([
+  "BOOKED",
+  "DISPATCH_READY",
+  "DRIVER_REJECTED",
+  "DRIVER_ASSIGNED",
+  "DRIVER_ACCEPTED",
+  "DRIVER_EN_ROUTE",
+  "AT_PICKUP",
+  "PICKED_UP",
+]);
+
 export const dispatch = {
+  hubSplit: (t: string, orderId: string) =>
+    adminFetch<HubSplit>(`${B}/orders/${encodeURIComponent(orderId)}/hub-split`, t),
+  splitAtHub: (
+    t: string,
+    orderId: string,
+    body: { hub_partner_id: string; pickup_driver_id?: string; delivery_driver_id?: string }
+  ) =>
+    adminFetch<HubSplit>(`${B}/orders/${encodeURIComponent(orderId)}/hub-split`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: J,
+    }),
   metrics: (t: string, days = 7) => adminFetch<DispatchMetrics>(`${B}/metrics?days=${days}`, t),
   exceptions: (t: string, offset = 0) =>
     adminFetch<DispatchExceptions>(`${B}/exceptions?offset=${offset}&limit=${EXCEPTIONS_PAGE}`, t),
