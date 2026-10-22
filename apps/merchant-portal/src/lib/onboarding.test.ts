@@ -27,6 +27,11 @@ test("waiting owner is told they can finish the company file", () => {
   assert.match(text, /Active/);
 });
 
+test("waiting company is pointed to the Shopify Link store route (no dead end)", () => {
+  const text = copy(status({ blockers: ["admin_authorization"], can_edit_company: true }));
+  assert.match(text, /Shopify admin and click Link store to activate/);
+});
+
 test("waiting dispatcher is not told to fix the company file", () => {
   const text = copy(status({ blockers: ["admin_authorization"], can_edit_company: false }));
   assert.match(text, /Your owner finishes the company file/);
