@@ -167,10 +167,7 @@ def install_from_session_token(
     access_token = str(token_body.get("access_token") or "")
     if not access_token:
         raise ValueError("oauth_token_missing")
-    shop_info = shopify._admin_get(shop, access_token, "/shop.json", settings) or {}
-    shop_payload = shop_info.get("shop") if isinstance(shop_info.get("shop"), dict) else {}
-    if not isinstance(shop_payload, dict):
-        shop_payload = {}
+    shop_payload = shopify.shop_details_safe(shop, access_token, settings)
     merchant = shopify._merchant_for_install(db, shop, shop_payload)
     row = db.query(ShopifyShop).filter(ShopifyShop.shop_domain == shop).first()
     if row and row.merchant_id != merchant.id:

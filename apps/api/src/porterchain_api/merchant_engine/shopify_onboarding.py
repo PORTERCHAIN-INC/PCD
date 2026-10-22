@@ -68,13 +68,7 @@ def prefill(db: Session, settings: Settings, shop_domain: str) -> dict[str, Any]
             },
         }
     token = access_token_for(row, settings)
-    payload = (
-        (shopify._admin_get(shop_domain, token, "/shop.json", settings) or {}).get(
-            "shop"
-        )
-        if token
-        else None
-    )
+    payload = shopify.shop_details_safe(shop_domain, token, settings) if token else None
     return {"source": "shopify_store", "address": _shop_address(payload or {})}
 
 

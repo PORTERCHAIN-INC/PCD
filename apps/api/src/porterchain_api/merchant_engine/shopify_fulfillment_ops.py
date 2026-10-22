@@ -141,40 +141,49 @@ def push_fulfillment(
                 db, order, created, event_type=event_type, shop=shop, token=token, settings=settings
             )
             return
-    fo = _helpers()._admin_get(
-        shop.shop_domain, token, f"/orders/{shopify_order_id}/fulfillment_orders.json", settings
+    from porterchain_api.merchant_engine.shopify_admin_graphql import (
+        fulfillment_create_for_orders,
+        order_fulfillment_orders,
     )
-    fulfillment_orders = (fo or {}).get("fulfillment_orders") if isinstance(fo, dict) else None
+
+    try:
+        fulfillment_orders = order_fulfillment_orders(
+            shop.shop_domain, token, settings, order_id=shopify_order_id
+        )
+    except Exception:  # noqa: BLE001
+        logger.info("shopify_fulfillment_orders_failed order=%s", order.id)
+        fulfillment_orders = []
     if not fulfillment_orders:
         logger.info("shopify_no_fulfillment_orders order=%s shopify=%s", order.id, shopify_order_id)
         _record_error("no_fulfillment_orders")
         return
     if assigned:
         assigned_num = assigned.rsplit("/", 1)[-1]
-        line_items = [
-            {"fulfillment_order_id": item.get("id")}
+        fo_ids = [
+            str(item["id"])
             for item in fulfillment_orders
-            if item.get("id") and str(item.get("id")).rsplit("/", 1)[-1] == assigned_num
-        ]
-        if not line_items:
-            line_items = [{"fulfillment_order_id": assigned_num}]
+            if str(item["id"]).rsplit("/", 1)[-1] == assigned_num
+        ] or [assigned_num]
     else:
-        line_items = [
-            {"fulfillment_order_id": item.get("id")} for item in fulfillment_orders if item.get("id")
-        ]
-    resp = _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        "/fulfillments.json",
-        settings,
-        {
-            "fulfillment": {
-                "line_items_by_fulfillment_order": line_items,
-                "tracking_info": tracking_info,
-                "notify_customer": True,
-            }
-        },
-    )
+        fo_ids = [
+            str(item["id"])
+            for item in fulfillment_orders
+            if str(item.get("status") or "OPEN").upper() in {"OPEN", "IN_PROGRESS"}
+        ] or [str(item["id"]) for item in fulfillment_orders]
+    try:
+        fid: str | None = fulfillment_create_for_orders(
+            shop.shop_domain,
+            token,
+            settings,
+            fulfillment_order_ids=fo_ids,
+            tracking=tracking_info,
+            notify_customer=True,
+        )
+        # Same stored form as the REST call returned (numeric id); GraphQL accepts both.
+        resp: dict[str, Any] | None = {"fulfillment": {"id": fid.rsplit("/", 1)[-1]}}
+    except Exception:  # noqa: BLE001
+        logger.info("shopify_fulfillment_create_failed order=%s", order.id)
+        resp = None
     if isinstance(resp, dict):
         fulfillment = resp.get("fulfillment") if isinstance(resp.get("fulfillment"), dict) else {}
         fid = fulfillment.get("id") if fulfillment else None
@@ -266,24 +275,14 @@ def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
                 "fulfillment_orders/cancellation_request_submitted",
             ]
         )
-    listed = _helpers()._admin_get(shop.shop_domain, token, "/webhooks.json", settings) or {}
-    already: set[str] = set()
-    for hook in listed.get("webhooks") or []:
-        if isinstance(hook, dict) and hook.get("address") == address:
-            already.add(str(hook.get("topic") or ""))
-    failed: list[str] = []
-    for topic in topics:
-        if topic in already:
-            continue
-        result = _helpers()._admin_post(
-            shop.shop_domain,
-            token,
-            "/webhooks.json",
-            settings,
-            {"webhook": {"topic": topic, "address": address, "format": "json"}},
+    from porterchain_api.merchant_engine.shopify_admin_graphql import webhook_subscriptions_sync
+
+    try:
+        failed: list[str] = webhook_subscriptions_sync(
+            shop.shop_domain, token, settings, topics=topics, uri=address
         )
-        if result is None:
-            failed.append(topic)
+    except Exception as exc:  # noqa: BLE001 — listing failed: nothing registered
+        raise RuntimeError(f"webhook_register_failed:list:{exc}") from exc
     failed.extend(_register_returns_webhooks(shop, settings, token, address))
     if failed:
         raise RuntimeError("webhook_register_failed:" + ",".join(failed[:5]))
@@ -405,25 +404,6 @@ def _register_carrier_service(shop: ShopifyShop, settings: Settings) -> str:
             )
     except Exception as exc:  # noqa: BLE001
         reasons.append(f"find:{exc}")
-    resp = _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        "/carrier_services.json",
-        settings,
-        {
-            "carrier_service": {
-                "name": "PorterChain",
-                "callback_url": callback,
-                "service_discovery": True,
-                "carrier_service_type": "api",
-                "format": "json",
-                "active": True,
-            }
-        },
-    )
-    service = resp.get("carrier_service") if isinstance(resp, dict) else None
-    if isinstance(service, dict) and service.get("id"):
-        return _save(str(service["id"]))
     code = carrier_error_code(" | ".join(reasons))
     granted = str(getattr(shop, "scopes", "") or "")
     if code == CARRIER_REGISTER_FAILED and granted and "write_shipping" not in granted:
@@ -480,37 +460,16 @@ def _register_fulfillment_service(shop: ShopifyShop, settings: Settings) -> None
         logger.info("shopify_fs_graphql_fallback shop=%s", shop.shop_domain)
     except Exception:  # noqa: BLE001
         logger.info("shopify_fs_graphql_fallback shop=%s", shop.shop_domain, exc_info=True)
-    resp = _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        "/fulfillment_services.json",
-        settings,
-        {
-            "fulfillment_service": {
-                "name": "PorterChain",
-                "callback_url": callback,
-                "inventory_management": False,
-                "tracking_support": True,
-                "requires_shipping_method": False,
-                "format": "json",
-                "fulfillment_orders_opt_in": True,
-            }
-        },
-    )
-    service = resp.get("fulfillment_service") if isinstance(resp, dict) else None
-    if isinstance(service, dict) and service.get("id"):
-        shop.fulfillment_service_gid = str(service["id"])
-        if service.get("location_id"):
-            shop.location_gid = str(service["location_id"])
-        _persist_shop(shop)
-        return
-    listed = _helpers()._admin_get(shop.shop_domain, token, "/fulfillment_services.json", settings) or {}
-    for row in listed.get("fulfillment_services") or []:
-        if not isinstance(row, dict) or str(row.get("name") or "") != "PorterChain" or not row.get("id"):
-            continue
-        shop.fulfillment_service_gid = str(row["id"])
-        if row.get("location_id"):
-            shop.location_gid = str(row["location_id"])
+    try:
+        from porterchain_api.merchant_engine.shopify_admin_graphql import fulfillment_service_find
+
+        found = fulfillment_service_find(shop.shop_domain, token, settings)
+    except Exception:  # noqa: BLE001
+        found = None
+    if found:
+        shop.fulfillment_service_gid, location_id = found
+        if location_id:
+            shop.location_gid = location_id
         _persist_shop(shop)
         _edit_location(shop, settings, token)
         return
@@ -584,17 +543,10 @@ def _push_tracking(
         )
         return True
     except ShopifyAdminError:
-        logger.info("shopify_tracking_graphql_fallback shop=%s", shop.shop_domain)
+        logger.info("shopify_tracking_update_failed shop=%s", shop.shop_domain)
     except Exception:  # noqa: BLE001
-        logger.info("shopify_tracking_graphql_fallback shop=%s", shop.shop_domain, exc_info=True)
-    resp = _helpers()._admin_post(
-        shop.shop_domain,
-        token,
-        f"/fulfillments/{fulfillment_id.rsplit('/', 1)[-1]}/update_tracking.json",
-        settings,
-        {"fulfillment": {"notify_customer": True, "tracking_info": tracking_info}},
-    )
-    return isinstance(resp, dict)
+        logger.info("shopify_tracking_update_failed shop=%s", shop.shop_domain, exc_info=True)
+    return False
 
 
 def _create_fulfillment_graphql(
