@@ -80,7 +80,13 @@ class FleetPlanService:
                     Order.state == AWAITING_DELIVERY,  # any day: it is already in our hands
                 ),
             )
-        return q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
+        rows = q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
+        if order_ids:
+            return rows
+        from porterchain_api.services import collect_only as co
+
+        # Collect-only parcels wait in the warehouse until an admin releases the delivery leg.
+        return [o for o in rows if not (co.awaiting_delivery(db, o) and co.is_held(db, o.id))]
 
     def _hub_override(self, db: Session, order: Any) -> Any:
         """Where the van really collects/drops (warehouse split, or parcel already on the road)."""

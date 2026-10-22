@@ -127,6 +127,8 @@ export interface BookDeliveryPayload {
   dimensions?: string;
   scheduled_at: string;
   schedule_mode?: string;
+  /** collect_only: pick up to our warehouse, delivery booked later. */
+  service_mode?: "standard" | "collect_only";
   special_instructions?: string;
   site_access_notes?: string;
   requires_liftgate?: boolean;

@@ -126,6 +126,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   const [pickupBy, setPickupBy] = useState("");
   const [cargo, setCargo] = useState<Parcel[]>([emptyParcel()]);
   const [vehicleClass, setVehicleClass] = useState("cargo_van");
+  const [serviceMode, setServiceMode] = useState<"standard" | "collect_only">("standard");
   const [packageType, setPackageType] = useState("looseParcel");
   const [internalRef, setInternalRef] = useState("");
   const [poNumber, setPoNumber] = useState("");
@@ -180,6 +181,8 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       dimensions: legacy?.dimensions || undefined,
       scheduled_at: new Date(readyFrom || Date.now()).toISOString(),
       schedule_mode: readyFrom || pickupBy ? "later" : "now",
+      service_mode:
+        mode === "single" && serviceMode === "collect_only" ? "collect_only" : undefined,
       pickup_window_start: readyFrom ? new Date(readyFrom).toISOString() : undefined,
       pickup_window_end: pickupBy ? new Date(pickupBy).toISOString() : undefined,
       packages: filledCargo.length
@@ -216,6 +219,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       is_sandbox: bookAsSandbox || undefined,
     };
   }, [
+    serviceMode,
     pickup,
     dropoff,
     vehicleClass,
@@ -895,6 +899,50 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     + Add parcel
                   </button>
                 </div>
+                {mode === "single" ? (
+                  <fieldset className="space-y-2" data-testid="service-mode">
+                    <legend className="text-sm font-medium text-primary">Job type</legend>
+                    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Job type">
+                      {(
+                        [
+                          [
+                            "standard",
+                            "Pickup and delivery",
+                            "We pick up and deliver to the receiver",
+                          ],
+                          [
+                            "collect_only",
+                            "Collect only (to our warehouse)",
+                            "We pick up and keep it at our warehouse; delivery is booked later",
+                          ],
+                        ] as const
+                      ).map(([id, label, hint]) => (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={serviceMode === id}
+                          title={hint}
+                          onClick={() => setServiceMode(id)}
+                          className={`rounded-xl border px-3 py-2 text-left text-sm ${
+                            serviceMode === id
+                              ? "border-secondary bg-secondary/10 text-primary"
+                              : "border-primary/15 text-muted"
+                          }`}
+                        >
+                          <span className="block font-medium">{label}</span>
+                          <span className="block text-xs">{hint}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {serviceMode === "collect_only" ? (
+                      <p className="text-xs text-muted">
+                        Priced from your pickup to our warehouse (your contract rates apply, HST
+                        extra). Keep the receiver address: we use it when the delivery is booked.
+                      </p>
+                    ) : null}
+                  </fieldset>
+                ) : null}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-primary">Vehicle we send</label>
@@ -1065,6 +1113,9 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                       : `${parcels.filter((p) => p.formatted).length} parcels`
                   }
                 />
+                {mode === "single" && serviceMode === "collect_only" ? (
+                  <ReviewRow label="Job type" value="Collect only — to our warehouse" />
+                ) : null}
                 <ReviewRow label="Vehicle we send" value={vehicleLabel(vehicleClass)} />
                 <ReviewRow label="Package" value={packageLabel(packageType)} />
                 {readyFrom ? (

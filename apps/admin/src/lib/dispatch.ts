@@ -448,6 +448,11 @@ export type HubSplit = {
   pickup_driver_id?: string | null;
   delivery_driver_id?: string | null;
   arrived_at_hub?: boolean;
+  collect_only?: boolean;
+  /** Delivery leg not released yet: Plan the day skips it. */
+  delivery_held?: boolean;
+  awaiting_delivery?: boolean;
+  status_label?: string | null;
 };
 
 export const HUB_STAGE_LABEL: Record<NonNullable<HubSplit["stage"]>, string> = {
@@ -480,6 +485,12 @@ export const dispatch = {
       body: JSON.stringify(body),
       headers: J,
     }),
+  releaseDeliveryLeg: (t: string, orderId: string, body: { driver_id?: string } = {}) =>
+    adminFetch<{ order_id: string; released: boolean }>(
+      `${B}/orders/${encodeURIComponent(orderId)}/delivery-leg`,
+      t,
+      { method: "POST", body: JSON.stringify(body), headers: J }
+    ),
   metrics: (t: string, days = 7) => adminFetch<DispatchMetrics>(`${B}/metrics?days=${days}`, t),
   exceptions: (t: string, offset = 0) =>
     adminFetch<DispatchExceptions>(`${B}/exceptions?offset=${offset}&limit=${EXCEPTIONS_PAGE}`, t),

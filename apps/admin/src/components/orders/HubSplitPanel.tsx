@@ -40,6 +40,20 @@ export function HubSplitPanel({
     (p) => p.kind === "warehouse" && p.active && p.lat != null && p.lng != null
   );
 
+  async function release() {
+    setBusy(true);
+    setError(null);
+    try {
+      await dispatch.releaseDeliveryLeg(await getApiToken(), orderId);
+      await qc.invalidateQueries({ queryKey: key });
+      onChanged?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create the delivery leg");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submit() {
     if (!hubId) return;
     setBusy(true);
@@ -70,6 +84,31 @@ export function HubSplitPanel({
           </button>
         ) : null}
       </div>
+      {data?.split && data.status_label ? (
+        <p
+          className="mt-2 inline-block rounded-md bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-900"
+          data-testid="awaiting-delivery-badge"
+        >
+          {data.status_label}
+          {data.collect_only ? " · collect-only job" : ""}
+        </p>
+      ) : null}
+      {data?.split && data.delivery_held ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            title="Puts the warehouse → receiver leg into Plan the day. Use Assign driver to pick a van now."
+            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            onClick={() => void release()}
+          >
+            {busy ? "Creating…" : "Create delivery leg"}
+          </button>
+          <span className="text-xs text-slate-500">
+            Held: Plan the day will not schedule the delivery until you create it.
+          </span>
+        </div>
+      ) : null}
       {data?.split ? (
         <p className="mt-2 text-slate-700">
           {data.stage ? HUB_STAGE_LABEL[data.stage] : "Split"} · Hub:{" "}

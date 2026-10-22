@@ -138,6 +138,16 @@ def dispatch_order_hub_split_create(order_id: str, ctx: Ctx, db: Session = Depen
                 delivery_driver_id=body.get("delivery_driver_id") or None)
 
 
+@router.post(f"{P}/orders/{{order_id}}/delivery-leg")
+def dispatch_order_release_delivery(order_id: str, ctx: Ctx, db: Session = Depends(get_db),
+                                    body: dict = Body(default={})) -> dict:
+    """Collect-only / warehouse parcel: create the delivery leg (Plan the day sees it), optionally assign."""
+    from porterchain_api.config import get_settings
+
+    return _run(ctx, "dispatch", _hub.release_delivery_leg, db, get_settings(), ctx, order_id,
+                driver_id=(body or {}).get("driver_id") or None)
+
+
 # ---------------------------------------------------------------- partner booking
 @router.get(f"{P}/partner-legs")
 def dispatch_partner_legs(ctx: Ctx, db: Session = Depends(get_db), status: str | None = Query(None)) -> dict:

@@ -299,15 +299,64 @@ class HubSplitService:
             AdminOperationsService().assign_driver(db, settings, ctx, order.id, pickup_driver_id)
         return self.view(db, order.id)
 
+    def release_delivery_leg(self, db: Session, settings: Any, ctx: Any, order_id: str, *,
+                             driver_id: str | None = None) -> dict[str, Any]:
+        """Collect-only / warehouse parcel: create (unhold) the delivery leg so Plan the day sees it.
+
+        With ``driver_id`` the van is assigned now (parcel at the hub) or booked for after the drop.
+        """
+        import copy
+
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+        from porterchain_api.admin_models import AdminAuditLog
+        from porterchain_api.booking_models import Order, OrderEvent
+        from porterchain_api.dispatch_engine.hub_legs import hub_leg, set_delivery_driver
+        from porterchain_api.services import collect_only as co
+
+        order = db.get(Order, order_id)
+        if order is None:
+            raise LookupError("order_not_found")
+        leg = co.delivery_leg(db, order_id)
+        if leg is None or not (leg.meta or {}).get("hub_split"):
+            raise ValueError("not_a_warehouse_order")
+        if leg.status not in ("planned", "requested", "accepted"):
+            raise ValueError("delivery_leg_closed")
+        meta = copy.deepcopy(leg.meta or {})
+        was_held = bool(meta.pop("held", False))
+        leg.meta = meta
+        db.add(OrderEvent(order_id=order.id, event_type="order.delivery_leg_released", from_state=order.state,
+                          to_state=order.state, actor_type="admin", actor_id=ctx.user.id,
+                          payload={"driver_id": driver_id, "was_held": was_held}))
+        db.add(AdminAuditLog(actor_user_id=ctx.user.id, action="dispatch.delivery_leg_release",
+                             resource_type="order", resource_id=order.id,
+                             payload={"driver_id": driver_id, "state": order.state}))
+        db.commit()
+        if driver_id and co.awaiting_delivery(db, order):
+            AdminOperationsService().assign_driver(db, settings, ctx, order.id, driver_id)
+        elif driver_id and (hl := hub_leg(db, order.id)) is not None:
+            set_delivery_driver(hl, driver_id)  # still on the way to the hub
+            db.commit()
+        return {"order_id": order.id, "released": True, "held": False}
+
     def view(self, db: Session, order_id: str) -> dict[str, Any]:
         from porterchain_api.dispatch_engine.hub_legs import hub_leg
 
         leg = hub_leg(db, order_id)
         if leg is None:
             return {"order_id": order_id, "split": False}
+        from porterchain_api.booking_models import Order
+        from porterchain_api.services import collect_only as co
+
+        order = db.get(Order, order_id)
+        held = co.is_held(db, order_id)
+        waiting = order is not None and co.awaiting_delivery(db, order)
         return {
             "order_id": order_id,
             "split": True,
+            "collect_only": bool(order is not None and co.is_collect_only(order)),
+            "delivery_held": held,
+            "awaiting_delivery": waiting,
+            "status_label": co.AWAITING_LABEL if waiting else None,
             "stage": leg.stage,
             "hub": leg.hub,
             "pickup_driver_id": (leg.first.meta or {}).get("driver_id"),
