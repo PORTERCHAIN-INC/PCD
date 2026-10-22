@@ -104,3 +104,74 @@ def hub_note(leg: HubLeg) -> str:
     if leg.stage == TO_HUB:
         return f"DROP AT HUB {where} ({addr}) — not to the customer."
     return f"Collect from hub {where} ({addr}) first."
+
+
+def parcel_position(db: Session, order: Any, *, max_age_h: int = 12) -> dict[str, Any] | None:
+    """Where a picked-up parcel is now: last GPS ping of the driver who picked it up.
+
+    Used when a picked-up, unsplit order lost its driver (removed / off shift): Plan the day
+    starts from the parcel, not from the original pickup. None when unknown or stale.
+    """
+    from datetime import timedelta
+
+    from porterchain_api.driver_models import DriverLocationPing, DriverStopMeta
+
+    meta = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
+    if meta is None or not meta.driver_id:
+        return None
+    since = datetime.now(UTC) - timedelta(hours=max_age_h)
+    ping = (
+        db.query(DriverLocationPing)
+        .filter(DriverLocationPing.driver_id == meta.driver_id, DriverLocationPing.created_at >= since)
+        .order_by(DriverLocationPing.created_at.desc())
+        .first()
+    )
+    if ping is None:
+        return None
+    return {"lat": float(ping.lat), "lng": float(ping.lng), "formatted": "Parcel (last driver position)",
+            "kind": "parcel", "driver_id": meta.driver_id}
+
+
+class _PlanView:  # read-only view; never mutates the ORM row
+    pass
+
+
+def _view(order: Any, **override: Any) -> Any:
+    v = _PlanView()
+    for attr in ("id", "pickup", "dropoff", "order_type", "state", "compliance_metadata"):
+        setattr(v, attr, getattr(order, attr))
+    for k, val in override.items():
+        setattr(v, k, val)
+    return v
+
+
+def planning_view(db: Session, order: Any, *, awaiting_state: str = "PICKED_UP") -> Any:
+    """Order as Plan the day should see it.
+
+    - first open leg ends at a warehouse/partner → drop is that hub;
+    - parcel sits at our hub (delivery leg) → pickup is the hub;
+    - picked up, not split, no driver now → pickup is the parcel's last known position.
+    """
+    from porterchain_api.dispatch_engine.models import OrderLeg
+
+    leg = (
+        db.query(OrderLeg)
+        .filter(OrderLeg.order_id == order.id, OrderLeg.status.in_(("planned", "requested", "accepted")))
+        .order_by(OrderLeg.seq)
+        .first()
+    )
+    meta = (leg.meta or {}) if leg is not None else {}
+    if leg is None or leg.mode != "local":
+        if order.state == awaiting_state and not order.assigned_driver_id:
+            here = parcel_position(db, order)
+            if here is not None:
+                return _view(order, pickup=here)
+        return order
+    at_hub = meta.get("from_lat") is not None and order.state == awaiting_state
+    if meta.get("to_lat") is None and not at_hub:
+        return order
+    if at_hub:  # delivery leg of a warehouse split: the van collects at the hub
+        return _view(order, pickup={"lat": meta["from_lat"], "lng": meta["from_lng"],
+                                    "formatted": leg.from_label, "kind": "hub", "partner_id": leg.partner_id})
+    return _view(order, dropoff={"lat": meta["to_lat"], "lng": meta["to_lng"], "formatted": leg.to_label,
+                                 "kind": meta.get("stop_kind", "hub"), "partner_id": leg.partner_id})

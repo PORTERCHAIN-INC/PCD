@@ -83,36 +83,10 @@ class FleetPlanService:
         return q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
 
     def _hub_override(self, db: Session, order: Any) -> Any:
-        """First planned leg ends at a warehouse/partner → the van's drop is that hub."""
-        from porterchain_api.dispatch_engine.models import OrderLeg
+        """Where the van really collects/drops (warehouse split, or parcel already on the road)."""
+        from porterchain_api.dispatch_engine.hub_legs import planning_view
 
-        leg = (
-            db.query(OrderLeg)
-            .filter(OrderLeg.order_id == order.id, OrderLeg.status.in_(("planned", "requested", "accepted")))
-            .order_by(OrderLeg.seq)
-            .first()
-        )
-        meta = (leg.meta or {}) if leg is not None else {}
-        if leg is None or leg.mode != "local":
-            return order
-        at_hub = meta.get("from_lat") is not None and order.state == AWAITING_DELIVERY
-        if meta.get("to_lat") is None and not at_hub:
-            return order
-
-        class _View:  # read-only view; never mutates the ORM row
-            pass
-
-        v = _View()
-        for attr in ("id", "pickup", "dropoff", "order_type", "state", "compliance_metadata"):
-            setattr(v, attr, getattr(order, attr))
-        if at_hub:  # delivery leg of a warehouse split: the van collects at the hub
-            v.pickup = {"lat": meta["from_lat"], "lng": meta["from_lng"],  # type: ignore[attr-defined]
-                        "formatted": leg.from_label, "kind": "hub", "partner_id": leg.partner_id}
-        else:
-            v.dropoff = {"lat": meta["to_lat"], "lng": meta["to_lng"],  # type: ignore[attr-defined]
-                         "formatted": leg.to_label, "kind": meta.get("stop_kind", "hub"),
-                         "partner_id": leg.partner_id}
-        return v
+        return planning_view(db, order, awaiting_state=AWAITING_DELIVERY)
 
     def _stops(self, db: Session, orders: list[Any]) -> tuple[list[StopSpec], list[tuple[str, str]], list[dict], dict]:
         """Orders → stops with load (kg, m³, boxes), time windows and learned service times."""
@@ -413,7 +387,8 @@ class FleetPlanService:
                 try:
                     ops.assign_driver(db, settings, ctx, oid, r.driver_id)
                     assigned += 1
-                    assigned_ids.append({"order_id": oid, "driver_id": r.driver_id})
+                    assigned_ids.append({"order_id": oid, "driver_id": r.driver_id,
+                                         **({"handoff": True} if awaiting else {})})
                 except (ValueError, LookupError, PermissionError) as exc:
                     db.rollback()
                     skipped.append({"order_id": oid, "reason": str(exc)})
@@ -458,6 +433,14 @@ class FleetPlanService:
         for row in commit.get("assigned_ids") or []:
             o = db.get(Order, row["order_id"])
             if o is None:
+                continue
+            if row.get("handoff"):
+                # Picked-up parcel at our hub: release only if the driver has not started yet.
+                if o.assigned_driver_id != row["driver_id"] or o.state != AWAITING_DELIVERY:
+                    kept.append({"order_id": o.id, "reason": f"already {o.state.lower()}"})
+                    continue
+                AdminOperationsService.release_handoff_no_commit(db, ctx, o, plan_id=plan.id)
+                released.append(o.id)
                 continue
             if o.assigned_driver_id != row["driver_id"] or o.state != OrderState.DRIVER_ASSIGNED.value:
                 kept.append({"order_id": o.id, "reason": f"already {o.state.lower()}"})

@@ -72,6 +72,26 @@ def assert_driver_inside_stop(driver_id: str, order: Any, stop_id: str) -> None:
         raise ValueError("not_at_stop")
 
 
+def assert_driver_inside_point(driver_id: str, lat: Any, lng: Any) -> None:
+    """Same rules as ``assert_driver_inside_stop`` for a fixed point (e.g. our warehouse/hub).
+
+    Respects ENFORCE_STOP_PRESENCE and treats missing GPS (no consent / no fix) as non-blocking.
+    """
+    if not ENFORCE_STOP_PRESENCE:
+        return
+    from porterchain_api.driver_engine.last_known import distance_m, read_last_known
+
+    try:
+        clat, clng = float(lat), float(lng)
+    except (TypeError, ValueError):
+        return
+    known = read_last_known(driver_id)
+    if known is None:
+        return
+    if int(distance_m(known.lat, known.lng, clat, clng)) > STOP_GEOFENCE_RADIUS_M:
+        raise ValueError("not_at_stop")
+
+
 def _format_eta_label(seconds: int) -> str:
     if seconds < 60:
         return "< 1 min"

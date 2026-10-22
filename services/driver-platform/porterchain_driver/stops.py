@@ -228,6 +228,18 @@ def _hub_split(order: Any):
         return None
 
 
+def _delivery_leg_cents(db: Any, order: Any, split: Any) -> int | None:
+    """Split order: the delivery driver gets the payout minus what the pickup leg was paid."""
+    if split is None:
+        return None
+    paid = int((split.first.meta or {}).get("pickup_leg_paid_cents") or 0)
+    if not paid:
+        return None
+    from porterchain_driver.earnings import EarningsService
+
+    return max(1, EarningsService().resolve_delivery_payout_cents(db, order_id=order.id) - paid)
+
+
 class StopsService:
     def today_stops(self, db: Session, driver_id: str) -> list[StopView]:
         return self._stops_for_orders(
@@ -305,6 +317,11 @@ class StopsService:
         if split is not None and split.stage == "to_hub":
             # Pickup leg ends at our warehouse: no "out for delivery" / "nearby" for the receiver.
             from porterchain_api.dispatch_engine.hub_legs import mark_hub_arrived
+
+            if not skip_presence:
+                from porterchain_driver.navigation import assert_driver_inside_point
+
+                assert_driver_inside_point(driver.id, split.hub.get("lat"), split.hub.get("lng"))
 
             mark_hub_arrived(split, driver.id)
             db.flush()
@@ -404,7 +421,9 @@ class StopsService:
                 # OTP complete_pod already walked AT_DESTINATION → DELIVERED → POD_COMPLETED.
                 target = OrderState.POD_COMPLETED
                 _record_stop_completion(db, driver.id, order.id, "dropoff")
-                EarningsService().credit_delivery(db, driver, order_id=order.id)
+                EarningsService().credit_delivery(
+                    db, driver, order_id=order.id, amount_cents=_delivery_leg_cents(db, order, split)
+                )
             else:
                 if not pod_override:
                     _assert_dropoff_pod_ready(db, order)
@@ -414,7 +433,9 @@ class StopsService:
                 )
                 target = OrderState.DELIVERED
                 _record_stop_completion(db, driver.id, order.id, "dropoff")
-                EarningsService().credit_delivery(db, driver, order_id=order.id)
+                EarningsService().credit_delivery(
+                    db, driver, order_id=order.id, amount_cents=_delivery_leg_cents(db, order, split)
+                )
         if split is not None and not is_pickup:
             from porterchain_api.dispatch_engine.hub_legs import mark_delivered
 
@@ -714,8 +735,24 @@ class StopsService:
 
         if str(order.state).upper() != "PICKED_UP":
             raise ValueError("pickup_required")
+        if not split.arrived_at_hub:
+            from porterchain_driver.navigation import assert_driver_inside_point
+
+            assert_driver_inside_point(driver.id, split.hub.get("lat"), split.hub.get("lng"))
         mark_hub_received(split, driver.id)
         next_driver = split.delivery_driver_id
+        if next_driver != driver.id:
+            # Pickup leg pay: half the order's driver payout now, the delivery leg gets the rest.
+            from porterchain_driver.earnings import EarningsService
+
+            earn = EarningsService()
+            half = max(1, earn.resolve_delivery_payout_cents(db, order_id=order.id) // 2)
+            earn.credit_delivery(db, driver, order_id=order.id, amount_cents=half,
+                                 description="Pickup leg to warehouse")
+            from porterchain_api.dispatch_engine.hub_legs import _touch
+
+            _touch(split.first, pickup_leg_paid_cents=half)
+            _record_stop_completion(db, driver.id, order.id, "pickup")
         order.assigned_driver_id = next_driver
         payload = {"order_id": order.id, "order_number": order.order_number,
                    "tracking_number": order.tracking_number, "hub": split.hub.get("name"),

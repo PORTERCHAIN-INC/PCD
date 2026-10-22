@@ -146,6 +146,8 @@ export default function Delivery360({
     contact_phone_masked: job.next_stop?.contact_phone_masked ?? null,
   });
   const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
+  // Warehouse split, pickup leg: the drop is our hub — no receiver proof, no scan gate.
+  const toHub = job.hub_leg === "to_hub" && job.state.toUpperCase() === "PICKED_UP";
   const podEnforced = Boolean(job.pod_requirements?.enforced);
   const podMissing = job.pod_missing ?? [];
   const requiredItems = [
@@ -279,7 +281,7 @@ export default function Delivery360({
               Attempt {job.delivery_attempts} of {job.max_delivery_attempts ?? 2}
             </p>
           ) : null}
-          {primary.key.startsWith("confirm_") && !scansComplete ? (
+          {primary.key.startsWith("confirm_") && !scansComplete && !toHub ? (
             <p className="mt-2 text-sm text-amber-800">
               Scan or report every package first ({scanProgress.scanned}/{scanProgress.required})
             </p>
@@ -292,7 +294,8 @@ export default function Delivery360({
           <button
             type="button"
             disabled={
-              pending === primary.key || (primary.key.startsWith("confirm_") && !scansComplete)
+              pending === primary.key ||
+              (primary.key.startsWith("confirm_") && !scansComplete && !toHub)
             }
             onClick={() => runPrimary(primary.key)}
             className={cn(
@@ -559,7 +562,7 @@ export default function Delivery360({
         </Section>
       )}
 
-      {deliveryPhase && !completed && (
+      {deliveryPhase && !completed && !toHub && (
         <Section title="Proof of Delivery" icon={CheckCircle2}>
           {job.on_duty === false ? (
             <p
