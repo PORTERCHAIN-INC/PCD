@@ -66,7 +66,7 @@ def test_four_clicks_install_to_live(db) -> None:
             f"{_S}._exchange_session_token",
             return_value={"access_token": "shpat_x", "scope": "read_orders"},
         ),
-        patch(f"{_SVC}._admin_get", return_value=shop_json),
+        patch(f"{_SVC}.shop_details_safe", return_value=shop_json["shop"]),
         patch(
             f"{_S}._register_carrier_inline",
             lambda row, s: setattr(row, "carrier_service_gid", "gid://c/1"),

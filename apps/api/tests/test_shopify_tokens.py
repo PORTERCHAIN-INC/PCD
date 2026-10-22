@@ -221,7 +221,7 @@ def test_managed_install_stores_the_expiring_pair(db, monkeypatch) -> None:
     rec = _Recorder(_pair(7))
     monkeypatch.setattr(tokens, "_token_request", rec)
     with (
-        patch.object(shopify, "_admin_get", return_value={"shop": {"id": 42}}),
+        patch.object(shopify, "shop_details_safe", return_value={"id": "42"}),
         patch("porterchain_api.merchant_engine.shopify_fulfillment_service._register_webhooks"),
         patch(f"{_GQL}.carrier_service_create", return_value=_GID) as create,
     ):
@@ -446,7 +446,6 @@ def test_refused_token_during_carrier_setup_flags_reauth(db) -> None:
         patch(f"{_GQL}.carrier_service_update", side_effect=refused),
         patch(f"{_GQL}.carrier_service_create", side_effect=refused),
         patch(f"{_GQL}.carrier_service_find", side_effect=refused),
-        patch.object(shopify, "_admin_post", return_value=None),
     ):
         with pytest.raises(RuntimeError, match="token_reauth_required"):
             ops._register_carrier_service(shop, settings)

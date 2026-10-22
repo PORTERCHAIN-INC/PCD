@@ -10,7 +10,6 @@ from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlencode
 
-import httpx
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -306,23 +305,14 @@ def capture_cod_transaction(db: Session, settings: Settings, order: Order) -> No
     token = tokens.access_token_for(shop, settings)
     if not token:
         return
-    amount = (order.cod_amount_cents or 0) / 100.0
-    currency = (order.currency or "CAD").upper()
-    resp = _admin_post(
-        shop.shop_domain,
-        token,
-        f"/orders/{shopify_order_id}/transactions.json",
-        settings,
-        {
-            "transaction": {
-                "kind": "capture",
-                "status": "success",
-                "amount": f"{amount:.2f}",
-                "currency": currency,
-                "source": "external",
-            }
-        },
-    )
+    from porterchain_api.merchant_engine.shopify_admin_graphql import order_mark_as_paid
+
+    try:
+        tx_id = order_mark_as_paid(shop.shop_domain, token, settings, order_id=shopify_order_id)
+        resp: dict[str, Any] | None = {"transaction": {"id": tx_id} if tx_id else {}}
+    except Exception:  # noqa: BLE001
+        logger.warning("shopify_cod_capture_failed order=%s", order.id)
+        resp = None
     if isinstance(resp, dict):
         extra = dict(order.compliance_metadata or {})
         shopify_meta = dict(extra.get("shopify") or {})
@@ -419,43 +409,15 @@ def _merchant_for_install(
     return merchant
 
 
-def _admin_headers(token: str) -> dict[str, str]:
-    return {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
+def shop_details_safe(shop: str, token: str, settings: Settings) -> dict[str, Any]:
+    """Store identity/address via GraphQL (REST ``/shop.json`` shape); ``{}`` on failure."""
+    from porterchain_api.merchant_engine.shopify_admin_graphql import shop_details
 
-
-def _admin_url(shop: str, path: str, settings: Settings) -> str:
-    return f"https://{shop}/admin/api/{settings.shopify_api_version}{path}"
-
-
-def _admin_get(shop: str, token: str, path: str, settings: Settings) -> dict[str, Any] | None:
-    with httpx.Client(timeout=15.0) as client:
-        response = client.get(_admin_url(shop, path, settings), headers=_admin_headers(token))
-        if response.status_code >= 400:
-            logger.warning("shopify_admin_get_failed path=%s status=%s", path, response.status_code)
-            return None
-        body = response.json()
-    return body if isinstance(body, dict) else None
-
-
-def _admin_post(
-    shop: str, token: str, path: str, settings: Settings, json_body: dict[str, Any]
-) -> dict[str, Any] | None:
-    with httpx.Client(timeout=15.0) as client:
-        response = client.post(
-            _admin_url(shop, path, settings), headers=_admin_headers(token), json=json_body
-        )
-        if response.status_code >= 400:
-            logger.warning(
-                "shopify_admin_post_failed path=%s status=%s body=%s",
-                path,
-                response.status_code,
-                response.text[:300],
-            )
-            return None
-        if not response.content:
-            return {}
-        body = response.json()
-    return body if isinstance(body, dict) else None
+    try:
+        return shop_details(shop, token, settings) or {}
+    except Exception:  # noqa: BLE001
+        logger.warning("shopify_shop_details_failed shop=%s", shop)
+        return {}
 
 
 # Re-exports — fulfillment / FO live in shopify_fulfillment_service (ENG-G2 LOC).

@@ -102,7 +102,8 @@ def test_post_install_registers_fs_only_when_flag_on() -> None:
             return_value="tok",
         ),
         patch(
-            "porterchain_api.merchant_engine.shopify_service._admin_post"
+            "porterchain_api.merchant_engine.shopify_admin_graphql.fulfillment_service_create",
+            return_value=("gid://shopify/FulfillmentService/1", None),
         ) as post,
         patch(
             "porterchain_api.merchant_engine.shopify_fulfillment_service._register_webhooks"
@@ -114,5 +115,4 @@ def test_post_install_registers_fs_only_when_flag_on() -> None:
         shopify._post_install_hooks(shop, _settings(fo=False))
         assert post.call_count == 0
         shopify._post_install_hooks(shop, _settings(fo=True))
-        paths = [c.args[2] for c in post.call_args_list]
-        assert "/fulfillment_services.json" in paths
+        assert post.call_count == 1

@@ -111,12 +111,12 @@ def _stub_shopify(stack: ExitStack) -> dict[str, MagicMock]:
     calls = {
         "exchange": stack.enter_context(patch.object(
             shopify_session, "_exchange_session_token", return_value={"access_token": "tok", "scope": FULL_SCOPES})),
-        "get": stack.enter_context(patch.object(
-            shopify, "_admin_get", side_effect=lambda shop, tok, path, *a, **k: (
-                {"shop": {"id": 42, "email": f"owner-{shop}@shop.test"}} if path.startswith("/shop")
-                else {"fulfillment_orders": [{"id": 9001}]}))),
-        "post": stack.enter_context(patch.object(
-            shopify, "_admin_post", return_value={"fulfillment": {"id": 7001}})),
+        "get": stack.enter_context(patch(
+            f"{_GQL}.shop_details", side_effect=lambda shop, tok, *a, **k: {"id": "42", "email": f"owner-{shop}@shop.test"})),
+        "fos": stack.enter_context(patch(
+            f"{_GQL}.order_fulfillment_orders", return_value=[{"id": "gid://shopify/FulfillmentOrder/9001", "status": "OPEN"}])),
+        "post": stack.enter_context(patch(
+            f"{_GQL}.fulfillment_create_for_orders", return_value="gid://shopify/Fulfillment/7001")),
         "gql": stack.enter_context(patch(f"{_GQL}.admin_graphql", return_value={})),
         "hooks": stack.enter_context(patch("porterchain_api.merchant_engine.shopify_fulfillment_service._register_webhooks")),
         "carrier": stack.enter_context(patch(f"{_GQL}.carrier_service_create", return_value="gid://shopify/DeliveryCarrierService/1")),
