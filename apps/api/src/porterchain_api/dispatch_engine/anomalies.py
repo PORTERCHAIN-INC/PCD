@@ -1,6 +1,7 @@
 """Ops anomalies for the Exceptions queue: stuck orders and idle drivers. Pure, no DB.
 
 - stuck: an active order whose state has not moved for longer than its state allows;
+- stale_pickup: the ``stuck`` case for PICKED_UP (delivery leg never started);
 - idle:  an online driver with no active job while an order waits for a driver.
 """
 
@@ -35,8 +36,14 @@ def stuck_items(orders: list[Any], now: datetime) -> list[dict[str, Any]]:
         limit, age = STUCK_MIN.get(o.state), _age_min(o.updated_at, now)
         if limit is None or age is None or age < limit:
             continue
+        # Picked up but the delivery never started: parcels are sitting in a van and the
+        # receiver has no "out for delivery" / live tracking. Own label so ops act on it.
+        stale_pickup = o.state == "PICKED_UP"
         out.append({
-            "id": f"stuck:{o.id}", "kind": "stuck", "type": "STUCK", "severity": "high",
+            "id": f"stuck:{o.id}",
+            "kind": "stale_pickup" if stale_pickup else "stuck",
+            "type": "STALE_PICKUP" if stale_pickup else "STUCK",
+            "severity": "high",
             "order_id": o.id, "order_number": o.order_number, "state": o.state, "age_min": age,
             "status": "open", "driver_id": o.assigned_driver_id, "limit_min": limit,
         })

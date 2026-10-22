@@ -153,6 +153,16 @@ export function arriveStop(routeId: string, stopId: string): Promise<unknown> {
   );
 }
 
+/** Leave for the drop: picked up -> out for delivery (receiver gets the tracking link). */
+export function startDelivery(routeId: string, stopId: string): Promise<unknown> {
+  return driverFetch(
+    `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/start`,
+    {
+      method: "POST",
+    }
+  );
+}
+
 export function deliverStop(routeId: string, stopId: string): Promise<unknown> {
   return driverFetch(
     `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/deliver`,

@@ -426,6 +426,8 @@ export const driverApi = {
     driverFetch<Record<string, unknown>>(`/v1/orders/${orderId}/navigation`),
   arriveStop: (routeId: string, stopId: string) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/arrive`, { method: "POST" }),
+  startDelivery: (routeId: string, stopId: string) =>
+    driverFetch(`/v1/routes/${routeId}/stops/${stopId}/start`, { method: "POST" }),
   deliverStop: (routeId: string, stopId: string) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/deliver`, { method: "POST" }),
   reportException: (

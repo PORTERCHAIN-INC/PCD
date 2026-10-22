@@ -13,6 +13,7 @@ export type StopStep =
   | "none" // no current work
   | "offer" // dispatch is waiting for Accept / Decline
   | "off_duty" // accepted work, but the driver is off duty
+  | "start" // parcels on board: tap Start delivery (receiver gets "out for delivery")
   | "arrive" // drive there, then tap Arrived
   | "scan" // arrived, packages still to scan
   | "proof" // delivery: proof still missing
@@ -23,6 +24,7 @@ export type StopStep =
 export type PrimaryAction =
   | "accept"
   | "go_on_duty"
+  | "start"
   | "arrive"
   | "scan"
   | "photo"
@@ -94,6 +96,22 @@ export function needsAccept(state: string | null | undefined): boolean {
   return normState(state) === "DRIVER_ASSIGNED";
 }
 
+/**
+ * Today's "Open stop" button: only when there is something to open — a dispatch-route
+ * stop, a stop on the current job, or a new offer to review. A job with no actionable
+ * stop gets a "no next stop" note instead of a button that lands on an empty screen.
+ */
+export function openStopAvailable(input: {
+  currentOrderId: string | null | undefined;
+  stopId: string | null | undefined;
+  orderState: string | null | undefined;
+  hasRouteStop: boolean;
+}): boolean {
+  if (input.hasRouteStop) return true;
+  if (!input.currentOrderId) return false;
+  return Boolean(input.stopId) || needsAccept(input.orderState);
+}
+
 export function isClosed(state: string | null | undefined): boolean {
   return CLOSED.has(normState(state));
 }
@@ -153,6 +171,9 @@ export function deriveStop(input: StopInput): StopView {
   if (input.syncing) return view("syncing", "all_done", null);
   if (!input.onDuty)
     return view("off_duty", "arrive", { action: "go_on_duty", label: "Go on duty" });
+  if (!arrived && kind === "delivery" && state === "PICKED_UP") {
+    return view("start", "arrive", { action: "start", label: "Start delivery" });
+  }
   if (!arrived) {
     return view("arrive", "arrive", {
       action: "arrive",
