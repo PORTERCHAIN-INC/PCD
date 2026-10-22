@@ -4,7 +4,14 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { acceptOrder, arriveStop, rejectOrder, reportException, scanPackage } from "../api";
+import {
+  acceptOrder,
+  arriveStop,
+  rejectOrder,
+  reportException,
+  scanPackage,
+  startDelivery,
+} from "../api";
 import type { FieldSession } from "../hooks/useFieldSession";
 import type { RouteState } from "../hooks/useDispatchRoute";
 import { haptic } from "../haptics";
@@ -168,6 +175,12 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
             arriveStop(routeId, stopId)
           )
         );
+      case "start":
+        return void run("start", () =>
+          runOnlineOrQueue("start_delivery", { stop_id: stopId, route_id: routeId }, () =>
+            startDelivery(routeId, stopId)
+          )
+        );
       case "scan":
         return setScanOpen(true);
       case "photo":
@@ -195,8 +208,8 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
 
   // Geofence auto-arrive for the single-job flow (dispatch routes do this in useDispatchRoute).
   const watchArrive =
-    view.step === "arrive" &&
-    view.primary?.action === "arrive" &&
+    (view.step === "arrive" || view.step === "start") &&
+    (view.primary?.action === "arrive" || view.primary?.action === "start") &&
     h.destLat != null &&
     h.destLng != null;
   const { fix } = useLiveFix(watchArrive);
@@ -246,11 +259,19 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         />
         <EmptyState
           testID="job-empty"
-          title={view.step === "waiting" ? "Waiting on dispatch" : "No active job"}
+          title={
+            view.step === "waiting"
+              ? "Waiting on dispatch"
+              : orderId
+                ? "No next stop for this job"
+                : "No active job"
+          }
           body={
             view.step === "waiting"
               ? "Dispatch is updating this job. Pull down to refresh."
-              : "When dispatch sends you a job it shows up here."
+              : orderId
+                ? `${h.currentOrderNumber ?? "This job"} has nothing to do right now. Pull down to refresh. If it stays like this, contact dispatch from Help.`
+                : "When dispatch sends you a job it shows up here."
           }
         />
       </Screen>
@@ -284,7 +305,8 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
       : []),
   ];
   const hasNav =
-    view.step === "arrive" && Boolean(h.navigationUrl || h.destLat != null || h.nextStop);
+    (view.step === "arrive" || view.step === "start") &&
+    Boolean(h.navigationUrl || h.destLat != null || h.nextStop);
   const footer = (
     <>
       {view.primary ? (

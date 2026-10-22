@@ -61,6 +61,12 @@ def suggest(
         if reroute:
             out.append(reroute)
         out.append(contact)
+    elif kind == "stale_pickup":
+        # Parcels on board, delivery never started: hand the delivery leg to a driver
+        # (PR #141 handoff keeps PICKED_UP) or call the current driver.
+        if driver:
+            out.append(driver)
+        out.append(contact)
     elif kind == "unassigned":
         if driver:
             out.append(driver)

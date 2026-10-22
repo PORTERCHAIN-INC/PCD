@@ -60,7 +60,8 @@ export function issueLabel(i: Pick<DispatchExceptionItem, "kind" | "type">): str
 export function issueBucket(
   i: Pick<TodayIssue, "kind" | "item">
 ): Exclude<TodayFilter, "all"> | null {
-  if (i.kind === "late" || i.kind === "at_risk" || i.kind === "stuck") return "late";
+  if (i.kind === "late" || i.kind === "at_risk" || i.kind === "stuck" || i.kind === "stale_pickup")
+    return "late";
   if (i.kind === "unassigned" || i.item?.type === "DRIVER_TIMEOUT") return "unassigned";
   if (["failed", "damaged", "lost", "return"].includes(i.kind)) return "failed";
   if (i.kind === "exception") return "failed";
