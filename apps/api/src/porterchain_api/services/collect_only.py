@@ -6,8 +6,9 @@ no receiver code/photo, no out-for-delivery message). The order then sits PICKED
 driver at the hub: "At warehouse – awaiting delivery". It stays out of Plan the day until an
 admin releases the delivery leg (``HubSplitService.release_delivery_leg``).
 
-Pricing is the pickup leg only: the pricing engine quotes pickup -> warehouse, so contract
-rates still win and HST stays extra (both inside the engine).
+Billing: ONE normal delivery charge priced pickup -> final receiver, exactly like a regular
+delivery (contract rates win, HST extra). The warehouse stop and the second leg are internal
+operations: they never add a charge or a separate line. Drivers are paid hourly.
 """
 
 from __future__ import annotations
@@ -44,12 +45,6 @@ def warehouse(db: Session, hub_partner_id: str | None = None) -> Any:
     return hub
 
 
-def pricing_dropoff(db: Session | None, body: Any) -> Any:
-    """Collect-only quotes and bookings are priced pickup -> our warehouse; else None."""
-    hub = for_booking(db, body) if db is not None else None
-    return hub_geo(hub) if hub is not None else None
-
-
 def for_booking(db: Session, body: Any) -> Any:
     """Warehouse for a collect-only booking, or None for a standard one."""
     if getattr(body, "service_mode", None) != COLLECT_ONLY:
@@ -70,7 +65,7 @@ def mark(compliance: dict[str, Any], hub: Any) -> dict[str, Any]:
     if hub is None:
         return compliance
     compliance["service_mode"] = COLLECT_ONLY
-    compliance["collect_only"] = {"hub_partner_id": hub.id, "hub_name": hub.name, "priced_to": "warehouse"}
+    compliance["collect_only"] = {"hub_partner_id": hub.id, "hub_name": hub.name, "priced_to": "receiver"}
     return compliance
 
 

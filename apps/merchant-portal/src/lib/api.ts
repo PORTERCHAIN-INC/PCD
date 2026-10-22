@@ -127,7 +127,7 @@ export interface BookDeliveryPayload {
   dimensions?: string;
   scheduled_at: string;
   schedule_mode?: string;
-  /** collect_only: pick up to our warehouse, delivery booked later. */
+  /** collect_only: we collect now and deliver later; billed as one normal delivery. */
   service_mode?: "standard" | "collect_only";
   special_instructions?: string;
   site_access_notes?: string;

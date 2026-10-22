@@ -742,16 +742,7 @@ class StopsService:
         mark_hub_received(split, driver.id)
         next_driver = split.delivery_driver_id
         if next_driver != driver.id:
-            # Pickup leg pay: half the order's driver payout now, the delivery leg gets the rest.
-            from porterchain_driver.earnings import EarningsService
-
-            earn = EarningsService()
-            half = max(1, earn.resolve_delivery_payout_cents(db, order_id=order.id) // 2)
-            earn.credit_delivery(db, driver, order_id=order.id, amount_cents=half,
-                                 description="Pickup leg to warehouse")
-            from porterchain_api.dispatch_engine.hub_legs import _touch
-
-            _touch(split.first, pickup_leg_paid_cents=half)
+            # Drivers are paid hourly: no per-leg payout here, only the leg time is recorded.
             _record_stop_completion(db, driver.id, order.id, "pickup")
         order.assigned_driver_id = next_driver
         payload = {"order_id": order.id, "order_number": order.order_number,

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
 from porterchain_api.admin_engine.logistics_partners_service import HubSplitService
-from porterchain_api.booking_models import Order
+from porterchain_api.booking_models import Order, OrderEvent
 from porterchain_api.config import get_settings
 from porterchain_api.services import collect_only as co
 from porterchain_api.dispatch_engine.hub_legs import AT_HUB, TO_HUB, hub_leg
@@ -29,6 +29,12 @@ def _collect_order(db: Session, hub, **kw) -> Order:
     co.attach_legs(db, o, hub, actor_type="admin", actor_id=None)
     db.commit()
     return o
+
+
+def _charge_events(db, order_id):
+    return db.query(OrderEvent).filter(OrderEvent.order_id == order_id,
+                                       OrderEvent.event_type.ilike("%charge%")
+                                       | OrderEvent.event_type.ilike("%invoice%")).count()
 
 
 def test_end_to_end_pickup_to_warehouse_then_release(db: Session) -> None:
@@ -58,6 +64,7 @@ def test_end_to_end_pickup_to_warehouse_then_release(db: Session) -> None:
     plan = FleetPlanService()
     assert o.id not in {x.id for x in plan._orders(db, None)}  # noqa: SLF001
 
+    billed = (db.get(Order, o.id).amount_cents, _charge_events(db, o.id))
     HubSplitService().release_delivery_leg(db, get_settings(), ctx, o.id)
     assert not co.is_held(db, o.id)
     assert o.id in {x.id for x in plan._orders(db, None)}  # noqa: SLF001
@@ -68,6 +75,8 @@ def test_end_to_end_pickup_to_warehouse_then_release(db: Session) -> None:
     order = db.get(Order, o.id)
     assert order.assigned_driver_id == van.id and order.state == "PICKED_UP"
     assert _events(db, o.id, "order.delivery_leg_released") == 2
+    # Create delivery leg is internal: same single charge, nothing new billed.
+    assert (db.get(Order, o.id).amount_cents, _charge_events(db, o.id)) == billed
 
 
 def test_release_before_pickup_books_delivery_driver_for_after_drop(db: Session) -> None:
@@ -109,7 +118,7 @@ def test_no_warehouse_is_a_clear_error(db: Session) -> None:
         co.warehouse(db, "missing-id")
 
 
-def test_admin_builder_prices_pickup_to_warehouse(db: Session, settings) -> None:
+def test_admin_builder_prices_pickup_to_receiver(db: Session, settings) -> None:
     from porterchain_api.admin_engine.order_builder_service import OrderBuilderService
     from porterchain_api.schemas_admin import AdminCreateOrderRequest, AdminOrderStopInput
     from tests.test_pricing_audit_gates import _merchant_ctx
@@ -140,14 +149,15 @@ def test_admin_builder_prices_pickup_to_warehouse(db: Session, settings) -> None
     ):
         out = OrderBuilderService().create(db, settings, _ctx(db), body)
     req = seen["req"]
-    assert req.dropoff.lat == HUB["lat"] and req.merchant_id == mctx.merchant.id
+    assert req.dropoff.lat == S["lat"] and not req.additional_stops  # never the warehouse
+    assert req.merchant_id == mctx.merchant.id
     order = db.get(Order, out["order_id"])
     assert order.amount_cents == 2500 and co.is_collect_only(order)
     assert order.dropoff["lat"] == S["lat"]  # the receiver stays on file for the later delivery
     assert co.is_held(db, order.id) and hub_leg(db, order.id).stage == TO_HUB
 
 
-def test_merchant_booking_collect_only_prices_to_warehouse(db: Session, settings) -> None:
+def test_merchant_booking_collect_only_priced_like_regular_delivery(db: Session, settings) -> None:
     from porterchain_api.merchant_engine.booking_service import MerchantBookingService
     from tests.test_merchant_wave2_floor import _body
     from tests.test_merchant_wave2_floor import _ctx as _mctx
@@ -163,8 +173,10 @@ def test_merchant_booking_collect_only_prices_to_warehouse(db: Session, settings
     ):
         order = svc.create_shipment(db, settings, ctx, _body(service_mode="collect_only"))
     assert co.is_collect_only(order) and co.is_held(db, order.id)
-    assert order.compliance_metadata["collect_only"]["priced_to"] == "warehouse"
+    assert order.compliance_metadata["collect_only"]["priced_to"] == "receiver"
     with patch.object(co, "warehouse", lambda _db, _id=None: hub):
         req = svc.build_pricing_request(ctx, _body(service_mode="collect_only"), db=db)
-    assert req.dropoff.lat == HUB["lat"] and std.dropoff.lat != HUB["lat"]
+    diff = {k for k in vars(std) if k not in ("scheduled_at", "requested_at") and vars(req)[k] != vars(std)[k]}
+    assert not diff, diff  # identical quote to a regular delivery
+    assert req.dropoff.lat != HUB["lat"]
     assert hub_leg(db, order.id).stage == TO_HUB

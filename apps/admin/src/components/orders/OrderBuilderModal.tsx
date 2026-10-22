@@ -249,10 +249,10 @@ export function OrderBuilderModal({
           </div>
           {kind === "collect_only" ? (
             <p className="mt-2 text-xs text-muted" data-testid="collect-only-note">
-              Priced pickup → our warehouse only (contract rates apply, HST extra). The driver drops
-              at the warehouse with no receiver code or photo. Keep the receiver address below: the
-              parcel waits as &ldquo;At warehouse – awaiting delivery&rdquo; until you create the
-              delivery leg.
+              One normal charge, priced pickup → receiver (contract rates apply, HST extra); the
+              warehouse stop and delivery leg never add a charge. The driver drops at the warehouse
+              with no receiver code or photo. Keep the receiver address below: the parcel waits as
+              &ldquo;At warehouse – awaiting delivery&rdquo; until you create the delivery leg.
             </p>
           ) : null}
         </div>

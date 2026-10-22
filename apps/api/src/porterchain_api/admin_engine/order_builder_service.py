@@ -113,9 +113,8 @@ class OrderBuilderService:
         ]
         from porterchain_api.services import collect_only as co
 
+        # Collect-only: ONE normal charge priced pickup -> receiver; the warehouse leg is internal.
         hub = co.warehouse(db) if body.order_kind == co.COLLECT_ONLY else None
-        if hub is not None:  # collect-only: priced pickup -> our warehouse (contract still wins)
-            dropoff_geo, mid_geo = co.hub_geo(hub), []
         distance, duration_seconds, routing_source = resolve_route_distance(
             pickup_geo, dropoff_geo, mid_geo
         )

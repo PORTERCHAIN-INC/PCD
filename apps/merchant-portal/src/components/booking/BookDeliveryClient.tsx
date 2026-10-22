@@ -912,7 +912,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                           ],
                           [
                             "collect_only",
-                            "Collect only (to our warehouse)",
+                            "Collect now, deliver later",
                             "We pick up and keep it at our warehouse; delivery is booked later",
                           ],
                         ] as const
@@ -937,8 +937,9 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     </div>
                     {serviceMode === "collect_only" ? (
                       <p className="text-xs text-muted">
-                        Priced from your pickup to our warehouse (your contract rates apply, HST
-                        extra). Keep the receiver address: we use it when the delivery is booked.
+                        One delivery charge, priced from your pickup to your receiver like any
+                        delivery (your contract rates apply, HST extra). We hold the parcel until it
+                        goes out for delivery.
                       </p>
                     ) : null}
                   </fieldset>
@@ -1114,7 +1115,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   }
                 />
                 {mode === "single" && serviceMode === "collect_only" ? (
-                  <ReviewRow label="Job type" value="Collect only — to our warehouse" />
+                  <ReviewRow label="Job type" value="Collect now, deliver later" />
                 ) : null}
                 <ReviewRow label="Vehicle we send" value={vehicleLabel(vehicleClass)} />
                 <ReviewRow label="Package" value={packageLabel(packageType)} />

@@ -154,12 +154,12 @@ class MerchantBookingService:
         volume_units: int = 1,
         db: Any = None,
     ) -> PricingRequest:
-        dropoff_override = co.pricing_dropoff(db, body)  # collect-only: pickup -> our warehouse
+        # Collect-only / warehouse split: ONE normal charge, pickup -> final receiver (``db`` unused).
         pickup = body.pickup
         dropoff = body.dropoff
         pickup_geo = _geo(pickup)
-        dropoff_geo = dropoff_override or _geo(dropoff)
-        stops = [] if dropoff_override is not None else [_geo(s) for s in (body.additional_stops or [])]
+        dropoff_geo = _geo(dropoff)
+        stops = [_geo(s) for s in (body.additional_stops or [])]
         distance, duration_seconds, routing_source = resolve_route_distance(pickup_geo, dropoff_geo, stops)
         _check_declarations(body)
         weight_kg, dimensions = cargo_rollup(body)
@@ -267,7 +267,7 @@ class MerchantBookingService:
 
         pickup = body.pickup
         dropoff = body.dropoff
-        hub = co.for_booking(db, body)  # collect-only: priced pickup -> our warehouse
+        hub = co.for_booking(db, body)  # collect-only: priced pickup -> receiver
         pricing_request = self.build_pricing_request(ctx, body, db=db)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
         if (breakdown.metadata.get("coverage") or {}).get("over_max"):

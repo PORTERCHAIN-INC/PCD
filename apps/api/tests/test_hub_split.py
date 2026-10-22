@@ -167,7 +167,7 @@ def test_hub_geofence_follows_stop_presence_rule(db: Session, monkeypatch) -> No
     StopsService().deliver_stop(db, first, f"{o.id}-dropoff")
 
 
-def test_each_leg_is_paid_and_total_is_one_payout(db: Session, monkeypatch) -> None:
+def test_hub_drop_adds_no_per_leg_payout(db: Session, monkeypatch) -> None:
     from porterchain_api.driver_models import DriverWalletTransaction
     from porterchain_driver import stops as stops_mod
     from porterchain_driver.earnings import EarningsService
@@ -189,7 +189,8 @@ def test_each_leg_is_paid_and_total_is_one_payout(db: Session, monkeypatch) -> N
         return [t.amount_cents for t in db.query(DriverWalletTransaction).filter(
             DriverWalletTransaction.driver_id == d.id, DriverWalletTransaction.reference_id == o.id)]
 
-    assert paid(first) == [1500] and paid(second) == [1501]
+    # Hourly pay: the hub drop credits nothing; the order pays out once, like a regular delivery.
+    assert paid(first) == [] and paid(second) == [3001]
     assert hub_leg(db, o.id) is None  # both legs finished
 
 
