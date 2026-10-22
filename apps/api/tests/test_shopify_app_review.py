@@ -269,3 +269,31 @@ def test_go_live_blocks_until_carrier_registered(db) -> None:
     payload = connection_payload(db, me.id, settings)
     assert payload["go_live"]["checks"]["carrier_registered"] is True
     assert "carrier_not_registered" not in payload["go_live"]["blocking"]
+
+
+def test_self_signup_that_links_installed_store_is_activated(db) -> None:
+    """Portal sign-up (ONBOARDING under approval_required) + Shopify link → ACTIVE, can book."""
+    settings = _settings()
+    domain = f"rv-{uuid4().hex[:8]}.myshopify.com"
+    placeholder = _company(db, claimed=False, placeholder_for=domain)
+    newcomer = _company(db)
+    newcomer.status = MerchantStatus.ONBOARDING.value
+    db.commit()
+    _shop(db, placeholder.id, domain=domain, gid=_GID)
+    _link(db, settings, domain, newcomer.id)
+    db.refresh(newcomer)
+    assert newcomer.status == MerchantStatus.ACTIVE.value
+    assert newcomer.activated_at is not None
+
+
+def test_link_never_undoes_a_suspension(db) -> None:
+    settings = _settings()
+    domain = f"rv-{uuid4().hex[:8]}.myshopify.com"
+    placeholder = _company(db, claimed=False, placeholder_for=domain)
+    banned = _company(db)
+    banned.status = MerchantStatus.SUSPENDED.value
+    db.commit()
+    _shop(db, placeholder.id, domain=domain, gid=_GID)
+    _link(db, settings, domain, banned.id)
+    db.refresh(banned)
+    assert banned.status == MerchantStatus.SUSPENDED.value

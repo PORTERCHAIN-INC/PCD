@@ -63,3 +63,14 @@ export { signInUnavailableCopy, signUpUnavailableCopy } from "./authUnavailable"
 export { AuthStallNotice } from "./AuthStallNotice";
 export type { AuthStallNoticeCopy } from "./AuthStallNotice";
 export { AUTH_STALL_TIMEOUT_MS, isPrimaryButtonBusy, nextStallState } from "./authStall";
+export {
+  AUTH_EVENT_KINDS,
+  AUTH_TELEMETRY_PATH,
+  authTelemetryLogLine,
+  parseAuthEvent,
+  reportAuthEvent,
+  scrubDetail,
+} from "./authTelemetry";
+export type { AuthEventKind, AuthEventPayload } from "./authTelemetry";
+export { CLERK_LOAD_TIMEOUT_MS, useAuthLoadTimeout } from "./useAuthLoadTimeout";
+export { AuthLoadFailed } from "./AuthLoadFailed";

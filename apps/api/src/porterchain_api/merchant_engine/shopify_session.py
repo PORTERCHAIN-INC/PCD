@@ -373,7 +373,36 @@ def link_shop(db: Session, merchant_id: str, settings: Settings, link_token: str
         row.default_pickup_address_id = pickup.id if pickup else None
         db.commit()
         db.refresh(row)
+    _activate_linked_merchant(db, merchant_id)
     return row
+
+
+def _activate_linked_merchant(db: Session, merchant_id: str) -> None:
+    """A store Shopify authenticated is a trusted channel: same policy as a direct install.
+
+    Without this, a merchant who signs up in the portal from the embedded app's
+    "Link" button stays in ONBOARDING (approval_required) and cannot book, even
+    though the install itself would have auto-activated them.
+    """
+    from porterchain_api.merchant_engine.activation_service import (
+        SIGNUP_SOURCE_SHOPIFY,
+        apply_signup_policy,
+    )
+    from porterchain_api.merchant_models import Merchant
+
+    merchant = db.query(Merchant).filter(Merchant.id == merchant_id).first()
+    if merchant is None:
+        return
+    before = merchant.status
+    try:
+        apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_SHOPIFY)
+    except PermissionError:
+        return  # suspended: never undone by an integration
+    if merchant.status != before:
+        db.commit()
+        logger.info(
+            "shopify_link_activated merchant=%s from=%s to=%s", merchant_id, before, merchant.status
+        )
 
 
 def _active_row(db: Session, shop: str) -> ShopifyShop | None:

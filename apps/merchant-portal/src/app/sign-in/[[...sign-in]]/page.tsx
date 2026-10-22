@@ -5,8 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SignIn, useAuth } from "@clerk/nextjs";
 import {
+  AuthLoadFailed,
+  AuthStallNotice,
   porterchainClerkAppearance,
   safeAppRedirect,
+  useAuthLoadTimeout,
   signInUnavailableCopy,
 } from "@porterchain/auth";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
@@ -78,6 +81,7 @@ function SignInWithClerk() {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const [checking, setChecking] = useState(true);
+  const loadTimedOut = useAuthLoadTimeout(isLoaded);
   // Land on the dashboard; MerchantAccessGate sends seats that are not ready to /onboarding.
   const redirectUrl = safeAppRedirect(searchParams.get("redirect_url"), {
     fallback: "/dashboard",
@@ -93,6 +97,9 @@ function SignInWithClerk() {
     router.replace(redirectUrl);
   }, [isLoaded, isSignedIn, redirectUrl, router]);
 
+  if (loadTimedOut) {
+    return <AuthLoadFailed />;
+  }
   if (!isLoaded || checking) {
     return <MerchantAuthLoading label="Preparing sign-in…" />;
   }
@@ -122,6 +129,7 @@ function SignInWithClerk() {
         fallbackRedirectUrl={redirectUrl}
         appearance={porterchainClerkAppearance}
       />
+      <AuthStallNotice />
     </MerchantAuthScreen>
   );
 }

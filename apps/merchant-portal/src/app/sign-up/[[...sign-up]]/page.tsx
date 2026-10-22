@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { SignUp, useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
 import {
+  AuthLoadFailed,
   AuthStallNotice,
   PasswordRequirements,
   porterchainClerkAppearance,
   signUpUnavailableCopy,
+  useAuthLoadTimeout,
 } from "@porterchain/auth";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { MerchantAuthLoading, MerchantAuthScreen } from "@/components/auth/MerchantAuthScreen";
@@ -59,6 +61,7 @@ function ClerkUnavailable() {
 function SignUpWithClerk() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  const loadTimedOut = useAuthLoadTimeout(isLoaded);
 
   // Already signed in: go to the dashboard and let the gate decide onboarding vs portal.
   useEffect(() => {
@@ -67,6 +70,9 @@ function SignUpWithClerk() {
     }
   }, [isLoaded, isSignedIn, router]);
 
+  if (loadTimedOut) {
+    return <AuthLoadFailed title="Sign-up could not load" />;
+  }
   if (!isLoaded || isSignedIn) {
     return <MerchantAuthLoading label="Opening your portal…" />;
   }

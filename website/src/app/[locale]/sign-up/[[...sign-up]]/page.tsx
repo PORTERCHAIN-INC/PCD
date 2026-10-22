@@ -11,7 +11,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import {
+  AuthLoadFailed,
   AuthStallNotice,
+  useAuthLoadTimeout,
   PasswordRequirements,
   isDevelopmentBuild,
   porterchainClerkAppearance,
@@ -45,6 +47,7 @@ function SignUpContent() {
   const locale = useLocale();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
+  const loadTimedOut = useAuthLoadTimeout(isLoaded);
 
   const intent = searchParams.get("intent") ?? undefined;
   // Internal links no longer carry ?from= (canonical URLs); the clicked CTA is in sessionStorage.
@@ -124,6 +127,7 @@ function SignUpContent() {
     );
   }
 
+  if (loadTimedOut) return <AuthLoadFailed title="Sign-up could not load" />;
   if (!isLoaded) return <SignUpFallback />;
   if (isSignedIn) return <PostAuthPortalRedirect />;
 
