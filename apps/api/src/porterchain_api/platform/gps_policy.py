@@ -149,3 +149,23 @@ def forget_positions(driver_ids: list[str]) -> int:
         except Exception:  # noqa: BLE001
             pass
     return n
+
+
+def driver_shareable_with_recipient(db: Any, driver: Any) -> bool:
+    """Receiver/customer may see the live pin only with GPS consent AND while the driver is on duty
+    (active shift; hidden on break or after clock-out). When duty is not required by config
+    (DRIVER_DUTY_REQUIRED_FOR_COMPLETION=false) only consent applies."""
+    if driver is None or not bool(driver_gps_status(driver.id, db, driver)["enabled"]):
+        return False
+    import os
+
+    if os.getenv("DRIVER_DUTY_REQUIRED_FOR_COMPLETION", "true").strip().lower() in {"0", "false", "no", "off"}:
+        return True
+    from porterchain_api.driver_models import DriverShift
+
+    return (
+        db.query(DriverShift.id)
+        .filter(DriverShift.driver_id == driver.id, DriverShift.status == "active")
+        .first()
+        is not None
+    )
