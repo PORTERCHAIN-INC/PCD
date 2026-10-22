@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyPodDraft } from "../stop/podDraft";
-import { deriveStop, type StopInput } from "../stop/stopFlow";
+import { deriveStop, openStopAvailable, type StopInput } from "../stop/stopFlow";
 
 const base = (over: Partial<StopInput> = {}): StopInput => ({
   orderState: "DRIVER_ACCEPTED",
@@ -110,5 +110,42 @@ describe("deriveStop — one primary action per step", () => {
     const v = deriveStop(base({ orderState: "AT_PICKUP", scanRequired: 1 }));
     expect(v.rail.filter((r) => r.state === "now").map((r) => r.id)).toEqual(["scan"]);
     expect(v.rail[0].state).toBe("done");
+  });
+});
+
+describe("delivery after pickup (ORD-20261015-71FB4B regression)", () => {
+  it("picked up + delivery stop → Start delivery, rail on Arrive", () => {
+    const v = deriveStop(base({ stopType: "dropoff", orderState: "PICKED_UP" }));
+    expect(v.step).toBe("start");
+    expect(v.kind).toBe("delivery");
+    expect(v.primary).toEqual({ action: "start", label: "Start delivery" });
+    expect(v.rail.find((r) => r.state === "now")?.id).toBe("arrive");
+  });
+
+  it("after Start delivery (in transit) → Arrived at drop-off", () => {
+    expect(primary({ stopType: "dropoff", orderState: "IN_TRANSIT" })).toBe("arrive");
+  });
+
+  it("off duty still asks to go on duty first", () => {
+    expect(primary({ stopType: "delivery", orderState: "PICKED_UP", onDuty: false })).toBe(
+      "go_on_duty"
+    );
+  });
+});
+
+describe("openStopAvailable — never 'Open stop' with nothing behind it", () => {
+  const job = { currentOrderId: "o1", stopId: null, orderState: "PICKED_UP", hasRouteStop: false };
+  it("job without a stop → no button", () => {
+    expect(openStopAvailable(job)).toBe(false);
+  });
+  it("job with a stop → button", () => {
+    expect(openStopAvailable({ ...job, stopId: "o1-dropoff" })).toBe(true);
+  });
+  it("new offer → button (review), even before a stop exists", () => {
+    expect(openStopAvailable({ ...job, orderState: "DRIVER_ASSIGNED" })).toBe(true);
+  });
+  it("dispatch route stop → button; nothing at all → no button", () => {
+    expect(openStopAvailable({ ...job, currentOrderId: null, hasRouteStop: true })).toBe(true);
+    expect(openStopAvailable({ ...job, currentOrderId: null })).toBe(false);
   });
 });

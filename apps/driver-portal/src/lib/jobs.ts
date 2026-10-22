@@ -7,7 +7,7 @@ export type JobUrgency = "critical" | "high" | "medium" | "normal";
 export type JobLeg = "pickup" | "delivery" | "completed";
 
 export type JobActionKey =
-  "arrive_pickup" | "confirm_pickup" | "arrive_delivery" | "confirm_delivery";
+  "arrive_pickup" | "confirm_pickup" | "start_delivery" | "arrive_delivery" | "confirm_delivery";
 
 export interface DriverNextStop {
   stop_id: string;
@@ -277,6 +277,11 @@ export function getPrimaryAction(
 
   if (s === "AT_DESTINATION") {
     return { key: "confirm_delivery", label: "Confirm Delivery" };
+  }
+  // Picked up, not on the way yet: starting the delivery sends the receiver
+  // "out for delivery" with live tracking (also after an admin handoff).
+  if (s === "PICKED_UP" && (allowed.length === 0 || allowed.includes("start_delivery"))) {
+    return { key: "start_delivery", label: "Start Delivery" };
   }
   if (allowed.includes("confirm_delivery") && !allowed.includes("arrive_delivery")) {
     return { key: "confirm_delivery", label: "Confirm Delivery" };

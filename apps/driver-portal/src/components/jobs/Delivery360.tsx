@@ -175,6 +175,7 @@ export default function Delivery360({
     const map: Record<JobActionKey, () => Promise<unknown>> = {
       arrive_pickup: () => driverApi.arriveStop(rid, job.pickup_stop_id),
       confirm_pickup: () => driverApi.deliverStop(rid, job.pickup_stop_id),
+      start_delivery: () => driverApi.startDelivery(rid, job.delivery_stop_id),
       arrive_delivery: () => driverApi.arriveStop(rid, job.delivery_stop_id),
       confirm_delivery: () => driverApi.deliverStop(rid, job.delivery_stop_id),
     };

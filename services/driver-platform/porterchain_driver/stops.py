@@ -28,6 +28,18 @@ _PICKUP_ARRIVAL_STEPS: list[tuple[str, str]] = [
     ("DRIVER_EN_ROUTE", "order.driver_en_route"),
     ("AT_PICKUP", "order.arrived_pickup"),
 ]
+_CARRY_OVER_STATES = frozenset(
+    {
+        "DRIVER_ASSIGNED",
+        "DRIVER_ACCEPTED",
+        "DRIVER_EN_ROUTE",
+        "AT_PICKUP",
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "AT_DESTINATION",
+    }
+)
+_START_DELIVERY_STEPS: list[tuple[str, str]] = [("IN_TRANSIT", "order.in_transit")]
 _DELIVERY_ARRIVAL_STEPS: list[tuple[str, str]] = [
     ("IN_TRANSIT", "order.in_transit"),
     ("AT_DESTINATION", "order.near_delivery"),
@@ -294,6 +306,26 @@ class StopsService:
             stop_type = "dropoff"
         return self._order_to_stop(order, stop_type)
 
+    def start_delivery(self, db: Session, driver: Any, stop_id: str) -> StopView:
+        """Driver leaves for the drop: PICKED_UP -> IN_TRANSIT (``order.in_transit``).
+
+        That event is what sends the receiver "out for delivery" with the live tracking
+        link. Idempotent: already in transit / at the door is a no-op. Works for a
+        driver who took the delivery over by admin handoff (state stays PICKED_UP).
+        """
+        if stop_id.endswith("-pickup"):
+            raise ValueError("not_a_delivery_stop")
+        order = self._order_for_stop(db, driver.id, stop_id)
+        state = str(order.state).upper()
+        if state in ("IN_TRANSIT", "AT_DESTINATION"):
+            return self._order_to_stop(order, "dropoff")
+        if state != "PICKED_UP":
+            raise ValueError("pickup_required" if state not in _PICKUP_DONE_STATES else "delivery_already_completed")
+        _apply_state_chain(
+            db, order, _START_DELIVERY_STEPS, actor_type="driver", actor_id=driver.id
+        )
+        return self._order_to_stop(order, "dropoff")
+
     def deliver_stop(
         self,
         db: Session,
@@ -538,6 +570,8 @@ class StopsService:
         )
 
     def _today_orders(self, db: Session, driver_id: str) -> list:
+        from sqlalchemy import or_
+
         from porterchain_api.booking_models import Order
 
         start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -548,7 +582,14 @@ class StopsService:
                 Order.state.in_(
                     list(_ACTIVE_STATES) + ["DISPATCH_READY", "POD_COMPLETED"]
                 ),
-                Order.scheduled_at >= start,
+                # Today's work, plus anything still unfinished from an earlier day
+                # (e.g. picked up yesterday, not delivered yet). Finished orders from
+                # earlier days stay off the list.
+                or_(
+                    Order.scheduled_at >= start,
+                    Order.scheduled_at.is_(None),
+                    Order.state.in_(sorted(_CARRY_OVER_STATES)),
+                ),
             )
             .order_by(Order.scheduled_at.asc())
             .all()

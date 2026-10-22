@@ -16,7 +16,7 @@ import { KIND_LABEL } from "../dispatchRoute";
 import { openTurnByTurn } from "../maps";
 import { emptyPretrip, PRETRIP_ITEMS, pretripComplete, type PretripChecks } from "../pretrip";
 import { clockLabel, distanceLabel, etaCountdown, money, moneyShort } from "../smart/geo";
-import { isClosed, needsAccept, normState } from "../stop/stopFlow";
+import { isClosed, needsAccept, normState, openStopAvailable } from "../stop/stopFlow";
 import type { DriverJobSummary } from "../types";
 import { Banner, Button, Label, Screen } from "../ui/kit";
 import { LiveDot, PressScale, Rise, Skeleton } from "../ui/motion";
@@ -73,7 +73,15 @@ export function TodayScreen({
   const route = r.route && r.route.total > 0 ? r.route : null;
   const done = route ? route.done : (h.stopsDone ?? 0);
   const total = route ? route.total : (h.stopsTotal ?? 0);
-  const hasWork = Boolean(h.currentOrderId) || Boolean(r.stop);
+  // "Open stop" only when there is a stop to open (or a new offer to review). A job with
+  // no actionable stop used to show the button and land on an empty Job tab.
+  const hasWork = openStopAvailable({
+    currentOrderId: h.currentOrderId,
+    stopId: h.stopId,
+    orderState: h.currentOrderState,
+    hasRouteStop: Boolean(r.stop),
+  });
+  const stuckJob = onDuty && !hasWork && Boolean(h.currentOrderId);
   const ready = pretripComplete(pretrip);
   const firstLoad = h.api === "idle" && busy;
   const now = useNow(onDuty && Boolean(r.etaAt));
@@ -163,6 +171,14 @@ export function TodayScreen({
           tone="danger"
           title="SOS did not send"
           body="No connection. Call dispatch or 911."
+        />
+      ) : null}
+
+      {stuckJob ? (
+        <Banner
+          tone="warn"
+          title="This job has no next stop yet"
+          body={`${h.currentOrderNumber ?? "Your job"} is on your list but has nothing to do right now. Pull down to refresh. If it stays like this, contact dispatch from Help.`}
         />
       ) : null}
 
