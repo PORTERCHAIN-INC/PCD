@@ -28,6 +28,7 @@ import { toRouteImportPayload, validateRouteJob } from "@/lib/route-module/toRou
 import MagicCard from "@/components/magic/MagicCard";
 import ShimmerButton from "@/components/magic/ShimmerButton";
 import Button from "@/components/ui/Button";
+import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import Link from "next/link";
@@ -570,6 +571,12 @@ export default function RouteModuleForm({
                 placeholder="Gate code, suite, dock"
               />
             </label>
+            <DeliveryOptionsFields
+              idPrefix={`stop-${stop.id}`}
+              hideNote
+              value={stop.deliveryOptions ?? {}}
+              onChange={(deliveryOptions) => updateStop(index, { deliveryOptions })}
+            />
             <div className="space-y-3">
               {stop.parcels.map((parcel, parcelIndex) => (
                 <div key={parcel.id} className="rounded-xl bg-gray-bg p-3">
@@ -743,7 +750,9 @@ export default function RouteModuleForm({
         <p className="text-xs text-muted">
           Required columns: sequence, stop_type, address, unit, postal, contact_name, contact_phone,
           contact_email, notes, sku, length, width, height, dimensions_unit, weight, weight_unit,
-          vehicle_class, construction_site, site_access, internal_reference, scheduled_at.
+          vehicle_class, construction_site, site_access, internal_reference, scheduled_at. Optional
+          delivery options: drop_method (leave_at_door, hand_to_recipient, concierge), buzzer,
+          call_on_arrival (yes/no), load_help (yes/no).
         </p>
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" variant="outline" onClick={downloadCsvTemplate}>

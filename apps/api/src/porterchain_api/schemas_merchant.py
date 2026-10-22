@@ -358,6 +358,8 @@ class RouteImportStopInput(BaseModel):
     contact_email: str | None = None
     external_ref: str | None = None
     notes: str | None = None
+    #: Same set as single booking (drop_method, unit, buzzer, call_on_arrival, load_help, note).
+    delivery_options: dict[str, Any] | None = None
     packages: list[RouteImportPackageInput] | None = None
 
 

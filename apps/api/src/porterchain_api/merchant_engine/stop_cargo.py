@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from porterchain_api.domain.delivery_options import normalize as normalize_delivery_options
+
 from porterchain_pricing.types import ParcelSpec
 
 
@@ -129,6 +131,7 @@ def cargo_stop(stop: dict[str, Any]) -> dict[str, Any]:
         "city": stop.get("city"),
         "province": stop.get("province") or "ON",
         "notes": stop.get("notes"),
+        "delivery_options": normalize_delivery_options(stop.get("delivery_options")),
         "contact_name": stop.get("contact_name"),
         "contact_email": stop.get("contact_email"),
         "contact_phone": stop.get("contact_phone"),

@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from porterchain_api.domain.delivery_options import with_default as with_default_delivery_options
 from porterchain_api.booking_engine.compliance_metadata import build_compliance_metadata
 from porterchain_api.booking_engine.site_access import enrich_dropoff
 from porterchain_api.booking_engine._core import emit_event
@@ -353,7 +354,9 @@ class MerchantBookingService:
             payment_terms=ctx.merchant.payment_terms,
             amount_cents=amount_cents,
             pickup=pickup.model_dump(),
-            dropoff=enrich_dropoff(dropoff.model_dump(), body.site_access_notes),
+            dropoff=with_default_delivery_options(
+                enrich_dropoff(dropoff.model_dump(), body.site_access_notes), ctx.merchant
+            ),
             scheduled_at=scheduled_at,
             internal_reference=body.internal_reference,
             idempotency_key=idempotency_key,

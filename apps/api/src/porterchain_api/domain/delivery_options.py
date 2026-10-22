@@ -128,3 +128,68 @@ def from_shopify(payload: dict[str, Any]) -> dict[str, Any] | None:
     raw["buzzer"] = attrs.get("buzzer") or attrs.get("buzzer_code") or attrs.get("door_code")
     raw["unit"] = attrs.get("unit") or attrs.get("apartment") or attrs.get("suite")
     return normalize(raw)
+
+
+# ---------------------------------------------------------------- merchant default + CSV
+DEFAULTS_SETTING = "delivery_defaults"
+
+#: CSV / route-import column → option. ``notes`` keeps flowing to the stop note as before.
+CSV_COLUMNS: dict[str, str] = {
+    "drop_method": "drop_method",
+    "delivery_option": "drop_method",
+    "handoff": "drop_method",
+    "unit": "unit",
+    "apartment": "unit",
+    "buzzer": "buzzer",
+    "buzzer_code": "buzzer",
+    "call_on_arrival": "call_on_arrival",
+    "load_help": "load_help",
+    "help_load_unload": "load_help",
+    "delivery_note": "note",
+}
+_METHOD_WORDS = {
+    "leave at door": "leave_at_door",
+    "door": "leave_at_door",
+    "hand": "hand_to_recipient",
+    "hand delivery": "hand_to_recipient",
+    "hand to recipient": "hand_to_recipient",
+    "concierge": "concierge",
+    "reception": "concierge",
+}
+
+
+def from_row(row: dict[str, Any]) -> dict[str, Any] | None:
+    """Delivery options from a CSV/route-import row (column names as above, values forgiving)."""
+    raw: dict[str, Any] = {}
+    for col, key in CSV_COLUMNS.items():
+        value = row.get(col)
+        if value in (None, "") or key in raw:
+            continue
+        if key == "drop_method":
+            text = str(value).strip().lower().replace("_", " ")
+            value = _METHOD_WORDS.get(text, text.replace(" ", "_"))
+        raw[key] = value
+    return normalize(raw)
+
+
+def merchant_default(merchant: Any) -> dict[str, Any] | None:
+    profile = getattr(merchant, "profile", None)
+    settings = (profile or {}).get("settings") if isinstance(profile, dict) else None
+    return normalize((settings or {}).get(DEFAULTS_SETTING)) if isinstance(settings, dict) else None
+
+
+def with_default(dropoff: dict[str, Any] | None, merchant: Any) -> dict[str, Any] | None:
+    """Fill the merchant's default (e.g. always "leave at door") when the booking chose nothing."""
+    if dropoff is None or of(dropoff):
+        return dropoff
+    default = merchant_default(merchant)
+    if not default:
+        return dropoff
+    return {**dropoff, KEY: default}
+
+
+#: Order states in which the merchant can still change delivery options.
+EDITABLE_STATES = frozenset(
+    {"DRAFT", "PENDING_PAYMENT", "PAID", "CONFIRMED", "DISPATCH_READY", "DRIVER_ASSIGNED",
+     "DRIVER_EN_ROUTE", "AT_PICKUP", "PICKED_UP", "IN_TRANSIT", "SCHEDULED", "ON_HOLD", "REJECTED"}
+)
