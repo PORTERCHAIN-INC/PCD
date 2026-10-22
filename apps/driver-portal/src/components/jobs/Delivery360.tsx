@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { driverApi } from "@/lib/api";
 import { StopDocuments } from "./StopDocuments";
+import { OrderStops } from "./OrderStops";
+import { midStopIsCurrent } from "@/lib/multi-stops";
 import { enqueueOfflineAction } from "@/lib/offline-client";
 import type { DriverJobDetail, JobActionKey } from "@/lib/jobs";
 import {
@@ -126,7 +128,7 @@ export default function Delivery360({
   const pickupPhase = isInPickupPhase(job);
   const deliveryPhase = isInDeliveryPhase(job);
   const completed = isJobCompleted(job);
-  const primary = getPrimaryAction(job.state, job.allowed_actions ?? []);
+  const primary = getPrimaryAction(job.state, job.allowed_actions ?? [], job.hub_leg);
   const scanPhase: "pickup" | "delivery" = deliveryPhase ? "delivery" : "pickup";
   const scanProgress = resolveScanProgress(job, scanPhase);
   const wholeVehicle = job.booking_mode === "vehicle";
@@ -147,6 +149,8 @@ export default function Delivery360({
     delivery_notes: job.delivery_notes ?? job.next_stop?.delivery_notes ?? [],
   });
   const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
+  // Warehouse split, pickup leg: the drop is our hub — no receiver proof, no scan gate.
+  const toHub = job.hub_leg === "to_hub" && job.state.toUpperCase() === "PICKED_UP";
   const podEnforced = Boolean(job.pod_requirements?.enforced);
   const podMissing = job.pod_missing ?? [];
   const requiredItems = [
@@ -176,6 +180,7 @@ export default function Delivery360({
     const map: Record<JobActionKey, () => Promise<unknown>> = {
       arrive_pickup: () => driverApi.arriveStop(rid, job.pickup_stop_id),
       confirm_pickup: () => driverApi.deliverStop(rid, job.pickup_stop_id),
+      start_delivery: () => driverApi.startDelivery(rid, job.delivery_stop_id),
       arrive_delivery: () => driverApi.arriveStop(rid, job.delivery_stop_id),
       confirm_delivery: () => driverApi.deliverStop(rid, job.delivery_stop_id),
     };
@@ -265,7 +270,9 @@ export default function Delivery360({
         </p>
       )}
 
-      {!completed && primary && (
+      <OrderStops stops={job.stops} routeId={rid} onUpdated={onUpdated} />
+
+      {!completed && primary && !midStopIsCurrent(job.stops) && (
         <div className="rounded-2xl border border-[var(--secondary)]/25 bg-gradient-to-br from-[var(--secondary)]/8 to-transparent p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--secondary)]">
             Next action
@@ -279,7 +286,7 @@ export default function Delivery360({
               Attempt {job.delivery_attempts} of {job.max_delivery_attempts ?? 2}
             </p>
           ) : null}
-          {primary.key.startsWith("confirm_") && !scansComplete ? (
+          {primary.key.startsWith("confirm_") && !scansComplete && !toHub ? (
             <p className="mt-2 text-sm text-amber-800">
               Scan or report every package first ({scanProgress.scanned}/{scanProgress.required})
             </p>
@@ -292,7 +299,8 @@ export default function Delivery360({
           <button
             type="button"
             disabled={
-              pending === primary.key || (primary.key.startsWith("confirm_") && !scansComplete)
+              pending === primary.key ||
+              (primary.key.startsWith("confirm_") && !scansComplete && !toHub)
             }
             onClick={() => runPrimary(primary.key)}
             className={cn(
@@ -559,7 +567,7 @@ export default function Delivery360({
         </Section>
       )}
 
-      {deliveryPhase && !completed && (
+      {deliveryPhase && !completed && !toHub && (
         <Section title="Proof of Delivery" icon={CheckCircle2}>
           {job.on_duty === false ? (
             <p

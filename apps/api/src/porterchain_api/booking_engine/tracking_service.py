@@ -154,12 +154,9 @@ class TrackingService:
             return False
         try:
             from porterchain_api.admin_models import Driver
-            from porterchain_api.platform.gps_policy import driver_gps_status
+            from porterchain_api.platform.gps_policy import driver_shareable_with_recipient
 
-            driver = db.get(Driver, driver_id)
-            if driver is None:
-                return False
-            return bool(driver_gps_status(driver.id, db, driver)["enabled"])
+            return driver_shareable_with_recipient(db, db.get(Driver, driver_id))
         except Exception:  # noqa: BLE001
             return False
 

@@ -21,6 +21,9 @@ class DriverOfflineExecutor:
                 db, driver, payload["stop_id"]
             )
             return
+        if action == "start_delivery":
+            self._platform.stops.start_delivery(db, driver, payload["stop_id"])
+            return
         if action == "deliver_stop":
             self._platform.stops.deliver_stop(
                 db, driver, payload["stop_id"]

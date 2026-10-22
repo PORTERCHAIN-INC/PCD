@@ -7,7 +7,7 @@ export type JobUrgency = "critical" | "high" | "medium" | "normal";
 export type JobLeg = "pickup" | "delivery" | "completed";
 
 export type JobActionKey =
-  "arrive_pickup" | "confirm_pickup" | "arrive_delivery" | "confirm_delivery";
+  "arrive_pickup" | "confirm_pickup" | "start_delivery" | "arrive_delivery" | "confirm_delivery";
 
 export interface DriverNextStop {
   stop_id: string;
@@ -62,6 +62,8 @@ export interface DriverJobSummary {
   pickup_completed?: boolean;
   delivery_completed?: boolean;
   is_current_job?: boolean;
+  /** "to_hub": drop at our warehouse (order split at a hub); "at_hub": collect there first. */
+  hub_leg?: "to_hub" | "at_hub" | null;
   route_id?: string | null;
   scan_pickup?: DriverScanProgress;
   scan_delivery?: DriverScanProgress;
@@ -111,6 +113,7 @@ export interface DriverJobDetail extends DriverJobSummary {
   delivery_detail: Record<string, unknown>;
   pickup_stop: Record<string, unknown>;
   delivery_stop: Record<string, unknown>;
+  stops?: import("./multi-stops").OrderStop[];
   allowed_actions: JobActionKey[];
   next_stop: DriverNextStop | null;
   is_current_job: boolean;
@@ -265,11 +268,16 @@ export function resolveScanProgress(
 
 export function getPrimaryAction(
   state: string,
-  allowed: JobActionKey[] = []
+  allowed: JobActionKey[] = [],
+  hubLeg?: string | null
 ): { key: JobActionKey; label: string } | null {
   const s = state.toUpperCase();
   const leg = getJobLeg(s);
   if (leg === "completed") return null;
+  // Warehouse split, pickup leg: the parcel goes to our hub, not to the receiver.
+  if (hubLeg === "to_hub" && s === "PICKED_UP") {
+    return { key: "confirm_delivery", label: "Dropped at Warehouse" };
+  }
 
   if (leg === "pickup") {
     if (s === "AT_PICKUP") {
@@ -281,6 +289,11 @@ export function getPrimaryAction(
   if (s === "AT_DESTINATION") {
     return { key: "confirm_delivery", label: "Confirm Delivery" };
   }
+  // Picked up, not on the way yet: starting the delivery sends the receiver
+  // "out for delivery" with live tracking (also after an admin handoff).
+  if (s === "PICKED_UP" && (allowed.length === 0 || allowed.includes("start_delivery"))) {
+    return { key: "start_delivery", label: "Start Delivery" };
+  }
   if (allowed.includes("confirm_delivery") && !allowed.includes("arrive_delivery")) {
     return { key: "confirm_delivery", label: "Confirm Delivery" };
   }
@@ -290,6 +303,7 @@ export function getPrimaryAction(
 export function actionErrorMessage(code: string): string {
   const map: Record<string, string> = {
     pickup_required: "Complete pickup before starting delivery.",
+    earlier_stops_open: "Finish the earlier stops on this order first (see All stops).",
     pickup_already_completed: "Parcel already picked up.",
     not_current_stop: "This is not your next stop — finish the current job first.",
     not_at_stop:

@@ -4,7 +4,14 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { acceptOrder, arriveStop, rejectOrder, reportException, scanPackage } from "../api";
+import {
+  acceptOrder,
+  arriveStop,
+  rejectOrder,
+  reportException,
+  scanPackage,
+  startDelivery,
+} from "../api";
 import type { FieldSession } from "../hooks/useFieldSession";
 import type { RouteState } from "../hooks/useDispatchRoute";
 import { haptic } from "../haptics";
@@ -19,8 +26,10 @@ import { scanFix, type ScanOutcome } from "../scanFeedback";
 import { capturePodPhotoDataUrl } from "../pod";
 import { completeStop } from "../stop/completeStop";
 import { emptyPodDraft, type PodDraft } from "../stop/podDraft";
+import { isMidStopId, stopInputFor, stopPosition } from "../stop/multiStop";
 import { deriveStop, needsAccept, type PrimaryAction } from "../stop/stopFlow";
 import { BarcodeScannerModal } from "../ui/BarcodeScannerModal";
+import { OrderStopsCard } from "../ui/job/OrderStopsCard";
 import { ProblemSheet } from "../ui/job/ProblemSheet";
 import { ProofSheets, type ProofSheet } from "../ui/job/ProofSheets";
 import { StepRail } from "../ui/job/StepRail";
@@ -71,19 +80,25 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
 
   const scanPhase = (h.nextStopType ?? "").toLowerCase() === "pickup" ? "pickup" : "delivery";
   const scan = scanPhase === "pickup" ? h.scanPickup : h.scanDelivery;
-  const view = deriveStop({
-    orderState: h.currentOrderState,
-    stopType: h.nextStopType,
-    stopStatus: h.stopStatus,
-    hasStop: Boolean(h.routeId && h.stopId),
-    onDuty: Boolean(h.online),
-    syncing: Boolean(h.stopId && syncingStopIds.includes(h.stopId)),
-    scanRequired: scan?.required ?? 0,
-    scanComplete: Boolean(scan?.complete),
-    pod,
-    podRequirements: h.podRequirements,
-    otpRequired: h.otpRequired,
-  });
+  const midStop = isMidStopId(h.stopId);
+  const stopInput = stopInputFor(
+    {
+      orderState: h.currentOrderState,
+      stopType: h.nextStopType,
+      stopStatus: h.stopStatus,
+      hasStop: Boolean(h.routeId && h.stopId),
+      onDuty: Boolean(h.online),
+      syncing: Boolean(h.stopId && syncingStopIds.includes(h.stopId)),
+      scanRequired: scan?.required ?? 0,
+      scanComplete: Boolean(scan?.complete),
+      pod,
+      podRequirements: h.podRequirements,
+      otpRequired: h.otpRequired,
+      hubLeg: h.hubLeg,
+    },
+    h.stopId
+  );
+  const view = deriveStop(stopInput);
   const routeId = h.routeId ?? "";
   const stopId = h.stopId ?? "";
   const orderId = h.currentOrderId ?? "";
@@ -168,6 +183,12 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
             arriveStop(routeId, stopId)
           )
         );
+      case "start":
+        return void run("start", () =>
+          runOnlineOrQueue("start_delivery", { stop_id: stopId, route_id: routeId }, () =>
+            startDelivery(routeId, stopId)
+          )
+        );
       case "scan":
         return setScanOpen(true);
       case "photo":
@@ -184,9 +205,10 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
             routeId,
             stopId,
             kind: view.kind,
-            otpRequired: h.otpRequired,
-            podRequirements: h.podRequirements,
+            otpRequired: stopInput.otpRequired,
+            podRequirements: stopInput.podRequirements,
             pod,
+            midStop,
           });
           setPod(emptyPodDraft());
         });
@@ -195,8 +217,8 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
 
   // Geofence auto-arrive for the single-job flow (dispatch routes do this in useDispatchRoute).
   const watchArrive =
-    view.step === "arrive" &&
-    view.primary?.action === "arrive" &&
+    (view.step === "arrive" || view.step === "start") &&
+    (view.primary?.action === "arrive" || view.primary?.action === "start") &&
     h.destLat != null &&
     h.destLng != null;
   const { fix } = useLiveFix(watchArrive);
@@ -246,11 +268,19 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         />
         <EmptyState
           testID="job-empty"
-          title={view.step === "waiting" ? "Waiting on dispatch" : "No active job"}
+          title={
+            view.step === "waiting"
+              ? "Waiting on dispatch"
+              : orderId
+                ? "No next stop for this job"
+                : "No active job"
+          }
           body={
             view.step === "waiting"
               ? "Dispatch is updating this job. Pull down to refresh."
-              : "When dispatch sends you a job it shows up here."
+              : orderId
+                ? `${h.currentOrderNumber ?? "This job"} has nothing to do right now. Pull down to refresh. If it stays like this, contact dispatch from Help.`
+                : "When dispatch sends you a job it shows up here."
           }
         />
       </Screen>
@@ -258,7 +288,8 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
   }
 
   const kindLabel = view.kind === "pickup" ? "Pickup" : "Drop-off";
-  const policy = h.podRequirements ?? { enforced: true, photo_or_signature: true };
+  const policy = stopInput.podRequirements ?? { enforced: true, photo_or_signature: true };
+  const position = stopPosition(h.orderStops, h.stopId);
   const strictPhotoOrSig = Boolean(policy.photo || policy.signature);
   const proofRows = [
     ...(policy.photo_or_signature && !strictPhotoOrSig
@@ -279,12 +310,13 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
     ...(policy.id_check
       ? [{ label: "ID checked", done: pod.idNameMatches, redo: () => setSheet("id_check") }]
       : []),
-    ...(h.otpRequired || policy.otp
+    ...(stopInput.otpRequired || policy.otp
       ? [{ label: "Receiver code", done: Boolean(pod.otp), redo: () => setSheet("otp") }]
       : []),
   ];
   const hasNav =
-    view.step === "arrive" && Boolean(h.navigationUrl || h.destLat != null || h.nextStop);
+    (view.step === "arrive" || view.step === "start") &&
+    Boolean(h.navigationUrl || h.destLat != null || h.nextStop);
   const footer = (
     <>
       {view.primary ? (
@@ -372,6 +404,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         <Label style={view.kind === "pickup" ? styles.kindPickup : styles.kindDrop}>
           {view.step === "offer" ? "New job" : kindLabel}
           {h.currentOrderNumber ? ` · #${h.currentOrderNumber}` : ""}
+          {position ? ` · ${position}` : ""}
         </Label>
         <Title testID="stop-address" accessibilityRole="header">
           {h.nextStop ?? "Address loading…"}
@@ -381,6 +414,7 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         ) : null}
       </View>
       <StepRail steps={view.rail} />
+      <OrderStopsCard stops={h.orderStops} currentStopId={h.stopId} />
       {orderId && view.step !== "offer" ? <StopDocumentsCard orderId={orderId} /> : null}
 
       {h.accessNotes ? (

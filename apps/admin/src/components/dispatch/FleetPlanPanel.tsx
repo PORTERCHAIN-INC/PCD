@@ -16,6 +16,8 @@ import {
   type PlanChange,
   type PlanExplanation,
   type PlanRoute,
+  routePatterns,
+  STOP_KIND_HINT,
 } from "@/lib/dispatch";
 import { cn } from "@porterchain/ui/utils";
 import DeleteButton from "@/components/common/DeleteButton";
@@ -61,6 +63,20 @@ function RouteCard({
           {r.driver_name ?? "Unassigned vehicle"} · {groupStops(r.stops).length} stops ·{" "}
           {routeMix(r.stops)} · {minutes(r.seconds)}
         </p>
+        {routePatterns(r.stops).length > 0 && (
+          <ul className="mt-1.5 flex flex-wrap gap-1" aria-label="Route type">
+            {routePatterns(r.stops).map((p) => (
+              <li
+                key={p.id}
+                title={p.hint}
+                data-testid={`route-pattern-${p.id}`}
+                className="rounded bg-primary/5 px-1.5 py-0.5 text-[11px] font-medium text-primary"
+              >
+                {p.label}
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="mt-2 flex items-center gap-2" aria-label={`Fill ${fill}%`}>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-primary/10">
             <div
@@ -77,6 +93,7 @@ function RouteCard({
             <span className="w-5 text-right text-xs tabular-nums text-muted">{i + 1}</span>
             <span
               className={cn("h-2.5 w-2.5 shrink-0 rounded-full", KIND_DOT[s.kind] ?? "bg-primary")}
+              title={STOP_KIND_HINT[s.kind]}
               aria-hidden
             />
             <button
@@ -84,7 +101,7 @@ function RouteCard({
               onClick={() => onOpenOrder(s.order_id)}
               className="min-w-0 flex-1 truncate text-left text-sm text-primary hover:underline"
             >
-              <span className="font-medium">
+              <span className="font-medium" title={STOP_KIND_HINT[s.kind]}>
                 {STOP_KIND_LABEL[s.kind]}
                 {s.count > 1 ? ` ×${s.count}` : ""}
               </span>

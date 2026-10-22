@@ -24,6 +24,8 @@ export type ScanProgress = {
   reported_missing?: number;
 };
 
+import type { OrderStop } from "./stop/multiStop";
+
 export type Handshake = {
   api: LinkState;
   auth: LinkState;
@@ -36,6 +38,10 @@ export type Handshake = {
   routeId: string | null;
   stopId: string | null;
   stopStatus: string | null;
+  /** "to_hub" when the next drop is our warehouse (order split at a hub). */
+  hubLeg: string | null;
+  /** Multi-stop order: every stop in order (empty on a plain pickup -> drop job). */
+  orderStops: OrderStop[];
   nextStop: string | null;
   nextStopType: string | null;
   etaMinutes: number | null;
@@ -126,6 +132,10 @@ export type DriverNextStop = {
   contact_phone_masked?: string | null;
   delivery_attempts?: number;
   max_delivery_attempts?: number;
+  hub_leg?: string | null;
+  stop_key?: string | null;
+  stop_index?: number | null;
+  stop_total?: number | null;
 };
 
 export type DriverJobSummary = {
@@ -199,6 +209,8 @@ export type DriverJobDetail = DriverJobSummary & {
   route_id?: string | null;
   pickup_stop_id?: string;
   delivery_stop_id?: string;
+  /** Every stop of the order in plan order (multi-stop: hub & spoke, N->N). */
+  stops?: OrderStop[];
   special_instructions?: string | null;
   declared_value_cents?: number | null;
   booking_mode?: string | null;

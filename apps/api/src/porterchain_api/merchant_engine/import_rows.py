@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from porterchain_api.domain.delivery_options import from_row as delivery_options_from_row
 from porterchain_api.merchant_engine.address_normalize import compose_raw_from_parts, normalize_address
 from porterchain_api.merchant_engine.stop_cargo import clean_packages, legacy_cargo, write_legacy_cargo
 
@@ -182,6 +183,7 @@ def pair_rows_to_stops(mapped_rows: list[dict[str, Any]]) -> list[dict[str, Any]
             "contact_phone": row.get("contact_phone"),
             "external_ref": row.get("external_ref"),
             "notes": row.get("notes"),
+            "delivery_options": delivery_options_from_row(row),
             "lat": None,
             "lng": None,
             "packages": packages,
@@ -240,6 +242,7 @@ def rows_to_stops(mapped_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "contact_phone": row.get("contact_phone"),
                 "external_ref": row.get("external_ref"),
                 "notes": row.get("notes"),
+                "delivery_options": delivery_options_from_row(row),
                 "lat": lat,
                 "lng": lng,
                 "packages": packages,

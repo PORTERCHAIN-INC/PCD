@@ -305,6 +305,15 @@ class MerchantBulkService:
 
     def _address_from_row(self, row: dict[str, Any], *, prefix: str) -> AddressInput:
         """CSV rows usually carry text addresses only; geocode them so the row can be priced."""
+        if prefix == "dropoff":
+            from porterchain_api.domain.delivery_options import from_row
+            from porterchain_api.schemas_booking import DeliveryOptionsInput
+
+            opts = from_row(row)
+            addr = self._address_from_row(row, prefix="_dropoff_raw")
+            return addr.model_copy(update={"delivery_options": DeliveryOptionsInput(**opts)}) if opts else addr
+        if prefix == "_dropoff_raw":
+            prefix = "dropoff"
         lat_raw = row.get(f"{prefix}_lat")
         lng_raw = row.get(f"{prefix}_lng")
         lat = float(lat_raw) if lat_raw else None

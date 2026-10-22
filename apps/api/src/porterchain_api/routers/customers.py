@@ -216,7 +216,7 @@ def get_my_driver_position(
         load_order_and_driver,
     )
     from porterchain_api.dispatch_engine.driver_pin import driver_pin
-    from porterchain_api.platform.gps_policy import driver_gps_status
+    from porterchain_api.platform.gps_policy import driver_shareable_with_recipient
 
     customer = _ready_customer(db, claims, settings)
     try:
@@ -241,7 +241,7 @@ def get_my_driver_position(
         driver=driver,
         # Only read the pin when the order is the caller's and active.
         pin=driver_pin(driver_id) if owned_and_active and driver_id else None,
-        gps_allowed=lambda d: bool(driver_gps_status(d.id, db, d)["enabled"]),
+        gps_allowed=lambda d: driver_shareable_with_recipient(db, d),
     )
     if payload is None:
         raise HTTPException(status_code=404, detail="order_not_found")

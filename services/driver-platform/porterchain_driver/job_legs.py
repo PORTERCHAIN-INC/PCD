@@ -36,6 +36,11 @@ def stop_status_for_leg(state: str, stop_type: str) -> str:
         return "pending"
     if s in _DELIVERY_DONE:
         return "delivered"
+    if s == "PICKED_UP":
+        # Parcels are on board but the delivery leg has not started: the drop is the
+        # driver's next actionable stop. Never "picked_up" here — that status means
+        # "done" to the next-stop resolver and hid the delivery (ORD-20261015-71FB4B).
+        return "pending"
     if s in DELIVERY_LEG:
         return s.lower()
     if s in PICKUP_LEG or s in ("BOOKED", "DISPATCH_READY"):
@@ -58,6 +63,8 @@ def allowed_actions(state: str) -> list[str]:
             actions.append("confirm_pickup")
         return actions
     actions = []
+    if s == "PICKED_UP":
+        actions.append("start_delivery")
     if s in ("PICKED_UP", "IN_TRANSIT"):
         actions.append("arrive_delivery")
     if s in ("PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"):

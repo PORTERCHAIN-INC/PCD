@@ -68,7 +68,7 @@ export default function RouteJobDetail({ jobId }: { jobId: string }) {
   const job = jobQuery.data ?? null;
 
   useEffect(() => {
-    if (job) setStops(toDrafts(job.stops));
+    if (job) setStops(toDrafts(Array.isArray(job.stops) ? job.stops : []));
   }, [job]);
 
   useEffect(() => {

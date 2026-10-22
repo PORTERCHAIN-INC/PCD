@@ -3,7 +3,7 @@
 from fastapi import Body, Query, Response
 
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
-from porterchain_api.admin_engine.logistics_partners_service import LogisticsPartnersService
+from porterchain_api.admin_engine.logistics_partners_service import HubSplitService, LogisticsPartnersService
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
@@ -18,6 +18,7 @@ from porterchain_api.routers.admin._deps import (
 
 _plans = FleetPlanService()
 _partners = LogisticsPartnersService()
+_hub = HubSplitService()
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
 P = "/operations/dispatch"
 
@@ -118,6 +119,33 @@ def dispatch_order_legs(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) 
 def dispatch_order_legs_plan(order_id: str, ctx: Ctx, db: Session = Depends(get_db), save: bool = Query(False)) -> dict:
     """Local / warehouse / FTL / LTL / 3PL legs by rules. ``save=true`` stores them as planned."""
     return _run(ctx, "dispatch", _partners.plan_legs, db, ctx, order_id, save=save)
+
+
+@router.get(f"{P}/orders/{{order_id}}/hub-split")
+def dispatch_order_hub_split(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    return _run(ctx, "dispatch_read", _hub.view, db, order_id)
+
+
+@router.post(f"{P}/orders/{{order_id}}/hub-split")
+def dispatch_order_hub_split_create(order_id: str, ctx: Ctx, db: Session = Depends(get_db),
+                                    body: dict = Body(...)) -> dict:
+    """Split at warehouse: pickup leg -> hub, delivery leg hub -> customer (own drivers)."""
+    from porterchain_api.config import get_settings
+
+    return _run(ctx, "dispatch", _hub.split, db, get_settings(), ctx, order_id,
+                hub_partner_id=str(body.get("hub_partner_id") or ""),
+                pickup_driver_id=body.get("pickup_driver_id") or None,
+                delivery_driver_id=body.get("delivery_driver_id") or None)
+
+
+@router.post(f"{P}/orders/{{order_id}}/delivery-leg")
+def dispatch_order_release_delivery(order_id: str, ctx: Ctx, db: Session = Depends(get_db),
+                                    body: dict = Body(default={})) -> dict:
+    """Collect-only / warehouse parcel: create the delivery leg (Plan the day sees it), optionally assign."""
+    from porterchain_api.config import get_settings
+
+    return _run(ctx, "dispatch", _hub.release_delivery_leg, db, get_settings(), ctx, order_id,
+                driver_id=(body or {}).get("driver_id") or None)
 
 
 # ---------------------------------------------------------------- partner booking

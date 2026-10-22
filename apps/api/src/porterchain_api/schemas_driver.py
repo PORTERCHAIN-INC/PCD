@@ -84,6 +84,11 @@ class StopResponse(BaseModel):
     special_instructions: str | None = None
     otp_required: bool = False
     pod_required: bool = True
+    hub_leg: str | None = None
+    stop_key: str | None = None
+    stop_index: int | None = None
+    stop_total: int | None = None
+    stop_label: str | None = None
 
 
 class RouteResponse(BaseModel):
@@ -234,6 +239,11 @@ class DriverNextStop(BaseModel):
     delivery_notes: list[str] = Field(default_factory=list)
     delivery_attempts: int = 0
     max_delivery_attempts: int = 2
+    hub_leg: str | None = None
+    stop_key: str | None = None
+    stop_index: int | None = None
+    stop_total: int | None = None
+    stop_label: str | None = None
 
 
 class DriverScanProgress(BaseModel):
@@ -264,6 +274,7 @@ class DriverJobSummary(BaseModel):
     pickup_completed: bool = False
     delivery_completed: bool = False
     is_current_job: bool = False
+    hub_leg: str | None = None
     route_id: str | None = None
     scan_pickup: DriverScanProgress = Field(default_factory=DriverScanProgress)
     scan_delivery: DriverScanProgress = Field(default_factory=DriverScanProgress)
@@ -317,6 +328,7 @@ class DriverJobDetailResponse(DriverJobSummary):
     delivery_detail: dict = Field(default_factory=dict)
     pickup_stop: dict = Field(default_factory=dict)
     delivery_stop: dict = Field(default_factory=dict)
+    stops: list[dict] = Field(default_factory=list)
     allowed_actions: list[str] = Field(default_factory=list)
     next_stop: DriverNextStop | None = None
     pickup_completed_at: str | None = None

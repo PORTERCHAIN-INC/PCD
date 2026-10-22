@@ -394,7 +394,7 @@ class AdminCreateOrderRequest(BaseModel):
     merchant_id: str
     order_kind: str = Field(
         ...,
-        description="single | hub_spoke | multi_pickup_delivery | scheduled_pickup",
+        description="single | hub_spoke | multi_pickup_delivery | scheduled_pickup | collect_only",
     )
     stops: list[AdminOrderStopInput] = Field(..., min_length=2)
     vehicle_class: str = "cargo_van"

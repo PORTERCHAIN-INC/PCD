@@ -31,6 +31,7 @@ const LABEL: Record<string, string> = {
   claim: "Claim open",
   margin: "Below margin floor",
   stuck: "Stuck — no progress",
+  stale_pickup: "Picked up, delivery not started",
   idle: "Driver idle, order waiting",
   liftgate: "Needs liftgate — no liftgate truck online",
 };

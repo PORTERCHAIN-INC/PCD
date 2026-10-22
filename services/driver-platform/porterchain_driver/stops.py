@@ -28,6 +28,18 @@ _PICKUP_ARRIVAL_STEPS: list[tuple[str, str]] = [
     ("DRIVER_EN_ROUTE", "order.driver_en_route"),
     ("AT_PICKUP", "order.arrived_pickup"),
 ]
+_CARRY_OVER_STATES = frozenset(
+    {
+        "DRIVER_ASSIGNED",
+        "DRIVER_ACCEPTED",
+        "DRIVER_EN_ROUTE",
+        "AT_PICKUP",
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "AT_DESTINATION",
+    }
+)
+_START_DELIVERY_STEPS: list[tuple[str, str]] = [("IN_TRANSIT", "order.in_transit")]
 _DELIVERY_ARRIVAL_STEPS: list[tuple[str, str]] = [
     ("IN_TRANSIT", "order.in_transit"),
     ("AT_DESTINATION", "order.near_delivery"),
@@ -204,6 +216,30 @@ def _apply_state_chain(
         )
 
 
+def _hub_split(order: Any):
+    """Open warehouse split for this order (``dispatch_engine.hub_legs``) or None."""
+    from sqlalchemy.orm import object_session
+
+    from porterchain_api.dispatch_engine.hub_legs import hub_leg
+
+    try:
+        return hub_leg(object_session(order), str(order.id))
+    except Exception:  # noqa: BLE001 — a missing legs table must never break the driver app
+        return None
+
+
+def _delivery_leg_cents(db: Any, order: Any, split: Any) -> int | None:
+    """Split order: the delivery driver gets the payout minus what the pickup leg was paid."""
+    if split is None:
+        return None
+    paid = int((split.first.meta or {}).get("pickup_leg_paid_cents") or 0)
+    if not paid:
+        return None
+    from porterchain_driver.earnings import EarningsService
+
+    return max(1, EarningsService().resolve_delivery_payout_cents(db, order_id=order.id) - paid)
+
+
 class StopsService:
     def today_stops(self, db: Session, driver_id: str) -> list[StopView]:
         return self._stops_for_orders(
@@ -274,9 +310,30 @@ class StopsService:
         skip_presence: bool = False,
     ) -> StopView:
         order = self._order_for_stop(db, driver.id, stop_id)
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            if enforce_sequence:
+                _validate_current_stop(db, driver, stop_id)
+            return multi_stops.arrive(db, driver, order, stop_id, skip_presence=skip_presence)
         _validate_stop_action(order, stop_id, "arrive")
+        if not stop_id.endswith("-pickup"):
+            multi_stops.assert_final_drop_ready(db, order)
         if enforce_sequence:
             _validate_current_stop(db, driver, stop_id)
+        split = None if stop_id.endswith("-pickup") else _hub_split(order)
+        if split is not None and split.stage == "to_hub":
+            # Pickup leg ends at our warehouse: no "out for delivery" / "nearby" for the receiver.
+            from porterchain_api.dispatch_engine.hub_legs import mark_hub_arrived
+
+            if not skip_presence:
+                from porterchain_driver.navigation import assert_driver_inside_point
+
+                assert_driver_inside_point(driver.id, split.hub.get("lat"), split.hub.get("lng"))
+
+            mark_hub_arrived(split, driver.id)
+            db.flush()
+            return self._order_to_stop(order, "dropoff")
         if not skip_presence:
             from porterchain_driver.navigation import assert_driver_inside_stop
 
@@ -293,6 +350,34 @@ class StopsService:
         else:
             stop_type = "dropoff"
         return self._order_to_stop(order, stop_type)
+
+    def start_delivery(self, db: Session, driver: Any, stop_id: str) -> StopView:
+        """Driver leaves for the drop: PICKED_UP -> IN_TRANSIT (``order.in_transit``).
+
+        That event is what sends the receiver "out for delivery" with the live tracking
+        link. Idempotent: already in transit / at the door is a no-op. Works for a
+        driver who took the delivery over by admin handoff (state stays PICKED_UP).
+        """
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            order = self._order_for_stop(db, driver.id, stop_id)
+            return multi_stops.start_delivery(db, driver, order, stop_id)
+        if stop_id.endswith("-pickup"):
+            raise ValueError("not_a_delivery_stop")
+        order = self._order_for_stop(db, driver.id, stop_id)
+        state = str(order.state).upper()
+        if state in ("IN_TRANSIT", "AT_DESTINATION"):
+            return self._order_to_stop(order, "dropoff")
+        if state != "PICKED_UP":
+            raise ValueError("pickup_required" if state not in _PICKUP_DONE_STATES else "delivery_already_completed")
+        split = _hub_split(order)
+        if split is not None and split.stage == "to_hub":
+            return self._order_to_stop(order, "dropoff")  # heading to our hub, not the customer
+        _apply_state_chain(
+            db, order, _START_DELIVERY_STEPS, actor_type="driver", actor_id=driver.id
+        )
+        return self._order_to_stop(order, "dropoff")
 
     def deliver_stop(
         self,
@@ -311,7 +396,19 @@ class StopsService:
         from porterchain_api.domain.states import OrderState
         from porterchain_driver.earnings import EarningsService
 
+        from porterchain_driver import multi_stops
+
+        if multi_stops.is_mid_stop_id(stop_id):
+            if enforce_sequence:
+                _validate_current_stop(db, driver, stop_id)
+            return multi_stops.deliver(db, driver, order, stop_id, pod_override=pod_override,
+                                       duty_override=duty_override)
         _validate_stop_action(order, stop_id, "deliver")
+        if not stop_id.endswith("-pickup"):
+            multi_stops.assert_final_drop_ready(db, order)
+        split = None if stop_id.endswith("-pickup") else _hub_split(order)
+        if split is not None and split.stage == "to_hub":
+            return self._drop_at_hub(db, driver, order, split)
         if not stop_id.endswith("-pickup") and not duty_override:
             from porterchain_driver.pod_policy import assert_on_duty
 
@@ -346,7 +443,9 @@ class StopsService:
                 # OTP complete_pod already walked AT_DESTINATION → DELIVERED → POD_COMPLETED.
                 target = OrderState.POD_COMPLETED
                 _record_stop_completion(db, driver.id, order.id, "dropoff")
-                EarningsService().credit_delivery(db, driver, order_id=order.id)
+                EarningsService().credit_delivery(
+                    db, driver, order_id=order.id, amount_cents=_delivery_leg_cents(db, order, split)
+                )
             else:
                 if not pod_override:
                     _assert_dropoff_pod_ready(db, order)
@@ -356,7 +455,14 @@ class StopsService:
                 )
                 target = OrderState.DELIVERED
                 _record_stop_completion(db, driver.id, order.id, "dropoff")
-                EarningsService().credit_delivery(db, driver, order_id=order.id)
+                EarningsService().credit_delivery(
+                    db, driver, order_id=order.id, amount_cents=_delivery_leg_cents(db, order, split)
+                )
+        if split is not None and not is_pickup:
+            from porterchain_api.dispatch_engine.hub_legs import mark_delivered
+
+            mark_delivered(split)
+            db.flush()
         if auto_reoptimize:
             from porterchain_driver.route_optimizer import DriverRouteOptimizer
 
@@ -538,6 +644,8 @@ class StopsService:
         )
 
     def _today_orders(self, db: Session, driver_id: str) -> list:
+        from sqlalchemy import or_
+
         from porterchain_api.booking_models import Order
 
         start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -548,7 +656,14 @@ class StopsService:
                 Order.state.in_(
                     list(_ACTIVE_STATES) + ["DISPATCH_READY", "POD_COMPLETED"]
                 ),
-                Order.scheduled_at >= start,
+                # Today's work, plus anything still unfinished from an earlier day
+                # (e.g. picked up yesterday, not delivered yet). Finished orders from
+                # earlier days stay off the list.
+                or_(
+                    Order.scheduled_at >= start,
+                    Order.scheduled_at.is_(None),
+                    Order.state.in_(sorted(_CARRY_OVER_STATES)),
+                ),
             )
             .order_by(Order.scheduled_at.asc())
             .all()
@@ -590,6 +705,31 @@ class StopsService:
         unpicked parcels stay ``locked`` via ``stop_status_for_leg``.
         """
         by_id = {str(o.id): o for o in orders}
+        from sqlalchemy.orm import object_session
+
+        from porterchain_driver import multi_stops
+
+        groups: dict[str, tuple[list[StopView], list[StopView]]] = {}
+        for o in orders:
+            if multi_stops.plan_for(o) is None:
+                continue  # plain pickup -> drop
+            try:
+                sess = object_session(o)
+            except Exception:  # noqa: BLE001 -- not an ORM row
+                sess = None
+            got = multi_stops.leg_groups(sess, o) if sess is not None and _hub_split(o) is None else None
+            if got is not None:
+                groups[str(o.id)] = got
+
+        def leg_views(order: Any, leg: str, seq: int) -> list[StopView]:
+            got = groups.get(str(order.id))
+            if got is None:
+                return [self._order_to_stop(order, leg, sequence=seq)]
+            views = got[0] if leg == "pickup" else got[1]
+            for j, v in enumerate(views):
+                v.sequence = seq + j
+            return views
+
         waypoints: list[dict] = []
         if driver_id:
             from porterchain_driver.sequence_store import read_sequence
@@ -613,27 +753,93 @@ class StopsService:
                 if key in seen:
                     continue
                 seen.add(key)
-                stops.append(self._order_to_stop(by_id[oid], leg, sequence=i))
+                stops.extend(leg_views(by_id[oid], leg, len(stops)))
             # Append any legs missing from the plan so nothing is dropped.
             for order in orders:
                 oid = str(order.id)
                 for leg in ("pickup", "dropoff"):
                     if (oid, leg) not in seen:
-                        stops.append(
-                            self._order_to_stop(order, leg, sequence=len(stops))
-                        )
+                        stops.extend(leg_views(order, leg, len(stops)))
             return stops
 
-        for i, order in enumerate(orders):
-            stops.append(self._order_to_stop(order, "pickup", sequence=i * 2))
-            stops.append(self._order_to_stop(order, "dropoff", sequence=i * 2 + 1))
+        for order in orders:
+            stops.extend(leg_views(order, "pickup", len(stops)))
+            stops.extend(leg_views(order, "dropoff", len(stops)))
         return stops
+
+    def _drop_at_hub(self, db: Session, driver: Any, order: Any, split: Any) -> StopView:
+        """Pickup driver hands the parcel in at our warehouse: leg 0 done, order stays PICKED_UP.
+
+        The order moves to the delivery-leg driver (or to nobody, so "Plan the day" picks it up).
+        """
+        from porterchain_shared.events.catalog import DomainEventType
+
+        from porterchain_api.booking_engine._core import emit_event
+        from porterchain_api.booking_models import OrderEvent
+        from porterchain_api.dispatch_engine.hub_legs import mark_hub_received
+
+        if str(order.state).upper() != "PICKED_UP":
+            raise ValueError("pickup_required")
+        if not split.arrived_at_hub:
+            from porterchain_driver.navigation import assert_driver_inside_point
+
+            assert_driver_inside_point(driver.id, split.hub.get("lat"), split.hub.get("lng"))
+        mark_hub_received(split, driver.id)
+        next_driver = split.delivery_driver_id
+        if next_driver != driver.id:
+            # Drivers are paid hourly: no per-leg payout here, only the leg time is recorded.
+            _record_stop_completion(db, driver.id, order.id, "pickup")
+        order.assigned_driver_id = next_driver
+        payload = {"order_id": order.id, "order_number": order.order_number,
+                   "tracking_number": order.tracking_number, "hub": split.hub.get("name"),
+                   "from_driver_id": driver.id, "driver_id": next_driver, "state": order.state,
+                   "leg": "delivery", "handoff": True, "driver_deep_link": f"/jobs/{order.id}"}
+        db.add(OrderEvent(order_id=order.id, event_type="order.hub_received", from_state=order.state,
+                          to_state=order.state, actor_type="driver", actor_id=driver.id, payload=payload))
+        if next_driver and next_driver != driver.id:
+            emit_event(db, event_type=DomainEventType.DRIVER_HANDOFF, payload=payload,
+                       aggregate_type="order", aggregate_id=order.id, actor_type="driver",
+                       actor_id=driver.id)
+        db.flush()
+        view = self._order_to_stop(order, "dropoff")
+        view.status = "completed"
+        return view
 
     def _order_to_stop(self, order: Any, stop_type: str, sequence: int = 0) -> StopView:
         from porterchain_driver.job_legs import stop_status_for_leg
 
         addr = order.pickup if stop_type == "pickup" else order.dropoff
         state = str(order.state)
+        split = _hub_split(order)
+        if split is not None:
+            from porterchain_api.dispatch_engine.hub_legs import hub_note
+
+            note = hub_note(split)
+            to_hub = split.stage == "to_hub"
+            if stop_type == "dropoff" and to_hub:
+                status = stop_status_for_leg(state, stop_type)
+                if status == "pending" and split.arrived_at_hub:
+                    status = "arrived"
+                return StopView(
+                    stop_id=f"{order.id}-{stop_type}", order_id=order.id, sequence=sequence,
+                    stop_type=stop_type, status=status, address=dict(split.hub),
+                    scheduled_at=order.scheduled_at, tracking_number=order.tracking_number,
+                    order_number=order.order_number or order.tracking_number,
+                    special_instructions=note, otp_required=False, pod_required=False,
+                    hub_leg="to_hub",
+                )
+            if not to_hub:
+                base = order.special_instructions
+                return StopView(
+                    stop_id=f"{order.id}-{stop_type}", order_id=order.id, sequence=sequence,
+                    stop_type=stop_type, status=stop_status_for_leg(state, stop_type),
+                    address=dict(split.hub) if stop_type == "pickup" else (addr or {}),
+                    scheduled_at=order.scheduled_at, tracking_number=order.tracking_number,
+                    order_number=order.order_number or order.tracking_number,
+                    special_instructions=f"{note} {base}" if base else note,
+                    otp_required=stop_type == "dropoff", pod_required=stop_type == "dropoff",
+                    hub_leg="at_hub",
+                )
         return StopView(
             stop_id=f"{order.id}-{stop_type}",
             order_id=order.id,

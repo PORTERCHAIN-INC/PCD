@@ -2,7 +2,8 @@
 
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { confirmRouteImport, createRouteImport, type RouteImportJob } from "@/lib/api";
-import { billingApi, formatCycle, formatTerms, type BillingOverview } from "@/lib/billing";
+import { billingApi, type BillingOverview } from "@/lib/billing";
+import { billingSummaryLine } from "@/lib/route-module/billingLine";
 import { formatCents, listSavedAddresses } from "@/lib/booking";
 import { publicEnv } from "@/lib/env";
 import { ordersApi } from "@/lib/orders";
@@ -28,6 +29,7 @@ import { toRouteImportPayload, validateRouteJob } from "@/lib/route-module/toRou
 import MagicCard from "@/components/magic/MagicCard";
 import ShimmerButton from "@/components/magic/ShimmerButton";
 import Button from "@/components/ui/Button";
+import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import Link from "next/link";
@@ -194,6 +196,7 @@ export default function RouteModuleForm({
   }, [job]);
   const quoteStale = quote != null && quotedFingerprint !== fingerprint;
   const validation = useMemo(() => validateRouteJob(job), [job]);
+  const billingLine = billingSummaryLine(billing);
 
   function applyUnitSystem(next: "metric" | "imperial") {
     setUnitSystem(next);
@@ -359,14 +362,9 @@ export default function RouteModuleForm({
         </div>
       ) : null}
 
-      {billing ? (
+      {billingLine ? (
         <p className="rounded-xl border border-primary/10 bg-gray-bg px-4 py-3 text-sm text-primary">
-          {formatTerms(billing.payment_terms)}
-          {billing.net_terms_days ? ` · Net ${billing.net_terms_days}` : ""} ·{" "}
-          {formatCycle(billing.billing_cycle)}
-          {billing.contract_pricing.has_contract && billing.contract_pricing.contract_name
-            ? ` · ${billing.contract_pricing.contract_name}`
-            : ""}
+          {billingLine}
         </p>
       ) : null}
 
@@ -570,6 +568,12 @@ export default function RouteModuleForm({
                 placeholder="Gate code, suite, dock"
               />
             </label>
+            <DeliveryOptionsFields
+              idPrefix={`stop-${stop.id}`}
+              hideNote
+              value={stop.deliveryOptions ?? {}}
+              onChange={(deliveryOptions) => updateStop(index, { deliveryOptions })}
+            />
             <div className="space-y-3">
               {stop.parcels.map((parcel, parcelIndex) => (
                 <div key={parcel.id} className="rounded-xl bg-gray-bg p-3">
@@ -743,7 +747,9 @@ export default function RouteModuleForm({
         <p className="text-xs text-muted">
           Required columns: sequence, stop_type, address, unit, postal, contact_name, contact_phone,
           contact_email, notes, sku, length, width, height, dimensions_unit, weight, weight_unit,
-          vehicle_class, construction_site, site_access, internal_reference, scheduled_at.
+          vehicle_class, construction_site, site_access, internal_reference, scheduled_at. Optional
+          delivery options: drop_method (leave_at_door, hand_to_recipient, concierge), buzzer,
+          call_on_arrival (yes/no), load_help (yes/no).
         </p>
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" variant="outline" onClick={downloadCsvTemplate}>
@@ -803,7 +809,22 @@ export default function RouteModuleForm({
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {csvErrors.length > 0 ? <BulkErrorReport errors={csvErrors} /> : null}
       {!validation.ok && !error ? (
-        <p className="text-sm text-muted">{validation.errors[0]}</p>
+        <div className="text-sm text-red-700" role="alert" data-testid="route-validation">
+          <p className="font-medium">Fix before quoting:</p>
+          <ul className="list-disc pl-5">
+            {validation.errors.slice(0, 5).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+          {validation.errors.length > 5 ? <p>…and {validation.errors.length - 5} more</p> : null}
+        </div>
+      ) : null}
+      {validation.warnings.length ? (
+        <ul className="list-disc pl-5 text-sm text-amber-800" data-testid="route-warnings">
+          {validation.warnings.slice(0, 5).map((msg) => (
+            <li key={msg}>{msg}</li>
+          ))}
+        </ul>
       ) : null}
 
       <div className="flex flex-wrap gap-3">
