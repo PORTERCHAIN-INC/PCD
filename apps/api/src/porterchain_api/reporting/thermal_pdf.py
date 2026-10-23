@@ -252,7 +252,6 @@ def layout_page(page: dict[str, Any]) -> list[Box]:
     for label, key, font in (
         ("Order", "order_number", "Helvetica"),
         ("Tracking", "tracking_base", "Helvetica"),
-        ("COD", "cod_line", "Helvetica-Bold"),
     ):
         val = _present(page.get(key))
         if not val:
@@ -314,7 +313,7 @@ def render_thermal_labels(pages: list[dict[str, Any]]) -> bytes:
     """
     Each page dict keys:
       route_hint, stop_sequence, from_line, to_line, order_number, tracking_base,
-      cod_line, qr_payload, tracking_suffix, parcel_index, total_parcels,
+      qr_payload, tracking_suffix, parcel_index, total_parcels,
       item_line ("Item 2 · box 1 of 3" for multi-box items; never contents),
       delivery_line (optional: "Leave at door · Unit 4 · Buzz 1234" — delivery options)
     """

@@ -40,22 +40,6 @@ def _route_hint(order: Order) -> str:
     return ""
 
 
-def _cod_line(order: Order) -> str:
-    cents = getattr(order, "cod_amount_cents", None)
-    if not cents or int(cents) <= 0:
-        return "—"
-    status = getattr(order, "cod_status", None) or ""
-    amount = f"${int(cents) / 100:.2f}"
-    return f"{amount} {status}".strip() if status else amount
-
-
-def _cod_cents_for_qr(order: Order) -> int | None:
-    cents = getattr(order, "cod_amount_cents", None)
-    if cents is None or int(cents) <= 0:
-        return None
-    return int(cents)
-
-
 class LabelService:
     def __init__(self) -> None:
         self._packages = PackageService()
@@ -147,8 +131,6 @@ class LabelService:
         pickup = order.pickup if isinstance(order.pickup, dict) else {}
         from_line = merchant_name or _addr(pickup)
         to_line = _addr(order.dropoff if isinstance(order.dropoff, dict) else None)
-        cod_line = _cod_line(order)
-        cod_cents = _cod_cents_for_qr(order)
         sandbox = order_is_sandbox(order)
         ordinals = item_ordinals(packages)
         route_hint = _route_hint(order)
@@ -164,8 +146,7 @@ class LabelService:
                     "delivery_line": delivery_label_line(order.dropoff),
                     "order_number": order.order_number,
                     "tracking_base": order.tracking_number,
-                    "cod_line": cod_line,
-                    "qr_payload": _label_code(pkg.id, order.id, route_hint, pkg.stop_sequence, cod_cents),
+                    "qr_payload": _label_code(pkg.id, order.id, route_hint, pkg.stop_sequence),
                     "tracking_suffix": pkg.tracking_suffix,
                     "parcel_index": pkg.parcel_index,
                     "total_parcels": pkg.total_parcels,
@@ -175,7 +156,7 @@ class LabelService:
         return pages
 
 
-def _label_code(package_id, order_id, route_hint, stop_sequence, cod_cents) -> str:
+def _label_code(package_id, order_id, route_hint, stop_sequence) -> str:
     """Signed opaque PC1 code; legacy pipe payload only for non-UUID package ids."""
     from porterchain_api.reporting.qr_codec import encode_signed_label
 
@@ -187,5 +168,4 @@ def _label_code(package_id, order_id, route_hint, stop_sequence, cod_cents) -> s
             package_id=package_id,
             route_hint=route_hint or None,
             stop_sequence=stop_sequence,
-            cod_cents=cod_cents,
         )
