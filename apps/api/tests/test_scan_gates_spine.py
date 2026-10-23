@@ -23,8 +23,6 @@ def _order_with_three_boxes(order_id: str = "ord-furn") -> SimpleNamespace:
         merchant_id="m1",
         pickup={"formatted": "Warehouse", "name": "WH"},
         dropoff={"formatted": "Customer", "name": "Cust"},
-        cod_amount_cents=4500,
-        cod_status="pending_collection",
         compliance_metadata={
             "stops": [
                 {
@@ -61,7 +59,7 @@ def test_live_prove_three_boxes_three_labels_one_fee():
     assert filename.startswith("labels-")
     assert pdf.startswith(b"%PDF")
     assert b"/Count 3" in pdf
-    assert b"$" in pdf and b"45" in pdf  # COD amount rendered on label
+    assert b"COD" not in pdf  # no cash on delivery on labels
 
 
 def test_whole_vehicle_does_not_require_a_scan():
@@ -121,7 +119,7 @@ def test_scan_gate_blocks_until_all_three():
     gate.assert_complete(db, order, phase="pickup")  # type: ignore[arg-type]
 
 
-def test_scan_qr_advances_and_cod_requires_pickup_scans():
+def test_scan_qr_advances_pickup():
     order = _order_with_three_boxes()
     pkg = SimpleNamespace(
         id="pkg-1",
@@ -140,13 +138,10 @@ def test_scan_qr_advances_and_cod_requires_pickup_scans():
     gate._packages.ensure_for_order = lambda _db, _o: [pkg]  # type: ignore[method-assign]
     gate._packages.list_for_order = lambda _db, _oid: [pkg]  # type: ignore[method-assign]
 
-    qr = encode_label_qr(order_id=order.id, package_id="pkg-1", cod_cents=4500)
+    qr = encode_label_qr(order_id=order.id, package_id="pkg-1")
     out = gate.scan_qr(db, order, qr, phase="pickup")  # type: ignore[arg-type]
     assert pkg.status == "picked_up"
     assert out["scanned"] == 1
-
-    # COD gate needs all packages — still incomplete with 1 of 1 in this stub list of 1
-    gate.assert_cod_scans(db, order)  # type: ignore[arg-type]
 
 
 def test_job_detail_schema_keeps_scan_progress():

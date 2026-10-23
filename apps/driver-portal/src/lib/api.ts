@@ -380,11 +380,6 @@ export const driverApi = {
       `/v1/orders/${orderId}/packages/${packageId}/missing`,
       { method: "POST", body: JSON.stringify(body) }
     ),
-  codCheckout: (orderId: string) =>
-    driverFetch<{ checkout_url: string; session_id: string; amount_cents: number; mock?: boolean }>(
-      `/v1/orders/${orderId}/cod-checkout`,
-      { method: "POST" }
-    ),
   jobsHistory: () => driverFetch<{ history: DriverJobSummary[] }>("/v1/jobs/history"),
   navigationSession: (orderId?: string) =>
     driverFetch<DriverNavigationSession>(

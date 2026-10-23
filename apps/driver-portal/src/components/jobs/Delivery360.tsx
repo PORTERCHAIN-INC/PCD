@@ -737,44 +737,6 @@ export default function Delivery360({
               </fieldset>
             ) : null}
           </div>
-          {(job.cod_amount_cents ?? 0) > 0 && (
-            <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--gray-bg)] p-3">
-              <p className="text-sm font-semibold text-[var(--primary)]">
-                COD · {((job.cod_amount_cents ?? 0) / 100).toFixed(2)}{" "}
-                {(job.currency || "cad").toUpperCase()}
-              </p>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                Status: {job.cod_status || "pending"} — scan all boxes before Payment Link
-              </p>
-              {!job.scan_pickup?.complete ? (
-                <p className="mt-2 text-xs text-amber-800">
-                  Pickup scans {job.scan_pickup?.scanned ?? 0}/{job.scan_pickup?.required ?? 0}{" "}
-                  required
-                </p>
-              ) : null}
-              <button
-                type="button"
-                disabled={
-                  pending === "cod_checkout" ||
-                  job.cod_status === "collected" ||
-                  job.cod_status === "payout_processed" ||
-                  !job.scan_pickup?.complete
-                }
-                onClick={() =>
-                  run("cod_checkout", async () => {
-                    const res = await driverApi.codCheckout(job.order_id);
-                    if (res.checkout_url) {
-                      window.open(res.checkout_url, "_blank", "noopener,noreferrer");
-                    }
-                    return res;
-                  })
-                }
-                className="mt-3 w-full rounded-xl border border-[var(--secondary)] py-2 text-sm font-bold text-[var(--secondary)] disabled:opacity-50"
-              >
-                {pending === "cod_checkout" ? "Opening…" : "Collect COD (Payment Link)"}
-              </button>
-            </div>
-          )}
           <button
             type="button"
             disabled={
