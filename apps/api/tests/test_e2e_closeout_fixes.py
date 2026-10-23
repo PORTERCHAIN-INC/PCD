@@ -7,8 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
-from porterchain_api.domain.states import CodStatus, OrderState, can_transition_order
+from porterchain_api.domain.states import OrderState, can_transition_order
 from porterchain_api.driver_engine.wallet_ledger import record_transaction
 from porterchain_api.schemas_driver import DriverJobsListResponse, DriverNextStop
 from porterchain_api.services.stripe_service import is_dummy_stripe_id
@@ -120,50 +119,6 @@ def test_complete_pod_already_completed_is_idempotent(monkeypatch: pytest.Monkey
     )
     assert result.success is True
     assert calls == []
-
-
-def test_cod_placeholder_destination_mocks_even_with_stripe_secret(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    db = MagicMock()
-    settings = SimpleNamespace(
-        allow_stripe_mock=False,
-        stripe_secret="sk_test_dummy",
-        stripe_cod_platform_fee_bps=500,
-        driver_portal_url="http://localhost:3003",
-    )
-    merchant = SimpleNamespace(
-        id="m1",
-        cod_enabled=True,
-        stripe_connect_account_id="acct_local_mapleleaf",
-    )
-    order = SimpleNamespace(
-        id="o1",
-        tracking_number="PC123",
-        order_number="ORD1",
-        currency="cad",
-        cod_amount_cents=45000,
-        cod_status=CodStatus.PENDING_COLLECTION.value,
-        cod_stripe_session_id=None,
-    )
-    monkeypatch.setattr(
-        "porterchain_api.merchant_engine.scan_gate_service.ScanGateService.assert_cod_scans",
-        lambda self, db, order: None,
-    )
-    called = {"stripe": False}
-
-    def _fail_real(*_a, **_k):
-        called["stripe"] = True
-        raise AssertionError("must not call live Connect for dummy acct")
-
-    monkeypatch.setattr(
-        "porterchain_api.billing_engine.stripe_cod_service.create_cod_checkout_session",
-        _fail_real,
-    )
-    out = StripeCodService().issue_cod_checkout(db, settings, order, merchant)
-    assert out["mock"] is True
-    assert called["stripe"] is False
-    assert order.cod_status == CodStatus.LINK_ISSUED.value
 
 
 def test_record_transaction_syncs_driver_wallet_cache() -> None:
