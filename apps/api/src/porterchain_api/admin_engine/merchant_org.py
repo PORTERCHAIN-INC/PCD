@@ -176,7 +176,6 @@ def apply_merchant_terms(
     tax_exempt: bool | None = None,
     tax_region: str | None = None,
     billing_address: dict | None = None,
-    cod_enabled: bool | None = None,
 ):
     from porterchain_api.admin_engine.merchant_lifecycle import require_billing_cycle
     from porterchain_api.admin_engine.merchant_service import AdminMerchantService
@@ -251,8 +250,6 @@ def apply_merchant_terms(
         profile.pop("stripe_enabled", None)
         profile.pop("stripe_checkout", None)
         merchant.profile = profile
-    if cod_enabled is not None:
-        merchant.cod_enabled = bool(cod_enabled)
     tax_patch: dict[str, object] = {}
     if legal_name is not None:
         tax_patch["legal_name"] = legal_name
@@ -287,7 +284,6 @@ def apply_merchant_terms(
             "preferred_vehicles": preferred_vehicles,
             "delivery_zones": delivery_zones,
             "service_area": service_area,
-            "cod_enabled": cod_enabled,
         },
     )
     return merchant
