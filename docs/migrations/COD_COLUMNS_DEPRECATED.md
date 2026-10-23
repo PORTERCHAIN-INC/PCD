@@ -5,10 +5,10 @@ Branch `fix/driver-id-and-no-cod` removes cash on delivery from every app
 **No schema change ships with it.** The columns below stay in the database and
 in the ORM models, but no code reads or writes them any more:
 
-| Table | Column | Added by |
-|---|---|---|
-| `orders` | `cod_amount_cents`, `cod_status` (indexed), `cod_stripe_session_id` | `o7p8q9r0s1t2_cod_stripe_connect` |
-| `merchants` | `cod_enabled` | `o7p8q9r0s1t2_cod_stripe_connect` |
+| Table       | Column                                                              | Added by                          |
+| ----------- | ------------------------------------------------------------------- | --------------------------------- |
+| `orders`    | `cod_amount_cents`, `cod_status` (indexed), `cod_stripe_session_id` | `o7p8q9r0s1t2_cod_stripe_connect` |
+| `merchants` | `cod_enabled`                                                       | `o7p8q9r0s1t2_cod_stripe_connect` |
 
 `merchants.stripe_connect_account_id` is **kept** (still used by Connect helpers).
 
