@@ -194,8 +194,6 @@ export interface DriverJobDetail extends DriverJobSummary {
     created_at: string;
   }>;
   amount_cents: number;
-  cod_amount_cents?: number | null;
-  cod_status?: string | null;
   currency: string;
   updated_at: string | null;
   route_id: string | null;

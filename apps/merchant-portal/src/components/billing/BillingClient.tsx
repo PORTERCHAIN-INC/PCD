@@ -45,8 +45,7 @@ type Tab =
   | "history"
   | "tax"
   | "rates"
-  | "contacts"
-  | "cod";
+  | "contacts";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -297,7 +296,7 @@ export default function BillingClient() {
           orgId={orgId}
         />
       )}
-      {/* COD / Stripe Connect retired: billing is Interac e-Transfer only. */}
+      {/* No cash on delivery: billing is Interac e-Transfer only (?tab=cod falls back to overview). */}
     </div>
   );
 }
