@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { publicEnv } from "@/lib/env";
-import { getSystemLinks } from "@/lib/system-links";
 import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { useAdminProfile } from "@/components/nav/AdminProfileContext";
-import { ImpersonateModal } from "@/components/settings/panels/users/ImpersonateModal";
 import {
   merchants,
   merchantActionMessage,
@@ -18,22 +15,11 @@ import {
   RETAIL_VEHICLE_OPTIONS,
   vehicleClassLabel,
   type MerchantDetail,
-  type MerchantTeamUser,
 } from "@/lib/merchants";
 import MerchantBillingContactsCard from "@/components/merchants/MerchantBillingContactsCard";
 import MerchantPrivacyCard from "@/components/merchants/MerchantPrivacyCard";
 import { Badge, Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
 import { dateTime, money, titleCase } from "@/lib/crmFormat";
-
-/** Seats that can complete Stripe Connect / COD (Owner or Manager). */
-const MERCHANT_BILLING_ROLES = new Set(["merchant_owner", "merchant_admin"]);
-
-function pickBillingSeat(team: MerchantTeamUser[] | null | undefined): MerchantTeamUser | null {
-  const active = (team ?? []).filter((u) => u.is_active);
-  const owner = active.find((u) => u.role === "merchant_owner");
-  if (owner) return owner;
-  return active.find((u) => MERCHANT_BILLING_ROLES.has(u.role)) ?? null;
-}
 
 const TERMS = ["IMMEDIATE", "NET_7", "NET_14", "NET_15", "NET_30", "NET_45", "CUSTOM"];
 const SUPPORT_TIERS = ["standard", "priority", "enterprise"] as const;
@@ -79,15 +65,6 @@ function billingFromMerchant(m: MerchantDetail): BookingAddress {
 
 export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => void }) {
   const { getApiToken } = useAdminAuth();
-  const { profile } = useAdminProfile();
-  const canImpersonate = (profile?.role || "").toLowerCase() === "super_admin";
-  const { data: team } = useApiData((t) => merchants.team(t, m.id), [m.id], {
-    key: `merchant-team-settings-${m.id}`,
-  });
-  const billingSeat = useMemo(() => pickBillingSeat(team), [team]);
-  const [impersonateOpen, setImpersonateOpen] = useState(false);
-  const merchantPortalBase =
-    getSystemLinks().find((l) => l.id === "merchant")?.href ?? "https://merchant.porterchain.com";
   const [companyName, setCompanyName] = useState(m.company_name);
   const [legalName, setLegalName] = useState(m.legal_name ?? "");
   const [email, setEmail] = useState(m.email ?? "");
@@ -104,7 +81,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
   const [bn, setBn] = useState(m.business_number ?? "");
   const [taxExempt, setTaxExempt] = useState(Boolean(m.tax_exempt));
   const [taxRegion, setTaxRegion] = useState(m.tax_region || "ON");
-  const [codOn, setCodOn] = useState(Boolean(m.cod_enabled));
   const [prefs, setPrefs] = useState<string[]>(m.preferred_vehicles ?? []);
   const [serviceArea, setServiceArea] = useState(() => serviceAreaFromMerchant(m));
   const [zonesText, setZonesText] = useState(() => zonesFromMerchant(m));
@@ -128,7 +104,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
     setBn(m.business_number ?? "");
     setTaxExempt(Boolean(m.tax_exempt));
     setTaxRegion(m.tax_region || "ON");
-    setCodOn(Boolean(m.cod_enabled));
     setPrefs(m.preferred_vehicles ?? []);
     setServiceArea(serviceAreaFromMerchant(m));
     setZonesText(zonesFromMerchant(m));
@@ -160,7 +135,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
           .filter(Boolean),
         service_area: serviceArea.trim(),
         phone: phone.trim(),
-        cod_enabled: codOn,
         billing_address: billing.formatted.trim()
           ? {
               formatted: billing.formatted.trim(),
@@ -277,55 +251,6 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
               onChange={(e) => setCreditDollars(e.target.value)}
             />
           </Field>
-          <div className="col-span-2 space-y-3">
-            <label className="flex items-center gap-2 text-sm text-primary">
-              <input type="checkbox" checked={codOn} onChange={(e) => setCodOn(e.target.checked)} />
-              Cash on delivery (requires Stripe Connect on the merchant billing page)
-            </label>
-            {m.stripe_connect_account_id ? (
-              <p className="text-xs text-muted">Connect account {m.stripe_connect_account_id}</p>
-            ) : (
-              <div className="space-y-2 text-xs text-muted">
-                <p>
-                  No Connect account yet. The merchant Owner completes Stripe Connect under Billing
-                  → COD (staff never uses their password).
-                </p>
-                {canImpersonate && billingSeat ? (
-                  <Button
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => setImpersonateOpen(true)}
-                  >
-                    Open Billing → COD as {billingSeat.role_label || "Owner"}
-                  </Button>
-                ) : canImpersonate && !billingSeat ? (
-                  <p className="text-amber-800">
-                    No active Owner/Manager seat — add one on the Team tab first.
-                  </p>
-                ) : (
-                  <a
-                    href={`${merchantPortalBase}/billing?tab=cod`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-secondary underline"
-                  >
-                    Portal Billing → COD (your own merchant seat)
-                  </a>
-                )}
-              </div>
-            )}
-            {impersonateOpen && billingSeat ? (
-              <ImpersonateModal
-                open
-                targetType="merchant"
-                targetId={billingSeat.id}
-                targetLabel={billingSeat.email}
-                getApiToken={getApiToken}
-                nextPath="/billing?tab=cod"
-                onClose={() => setImpersonateOpen(false)}
-              />
-            ) : null}
-          </div>
         </div>
       </SectionCard>
       <SectionCard title="Tax & legal">
