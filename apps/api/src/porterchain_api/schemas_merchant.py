@@ -78,7 +78,8 @@ class MerchantBookDeliveryRequest(BaseModel):
     template_id: str | None = None
     is_recurring: bool = False
     recurrence_rule: str | None = None
-    #: Cash-on-delivery amount (cents). Requires merchant.cod_enabled + Connect.
+    #: Retired: cash on delivery is not offered. Kept only so a non-zero value is
+    #: rejected (422 cash_on_delivery_not_supported) instead of silently dropped.
     cod_amount_cents: int | None = Field(default=None, ge=0)
     otp_required: bool = Field(
         default=False,
@@ -640,7 +641,6 @@ class MerchantProfileResponse(BaseModel):
     delivery_zones: list[str] | None
     identity_meta: dict[str, Any] | None = None
     coverage: MerchantCoverage | None = None
-    cod_enabled: bool = False
     stripe_connect_account_id: str | None = None
 
 
