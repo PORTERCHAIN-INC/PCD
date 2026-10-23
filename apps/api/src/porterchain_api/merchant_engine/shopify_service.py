@@ -290,43 +290,6 @@ _PRE_PICKUP = {
 }
 
 
-def capture_cod_transaction(db: Session, settings: Settings, order: Order) -> None:
-    """Mark Shopify order paid after COD Stripe capture (manual payment method)."""
-    if order.order_source != OrderSource.SHOPIFY.value:
-        return
-    meta = (order.compliance_metadata or {}).get("shopify") or {}
-    shop_domain = str(meta.get("shop_domain") or "")
-    shopify_order_id = str(meta.get("order_id") or order.purchase_order_number or "")
-    if not shop_domain or not shopify_order_id:
-        return
-    shop = _active_shop(db, shop_domain)
-    if not shop:
-        return
-    token = tokens.access_token_for(shop, settings)
-    if not token:
-        return
-    from porterchain_api.merchant_engine.shopify_admin_graphql import order_mark_as_paid
-
-    try:
-        tx_id = order_mark_as_paid(shop.shop_domain, token, settings, order_id=shopify_order_id)
-        resp: dict[str, Any] | None = {"transaction": {"id": tx_id} if tx_id else {}}
-    except Exception:  # noqa: BLE001
-        logger.warning("shopify_cod_capture_failed order=%s", order.id)
-        resp = None
-    if isinstance(resp, dict):
-        extra = dict(order.compliance_metadata or {})
-        shopify_meta = dict(extra.get("shopify") or {})
-        tx = resp.get("transaction") if isinstance(resp.get("transaction"), dict) else {}
-        if tx.get("id"):
-            shopify_meta["cod_transaction_id"] = str(tx["id"])
-        shopify_meta["cod_captured"] = True
-        extra["shopify"] = shopify_meta
-        order.compliance_metadata = extra
-        db.add(order)
-        db.commit()
-        logger.info("shopify_cod_captured order=%s shopify=%s", order.id, shopify_order_id)
-
-
 def _merchant_for_install(
     db: Session,
     shop_domain: str,
