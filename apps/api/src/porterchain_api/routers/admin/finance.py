@@ -4,7 +4,6 @@ from porterchain_api.db import get_report_db
 from fastapi import Header, Request
 
 from porterchain_api.auth.staff_step_up import enforce_staff_step_up
-from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
@@ -326,16 +325,3 @@ def finance_refund_invoice(
 def finance_summary(ctx: Annotated[AdminContext, Depends(get_admin_context)], db: Session = Depends(get_db)):
     require_module(ctx, "finance_read")
     return _finance.revenue_summary(db)
-
-
-@router.get("/finance/cod")
-def finance_cod_queue(
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-    status: str | None = Query(default=None),
-):
-    """COD collection queue — orders with cod_amount_cents set."""
-    require_module(ctx, "finance_read")
-    return StripeCodService().list_collection_queue(db, status=status)
-
-

@@ -367,30 +367,3 @@ def stop_exception(
     except (LookupError, ValueError) as exc:
         code = 404 if isinstance(exc, LookupError) else 422
         raise HTTPException(status_code=code, detail=str(exc)) from exc
-
-
-@router.post("/orders/{order_id}/cod-checkout")
-def issue_cod_checkout(
-    order_id: str,
-    ctx: Annotated[DriverContext, Depends(get_driver_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings)):
-    """Issue Stripe Checkout Payment Link for COD at the door (Connect destination)."""
-    require_approved_driver(ctx)
-    from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
-    from porterchain_api.merchant_engine.scan_gate_service import PackagesIncomplete
-
-    try:
-        order = svc.require_assigned_order(db, driver_id=ctx.driver.id, order_id=order_id)
-        return StripeCodService().issue_cod_checkout_for_order(db, settings, order)
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except PermissionError as exc:
-        raise HTTPException(status_code=403, detail=str(exc)) from exc
-    except PackagesIncomplete as exc:
-        raise HTTPException(status_code=409, detail=exc.payload) from exc
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-
