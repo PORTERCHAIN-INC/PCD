@@ -534,8 +534,6 @@ class JobsService:
             "delivery_attempts": delivery_attempts,
             "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
             "amount_cents": order.amount_cents,
-            "cod_amount_cents": getattr(order, "cod_amount_cents", None),
-            "cod_status": getattr(order, "cod_status", None),
             "currency": order.currency,
             "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
             "updated_at": order.updated_at.isoformat() if order.updated_at else None,
