@@ -60,8 +60,6 @@ export const idleHandshake = (): Handshake => ({
   podRequirements: null,
   scanPickup: null,
   scanDelivery: null,
-  codAmountCents: null,
-  codStatus: null,
   push: PUSH_IDLE,
   location: idleLocation(),
   error: null,
@@ -136,8 +134,6 @@ export async function runHandshake(location: LocationState = idleLocation()): Pr
         next.podRequirements = job.pod_requirements ?? null;
         next.scanPickup = job.scan_pickup ?? null;
         next.scanDelivery = job.scan_delivery ?? null;
-        next.codAmountCents = job.cod_amount_cents ?? null;
-        next.codStatus = job.cod_status ?? null;
         next.currentOrderNumber ??= job.order_number;
         next.currentOrderState = job.state ?? job.status ?? next.currentOrderState;
         if (!next.accessNotes && job.special_instructions) {
