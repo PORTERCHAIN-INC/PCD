@@ -61,7 +61,9 @@ class StripeWebhookService:
                 session_obj = data_object
                 meta = session_obj.get("metadata") or {}
                 if meta.get("purpose") == "cod":
-                    self._handle_cod_checkout_completed(db, settings, session_obj)
+                    # Cash on delivery is retired (no-COD rule). Never treat a legacy
+                    # COD session as a booking checkout; leave it for finance review.
+                    logger.warning("legacy_cod_checkout_ignored session=%s", session_obj.get("id"))
                 else:
                     self._handle_checkout_completed(db, settings, session_obj)
             elif event_type == "checkout.session.expired":
@@ -101,37 +103,6 @@ class StripeWebhookService:
         from porterchain_api.driver_engine.verification_service import DriverVerificationService
 
         DriverVerificationService().apply_stripe_identity_event(db, session_obj)
-
-    def _handle_cod_checkout_completed(
-        self, db: Session, settings: Settings, session: dict[str, Any]
-    ) -> None:
-        from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
-        from porterchain_api.merchant_engine import shopify_service as shopify_svc
-
-        meta = session.get("metadata") or {}
-        order_id = meta.get("order_id")
-        if not order_id:
-            logger.warning("cod_checkout_missing_order_id session=%s", session.get("id"))
-            return
-        order = db.query(Order).filter(Order.id == order_id).first()
-        if not order:
-            logger.warning("cod_checkout_order_not_found order_id=%s", order_id)
-            return
-        if (order.cod_status or "").lower() in ("collected", "payout_processed"):
-            return
-        pi = session.get("payment_intent")
-        if isinstance(pi, dict):
-            pi = pi.get("id")
-        StripeCodService().mark_cod_collected(
-            db,
-            order,
-            payment_intent_id=str(pi) if pi else None,
-            session_id=session.get("id"),
-        )
-        try:
-            shopify_svc.capture_cod_transaction(db, settings, order)
-        except Exception:  # noqa: BLE001
-            logger.exception("shopify_cod_capture_failed order=%s", order.id)
 
     def _handle_checkout_completed(self, db: Session, settings: Settings, session: dict[str, Any]) -> None:
         meta = handle_checkout_completed(settings, session)

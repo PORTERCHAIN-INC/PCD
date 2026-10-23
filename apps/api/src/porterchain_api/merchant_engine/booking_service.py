@@ -317,19 +317,10 @@ class MerchantBookingService:
         if dimensions:
             compliance["dimensions"] = dimensions
 
-        from porterchain_api.domain.states import CodStatus
-
-        cod_amount = body.cod_amount_cents
-        cod_status = None
-        if not is_sandbox and cod_amount and cod_amount > 0:
-            if not getattr(ctx.merchant, "cod_enabled", False):
-                raise ValueError("cod_not_enabled_for_merchant")
-            if not getattr(ctx.merchant, "stripe_connect_account_id", None):
-                raise ValueError("connect_account_required")
-            cod_status = CodStatus.PENDING_COLLECTION.value
-        elif is_sandbox:
-            # Test bookings never collect COD.
-            cod_amount = None
+        # No cash on delivery (Ravi's rule). Fail loudly rather than deliver a
+        # parcel the merchant expects us to collect cash for.
+        if body.cod_amount_cents and body.cod_amount_cents > 0:
+            raise ValueError("cash_on_delivery_not_supported")
 
         customer_id = None
         if consignee_email:
@@ -367,8 +358,6 @@ class MerchantBookingService:
             cost_centre=body.cost_centre,
             special_instructions=body.special_instructions,
             compliance_metadata=compliance or None,
-            cod_amount_cents=cod_amount,
-            cod_status=cod_status,
         )
         db.add(order)
         db.flush()
