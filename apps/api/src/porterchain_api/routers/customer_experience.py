@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from porterchain_api.auth.clerk import get_optional_clerk_user_id
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.customer_experience import service as cx
 from porterchain_api.db import get_db
@@ -49,9 +50,10 @@ def get_order_experience(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     x_manage_token: str | None = Header(default=None),
+    viewer: str | None = Depends(get_optional_clerk_user_id),
 ) -> dict[str, Any]:
     """Branded timeline / ETA window / stops away / POD summary (``enhanced: false`` when off)."""
-    return _call(cx.experience, db, settings, tracking_number, x_manage_token)
+    return _call(cx.experience, db, settings, tracking_number, x_manage_token, viewer)
 
 
 @router.get("/delivery-manage/{tracking_number}")

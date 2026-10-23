@@ -42,15 +42,23 @@ ERROR_COPY: dict[str, str] = {
 }
 
 
-def _public_order(db: Session, tracking_number: str) -> Order:
+def _public_order(db: Session, tracking_number: str, viewer_clerk_user_id: str | None = None) -> Order:
+    from porterchain_api.domain.sandbox import hidden_from_viewer
+
     order = db.query(Order).filter(Order.tracking_number == tracking_number).first()
-    if order is None or order.is_sandbox:
+    if order is None or hidden_from_viewer(db, order, viewer_clerk_user_id):
         raise LookupError("order_not_found")
     return order
 
 
-def experience(db: Session, settings: Settings, tracking_number: str, token: str | None = None) -> dict[str, Any]:
-    order = _public_order(db, tracking_number)
+def experience(
+    db: Session,
+    settings: Settings,
+    tracking_number: str,
+    token: str | None = None,
+    viewer_clerk_user_id: str | None = None,
+) -> dict[str, Any]:
+    order = _public_order(db, tracking_number, viewer_clerk_user_id)
     with_photos = False
     if token:
         try:

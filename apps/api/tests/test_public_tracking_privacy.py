@@ -175,7 +175,7 @@ def test_route_applies_limit_and_no_store(monkeypatch):
     monkeypatch.setattr(
         orders_router._tracking,
         "get_order_tracking_response",
-        lambda db, settings, tn: OrderTrackingResponse(
+        lambda db, settings, tn, **_k: OrderTrackingResponse(
             order_id="o1", tracking_number=tn, state="IN_TRANSIT", live_tracking={}
         ),
     )
