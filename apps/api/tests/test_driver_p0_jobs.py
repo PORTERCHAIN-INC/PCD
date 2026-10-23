@@ -1,4 +1,4 @@
-"""P0 driver jobs — assigned-order, accept/reject, scan/COD, offline executor."""
+"""P0 driver jobs — assigned-order, accept/reject, scan, offline executor."""
 
 from __future__ import annotations
 
@@ -100,13 +100,11 @@ def test_api_d_04_package_scan_phase_validation() -> None:
 
 
 @pytest.mark.driver_p0
-def test_api_d_04_cod_checkout_and_scan_openapi() -> None:
+def test_api_d_04_scan_openapi_and_no_cod_checkout() -> None:
     paths = set(app.openapi().get("paths", {}))
     assert "/driver-api/v1/orders/{order_id}/packages/scan" in paths
-    assert "/driver-api/v1/orders/{order_id}/cod-checkout" in paths
-    from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
-
-    assert hasattr(StripeCodService, "issue_cod_checkout_for_order")
+    assert "/driver-api/v1/orders/{order_id}/cod-checkout" not in paths
+    assert not any("cod" in p.split("/") or "cod-checkout" in p for p in paths)
 
 
 @pytest.mark.driver_p0

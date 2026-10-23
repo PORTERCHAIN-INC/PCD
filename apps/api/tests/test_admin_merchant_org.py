@@ -273,17 +273,17 @@ def test_admin_ar_preview_on_merchant_file(client, merchant):
     assert generated.json()["skipped_count"] >= 0
 
 
-def test_admin_cod_round_trip(client, merchant):
+def test_admin_cod_flag_is_ignored(client, merchant):
+    """No cash on delivery: admin PATCH can no longer turn COD on (field ignored)."""
     patched = client.patch(
         f"/v1/admin/merchants/{merchant.id}",
         json={"cod_enabled": True},
     )
     assert patched.status_code == 200, patched.text
-    body = patched.json()
-    assert body["cod_enabled"] is True
+    assert "cod_enabled" not in patched.json()
 
     again = client.get(f"/v1/admin/merchants/{merchant.id}")
     assert again.status_code == 200, again.text
     detail = again.json()
     assert "stripe_enabled" not in detail
-    assert detail["cod_enabled"] is True
+    assert "cod_enabled" not in detail
