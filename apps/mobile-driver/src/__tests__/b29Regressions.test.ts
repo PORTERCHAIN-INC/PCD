@@ -9,7 +9,9 @@ describe("build 29 regressions", () => {
   it("no cash-on-delivery payment link in the driver app (Interac-only)", () => {
     expect(read("src/screens/JobScreen.tsx")).not.toMatch(/cod-due|Open payment link|codCheckout/);
     expect(read("src/api.ts")).not.toMatch(/cod-checkout/);
-    expect(read("src/types.ts")).not.toMatch(/codAmountCents|codStatus|cod_amount_cents|cod_status/);
+    expect(read("src/types.ts")).not.toMatch(
+      /codAmountCents|codStatus|cod_amount_cents|cod_status/
+    );
     expect(read("src/handshake.ts")).not.toMatch(/codAmountCents|codStatus|cod_amount_cents/);
   });
 
