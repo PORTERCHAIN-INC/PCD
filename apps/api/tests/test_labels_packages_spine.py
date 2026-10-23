@@ -29,15 +29,16 @@ def test_qr_codec_round_trip():
         package_id="pkg-1",
         route_hint="R12",
         stop_sequence=3,
-        cod_cents=4500,
     )
-    assert raw == "LOGISTICSv1|ord-1|pkg-1|R12|3|4500"
+    assert raw == "LOGISTICSv1|ord-1|pkg-1|R12|3|"
     decoded = decode_label_qr(raw)
     assert decoded.order_id == "ord-1"
     assert decoded.package_id == "pkg-1"
     assert decoded.route_hint == "R12"
     assert decoded.stop_sequence == "3"
-    assert decoded.cod_cents == "4500"
+    assert decoded.cod_cents == ""
+    # Old printed labels may still carry a COD value in slot 6; it still decodes.
+    assert decode_label_qr("LOGISTICSv1|o|p|||4500").package_id == "p"
 
 
 def test_qr_codec_empty_cod_and_route():
@@ -64,8 +65,7 @@ def test_thermal_pdf_page_count_and_media_box():
             "to_line": "Customer",
             "order_number": "PC-1",
             "tracking_base": "TRK1",
-            "cod_line": "$45.00",
-            "qr_payload": encode_label_qr(order_id="o", package_id=f"p{i}", cod_cents=4500),
+            "qr_payload": encode_label_qr(order_id="o", package_id=f"p{i}"),
             "tracking_suffix": f"TRK1-{i:02d}",
             "parcel_index": i,
             "total_parcels": 3,
@@ -90,7 +90,6 @@ def test_thermal_code128_renders_for_suffix() -> None:
                 "to_line": "Cust",
                 "order_number": "PC-1",
                 "tracking_base": "TRK1",
-                "cod_line": "—",
                 "qr_payload": encode_label_qr(order_id="o", package_id="p1"),
                 "tracking_suffix": "TRK1-01",
                 "parcel_index": 1,

@@ -173,6 +173,8 @@ class Order(SoftDeleteMixin, Base):
     amount_cents: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    #: DEPRECATED (no-COD rule): cod_* columns are never read or written. Drop in a
+    #: later approved migration (see docs/migrations/COD_COLUMNS_DEPRECATED.md).
     cod_amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     cod_status: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     cod_stripe_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

@@ -49,6 +49,7 @@ class Merchant(SoftDeleteMixin, Base):
     billing_cycle: Mapped[str] = mapped_column(String(16), default="MONTHLY")
     credit_limit_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     stripe_connect_account_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    #: DEPRECATED (no-COD rule): never read or written. Drop in a later approved migration.
     cod_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     hst_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     business_number: Mapped[str | None] = mapped_column(String(32), nullable=True)

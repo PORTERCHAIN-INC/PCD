@@ -46,14 +46,10 @@ def test_booking_mock_complete_is_404_outside_local(cfg):
     assert exc.value.status_code == 404
 
 
-def test_stripe_connect_cod_is_retired(monkeypatch):
-    monkeypatch.setattr(billing, "require_module", lambda ctx, m: None)
-    status = billing.billing_cod_status(ctx=None)
-    assert status["interac_only"] is True and status["connect_ready"] is False
-    for call in (lambda: billing.billing_cod_connect(ctx=None), lambda: billing.billing_cod_enable({"enabled": True}, ctx=None)):
-        with pytest.raises(HTTPException) as exc:
-            call()
-        assert exc.value.status_code == 410
+def test_stripe_connect_cod_routes_are_removed():
+    """No cash on delivery: merchant COD status/connect/enable routes no longer exist."""
+    paths = {getattr(r, "path", "") for r in billing.router.routes}
+    assert not any("cod" in p.split("/") for p in paths)
 
 
 INV = SimpleNamespace(payment_reference="PC7K2M9Q")
@@ -78,11 +74,15 @@ def test_interac_reference_no_invoice_reference_passthrough():
     assert check_interac_reference(SimpleNamespace(payment_reference=None), "ABC") == "ABC"
 
 
-def test_driver_cod_checkout_is_retired():
-    from porterchain_api.billing_engine.stripe_cod_service import StripeCodService
+def test_driver_cod_checkout_is_removed():
+    """No cash on delivery: the COD service and driver Payment Link route are gone."""
+    import importlib.util
 
-    with pytest.raises(PermissionError, match="interac"):
-        StripeCodService().issue_cod_checkout_for_order(None, None, SimpleNamespace(merchant_id="m"))
+    from porterchain_api.routers.driver import jobs as driver_jobs
+
+    assert importlib.util.find_spec("porterchain_api.billing_engine.stripe_cod_service") is None
+    paths = {getattr(r, "path", "") for r in driver_jobs.router.routes}
+    assert not any("cod-checkout" in p for p in paths)
 
 
 def test_admin_mark_paid_enforces_reference(monkeypatch):

@@ -310,10 +310,6 @@ export default function MerchantDetailClient({ id }: { id: string }) {
     },
     { label: "Copy portal URL", onSelect: () => void copyText("Portal URL", merchantPortalBase) },
     { label: "Copy merchant ID", onSelect: () => void copyText("Merchant ID", m.id) },
-    {
-      label: "COD / Connect",
-      onSelect: () => window.open(`${merchantPortalBase}/billing?tab=cod`, "_blank", "noopener"),
-    },
     { label: "Booking drafts", onSelect: () => router.push(`/booking-drafts?merchant_id=${m.id}`) },
     ...(m.website
       ? [{ label: "Website", onSelect: () => window.open(m.website!, "_blank", "noopener") }]

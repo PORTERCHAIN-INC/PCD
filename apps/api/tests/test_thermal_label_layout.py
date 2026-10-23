@@ -30,7 +30,6 @@ def _page(**over):
         "to_line": "3059 Max Khan Blvd, Oakville, ON L6H 0S6",
         "order_number": "ORD-20261015-71FB4B",
         "tracking_base": "PC-20261015-F4BC86",
-        "cod_line": "—",
         "qr_payload": "PC1.signed-opaque-code-0123456789abcdef",
         "tracking_suffix": "PC-20261015-F4BC86-02",
         "parcel_index": 2,
@@ -51,7 +50,6 @@ CASES = [
         to_line="X" * 400,
         route_hint="WAVE-NORTH-0042",
         stop_sequence=17,
-        cod_line="$1234.56 pending",
         item_line="Item 3 · box 1 of 4",
         parcel_index=7,
         total_parcels=12,
@@ -106,14 +104,14 @@ def test_empty_placeholders_hidden_and_single_box_count():
     assert "Parcel" not in joined and "Item 1 · box 2 of 2" not in joined
 
 
-def test_route_stop_cod_and_extra_item_shown_when_real():
+def test_route_stop_and_extra_item_shown_when_real_and_never_cod():
     texts = " | ".join(
         b.text
         for b in layout_page(
             _page(
                 route_hint="R12",
                 stop_sequence=3,
-                cod_line="$45.00",
+                cod_line="$45.00",  # legacy key from an old caller: never printed
                 item_line="Item 2 · box 1 of 3",
                 parcel_index=4,
                 total_parcels=6,
@@ -121,7 +119,7 @@ def test_route_stop_cod_and_extra_item_shown_when_real():
         )
         if b.kind == "text"
     )
-    assert "ROUTE R12" in texts and "STOP #3" in texts and "COD $45.00" in texts
+    assert "ROUTE R12" in texts and "STOP #3" in texts and "COD" not in texts
     assert "BOX 4 of 6" in texts and "Item 2 · box 1 of 3" in texts
 
 

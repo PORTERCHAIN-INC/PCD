@@ -312,27 +312,6 @@ export const billingApi = {
 
   downloadHistoryCsv: (token: string, orgId?: string) =>
     billingDownload("/v1/merchant/billing/export/history.csv", token, orgId, "billing-history.csv"),
-
-  codStatus: (token: string, orgId?: string) =>
-    billingFetch<{
-      cod_enabled: boolean;
-      stripe_connect_account_id: string | null;
-      connect_ready: boolean;
-    }>("/v1/merchant/billing/cod", token, { orgId }),
-
-  codConnect: (token: string, orgId?: string) =>
-    billingFetch<{ url: string; account_id: string; mock?: string }>(
-      "/v1/merchant/billing/cod/connect",
-      token,
-      { method: "POST", orgId }
-    ),
-
-  codEnable: (token: string, enabled: boolean, orgId?: string) =>
-    billingFetch<{ cod_enabled: boolean; stripe_connect_account_id: string | null }>(
-      "/v1/merchant/billing/cod/enable",
-      token,
-      { method: "POST", orgId, body: JSON.stringify({ enabled }) }
-    ),
 };
 
 export function formatTerms(terms: string | null | undefined) {

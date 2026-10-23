@@ -18,6 +18,8 @@ class LabelQrPayload:
     package_id: str
     route_hint: str = ""
     stop_sequence: str = ""
+    #: Legacy 6th slot (was COD cents). Cash on delivery is retired: new labels
+    #: always write it empty; old printed labels may still carry a value, ignored.
     cod_cents: str = ""
 
     def encode(self) -> str:
@@ -39,16 +41,13 @@ def encode_label_qr(
     package_id: str,
     route_hint: str | None = None,
     stop_sequence: int | str | None = None,
-    cod_cents: int | None = None,
 ) -> str:
     seq = "" if stop_sequence is None else str(stop_sequence)
-    cod = "" if cod_cents is None else str(int(cod_cents))
     return LabelQrPayload(
         order_id=order_id,
         package_id=package_id,
         route_hint=route_hint or "",
         stop_sequence=seq,
-        cod_cents=cod,
     ).encode()
 
 

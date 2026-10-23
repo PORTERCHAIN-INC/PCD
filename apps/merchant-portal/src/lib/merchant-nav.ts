@@ -136,7 +136,6 @@ export const MERCHANT_PALETTE_EXTRA = [
   { href: "/settings?tab=locations", label: "Settings › Locations", group: "Settings" },
   { href: "/settings?tab=branding", label: "Settings › Branding", group: "Settings" },
   { href: "/settings?tab=tax", label: "Settings › Tax", group: "Settings" },
-  { href: "/billing?tab=cod", label: "Billing › COD", group: "Money" },
 ];
 
 export const ALL_MERCHANT_NAV_ITEMS = MERCHANT_NAV_GROUPS.flatMap((g) => g.items);

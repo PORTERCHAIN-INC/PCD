@@ -491,14 +491,6 @@ class Settings(BaseSettings):
             "DRIVER_COMPLIANCE_EXPIRY_SWEEP_ENABLED",
         ),
     )
-    #: Platform fee taken on COD Connect charges (basis points, e.g. 500 = 5%).
-    stripe_cod_platform_fee_bps: int = Field(
-        default=500,
-        validation_alias=AliasChoices(
-            "stripe_cod_platform_fee_bps",
-            "STRIPE_COD_PLATFORM_FEE_BPS",
-        ),
-    )
     stripe_connect_refresh_url: str = Field(
         default="http://localhost:3001/billing",
         validation_alias=AliasChoices(

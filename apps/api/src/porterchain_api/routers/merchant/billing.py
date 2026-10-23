@@ -222,38 +222,3 @@ def export_history_csv(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=merchant-billing-history.csv"},
     )
-
-
-# Billing is Interac e-Transfer only. Stripe Connect COD onboarding is retired:
-# status reports it off, and connect/enable return 410 so no client can start it.
-_INTERAC_ONLY = "billing_is_interac_etransfer_only"
-
-
-@router.get("/billing/cod")
-def billing_cod_status(
-    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-) -> dict:
-    require_module(ctx, "billing")
-    return {
-        "cod_enabled": False,
-        "stripe_connect_account_id": None,
-        "connect_ready": False,
-        "interac_only": True,
-    }
-
-
-@router.post("/billing/cod/connect")
-def billing_cod_connect(
-    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-) -> dict:
-    require_module(ctx, "billing")
-    raise HTTPException(status_code=410, detail=_INTERAC_ONLY)
-
-
-@router.post("/billing/cod/enable")
-def billing_cod_enable(
-    body: dict,
-    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
-) -> dict:
-    require_module(ctx, "billing")
-    raise HTTPException(status_code=410, detail=_INTERAC_ONLY)

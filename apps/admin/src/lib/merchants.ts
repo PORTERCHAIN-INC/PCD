@@ -96,7 +96,6 @@ export type MerchantDetail = MerchantRow & {
   available_credit_cents?: number | null;
   billing_cycle?: string;
   phone?: string | null;
-  cod_enabled?: boolean;
   stripe_connect_account_id?: string | null;
   documents?: Array<{
     id: string;
@@ -685,7 +684,6 @@ export const merchants = {
       tax_exempt?: boolean;
       tax_region?: string;
       billing_address?: Record<string, unknown>;
-      cod_enabled?: boolean;
       support_tier?: "standard" | "priority" | "enterprise";
       parent_merchant_id?: string | null;
     }

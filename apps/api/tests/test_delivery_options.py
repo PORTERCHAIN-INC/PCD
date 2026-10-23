@@ -121,7 +121,7 @@ def test_driver_sees_options_and_site_access_on_the_drop_only() -> None:
 def test_label_prints_delivery_line(tmp_path) -> None:
     pdf = render_thermal_labels([{
         "route_hint": "R1", "stop_sequence": 1, "from_line": "A", "to_line": "B", "order_number": "ORD-1",
-        "tracking_base": "PC1", "cod_line": "—", "qr_payload": "x", "tracking_suffix": "PC1-1",
+        "tracking_base": "PC1", "qr_payload": "x", "tracking_suffix": "PC1-1",
         "parcel_index": 1, "total_parcels": 1, "delivery_line": "Leave at door · Buzz 12",
     }])
     path = tmp_path / "l.pdf"

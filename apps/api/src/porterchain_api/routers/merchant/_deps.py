@@ -165,7 +165,6 @@ def _profile_response(merchant, db=None) -> MerchantProfileResponse:
         delivery_zones=merchant.delivery_zones,
         identity_meta=extra["identity_meta"],
         coverage=coverage_snapshot(merchant, db),
-        cod_enabled=bool(getattr(merchant, "cod_enabled", False)),
         stripe_connect_account_id=getattr(merchant, "stripe_connect_account_id", None),
     )
 

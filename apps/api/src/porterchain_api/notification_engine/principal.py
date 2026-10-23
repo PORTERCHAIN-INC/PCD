@@ -25,6 +25,7 @@ from porterchain_api.booking_models import Customer
 _bearer = HTTPBearer(auto_error=False)
 _PORTAL_OK = {MerchantStatus.ACTIVE.value, MerchantStatus.ONBOARDING.value}
 MERCHANT_INBOX_FORBIDDEN = "You do not have access to that company inbox."
+DRIVER_INBOX_FORBIDDEN = "You do not have access to that driver inbox."
 
 
 class NotificationUser:
@@ -183,19 +184,24 @@ def _notification_post_sync(
             raise HTTPException(status_code=403, detail=MERCHANT_INBOX_FORBIDDEN)
 
     if portal == "driver":
+        # Driver identity comes ONLY from the verified token's own Clerk user.
+        # ``X-Driver-Id`` is never trusted to pick a driver: a customer/merchant
+        # token with a forged header must not reach another driver's inbox,
+        # preferences or push devices (audit day 4, finding 1).
         requested_driver = (x_driver_id or "").strip() or None
-        driver = None
-        if requested_driver:
-            driver = db.query(Driver).filter(Driver.id == requested_driver).first()
-        if driver is None:
-            driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
+        driver = db.query(Driver).filter(Driver.clerk_user_id == claims.clerk_user_id).first()
         if driver is None and allow_auth_dev_bypass(settings) and token == "dev":
             from porterchain_api.auth.dev import resolve_dev_bypass_driver
 
             driver = resolve_dev_bypass_driver(db)
-        if driver:
-            return NotificationUser("driver", driver.id)
-        raise HTTPException(status_code=401, detail="authentication_required")
+        if driver is None:
+            if requested_driver:
+                # Signed-in, but not a driver, claiming a driver id → forbidden.
+                raise HTTPException(status_code=403, detail=DRIVER_INBOX_FORBIDDEN)
+            raise HTTPException(status_code=401, detail="authentication_required")
+        if requested_driver and requested_driver != driver.id:
+            raise HTTPException(status_code=403, detail=DRIVER_INBOX_FORBIDDEN)
+        return NotificationUser("driver", driver.id)
 
     if portal not in {"admin", "driver"}:
         customer = db.query(Customer).filter(Customer.clerk_user_id == claims.clerk_user_id).first()

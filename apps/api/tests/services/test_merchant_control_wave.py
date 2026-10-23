@@ -274,7 +274,6 @@ def test_sandbox_label_watermark_changes_pdf() -> None:
         "to_line": "To",
         "order_number": "ORD-1",
         "tracking_base": "TRK-1",
-        "cod_line": "—",
         "qr_payload": "LOGISTICSv1|o|p||||0",
         "tracking_suffix": "TRK-1-01",
         "parcel_index": 1,

@@ -1,4 +1,4 @@
-"""ScanGate — all packages scanned before pickup/delivery confirm (and COD)."""
+"""ScanGate — all packages scanned before pickup/delivery confirm ."""
 
 from __future__ import annotations
 
@@ -167,10 +167,6 @@ class ScanGateService:
                 "missing_suffixes": progress["missing_suffixes"],
             }
         )
-
-    def assert_cod_scans(self, db: Session, order: Order) -> None:
-        """COD Payment Link requires pickup scans (boxes accounted for)."""
-        self.assert_complete(db, order, phase="pickup")
 
     def _package_for_scan(self, db: Session, order: Order, raw: str) -> Package:
         """LOGISTICSv1 QR first; else unique tracking_suffix / barcode on this order."""

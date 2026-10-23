@@ -61,8 +61,6 @@ export type Handshake = {
   podRequirements: PodRequirements | null;
   scanPickup: ScanProgress | null;
   scanDelivery: ScanProgress | null;
-  codAmountCents: number | null;
-  codStatus: string | null;
   push: PushState;
   location: LocationState;
   error: string | null;
@@ -202,8 +200,6 @@ export type DriverJobDetail = DriverJobSummary & {
   pod_requirements?: PodRequirements;
   pod_missing?: string[];
   on_duty?: boolean;
-  cod_amount_cents?: number | null;
-  cod_status?: string | null;
   currency?: string;
   amount_cents?: number;
   route_id?: string | null;
