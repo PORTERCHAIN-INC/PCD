@@ -414,13 +414,13 @@ Do not install `codegraph-ai/CodeGraph`. Do not wire Graphify or Ripwire into `.
 
 ### Implement — how to build a slice or the whole
 
-| File                                                                                   | Follow for                                           |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| File                                                                                     | Follow for                                           |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | [`.cursor/rules/dispatch-routing-policy.mdc`](.cursor/rules/dispatch-routing-policy.mdc) | PorterChain owns dispatch; Valhalla before Google    |
-| [INTEGRATIONS.md](INTEGRATIONS.md)                                                     | Vendor registry (`integrations.yaml`)                |
-| [apps/api/README.md](apps/api/README.md)                                               | OpenAPI snapshot + `pnpm docs:openapi`               |
-| [docs/api/PARTNER_GUIDE.md](docs/api/PARTNER_GUIDE.md)                                 | `/v1/merchant-api` API-key surface                   |
-| [infrastructure/docker/osrm/data/README.md](infrastructure/docker/osrm/data/README.md) | Local OSRM GTA ±150 km extract (not committed graph) |
+| [INTEGRATIONS.md](INTEGRATIONS.md)                                                       | Vendor registry (`integrations.yaml`)                |
+| [apps/api/README.md](apps/api/README.md)                                                 | OpenAPI snapshot + `pnpm docs:openapi`               |
+| [docs/api/PARTNER_GUIDE.md](docs/api/PARTNER_GUIDE.md)                                   | `/v1/merchant-api` API-key surface                   |
+| [infrastructure/docker/osrm/data/README.md](infrastructure/docker/osrm/data/README.md)   | Local OSRM GTA ±150 km extract (not committed graph) |
 
 Diagrams (not markdown law): `docs/architecture/mermaid/*.mmd` — start at [system_architecture.mmd](docs/architecture/mermaid/system_architecture.mmd). Do not restore PlantUML duplicates.
 

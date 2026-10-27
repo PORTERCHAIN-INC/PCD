@@ -11,7 +11,13 @@ const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localho
 );
 
 function setCookie(token: string, maxAge: number): string {
-  const parts = [`${PC_IMP_COOKIE}=${token}`, "Path=/", `Max-Age=${maxAge}`, "HttpOnly", "SameSite=Lax"];
+  const parts = [
+    `${PC_IMP_COOKIE}=${token}`,
+    "Path=/",
+    `Max-Age=${maxAge}`,
+    "HttpOnly",
+    "SameSite=Lax",
+  ];
   if (process.env.NODE_ENV === "production") parts.push("Secure");
   return parts.join("; ");
 }
@@ -39,11 +45,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   const data = (await peek.json()) as Record<string, unknown>;
   const maxAge = Math.max(60, Number(data.seconds_remaining) || 900);
-  return json(
-    { ok: true, ...data },
-    200,
-    setCookie(token, maxAge)
-  );
+  return json({ ok: true, ...data }, 200, setCookie(token, maxAge));
 }
 
 export async function GET(): Promise<Response> {
