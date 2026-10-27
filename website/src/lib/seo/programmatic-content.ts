@@ -6,9 +6,7 @@ import { getFaqClusterBySlug } from "./content/faq-clusters";
 import type { AuthorityPage } from "./content/authority-pages";
 import { getAuthorityPageBySlug } from "./content/authority-pages";
 import type { SuccessStory } from "./content/success-stories";
-import { getSuccessStoryBySlug } from "./content/success-stories";
 import type { CapabilityPage } from "./content/capabilities";
-import { getCapabilityBySlug } from "./content/capabilities";
 
 type FrCompareOverride = Pick<
   ComparisonPage,
@@ -129,18 +127,6 @@ export async function getLocalizedAuthorityPage(
   };
 }
 
-export async function getLocalizedSuccessStory(
-  locale: Locale,
-  slug: string
-): Promise<SuccessStory | null> {
-  const en = getSuccessStoryBySlug(slug);
-  if (!en) return null;
-  if (locale === "en") return en;
-  const fr = (await loadFrProgrammatic()).successStories?.[slug];
-  if (!fr) return null;
-  return { ...en, ...fr };
-}
-
 export async function getProgrammaticHubCopy(
   locale: Locale,
   hub: keyof NonNullable<SeoProgrammaticFr["hubs"]>,
@@ -158,13 +144,6 @@ export async function listLocalizedComparisonSlugs(locale: Locale): Promise<stri
   return COMPARISON_PAGES.map((p) => p.slug).filter((slug) => Boolean(fr.compare?.[slug]));
 }
 
-export async function listLocalizedFaqSlugs(locale: Locale): Promise<string[]> {
-  const { FAQ_CLUSTERS } = await import("./content/faq-clusters");
-  if (locale === "en") return FAQ_CLUSTERS.map((c) => c.slug);
-  const fr = await loadFrProgrammatic();
-  return FAQ_CLUSTERS.map((c) => c.slug).filter((slug) => Boolean(fr.faq?.[slug]));
-}
-
 const GUIDE_SLUGS_EXCLUDING_CANONICAL = async () => {
   const { AUTHORITY_PAGES } = await import("./content/authority-pages");
   return AUTHORITY_PAGES.filter((p) => p.slug !== "how-porterchain-works").map((p) => p.slug);
@@ -175,36 +154,4 @@ export async function listLocalizedGuideSlugs(locale: Locale): Promise<string[]>
   if (locale === "en") return slugs;
   const fr = await loadFrProgrammatic();
   return slugs.filter((slug) => Boolean(fr.guides?.[slug]));
-}
-
-export async function listLocalizedSuccessStorySlugs(locale: Locale): Promise<string[]> {
-  const { listPublicSuccessStories } = await import("./content/success-stories");
-  const publicStories = listPublicSuccessStories();
-  if (locale === "en") return publicStories.map((s) => s.slug);
-  const fr = await loadFrProgrammatic();
-  return publicStories.map((s) => s.slug).filter((slug) => Boolean(fr.successStories?.[slug]));
-}
-
-export async function getLocalizedCapability(
-  locale: Locale,
-  slug: string
-): Promise<CapabilityPage | null> {
-  const en = getCapabilityBySlug(slug);
-  if (!en) return null;
-  if (locale === "en") return en;
-  const fr = (await loadFrProgrammatic()).capabilities?.[slug];
-  if (!fr) return null;
-  return {
-    ...en,
-    ...fr,
-    sections: fr.sections ?? en.sections,
-    extraLinks: fr.extraLinks ?? en.extraLinks,
-  };
-}
-
-export async function listLocalizedCapabilitySlugs(locale: Locale): Promise<string[]> {
-  const { CAPABILITY_PAGES } = await import("./content/capabilities");
-  if (locale === "en") return CAPABILITY_PAGES.map((p) => p.slug);
-  const fr = await loadFrProgrammatic();
-  return CAPABILITY_PAGES.map((p) => p.slug).filter((slug) => Boolean(fr.capabilities?.[slug]));
 }

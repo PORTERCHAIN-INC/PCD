@@ -37,5 +37,3 @@ export const staggerFast: Variants = {
     transition: { staggerChildren: 0.06, delayChildren: 0.04 },
   },
 };
-
-export const viewportOnce = { once: true, margin: "-80px" as const, amount: 0.25 };

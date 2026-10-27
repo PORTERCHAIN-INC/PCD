@@ -8,11 +8,6 @@ export const QUOTE_CTA = {
   fr: "Obtenir une soumission",
 } as const;
 
-export const REQUEST_CAPACITY_CTA = {
-  en: "Request capacity",
-  fr: "Demander de la capacité",
-} as const;
-
 export function quoteCtaLabel(locale: string = "en"): string {
   return locale === "fr" ? QUOTE_CTA.fr : QUOTE_CTA.en;
 }

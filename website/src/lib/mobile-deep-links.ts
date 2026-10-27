@@ -1,9 +1,3 @@
-/**
- * Universal Links / App Links SSOT — porterchain.com → native apps (Wave 10 w10-2).
- */
-
-export const APP_LINK_HOSTS = ["porterchain.com", "www.porterchain.com"] as const;
-
 export const MOBILE_APP_IDS = {
   customer: {
     iosBundleId: "com.porterchain.customer",

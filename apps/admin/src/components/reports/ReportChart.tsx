@@ -7,13 +7,9 @@ import {
 
 export {
   lineChartOption,
-  barChartOption,
-  pieChartOption,
   sparklineOption,
-  gaugeChartOption,
   donutChartOption,
   roseChartOption,
-  radialBarOption,
   horizontalBarOption,
   funnelChartOption,
   compactTrendOption,

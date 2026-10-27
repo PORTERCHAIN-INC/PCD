@@ -25,7 +25,6 @@
   },
   "devDependencies": {
     "@clerk/nextjs": "7.9.19",
-    "@porterchain/config": "workspace:*",
     "@types/react": "^19",
     "react": "19.2.7",
     "typescript": "^6.0.3"

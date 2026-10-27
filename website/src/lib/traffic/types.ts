@@ -15,13 +15,6 @@ export type TrafficLevel = "normal" | "busy" | "peak" | "extreme";
 
 export type TrafficMultiplierValue = 1.0 | 1.15 | 1.3 | 1.5;
 
-export const TRAFFIC_LEVEL_MULTIPLIERS: Record<TrafficLevel, TrafficMultiplierValue> = {
-  normal: 1.0,
-  busy: 1.15,
-  peak: 1.3,
-  extreme: 1.5,
-};
-
 export type GtaZone = {
   id: GtaZoneId;
   name: string;

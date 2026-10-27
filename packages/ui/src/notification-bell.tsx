@@ -242,5 +242,3 @@ export function NotificationBell({
     </HeaderDropdown>
   );
 }
-
-export default NotificationBell;

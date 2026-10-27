@@ -36,7 +36,6 @@ export const driverSignInUrl = `${publicEnv.driverPortalUrl}/login`;
 
 export const merchantPortalUrl = publicEnv.merchantPortalUrl;
 export const driverPortalUrl = publicEnv.driverPortalUrl;
-export const adminPortalUrl = publicEnv.adminPortalUrl;
 
 export function portalDisplayHost(url: string): string {
   try {

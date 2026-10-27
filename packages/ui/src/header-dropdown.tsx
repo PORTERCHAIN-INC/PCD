@@ -118,5 +118,3 @@ export function HeaderDropdown({
     </>
   );
 }
-
-export default HeaderDropdown;

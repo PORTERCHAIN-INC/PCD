@@ -306,13 +306,6 @@ export function getDashboard(token: string, orgId?: string) {
   return merchantFetch<MerchantDashboard>("/v1/merchant/dashboard", token, { orgId });
 }
 
-export function cancelOrder(token: string, orderId: string, orgId?: string) {
-  return merchantFetch<MerchantOrder>(`/v1/merchant/orders/${orderId}/cancel`, token, {
-    method: "POST",
-    orgId,
-  });
-}
-
 export type BulkUploadWarning = {
   code: "duplicate_file" | "rows_already_imported" | string;
   message: string;
@@ -587,30 +580,6 @@ export function patchOrderParcels(
     body: JSON.stringify(payload),
     orgId,
   });
-}
-
-export function updateProfile(token: string, payload: Partial<MerchantProfile>, orgId?: string) {
-  return merchantFetch<MerchantProfile>("/v1/merchant/profile", token, {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-    orgId,
-  });
-}
-
-export function inviteTeamMember(token: string, email: string, role: string, orgId?: string) {
-  return merchantFetch<TeamMember>("/v1/merchant/team/seats", token, {
-    method: "POST",
-    body: JSON.stringify({ email, role }),
-    orgId,
-  });
-}
-
-export function removeTeamMember(token: string, userId: string, orgId?: string) {
-  return merchantFetch<void>(`/v1/merchant/team/${userId}`, token, { method: "DELETE", orgId });
-}
-
-export function revokeApiKey(token: string, keyId: string, orgId?: string) {
-  return merchantFetch<void>(`/v1/merchant/api-keys/${keyId}`, token, { method: "DELETE", orgId });
 }
 
 export interface RoutePricingStatus {

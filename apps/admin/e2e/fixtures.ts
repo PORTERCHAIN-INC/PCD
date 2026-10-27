@@ -117,7 +117,7 @@ export function resolveStaffStorageState(): StaffStorageState {
 }
 
 /** Soft-skip unless live; hard-fail live runs when auth env is missing. */
-export function requireLiveStaffAuth(): void {
+function requireLiveStaffAuth(): void {
   test.skip(!liveEnabled, "Set ADMIN_RUN_LIVE=1 for the live admin golden path");
   if (!hasStaffAuth()) {
     throw new Error(

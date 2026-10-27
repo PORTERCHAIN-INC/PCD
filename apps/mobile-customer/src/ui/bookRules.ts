@@ -46,14 +46,6 @@ export function addressReady(address: Address): boolean {
   return address.lat != null && address.lng != null;
 }
 
-export function parseWeightKg(raw: string): number | undefined {
-  const cleaned = raw.trim();
-  if (!cleaned) return undefined;
-  const n = Number(cleaned);
-  if (!Number.isFinite(n) || n < 0) return undefined;
-  return n;
-}
-
 export function parseDeclaredCents(raw: string): number | undefined {
   const cleaned = raw.replace(/[$,\s]/g, "");
   if (!cleaned) return undefined;

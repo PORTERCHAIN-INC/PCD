@@ -121,15 +121,6 @@ const MERCHANT_STATUS_LABELS: Record<string, string> = {
   CLOSED: "Closed",
 };
 
-const ONBOARDING_PHASE_LABELS: Record<string, string> = {
-  ready: "Portal ready",
-  needs_invite: "Needs invite",
-  awaiting_clerk: "Awaiting sign-in",
-  needs_activation: "User inactive",
-  needs_approval: "Needs approval",
-  onboarding: "Onboarding",
-};
-
 const SEAT_STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   active: "Active",
@@ -199,10 +190,6 @@ export function merchantStatusLabel(status: string | null | undefined): string {
   return (
     MERCHANT_STATUS_LABELS[status] || MERCHANT_STATUS_LABELS[status.toUpperCase()] || pretty(status)
   );
-}
-
-export function onboardingPhaseLabel(phase: string | null | undefined): string {
-  return lookup(ONBOARDING_PHASE_LABELS, phase);
 }
 
 export function seatStatusLabel(status: string | null | undefined): string {

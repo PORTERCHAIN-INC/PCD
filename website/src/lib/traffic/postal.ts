@@ -9,12 +9,3 @@ export function extractFsa(input: string): string | null {
   const fsaOnly = normalized.match(/\b([A-Z]\d[A-Z])\b/);
   return fsaOnly ? fsaOnly[1] : null;
 }
-
-export function normalizePostalCodes(codes: string[]): string[] {
-  const fsas = new Set<string>();
-  for (const code of codes) {
-    const fsa = extractFsa(code);
-    if (fsa) fsas.add(fsa);
-  }
-  return [...fsas];
-}

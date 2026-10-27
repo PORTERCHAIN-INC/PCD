@@ -95,55 +95,6 @@ export const STATUS_TONE: Record<string, Tone> = {
   urgent: "red",
 };
 
-// ---- CSV helpers (client-side parse / generate) ----
-export function parseCsv(text: string): Array<Record<string, string>> {
-  const rows: string[][] = [];
-  let field = "";
-  let row: string[] = [];
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        field += char;
-      }
-    } else if (char === '"') {
-      inQuotes = true;
-    } else if (char === ",") {
-      row.push(field);
-      field = "";
-    } else if (char === "\n" || char === "\r") {
-      if (char === "\r" && text[i + 1] === "\n") i++;
-      row.push(field);
-      field = "";
-      if (row.some((c) => c.trim() !== "")) rows.push(row);
-      row = [];
-    } else {
-      field += char;
-    }
-  }
-  if (field !== "" || row.length) {
-    row.push(field);
-    if (row.some((c) => c.trim() !== "")) rows.push(row);
-  }
-  if (rows.length === 0) return [];
-  const header = rows[0].map((h) => h.trim());
-  return rows.slice(1).map((cells) => {
-    const obj: Record<string, string> = {};
-    header.forEach((key, idx) => {
-      obj[key] = (cells[idx] ?? "").trim();
-    });
-    return obj;
-  });
-}
-
 export function toCsv(headers: string[], rows: string[][]): string {
   const escape = (value: string) =>
     /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;

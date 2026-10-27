@@ -1,13 +1,4 @@
-/**
- * Integrations education cluster for Porterchain.
- * Practical content: CSV delivery uploads, API order ingestion,
- * EDI-ready workflows, operational setup for merchants.
- * Links to merchant onboarding and integrations pages. All CTAs = merchant wizard only.
- */
-
-import type { Locale } from "@/i18n/routing";
 import { industrySlug, serviceAreaSlug, business, integrations, serviceAreas } from "../routes";
-import { INDUSTRY_PAGE_LABELS } from "../internal-linking";
 import { quoteCtaLabel } from "@/lib/cta";
 
 export type IntegrationsEducationSection = {
@@ -284,53 +275,3 @@ export const INTEGRATIONS_EDUCATION_PAGES: IntegrationsEducationPage[] = [
     ],
   },
 ];
-
-export function getIntegrationsEducationBySlug(slug: string): IntegrationsEducationPage | null {
-  return INTEGRATIONS_EDUCATION_PAGES.find((p) => p.slug === slug) ?? null;
-}
-
-export function getAllIntegrationsEducationSlugs(): string[] {
-  return INTEGRATIONS_EDUCATION_PAGES.map((p) => p.slug);
-}
-
-const EXTRA_PATH_BUILDER: Record<string, (locale: Locale) => string> = {
-  onboarding: business,
-  integrations: integrations,
-  serviceAreas: serviceAreas,
-};
-
-export function buildIntegrationsEducationInternalLinks(
-  locale: Locale,
-  page: IntegrationsEducationPage,
-  slugBuilder: (locale: Locale, s: string) => string
-): {
-  industry: IntegrationsEducationLink[];
-  serviceAreas: IntegrationsEducationLink[];
-  extra: IntegrationsEducationLink[];
-  cluster: IntegrationsEducationLink[];
-} {
-  const industry = page.industrySlugs.map((s) => ({
-    href: industrySlug(locale, s),
-    label: INDUSTRY_PAGE_LABELS[s] ?? s.replace(/-/g, " "),
-  }));
-
-  const serviceAreasLinks = page.serviceAreaSlugs.map((s) => ({
-    href: serviceAreaSlug(locale, s),
-    label: s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-  }));
-
-  const extra =
-    page.extraLinks?.map((e) => ({
-      href: (EXTRA_PATH_BUILDER[e.path] ?? (() => "#"))(locale),
-      label: e.label,
-    })) ?? [];
-
-  const cluster = (page.relatedClusterSlugs ?? [])
-    .map((s) => {
-      const p = getIntegrationsEducationBySlug(s);
-      return p ? { href: slugBuilder(locale, s), label: p.title } : null;
-    })
-    .filter(Boolean) as IntegrationsEducationLink[];
-
-  return { industry, serviceAreas: serviceAreasLinks, extra, cluster };
-}

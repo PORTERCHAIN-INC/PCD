@@ -431,35 +431,6 @@ export function exportInvoicesCsv(rows: InvoiceRow[], filename = "invoices.csv")
   URL.revokeObjectURL(url);
 }
 
-/** The aging report a collector works from, contact details included (BL). */
-export function exportCollectionsCsv(rows: CollectionRow[], filename = "collections-aging.csv") {
-  const headers = [
-    "invoice_number",
-    "merchant_name",
-    "due_date",
-    "days_overdue",
-    "aging_bucket",
-    "outstanding_cents",
-    "payment_terms",
-    "ap_contact_name",
-    "ap_contact_phone",
-    "ap_contact_email",
-  ];
-  const body = rows.map((r) => [
-    r.invoice_number,
-    r.merchant_name ?? "",
-    (r.due_date ?? "").slice(0, 10),
-    String(r.days_overdue),
-    r.aging_bucket,
-    String(r.outstanding_cents),
-    r.payment_terms,
-    r.ap_contact?.name ?? "",
-    r.ap_contact?.phone ?? "",
-    r.ap_contact?.email ?? "",
-  ]);
-  downloadCsv(filename, toCsv(headers, body));
-}
-
 export function exportGlCsv(rows: Array<Record<string, unknown>>, filename = "general-ledger.csv") {
   const headers = [
     "date",

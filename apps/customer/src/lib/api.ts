@@ -106,8 +106,6 @@ export interface CustomerPrivacyDeleteResponse {
   message: string;
 }
 
-export const REBOOK_STORAGE_KEY = "porterchain_customer_rebook";
-
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,

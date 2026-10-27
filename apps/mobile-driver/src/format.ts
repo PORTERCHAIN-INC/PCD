@@ -1,8 +1,3 @@
-export function formatCents(cents: number | null | undefined, currency = "CAD"): string {
-  if (cents == null || Number.isNaN(cents)) return "—";
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency }).format(cents / 100);
-}
-
 export function formatKm(meters: number | null | undefined): string {
   if (meters == null) return "—";
   if (meters < 1000) return `${Math.round(meters)} m`;

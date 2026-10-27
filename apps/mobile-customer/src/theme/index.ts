@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useColorScheme } from "react-native";
 import { paletteFor, type Palette } from "./palette";
 
-export { light, dark, contrastRatio, type Palette } from "./palette";
+export { type Palette } from "./palette";
 export { spacing, radius, touchTargetMin } from "@porterchain/mobile-theme";
 
 /**

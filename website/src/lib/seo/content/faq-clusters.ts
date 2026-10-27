@@ -1,11 +1,3 @@
-/**
- * Reusable FAQ cluster framework for Porterchain SEO.
- * Each cluster has a slug, title, description, intro, FAQ items, and link targets
- * for industry and city pages so every FAQ page is useful and internally linked.
- * All CTAs point to the existing merchant wizard only.
- */
-
-import type { Locale } from "@/i18n/routing";
 import {
   industrySlug,
   serviceAreaSlug,
@@ -14,7 +6,6 @@ import {
   pricing,
   serviceAreas,
 } from "../routes";
-import { INDUSTRY_PAGE_LABELS } from "../internal-linking";
 
 export type FAQItem = { question: string; answer: string };
 
@@ -792,38 +783,6 @@ export const FAQ_CLUSTERS: FAQCluster[] = [
   },
 ];
 
-const slugSet = new Set(FAQ_CLUSTERS.map((c) => c.slug));
-
 export function getFaqClusterBySlug(slug: string): FAQCluster | null {
   return FAQ_CLUSTERS.find((c) => c.slug === slug) ?? null;
-}
-
-export function buildFaqClusterInternalLinks(
-  locale: Locale,
-  cluster: FAQCluster
-): { industry: FAQClusterLink[]; serviceAreas: FAQClusterLink[]; extra: FAQClusterLink[] } {
-  const industry = cluster.industrySlugs.map((s) => ({
-    href: industrySlug(locale, s),
-    label: INDUSTRY_PAGE_LABELS[s] ?? s.replace(/-/g, " "),
-  }));
-
-  const serviceAreaLinks = cluster.serviceAreaSlugs.map((s) => ({
-    href: serviceAreaSlug(locale, s),
-    label: s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-  }));
-
-  const pathToHref: Record<string, string> = {
-    onboarding: business(locale),
-    integrations: integrations(locale),
-    pricing: pricing(locale),
-    serviceAreas: serviceAreas(locale),
-  };
-
-  const extra =
-    cluster.extraLinks?.map((e) => ({
-      href: pathToHref[e.path] ?? "#",
-      label: e.label,
-    })) ?? [];
-
-  return { industry, serviceAreas: serviceAreaLinks, extra };
 }

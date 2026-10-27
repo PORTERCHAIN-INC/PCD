@@ -13,9 +13,6 @@ export const VEHICLES_TAB_ITEMS: readonly VehiclesTabItem[] = [
   { id: "boxTruck", href: "/box-truck-delivery" },
 ] as const;
 
-/** Paths that keep the top-level Vehicles nav item active. */
-export const VEHICLES_NAV_PATHS = VEHICLES_TAB_ITEMS.map((item) => item.href);
-
 export function isVehiclesTabActive(pathname: string, item: VehiclesTabItem): boolean {
   if (item.id === "overview") {
     return pathname === "/vehicles";

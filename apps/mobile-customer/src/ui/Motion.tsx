@@ -24,37 +24,3 @@ export function Motion({ name, size = 148 }: { name: MotionName; size?: number }
     />
   );
 }
-
-export function EmptyState({
-  animation,
-  title,
-  body,
-}: {
-  animation?: MotionName;
-  title: string;
-  body: string;
-}) {
-  const { colors, styles } = useThemed(makeStyles);
-  return (
-    <View style={styles.card}>
-      {animation ? <Motion name={animation} /> : null}
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.body}>{body}</Text>
-    </View>
-  );
-}
-
-const makeStyles = (colors: Palette) =>
-  StyleSheet.create({
-    card: {
-      backgroundColor: colors.white,
-      borderRadius: radius.xl,
-      alignItems: "center",
-      paddingHorizontal: 20,
-      paddingBottom: 20,
-      paddingTop: 4,
-      gap: 4,
-    },
-    title: { ...typography.body, color: colors.primary, fontWeight: "700", textAlign: "center" },
-    body: { ...typography.caption, color: colors.muted, textAlign: "center" },
-  });

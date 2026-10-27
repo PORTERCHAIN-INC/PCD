@@ -238,11 +238,3 @@ export function syncBookingCheckout(quoteId: string) {
     body: JSON.stringify({ quote_id: quoteId }),
   });
 }
-
-export function getOrderByTracking(trackingNumber: string) {
-  return apiFetch<OrderResult>(`/v1/orders/${encodeURIComponent(trackingNumber)}`);
-}
-
-export function getOrderLiveTracking(trackingNumber: string) {
-  return apiFetch<OrderLiveTracking>(`/v1/orders/${encodeURIComponent(trackingNumber)}/tracking`);
-}

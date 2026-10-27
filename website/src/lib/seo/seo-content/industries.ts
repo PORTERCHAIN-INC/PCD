@@ -153,8 +153,3 @@ export function getIndustryConfig(slug: string): IndustryConfig | null {
   const found = INDUSTRY_CONFIGS.find((c) => c.slug === slug);
   return found ?? null;
 }
-
-export function getIndustryConfigByMessageKey(messageKey: string): IndustryConfig | null {
-  const found = INDUSTRY_CONFIGS.find((c) => c.messageKey === messageKey);
-  return found ?? null;
-}

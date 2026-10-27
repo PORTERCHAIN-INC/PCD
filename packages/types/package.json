@@ -21,7 +21,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@porterchain/config": "workspace:*",
     "typescript": "^6.0.3"
   }
 }

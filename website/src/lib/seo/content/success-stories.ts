@@ -29,27 +29,3 @@ export type SuccessStory = PublishableContent & {
   /** Evidence notes for procurement / editorial review */
   evidenceNotes?: string;
 };
-
-/**
- * Oct 2026: the earlier stories had invented quotes and numbers and are removed. Add a story
- * only with the customer's written approval of the wording, name and figures.
- */
-export const SUCCESS_STORIES: SuccessStory[] = [];
-
-export function getSuccessStoryBySlug(slug: string): SuccessStory | null {
-  return SUCCESS_STORIES.find((s) => s.slug === slug) ?? null;
-}
-
-/** Public hub + sitemap + SSG — permissioned, indexed, published only. */
-export function isPublicSuccessStory(story: SuccessStory): boolean {
-  return (
-    story.status === "published" &&
-    story.index === true &&
-    story.permissioned === true &&
-    story.customerApproved === true
-  );
-}
-
-export function listPublicSuccessStories(): SuccessStory[] {
-  return SUCCESS_STORIES.filter(isPublicSuccessStory);
-}

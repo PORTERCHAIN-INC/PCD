@@ -27,14 +27,6 @@ export type ComplianceCheck = {
   consentText: string | null;
 };
 
-export function policyText(p: MonitoringPolicy): string {
-  return p.sections
-    .map((s) =>
-      [s.heading, s.body, ...(s.items ?? []).map((i) => `• ${i}`)].filter(Boolean).join("\n")
-    )
-    .join("\n\n");
-}
-
 /** Ask the server. Offline: fall back to the local record (never blocks work offline). */
 export async function checkCompliance(local: LocationConsent): Promise<ComplianceCheck> {
   try {
