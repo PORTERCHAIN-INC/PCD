@@ -30,7 +30,7 @@ export type P0Case = {
 export type MerchantSeat = "dispatcher" | "viewer" | "owner";
 
 function loadRegistry(): { cases: P0Case[] } {
-  const registryPath = path.join(process.cwd(), "../../docs/testing/merchant_p0_registry.json");
+  const registryPath = path.resolve(__dirname, "../../../docs/testing/merchant_p0_registry.json");
   return JSON.parse(fs.readFileSync(registryPath, "utf8")) as { cases: P0Case[] };
 }
 

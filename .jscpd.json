@@ -1,0 +1,26 @@
+{
+  "path": ["apps", "packages", "website/src", "services", "shared"],
+  "format": ["typescript", "tsx", "javascript", "python"],
+  "minLines": 15,
+  "minTokens": 100,
+  "reporters": ["console"],
+  "silent": true,
+  "gitignore": true,
+  "ignore": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.venv/**",
+    "**/coverage/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/tests/**",
+    "**/e2e/**",
+    "**/alembic/versions/**",
+    "**/vendor/**",
+    "**/ios/**",
+    "**/android/**",
+    "**/public/**"
+  ]
+}
