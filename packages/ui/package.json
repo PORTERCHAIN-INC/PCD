@@ -14,6 +14,7 @@
     "./header-dropdown": "./src/header-dropdown.tsx",
     "./nav-dropdown": "./src/nav-dropdown.tsx",
     "./notification-bell": "./src/notification-bell.tsx",
+    "./account-menu": "./src/account-menu.tsx",
     "./app-nav": "./src/app-nav.tsx",
     "./delivery-options-fields": "./src/delivery-options-fields.tsx"
   },

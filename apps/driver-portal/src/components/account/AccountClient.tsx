@@ -28,7 +28,8 @@ import {
   type DriverMeProfile,
 } from "@/lib/api";
 import { isClerkConfigured } from "@/lib/env";
-import { cn, initials } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { initials } from "@porterchain/ui/account-menu";
 
 const PROVINCES = ["AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"];
 const RELATIONSHIPS = ["spouse", "partner", "parent", "child", "sibling", "friend", "other"];

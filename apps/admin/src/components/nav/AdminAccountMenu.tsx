@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, KeyRound, LogIn, LogOut, Settings, Shield, User } from "lucide-react";
-import { cn } from "@porterchain/ui/utils";
-import { initials } from "@/lib/crmFormat";
+import { KeyRound, Settings, Shield, User } from "lucide-react";
+import {
+  AccountBadge,
+  AccountMenu,
+  AccountMenuButton,
+  AccountMenuLink,
+  AccountSignInLink,
+  AccountSignOutButton,
+} from "@porterchain/ui/account-menu";
 import { publicEnv } from "@/lib/env";
-import HeaderDropdown from "@/components/nav/HeaderDropdown";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { clearStaffSession } from "@/lib/staff-session";
@@ -93,15 +97,7 @@ export default function AdminAccountMenu() {
   }
 
   if (!isSignedIn && !profile && !session) {
-    return (
-      <Link
-        href="/sign-in"
-        className="flex h-10 items-center gap-2 rounded-full border border-primary/10 bg-white pl-3 pr-3 text-sm font-medium text-primary shadow-sm hover:bg-gray-bg"
-      >
-        <LogIn className="h-4 w-4 text-secondary" />
-        Sign in
-      </Link>
-    );
+    return <AccountSignInLink href="/sign-in" />;
   }
 
   const email = profile?.email ?? session?.email ?? "";
@@ -139,116 +135,58 @@ export default function AdminAccountMenu() {
   }
 
   return (
-    <HeaderDropdown
-      align="right"
-      width="md"
-      trigger={({ open, triggerProps }) => (
-        <button
-          type="button"
-          {...triggerProps}
-          aria-label="Account menu"
-          className={cn(
-            "flex h-10 max-w-[12rem] items-center gap-2 rounded-full border border-primary/10 bg-white py-1 pl-1 pr-2.5 shadow-sm transition hover:bg-gray-bg",
-            open && "border-secondary/30 ring-2 ring-secondary/20"
-          )}
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/10 text-xs font-bold text-secondary">
-            {initials(name || email)}
-          </span>
-          <span className="hidden min-w-0 flex-1 truncate text-left text-sm font-medium text-primary sm:block">
-            {name}
-          </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
-        </button>
-      )}
-    >
-      <div className="border-b border-primary/8 px-4 py-3">
-        <p className="truncate text-sm font-semibold text-primary">{name}</p>
-        <p className="truncate text-xs text-muted">{email}</p>
-        <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-[11px] font-semibold text-secondary">
+    <AccountMenu
+      name={name}
+      email={email}
+      softAvatar
+      richHeader={false}
+      badges={
+        <AccountBadge>
           <Shield className="h-3 w-3" />
           {label}
-        </p>
+        </AccountBadge>
+      }
+      headerExtra={
         <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-muted">Staff IdP</p>
-      </div>
-
-      <div className="p-2">
-        <AccountMenuLink
-          href="/account/security"
-          icon={Shield}
-          label="Security"
-          hint="Sessions & passkeys"
-        />
-        <AccountMenuLink
-          href="/settings?section=users"
-          icon={User}
-          label="Users"
-          hint="Staff directory"
-        />
-        <AccountMenuLink
-          href="/settings"
-          icon={Settings}
-          label="Admin settings"
-          hint="Integrations & RBAC"
-        />
-        {passkeysSupported() && (
-          <button
-            type="button"
-            disabled={passkeyBusy}
-            onClick={() => void registerPasskey()}
-            className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-gray-bg disabled:opacity-50"
-          >
-            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
-            <span className="min-w-0 text-left">
-              <span className="block font-medium text-primary">
-                {passkeyBusy ? "Registering…" : "Add passkey"}
-              </span>
-              <span className="block text-xs text-muted">Passwordless sign-in on this device</span>
-            </span>
-          </button>
-        )}
-        {passkeyMsg && <p className="px-3 pb-2 text-xs text-muted">{passkeyMsg}</p>}
-      </div>
-
-      <div className="border-t border-primary/8 bg-slate-50/80 p-2">
-        <button
-          type="button"
+      }
+      footer={
+        <AccountSignOutButton
           onClick={() => {
             void clearStaffSession(publicEnv.porterchainApiUrl).then(() =>
               router.replace("/sign-in")
             );
           }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </button>
-      </div>
-    </HeaderDropdown>
-  );
-}
-
-function AccountMenuLink({
-  href,
-  icon: Icon,
-  label,
-  hint,
-}: {
-  href: string;
-  icon: typeof User;
-  label: string;
-  hint: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-gray-bg"
+        />
+      }
     >
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
-      <span className="min-w-0">
-        <span className="block font-medium text-primary">{label}</span>
-        <span className="block text-xs text-muted">{hint}</span>
-      </span>
-    </Link>
+      <AccountMenuLink
+        href="/account/security"
+        icon={Shield}
+        label="Security"
+        hint="Sessions & passkeys"
+      />
+      <AccountMenuLink
+        href="/settings?section=users"
+        icon={User}
+        label="Users"
+        hint="Staff directory"
+      />
+      <AccountMenuLink
+        href="/settings"
+        icon={Settings}
+        label="Admin settings"
+        hint="Integrations & RBAC"
+      />
+      {passkeysSupported() && (
+        <AccountMenuButton
+          disabled={passkeyBusy}
+          onClick={() => void registerPasskey()}
+          icon={KeyRound}
+          label={passkeyBusy ? "Registering…" : "Add passkey"}
+          hint="Passwordless sign-in on this device"
+        />
+      )}
+      {passkeyMsg && <p className="px-3 pb-2 text-xs text-muted">{passkeyMsg}</p>}
+    </AccountMenu>
   );
 }
