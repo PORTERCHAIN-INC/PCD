@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./devBypass": "./src/devBypass.ts",
     "./impersonation": "./src/impersonation.ts",
+    "./impersonationRoute": "./src/impersonationRoute.ts",
     "./clerkEdgeSession": "./src/clerkEdgeSession.ts",
     "./authTelemetry": "./src/authTelemetry.ts"
   },
