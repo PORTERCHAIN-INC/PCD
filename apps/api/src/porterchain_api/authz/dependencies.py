@@ -84,37 +84,3 @@ def require_relation(
     _ = resource_id_param
     return _dependency
 
-
-def check_or_raise(
-    principal: CurrentPrincipal,
-    *,
-    resource_type: str,
-    resource_id: str,
-    permission: str,
-    db: Session | None = None,
-) -> None:
-    client = get_authz_client()
-    allowed = client.check(
-        resource_type=resource_type,
-        resource_id=resource_id,
-        permission=permission,
-        subject_id=principal.user_id,
-    )
-    if allowed:
-        return
-    if db is not None:
-        try:
-            db.add(
-                AccessAuditLog(
-                    actor_user_id=principal.user_id,
-                    action="spicedb.check.denied",
-                    resource_type=resource_type,
-                    resource_id=resource_id,
-                    outcome="denied",
-                    detail={"permission": permission},
-                )
-            )
-            db.commit()
-        except Exception:  # noqa: BLE001
-            logger.exception("access_audit_write_failed")
-    raise HTTPException(status_code=403, detail="forbidden")

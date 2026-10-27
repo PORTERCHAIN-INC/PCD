@@ -122,26 +122,3 @@ def resolve_porterchain_user_id(
 
     return None, "none"
 
-
-def _heal_identity_links(db: Session, *, dry_run: bool, create_missing: bool) -> int:
-    """Point identity_links.platform_user_id at porterchain_users.id when mis-pointed."""
-    healed = 0
-    links = db.query(IdentityLink).filter(IdentityLink.deactivated_at.is_(None)).all()
-    for link in links:
-        pc = db.query(PorterchainUser).filter(PorterchainUser.id == link.platform_user_id).first()
-        if pc:
-            continue
-        resolved, _method = resolve_porterchain_user_id(
-            db,
-            link.clerk_user_id or link.subject,
-            create_missing=create_missing and not dry_run,
-            email=link.email,
-        )
-        if not resolved:
-            continue
-        healed += 1
-        if not dry_run:
-            link.platform_user_id = resolved
-            if not link.subject and link.clerk_user_id:
-                link.subject = link.clerk_user_id
-    return healed

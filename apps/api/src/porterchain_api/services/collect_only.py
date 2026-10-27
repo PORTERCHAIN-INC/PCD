@@ -54,12 +54,6 @@ def for_booking(db: Session, body: Any) -> Any:
     return warehouse(db)
 
 
-def hub_geo(hub: Any) -> Any:
-    from porterchain_pricing import GeoPoint
-
-    return GeoPoint(lat=hub.lat, lng=hub.lng, formatted=hub.name)
-
-
 def mark(compliance: dict[str, Any], hub: Any) -> dict[str, Any]:
     """Tag a collect-only order (no-op for a standard booking, ``hub=None``)."""
     if hub is None:

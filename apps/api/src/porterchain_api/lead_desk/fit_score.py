@@ -245,13 +245,3 @@ def fit_score(lead: Any, visitor: Any = None) -> dict[str, Any]:
         "version": SCORE_VERSION,
     }
 
-
-def ai_note(lead: Any, result: dict[str, Any]) -> str | None:
-    """Optional one-line LLM summary (flag + NIM key). Never affects the score."""
-    from porterchain_api.lead_desk.ai import complete_text
-
-    reasons = "; ".join(r["label"] for r in result.get("reasons", []))
-    return complete_text(
-        "In one short sentence, say why this delivery lead is or is not a good fit. "
-        f"Company: {getattr(lead, 'company_name', '')}. Signals: {reasons}."
-    )

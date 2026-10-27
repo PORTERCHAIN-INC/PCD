@@ -65,17 +65,6 @@ class PaymentTerms(StrEnum):
     CUSTOM = "CUSTOM"
 
 
-class CodStatus(StrEnum):
-    """Cash-on-delivery collection state (Stripe Connect Payment Link path)."""
-
-    NONE = "none"
-    PENDING_COLLECTION = "pending_collection"
-    LINK_ISSUED = "link_issued"
-    COLLECTED = "collected"
-    PAYOUT_PROCESSED = "payout_processed"
-    FAILED = "failed"
-
-
 class OrderSource(StrEnum):
     WEBSITE = "WEBSITE"
     MERCHANT = "MERCHANT"

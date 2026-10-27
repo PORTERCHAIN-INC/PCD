@@ -108,17 +108,6 @@ def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
     assert_self_scope(principal, driver.id, db)
 
 
-async def _clerk_driver_id(db: Session, token: str, settings: Settings) -> str:
-    """Back-compat async entry: verify on the loop, resolve in the threadpool."""
-    from porterchain_api.auth.clerk import verify_clerk_token
-
-    try:
-        claims = await verify_clerk_token(token, settings)
-    except Exception as exc:
-        raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
-    return await run_in_threadpool(_clerk_driver_id_from_claims, db, claims, settings)
-
-
 def _clerk_driver_id_from_claims(db: Session, claims, settings: Settings) -> str:
     from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
     from porterchain_api.auth.persona_bundle import load_persona_bundle

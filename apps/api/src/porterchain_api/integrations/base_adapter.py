@@ -14,14 +14,3 @@ class ErpFulfillmentAdapter(Protocol):
         """Raise ValueError with stable code (e.g. address_required) on invalid input."""
         ...
 
-
-def adapter_module_version(module_name: str) -> str:
-    """Parse ``Adapter-Version:`` from module docstring if present."""
-    import importlib
-
-    mod = importlib.import_module(module_name)
-    doc = mod.__doc__ or ""
-    for line in doc.splitlines():
-        if "Adapter-Version:" in line:
-            return line.split(":", 1)[1].strip()
-    return "0.1.0"
