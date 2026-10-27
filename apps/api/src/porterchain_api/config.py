@@ -491,20 +491,6 @@ class Settings(BaseSettings):
             "DRIVER_COMPLIANCE_EXPIRY_SWEEP_ENABLED",
         ),
     )
-    stripe_connect_refresh_url: str = Field(
-        default="http://localhost:3001/billing",
-        validation_alias=AliasChoices(
-            "stripe_connect_refresh_url",
-            "STRIPE_CONNECT_REFRESH_URL",
-        ),
-    )
-    stripe_connect_return_url: str = Field(
-        default="http://localhost:3001/billing?connect=return",
-        validation_alias=AliasChoices(
-            "stripe_connect_return_url",
-            "STRIPE_CONNECT_RETURN_URL",
-        ),
-    )
 
     dispatch_engine: str = Field(
         default="porterchain",
@@ -781,8 +767,6 @@ PUBLIC_URL_FIELDS = (
     "customer_portal_url",
     "website_url",
     "driver_identity_return_url",
-    "stripe_connect_refresh_url",
-    "stripe_connect_return_url",
     "retail_checkout_success_url",
     "retail_checkout_cancel_url",
     "customer_checkout_success_url",

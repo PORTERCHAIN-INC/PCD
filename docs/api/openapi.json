@@ -76512,17 +76512,6 @@
             "type": "boolean",
             "title": "Cod Enabled",
             "default": false
-          },
-          "stripe_connect_account_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Stripe Connect Account Id"
           }
         },
         "type": "object",

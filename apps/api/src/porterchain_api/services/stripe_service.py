@@ -215,32 +215,3 @@ def retrieve_balance(settings: Settings) -> None:
     stripe_sdk.configure(settings.stripe_secret)
     stripe_sdk.retrieve_balance()
 
-
-def create_connect_express_account(settings: Settings, *, email: str | None, merchant_id: str) -> str:
-    stripe_sdk.configure(settings.stripe_secret)
-    account = stripe_sdk.create_connect_account(
-        type="express",
-        country="CA",
-        email=email or None,
-        capabilities={
-            "card_payments": {"requested": True},
-            "transfers": {"requested": True},
-        },
-        metadata={"porterchain_merchant_id": merchant_id},
-    )
-    return account.id
-
-
-def create_connect_account_link(
-    settings: Settings,
-    *,
-    account_id: str,
-) -> str:
-    stripe_sdk.configure(settings.stripe_secret)
-    link = stripe_sdk.create_account_link(
-        account=account_id,
-        refresh_url=settings.stripe_connect_refresh_url,
-        return_url=settings.stripe_connect_return_url,
-        type="account_onboarding",
-    )
-    return link.url

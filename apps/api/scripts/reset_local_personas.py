@@ -332,7 +332,6 @@ def seed_merchant(db, admin: AdminUser) -> tuple:
     merchant.industry = "Wholesale / Distribution"
     merchant.billing_cycle = "MONTHLY"
     merchant.credit_limit_cents = 250_000_00
-    merchant.stripe_connect_account_id = "acct_local_mapleleaf"
     merchant.delivery_zones = ["gta", "hamilton", "peel"]
     stamp_identity_meta(merchant, actor="admin", actor_id=admin.id)
     db.flush()

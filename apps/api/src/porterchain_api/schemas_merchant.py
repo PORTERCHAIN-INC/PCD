@@ -641,7 +641,6 @@ class MerchantProfileResponse(BaseModel):
     delivery_zones: list[str] | None
     identity_meta: dict[str, Any] | None = None
     coverage: MerchantCoverage | None = None
-    stripe_connect_account_id: str | None = None
 
 
 class MerchantProfileUpdateRequest(BaseModel):

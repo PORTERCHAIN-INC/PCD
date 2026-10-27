@@ -39,14 +39,6 @@ def retrieve_balance() -> None:
     stripe.Balance.retrieve()
 
 
-def create_connect_account(**kwargs: Any) -> Any:
-    return stripe.Account.create(**kwargs)
-
-
-def create_account_link(**kwargs: Any) -> Any:
-    return stripe.AccountLink.create(**kwargs)
-
-
 def construct_webhook_event(payload: bytes, sig_header: str | None, webhook_secret: str) -> Any:
     try:
         return stripe.Webhook.construct_event(payload, sig_header, webhook_secret)

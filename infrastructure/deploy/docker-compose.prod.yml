@@ -292,8 +292,6 @@ services:
       PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
       PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
       PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
-      STRIPE_CONNECT_REFRESH_URL: https://merchant.porterchain.com/billing
-      STRIPE_CONNECT_RETURN_URL: https://merchant.porterchain.com/billing?connect=return
       DRIVER_IDENTITY_RETURN_URL: https://driver.porterchain.com/profile?identity=return
       CLERK_DEV_BYPASS: "false"
       # Security audit 2026-10-10
@@ -446,8 +444,6 @@ services:
       PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
       PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
       PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
-      STRIPE_CONNECT_REFRESH_URL: https://merchant.porterchain.com/billing
-      STRIPE_CONNECT_RETURN_URL: https://merchant.porterchain.com/billing?connect=return
       DRIVER_IDENTITY_RETURN_URL: https://driver.porterchain.com/profile?identity=return
       STRIPE_MOCK: "false"
       STRIPE_SECRET: ${STRIPE_SECRET}

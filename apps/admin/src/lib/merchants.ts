@@ -96,7 +96,6 @@ export type MerchantDetail = MerchantRow & {
   available_credit_cents?: number | null;
   billing_cycle?: string;
   phone?: string | null;
-  stripe_connect_account_id?: string | null;
   documents?: Array<{
     id: string;
     name: string;

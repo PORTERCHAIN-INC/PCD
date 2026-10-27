@@ -17,8 +17,6 @@ _PROD_URLS = {
     "customer_portal_url": "https://customer.porterchain.com",
     "website_url": "https://porterchain.com",
     "driver_identity_return_url": "https://driver.porterchain.com/profile?identity=return",
-    "stripe_connect_refresh_url": "https://merchant.porterchain.com/billing",
-    "stripe_connect_return_url": "https://merchant.porterchain.com/billing?connect=return",
     "retail_checkout_success_url": "https://porterchain.com/en/book/success",
     "retail_checkout_cancel_url": "https://porterchain.com/en/book/continue",
 }

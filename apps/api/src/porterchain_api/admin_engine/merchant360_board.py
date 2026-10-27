@@ -389,7 +389,6 @@ def detail_payload(
             "coverage": coverage,
             "pricing_config": merchant.pricing_config or {},
             "profile": merchant.profile or {},
-            "stripe_connect_account_id": getattr(merchant, "stripe_connect_account_id", None),
             "documents": list(
                 ((merchant.profile or {}).get("settings") or {}).get("documents") or []
             )
