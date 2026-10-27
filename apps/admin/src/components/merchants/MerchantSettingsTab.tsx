@@ -5,7 +5,6 @@ import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { publicEnv } from "@/lib/env";
-import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import {
@@ -201,7 +200,7 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
           </Field>
           <div className="col-span-2">
             <p className="mb-1 text-xs font-medium text-primary/70">Billing address</p>
-            <GoogleMapsProvider>
+            <>
               <AddressAutocompleteInput
                 id={`admin-merchant-billing-${m.id}`}
                 value={billing.formatted}
@@ -210,7 +209,7 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
                 placeholder="Ontario billing address"
                 fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
               />
-            </GoogleMapsProvider>
+            </>
           </div>
         </div>
       </SectionCard>

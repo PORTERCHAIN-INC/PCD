@@ -13,11 +13,7 @@ import {
 } from "@/lib/onboarding";
 import { publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
-import {
-  AddressAutocompleteInput,
-  GoogleMapsProvider,
-  type BookingAddress,
-} from "@porterchain/maps";
+import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { useState } from "react";
 
 function stepIcon(step: PortalOnboardingStatus["steps"][number]) {
@@ -120,7 +116,7 @@ export default function PortalOnboardingView({
   }
 
   return (
-    <GoogleMapsProvider>
+    <>
       <div className="min-h-dvh bg-gray-bg">
         <header className="border-b border-primary/10 bg-white">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
@@ -336,6 +332,6 @@ export default function PortalOnboardingView({
           )}
         </main>
       </div>
-    </GoogleMapsProvider>
+    </>
   );
 }

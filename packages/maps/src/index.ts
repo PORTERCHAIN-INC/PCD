@@ -1,4 +1,3 @@
-export { default as GoogleMapsProvider, default as MapsProvider } from "./GoogleMapsProvider";
 export { default as AddressAutocompleteInput } from "./AddressAutocompleteInput";
 export type { BookingAddress, LatLng } from "./types";
 export {

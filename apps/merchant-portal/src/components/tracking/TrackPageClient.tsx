@@ -3,7 +3,6 @@
 import { LiveTrackingView } from "@/components/tracking/LiveTrackingView";
 import { TrackingDashboardPanel } from "@/components/tracking/TrackingDashboardPanel";
 import Button from "@/components/ui/Button";
-import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { orderStateLabel } from "@/lib/catalog";
@@ -24,9 +23,9 @@ const POLL_MS = 10_000;
 export default function TrackPageClient() {
   return (
     <Suspense fallback={<PageSkeleton rows={4} />}>
-      <WithGoogleMaps>
+      <>
         <TrackPageInner />
-      </WithGoogleMaps>
+      </>
     </Suspense>
   );
 }

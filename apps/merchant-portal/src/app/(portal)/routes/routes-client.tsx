@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import MagicCard from "@/components/magic/MagicCard";
 import ShimmerButton from "@/components/magic/ShimmerButton";
-import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import RouteList from "@/components/routes/RouteList";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -118,14 +117,14 @@ function RoutesPageInner() {
       {/* List-only plan tab: no Maps JS. Maps load for Single tab + planner dialog only. */}
       {tab === "plan" ? <RouteList refreshKey={refreshKey} /> : null}
       {tab === "single" ? (
-        <WithGoogleMaps>
+        <>
           <BookDeliveryClient embedded />
-        </WithGoogleMaps>
+        </>
       ) : null}
       {tab === "csv" ? (
-        <WithGoogleMaps>
+        <>
           <BulkUploadClient />
-        </WithGoogleMaps>
+        </>
       ) : null}
       {tab === "recurring" ? <StandingOrdersClient /> : null}
 
@@ -194,9 +193,9 @@ function RoutePlannerDialog({
           </button>
         </div>
         <div className="min-h-0 overflow-y-auto px-4 py-5 sm:px-6">
-          <WithGoogleMaps>
+          <>
             <RouteModuleForm key={plannerKey} showTitle={false} onConfirmed={onConfirmed} />
-          </WithGoogleMaps>
+          </>
         </div>
       </div>
     </div>

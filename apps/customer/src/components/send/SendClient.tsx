@@ -13,7 +13,7 @@ import {
   type BookingCopyKey,
   type VehicleId,
 } from "@porterchain/types/booking";
-import { AddressAutocompleteInput, GoogleMapsProvider } from "@porterchain/maps";
+import { AddressAutocompleteInput } from "@porterchain/maps";
 import {
   normalizeDeliveryOptions,
   type DeliveryOptions,
@@ -42,9 +42,9 @@ const PHONE_KEY = "pc_customer_phone";
 export default function SendClient() {
   return (
     <CustomerShell>
-      <GoogleMapsProvider>
+      <>
         <PortalAuth>{(auth) => <SendBody auth={auth} />}</PortalAuth>
-      </GoogleMapsProvider>
+      </>
     </CustomerShell>
   );
 }

@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Clock, MapPin, Navigation, Radio, Route } from "lucide-react";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import DriverShell from "@/components/DriverShell";
-import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { DriverNavigationMap } from "@/components/navigation/DriverNavigationMap";
 import { useDriverNavigation } from "@/hooks/useDriverNavigation";
 import { hasDriverSession } from "@/lib/api";
@@ -21,9 +20,9 @@ export default function NavigationClient() {
         </div>
       }
     >
-      <WithGoogleMaps>
+      <>
         <NavigationPageContent />
-      </WithGoogleMaps>
+      </>
     </Suspense>
   );
 }
