@@ -98,9 +98,8 @@ tmp/
 # Playwright Clerk cookie jars (never commit)
 apps/merchant-portal/e2e/.auth/
 apps/admin/e2e/.auth/
-apps/merchant-portal/playwright-report/
+**/playwright-report/
 apps/merchant-portal/test-results/
-website/playwright-report/
 website/test-results/
 
 # Accidental absolute-path write leftovers from agent plan paths
