@@ -13,6 +13,7 @@
     "./view-transition": "./src/view-transition.tsx",
     "./header-dropdown": "./src/header-dropdown.tsx",
     "./nav-dropdown": "./src/nav-dropdown.tsx",
+    "./notification-bell": "./src/notification-bell.tsx",
     "./app-nav": "./src/app-nav.tsx",
     "./delivery-options-fields": "./src/delivery-options-fields.tsx"
   },
@@ -24,11 +25,13 @@
   },
   "peerDependencies": {
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "next": ">=15"
   },
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "next": "16.4.1",
     "typescript": "^6.0.3"
   }
 }
