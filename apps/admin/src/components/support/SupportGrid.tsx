@@ -1,20 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getGroupedRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type ColumnSizingState,
-  type GroupingState,
-  type VisibilityState,
-} from "@tanstack/react-table";
-import { Download, ExternalLink } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ExternalLink } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import {
   exportTicketsCsv,
@@ -25,8 +14,8 @@ import {
   type TicketRow,
 } from "@/lib/support";
 import { relativeTime } from "@/lib/crmFormat";
-import { Button } from "@/components/crm/primitives";
 import DeleteButton from "@/components/common/DeleteButton";
+import SelectableGrid from "@/components/common/SelectableGrid";
 
 const COLS_KEY = "porterchain.support.columns";
 
@@ -36,64 +25,16 @@ type Props = {
   onSelect: (ids: string[]) => void;
 };
 
-export default function SupportGrid({ rows, selected, onSelect }: Props) {
-  const [grouping, setGrouping] = useState<GroupingState>([]);
-  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      return JSON.parse(localStorage.getItem(COLS_KEY) || "{}") as VisibilityState;
-    } catch {
-      return {};
-    }
-  });
-  const [globalFilter, setGlobalFilter] = useState("");
+const rowLabel = (r: TicketRow) => r.ticket_number;
+const GROUP_OPTIONS = [
+  { value: "display_status", label: "Group by status" },
+  { value: "category", label: "Group by category" },
+  { value: "priority", label: "Group by priority" },
+];
 
+export default function SupportGrid({ rows, selected, onSelect }: Props) {
   const columns = useMemo<ColumnDef<TicketRow>[]>(
     () => [
-      {
-        id: "select",
-        size: 40,
-        header: ({ table }) => {
-          const ids = table
-            .getFilteredRowModel()
-            .rows.filter((r) => !r.getIsGrouped())
-            .map((r) => r.original.id)
-            .filter(Boolean);
-          const allSelected = ids.length > 0 && ids.every((id) => selected.includes(id));
-          const someSelected = ids.some((id) => selected.includes(id));
-          return (
-            <input
-              type="checkbox"
-              checked={allSelected}
-              ref={(el) => {
-                if (el) el.indeterminate = someSelected && !allSelected;
-              }}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  onSelect([...new Set([...selected, ...ids])]);
-                } else {
-                  const drop = new Set(ids);
-                  onSelect(selected.filter((id) => !drop.has(id)));
-                }
-              }}
-              aria-label="Select all"
-            />
-          );
-        },
-        cell: ({ row }) =>
-          row.getIsGrouped() ? null : (
-            <input
-              type="checkbox"
-              checked={selected.includes(row.original.id)}
-              onChange={(e) => {
-                const id = row.original.id;
-                onSelect(e.target.checked ? [...selected, id] : selected.filter((x) => x !== id));
-              }}
-              aria-label={`Select ${row.original.ticket_number}`}
-            />
-          ),
-      },
       {
         accessorKey: "ticket_number",
         header: "Ticket #",
@@ -264,97 +205,20 @@ export default function SupportGrid({ rows, selected, onSelect }: Props) {
         cell: ({ row }) => <DeleteButton compact entity="support_ticket" id={row.original.id} />,
       },
     ],
-    [selected, onSelect]
+    []
   );
 
-  const table = useReactTable({
-    data: rows,
-    columns,
-    state: { grouping, columnSizing, columnVisibility, globalFilter },
-    onGroupingChange: setGrouping,
-    onColumnSizingChange: setColumnSizing,
-    onColumnVisibilityChange: (updater) => {
-      setColumnVisibility((prev) => {
-        const next = typeof updater === "function" ? updater(prev) : updater;
-        localStorage.setItem(COLS_KEY, JSON.stringify(next));
-        return next;
-      });
-    },
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getGroupedRowModel: getGroupedRowModel(),
-    columnResizeMode: "onChange",
-    enableColumnResizing: true,
-  });
-
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        <input
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Filter grid…"
-          className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-        />
-        <select
-          value={grouping[0] ?? ""}
-          onChange={(e) => setGrouping(e.target.value ? [e.target.value] : [])}
-          className="rounded-xl border border-primary/10 px-3 py-2 text-sm"
-        >
-          <option value="">No grouping</option>
-          <option value="display_status">Group by status</option>
-          <option value="category">Group by category</option>
-          <option value="priority">Group by priority</option>
-        </select>
-        <Button variant="outline" onClick={() => exportTicketsCsv(rows)}>
-          <Download className="h-4 w-4" />
-          CSV export
-        </Button>
-      </div>
-      <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-white">
-        <table
-          className="min-w-full text-left text-sm"
-          style={{ minWidth: Math.max(table.getCenterTotalSize(), 960) }}
-        >
-          <thead className="border-b border-primary/10 bg-gray-bg/50">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="relative px-3 py-3 font-medium"
-                    style={{ width: header.getSize() }}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    <div
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-primary/10 hover:bg-secondary/40"
-                    />
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b border-primary/5 hover:bg-secondary/5">
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="px-3 py-2.5"
-                    style={{ width: cell.column.getSize() }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <SelectableGrid
+      rows={rows}
+      columns={columns}
+      selected={selected}
+      onSelect={onSelect}
+      rowLabel={rowLabel}
+      columnsKey={COLS_KEY}
+      groupOptions={GROUP_OPTIONS}
+      onExport={() => exportTicketsCsv(rows)}
+      exportLabel="CSV export"
+    />
   );
 }
