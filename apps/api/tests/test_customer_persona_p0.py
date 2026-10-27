@@ -271,7 +271,7 @@ def test_arch_customer_lib_hits_expected_endpoints() -> None:
     assert "/v1/customers/me/privacy/export" in api
     assert "/v1/customers/me/privacy/delete-request" in api
     assert "/v1/quotes" in booking and "/v1/bookings" in booking
-    assert "/v1/orders/" in booking
+    # Order tracking lives on the website track page (portal redirects there).
     assert "/v1/notifications/inbox" in notif
     assert "/v1/auth/customer/onboarding" in onboarding
 

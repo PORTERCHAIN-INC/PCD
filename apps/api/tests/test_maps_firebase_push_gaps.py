@@ -134,9 +134,11 @@ def test_gap01_web_push_exposes_playwright_test_hook() -> None:
         "apps/merchant-portal/src/lib/web-push.ts",
     ):
         text = (ROOT / rel).read_text(encoding="utf-8")
-        assert "__PC_TEST_FCM_TOKEN__" in text
+        assert "@porterchain/web-push/register" in text
         assert "registerBrowserPush" in text
-        assert "isFcmRegistrationToken" in text
+    shared = (ROOT / "packages/web-push/src/register.ts").read_text(encoding="utf-8")
+    assert "__PC_TEST_FCM_TOKEN__" in shared
+    assert "isFcmRegistrationToken" in shared
 
 
 # --- GAP-04 -----------------------------------------------------------------
@@ -280,7 +282,7 @@ def test_gap07_merchant_notification_center_wires_register_browser_push() -> Non
     web = (ROOT / "apps/merchant-portal/src/lib/web-push.ts").read_text(encoding="utf-8")
     assert "registerBrowserPush" in web
     assert "registerDevice" in web
-    assert "__PC_TEST_FCM_TOKEN__" in web
+    assert "@porterchain/web-push/register" in web
     assert "orgId" in web
     e2e = (ROOT / "apps/merchant-portal/e2e/push.p0.spec.ts").read_text(encoding="utf-8")
     assert "MP-NTF-002" in e2e
