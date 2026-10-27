@@ -3,7 +3,7 @@
 import { ExternalLink, Grid3X3 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { getSystemLinks } from "@/lib/system-links";
-import HeaderDropdown from "@/components/nav/HeaderDropdown";
+import { HeaderDropdown } from "@porterchain/ui/header-dropdown";
 
 export default function AdminAppsMenu() {
   const links = getSystemLinks().filter((l) => l.id !== "admin");
