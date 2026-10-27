@@ -416,7 +416,7 @@ Do not install `codegraph-ai/CodeGraph`. Do not wire Graphify or Ripwire into `.
 
 | File                                                                                   | Follow for                                           |
 | -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [`.cursor/rules/fleetbase-first-policy.mdc`](.cursor/rules/fleetbase-first-policy.mdc) | PorterChain owns dispatch; Valhalla before Google    |
+| [`.cursor/rules/dispatch-routing-policy.mdc`](.cursor/rules/dispatch-routing-policy.mdc) | PorterChain owns dispatch; Valhalla before Google    |
 | [INTEGRATIONS.md](INTEGRATIONS.md)                                                     | Vendor registry (`integrations.yaml`)                |
 | [apps/api/README.md](apps/api/README.md)                                               | OpenAPI snapshot + `pnpm docs:openapi`               |
 | [docs/api/PARTNER_GUIDE.md](docs/api/PARTNER_GUIDE.md)                                 | `/v1/merchant-api` API-key surface                   |

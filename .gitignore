@@ -76,8 +76,6 @@ infrastructure/docker/osrm/data/*
 # TypeScript
 *.tsbuildinfo
 
-# Fleetbase OSS — clone via `pnpm docker:fleetbase:install` (do not commit upstream tree)
-apps/fleetbase/
 
 # local coverage artifacts
 .coverage

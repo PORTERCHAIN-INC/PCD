@@ -20,5 +20,4 @@
 env/clerk.env
 env/clerk.env.*
 !env/clerk.env.example
-apps/fleetbase
 terminals

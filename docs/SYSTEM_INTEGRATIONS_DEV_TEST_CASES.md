@@ -444,4 +444,4 @@ When coding a case: **CodeGraph** for schemas → **Ripwire** for thin router/ad
 - [CUSTOMER_PERSONA_DEV_TEST_CASES.md](CUSTOMER_PERSONA_DEV_TEST_CASES.md)
 - [MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md](MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md)
 - `apps/api/src/porterchain_api/admin_engine/diagnostics_catalog.py` (`TEST_CATALOG`)
-- `.cursor/rules/fleetbase-first-policy.mdc` · `graph-tools.mdc` · `porterchain-charter.mdc`
+- `.cursor/rules/dispatch-routing-policy.mdc` · `graph-tools.mdc` · `porterchain-charter.mdc`

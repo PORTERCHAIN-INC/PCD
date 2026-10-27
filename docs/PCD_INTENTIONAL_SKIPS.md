@@ -206,4 +206,4 @@ Rows in **Intentionally not done** above: Critical Alerts · on-call topics · e
 - [docs/PORTERCHAIN_CHARTER.md](PORTERCHAIN_CHARTER.md) — 10-customer gate
 - [DRIVER_VERIFICATION_INTENTIONAL_SKIPS.md](DRIVER_VERIFICATION_INTENTIONAL_SKIPS.md) — thin pointer → this file
 - `shared/python/porterchain_shared/config/project_mode.py` — ProjectMode / RuntimePosture SoT
-- `.cursor/rules/fleetbase-first-policy.mdc` · `dependency-freeze.mdc` · `porterchain-charter.mdc` (PorterChain owns dispatch; no vendor adapter)
+- `.cursor/rules/dispatch-routing-policy.mdc` · `dependency-freeze.mdc` · `porterchain-charter.mdc` (PorterChain owns dispatch; no vendor adapter)

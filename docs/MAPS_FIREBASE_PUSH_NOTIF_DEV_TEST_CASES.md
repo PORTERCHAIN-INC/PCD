@@ -381,4 +381,4 @@ When coding: CodeGraph for schemas → Ripwire `--callers` / `--expand` on the t
 - `apps/api/src/porterchain_api/admin_engine/diagnostics_catalog.py`
 - `apps/api/src/porterchain_api/admin_engine/e2e_validation_catalog.py`
 - `apps/admin/src/lib/diagnostics.ts` (`CHAOS_SCENARIOS`)
-- `.cursor/rules/fleetbase-first-policy.mdc` · `graph-tools.mdc`
+- `.cursor/rules/dispatch-routing-policy.mdc` · `graph-tools.mdc`

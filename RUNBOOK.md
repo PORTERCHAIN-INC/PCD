@@ -27,7 +27,7 @@ Test the change on this Mac, then build the touched web images locally (`pnpm --
 
 - Assign and Optimize live in PorterChain. OR-Tools in `dispatch_engine` orders one van’s stops; Valhalla is the road cost; Redis `last_known` is the pin.
 - Worker must run so optimize jobs and event consumers drain. There is no vendor console or VROOM client.
-- Boundary: [`.cursor/rules/fleetbase-first-policy.mdc`](./.cursor/rules/fleetbase-first-policy.mdc) · architecture: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+- Boundary: [`.cursor/rules/dispatch-routing-policy.mdc`](./.cursor/rules/dispatch-routing-policy.mdc) · architecture: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ---
 
