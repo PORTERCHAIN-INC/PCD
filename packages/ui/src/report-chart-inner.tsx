@@ -10,7 +10,7 @@ type Props = {
   className?: string;
 };
 
-/** ECharts canvas — imported only via next/dynamic from ReportChart. */
+/** ECharts canvas — imported only via next/dynamic from report-chart. */
 export default function ReportChartInner({ option, height = 280, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
