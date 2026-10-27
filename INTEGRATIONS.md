@@ -13,7 +13,6 @@ SSOT registry: [`integrations.yaml`](integrations.yaml). Guard: `pnpm validate:i
 | `google_maps`       | Places + tiles only                                    |
 | `valhalla`          | Primary routing `:8002` (GTA ±150 km)                  |
 | `osrm`              | Local fallback `:5000` (same extract)                  |
-| `stripe`            | Checkout + COD/Connect via `sdk.py`                    |
 | `clerk`             | Identity for every persona                             |
 | `merchant_api_keys` | Merchant API keys — partner `/v1/merchant-api`         |
 | `merchant_webhooks` | Merchant outbound webhooks                             |

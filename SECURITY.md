@@ -17,7 +17,6 @@
 | Dev bypass    | Only `APP_ENV=local` + `clerk_dev_bypass` / portal flag | `auth/dev.py` · `packages/auth`        |
 | Secrets       | Doppler prod; `env/clerk.env` + `pnpm clerk:sync` local | deploy SECRETS docs                    |
 | Network       | Browsers → API only                                     | no Fleetbase/SocketCluster SDK in web  |
-| Payments      | Stripe signature + idempotent webhooks                  | `stripe_webhook_service` / COD service |
 | Retired flags | `CLERK_UNIFIED_MODE` must remain false                  | config validator                       |
 
 ---

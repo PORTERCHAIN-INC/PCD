@@ -104,7 +104,6 @@ Nav SSOT: `DRIVER_NAV_GROUPS` in `apps/driver-portal/src/lib/driver-nav.ts`.
 | GET/POST | `/v1/auth/staff/enrollment/{token}` · `.../activate`        | Staff                         |
 | POST     | `/v1/auth/staff/login-request` · `/login` · `/logout`       | Staff                         |
 | POST     | `/v1/auth/staff/passkey/*` · step-up · sessions revoke      | Staff                         |
-| POST     | `/v1/auth/sso/fleetbase`                                    | Staff/driver SSO bridge       |
 | POST     | `/webhooks/clerk`                                           | Vendor                        |
 | GET/POST | `/driver-api/v1/auth/dev-login` · `/auth/dev-drivers`       | Local only                    |
 | GET      | `/driver-api/v1/me` · `/onboarding` · `/push` · `/location` | Driver                        |
@@ -214,7 +213,6 @@ For each route: unauthenticated redirect · authenticated load · wrong-role 403
 | DR-PG-002 | P0  | `/jobs` · `/jobs/[orderId]`                           | Assigned-order only (`require_assigned_order`); other driver’s job → 403/404     |
 | DR-PG-003 | P0  | `/stops`                                              | Same assignment boundary                                                         |
 | DR-PG-004 | P0  | `/navigation`                                         | Maps tiles/Places OK; ETA/route via Valhalla/OSRM — never Google Distance        |
-| DR-PG-005 | P0  | `/shift`                                              | Online/break flips go through driver_engine → Fleetbase SoT                      |
 | DR-PG-006 | P0  | `/communications`                                     | Inbox + push register require driver context                                     |
 | DR-PG-007 | P1  | `/earnings` · `/wallet` · `/performance`              | Self wallet only; no other driver ledger                                         |
 | DR-PG-008 | P1  | `/profile` · `/documents` · `/vehicle` · `/insurance` | Upload auth’d; verification flags env-gated                                      |
@@ -250,20 +248,19 @@ For each route: unauthenticated redirect · authenticated load · wrong-role 403
 
 ## 6. Fleetbase handshake (auth-adjacent)
 
-| ID        | P   | Kind      | Assert                                                                                                     |
-| --------- | --- | --------- | ---------------------------------------------------------------------------------------------------------- |
-| HS-FB-001 | P0  | arch      | All Fleetbase HTTP only via `services/fleetbase-adapter`                                                   |
-| HS-FB-002 | P0  | api       | `POST /v1/auth/sso/fleetbase` exchanges session via `SsoService` + `FleetbaseSsoClient.exchange_sso_token` |
-| HS-FB-003 | P0  | api       | SSO upserts identity link (`upsert_sso_link`) with provider/issuer                                         |
-| HS-FB-004 | P1  | api       | SSO disabled / bridge down → clear error; console probe may skip healthy                                   |
-| HS-FB-005 | P0  | api       | Driver approve/link provisions Fleetbase driver id through adapter — not browser                           |
-| HS-FB-006 | P0  | api       | Admin operations sync retry uses staff context; never embeds Clerk driver JWT                              |
-| HS-FB-007 | P0  | security  | Web apps never import SocketCluster SDK                                                                    |
-| HS-FB-008 | P0  | security  | Admin may deep-link console URL (`system-links`) but never proxy Fleetbase cookies to browser API calls    |
-| HS-FB-009 | P1  | handshake | `fleetbase_roles.py` mapping staff role → Fleetbase permissions deterministic                              |
-| HS-FB-010 | P0  | arch      | No PorterChain-native VROOM client; VROOM stays in Fleetbase orchestrator `[SKIP-POLICY]`                  |
-| HS-FB-011 | P1  | api       | Booking sync / ops mirror refresh authenticated as service identity, not end-user JWT                      |
-| HS-FB-012 | P2  | chaos     | Adapter timeout/circuit does not leak upstream tokens in error bodies                                      |
+| ID        | P   | Kind     | Assert                                                                                                     |
+| --------- | --- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| HS-FB-001 | P0  | arch     | All Fleetbase HTTP only via `services/fleetbase-adapter`                                                   |
+| HS-FB-002 | P0  | api      | `POST /v1/auth/sso/fleetbase` exchanges session via `SsoService` + `FleetbaseSsoClient.exchange_sso_token` |
+| HS-FB-003 | P0  | api      | SSO upserts identity link (`upsert_sso_link`) with provider/issuer                                         |
+| HS-FB-004 | P1  | api      | SSO disabled / bridge down → clear error; console probe may skip healthy                                   |
+| HS-FB-005 | P0  | api      | Driver approve/link provisions Fleetbase driver id through adapter — not browser                           |
+| HS-FB-006 | P0  | api      | Admin operations sync retry uses staff context; never embeds Clerk driver JWT                              |
+| HS-FB-007 | P0  | security | Web apps never import SocketCluster SDK                                                                    |
+| HS-FB-008 | P0  | security | Admin may deep-link console URL (`system-links`) but never proxy Fleetbase cookies to browser API calls    |
+| HS-FB-010 | P0  | arch     | No PorterChain-native VROOM client; VROOM stays in Fleetbase orchestrator `[SKIP-POLICY]`                  |
+| HS-FB-011 | P1  | api      | Booking sync / ops mirror refresh authenticated as service identity, not end-user JWT                      |
+| HS-FB-012 | P2  | chaos    | Adapter timeout/circuit does not leak upstream tokens in error bodies                                      |
 
 ---
 
@@ -359,28 +356,25 @@ For each route: unauthenticated redirect · authenticated load · wrong-role 403
 | DB-003 | P0  | unit      | `IdentityLink` unique per provider subject                             |
 | DB-004 | P0  | unit      | Staff sessions live in Redis — not Postgres opaque JWT table as SoT    |
 | DB-005 | P1  | migration | Alembic adds (e.g. admin phone) do not break session bind              |
-| DB-006 | P1  | unit      | Suspended driver status blocks context before Fleetbase calls          |
 | DB-007 | P1  | unit      | Soft-deleted / pruned clerk bindings fail closed                       |
 
 ---
 
 ## 14. Docker / worker / architecture / CI
 
-| ID     | P   | Kind  | Assert                                                                                               |
-| ------ | --- | ----- | ---------------------------------------------------------------------------------------------------- |
-| DX-001 | P0  | dx    | Compose pins exact image tags — never `:latest`                                                      |
-| DX-002 | P0  | dx    | API `:8001`, admin `:3002`, driver-portal `:3003`, Fleetbase `:8000`, Valhalla `:8002`, OSRM `:5000` |
-| DX-003 | P0  | dx    | Redis 8.8 holds staff sessions; restart flushes sessions (document expected UX)                      |
-| DX-004 | P0  | dx    | Worker has FCM + Clerk webhook consumers env; cannot use browser cookies                             |
-| DX-005 | P0  | ci    | `scripts/openapi_census.py` — new untagged auth paths fail                                           |
-| DX-006 | P0  | ci    | `scripts/verify_vendor_leaves.py` — no SC / Fleetbase in web/mobile                                  |
-| DX-007 | P0  | ci    | Mobile CI forbids `:8000` / fleetbase HTTP                                                           |
-| DX-008 | P1  | dx    | Mailpit not Mailhog                                                                                  |
-| DX-009 | P1  | dx    | Fleetbase cache Valkey 8 override                                                                    |
-| DX-010 | P0  | arch  | Routers stay thin — auth logic in `auth/*` + engines                                                 |
-| DX-011 | P1  | chaos | Kill Redis → admin sessions fail closed (no Clerk fallback)                                          |
-| DX-012 | P1  | chaos | Kill Clerk JWKS → driver auth fails; admin Staff IdP still works                                     |
-| DX-013 | P2  | chaos | Split-brain clock skew JWT `nbf`/`exp` handling                                                      |
+| ID     | P   | Kind  | Assert                                                                          |
+| ------ | --- | ----- | ------------------------------------------------------------------------------- |
+| DX-001 | P0  | dx    | Compose pins exact image tags — never `:latest`                                 |
+| DX-003 | P0  | dx    | Redis 8.8 holds staff sessions; restart flushes sessions (document expected UX) |
+| DX-004 | P0  | dx    | Worker has FCM + Clerk webhook consumers env; cannot use browser cookies        |
+| DX-005 | P0  | ci    | `scripts/openapi_census.py` — new untagged auth paths fail                      |
+| DX-006 | P0  | ci    | `scripts/verify_vendor_leaves.py` — no SC / Fleetbase in web/mobile             |
+| DX-007 | P0  | ci    | Mobile CI forbids `:8000` / fleetbase HTTP                                      |
+| DX-008 | P1  | dx    | Mailpit not Mailhog                                                             |
+| DX-010 | P0  | arch  | Routers stay thin — auth logic in `auth/*` + engines                            |
+| DX-011 | P1  | chaos | Kill Redis → admin sessions fail closed (no Clerk fallback)                     |
+| DX-012 | P1  | chaos | Kill Clerk JWKS → driver auth fails; admin Staff IdP still works                |
+| DX-013 | P2  | chaos | Split-brain clock skew JWT `nbf`/`exp` handling                                 |
 
 ---
 
@@ -440,7 +434,6 @@ For each route: unauthenticated redirect · authenticated load · wrong-role 403
 | mobile          | Maestro `apps/mobile-driver/maestro`                                               | DR-PG-012–016, DR-AUTH-019                    |
 | probes          | Admin System Test Center                                                           | §0.6 IDs                                      |
 | ci gates        | openapi_census · verify_vendor_leaves · mobile path bans                           | DX-005–007                                    |
-| chaos           | local compose kill Redis/Clerk/Fleetbase                                           | DX-011–013, HS-FB-012                         |
 
 ---
 

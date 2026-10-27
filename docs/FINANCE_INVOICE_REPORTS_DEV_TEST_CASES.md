@@ -12,21 +12,18 @@
 
 ### Sensor trail (this pass)
 
-| Moment | Tool          | What it named                                                                                                                                                                                                                                                                                |
-| ------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A      | Graphify      | Invoice community: `AdminFinanceService`, `SettlementService`, `finance_board`, `BillingLedgerEntry`, `MerchantReportsService`, `BillingClient`, FleetbaseClient modules, god nodes (`Settings`, `Order`, `MerchantContext`, `AdminContext`)                                                 |
-| B      | CodeGraph CLI | `InvoiceService.finalize_after_pod` → `ensure_invoice` → attach document; `SettlementService` queue actions; `MapsService` Valhalla→OSRM; `NotificationRecord` blast radius; ServiceRegistry stripe/maps/notifications                                                                       |
-| C      | Ripwire       | Thin `routers/admin/finance.py` (dashboard/reports/collections/GL/AR/remind/COD); merchant `billing.py` + `reports.py`; `overview_payload` / credit notes; impact: `SettlementService` → worker `process_billing` (radius_tested=3 / untested=7); FleetbaseAdapter → Orchestrator/POD/Orders |
+| Moment | Tool          | What it named                                                                                                                                                                                                          |
+| ------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B      | CodeGraph CLI | `InvoiceService.finalize_after_pod` → `ensure_invoice` → attach document; `SettlementService` queue actions; `MapsService` Valhalla→OSRM; `NotificationRecord` blast radius; ServiceRegistry stripe/maps/notifications |
 
 **Sibling catalogs (do not duplicate blindly):**
 
-| Doc                                                                            | Overlap                                                                                |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| [DEVELOPMENT_TEST_CASES_CATALOG.md](DEVELOPMENT_TEST_CASES_CATALOG.md)         | System-wide index (`PAY-*`, `NOTIF-*`, surfaces)                                       |
-| [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md)     | Merchant billing/reports endpoint census                                               |
-| [SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md](SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md) | Fleetbase / Clerk / Shopify / ERP handshakes                                           |
-| [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md)   | VROOM / Maps (feeds delivery → invoice)                                                |
-| [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md)                           | Held: client-supplied invoice cents, scheduled report email, aging-as-dedicated-report |
+| Doc                                                                          | Overlap                                                                                |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [DEVELOPMENT_TEST_CASES_CATALOG.md](DEVELOPMENT_TEST_CASES_CATALOG.md)       | System-wide index (`PAY-*`, `NOTIF-*`, surfaces)                                       |
+| [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md)   | Merchant billing/reports endpoint census                                               |
+| [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md) | VROOM / Maps (feeds delivery → invoice)                                                |
+| [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md)                         | Held: client-supplied invoice cents, scheduled report email, aging-as-dedicated-report |
 
 **Existing coverage seed:**
 
@@ -43,9 +40,7 @@
 | `apps/api/tests/test_one_ar_total_bd.py`                | One AR total SSOT                |
 | `apps/api/tests/test_dod_quote_book_channel_invoice.py` | Quote≡Book≡channel≡invoice       |
 | `apps/api/tests/test_shopify_billing_wave_remaining.py` | Shopify billing wave             |
-| `apps/api/tests/test_stripe_*.py`                       | Checkout / COD / webhook         |
 | `apps/api/tests/test_notification_*.py`                 | Push / email / SLI               |
-| `apps/api/tests/test_fleetbase_*.py`                    | Adapter / sync / webhook         |
 | `apps/api/tests/services/test_aux_service_coverage.py`  | Settlement action smoke          |
 | `scripts/verify_notifications_billing_depth.py`         | Billing↔notif depth gate         |
 
@@ -67,16 +62,12 @@
 | `API-AM-*` | Admin merchant org invoices / billing-contacts / lifecycle money                                 |
 | `ENG-*`    | `AdminFinanceService`, `finance_board`, `InvoiceService`, `SettlementService`, AR, credit notes  |
 | `WRK-*`    | Worker billing processor / EventBus invoice events                                               |
-| `PAY-*`    | Stripe Checkout / COD Connect / webhooks                                                         |
-| `FB-*`     | Fleetbase POD → `order.pod_completed` → invoice finalize handshake                               |
 | `MAP-*`    | Valhalla/OSRM distance feeding priced invoices (not Google routing)                              |
-| `VRM-*`    | VROOM via Fleetbase only (delivery complete → invoice path)                                      |
 | `AUTH-*`   | Clerk portals · staff IdP · `finance_read` / `finance` · step-up                                 |
 | `NOTIF-*`  | Invoice remind email · FCM · Mailpit · finance audience                                          |
 | `SHOP-*`   | Shopify carrier quote → book → invoice channel                                                   |
 | `INT-*`    | Partner API / NetSuite / Zapier / ERP-shaped ingest                                              |
 | `DB-*`     | `Invoice`, `Payment`, `BillingLedgerEntry`, `CreditNote`, `InvoiceLine`, Alembic                 |
-| `DOC-*`    | Docker Postgres/Redis/Mailpit/Valhalla/OSRM/VROOM/Fleetbase                                      |
 | `ARCH-*`   | Ownership laws, thin-router waves, OpenAPI census, verify scripts                                |
 | `DIAG-*`   | System-tests / e2e_validation finance & billing surfaces                                         |
 | `UX-*`     | Cross-links, empty states, cents formatting, CSV/PDF parity                                      |
@@ -110,14 +101,11 @@ GL export / collections / credit notes / COD queue / driver payouts
 
 **Ownership split (must stay true):**
 
-| Concern                                       | Owner                                               | Forbidden                            |
-| --------------------------------------------- | --------------------------------------------------- | ------------------------------------ |
-| POD / dispatch / GPS / vehicles               | Fleetbase via adapter                               | Rebuild in `admin_engine` finance    |
-| Invoice create / AR / ledger / COD **policy** | `billing_engine` + `InvoiceService`                 | Client-supplied amount cents         |
-| Stripe SDK HTTP                               | `porterchain_services/stripe/sdk.py`                | `import stripe` elsewhere            |
-| Distance for priced invoices                  | Valhalla → OSRM via `MapsService`                   | Google Distance Matrix               |
-| Multi-stop TSP before delivery                | VROOM via Fleetbase orchestrator                    | PC VROOM HTTP client                 |
-| Reports aggregates                            | `merchant_engine/reports_service` + `finance_board` | Second reporting warehouse in portal |
+| Concern                      | Owner                                               | Forbidden                            |
+| ---------------------------- | --------------------------------------------------- | ------------------------------------ |
+| Stripe SDK HTTP              | `porterchain_services/stripe/sdk.py`                | `import stripe` elsewhere            |
+| Distance for priced invoices | Valhalla → OSRM via `MapsService`                   | Google Distance Matrix               |
+| Reports aggregates           | `merchant_engine/reports_service` + `finance_board` | Second reporting warehouse in portal |
 
 **God nodes (regression magnets):** `Settings`, `Order`, `MerchantContext`, `AdminContext`, `Merchant`, `require_module`, `OrderState`.
 
@@ -139,7 +127,6 @@ GL export / collections / credit notes / COD queue / driver payouts
 | Merchant AR       | `FinanceMerchantArPanel.tsx`                                                                                          | `GET …/merchant-ar/preview`, `POST …/generate`                  |
 | Ledger            | page tab                                                                                                              | `GET /finance/ledger`                                           |
 | Reports + GL      | page tab + export                                                                                                     | `GET /finance/reports`, `GET /finance/export`                   |
-| COD queue         | collections/COD                                                                                                       | `GET /finance/cod`                                              |
 | Duplicates        | (API-backed)                                                                                                          | `GET /finance/duplicates`                                       |
 | Credit notes      | write path                                                                                                            | `POST /finance/credit-notes` (+ step-up)                        |
 
@@ -163,24 +150,21 @@ GL export / collections / credit notes / COD queue / driver payouts
 
 ### 2.3 Merchant portal (`apps/merchant-portal`)
 
-| Surface                     | Files                                                      | Tabs / notes                                                                         |
-| --------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Billing                     | `app/(portal)/billing/page.tsx`, `BillingClient.tsx`       | overview, invoices, statement, payments, credits, history, tax, rates, contacts, cod |
-| Invoice detail              | `billing/invoices/[invoice_id]`, `InvoiceDetailClient.tsx` | Pay now / PDF / remind                                                               |
-| Rate card                   | `RateCardPanel.tsx`                                        | Contract pricing                                                                     |
-| Billing contacts            | `BillingContactsPanel.tsx`                                 | AP contacts                                                                          |
-| Reports                     | `app/(portal)/reports/page.tsx`, `ReportsClient.tsx`       | executive, delivery, invoices, claims, saved                                         |
-| Settings (billing contacts) | settings panels                                            | Must not own invoice write                                                           |
-| Shopify                     | `/shopify`                                                 | Carrier → book → invoice channel                                                     |
-| Orders / track              | orders, track                                              | Delivered → expect invoice in Billing                                                |
-| Client libs                 | `lib/billing.ts`, `lib/reports.ts`                         | Contract shapes                                                                      |
+| Surface                     | Files                                                      | Tabs / notes                                 |
+| --------------------------- | ---------------------------------------------------------- | -------------------------------------------- |
+| Invoice detail              | `billing/invoices/[invoice_id]`, `InvoiceDetailClient.tsx` | Pay now / PDF / remind                       |
+| Rate card                   | `RateCardPanel.tsx`                                        | Contract pricing                             |
+| Billing contacts            | `BillingContactsPanel.tsx`                                 | AP contacts                                  |
+| Reports                     | `app/(portal)/reports/page.tsx`, `ReportsClient.tsx`       | executive, delivery, invoices, claims, saved |
+| Settings (billing contacts) | settings panels                                            | Must not own invoice write                   |
+| Shopify                     | `/shopify`                                                 | Carrier → book → invoice channel             |
+| Orders / track              | orders, track                                              | Delivered → expect invoice in Billing        |
+| Client libs                 | `lib/billing.ts`, `lib/reports.ts`                         | Contract shapes                              |
 
 ### 2.4 API routers (thin — Wave 17/45/50)
 
 | Family           | File                                        | Handlers                                                                                                                                                                                  |
 | ---------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Admin finance    | `routers/admin/finance.py`                  | dashboard, reports, collections, export, invoices(+detail), payments, payouts, ledger, duplicates, credit-notes, merchant-ar preview/generate, record-payment, remind, summary, cod       |
-| Merchant billing | `routers/merchant/billing.py`               | overview, statement(+detail), invoices(+pdf/remind/pay), pay-outstanding, payments, credit-notes, history, tax, contract, rate-card, CSV exports, COD status/connect/enable               |
 | Merchant reports | `routers/merchant/reports.py`               | summary, overview, executive, delivery-performance, order-volume, invoices, drivers, vehicles, destinations, claims, sla-history, switching-costs, saved CRUD, scheduled, export csv/xlsx |
 | Admin merchants  | `routers/merchants.py`                      | invoices, credit-notes, billing-contacts (compose via `merchant_org` / lifecycle)                                                                                                         |
 | Shopify          | `routers/shopify.py`, `merchant/shopify.py` | Carrier rates + OAuth (priced, not VROOM)                                                                                                                                                 |
@@ -197,12 +181,10 @@ GL export / collections / credit notes / COD queue / driver payouts
 | AR helpers            | `billing_engine/ar.py`                                                 |
 | Credit notes          | `billing_engine/credit_notes.py`                                       |
 | Invoice PDF/doc       | `billing_engine/invoice_document.py`                                   |
-| COD policy            | `billing_engine/stripe_cod_service.py`                                 |
 | Merchant billing pack | `merchant_engine/billing_service.py`, `billing_pack.py`                |
 | Merchant reports      | `merchant_engine/reports_service.py`                                   |
 | Shopify               | `merchant_engine/shopify_service.py`, `integrations/shopify_orders.py` |
 | Worker                | `apps/worker/processors/billing.py`                                    |
-| Fleetbase bridge      | `services/fleetbase-adapter/.../{orders,pod,drivers,orchestrator}`     |
 | Maps                  | `services/python/porterchain_services/maps/service.py`                 |
 | Notifications         | `notification_engine/*`, booking `notification_service.py`             |
 | Schemas               | `schemas_admin.py` Finance*, `schemas_merchant.py` Billing*/Report*    |
@@ -227,7 +209,6 @@ GL export / collections / credit notes / COD queue / driver payouts
 | A-FIN-012 | P1  | Pending payouts              | Payouts tab                     | Pending sum matches dashboard pending_payouts                                      |
 | A-FIN-013 | P1  | Ledger entries               | Ledger tab                      | `BillingLedgerEntry` kinds visible (payment_settled, finalize_after_pod, stripe_*) |
 | A-FIN-014 | P1  | Data present                 | Reports tab                     | Payload keys stable; GL export downloadable                                        |
-| A-FIN-015 | P1  | COD orders                   | COD queue                       | Matches `StripeCodService.list_collection_queue`                                   |
 | A-FIN-016 | P2  | Dupes seeded                 | Duplicates API reflected        | No silent merge                                                                    |
 | A-FIN-017 | P1  | Credit note write            | POST credit note with step-up   | Reduces outstanding; merchant portal credits tab updates                           |
 | A-FIN-018 | P0  | Role without finance         | Open `/finance`                 | 403 / module deny — no KPI leak                                                    |
@@ -262,24 +243,22 @@ GL export / collections / credit notes / COD queue / driver payouts
 
 ## 5. Merchant Billing UI (`M-BIL-*`)
 
-| ID        | P   | Tab / page           | Case                                                    |
-| --------- | --- | -------------------- | ------------------------------------------------------- |
-| M-BIL-001 | P0  | overview             | AR + remittance pack + headroom from `overview_payload` |
-| M-BIL-002 | P0  | invoices             | List; open `/billing/invoices/{id}`                     |
-| M-BIL-003 | P0  | invoice detail       | Line items; Pay now; PDF download                       |
-| M-BIL-004 | P0  | Pay outstanding      | Pays all open; amounts server-locked                    |
-| M-BIL-005 | P0  | IDOR                 | Merchant A token cannot GET B invoice/PDF               |
-| M-BIL-006 | P1  | statement (+detail)  | Totals ≡ one AR; CSV export                             |
-| M-BIL-007 | P1  | payments             | History matches Stripe settlements                      |
-| M-BIL-008 | P1  | credits              | Credit notes list; reduce outstanding                   |
-| M-BIL-009 | P1  | history / tax        | Tax summary cents ≡ invoice tax sum                     |
-| M-BIL-010 | P1  | rates                | Rate card read-only vs admin pricing                    |
-| M-BIL-011 | P1  | contacts             | AP contacts CRUD; remind uses them                      |
-| M-BIL-012 | P0  | COD                  | status / connect / enable; Checkout path unbroken       |
-| M-BIL-013 | P1  | CSV exports          | invoices/statement/history CSV ≡ GET                    |
-| M-BIL-014 | P1  | Sandbox orders       | Excluded from live AR (flag `is_sandbox`)               |
-| M-BIL-015 | P2  | Deep link `?tab=cod` | From admin merchant 360                                 |
-| M-BIL-016 | P0  | Auth                 | Clerk merchant org + `X-Merchant-Id` switcher           |
+| ID        | P   | Tab / page          | Case                                                    |
+| --------- | --- | ------------------- | ------------------------------------------------------- |
+| M-BIL-001 | P0  | overview            | AR + remittance pack + headroom from `overview_payload` |
+| M-BIL-002 | P0  | invoices            | List; open `/billing/invoices/{id}`                     |
+| M-BIL-003 | P0  | invoice detail      | Line items; Pay now; PDF download                       |
+| M-BIL-004 | P0  | Pay outstanding     | Pays all open; amounts server-locked                    |
+| M-BIL-005 | P0  | IDOR                | Merchant A token cannot GET B invoice/PDF               |
+| M-BIL-006 | P1  | statement (+detail) | Totals ≡ one AR; CSV export                             |
+| M-BIL-007 | P1  | payments            | History matches Stripe settlements                      |
+| M-BIL-008 | P1  | credits             | Credit notes list; reduce outstanding                   |
+| M-BIL-009 | P1  | history / tax       | Tax summary cents ≡ invoice tax sum                     |
+| M-BIL-010 | P1  | rates               | Rate card read-only vs admin pricing                    |
+| M-BIL-011 | P1  | contacts            | AP contacts CRUD; remind uses them                      |
+| M-BIL-013 | P1  | CSV exports         | invoices/statement/history CSV ≡ GET                    |
+| M-BIL-014 | P1  | Sandbox orders      | Excluded from live AR (flag `is_sandbox`)               |
+| M-BIL-016 | P0  | Auth                | Clerk merchant org + `X-Merchant-Id` switcher           |
 
 ---
 
@@ -289,7 +268,6 @@ GL export / collections / credit notes / COD queue / driver payouts
 | --------- | --- | ---------------------------------------------------------------------------------------------------------------------------- |
 | M-RPT-001 | P0  | `/reports` loads; tabs executive / delivery / invoices / claims / saved                                                      |
 | M-RPT-002 | P0  | Executive + overview + summary authz + schema                                                                                |
-| M-RPT-003 | P0  | Delivery performance after completed Fleetbase POD                                                                           |
 | M-RPT-004 | P0  | Invoices report aligns with Billing invoices totals                                                                          |
 | M-RPT-005 | P1  | Order volume / drivers / vehicles / destinations                                                                             |
 | M-RPT-006 | P1  | Claims + SLA history after claim lifecycle                                                                                   |
@@ -332,7 +310,6 @@ For **every** endpoint in `routers/admin/finance.py`, run the matrix:
 | API-AF-014 | P0  | `POST …/record-payment`              | Amount server-side; audit                                           |
 | API-AF-015 | P0  | `POST …/remind`                      | Notification + Mailpit                                              |
 | API-AF-016 | P1  | `GET /finance/summary`               | Subset of dashboard                                                 |
-| API-AF-017 | P1  | `GET /finance/cod`                   | COD queue                                                           |
 
 ---
 
@@ -345,7 +322,6 @@ Reuse census in [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_
 | API-MB-001 | P0  | Pay body cannot override `amount_cents` (intentional skip: client-supplied cents) |
 | API-MB-002 | P0  | PDF bytes / CSV cents ≡ GET detail                                                |
 | API-MB-003 | P0  | Remind requires billing module role                                               |
-| API-MB-004 | P1  | COD connect returns Stripe Connect URL; enable flips flag in merchant_engine      |
 | API-MB-005 | P1  | Contract + rate-card read paths                                                   |
 | API-MR-001 | P0  | All report GETs return merchant-scoped aggregates only                            |
 | API-MR-002 | P1  | Unknown `report_type` export → 4xx                                                |
@@ -394,7 +370,6 @@ Reuse census in [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_
 | ----------- | --- | ---------------------------------------------------------------- |
 | PAY-FIN-001 | P0  | Checkout webhook idempotent; invoice/payment consistent          |
 | PAY-FIN-002 | P0  | Signature fail → no ledger write                                 |
-| PAY-FIN-003 | P0  | COD Connect additive; prepaid Checkout still green               |
 | PAY-FIN-004 | P1  | Merchant Pay now → Stripe session → settle → `invoice.paid` path |
 | PAY-FIN-005 | P1  | Pay all outstanding                                              |
 | PAY-FIN-006 | P0  | Only `porterchain_services/stripe/sdk.py` imports stripe         |
@@ -424,7 +399,6 @@ Reuse census in [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_
 | MAP-FIN-001 | P0  | Priced invoice distance from Valhalla (OSRM fallback)                  |
 | MAP-FIN-002 | P0  | Google Maps down → Places UX degrades; **pricing/invoice still works** |
 | MAP-FIN-003 | P0  | **Anti-case:** Google Distance Matrix never used for invoice amount    |
-| VRM-FIN-001 | P1  | Optimize/commit (Fleetbase VROOM) → delivery → invoice path intact     |
 | VRM-FIN-002 | P0  | Diagnostics VROOM probe via orchestrator engines only                  |
 
 ---
@@ -536,7 +510,6 @@ Reuse census in [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_
 | DOC-FIN-004 | P1  | Redis restart: queued billing jobs recover                        |
 | DOC-FIN-005 | P1  | Postgres restart: no partial invoice without ledger               |
 | DOC-FIN-006 | P1  | Valhalla/OSRM pins exact tags; finance pricing still resolves     |
-| DOC-FIN-007 | P1  | VROOM pin present; used only via Fleetbase                        |
 | DOC-FIN-008 | P2  | Mailpit UI shows HTML pay link clickable                          |
 | DOC-FIN-009 | P0  | **Anti-case:** no `:latest` images in compose for money-path deps |
 
@@ -560,29 +533,25 @@ Reuse census in [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_
 
 Aligned with `e2e_validation_catalog.py`:
 
-| ID           | P   | Case                                                                                                                     |
-| ------------ | --- | ------------------------------------------------------------------------------------------------------------------------ |
-| DIAG-FIN-001 | P0  | Forward logistics steps include Invoice, Receipt, Reports Updated                                                        |
-| DIAG-FIN-002 | P0  | Merchant scenario: Billing Run → Invoice → Statement → Reports                                                           |
-| DIAG-FIN-003 | P1  | Consistency surfaces: `billing`, `finance`, `reports`                                                                    |
-| DIAG-FIN-004 | P1  | Failure scenarios: stripe_webhook_failure, firebase_failure, notification_failure, fleetbase_offline — invoice integrity |
-| DIAG-FIN-005 | P1  | E2E report files include billing/finance/notification sections                                                           |
-| DIAG-FIN-006 | P2  | Admin DiagnosticsTestCenter can download related reports                                                                 |
+| ID           | P   | Case                                                              |
+| ------------ | --- | ----------------------------------------------------------------- |
+| DIAG-FIN-001 | P0  | Forward logistics steps include Invoice, Receipt, Reports Updated |
+| DIAG-FIN-002 | P0  | Merchant scenario: Billing Run → Invoice → Statement → Reports    |
+| DIAG-FIN-003 | P1  | Consistency surfaces: `billing`, `finance`, `reports`             |
+| DIAG-FIN-005 | P1  | E2E report files include billing/finance/notification sections    |
+| DIAG-FIN-006 | P2  | Admin DiagnosticsTestCenter can download related reports          |
 
 ---
 
 ## 23. End-to-end handshakes (`HS-*`)
 
-| ID     | P   | Chain                                                                                                                      | Assert                                |
-| ------ | --- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| HS-001 | P0  | Website quote → Stripe → Order → Fleetbase dispatch → POD → Invoice → Mailpit → Admin Finance + Merchant Billing + Reports | One invoice; one AR; cents equal      |
-| HS-002 | P0  | Merchant CSV/bulk → optimize (Fleetbase VROOM) → deliver → billing run → statement                                         | Reports order-volume + invoices align |
-| HS-003 | P0  | Shopify carrier → book → channel on invoice → Pay → webhook                                                                | Quote≡Book≡invoice                    |
-| HS-004 | P1  | COD Connect enable → COD order → collections/COD queue → settle                                                            | Checkout prepaid unaffected           |
-| HS-005 | P1  | Claim/damage → credit note → reports claims + AR drop                                                                      |                                       |
-| HS-006 | P1  | Staff remind → Mailpit → customer pays → ledger + both portals                                                             |                                       |
-| HS-007 | P1  | Clerk re-auth mid-pay                                                                                                      | No double charge / double invoice     |
-| HS-008 | P2  | Google Places only on address entry during book; Valhalla prices; invoice uses priced amount                               |                                       |
+| ID     | P   | Chain                                                                                        | Assert                            |
+| ------ | --- | -------------------------------------------------------------------------------------------- | --------------------------------- |
+| HS-003 | P0  | Shopify carrier → book → channel on invoice → Pay → webhook                                  | Quote≡Book≡invoice                |
+| HS-005 | P1  | Claim/damage → credit note → reports claims + AR drop                                        |                                   |
+| HS-006 | P1  | Staff remind → Mailpit → customer pays → ledger + both portals                               |                                   |
+| HS-007 | P1  | Clerk re-auth mid-pay                                                                        | No double charge / double invoice |
+| HS-008 | P2  | Google Places only on address entry during book; Valhalla prices; invoice uses priced amount |                                   |
 
 ---
 
@@ -602,7 +571,6 @@ Aligned with `e2e_validation_catalog.py`:
 
 ## 25. Related
 
-- [ARCHITECTURE.md](../ARCHITECTURE.md) · [INTEGRATIONS.md](../INTEGRATIONS.md) · [FLEETBASE_MODULES.md](../FLEETBASE_MODULES.md)
 - [DEVELOPMENT_TEST_CASES_CATALOG.md](DEVELOPMENT_TEST_CASES_CATALOG.md) · [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md)
 - [SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md](SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md) · [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md)
 - [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md)

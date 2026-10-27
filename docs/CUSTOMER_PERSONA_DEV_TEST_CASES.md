@@ -31,7 +31,6 @@
 | `ENG-*`   | Engine/service unit                                     |
 | `AUTH-*`  | Clerk / onboarding / RBAC / IDOR                        |
 | `SPA-*`   | Valhalla / OSRM / Google Places (places only)           |
-| `FB-*`    | Fleetbase adapter handshake                             |
 | `PAY-*`   | Stripe Checkout / webhooks / invoices                   |
 | `NOTIF-*` | Inbox / FCM / email / Mailpit                           |
 | `INT-*`   | Shopify / ERP / website visitor handoff                 |
@@ -156,7 +155,6 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 | -------- | --- | --------------------------------------------------------------------------------------------- |
 | C-UI-050 | P0  | `/track` form navigates to `/track/{n}`                                                       |
 | C-UI-051 | P0  | Public `GET /v1/orders/{n}` renders state timeline without auth                               |
-| C-UI-052 | P0  | Live map/`GET .../tracking` updates driver position when Fleetbase/adapter provides it        |
 | C-UI-053 | P1  | Unknown tracking → empty/404 friendly state                                                   |
 | C-UI-054 | P1  | Authenticated owner sees same track; non-owner still limited to public snapshot (no PII leak) |
 
@@ -391,9 +389,7 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 | ------ | --- | -------------------------------------------------------------------------------------------------- |
 | FB-001 | P0  | After paid confirmation, order syncs via `services/fleetbase-adapter` (not direct PHP from portal) |
 | FB-002 | P0  | Tracking live feed reads adapter/Fleetbase ids; customer UI never imports SocketCluster            |
-| FB-003 | P1  | Fleetbase down: confirmation still records payment; sync retry/job observable                      |
 | FB-004 | P1  | Replay script / worker path for failed sync does not duplicate customer charge                     |
-| FB-005 | P2  | Diagnostics probe includes Fleetbase health relevant to retail track                               |
 | FB-006 | P0  | CI guard: no `fleetbase` HTTP from `apps/customer` / `apps/mobile-customer/src`                    |
 
 ---
@@ -492,21 +488,18 @@ Clerk (customer triad) · Stripe Checkout · Mailpit/email · notification inbox
 
 ## 17. Things you asked for that are in-scope vs adjacent
 
-| You listed                          | Customer persona relevance                                               |
-| ----------------------------------- | ------------------------------------------------------------------------ |
-| FastAPI endpoints                   | Yes — §4–6                                                               |
-| Microservices / adapters            | Fleetbase adapter, stripe service, driver-platform N/A for customer book |
-| Fleetbase                           | Post-pay sync + track — §10                                              |
-| Firebase / FCM                      | Inbox push — §12, mobile §14                                             |
-| Clerk                               | §8, UI auth                                                              |
-| VROOM                               | Out of customer quote path; assert absence — SPA-006                     |
-| Valhalla / OSRM                     | Quote distance — §9                                                      |
-| Google Maps                         | Places only — SPA-003 / C-UI-048                                         |
-| Email / notifications               | §12                                                                      |
-| UI/UX / pages                       | §2–3                                                                     |
-| Models / DB / Docker / architecture | §7, §15                                                                  |
-| Shopify / other ERP                 | Merchant/adjacent — §13; do not conflate with retail Customer 360        |
-| Handshakes                          | Quote≡Book, Checkout URLs, Fleetbase sync, visitor session — §6/10/11/13 |
+| You listed                          | Customer persona relevance                                        |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| FastAPI endpoints                   | Yes — §4–6                                                        |
+| Firebase / FCM                      | Inbox push — §12, mobile §14                                      |
+| Clerk                               | §8, UI auth                                                       |
+| VROOM                               | Out of customer quote path; assert absence — SPA-006              |
+| Valhalla / OSRM                     | Quote distance — §9                                               |
+| Google Maps                         | Places only — SPA-003 / C-UI-048                                  |
+| Email / notifications               | §12                                                               |
+| UI/UX / pages                       | §2–3                                                              |
+| Models / DB / Docker / architecture | §7, §15                                                           |
+| Shopify / other ERP                 | Merchant/adjacent — §13; do not conflate with retail Customer 360 |
 
 ### Gaps you did not list (added here)
 

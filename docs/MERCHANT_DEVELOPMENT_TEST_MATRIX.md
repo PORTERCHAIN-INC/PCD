@@ -130,12 +130,9 @@ Nav SSOT: `apps/merchant-portal/src/lib/merchant-nav.ts` (modules + jobs: owner/
 | MP-RTE-002c | P0  | contract  | anti-VROOM                    | Grep/CI: `merchant_engine` has no direct VROOM client import                                                                                      |
 | MP-RTE-003  | P1  | api       | mapping-profile               | Save/apply mapping profile across jobs                                                                                                            |
 | MP-RTE-004  | P1  | api       | stops patch                   | PATCH stop index corrects address + re-geocode                                                                                                    |
-| MP-RTE-005  | P2  | chaos     | Valhalla down                 | Quote/distance falls back to OSRM or fails clearly labeled; optimize enqueue still may hit Fleetbase when bridge on                               |
 | MP-RTE-006  | P1  | api       | job status                    | GET route job reflects queued → ready/failed; confirm only when unconfirmed                                                                       |
-| MP-RTE-007  | P1  | handshake | Fleetbase sync                | Confirm creates/updates Fleetbase stops via sync/retry queue                                                                                      |
 | MP-ORD-001  | P0  | e2e       | /orders                       | List/filter/search; open Order 360                                                                                                                |
 | MP-ORD-002  | P0  | api       | orders 360                    | GET /orders/{id}/360 returns timeline + pricing + tracking                                                                                        |
-| MP-ORD-003  | P0  | api       | cancel                        | Cancel respects cancel_policy; Fleetbase notified                                                                                                 |
 | MP-ORD-004  | P1  | api       | parcels                       | PATCH parcels amend before dispatch lock                                                                                                          |
 | MP-ORD-005  | P1  | api       | labels/pod                    | PDF labels, POD zip, print-preview, compliance dossier                                                                                            |
 | MP-ORD-006  | P1  | api       | duplicate                     | Duplicate order creates new draft/booking                                                                                                         |
@@ -147,7 +144,6 @@ Nav SSOT: `apps/merchant-portal/src/lib/merchant-nav.ts` (modules + jobs: owner/
 | MP-HLP-002  | P1  | api       | claims                        | POST/GET claims; status transitions                                                                                                               |
 | MP-BIL-001  | P0  | e2e       | /billing                      | Overview, invoices, statement, exports                                                                                                            |
 | MP-BIL-002  | P0  | api       | invoices pdf                  | GET invoice PDF; remind AP contact                                                                                                                |
-| MP-BIL-003  | P0  | api       | COD                           | COD connect/enable gated; Checkout path untouched                                                                                                 |
 | MP-BIL-004  | P1  | api       | credit-notes                  | List credit notes; export CSVs                                                                                                                    |
 | MP-BIL-005  | P1  | e2e       | invoice detail                | /billing/invoices/[id] renders line items                                                                                                         |
 | MP-RPT-001  | P0  | e2e       | /reports                      | Overview + export csv/xlsx for each report_type                                                                                                   |
@@ -205,7 +201,6 @@ Files: `apps/admin/src/app/(ops)/merchants/page.tsx`, `[id]/page.tsx`, `componen
 | AD-360-008  | P0  | e2e      | tab=people contacts/locations | Contacts + locations panels; Google Places for address          |
 | AD-360-009  | P1  | e2e      | tab=people activity           | Timeline / activities / tasks                                   |
 | AD-360-010  | P0  | e2e      | tab=api                       | API keys/webhooks mirror merchant integrations                  |
-| AD-360-011  | P0  | e2e      | tab=settings                  | Tax, privacy card, COD, standing orders, billing contacts       |
 | AD-LF-001   | P0  | api      | approve/suspend/close/reopen  | Lifecycle transitions audit-logged; booking gates update        |
 | AD-LF-002   | P0  | api      | complete-onboarding           | Marks onboarding complete; portal unlock                        |
 | AD-LF-003   | P0  | api      | convert-to-customer           | Conversion path; no DELETE                                      |
@@ -238,9 +233,6 @@ For **each** path below generate at minimum: happy path, 401/403, validation 422
 | API-MP-004 | GET,POST     | `/v1/merchant/api-keys`                                             | happy+idempotency+authz |
 | API-MP-005 | DELETE       | `/v1/merchant/api-keys/{key_id}`                                    | happy+idempotency+authz |
 | API-MP-006 | GET          | `/v1/merchant/audit-logs`                                           | authz+schema            |
-| API-MP-007 | GET          | `/v1/merchant/billing/cod`                                          | happy+idempotency+authz |
-| API-MP-008 | POST         | `/v1/merchant/billing/cod/connect`                                  | happy+idempotency+authz |
-| API-MP-009 | POST         | `/v1/merchant/billing/cod/enable`                                   | happy+idempotency+authz |
 | API-MP-010 | GET          | `/v1/merchant/billing/contract`                                     | happy+idempotency+authz |
 | API-MP-011 | GET          | `/v1/merchant/billing/credit-notes`                                 | happy+idempotency+authz |
 | API-MP-012 | GET          | `/v1/merchant/billing/export/history.csv`                           | happy+idempotency+authz |
@@ -472,57 +464,53 @@ For **each** path below generate at minimum: happy path, 401/403, validation 422
 
 ## 5. Handshake / integration suites
 
-| ID             | P   | Systems               | Assert                                                                                    |
-| -------------- | --- | --------------------- | ----------------------------------------------------------------------------------------- |
-| HS-CLERK-001   | P0  | Clerk ↔ API ↔ portal  | JWKS verify; wrong portal secret rejected; dev bypass only when flags on                  |
-| HS-CLERK-002   | P0  | Clerk org             | Org membership maps to MerchantUser; removed seat loses access                            |
-| HS-FB-001      | P0  | FleetbaseAdapter      | Booking sync creates/updates Fleetbase order; RetryQueue drains                           |
-| HS-FB-002      | P0  | merchant_sync_service | Merchant profile fields mirrored per Fleetbase-first policy                               |
-| HS-FB-003      | P1  | VROOM via Fleetbase   | Multi-stop optimize for dispatch stays in adapter — portal optimize uses MapsService only |
-| HS-VAL-001     | P0  | Valhalla :8002        | Booking preview distance/duration from Valhalla within GTA extract                        |
-| HS-OSRM-001    | P0  | OSRM :5000            | With Valhalla stopped, preview still quotes via OSRM or explicit failure                  |
-| HS-MAP-001     | P0  | Google Places/tiles   | Autocomplete works; assert no Distance Matrix calls in network log                        |
-| HS-STRIPE-001  | P0  | Stripe Checkout       | Invoice/pay retail path unchanged                                                         |
-| HS-STRIPE-002  | P0  | Connect COD           | Enable/connect; COD order settlement policy in billing_engine                             |
-| HS-FCM-001     | P0  | Firebase FCM          | Token register; notification_engine delivers; unregister                                  |
-| HS-MAIL-001    | P0  | Mailpit               | Onboarding, invoice remind, tracking-email, seat invite land in Mailpit                   |
-| HS-REDIS-001   | P1  | Redis                 | Webhook delivery / rate-limit counters; worker event bus                                  |
-| HS-PG-001      | P0  | Postgres 18           | Migrations apply; FKs from integrity migration hold                                       |
-| HS-SHOP-001    | P0  | Shopify               | Install, webhook, carrier rates, cancel book loop                                         |
-| HS-ERP-001     | P1  | NetSuite              | Connect/sync failure surfaces; secrets not logged                                         |
-| HS-ERP-002     | P2  | Zapier/OAuth          | Template list; OAuth client secret once                                                   |
-| HS-WH-001      | P0  | Outbound webhooks     | Signed delivery; retry sweeper; admin diagnostics                                         |
-| HS-EVT-001     | P1  | EventBus/worker       | Merchant domain events consumed with idempotent handlers                                  |
-| HS-SPICEDB-001 | P1  | SpiceDB               | require_module checks; no cached allow                                                    |
+| ID             | P   | Systems               | Assert                                                                   |
+| -------------- | --- | --------------------- | ------------------------------------------------------------------------ |
+| HS-CLERK-001   | P0  | Clerk ↔ API ↔ portal  | JWKS verify; wrong portal secret rejected; dev bypass only when flags on |
+| HS-CLERK-002   | P0  | Clerk org             | Org membership maps to MerchantUser; removed seat loses access           |
+| HS-FB-001      | P0  | FleetbaseAdapter      | Booking sync creates/updates Fleetbase order; RetryQueue drains          |
+| HS-FB-002      | P0  | merchant_sync_service | Merchant profile fields mirrored per Fleetbase-first policy              |
+| HS-VAL-001     | P0  | Valhalla :8002        | Booking preview distance/duration from Valhalla within GTA extract       |
+| HS-OSRM-001    | P0  | OSRM :5000            | With Valhalla stopped, preview still quotes via OSRM or explicit failure |
+| HS-MAP-001     | P0  | Google Places/tiles   | Autocomplete works; assert no Distance Matrix calls in network log       |
+| HS-STRIPE-001  | P0  | Stripe Checkout       | Invoice/pay retail path unchanged                                        |
+| HS-FCM-001     | P0  | Firebase FCM          | Token register; notification_engine delivers; unregister                 |
+| HS-MAIL-001    | P0  | Mailpit               | Onboarding, invoice remind, tracking-email, seat invite land in Mailpit  |
+| HS-REDIS-001   | P1  | Redis                 | Webhook delivery / rate-limit counters; worker event bus                 |
+| HS-PG-001      | P0  | Postgres 18           | Migrations apply; FKs from integrity migration hold                      |
+| HS-SHOP-001    | P0  | Shopify               | Install, webhook, carrier rates, cancel book loop                        |
+| HS-ERP-001     | P1  | NetSuite              | Connect/sync failure surfaces; secrets not logged                        |
+| HS-ERP-002     | P2  | Zapier/OAuth          | Template list; OAuth client secret once                                  |
+| HS-WH-001      | P0  | Outbound webhooks     | Signed delivery; retry sweeper; admin diagnostics                        |
+| HS-EVT-001     | P1  | EventBus/worker       | Merchant domain events consumed with idempotent handlers                 |
+| HS-SPICEDB-001 | P1  | SpiceDB               | require_module checks; no cached allow                                   |
 
 ---
 
 ## 6. Models / DB / Docker / microservices
 
-| ID         | P   | Kind      | Target                      | Assert                                                                          |
-| ---------- | --- | --------- | --------------------------- | ------------------------------------------------------------------------------- |
-| DB-ORM-001 | P1  | unit      | `Merchant`                  | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-002 | P1  | unit      | `MerchantUser`              | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-003 | P1  | unit      | `SavedAddress`              | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-004 | P1  | unit      | `MerchantRecipient`         | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-005 | P1  | unit      | `MerchantApiKey`            | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-006 | P1  | unit      | `MerchantWebhook`           | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-007 | P1  | unit      | `MerchantApiUsageLog`       | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-008 | P1  | unit      | `MerchantWebhookDelivery`   | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-009 | P1  | unit      | `BulkImportJob`             | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-010 | P1  | unit      | `MerchantAuditLog`          | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-011 | P1  | unit      | `MerchantBookingTemplate`   | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-012 | P1  | unit      | `StandingOrder`             | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-013 | P1  | unit      | `ShopifyShop`               | Constraints, nullability, cascade, status enums                                 |
-| DB-ORM-014 | P1  | unit      | `ShopifyRateQuote`          | Constraints, nullability, cascade, status enums                                 |
-| DB-ISO-001 | P0  | api       | tenant                      | Merchant A cannot read Merchant B orders/keys/invoices                          |
-| DB-AUD-001 | P1  | api       | MerchantAuditLog            | Sensitive admin/portal mutations append audit                                   |
-| DX-DOC-001 | P0  | handshake | compose                     | api:8001, valhalla:8002, osrm:5000, postgres, redis, mailpit, fleetbase healthy |
-| DX-DOC-002 | P0  | contract  | image pins                  | No `:latest` for merchant-critical services                                     |
-| DX-WRK-001 | P0  | handshake | worker                      | Shopify/webhook/Fleetbase retry jobs process                                    |
-| DX-ENV-001 | P0  | contract  | clerk sync                  | `pnpm clerk:sync` populates merchant portal + API                               |
-| MS-GW-001  | P1  | contract  | gateway_engine/merchant_api | Registry routes merchant-api consistently                                       |
-| MS-MAP-001 | P0  | unit      | MapsService                 | Public methods only; no engine `_valhalla_*` calls                              |
+| ID         | P   | Kind     | Target                      | Assert                                                 |
+| ---------- | --- | -------- | --------------------------- | ------------------------------------------------------ |
+| DB-ORM-001 | P1  | unit     | `Merchant`                  | Constraints, nullability, cascade, status enums        |
+| DB-ORM-002 | P1  | unit     | `MerchantUser`              | Constraints, nullability, cascade, status enums        |
+| DB-ORM-003 | P1  | unit     | `SavedAddress`              | Constraints, nullability, cascade, status enums        |
+| DB-ORM-004 | P1  | unit     | `MerchantRecipient`         | Constraints, nullability, cascade, status enums        |
+| DB-ORM-005 | P1  | unit     | `MerchantApiKey`            | Constraints, nullability, cascade, status enums        |
+| DB-ORM-006 | P1  | unit     | `MerchantWebhook`           | Constraints, nullability, cascade, status enums        |
+| DB-ORM-007 | P1  | unit     | `MerchantApiUsageLog`       | Constraints, nullability, cascade, status enums        |
+| DB-ORM-008 | P1  | unit     | `MerchantWebhookDelivery`   | Constraints, nullability, cascade, status enums        |
+| DB-ORM-009 | P1  | unit     | `BulkImportJob`             | Constraints, nullability, cascade, status enums        |
+| DB-ORM-010 | P1  | unit     | `MerchantAuditLog`          | Constraints, nullability, cascade, status enums        |
+| DB-ORM-011 | P1  | unit     | `MerchantBookingTemplate`   | Constraints, nullability, cascade, status enums        |
+| DB-ORM-012 | P1  | unit     | `StandingOrder`             | Constraints, nullability, cascade, status enums        |
+| DB-ORM-013 | P1  | unit     | `ShopifyShop`               | Constraints, nullability, cascade, status enums        |
+| DB-ORM-014 | P1  | unit     | `ShopifyRateQuote`          | Constraints, nullability, cascade, status enums        |
+| DB-ISO-001 | P0  | api      | tenant                      | Merchant A cannot read Merchant B orders/keys/invoices |
+| DB-AUD-001 | P1  | api      | MerchantAuditLog            | Sensitive admin/portal mutations append audit          |
+| DX-DOC-002 | P0  | contract | image pins                  | No `:latest` for merchant-critical services            |
+| DX-ENV-001 | P0  | contract | clerk sync                  | `pnpm clerk:sync` populates merchant portal + API      |
+| MS-GW-001  | P1  | contract | gateway_engine/merchant_api | Registry routes merchant-api consistently              |
+| MS-MAP-001 | P0  | unit     | MapsService                 | Public methods only; no engine `_valhalla_*` calls     |
 
 ---
 
@@ -544,7 +532,6 @@ For **each** path below generate at minimum: happy path, 401/403, validation 422
 | SVC-012 | P1  | `reports_service`                        | report payloads                      |
 | SVC-013 | P1  | `parcel_amend_service`                   | amend gates                          |
 | SVC-014 | P1  | `webhook_delivery_service`               | retry/signing                        |
-| SVC-015 | P1  | `fleetbase_engine.merchant_sync_service` | sync fields                          |
 | SVC-016 | P1  | `admin merchant_lifecycle`               | approve/suspend/close                |
 | SVC-017 | P1  | `admin merchant_org`                     | admin_merchant_context               |
 | SVC-018 | P1  | `admin merchant360_service/board`        | detail/metrics payloads              |
@@ -598,8 +585,6 @@ pnpm test:merchant-p0        # both
 1. **P0 contract pack** — NEG-ARCH-* (`test_merchant_matrix_p0_arch.py`) + handshake pack (`tests/merchant_p0/test_p0_handshakes.py`) — **landed**.
 2. **P0 handshake pack** — MapsService Valhalla→OSRM labels, Clerk merchant triad, thin Shopify/booking routers — **landed**.
 3. **P0 e2e pack** — Playwright skeletons for owner/dispatcher/accounting/viewer + admin AD-* merchant tabs — **stubs landed**; fill asserts with `MERCHANT_E2E_LIVE=1`.
-4. **P1 fill gaps** — NetSuite/Zapier/OAuth, reports scheduled, privacy erasure, COD Connect.
-5. **P2/P3** — chaos (Valhalla down, Fleetbase 500, Redis flush), a11y, soak webhook retries.
 
 Do not blindly re-implement the 34 existing `test_merchant_*` files — extend via registry `covers` links.
 ---

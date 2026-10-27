@@ -34,19 +34,18 @@
 
 ### Prefixes
 
-| Prefix        | Layer                                        |
-| ------------- | -------------------------------------------- |
-| `AUTH-D-*`    | Clerk driver / admin RBAC `drivers`          |
-| `UI-D-*`      | Driver web pages                             |
-| `UI-A-DRV-*`  | Admin drivers list + 360 tabs                |
-| `API-D-*`     | `/driver-api/v1/*`                           |
-| `API-A-DRV-*` | `/v1/admin/drivers*`                         |
-| `FB-D-*`      | Fleetbase push_driver / GPS SoT / assignment |
-| `MAP-D-*`     | Nav Valhalla→OSRM; no Google routing         |
-| `NOTIF-D-*`   | FCM register + assignment push               |
-| `DB-D-*`      | `driver_models` / Driver ORM                 |
-| `MOB-D-*`     | Expo shells + Maestro                        |
-| `ARCH-D-*`    | Negatives / intentional skips                |
+| Prefix        | Layer                                |
+| ------------- | ------------------------------------ |
+| `AUTH-D-*`    | Clerk driver / admin RBAC `drivers`  |
+| `UI-D-*`      | Driver web pages                     |
+| `UI-A-DRV-*`  | Admin drivers list + 360 tabs        |
+| `API-D-*`     | `/driver-api/v1/*`                   |
+| `API-A-DRV-*` | `/v1/admin/drivers*`                 |
+| `MAP-D-*`     | Nav Valhalla→OSRM; no Google routing |
+| `NOTIF-D-*`   | FCM register + assignment push       |
+| `DB-D-*`      | `driver_models` / Driver ORM         |
+| `MOB-D-*`     | Expo shells + Maestro                |
+| `ARCH-D-*`    | Negatives / intentional skips        |
 
 **Priority:** P0 ship-blocker · P1 trust/money/execution · P2 polish · P3 intentional depth.
 
@@ -55,13 +54,10 @@
 ## P0 implementation order (gaps first)
 
 1. **Auth** — Clerk bind (`get_driver_context`), admin RBAC module `drivers`, invite + Mailpit, dev-login prod gate.
-2. **Admin lifecycle** — create/approve/suspend/reject/rehire + Fleetbase `push_driver`/`push_vehicle`.
-3. **Driver jobs** — accept/reject/arrive/deliver/scan/COD + `require_assigned_order`.
-4. **Navigation/POD/offline** — Valhalla→OSRM; POD; offline queue; no Google Distance Matrix.
-5. **GPS + FCM** — location → Fleetbase SoT; `POST /push/register`; assignment fanout.
-6. **Portal/admin UI Playwright** — AccessGate; list/bulk; SettingsTab.
-7. **Mobile Maestro** — `login-and-track`, `scan-offline`, `pod-capture`, `deeplink-job`.
-8. **CI gates** — model ownership, thin routers, D2, no ops spatial math, compose pins.
+2. **Navigation/POD/offline** — Valhalla→OSRM; POD; offline queue; no Google Distance Matrix.
+3. **Portal/admin UI Playwright** — AccessGate; list/bulk; SettingsTab.
+4. **Mobile Maestro** — `login-and-track`, `scan-offline`, `pod-capture`, `deeplink-job`.
+5. **CI gates** — model ownership, thin routers, D2, no ops spatial math, compose pins.
 
 ---
 
@@ -81,21 +77,20 @@
 
 ## Driver web UI — `UI-D-*` (every page smoke)
 
-| ID       | P   | Route                                         | Assert                                         |
-| -------- | --- | --------------------------------------------- | ---------------------------------------------- |
-| UI-D-001 | P0  | `/login`                                      | Clerk sign-in renders; no Fleetbase URL        |
-| UI-D-002 | P0  | `/onboarding`                                 | Gates incomplete docs; cannot reach jobs       |
-| UI-D-003 | P0  | `/dashboard`                                  | Shift/job summary from API only                |
-| UI-D-004 | P0  | `/jobs`                                       | Assigned-only list; empty state honest         |
-| UI-D-005 | P0  | `/jobs/[orderId]`                             | Accept/reject/arrive/deliver; COD CTA when due |
-| UI-D-006 | P0  | `/navigation`                                 | Polyline via MapsService; Places tiles OK      |
-| UI-D-007 | P1  | `/stops`                                      | Sequence matches applied optimize              |
-| UI-D-008 | P1  | `/shift`                                      | Clock in/out; offline flag                     |
-| UI-D-009 | P1  | `/documents`                                  | Upload helper; verification badges             |
-| UI-D-010 | P1  | `/vehicle` · `/insurance`                     | Expiry surfaces; revoke on lapse               |
-| UI-D-011 | P1  | `/wallet` · `/earnings` · `/performance`      | Ledger read-only; no invent payouts            |
-| UI-D-012 | P1  | `/communications` · `/support` · `/emergency` | Inbox + SOS risk path only                     |
-| UI-D-013 | P2  | `/profile` · `/training`                      | Profile bind; training optional                |
+| ID       | P   | Route                                         | Assert                                    |
+| -------- | --- | --------------------------------------------- | ----------------------------------------- |
+| UI-D-001 | P0  | `/login`                                      | Clerk sign-in renders; no Fleetbase URL   |
+| UI-D-002 | P0  | `/onboarding`                                 | Gates incomplete docs; cannot reach jobs  |
+| UI-D-003 | P0  | `/dashboard`                                  | Shift/job summary from API only           |
+| UI-D-004 | P0  | `/jobs`                                       | Assigned-only list; empty state honest    |
+| UI-D-006 | P0  | `/navigation`                                 | Polyline via MapsService; Places tiles OK |
+| UI-D-007 | P1  | `/stops`                                      | Sequence matches applied optimize         |
+| UI-D-008 | P1  | `/shift`                                      | Clock in/out; offline flag                |
+| UI-D-009 | P1  | `/documents`                                  | Upload helper; verification badges        |
+| UI-D-010 | P1  | `/vehicle` · `/insurance`                     | Expiry surfaces; revoke on lapse          |
+| UI-D-011 | P1  | `/wallet` · `/earnings` · `/performance`      | Ledger read-only; no invent payouts       |
+| UI-D-012 | P1  | `/communications` · `/support` · `/emergency` | Inbox + SOS risk path only                |
+| UI-D-013 | P2  | `/profile` · `/training`                      | Profile bind; training optional           |
 
 ---
 
@@ -104,7 +99,6 @@
 | ID           | P   | Case                                                  | Expected                                              |
 | ------------ | --- | ----------------------------------------------------- | ----------------------------------------------------- |
 | UI-A-DRV-001 | P0  | `/drivers` list                                       | Search/filter/status; no SocketCluster                |
-| UI-A-DRV-002 | P0  | Create driver                                         | Invite + Mailpit; Fleetbase push on approve           |
 | UI-A-DRV-003 | P0  | Approve / suspend / reject / rehire                   | Human `DriverStatus` only                             |
 | UI-A-DRV-004 | P0  | 360 `overview`                                        | Next actions heuristic — not fake AI SKU              |
 | UI-A-DRV-005 | P0  | 360 `identity`                                        | Stripe Identity / Checkr / abstract **source badges** |
@@ -112,7 +106,6 @@
 | UI-A-DRV-007 | P1  | 360 `orders` / `performance` / `wallet`               | Scoped reads                                          |
 | UI-A-DRV-008 | P1  | 360 `incidents` / `activities` / `tasks` / `timeline` | Audit trail                                           |
 | UI-A-DRV-009 | P2  | 360 `analytics` / `settings`                          | Feature flags env-only (no live DRIVER_* UI toggle)   |
-| UI-A-DRV-010 | P0  | AssignDriverModal from Operations                     | CT assign → Fleetbase assignment push                 |
 
 ---
 
@@ -166,7 +159,6 @@
 | -------- | --- | --------------------------------------------------------- | ---------------------------------- |
 | DB-D-001 | P0  | `Driver` / `Vehicle` (`admin_models`)                     | Writes via owning engine allowlist |
 | DB-D-002 | P0  | `driver_models` (wallet, shift, docs, offline, incidents) | Ownership guard green              |
-| DB-D-003 | P1  | `FleetbaseSyncJob` on driver push fail                    | RetryQueue row                     |
 | DB-D-004 | P1  | Alembic integrity FKs                                     | Migrate head; smoke                |
 
 ---
@@ -228,7 +220,6 @@ Full Expo matrix (screens, `api.ts` ops, Fleetbase/Valhalla/OSRM/VROOM/FCM/Clerk
 | Identity / Checkr / abstract / expiry | `test_driver_identity_verification.py`, `test_driver_background_check.py`, `test_driver_abstract_and_expiry.py`, `test_driver_verification_sources.py` |
 | GPS ingest                            | `test_gps_ingest_wave01.py`, `test_gps_ingest_wave3.py`                                                                                                |
 | Driver360 service                     | `test_service_coverage_batch3.py`, `test_extended_service_coverage.py`, `test_wave4_batch_g.py`                                                        |
-| Approve → Fleetbase                   | `test_approve_driver_pushes_fleetbase_*` in `test_wave2_customers.py`                                                                                  |
 | Arch CI                               | `verify_model_ownership`, thin-router LOC, D2, `verify_no_ops_spatial_math`                                                                            |
 
 ---

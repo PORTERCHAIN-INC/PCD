@@ -16,7 +16,6 @@ flowchart TD
   CF --> DR[transition_to_dispatch_ready<br/>DISPATCH_READY]
   DR --> EV2[order.dispatch_ready]
   EV2 --> FB[BookingSyncService.push_order<br/>via event bus handler]
-  FB --> DISP[Fleetbase Dispatch]
   DISP --> DEL[Webhook status updates<br/>WebhookProcessor]
   DEL --> POD[POD_COMPLETED]
   POD --> INV[INVOICED / order.invoiced]

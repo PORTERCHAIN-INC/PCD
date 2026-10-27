@@ -13,25 +13,21 @@
 
 **Sensor note:** This file’s first pass was **Graphify only**. When implementing cases, use CodeGraph then Ripwire (never all three in one session):
 
-| Moment | Tool                                       | Use for                                                                                                    |
-| ------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| B      | CodeGraph `explore`                        | Pydantic/ORM: `FleetbaseSyncJob`, `Order`, MapsService, Valhalla costing, webhook / FCM payloads           |
-| C      | Ripwire `--for` / `--callers` / `--impact` | Thin routers, `fleetbase-adapter`, Clerk/Stripe/Shopify, portal `lib/*`, `web-push`, mobile `handshake.ts` |
+| Moment | Tool | Use for |
+| ------ | ---- | ------- |
 
 **Existing coverage seed (expand; do not duplicate):**
 
-| Area                    | Seed tests / probes                                                                                                                                       |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fleetbase adapter       | `services/fleetbase-adapter/tests/*`, `apps/api/tests/test_fleetbase_adapter_contract.py`                                                                 |
-| Sync / retry / webhooks | `test_fleetbase_webhook_retry.py`, `test_retry_queue_phase1.py`, `test_fleetbase_sync_health.py`, `test_status_translator.py`, `test_gps_ingest_wave*.py` |
-| Shopify handshakes      | `test_shopify_carrier_pricing_handshake.py`, `test_shopify_*.py`                                                                                          |
-| Clerk / identity        | `test_clerk_registry.py`, `test_auth_*.py`, `test_unified_identity_phase*.py`                                                                             |
-| Stripe                  | `test_stripe_*.py`                                                                                                                                        |
-| Notifications / FCM     | `test_notification_*.py`, `test_zeptomail_https_delivery.py`                                                                                              |
-| ERP                     | `test_netsuite_zapier.py`, `test_merchant_integrations.py`                                                                                                |
-| Spatial                 | `services/python/tests/test_valhalla_costing.py`, `test_routing.py`, `test_offline_optimize_route.py`, `test_orchestrator_ops.py`                         |
-| Live probes             | Admin `/system?tab=tests` (+ aliases `/system-tests`, `/system-health` → `/system`) + `diagnostics_*` (`TEST_CATALOG` ids)                                |
-| Architecture gates      | `pnpm validate:architecture`, `validate:golden-rules`, `validate:d2`, `validate:p0`, `validate:e2e`                                                       |
+| Area                | Seed tests / probes                                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Shopify handshakes  | `test_shopify_carrier_pricing_handshake.py`, `test_shopify_*.py`                                                                  |
+| Clerk / identity    | `test_clerk_registry.py`, `test_auth_*.py`, `test_unified_identity_phase*.py`                                                     |
+| Stripe              | `test_stripe_*.py`                                                                                                                |
+| Notifications / FCM | `test_notification_*.py`, `test_zeptomail_https_delivery.py`                                                                      |
+| ERP                 | `test_netsuite_zapier.py`, `test_merchant_integrations.py`                                                                        |
+| Spatial             | `services/python/tests/test_valhalla_costing.py`, `test_routing.py`, `test_offline_optimize_route.py`, `test_orchestrator_ops.py` |
+| Live probes         | Admin `/system?tab=tests` (+ aliases `/system-tests`, `/system-health` → `/system`) + `diagnostics_*` (`TEST_CATALOG` ids)        |
+| Architecture gates  | `pnpm validate:architecture`, `validate:golden-rules`, `validate:d2`, `validate:p0`, `validate:e2e`                               |
 
 **Charter gate:** Prefer cases that protect **network execution integrity** (Fleetbase handshakes), **money**, **identity**, **capacity utilization**, and **fail-closed degrade**. Skip Phase 2 / Future Fleetbase modules unless flagged on.
 
@@ -39,29 +35,25 @@
 
 ## 0. ID scheme & layers
 
-| Prefix     | Layer                                                                                                                                                            |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `FB-HS-*`  | Fleetbase connection / auth / circuit / handshake                                                                                                                |
-| `FB-AD-*`  | Adapter modules (`client`, `orders`, `drivers`, `vehicles`, `dispatch`, `pod`, `tracking`, `orchestrator`, `zones`, `routes`, `manifests`, `webhooks`, `events`) |
-| `FB-ENG-*` | `fleetbase_engine` (BookingSync, WebhookProcessor, RetryQueue, StatusTranslator, TrackingFacade, IntegrationBridge)                                              |
-| `FB-UI-*`  | Admin / merchant / driver surfaces that **must not** call Fleetbase HTTP                                                                                         |
-| `SPA-*`    | Valhalla / OSRM / MapsService / Google Places+tiles only                                                                                                         |
-| `VR-*`     | VROOM via Fleetbase orchestrator only (never PC HTTP client)                                                                                                     |
-| `AUTH-*`   | Clerk / Staff IdP / SpiceDB / RBAC / IDOR                                                                                                                        |
-| `PAY-*`    | Stripe Checkout / COD Connect / webhooks                                                                                                                         |
-| `NOTIF-*`  | FCM / email / Mailpit / ZeptoMail / notification_engine                                                                                                          |
-| `SH-*`     | Shopify OAuth / CarrierService / webhooks / Quote≡Book                                                                                                           |
-| `ERP-*`    | NetSuite / Zapier / `ErpFulfillmentAdapter` / merchant API keys                                                                                                  |
-| `API-*`    | FastAPI routers / OpenAPI census / persona prefixes                                                                                                              |
-| `WRK-*`    | Worker processors / EventBus / queue drain                                                                                                                       |
-| `DB-*`     | Postgres / Alembic / FleetbaseSyncJob / models                                                                                                                   |
-| `DOC-*`    | Docker / compose pins / ports / Valkey / Mailpit                                                                                                                 |
-| `ARCH-*`   | Architecture contracts / D2 / vendor leaves / no SocketCluster in web                                                                                            |
-| `A-UI-*`   | Admin portal pages / subpages                                                                                                                                    |
-| `M-UI-*`   | Merchant portal pages / subpages                                                                                                                                 |
-| `D-UI-*`   | Driver web BFF + mobile handshake                                                                                                                                |
-| `DIAG-*`   | Diagnostics catalog probes (`TEST_CATALOG` ids)                                                                                                                  |
-| `E2E-*`    | Local loop / nightly e2e / portal smoke                                                                                                                          |
+| Prefix    | Layer                                                                                                                                                            |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FB-AD-*` | Adapter modules (`client`, `orders`, `drivers`, `vehicles`, `dispatch`, `pod`, `tracking`, `orchestrator`, `zones`, `routes`, `manifests`, `webhooks`, `events`) |
+| `FB-UI-*` | Admin / merchant / driver surfaces that **must not** call Fleetbase HTTP                                                                                         |
+| `SPA-*`   | Valhalla / OSRM / MapsService / Google Places+tiles only                                                                                                         |
+| `VR-*`    | VROOM via Fleetbase orchestrator only (never PC HTTP client)                                                                                                     |
+| `AUTH-*`  | Clerk / Staff IdP / SpiceDB / RBAC / IDOR                                                                                                                        |
+| `NOTIF-*` | FCM / email / Mailpit / ZeptoMail / notification_engine                                                                                                          |
+| `SH-*`    | Shopify OAuth / CarrierService / webhooks / Quote≡Book                                                                                                           |
+| `ERP-*`   | NetSuite / Zapier / `ErpFulfillmentAdapter` / merchant API keys                                                                                                  |
+| `API-*`   | FastAPI routers / OpenAPI census / persona prefixes                                                                                                              |
+| `WRK-*`   | Worker processors / EventBus / queue drain                                                                                                                       |
+| `DOC-*`   | Docker / compose pins / ports / Valkey / Mailpit                                                                                                                 |
+| `ARCH-*`  | Architecture contracts / D2 / vendor leaves / no SocketCluster in web                                                                                            |
+| `A-UI-*`  | Admin portal pages / subpages                                                                                                                                    |
+| `M-UI-*`  | Merchant portal pages / subpages                                                                                                                                 |
+| `D-UI-*`  | Driver web BFF + mobile handshake                                                                                                                                |
+| `DIAG-*`  | Diagnostics catalog probes (`TEST_CATALOG` ids)                                                                                                                  |
+| `E2E-*`   | Local loop / nightly e2e / portal smoke                                                                                                                          |
 
 **Priority:** P0 = ship-blocker handshake · P1 = money/trust/execution · P2 = regression/polish · P3 = parked / intentional-skip verification only.
 
@@ -88,65 +80,52 @@ Each case: **ID · P · Precondition → Steps → Expected · Tags · Seed**.
 
 ### 2.1 Config / client / circuit
 
-| ID        | P   | Case                                                       | Expected                                                                                                                                              | Seed                                                           |
-| --------- | --- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| FB-HS-001 | P0  | `FLEETBASE_API_KEY` + base URL configured in local compose | Adapter constructs `FleetbaseClient`; probe `fleetbase` / `fleetbase_adapter` green when live                                                         | `_probe_fleetbase*`                                            |
-| FB-HS-002 | P0  | Missing key → `FleetbaseNotConfiguredError`                | Fail closed; sync jobs enqueue retry, UI shows degrade — no silent success                                                                            | adapter `exceptions.py`                                        |
-| FB-HS-003 | P0  | Timeout / 5xx opens circuit breaker                        | `FleetbaseCircuitOpenError`; subsequent calls short-circuit until cool-down                                                                           | `test_client_timeout_breaker.py`                               |
-| FB-HS-004 | P0  | Retry policy respects idempotent methods                   | Safe retries on GET; mutating ops use RetryQueue LWW / job id                                                                                         | `retry.py`, `test_retry_queue_phase1.py`                       |
-| FB-HS-005 | P1  | Adapter contract version stable                            | `adapter_module_version()` / contract tests pin public surface                                                                                        | `test_contract.py`, `test_fleetbase_adapter_contract.py`       |
-| FB-HS-006 | P1  | Console probe vs API probe diverge correctly               | Console SSO link optional; API key health independent                                                                                                 | `_probe_fleetbase_console`                                     |
-| FB-HS-007 | P0  | Reverse dispatcher key                                     | `PORTERCHAIN_DISPATCHER_API_KEY` accepted only on documented reverse routes                                                                           | FLEETBASE_MODULES Auth                                         |
-| FB-HS-008 | P1  | Image pin matches override                                 | Running core-api/fleetops digests match `fleetbase.porterchain.override.yml`                                                                          | DOC cases                                                      |
-| FB-HS-009 | P0  | Permanent bond handshake                                   | `verify_bond` / `run_boot_handshake` → authenticated `GET /v1/orders`; readiness `fleetbase_bond=ok`; live adapter probe uses bond not bare host ping | `docs/FLEETBASE_PERMANENT_BOND.md`, `fleetbase_engine/bond.py` |
-| FB-HS-010 | P0  | Local bond repair                                          | `pnpm fleetbase:bond` ensures company+key, `OrderConfig` transport, heals missing tables, POST/GET smoke                                              | `repair_fleetbase_local.py`                                    |
-| FB-HS-011 | P0  | Entity destination FK safety                               | UUID-shaped PC stop ids must **not** set `destination_uuid` (stock places FK); use `meta.destination_import_id`                                       | `mappers.py`, `test_mappers.py`                                |
-| FB-HS-012 | P0  | Seed hygiene vs G2                                         | Unlinked seed purged (`pnpm fleetbase:purge-seed`); do not mass-backfill dummies; G2 ≥98% on remaining eligible                                       | `purge_unlinked_seed_orders.py`, `validate:p0:fast`            |
+| ID        | P   | Case                                        | Expected                                                                                                                                              | Seed                                                           |
+| --------- | --- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| FB-HS-002 | P0  | Missing key → `FleetbaseNotConfiguredError` | Fail closed; sync jobs enqueue retry, UI shows degrade — no silent success                                                                            | adapter `exceptions.py`                                        |
+| FB-HS-004 | P0  | Retry policy respects idempotent methods    | Safe retries on GET; mutating ops use RetryQueue LWW / job id                                                                                         | `retry.py`, `test_retry_queue_phase1.py`                       |
+| FB-HS-009 | P0  | Permanent bond handshake                    | `verify_bond` / `run_boot_handshake` → authenticated `GET /v1/orders`; readiness `fleetbase_bond=ok`; live adapter probe uses bond not bare host ping | `docs/FLEETBASE_PERMANENT_BOND.md`, `fleetbase_engine/bond.py` |
+| FB-HS-011 | P0  | Entity destination FK safety                | UUID-shaped PC stop ids must **not** set `destination_uuid` (stock places FK); use `meta.destination_import_id`                                       | `mappers.py`, `test_mappers.py`                                |
+| FB-HS-012 | P0  | Seed hygiene vs G2                          | Unlinked seed purged (`pnpm fleetbase:purge-seed`); do not mass-backfill dummies; G2 ≥98% on remaining eligible                                       | `purge_unlinked_seed_orders.py`, `validate:p0:fast`            |
 
 ### 2.2 Booking sync handshake (PC → Fleetbase)
 
-| ID         | P   | Case                                                | Expected                                                                     | Seed                                                |
-| ---------- | --- | --------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------- |
-| FB-ENG-001 | P0  | Confirmed booking → `BookingSyncService.push_order` | Fleetbase order created; `porterchain_order_id` in meta; PC stores public id | `booking_sync_service.py`                           |
-| FB-ENG-002 | P0  | Push failure → `RetryQueue.enqueue`                 | `FleetbaseSyncJob` row; worker drains; SLO health visible                    | `test_fleetbase_sync_health.py`                     |
-| FB-ENG-003 | P0  | Driver assignment push                              | `push_driver_assignment` mirrors CT assign                                   | same                                                |
-| FB-ENG-004 | P0  | Status push `_push_status`                          | PC state → Fleetbase activity without double-fire                            | `test_status_translator.py`                         |
-| FB-ENG-005 | P1  | Drain kinds exhaustive                              | New sync kinds cannot be “unhandled”                                         | `test_retry_queue_phase1.py::test_new_drain_kinds…` |
-| FB-ENG-006 | P1  | LWW on integrity conflict                           | Newer `last_known` wins / re-enqueue                                         | `test_gps_ingest_wave01.py`                         |
-| FB-ENG-007 | P1  | Replay script                                       | `scripts/replay_fleetbase_sync.py` reprocesses stuck jobs safely             | script + sync health                                |
-| FB-ENG-008 | P0  | Sandbox vs live isolation                           | Sandbox orders never leak into live Fleetbase company                        | phase5c / optimize contracts                        |
+| ID         | P   | Case                       | Expected                                              | Seed                                                |
+| ---------- | --- | -------------------------- | ----------------------------------------------------- | --------------------------------------------------- |
+| FB-ENG-003 | P0  | Driver assignment push     | `push_driver_assignment` mirrors CT assign            | same                                                |
+| FB-ENG-004 | P0  | Status push `_push_status` | PC state → Fleetbase activity without double-fire     | `test_status_translator.py`                         |
+| FB-ENG-005 | P1  | Drain kinds exhaustive     | New sync kinds cannot be “unhandled”                  | `test_retry_queue_phase1.py::test_new_drain_kinds…` |
+| FB-ENG-006 | P1  | LWW on integrity conflict  | Newer `last_known` wins / re-enqueue                  | `test_gps_ingest_wave01.py`                         |
+| FB-ENG-008 | P0  | Sandbox vs live isolation  | Sandbox orders never leak into live Fleetbase company | phase5c / optimize contracts                        |
 
 ### 2.3 Webhook handshake (Fleetbase → PC)
 
-| ID         | P   | Case                                 | Expected                                                                          | Seed                                  |
-| ---------- | --- | ------------------------------------ | --------------------------------------------------------------------------------- | ------------------------------------- |
-| FB-ENG-010 | P0  | Signed webhook `/webhooks/fleetbase` | Invalid signature rejected; valid → `WebhookProcessor.process`                    | `test_fleetbase_webhook_retry.py`     |
-| FB-ENG-011 | P0  | Status update idempotent             | Duplicate delivery does not regress order state                                   | same                                  |
-| FB-ENG-012 | P0  | Replay reprocesses update            | Explicit replay path works                                                        | `test_webhook_replay_reprocesses…`    |
-| FB-ENG-013 | P1  | StatusTranslator covers lifecycle    | Fleetbase activities map to `OrderState` without inventing states                 | `test_status_translator.py`           |
-| FB-ENG-014 | P1  | Tracking facade                      | Public track uses PC snapshot fed by Fleetbase positions poll — not SC in browser | `TrackingFacade`, intentional skip SC |
-| FB-ENG-015 | P1  | Audit logger                         | Sync/webhook mutations leave audit trail                                          | `audit_logger.py`                     |
+| ID         | P   | Case                              | Expected                                                                          | Seed                                  |
+| ---------- | --- | --------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------- |
+| FB-ENG-011 | P0  | Status update idempotent          | Duplicate delivery does not regress order state                                   | same                                  |
+| FB-ENG-012 | P0  | Replay reprocesses update         | Explicit replay path works                                                        | `test_webhook_replay_reprocesses…`    |
+| FB-ENG-013 | P1  | StatusTranslator covers lifecycle | Fleetbase activities map to `OrderState` without inventing states                 | `test_status_translator.py`           |
+| FB-ENG-014 | P1  | Tracking facade                   | Public track uses PC snapshot fed by Fleetbase positions poll — not SC in browser | `TrackingFacade`, intentional skip SC |
+| FB-ENG-015 | P1  | Audit logger                      | Sync/webhook mutations leave audit trail                                          | `audit_logger.py`                     |
 
 ### 2.4 Adapter module matrix (each package)
 
 For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/`:
 
-| Module                | Case IDs              | Must assert                                                        |
-| --------------------- | --------------------- | ------------------------------------------------------------------ |
-| `client`              | FB-AD-010..015        | Auth header, timeout, patch/get, error mapping                     |
-| `auth`                | FB-AD-020             | Credential shape; no Clerk leakage into Fleetbase                  |
-| `orders`              | FB-AD-030..039        | Create/update/dispatch/cancel; meta `porterchain_order_id`         |
-| `drivers`             | FB-AD-040..049        | `sync_driver`, online read, track ingest path via adapter          |
-| `vehicles`            | FB-AD-050..055        | Sync capacity → `payload_capacity*`                                |
-| `dispatch`            | FB-AD-060..069        | Manual dispatch / assign; never rebuild board in PC                |
-| `orchestrator`        | FB-AD-070..079 + VR-* | `optimize_routes` + `engine=vroom`; driver-scoped; commit→manifest |
-| `manifests`           | FB-AD-080..085        | Commit creates stops; CAS version                                  | `test_manifests.py`                |
-| `pod`                 | FB-AD-090..095        | Signature/photo/QR capture proxied; storage SoT Fleetbase          | `test_d3_dispatch_pod_contract.py` |
-| `tracking`            | FB-AD-100..108        | Positions poll; playback                                           | `test_tracking_playback.py`        |
-| `routes` / `zones`    | FB-AD-110..119        | Zone filter for CT; no Google matrix                               |
-| `webhooks` / `events` | FB-AD-120..129        | Lifecycle translator                                               | `FleetbaseLifecycleTranslator`     |
-| `mappers`             | FB-AD-130             | Bidirectional field map golden fixtures                            | `test_mappers.py`                  |
-| `integration`         | FB-AD-140             | Facade wires all modules; single entry from API                    | `integration.py`                   |
+| Module             | Case IDs              | Must assert                                                        |
+| ------------------ | --------------------- | ------------------------------------------------------------------ |
+| `client`           | FB-AD-010..015        | Auth header, timeout, patch/get, error mapping                     |
+| `auth`             | FB-AD-020             | Credential shape; no Clerk leakage into Fleetbase                  |
+| `orders`           | FB-AD-030..039        | Create/update/dispatch/cancel; meta `porterchain_order_id`         |
+| `drivers`          | FB-AD-040..049        | `sync_driver`, online read, track ingest path via adapter          |
+| `vehicles`         | FB-AD-050..055        | Sync capacity → `payload_capacity*`                                |
+| `dispatch`         | FB-AD-060..069        | Manual dispatch / assign; never rebuild board in PC                |
+| `orchestrator`     | FB-AD-070..079 + VR-* | `optimize_routes` + `engine=vroom`; driver-scoped; commit→manifest |
+| `manifests`        | FB-AD-080..085        | Commit creates stops; CAS version                                  | `test_manifests.py`         |
+| `tracking`         | FB-AD-100..108        | Positions poll; playback                                           | `test_tracking_playback.py` |
+| `routes` / `zones` | FB-AD-110..119        | Zone filter for CT; no Google matrix                               |
+| `mappers`          | FB-AD-130             | Bidirectional field map golden fixtures                            | `test_mappers.py`           |
+| `integration`      | FB-AD-140             | Facade wires all modules; single entry from API                    | `integration.py`            |
 
 **Golden path (P0):** Quote → Book → pay/net → `DISPATCH_READY` → push_order → assign → VROOM optimize (Fleetbase) → driver accept → POD → webhook complete → invoice/AR.
 
@@ -163,7 +142,6 @@ For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/
 | SPA-005 | P1  | Costing by vehicle class                        | Box vs auto costing selector                              | `test_valhalla_costing.py`        |
 | SPA-006 | P1  | Matrix for interleaved PUDO                     | Duration matrix among unlocked legs                       | phase4 tests                      |
 | SPA-007 | P0  | Google Places autocomplete only                 | Quote UX uses Places; never Distance Matrix               | Google probe + ARCH-003           |
-| SPA-008 | P0  | Google tiles on live track maps                 | Tiles OK; ETA from Valhalla/OSRM/Fleetbase                | `validate:tracking-maps`          |
 | SPA-009 | P1  | GTA ±150 km tile                                | Out-of-tile quote tagged `in_tile=false` / coverage gap   | FSA / service-area tests          |
 | SPA-010 | P1  | Isochrone / ETA helpers                         | Used for CT heuristics only where documented              | MapsService                       |
 | VR-001  | P0  | Optimize run enqueued to Fleetbase orchestrator | `engine=vroom`; no PC solver import                       | `test_orchestrator.py`, ops tests |
@@ -255,7 +233,6 @@ For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/
 | API-003 | P1  | Rate limit middleware             | Gateway abuse limited                                       | `test_rate_limit_middleware.py`   |
 | API-004 | P1  | Error envelope stable             | Clients parse `code` / `message`                            | `test_error_envelope.py`          |
 | API-005 | P0  | OpenAPI snapshot parity           | `docs/api/openapi.json` matches live                        | `verify_api_readme_openapi.py`    |
-| WRK-001 | P0  | Dispatch processor                | Consumes EventBus → Fleetbase sync                          | `test_dispatch_processor.py`      |
 | WRK-002 | P0  | Notifications processor           | Drain notification queue                                    | `test_notifications_processor.py` |
 | WRK-003 | P0  | Billing processor                 | Ledger jobs                                                 | `test_billing_processor.py`       |
 | WRK-004 | P0  | Webhooks processor                | Outbound                                                    | `test_webhooks_processor.py`      |
@@ -276,16 +253,14 @@ For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/
 
 ### 8.3 Docker / infra
 
-| ID      | P   | Case                        | Expected                                                                                                                         | Seed               |
-| ------- | --- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| DOC-001 | P0  | No `:latest` images         | Exact tags/digests in compose                                                                                                    | dependency-freeze  |
-| DOC-002 | P0  | Ports map                   | API 8001, Valhalla 8002, OSRM 5000, Fleetbase 8000, admin 3002, merchant 3001, website 3000, driver 3003, customer 3004, Mailpit | ARCHITECTURE       |
-| DOC-003 | P0  | Fleetbase Valkey 8 override | Not upstream redis:4                                                                                                             | fleetbase override |
-| DOC-004 | P0  | Mailpit not Mailhog         | Local email UI                                                                                                                   | `_probe_mailpit`   |
-| DOC-005 | P1  | Valhalla digest pin         | `valhalla-scripted@sha256:…`                                                                                                     | compose            |
-| DOC-006 | P1  | GTA tile scripts idempotent | prepare-valhalla/osrm scripts documented                                                                                         | infra README       |
-| DOC-007 | P1  | Redis 8.8 PC cache          | Separate from Fleetbase Valkey                                                                                                   | redis health tests |
-| DOC-008 | P2  | Doppler prod secrets shape  | Examples match `api.env.example` keys                                                                                            | env examples       |
+| ID      | P   | Case                        | Expected                                 | Seed               |
+| ------- | --- | --------------------------- | ---------------------------------------- | ------------------ |
+| DOC-001 | P0  | No `:latest` images         | Exact tags/digests in compose            | dependency-freeze  |
+| DOC-003 | P0  | Fleetbase Valkey 8 override | Not upstream redis:4                     | fleetbase override |
+| DOC-004 | P0  | Mailpit not Mailhog         | Local email UI                           | `_probe_mailpit`   |
+| DOC-005 | P1  | Valhalla digest pin         | `valhalla-scripted@sha256:…`             | compose            |
+| DOC-006 | P1  | GTA tile scripts idempotent | prepare-valhalla/osrm scripts documented | infra README       |
+| DOC-008 | P2  | Doppler prod secrets shape  | Examples match `api.env.example` keys    | env examples       |
 
 ---
 
@@ -299,7 +274,6 @@ For each module under `services/fleetbase-adapter/porterchain_fleetbase_adapter/
 | `/activate-staff`                                                                                             | A-UI-002      | Invitation redeem                                                                                             |
 | `/dashboard`                                                                                                  | A-UI-010      | KPIs; trends shape `{labels,orders,revenue_cents}`                                                            |
 | `/operations`                                                                                                 | A-UI-020..029 | Control Tower, OptimizePanel, PushHealthStrip, DispatcherCopilot — wrap Fleetbase, no rebuild board           |
-| `/orders`, `/orders/[id]`                                                                                     | A-UI-030..039 | Lifecycle, OrderAssist, Fleetbase link only                                                                   |
 | `/merchants`, `/merchants/[id]`                                                                               | A-UI-040..059 | Overview/Billing/Pricing/Locations/StandingOrders — revoke keys, never mint Shopify                           |
 | `/drivers`, `/drivers/[id]`                                                                                   | A-UI-060..079 | Compliance badges; sync_driver; documents                                                                     |
 | `/customers`, `/customers/[id]`                                                                               | A-UI-080      | See customer persona catalog                                                                                  |
@@ -355,7 +329,6 @@ Each DIAG id → **config-only** pass + **live** pass (where safe) + **fail-clos
 | -------- | --- | ---------------------------------- | ------------------------------------------------------------------- | ------------------------------------- |
 | D-UI-001 | P0  | Mobile `handshake.ts` session gate | Clerk Bearer → `/driver-api/v1`; Fleetbase never direct             | `apps/mobile-driver/src/handshake.ts` |
 | D-UI-002 | P0  | Driver web BFF `:3003`             | `/api/driver` → `/driver-api/v1`; **not** unified with mobile auth  | intentional dual path                 |
-| D-UI-003 | P0  | Jobs list / accept / reject        | Via driver_engine → Fleetbase bridge                                | driver platform                       |
 | D-UI-004 | P1  | Preview→Accept optimize            | `apply_on_ready=false` then Accept                                  | phase5/6                              |
 | D-UI-005 | P1  | Offline queue optimize_route       | Only on network failure                                             | phase docs                            |
 | D-UI-006 | P1  | FCM channels                       | Loud for assignments/critical                                       | NOTIF                                 |
@@ -438,8 +411,6 @@ When coding a case: **CodeGraph** for schemas → **Ripwire** for thin router/ad
 ## 16. Related SSOT
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md)
-- [FLEETBASE_MODULES.md](../FLEETBASE_MODULES.md)
-- [FLEETBASE_PERMANENT_BOND.md](FLEETBASE_PERMANENT_BOND.md) — identity + adapter + handshake + heal
 - [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md)
 - [CUSTOMER_PERSONA_DEV_TEST_CASES.md](CUSTOMER_PERSONA_DEV_TEST_CASES.md)
 - [MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md](MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md)

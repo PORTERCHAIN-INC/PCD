@@ -7,9 +7,6 @@ sequenceDiagram
   participant DB as Database
   participant Bus as Event Bus
   participant Worker as apps/worker
-  participant FBE as fleetbase_engine
-  participant FBA as fleetbase-adapter
-  participant FB as Fleetbase API
 
   UI->>Router: HTTPS /v1/*
   Router->>Auth: get_clerk_user_id / get_admin_context / get_merchant_context
@@ -23,7 +20,6 @@ sequenceDiagram
   Bus->>Worker: async handlers / queues
   alt dispatch ready
     Worker->>FBE: sync_order_from_event
-    FBE->>FBA: FleetbaseIntegrationBridge
     FBA->>FB: HTTP
     FB-->>FBA: response
   end

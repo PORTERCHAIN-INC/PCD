@@ -14,7 +14,7 @@ TRACK_PAGES = (
 PORTAL_REDIRECT = ROOT / "apps/customer/src/app/track/[trackingNumber]/page.tsx"
 ENGINE_WORDS = ("OSRM)", "(Valhalla)", "Corridor (", "GPS (polled)")
 
-REQUIRED = ("TrackRouteMap", "GoogleMapsProvider", "TrackEtaPanel")
+REQUIRED = ("TrackRouteMap", "TrackEtaPanel")
 
 
 def main() -> int:

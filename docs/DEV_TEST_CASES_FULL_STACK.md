@@ -6,33 +6,30 @@
 **Mapped:** 2026-09-17 via **Graphify only** (one sensor / session) + `ARCHITECTURE.md` + `integrations.yaml` + OpenAPI census (568 paths / 639 ops) + existing pytest / `pnpm validate:*`.  
 **Specialized catalogs (do not duplicate — expand those first):**
 
-| Catalog                                                                        | Scope                                                                |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| [CUSTOMER_PERSONA_DEV_TEST_CASES.md](CUSTOMER_PERSONA_DEV_TEST_CASES.md)       | Customer web + Admin Customers                                       |
-| [SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md](SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md) | Fleetbase adapter modules, Shopify, ERP, Clerk/Stripe/FCM handshakes |
-| [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md)   | Valhalla / OSRM / VROOM optimize paths                               |
-| [DRIVER_ADMIN_DEV_TEST_CASES.md](DRIVER_ADMIN_DEV_TEST_CASES.md)               | Driver 360 + verification                                            |
-| [ADMIN_SUPERADMIN_DEV_TESTCASES.md](ADMIN_SUPERADMIN_DEV_TESTCASES.md)         | Admin / superadmin surfaces                                          |
-| [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md)     | Merchant portal + admin merchant                                     |
-| [WEBSITE_PERSONA_DEV_TEST_CASES.md](WEBSITE_PERSONA_DEV_TEST_CASES.md)         | Website GTM + quote/book/track + SEO                                 |
+| Catalog                                                                      | Scope                                  |
+| ---------------------------------------------------------------------------- | -------------------------------------- |
+| [CUSTOMER_PERSONA_DEV_TEST_CASES.md](CUSTOMER_PERSONA_DEV_TEST_CASES.md)     | Customer web + Admin Customers         |
+| [ROUTE_OPTIMIZATION_DEV_TEST_CASES.md](ROUTE_OPTIMIZATION_DEV_TEST_CASES.md) | Valhalla / OSRM / VROOM optimize paths |
+| [DRIVER_ADMIN_DEV_TEST_CASES.md](DRIVER_ADMIN_DEV_TEST_CASES.md)             | Driver 360 + verification              |
+| [ADMIN_SUPERADMIN_DEV_TESTCASES.md](ADMIN_SUPERADMIN_DEV_TESTCASES.md)       | Admin / superadmin surfaces            |
+| [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md)   | Merchant portal + admin merchant       |
+| [WEBSITE_PERSONA_DEV_TEST_CASES.md](WEBSITE_PERSONA_DEV_TEST_CASES.md)       | Website GTM + quote/book/track + SEO   |
 
 **Policy holds:** [PCD_INTENTIONAL_SKIPS.md](PCD_INTENTIONAL_SKIPS.md) — cases marked **SKIP-POLICY** must assert the _hold_, not implement the forbidden path.
 
 ### Sensor follow-ups (do not run in the Graphify session)
 
-| Next | Tool                                       | Use when implementing cases                                                           |
-| ---- | ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| B    | CodeGraph MCP `codegraph_explore`          | Pydantic/ORM for Maps, Order, Quote, Stripe, Clerk, Shopify, FCM payloads             |
-| C    | Ripwire `--for` / `--callers` / `--impact` | Thin routers, `FleetbaseClient`, Stripe `sdk.py`, Clerk registry, portal `lib/api.ts` |
+| Next | Tool                              | Use when implementing cases                                               |
+| ---- | --------------------------------- | ------------------------------------------------------------------------- |
+| B    | CodeGraph MCP `codegraph_explore` | Pydantic/ORM for Maps, Order, Quote, Stripe, Clerk, Shopify, FCM payloads |
 
 ### Graphify anchors used
 
-| Query / path                                      | Finding                                                                                                                                                           |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| God nodes                                         | `Settings`, `Order`, `MerchantContext`, `AdminContext`, `Merchant`, `require_module`, `Driver`                                                                    |
-| `explain MapsService`                             | Hub for Valhalla/OSRM; callers: pricing `resolve_route_distance`, Control Tower scoring, LiveMap, public tracking, merchant tracking, driver nav                  |
-| `path MapsService ↔ FleetbaseClient` (undirected) | 4 hops via scoring / matrix tests — **no direct Valhalla→Fleetbase edge** (correct: VROOM lives in adapter orchestrator)                                          |
-| Diagnostics probes                                | `_probe_valhalla`, `_probe_osrm`, `_probe_vroom`, `_probe_fleetbase*`, `_probe_clerk`, `_probe_stripe`, `_probe_firebase`, `_probe_mailpit`, `_probe_google_maps` |
+| Query / path                                      | Finding                                                                                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| God nodes                                         | `Settings`, `Order`, `MerchantContext`, `AdminContext`, `Merchant`, `require_module`, `Driver`                                                   |
+| `explain MapsService`                             | Hub for Valhalla/OSRM; callers: pricing `resolve_route_distance`, Control Tower scoring, LiveMap, public tracking, merchant tracking, driver nav |
+| `path MapsService ↔ FleetbaseClient` (undirected) | 4 hops via scoring / matrix tests — **no direct Valhalla→Fleetbase edge** (correct: VROOM lives in adapter orchestrator)                         |
 
 ---
 
@@ -42,12 +39,10 @@
 | --------- | ------------------------------------------------------- |
 | `DOC-*`   | Docker / compose / health / ports / image pins          |
 | `SPA-*`   | Spatial: Valhalla → OSRM → (banned Google routing)      |
-| `FB-*`    | Fleetbase adapter + PHP console + VROOM orchestrator    |
 | `HS-*`    | Cross-system handshakes (PC ↔ FB ↔ Valhalla ↔ worker)   |
 | `API-*`   | FastAPI routers / OpenAPI census personas               |
 | `ENG-*`   | `*_engine` unit / service                               |
 | `AUTH-*`  | Clerk / Staff IdP / SpiceDB / RBAC / IDOR               |
-| `PAY-*`   | Stripe Checkout / COD Connect / webhooks                |
 | `NOTIF-*` | FCM / email / Mailpit / EventBus notifications          |
 | `INT-*`   | Shopify / ERP / OAuth / merchant-api / inbound webhooks |
 | `DB-*`    | Postgres / Alembic / Redis / Valkey / integrity         |
@@ -71,7 +66,6 @@
 | --------------------- | --------------------------------------------------------------------------- |
 | API unit/integration  | `cd apps/api && PYTHONPATH=src pytest` (~202 top-level + `tests/services/`) |
 | Maps costing          | `services/python/tests/test_valhalla_costing.py`                            |
-| Fleetbase adapter     | `services/fleetbase-adapter/tests/`                                         |
 | Pricing               | `services/pricing-engine/tests/`                                            |
 | Architecture gates    | `pnpm validate:architecture`                                                |
 | Vendor leaves         | `scripts/verify_vendor_leaves.py` (inside architecture)                     |
@@ -88,20 +82,18 @@
 
 These are the **Jeff Dean** cases: prove the trunk, not every leaf.
 
-| ID    | P   | Precondition                     | Steps                                                       | Expected                                                                                  | Hook                                 |
-| ----- | --- | -------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------ |
-| HS-01 | P0  | compose `routing` + `core` up    | Admin System Health / `_probe_valhalla(live)`               | status ok; tiles/status JSON; GTA bbox responds                                           | diagnostics                          |
-| HS-02 | P0  | Valhalla down, OSRM up           | Quote / `MapsService.route_with_source` Toronto→Mississauga | source=`osrm`; distance>0; no Google                                                      | `test_routing.py`                    |
-| HS-03 | P0  | both spatial down                | Quote                                                       | fail-closed error; **no** public OSRM unless `osrm_allow_public_demo` + labeled           | vendor leaves                        |
-| HS-04 | P0  | adapter + Fleetbase API healthy  | `_probe_fleetbase_adapter(live)` + `_probe_fleetbase`       | adapter circuit closed; auth OK                                                           | adapter tests                        |
-| HS-05 | P0  | VROOM via Fleetbase orchestrator | `_probe_vroom(live)`                                        | probe hits **orchestrator engines**, never PC HTTP VROOM client                           | `diagnostics_fleetbase_probes`       |
-| HS-06 | P0  | `VROOM_ROUTER=valhalla`          | Optimize / route-import optimize 5 stops                    | solution returns; fuel scorecard optional; no `*_engine` import of VROOM                  | adapter `test_orchestrator.py`       |
-| HS-07 | P0  | book retail or merchant order    | Order → Fleetbase sync (`fleetbase_engine` RetryQueue)      | FB public id stored; retry on 5xx; webhook status maps via `StatusTranslator`             | `test_fleetbase_*`                   |
-| HS-08 | P0  | driver online in Fleetbase       | Control Tower suggestions                                   | ranked drivers use **matrix from MapsService**, assignment write goes **through adapter** | scoring + adapter                    |
-| HS-09 | P1  | live GPS SoT in Fleetbase        | Public track + merchant track                               | PC reads via facade; portals never call `:8000`                                           | `validate:tracking-maps`             |
-| HS-10 | P0  | worker running                   | EventBus smoke + Fleetbase retry drain                      | events land; queue depth drops                                                            | `_probe_event_bus`, `_probe_workers` |
-| HS-11 | P0  | OpenAPI snapshot                 | `pnpm docs:openapi` + census                                | 639 ops classified; new untagged path fails CI                                            | `openapi_census.py`                  |
-| HS-12 | P1  | mobile driver handshake          | Expo handshake probe to `:8001`                             | `/driver-api/v1` only; no Fleetbase host                                                  | mobile handshake.ts                  |
+| ID    | P   | Precondition                     | Steps                                                       | Expected                                                                        | Hook                                 |
+| ----- | --- | -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------ |
+| HS-01 | P0  | compose `routing` + `core` up    | Admin System Health / `_probe_valhalla(live)`               | status ok; tiles/status JSON; GTA bbox responds                                 | diagnostics                          |
+| HS-02 | P0  | Valhalla down, OSRM up           | Quote / `MapsService.route_with_source` Toronto→Mississauga | source=`osrm`; distance>0; no Google                                            | `test_routing.py`                    |
+| HS-03 | P0  | both spatial down                | Quote                                                       | fail-closed error; **no** public OSRM unless `osrm_allow_public_demo` + labeled | vendor leaves                        |
+| HS-05 | P0  | VROOM via Fleetbase orchestrator | `_probe_vroom(live)`                                        | probe hits **orchestrator engines**, never PC HTTP VROOM client                 | `diagnostics_fleetbase_probes`       |
+| HS-06 | P0  | `VROOM_ROUTER=valhalla`          | Optimize / route-import optimize 5 stops                    | solution returns; fuel scorecard optional; no `*_engine` import of VROOM        | adapter `test_orchestrator.py`       |
+| HS-07 | P0  | book retail or merchant order    | Order → Fleetbase sync (`fleetbase_engine` RetryQueue)      | FB public id stored; retry on 5xx; webhook status maps via `StatusTranslator`   | `test_fleetbase_*`                   |
+| HS-09 | P1  | live GPS SoT in Fleetbase        | Public track + merchant track                               | PC reads via facade; portals never call `:8000`                                 | `validate:tracking-maps`             |
+| HS-10 | P0  | worker running                   | EventBus smoke + Fleetbase retry drain                      | events land; queue depth drops                                                  | `_probe_event_bus`, `_probe_workers` |
+| HS-11 | P0  | OpenAPI snapshot                 | `pnpm docs:openapi` + census                                | 639 ops classified; new untagged path fails CI                                  | `openapi_census.py`                  |
+| HS-12 | P1  | mobile driver handshake          | Expo handshake probe to `:8001`                             | `/driver-api/v1` only; no Fleetbase host                                        | mobile handshake.ts                  |
 
 **Invariant (assert in ARCH-\*):** There is **no** directed Graphify path Valhalla→Fleetbase. Spatial for pricing/ETA = MapsService. Sequencing/TSP = Fleetbase VROOM. GPS SoT = Fleetbase.
 
@@ -117,9 +109,7 @@ These are the **Jeff Dean** cases: prove the trunk, not every leaf.
 | DOC-04 | P0  | `mailpit` up (not Mailhog)                           | SMTP accept; UI messages list                                      |
 | DOC-05 | P0  | `valhalla` digest-pinned image                       | container healthy on `:8002`                                       |
 | DOC-06 | P0  | `osrm` from same GTA ±150 km PBF                     | `:5000` route OK; README warns graph not committed                 |
-| DOC-07 | P0  | `vroom` local                                        | only via Fleetbase orchestrator path                               |
 | DOC-08 | P0  | Fleetbase stack + Valkey 8 override                  | no upstream `redis:4` for FB cache                                 |
-| DOC-09 | P0  | MySQL 8 for Fleetbase                                | healthcheck passes                                                 |
 | DOC-10 | P1  | no `:latest` floating tags in compose                | `validate:architecture` / pin audit                                |
 | DOC-11 | P1  | port map                                             | 3000–3004 portals, 8001 API, 8002 Valhalla, 5000 OSRM, 8000 FB API |
 | DOC-12 | P1  | `prepare-valhalla-gta.sh` then `prepare-osrm-gta.sh` | extract is GTA±150 not full Ontario                                |
@@ -156,24 +146,20 @@ Canonical client: `services/python/porterchain_services/maps/service.py`.
 
 ## 4. Fleetbase + VROOM (`FB-*`)
 
-| ID    | P   | Case                                           | Expected                                          | Seed                                                     |
-| ----- | --- | ---------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
-| FB-01 | P0  | `FleetbaseClient` timeout + breaker            | opens on errors; recovers                         | `test_client_timeout_breaker.py`                         |
-| FB-02 | P0  | adapter contract parity with PC                | mappers round-trip                                | `test_contract.py`, `test_fleetbase_adapter_contract.py` |
-| FB-03 | P0  | manifests / stop payload                       | booking sync shape                                | `test_manifests.py`                                      |
-| FB-04 | P0  | orchestrator optimize                          | VROOM behind adapter                              | `test_orchestrator.py`                                   |
-| FB-05 | P1  | tracking playback                              | positions from REST poll not SocketCluster in web | `test_tracking_playback.py`                              |
-| FB-06 | P0  | webhook signature + process                    | status → PC `OrderState`                          | webhook_processor                                        |
-| FB-07 | P0  | webhook retry / DLQ                            | RetryQueue drains                                 | `test_fleetbase_webhook_retry.py`                        |
-| FB-08 | P0  | public ids format                              | `test_fleetbase_public_ids.py`                    |                                                          |
-| FB-09 | P0  | sync health SLO                                | `verify_fleetbase_sync_slo.py`                    |                                                          |
-| FB-10 | P0  | portals never fetch FB HTTP / SC               | CI scan `apps/*/src`                              | vendor leaves                                            |
-| FB-11 | P0  | mobile never embeds `:8000` / `fleetbase` HTTP | CI                                                | ARCH mobile Required                                     |
-| FB-12 | P1  | POD download / scan gate                       | driver jobs via PC API                            | `test_d3_dispatch_pod_contract.py`                       |
-| FB-13 | P1  | GPS ingest waves                               | last-known via engine; SoT FB                     | `test_gps_ingest_wave*.py`                               |
-| FB-14 | P1  | status translator edge cases                   | unknown FB status fail-safe                       | `test_status_translator.py`                              |
-| FB-15 | P2  | admin does not link to the Ember console       | bond is API only, no embedded SC                  | system-links                                             |
-| FB-16 | P0  | no PorterChain VROOM client under `*_engine`   | import guard                                      | ARCH Required                                            |
+| ID    | P   | Case                                           | Expected                                          | Seed                               |
+| ----- | --- | ---------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
+| FB-01 | P0  | `FleetbaseClient` timeout + breaker            | opens on errors; recovers                         | `test_client_timeout_breaker.py`   |
+| FB-03 | P0  | manifests / stop payload                       | booking sync shape                                | `test_manifests.py`                |
+| FB-04 | P0  | orchestrator optimize                          | VROOM behind adapter                              | `test_orchestrator.py`             |
+| FB-05 | P1  | tracking playback                              | positions from REST poll not SocketCluster in web | `test_tracking_playback.py`        |
+| FB-06 | P0  | webhook signature + process                    | status → PC `OrderState`                          | webhook_processor                  |
+| FB-10 | P0  | portals never fetch FB HTTP / SC               | CI scan `apps/*/src`                              | vendor leaves                      |
+| FB-11 | P0  | mobile never embeds `:8000` / `fleetbase` HTTP | CI                                                | ARCH mobile Required               |
+| FB-12 | P1  | POD download / scan gate                       | driver jobs via PC API                            | `test_d3_dispatch_pod_contract.py` |
+| FB-13 | P1  | GPS ingest waves                               | last-known via engine; SoT FB                     | `test_gps_ingest_wave*.py`         |
+| FB-14 | P1  | status translator edge cases                   | unknown FB status fail-safe                       | `test_status_translator.py`        |
+| FB-15 | P2  | admin does not link to the Ember console       | bond is API only, no embedded SC                  | system-links                       |
+| FB-16 | P0  | no PorterChain VROOM client under `*_engine`   | import guard                                      | ARCH Required                      |
 
 ---
 
@@ -181,15 +167,14 @@ Canonical client: `services/python/porterchain_services/maps/service.py`.
 
 ### 5.1 Persona prefixes (census)
 
-| Persona      | Prefix                                          | Auth                       | Suite focus                             |
-| ------------ | ----------------------------------------------- | -------------------------- | --------------------------------------- |
-| Staff        | `/v1/admin`                                     | Staff IdP / `staff_sess_*` | ops, finance, CT, settings, diagnostics |
-| Merchant     | `/v1/merchant`                                  | Clerk org                  | book, orders, billing, Shopify          |
-| Partner      | `/v1/merchant-api`                              | API key + idempotency      | PARTNER_GUIDE                           |
-| Driver       | `/driver-api/v1`                                | Clerk Bearer               | jobs, POD, wallet                       |
-| Retail       | `/v1/quotes` `/v1/bookings`                     | session / checkout         | website + customer                      |
-| Public track | `/v1/orders/{tracking_number}`                  | none                       | track pages                             |
-| Webhooks     | `/webhooks/clerk\|stripe\|fleetbase\|checkr\|…` | signatures                 | money + identity + execution            |
+| Persona      | Prefix                         | Auth                       | Suite focus                             |
+| ------------ | ------------------------------ | -------------------------- | --------------------------------------- |
+| Staff        | `/v1/admin`                    | Staff IdP / `staff_sess_*` | ops, finance, CT, settings, diagnostics |
+| Merchant     | `/v1/merchant`                 | Clerk org                  | book, orders, billing, Shopify          |
+| Partner      | `/v1/merchant-api`             | API key + idempotency      | PARTNER_GUIDE                           |
+| Driver       | `/driver-api/v1`               | Clerk Bearer               | jobs, POD, wallet                       |
+| Retail       | `/v1/quotes` `/v1/bookings`    | session / checkout         | website + customer                      |
+| Public track | `/v1/orders/{tracking_number}` | none                       | track pages                             |
 
 | ID     | P   | Case                             | Expected                            |
 | ------ | --- | -------------------------------- | ----------------------------------- |
@@ -215,7 +200,6 @@ Canonical client: `services/python/porterchain_services/maps/service.py`.
 | ENG-ADM-*   | `admin_engine`                             | Control Tower, LiveMap, finance board, merchant360, driver360, diagnostics |
 | ENG-PRICE-* | `pricing_engine` + services/pricing-engine | FSA GTA150, liftgate, rate card, merchant policy                           |
 | ENG-BILL-*  | `billing_engine`                           | ledger, invoices, COD policy (not Stripe SDK)                              |
-| ENG-FB-*    | `fleetbase_engine`                         | sync, webhook, tracking facade, nav geometry cache                         |
 | ENG-DRV-*   | `driver_engine`                            | façade over FB; wallet ledger; verification                                |
 | ENG-NOTIF-* | `notification_engine`                      | FCM + email orchestration                                                  |
 | ENG-AUTHZ-* | `authz`                                    | SpiceDB Check; TupleWriter                                                 |
@@ -307,7 +291,6 @@ From `integrations.yaml` + engines:
 | DB-04 | P1  | CRM JSON queries                             | postgres smoke              |
 | DB-05 | P0  | Redis ping + staff session TTL               |                             |
 | DB-06 | P1  | Fleetbase Valkey separate from PC Redis      | no cross-contamination      |
-| DB-07 | P1  | nav geometry cache TTL                       | fleetbase_engine cache      |
 | DB-08 | P2  | referral credits / wallet package migrations | alembic present             |
 | DB-09 | P0  | no restored `models.py`                      | import `booking_models`     |
 
@@ -346,7 +329,6 @@ Smoke each route: auth gate → load <3s local → primary API 2xx → empty/err
 | `/merchants` · `/merchants/[id]`               | list+360 tabs                                                      | Overview/Billing/Settings/Pricing ownership per ARCH leaf |
 | `/drivers` · `/drivers/[id]`                   | list+360                                                           | verification badges; push/SMS actions                     |
 | `/customers` · `/customers/[id]`               | → customer catalog                                                 |                                                           |
-| `/finance` · `/finance/invoices/[id]`          | AR + invoice                                                       | pay/remind; COD queue                                     |
 | `/pricing`                                     | FSA / rate center                                                  | GTA150                                                    |
 | `/leads` · `/pipeline` · `/calendar` · `/[id]` | CRM                                                                | phase2 flags                                              |
 | `/booking-drafts` · `/[id]`                    | abandonment                                                        |                                                           |
@@ -474,11 +456,10 @@ SignIn + Track shells only (depth intentional skip).
 
 ## 19. Load / soak (`LOAD-*`)
 
-| ID      | File                     | Focus                          |
-| ------- | ------------------------ | ------------------------------ |
-| LOAD-01 | `tests/load/booking.js`  | quote/book RPS                 |
-| LOAD-02 | `tests/load/webhooks.js` | stripe/fleetbase webhook burst |
-| LOAD-03 | P2                       | Valhalla matrix under CT load  | latency SLO local |
+| ID      | File                    | Focus                         |
+| ------- | ----------------------- | ----------------------------- |
+| LOAD-01 | `tests/load/booking.js` | quote/book RPS                |
+| LOAD-03 | P2                      | Valhalla matrix under CT load | latency SLO local |
 
 ---
 

@@ -12,7 +12,6 @@ flowchart TB
     BE[booking_engine]
     ME[merchant_engine]
     AE[admin_engine]
-    FE[fleetbase_engine]
     DE[driver_engine]
     PE[pricing_engine]
     BLE[billing_engine]
@@ -20,7 +19,6 @@ flowchart TB
   end
 
   subgraph Libs["services/ + shared/"]
-    FBA[fleetbase-adapter]
     EB[event-bus]
     PRICING[pricing-engine]
     DRVPLAT[driver-platform]

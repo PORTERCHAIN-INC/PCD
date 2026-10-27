@@ -250,7 +250,6 @@ For each `ADMIN_TOP_LEVEL_ROUTES` item and each role: assert nav visibility ↔ 
 | UI-SYS-001 | System Center health categories match `HEALTH_CATEGORIES`           |
 | UI-SYS-002 | Run each `TEST_IDS` probe; assert status enum                       |
 | UI-SYS-003 | Architecture / modules / workflows views                            |
-| UI-SYS-004 | Fleetbase sync + merchant webhook delivery                          |
 | UI-SYS-005 | AI usage view                                                       |
 | UI-SYS-006 | Chaos scenario (SA/admin only); denied for developer                |
 | UI-SYS-007 | Observability + report generate                                     |
@@ -267,7 +266,6 @@ For each `ADMIN_TOP_LEVEL_ROUTES` item and each role: assert nav visibility ↔ 
 | UI-SET-005 | Create/manage driver modals; add merchant seat                          |
 | UI-SET-006 | Roles panel read-only matrix matches `permissions_catalog()`            |
 | UI-SET-007 | Auth/security panels: env-owned rate limits; no live secrets            |
-| UI-SET-008 | Vehicles overview (quote catalog ≠ Fleetbase physical fleet)            |
 | UI-SET-009 | Pricing panel + FSA rates card; GTA matrix                              |
 | UI-SET-010 | Coverage cities gate retail quotes                                      |
 | UI-SET-011 | ConfigFormPanel PUT wired keys; policy keys labeled                     |
@@ -338,7 +336,6 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 | DB-007 | Invoice document / credit notes / wallet package migrations                |
 | DB-008 | CRM collapse schema still serves pipeline/calendar                         |
 | DB-009 | Postgres 18 image pin; no `:latest`                                        |
-| DB-010 | Redis 8.8 / Valkey 8 for Fleetbase cache override                          |
 
 ---
 
@@ -346,18 +343,17 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 
 ### 5.1 Fleetbase (+ adapter, console, VROOM)
 
-| ID         | Case                                                                       |
-| ---------- | -------------------------------------------------------------------------- |
-| INT-FB-001 | All Fleetbase HTTP only via `services/fleetbase-adapter`                   |
-| INT-FB-002 | Adapter timeout + circuit breaker                                          |
-| INT-FB-003 | `_probe_fleetbase`, `_probe_fleetbase_adapter`, `_probe_fleetbase_console` |
-| INT-FB-004 | Console probe skips healthy when SSO/bridge disabled                       |
-| INT-FB-005 | Booking sync service mirrors order lifecycle                               |
-| INT-FB-006 | Sync health / process / requeue from operations                            |
-| INT-FB-007 | Optimize engines → VROOM **inside** Fleetbase orchestrator                 |
-| INT-FB-008 | [SKIP-POLICY] No PorterChain-native VROOM client                           |
-| INT-FB-009 | Web never imports SocketCluster SDK                                        |
-| INT-FB-010 | Positions via adapter REST poll — not `positions/replay`                   |
+| ID         | Case                                                       |
+| ---------- | ---------------------------------------------------------- |
+| INT-FB-001 | All Fleetbase HTTP only via `services/fleetbase-adapter`   |
+| INT-FB-002 | Adapter timeout + circuit breaker                          |
+| INT-FB-004 | Console probe skips healthy when SSO/bridge disabled       |
+| INT-FB-005 | Booking sync service mirrors order lifecycle               |
+| INT-FB-006 | Sync health / process / requeue from operations            |
+| INT-FB-007 | Optimize engines → VROOM **inside** Fleetbase orchestrator |
+| INT-FB-008 | [SKIP-POLICY] No PorterChain-native VROOM client           |
+| INT-FB-009 | Web never imports SocketCluster SDK                        |
+| INT-FB-010 | Positions via adapter REST poll — not `positions/replay`   |
 
 ### 5.2 Valhalla / OSRM / Google Maps
 
@@ -387,7 +383,6 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 | ---------- | ------------------------------------------------------ |
 | INT-ST-001 | Stripe probe; secrets never in Settings UI             |
 | INT-ST-002 | Checkout prepaid retail path unchanged                 |
-| INT-ST-003 | COD Connect + Payment Link additive                    |
 | INT-ST-004 | Webhook signature verify; identity verification events |
 | INT-ST-005 | Billing engine invoice lifecycle                       |
 
@@ -420,12 +415,10 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 
 ### 5.7 Event bus / workers / websockets
 
-| ID          | Case                                                           |
-| ----------- | -------------------------------------------------------------- |
-| INT-BUS-001 | Event bus publish smoke + catalog parity                       |
-| INT-BUS-002 | Worker queue depths; scheduled jobs / Fleetbase retry          |
-| INT-BUS-003 | Admin notification WS                                          |
-| INT-BUS-004 | Readiness includes routing + clerk + firebase + fleetbase sync |
+| ID          | Case                                     |
+| ----------- | ---------------------------------------- |
+| INT-BUS-001 | Event bus publish smoke + catalog parity |
+| INT-BUS-003 | Admin notification WS                    |
 
 ---
 
@@ -435,7 +428,6 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 | ------- | ------------------------------------------------------------------------- |
 | ARC-001 | Compose pins exact tags/digests — never `:latest`                         |
 | ARC-002 | Mailpit not Mailhog                                                       |
-| ARC-003 | Fleetbase cache Valkey override                                           |
 | ARC-004 | `verify_architecture_boundaries.py` Fleetbase URL allowlist               |
 | ARC-005 | D2 no illegal cross-engine imports                                        |
 | ARC-006 | D3 matrix / dispatch POD contracts                                        |
@@ -510,15 +502,14 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 
 ## 10. Suggested automation map
 
-| Layer       | Tool                               | Owns                                   |
-| ----------- | ---------------------------------- | -------------------------------------- |
-| Unit        | pytest `apps/api/tests`            | rbac, services, probes                 |
-| Contract    | pytest + OpenAPI                   | route envelopes                        |
-| Adapter     | `services/fleetbase-adapter/tests` | client breaker                         |
-| Portal unit | Vitest                             | `admin-nav`, settings metadata aliases |
-| Portal e2e  | Playwright                         | persona login × top routes             |
-| Live probes | Diagnostics Test Center            | integration catalog                    |
-| Arch gates  | `scripts/verify_*.py`              | boundaries, D2/D3                      |
+| Layer       | Tool                    | Owns                                   |
+| ----------- | ----------------------- | -------------------------------------- |
+| Unit        | pytest `apps/api/tests` | rbac, services, probes                 |
+| Contract    | pytest + OpenAPI        | route envelopes                        |
+| Portal unit | Vitest                  | `admin-nav`, settings metadata aliases |
+| Portal e2e  | Playwright              | persona login × top routes             |
+| Live probes | Diagnostics Test Center | integration catalog                    |
+| Arch gates  | `scripts/verify_*.py`   | boundaries, D2/D3                      |
 
 ### 10.1 P0 skeletons (wired to IDs)
 

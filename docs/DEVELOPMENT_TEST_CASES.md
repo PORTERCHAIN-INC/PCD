@@ -26,7 +26,6 @@
 | Doc                                                                                            | Owns                                                                                                       | Use when                     |
 | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | **This file**                                                                                  | Index, P0 `HS-*`, cross-cutting API/ENG/MAP/FB/PAY/NOTIF/INT/DB/DOC/WRK/ARCH                               | First open / CI planning     |
-| [SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md](SYSTEM_INTEGRATIONS_DEV_TEST_CASES.md)                 | Fleetbase adapter modules, Valhalla/OSRM/VROOM, Clerk/Stripe/FCM/Shopify/ERP, DIAG probes                  | Handshakes & vendor leaves   |
 | [MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md](MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md)       | Google Places/tiles · FCM · browser/mobile push · notification_engine · **indirect** FB→notify · GAP board | Maps + Firebase + push depth |
 | [DEV_TEST_CASES_FULL_STACK.md](DEV_TEST_CASES_FULL_STACK.md)                                   | Compose→spatial→UI heatmap + load                                                                          | Full-stack soak checklist    |
 | [DEVELOPMENT_TEST_CASES_CATALOG.md](DEVELOPMENT_TEST_CASES_CATALOG.md)                         | VROOM spine depth + missed-surfaces table                                                                  | Optimize / VROOM regression  |
@@ -34,7 +33,6 @@
 | [MERCHANT_DEVELOPMENT_TEST_MATRIX.md](MERCHANT_DEVELOPMENT_TEST_MATRIX.md)                     | Merchant portal + admin merchant 360                                                                       | Merchant persona             |
 | [CUSTOMER_PERSONA_DEV_TEST_CASES.md](CUSTOMER_PERSONA_DEV_TEST_CASES.md)                       | Customer portal + retail book/track                                                                        | Customer persona             |
 | [DRIVER_ADMIN_DEV_TEST_CASES.md](DRIVER_ADMIN_DEV_TEST_CASES.md)                               | Driver web + admin drivers (pointer to mobile depth)                                                       | Driver web / admin           |
-| [MOBILE_DRIVER_DEV_TEST_CASES.md](MOBILE_DRIVER_DEV_TEST_CASES.md)                             | Expo `mobile-driver` screens/files/API/Fleetbase/Maps/FCM/COD                                              | Driver mobile depth          |
 | [WEBSITE_PERSONA_DEV_TEST_CASES.md](WEBSITE_PERSONA_DEV_TEST_CASES.md)                         | Website `:3000` GTM + quote/book/track + SEO leaves                                                        | Website / GTM                |
 | [CODEGRAPH_QUOTE_VISITOR_OPTIMIZE_SCHEMAS.md](CODEGRAPH_QUOTE_VISITOR_OPTIMIZE_SCHEMAS.md)     | Field contracts for Quote/Visitor/Optimize (+ `test_hs_wui_mprte_codegraph_p0.py`)                         | Assert shapes before e2e     |
 | [RIPWIRE_QUOTE_VISITOR_OPTIMIZE.md](RIPWIRE_QUOTE_VISITOR_OPTIMIZE.md)                         | Thin-router/handoff blast + website Playwright map                                                         | Moment C · `website/e2e`     |
@@ -44,19 +42,18 @@
 
 ### Live census (Graphify + tree)
 
-| Surface                           |                                                                       Count |
-| --------------------------------- | --------------------------------------------------------------------------: |
-| OpenAPI paths / ops               |                                                                   568 / 639 |
-| Admin `page.tsx`                  |                                                                          37 |
-| Merchant `page.tsx`               |                                                                          22 |
-| Driver web `page.tsx`             |                                                                          20 |
-| Customer `page.tsx`               |                                                                          11 |
-| Website `page.tsx`                |                                                                         ~77 |
-| ORM model files / classes         |                                                      12 files / ~80 classes |
-| Engines (`*_engine`)              |                                                                          16 |
-| Diagnostics `TEST_CATALOG` probes |                                                                          30 |
-| Compose core leaves               |      Postgres · Redis · SpiceDB · Mailpit · Valhalla · OSRM · VROOM · proxy |
-| Fleetbase override leaves         | MySQL · Valkey · socket · scheduler · queue · console · application · httpd |
+| Surface                           |                                                                  Count |
+| --------------------------------- | ---------------------------------------------------------------------: |
+| OpenAPI paths / ops               |                                                              568 / 639 |
+| Admin `page.tsx`                  |                                                                     37 |
+| Merchant `page.tsx`               |                                                                     22 |
+| Driver web `page.tsx`             |                                                                     20 |
+| Customer `page.tsx`               |                                                                     11 |
+| Website `page.tsx`                |                                                                    ~77 |
+| ORM model files / classes         |                                                 12 files / ~80 classes |
+| Engines (`*_engine`)              |                                                                     16 |
+| Diagnostics `TEST_CATALOG` probes |                                                                     30 |
+| Compose core leaves               | Postgres · Redis · SpiceDB · Mailpit · Valhalla · OSRM · VROOM · proxy |
 
 ---
 
@@ -67,10 +64,8 @@
 | `HS-*`                | Cross-system **handshakes** (dev smoke that must green before UI)     |
 | `API-*`               | FastAPI personas (`/v1/*`, `/driver-api/v1/*`, webhooks)              |
 | `ENG-*`               | `*_engine` unit / service                                             |
-| `FB-*`                | Fleetbase adapter + sync + VROOM (via adapter only)                   |
 | `MAP-*`               | Valhalla / OSRM / MapsService / Google Places+tiles                   |
 | `AUTH-*`              | Clerk / Staff IdP / SpiceDB / API keys / OAuth                        |
-| `PAY-*`               | Stripe Checkout / Connect COD / webhooks / ledger                     |
 | `NOTIF-*`             | notification_engine / FCM / email / Mailpit / inbox                   |
 | `INT-*`               | Shopify / WooCommerce / NetSuite / Zapier / partner ERP / lead ingest |
 | `UI-A-*`              | Admin portal `:3002` pages + sub-surfaces                             |
@@ -95,15 +90,14 @@ Each case: **ID · Prio · Precondition → Steps → Expected · Seed/guard**.
 
 ### 1.1 HTTP personas (ARCHITECTURE leaf — Wave 3)
 
-| Persona           | Prefix                                                 | Auth                                               | Ops (tag approx)               |
-| ----------------- | ------------------------------------------------------ | -------------------------------------------------- | ------------------------------ |
-| Staff             | `/v1/admin`                                            | Staff IdP (`pc_staff_sid` / `Bearer staff_sess_*`) | ~138 `admin` + ops/diagnostics |
-| Merchant portal   | `/v1/merchant`                                         | Clerk org                                          | ~179 `merchant`                |
-| Partner API       | `/v1/merchant-api`                                     | API key + idempotency                              | ~7                             |
-| Driver mobile/API | `/driver-api/v1`                                       | Clerk Bearer                                       | ~77 `driver`                   |
-| Retail book       | `/v1/quotes` `/v1/bookings`                            | session / checkout                                 | quotes/bookings                |
-| Public track      | `/v1/orders/{tracking_number}`                         | none                                               | public                         |
-| Vendors           | `/webhooks/clerk\|stripe\|fleetbase\|checkr\|shopify…` | signatures                                         | webhooks                       |
+| Persona           | Prefix                         | Auth                                               | Ops (tag approx)               |
+| ----------------- | ------------------------------ | -------------------------------------------------- | ------------------------------ |
+| Staff             | `/v1/admin`                    | Staff IdP (`pc_staff_sid` / `Bearer staff_sess_*`) | ~138 `admin` + ops/diagnostics |
+| Merchant portal   | `/v1/merchant`                 | Clerk org                                          | ~179 `merchant`                |
+| Partner API       | `/v1/merchant-api`             | API key + idempotency                              | ~7                             |
+| Driver mobile/API | `/driver-api/v1`               | Clerk Bearer                                       | ~77 `driver`                   |
+| Retail book       | `/v1/quotes` `/v1/bookings`    | session / checkout                                 | quotes/bookings                |
+| Public track      | `/v1/orders/{tracking_number}` | none                                               | public                         |
 
 **Cut (must stay gone):** `POST /driver/location`, `GET /v1/merchant/tracking/orders/{id}`, `POST .../invoices/{id}/resend`. Guard: `scripts/openapi_census.py`.
 
@@ -115,16 +109,12 @@ Each case: **ID · Prio · Precondition → Steps → Expected · Seed/guard**.
 
 | Leaf                              | Port / host  | Owns                                      | Must not                           |
 | --------------------------------- | ------------ | ----------------------------------------- | ---------------------------------- |
-| FastAPI                           | `:8001`      | Commercial + domain                       | Fleetbase HTTP from browsers       |
 | Worker                            | process      | EventBus drain + FB retry + Shopify queue | Inline UI                          |
-| Fleetbase + adapter               | `:8000`      | Dispatch, GPS SoT, POD, VROOM             | Rebuilt in `*_engine`              |
 | Valhalla                          | `:8002`      | Route/matrix/isochrone/costing            | —                                  |
 | OSRM                              | `:5000`      | Fallback ETA/distance (GTA ±150 km)       | Public demo as default             |
 | Postgres 18                       | compose      | ORM                                       | SQLite                             |
 | Redis 8.8                         | compose      | cache/sessions/bus                        | —                                  |
-| Fleetbase Valkey 8                | override     | FB cache                                  | upstream redis:4                   |
 | Mailpit                           | compose      | Dev SMTP                                  | Mailhog                            |
-| Stripe                            | external     | Checkout + COD Connect                    | Import outside `sdk.py`            |
 | Clerk                             | external     | Identity (portal triad)                   | Firebase Auth                      |
 | Firebase FCM                      | external     | Push only                                 | Login/RBAC                         |
 | Google Maps                       | Places+tiles | Autocomplete / map render                 | Distance/ETA/matrix                |
@@ -180,7 +170,6 @@ Home · quote/book/track · solutions/industry/city · vehicles · trust/* · de
 | HS-12 | P0   | Fleetbase webhook          | signed webhook → status translate                                                                     | Order state updates; idempotent                                                                                         | `test_fleetbase_webhook_retry.py`                       |
 | HS-13 | P0   | VROOM via adapter only     | optimize/orchestrator ops                                                                             | no `*_engine` VROOM import                                                                                              | `verify_vendor_leaves`, `test_orchestrator_ops.py`      |
 | HS-14 | P0   | Stripe Checkout            | retail book → Checkout session                                                                        | webhook idempotent settle                                                                                               | stripe + booking tests                                  |
-| HS-15 | P0   | Stripe COD Connect         | COD issue checkout/link                                                                               | additive; Checkout path unbroken                                                                                        | `billing_engine` COD                                    |
 | HS-16 | P0   | FCM token register         | admin/driver/customer register device                                                                 | token stored; push only (not Auth)                                                                                      | notification phase tests                                |
 | HS-17 | P0   | Email / Mailpit            | trigger booking email                                                                                 | appears in Mailpit; not Mailhog                                                                                         | SMTP env                                                |
 | HS-18 | P0   | EventBus → worker          | publish domain event                                                                                  | worker handler runs; DLQ on poison                                                                                      | event catalog parity                                    |
@@ -284,7 +273,6 @@ Home · quote/book/track · solutions/industry/city · vehicles · trust/* · de
 | API-P-01 | P0  | merchant-api idempotency                     | replay                 | merchant_api_idempotency                  |
 | API-P-02 | P0  | Rate limit gateway                           | 429 envelope           | `test_gateway_rate_limit.py`              |
 | API-P-03 | P0  | Stripe webhook signature + idempotency table | no double settle       | `verify_stripe_webhook_idempotency_table` |
-| API-P-04 | P0  | Fleetbase webhook signature                  | reject bad sig         | fleetbase webhook                         |
 | API-P-05 | P1  | Clerk webhook                                | user events            | —                                         |
 | API-P-06 | P1  | Checkr webhook                               | background status      | driver_background                         |
 | API-P-07 | P1  | Shopify HMAC                                 | reject bad; queue good | shopify                                   |
@@ -298,14 +286,11 @@ Home · quote/book/track · solutions/industry/city · vehicles · trust/* · de
 | ------ | --- | ---------------------- | --------------------------------------------- | --------------------------- |
 | ENG-01 | P0  | booking                | OrderState transitions                        | illegal transition rejected |
 | ENG-02 | P0  | pricing                | Quote bridge == SQLAlchemy repo               | parity tests                |
-| ENG-03 | P0  | billing                | Ledger cents; COD policy ≠ SDK                | sdk isolation               |
-| ENG-04 | P0  | fleetbase              | BookingSync + RetryQueue SLO                  | sync health                 |
 | ENG-05 | P0  | merchant               | Org SSOT admin↔portal same file               | merchant_org_ssot           |
 | ENG-06 | P1  | admin CT               | Scoring weights stable                        | assignment_scoring          |
 | ENG-07 | P1  | notification           | Role fanout DRIVER_ASSIGNED                   | role_matrix                 |
 | ENG-08 | P1  | collaboration          | Lead merge/score/nurture                      | lead_*                      |
 | ENG-09 | P1  | support                | Claims ownership of admin_models writes       | claims                      |
-| ENG-10 | P1  | driver                 | Façade over Fleetbase; wallet_ledger writes   | driver invert               |
 | ENG-11 | P1  | compliance             | Expiry sweep revoke                           | abstract/expiry             |
 | ENG-12 | P1  | gateway                | Usage logs via merchant_engine                | gateway                     |
 | ENG-13 | P1  | oauth                  | Client list payload                           | oauth                       |
@@ -337,17 +322,16 @@ Home · quote/book/track · solutions/industry/city · vehicles · trust/* · de
 
 ## 6. Fleetbase — `FB-*`
 
-| ID    | P   | Case                                        | Expected                                   |
-| ----- | --- | ------------------------------------------- | ------------------------------------------ |
-| FB-01 | P0  | Adapter client errors mapped                | ErrorHandler                               |
-| FB-02 | P0  | Sync enqueue on book                        | RetryQueue depth visible in ops            |
-| FB-03 | P0  | Webhook status translate                    | StatusTranslator                           |
-| FB-04 | P0  | TrackingFacade snapshot for public/merchant | no SocketCluster in web                    |
-| FB-05 | P1  | Replay sync script safe                     | `scripts/replay_fleetbase_sync.py` dry-run |
-| FB-06 | P1  | Console link only from admin system-links   | portals never embed `:8000` UI             |
-| FB-07 | P1  | Driver online SoT = Fleetbase               | PC does not invent online store            |
-| FB-08 | P2  | POD media path                              | `validate:pod-media`                       |
-| FB-09 | P3  | HOS/break → VROOM OrderConfig               | intentional hold                           |
+| ID    | P   | Case                                        | Expected                        |
+| ----- | --- | ------------------------------------------- | ------------------------------- |
+| FB-01 | P0  | Adapter client errors mapped                | ErrorHandler                    |
+| FB-02 | P0  | Sync enqueue on book                        | RetryQueue depth visible in ops |
+| FB-03 | P0  | Webhook status translate                    | StatusTranslator                |
+| FB-04 | P0  | TrackingFacade snapshot for public/merchant | no SocketCluster in web         |
+| FB-06 | P1  | Console link only from admin system-links   | portals never embed `:8000` UI  |
+| FB-07 | P1  | Driver online SoT = Fleetbase               | PC does not invent online store |
+| FB-08 | P2  | POD media path                              | `validate:pod-media`            |
+| FB-09 | P3  | HOS/break → VROOM OrderConfig               | intentional hold                |
 
 ---
 
@@ -358,7 +342,6 @@ Home · quote/book/track · solutions/industry/city · vehicles · trust/* · de
 | PAY-01 | P0  | Checkout success webhook                                 | order paid once                   |
 | PAY-02 | P0  | Webhook replay                                           | idempotent                        |
 | PAY-03 | P0  | Only `porterchain_services/stripe/sdk.py` imports stripe | allowlist                         |
-| PAY-04 | P0  | COD Connect additive                                     | Checkout unbroken                 |
 | PAY-05 | P1  | Invoice PDF/CSV cents                                    | no float drift                    |
 | PAY-06 | P1  | Merchant AR one total                                    | BD tests                          |
 | PAY-07 | P1  | Credit notes / wallet package                            | billing_engine                    |
@@ -417,7 +400,6 @@ For **every** route in §1.4: unauth redirect · auth load shell · primary data
 | UI-A-ORD | P0  | `/orders` list+detail assist                          | propose→confirm                    |
 | UI-A-MER | P0  | `/merchants` list vs detail tabs                      | list=scan; detail=operate          |
 | UI-A-DRV | P0  | `/drivers` 360 + verification badges                  | human approve status               |
-| UI-A-FIN | P0  | `/finance` + invoice detail                           | AR + COD queue                     |
 | UI-A-PRC | P0  | `/pricing` center                                     | FSA/rates                          |
 | UI-A-SET | P0  | `/settings` panels + import/restore audit             | project mode not clickable         |
 | UI-A-SYS | P1  | `/system-health` `/system-tests`                      | probes honest                      |
@@ -494,7 +476,6 @@ God nodes to regression-test first (Graphify): **Settings (884)** · **Order (52
 | DOC-02 | P0  | Valhalla digest-pinned scripted image                                 |                      |
 | DOC-03 | P0  | OSRM from same GTA PBF                                                |                      |
 | DOC-04 | P0  | Mailpit not Mailhog                                                   |                      |
-| DOC-05 | P0  | Fleetbase Valkey 8 override                                           |                      |
 | DOC-06 | P0  | Ports: API 8001, FB 8000, Valhalla 8002, OSRM 5000, portals 3000–3004 |                      |
 | DOC-07 | P1  | Worker + API share DB/Redis                                           |                      |
 | DOC-08 | P1  | `verify_db_pool` / managed postgres                                   |                      |
@@ -511,7 +492,6 @@ God nodes to regression-test first (Graphify): **Settings (884)** · **Order (52
 | WRK-02 | P0  | Redis idempotency store                   | no double handle               |
 | WRK-03 | P0  | DLQ on poison                             |                                |
 | WRK-04 | P0  | DomainEventType catalog parity            | `test_event_catalog_parity.py` |
-| WRK-05 | P1  | Fleetbase retry processor                 |                                |
 | WRK-06 | P1  | Shopify queued webhook processor          |                                |
 | WRK-07 | P1  | Billing/dispatch/notifications processors | respective tests               |
 | WRK-08 | P2  | Optimize run queue                        |                                |
@@ -524,7 +504,6 @@ God nodes to regression-test first (Graphify): **Settings (884)** · **Order (52
 | ------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ARCH-01 | P0  | `pnpm validate:architecture` (spatial math, boundaries, census, vendor leaves, model ownership, api stateless, db pool, FB sync SLO, managed PG, masterrule, integrations matrix, api readme, doc pointers) |
 | ARCH-02 | P0  | `pnpm validate:golden-rules`                                                                                                                                                                                |
-| ARCH-03 | P0  | `pnpm validate:fleetbase-first`                                                                                                                                                                             |
 | ARCH-04 | P0  | `pnpm validate:d2` contracts                                                                                                                                                                                |
 | ARCH-05 | P1  | `pnpm validate:router-audit` thin routers                                                                                                                                                                   |
 | ARCH-06 | P1  | `pnpm validate:enterprise-security` + identity                                                                                                                                                              |
@@ -590,7 +569,6 @@ ripwire . --cache=.ripwire --impact=SYM
 | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Models / database / Alembic                 | §11 `DB-*` · persona DB sections · `test_postgres_smoke.py`                                                             |
 | Docker / compose / Valkey / Mailpit         | §12 `DOC-*` · FULL_STACK §2 · SYSTEM `DOC-*`                                                                            |
-| Fleetbase connection + handshakes           | SYSTEM §2 · this §6 `FB-*` · HS-11..13                                                                                  |
 | PorterChain pages + subpages                | §1 inventory · §10 UI · ADMIN / MERCHANT / CUSTOMER / DRIVER docs                                                       |
 | API / FastAPI / endpoints                   | §3 · OpenAPI 568/639 · census guard                                                                                     |
 | Microservices / engines                     | §1.2–1.3 · §4 `ENG-*`                                                                                                   |

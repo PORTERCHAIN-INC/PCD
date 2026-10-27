@@ -11,7 +11,6 @@
 | Moment | Tool                                       | Anchors used                                                                                                                                                                                                  |
 | ------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A      | Graphify CLI                               | `query` FCM/Maps/Fleetbase/Clerk/Shopify · `explain` `notification_admin_service` / `fcm_service` / `delivery_service` · `path` firebase↔fleetbase (**no directed edge — correct**) · `god-nodes`             |
-| B      | CodeGraph CLI `explore`                    | `DeviceService` · `FCMService` · `MapsService` · `NotificationDevice` · `ClerkClaims` · `FleetbaseClient` · `ShopifyShop` · `ErpFulfillmentAdapter`                                                           |
 | C      | Ripwire `--for` / `--expand` / `--callers` | `TEST_CATALOG` · `FAILURE_SCENARIOS` · `CHAOS_SCENARIOS` · `register_device` · `push_health` · `registerBrowserPush` · maps UI (`AddressAutocompleteInput`, `LiveMapPanel`, `OrderRouteMap`, `TrackRouteMap`) |
 
 Do **not** invent cases that reopen intentional skips (Google Distance Matrix, Firebase Auth, PC VROOM client, SocketCluster in web, second mail/FCM engine).
@@ -68,7 +67,6 @@ Handshake to Fleetbase for notify is INDIRECT:
 | `PUSH-*`                  | Browser SW / Expo / driver register / revoke               |
 | `NE-*`                    | `notification_engine` models/services/processor            |
 | `NA-*`                    | Admin notification APIs + PushHealthStrip + inbox          |
-| `FB-NF-*`                 | Fleetbase → Order → notify (indirect connection)           |
 | `UI-GMAP-*` / `UI-PUSH-*` | Page/subpage matrix for maps & push                        |
 | `DIAG-*` / `CHAOS-*`      | System Tests + chaos (Ripwire SSOT)                        |
 | `ARCH-*`                  | Negative / vendor-leaf contracts                           |
@@ -120,17 +118,17 @@ Ripwire/CodeGraph findings — expand existing seeds; do not duplicate blindly.
 
 ### 4.1 Package & config
 
-| ID      | P   | Case                                                                        | Expected                                               | Files                                                                 |
-| ------- | --- | --------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| GMAP-01 | P0  | `isGoogleMapsConfigured` false → banner, no crash                           | `MapsMissingBanner` / degrade                          | `packages/maps`, portal `lib/env.ts`                                  |
-| GMAP-02 | P0  | `AddressAutocompleteInput` GTA bias                                         | Suggestions biased to GTA bounds                       | `packages/maps/src/AddressAutocompleteInput.tsx`, `GTA_LOCATION_BIAS` |
-| GMAP-03 | P0  | `GoogleMapsProvider` loads once per portal                                  | No double-script                                       | admin/merchant/customer providers                                     |
-| GMAP-04 | P0  | `TrackRouteMap` / `OrderRouteMap` / `LiveMapPanel` render tiles             | Markers from API; polyline decode shared               | Ripwire maps lens                                                     |
-| GMAP-05 | P0  | `_probe_google_maps` config vs live                                         | Catalog id `google_maps`                               | `diagnostics_probes`                                                  |
-| GMAP-06 | P0  | **Negative:** no Distance Matrix / Directions / Roads for price or dispatch | CI vendor leaves / spatial ban                         | `verify_no_ops_spatial_math`, ARCH                                    |
-| GMAP-07 | P1  | Website GBP link only (not routing)                                         | Contact/integrations                                   | `GoogleBusinessProfileLink.tsx`                                       |
-| GMAP-08 | P1  | `validate:tracking-maps` REQUIRED symbols present                           | `TrackRouteMap`, `GoogleMapsProvider`, `TrackEtaPanel` | `scripts/verify_tracking_maps.py`                                     |
-| GMAP-09 | P2  | Polyline encoding google vs valhalla                                        | Shared `packages/maps/src/polyline.ts`                 | clone collapse GAP-05                                                 |
+| ID      | P   | Case                                                                        | Expected                                 | Files                                                                 |
+| ------- | --- | --------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------- |
+| GMAP-01 | P0  | `isGoogleMapsConfigured` false → banner, no crash                           | `MapsMissingBanner` / degrade            | `packages/maps`, portal `lib/env.ts`                                  |
+| GMAP-02 | P0  | `AddressAutocompleteInput` GTA bias                                         | Suggestions biased to GTA bounds         | `packages/maps/src/AddressAutocompleteInput.tsx`, `GTA_LOCATION_BIAS` |
+| GMAP-03 | P0  | Google Maps script loads once per portal                                    | No double-script                         | admin/merchant/customer providers                                     |
+| GMAP-04 | P0  | `TrackRouteMap` / `OrderRouteMap` / `LiveMapPanel` render tiles             | Markers from API; polyline decode shared | Ripwire maps lens                                                     |
+| GMAP-05 | P0  | `_probe_google_maps` config vs live                                         | Catalog id `google_maps`                 | `diagnostics_probes`                                                  |
+| GMAP-06 | P0  | **Negative:** no Distance Matrix / Directions / Roads for price or dispatch | CI vendor leaves / spatial ban           | `verify_no_ops_spatial_math`, ARCH                                    |
+| GMAP-07 | P1  | Website GBP link only (not routing)                                         | Contact/integrations                     | `GoogleBusinessProfileLink.tsx`                                       |
+| GMAP-08 | P1  | `validate:tracking-maps` REQUIRED symbols present                           | `TrackRouteMap`, `TrackEtaPanel`         | `scripts/verify_tracking_maps.py`                                     |
+| GMAP-09 | P2  | Polyline encoding google vs valhalla                                        | Shared `packages/maps/src/polyline.ts`   | clone collapse GAP-05                                                 |
 
 ### 4.2 Page / file matrix (every surface that touches Google)
 
@@ -168,7 +166,6 @@ Must-pass for this slice:
 | SPA-V-03 | P0  | Valhalla down → local OSRM                              | Labeled source             |
 | SPA-V-04 | P0  | Public demo OSRM default off                            | CI fail if unlabeled       |
 | SPA-V-05 | P0  | Costing box→truck / van→auto                            | `test_valhalla_costing.py` |
-| SPA-V-06 | P0  | VROOM only via Fleetbase orchestrator                   | `_probe_vroom`             |
 
 ---
 
@@ -304,7 +301,6 @@ Assert fanout for: `customer` · `merchant` · `driver` · `admin` · `operation
 | MAIL-03 | P1  | ZeptoMail HTTPS prod              | `test_zeptomail_https_delivery.py` |
 | MAIL-04 | P0  | Zero FCM devices → email failsafe | DeliveryService                    |
 | MAIL-05 | P1  | Staff invite / onboarding email   | Mailpit capture                    |
-| MAIL-06 | P1  | Invoice / COD reminders           | finance path                       |
 
 ---
 
@@ -362,12 +358,11 @@ Notification pages: Admin `/notifications` · Merchant `/notifications` · Custo
 ## 16. Suggested implementation order
 
 1. **GAP-01…04** (browser push tests + InvalidFcmToken + push_health contract).
-2. **MF-HS-01…07** + **DIAG** firebase/google_maps/valhalla/osrm/fleetbase/notification_engine.
-3. **FCM + PUSH API** + Mailpit failsafe.
-4. **FB-NF** webhook→notify + loud assign.
-5. **UI-GMAP / UI-PUSH** page matrix.
-6. **CHAOS** firebase/google/valhalla/osrm.
-7. P3: assert intentional skips still held.
+2. **FCM + PUSH API** + Mailpit failsafe.
+3. **FB-NF** webhook→notify + loud assign.
+4. **UI-GMAP / UI-PUSH** page matrix.
+5. **CHAOS** firebase/google/valhalla/osrm.
+6. P3: assert intentional skips still held.
 
 When coding: CodeGraph for schemas → Ripwire `--callers` / `--expand` on the thin router → pytest next to existing `test_notification_*` / `test_routing.py` / adapter tests. Wire into `pnpm validate:*` where it belongs.
 
@@ -377,7 +372,6 @@ When coding: CodeGraph for schemas → Ripwire `--callers` / `--expand` on the t
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md) — Branch identity/push + spatial
 - [INTEGRATIONS.md](../INTEGRATIONS.md) · `integrations.yaml`
-- [FLEETBASE_MODULES.md](../FLEETBASE_MODULES.md) — Notifications / Maps Use-Extend-Replace
 - `apps/api/src/porterchain_api/admin_engine/diagnostics_catalog.py`
 - `apps/api/src/porterchain_api/admin_engine/e2e_validation_catalog.py`
 - `apps/admin/src/lib/diagnostics.ts` (`CHAOS_SCENARIOS`)

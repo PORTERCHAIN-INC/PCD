@@ -61,7 +61,6 @@ Driver web uses a Next BFF (`/api/driver` → `/driver-api/v1`). Mobile driver u
 | `merchant_engine`     | Org, portal APIs, ingest, commercial booking      | Driver online SoT, road TSP |
 | `admin_engine`        | Control Tower, staff RBAC, settings               | Custom dispatch board       |
 | `pricing_engine`      | Quote bridge, SQLAlchemy pricing repo             | Dispatch assignment         |
-| `billing_engine`      | Ledger, COD/Connect _policy_                      | Stripe SDK                  |
 | `dispatch_engine`     | OR-Tools day plan, GPS board, optimize run store  | Multi-van fleet split       |
 | `driver_engine`       | Duty, accept, proof, Redis last-known GPS         | Day solver                  |
 | `auth` / `authz`      | Clerk verify, SpiceDB Check                       | Caching Check allows        |
@@ -122,11 +121,10 @@ Local: `CLERK_DEV_BYPASS=true` on API; portals `NEXT_PUBLIC_CLERK_DEV_BYPASS`. N
 
 Stripe Checkout remains the retail prepaid path. COD via Connect + Checkout/Payment Link is additive (`billing_engine/stripe_cod_service.py` → FastAPI port `services/stripe_service.py`). The only `import stripe` is [`porterchain_services/stripe/sdk.py`](services/python/porterchain_services/stripe/sdk.py).
 
-|              |                                                      |
-| ------------ | ---------------------------------------------------- |
-| **Finished** | SDK isolation (Wave 2); COD freeze lifted 2026-09-12 |
-| **Current**  | Policy in billing_engine; SDK in sdk.py              |
-| **Required** | `_STRIPE_ALLOWLIST` stays exact                      |
+|              |                                         |
+| ------------ | --------------------------------------- |
+| **Current**  | Policy in billing_engine; SDK in sdk.py |
+| **Required** | `_STRIPE_ALLOWLIST` stays exact         |
 
 ---
 
@@ -185,7 +183,6 @@ Admin **list** = scan the book. **Detail** = operate one company. Merchant **Set
 | Admin list            | Status, health, search, AR outstanding                                                | Industry / terms / API as default columns                  |
 | Admin detail Overview | Standing, next actions (heuristic)                                                    | Fake “AI insights” as a product                            |
 | Admin detail Billing  | Cycle AR preview/generate, invoices, contracts                                        | Rate card (Pricing) · recording payments (Finance invoice) |
-| Admin detail Settings | Identity, commercial terms, tax, coverage, COD/Stripe flags                           | Invoices, seats, API keys                                  |
 | Merchant Settings     | Profile, locations, delivery contacts, alert prefs, branding, tax, documents, privacy | Invoices, keys, Shopify                                    |
 | Merchant Billing      | Invoices, statements, credits, billing contacts, rates                                | Alert prefs                                                |
 | Merchant Reports      | Own delivery, spend, destinations, claims                                             | Driver / vehicle fleet internals                           |

@@ -10,7 +10,6 @@ flowchart TD
   CSV --> CONFIRM[POST /bulk/{id}/confirm]
   CONFIRM --> ORD
   ORD --> OPS[Admin Operations<br/>dispatch queue]
-  OPS --> FB[order.dispatch_ready → Fleetbase]
   ORD --> BILL[MerchantBillingService<br/>statement + invoices]
   BILL --> LEDGER[billing_engine SettlementService<br/>via payment.succeeded for retail only]
   M --> KEYS[MerchantApiKeyService<br/>keys stored, no auth router]
