@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -116,8 +117,8 @@ def test_authz_client_works_inside_running_asyncio_loop() -> None:
         client = AuthzClient(
             enabled=True,
             required=False,
-            endpoint="localhost:50051",
-            preshared_key="porterchain-spicedb-dev-key",
+            endpoint=os.environ["SPICEDB_ENDPOINT"],
+            preshared_key=os.environ["SPICEDB_PRESHARED_KEY"],
             use_memory=False,
         )
         if client._use_memory:  # noqa: SLF001

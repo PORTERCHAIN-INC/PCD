@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { hasClerkSessionHint, type CookieReader } from "./clerkEdgeSession";
+import { hasClerkSessionHint, type CookieReader } from "./clerkEdgeSession.ts";
 
 function jar(entries: Record<string, string>): CookieReader {
   const map = new Map(Object.entries(entries));

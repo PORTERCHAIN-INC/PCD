@@ -15,7 +15,8 @@
   },
   "scripts": {
     "lint": "tsc --noEmit",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "test": "node --test src/*.test.ts"
   },
   "dependencies": {},
   "peerDependencies": {

@@ -106,7 +106,7 @@ jobs:
           POSTGRES_PASSWORD: porterchain
           POSTGRES_DB: porterchain
         ports:
-          - 5432:5432
+          - 55432:5432
         options: >-
           --health-cmd "pg_isready -U porterchain -d porterchain"
           --health-interval 10s
@@ -115,7 +115,7 @@ jobs:
       redis:
         image: redis:8.8.0-alpine3.23
         ports:
-          - 6379:6379
+          - 56379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -151,15 +151,19 @@ jobs:
 
       - name: Alembic upgrade head
         env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
           alembic upgrade head
 
+      - name: Throwaway SpiceDB (tests refuse the dev ports)
+        run: docker run -d --name pcd-test-spicedb -p 127.0.0.1:55051:50051 authzed/spicedb:v1.56.0 serve --grpc-preshared-key porterchain-spicedb-test-key --datastore-engine memory
+
       - name: API tests (PostgreSQL)
         env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          REDIS_URL: redis://127.0.0.1:56379/0
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
@@ -174,7 +178,7 @@ jobs:
 
       - name: Module validation script
         env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
@@ -255,7 +259,7 @@ jobs:
           POSTGRES_PASSWORD: porterchain
           POSTGRES_DB: porterchain
         ports:
-          - 5432:5432
+          - 55432:5432
         options: >-
           --health-cmd "pg_isready -U porterchain -d porterchain"
           --health-interval 10s
@@ -264,7 +268,7 @@ jobs:
       redis:
         image: redis:8.8.0-alpine3.23
         ports:
-          - 6379:6379
+          - 56379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -274,7 +278,8 @@ jobs:
       run:
         working-directory: apps/api
     env:
-      DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
+      DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
+      REDIS_URL: redis://127.0.0.1:56379/0
       APP_ENV: local
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
