@@ -13,15 +13,18 @@ test.describe(`UI-D-PUSH ${tcId("UI-D-PUSH")} @p0 @push`, () => {
     const root = path.join(process.cwd(), "src");
     const offline = fs.readFileSync(path.join(root, "lib/offline-client.ts"), "utf8");
     expect(offline).toContain("registerWebPush");
-    expect(offline).toContain("__PC_TEST_FCM_TOKEN__");
     expect(offline).toContain("registerPush");
-    expect(offline).toContain("isFcmRegistrationToken");
+    expect(offline).toContain("@porterchain/web-push/register");
+    const sharedPush = path.join(process.cwd(), "../../packages/web-push/src");
+    const register = fs.readFileSync(path.join(sharedPush, "register.ts"), "utf8");
+    expect(register).toContain("__PC_TEST_FCM_TOKEN__");
+    expect(register).toContain("isFcmRegistrationToken");
 
     const sw = fs.readFileSync(path.join(process.cwd(), "public/firebase-messaging-sw.js"), "utf8");
     expect(sw).toContain("onBackgroundMessage");
     expect(sw).not.toMatch(/firebase-auth/);
 
-    const messaging = fs.readFileSync(path.join(root, "lib/firebase-messaging.ts"), "utf8");
+    const messaging = fs.readFileSync(path.join(sharedPush, "messaging.ts"), "utf8");
     expect(messaging).toContain("getWebFcmToken");
     expect(messaging).toContain("firebase-messaging-sw.js");
   });

@@ -1,6 +1,6 @@
 /** Public Firebase web config — used only for FCM (not Auth). */
 
-export function firebaseWebConfig(): {
+export type FirebaseWebConfig = {
   apiKey: string;
   authDomain: string;
   projectId: string;
@@ -8,7 +8,9 @@ export function firebaseWebConfig(): {
   messagingSenderId: string;
   appId: string;
   vapidKey: string;
-} | null {
+};
+
+export function firebaseWebConfig(): FirebaseWebConfig | null {
   const apiKey = (process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "").trim();
   const projectId = (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "").trim();
   const messagingSenderId = (process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "").trim();

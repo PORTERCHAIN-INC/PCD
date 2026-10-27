@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: monorepoRoot,
   },
-  transpilePackages: ["@porterchain/ui", "@porterchain/config"],
+  transpilePackages: ["@porterchain/ui", "@porterchain/config", "@porterchain/web-push"],
   reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react"],

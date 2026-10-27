@@ -16,7 +16,11 @@ test.describe(`UI-NTF-003 ${tcId("UI-NTF-003")} @p0 @push`, () => {
     const root = path.join(process.cwd(), "src");
     const webPush = fs.readFileSync(path.join(root, "lib/web-push.ts"), "utf8");
     expect(webPush).toContain("registerBrowserPush");
-    expect(webPush).toContain("__PC_TEST_FCM_TOKEN__");
+    expect(webPush).toContain("@porterchain/web-push/register");
+    const sharedPush = path.join(process.cwd(), "../../packages/web-push/src");
+    const register = fs.readFileSync(path.join(sharedPush, "register.ts"), "utf8");
+    expect(register).toContain("__PC_TEST_FCM_TOKEN__");
+    expect(register).toContain("isFcmRegistrationToken");
     expect(webPush).toContain("registerDevice");
 
     const sw = fs.readFileSync(path.join(process.cwd(), "public/firebase-messaging-sw.js"), "utf8");

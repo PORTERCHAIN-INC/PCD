@@ -9,7 +9,7 @@ import {
   type Messaging,
   type Unsubscribe,
 } from "firebase/messaging";
-import { firebaseWebConfig } from "@/lib/firebase-public";
+import { firebaseWebConfig } from "./config";
 
 let app: FirebaseApp | null = null;
 let messaging: Messaging | null = null;
@@ -33,6 +33,7 @@ async function getMessagingIfSupported(): Promise<Messaging | null> {
   return messaging;
 }
 
+/** FCM token for this browser; registers each portal's /firebase-messaging-sw.js. */
 export async function getWebFcmToken(): Promise<string | null> {
   const cfg = firebaseWebConfig();
   if (!cfg) return null;
@@ -51,24 +52,22 @@ export type ForegroundPushPayload = {
   tag?: string;
 };
 
-/** Loud in-tab alerts while the ops portal is focused (SW covers background). */
+/** In-tab alerts while a portal is focused (the service worker covers background). */
 export async function attachForegroundMessaging(
-  onPush: (payload: ForegroundPushPayload) => void
+  onPush: (payload: ForegroundPushPayload) => void,
+  defaultTag = "porterchain-ops"
 ): Promise<Unsubscribe | null> {
   const msg = await getMessagingIfSupported();
   if (!msg) return null;
   return onMessage(msg, (payload) => {
     const data = payload.data || {};
     const notification = payload.notification || {};
-    const title = String(notification.title || data.title || "PorterChain");
-    const body = String(notification.body || data.body || "");
-    const priority = String(data.priority || "normal").toLowerCase();
     onPush({
-      title,
-      body,
-      priority,
+      title: String(notification.title || data.title || "PorterChain"),
+      body: String(notification.body || data.body || ""),
+      priority: String(data.priority || "normal").toLowerCase(),
       deepLink: data.deep_link ? String(data.deep_link) : undefined,
-      tag: String(data.order_id || data.exception_id || data.deep_link || "porterchain-ops"),
+      tag: String(data.order_id || data.exception_id || data.deep_link || defaultTag),
     });
   });
 }

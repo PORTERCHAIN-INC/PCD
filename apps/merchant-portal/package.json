@@ -25,6 +25,7 @@
     "@porterchain/maps": "workspace:*",
     "@porterchain/types": "workspace:*",
     "@porterchain/ui": "workspace:*",
+    "@porterchain/web-push": "workspace:*",
     "@sentry/nextjs": "^10.64.0",
     "@tanstack/react-query": "^5.101.2",
     "echarts": "^6.1.0",

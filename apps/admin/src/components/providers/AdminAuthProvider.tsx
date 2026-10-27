@@ -119,7 +119,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       void (async () => {
         try {
-          const { attachForegroundMessaging } = await import("@/lib/firebase-messaging");
+          const { attachForegroundMessaging } = await import("@porterchain/web-push/messaging");
           const stop = await attachForegroundMessaging((msg) => {
             if (typeof Notification === "undefined" || Notification.permission !== "granted")
               return;
