@@ -72,3 +72,27 @@ def test_hs17_booking_email_appears_in_mailpit() -> None:
     assert messages, f"expected Mailpit message for {to}"
     subject = (messages[0].get("Subject") or messages[0].get("subject") or "").lower()
     assert "confirmed" in subject or "porterchain" in subject
+
+
+@pytest.mark.parametrize(
+    ("host", "port", "expected"),
+    [
+        ("127.0.0.1", 51025, ("127.0.0.1", 51025)),  # explicit loopback catcher honoured
+        ("smtp.zohocloud.ca", 465, ("localhost", 1025)),  # real SMTP never used locally
+        ("", 587, ("localhost", 1025)),
+    ],
+)
+def test_local_smtp_target(host, port, expected) -> None:
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    from porterchain_api.notification_engine.delivery_service import DeliveryService
+
+    settings = SimpleNamespace(app_env="local", smtp_host=host, smtp_port=port, smtp_user="", smtp_password="")
+    with patch("porterchain_api.notification_engine.delivery_service.smtplib.SMTP") as smtp:
+        DeliveryService._send_email_smtp(
+            DeliveryService.__new__(DeliveryService),
+            recipient="r@example.test", subject="s", text_body="t", html_body="<p>t</p>",
+            from_addr="f@example.test", from_name="PC", settings=settings,
+        )
+    assert smtp.call_args.args[:2] == expected

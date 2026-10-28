@@ -404,8 +404,11 @@ class DeliveryService:
         port = int(settings.smtp_port or 587)
         # Local stack: always use Mailpit so payment/invoice receipts are inspectable
         # without sending through production SMTP (ZeptoMail).
+        # A loopback host/port that is set explicitly (e.g. a throwaway rehearsal Mailpit)
+        # is honoured; anything else is forced to the default local Mailpit.
         if str(getattr(settings, "app_env", "")).lower() in {"local", "development", "dev"}:
-            host, port = "localhost", 1025
+            if (host or "").lower() not in {"localhost", "127.0.0.1", "::1"}:
+                host, port = "localhost", 1025
 
         # Prod SMTP (when unblocked): 587 + STARTTLS or 465 + SSL. Mailpit: plain 1025.
         tls_ctx = ssl.create_default_context()
