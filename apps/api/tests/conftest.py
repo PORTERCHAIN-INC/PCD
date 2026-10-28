@@ -58,6 +58,17 @@ def pytest_configure(config):
         )
 
 
+# Fresh, migrated test DB for every session (tests/_test_db_reset.py). Runs before any
+# app module opens a connection, and only after the guard above found nothing unsafe.
+if os.environ.get("PCD_TEST_DB_RESET", "1") != "0" and not live_service_violations():
+    import sys as _sys
+
+    _sys.path.insert(0, os.path.dirname(__file__))
+    from _test_db_reset import reset_test_database, reset_test_spicedb
+
+    print(reset_test_database(os.environ["DATABASE_URL"], os.environ.get("REDIS_URL", "")))
+    reset_test_spicedb(os.environ["SPICEDB_ENDPOINT"], os.environ["SPICEDB_PRESHARED_KEY"])
+
 from porterchain_api.db import SessionLocal, init_db
 
 

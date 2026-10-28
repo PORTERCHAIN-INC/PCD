@@ -38,7 +38,7 @@ const orders = [
   {
     order_id: "o1",
     order_number: "PC-1042",
-    tracking_number: "PC-20261015-F4BC86",
+    tracking_number: "PC-20261015-F4BC86A21D",
     state: "IN_TRANSIT",
     amount_cents: 8475,
     currency: "CAD",
@@ -51,7 +51,7 @@ const orders = [
   {
     order_id: "o2",
     order_number: "PC-1031",
-    tracking_number: "PC-20261012-91AC02",
+    tracking_number: "PC-20261012-91AC02E57B",
     state: "DELIVERED",
     amount_cents: 4294,
     currency: "CAD",
@@ -64,7 +64,7 @@ const orders = [
   {
     order_id: "o3",
     order_number: "PC-1017",
-    tracking_number: "PC-20261004-77DE10",
+    tracking_number: "PC-20261004-77DE10C4F8",
     state: "DELIVERED",
     amount_cents: 12995,
     currency: "CAD",
@@ -204,15 +204,15 @@ function route(path: string, method: string): unknown {
           body: "Amrit picked up 2 parcels in Milton. ETA 2:40 PM.",
           is_read: false,
           created_at: iso(20),
-          deep_link: "porterchain://track/PC-20261015-F4BC86",
+          deep_link: "porterchain://track/PC-20261015-F4BC86A21D",
         },
         {
           id: "n2",
           title: "Delivered",
-          body: "PC-20261012-91AC02 was delivered and signed for.",
+          body: "PC-20261012-91AC02E57B was delivered and signed for.",
           is_read: true,
           created_at: iso(60 * 24 * 3),
-          deep_link: "porterchain://track/PC-20261012-91AC02",
+          deep_link: "porterchain://track/PC-20261012-91AC02E57B",
         },
       ],
     };

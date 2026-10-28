@@ -186,7 +186,7 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
         <Icon name="search" size={18} color={c.muted} />
         <TextInput
           accessibilityLabel="Tracking number"
-          placeholder="Tracking number, e.g. PC-20261015-F4BC86"
+          placeholder="Tracking number, e.g. PC-20261015-F4BC86A21D"
           placeholderTextColor={c.muted}
           autoCapitalize="characters"
           autoCorrect={false}
