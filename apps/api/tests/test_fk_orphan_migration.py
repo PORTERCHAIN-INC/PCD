@@ -74,6 +74,34 @@ def test_not_null_orphans_are_moved_with_full_row(conn) -> None:
     assert data == {"id": "c2", "parent_id": "ghost", "note": "keep me"}
 
 
+def test_cascade_nullable_orphans_are_moved_not_nulled(conn) -> None:
+    """Rehearsal finding: nulling pricing_fsa_rates.merchant_id turns a deleted merchant's
+    private rate into a platform-wide rate. CASCADE children must be moved out instead."""
+    mod = _mod()
+    conn.exec_driver_sql("CREATE TABLE t_parent (id varchar(36) PRIMARY KEY)")
+    conn.exec_driver_sql("CREATE TABLE t_child (id varchar(36) PRIMARY KEY, parent_id varchar(36) NULL)")
+    conn.exec_driver_sql("INSERT INTO t_child VALUES ('c1','ghost'),('c2',NULL)")
+    assert mod.quarantine_orphans(conn, "t_child", "parent_id", "t_parent", "CASCADE") == (1, "moved")
+    assert [r[0] for r in conn.exec_driver_sql("SELECT id FROM t_child").all()] == ["c2"]
+
+
+def test_restrict_orphans_are_only_reported(conn) -> None:
+    mod = _mod()
+    conn.exec_driver_sql("CREATE TABLE t_parent (id varchar(36) PRIMARY KEY)")
+    conn.exec_driver_sql("CREATE TABLE t_child (id varchar(36) PRIMARY KEY, parent_id varchar(36) NULL)")
+    conn.exec_driver_sql("INSERT INTO t_child VALUES ('c1','ghost')")
+    assert mod.quarantine_orphans(conn, "t_child", "parent_id", "t_parent", "RESTRICT") == (1, "reported")
+    assert conn.exec_driver_sql("SELECT parent_id FROM t_child").scalar_one() == "ghost"
+
+
+def test_orphan_action_table() -> None:
+    f = _mod().orphan_action
+    assert f(False, "SET NULL") == "nulled"
+    assert f(True, "SET NULL") == "moved"
+    assert f(False, "CASCADE") == "moved"
+    assert f(False, "RESTRICT") == f(True, "RESTRICT") == "reported"
+
+
 def test_every_planned_fk_exists_with_its_on_delete_rule(conn) -> None:
     mod = _mod()
     rules = {"a": "NO ACTION", "r": "RESTRICT", "c": "CASCADE", "n": "SET NULL"}

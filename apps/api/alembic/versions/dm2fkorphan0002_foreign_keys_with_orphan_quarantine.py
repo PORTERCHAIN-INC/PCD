@@ -7,9 +7,13 @@ For every ``<table>.<col> -> <target>.id`` below:
 
 1. Orphans (value set but no matching target row) are copied into ``fk_orphan_quarantine``
    (table, column, the row's primary key, the bad value, the whole row as JSON, action).
-2. Nullable column: the bad value is set to NULL (action='nulled').
-   NOT NULL column: the row is removed from the live table (action='moved'); it stays
-   in quarantine as JSON and can be re-inserted (downgrade does exactly that).
+2. ``ON DELETE SET NULL`` on a nullable column: the bad value is set to NULL (action='nulled').
+   NOT NULL column, or ``ON DELETE CASCADE`` (the row belongs to its parent; NULL would change
+   its meaning, e.g. a deleted merchant's FSA rate would become a platform-wide rate): the row
+   is removed from the live table (action='moved'); it stays in quarantine as JSON and can be
+   re-inserted (downgrade does exactly that).
+   ``ON DELETE RESTRICT`` (money rows: ledger, Interac): nothing is changed (action='reported')
+   and that FK is left ``NOT VALID`` (still enforced for new rows) until finance reviews it.
    Nothing is ever deleted without a full copy, and the counts are printed.
 3. The FK is added ``NOT VALID`` and then ``VALIDATE``d (short lock, see docs/migrations).
 4. A btree index is created on the column when none existed.
@@ -106,13 +110,21 @@ def _not_null(bind, table: str, column: str) -> bool:
     return not next(c for c in sa.inspect(bind).get_columns(table) if c["name"] == column)["nullable"]
 
 
-def quarantine_orphans(bind, table: str, column: str, target: str) -> tuple[int, str]:
-    """Copy orphans of ``table.column`` into quarantine, then NULL them or move them out."""
+def orphan_action(not_null: bool, ondelete: str) -> str:
+    if ondelete == "RESTRICT":
+        return "reported"
+    if not_null or ondelete == "CASCADE":
+        return "moved"
+    return "nulled"
+
+
+def quarantine_orphans(bind, table: str, column: str, target: str, ondelete: str = "SET NULL") -> tuple[int, str]:
+    """Copy orphans of ``table.column`` into quarantine, then NULL them, move them out, or only report."""
     orphan = (
         f"t.{column} IS NOT NULL AND NOT EXISTS "
         f"(SELECT 1 FROM {target} x WHERE x.id = t.{column})"
     )
-    action = "moved" if _not_null(bind, table, column) else "nulled"
+    action = orphan_action(_not_null(bind, table, column), ondelete)
     n = bind.execute(
         sa.text(
             f"INSERT INTO {QUARANTINE} (table_name, column_name, row_pk, bad_value, row_data, action) "
@@ -123,7 +135,7 @@ def quarantine_orphans(bind, table: str, column: str, target: str) -> tuple[int,
     if n:
         if action == "moved":
             bind.execute(sa.text(f"DELETE FROM {table} t WHERE {orphan}"))
-        else:
+        elif action == "nulled":
             bind.execute(sa.text(f"UPDATE {table} t SET {column} = NULL WHERE {orphan}"))
         print(f"[dm2fkorphan0002] {table}.{column}: {n} orphan row(s) {action} (see {QUARANTINE})")
     return n, action
@@ -145,12 +157,15 @@ def upgrade() -> None:
     op.create_index("ix_fk_orphan_quarantine_table", QUARANTINE, ["table_name", "column_name"])
 
     for table, column, target, ondelete in FKS:
-        quarantine_orphans(bind, table, column, target)
+        n, action = quarantine_orphans(bind, table, column, target, ondelete)
         name = fk_name(table, column)
         op.execute(
             f"ALTER TABLE {table} ADD CONSTRAINT {name} FOREIGN KEY ({column}) "
             f"REFERENCES {target} (id) ON DELETE {ondelete} NOT VALID"
         )
+        if n and action == "reported":
+            print(f"[dm2fkorphan0002] {name} left NOT VALID: review {table} orphans before VALIDATE")
+            continue
         op.execute(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}")
 
     for table, column in NEW_INDEXES:
@@ -178,7 +193,7 @@ def downgrade() -> None:
                 ),
                 {"t": table, "c": column, "pk": row_pk},
             )
-        else:
+        elif action == "nulled":
             bind.execute(
                 sa.text(f"UPDATE {table} SET {column} = :v WHERE id::text = :pk AND {column} IS NULL"),
                 {"v": bad_value, "pk": row_pk},
