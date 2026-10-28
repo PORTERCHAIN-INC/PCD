@@ -7,6 +7,7 @@ import os
 import signal
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -691,6 +692,49 @@ def _drain_driver_compliance_expiry() -> int:
     return int(result.get("updated", 0))
 
 
+def sweep_table() -> list[tuple[str, Callable[[], int]]]:
+    """Periodic sweeps in run order, by the name WORKER_PAUSED_SWEEPS uses."""
+    return [
+        ("draft_reconciliation", _drain_draft_reconciliation),
+        ("standing_orders", _drain_standing_orders),
+        ("interac_inbox", _drain_interac_inbox),
+        ("billing_cycle", _drain_billing_cycle),
+        ("finance_daily", _drain_finance_daily),
+        ("notification_retries", _drain_notification_retries),
+        ("merchant_webhook_retries", _drain_merchant_webhook_retries),
+        ("shopify_fulfillment_retries", _drain_shopify_fulfillment_retries),
+        ("driver_compliance_expiry", _drain_driver_compliance_expiry),
+        ("lead_nurture", _drain_lead_nurture),
+        ("lead_agent", _drain_lead_agent),
+        ("lead_sla_escalation", _drain_lead_sla_escalation),
+        ("lead_inbound_email", _drain_lead_inbound_email),
+        ("delivery_sla", _drain_delivery_sla),
+        ("lead_soft_archive", _drain_lead_soft_archive),
+        ("deleted_items_purge", _drain_deleted_items_purge),
+        ("shopify_buyer_retention", _drain_shopify_buyer_retention),
+        ("blog_scheduled_publish", _drain_blog_scheduled_publish),
+        ("merchant_ops", _merchant_ops_drain),
+        ("job_offer_sweep", _drain_job_offer_sweep),
+        ("retention", _drain_retention),
+        ("stop_time_learning", _drain_stop_time_learning),
+    ]
+
+
+def paused_sweeps(raw: str | None = None) -> set[str]:
+    """Comma list from WORKER_PAUSED_SWEEPS (e.g. a local copy of live data); "all" pauses every sweep."""
+    raw = os.environ.get("WORKER_PAUSED_SWEEPS", "") if raw is None else raw
+    names = {n.strip().lower() for n in raw.split(",") if n.strip()}
+    return {n for n, _ in sweep_table()} if "all" in names else names
+
+
+def active_sweep_table(raw: str | None = None) -> list[tuple[str, Callable[[], int]]]:
+    paused = paused_sweeps(raw)
+    unknown = paused - {n for n, _ in sweep_table()}
+    if unknown:
+        logger.warning("WORKER_PAUSED_SWEEPS: unknown names ignored: %s", ", ".join(sorted(unknown)))
+    return [(n, fn) for n, fn in sweep_table() if n not in paused]
+
+
 def main(argv: list[str] | None = None) -> None:
     _load_local_api_env()
     from porterchain_shared.queue.names import QueueName
@@ -718,6 +762,11 @@ def main(argv: list[str] | None = None) -> None:
         ", ".join(q.value for q in QueueName),
     )
 
+    active_sweeps = active_sweep_table()
+    skipped = sorted({n for n, _ in sweep_table()} - {n for n, _ in active_sweeps})
+    if skipped:
+        logger.warning("worker sweeps paused: %s", ", ".join(skipped))
+
     while _running:
         try:
             processed = 0
@@ -733,28 +782,8 @@ def main(argv: list[str] | None = None) -> None:
                 )
             elif mode_includes(mode, "queues"):
                 processed += _drain_queues(publisher, timeout_seconds=0)
-                processed += _drain_draft_reconciliation()
-                processed += _drain_standing_orders()
-                processed += _drain_interac_inbox()
-                processed += _drain_billing_cycle()
-                processed += _drain_finance_daily()
-                processed += _drain_notification_retries()
-                processed += _drain_merchant_webhook_retries()
-                processed += _drain_shopify_fulfillment_retries()
-                processed += _drain_driver_compliance_expiry()
-                processed += _drain_lead_nurture()
-                processed += _drain_lead_agent()
-                processed += _drain_lead_sla_escalation()
-                processed += _drain_lead_inbound_email()
-                processed += _drain_delivery_sla()
-                processed += _drain_lead_soft_archive()
-                processed += _drain_deleted_items_purge()
-                processed += _drain_shopify_buyer_retention()
-                processed += _drain_blog_scheduled_publish()
-                processed += _merchant_ops_drain()
-                processed += _drain_job_offer_sweep()
-                processed += _drain_retention()
-                processed += _drain_stop_time_learning()
+                for name, sweep in active_sweeps:
+                    processed += sweep()
             _touch_heartbeat()
         except Exception:
             logger.exception("worker loop error — backing off before retry")
