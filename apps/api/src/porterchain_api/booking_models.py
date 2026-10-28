@@ -228,6 +228,10 @@ class Package(SoftDeleteMixin, Base):
         UniqueConstraint("order_id", "parcel_index", name="uq_packages_order_parcel_index"),
         CheckConstraint("parcel_index >= 1", name="ck_packages_parcel_index_positive"),
         CheckConstraint("parcel_index <= total_parcels", name="ck_packages_parcel_index_le_total"),
+        CheckConstraint(
+            "status IN ('manifested','picked_up','loaded','out_for_delivery','delivered','missing_at_pickup')",
+            name="ck_packages_status_known",
+        ),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
@@ -256,6 +260,31 @@ class Package(SoftDeleteMixin, Base):
     )
 
     order: Mapped[Order] = relationship(back_populates="packages")
+    external_identifiers: Mapped[list["PackageExternalIdentifier"]] = relationship(
+        back_populates="package", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class PackageExternalIdentifier(Base):
+    """A partner / marketplace barcode (e.g. Shopify, a retailer's own label) that resolves
+    to one PorterChain package in driver scan lookup. ``value_normalized`` is upper-case
+    with spaces/dashes stripped; unique per source."""
+
+    __tablename__ = "package_external_identifiers"
+    __table_args__ = (
+        UniqueConstraint("source", "value_normalized", name="uq_package_external_identifiers_source_value"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    package_id: Mapped[str] = mapped_column(ForeignKey("packages.id", ondelete="CASCADE"), index=True)
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
+    source: Mapped[str] = mapped_column(String(32))
+    value: Mapped[str] = mapped_column(String(128))
+    value_normalized: Mapped[str] = mapped_column(String(128), index=True)
+    created_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    package: Mapped[Package] = relationship(back_populates="external_identifiers")
 
 
 class Payment(Base):

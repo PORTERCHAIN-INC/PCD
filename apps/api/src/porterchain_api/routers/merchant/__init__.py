@@ -23,5 +23,6 @@ from porterchain_api.routers.merchant import shopify  # noqa: F401
 from porterchain_api.routers.merchant import standing_orders  # noqa: F401
 from porterchain_api.routers.merchant import privacy  # noqa: F401
 from porterchain_api.routers.merchant import referrals  # noqa: F401
+from porterchain_api.routers.merchant import package_external_ids  # noqa: F401
 
 __all__ = ["router", "_order_response", "_profile_response"]

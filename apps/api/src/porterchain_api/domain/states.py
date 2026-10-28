@@ -212,3 +212,31 @@ def can_transition_booking_draft(from_state: BookingDraftState, to_state: Bookin
     if from_state in BOOKING_DRAFT_TERMINAL:
         return False
     return to_state in BOOKING_DRAFT_TRANSITIONS.get(from_state, set())
+
+
+class PackageState(StrEnum):
+    """Per-box chain-of-custody status (``packages.status``)."""
+
+    MANIFESTED = "manifested"
+    PICKED_UP = "picked_up"
+    LOADED = "loaded"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+    DELIVERED = "delivered"
+    #: Not at pickup; reported by the driver with a photo. Can still be found and picked up.
+    MISSING_AT_PICKUP = "missing_at_pickup"
+
+
+PACKAGE_TRANSITIONS: dict[PackageState, set[PackageState]] = {
+    PackageState.MANIFESTED: {PackageState.PICKED_UP, PackageState.MISSING_AT_PICKUP},
+    PackageState.MISSING_AT_PICKUP: {PackageState.PICKED_UP},
+    PackageState.PICKED_UP: {PackageState.LOADED, PackageState.OUT_FOR_DELIVERY, PackageState.DELIVERED},
+    PackageState.LOADED: {PackageState.OUT_FOR_DELIVERY, PackageState.DELIVERED},
+    PackageState.OUT_FOR_DELIVERY: {PackageState.DELIVERED},
+    PackageState.DELIVERED: set(),
+}
+
+
+def can_transition_package(from_state: PackageState, to_state: PackageState) -> bool:
+    if from_state == to_state:
+        return True
+    return to_state in PACKAGE_TRANSITIONS.get(from_state, set())

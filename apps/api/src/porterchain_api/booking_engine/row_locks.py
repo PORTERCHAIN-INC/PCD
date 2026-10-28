@@ -12,11 +12,13 @@ def lock_quote(db: Session, quote_id: str) -> Quote | None:
 
 
 def lock_order(db: Session, order_id: str) -> Order | None:
-    return db.query(Order).filter(Order.id == order_id).with_for_update().first()
+    # FOR NO KEY UPDATE: still serialises writers of this order, but lets child rows
+    # (order_events from the rejection audit's own session) take their FK KEY SHARE lock.
+    return db.query(Order).filter(Order.id == order_id).with_for_update(key_share=True).first()
 
 
 def lock_order_by_quote(db: Session, quote_id: str) -> Order | None:
-    return db.query(Order).filter(Order.quote_id == quote_id).with_for_update().first()
+    return db.query(Order).filter(Order.quote_id == quote_id).with_for_update(key_share=True).first()
 
 
 def lock_payment(db: Session, payment_id: str) -> Payment | None:

@@ -8,7 +8,10 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
+from porterchain_api.domain.states import PackageState
+from porterchain_api.merchant_engine.external_identifier_service import ExternalIdentifierService
 from porterchain_api.merchant_engine.package_service import PackageService
+from porterchain_api.merchant_engine.package_state import set_package_status
 from porterchain_api.reporting.qr_codec import (
     InvalidLabelQr,
     decode_label_qr,
@@ -18,14 +21,14 @@ from porterchain_api.reporting.qr_codec import (
 
 Phase = Literal["pickup", "delivery"]
 
-STATUS_MANIFESTED = "manifested"
-STATUS_PICKED_UP = "picked_up"
-STATUS_LOADED = "loaded"
-STATUS_OUT_FOR_DELIVERY = "out_for_delivery"
-STATUS_DELIVERED = "delivered"
+STATUS_MANIFESTED = PackageState.MANIFESTED.value
+STATUS_PICKED_UP = PackageState.PICKED_UP.value
+STATUS_LOADED = PackageState.LOADED.value
+STATUS_OUT_FOR_DELIVERY = PackageState.OUT_FOR_DELIVERY.value
+STATUS_DELIVERED = PackageState.DELIVERED.value
 #: Not at pickup; the driver reported it with a photo. Accounted for at pickup,
 #: never expected at delivery (it was never loaded).
-STATUS_MISSING_AT_PICKUP = "missing_at_pickup"
+STATUS_MISSING_AT_PICKUP = PackageState.MISSING_AT_PICKUP.value
 
 _PICKUP_DONE = frozenset(
     {STATUS_PICKED_UP, STATUS_LOADED, STATUS_OUT_FOR_DELIVERY, STATUS_DELIVERED}
@@ -169,7 +172,7 @@ class ScanGateService:
         )
 
     def _package_for_scan(self, db: Session, order: Order, raw: str) -> Package:
-        """LOGISTICSv1 QR first; else unique tracking_suffix / barcode on this order."""
+        """Signed PC1 label, then LOGISTICSv1 QR, then tracking_suffix / barcode, then a registered partner barcode."""
         token = (raw or "").strip()
         if not token:
             raise ValueError("invalid_label_qr")
@@ -206,6 +209,9 @@ class ScanGateService:
             .first()
         )
         if not pkg:
+            # Partner / marketplace barcode registered for a box on this order.
+            pkg = ExternalIdentifierService().resolve(db, order, token)
+        if not pkg:
             raise ValueError("invalid_label_qr")
         if pkg.order_id != order.id:
             raise ValueError("qr_order_mismatch")
@@ -227,14 +233,17 @@ class ScanGateService:
         if phase == "pickup":
             duplicate = pkg.status in _PICKUP_DONE
             if not duplicate:
-                pkg.status = STATUS_PICKED_UP
+                set_package_status(
+                    db, pkg, STATUS_PICKED_UP, actor_type="driver", actor_id=actor_id, source="scan_pickup"
+                )
         else:
             if pkg.status in (STATUS_MANIFESTED, STATUS_MISSING_AT_PICKUP):
                 raise ValueError("scan_pickup_required_first")
             duplicate = pkg.status == STATUS_DELIVERED
-            pkg.status = STATUS_DELIVERED
+            set_package_status(
+                db, pkg, STATUS_DELIVERED, actor_type="driver", actor_id=actor_id, source="scan_delivery"
+            )
 
-        db.add(pkg)
         db.flush()
         progress = self.scan_progress(db, order, phase=phase)
         result = {
@@ -337,7 +346,7 @@ class ScanGateService:
             raise LookupError("package_not_found")
         if pkg.status in _PICKUP_DONE:
             raise ValueError("package_already_picked_up")
-        pkg.status = STATUS_MISSING_AT_PICKUP
+        set_package_status(db, pkg, STATUS_MISSING_AT_PICKUP, actor_type="driver", source="reported_missing")
         exc = OrderException(
             order_id=order.id,
             type="package_missing",

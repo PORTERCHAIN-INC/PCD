@@ -7,6 +7,9 @@ from porterchain_api.booking_engine._core import publish_recorded_event, record_
 from porterchain_api.domain.states import OrderState, can_transition_order
 from porterchain_api.booking_engine.row_locks import lock_order
 from porterchain_api.booking_models import Order, OrderEvent
+from porterchain_api.platform.transition_audit import log_rejected_transition
+
+ORDER_TRANSITION_REJECTED = "order.transition_rejected"
 
 
 def transition_to_dispatch_ready(
@@ -58,6 +61,16 @@ def transition_order_state(
     order = locked
     from_state = OrderState(order.state)
     if not can_transition_order(from_state, to_state):
+        log_rejected_transition(
+            db,
+            order_id=order.id,
+            event_type=ORDER_TRANSITION_REJECTED,
+            from_state=from_state.value,
+            to_state=to_state.value,
+            actor_type=actor_type,
+            actor_id=actor_id,
+            payload={"attempted_event": event_type},
+        )
         raise ValueError(f"Invalid order transition {from_state} -> {to_state}")
     order.state = to_state.value
     if order.booking:
