@@ -272,6 +272,7 @@ class InvoiceService:
         ]
 
     def detail_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> dict[str, Any]:
+        from porterchain_api.billing_engine.invoice_adjustments import notes_for_invoice
         from porterchain_api.billing_engine.merchant_service import invoice_status, outstanding_cents
         from porterchain_api.billing_engine.models import InvoiceLine
         from porterchain_api.merchant_engine.lookups import get_merchant
@@ -337,7 +338,19 @@ class InvoiceService:
             "pickup": order.pickup if order and isinstance(order.pickup, dict) else None,
             "dropoff": order.dropoff if order and isinstance(order.dropoff, dict) else None,
             "lines": lines,
+            "credited_cents": int(getattr(invoice, "credited_cents", 0) or 0),
+            "credit_notes": notes_for_invoice(db, invoice.id, internal=False),
         }
+
+    def credit_note_pdf_for_customer(self, db: Session, customer_id: str, credit_note_id: str) -> tuple[bytes, str]:
+        from porterchain_api.billing_engine.models import CreditNote
+        from porterchain_api.reporting.credit_note_pdf import credit_note_pdf
+
+        note = db.get(CreditNote, credit_note_id)
+        if note is None or note.status != "issued" or not note.invoice_id:
+            raise LookupError("credit_note_not_found")
+        self._customer_invoice(db, customer_id, note.invoice_id)
+        return credit_note_pdf(db, note)
 
     def pdf_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> tuple[bytes, str]:
         from porterchain_api.reporting.order_documents import pdf_for_invoice_record

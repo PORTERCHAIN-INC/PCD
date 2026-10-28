@@ -145,6 +145,10 @@ def test_sender_and_amount_match_without_reference(db: Session):
     inv = _cycle_invoice(db)
     _m, merchant = _merchant(db)
     assert inv.merchant_id == merchant.id
+    # Leftover rows in the shared test DB can share the first merchant's name; make the
+    # sender unique so the match is not "ambiguous_sender" by accident.
+    merchant.company_name = f"Interac Sender {uuid.uuid4().hex[:8]}"
+    db.commit()
     st = invoice_status(inv, None, None)
     owing = outstanding_cents(inv, st)
     row = ingest_message(

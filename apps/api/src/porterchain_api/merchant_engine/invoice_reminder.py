@@ -116,6 +116,16 @@ def remind_invoice(
     payload["email"] = to_email
     payload["merchant_email"] = to_email
     payload["reminder"] = True
+    # Chase the balance after payments and credit notes, never the original total.
+    from porterchain_api.platform.invoice_status import invoice_status, outstanding_cents
+    from porterchain_api.booking_engine.invoice_service import _amount_display
+
+    status = invoice_status(invoice, order, None, terms=(getattr(order, "payment_terms", None)))
+    balance = outstanding_cents(invoice, status)
+    if status in ("void", "credited", "cancelled") or balance <= 0:
+        raise ValueError("nothing_outstanding")
+    payload["amount_cents"] = balance
+    payload["amount_display"] = _amount_display(balance, invoice.currency)
     # Portal Pay now deep-link (Stripe Checkout starts from the invoice page).
     from porterchain_api.config import get_settings
 

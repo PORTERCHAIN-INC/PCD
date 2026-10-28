@@ -43,7 +43,7 @@ def _open_invoice_rows(db: Session, merchant_id: str | None = None):
     for inv in q.order_by(Invoice.created_at.asc()).all():
         order = db.get(Order, inv.order_id) if inv.order_id else None
         st = invoice_status(inv, order, None, terms=(order.payment_terms if order else None))
-        if st in ("paid", "void", "cancelled"):
+        if st in ("paid", "void", "cancelled", "credited"):
             continue
         out = outstanding_cents(inv, st)
         if out > 0:

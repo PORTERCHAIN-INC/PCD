@@ -343,6 +343,8 @@ class Invoice(Base):
     payment_reference: Mapped[str | None] = mapped_column(String(16), nullable=True, unique=True, index=True)
     # Running total of offline settlements (Interac/cheque/wire/credit). Enables partial payments.
     amount_paid_cents: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Sum of issued credit notes against this invoice (tax-inclusive). Nets the balance.
+    credited_cents: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # "order" = legacy one-invoice-per-order; "cycle" = one invoice per merchant billing period.
     billing_kind: Mapped[str] = mapped_column(String(16), default="order", server_default="order")
     # Destination province used for GST/HST/QST (CRA place of supply = freight destination).

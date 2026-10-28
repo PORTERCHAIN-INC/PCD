@@ -13,7 +13,7 @@ from porterchain_api.billing_engine.merchant_service import (
     billing_period_bounds,
     invoice_due_date,
     invoice_status,
-    invoice_total_cents,
+    invoice_net_total_cents,
     outstanding_cents,
 )
 from porterchain_api.billing_engine.models import BillingLedgerEntry, InvoiceLine
@@ -385,7 +385,7 @@ class MerchantArService:
             raise ValueError("overpayment_requires_merchant")
 
         invoice.amount_paid_cents = int(invoice.amount_paid_cents or 0) + settle_cents
-        fully_paid = invoice.amount_paid_cents >= invoice_total_cents(invoice)
+        fully_paid = invoice.amount_paid_cents >= invoice_net_total_cents(invoice)
         when = _aware(paid_at) or datetime.now(UTC)
         if fully_paid:
             invoice.paid_at = when
@@ -476,7 +476,7 @@ class MerchantArService:
             db.commit()
         else:
             db.flush()
-        balance = max(0, invoice_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
+        balance = max(0, invoice_net_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
         return {
             "invoice_id": invoice.id,
             "payment_id": pay.id,

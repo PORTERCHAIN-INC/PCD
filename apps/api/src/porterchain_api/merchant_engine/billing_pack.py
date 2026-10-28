@@ -129,7 +129,7 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
     open_numbers = [
         str(r.get("invoice_number") or "")
         for r in enriched
-        if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled")
+        if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled", "credited")
     ]
     return {
         **summary,
@@ -148,7 +148,7 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
             open_references=[
                 str(r.get("payment_reference") or "")
                 for r in enriched
-                if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled")
+                if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled", "credited")
             ],
             etransfer_email=_etransfer_email(db),
         )

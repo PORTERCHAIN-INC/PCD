@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
-from porterchain_api.admin_engine.finance_service import AdminFinanceService
 from porterchain_api.auth.claims import ClerkClaims
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.user_sync_service import UserSyncService
@@ -79,12 +78,3 @@ def test_webhook_fanout_no_hooks(mock_session) -> None:
     deliver_merchant_fanout({"merchant_id": "m1", "event_type": "order.created", "payload": {}})
 
 
-def test_finance_record_credit_note(db, admin_ctx, dispatch_order) -> None:
-    entry = AdminFinanceService().record_credit_note(
-        db,
-        admin_ctx,
-        order_id=dispatch_order.id,
-        amount_cents=500,
-        reason="coverage test",
-    )
-    assert entry.amount_cents == 500

@@ -144,6 +144,24 @@ def list_credit_notes(
     return [MerchantCreditNoteItem(**r) for r in _billing.list_credit_notes(db, ctx)]
 
 
+@router.get("/billing/credit-notes/{credit_note_id}/pdf")
+def download_credit_note_pdf(
+    credit_note_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "billing")
+    try:
+        pdf, filename = _billing.credit_note_pdf(db, ctx, credit_note_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="credit_note_not_found") from None
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/billing/history", response_model=list[MerchantBillingHistoryItem])
 def billing_history(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],

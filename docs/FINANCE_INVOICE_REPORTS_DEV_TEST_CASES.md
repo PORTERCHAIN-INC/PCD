@@ -128,7 +128,7 @@ GL export / collections / credit notes / COD queue / driver payouts
 | Ledger            | page tab                                                                                                              | `GET /finance/ledger`                                           |
 | Reports + GL      | page tab + export                                                                                                     | `GET /finance/reports`, `GET /finance/export`                   |
 | Duplicates        | (API-backed)                                                                                                          | `GET /finance/duplicates`                                       |
-| Credit notes      | write path                                                                                                            | `POST /finance/credit-notes` (+ step-up)                        |
+| Credit notes      | write path                                                                                                            | `POST /finance/invoices/{id}/credit-notes` (+ step-up)          |
 
 ### 2.2 Admin management surfaces (money-adjacent)
 
@@ -292,24 +292,24 @@ For **every** endpoint in `routers/admin/finance.py`, run the matrix:
 | Staff step-up missing on writes      | 401/403 per `enforce_staff_step_up`       |
 | Sandbox pollution                    | Live aggregates ignore `Order.is_sandbox` |
 
-| ID         | P   | Endpoint                             | Extra asserts                                                       |
-| ---------- | --- | ------------------------------------ | ------------------------------------------------------------------- |
-| API-AF-001 | P0  | `GET /finance/dashboard`             | Keys match `FinanceDashboardResponse` / admin `FinanceDashboard` TS |
-| API-AF-002 | P0  | `GET /finance/reports`               | Stable keys from `reports_payload`                                  |
-| API-AF-003 | P0  | `GET /finance/collections`           | Aging + AP contact fields                                           |
-| API-AF-004 | P1  | `GET /finance/export`                | GL rows reconcilable to ledger                                      |
-| API-AF-005 | P0  | `GET /finance/invoices`              | Pagination filters                                                  |
-| API-AF-006 | P0  | `GET /finance/invoices/{id}`         | 404 unknown; detail SOT                                             |
-| API-AF-007 | P0  | `GET /finance/payments`              | Page filters                                                        |
-| API-AF-008 | P1  | `GET /finance/payouts`               | Status filter                                                       |
-| API-AF-009 | P1  | `GET /finance/ledger`                | Ledger kinds                                                        |
-| API-AF-010 | P2  | `GET /finance/duplicates`            | Structured list                                                     |
-| API-AF-011 | P0  | `POST /finance/credit-notes`         | Step-up + finance module + audit                                    |
-| API-AF-012 | P0  | `GET /finance/merchant-ar/preview`   | Preview ≠ mutate                                                    |
-| API-AF-013 | P0  | `POST /finance/merchant-ar/generate` | Idempotent-ish; InvoiceLine channel                                 |
-| API-AF-014 | P0  | `POST …/record-payment`              | Amount server-side; audit                                           |
-| API-AF-015 | P0  | `POST …/remind`                      | Notification + Mailpit                                              |
-| API-AF-016 | P1  | `GET /finance/summary`               | Subset of dashboard                                                 |
+| ID         | P   | Endpoint                                   | Extra asserts                                                       |
+| ---------- | --- | ------------------------------------------ | ------------------------------------------------------------------- |
+| API-AF-001 | P0  | `GET /finance/dashboard`                   | Keys match `FinanceDashboardResponse` / admin `FinanceDashboard` TS |
+| API-AF-002 | P0  | `GET /finance/reports`                     | Stable keys from `reports_payload`                                  |
+| API-AF-003 | P0  | `GET /finance/collections`                 | Aging + AP contact fields                                           |
+| API-AF-004 | P1  | `GET /finance/export`                      | GL rows reconcilable to ledger                                      |
+| API-AF-005 | P0  | `GET /finance/invoices`                    | Pagination filters                                                  |
+| API-AF-006 | P0  | `GET /finance/invoices/{id}`               | 404 unknown; detail SOT                                             |
+| API-AF-007 | P0  | `GET /finance/payments`                    | Page filters                                                        |
+| API-AF-008 | P1  | `GET /finance/payouts`                     | Status filter                                                       |
+| API-AF-009 | P1  | `GET /finance/ledger`                      | Ledger kinds                                                        |
+| API-AF-010 | P2  | `GET /finance/duplicates`                  | Structured list                                                     |
+| API-AF-011 | P0  | `POST /finance/invoices/{id}/credit-notes` | Step-up + finance module + audit                                    |
+| API-AF-012 | P0  | `GET /finance/merchant-ar/preview`         | Preview ≠ mutate                                                    |
+| API-AF-013 | P0  | `POST /finance/merchant-ar/generate`       | Idempotent-ish; InvoiceLine channel                                 |
+| API-AF-014 | P0  | `POST …/record-payment`                    | Amount server-side; audit                                           |
+| API-AF-015 | P0  | `POST …/remind`                            | Notification + Mailpit                                              |
+| API-AF-016 | P1  | `GET /finance/summary`                     | Subset of dashboard                                                 |
 
 ---
 

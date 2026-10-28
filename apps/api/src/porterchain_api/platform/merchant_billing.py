@@ -49,13 +49,13 @@ def apply_available_credit(db: Session, invoice: Any, *, actor: str | None) -> i
     from datetime import UTC, datetime
 
     from porterchain_api.billing_engine.merchant_credit import CREDIT_APPLIED, merchant_credit_cents
-    from porterchain_api.billing_engine.merchant_service import invoice_total_cents
+    from porterchain_api.billing_engine.merchant_service import invoice_net_total_cents
     from porterchain_api.billing_engine.models import BillingLedgerEntry
 
     if not invoice.merchant_id:
         return 0
     available = merchant_credit_cents(db, invoice.merchant_id)
-    outstanding = max(0, invoice_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
+    outstanding = max(0, invoice_net_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
     use = min(available, outstanding)
     if use <= 0:
         return 0
@@ -70,7 +70,7 @@ def apply_available_credit(db: Session, invoice: Any, *, actor: str | None) -> i
             metadata_json={"invoice_number": invoice.invoice_number, "actor": actor},
         )
     )
-    if int(invoice.amount_paid_cents) >= invoice_total_cents(invoice):
+    if int(invoice.amount_paid_cents) >= invoice_net_total_cents(invoice):
         invoice.paid_at = datetime.now(UTC)
     db.flush()
     return use

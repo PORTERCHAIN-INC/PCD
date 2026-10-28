@@ -278,6 +278,8 @@ class CustomerInvoiceDetailResponse(CustomerInvoiceListItem):
     pickup: dict[str, Any] | None = None
     dropoff: dict[str, Any] | None = None
     lines: list[CustomerInvoiceLine] = Field(default_factory=list)
+    credited_cents: int = 0
+    credit_notes: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class CustomerSupportTicketRequest(BaseModel):

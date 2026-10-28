@@ -22,10 +22,18 @@ def test_remind_invoice_includes_pay_url():
         invoice_number="INV-99",
         order_id="o1",
         amount_cents=5000,
+        fees_cents=0,
+        credited_cents=0,
+        amount_paid_cents=0,
+        status="sent",
+        voided_at=None,
+        paid_at=None,
+        created_at=None,
+        due_at=None,
         currency="cad",
         last_reminded_at=None,
     )
-    order = SimpleNamespace(id="o1", merchant_id="m1")
+    order = SimpleNamespace(id="o1", merchant_id="m1", payment_terms="net_30", state="delivered")
     db.query.return_value.filter.return_value.first.return_value = order
 
     payload_base = {

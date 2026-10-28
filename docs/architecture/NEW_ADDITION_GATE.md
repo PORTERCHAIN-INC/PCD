@@ -93,3 +93,39 @@ first.
   notification templates that use `tracking_number`.
 - **Measurable benefit:** none identified beyond what (4) gives.
 - Proposal: keep rejected; partner codes are cross-referenced by (4) instead.
+
+---
+
+## Evaluation — invoice waive / void / credit (Oct 2026)
+
+### 6. Invoice credit notes (`credit_notes` columns, `invoices.credited_cents`, `/v1/admin/finance/invoices/{id}/credit-notes`, Credits & adjustments panel) — **PASS after fix**
+
+- **Clashes:** keeps the no-COD and Interac-only-merchant rules: money paid above the new
+  total goes to the merchant credit balance (`add_merchant_credit`) for Interac, or a Stripe
+  refund for retail card orders (`billing_engine/invoice_adjustments.py::_issue`). New statuses
+  `partially_credited` / `credited`; `void` is kept and now means "fully credited by a void credit
+  note" (`merchant_service.invoice_status`). The email holds only the customer-facing reason, and
+  the recipient is masked in logs (`platform/credit_note_email.py::mask_email`). Rules:
+  `docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md`.
+- **Duplication — was FAIL, now fixed:** a `credit_notes` table and `POST /finance/credit-notes`
+  (`finance_service.record_credit_note`) already existed, but the endpoint was broken (ledger
+  only, no number, no tax split, invoice balance unchanged). Extended that same table rather than
+  adding a new one, removed the broken endpoint, and reused `InvoiceNumberSequence` (scope
+  `CN:YYYY`), `add_merchant_credit`, `create_refund`, `persist_invoice_status`, the notification
+  templates and the PDF stack (`reporting/order_documents.py` style).
+- **Measurable benefit:** every waiver now has a numbered credit note with the GST/HST reversed,
+  and AR/reminders/Interac matching use the net balance. Read:
+  `SELECT reason_code, count(*), sum(amount_cents), sum(tax_cents) FROM credit_notes WHERE status='issued' GROUP BY 1;`
+  and `SELECT count(*) FROM invoices WHERE credited_cents > 0 AND status IN ('open','overdue') AND amount_cents - credited_cents <= 0;` (must be 0).
+  Tests: `apps/api/tests/test_invoice_credit_notes.py` (24).
+- **Practicality:** additive migration `cn5creditnotes0005` (20 nullable columns + one unique
+  index on `credit_notes`, one `NOT NULL DEFAULT 0` column on `invoices` — metadata-only on
+  PG ≥ 11). Number row locked per year; numbers allocated only on issue, so no gaps.
+- **Control:** RBAC module `finance` plus staff step-up on every write; audit entries
+  `finance.credit_note.*`. Second-admin approval above `finance_settings.credit_note_approval_threshold_cents`
+  (default 50000 = $500), editable without a deploy; the same admin cannot approve their own request.
+- **Rollback:** `alembic downgrade dm4nocod0004` drops the new columns and index (issued credit
+  note numbers/tax splits are lost; ledger rows `invoice_credit_note` and merchant credits stay
+  and must be reviewed by hand) and revert the commit. Invoices with `credited_cents > 0`
+  would show their gross balance again after downgrade, so do not downgrade once credits are
+  issued on live — fix forward instead.

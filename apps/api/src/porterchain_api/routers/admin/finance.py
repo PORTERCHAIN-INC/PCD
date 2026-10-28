@@ -9,7 +9,6 @@ from porterchain_api.routers.admin._deps import (
     Annotated,
     Depends,
     FinanceCollectionItem,
-    FinanceCreditNoteRequest,
     FinanceDashboardResponse,
     FinanceFilters,
     FinanceInvoiceDetailResponse,
@@ -186,23 +185,6 @@ def finance_duplicates(
 ) -> dict:
     require_module(ctx, "finance_read")
     return {"payments": _finance.find_duplicate_payments(db)}
-
-
-@router.post("/finance/credit-notes")
-def finance_credit_note(
-    body: FinanceCreditNoteRequest,
-    request: Request,
-    ctx: Annotated[AdminContext, Depends(get_admin_context)],
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-    authorization: Annotated[str | None, Header()] = None,
-) -> dict:
-    require_module(ctx, "finance")
-    _step_up(request, authorization, settings)
-    entry = _finance.record_credit_note(
-        db, ctx, order_id=body.order_id, amount_cents=body.amount_cents, reason=body.reason
-    )
-    return {"ledger_id": entry.id, "status": entry.status}
 
 
 @router.get("/finance/merchant-ar/preview")

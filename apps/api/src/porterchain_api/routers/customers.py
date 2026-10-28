@@ -111,6 +111,25 @@ def download_my_invoice_pdf(
     )
 
 
+@router.get("/me/credit-notes/{credit_note_id}/pdf")
+def download_my_credit_note_pdf(
+    credit_note_id: str,
+    db: Session = Depends(get_db),
+    claims: ClerkClaims = Depends(get_clerk_claims),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    customer = _ready_customer(db, claims, settings)
+    try:
+        pdf, filename = _invoices.credit_note_pdf_for_customer(db, customer.id, credit_note_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="credit_note_not_found") from None
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/me/support", response_model=list[CustomerSupportTicketResponse])
 def list_my_support_tickets(
     db: Session = Depends(get_db),

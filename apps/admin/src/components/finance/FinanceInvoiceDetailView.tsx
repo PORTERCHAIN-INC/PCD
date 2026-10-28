@@ -21,6 +21,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import AdminPage from "@/components/layout/AdminPage";
 import { FinanceNav } from "@/components/finance/FinanceShell";
+import InvoiceAdjustmentsPanel from "@/components/finance/InvoiceAdjustmentsPanel";
 
 type Props = { detail: InvoiceDetail | null; loading: boolean };
 
@@ -120,7 +121,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
 
   const payment = detail.payment as Record<string, unknown> | null | undefined;
   const canRecord =
-    detail.outstanding_cents > 0 && detail.status !== "paid" && detail.status !== "void";
+    detail.outstanding_cents > 0 && !["paid", "void", "credited"].includes(detail.status);
 
   return (
     <AdminPage>
@@ -150,6 +151,9 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           <h2 className="mb-3 font-semibold">Invoice</h2>
           <Row label="Amount" value={formatCents(detail.amount_cents)} />
           <Row label="Tax" value={formatCents(detail.tax_cents)} />
+          {detail.credited_cents ? (
+            <Row label="Credited (credit notes)" value={`−${formatCents(detail.credited_cents)}`} />
+          ) : null}
           {detail.amount_paid_cents ? (
             <Row label="Paid" value={formatCents(detail.amount_paid_cents)} />
           ) : null}
@@ -310,6 +314,8 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           ) : null}
         </div>
       ) : null}
+
+      <InvoiceAdjustmentsPanel invoiceId={detail.invoice_id} />
 
       {(detail.pricing_breakdown || detail.pricing_model) && (
         <div className="rounded-2xl border border-primary/10 bg-white p-6">

@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -47,6 +47,7 @@ class InvoiceLine(Base):
 
 class CreditNote(Base):
     __tablename__ = "credit_notes"
+    __table_args__ = (Index("uq_credit_notes_number", "credit_note_number", unique=True),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id"), nullable=True, index=True)
@@ -55,6 +56,27 @@ class CreditNote(Base):
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="open", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # GST/HST credit-note fields (SOR/91-44 s.3); see docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md.
+    credit_note_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    kind: Mapped[str | None] = mapped_column(String(16), nullable=True)  # void | lines | partial
+    reason_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    internal_note: Mapped[str | None] = mapped_column(Text, nullable=True)  # staff only, never shown
+    customer_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    subtotal_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tax_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tax_province: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    lines_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    original_invoice_number: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    original_invoice_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    recipient_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    issued_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    settlement: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    settlement_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    settlement_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
 
 class InvoiceNumberSequence(Base):

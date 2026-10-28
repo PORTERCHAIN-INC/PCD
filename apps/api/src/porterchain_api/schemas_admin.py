@@ -984,6 +984,7 @@ class FinanceInvoiceItem(BaseModel):
     fees_cents: int
     outstanding_cents: int
     amount_paid_cents: int = 0
+    credited_cents: int = 0
     payment_reference: str | None = None
     billing_kind: str = "order"
     order_count: int = 1
@@ -1083,12 +1084,6 @@ class FinanceLedgerItem(BaseModel):
     currency: str
     status: str
     created_at: datetime
-
-
-class FinanceCreditNoteRequest(BaseModel):
-    order_id: str
-    amount_cents: int
-    reason: str
 
 
 class MerchantArGenerateRequest(BaseModel):

@@ -709,6 +709,8 @@ class InvoiceDetailResponse(BaseModel):
     pdf_url: str | None = None
     lines: list[InvoiceDetailLine] = Field(default_factory=list)
     remittance_memo: str | None = None
+    credited_cents: int = 0
+    credit_notes: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class MerchantPaymentItem(BaseModel):
@@ -727,6 +729,12 @@ class MerchantPaymentItem(BaseModel):
 
 class MerchantCreditNoteItem(BaseModel):
     credit_note_id: str
+    credit_note_number: str | None = None
+    invoice_id: str | None = None
+    invoice_number: str | None = None
+    subtotal_cents: int | None = None
+    tax_cents: int | None = None
+    pdf_available: bool = False
     order_id: str | None = None
     order_number: str | None = None
     tracking_number: str | None = None

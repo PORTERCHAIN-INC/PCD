@@ -10,6 +10,8 @@ export const INVOICE_STATUSES = [
   "partially_paid",
   "partial",
   "overdue",
+  "partially_credited",
+  "credited",
   "cancelled",
   "void",
 ] as const;
@@ -33,6 +35,7 @@ const invoiceSchema = z.object({
   fees_cents: z.number(),
   outstanding_cents: z.number(),
   amount_paid_cents: z.number().optional().default(0),
+  credited_cents: z.number().optional().default(0),
   /** Interac e-Transfer memo code, e.g. PC-4F7K2. */
   payment_reference: z.string().nullable().optional(),
   billing_kind: z.string().optional().default("order"),
@@ -70,6 +73,7 @@ const collectionSchema = invoiceSchema.extend({
 export type CollectionRow = z.infer<typeof collectionSchema>;
 
 const invoiceLineSchema = z.object({
+  line_id: z.string().nullable().optional(),
   order_id: z.string().nullable().optional(),
   order_number: z.string().nullable().optional(),
   description: z.string(),
@@ -267,10 +271,25 @@ export const financeApi = {
     return z.array(payoutSchema).parse(raw);
   },
   ledger: (token: string) => adminFetch<Array<Record<string, unknown>>>(`${B}/ledger`, token),
-  creditNote: (token: string, body: { order_id: string; amount_cents: number; reason: string }) =>
-    adminFetch<{ ledger_id: string }>(`${B}/credit-notes`, token, {
+  invoiceAdjustments: (token: string, invoiceId: string) =>
+    adminFetch<InvoiceAdjustments>(`${B}/invoices/${invoiceId}/adjustments`, token),
+  createCreditNote: (token: string, invoiceId: string, body: CreditNoteRequest) =>
+    adminFetch<CreditNoteResult>(`${B}/invoices/${invoiceId}/credit-notes`, token, {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  approveCreditNote: (token: string, creditNoteId: string) =>
+    adminFetch<CreditNoteResult>(`${B}/credit-notes/${creditNoteId}/approve`, token, {
+      method: "POST",
+    }),
+  rejectCreditNote: (token: string, creditNoteId: string, note?: string) =>
+    adminFetch<CreditNoteResult>(`${B}/credit-notes/${creditNoteId}/reject`, token, {
+      method: "POST",
+      body: JSON.stringify({ note: note || null }),
+    }),
+  retryCreditNoteRefund: (token: string, creditNoteId: string) =>
+    adminFetch<CreditNoteResult>(`${B}/credit-notes/${creditNoteId}/retry-refund`, token, {
+      method: "POST",
     }),
   merchantArPreview: (
     token: string,
@@ -385,8 +404,82 @@ export const INVOICE_STATUS_STYLES: Record<string, string> = {
   partially_paid: "bg-teal-100 text-teal-800",
   partial: "bg-teal-100 text-teal-800",
   overdue: "bg-red-100 text-red-700",
+  partially_credited: "bg-violet-100 text-violet-800",
+  credited: "bg-violet-100 text-violet-800",
   cancelled: "bg-gray-100 text-gray-500",
   void: "bg-gray-100 text-gray-500",
+};
+
+/** Reason codes for invoice credits (docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md). */
+export const CREDIT_REASON_LABELS: Record<string, string> = {
+  service_failure: "Our fault / service failure",
+  test_delivery: "Test delivery",
+  goodwill: "Goodwill",
+  duplicate_billing: "Duplicate billing",
+  pricing_error: "Pricing error",
+  other: "Other (note required)",
+};
+
+export type CreditNoteKind = "void" | "lines" | "partial";
+
+export type CreditNoteRequest = {
+  kind: CreditNoteKind;
+  reason_code: string;
+  internal_note?: string;
+  customer_message?: string;
+  line_ids?: string[];
+  amount_cents?: number;
+};
+
+export type CreditNoteRow = {
+  credit_note_id: string;
+  credit_note_number: string | null;
+  invoice_id: string;
+  original_invoice_number: string | null;
+  original_invoice_date: string | null;
+  kind: CreditNoteKind;
+  reason_code: string | null;
+  customer_reason: string | null;
+  internal_note?: string | null;
+  amount_cents: number;
+  subtotal_cents: number;
+  tax_cents: number;
+  tax_province: string | null;
+  currency: string;
+  status: "issued" | "pending_approval" | "rejected";
+  settlement: string | null;
+  settlement_cents: number;
+  issued_by?: string | null;
+  approved_by?: string | null;
+  issued_at: string | null;
+  created_at: string | null;
+};
+
+export type InvoiceAdjustments = {
+  invoice_id: string;
+  total_cents: number;
+  credited_cents: number;
+  pending_cents: number;
+  creditable_cents: number;
+  tax_cents: number;
+  tax_credited_cents: number;
+  approval_threshold_cents: number;
+  reason_codes: Array<{ code: string; customer_reason: string }>;
+  lines: Array<{
+    line_id: string;
+    description: string;
+    gross_cents: number;
+    tax_cents: number;
+    subtotal_cents: number;
+    credited: boolean;
+  }>;
+  credit_notes: CreditNoteRow[];
+};
+
+export type CreditNoteResult = CreditNoteRow & {
+  warning?: string | null;
+  email?: { sent: boolean; recipient?: string; reason?: string } | null;
+  invoice?: InvoiceAdjustments;
 };
 
 export const PAYMENT_STATUS_STYLES: Record<string, string> = {
