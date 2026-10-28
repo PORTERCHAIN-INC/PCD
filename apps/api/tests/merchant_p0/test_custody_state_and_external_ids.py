@@ -238,3 +238,27 @@ def test_sandbox_purge_goes_through_order_writer(db, merchant_ctx):
     ev = _events(db, booked.id, "order.cancelled")
     assert len(ev) == 1 and ev[0].actor_id == merchant_ctx.user.id
     assert ev[0].payload == {"reason": "sandbox_purge"}
+
+
+def test_admin_switch_turns_partner_barcodes_off(db, dispatch_order, merchant_client):
+    """Control: staff flag on the merchant disables registration and the scan fallback."""
+    from porterchain_api.admin_engine.merchant_service import AdminMerchantService
+    from tests.test_enterprise_identity import _admin_ctx
+
+    svc = ExternalIdentifierService()
+    pkg = _pkg(db, dispatch_order)
+    svc.register(db, dispatch_order, pkg.id, source="merchant", value="BOX-1")
+    assert svc.resolve(db, dispatch_order, "BOX1").id == pkg.id
+
+    AdminMerchantService().update_merchant_terms(
+        db, _admin_ctx(db), dispatch_order.merchant_id, partner_barcodes_enabled=False
+    )
+    assert svc.resolve(db, dispatch_order, "BOX1") is None
+    base = f"/v1/merchant/orders/{dispatch_order.id}/external-ids"
+    r = merchant_client.post(base, json={"package_id": pkg.id, "source": "merchant", "value": "BOX-2"})
+    assert r.status_code == 403 and "switched off" in r.json()["detail"]
+
+    AdminMerchantService().update_merchant_terms(
+        db, _admin_ctx(db), dispatch_order.merchant_id, partner_barcodes_enabled=True
+    )
+    assert svc.resolve(db, dispatch_order, "BOX1").id == pkg.id

@@ -100929,6 +100929,17 @@
             ],
             "title": "Support Tier"
           },
+          "partner_barcodes_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Barcodes Enabled"
+          },
           "billing_cycle": {
             "anyOf": [
               {

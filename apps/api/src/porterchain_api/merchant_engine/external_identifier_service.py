@@ -20,6 +20,19 @@ _STRIP = re.compile(r"[\s\-]+")
 MAX_LEN = 128
 
 
+def partner_barcodes_enabled(db: Session, order: Order) -> bool:
+    """Ops switch per merchant: ``profile.custody.partner_barcodes_enabled`` (default on).
+
+    Set by staff through ``PATCH /v1/admin/merchants/{id}`` (``partner_barcodes_enabled``).
+    When off, no new partner barcodes can be registered and scans only accept PC1 labels.
+    """
+    from porterchain_api.merchant_models import Merchant
+
+    merchant = db.get(Merchant, order.merchant_id) if order.merchant_id else None
+    custody = ((merchant.profile or {}).get("custody") or {}) if merchant else {}
+    return custody.get("partner_barcodes_enabled", True) is not False
+
+
 def normalize(value: str) -> str:
     return _STRIP.sub("", (value or "").strip()).upper()
 
@@ -43,6 +56,8 @@ class ExternalIdentifierService:
         value: str,
         created_by: str | None = None,
     ) -> PackageExternalIdentifier:
+        if not partner_barcodes_enabled(db, order):
+            raise ValueError("partner_barcodes_disabled")
         src = (source or "").strip().lower()
         if src not in SOURCES:
             raise ValueError("external_id_source_invalid")
@@ -91,7 +106,7 @@ class ExternalIdentifierService:
     def resolve(self, db: Session, order: Order, raw: str) -> Package | None:
         """The package on ``order`` that ``raw`` was registered for, if any."""
         norm = normalize(raw)
-        if not norm:
+        if not norm or not partner_barcodes_enabled(db, order):
             return None
         row = (
             db.query(PackageExternalIdentifier)

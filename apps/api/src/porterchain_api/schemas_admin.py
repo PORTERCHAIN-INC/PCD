@@ -137,6 +137,8 @@ class MerchantUpdateRequest(BaseModel):
     credit_limit_cents: int | None = None
     parent_merchant_id: str | None = None
     support_tier: str | None = Field(default=None, pattern="^(standard|priority|enterprise)$")
+    #: Ops switch for partner-barcode registration + scan fallback (default on).
+    partner_barcodes_enabled: bool | None = None
     billing_cycle: str | None = Field(
         default=None, pattern="^(WEEKLY|BIWEEKLY|MONTHLY|CUSTOM)$"
     )

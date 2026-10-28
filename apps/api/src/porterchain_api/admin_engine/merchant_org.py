@@ -176,6 +176,7 @@ def apply_merchant_terms(
     tax_exempt: bool | None = None,
     tax_region: str | None = None,
     billing_address: dict | None = None,
+    partner_barcodes_enabled: bool | None = None,
 ):
     from porterchain_api.admin_engine.merchant_lifecycle import require_billing_cycle
     from porterchain_api.admin_engine.merchant_service import AdminMerchantService
@@ -219,6 +220,12 @@ def apply_merchant_terms(
         enterprise = dict(profile.get("enterprise") or {})
         enterprise["support_tier"] = support_tier
         profile["enterprise"] = enterprise
+        merchant.profile = profile
+    if partner_barcodes_enabled is not None:
+        profile = dict(merchant.profile or {})
+        custody = dict(profile.get("custody") or {})
+        custody["partner_barcodes_enabled"] = bool(partner_barcodes_enabled)
+        profile["custody"] = custody
         merchant.profile = profile
     if billing_cycle is not None:
         merchant.billing_cycle = require_billing_cycle(billing_cycle)
@@ -280,6 +287,7 @@ def apply_merchant_terms(
             "payment_terms": payment_terms,
             "parent_merchant_id": parent_merchant_id,
             "support_tier": support_tier,
+            "partner_barcodes_enabled": partner_barcodes_enabled,
             "billing_cycle": billing_cycle,
             "preferred_vehicles": preferred_vehicles,
             "delivery_zones": delivery_zones,

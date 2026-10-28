@@ -1,62 +1,95 @@
-# New-addition gate — schema / custody clean-up (Oct 2026)
+# New-addition gate
 
-Every new table, module, endpoint or state machine in this change was put
-through the gate below. The exact gate wording was not in the repo, so these
-are the questions used; adjust the headings if your checklist differs.
+Anything new (table, column, endpoint, state machine, UI, flag, service) must pass **all six**
+checks below **before** it is built. Each answer is cross-checked against the existing docs and
+code and must cite them (file paths, tables, tests). One failed check = not added, or fixed
+first.
 
-1. **Need** — what real problem does it solve today?
-2. **Reuse** — does something existing already do it?
-3. **Smallest form** — is this the least new surface that works?
-4. **Phase 1 rules** — consistent with no COD, Interac-only merchants, no
-   hot/cold food, no dangerous goods / UN3373 / cold chain / controlled
-   substances, no white glove, signature + no unattended drop for pharmacy,
-   recipient emails redacted from logs?
-5. **Rollback** — can it be undone safely on real data?
-6. **Proof** — which tests cover it?
+| #   | Check                  | Question                                                                                                                                                                                              |
+| --- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Clashes**            | Does it conflict with an existing rule, model, state, name, route or business rule (no COD, Interac-only merchants, Phase-1 refusals, pharmacy signature, no white glove, recipient emails redacted)? |
+| 2   | **Duplication**        | Does something in the code or docs already do this (fully or partly)? If so, reuse or extend it instead.                                                                                              |
+| 3   | **Measurable benefit** | Which number gets better, and how is it read (query, metric, test)?                                                                                                                                   |
+| 4   | **Practicality**       | Is it the smallest change that works, and safe on real data and real traffic (locks, migration time, existing clients)?                                                                               |
+| 5   | **Control**            | Who can turn it on/off or change it in production without a deploy (admin setting, per-merchant flag, RBAC module) — or why no switch is needed?                                                      |
+| 6   | **Rollback**           | The exact revert: migration downgrade id and/or commit to revert, and what happens to data written meanwhile.                                                                                         |
 
-## Passed
+---
 
-### `fk_orphan_quarantine` table (dm2fkorphan0002, dm3custody0003)
+## Evaluation — schema / custody change (Oct 2026)
 
-1. Adding 39 foreign keys to real data fails on any orphan row; deleting them silently loses data.
-2. Nothing existing records migration casualties (`legacy_external_refs` is a key/value archive with no row shape).
-3. One table: table, column, row pk, bad value, action (`nulled`/`moved`/`reported`), full row JSON.
-4. No impact. Row JSON is internal ops data and never logged.
-5. Downgrade restores every nulled value and re-inserts every moved row, then drops the table.
-6. `tests/test_fk_orphan_migration.py` (null + move + restore).
+### 1. `fk_orphan_quarantine` table — **PASS**
 
-### Package state machine (`PackageState`, `PACKAGE_TRANSITIONS`, `set_package_status`)
+- **Clashes:** none. New name; only written by `dm2fkorphan0002` / `dm3custody0003`
+  (`apps/api/alembic/versions/`), model `FkOrphanQuarantine` in
+  `apps/api/src/porterchain_api/schema_extras.py`. No API, never logged.
+- **Duplication:** checked `legacy_external_refs` (same file): it is a key/value archive
+  (`entity, field, value`) and cannot hold a whole moved row or the action taken. Kept
+  separate on purpose; dm4 archives COD values to `legacy_external_refs`, which fits its shape.
+- **Measurable benefit:** 0 rows silently deleted while adding 39 FKs. Read with
+  `SELECT table_name, action, count(*) FROM fk_orphan_quarantine GROUP BY 1,2;`
+  (rehearsal counts in `docs/runbooks/LIVE_MIGRATION_REHEARSAL.md`).
+- **Practicality:** one table, one index; written once at migration time.
+- **Control:** ops/DBA only (SQL). No runtime switch needed: no code path reads it.
+- **Rollback:** `alembic downgrade dm1driftfix0001` restores nulled values and moved rows,
+  then drops the table (`tests/test_fk_orphan_migration.py`).
 
-1. `packages.status` was free text written from three places; a delivered box could go back to manifested.
-2. Reuses the existing order pattern (`ORDER_TRANSITIONS` + single writer `transition_order_state`) and the existing `order_events` table for audit — no new audit table.
-3. One enum, one dict, one writer function, one DB CHECK (`ck_packages_status_known`).
-4. Pharmacy signature rule untouched (`signature_required` unchanged).
-5. CHECK is added NOT VALID and only validated when no unknown statuses exist (otherwise they are reported to quarantine); downgrade drops it.
-6. `tests/merchant_p0/test_custody_state_and_external_ids.py`.
+### 2. Package state machine (`PackageState`, `PACKAGE_TRANSITIONS`, `set_package_status`) — **PASS**
 
-### Rejected-transition audit (`order.transition_rejected`, `package.transition_rejected`)
+- **Clashes:** `PackageState` in `domain/states.py` is the only package status enum; DB CHECK
+  `ck_packages_status_known` lists the same values. Pharmacy `signature_required` untouched.
+- **Duplication:** reuses the order pattern (`ORDER_TRANSITIONS` + `transition_order_state`
+  in `booking_engine/order_transitions.py`) and the existing `order_events` table.
+- **Measurable benefit:** illegal package moves (e.g. delivered → manifested) went from
+  silent to 0 persisted. Read: `SELECT count(*) FROM order_events WHERE event_type='package.transition_rejected'`.
+- **Practicality:** one enum, one dict, one writer (`merchant_engine/package_state.py`); CHECK
+  added `NOT VALID`, validated only when no unknown statuses exist.
+- **Control:** no flag — it is a data-integrity rule like the order state machine, which also
+  has none. Staff can still move a package via the admin override path that uses the same writer.
+  _If the live rehearsal shows legitimate flows being refused, the fix is a transition-table
+  change, not a switch._
+- **Rollback:** code — revert `e346b965`; schema — `alembic downgrade dm2fkorphan0002` drops
+  the CHECK and the external-id table.
 
-1. Illegal transitions raised and vanished with the request rollback — no trace for disputes.
-2. Writes to the existing `order_events`; no new table.
-3. One helper (`platform/transition_audit.py`), own short transaction, `lock_timeout 2s`.
-   `lock_order` moved to `FOR NO KEY UPDATE` so the audit row's FK check cannot block on the caller's lock.
-4. Payload holds ids and states only — no recipient email.
-5. Code-only; revert the commit.
-6. Same test file (order + package rejection rows survive rollback).
+### 3. Custody refusal audit (`order.transition_rejected`, `package.transition_rejected`) — **PASS**
 
-### `package_external_identifiers` + `/v1/merchant/orders/{id}/external-ids`
+- **Clashes:** event names follow the existing `order.*` style; payload is ids + states only
+  (no recipient email). Not in the merchant webhook catalog (`gateway_engine/merchant_api.py`),
+  so not sent to merchants.
+- **Duplication:** writes to existing `order_events`; helper `platform/transition_audit.py`.
+- **Measurable benefit:** every refusal is countable per driver/order (query above); before,
+  refusals vanished with the request rollback.
+- **Practicality:** own short transaction with `lock_timeout = 2s`; `lock_order` uses
+  `FOR NO KEY UPDATE` so the audit FK check cannot wait on the caller's lock.
+- **Control:** none needed — audit only, no behaviour change; readable by staff in Order 360.
+- **Rollback:** revert `e346b965` (code only, no migration). Existing audit rows stay harmless.
 
-1. Shopify/marketplace boxes arrive already labelled; drivers had to relabel or type ids.
-2. `packages.barcode` holds our own PC1 barcode (one per box); partner codes are many-per-box and per-source.
-3. One table (source ∈ shopify / merchant / marketplace / partner_carrier, normalized value, unique per source), list/add/delete endpoints behind the existing `orders` / `orders_write` modules, scan-gate fallback.
-4. Not a tracking number, not shown to recipients.
-5. Downgrade drops the table; PC1 scanning is unaffected.
-6. Same test file (normalize, duplicates, resolve, endpoints, RBAC).
+### 4. Partner barcode cross-reference (`package_external_identifiers`, `/v1/merchant/orders/{id}/external-ids`, Partner Barcodes card) — **PASS after fix**
 
-## Failed (not added)
+- **Clashes:** not a tracking number and never shown to recipients. `packages.barcode` /
+  `tracking_suffix` stay the PC1 identity; scan lookup tries PC1 first
+  (`merchant_engine/scan_gate_service.py::_package_for_scan`), external ids only as fallback,
+  always scoped to the scanned order.
+- **Duplication:** checked `packages.barcode` (one per box, ours), `orders.tracking_number`,
+  `legacy_external_refs`: none holds many-per-box, per-source partner codes.
+- **Measurable benefit:** drivers stop relabelling pre-labelled boxes. Read: share of pickup
+  scans resolved via external id — `SELECT count(*) FROM package_external_identifiers` plus
+  scan events with `resolved_via` (follow-up), and fewer `invalid_label_qr` errors per order.
+- **Practicality:** one table + 3 endpoints behind existing RBAC modules (`orders` read,
+  `orders_write` add/delete — `authz/schema.zed`), one card in `Order360View`.
+- **Control — was FAIL, now fixed:** originally only RBAC; ops had no way to switch it off for
+  a merchant without a deploy. Added per-merchant flag `profile.custody.partner_barcodes_enabled`
+  (default on), staff-editable via `PATCH /v1/admin/merchants/{id}` `{"partner_barcodes_enabled": false}`
+  (audited as `merchant.terms_updated`). Off ⇒ register returns 403 and scans accept PC1 only.
+  Test: `test_admin_switch_turns_partner_barcodes_off`.
+- **Rollback:** flag off (instant); full — `alembic downgrade dm2fkorphan0002` drops the table,
+  revert `e346b965` + `2940f53f` (UI card). PC1 scanning is unaffected either way.
 
-### A new PorterChain tracking number
+### 5. A new PorterChain tracking number — **FAIL (not built)**
 
-Fails **Reuse**: every package already has a signed PC1 label (`reporting/qr_codec.py`),
-`tracking_suffix` and `barcode`, and orders have `tracking_number`. Partner codes
-are cross-referenced instead.
+- **Duplication:** fails — every package already has a signed PC1 label
+  (`reporting/qr_codec.py`), `tracking_suffix` and `barcode`; orders have `tracking_number`.
+- **Clashes:** a second customer-facing id would conflict with the tracking page and
+  notification templates that use `tracking_number`.
+- **Measurable benefit:** none identified beyond what (4) gives.
+- Proposal: keep rejected; partner codes are cross-referenced by (4) instead.

@@ -25,6 +25,7 @@ _ERRORS = {
     "package_not_found": (404, "Package not found on this order."),
     "external_id_source_invalid": (422, "Unknown barcode source."),
     "external_id_value_invalid": (422, "Barcode is empty or too long."),
+    "partner_barcodes_disabled": (403, "Partner barcodes are switched off for this account. Contact PorterChain support."),
     "external_id_already_assigned": (409, "That barcode is already assigned to another package."),
 }
 
