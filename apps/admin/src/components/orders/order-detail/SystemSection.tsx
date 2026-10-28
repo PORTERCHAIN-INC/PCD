@@ -3,7 +3,6 @@
 import type { OrderDetail } from "@/lib/orders";
 import { relativeTime } from "@/lib/crmFormat";
 import { SectionBlock } from "@/components/orders/sections";
-import { Row } from "./shared";
 
 export function EventListTab({
   items,

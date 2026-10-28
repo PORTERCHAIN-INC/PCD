@@ -8,14 +8,20 @@ def _suffix() -> str:
     return secrets.token_hex(3).upper()
 
 
+def _order_suffix() -> str:
+    # 40 bits: 24 bits gave a ~50% chance of a same-day duplicate (unique index
+    # violation) at ~5,000 orders/day (birthday bound). Fits the 32-char columns.
+    return secrets.token_hex(5).upper()
+
+
 def generate_tracking_number() -> str:
     date_part = datetime.now(UTC).strftime("%Y%m%d")
-    return f"PC-{date_part}-{_suffix()}"
+    return f"PC-{date_part}-{_order_suffix()}"
 
 
 def generate_order_number() -> str:
     date_part = datetime.now(UTC).strftime("%Y%m%d")
-    return f"ORD-{date_part}-{_suffix()}"
+    return f"ORD-{date_part}-{_order_suffix()}"
 
 
 def generate_invoice_number(*, prefix: str | None = None) -> str:

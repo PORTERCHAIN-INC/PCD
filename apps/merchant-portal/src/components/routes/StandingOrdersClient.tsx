@@ -15,7 +15,7 @@ import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-sep
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 const RULES = [
   { id: "daily", label: "Every day" },
@@ -65,7 +65,7 @@ export default function StandingOrdersClient() {
     },
   });
   const rows: StandingOrder[] = query.data?.schedules ?? [];
-  const templates: BookingTemplate[] = query.data?.saved ?? [];
+  const templates = useMemo<BookingTemplate[]>(() => query.data?.saved ?? [], [query.data]);
   const error =
     actionError ||
     (query.error instanceof Error ? query.error.message : query.error ? String(query.error) : null);

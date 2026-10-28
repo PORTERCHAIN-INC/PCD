@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { ticketStatusLabel } from "@/lib/catalog";
-import { ordersApi, type OrderDetail } from "@/lib/orders";
 import { settingsApi } from "@/lib/settings";
 import { formatDate } from "@/lib/utils";
 import { Card } from "./shared";

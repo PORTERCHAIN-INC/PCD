@@ -314,7 +314,7 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
           entity="order"
           id={id}
           onDeleted={() => {
-            window.location.href = "/orders";
+            router.push("/orders");
           }}
         />
       </div>

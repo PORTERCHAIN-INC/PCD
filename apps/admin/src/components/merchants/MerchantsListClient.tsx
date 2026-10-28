@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   type ColumnDef,
@@ -241,7 +241,7 @@ export default function MerchantsListClient() {
     setSortBy("recent");
   }
 
-  const refresh = () => setVersion((v) => v + 1);
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
 
   async function registerMerchant(
     email: string,
@@ -278,28 +278,27 @@ export default function MerchantsListClient() {
     }
   }
 
-  async function runAction(
-    merchantId: string,
-    action: string,
-    fn: (token: string) => Promise<unknown>
-  ) {
-    setBusy(`${merchantId}:${action}`);
-    setActionError(null);
-    try {
-      const token = await getApiToken();
-      await fn(token);
-      refresh();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : `${action} failed`;
-      setActionError(
-        msg === "owner_not_clerk_linked"
-          ? "Owner seat reserved — merchant stays Onboarding until the owner accepts Clerk and links."
-          : msg
-      );
-    } finally {
-      setBusy(null);
-    }
-  }
+  const runAction = useCallback(
+    async (merchantId: string, action: string, fn: (token: string) => Promise<unknown>) => {
+      setBusy(`${merchantId}:${action}`);
+      setActionError(null);
+      try {
+        const token = await getApiToken();
+        await fn(token);
+        refresh();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : `${action} failed`;
+        setActionError(
+          msg === "owner_not_clerk_linked"
+            ? "Owner seat reserved — merchant stays Onboarding until the owner accepts Clerk and links."
+            : msg
+        );
+      } finally {
+        setBusy(null);
+      }
+    },
+    [getApiToken, refresh]
+  );
 
   const columns = useMemo<ColumnDef<MerchantRow, unknown>[]>(
     () => [
@@ -562,7 +561,7 @@ export default function MerchantsListClient() {
         cell: ({ row }) => <DeleteButton compact entity="merchant" id={row.original.id} />,
       },
     ],
-    [busy]
+    [busy, runAction]
   );
 
   const table = useReactTable({

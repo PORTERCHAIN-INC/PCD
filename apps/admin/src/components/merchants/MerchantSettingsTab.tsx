@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
-import { publicEnv } from "@/lib/env";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import {
@@ -17,7 +16,7 @@ import {
 } from "@/lib/merchants";
 import MerchantBillingContactsCard from "@/components/merchants/MerchantBillingContactsCard";
 import MerchantPrivacyCard from "@/components/merchants/MerchantPrivacyCard";
-import { Badge, Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
+import { Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
 import { dateTime, money, titleCase } from "@/lib/crmFormat";
 
 const TERMS = ["IMMEDIATE", "NET_7", "NET_14", "NET_15", "NET_30", "NET_45", "CUSTOM"];

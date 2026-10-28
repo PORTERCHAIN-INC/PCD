@@ -8,7 +8,7 @@ import { customersApi, type CreateCustomerBookingDraftResult } from "@/lib/custo
 import { RETAIL_VEHICLE_OPTIONS } from "@/lib/merchants";
 import { money } from "@/lib/crmFormat";
 import { publicEnv } from "@/lib/env";
-import { Button, Input, Modal, Select } from "@/components/crm/primitives";
+import { Button, Modal, Select } from "@/components/crm/primitives";
 import { DateTimeField } from "@porterchain/ui/date-fields";
 
 type Props = {

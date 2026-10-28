@@ -162,7 +162,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const onIdleTimeout = useCallback(async () => {
     await clearStaffSession(publicEnv.porterchainApiUrl);
-    window.location.assign("/sign-in?reason=idle");
+    // Full page load on purpose: drops every in-memory staff query/cache after idle sign-out.
+    window.location.replace("/sign-in?reason=idle");
   }, []);
 
   useInactivityTimeout({

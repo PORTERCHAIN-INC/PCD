@@ -480,7 +480,9 @@ export function loadSavedFilter(name: string): OrderFilters | null {
 export function saveFilter(name: string, filters: OrderFilters) {
   const raw = localStorage.getItem(SAVED_FILTERS_KEY);
   const all = raw ? (JSON.parse(raw) as Record<string, OrderFilters>) : {};
-  const { limit: _limit, offset: _offset, ...persisted } = filters;
+  const persisted: OrderFilters = { ...filters };
+  delete persisted.limit;
+  delete persisted.offset;
   all[name] = persisted;
   localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify(all));
 }

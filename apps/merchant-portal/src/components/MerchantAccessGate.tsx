@@ -140,14 +140,11 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
     [merchantSession?.status]
   );
 
-  const resolveSession = useCallback(
-    async (_token: string): Promise<SessionContext | null> => {
-      const st = (merchantSession?.status || "").toUpperCase();
-      if (!merchantSession || (st !== "ACTIVE" && st !== "APPROVED")) return null;
-      return sessionFromMerchant(merchantSession);
-    },
-    [merchantSession]
-  );
+  const resolveSession = useCallback(async (): Promise<SessionContext | null> => {
+    const st = (merchantSession?.status || "").toUpperCase();
+    if (!merchantSession || (st !== "ACTIVE" && st !== "APPROVED")) return null;
+    return sessionFromMerchant(merchantSession);
+  }, [merchantSession]);
 
   // Wait for merchant session so ACTIVE users skip the duplicate session-context call.
   const gateReady = clerkLoaded && merchantAuthLoaded;

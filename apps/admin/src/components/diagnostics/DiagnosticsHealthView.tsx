@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "react";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import { AlertTriangle, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, RefreshCw, Search } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
 import {
@@ -11,7 +11,7 @@ import {
   MasterruleCompliancePanel,
   ProgressRing,
 } from "@/components/diagnostics/DiagnosticsPrimitives";
-import { Badge, Button } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import { SettingsCard, SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import { useApiData } from "@/hooks/useApiData";
 import {
@@ -19,7 +19,6 @@ import {
   HEALTH_CATEGORY_ORDER,
   diagnosticsApi,
   filterComponents,
-  type HealthDashboard,
 } from "@/lib/diagnostics";
 
 export function DiagnosticsHealthView({

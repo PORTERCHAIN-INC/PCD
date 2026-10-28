@@ -4,7 +4,6 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driverApi, type GpsStatus } from "@/lib/api";
 import { enqueueGpsPing } from "@/lib/offline-client";
-import type { DriverNavigationSession } from "@/lib/navigation";
 
 const POLL_MS = 10_000;
 const LOCATION_POST_MS = 25_000;

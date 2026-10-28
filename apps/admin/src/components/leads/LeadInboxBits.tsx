@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatSla, slaMinutesLeft } from "@/lib/leads";
 
 /** Channel → short label + tone for the inbox badge. */
 export const CHANNEL_BADGES: Record<string, { label: string; tone: string }> = {

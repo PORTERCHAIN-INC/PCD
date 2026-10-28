@@ -72,7 +72,7 @@ export default function LeadsCalendarClient() {
       }),
   });
 
-  const tasks = Array.isArray(data) ? data : [];
+  const tasks = useMemo(() => (Array.isArray(data) ? data : []), [data]);
   const byDay = useMemo(() => {
     const map = new Map<string, Task[]>();
     for (const day of range.days) map.set(dayKey(day), []);

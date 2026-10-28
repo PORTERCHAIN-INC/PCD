@@ -4,7 +4,6 @@ import Link from "next/link";
 import { startTransition, useEffect, useOptimistic, useState } from "react";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import Button from "@/components/ui/Button";
-import { publicEnv } from "@/lib/env";
 import { settingsApi, type AuditLogRow, type SettingsOverview } from "@/lib/settings";
 import { formatDate } from "@/lib/utils";
 import { Field } from "./Field";

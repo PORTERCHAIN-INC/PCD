@@ -209,7 +209,6 @@ export default function Delivery360({
   }
 
   const pickup = job.pickup_detail;
-  const delivery = job.delivery_detail;
   const leg = getJobLeg(job.state);
 
   return (

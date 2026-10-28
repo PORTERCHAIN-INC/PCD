@@ -1,6 +1,5 @@
 "use client";
 
-import { DeliveryTimeline } from "@/components/tracking/DeliveryTimeline";
 import { orderStateLabel } from "@/lib/catalog";
 import { formatDate } from "@/lib/utils";
 import { Card } from "./shared";

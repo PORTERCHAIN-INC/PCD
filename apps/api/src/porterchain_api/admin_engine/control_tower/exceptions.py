@@ -36,12 +36,11 @@ class ExceptionsMixin:
             else {}
         )
         items = [self._exception_dict(e, o, merchants, emails) for e, o in rows]
-        remaining = max(0, limit - len(items))
-        if remaining:
-            items.extend(self._shopify_ingress_exceptions(db, merchants, limit=remaining))
-        remaining = max(0, limit - len(items))
-        if remaining:
-            items.extend(self._shopify_fulfillment_exceptions(db, merchants, limit=remaining))
+        # Every source gets the full limit, then the merged list is cut oldest-first.
+        # (Filling the limit with order exceptions first hid all Shopify rows once
+        # there were more open order exceptions than the limit.)
+        items.extend(self._shopify_ingress_exceptions(db, merchants, limit=limit))
+        items.extend(self._shopify_fulfillment_exceptions(db, merchants, limit=limit))
         items.sort(key=lambda r: r.get("created_at") or "")
         return items[:limit]
 

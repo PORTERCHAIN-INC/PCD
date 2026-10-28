@@ -37,7 +37,7 @@ def _charge_events(db, order_id):
                                        | OrderEvent.event_type.ilike("%invoice%")).count()
 
 
-def test_end_to_end_pickup_to_warehouse_then_release(db: Session) -> None:
+def test_end_to_end_pickup_to_warehouse_then_release(uncapped_plan_pool, db: Session) -> None:
     ctx, hub, first = _ctx(db), _hub(db), _driver(db)
     o = _collect_order(db, hub, state="PICKED_UP", assigned_driver_id=first.id)
     assert hub_leg(db, o.id).stage == TO_HUB and co.is_collect_only(o)

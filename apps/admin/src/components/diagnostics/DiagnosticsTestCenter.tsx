@@ -38,7 +38,6 @@ import {
   statusTone,
   type E2EResult,
   type PlatformValidation,
-  type TestCatalogItem,
   type TestResult,
 } from "@/lib/diagnostics";
 
@@ -120,7 +119,7 @@ export function DiagnosticsTestCenter({
     [tab]
   );
 
-  const tests = catalog?.tests ?? [];
+  const tests = useMemo(() => catalog?.tests ?? [], [catalog]);
   const filteredTests = useMemo(
     () => (testCategory ? tests.filter((t) => t.category === testCategory) : tests),
     [tests, testCategory]

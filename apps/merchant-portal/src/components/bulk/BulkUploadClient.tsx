@@ -22,7 +22,6 @@ import {
   type RouteImportMappingProfile,
 } from "@/lib/api";
 import { VEHICLE_OPTIONS, vehicleLabel } from "@/lib/catalog";
-import { publicEnv } from "@/lib/env";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import { Download } from "lucide-react";
@@ -146,15 +145,7 @@ export default function BulkPage() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [
-    getApiToken,
-    isSignedIn,
-    orgId,
-    routeJob?.job_id,
-    routeJob?.geocode,
-    routeJob?.optimize_status,
-    routeJob?.stops,
-  ]);
+  }, [getApiToken, isSignedIn, orgId, routeJob]);
 
   async function onClassicUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

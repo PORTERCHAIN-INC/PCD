@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Clock, Database, Globe, Mail, Server, Shield } from "lucide-react";
+import { Activity, Clock, Database, Globe, Server, Shield } from "lucide-react";
 import { relativeTime } from "@/lib/crmFormat";
 import { healthStatus } from "@/lib/health";
 import type { SettingsDashboard } from "@/lib/settings";

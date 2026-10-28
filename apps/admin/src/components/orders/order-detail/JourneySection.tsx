@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { cn, formatCents } from "@porterchain/ui/utils";
+import { formatCents } from "@porterchain/ui/utils";
 import { formatState, ordersApi, type OrderDetail } from "@/lib/orders";
 import { relativeTime } from "@/lib/crmFormat";
 import { Button } from "@/components/crm/primitives";
 import { SectionBlock } from "@/components/orders/sections";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { EntityRows, Row } from "./shared";
+import { Row } from "./shared";
 
 export function TimelineTab({ detail }: { detail: OrderDetail }) {
   const items = [...detail.timeline];

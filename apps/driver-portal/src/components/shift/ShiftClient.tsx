@@ -31,7 +31,6 @@ export default function ShiftClient() {
   const {
     data,
     error,
-    loading,
     refreshing,
     actionPending,
     refresh,

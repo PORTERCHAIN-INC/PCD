@@ -132,7 +132,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
           entity="customer"
           id={id}
           onDeleted={() => {
-            window.location.href = "/customers";
+            router.push("/customers");
           }}
         />
       }

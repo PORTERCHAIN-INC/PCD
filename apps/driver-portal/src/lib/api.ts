@@ -1,5 +1,5 @@
 import type { DriverRoute, DriverStop } from "./workspace";
-import type { DriverJobDetail, DriverJobsList, DriverJobSummary } from "./jobs";
+import type { DriverJobDetail, DriverJobSummary } from "./jobs";
 import type { DriverNavigationSession } from "./navigation";
 import type { DriverShiftSnapshot } from "./shift";
 import type { DriverEarningsSnapshot, StatementRow } from "./earnings";
@@ -163,7 +163,8 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
           detail === "driver_auth_required" ||
           detail === "missing_bearer_token")
       ) {
-        window.location.href = "/login?session=expired";
+        // Full page load on purpose: this runs outside React and must drop the stale session.
+        window.location.replace("/login?session=expired");
       }
     }
     throw new Error(detail);

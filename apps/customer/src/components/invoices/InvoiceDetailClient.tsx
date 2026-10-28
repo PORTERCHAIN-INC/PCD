@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -110,7 +111,7 @@ function DetailBody({
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-primary/10 pb-4">
             <div>
               <p className="flex items-center gap-2 text-sm font-semibold tracking-tight text-primary">
-                <img
+                <Image
                   src="/brand/porterchain-mark.png"
                   alt=""
                   width={32}

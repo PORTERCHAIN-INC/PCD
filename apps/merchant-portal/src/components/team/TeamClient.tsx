@@ -12,7 +12,6 @@ import {
   type ActivityLogEntry,
   type PermissionsCatalog,
   type TeamMember,
-  type TeamOverview,
   type TwoFactorStatus,
 } from "@/lib/team";
 import { contactsApi, type ContactInput, type MerchantContact } from "@/lib/contacts";

@@ -183,3 +183,16 @@ def gst_registered(db_url: str):
     s.commit()
     s.close()
     reg.clear_cache(None)
+
+
+@pytest.fixture
+def uncapped_plan_pool(monkeypatch):
+    """Plan-the-day caps its pool at MAX_ORDERS, earliest scheduled first.
+
+    The shared test DB keeps hundreds of old unassigned orders from earlier runs, so a
+    test's new order can fall past the cap. Lift the cap so a membership check only
+    depends on the filters under test.
+    """
+    from porterchain_api.admin_engine import fleet_plan_service
+
+    monkeypatch.setattr(fleet_plan_service, "MAX_ORDERS", 1_000_000)

@@ -34,7 +34,7 @@ import { EntityAlertsPanel } from "@/components/alerts/EntityAlertsPanel";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
 import { EntityTasks } from "@/components/crm/EntityTasks";
 import { Badge, Button, SectionCard } from "@/components/crm/primitives";
-import { money, shortDate, titleCase, dateTime } from "@/lib/crmFormat";
+import { money, titleCase } from "@/lib/crmFormat";
 import AdminPage from "@/components/layout/AdminPage";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import DeleteButton from "@/components/common/DeleteButton";
@@ -210,7 +210,7 @@ export default function DriverDetailClient({ id }: { id: string }) {
           entity="driver"
           id={id}
           onDeleted={() => {
-            window.location.href = "/drivers";
+            router.push("/drivers");
           }}
         />
       }

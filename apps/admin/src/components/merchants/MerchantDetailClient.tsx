@@ -325,7 +325,7 @@ export default function MerchantDetailClient({ id }: { id: string }) {
           entity="merchant"
           id={id}
           onDeleted={() => {
-            window.location.href = "/merchants";
+            router.push("/merchants");
           }}
         />
       }

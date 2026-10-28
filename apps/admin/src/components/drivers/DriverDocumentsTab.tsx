@@ -157,7 +157,6 @@ export function DocumentsTab({
         <SectionCard title="Expiry reminders">
           <div className="divide-y divide-primary/5">
             {expiries.map((e, i) => {
-              // eslint-disable-next-line react-hooks/purity -- relative "expiring soon" check needs the current time at render
               const soon = new Date(e.expires_at) <= new Date(Date.now() + 30 * 86400000);
               return (
                 <div key={i} className="flex items-center justify-between px-5 py-3">

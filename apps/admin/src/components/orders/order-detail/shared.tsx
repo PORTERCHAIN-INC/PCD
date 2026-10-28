@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { cn } from "@porterchain/ui/utils";
 import { Button } from "@/components/crm/primitives";
 import { assignDriverLabel, canAssignDriver, type OrderDetail } from "@/lib/orders";

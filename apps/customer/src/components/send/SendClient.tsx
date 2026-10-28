@@ -20,7 +20,6 @@ import {
 } from "@porterchain/types/delivery-options";
 import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
 import CustomerShell from "@/components/CustomerShell";
-import { publicEnv } from "@/lib/env";
 import PortalAuth, { type PortalAuthValue } from "@/components/auth/PortalAuth";
 import { accountApi, type SavedAddress } from "@/lib/account";
 import { ACCEPT, attachAll, stashFiles, type PendingFile } from "@/lib/attachments";

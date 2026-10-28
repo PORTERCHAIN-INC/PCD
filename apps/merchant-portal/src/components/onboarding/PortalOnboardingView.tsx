@@ -11,7 +11,7 @@ import {
   shouldAskOwnerForCompanyFile,
   type PortalOnboardingStatus,
 } from "@/lib/onboarding";
-import { isClerkConfigured, publicEnv } from "@/lib/env";
+import { isClerkConfigured } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { useState } from "react";

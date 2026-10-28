@@ -17,7 +17,10 @@ export function RolesPanel() {
     queryFn: async () => settingsApi.center(await getApiToken()),
   });
 
-  const roles = (center?.role_catalog?.roles ?? center?.roles ?? []) as RoleCatalogEntry[];
+  const roles = useMemo(
+    () => (center?.role_catalog?.roles ?? center?.roles ?? []) as RoleCatalogEntry[],
+    [center]
+  );
   const modules = useMemo(() => {
     if (center?.role_catalog?.modules?.length) {
       return center.role_catalog.modules.map((m) => m.module);

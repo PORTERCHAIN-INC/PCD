@@ -105,10 +105,11 @@ export default function LeadIngestPanel() {
       setError(query.error instanceof Error ? query.error.message : "Failed to load");
   }, [query.error]);
 
+  const { refetch } = query;
   const load = useCallback(async () => {
     setError("");
-    await query.refetch();
-  }, [query.refetch]);
+    await refetch();
+  }, [refetch]);
 
   async function save(extra?: { generate?: string[] }) {
     setBusy(true);

@@ -29,7 +29,6 @@ import {
   type SavedAddress,
 } from "@/lib/booking";
 import { PACKAGE_OPTIONS, VEHICLE_OPTIONS, packageLabel, vehicleLabel } from "@/lib/catalog";
-import { publicEnv } from "@/lib/env";
 import { DimensionUnit, WeightUnit, type Parcel } from "@/lib/route-module/types";
 import { serializeParcelsForLegacyAPI, withVolumetricWeight } from "@/lib/route-module/units";
 import { itemKeys, packagePayload } from "@/lib/route-module/toRouteImport";
@@ -229,6 +228,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       is_sandbox: bookAsSandbox || undefined,
     };
   }, [
+    mode,
     serviceMode,
     pickup,
     dropoff,

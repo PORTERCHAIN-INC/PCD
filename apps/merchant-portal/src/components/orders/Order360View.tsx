@@ -4,7 +4,6 @@ import { OrderStateBadge } from "@/components/orders/OrderStateBadge";
 import Button from "@/components/ui/Button";
 import { CopyPublicTrackLink } from "@/components/tracking/CopyPublicTrackLink";
 import { downloadMerchantFile, ordersApi, type OrderDetail } from "@/lib/orders";
-import { settingsApi } from "@/lib/settings";
 import type { LiveTracking } from "@/lib/tracking";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { hasMerchantModule } from "@/lib/merchant-nav";

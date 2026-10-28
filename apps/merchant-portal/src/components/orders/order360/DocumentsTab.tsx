@@ -1,7 +1,6 @@
 "use client";
 
 import Button from "@/components/ui/Button";
-import type { OrderDetail } from "@/lib/orders";
 import { Card } from "./shared";
 
 export function DocumentsTab({

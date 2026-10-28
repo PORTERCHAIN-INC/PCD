@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 export function QuickActions({
   isOnline,
   shiftActive,
-  hasRoute,
   actionPending,
   pretripReady = true,
   onStartShift,

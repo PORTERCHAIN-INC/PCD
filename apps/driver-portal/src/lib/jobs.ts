@@ -201,7 +201,6 @@ export interface DriverJobDetail extends DriverJobSummary {
   max_delivery_attempts?: number;
 }
 
-const PICKUP_LEG = new Set(["DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP"]);
 const DELIVERY_LEG = new Set(["PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"]);
 const DONE = new Set(["DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"]);
 
