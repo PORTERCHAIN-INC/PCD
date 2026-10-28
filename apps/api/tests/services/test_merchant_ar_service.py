@@ -110,6 +110,8 @@ def test_merchant_ar_generate_and_pay(db: Session):
     db.refresh(inv)
     assert order.state == OrderState.INVOICED.value
     assert invoice_status(inv, None, None, terms=merchant.payment_terms) == "paid"
+    # Rehearsal finding: the stored column must follow, not stay "open".
+    assert inv.status == "paid"
 
     with pytest.raises(ValueError, match="already_paid"):
         ar.record_payment(db, actx, inv.id, method="wire")

@@ -19,6 +19,7 @@ from porterchain_api.billing_engine.merchant_service import (
 from porterchain_api.billing_engine.models import BillingLedgerEntry, InvoiceLine
 from porterchain_api.booking_engine import events as BookingEvents
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.billing_engine.invoice_document import persist_invoice_status
 from porterchain_api.billing_engine.invoice_numbering import allocate_invoice_number, ensure_payment_reference
 from porterchain_api.billing_engine.merchant_credit import add_merchant_credit
 from porterchain_api.booking_engine.order_transitions import transition_order_state
@@ -405,7 +406,7 @@ class MerchantArService:
         )
         db.add(pay)
         db.flush()
-
+        persist_invoice_status(invoice, order, pay if fully_paid else None, terms=terms)
         entry = BillingLedgerEntry(
             kind="merchant_offline_payment",
             payment_id=pay.id,
@@ -496,5 +497,4 @@ def is_cycle_billed(db: Session, order: Order) -> bool:
 
     return _impl(db, order)
 
-# Re-exports kept for existing importers (integration).
 from porterchain_api.booking_engine.numbers import generate_invoice_number  # noqa: E402, F401
