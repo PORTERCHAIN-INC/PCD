@@ -228,41 +228,17 @@ async function mockPorterchainBff(page: import("@playwright/test").Page) {
 }
 
 test.describe(`UI-OPS-006 ${tcId("UI-OPS-006")} @p0`, () => {
-  test("Optimize tab: pool ready, commit locked until preview", async ({ page }) => {
+  // The Control Tower optimize tool was replaced by Dispatch → Plan ("Plan the day").
+  // Old ?view=tools&tool=optimize links must still land on the plan.
+  test("old Optimize link lands on Dispatch Plan", async ({ page }) => {
     test.skip(!process.env.ADMIN_RUN_LIVE, "set ADMIN_RUN_LIVE=1 with admin on :3002 (dev bypass)");
 
     await ensureAdminReachable(page);
     await mockPorterchainBff(page);
     await gotoAsStaff(page, "/operations?view=tools&tool=optimize");
-    await expect(page.getByRole("heading", { name: /Control Tower/i, level: 1 })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /^Plan$/, level: 1 })).toBeVisible({
       timeout: 20_000,
     });
-
-    await expect(page.getByRole("button", { name: /^Optimize$/ }).first()).toBeVisible();
-    await expect(page.getByText(/Preview orders one assigned van/i).first()).toBeVisible();
-    await expect(page.getByText(/Pool: 2 eligible/i).first()).toBeVisible();
-
-    // Before a preview exists, Run preview is available and Commit is locked.
-    await expect(page.getByRole("button", { name: /Run preview/i })).toBeEnabled();
-    await expect(page.getByRole("button", { name: /Commit manifests/i })).toBeDisabled();
-    // TODO(readiness #6): the preview → commit journey needs mocks for the current
-    // "assign a van, then preview its stops" flow; the old orchestrator mocks no longer apply.
-  });
-
-  test("Optimize tab shows the PorterChain day plan", async ({ page }) => {
-    test.skip(!process.env.ADMIN_RUN_LIVE, "set ADMIN_RUN_LIVE=1 with admin on :3002 (dev bypass)");
-
-    await ensureAdminReachable(page);
-    await mockPorterchainBff(page);
-    await gotoAsStaff(page, "/operations?view=tools&tool=optimize");
-    await expect(page.getByText(/Preview orders one assigned van/i).first()).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(
-      page
-        .locator("select")
-        .filter({ has: page.locator('option[value="vroom"]') })
-        .first()
-    ).toHaveValue("vroom");
+    await expect(page.getByRole("button", { name: /Plan the day/i })).toBeVisible();
   });
 });

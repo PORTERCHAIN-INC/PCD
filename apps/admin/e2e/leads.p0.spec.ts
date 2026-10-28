@@ -174,7 +174,7 @@ test.describe(`UI-LEAD-002 ${tcId("UI-LEAD-002")} @p0`, () => {
     await ensureAdminReachable(page);
     await stubLeadsApi(page);
     await gotoAsStaff(page, "/leads/pipeline");
-    await expect(page.getByRole("heading", { name: /acquisition pipeline/i })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /^Pipeline$/, level: 1 })).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByText(/prospecting/i).first()).toBeVisible();
