@@ -581,7 +581,7 @@ function TodayOpsLive() {
           {/* maplibre forces position:relative on its container, so size via a wrapper. */}
           <div className="absolute inset-0">
             <OsmMap
-              tone="navy"
+              tone="light"
               label="Live drivers and stops"
               points={points}
               lines={lines}
