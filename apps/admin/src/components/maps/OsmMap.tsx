@@ -48,8 +48,6 @@ type Props = {
   onPointClick?: (id: string) => void;
   className?: string;
   label: string;
-  /** "navy" dims + desaturates the same free OSM tiles for the dark ops theme. */
-  tone?: "light" | "navy";
 };
 
 type Data = Parameters<GeoJSONSource["setData"]>[0];
@@ -111,7 +109,6 @@ export function OsmMap({
   onPointClick,
   className,
   label,
-  tone = "light",
 }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
@@ -144,17 +141,6 @@ export function OsmMap({
             id: "osm",
             type: "raster",
             source: "osm",
-            paint:
-              tone === "navy"
-                ? {
-                    // Invert lightness: white land → near navy, roads → soft slate.
-                    "raster-brightness-min": 0.45,
-                    "raster-brightness-max": 0.06,
-                    "raster-saturation": -0.7,
-                    "raster-hue-rotate": 180,
-                    "raster-opacity": 0.6,
-                  }
-                : {},
           },
         ],
       },
@@ -224,8 +210,6 @@ export function OsmMap({
       m.remove();
       map.current = null;
     };
-    // tone is fixed per mount; changing it would rebuild the map.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

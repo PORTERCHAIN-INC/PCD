@@ -28,10 +28,11 @@ import {
 
 const OsmMap = dynamic(() => import("@/components/maps/OsmMap").then((m) => m.OsmMap), {
   ssr: false,
-  loading: () => <div className="h-full w-full bg-[#0B1426]" />,
+  loading: () => <div className="h-full w-full bg-gray-bg" />,
 });
 
-/** Theme: navy + one accent (electric blue for actions + live vehicles). Status colour = risk only. */
+/** Theme: admin light (white + gray-bg, primary text) with one accent: electric blue for live
+ * vehicles/route, admin `secondary` blue for action buttons (AA on white). Status colour = risk only. */
 const ACCENT = "#3B82F6";
 const RISK: Record<string, string> = {
   critical: "#EF4444",
@@ -67,13 +68,11 @@ function useTicker(ms: number) {
 function Kpi({ label, value, tone }: { label: string; value: string; tone?: "risk" | "ok" }) {
   return (
     <div className="min-w-0">
-      <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">
-        {label}
-      </div>
+      <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted">{label}</div>
       <div
         className={cn(
           "mt-0.5 text-[28px] font-semibold leading-none tabular-nums",
-          tone === "risk" ? "text-amber-400" : "text-white"
+          tone === "risk" ? "text-amber-700" : "text-primary"
         )}
       >
         {value}
@@ -132,8 +131,8 @@ function IssueRow({
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect()}
         aria-pressed={active}
         className={cn(
-          "group flex w-full items-center gap-3 border-l-2 px-4 py-3 text-left outline-none transition-colors focus-visible:bg-white/5",
-          active ? "border-[#3B82F6] bg-white/[0.06]" : "border-transparent hover:bg-white/[0.03]"
+          "group flex w-full items-center gap-3 border-l-2 px-4 py-3 text-left outline-none transition-colors focus-visible:bg-gray-bg",
+          active ? "border-secondary bg-secondary/[0.06]" : "border-transparent hover:bg-gray-bg"
         )}
       >
         <span
@@ -142,9 +141,9 @@ function IssueRow({
           aria-label={issue.severity}
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-white">{issue.label}</span>
-          <span className="block truncate text-xs text-slate-400">
-            <span className="tabular-nums text-slate-300">{issue.order_number}</span>
+          <span className="block truncate text-sm font-semibold text-primary">{issue.label}</span>
+          <span className="block truncate text-xs text-muted">
+            <span className="tabular-nums text-primary/80">{issue.order_number}</span>
             {(() => {
               const sub = (
                 note ||
@@ -159,7 +158,7 @@ function IssueRow({
         <span
           className={cn(
             "shrink-0 text-xs tabular-nums",
-            (issue.age_min ?? 0) >= 15 ? "text-amber-400" : "text-slate-500"
+            (issue.age_min ?? 0) >= 15 ? "font-semibold text-amber-700" : "text-muted"
           )}
         >
           {issue.age_min == null ? "" : `${issue.age_min}m`}
@@ -170,7 +169,7 @@ function IssueRow({
             onClick={act}
             disabled={busy}
             title={issue.action === "fix" ? fix?.label : "Offer to best driver"}
-            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg bg-[#3B82F6] px-2.5 text-xs font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50"
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg bg-secondary px-2.5 text-xs font-semibold text-white hover:bg-secondary/90 disabled:opacity-50"
           >
             {busy ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -205,17 +204,17 @@ function Inspector({ orderId, onClose }: { orderId: string; onClose: () => void 
   return (
     <aside
       aria-label="Selected order"
-      className="absolute bottom-4 left-4 right-4 z-10 rounded-xl border border-[#1E2A44] bg-[#111C33]/95 p-4 text-white backdrop-blur md:left-auto md:w-[380px]"
+      className="absolute bottom-4 left-4 right-4 z-10 rounded-xl border border-primary/10 bg-white p-4 text-primary shadow-lg md:left-auto md:w-[380px]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs uppercase tracking-[0.12em] text-slate-400">
+          <div className="text-xs uppercase tracking-[0.12em] text-muted">
             {data?.order_number ?? "Order"} · {data?.state?.replaceAll("_", " ") ?? "…"}
           </div>
           <div className="mt-1 text-[28px] font-semibold leading-tight tabular-nums">
             {etaText ? `ETA ${etaText}` : data?.state === "delivered" ? "Delivered" : "No live ETA"}
           </div>
-          <div className="text-sm text-slate-400">
+          <div className="text-sm text-muted">
             {eta?.promise ? `Promised ${hhmm(eta.promise)} · ` : ""}
             {driverName ?? "No driver yet"}
             {eta && !eta.has_gps ? " · no GPS" : ""}
@@ -225,34 +224,34 @@ function Inspector({ orderId, onClose }: { orderId: string; onClose: () => void 
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
+          className="rounded-lg p-1.5 text-muted hover:bg-gray-bg hover:text-primary"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
       {loading && !data ? (
-        <p className="mt-4 text-xs text-slate-400">Loading…</p>
+        <p className="mt-4 text-xs text-muted">Loading…</p>
       ) : (
         <ol className="mt-4 grid grid-cols-4 gap-2" aria-label="Status timeline">
           {steps.map((s) => (
             <li key={s.label} className="min-w-0">
-              <div className={cn("h-1 rounded-full", s.done ? "bg-[#3B82F6]" : "bg-[#1E2A44]")} />
+              <div className={cn("h-1 rounded-full", s.done ? "bg-secondary" : "bg-primary/10")} />
               <div
-                className={cn("mt-1.5 truncate text-xs", s.done ? "text-white" : "text-slate-500")}
+                className={cn("mt-1.5 truncate text-xs", s.done ? "text-primary" : "text-muted")}
               >
                 {s.label}
               </div>
-              <div className="text-[11px] tabular-nums text-slate-500">{hhmm(s.at) ?? ""}</div>
+              <div className="text-[11px] tabular-nums text-muted">{hhmm(s.at) ?? ""}</div>
             </li>
           ))}
         </ol>
       )}
-      <div className="mt-3 truncate text-xs text-slate-400">
+      <div className="mt-3 truncate text-xs text-muted">
         {data ? `${data.pickup} → ${data.destination}` : ""}
       </div>
       <Link
         href={`/orders/${orderId}`}
-        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#60A5FA] hover:underline"
+        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:underline"
       >
         Full order <ArrowUpRight className="h-4 w-4" />
       </Link>
@@ -324,7 +323,7 @@ export function TodayOps() {
     return (
       <div
         aria-busy
-        className="today-ops h-[calc(100dvh-7rem)] rounded-xl border border-[#1E2A44] bg-[#0B1426]"
+        className="today-ops h-[calc(100dvh-7rem)] rounded-xl border border-primary/10 bg-white"
       />
     );
   }
@@ -400,8 +399,8 @@ function TodayOpsLive() {
           lat: s.lat,
           lng: s.lng,
           size: o.id === selected ? 7 : 4,
-          color: risk ? RISK[risk] : s.kind === "pickup" ? "#CBD5E1" : "#64748B",
-          ring: o.id === selected ? ACCENT : "#0B1426",
+          color: risk ? RISK[risk] : s.kind === "pickup" ? "#94A3B8" : "#475569",
+          ring: o.id === selected ? ACCENT : "#FFFFFF",
           title: `${o.tracking_number} · ${s.label} ${idx + 1}`,
         };
       })
@@ -411,8 +410,8 @@ function TodayOpsLive() {
       lat: d.lat,
       lng: d.lng,
       size: 8,
-      color: d.online ? ACCENT : "#334155",
-      ring: d.online ? "#BFDBFE" : "#0B1426",
+      color: d.online ? ACCENT : "#94A3B8",
+      ring: d.online ? "#BFDBFE" : "#FFFFFF",
       title: d.name,
     }));
     return [...stops, ...drivers];
@@ -465,20 +464,20 @@ function TodayOpsLive() {
     <div
       ref={fill.ref}
       style={fill.h ? { height: fill.h } : undefined}
-      className="today-ops relative flex h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-xl border border-[#1E2A44] bg-[#0B1426] text-white"
+      className="today-ops relative flex h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-xl border border-primary/10 bg-white text-primary"
     >
       {/* Top strip: 4 numbers only + two actions */}
-      <header className="flex flex-wrap items-center gap-x-10 gap-y-3 border-b border-[#1E2A44] px-5 py-4">
+      <header className="flex flex-wrap items-center gap-x-10 gap-y-3 border-b border-primary/10 px-5 py-4">
         <div className="mr-2">
           <h1 className="text-xl font-semibold tracking-tight">Today</h1>
-          <div className="flex items-center gap-1.5 text-xs text-slate-400" aria-live="polite">
+          <div className="flex items-center gap-1.5 text-xs text-muted" aria-live="polite">
             <span
               className={cn(
                 "h-1.5 w-1.5 rounded-full",
                 loadError
                   ? "bg-red-500"
                   : liveStatus === "live"
-                    ? "animate-pulse bg-emerald-400"
+                    ? "animate-pulse bg-emerald-500"
                     : "bg-amber-400"
               )}
             />
@@ -502,7 +501,7 @@ function TodayOpsLive() {
             type="button"
             onClick={optimize}
             disabled={planning}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3.5 text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-3.5 text-sm font-semibold text-white hover:bg-secondary/90 disabled:opacity-50"
           >
             {planning ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -518,7 +517,7 @@ function TodayOpsLive() {
         {/* Left 30%: exception queue, worst first */}
         <section
           aria-label="Exceptions"
-          className="flex max-h-[45vh] min-h-0 flex-col border-[#1E2A44] md:max-h-none md:w-[30%] md:min-w-[320px] md:border-r"
+          className="flex max-h-[45vh] min-h-0 flex-col border-primary/10 bg-white md:max-h-none md:w-[30%] md:min-w-[320px] md:border-r"
         >
           <div className="flex gap-1 px-3 pt-3 pb-2" role="tablist">
             {FILTERS.map((f) => (
@@ -529,17 +528,19 @@ function TodayOpsLive() {
                 onClick={() => setFilter(f.key)}
                 className={cn(
                   "rounded-lg px-2.5 py-1.5 text-xs font-medium tabular-nums",
-                  filter === f.key ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
+                  filter === f.key
+                    ? "bg-secondary/10 text-secondary"
+                    : "text-muted hover:bg-gray-bg hover:text-primary"
                 )}
               >
-                {f.label} <span className="text-slate-500">{counts[f.key]}</span>
+                {f.label} <span className="opacity-80">{counts[f.key]}</span>
               </button>
             ))}
           </div>
-          <ul className="min-h-0 flex-1 divide-y divide-[#1E2A44]/60 overflow-y-auto">
+          <ul className="min-h-0 flex-1 divide-y divide-primary/5 overflow-y-auto">
             {firstLoad &&
               Array.from({ length: 6 }).map((_, i) => (
-                <li key={i} className="mx-4 my-3 h-10 animate-pulse rounded-lg bg-white/5" />
+                <li key={i} className="mx-4 my-3 h-10 animate-pulse rounded-lg bg-gray-bg" />
               ))}
             {shown.map((i) => (
               <IssueRow
@@ -552,25 +553,25 @@ function TodayOpsLive() {
             ))}
             {!firstLoad && shown.length === 0 && (
               <li className="flex flex-col items-center gap-2 px-6 py-16 text-center">
-                <Zap className="h-6 w-6 text-[#3B82F6]" />
-                <span className="text-sm font-semibold">Nothing needs you.</span>
-                <span className="text-xs text-slate-400">
+                <Zap className="h-6 w-6 text-secondary" />
+                <span className="text-sm font-semibold text-primary">Nothing needs you.</span>
+                <span className="text-xs text-muted">
                   {filter === "all" ? "Every order is on track." : "No orders in this filter."}
                 </span>
               </li>
             )}
           </ul>
-          <nav className="flex flex-wrap gap-x-4 gap-y-1 border-t border-[#1E2A44] px-4 py-2.5 text-xs text-slate-400">
-            <Link href="/orders" className="hover:text-white">
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 border-t border-primary/10 px-4 py-2.5 text-xs text-muted">
+            <Link href="/orders" className="hover:text-primary">
               Orders
             </Link>
-            <Link href="/dispatch/plan" className="hover:text-white">
+            <Link href="/dispatch/plan" className="hover:text-primary">
               Plan
             </Link>
-            <Link href="/dispatch/fleet" className="hover:text-white">
+            <Link href="/dispatch/fleet" className="hover:text-primary">
               Fleet
             </Link>
-            <Link href="/dispatch/today" className="hover:text-white">
+            <Link href="/dispatch/today" className="hover:text-primary">
               Classic dispatch
             </Link>
           </nav>
@@ -581,7 +582,6 @@ function TodayOpsLive() {
           {/* maplibre forces position:relative on its container, so size via a wrapper. */}
           <div className="absolute inset-0">
             <OsmMap
-              tone="light"
               label="Live drivers and stops"
               points={points}
               lines={lines}
@@ -592,12 +592,12 @@ function TodayOpsLive() {
               className="h-full w-full"
             />
           </div>
-          <div className="pointer-events-none absolute left-4 top-4 z-10 flex gap-3 rounded-lg border border-[#1E2A44] bg-[#0B1426]/85 px-3 py-2 text-xs text-slate-300 backdrop-blur">
+          <div className="pointer-events-none absolute left-4 top-4 z-10 flex gap-3 rounded-lg border border-primary/10 bg-white/95 px-3 py-2 text-xs text-primary shadow-sm backdrop-blur">
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-[#3B82F6]" /> {onlineDrivers} live
             </span>
-            <span className="text-slate-500">{gpsDrivers} with GPS consent</span>
-            <span className="text-slate-500">{live.data?.orders.length ?? 0} in flight</span>
+            <span className="text-muted">{gpsDrivers} with GPS consent</span>
+            <span className="text-muted">{live.data?.orders.length ?? 0} in flight</span>
           </div>
           {selected && <Inspector orderId={selected} onClose={() => setSelected(null)} />}
         </section>
@@ -607,10 +607,10 @@ function TodayOpsLive() {
           role="status"
           aria-live="polite"
           className={cn(
-            "absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-xl border px-4 py-3 text-sm shadow-none",
+            "absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-xl border px-4 py-3 text-sm shadow-lg",
             toast.tone === "error"
-              ? "border-red-500/40 bg-[#2A1220] text-red-200"
-              : "border-[#1E2A44] bg-[#111C33] text-white"
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-primary/10 bg-white text-primary"
           )}
         >
           <span className="tabular-nums">{toast.text}</span>
@@ -619,7 +619,7 @@ function TodayOpsLive() {
               type="button"
               onClick={() => undo(toast.planId!)}
               disabled={undoing}
-              className="inline-flex items-center gap-1.5 font-semibold text-[#60A5FA] hover:text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 font-semibold text-secondary hover:underline disabled:opacity-50"
             >
               {undoing ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -629,14 +629,14 @@ function TodayOpsLive() {
               Undo
             </button>
           )}
-          <Link href="/dispatch/plan" className="text-xs text-slate-400 hover:text-white">
+          <Link href="/dispatch/plan" className="text-xs text-muted hover:text-primary">
             View plan
           </Link>
           <button
             type="button"
             onClick={() => setToast(null)}
             aria-label="Dismiss"
-            className="text-slate-500 hover:text-white"
+            className="text-muted hover:text-primary"
           >
             <X className="h-4 w-4" />
           </button>
