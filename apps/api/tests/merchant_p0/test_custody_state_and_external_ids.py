@@ -247,18 +247,19 @@ def test_admin_switch_turns_partner_barcodes_off(db, dispatch_order, merchant_cl
 
     svc = ExternalIdentifierService()
     pkg = _pkg(db, dispatch_order)
-    svc.register(db, dispatch_order, pkg.id, source="merchant", value="BOX-1")
-    assert svc.resolve(db, dispatch_order, "BOX1").id == pkg.id
+    code = f"BOX{uuid4().hex[:8].upper()}"  # unique: the test DB is shared across runs
+    svc.register(db, dispatch_order, pkg.id, source="merchant", value=code)
+    assert svc.resolve(db, dispatch_order, code).id == pkg.id
 
     AdminMerchantService().update_merchant_terms(
         db, _admin_ctx(db), dispatch_order.merchant_id, partner_barcodes_enabled=False
     )
-    assert svc.resolve(db, dispatch_order, "BOX1") is None
+    assert svc.resolve(db, dispatch_order, code) is None
     base = f"/v1/merchant/orders/{dispatch_order.id}/external-ids"
-    r = merchant_client.post(base, json={"package_id": pkg.id, "source": "merchant", "value": "BOX-2"})
+    r = merchant_client.post(base, json={"package_id": pkg.id, "source": "merchant", "value": f"BOX{uuid4().hex[:8].upper()}"})
     assert r.status_code == 403 and "switched off" in r.json()["detail"]
 
     AdminMerchantService().update_merchant_terms(
         db, _admin_ctx(db), dispatch_order.merchant_id, partner_barcodes_enabled=True
     )
-    assert svc.resolve(db, dispatch_order, "BOX1").id == pkg.id
+    assert svc.resolve(db, dispatch_order, code).id == pkg.id
