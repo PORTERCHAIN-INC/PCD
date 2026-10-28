@@ -1,6 +1,7 @@
 import { orderStateLabel } from "@/lib/catalog";
 import { publicEnv } from "@/lib/env";
 import type { LiveTracking } from "@/lib/tracking";
+import type { ExternalIdSource, PackageExternalIdsResponse } from "@porterchain/types";
 
 const API_BASE = publicEnv.porterchainApiUrl;
 
@@ -262,6 +263,34 @@ export const ordersApi = {
       method: "POST",
       orgId,
     }),
+
+  externalIds: (token: string, orderId: string, orgId?: string) =>
+    merchantFetch<PackageExternalIdsResponse>(
+      `/v1/merchant/orders/${orderId}/external-ids`,
+      token,
+      {
+        orgId,
+      }
+    ),
+
+  addExternalId: (
+    token: string,
+    orderId: string,
+    body: { package_id: string; source: ExternalIdSource; value: string },
+    orgId?: string
+  ) =>
+    merchantFetch<PackageExternalIdsResponse["items"][number]>(
+      `/v1/merchant/orders/${orderId}/external-ids`,
+      token,
+      { method: "POST", body: JSON.stringify(body), orgId }
+    ),
+
+  removeExternalId: (token: string, orderId: string, identifierId: string, orgId?: string) =>
+    merchantFetch<{ ok: boolean }>(
+      `/v1/merchant/orders/${orderId}/external-ids/${identifierId}`,
+      token,
+      { method: "DELETE", orgId }
+    ),
 
   cancel: (token: string, orderId: string, orgId?: string) =>
     merchantFetch<{ order_id: string; state: string }>(

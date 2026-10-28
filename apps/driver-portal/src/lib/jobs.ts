@@ -310,8 +310,11 @@ export function actionErrorMessage(code: string): string {
     shift_required: "Start shift (30-second vehicle check) before going online.",
     stop_not_found: "Stop not found or not assigned to you.",
     packages_incomplete: "Scan all package labels before confirming.",
-    invalid_label_qr: "That is not a PorterChain package label.",
-    invalid_label_qr_unknown_package: "That is not a PorterChain package label.",
+    invalid_label_qr: "That is not a PorterChain label or a barcode registered for this order.",
+    invalid_label_qr_unknown_package:
+      "That is not a PorterChain label or a barcode registered for this order.",
+    illegal_package_transition:
+      "This box can't move to that step (for example it is already delivered). Check the box and rescan.",
     package_not_found_unknown_package: "Package not found on this order.",
     qr_order_mismatch: "That label belongs to a different order.",
     scan_pickup_required_first: "Scan this box at pickup before delivery scan.",

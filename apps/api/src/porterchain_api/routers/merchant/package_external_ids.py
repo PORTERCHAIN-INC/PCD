@@ -48,7 +48,10 @@ def list_external_ids(order_id: str, ctx: Ctx, db: Session = Depends(get_db)):
         order = _orders._require_owned(db, ctx, order_id)
     except (LookupError, ValueError) as exc:
         _fail(exc)
-    return {"items": [_svc.serialize(r) for r in _svc.list_for_order(db, order)]}
+    return {
+        "items": [_svc.serialize(r) for r in _svc.list_for_order(db, order)],
+        "packages": _svc.packages_for_order(db, order),
+    }
 
 
 @router.post("/orders/{order_id}/external-ids", status_code=201)

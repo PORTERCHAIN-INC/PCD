@@ -144,6 +144,14 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         toast.show("danger", "Not on this job", "That label isn't one of your parcels here.");
         return "error";
       }
+      if (/illegal_package_transition/i.test(m)) {
+        toast.show(
+          "danger",
+          "Wrong step",
+          "This box can't move to that step. Check the box and rescan."
+        );
+        return "warn";
+      }
       if (/pickup_required_first/i.test(m)) {
         toast.show("danger", "Not picked up", "Scan this box at pickup first.");
         return "warn";

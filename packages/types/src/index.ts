@@ -18,7 +18,13 @@ export {
   DEFAULT_CAPACITY_CLASS,
   vehicleLabel,
 } from "./capacity";
-export type { MerchantOrder } from "./merchant";
+export type {
+  ExternalIdSource,
+  MerchantOrder,
+  PackageCustodyState,
+  PackageExternalIdsResponse,
+} from "./merchant";
+export { EXTERNAL_ID_SOURCES, PACKAGE_CUSTODY_STATES } from "./merchant";
 export {
   BLOG_STATUSES,
   BLOG_LOCALES,

@@ -177,7 +177,15 @@ def test_external_id_endpoints(db, dispatch_order, merchant_client):
     r = merchant_client.post(base, json={"package_id": pkg.id, "source": "marketplace", "value": "AMZ-123"})
     assert r.status_code == 201, r.text
     ident = r.json()
-    assert merchant_client.get(base).json()["items"][0]["id"] == ident["id"]
+    listed = merchant_client.get(base).json()
+    assert listed["items"][0]["id"] == ident["id"]
+    assert listed["packages"][0] == {
+        "id": pkg.id,
+        "parcel_index": 1,
+        "total_parcels": 1,
+        "tracking_suffix": pkg.tracking_suffix,
+        "status": "manifested",
+    }
     bad = merchant_client.post(base, json={"package_id": pkg.id, "source": "bogus", "value": "X"})
     assert bad.status_code == 422
     missing = merchant_client.get(f"/v1/merchant/orders/{uuid4()}/external-ids")

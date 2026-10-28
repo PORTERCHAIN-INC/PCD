@@ -104,6 +104,20 @@ class ExternalIdentifierService:
         return db.get(Package, row.package_id) if row else None
 
     @staticmethod
+    def packages_for_order(db: Session, order: Order) -> list[dict[str, Any]]:
+        rows = db.query(Package).filter(Package.order_id == order.id).order_by(Package.parcel_index.asc()).all()
+        return [
+            {
+                "id": p.id,
+                "parcel_index": p.parcel_index,
+                "total_parcels": p.total_parcels,
+                "tracking_suffix": p.tracking_suffix,
+                "status": p.status,
+            }
+            for p in rows
+        ]
+
+    @staticmethod
     def serialize(row: PackageExternalIdentifier) -> dict[str, Any]:
         return {
             "id": row.id,

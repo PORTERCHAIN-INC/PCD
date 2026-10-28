@@ -8,6 +8,8 @@ const SESSION_EXPIRED = "Your session expired. Sign in again.";
 const NO_GPS = "Can't read GPS. Turn on Location for PorterChain Driver in Settings.";
 
 const COPY: Record<string, string> = {
+  // chain of custody
+  illegal_package_transition: "This box can't move to that step. Check the box and rescan.",
   // auth
   missing_portal_permission: NOT_PROVISIONED,
   user_not_provisioned: NOT_PROVISIONED,

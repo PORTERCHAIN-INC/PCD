@@ -39,6 +39,10 @@ const InvoiceTab = dynamic(() => import("./order360/InvoiceTab").then((m) => m.I
 const PodTab = dynamic(() => import("./order360/PodTab").then((m) => m.PodTab), {
   loading: () => <PageSkeleton rows={2} />,
 });
+const PartnerBarcodesCard = dynamic(
+  () => import("./order360/PartnerBarcodesCard").then((m) => m.PartnerBarcodesCard),
+  { loading: () => <PageSkeleton rows={1} /> }
+);
 const ReturnsCard = dynamic(() => import("./order360/ReturnsCard").then((m) => m.ReturnsCard), {
   loading: () => <PageSkeleton rows={1} />,
 });
@@ -360,6 +364,12 @@ export function Order360View({
             getApiToken={getApiToken}
             orgId={orgId}
             canWrite={canWriteOrders}
+          />
+          <PartnerBarcodesCard
+            orderId={detail.order_id}
+            canWrite={canWriteOrders}
+            getApiToken={getApiToken}
+            orgId={orgId}
           />
           <ReturnsCard
             orderId={detail.order_id}
