@@ -1,0 +1,37 @@
+# PorterChain PCD — Architecture drawing set (index, legend, evidence method)
+
+Generated 2026-10-28 (America/Toronto) from repo `/home/pcd/PCD` at HEAD `56865de9` + working tree. Docs only; no application code changed.
+
+## Files
+
+| #   | AS-BUILT (NOW)                                                     | #   | PLANNED (Phase 1)                                               |
+| --- | ------------------------------------------------------------------ | --- | --------------------------------------------------------------- |
+| 01  | [System context](01_system_context.md)                             | 12  | [Context + containers](12_planned_context_containers.md)        |
+| 02  | [Containers + deployment](02_containers_deployment.md)             | 13  | [DFDs](13_planned_dfd.md)                                       |
+| 03  | [DFD L0/L1/L2](03_dfd.md)                                          | 14  | [ER additions](14_planned_er.md)                                |
+| 04  | [ER + schema listing](04_er_schema.md) (generated)                 | 15  | [Modules, API, events](15_planned_modules_api_events.md)        |
+| 05  | [Backend modules, workers, queues](05_backend_modules.md)          | 16  | [Admin + super-admin IA](16_planned_admin_ia.md)                |
+| 06  | [API inventory](06_api_inventory.md) (generated)                   | 17  | [State machines + authz](17_planned_states_authz.md)            |
+| 07  | [Interface layer: every screen](07_interface_layer.md) (generated) | 18  | [Agents + autonomy ladder](18_planned_agents.md)                |
+| 08  | [State machines](08_state_machines.md)                             | 19  | [Compliance layer + checklist](19_compliance_layer.md)          |
+| 09  | [Authz (Clerk + staff IdP + SpiceDB)](09_authz.md)                 | 20  | [Operational legal rulebook](20_operational_legal_rulebook.md)  |
+| 10  | [Events + async](10_events_async.md)                               | 21  | [NOW vs PLANNED delta + migration order](21_delta_migration.md) |
+| 11  | [AUDIT](11_audit.md)                                               | 98  | [Unknowns](98_unknowns.md)                                      |
+
+Older `mermaid/*.mmd` (2026-10-27) are kept untouched; this set supersedes them where they conflict.
+
+## Legend
+
+- Solid arrow = verified call/data flow (cited). Dashed arrow = async (Redis Stream / list queue / sweep).
+- `[[x]]` = external system. Cylinder = datastore. Tag **(P)** = planned, not in code.
+- Status words: **built** (code + data path cited), **partial** (some code, gap named), **missing** (0 refs found).
+
+## Evidence method
+
+1. Code: `rg`/AST scans of `apps/api/src/porterchain_api/**`, `apps/worker`, `services/event-bus`, `shared/python`, `apps/*/src/app/**`. Citations are `path:line` relative to repo root (API paths often shortened to `porterchain_api/...`).
+2. Schema: read-only `psql` against the **local stack** Postgres `pcd-local-pg` (port 55632) with `SET default_transaction_read_only=on`; cross-checked against ORM `__tablename__` (129 model tables vs 131 DB tables incl. `alembic_version`). Live 5432/6379/50051 were never touched.
+3. API: committed `docs/api/openapi.json` (commit `2a360bac`, 09:18 EDT) joined to handlers; drift listed in 06.
+4. Law: each rule links to an official page. Pages fetched this run are marked ✔; others are marked "link not re-opened this run".
+5. Anything not proven goes to [98_unknowns.md](98_unknowns.md), not into a diagram.
+
+Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifier (error, not a policy decision), so no SVG/PNG; Mermaid renders in GitHub/Cursor preview.
