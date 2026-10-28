@@ -19,10 +19,10 @@ class BillingLedgerEntry(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     kind: Mapped[str] = mapped_column(String(64), index=True)
-    payment_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    payment_id: Mapped[str | None] = mapped_column(ForeignKey("payments.id", ondelete="RESTRICT"), nullable=True, index=True)
     invoice_id: Mapped[str | None] = mapped_column(ForeignKey("invoices.id"), nullable=True, index=True)
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="RESTRICT"), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="RESTRICT"), nullable=True, index=True)
     amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     status: Mapped[str] = mapped_column(String(32), default="recorded")
@@ -91,11 +91,11 @@ class InteracTransfer(Base):
     auth_ok: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     auth_detail: Mapped[str | None] = mapped_column(String(255), nullable=True)
     invoice_id: Mapped[str | None] = mapped_column(ForeignKey("invoices.id"), nullable=True, index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="RESTRICT"), nullable=True, index=True)
     match_method: Mapped[str | None] = mapped_column(String(32), nullable=True)  # reference | sender_amount
     match_note: Mapped[str | None] = mapped_column(String(255), nullable=True)  # exact | partial | over | unmatched
     status: Mapped[str] = mapped_column(String(32), default="needs_review", index=True)
-    payment_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    payment_id: Mapped[str | None] = mapped_column(ForeignKey("payments.id", ondelete="SET NULL"), nullable=True, index=True)
     reviewed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     review_note: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -108,7 +108,7 @@ class FinanceReminderDraft(Base):
     __tablename__ = "finance_reminder_drafts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    merchant_id: Mapped[str] = mapped_column(String(36), index=True)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id", ondelete="CASCADE"), index=True)
     invoice_ids: Mapped[list] = mapped_column(JSON, default=list)
     to_email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     subject: Mapped[str] = mapped_column(String(255))

@@ -10,6 +10,7 @@ from porterchain_api.booking_models import AbandonedCheckout, VisitorSession
 from porterchain_api.collaboration_engine.crm_service import CrmSalesService
 from porterchain_api.crm_models import CrmLead
 from porterchain_api.domain.states import BookingDraftState
+from tests.fk_parents import make_quote
 
 
 def test_list_leads_has_open_draft_and_nurture_filters(db) -> None:
@@ -67,7 +68,7 @@ def test_list_leads_has_open_draft_and_nurture_filters(db) -> None:
 def test_list_leads_has_abandoned_filter(db) -> None:
     svc = CrmSalesService()
     suffix = uuid.uuid4().hex[:8]
-    quote_id = str(uuid.uuid4())
+    quote_id = make_quote(db).id
     lead = CrmLead(
         company_name=f"Abandon Co {suffix}",
         email=f"abandon-{suffix}@acme.test",
@@ -95,12 +96,20 @@ def test_pipeline_board_lead_card_flags(db) -> None:
     svc = CrmSalesService()
     suffix = uuid.uuid4().hex[:8]
     now = datetime.now(timezone.utc)
+    draft = BookingDraft(
+        session_id=f"pipe-{suffix}",
+        state=BookingDraftState.DRAFT.value,
+        current_step="details",
+        expires_at=now + timedelta(days=1),
+    )
+    db.add(draft)
+    db.flush()
     lead = CrmLead(
         company_name=f"Pipe Co {suffix}",
         email=f"pipe-{suffix}@acme.test",
         source="website",
         status="new",
-        booking_draft_id=str(uuid.uuid4()),
+        booking_draft_id=draft.id,
         sla_first_response_due_at=now - timedelta(hours=2),
         tags=["nurture"],
         consent={},

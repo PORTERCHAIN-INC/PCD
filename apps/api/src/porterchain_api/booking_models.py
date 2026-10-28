@@ -83,7 +83,7 @@ class VisitorSession(Base):
     intent_score: Mapped[int] = mapped_column(Integer, default=0)
     quote_generated: Mapped[bool] = mapped_column(default=False)
     last_quote_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -96,7 +96,7 @@ class Quote(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     state: Mapped[str] = mapped_column(String(32), default=QuoteState.QUOTE.value, index=True)
     anonymous_session_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
-    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True, index=True)
     pickup: Mapped[dict] = mapped_column(JSON)
     dropoff: Mapped[dict] = mapped_column(JSON)
     vehicle_class: Mapped[str] = mapped_column(String(32))
@@ -165,7 +165,7 @@ class Order(SoftDeleteMixin, Base):
     tracking_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     state: Mapped[str] = mapped_column(String(32), default=OrderState.BOOKED.value, index=True)
     quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True)
-    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True, index=True)
     merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="RESTRICT"), nullable=True, index=True)
     order_source: Mapped[str] = mapped_column(String(16), default=OrderSource.WEBSITE.value, index=True)
     order_type: Mapped[str] = mapped_column(String(16), default=OrderType.INSTANT.value, index=True)
@@ -373,8 +373,8 @@ class Lead(Base):
     source: Mapped[str] = mapped_column(String(64), default="website_booking")
     email: Mapped[str] = mapped_column(String(320), index=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True)
-    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True)
+    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True, index=True)
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True, index=True)
     crm_lead_id: Mapped[str | None] = mapped_column(
         ForeignKey("crm_leads.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -386,8 +386,8 @@ class AbandonedCheckout(Base):
     __tablename__ = "abandoned_checkouts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    quote_id: Mapped[str] = mapped_column(String(36), index=True)
-    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    quote_id: Mapped[str] = mapped_column(ForeignKey("quotes.id", ondelete="CASCADE"), index=True)
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True)
     email: Mapped[str] = mapped_column(String(320))
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     stripe_checkout_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -554,7 +554,7 @@ class CustomerCredit(Base):
     amount_cents: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(3), default="CAD")
     reason: Mapped[str] = mapped_column(String(500))
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True)
     actor: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -565,7 +565,7 @@ class PrivacyDeletionJob(Base):
     __tablename__ = "privacy_deletion_jobs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True)
     reference: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     status: Mapped[str] = mapped_column(String(24), default="pending_review", index=True)
     source: Mapped[str] = mapped_column(String(64))
@@ -587,7 +587,7 @@ class ReorderNudge(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), index=True)
-    order_id: Mapped[str] = mapped_column(String(36))
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(16), default="draft", index=True)
     reason: Mapped[str] = mapped_column(String(255))
     approved_by: Mapped[str | None] = mapped_column(String(255), nullable=True)

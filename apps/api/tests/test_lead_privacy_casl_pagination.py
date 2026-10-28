@@ -22,6 +22,7 @@ from porterchain_api.domain.crm_states import LeadStatus
 from porterchain_api.notification_engine.staff_fanout import roles_for_topic, staff_sentinel
 from porterchain_api.platform.pagination import as_page, clamp_page
 from porterchain_api.routers.public_inquiries import LeadUnsubscribeRequest, unsubscribe_lead
+from tests.fk_parents import make_company
 
 
 def test_casl_evidence_and_unsubscribe_token_roundtrip() -> None:
@@ -92,7 +93,7 @@ def test_lead_privacy_erase_blocks_converted_with_company(db) -> None:
         source="website",
         channel="website",
         status=LeadStatus.CONVERTED.value,
-        company_id=str(uuid.uuid4()),
+        company_id=make_company(db).id,
     )
     db.add(lead)
     db.commit()

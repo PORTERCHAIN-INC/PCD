@@ -22,6 +22,7 @@ from porterchain_api.crm_models import CrmLead
 from porterchain_api.main import create_app
 from porterchain_api.marketing_site import rate_limit as rl
 from porterchain_api.platform.secret_compare import secrets_match
+from tests.fk_parents import make_order, make_quote
 
 
 @pytest.fixture
@@ -209,8 +210,8 @@ def test_paid_booking_marks_lead_converted(db) -> None:
         mark_booking_lead_converted,
     )
 
-    quote_id = str(uuid.uuid4())
-    order_id = str(uuid.uuid4())
+    quote_id = make_quote(db).id
+    order_id = make_order(db).id
     lead = CrmLead(
         company_name="123 King St W, Toronto",
         email=f"retail-{uuid.uuid4().hex[:6]}@acme.test",

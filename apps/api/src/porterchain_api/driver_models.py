@@ -65,7 +65,7 @@ class DriverIncident(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     driver_id: Mapped[str] = mapped_column(ForeignKey("drivers.id"), index=True)
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True)
     incident_type: Mapped[str] = mapped_column(String(64), index=True)
     description: Mapped[str] = mapped_column(Text)
     location: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -90,8 +90,8 @@ class DriverStopMeta(Base):
     __tablename__ = "driver_stop_meta"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    order_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
-    driver_id: Mapped[str] = mapped_column(String(36), index=True)
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), unique=True, index=True)
+    driver_id: Mapped[str] = mapped_column(ForeignKey("drivers.id", ondelete="CASCADE"), index=True)
     meta: Mapped[dict] = mapped_column(JSON, default=dict)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

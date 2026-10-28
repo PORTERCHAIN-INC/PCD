@@ -27,6 +27,7 @@ from porterchain_api.lead_desk.draft import build_draft
 from porterchain_api.lead_desk.fit_score import fit_score
 from porterchain_api.lead_desk.quote import QuoteUnavailable, lead_quote
 from porterchain_api.lead_desk.speed import speed_window, weekly_summary
+from tests.fk_parents import make_order, make_quote
 
 
 @pytest.fixture
@@ -172,8 +173,8 @@ def test_booking_by_email_marks_quoted_lead_won(db) -> None:
     lead = _lead(db, status="quoted", quoted_at=datetime.now(UTC))
     out = mark_booking_lead_converted(
         db,
-        quote_id=str(uuid.uuid4()),
-        order_id=str(uuid.uuid4()),
+        quote_id=make_quote(db).id,
+        order_id=make_order(db).id,
         email=lead.email.upper(),
     )
     assert out is not None and out.id == lead.id

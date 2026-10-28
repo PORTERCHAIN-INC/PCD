@@ -17,6 +17,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import BigInteger, DateTime, Index, String, Text, func, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from porterchain_api.db import Base
@@ -33,6 +34,25 @@ class LegacyExternalRef(Base):
     field: Mapped[str] = mapped_column(String(64))
     value: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class FkOrphanQuarantine(Base):
+    """Rows/values that pointed at a missing parent when migration ``dm2fkorphan0002``
+    added the foreign keys. ``action='nulled'``: the column was set to NULL;
+    ``action='moved'``: the whole row was taken out of the live table (``row_data``).
+    Review with ``SELECT * FROM fk_orphan_quarantine``; downgrade restores everything."""
+
+    __tablename__ = "fk_orphan_quarantine"
+    __table_args__ = (Index("ix_fk_orphan_quarantine_table", "table_name", "column_name"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    table_name: Mapped[str] = mapped_column(String(64))
+    column_name: Mapped[str] = mapped_column(String(64))
+    row_pk: Mapped[str] = mapped_column(String(64))
+    bad_value: Mapped[str] = mapped_column(String(128))
+    row_data: Mapped[dict] = mapped_column(JSONB)
+    action: Mapped[str] = mapped_column(String(16))
+    quarantined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 def _t(name: str):

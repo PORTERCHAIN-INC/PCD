@@ -12,13 +12,14 @@ from porterchain_api.collaboration_engine.lead_ingest_service import (
 )
 from porterchain_api.collaboration_engine.lead360_service import Lead360Service
 from porterchain_api.crm_models import CrmLead
+from tests.fk_parents import make_quote
 
 
 def test_lead360_composes_and_labels_abandoned_kinds(db) -> None:
     svc = LeadIngestService()
     suffix = uuid.uuid4().hex[:8]
     vid = f"l360-{suffix}"
-    quote_id = str(uuid.uuid4())
+    quote_id = make_quote(db).id
     db.add(VisitorSession(id=vid))
     db.commit()
 

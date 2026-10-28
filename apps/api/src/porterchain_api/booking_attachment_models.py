@@ -26,11 +26,9 @@ class BookingAttachment(Base):
     order_id: Mapped[str | None] = mapped_column(
         ForeignKey("orders.id"), nullable=True, index=True
     )
-    merchant_id: Mapped[str | None] = mapped_column(
-        String(36), nullable=True, index=True
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    customer_id: Mapped[str | None] = mapped_column(
-        String(36), nullable=True, index=True
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True
     )
     stop: Mapped[str] = mapped_column(String(16), default="pickup")  # pickup | dropoff
     kind: Mapped[str] = mapped_column(String(32))
@@ -81,7 +79,7 @@ class BookingAttachmentEvent(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     attachment_id: Mapped[str] = mapped_column(String(36), index=True)
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True)
     actor_type: Mapped[str] = mapped_column(
         String(16)
     )  # merchant | customer | driver | staff | system

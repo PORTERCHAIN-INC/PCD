@@ -80,7 +80,7 @@ class CrmCompany(SoftDeleteMixin, Base):
     merchant_status: Mapped[str] = mapped_column(
         String(32), default=CompanyMerchantStatus.LEAD.value, index=True
     )
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True)
 
     owner_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     tags: Mapped[list] = mapped_column(JSON, default=list)
@@ -145,10 +145,10 @@ class CrmLead(SoftDeleteMixin, Base):
     primary_contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True, index=True)
-    quote_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id", ondelete="SET NULL"), nullable=True)
     # First-class visitor spine (was custom_fields.visitor_id / session_id).
     visitor_session_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
-    booking_draft_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    booking_draft_id: Mapped[str | None] = mapped_column(ForeignKey("booking_drafts.id", ondelete="SET NULL"), nullable=True, index=True)
 
     estimated_deliveries_per_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estimated_revenue_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -174,7 +174,7 @@ class CrmLead(SoftDeleteMixin, Base):
     internal_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     lead_score: Mapped[int] = mapped_column(Integer, default=0)
 
-    company_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    company_id: Mapped[str | None] = mapped_column(ForeignKey("crm_companies.id", ondelete="SET NULL"), nullable=True, index=True)
     deal_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     contact_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     referred_by_merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
@@ -189,7 +189,7 @@ class CrmLead(SoftDeleteMixin, Base):
     awaiting_reply: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", index=True)
     last_inbound_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     first_response_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True)
     # Pipeline (New → Replied → Quoted → Won / Lost) timestamps + one-tap lost reason.
     quoted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     won_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -249,7 +249,7 @@ class CrmQuotation(SoftDeleteMixin, Base):
     quote_number: Mapped[str] = mapped_column(String(32), index=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
     deal_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    company_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    company_id: Mapped[str | None] = mapped_column(ForeignKey("crm_companies.id", ondelete="SET NULL"), nullable=True, index=True)
 
     status: Mapped[str] = mapped_column(String(32), default=QuotationStatus.DRAFT.value, index=True)
     line_items: Mapped[list] = mapped_column(JSON, default=list)
@@ -276,7 +276,7 @@ class CrmContract(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     contract_number: Mapped[str] = mapped_column(String(32), index=True)
-    company_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    company_id: Mapped[str | None] = mapped_column(ForeignKey("crm_companies.id", ondelete="SET NULL"), nullable=True, index=True)
     deal_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     quotation_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
@@ -333,7 +333,7 @@ class CrmSalesTask(Base):
 
     entity_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
     entity_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    company_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    company_id: Mapped[str | None] = mapped_column(ForeignKey("crm_companies.id", ondelete="SET NULL"), nullable=True, index=True)
     deal_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
     assigned_to: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
@@ -358,7 +358,7 @@ class CrmInvoice(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     invoice_number: Mapped[str] = mapped_column(String(32), index=True)
-    company_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    company_id: Mapped[str | None] = mapped_column(ForeignKey("crm_companies.id", ondelete="SET NULL"), nullable=True, index=True)
     deal_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     contract_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
@@ -414,7 +414,7 @@ class CrmLeadIngestEvent(Base):
     provider: Mapped[str] = mapped_column(String(64), index=True)
     external_event_id: Mapped[str] = mapped_column(String(255))
     channel: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    lead_id: Mapped[str | None] = mapped_column(ForeignKey("crm_leads.id", ondelete="SET NULL"), nullable=True, index=True)
     payload: Mapped[dict] = mapped_column(JSONB, default=dict)
     status: Mapped[str] = mapped_column(String(32), default="processed", index=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -500,8 +500,8 @@ class CrmReferralCredit(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     referring_merchant_id: Mapped[str] = mapped_column(String(36), index=True)
-    lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    company_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    lead_id: Mapped[str | None] = mapped_column(ForeignKey("crm_leads.id", ondelete="SET NULL"), nullable=True, index=True)
+    company_id: Mapped[str | None] = mapped_column(ForeignKey("crm_companies.id", ondelete="SET NULL"), nullable=True, index=True)
     amount_cents: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -521,7 +521,7 @@ class CrmSuppression(Base):
     hash_kind: Mapped[str] = mapped_column(String(16), index=True)  # email | phone
     value_hash: Mapped[str] = mapped_column(String(64), index=True)
     source: Mapped[str] = mapped_column(String(64), default="unsubscribe")
-    lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    lead_id: Mapped[str | None] = mapped_column(ForeignKey("crm_leads.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -539,7 +539,7 @@ class MarketingSubscriber(Base):
     locale: Mapped[str | None] = mapped_column(String(8), nullable=True)
     consent: Mapped[dict] = mapped_column(JSONB, default=dict)
     attribution: Mapped[dict] = mapped_column(JSONB, default=dict)
-    lead_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lead_id: Mapped[str | None] = mapped_column(ForeignKey("crm_leads.id", ondelete="SET NULL"), nullable=True, index=True)
     confirm_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     unsubscribed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
