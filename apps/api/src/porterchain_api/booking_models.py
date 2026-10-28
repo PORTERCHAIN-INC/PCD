@@ -175,9 +175,6 @@ class Order(SoftDeleteMixin, Base):
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     #: DEPRECATED (no-COD rule): cod_* columns are never read or written. Drop in a
     #: later approved migration (see docs/migrations/COD_COLUMNS_DEPRECATED.md).
-    cod_amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    cod_status: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
-    cod_stripe_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     assigned_driver_id: Mapped[str | None] = mapped_column(
         ForeignKey("drivers.id", ondelete="SET NULL"), nullable=True, index=True
     )
