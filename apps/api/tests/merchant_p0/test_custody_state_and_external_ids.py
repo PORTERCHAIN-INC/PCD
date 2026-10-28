@@ -194,3 +194,38 @@ def test_viewer_cannot_register_external_id(db, dispatch_order, merchant_ctx, me
     r = merchant_client.post(base, json={"package_id": pkg.id, "value": "X1"})
     assert r.status_code == 403
     assert merchant_client.get(base).status_code == 200
+
+
+def test_sandbox_purge_goes_through_order_writer(db, merchant_ctx):
+    from datetime import UTC, datetime
+
+    from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
+    from porterchain_api.booking_models import Order
+    from porterchain_api.merchant_engine.integrations_service import MerchantIntegrationsService
+
+    def _o(state):
+        o = Order(
+            order_number=generate_order_number(),
+            tracking_number=generate_tracking_number(),
+            state=state,
+            merchant_id=merchant_ctx.merchant.id,
+            amount_cents=100,
+            currency="cad",
+            pickup={},
+            dropoff={},
+            scheduled_at=datetime.now(UTC),
+            is_sandbox=True,
+        )
+        db.add(o)
+        db.flush()
+        return o
+
+    booked, delivered = _o(OrderState.BOOKED.value), _o(OrderState.DELIVERED.value)
+    out = MerchantIntegrationsService().purge_sandbox_orders(db, merchant_ctx, confirm="purge test")
+    assert out["cancelled"] == 1 and out["skipped"] == 1
+    db.refresh(booked)
+    db.refresh(delivered)
+    assert booked.state == OrderState.CANCELLED.value
+    assert delivered.state == OrderState.DELIVERED.value
+    ev = _events(db, booked.id, "order.sandbox_purged")
+    assert len(ev) == 1 and ev[0].actor_id == merchant_ctx.user.id

@@ -115,6 +115,7 @@ class MerchantIntegrationsService:
         """Cancel merchant-owned open sandbox orders."""
         from porterchain_api.booking_models import Order
         from porterchain_api.domain.states import OrderState
+        from porterchain_api.merchant_engine.sandbox_simulator import cancel_sandbox_order
 
         if (confirm or "").strip().upper() != "PURGE TEST":
             raise ValueError("type_PURGE_TEST_to_confirm")
@@ -133,10 +134,19 @@ class MerchantIntegrationsService:
             )
             .all()
         )
+        cancelled = skipped = 0
         for order in rows:
-            order.state = OrderState.CANCELLED.value
+            # Through the single order writer so each cancel is audited (order_events + outbox).
+            if cancel_sandbox_order(db, order, actor_id=ctx.user.id):
+                cancelled += 1
+            else:
+                skipped += 1
         db.commit()
-        return {"cancelled": len(rows), "message": "Sandbox orders without dispatch were cancelled."}
+        return {
+            "cancelled": cancelled,
+            "skipped": skipped,
+            "message": "Sandbox orders without dispatch were cancelled.",
+        }
 
     def usage(self, db: Session, ctx: MerchantContext, *, days: int = 7) -> dict[str, Any]:
         return gateway.usage_summary(db, ctx.merchant.id, days=days)

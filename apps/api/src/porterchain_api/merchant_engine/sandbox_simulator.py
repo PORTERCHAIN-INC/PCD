@@ -19,7 +19,7 @@ from porterchain_api.booking_engine.order_transitions import transition_order_st
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.sandbox import order_is_sandbox
-from porterchain_api.domain.states import OrderState
+from porterchain_api.domain.states import OrderState, can_transition_order
 from porterchain_api.merchant_engine.rbac import MerchantContext
 from porterchain_api.merchant_engine.secrets import decrypt_signing_secret
 from porterchain_api.merchant_engine.webhook_delivery_service import (
@@ -76,6 +76,21 @@ def _path_index(state: OrderState) -> int:
         if s == state:
             return i
     return -2
+
+
+def cancel_sandbox_order(db: Session, order: Order, *, actor_id: str | None) -> bool:
+    """Cancel one sandbox order through the order writer (audited). False if no longer cancellable."""
+    if not can_transition_order(OrderState(order.state), OrderState.CANCELLED):
+        return False
+    transition_order_state(
+        db,
+        order,
+        OrderState.CANCELLED,
+        event_type="order.sandbox_purged",
+        actor_type="merchant_user",
+        actor_id=actor_id,
+    )
+    return True
 
 
 def simulate_sandbox_lifecycle(
