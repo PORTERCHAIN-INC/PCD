@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { hasClerkSessionHint } from "@porterchain/auth/clerkEdgeSession";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -19,7 +19,7 @@ const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.t
  * Clerk edge gate — light when session cookies exist (admin ``pc_staff_sid`` posture).
  * AccessGate + API Bearer still enforce identity; ``await auth()`` only when unsigned.
  */
-export default clerkMiddleware(
+const withClerk = clerkMiddleware(
   async (auth, req) => {
     // Local: API Bearer `dev` — do not send the browser through Clerk.
     if (clerkDevBypassEnabled()) return;
@@ -55,6 +55,17 @@ export default clerkMiddleware(
   },
   { signInUrl: "/sign-in" }
 );
+
+/**
+ * Local dev with the bypass on and no Clerk keys: `clerkMiddleware` throws on every
+ * request, so skip it. Production bundles fold `clerkDevBypassEnabled()` to false.
+ */
+export default function middleware(req: NextRequest, ev: NextFetchEvent) {
+  if (clerkDevBypassEnabled() && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) {
+    return NextResponse.next();
+  }
+  return withClerk(req, ev);
+}
 
 export const config = {
   matcher: [

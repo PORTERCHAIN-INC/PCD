@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { clerkDevBypassEnabled } from "@porterchain/auth/devBypass";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import PortalOnboardingView from "@/components/onboarding/PortalOnboardingView";
@@ -20,14 +21,19 @@ import { useMerchantAuth } from "@/hooks/useMerchantAuth";
  */
 export default function OnboardingPageClient() {
   if (!isClerkConfigured()) {
-    return null;
+    // Local dev bypass (Bearer dev): no Clerk tree, the API session is the identity.
+    return clerkDevBypassEnabled() ? <MerchantOnboarding isLoaded isSignedIn /> : null;
   }
   return <MerchantOnboardingWithClerk />;
 }
 
 function MerchantOnboardingWithClerk() {
-  const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  return <MerchantOnboarding isLoaded={isLoaded} isSignedIn={Boolean(isSignedIn)} />;
+}
+
+function MerchantOnboarding({ isLoaded, isSignedIn }: { isLoaded: boolean; isSignedIn: boolean }) {
+  const router = useRouter();
   const { getApiToken } = useMerchantAuth();
   const [data, setData] = useState<import("@/lib/onboarding").PortalOnboardingStatus | null>(null);
   const [loading, setLoading] = useState(true);

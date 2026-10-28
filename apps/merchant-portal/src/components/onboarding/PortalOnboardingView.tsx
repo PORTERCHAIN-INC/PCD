@@ -11,7 +11,7 @@ import {
   shouldAskOwnerForCompanyFile,
   type PortalOnboardingStatus,
 } from "@/lib/onboarding";
-import { publicEnv } from "@/lib/env";
+import { isClerkConfigured, publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { useState } from "react";
@@ -130,15 +130,17 @@ export default function PortalOnboardingView({
                 </p>
               </div>
             </div>
-            <SignOutButton redirectUrl="/sign-in">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-primary/10 px-3 py-2 text-sm text-muted"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </button>
-            </SignOutButton>
+            {isClerkConfigured() ? (
+              <SignOutButton redirectUrl="/sign-in">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-xl border border-primary/10 px-3 py-2 text-sm text-muted"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </SignOutButton>
+            ) : null}
           </div>
         </header>
 
