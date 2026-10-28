@@ -60,6 +60,18 @@ export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   pickup?: Record<string, unknown> | null;
   dropoff?: Record<string, unknown> | null;
   lines: CustomerInvoiceLine[];
+  credited_cents?: number;
+  credit_notes?: CustomerCreditNote[];
+}
+
+export interface CustomerCreditNote {
+  credit_note_id: string;
+  credit_note_number: string | null;
+  customer_reason?: string | null;
+  amount_cents: number;
+  tax_cents: number;
+  settlement?: string | null;
+  issued_at?: string | null;
 }
 
 export interface CustomerPaymentSummary {
@@ -159,6 +171,19 @@ export const customerApi = {
     apiFetch<CustomerInvoiceDetail>(`/v1/customers/me/invoices/${invoiceId}`, {
       headers: authHeaders(token),
     }),
+  downloadCreditNotePdf: async (token: string, creditNoteId: string, filename: string) => {
+    const res = await fetch(`${API_BASE}/v1/customers/me/credit-notes/${creditNoteId}/pdf`, {
+      headers: authHeaders(token),
+    });
+    if (!res.ok) throw new Error("Could not download that credit note PDF.");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
   downloadInvoicePdf: async (token: string, invoiceId: string, filename: string) => {
     const res = await fetch(`${API_BASE}/v1/customers/me/invoices/${invoiceId}/pdf`, {
       headers: authHeaders(token),

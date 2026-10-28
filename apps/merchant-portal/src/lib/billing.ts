@@ -130,6 +130,22 @@ export type InvoiceDetail = {
   remittance_memo?: string | null;
   lines: InvoiceDetailLine[];
   lines_total_cents?: number;
+  credited_cents?: number;
+  credit_notes?: InvoiceCreditNote[];
+};
+
+/** Issued GST/HST credit note against one invoice (tax 0 when none was charged). */
+export type InvoiceCreditNote = {
+  credit_note_id: string;
+  credit_note_number: string | null;
+  kind: string;
+  customer_reason?: string | null;
+  amount_cents: number;
+  subtotal_cents: number;
+  tax_cents: number;
+  currency: string;
+  settlement?: string | null;
+  issued_at?: string | null;
 };
 
 export type PaymentRow = {
@@ -147,6 +163,10 @@ export type PaymentRow = {
 
 export type CreditNoteRow = {
   credit_note_id: string;
+  credit_note_number?: string | null;
+  invoice_id?: string | null;
+  invoice_number?: string | null;
+  pdf_available?: boolean;
   order_id?: string | null;
   order_number?: string | null;
   amount_cents?: number | null;
@@ -241,6 +261,14 @@ export const billingApi = {
 
   payments: (token: string, orgId?: string) =>
     billingFetch<PaymentRow[]>("/v1/merchant/billing/payments", token, { orgId }),
+
+  downloadCreditNotePdf: (token: string, creditNoteId: string, orgId?: string, filename?: string) =>
+    billingDownload(
+      `/v1/merchant/billing/credit-notes/${creditNoteId}/pdf`,
+      token,
+      orgId,
+      filename || `credit-note-${creditNoteId}.pdf`
+    ),
 
   creditNotes: (token: string, orgId?: string) =>
     billingFetch<CreditNoteRow[]>("/v1/merchant/billing/credit-notes", token, { orgId }),

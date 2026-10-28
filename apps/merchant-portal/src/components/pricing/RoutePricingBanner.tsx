@@ -110,8 +110,8 @@ export default function RoutePricingBanner({
         </table>
       ) : null}
       <p className="mt-2 text-xs text-primary/70">
-        Prices before HST. Liftgate, coverage and waiting charges are unchanged. You can switch back
-        any time in Billing.
+        Prices before any tax. Liftgate, coverage and waiting charges are unchanged. You can switch
+        back any time in Billing.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button

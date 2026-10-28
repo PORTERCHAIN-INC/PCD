@@ -73,7 +73,20 @@ def send_credit_note_email(db: Session, note: Any) -> dict[str, Any]:
         "customer_reason": note.customer_reason,
         "subtotal_display": _amount_display(note.subtotal_cents, cur),
         "tax_display": _amount_display(note.tax_cents, cur),
-        "tax_label": _province_tax_label(db, note.tax_province) or "tax",
+        "tax_label": _province_tax_label(db, note.tax_province) or "GST/HST",
+        # Non-registrant (or untaxed original invoice): no tax lines at all.
+        "tax_lines": (
+            f"Credit before tax: {_amount_display(note.subtotal_cents, cur)}\n"
+            f"Tax reversed ({_province_tax_label(db, note.tax_province) or 'GST/HST'}): "
+            f"{_amount_display(note.tax_cents, cur)}\n"
+            if int(note.tax_cents or 0) > 0
+            else ""
+        ),
+        "itc_line": (
+            " If you claimed an input tax credit for the original invoice, reduce it by the tax shown."
+            if int(note.tax_cents or 0) > 0
+            else ""
+        ),
         "amount_display": _amount_display(note.amount_cents, cur),
         "balance_display": _amount_display(outstanding_cents(invoice, status), cur),
         "settlement_line": settle,

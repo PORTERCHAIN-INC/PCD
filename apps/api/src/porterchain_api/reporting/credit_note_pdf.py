@@ -32,19 +32,22 @@ def credit_note_pdf(db: Any, note: Any) -> tuple[bytes, str]:
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
     from xml.sax.saxutils import escape
 
-    from porterchain_api.admin_engine.platform_settings import (
-        finance_settings,
-        supplier_gst_hst_number,
-        tax_label,
-    )
+    from porterchain_api.admin_engine.platform_settings import finance_settings
+    from porterchain_api.platform.tax_registration import registration_at
 
     if note.status != "issued" or not note.credit_note_number:
         raise ValueError("credit_note_not_issued")
     name, legal, support = _issuer_from_db(db)
-    bn = supplier_gst_hst_number(db)
+    # Tax shown only if the original invoice charged tax; the number is the one in force
+    # when that invoice was issued (a non-registrant's note shows no GST/HST at all).
+    taxed = int(note.tax_cents or 0) > 0
+    reg = registration_at(db, note.original_invoice_date or note.issued_at)
+    bn = reg.gst_hst_number if taxed else ""
+    if taxed and reg.legal_name:
+        legal = reg.legal_name
     address = str(finance_settings(db).get("business_address") or "").strip()
     cur = note.currency or "cad"
-    label = _province_tax_label(db, note.tax_province) or tax_label(db)
+    label = _province_tax_label(db, note.tax_province) or "GST/HST"
     navy = HexColor("#0a1628")
     muted = HexColor("#64748b")
     h = ParagraphStyle("h", fontName="Helvetica-Bold", fontSize=20, textColor=navy, leading=24)
@@ -75,7 +78,8 @@ def credit_note_pdf(db: Any, note: Any) -> tuple[bytes, str]:
     supplier = [f"Supplier: {legal}" + (f" ({name})" if name and name != legal else "")]
     if address:
         supplier.append(address)
-    supplier.append(f"GST/HST registration no.: {bn}" if bn else "GST/HST registration no.: (not set)")
+    if bn:
+        supplier.append(f"GST/HST registration no.: {bn}")
     supplier.append(f"Contact: {support}")
     recipient = [f"Recipient: {note.recipient_name or '-'}"]
     if recipient_addr:
@@ -92,16 +96,26 @@ def credit_note_pdf(db: Any, note: Any) -> tuple[bytes, str]:
         p(f"Reason: {note.customer_reason or '-'}"),
         Spacer(1, 10),
     ]
-    rows = [["Description", "Before tax", "Tax", "Total"]]
-    for ln in note.lines_json or []:
-        g, t = int(ln.get("gross_cents") or 0), int(ln.get("tax_cents") or 0)
-        rows.append([p(str(ln.get("description") or "-")), _money(g - t, cur), _money(t, cur), _money(g, cur)])
-    rows += [
-        ["Credit before tax", "", "", _money(note.subtotal_cents, cur)],
-        [f"Tax reversed: {label}", "", "", _money(note.tax_cents, cur)],
-        ["Total credit", "", "", _money(note.amount_cents, cur)],
-    ]
-    t = Table(rows, colWidths=[3.4 * inch, 1.1 * inch, 1.1 * inch, 1.2 * inch])
+    if taxed:
+        rows = [["Description", "Before tax", "Tax", "Total"]]
+        for ln in note.lines_json or []:
+            g, tx = int(ln.get("gross_cents") or 0), int(ln.get("tax_cents") or 0)
+            rows.append([p(str(ln.get("description") or "-")), _money(g - tx, cur), _money(tx, cur), _money(g, cur)])
+        rows += [
+            ["Credit before tax", "", "", _money(note.subtotal_cents, cur)],
+            [f"Tax reversed: {label}", "", "", _money(note.tax_cents, cur)],
+            ["Total credit", "", "", _money(note.amount_cents, cur)],
+        ]
+        widths = [3.4 * inch, 1.1 * inch, 1.1 * inch, 1.2 * inch]
+        summary_rows = 3
+    else:
+        rows = [["Description", "Amount"]]
+        for ln in note.lines_json or []:
+            rows.append([p(str(ln.get("description") or "-")), _money(int(ln.get("gross_cents") or 0), cur)])
+        rows += [["Total credit", _money(note.amount_cents, cur)]]
+        widths = [5.6 * inch, 1.2 * inch]
+        summary_rows = 1
+    t = Table(rows, colWidths=widths)
     n = len(rows)
     t.setStyle(
         TableStyle(
@@ -109,7 +123,7 @@ def credit_note_pdf(db: Any, note: Any) -> tuple[bytes, str]:
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("FONTNAME", (0, n - 1), (-1, n - 1), "Helvetica-Bold"),
                 ("LINEBELOW", (0, 0), (-1, 0), 0.6, navy),
-                ("LINEABOVE", (0, n - 3), (-1, n - 3), 0.6, navy),
+                ("LINEABOVE", (0, n - summary_rows), (-1, n - summary_rows), 0.6, navy),
                 ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
                 ("FONTSIZE", (0, 0), (-1, -1), 9),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -121,7 +135,9 @@ def credit_note_pdf(db: Any, note: Any) -> tuple[bytes, str]:
         Spacer(1, 14),
         p(
             "Keep this credit note with your records. If you claimed an input tax credit for the "
-            "original invoice, reduce it by the tax reversed shown above (Excise Tax Act s. 232).",
+            "original invoice, reduce it by the tax reversed shown above (Excise Tax Act s. 232)."
+            if taxed
+            else "Keep this credit note with your records.",
             small,
         ),
     ]

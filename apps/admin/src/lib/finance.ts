@@ -387,6 +387,13 @@ export const financeApi = {
     adminFetch<{ enabled: boolean; fetched: number; queued: number }>(`${B}/interac/sync`, token, {
       method: "POST",
     }),
+  taxRegistration: (token: string) =>
+    adminFetch<TaxRegistrationStatus>(`${B}/tax-registration`, token),
+  changeTaxRegistration: (token: string, body: TaxRegistrationChange) =>
+    adminFetch<TaxRegistrationStatus>(`${B}/tax-registration`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   remindInvoice: (token: string, invoiceId: string) =>
     adminFetch<{
       invoice_id: string;
@@ -568,3 +575,38 @@ export type ArSummary = {
     body: string;
   }>;
 };
+
+export type TaxRegistrationRow = {
+  id: string;
+  gst_hst_number: string | null;
+  legal_name: string | null;
+  effective_from: string;
+  note: string | null;
+  created_by: string | null;
+  created_at: string | null;
+};
+
+export type TaxRegistrationStatus = {
+  registered: boolean;
+  gst_hst_number: string;
+  legal_name: string | null;
+  effective_from: string | null;
+  set: boolean;
+  warning: string | null;
+  upcoming: {
+    gst_hst_number: string | null;
+    legal_name: string | null;
+    effective_from: string;
+  } | null;
+  history: TaxRegistrationRow[];
+};
+
+export type TaxRegistrationChange = {
+  gst_hst_number: string | null;
+  legal_name: string | null;
+  effective_from: string;
+  note?: string | null;
+};
+
+/** CRA program account: 9-digit BN + "RT" + 4-digit reference (e.g. 123456789RT0001). */
+export const GST_HST_PATTERN = /^\d{9}\s?RT\s?\d{4}$/i;

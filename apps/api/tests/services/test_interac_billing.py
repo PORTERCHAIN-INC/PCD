@@ -146,23 +146,34 @@ def test_sender_and_amount_match_without_reference(db: Session):
     _m, merchant = _merchant(db)
     assert inv.merchant_id == merchant.id
     # Leftover rows in the shared test DB can share the first merchant's name; make the
-    # sender unique so the match is not "ambiguous_sender" by accident.
+    # sender unique for this test only, and put the shared merchant's name back after.
+    original_name = merchant.company_name
     merchant.company_name = f"Interac Sender {uuid.uuid4().hex[:8]}"
     db.commit()
-    st = invoice_status(inv, None, None)
-    owing = outstanding_cents(inv, st)
-    row = ingest_message(
-        db,
-        _eml("notification_en.eml", SENDER=(merchant.company_name or "").upper() + " INC.", AMOUNT=_money(owing), MEMO="thanks"),
-        authserv_id=AUTHSERV,
-    )
-    db.commit()
-    assert row.merchant_id == merchant.id
-    # Exact amount for one open invoice → proposed; several equal open amounts → review.
-    if row.status == "proposed":
-        assert row.match_method == "sender_amount"
-    else:
-        assert row.match_note in ("ambiguous", "merchant_only")
+    try:
+        st = invoice_status(inv, None, None)
+        owing = outstanding_cents(inv, st)
+        row = ingest_message(
+            db,
+            _eml(
+                "notification_en.eml",
+                SENDER=(merchant.company_name or "").upper() + " INC.",
+                AMOUNT=_money(owing),
+                MEMO="thanks",
+            ),
+            authserv_id=AUTHSERV,
+        )
+        db.commit()
+        assert row.merchant_id == merchant.id
+        # Exact amount for one open invoice → proposed; several equal open amounts → review.
+        if row.status == "proposed":
+            assert row.match_method == "sender_amount"
+        else:
+            assert row.match_note in ("ambiguous", "merchant_only")
+    finally:
+        db.rollback()
+        merchant.company_name = original_name
+        db.commit()
 
 
 def test_spoofed_email_is_suspicious_and_cannot_be_approved(db: Session):
@@ -305,17 +316,13 @@ def test_cycle_billed_orders_skip_per_order_invoice(db: Session):
     assert is_cycle_billed(db, order) is expected
 
 
-def test_invoice_pdf_has_gst_number_and_etransfer_instructions(db: Session, monkeypatch):
-    from porterchain_api.admin_engine import platform_settings
+def test_invoice_pdf_has_gst_number_and_etransfer_instructions(gst_registered, db: Session, monkeypatch):
     from porterchain_api.reporting.order_documents import pdf_bytes_for_invoice_id
 
     inv = _cycle_invoice(db)
-    monkeypatch.setattr(platform_settings, "supplier_gst_hst_number", lambda _db: "")
-    unset, _ = pdf_bytes_for_invoice_id(db, inv.id)
-    assert b"GST/HST Reg. No.:" not in unset and b"PENDING" not in unset  # never a placeholder
-    monkeypatch.setattr(platform_settings, "supplier_gst_hst_number", lambda _db: "123456789 RT0001")
     pdf, name = pdf_bytes_for_invoice_id(db, inv.id)
     text = pdf.decode("latin-1")
+    assert b"PENDING" not in pdf and b"(not set)" not in pdf  # never a placeholder
     assert "GST/HST Reg. No.:" in text
     assert inv.payment_reference in text
     assert "Interac e-Transfer" in text

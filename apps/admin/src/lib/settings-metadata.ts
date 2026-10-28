@@ -333,7 +333,7 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
       min: 0,
       max: 30,
       step: 0.1,
-      hint: "Wired — applied on invoice create and driver tax estimates",
+      hint: "Wired — used only while registered for GST/HST (Finance > GST/HST); 0 tax otherwise",
       effect: "wired",
     },
     {
@@ -341,13 +341,6 @@ export const CONFIG_FIELD_SCHEMAS: Record<string, ConfigFieldDef[]> = {
       label: "Tax name on invoices",
       type: "text",
       hint: "Wired — e.g. HST (Ontario) or GST",
-      effect: "wired",
-    },
-    {
-      key: "gst_hst_number",
-      label: "GST/HST registration number",
-      type: "text",
-      hint: "One source for invoices, statements, quotes, receipts and tax reports (CRA). Format 123456789 RT0001; blank = not printed",
       effect: "wired",
     },
     {

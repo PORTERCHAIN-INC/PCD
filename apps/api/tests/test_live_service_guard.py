@@ -30,5 +30,14 @@ def test_live_ports_and_hosts_are_refused() -> None:
     assert live_service_violations({"REDIS_URL": "redis://localhost/0"})
 
 
+def test_local_stack_and_other_ports_are_refused() -> None:
+    # ~/pcd-local stack Postgres (55632) must never receive test rows.
+    assert live_service_violations(
+        {"DATABASE_URL": "postgresql+psycopg://porterchain:x@127.0.0.1:55632/porterchain"}
+    )
+    assert live_service_violations({"DATABASE_URL": "postgresql+psycopg://u:p@db.example.com:55432/x"})
+    assert live_service_violations({"REDIS_URL": "redis://127.0.0.1:6380/0"})
+
+
 def test_running_session_uses_test_containers() -> None:
     assert live_service_violations() == []

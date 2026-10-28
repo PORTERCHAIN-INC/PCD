@@ -39,6 +39,13 @@ from porterchain_pricing.types import (
 )
 
 
+
+def _default_hst_percent() -> float:
+    """Ontario HST from the one province table (no duplicated 13.0)."""
+    from porterchain_pricing.tax.provinces import PROVINCES
+
+    return PROVINCES["ON"].freight_percent()
+
 class SqlAlchemyPricingRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -245,16 +252,21 @@ class SqlAlchemyPricingRepository:
         ]
 
     def _load_tax_config(self) -> TaxConfig:
+        # Not registered for GST/HST ⇒ quotes and previews add no tax at all.
+        from porterchain_api.platform.tax_registration import collects_tax
+
+        if not collects_tax(self.db):
+            return TaxConfig(hst_percent=0.0)
         if not self._has_table("system_config"):
-            return TaxConfig(hst_percent=13.0)
+            return TaxConfig(hst_percent=_default_hst_percent())
         try:
             row = self.db.query(SystemConfig).filter(SystemConfig.key == "pricing_tax").first()
         except ProgrammingError:
             self.db.rollback()
-            return TaxConfig(hst_percent=13.0)
+            return TaxConfig(hst_percent=_default_hst_percent())
         if row and row.value:
             return TaxConfig(**{k: v for k, v in row.value.items() if k in TaxConfig.__dataclass_fields__})
-        return TaxConfig(hst_percent=13.0)
+        return TaxConfig(hst_percent=_default_hst_percent())
 
     def _load_fuel_config(self) -> FuelConfig:
         if not self._has_table("system_config"):

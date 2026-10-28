@@ -129,3 +129,26 @@ first.
   and must be reviewed by hand) and revert the commit. Invoices with `credited_cents > 0`
   would show their gross balance again after downgrade, so do not downgrade once credits are
   issued on live — fix forward instead.
+
+### 7. GST/HST registration (`tax_registrations`, `platform/tax_registration.py`, `GET/POST /v1/admin/finance/tax-registration`, Admin > Finance > GST/HST) — **PASS after fix**
+
+- **Clashes:** tax was charged everywhere by default (13% `pricing_tax.hst_percent`,
+  `default_tax_percent`) even with no registration number, which a non-registrant may not do
+  (ETA s. 148 / s. 221; `docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md` §10). Now every tax
+  computation (`billing_engine/tax.split_amount`, `pricing_engine/repository._load_tax_config`,
+  `platform_settings.default_tax_percent`) and every tax line (invoice/credit-note PDFs, credit-note
+  email, FSA rate card, tax report, portal and mobile copy) asks the one service. Unset ⇒ zero tax,
+  no label, no number, no "(not set)".
+- **Duplication — was FAIL, now fixed:** the number lived in `finance_settings.gst_hst_number`
+  with no date or history; the 13.0 rate was hard-coded in 4 places. Replaced by the append-only
+  table; the rate comes from the province table (`porterchain_pricing.tax.provinces`). The driver's
+  own tax estimate is a separate setting (`driver_tax_estimate_percent`) and no longer tied to ours.
+- **Measurable benefit:** `SELECT count(*) FROM invoices WHERE tax_cents > 0 AND issued_at::date < (SELECT min(effective_from) FROM tax_registrations WHERE gst_hst_number IS NOT NULL);`
+  must stay 0 for invoices issued after this deploy. Tests: `apps/api/tests/test_tax_registration.py`.
+- **Practicality:** additive migration `tr6taxreg0006` (one small table + index); copies a valid
+  existing `finance_settings.gst_hst_number` with effective date 1970-01-01 so a live system that
+  already has a number keeps charging tax.
+- **Control:** RBAC `finance` + staff step-up, audit `finance.tax_registration.changed`, price version
+  bumped so quotes reprice. Dates cannot go before the latest change; history is never edited.
+- **Rollback:** `alembic downgrade cn5creditnotes0005` drops the table (history lost; re-enter the
+  number in finance settings after reverting the code).

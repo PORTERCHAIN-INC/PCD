@@ -21,9 +21,12 @@ os.environ.setdefault("REDIS_URL", TEST_REDIS_URL)
 os.environ.setdefault("SPICEDB_ENDPOINT", TEST_SPICEDB_ENDPOINT)
 os.environ.setdefault("SPICEDB_PRESHARED_KEY", TEST_SPICEDB_KEY)
 
-# Live dev stack ports (porterchain-postgres, porterchain-redis, porterchain-spicedb).
-_LIVE_PORTS = {"DATABASE_URL": {5432}, "REDIS_URL": {6379}, "SPICEDB_ENDPOINT": {50051, 8443}}
-_LIVE_HOST_HINTS = ("porterchain-", "pcd-redis", "pcd-postgres", "pcd-spicedb", "porterchain.com")
+# Tests may ONLY use the throwaway test containers (scripts/test-infra.sh): anything else
+# — live dev stack (5432/6379/50051), the local stack (~/pcd-local, pg 55632), a remote
+# host — is refused, even when inherited from a sourced app.env.
+_TEST_PORTS = {"DATABASE_URL": {55432}, "REDIS_URL": {56379}, "SPICEDB_ENDPOINT": {55051}}
+_DEFAULT_PORTS = {"DATABASE_URL": 5432, "REDIS_URL": 6379, "SPICEDB_ENDPOINT": 50051}
+_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 
 def _host_port(name: str, value: str) -> tuple[str, int | None]:
@@ -32,17 +35,16 @@ def _host_port(name: str, value: str) -> tuple[str, int | None]:
 
 
 def live_service_violations(env: dict[str, str] | None = None) -> list[str]:
-    """Return a message per test setting that points at a live service."""
+    """Return a message per setting that is not a local test-container endpoint."""
     env = os.environ if env is None else env
     bad: list[str] = []
-    for name, live_ports in _LIVE_PORTS.items():
+    for name, ok_ports in _TEST_PORTS.items():
         value = env.get(name, "")
         if not value or value.startswith("sqlite"):
             continue
         host, port = _host_port(name, value)
-        default_port = {"DATABASE_URL": 5432, "REDIS_URL": 6379, "SPICEDB_ENDPOINT": 50051}[name]
-        if (port or default_port) in live_ports or any(h in host for h in _LIVE_HOST_HINTS):
-            bad.append(f"{name}={value!r} points at a live service")
+        if (port or _DEFAULT_PORTS[name]) not in ok_ports or host not in _LOCAL_HOSTS:
+            bad.append(f"{name}={value!r} is not a test container (allowed: localhost:{sorted(ok_ports)[0]})")
     return bad
 
 
@@ -50,7 +52,7 @@ def pytest_configure(config):
     bad = live_service_violations()
     if bad:
         raise pytest.UsageError(
-            "Refusing to run tests against live services:\n  "
+            "Refusing to run tests outside the test containers:\n  "
             + "\n  ".join(bad)
             + "\nStart throwaway containers with `bash scripts/test-infra.sh up` and unset these vars."
         )
@@ -152,3 +154,32 @@ def quiet_pool(db_url: str):
         s.commit()
     finally:
         s.close()
+
+
+@pytest.fixture
+def gst_registered(db_url: str):
+    """Register a GST/HST number from 2000-01-01 for tests that expect tax to be charged.
+
+    Without a registration the system charges and shows no GST/HST anywhere
+    (docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md §10).
+    """
+    from datetime import date
+
+    from porterchain_api.admin_models import TaxRegistration
+    from porterchain_api.platform import tax_registration as reg
+
+    init_db()
+    s = SessionLocal()
+    s.query(TaxRegistration).delete()
+    reg.record_registration(
+        s, gst_hst_number="123456789RT0001", legal_name="PorterChain Inc.", effective_from=date(2000, 1, 1), actor_id=None
+    )
+    s.commit()
+    s.close()
+    reg.clear_cache(None)
+    yield "123456789 RT0001"
+    s = SessionLocal()
+    s.query(TaxRegistration).delete()
+    s.commit()
+    s.close()
+    reg.clear_cache(None)

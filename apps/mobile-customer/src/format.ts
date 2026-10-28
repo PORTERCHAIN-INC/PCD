@@ -118,7 +118,7 @@ export type PriceSummary = {
   lines: QuoteLine[];
   tax: QuoteLine[];
   total_cents: number;
-  /** True when the API listed tax as its own line; otherwise the total includes HST. */
+  /** True when the API listed tax as its own line; otherwise no tax was charged. */
   taxItemised: boolean;
 };
 

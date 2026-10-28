@@ -87,11 +87,19 @@ def receipt_number_prefix(db: Session) -> str:
 
 
 def default_tax_percent(db: Session) -> float:
-    raw = finance_settings(db).get("default_tax_percent", 13.0)
+    """GST/HST percent we charge now; 0 when not registered (platform.tax_registration)."""
+    from porterchain_api.platform.tax_registration import collects_tax
+
+    if not collects_tax(db):
+        return 0.0
+    from porterchain_pricing.tax.provinces import PROVINCES
+
+    fallback = PROVINCES["ON"].freight_percent()
+    raw = finance_settings(db).get("default_tax_percent", fallback)
     try:
         return float(raw)
     except (TypeError, ValueError):
-        return 13.0
+        return fallback
 
 
 def tax_cents_for_amount(db: Session, amount_cents: int) -> int:
@@ -229,13 +237,16 @@ def supplier_gst_hst_number(db: Session) -> str:
     """PorterChain's own GST/HST registration (BN + RT0001), the single source for every
     document. CRA requires it on invoices of $100+. Empty when unset: documents omit the
     line (never a placeholder) and admin shows a warning (see platform.tax_registration)."""
-    from porterchain_api.platform.tax_registration import safe_gst_hst
+    from porterchain_api.platform.tax_registration import supplier_gst_hst_number as _number
 
-    return safe_gst_hst(finance_settings(db).get("gst_hst_number"))
+    return _number(db)
 
 
 def tax_label(db: Session) -> str:
+    """'HST 13%' — or '' when not registered (no GST/HST label anywhere)."""
     pct = default_tax_percent(db)
+    if pct <= 0:
+        return ""
     name = str(finance_settings(db).get("tax_name") or "HST").strip() or "HST"
     return f"{name} {pct:g}%"
 

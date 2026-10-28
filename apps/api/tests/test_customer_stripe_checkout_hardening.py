@@ -41,7 +41,7 @@ def test_unpaid_completed_session_does_not_book(db: Session, settings: Settings)
     assert db.query(Order).filter(Order.quote_id == quote.id).count() == 1
 
 
-def test_zero_stripe_tax_keeps_our_hst_split(db: Session, settings: Settings) -> None:
+def test_zero_stripe_tax_keeps_our_hst_split(gst_registered, db: Session, settings: Settings) -> None:
     """Stripe Tax is off (amount_tax=0); the invoice must still carry the HST in our price."""
     quote, customer, payment = _setup_quote(db, settings)
     StripeWebhookService().handle(

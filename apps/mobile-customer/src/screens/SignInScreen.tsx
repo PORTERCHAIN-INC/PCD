@@ -76,7 +76,7 @@ export function SignInScreen({ apiUp, onSignedIn, onTrack }: Props) {
           Same-day delivery, booked in a minute.
         </Txt>
         <Txt v="body" tone="muted">
-          Get an upfront price with HST, pay by card, and follow every handoff live.
+          Get an upfront price, pay by card, and follow every handoff live.
         </Txt>
       </View>
       {__DEV__ ? (

@@ -27,6 +27,10 @@ def create_checkout_session(**kwargs: Any) -> Any:
     return stripe.checkout.Session.create(**kwargs)
 
 
+def expire_checkout_session(session_id: str) -> Any:
+    return stripe.checkout.Session.expire(session_id)
+
+
 def retrieve_checkout_session(session_id: str) -> Any:
     return stripe.checkout.Session.retrieve(session_id)
 

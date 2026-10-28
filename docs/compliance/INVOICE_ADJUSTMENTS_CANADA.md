@@ -234,3 +234,45 @@ personal information with suitable safeguards.
    on an invoice older than 2 years it only shows a warning and records it on the
    credit note response. Confirm whether the tool should block those cases, and whether
    any credit older than 4 years (s. 232(2)) should be blocked too.
+
+## 10. Not registered yet: the small-supplier rule (no GST/HST anywhere)
+
+**The law.**
+
+- A business is a **small supplier** while its taxable supplies (worldwide, with
+  associates) are **$30,000 or less** in a single calendar quarter and over the last four
+  consecutive calendar quarters — Excise Tax Act **s. 148(1)**:
+  <https://laws-lois.justice.gc.ca/eng/acts/E-15/section-148.html>. CRA summary:
+  <https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/account-register/register.html>.
+- A small supplier does not have to register (ETA s. 240(1)(a)). Once over $30,000 it must
+  register, and it is a registrant from the day the supply that took it over the line is
+  made (single quarter) or from the end of the following month (four quarters).
+- Only a registrant may charge and collect GST/HST. A person who is not registered must
+  not show an amount "as or on account of tax" — anything collected that way is still
+  owed to the Crown (ETA **s. 221(1)** collection by suppliers; **s. 222** held in trust;
+  **s. 225** net tax). An invoice from a non-registrant therefore shows **no GST/HST line,
+  no rate and no registration number**. Showing "HST 13%" or "GST/HST no.: (not set)"
+  would tell the customer they paid tax that we cannot remit and they cannot claim as an
+  input tax credit.
+
+**What the system does.**
+
+| Registration (Admin > Finance > GST/HST) | Quotes, checkout, invoices, credit notes, emails, PDFs, rate cards, reports            |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| Not set (default) / ended                | No tax charged, no tax lines, no labels, no number. Tax report shows "No tax charged". |
+| Set, effective date in the future        | Nothing changes until that date (America/Toronto day).                                 |
+| Set, effective today or earlier          | Province rate charged on new quotes and invoices; number printed on documents.         |
+
+- One source: `apps/api/src/porterchain_api/platform/tax_registration.py`, table
+  `tax_registrations` (append-only history: number, legal name, effective date, who, when).
+  The old `finance_settings.gst_hst_number` key is no longer read or written.
+- **Never retroactive.** An issued invoice keeps the tax it was issued with. Registering
+  later does not add tax to older invoices; ending a registration does not remove tax
+  from invoices issued while registered.
+- **Credit notes** reverse exactly the tax on the original invoice — $0 if none was
+  charged — and show the number in force on the original invoice date (s. 232(3)).
+- Change needs the `finance` module plus staff step-up and is audited as
+  `finance.tax_registration.changed`.
+
+**Accountant to confirm:** the date we became (or will become) a registrant, and whether
+any sales made after crossing $30,000 but before registering need tax accounted for.

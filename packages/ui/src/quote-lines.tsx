@@ -81,7 +81,7 @@ export function QuoteLines({ breakdown, quotedCents, chargedCents, currency = "C
           <span>{formatCents(subtotal, currency)}</span>
         </p>
       )}
-      {tax != null && (
+      {tax != null && tax > 0 && (
         <p className="flex justify-between gap-4">
           <span className="text-muted">HST</span>
           <span>{formatCents(tax, currency)}</span>

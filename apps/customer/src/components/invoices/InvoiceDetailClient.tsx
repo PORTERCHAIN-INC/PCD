@@ -195,10 +195,18 @@ function DetailBody({
               <dt className="text-muted">Amount</dt>
               <dd>{formatCents(detail.amount_cents, currency)}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted">Tax</dt>
-              <dd>{formatCents(detail.tax_cents, currency)}</dd>
-            </div>
+            {detail.tax_cents > 0 ? (
+              <div className="flex justify-between">
+                <dt className="text-muted">Tax</dt>
+                <dd>{formatCents(detail.tax_cents, currency)}</dd>
+              </div>
+            ) : null}
+            {detail.credited_cents ? (
+              <div className="flex justify-between">
+                <dt className="text-muted">Credited</dt>
+                <dd>−{formatCents(detail.credited_cents, currency)}</dd>
+              </div>
+            ) : null}
             <div className="flex justify-between">
               <dt className="text-muted">Fees</dt>
               <dd>{formatCents(detail.fees_cents, currency)}</dd>
@@ -208,6 +216,51 @@ function DetailBody({
               <dd>{formatCents(detail.outstanding_cents, currency)}</dd>
             </div>
           </dl>
+          {detail.credit_notes && detail.credit_notes.length ? (
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-primary">Credit notes</h2>
+              <ul className="mt-2 divide-y divide-primary/10 text-sm">
+                {detail.credit_notes.map((cn) => (
+                  <li
+                    key={cn.credit_note_id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2"
+                  >
+                    <span>
+                      <span className="font-medium">{cn.credit_note_number}</span>
+                      {cn.issued_at ? ` · ${cn.issued_at.slice(0, 10)}` : ""}
+                      {cn.customer_reason ? ` · ${cn.customer_reason}` : ""}
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <span className="font-semibold">
+                        −{formatCents(cn.amount_cents, currency)}
+                      </span>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold underline"
+                        onClick={async () => {
+                          try {
+                            const token = await getToken();
+                            if (!token) throw new Error("Not signed in");
+                            await customerApi.downloadCreditNotePdf(
+                              token,
+                              cn.credit_note_id,
+                              `${cn.credit_note_number || "credit-note"}.pdf`
+                            );
+                          } catch (err) {
+                            setNotice(
+                              err instanceof Error ? err.message : "Could not download PDF"
+                            );
+                          }
+                        }}
+                      >
+                        PDF
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {detail.stripe_receipt_url ? (
             <a
               href={detail.stripe_receipt_url}

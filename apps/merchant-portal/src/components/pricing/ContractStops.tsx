@@ -76,7 +76,7 @@ export default function ContractStops({ metadata }: { metadata?: Record<string, 
           {f.note}
         </p>
       ))}
-      <p className="text-muted">HST extra. The price is locked when you book.</p>
+      <p className="text-muted">The price is locked when you book.</p>
     </div>
   );
 }

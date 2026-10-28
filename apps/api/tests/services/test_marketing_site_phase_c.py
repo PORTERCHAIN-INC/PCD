@@ -143,7 +143,7 @@ def test_fsa_centroid_uses_registry_and_rejects_outside():
     assert fsa_centroid("hello") is None
 
 
-def test_estimate_returns_real_price_without_storing_anything(client, db):
+def test_estimate_returns_real_price_without_storing_anything(gst_registered, client, db):
     from porterchain_api.booking_models import Quote
 
     quotes_before = db.query(Quote).count()

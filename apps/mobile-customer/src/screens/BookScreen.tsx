@@ -698,7 +698,7 @@ export function BookScreen({
               <Progress steps={["Details", "Review", "Pay"]} current={stepIndex} />
               <Txt v="caption" tone="muted">
                 Step {stepIndex + 1} of 3 ·{" "}
-                {["Addresses and load", "Price with HST", "Card payment"][stepIndex]}
+                {["Addresses and load", "Price", "Card payment"][stepIndex]}
               </Txt>
               {error ? <Banner tone="danger" text={error} /> : null}
 
@@ -1150,7 +1150,7 @@ export function BookScreen({
                       </Txt>
                     </View>
                     <Txt v="caption" tone="muted">
-                      {priced.taxItemised ? "HST shown above." : "Total includes 13% HST."}{" "}
+                      {priced.taxItemised ? "Tax shown above. " : ""}
                       {expiresIn(quote.expires_at)}.
                     </Txt>
                   </Card>
@@ -1162,7 +1162,7 @@ export function BookScreen({
                   <Card style={styles.rowBetween}>
                     <View>
                       <Txt v="caption" tone="muted">
-                        Total incl. HST
+                        Total
                       </Txt>
                       <Txt v="title">{total}</Txt>
                     </View>

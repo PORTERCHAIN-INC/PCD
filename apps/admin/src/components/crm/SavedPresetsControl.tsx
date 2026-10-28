@@ -42,7 +42,7 @@ export function SavedPresetsControl<T>({
   }
 
   useEffect(() => {
-    if (open) refresh();
+    if (open) setNames(Object.keys(readPresets<T>(storageKey)).sort());
   }, [open, storageKey]);
 
   function save() {

@@ -37,7 +37,7 @@ export default function HowWePriceClient() {
         <h1 className="text-2xl font-bold text-primary">How we price</h1>
         <p className="mt-1 text-sm text-muted">
           The rules behind every quote, in plain English. Your signed Schedule of Rates is the
-          authority; prices are CAD, HST extra.
+          authority; prices are CAD; any sales tax appears on your invoice.
         </p>
       </header>
       <ol className="space-y-4">

@@ -247,7 +247,6 @@ SETTINGS_BINDINGS: list[dict[str, Any]] = [
             {"key": "receipt_number_prefix", "effect": "wired"},
             {"key": "default_tax_percent", "effect": "wired"},
             {"key": "tax_name", "effect": "wired"},
-            {"key": "gst_hst_number", "effect": "wired"},
             {"key": "etransfer_email", "effect": "wired"},
             {"key": "etransfer_autodeposit", "effect": "wired"},
             {"key": "merchant_cycle_invoicing", "effect": "wired"},

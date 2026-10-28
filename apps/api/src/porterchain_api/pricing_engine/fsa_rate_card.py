@@ -211,9 +211,16 @@ def rate_card(db: Session, merchant_id: str) -> dict[str, Any]:
         "pricing_model_is_fsa": on_fsa,
         "tier_columns": card["tier_columns"],
         "currency": "CAD",
-        "taxes": "HST extra",
+        "taxes": _taxes_note(db),
         "cells": cells,
     }
+
+
+def _taxes_note(db: Session) -> str:
+    """'HST extra' only while we are a GST/HST registrant; nothing otherwise."""
+    from porterchain_api.platform.tax_registration import collects_tax
+
+    return "HST extra" if collects_tax(db) else ""
 
 
 def _request(merchant_id: str, pickup: Pickup, row: PricingFsaRate, centroids: dict, parcels: int) -> PricingRequest:
@@ -326,7 +333,9 @@ def to_pdf(card: dict[str, Any]) -> bytes:
                 styles["Title"],
             ),
             Paragraph(
-                f"From {pickup}. Prices in CAD per drop, HST extra. * downtown core."
+                f"From {pickup}. Prices in CAD per drop"
+                + (f", {card['taxes']}" if card.get("taxes") else "")
+                + ". * downtown core."
                 + (
                     f" GST/HST Reg. No.: {card['supplier_gst_hst_number']}"
                     if card.get("supplier_gst_hst_number")

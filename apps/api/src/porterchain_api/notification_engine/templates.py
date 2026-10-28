@@ -278,14 +278,12 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "We have issued credit note {credit_note_number} against invoice {invoice_number} "
             "(dated {invoice_date}).\n\n"
             "Reason: {customer_reason}\n"
-            "Credit before tax: {subtotal_display}\n"
-            "Tax reversed ({tax_label}): {tax_display}\n"
+            "{tax_lines}"
             "Total credit: {amount_display}\n"
             "Balance now due on the invoice: {balance_display}\n"
             "{settlement_line}\n\n"
             "Download the credit note (PDF) from your portal: {document_url}\n\n"
-            "Please keep this credit note with your records. If you claimed an input tax credit "
-            "for the original invoice, reduce it by the tax shown above.\n\n"
+            "Please keep this credit note with your records.{itc_line}\n\n"
             "Questions? Reply to this email or contact {support_email}.\n\n"
             "{supplier_legal_name}"
         ),
@@ -420,8 +418,14 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             rows=[
                 ("Credit note", cn),
                 ("Original invoice", f"{invoice} ({_g(ctx, 'invoice_date')})"),
-                ("Credit before tax", _g(ctx, "subtotal_display")),
-                (f"Tax reversed ({_g(ctx, 'tax_label', default='tax')})", _g(ctx, "tax_display")),
+                *(
+                    [
+                        ("Credit before tax", _g(ctx, "subtotal_display")),
+                        (f"Tax reversed ({_g(ctx, 'tax_label', default='GST/HST')})", _g(ctx, "tax_display")),
+                    ]
+                    if _g(ctx, "tax_lines")
+                    else []
+                ),
                 ("Total credit", amount),
                 ("Balance now due", _g(ctx, "balance_display")),
                 ("Refund / credit", _g(ctx, "settlement_line")),
@@ -429,8 +433,7 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             cta_label="Download credit note" if doc else "",
             cta_url=doc,
             note=(
-                "Keep this credit note with your records. If you claimed an input tax credit for "
-                "the original invoice, reduce it by the tax shown. Questions? Reply to this email."
+                f"Keep this credit note with your records.{_g(ctx, 'itc_line')} Questions? Reply to this email."
             ),
             preheader=f"Credit note {cn} · {amount}".strip(),
         )
@@ -833,6 +836,8 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         "deep_link",
         "window_label",
         "send_again_url",
+        "tax_lines",
+        "itc_line",
     ):
         safe.setdefault(key, "")
     try:

@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -312,6 +312,21 @@ class SystemConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class TaxRegistration(Base):
+    """Append-only GST/HST registration history (see platform.tax_registration)."""
+
+    __tablename__ = "tax_registrations"
+    __table_args__ = (Index("ix_tax_registrations_effective", "effective_from", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    gst_hst_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    legal_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    effective_from: Mapped[date] = mapped_column(Date, nullable=False)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 # Tamper-evident audit chain: registers the mirror listeners for the audit tables above.

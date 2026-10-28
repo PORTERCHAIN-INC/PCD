@@ -10,6 +10,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from porterchain_pricing.tax.provinces import PROVINCES
+
 STORAGE_KEY = "compliance"
 BREACH_KEY = "breach_log"
 REQUESTS_KEY = "privacy_requests"
@@ -17,7 +19,7 @@ REQUESTS_KEY = "privacy_requests"
 REGIONS: dict[str, dict[str, Any]] = {
     "CA": {
         "label": "Canada (Ontario)", "currency": "CAD", "locale": "en-CA", "languages": ["en", "fr"],
-        "tax": {"name": "HST", "rate_pct": 13.0, "registration_label": "GST/HST no."},
+        "tax": {"name": "HST", "rate_pct": PROVINCES["ON"].freight_percent(), "registration_label": "GST/HST no."},
         "privacy_law": "PIPEDA + CASL", "request_days": 30, "breach_notify_hours": None,
         "invoice_retention_years": 6, "cookie_banner": False, "data_residency": "ca-central",
         "einvoice": None,

@@ -152,8 +152,7 @@ export const BOOKING_COPY = {
     optional: "(Optional)",
     pay: "Book & pay",
     paying: "Starting secure payment…",
-    legal:
-      "Incl. HST. By booking you agree to the Terms and Privacy Policy and confirm no dangerous goods.",
+    legal: "By booking you agree to the Terms and Privacy Policy and confirm no dangerous goods.",
     terms: "Terms",
     privacy: "Privacy Policy",
     needTrip: "Add each address with its postal code to see your price.",

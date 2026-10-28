@@ -26,13 +26,19 @@ class PaymentService:
     ) -> tuple[str | None, Payment]:
         from porterchain_api.booking_engine.quote_service import revalidate_quote_for_payment
 
+        from porterchain_api.platform.invoice_checkout import checkout_amount_cents
+
         quote = revalidate_quote_for_payment(db, quote)
+        # Once an invoice exists (e.g. credited before payment) charge its balance, not the quote.
+        charge_cents = checkout_amount_cents(db, quote)
+        if charge_cents != int(quote.amount_cents or 0) and charge_cents <= 0:
+            raise ValueError("nothing_to_pay")
 
         payment = Payment(
             quote_id=quote.id,
             customer_id=customer.id,
             status=PaymentStatus.PENDING.value,
-            amount_cents=quote.amount_cents,
+            amount_cents=charge_cents,
             currency=quote.currency,
         )
         db.add(payment)
@@ -107,6 +113,7 @@ class PaymentService:
                 payment.id,
                 booking_draft_id=draft.id if draft else None,
                 checkout_channel=checkout_channel,
+                amount_cents=charge_cents,
             )
             payment.stripe_checkout_session_id = session_id
             payment.status = PaymentStatus.PROCESSING.value

@@ -141,12 +141,14 @@ export function RateCardPanel({
                   <dt className="text-muted">Fuel</dt>
                   <dd>{card.fuel_surcharge_percent}%</dd>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted">HST</dt>
-                  <dd>
-                    {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
-                  </dd>
-                </div>
+                {card.tax.hst_percent > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">HST</dt>
+                    <dd>
+                      {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
               {card.schedule?.fsa_miss !== "refuse" && card.vehicles.length > 0 ? (
                 <details className="rounded-xl border border-primary/10 px-4 py-3">
@@ -221,12 +223,14 @@ export function RateCardPanel({
                     </div>
                   </>
                 ) : null}
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted">HST</dt>
-                  <dd>
-                    {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
-                  </dd>
-                </div>
+                {card.tax.hst_percent > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">HST</dt>
+                    <dd>
+                      {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted">Ontario FSA rows</dt>
                   <dd>

@@ -141,10 +141,16 @@ def stamp(order: Any, acc: Accessorial, invoice_id: str) -> None:
 
 def fee_tax_split(db: Session, order: Any, cents: int) -> Any:
     """Fees are pre-tax amounts; HST/GST by the order's destination province."""
-    from porterchain_api.billing_engine.tax import _settings, order_province, split_amount
+    from porterchain_api.billing_engine.tax import _settings, order_province, registered_on, split_amount
 
     _mode, default_prov, qst = _settings(db)
-    return split_amount(cents, province=order_province(order, default_prov), mode="exclusive", collect_qst=qst)
+    return split_amount(
+        cents,
+        province=order_province(order, default_prov),
+        mode="exclusive",
+        collect_qst=qst,
+        registered=registered_on(db),
+    )
 
 
 def fee_specs(db: Session, merchant: Any, delivered: list[Any]) -> list[tuple[Accessorial, Any]]:

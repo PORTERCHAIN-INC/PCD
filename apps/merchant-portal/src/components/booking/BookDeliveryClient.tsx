@@ -955,8 +955,8 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     {serviceMode === "collect_only" ? (
                       <p className="text-xs text-muted">
                         One delivery charge, priced from your pickup to your receiver like any
-                        delivery (your contract rates apply, HST extra). We hold the parcel until it
-                        goes out for delivery.
+                        delivery (your contract rates apply). We hold the parcel until it goes out
+                        for delivery.
                       </p>
                     ) : null}
                   </fieldset>

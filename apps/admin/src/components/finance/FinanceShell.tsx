@@ -16,6 +16,7 @@ export const FINANCE_SECTIONS = [
   { href: "/pricing", label: "Pricing" },
   { href: "/finance/reports", label: "Reports" },
   { href: "/finance/analytics", label: "Analytics" },
+  { href: "/finance/tax-registration", label: "GST/HST" },
 ] as const;
 
 export function FinanceNav() {

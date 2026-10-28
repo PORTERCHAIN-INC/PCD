@@ -36,7 +36,7 @@ BILLING_GLOSSARY: list[dict[str, str]] = [
     },
     {
         "term": "Tax",
-        "meaning": "HST/GST shown on invoices. Tax is included in invoice totals when applied — see the Tax tab for the period rollup.",
+        "meaning": "Sales tax shown on an invoice only when it was charged on that invoice. Invoices with no tax line carry no sales tax.",
     },
     {
         "term": "Contract pricing",

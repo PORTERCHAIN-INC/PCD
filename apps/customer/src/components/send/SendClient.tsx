@@ -390,9 +390,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
               {amount !== null ? formatPrice(amount) : pricing ? "…" : "—"}
             </span>
           </button>
-          <p className="mt-2 text-center text-xs text-primary/70">
-            Incl. HST. Card, Apple Pay or Google Pay.
-          </p>
+          <p className="mt-2 text-center text-xs text-primary/70">Card, Apple Pay or Google Pay.</p>
         </div>
       </div>
     </form>

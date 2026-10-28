@@ -48,7 +48,9 @@ def create_checkout_session(
     booking_draft_id: str | None = None,
     *,
     checkout_channel: str = "retail",
+    amount_cents: int | None = None,
 ) -> tuple[str, str]:
+    """``amount_cents`` overrides the quote total (balance after credit notes)."""
     stripe_sdk.configure(settings.stripe_secret)
     metadata = {
         "quote_id": quote.id,
@@ -76,7 +78,7 @@ def create_checkout_session(
             {
                 "price_data": {
                     "currency": quote.currency,
-                    "unit_amount": quote.amount_cents,
+                    "unit_amount": int(quote.amount_cents if amount_cents is None else amount_cents),
                     "product_data": {
                         "name": "Porterchain delivery",
                         "description": description,
@@ -102,6 +104,16 @@ def create_checkout_session(
         raise RuntimeError("stripe_session_missing_url")
     return session.url, session.id
 
+
+
+def expire_checkout_session(settings: Settings, session_id: str) -> bool:
+    """Expire an open Checkout Session. False if Stripe refused (already complete/expired)."""
+    stripe_sdk.configure(settings.stripe_secret)
+    try:
+        stripe_sdk.expire_checkout_session(session_id)
+    except Exception:  # noqa: BLE001 — already expired/complete is not an error for us
+        return False
+    return True
 
 
 def handle_checkout_completed(settings: Settings, session: dict) -> dict | None:

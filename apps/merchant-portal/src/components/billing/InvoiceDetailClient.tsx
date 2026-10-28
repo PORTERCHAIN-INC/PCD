@@ -118,9 +118,58 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Kpi label="Amount" value={formatCents(detail.amount_cents, currency)} />
-          <Kpi label="Tax" value={formatCents(detail.tax_cents, currency)} />
+          {detail.tax_cents > 0 ? (
+            <Kpi label="Tax" value={formatCents(detail.tax_cents, currency)} />
+          ) : null}
           <Kpi label="Fees" value={formatCents(detail.fees_cents, currency)} />
         </div>
+
+        {detail.credit_notes && detail.credit_notes.length ? (
+          <section className="rounded-2xl border border-primary/10 p-4">
+            <h2 className="font-semibold text-primary">Credit notes</h2>
+            <p className="text-xs text-muted">
+              Credits issued against this invoice. They already reduce Outstanding.
+            </p>
+            <ul className="mt-3 divide-y divide-primary/10 text-sm">
+              {detail.credit_notes.map((cn) => (
+                <li
+                  key={cn.credit_note_id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2"
+                >
+                  <span>
+                    <span className="font-medium">{cn.credit_note_number}</span>
+                    {cn.issued_at ? ` · ${formatDate(cn.issued_at)}` : ""}
+                    {cn.customer_reason ? ` · ${cn.customer_reason}` : ""}
+                    {cn.tax_cents > 0
+                      ? ` · incl. ${formatCents(cn.tax_cents, currency)} tax reversed`
+                      : ""}
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <span className="font-semibold">−{formatCents(cn.amount_cents, currency)}</span>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold underline"
+                      onClick={async () => {
+                        try {
+                          await billingApi.downloadCreditNotePdf(
+                            await getApiToken(),
+                            cn.credit_note_id,
+                            orgId,
+                            `${cn.credit_note_number || "credit-note"}.pdf`
+                          );
+                        } catch (e) {
+                          setNotice(e instanceof Error ? e.message : "Could not download PDF");
+                        }
+                      }}
+                    >
+                      PDF
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section className="overflow-hidden rounded-2xl border border-primary/10">
           <div className="border-b border-primary/10 px-4 py-3">

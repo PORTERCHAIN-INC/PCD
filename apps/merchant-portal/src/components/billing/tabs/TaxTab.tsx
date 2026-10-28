@@ -9,7 +9,10 @@ export function TaxTab({ overview }: { overview: BillingOverview }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Kpi label="Subtotal" value={formatCents(tax.subtotal_cents, tax.currency.toUpperCase())} />
-      <Kpi label="Tax (HST/GST)" value={formatCents(tax.tax_cents, tax.currency.toUpperCase())} />
+      <Kpi
+        label="Sales tax charged"
+        value={formatCents(tax.tax_cents, tax.currency.toUpperCase())}
+      />
       <Kpi label="Fees" value={formatCents(tax.fees_cents, tax.currency.toUpperCase())} />
       <Kpi
         label="Total invoiced"

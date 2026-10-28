@@ -130,7 +130,20 @@ def _credit_note_after_issue(db: Session, settings: Any, ctx: AdminContext, note
         return {"sent": False, "reason": "pending_approval"}
     if note.settlement == "stripe_refund_pending":
         adj.settle_stripe_refund(db, settings, note, actor_id=ctx.user.id)
+    _reprice_checkout(db, settings, note)
     return send_credit_note_email(db, note)
+
+
+def _reprice_checkout(db: Session, settings: Any, note: Any) -> None:
+    """Unpaid retail invoice with an open card checkout: charge the balance after credits."""
+    from porterchain_api.platform.invoice_checkout import reprice_open_checkouts
+
+    invoice = db.get(Invoice, note.invoice_id)
+    if invoice is None or getattr(invoice, "merchant_id", None):
+        return
+    result = reprice_open_checkouts(db, settings, invoice)
+    if result["expired"]:
+        db.commit()
 
 
 def credit_note_out(db: Session, note: Any, email: dict | None = None) -> dict:

@@ -15,6 +15,8 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from porterchain_pricing.tax.provinces import PROVINCES
+
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.pricing_versioning import bump_price_version
 from porterchain_api.domain.pricing_version import (
@@ -153,9 +155,8 @@ DEFAULTS: dict[str, Any] = {
     "settings_finance": {
         "invoice_number_prefix": "INV",
         "receipt_number_prefix": "RCP",
-        "default_tax_percent": 13.0,
+        "default_tax_percent": PROVINCES["ON"].freight_percent(),
         "tax_name": "HST",
-        "gst_hst_number": "",
         "etransfer_email": "porterchaininc@gmail.com",
         "etransfer_autodeposit": True,
         "merchant_cycle_invoicing": True,
@@ -183,7 +184,7 @@ DEFAULTS: dict[str, Any] = {
     # GTA delivery rate matrix — filled below from porterchain_pricing (one source of defaults)
     "pricing_gta_rate": None,
     "pricing_customer_distance": None,
-    "pricing_tax": {"hst_percent": 13.0, "tax_included": False, "exempt_merchant_ids": []},
+    "pricing_tax": {"hst_percent": PROVINCES["ON"].freight_percent(), "tax_included": False, "exempt_merchant_ids": []},
     "pricing_fuel": {
         "surcharge_percent": 5.0,
         "base_fuel_price_cents": 145,

@@ -22,7 +22,7 @@ export const PRICING_RULES: { title: string; body: string }[] = [
   },
   {
     title: "Extras and tax",
-    body: "Waiting beyond the included time and enhanced coverage are added only when used. HST is extra. The price shown when you book is locked.",
+    body: "Waiting beyond the included time and enhanced coverage are added only when used. The price shown when you book is locked.",
   },
   {
     title: "Driver safety",
@@ -31,4 +31,4 @@ export const PRICING_RULES: { title: string; body: string }[] = [
 ];
 
 export const PRICING_EXAMPLE =
-  "Example: 1 parcel in 2 boxes (18 kg total) to Oakville L6H → 1 stop × $30 + $40 pickup = $70, below the $120 Tier 1 minimum → $120 + HST.";
+  "Example: 1 parcel in 2 boxes (18 kg total) to Oakville L6H → 1 stop × $30 + $40 pickup = $70, below the $120 Tier 1 minimum → $120.";

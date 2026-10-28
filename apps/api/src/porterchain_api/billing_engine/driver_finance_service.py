@@ -361,10 +361,11 @@ class DriverFinanceService:
             for t in txs
             if t.created_at and month_start <= t.created_at <= now and t.amount_cents > 0
         )
-        from porterchain_api.admin_engine.platform_settings import default_tax_percent
+        # Planning estimate for the driver's own taxes; not PorterChain's GST/HST.
+        from porterchain_api.admin_engine.platform_settings import finance_number
 
         try:
-            rate = float(default_tax_percent(db))
+            rate = float(finance_number(db, "driver_tax_estimate_percent", DEFAULT_TAX_RATE_PERCENT))
         except Exception:  # noqa: BLE001
             rate = DEFAULT_TAX_RATE_PERCENT
         return {

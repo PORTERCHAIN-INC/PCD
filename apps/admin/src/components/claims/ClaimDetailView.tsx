@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Shield, Sparkles } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { formatCents } from "@porterchain/ui/utils";
@@ -60,6 +61,7 @@ export default function ClaimDetailView({
   onSaveCompensation,
   onSaveInsurance,
 }: Props) {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
 
   if (loading)
@@ -80,7 +82,7 @@ export default function ClaimDetailView({
           entity="claim"
           id={detail.id}
           onDeleted={() => {
-            window.location.href = "/claims";
+            router.push("/claims");
           }}
         />
       }
