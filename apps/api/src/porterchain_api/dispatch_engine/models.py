@@ -136,7 +136,7 @@ class DispatchStopEvent(Base):
     accuracy_m: Mapped[float | None] = mapped_column(Float, nullable=True)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # Offline driver apps send a client id per queued action; a replay is a no-op.
-    client_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
+    client_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
 
 

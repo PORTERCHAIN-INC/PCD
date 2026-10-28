@@ -164,7 +164,7 @@ class Order(SoftDeleteMixin, Base):
     order_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     tracking_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     state: Mapped[str] = mapped_column(String(32), default=OrderState.BOOKED.value, index=True)
-    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True, unique=True)
+    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id"), nullable=True)
     customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id"), nullable=True)
     merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="RESTRICT"), nullable=True, index=True)
     order_source: Mapped[str] = mapped_column(String(16), default=OrderSource.WEBSITE.value, index=True)
@@ -418,7 +418,7 @@ class StripeWebhookEvent(Base):
     __tablename__ = "stripe_webhook_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    stripe_event_id: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    stripe_event_id: Mapped[str] = mapped_column(String(255), unique=True)
     event_type: Mapped[str] = mapped_column(String(128), index=True)
     status: Mapped[str] = mapped_column(String(32), default="processing")
     processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

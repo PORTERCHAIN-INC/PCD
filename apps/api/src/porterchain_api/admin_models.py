@@ -284,14 +284,16 @@ class AdminAuditLog(Base):
 
 
 class RouteCenterTemplate(Base):
-    """Wholesale / recurring route templates (§8.1.10) — alias: RouteTemplate."""
+    """Wholesale / recurring route templates (§8.1.10)."""
 
     __tablename__ = "route_center_templates"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     name: Mapped[str] = mapped_column(String(128))
     template_type: Mapped[str] = mapped_column(String(32), default="daily", index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(
+        ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
     schedule: Mapped[dict] = mapped_column(JSON, default=dict)
     stops: Mapped[list] = mapped_column(JSON, default=list)
@@ -300,9 +302,6 @@ class RouteCenterTemplate(Base):
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-
-# Checklist §8.1.10 wholesale route templates
-RouteTemplate = RouteCenterTemplate
 
 
 class SystemConfig(Base):

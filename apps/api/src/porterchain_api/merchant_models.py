@@ -287,11 +287,10 @@ class ShopifyShop(Base):
     """One Shopify store connected to a PorterChain merchant."""
 
     __tablename__ = "shopify_shops"
-    __table_args__ = (UniqueConstraint("shop_domain", name="uq_shopify_shops_shop_domain"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    shop_domain: Mapped[str] = mapped_column(String(255), index=True)
+    shop_domain: Mapped[str] = mapped_column(String(255))
     encrypted_access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Expiring offline token (1 h) + refresh token (90 d). See shopify_tokens.py.
     access_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
