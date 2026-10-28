@@ -235,5 +235,6 @@ def test_sandbox_purge_goes_through_order_writer(db, merchant_ctx):
     db.refresh(delivered)
     assert booked.state == OrderState.CANCELLED.value
     assert delivered.state == OrderState.DELIVERED.value
-    ev = _events(db, booked.id, "order.sandbox_purged")
+    ev = _events(db, booked.id, "order.cancelled")
     assert len(ev) == 1 and ev[0].actor_id == merchant_ctx.user.id
+    assert ev[0].payload == {"reason": "sandbox_purge"}

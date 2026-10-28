@@ -86,9 +86,12 @@ def cancel_sandbox_order(db: Session, order: Order, *, actor_id: str | None) -> 
         db,
         order,
         OrderState.CANCELLED,
-        event_type="order.sandbox_purged",
+        # Same event as any cancel so merchant webhooks/notifications see it; sandbox
+        # notification fan-out is already suppressed downstream.
+        event_type="order.cancelled",
         actor_type="merchant_user",
         actor_id=actor_id,
+        payload={"reason": "sandbox_purge"},
     )
     return True
 
