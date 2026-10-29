@@ -35,3 +35,9 @@ Older `mermaid/*.mmd` (2026-10-27) are kept untouched; this set supersedes them 
 5. Anything not proven goes to [98_unknowns.md](98_unknowns.md), not into a diagram.
 
 Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifier (error, not a policy decision), so no SVG/PNG; Mermaid renders in GitHub/Cursor preview.
+
+## Added Oct 28, 2026
+
+- `22_planned_state_machines.md` — planned order, job offer, invoice, credit note, driver, quote, box truck (BOL/CVOR gate), cooler run (temp log), autonomy ladder, agent run.
+- `23_planned_events.md` — outbox → DBOS relay → Redpanda, 12 `pc.*.v1` topics with producers/consumers, sweeps migration, live GPS on Redis.
+- `mermaid/CLEANUP_NOTES.md` — FleetBase-era undefined nodes defined or removed.

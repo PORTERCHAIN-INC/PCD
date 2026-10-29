@@ -15,6 +15,7 @@ flowchart LR
     ADMIN_API["/v1/admin/*"]
     DRV_API["/driver-api/v1"]
     WS["WS /v1/admin/operations/live-map/ws"]
+    WH["POST /webhooks/stripe<br/>routers/webhooks.py"]
   end
 
   subgraph External
@@ -32,5 +33,4 @@ flowchart LR
   W & M & A --> GMAPS
   W & M & A & C & D --> CLERK
   STRIPE --> WH
-  FB_WH --> WH
   API --> STRIPE

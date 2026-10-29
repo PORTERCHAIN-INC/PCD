@@ -28,4 +28,4 @@ flowchart TB
   JWT --> CLERK_MOD
   CLERK_MOD --> ADMIN_CTX & MERCH_CTX & CUST_ID
   DRV -->|"POST /api/auth/login<br/>clerkToken + credentials"| DRV_CTX
-  ADMIN --> SSO
+  ADMIN -->|"passkey / magic link"| SSO[Staff IdP<br/>routers/auth_staff.py<br/>Redis session porterchain:staff]

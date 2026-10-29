@@ -19,9 +19,7 @@ sequenceDiagram
   Svc->>Bus: emit_event (side effects)
   Bus->>Worker: async handlers / queues
   alt dispatch ready
-    Worker->>FBE: sync_order_from_event
-    FBA->>FB: HTTP
-    FB-->>FBA: response
+    Worker->>Worker: DISPATCH queue score_suggestions (event-bus handlers/__init__.py:48)
   end
   Svc-->>Router: DTO / result
   Router-->>UI: JSON response

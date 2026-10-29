@@ -19,6 +19,7 @@ flowchart TB
     H1[order.dispatch_ready → sync_order_from_event]
     H2[order.driver_assigned → sync_driver_assignment]
     H3[domain events → notification_engine.event_router]
+    H6[webhook.received → webhooks queue]
     H5[payment.succeeded → billing queue]
     H7[notification.queued → emails/sms/push queues]
     H10[order.* → merchant webhook fanout]

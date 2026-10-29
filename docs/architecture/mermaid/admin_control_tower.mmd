@@ -37,11 +37,10 @@ flowchart TB
   end
 
   API --> DASH & ORD & DISP & CT & LM & FIN & PRC & CLM & SUP & CRM & MER & DRV & SET & REP & BD
-  CT --> ORD & FBE
-  LM --> CT & FBE
+  CT --> ORD
+  LM --> CT & GPSB[dispatch_engine.gps_board<br/>Redis last_known pins]
   DISP --> ORD
   ORD --> EB
   FIN --> BLE
   CLM & SUP --> NE
   PRC --> PE
-  SET -->|"health checks"| FBE

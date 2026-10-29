@@ -19,7 +19,7 @@ flowchart TB
     PE["pricing_engine"]
     BLE["billing_engine"]
     NE["notification_engine"]
-    ROUTERS --> BE & ME & AE & FE & DE & PE & BLE & NE
+    ROUTERS --> BE & ME & AE & DE & PE & BLE & NE
   end
 
   subgraph Data["Data & Messaging"]
@@ -50,16 +50,13 @@ flowchart TB
 
   WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE_D & MOBILE_C -->|"HTTPS /v1/* and /driver-api/v1"| ROUTERS
   ADMIN -->|"WS live-map/ws"| ROUTERS
-  BE & ME & AE & FE & DE --> PG
+  BE & ME & AE & DE --> PG
   BE & ME & AE --> EB
   EB --> REDIS
-  FBA --> VALKEY
   EB --> WP
   WP --> Q
   Q --> WP
   WP --> NE & BLE
-  FE & DE --> FBA
-  FBA --> FB
   BE --> STRIPE
   STRIPE --> STRIPE_EXT
   BE & PE --> MAPS
