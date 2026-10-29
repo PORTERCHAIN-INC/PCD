@@ -28,8 +28,8 @@ Read-only from code. Tokens/components: doc 40 (React Native column). Flows: doc
 - **File:** `apps/mobile-customer/src/screens/SignInScreen.tsx`
 - **Purpose:** Customer login (Keycloak customer realm, passkey) — fix: currently points to admin login
 - **Layout:** Form
-- **Components:** TextInput, PasskeyButton, AppleSignIn
-- **Key actions:** Sign in, guest continue
+- **Components:** TextInput, PasskeyButton, AppleSignIn (mandatory, guideline 4.8), GoogleSignIn
+- **Key actions:** Sign in with Apple, Google, passkey or email+password; guest continue; delete account in Profile (L36)
 - **Data (API):** Keycloak OIDC, `/v1/customer/me`
 - **Validation / errors:** Generic auth error
 - **Screen-specific states:** Offline banner

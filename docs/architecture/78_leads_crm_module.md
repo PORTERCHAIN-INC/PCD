@@ -77,7 +77,7 @@ First-touch and last-touch per lead: `utm_source/medium/campaign/content/term`, 
 
 ## 9. Data model (domain schemas, doc 60 §8 / 63)
 
-Schema `crm`: `leads`, `lead_identities`, `lead_ingest_events`, `contacts`, `companies` (→ links to `org.organisations`), `deals`, `conversations`, `conversation_messages`, `activities`, `sales_tasks`, `suppressions`, `referral_credits`; views `crm.quotations` → `ordering.quotes`, `crm.invoices` → `billing.invoices`. Status columns become enums (G13). Events `pc.crm.v1`: `lead.created`, `lead.merged`, `lead.stage_changed`, `lead.converted`, `lead.sla_breached`.
+Schema `crm` (canonical map: doc 83 §1; a company converts to `org.organisations`, a contact links to `identity.persons`): `leads`, `lead_identities`, `lead_ingest_events`, `contacts`, `companies` (→ links to `org.organisations`), `deals`, `conversations`, `conversation_messages`, `activities`, `sales_tasks`, `suppressions`, `referral_credits`; views `crm.quotations` → `ordering.quotes`, `crm.invoices` → `billing.invoices`. Status columns become enums (G13). Events `pc.crm.v1`: `lead.created`, `lead.merged`, `lead.stage_changed`, `lead.converted`, `lead.sla_breached`.
 
 ## 10. Ops console placement (doc 75 / doc 16)
 

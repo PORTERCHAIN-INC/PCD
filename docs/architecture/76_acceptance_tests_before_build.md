@@ -1,4 +1,4 @@
-# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC, §17 A-LC and §18 A-GF/A-PAR and §19 A-PRA inside G19)
+# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC, §17 A-LC and §18 A-GF/A-PAR and §19 A-PRA and §20 A-CM/A-UX inside G19)
 
 Written before code. Each scenario becomes a pytest-bdd / Playwright / Maestro test with the ID below; all run against a sandbox org (PCDC-like) and never touch live data. Gate **G19** = all A-* scenarios green; **G20** = Shopify review-readiness (§10); **G21** = mobile review-readiness (§11). Order follows build order.
 
@@ -68,9 +68,11 @@ A-OP-01 each business type gets its default profile and the wizard needs only "L
 - A-APR-01 customer review account signs in with email + password, no code/CAPTCHA, sees seeded PCDC orders and tracking.
 - A-APR-02 driver review account signs in, sees 2 sandbox jobs, completes pickup + POD photo; no real dispatch or payout record created.
 - A-APR-03 in-app account deletion in both apps completes and the web deletion page accepts a request.
-- A-APR-04 no social login present (else Sign in with Apple test required).
+- A-APR-04 the iOS sign-in screen shows Sign in with Apple with equal prominence to Google. Both create or link a Keycloak account. The driver app links only to invited drivers; a non-invited Apple or Google user gets the invite message, not an account.
 - A-APR-05 sign-in works from a non-Canadian IP (no geo block).
 - A-APR-06 Play Console App access credentials match the review account (manual check in release checklist).
+- A-APR-07 (L36) normal login on web and mobile never shows an OTP or CAPTCHA. After 10 failed attempts from one IP, Turnstile appears (invisible first) and Keycloak brute-force lockout applies. Admin and super admin cannot finish login without TOTP; other roles are never asked for it.
+- A-APR-08 (L36) `git grep -il clerk` finds no runtime code in `apps/mobile-*` from week 2, and none anywhere from week 6. The reviewer accounts work with password only.
 
 ## 12. Ops console (A-OPS)
 
@@ -159,3 +161,16 @@ A-FIN-01..12 as listed in 79 §8: EBITDA top-down = bottom-up to the cent; no HS
   - the invoice line after POD.
     Every price comes from `get_pricing_service`, and the invoice does not re-price.
 - **A-PRA-12:** after a custom card change, the Shopify delivery-profile fallback rates are rewritten within 5 minutes and match the engine.
+
+## 20. Core model and UX (A-CM, A-UX, inside G19, doc 83)
+
+- **A-CM-01:** a second ExternalRef with the same (org_id, kind, value) is rejected. The same value in another org is accepted.
+- **A-CM-02:** every Order `public_id` matches PC-YYMM-XXXXXX and its check digit validates.
+- **A-CM-03:** dropping and rebuilding the timeline, POD, stop_events, metrics and invoice-line projections from `platform.events` gives byte-identical results.
+- **A-CM-04:** `platform.events` rejects UPDATE and DELETE (trigger); a stale `version` write fails.
+- **A-CM-05:** soft-deleting an order hides it from lists and keeps its invoice and claim. PII erasure tombstones the names and phones and keeps the amounts.
+- **A-CM-06:** schema lint: no table outside doc 83 §1.1 in the core domains, and none of the superseded names from §1.5 is created by migrations.
+- **A-UX-01:** each §3 top-5 flow completes within its tap count (Playwright/Maestro click counters).
+- **A-UX-02:** every list has an empty state, and every error keeps the input and shows a next action (EN/FR keys present).
+- **A-UX-03:** axe/WCAG 2.0 AA passes on the home screen of every role in §3.
+- **A-UX-04:** a new merchant of each business type is ready to book after ≤ 5 questions.

@@ -1,5 +1,7 @@
 # 15 — PLANNED modules, API, events
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 44 (API/data), 74 (integrations), 83 §1.3 (events). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 | Layer   | Change                                                                                                                                                                                                                                                    |
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Modules | add `agents/` (PydanticAI agents per department, run as DBOS steps), `workflows/` (durable order/billing flows, DBOS, L18; also replaces all 22 sweeps, L20), `compliance/` (rule checks from 19/20), `whatsapp/` (Business Platform webhook + templates) |

@@ -153,7 +153,7 @@ Sources were checked on 29 Oct 2026, and every one is current on its publisher's
 - **AWB / sea waybill:** we do not move air or ocean freight. The airline or ocean line issues these. A CHA can paste one as a free-text external ref on the CHA pack; there is no module.
 - **NMFC freight class:** it is the US NMFTA system, and Canadian domestic LTL is priced on weight, dimensions, cube and density. We store L×W×H and weight, so density (lb/ft³) is computed if a US cross-border LTL partner ever needs a class. That would be a new module (§2 code rule).
 
-**Data model (doc 63 schemas; one migration in `ordering` and `dispatch`, Phase 0 wk 3–5):**
+**Data model (doc 63 schemas; one migration in `ordering` and `dispatch`, Phase 0 wk 3–5).** The canonical names are in doc 83 §1: `shipment_refs` → `platform.external_refs`, `osd_claims` → `ordering.claims`, and `stop_events` is a projection of `platform.events`.
 
 - `ordering.shipment_refs`: (order_id, kind enum{bol, po, packing_slip, seal, pro, incoterm, cci, coo, cad, tdg_doc, awb_ext}, value, issuer enum{us, shipper, carrier, broker}, doc_url, created_at). Unique (kind, value, issuer) per org. `pro` is allowed only when the order has an `ltl_carrier_handoff` leg; `cci/coo/cad/incoterm` are allowed only on CHA/SC cross-border orders. Each kind is gated by `required_identifiers[]`, evaluated at quote time like `required_documents[]`, and the same hiding/422 rules apply.
 - `ordering.order_lines`: + sku, gtin (GTIN-8/12/13/14, check digit validated), qty_ordered, qty_shipped, qty_delivered.
@@ -161,9 +161,11 @@ Sources were checked on 29 Oct 2026, and every one is current on its publisher's
 - `dispatch.trips`: + vehicle_plate, vehicle_vin (17 chars, ISO 3779 check digit), is_rental, rental_agreement_ref, rgw_kg, cvor_required (rgw_kg > 4500), insurance_evidence_ref. **NOT NULL before the trip can start**, including for rentals.
 - `dispatch.stop_events`: (stop_id, kind enum{etd, eta, pta, ata, atd}, ts timestamptz, source). Dwell is derived (`atd − ata`).
 - `ordering.pod`: + status enum{clean, noted}, osd_type enum{over, short, damaged}[], qty, photo_urls, consignee_name, signature.
-- `ordering.osd_claims`: (pod_id, type, amount_claimed_cents, notice_deadline = delivered_at + 60 d, final_deadline = shipped_at + 9 months, liability_cap_cents = max(declared_value, 4.41 × kg), status, recovered_cents).
+- `ordering.claims` (was `osd_claims`, doc 83): (pod_id, type, amount_claimed_cents, notice_deadline = delivered_at + 60 d, final_deadline = shipped_at + 9 months, liability_cap_cents = max(declared_value, 4.41 × kg), status, recovered_cents).
 
 ## 3. Data model (schema `org`, doc 63 domain schemas)
+
+Pricing tables here are superseded by 72 §9.5 (schema `pricing`): `rate_line` → `rate_card_versions.lines`, `rate_card_assignment` → `org_pricing`. `external_ref` → `platform.external_refs` and `api_credential` → `integration_keys` (doc 83 §1.5).
 
 ```mermaid
 erDiagram

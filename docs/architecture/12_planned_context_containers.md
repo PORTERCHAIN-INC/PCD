@@ -1,5 +1,7 @@
 # 12 — PLANNED Phase 1: context + containers
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 61 (Phase 0 context/containers), 62 (deployment), 28 (hybrid). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 Source of decisions: strict plan canvas (L1–L24). **(P)** = not in code today. L18 + L14 rev.: DBOS + PydanticAI agents inside DBOS. L19: Kafka API via single-node Redpanda + transactional outbox. L20: all 22 sweeps replaced in weeks 6–7. L24: schedule 14 + 8.
 
 ```mermaid

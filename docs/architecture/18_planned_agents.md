@@ -1,5 +1,7 @@
 # 18 — PLANNED agents and autonomy ladder (L7, L14–L17)
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 43 + 27 (agents, Phase 1 only; Phase 0 has FEATURE_AI=false). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 ```mermaid
 flowchart TB
   G[Goal agent] --> O[Orchestration agent] --> TK[Task agent]

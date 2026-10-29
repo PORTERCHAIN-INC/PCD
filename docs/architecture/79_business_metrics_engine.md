@@ -53,7 +53,7 @@ Other assumptions used in this doc, all editable as Settings → Finance paramet
 | 5400 | Carrier / partner payouts              | `billing.payouts` (partner)                                            |
 | 5500 | Packaging and labels                   | `billing.expenses` category=packaging                                  |
 | 5600 | Payment fees (Stripe retail; Interac)  | `billing.payments.fee_cents`                                           |
-| 5700 | Cargo claims (net of recoveries)       | `ordering.osd_claims` paid − recovered (§6a)                           |
+| 5700 | Cargo claims (net of recoveries)       | `ordering.claims` (type OS&D) paid − recovered (§6a)                   |
 | 6100 | Hosting (droplet, Oracle)              | `billing.expenses` category=hosting                                    |
 | 6200 | Software                               | `billing.expenses` category=software                                   |
 | 6300 | Insurance (when bound, G-INS)          | `billing.expenses` category=insurance                                  |

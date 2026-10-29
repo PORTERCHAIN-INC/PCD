@@ -1,5 +1,7 @@
 # 22 — PLANNED state machines (Phase 1)
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 66 (Phase 0 state machines), 81 (lifecycle). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 Sources: 17 (planned states), 12/15/21, strict plan locked decisions L1–L24. **(P)** = not in code today. All transitions run inside DBOS workflows (L18); agents (PydanticAI inside DBOS steps, L14 revised 28 Oct 2026) may only request transitions, never write status columns. Enums + transition maps live in `domain/states.py` (21 step 3).
 
 ## 22.1 Order (17: remove `DELIVERED → FAILED`; add `CLOSED → CLAIM_OPEN` ≤ 60 d)

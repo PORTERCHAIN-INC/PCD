@@ -1,5 +1,7 @@
 # 21 — NOW vs PLANNED delta + migration order
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 60 §3 and §7 (Phase 0 moves and migration order), 34 (cutover). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 | Layer       | NOW (as-built, files 01–10)                   | PLANNED (12–20)                                                | Step  |
 | ----------- | --------------------------------------------- | -------------------------------------------------------------- | ----- |
 | Context     | portals, Shopify, Stripe, Interac             | + WhatsApp, cooler logger, agents                              | 6     |

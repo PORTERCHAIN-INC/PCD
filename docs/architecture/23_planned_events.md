@@ -1,5 +1,7 @@
 # 23 — PLANNED events: outbox → DBOS relay → Redpanda (L18, L19, L20)
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 83 §1.3 (platform.events), 60 §2 G12, 65. Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 Sources: 12 (topics, ports), 15 (infra row), 21 step 2/4, L18–L20. **(P)** = not in code today. Producer/consumer assignment per topic is the Phase 1 plan derived from 12/15/18; confirm when each workflow is built. Delivery is at-least-once; consumers dedupe on `event_id`; topic retention 7 days; Postgres is the system of record. Redis Streams `porterchain:events` and the list queues are retired.
 
 ## 23.1 Outbox path (atomic write, then relay)

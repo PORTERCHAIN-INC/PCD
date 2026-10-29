@@ -105,8 +105,8 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 
 - **U-70-1** (lawyer) **Pharmacy delivery agreement** (D-70-4 changed: all medicine types incl. controlled substances; 70 §7a). Covers PorterChain as the pharmacy's delivery agent, custody and records, loss/theft notice duties (the pharmacy reports to Health Canada), PHIPA, insurance and audit. Also: confirm OCP/NSAA conditions, and track when CSR SOR/2025-242 comes into force.
 - **U-72-1 resolved:** D-72-2 decided 29 Oct 2026 (72 §8 approved, XS $17/$32/$47). D-72-1/3/4 decided yes 29 Oct 2026.
-- **U-74-1** Shopify reviewer feedback text for the 4 rejections not in the repo; Ravi to paste the latest rejection email so A-SHR tests match it exactly.
-- **U-74-2** Apple/Google rejection notes not in the repo; same request.
+- **U-74-1 resolved (L36, 29 Oct 2026):** Ravi confirmed the Shopify rejection reason: reviewers cannot log in through Clerk.
+- **U-74-2 resolved (L36):** same reason for Apple. The fix is Keycloak with Google + Sign in with Apple + password + passkeys, a reviewer account and in-app deletion.
 - **U-74-3** WhatsApp business number for click-to-chat (73 §1).
 - **U-75-1 resolved** D-75-1 decided yes 29 Oct 2026.
 - Decisions (29 Oct 2026): D-70-1/2/3, D-72-1/3/4 and D-75-1 decided yes. D-70-4 decided with changed scope (70 §7a). **D-72-2 decided** 29 Oct 2026 (72 §8 approved, XS $17).

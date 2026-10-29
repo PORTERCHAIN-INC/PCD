@@ -6,7 +6,7 @@
 
 - Account deletion inside the app (exists: `accountDeletion.ts`).
 - Background location purpose strings (driver app). Justify continuous location for the delivery job and show a visible indicator.
-- Sign in with Apple required only if third-party social logins are offered (Keycloak email/passkey alone doesn't trigger it).
+- **Sign in with Apple is mandatory** (guideline 4.8): Google sign-in is offered (L36, 74 §3).
 - Privacy nutrition labels updated after removing Clerk/Sentry/Google.
 - Fix the customer app associated domains (doc 25).
 - Demo account for review; no placeholder content; push permission prompt with a reason.

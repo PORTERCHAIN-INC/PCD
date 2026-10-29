@@ -1,5 +1,7 @@
 # PorterChain PCD — Architecture drawing set (index, legend, evidence method)
 
+> **Start here:** [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md) is the single entry point for the Phase 0 plan.
+
 Generated 2026-10-28 (America/Toronto) from repo `/home/pcd/PCD` at HEAD `56865de9` + working tree. Docs only; no application code changed.
 
 ## Files
@@ -118,3 +120,5 @@ Mermaid blocks in 70, 71, 73, 75 rendered to SVG (mermaid-cli, agent box) in `re
 - `80_vehicle_compliance.md`: Ontario vehicle compliance for our reality (own phones, Civic, rentals): DVIR, phone HOS log, vehicle record, weight block, offline queue, POD → invoice; A-VC tests
 - `81_order_lifecycle_by_business_type.md`: 14-stage order lifecycle per business type on existing endpoints, API layers, 6 Mermaid blocks rendered to `rendered_l35/81_*.svg` (0 syntax errors); A-LC tests
 - `82_guided_job_flows.md`: server-driven driver wizards per job type (EN/FR, AODA, offline), one driver persona on web and mobile (repo diff + merge plan), driver data secrecy (SpiceDB), Shopify and customer guidance, interim decisions; A-GF/A-PAR tests; Mermaid rendered to `rendered_l35/82_0.svg`
+- `83_core_model_and_ux_blueprint.md`: canonical entity map + rendered ER diagram, 11 duplicate/clash fixes, UX principles, screen map per role (top 5 flows with tap counts), tests 76 §20.
+- `00_PHASE0_MASTER.md`: **single entry point** for Phase 0 (15 sections: scope, L1–L36, segments, core model, UX, pricing, login, compliance, ops, metrics, schedule + gates, tests index, needed from Ravi, risks, doc index). Docs 12–18 and 21–23 are marked superseded.

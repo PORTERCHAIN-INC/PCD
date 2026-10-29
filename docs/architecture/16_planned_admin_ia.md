@@ -1,5 +1,7 @@
 # 16 — PLANNED admin + super-admin information architecture
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 75 (ops console IA, D-75-1). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 ```mermaid
 flowchart LR
   subgraph ADMIN[Admin - daily ops]

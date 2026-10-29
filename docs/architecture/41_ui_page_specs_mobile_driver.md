@@ -18,7 +18,7 @@ Read-only from code. Tokens/components: doc 40 (React Native column). Flows: doc
 - **Purpose:** Driver login (Keycloak OIDC PKCE + passkey)
 - **Layout:** Logo, form, passkey button
 - **Components:** TextInput, Button, PasskeyButton
-- **Key actions:** Sign in, forgot password
+- **Key actions:** Sign in (invite-only account: passkey, email+password, Apple or Google linked to the invite), forgot password; reviewer demo driver for App Review (L36)
 - **Data (API):** Keycloak `/realms/porterchain/protocol/openid-connect/*`, `/v1/driver/me`
 - **Validation / errors:** "Email or password is wrong"; account suspended message
 - **Screen-specific states:** Offline: "Connect to sign in"

@@ -1,5 +1,7 @@
 # 17 — PLANNED state machines + authz
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 66 (Phase 0 state machines), 81, 09 + 74 §2 (L36 login). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 - Order: same 21 states, plus `CLOSED → CLAIM_OPEN` (≤ 60 d after delivery, O. Reg. 643/05 Sch.1 art.12), remove `DELIVERED → FAILED`; all transitions executed inside the durable workflow.
 - Quote: add `ACCEPTED` exit from `PAYMENT_PENDING`; margin band computed before `QUOTE` and stored on the quote; margin band (L2 as amended by Ravi 2026-10-28): never blocks; ≥ 50 % green, < 50 % yellow warning, ≤ 35 % red (admin alert). Red writes a `margin.red` alert to admin (Today, admin pricing, quote view) and an audit log row. Margin never moves a quote to `REFUSED`.
 - Job offer, route, stop, plan, driver: enums + transition maps in `domain/states.py`.

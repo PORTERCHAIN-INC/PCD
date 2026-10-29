@@ -1,10 +1,12 @@
 # 13 — PLANNED DFDs (Phase 1)
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 64 (Phase 0 DFDs), 81 (order lifecycle). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 ```mermaid
 flowchart TB
   IN1[WhatsApp msg (P)] --> P1((1 Intake agent))
   IN2[Portal/API/Shopify] --> P1
-  P1 --> GATE{Goods gate: TDG/UN3373/controlled/white-glove refused; cooler flag}
+  P1 --> GATE{Goods gate: TDG/UN3373/white-glove refused; controlled only via pharmacy profile D-70-4; cooler flag}
   GATE --> P2((2 Quote: cost model -> margin band green/yellow/red, never blocks -> public price))
   P2 --> SA{Service area: Toronto + 150 km}
   SA --> WF[[Durable order workflow (P)]]

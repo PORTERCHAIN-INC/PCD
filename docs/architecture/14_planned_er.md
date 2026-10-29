@@ -1,5 +1,7 @@
 # 14 — PLANNED ER additions (Phase 1)
 
+> **SUPERSEDED (kept for history, not deleted).** This pre-Phase-0 plan is replaced by 83 §1 (canonical entity map and ER), 63 (Phase 0 ER). Start at [00_PHASE0_MASTER.md](00_PHASE0_MASTER.md); where this file disagrees, the master and its locked decisions (L1–L36) win.
+
 ```mermaid
 erDiagram
   orders ||--o{ temp_readings : "cooler run"
