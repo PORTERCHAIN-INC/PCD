@@ -41,3 +41,9 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 - `22_planned_state_machines.md` — planned order, job offer, invoice, credit note, driver, quote, box truck (BOL/CVOR gate), cooler run (temp log), autonomy ladder, agent run.
 - `23_planned_events.md` — outbox → DBOS relay → Redpanda, 12 `pc.*.v1` topics with producers/consumers, sweeps migration, live GPS on Redis.
 - `mermaid/CLEANUP_NOTES.md` — FleetBase-era undefined nodes defined or removed.
+
+## Added Oct 28, 2026 (apps)
+
+- `24_shopify_app.md` — Shopify app now vs planned (API 2026-10, Polaris web components, Functions, Flow, checkout extension, outbox ingest, BFS).
+- `25_customer_mobile.md` — customer Expo app now vs planned (push, Live Activities/Live Updates, Wallet, WhatsApp, passkeys, ETA).
+- `26_driver_mobile.md` — driver Expo app now vs planned (tamper-evident POD, vision POD check, voice copilot, re-routing, BLE cooler log, DPWRA pay).
