@@ -3,12 +3,12 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@porterchain/auth/oidc/client";
 import { ListOrdered, Search, Send, UserRound } from "lucide-react";
 import { CommandPalette, type PaletteEntry } from "@porterchain/ui/app-nav";
 import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import { cn } from "@/lib/utils";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import NotificationBell from "@/components/nav/NotificationBell";
 
 /** Three things, in the order customers need them: Send, Orders, Account. */
@@ -115,15 +115,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
                 </kbd>
               </button>
               <NotificationBell />
-              {isClerkConfigured() ? (
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "h-9 w-9",
-                    },
-                  }}
-                />
-              ) : null}
+              {isAuthConfigured() ? <UserButton /> : null}
             </div>
           </div>
         </header>

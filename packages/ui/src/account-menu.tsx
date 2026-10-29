@@ -216,7 +216,7 @@ export function AccountMenuButton({
   );
 }
 
-/** Red "Sign out" button; extra props let Clerk's <SignOutButton> wrap it. */
+/** Red "Sign out" button; extra props let the auth <SignOutButton> wrap it. */
 export function AccountSignOutButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button

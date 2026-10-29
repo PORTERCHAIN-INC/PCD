@@ -3,24 +3,20 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SignUp, useAuth } from "@clerk/nextjs";
-import {
-  PasswordRequirements,
-  porterchainClerkAppearance,
-  signUpUnavailableCopy,
-} from "@porterchain/auth";
+import { useAuth } from "@porterchain/auth/oidc/client";
+import { signUpUnavailableCopy, KeycloakSignInPanel } from "@porterchain/auth";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { CustomerAuthLoading, CustomerAuthScreen } from "@/components/auth/CustomerAuthScreen";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 
 export default function SignUpPage() {
-  if (!isClerkConfigured()) {
-    return <ClerkUnavailable />;
+  if (!isAuthConfigured()) {
+    return <AuthUnavailable />;
   }
-  return <SignUpWithClerk />;
+  return <SignUpWithAuth />;
 }
 
-function ClerkUnavailable() {
+function AuthUnavailable() {
   if (!isDevelopmentBuild()) {
     return (
       <CustomerAuthScreen
@@ -44,12 +40,12 @@ function ClerkUnavailable() {
     <CustomerAuthScreen
       mode="sign-up"
       title="Local development"
-      subtitle="Clerk is not configured for this environment."
+      subtitle="Keycloak is not configured for this environment."
     >
       <div className="space-y-4">
         <p className="text-sm leading-relaxed text-muted">
-          Add Platform Clerk keys via <code className="text-primary">pnpm clerk:sync</code>, then
-          refresh.
+          Set NEXT_PUBLIC_KEYCLOAK_CLIENT_ID, KEYCLOAK_URL and AUTH_SESSION_SECRET (see
+          .env.example), then refresh.
         </p>
         <Link
           href="/sign-in"
@@ -62,7 +58,7 @@ function ClerkUnavailable() {
   );
 }
 
-function SignUpWithClerk() {
+function SignUpWithAuth() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
 
@@ -93,15 +89,7 @@ function SignUpWithClerk() {
         </>
       }
     >
-      <SignUp
-        routing="path"
-        path="/sign-up"
-        signInUrl="/sign-in"
-        forceRedirectUrl="/send"
-        fallbackRedirectUrl="/send"
-        appearance={porterchainClerkAppearance}
-      />
-      <PasswordRequirements />
+      <KeycloakSignInPanel mode="sign-up" returnTo={"/"} />
     </CustomerAuthScreen>
   );
 }

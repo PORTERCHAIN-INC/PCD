@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { NotificationBell as Bell } from "@porterchain/ui/notification-bell";
-import { isClerkConfigured, publicEnv } from "@/lib/env";
+import { isAuthConfigured, publicEnv } from "@/lib/env";
 import { notificationsApi } from "@/lib/notifications";
 
 export default function NotificationBell({
@@ -12,11 +12,11 @@ export default function NotificationBell({
 }: {
   viewAllHref?: string;
 }) {
-  if (!isClerkConfigured()) return null;
-  return <NotificationBellWithClerk viewAllHref={viewAllHref} />;
+  if (!isAuthConfigured()) return null;
+  return <NotificationBellWithAuth viewAllHref={viewAllHref} />;
 }
 
-function NotificationBellWithClerk({ viewAllHref }: { viewAllHref: string }) {
+function NotificationBellWithAuth({ viewAllHref }: { viewAllHref: string }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const qc = useQueryClient();
   const enabled = Boolean(isLoaded && isSignedIn);

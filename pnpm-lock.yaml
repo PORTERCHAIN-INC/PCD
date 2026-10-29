@@ -49,9 +49,6 @@ importers:
 
   apps/admin:
     dependencies:
-      '@clerk/nextjs':
-        specifier: 7.9.19
-        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -161,9 +158,6 @@ importers:
 
   apps/customer:
     dependencies:
-      '@clerk/nextjs':
-        specifier: 7.9.19
-        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@porterchain/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -234,9 +228,6 @@ importers:
 
   apps/driver-portal:
     dependencies:
-      '@clerk/nextjs':
-        specifier: 7.9.19
-        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@porterchain/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -316,9 +307,6 @@ importers:
 
   apps/merchant-portal:
     dependencies:
-      '@clerk/nextjs':
-        specifier: 7.9.19
-        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@porterchain/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -625,12 +613,12 @@ importers:
 
   packages/auth:
     devDependencies:
-      '@clerk/nextjs':
-        specifier: 7.9.19
-        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@types/react':
         specifier: ^19
         version: 19.2.17
+      next:
+        specifier: 16.4.1
+        version: 16.4.1(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@26.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react:
         specifier: 19.2.7
         version: 19.2.7
@@ -785,7 +773,7 @@ importers:
         version: 4.0.40(react@19.2.7)(zod@4.4.3)
       '@clerk/nextjs':
         specifier: 7.9.19
-        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@26.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@porterchain/auth':
         specifier: workspace:*
         version: link:../packages/auth
@@ -7932,7 +7920,7 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/nextjs@7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@clerk/nextjs@7.9.19(next@16.4.1(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@26.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@clerk/backend': 3.26.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@clerk/react': 6.18.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)

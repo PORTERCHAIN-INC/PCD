@@ -1,22 +1,22 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CustomerShell from "@/components/CustomerShell";
 import AddressBook from "@/components/account/AddressBook";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { customerApi } from "@/lib/api";
 
 export default function AccountClient() {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <AccountBody ready signedIn getToken={async () => "dev"} />;
   }
-  return <AccountWithClerk />;
+  return <AccountWithAuth />;
 }
 
-function AccountWithClerk() {
+function AccountWithAuth() {
   const router = useRouter();
   const { isSignedIn, isLoaded, getToken } = useAuth();
 

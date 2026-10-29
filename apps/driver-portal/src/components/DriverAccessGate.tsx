@@ -2,7 +2,7 @@
 
 import { useCallback, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { LogOut } from "lucide-react";
 import {
   humanAuthError,
@@ -10,7 +10,7 @@ import {
   usePortalSessionGate,
   type SessionContext,
 } from "@porterchain/auth";
-import { isClerkConfigured, isDevEmailLogin, publicEnv } from "@/lib/env";
+import { isAuthConfigured, isDevEmailLogin, publicEnv } from "@/lib/env";
 import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
 
 type Props = {
@@ -18,17 +18,17 @@ type Props = {
 };
 
 export default function DriverAccessGate({ children }: Props) {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <>{children}</>;
   }
   // Local email picker: middleware + BFF cookie; do not wait on Clerk isLoaded.
   if (isDevEmailLogin()) {
     return <>{children}</>;
   }
-  return <DriverAccessGateWithClerk>{children}</DriverAccessGateWithClerk>;
+  return <DriverAccessGateWithAuth>{children}</DriverAccessGateWithAuth>;
 }
 
-function DriverAccessGateWithClerk({ children }: Props) {
+function DriverAccessGateWithAuth({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
@@ -99,7 +99,7 @@ function DriverAccessGateWithClerk({ children }: Props) {
           >
             Back to sign in
           </a>
-          <SignOutButton redirectUrl={loginUrl}>
+          <SignOutButton returnTo={loginUrl}>
             <button
               type="button"
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"

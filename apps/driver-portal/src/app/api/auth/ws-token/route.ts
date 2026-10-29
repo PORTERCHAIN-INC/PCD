@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { NextResponse } from "next/server";
 
 /** Return Clerk JWT for websocket clients — no Porterchain cookie JWT. */

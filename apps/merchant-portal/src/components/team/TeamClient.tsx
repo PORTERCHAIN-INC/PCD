@@ -15,10 +15,10 @@ import {
   type TwoFactorStatus,
 } from "@/lib/team";
 import { contactsApi, type ContactInput, type MerchantContact } from "@/lib/contacts";
-import { isClerkConfigured, useLocalDevAuth } from "@/lib/env";
+import { isAuthConfigured, useLocalDevAuth } from "@/lib/env";
 import { merchantSignupUrl } from "@/lib/onboarding";
 import { formatDate } from "@/lib/utils";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useUser, useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { startTransition, useCallback, useOptimistic, useState } from "react";
 
@@ -593,7 +593,7 @@ function ActivityTab({ entries }: { entries: ActivityLogEntry[] }) {
 
 function SecurityTab({ status }: { status: TwoFactorStatus | null }) {
   const local = useLocalDevAuth();
-  const clerkOn = isClerkConfigured() && !local;
+  const clerkOn = isAuthConfigured() && !local;
 
   return (
     <section className="rounded-2xl border border-primary/10 bg-white p-6">
@@ -605,7 +605,7 @@ function SecurityTab({ status }: { status: TwoFactorStatus | null }) {
       {local ? (
         <p className="mt-4 text-sm text-muted">Local Clerk bypass does not use MFA.</p>
       ) : clerkOn ? (
-        <ClerkMfaStatus />
+        <AccountMfaStatus />
       ) : (
         <p className="mt-4 text-sm text-muted">
           Sign-in is not configured, so MFA status is unavailable.
@@ -615,24 +615,21 @@ function SecurityTab({ status }: { status: TwoFactorStatus | null }) {
   );
 }
 
-function ClerkMfaStatus() {
-  const { user, isLoaded } = useUser();
-  const { openUserProfile } = useClerk();
-  const enabled = Boolean(user?.twoFactorEnabled);
+function AccountMfaStatus() {
+  const { isLoaded } = useUser();
+  const { openAccount } = useAuth();
 
   return (
     <>
-      <p className={`mt-4 text-sm ${enabled ? "text-green-700" : "text-muted"}`}>
+      <p className="mt-4 text-sm text-muted">
         {!isLoaded
           ? "Checking your account…"
-          : enabled
-            ? "Your account has MFA enabled."
-            : "Your account does not have MFA enabled yet."}
+          : "Add an authenticator app or passkey in account security."}
       </p>
       <button
         type="button"
         className="mt-3 text-sm font-medium text-secondary underline-offset-2 hover:underline"
-        onClick={() => openUserProfile()}
+        onClick={() => openAccount()}
       >
         Open account security
       </button>

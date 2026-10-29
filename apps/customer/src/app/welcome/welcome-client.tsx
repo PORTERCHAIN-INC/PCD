@@ -3,48 +3,42 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
-import { isClerkConfigured } from "@/lib/env";
+import { useAuth } from "@porterchain/auth/oidc/client";
+import { isAuthConfigured } from "@/lib/env";
 
 /**
- * One-tap sign-in from the booking email. The API mints a Clerk sign-in token for the
- * guest's email; we redeem it with the `ticket` strategy and land on Orders. No code, no password.
+ * Landing from the booking email (L36). We hand the guest's email to Keycloak as a login hint;
+ * Keycloak verifies them (password, passkey, Google/Apple) and returns them to Orders.
  */
 export default function WelcomeClient() {
   const params = useSearchParams();
   const router = useRouter();
-  const ticket = params.get("ticket") ?? "";
-  if (!isClerkConfigured() || !ticket) {
+  const email = params.get("email") ?? "";
+  if (!isAuthConfigured()) {
     return <Shell state="fallback" onContinue={() => router.replace("/orders")} />;
   }
-  return <Redeem ticket={ticket} />;
+  return <Redeem email={email} />;
 }
 
-function Redeem({ ticket }: { ticket: string }) {
+function Redeem({ email }: { email: string }) {
+  const { isLoaded, isSignedIn, signIn } = useAuth();
   const router = useRouter();
-  const { signIn } = useSignIn();
-  const [failed, setFailed] = useState(false);
   const ran = useRef(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (ran.current || !signIn) return;
+    if (!isLoaded || ran.current) return;
     ran.current = true;
-    void (async () => {
-      try {
-        const res = await signIn.ticket({ ticket });
-        if (res?.error || signIn.status !== "complete") throw new Error("ticket");
-        await signIn.finalize({
-          navigate: ({ decorateUrl }) => {
-            const url = decorateUrl("/orders");
-            if (url.startsWith("http")) window.location.href = url;
-            else router.replace(url);
-          },
-        });
-      } catch {
-        setFailed(true);
-      }
-    })();
-  }, [signIn, ticket, router]);
+    if (isSignedIn) {
+      router.replace("/orders");
+      return;
+    }
+    try {
+      signIn({ returnTo: "/orders", loginHint: email || undefined });
+    } catch {
+      setFailed(true);
+    }
+  }, [email, isLoaded, isSignedIn, router, signIn]);
 
   return <Shell state={failed ? "expired" : "working"} />;
 }
@@ -74,7 +68,7 @@ function Shell({
             href="/sign-in?redirect_url=/orders"
             className="mt-6 inline-flex w-full justify-center rounded-2xl bg-primary px-6 py-4 font-bold text-white"
           >
-            Get a new sign-in code
+            Sign in
           </Link>
         ) : null}
         {state === "fallback" ? (

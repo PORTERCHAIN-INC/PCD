@@ -10,9 +10,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { readImpersonationBearer } from "@porterchain/auth";
-import { isClerkConfigured, useClerkDevApiBypass } from "@/lib/env";
+import { isAuthConfigured, useClerkDevApiBypass } from "@/lib/env";
 import { getMerchantSession, type MerchantSession } from "@/lib/api";
 
 import { writeMerchantIdCookie } from "@/lib/merchant-cookie";
@@ -264,7 +264,7 @@ export function MerchantAuthProvider({
   children: ReactNode;
   initialOrgId?: string;
 }) {
-  if (useClerkDevApiBypass() || !isClerkConfigured()) {
+  if (useClerkDevApiBypass() || !isAuthConfigured()) {
     return (
       <DevMerchantAuthProvider initialOrgId={initialOrgId}>{children}</DevMerchantAuthProvider>
     );

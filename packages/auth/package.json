@@ -2,7 +2,7 @@
   "name": "@porterchain/auth",
   "version": "0.1.0",
   "private": true,
-  "description": "Porterchain RBAC \u2014 Clerk is the sole authentication provider",
+  "description": "Porterchain auth: Keycloak OIDC session + RBAC helpers",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -10,8 +10,10 @@
     "./devBypass": "./src/devBypass.ts",
     "./impersonation": "./src/impersonation.ts",
     "./impersonationRoute": "./src/impersonationRoute.ts",
-    "./clerkEdgeSession": "./src/clerkEdgeSession.ts",
-    "./authTelemetry": "./src/authTelemetry.ts"
+    "./authTelemetry": "./src/authTelemetry.ts",
+    "./oidc": "./src/oidc/core.ts",
+    "./oidc/next": "./src/oidc/next.ts",
+    "./oidc/client": "./src/oidc/client.tsx"
   },
   "scripts": {
     "lint": "tsc --noEmit",
@@ -20,12 +22,12 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@clerk/nextjs": "7.9.19",
+    "next": "^16.0.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@clerk/nextjs": "7.9.19",
     "@types/react": "^19",
+    "next": "16.4.1",
     "react": "19.2.7",
     "typescript": "^6.0.3"
   }

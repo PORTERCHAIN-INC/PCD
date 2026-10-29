@@ -1,16 +1,16 @@
 /**
  * Client → server signal when sign-in / sign-up fails in a way the user cannot see
- * in our logs (Clerk never loaded, bot check stalled, offline, Clerk form error).
+ * in our logs (session never loaded, offline, sign-in callback error).
  * The app's `/api/auth-telemetry` route writes one structured log line per event.
- * No email, password or code is ever sent: only the kind, the page and Clerk's
+ * No email, password or code is ever sent: only the kind, the page and Keycloak's
  * short error code/message.
  */
 
 export const AUTH_EVENT_KINDS = [
-  "clerk_load_timeout",
+  "auth_load_timeout",
   "bot_check_stall",
   "offline",
-  "clerk_form_error",
+  "auth_callback_error",
 ] as const;
 export type AuthEventKind = (typeof AUTH_EVENT_KINDS)[number];
 

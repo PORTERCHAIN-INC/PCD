@@ -1,6 +1,6 @@
 /**
  * Public copy when sign-in cannot load in a shipped build.
- * No Clerk, env, or command names — those stay on development screens only.
+ * No provider, env, or command names — those stay on development screens only.
  */
 export const signInUnavailableCopy = {
   title: "Sign-in unavailable",

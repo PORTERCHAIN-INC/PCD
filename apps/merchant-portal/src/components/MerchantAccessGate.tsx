@@ -2,12 +2,12 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { LogOut } from "lucide-react";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { merchantProfileFromSession } from "@/lib/merchant-access";
 import { fetchMerchantOnboarding, isPendingMerchantPath } from "@/lib/onboarding";
-import { isClerkConfigured, publicEnv, useLocalDevAuth } from "@/lib/env";
+import { isAuthConfigured, publicEnv, useLocalDevAuth } from "@/lib/env";
 import {
   readImpersonationBearer,
   useOptionalSessionContext,
@@ -25,15 +25,13 @@ export default function MerchantAccessGate({ children, onProfile }: Props) {
   const localDevAuth = useLocalDevAuth();
   // Ungated only in a development build. A shipped portal with no Clerk keys
   // shows a wall instead of the portal — missing keys fail closed (BJ).
-  if (isDevelopmentBuild() && (localDevAuth || !isClerkConfigured())) {
+  if (isDevelopmentBuild() && (localDevAuth || !isAuthConfigured())) {
     return <>{children}</>;
   }
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <MerchantSignInUnavailable />;
   }
-  return (
-    <MerchantAccessGateWithClerk onProfile={onProfile}>{children}</MerchantAccessGateWithClerk>
-  );
+  return <MerchantAccessGateWithAuth onProfile={onProfile}>{children}</MerchantAccessGateWithAuth>;
 }
 
 function MerchantSignInUnavailable() {
@@ -81,7 +79,7 @@ function sessionFromMerchant(merchant: {
   };
 }
 
-function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
+function MerchantAccessGateWithAuth({ children, onProfile }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
@@ -188,7 +186,7 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
         >
           Back to sign in
         </a>
-        <SignOutButton redirectUrl={loginUrl}>
+        <SignOutButton returnTo={loginUrl}>
           <button
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"

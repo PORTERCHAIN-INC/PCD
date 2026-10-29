@@ -1,5 +1,5 @@
 /**
- * Validate in-app return paths for Clerk forceRedirectUrl / middleware.
+ * Validate in-app return paths for /auth/login return_to and middleware.
  * Rejects protocol-relative and external URLs.
  */
 export function safeAppRedirect(

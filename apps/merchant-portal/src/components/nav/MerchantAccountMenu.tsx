@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, SignOutButton, useClerk, useUser } from "@clerk/nextjs";
+import { SignOutButton, useAuth, useUser } from "@porterchain/auth/oidc/client";
 import { Building2, Key, LogIn, Settings, User, Users } from "lucide-react";
 import {
   AccountAvatar,
@@ -11,7 +11,7 @@ import {
   AccountSignInLink,
   AccountSignOutButton,
 } from "@porterchain/ui/account-menu";
-import { isClerkConfigured, useLocalDevAuth } from "@/lib/env";
+import { isAuthConfigured, useLocalDevAuth } from "@/lib/env";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import MerchantCompanySwitcher from "@/components/nav/MerchantCompanySwitcher";
 import { useMerchantProfile } from "@/components/nav/MerchantProfileContext";
@@ -35,16 +35,16 @@ export default function MerchantAccountMenu() {
   if (useLocalDevAuth()) {
     return <LocalDevAccountMenu />;
   }
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <AccountSignInLink href="/sign-in" />;
   }
 
-  return <ClerkAccountMenu />;
+  return <KeycloakAccountMenu />;
 }
 
-function ClerkAccountMenu() {
+function KeycloakAccountMenu() {
   const { isLoaded, isSignedIn, user } = useUser();
-  const { openUserProfile } = useClerk();
+  const { openAccount, signIn } = useAuth();
   const { profile } = useMerchantProfile();
   const { session, role, modules } = useMerchantAuth();
 
@@ -54,23 +54,25 @@ function ClerkAccountMenu() {
 
   if (!isSignedIn) {
     return (
-      <SignInButton mode="redirect">
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-full bg-secondary pl-4 pr-4 text-sm font-semibold text-white shadow-sm hover:bg-secondary/90"
-        >
-          <LogIn className="h-4 w-4" />
-          Sign in
-        </button>
-      </SignInButton>
+      <button
+        type="button"
+        onClick={() => signIn()}
+        className="flex h-10 items-center gap-2 rounded-full bg-secondary pl-4 pr-4 text-sm font-semibold text-white shadow-sm hover:bg-secondary/90"
+      >
+        <LogIn className="h-4 w-4" />
+        Sign in
+      </button>
     );
   }
 
-  const email =
-    profile?.email ?? session?.user_email ?? user.primaryEmailAddress?.emailAddress ?? "";
+  const email = profile?.email ?? session?.user_email ?? user?.email ?? "";
   const name =
-    user.fullName ?? user.username ?? session?.company_name ?? profile?.company_name ?? "Merchant";
-  const avatar = user.imageUrl;
+    user?.fullName ??
+    user?.username ??
+    session?.company_name ??
+    profile?.company_name ??
+    "Merchant";
+  const avatar = undefined;
   const company = session?.company_name ?? profile?.company_name ?? "Merchant account";
   const status = session?.status ?? profile?.status ?? "ACTIVE";
   const statusLabel = session?.status_label || merchantStatusLabel(status);
@@ -100,13 +102,13 @@ function ClerkAccountMenu() {
         </>
       }
       footer={
-        <SignOutButton redirectUrl="/sign-in">
+        <SignOutButton returnTo="/sign-in">
           <AccountSignOutButton />
         </SignOutButton>
       }
     >
       <AccountMenuButton
-        onClick={() => openUserProfile()}
+        onClick={() => openAccount()}
         icon={User}
         label="My account"
         hint="Password, MFA, email"

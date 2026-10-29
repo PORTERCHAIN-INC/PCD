@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Carlito } from "next/font/google";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
+import { AppAuthProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
 import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import CustomerFrame from "@/components/CustomerFrame";
 import CustomerQueryProvider from "@/components/providers/CustomerQueryProvider";
@@ -37,13 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale.slice(0, 2)} className={brand.variable} style={{ colorScheme: "light" }}>
       <body className={brand.className}>
-        <AppClerkProvider
-          publishableKey={publicEnv.clerkPublishableKey}
-          signInUrl="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignOutUrl="/sign-in"
-          fallbackRedirect="/orders"
-        >
+        <AppAuthProvider>
           <CustomerQueryProvider>
             <HydrationBoundary state={dehydrate(client)}>
               <SessionContextProvider>
@@ -53,7 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </SessionContextProvider>
             </HydrationBoundary>
           </CustomerQueryProvider>
-        </AppClerkProvider>
+        </AppAuthProvider>
       </body>
     </html>
   );

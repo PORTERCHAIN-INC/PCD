@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { LogOut } from "lucide-react";
 import { fetchCustomerOnboarding, isPendingCustomerPath } from "@/lib/onboarding";
-import { isClerkConfigured, publicEnv } from "@/lib/env";
+import { isAuthConfigured, publicEnv } from "@/lib/env";
 import {
   readImpersonationBearer,
   useOptionalSessionContext,
@@ -18,13 +18,13 @@ type Props = {
 };
 
 export default function CustomerAccessGate({ children }: Props) {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <>{children}</>;
   }
-  return <CustomerAccessGateWithClerk>{children}</CustomerAccessGateWithClerk>;
+  return <CustomerAccessGateWithAuth>{children}</CustomerAccessGateWithAuth>;
 }
 
-function CustomerAccessGateWithClerk({ children }: Props) {
+function CustomerAccessGateWithAuth({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
@@ -99,7 +99,7 @@ function CustomerAccessGateWithClerk({ children }: Props) {
         >
           Back to sign in
         </a>
-        <SignOutButton redirectUrl={loginUrl}>
+        <SignOutButton returnTo={loginUrl}>
           <button
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"

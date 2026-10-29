@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { NextRequest, NextResponse } from "next/server";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";

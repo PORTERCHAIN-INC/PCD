@@ -1,4 +1,4 @@
-import { clerkDevBypassEnabled } from "@porterchain/auth/devBypass";
+import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
 
 export const publicEnv = {
   siteUrl: (
@@ -17,11 +17,11 @@ export const publicEnv = {
     process.env.NEXT_PUBLIC_WEBSITE_URL ??
     (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://porterchain.com")
   ).replace(/\/$/, ""),
-  clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
+  keycloakClientId: (process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID ?? "").trim(),
 } as const;
 
-export function isClerkConfigured(): boolean {
-  return publicEnv.clerkPublishableKey.length > 0;
+export function isAuthConfigured(): boolean {
+  return publicEnv.keycloakClientId.length > 0;
 }
 
 /**
@@ -31,7 +31,7 @@ export function isClerkConfigured(): boolean {
  * false even if the variable leaks into the deploy (BJ).
  */
 export function useClerkDevApiBypass(): boolean {
-  return clerkDevBypassEnabled();
+  return authDevBypassEnabled();
 }
 
 /** Local portals skip the Clerk sign-in widget and use the API bypass session. */

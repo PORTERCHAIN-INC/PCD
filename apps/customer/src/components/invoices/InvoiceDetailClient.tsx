@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import { customerApi } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 
 function addressLine(addr?: Record<string, unknown> | null) {
   if (!addr) return "—";
@@ -23,13 +23,13 @@ function addressLine(addr?: Record<string, unknown> | null) {
 }
 
 export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <DetailBody invoiceId={invoiceId} ready signedIn getToken={async () => "dev"} />;
   }
-  return <DetailWithClerk invoiceId={invoiceId} />;
+  return <DetailWithAuth invoiceId={invoiceId} />;
 }
 
-function DetailWithClerk({ invoiceId }: { invoiceId: string }) {
+function DetailWithAuth({ invoiceId }: { invoiceId: string }) {
   const router = useRouter();
   const { isSignedIn, isLoaded, getToken } = useAuth();
 

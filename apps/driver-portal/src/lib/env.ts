@@ -13,11 +13,11 @@ export const publicEnv = {
   ).replace(/\/$/, ""),
   // Must be the Porterchain Driver instance key (clerk.driver.porterchain.com) — the same Clerk
   // app the driver mobile app uses, so one driver account works on web and mobile.
-  clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
+  keycloakClientId: (process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID ?? "").trim(),
 } as const;
 
-export function isClerkConfigured(): boolean {
-  return publicEnv.clerkPublishableKey.length > 0;
+export function isAuthConfigured(): boolean {
+  return publicEnv.keycloakClientId.length > 0;
 }
 
 /**

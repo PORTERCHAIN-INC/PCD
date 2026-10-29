@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Carlito } from "next/font/google";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
+import { AppAuthProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
 import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { MerchantAuthProvider } from "@/components/providers/MerchantAuthProvider";
 import MerchantQueryProvider from "@/components/providers/MerchantQueryProvider";
@@ -42,13 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={{ colorScheme: "light" }}
     >
       <body className={`${brand.className} min-h-dvh bg-gray-bg text-primary antialiased`}>
-        <AppClerkProvider
-          publishableKey={publicEnv.clerkPublishableKey}
-          signInUrl="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignOutUrl="/sign-in"
-          fallbackRedirect="/dashboard"
-        >
+        <AppAuthProvider>
           <MerchantAuthProvider initialOrgId={initialOrgId}>
             <MerchantQueryProvider>
               <HydrationBoundary state={dehydrate(client)}>
@@ -60,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </HydrationBoundary>
             </MerchantQueryProvider>
           </MerchantAuthProvider>
-        </AppClerkProvider>
+        </AppAuthProvider>
       </body>
     </html>
   );

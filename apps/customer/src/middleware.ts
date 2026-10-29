@@ -1,73 +1,13 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
-import { hasClerkSessionHint } from "@porterchain/auth/clerkEdgeSession";
-import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
+import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
+import { portalMiddleware } from "@porterchain/auth/oidc/next";
 
 // /track only redirects to the public website tracking page (signed link when signed in).
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/impersonate(.*)",
-  "/track(.*)",
-  "/welcome(.*)",
-]);
-
-const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim());
-
-/**
- * Clerk edge gate — light when session cookies exist (admin ``pc_staff_sid`` posture).
- * AccessGate + API Bearer still enforce identity; ``await auth()`` only when unsigned.
- */
-const withClerk = clerkMiddleware(
-  async (auth, req) => {
-    // Local: API Bearer `dev` — do not send the browser through Clerk.
-    if (clerkDevBypassEnabled()) return;
-    if (isPublicRoute(req)) return;
-    if (req.cookies.get("pc_imp_bearer")?.value?.startsWith("pc_imp_")) return;
-
-    if (!clerkConfigured) {
-      if (isDevelopmentBuild()) return;
-      return NextResponse.redirect(new URL("/sign-in", req.url));
-    }
-
-    if (hasClerkSessionHint(req.cookies)) {
-      return NextResponse.next();
-    }
-
-    const { userId } = await auth();
-    if (userId) {
-      return NextResponse.next();
-    }
-
-    if (req.nextUrl.pathname.startsWith("/api/")) {
-      return NextResponse.json({ detail: "missing_bearer_token" }, { status: 401 });
-    }
-
-    const signIn = new URL("/sign-in", req.url);
-    const returnPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-    if (
-      returnPath !== "/sign-in" &&
-      !returnPath.startsWith("/sign-in/") &&
-      returnPath !== "/sign-up" &&
-      !returnPath.startsWith("/sign-up/")
-    ) {
-      signIn.searchParams.set("redirect_url", returnPath);
-    }
-    return NextResponse.redirect(signIn);
-  },
-  { signInUrl: "/sign-in" }
-);
-
-/**
- * Local dev with the bypass on and no Clerk keys: `clerkMiddleware` throws on every
- * request, so skip it. Production bundles fold `clerkDevBypassEnabled()` to false.
- */
-export default function middleware(req: NextRequest, ev: NextFetchEvent) {
-  if (clerkDevBypassEnabled() && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) {
-    return NextResponse.next();
-  }
-  return withClerk(req, ev);
-}
+// Keycloak edge gate (L36); AccessGate + API Bearer still enforce identity and roles.
+export default portalMiddleware({
+  publicPaths: ["/sign-in", "/sign-up", "/impersonate", "/track", "/welcome"],
+  // Local: API Bearer `dev`. Production bundles fold authDevBypassEnabled() to false.
+  devPassThrough: () => authDevBypassEnabled(),
+});
 
 export const config = {
   matcher: [

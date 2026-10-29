@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Circle, Clock, LogOut, RefreshCw, Shield, XCircle } from "lucide-react";
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton } from "@porterchain/auth/oidc/client";
 import MerchantLogo from "@/components/branding/MerchantLogo";
 import Button from "@/components/ui/Button";
 import { merchantStatusLabel, onboardingStepStatusLabel } from "@/lib/catalog";
@@ -11,7 +11,7 @@ import {
   shouldAskOwnerForCompanyFile,
   type PortalOnboardingStatus,
 } from "@/lib/onboarding";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { useState } from "react";
@@ -130,8 +130,8 @@ export default function PortalOnboardingView({
                 </p>
               </div>
             </div>
-            {isClerkConfigured() ? (
-              <SignOutButton redirectUrl="/sign-in">
+            {isAuthConfigured() ? (
+              <SignOutButton returnTo="/sign-in">
                 <button
                   type="button"
                   className="inline-flex items-center gap-2 rounded-xl border border-primary/10 px-3 py-2 text-sm text-muted"

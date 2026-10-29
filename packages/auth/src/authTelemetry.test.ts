@@ -13,7 +13,7 @@ describe("auth telemetry", () => {
   it("never forwards an email address", () => {
     assert.equal(scrubDetail("No account for reviewer@shopify.com"), "No account for [email]");
     const line = authTelemetryLogLine(
-      { kind: "clerk_form_error", path: "/sign-in", detail: "Password is incorrect for a@b.co" },
+      { kind: "auth_callback_error", path: "/sign-in", detail: "Password is incorrect for a@b.co" },
       "merchant",
       "UA"
     );

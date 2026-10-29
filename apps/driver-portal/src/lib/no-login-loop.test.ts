@@ -18,7 +18,7 @@ describe("driver /login <-> /onboarding loop guards", () => {
 
   it("login only redirects out after the server confirms the session", () => {
     const page = src("../app/login/[[...sign-in]]/page.tsx");
-    const effect = page.slice(page.indexOf("function ClerkDriverContinue"));
+    const effect = page.slice(page.indexOf("function KeycloakDriverContinue"));
     const check = effect.indexOf("hasDriverSession()");
     const replace = effect.indexOf("router.replace(redirectUrl)");
     expect(check).toBeGreaterThan(-1);

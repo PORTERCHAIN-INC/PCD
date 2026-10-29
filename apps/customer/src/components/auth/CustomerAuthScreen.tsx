@@ -18,7 +18,7 @@ type Props = {
 
 /**
  * Customer portal auth chrome — brand plane + form, one composition.
- * Delivery / tracking messaging; Clerk widget stays the only interactive card.
+ * Delivery / tracking messaging; the Keycloak sign-in panel is the only interactive card.
  */
 export function CustomerAuthScreen({ title, subtitle, mode = "sign-in", footer, children }: Props) {
   return (

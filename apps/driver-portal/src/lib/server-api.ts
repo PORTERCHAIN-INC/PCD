@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { cookies } from "next/headers";
-import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
+import { authDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { PC_IMP_COOKIE, PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
 import type { DriverDashboard, DriverIncident, DriverProfile, DriverVehicle } from "@/lib/api";
@@ -38,7 +38,7 @@ async function driverHeaders(): Promise<Record<string, string> | null> {
     if (imp?.startsWith("pc_imp_")) return { Authorization: `Bearer ${imp}` };
     return null;
   }
-  if (clerkDevBypassEnabled()) return { Authorization: "Bearer dev" };
+  if (authDevBypassEnabled()) return { Authorization: "Bearer dev" };
   const { getToken, userId } = await auth();
   if (userId) {
     const token = await getToken();

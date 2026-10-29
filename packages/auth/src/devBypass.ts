@@ -1,9 +1,9 @@
 /**
- * The one rule that decides whether a portal may skip Clerk (BJ).
+ * The one rule that decides whether a portal may skip sign-in (BJ).
  *
- * `NEXT_PUBLIC_CLERK_DEV_BYPASS=true` makes a portal skip the sign-in widget and
+ * `NEXT_PUBLIC_AUTH_DEV_BYPASS=true` makes a portal skip the sign-in widget and
  * call the API with `Bearer dev`. That is a local convenience, and it must be
- * impossible in a shipped build — a leaked variable in Doppler or CI must not
+ * impossible in a shipped build — a leaked variable in SOPS or CI must not
  * turn a production portal into an open shell.
  *
  * `next build` sets `NODE_ENV=production`, so the compiler folds the check below
@@ -21,13 +21,13 @@ export function isDevelopmentBuild(): boolean {
 }
 
 /**
- * True when this portal may skip Clerk and send `Bearer dev` to the API.
+ * True when this portal may skip sign-in and send `Bearer dev` to the API.
  *
  * Requires both a development build and the explicit opt-in, so it stays off by
  * default even locally.
  */
-export function clerkDevBypassEnabled(): boolean {
-  return isDevelopmentBuild() && process.env.NEXT_PUBLIC_CLERK_DEV_BYPASS === "true";
+export function authDevBypassEnabled(): boolean {
+  return isDevelopmentBuild() && process.env.NEXT_PUBLIC_AUTH_DEV_BYPASS === "true";
 }
 
 /**
@@ -36,6 +36,6 @@ export function clerkDevBypassEnabled(): boolean {
  * Portals log this once at boot so a misconfigured deploy is visible in logs
  * instead of looking like a mysterious wall of 401s.
  */
-export function clerkDevBypassIgnored(): boolean {
-  return !isDevelopmentBuild() && process.env.NEXT_PUBLIC_CLERK_DEV_BYPASS === "true";
+export function authDevBypassIgnored(): boolean {
+  return !isDevelopmentBuild() && process.env.NEXT_PUBLIC_AUTH_DEV_BYPASS === "true";
 }

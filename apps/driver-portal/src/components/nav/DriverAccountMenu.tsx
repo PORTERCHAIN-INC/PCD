@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@porterchain/auth/oidc/client";
 import { AlertTriangle, FileText, Truck, User } from "lucide-react";
 import {
   AccountBadge,
@@ -12,7 +12,7 @@ import {
   AccountSignOutButton,
 } from "@porterchain/ui/account-menu";
 import { driverApi, driverLogout, hasDriverSession } from "@/lib/api";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { useDriverProfile } from "@/components/nav/DriverProfileContext";
 
 function statusLabel(status: string): string {
@@ -24,13 +24,13 @@ function statusLabel(status: string): string {
 }
 
 export default function DriverAccountMenu() {
-  if (isClerkConfigured()) {
-    return <DriverAccountMenuWithClerk />;
+  if (isAuthConfigured()) {
+    return <DriverAccountMenuWithAuth />;
   }
   return <DriverAccountMenuBody clerkUser={null} clerkLoaded={false} />;
 }
 
-function DriverAccountMenuWithClerk() {
+function DriverAccountMenuWithAuth() {
   const { user, isLoaded: clerkLoaded } = useUser();
   return <DriverAccountMenuBody clerkUser={user} clerkLoaded={clerkLoaded} />;
 }
@@ -77,8 +77,8 @@ function DriverAccountMenuBody({
   }
 
   const name = profile?.full_name ?? user?.fullName ?? "Driver";
-  const email = profile?.email ?? user?.primaryEmailAddress?.emailAddress ?? "";
-  const avatar = clerkLoaded ? user?.imageUrl : undefined;
+  const email = profile?.email ?? user?.email ?? "";
+  const avatar = undefined;
   const status = profile?.status ?? "pending";
   const availability = profile?.availability ?? "offline";
   const isOnline = profile?.is_online ?? false;

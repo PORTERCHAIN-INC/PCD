@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { cookies } from "next/headers";
-import { clerkDevBypassEnabled } from "@porterchain/auth/devBypass";
+import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
 import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { MERCHANT_ID_COOKIE } from "@/lib/merchant-cookie";
 
@@ -24,7 +24,7 @@ export async function merchantOrgId(): Promise<string | null> {
 async function merchantBearer(): Promise<string | null> {
   const jar = await cookies();
   if (jar.get(PC_IMP_FLAG)?.value === "1") return null;
-  if (clerkDevBypassEnabled()) return "dev";
+  if (authDevBypassEnabled()) return "dev";
   const { getToken, userId } = await auth();
   if (!userId) return null;
   return (await getToken()) ?? null;

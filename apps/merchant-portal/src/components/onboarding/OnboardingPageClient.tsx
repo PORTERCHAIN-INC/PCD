@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { clerkDevBypassEnabled } from "@porterchain/auth/devBypass";
+import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import PortalOnboardingView from "@/components/onboarding/PortalOnboardingView";
 import {
   fetchMerchantOnboarding,
   saveMerchantCompanyFile,
   saveMerchantVertical,
 } from "@/lib/onboarding";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { readSignupAttribution } from "@/lib/signupAttribution";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 
@@ -20,14 +20,14 @@ import { useMerchantAuth } from "@/hooks/useMerchantAuth";
  * a configured Clerk tree.
  */
 export default function OnboardingPageClient() {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     // Local dev bypass (Bearer dev): no Clerk tree, the API session is the identity.
-    return clerkDevBypassEnabled() ? <MerchantOnboarding isLoaded isSignedIn /> : null;
+    return authDevBypassEnabled() ? <MerchantOnboarding isLoaded isSignedIn /> : null;
   }
-  return <MerchantOnboardingWithClerk />;
+  return <MerchantOnboardingWithAuth />;
 }
 
-function MerchantOnboardingWithClerk() {
+function MerchantOnboardingWithAuth() {
   const { isLoaded, isSignedIn } = useAuth();
   return <MerchantOnboarding isLoaded={isLoaded} isSignedIn={Boolean(isSignedIn)} />;
 }
