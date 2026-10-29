@@ -85,11 +85,11 @@ New event types (15): `approval.requested/decided` (pc.approvals.v1), `agent.run
 
 ```mermaid
 flowchart LR
-  OLD[apps/worker 22 polling sweeps] -->|weeks 6-7| SPLIT{each sweep}
+  OLD[apps/worker 22 polling sweeps] -->|Phase 0 weeks 7-8| SPLIT{each sweep}
   SPLIT -->|time-based: quote expiry, SLA, billing cycle, offer expiry, doc expiry| SCH[DBOS scheduled workflows / workflow timers]
   SPLIT -->|event-based: reacts to a change| KC[Kafka consumers on pc.*.v1]
   SCH & KC --> PAR[parity tests per sweep]
-  PAR --> DEL[worker polling loop deleted by week 7]
+  PAR --> DEL[worker polling loop deleted by Phase 0 week 8]
 ```
 
 ## 23.4 Live GPS stays on Redis (verified as-built, unchanged; see 12)

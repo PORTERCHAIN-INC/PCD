@@ -250,7 +250,7 @@ Duties that apply to us (Integrated Accessibility Standards, O. Reg. 191/11, and
 
 ## 11. Unknowns and decisions (also in 98)
 
-- **D-68-1 DECIDED (updated 29 Oct)** **No cargo insurance exists yet.** Liability = the **$4.41/kg legal floor** (O. Reg. 643/05; U68-1 for cars/vans). **No declared value is offered** (field hidden) until a cargo policy exists; then liability follows the policy limits. Commercial insurance status to confirm.
+- **D-68-1 DECIDED (updated 29 Oct)** **No cargo insurance exists yet.** Liability = the **$4.41/kg legal floor** (O. Reg. 643/05; U68-1 for cars/vans). **No declared value is offered** (field hidden) until a cargo policy exists; then liability follows the policy limits. No commercial insurance either (round 2, G-INS: all bound before the first paid delivery).
 - **D-68-2 DECIDED** French Help Centre and all legal documents in Phase 0 for the pilot. For help and legal content this overrides L30-5 (other customer-facing French stays as L30). The lawyer (or a French-speaking lawyer they nominate) reviews the French legal text in weeks 7–8.
 - **D-68-3 DECIDED** A full Partner Agreement for courier, logistics and warehouse partners is drafted in Phase 0 and goes to the lawyer with the rest (weeks 3–6).
 - **D-68-4 DECIDED** Service levels are published as targets, not guarantees (no service credits).
@@ -258,7 +258,7 @@ Duties that apply to us (Integrated Accessibility Standards, O. Reg. 191/11, and
 - **D-68-6 DECIDED** Privacy officer: **Ravi Chauhan**, `privacy@porterchain.com` (mailbox exists, **done** 29 Oct 2026). Published in the Privacy Policy, DPA and Shopify app privacy policy.
 - **D-68-7 DECIDED** Help on the website path `/[locale]/help` (no subdomain); `help.porterchain.com` not used.
 - U68-1 Whether our cars and vans count as "commercial motor vehicles" under HTA, so O. Reg. 643/05 conditions and the $4.41/kg limit apply (lawyer).
-- U68-2 **No cargo policy yet.** Ravi buys cargo insurance before box truck go-live; then set the per-shipment/per-kg limits and turn on declared value. Commercial (auto / non-owned auto) insurance status to confirm, plus the insurer's driver requirements.
+- U68-2 **No cargo policy yet.** Ravi buys cargo insurance before the first paid delivery (G-INS); then set the per-shipment/per-kg limits and turn on declared value. Commercial auto / HNOA / CGL: none held (round 2); bound before the first paid delivery (G-INS).
 - U68-3 **Resolved:** 1–19 employees → AODA small-organisation obligations (§8.1).
 
 ## Updates 29 Oct 2026 (Ravi, round 2)

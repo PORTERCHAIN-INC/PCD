@@ -23,7 +23,7 @@ Order (each step passes the six-check gate, `NEW_ADDITION_GATE.md`, and local re
 7. Admin/super-admin IA reorg; delete redirect stubs.
 8. Box truck go-live only after CVOR + cargo insurance + BOL done; DPWRA features before contractor scale-up.
 
-Schedule (L24): 14 build + 8 proven weeks, a 2-week slip from 12 + 8 caused by Kafka (L19, about 1 week: broker, outbox relay, topics, consumers, week-13 hardening) and moving all 22 sweeps (L20, about 1 week). All 11 S1 fixes by week 6 (L21); sweeps weeks 6–7; Kafka hardening week 13; rehearsal + pilot week 14; proven window weeks 15–22. Box truck price from Ravi by week 3; truck runs only after BOL, CVOR and cargo insurance (L23).
+**Superseded by L31/L32:** Phase 0 12 weeks + Phase 1 8 build + 8 proven = 28 weeks (doc 60 §4). Earlier schedule (L24): 14 build + 8 proven weeks, a 2-week slip from 12 + 8 caused by Kafka (L19, about 1 week: broker, outbox relay, topics, consumers, week-13 hardening) and moving all 22 sweeps (L20, about 1 week). All 11 S1 fixes by week 6 (L21); sweeps weeks 6–7; Kafka hardening week 13; rehearsal + pilot week 14; proven window weeks 15–22. Box truck price from Ravi by week 3; truck runs only after BOL, CVOR and cargo insurance (L23).
 
 ## Existing features kept (as-built features the plan must not drop)
 

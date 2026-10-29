@@ -81,7 +81,7 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 
 ## Phase 0 (added 29 Oct 2026, L31)
 
-Ravi defined Phase 0 before Phase 1: no agentic mode; every replacement, routing + operations redesign, database organisation, store releases, dead-code removal, S1 fixes and hybrid deployment. 12 weeks, gated by G1–G17.
+Ravi defined Phase 0 before Phase 1: no agentic mode; every replacement, routing + operations redesign, database organisation, store releases, dead-code removal, S1 fixes and hybrid deployment. 12 weeks, gated by G1–G21 plus G-INS for paid deliveries (doc 60 §2).
 
 | #   | NOW vs PHASE 0                                                                                                                                                            |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

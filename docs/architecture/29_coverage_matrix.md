@@ -909,7 +909,7 @@ Droplet 8 GB (~$48/mo); "please retry" message during failover with no queued bo
 5. **Paid pen test:** out under L26. Accept free tooling plus an ASVS self-check (doc 38).
 6. **French for portals and apps** in Phase 1, or Phase 2 (doc 53).
 7. **Zapier and NetSuite** deferred to Phase 2 (doc 55).
-8. Already open: the box truck price by week 3, the pilot merchant, lawyer review by week 6 (doc 49), the GPU upgrade, and the optional Meta Cloud API free tier.
+8. Already open (as of that pass; box truck price later moved to the prep pack, doc 56): the box truck price, the pilot merchant, lawyer review by week 6 (doc 49), the GPU upgrade, and the optional Meta Cloud API free tier.
 
 ## Further Ravi decisions recorded (28 Oct 2026)
 

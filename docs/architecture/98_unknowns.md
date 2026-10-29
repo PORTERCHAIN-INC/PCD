@@ -79,7 +79,7 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 
 ## Updates 29 Oct 2026 (Ravi)
 
-- **U-INS-1** Cargo insurance **not in place**: Ravi buys it before box truck go-live; declared value stays off until then. Commercial (auto liability / non-owned auto) insurance status to confirm. Home Depot requires the renter's own non-owned-auto liability (sells none); U-Haul business accounts need a COI or SafeMove.
+- **U-INS-1** Cargo insurance **not in place**: Ravi buys it before the first paid delivery (G-INS); declared value stays off until then. Commercial auto / HNOA / CGL: none held (round 2); bound before the first paid delivery (G-INS). Home Depot requires the renter's own non-owned-auto liability (sells none); U-Haul business accounts need a COI or SafeMove.
 - **U-TRK-1** Home Depot Canada rates are not published online; get the store's rate sheet (and whether any GTA store has a box truck). U-Haul per-km rates vary by dealer ($0.49–0.99/km seen).
 - **U-TRK-2** (lawyer) Do Home Depot / U-Haul rental terms allow paid courier use; operator status when a contractor drives a Porterchain-rented truck; 160 km exemption on edge-of-area days.
 - **U-QT-1** Quote validity 72 h vs code 30 min (`config.py:51`, `settings_service.py:130`, Shopify `QUOTE_TTL`): change in Phase 0 week 2.

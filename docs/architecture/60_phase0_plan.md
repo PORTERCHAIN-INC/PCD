@@ -89,14 +89,16 @@ Weeks count from Ravi's approval of this file. One Ubuntu dev + Ravi review; no 
 | 6   | Keycloak in both Expo apps (passkeys); Clerk code + `clerk_webhook_events` removed; merchants Stripe → Interac only (G11); DBOS order + billing workflows; W9 lawyer fixes; FR translation; policy_versions + consent_records                                                                                    | 0 `clerk` refs; merchant Stripe paths gone; workflow resumes after kill                      |
 | 7   | Sweeps batch 1 (11) with parity tests; routing benchmark (§13.2) + routing service with Valhalla + VROOM (§13.3) behind a feature flag; W9 French legal review (D-68-2)                                                                                                                                          | 11 sweeps replaced; routing health + fallback tests pass                                     |
 | 8   | Sweeps batch 2 (11), polling loop deleted; dispatch/operations pages rebuilt (§9); DPWRA (A10); W9 render on web, portals, Shopify, emails                                                                                                                                                                       | G12 = 0; new pages pass axe + Playwright                                                     |
-| 9   | DB plan step 2: domain schemas, CRM/finance merge (A19), isolated tables (A20), legacy drops; admin IA (16), A21, A22; W9 apps Legal + delete account; status page                                                                                                                                               | G13 green on local; IA redirects at Caddy                                                    |
-| 10  | Hybrid deployment: droplet 8 GB, Oracle A1, Ubuntu WireGuard admin; WCAG fixes; TestFlight external beta; W9 AODA + plain-language pass                                                                                                                                                                          | Admin unreachable publicly; axe 0 serious                                                    |
+| 9   | DB plan step 2: domain schemas, CRM/finance merge (A19), isolated tables (A20), legacy drops; admin IA (16), A21, A22; W9 apps Legal + delete account; status page; Leads/CRM `crm` schema + instant website leads (78 §12)                                                                                      | G13 green on local; IA redirects at Caddy                                                    |
+| 10  | Hybrid deployment: droplet 8 GB, Oracle A1, Ubuntu WireGuard admin; WCAG fixes; TestFlight external beta; W9 AODA + plain-language pass; Leads channels: Meta FB/IG, YouTube, forwarded LinkedIn/X email (78 §12)                                                                                                | Admin unreachable publicly; axe 0 serious                                                    |
 | 11  | Store submissions: App Store review (both apps), create Google Play organisation account using D-U-N-S 243332549 (verification before the Phase 1 week 8 release), Shopify custom app on the pilot store; four failover drills; 10× load test; W9 store listing URLs + privacy labels; Shopify onboarding screen | G14, G15, G7                                                                                 |
-| 12  | Perfection sweep: G1–G17 in one CI run; full local rehearsal; **pilot merchant live, human-run (D-P0-1)**; Phase 0 exit review with Ravi; G18                                                                                                                                                                    | All gates green                                                                              |
+| 12  | Perfection sweep: G1–G21 in one CI run (G-INS before paid deliveries); full local rehearsal; **pilot merchant live, human-run (D-P0-1)**; Phase 0 exit review with Ravi                                                                                                                                          | All gates green                                                                              |
+
+The L35 business-ready work (§17: review fixes weeks 1–2, organisation model 3–5, pricing 6–7, support + integrations 8, ops IA 8–9, acceptance suite 10–12) runs inside these same 12 weeks.
 
 Buffer: Apple review rejections and Keycloak mobile cut-over are the two likely slips (risk table). If a gate is red at week 12, Phase 0 extends; Phase 1 does not start on a red gate.
 
-**Phase 1 after Phase 0 (shifted):** 8 build weeks + 8 proven weeks (was 14 + 8, because weeks 1–7 and 13 of the old plan are now done in Phase 0). P1 wk 1 llama.cpp + models + RAG + Langfuse, FEATURE_AI back on with local models; wk 2 box truck + BOL (A09) + price; wk 3 cooler runs; wk 4 WhatsApp intake/reply agent; wk 5 core 3 agents, verifier, interrupts; wk 6 eval harness + QLoRA + shadow (Sales, Dispatch, Cooler/truck); wk 7 Billing/HST, Support, Driver mgmt, Platform shadow + ladder; wk 8 full rehearsal with agents on the live pilot; Google Play release (D-P0-7) (pilot already live from Phase 0 week 12, D-P0-1). Then P1 wk 9–16 proven window. **Total to the end of the proven window: 12 + 8 + 8 = 28 weeks** (was 22).
+**Phase 1 after Phase 0 (shifted):** 8 build weeks + 8 proven weeks (was 14 + 8, because weeks 1–7 and 13 of the old plan are now done in Phase 0). P1 wk 1 llama.cpp + models + RAG + Langfuse, FEATURE_AI back on with local models; wk 2 box truck + BOL (A09) + price, switched on only when box truck demand exists (prep pack, doc 56); wk 3 cooler runs; wk 4 WhatsApp intake/reply agent; wk 5 core 3 agents, verifier, interrupts; wk 6 eval harness + QLoRA + shadow (Sales, Dispatch, Cooler/truck); wk 7 Billing/HST, Support, Driver mgmt, Platform shadow + ladder; wk 8 full rehearsal with agents on the live pilot; Google Play release (D-P0-7) (pilot already live from Phase 0 week 12, D-P0-1). Then P1 wk 9–16 proven window. **Total to the end of the proven window: 12 + 8 + 8 = 28 weeks** (was 22).
 
 ## 5. Workstreams and owners
 
@@ -216,7 +218,7 @@ Verified 29 Oct 2026: App Store uploads must be built with Xcode 26+ and the iOS
 
 ## 12. Decisions needing Ravi
 
-All seven decided 29 Oct 2026 (L32, §13). Still open: the Shopify App Review question in §13.5; buy cargo insurance before box truck go-live; confirm commercial insurance status; the Home Depot store rate sheet for the truck price. Closed 29 Oct: ELD (rentals ≤ 30 days and within 160 km are exempt, 56), backup on-call (named, contact held privately by Ravi), pilot merchant = Kaylulu (test merchant PCDC).
+All seven decided 29 Oct 2026 (L32, §13). Still open: the Shopify App Review question in §13.5; G-INS: bind commercial auto (or courier cover), HNOA, cargo and CGL before the first paid delivery (none held today, §16); the truck price is set when box truck work starts (Home Depot publishes no online rates, doc 56). Closed 29 Oct: ELD (rentals ≤ 30 days and within 160 km are exempt, 56), backup on-call (named, contact held privately by Ravi), pilot merchant = Kaylulu (test merchant PCDC).
 
 - **D-P0-1 decided:** pilot merchant at the end of Phase 0 (week 12), human-run, no agents.
 - **D-P0-2 decided:** Redpanda in Phase 0.
@@ -283,7 +285,7 @@ Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = $4.41/kg legal floor be
 
 ## 15. Updates 29 Oct 2026 (Ravi)
 
-- **Insurance:** cargo insurance **not in place**; commercial insurance status to confirm. Liability $4.41/kg floor, no declared value. Box truck stays gated; **Ravi action: buy cargo insurance before box truck go-live.**
+- **Insurance:** cargo insurance **not in place**; no commercial insurance either (round 2, G-INS: all bound before the first paid delivery). Liability $4.41/kg floor, no declared value. Box truck stays gated; **Ravi action: buy cargo insurance before the first paid delivery (G-INS).**
 - **Quote validity:** 3 days (72 h). Code today: `config.py:51 quote_ttl_minutes = 30`, `admin_engine/settings_service.py:130`, Shopify `QUOTE_TTL = 30 min` (`integrations/shopify_carrier_rates.py:37`). Phase 0 week 2 sets the customer/merchant quote TTL to 4,320 min; the Shopify carrier-rate cache stays short (it is a checkout rate, not a quote) unless Ravi decides otherwise. Fuel/rental cost moves inside 72 h are absorbed by the margin band.
 - **Pilot merchant:** Kaylulu (real). **PCDC** is the test merchant for rehearsal (L13) and test data; never mix PCDC data into Kaylulu reports.
 - **Box truck:** short-term rental, Home Depot Canada first, U-Haul urgent/backup; CVOR/ELD/BOL/price inputs in 56.
@@ -292,17 +294,11 @@ Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = $4.41/kg legal floor be
 ## 16. Updates 29 Oct 2026, round 2 (Ravi)
 
 - **No business yet:** Porterchain builds software and systems only. No commercial auto, HNOA, cargo or CGL insurance; all bought after business arrives.
-- **New hard gate G-INS (pilot blocker):** minimum insurance (commercial auto or appropriate courier cover, HNOA, cargo, CGL) bound and on file **before the first paid delivery, including the Kaylulu pilot**. G-INS sits beside G1–G18 for the week-12 exit: if unbound, Phase 0 still exits on software gates but **the pilot stays on unpaid PCDC test runs**. Detail and sources: doc 56.
+- **New hard gate G-INS (pilot blocker):** minimum insurance (commercial auto or appropriate courier cover, HNOA, cargo, CGL) bound and on file **before the first paid delivery, including the Kaylulu pilot**. G-INS sits beside G1–G21 for the week-12 exit: if unbound, Phase 0 still exits on software gates but **the pilot stays on unpaid PCDC test runs**. Detail and sources: doc 56.
 - **PCDC:** test development store Ravi created in Shopify Partners (rehearsal, test data).
 - **Box truck:** not a priority; a ready-to-switch-on prep pack behind `FEATURE_BOX_TRUCK=false` (pricing inputs, onboarding + collaboration flows, checklists), doc 56. Ravi drives any rented vehicle until employees or a logistics contract.
 - **Cancellation fees (D-68-5 decided):** none for retail customers; merchants and partners only per contract. Pricing: remove the retail cancel fee from price cards; add `cancellation_fee` to merchant contract terms and partner rate cards.
 - **Broker model (W10, docs only in Phase 0):** partner onboarding with COI, partner rate cards, margin floors, partner portal + tables, dispatch own-vs-partner rule, HTA s.191.0.1 trust account, Partner Agreement updates. Build in Phase 1 after the pilot; doc 56.
-
-## 18. Ravi's asks: traceability (29 Oct 2026, doc 77)
-
-Every Ravi message of 28–29 Oct is traced in [77](77_phase0_traceability.md): 54 asks, 34 covered, 8 fixed (Leads/CRM module doc 78 in weeks 9–10; UI/UX 100% = every page spec'd + G8; supply-chain standards help pages; weather/delay rule; Ravi set up as a driver; Shopify Partner Support draft; matrix; consistency passes), 12 on docs 70–76 (verify after). No new Ravi decisions needed.
-
-**Leads/CRM (doc 78):** week 9 adds the `crm` schema, identity spine, instant website leads, spam rules, auto-ack and SLA timers; week 10 adds Meta (FB/IG) webhooks, YouTube comments and forwarded-email parsers (LinkedIn, X). Meta App Review is submitted in week 6. Still 12 weeks.
 
 ## 17. L35 Business-ready Phase 0 (29 Oct 2026, docs 70–76)
 
@@ -314,6 +310,12 @@ Every Ravi message of 28–29 Oct is traced in [77](77_phase0_traceability.md): 
 - **Weeks 10–12:** acceptance suite 76 green (G19) before the week-12 pilot.
 - Build order inside every workstream: Shopify merchant → warehouse → small shop → courier → logistics → supply chain → CHA. Partner job routing stays Phase 1 in production use (doc 56) but its tests A-CP/A-LP are written and run on sandbox in Phase 0.
 - Decisions for Ravi: D-70-1..4, D-72-1..4, D-75-1 (see 98).
+
+## 18. Ravi's asks: traceability (29 Oct 2026, doc 77)
+
+Every Ravi message of 28–29 Oct is traced in [77](77_phase0_traceability.md): 54 asks, 34 covered, 8 fixed (Leads/CRM module doc 78 in weeks 9–10; UI/UX 100% = every page spec'd + G8; supply-chain standards help pages; weather/delay rule; Ravi set up as a driver; Shopify Partner Support draft; matrix; consistency passes), 12 on docs 70–76 (verify after). No new Ravi decisions needed.
+
+**Leads/CRM (doc 78):** week 9 adds the `crm` schema, identity spine, instant website leads, spam rules, auto-ack and SLA timers; week 10 adds Meta (FB/IG) webhooks, YouTube comments and forwarded-email parsers (LinkedIn, X). Meta App Review is submitted in week 6. Still 12 weeks.
 
 ## Unknowns (also in 98)
 

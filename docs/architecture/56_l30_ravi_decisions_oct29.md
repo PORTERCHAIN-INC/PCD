@@ -52,7 +52,7 @@ Source: **Home Depot Canada vehicle rental** first, **U-Haul Canada** for urgent
 - **BOL:** Porterchain Inc. issues the bill of lading as carrier for every truck job (O. Reg. 643/05); liability is the $4.41/kg floor (no cargo insurance, D-68-1).
 - **ELD:** not required for us in two independent ways: (1) **rented CMV with a rental agreement of 30 days or less** that is not extended or renewed, and (2) driving within **160 km of where the day starts and returning there**. Hours-of-service limits still apply, and under the 160 km exemption the operator keeps a daily record (date, driver, start/end place, cycle, duty times, previous 14 days' totals). Sources: https://www.ontario.ca/page/electronic-logging-devices-commercial-motor-vehicles ; https://www.ontario.ca/laws/regulation/060555 s.23. Our service area (Toronto + 150 km) fits inside 160 km for most days; a trip to the edge and beyond the depot side may not ⚖ check per route.
 
-### Price-model inputs (truck price card, week 3)
+### Price-model inputs (truck price card, set when box truck work starts; prep pack below)
 
 Per job: rental time (rounded to the provider's billing block: Home Depot first 90 min then 15-min blocks to the day cap; U-Haul per day) + km × provider rate (U-Haul $0.49–0.99/km; Home Depot not published) + fuel used (L/100 km × pump price) + driver pay (DPWRA minimum for engaged time) + commercial auto liability / non-owned auto coverage share + SafeMove if used + travel to and from the rental store + deposit cost of capital ($500 hold) + tolls (407) + CVOR/admin share; then the 50/35 margin bands. Use the **store's real rate sheet** before publishing; online figures above are indicative.
 
