@@ -54,7 +54,7 @@ def list_platform_users(
     invite_status: str | None = Query(None),
     identity_status: str | None = Query(None),
     account_status: str | None = Query(None),
-    clerk_status: str | None = Query(None),
+    directory_status: str | None = Query(None),
 ) -> PlatformUsersResponse:
     return _invoke(
         ctx,
@@ -68,7 +68,7 @@ def list_platform_users(
         invite_status=invite_status,
         identity_status=identity_status,
         account_status=account_status,
-        clerk_status=clerk_status,
+        directory_status=directory_status,
     )
 
 
@@ -114,7 +114,7 @@ def update_platform_clerk_user(
         ctx,
         settings,
         user_type,
-        body.clerk_user_id,
+        body.auth_subject,
         name=body.name,
         password=body.password,
         banned=body.banned,
@@ -140,7 +140,7 @@ def delete_platform_user(
         ctx,
         settings,
         user_type,
-        clerk_user_id=body.clerk_user_id,
+        auth_subject=body.auth_subject,
         platform_user_id=body.platform_user_id,
         module="settings_identity",
     )
@@ -165,7 +165,7 @@ def authorize_platform_user(
         settings,
         user_type,
         platform_user_id=body.platform_user_id,
-        clerk_user_id=body.clerk_user_id,
+        auth_subject=body.auth_subject,
         email=body.email,
         name=body.name,
         reason=body.reason,

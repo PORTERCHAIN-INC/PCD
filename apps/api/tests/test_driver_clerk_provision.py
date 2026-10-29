@@ -54,7 +54,7 @@ def _setup(monkeypatch, clerk: FakeClerk, pending_rows=()):
     db.add.side_effect = added.append
     settings = SimpleNamespace(driver_portal_url="https://driver.porterchain.com/")
     driver = SimpleNamespace(
-        id="drv1", email="  Abdul.Test@Gmail.com ", full_name="Abdul Salim", clerk_user_id=None
+        id="drv1", email="  Abdul.Test@Gmail.com ", full_name="Abdul Salim", auth_subject=None
     )
     return db, settings, driver, added
 
@@ -63,7 +63,7 @@ def test_creates_clerk_user_without_password(monkeypatch) -> None:
     clerk = FakeClerk()
     db, settings, driver, added = _setup(monkeypatch, clerk)
     inv = InvitationService().provision_driver_account(db, None, settings, driver)
-    assert driver.clerk_user_id == "user_new"
+    assert driver.auth_subject == "user_new"
     c = clerk.created[0]
     assert c["email"] == "abdul.test@gmail.com"
     assert c["skip_password_requirement"] is True
@@ -72,7 +72,7 @@ def test_creates_clerk_user_without_password(monkeypatch) -> None:
     assert c["public_metadata"]["driver_id"] == "drv1"
     assert clerk.revoked == ["abdul.test@gmail.com"]
     assert inv.status == "accepted"
-    assert inv.invitation_metadata["clerk_action"] == "created"
+    assert inv.invitation_metadata["identity_action"] == "created"
     assert clerk.invited == []
 
 
@@ -80,17 +80,17 @@ def test_links_existing_clerk_user_idempotently(monkeypatch) -> None:
     clerk = FakeClerk(existing={"id": "user_old"})
     db, settings, driver, _ = _setup(monkeypatch, clerk)
     InvitationService().provision_driver_account(db, None, settings, driver)
-    assert driver.clerk_user_id == "user_old"
+    assert driver.auth_subject == "user_old"
     assert clerk.created == []
     assert clerk.metadata_updates[0][0] == "user_old"
 
 
 def test_closes_local_pending_invites(monkeypatch) -> None:
-    row = SimpleNamespace(status="pending", clerk_user_id=None, accepted_at=None)
+    row = SimpleNamespace(status="pending", auth_subject=None, accepted_at=None)
     db, settings, driver, _ = _setup(monkeypatch, FakeClerk(), pending_rows=[row])
     InvitationService().provision_driver_account(db, None, settings, driver)
     assert row.status == "accepted"
-    assert row.clerk_user_id == "user_new"
+    assert row.auth_subject == "user_new"
     assert row.accepted_at is not None
 
 
@@ -110,7 +110,7 @@ def test_falls_back_to_invite_when_clerk_fails(monkeypatch) -> None:
     inv = svc.provision_driver_account(db, None, settings, driver)
     assert called.get("yes") is True
     assert inv.status == "pending"
-    assert driver.clerk_user_id is None
+    assert driver.auth_subject is None
 
 
 @pytest.mark.parametrize("revoke_raises", [True])
@@ -119,4 +119,4 @@ def test_revoke_failure_does_not_block(monkeypatch, revoke_raises) -> None:
     clerk.revoke_pending_invitations = MagicMock(side_effect=RuntimeError("x"))
     db, settings, driver, _ = _setup(monkeypatch, clerk)
     InvitationService().provision_driver_account(db, None, settings, driver)
-    assert driver.clerk_user_id == "user_new"
+    assert driver.auth_subject == "user_new"

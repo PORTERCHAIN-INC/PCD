@@ -45,9 +45,9 @@ def list_directory_seats(db: Session, *, limit: int = 5000) -> list[tuple[Any, A
 
 
 def active_seats_for_clerk(
-    db: Session, clerk_user_id: str, *, user_id: str | None = None
+    db: Session, auth_subject: str, *, user_id: str | None = None
 ) -> list[MerchantUser]:
-    rows = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_user_id).all()
+    rows = db.query(MerchantUser).filter(MerchantUser.auth_subject == auth_subject).all()
     out: list[MerchantUser] = []
     for mu in rows:
         if not mu.is_active:
@@ -58,8 +58,8 @@ def active_seats_for_clerk(
     return out
 
 
-def seats_for_clerk(db: Session, clerk_user_id: str) -> list[MerchantUser]:
-    return db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_user_id).order_by(MerchantUser.created_at).all()
+def seats_for_clerk(db: Session, auth_subject: str) -> list[MerchantUser]:
+    return db.query(MerchantUser).filter(MerchantUser.auth_subject == auth_subject).order_by(MerchantUser.created_at).all()
 
 
 def get_merchant_user(db: Session, user_id: str | None) -> MerchantUser | None:
@@ -90,22 +90,22 @@ def get_merchant_by_email(db: Session, email: str) -> Merchant | None:
     )
 
 
-def get_merchant_by_clerk_org(db: Session, clerk_org_id: str) -> Merchant | None:
-    return db.query(Merchant).filter(Merchant.clerk_org_id == clerk_org_id).first()
+def get_merchant_by_clerk_org(db: Session, external_org_id: str) -> Merchant | None:
+    return db.query(Merchant).filter(Merchant.external_org_id == external_org_id).first()
 
 
-def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
+def rebind_clerk_by_email(db: Session, email: str, subject_ref: str) -> bool:
     from porterchain_api.auth.email_identity import emails_match
 
     row = db.query(MerchantUser).filter(MerchantUser.email == email).first()
     if not row or not emails_match(getattr(row, "email", None), email):
         return False
-    if row.clerk_user_id == clerk_id:
+    if row.auth_subject == subject_ref:
         return False
-    taken = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_id).first()
+    taken = db.query(MerchantUser).filter(MerchantUser.auth_subject == subject_ref).first()
     if taken and taken.id != row.id:
         return False
-    row.clerk_user_id = clerk_id
+    row.auth_subject = subject_ref
     return True
 
 
@@ -145,7 +145,7 @@ def get_seat(
     return user
 
 
-def get_seat_by_clerk(db: Session, clerk_user_id: str | None) -> MerchantUser | None:
-    if not clerk_user_id:
+def get_seat_by_clerk(db: Session, auth_subject: str | None) -> MerchantUser | None:
+    if not auth_subject:
         return None
-    return db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_user_id).first()
+    return db.query(MerchantUser).filter(MerchantUser.auth_subject == auth_subject).first()

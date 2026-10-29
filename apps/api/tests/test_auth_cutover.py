@@ -88,20 +88,20 @@ def test_ensure_staff_identity_prefers_existing_staff_subject(db) -> None:
         name="Dev Ops",
         role="admin",
         is_active=True,
-        clerk_user_id=f"dev_clerk_user_{suffix}",
+        auth_subject=f"dev_clerk_user_{suffix}",
     )
     db.add(admin)
     db.flush()
 
     staff_pc = PorterchainUser(
-        clerk_user_id=f"staff:{admin.id}",
+        auth_subject=f"staff:{admin.id}",
         email=admin.email,
         role="admin",
         status="active",
         default_workspace="admin",
     )
     legacy_pc = PorterchainUser(
-        clerk_user_id=f"legacy_clerk_{suffix}",
+        auth_subject=f"legacy_clerk_{suffix}",
         email=admin.email,
         role="unprovisioned",
         status="active",
@@ -115,7 +115,7 @@ def test_ensure_staff_identity_prefers_existing_staff_subject(db) -> None:
     db.refresh(admin)
     assert bound == staff_pc.id
     assert admin.porterchain_user_id == staff_pc.id
-    assert admin.clerk_user_id == f"staff:{admin.id}"
+    assert admin.auth_subject == f"staff:{admin.id}"
 
 
 def test_auth_sli_prometheus_lines() -> None:

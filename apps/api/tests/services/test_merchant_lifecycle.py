@@ -119,7 +119,7 @@ def test_convert_creates_customer_without_moving_orders(db, admin_ctx, merchant_
     customer = db.query(Customer).filter(Customer.id == result["customer_id"]).first()
     assert customer is not None
     assert customer.email == merchant_ctx.merchant.email.lower()
-    assert not str(customer.clerk_user_id).startswith("user_")
+    assert not str(customer.auth_subject).startswith("user_")
     db.refresh(order)
     assert order.merchant_id == merchant_ctx.merchant.id
     assert order.customer_id is None
@@ -131,7 +131,7 @@ def test_reactivate_off_seat(db, merchant_ctx) -> None:
     merchant_ctx.user.role = MerchantRole.OWNER.value
     extra = MerchantUser(
         merchant_id=merchant_ctx.merchant.id,
-        clerk_user_id="pending:ops@example.com",
+        auth_subject="pending:ops@example.com",
         email="ops@example.com",
         role="merchant_ops",
         is_active=False,

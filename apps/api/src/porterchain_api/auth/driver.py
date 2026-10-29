@@ -97,11 +97,11 @@ def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
     from porterchain_api.auth.claims import IdentityClaims
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
-    if not driver.clerk_user_id:
+    if not driver.auth_subject:
         return
     principal = resolve_principal_for_claims(
         db,
-        IdentityClaims(clerk_user_id=driver.clerk_user_id, email=driver.email),
+        IdentityClaims(auth_subject=driver.auth_subject, email=driver.email),
     )
     if not principal:
         raise HTTPException(status_code=403, detail="user_not_provisioned")
@@ -126,7 +126,7 @@ def _clerk_driver_id_from_claims(db: Session, claims, settings: Settings) -> str
     # Align with other portals: prepare (UserSync + SpiceDB) once, then exclusive check.
     prepare_user_from_claims(db, claims)
     assert_portal_provisioned(db, claims, portal="driver", settings=settings)
-    driver = load_persona_bundle(db, claims.clerk_user_id).driver
+    driver = load_persona_bundle(db, claims.auth_subject).driver
     if not driver:
         raise HTTPException(status_code=403, detail="driver_not_found")
     from porterchain_api.auth.email_identity import (

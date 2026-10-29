@@ -26,7 +26,7 @@ def create_onboarding_merchant(
     profile: dict[str, Any] | None = None,
     status: str | None = None,
     payment_terms: str = "NET_30",
-    clerk_org_id: str | None = None,
+    external_org_id: str | None = None,
     activated_at: datetime | None = None,
     pricing_config: dict[str, Any] | None = None,
     dedupe_source: str | None = None,
@@ -46,7 +46,7 @@ def create_onboarding_merchant(
         preferred_vehicles=preferred_vehicles or [],
         profile=profile or {},
         payment_terms=payment_terms,
-        clerk_org_id=clerk_org_id,
+        external_org_id=external_org_id,
         activated_at=activated_at,
         pricing_config=config,
         pricing_model=pricing_model,
@@ -60,10 +60,10 @@ def create_onboarding_merchant(
     return merchant
 
 
-def ensure_dev_merchant_seat(db: Session, clerk_user_id: str) -> MerchantUser:
+def ensure_dev_merchant_seat(db: Session, auth_subject: str) -> MerchantUser:
     from porterchain_api.merchant_engine.lookups import get_merchant_by_clerk_org, seats_for_clerk
 
-    if not is_merchant_dev_subject(clerk_user_id):
+    if not is_merchant_dev_subject(auth_subject):
         raise LookupError("merchant_user_not_found")
 
     merchant = get_merchant_by_clerk_org(db, "dev_merchant_org")
@@ -73,17 +73,17 @@ def ensure_dev_merchant_seat(db: Session, clerk_user_id: str) -> MerchantUser:
             company_name="Maple Leaf Wholesale Inc.",
             email=DEV_MERCHANT_EMAIL,
             status=MerchantStatus.ACTIVE.value,
-            clerk_org_id="dev_merchant_org",
+            external_org_id="dev_merchant_org",
             activated_at=datetime.now(UTC),
         )
 
-    seats = seats_for_clerk(db, clerk_user_id)
+    seats = seats_for_clerk(db, auth_subject)
     if seats:
         return seats[0]
 
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=clerk_user_id,
+        auth_subject=auth_subject,
         email=DEV_MERCHANT_EMAIL,
         role=MerchantRole.OWNER.value,
     )
@@ -92,5 +92,5 @@ def ensure_dev_merchant_seat(db: Session, clerk_user_id: str) -> MerchantUser:
     db.refresh(user)
     from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-    sync_authz_after_persona_mutation(db, clerk_user_id)
+    sync_authz_after_persona_mutation(db, auth_subject)
     return user

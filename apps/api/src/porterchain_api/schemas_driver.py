@@ -65,7 +65,7 @@ class DriverOnboardingResponse(BaseModel):
     ready: bool
     blockers: list[str]
     status: str
-    clerk_linked: bool
+    identity_linked: bool
     steps: list[DriverOnboardingStep]
     pending_documents: int
     can_access_portal: bool

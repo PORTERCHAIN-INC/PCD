@@ -63,5 +63,5 @@ def test_webhook_event_matching() -> None:
 
 def test_invitation_mark_accepted(db) -> None:
     InvitationService().mark_accepted(
-        db, email="never-invited@example.com", clerk_user_id="clerk_new"
+        db, email="never-invited@example.com", auth_subject="clerk_new"
     )

@@ -18,8 +18,8 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 
 
-def _claims(clerk_id: str, email: str) -> IdentityClaims:
-    return IdentityClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
+def _claims(subject_ref: str, email: str) -> IdentityClaims:
+    return IdentityClaims(auth_subject=subject_ref, email=email, clerk_app="merchant")
 
 
 def _seat(
@@ -33,8 +33,8 @@ def _seat(
     billing: dict | None = None,
     vertical: str | None = None,
 ) -> tuple[Merchant, MerchantUser, IdentityClaims]:
-    clerk_id = f"user_onboard_{uuid.uuid4().hex[:10]}"
-    email = f"{clerk_id}@onboard.test"
+    subject_ref = f"user_onboard_{uuid.uuid4().hex[:10]}"
+    email = f"{subject_ref}@onboard.test"
     profile = {"vertical": vertical} if vertical else {}
     merchant = Merchant(
         status=status,
@@ -50,14 +50,14 @@ def _seat(
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=clerk_id,
+        auth_subject=subject_ref,
         email=email,
         role=role,
         is_active=True,
     )
     db.add(user)
     db.commit()
-    return merchant, user, _claims(clerk_id, email)
+    return merchant, user, _claims(subject_ref, email)
 
 
 def test_status_glossary_matches_admin_words() -> None:

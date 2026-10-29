@@ -20,7 +20,7 @@ from porterchain_api.merchant_models import MerchantUser
 def test_profile_models_expose_porterchain_user_id() -> None:
     for model in (AdminUser, MerchantUser, Customer, Driver, UserInvitation):
         assert hasattr(model, "porterchain_user_id")
-        assert hasattr(model, "clerk_user_id")
+        assert hasattr(model, "auth_subject")
 
 
 def test_profile_targets_cover_five_tables() -> None:
@@ -43,7 +43,7 @@ def test_skippable_clerk_ids() -> None:
 
 def test_resolve_via_porterchain_users() -> None:
     db = MagicMock()
-    user = SimpleNamespace(id="pc-1", clerk_user_id="user_abc")
+    user = SimpleNamespace(id="pc-1", auth_subject="user_abc")
     q = MagicMock()
     q.filter.return_value.first.return_value = user
     db.query.return_value = q
@@ -59,7 +59,7 @@ def test_resolve_via_identity_link_when_platform_is_pc_user() -> None:
 
     db = MagicMock()
     link = SimpleNamespace(
-        clerk_user_id="user_abc",
+        auth_subject="user_abc",
         subject="user_abc",
         platform_user_id="pc-from-link",
         email=None,
@@ -70,7 +70,7 @@ def test_resolve_via_identity_link_when_platform_is_pc_user() -> None:
         q = MagicMock()
         if model is PorterchainUser:
             def first():
-                # Distinguish clerk_user_id lookup vs id lookup by inspecting filter args is hard;
+                # Distinguish auth_subject lookup vs id lookup by inspecting filter args is hard;
                 # use call count: 1st PorterchainUser query = by clerk (miss), 2nd = by id (hit)
                 n = getattr(query, "_pc_n", 0) + 1
                 query._pc_n = n  # type: ignore[attr-defined]
@@ -104,7 +104,7 @@ def test_backfill_action_never_embeds_secrets() -> None:
     action = BackfillAction(
         table="admin_users",
         row_id="adm-1",
-        clerk_user_id="user_abc",
+        auth_subject="user_abc",
         current_porterchain_user_id=None,
         resolved_porterchain_user_id="pc-1",
         status="would_set",

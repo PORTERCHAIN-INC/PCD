@@ -67,7 +67,7 @@ def test_settings_authorize_staff_refuses_clerk_only_create(db, admin_ctx, setti
             admin_ctx,
             settings,
             "staff",
-            clerk_user_id="user_random_platform",
+            auth_subject="user_random_platform",
             email="random@example.com",
             reason="should_fail",
         )
@@ -78,7 +78,7 @@ def test_settings_authorize_staff_refuses_clerk_only_create(db, admin_ctx, setti
             settings,
             "staff",
             platform_user_id=admin_ctx.user.id,
-            clerk_user_id="user_legacy_admin",
+            auth_subject="user_legacy_admin",
             reason="should_fail",
         )
 

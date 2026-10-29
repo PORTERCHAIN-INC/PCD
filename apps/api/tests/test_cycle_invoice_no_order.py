@@ -60,7 +60,7 @@ def admin_client(db, monkeypatch):
         if name.startswith("porterchain_api.routers.admin") and hasattr(mod, "require_module"):
             monkeypatch.setattr(mod, "require_module", lambda ctx, module: None)
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="cyc-admin", email="ops@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="cyc-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

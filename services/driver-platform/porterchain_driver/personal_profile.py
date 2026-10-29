@@ -196,10 +196,10 @@ def sync_identity(db: Any, driver: Any, *, email: str | None, phone: str | None)
     return changed
 
 
-def driver_for_clerk_user(db: Any, clerk_user_id: str) -> Any:
+def driver_for_clerk_user(db: Any, auth_subject: str) -> Any:
     from porterchain_api.admin_models import Driver
 
-    return db.query(Driver).filter(Driver.clerk_user_id == clerk_user_id).first()
+    return db.query(Driver).filter(Driver.auth_subject == auth_subject).first()
 
 
 def audit_self_change(db: Any, driver_id: str, action: str, fields: list[str]) -> None:

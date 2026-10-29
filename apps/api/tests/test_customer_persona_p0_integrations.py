@@ -53,7 +53,7 @@ def _matrix_require_module(ctx: AdminContext, module: str) -> None:
 def _admin_ctx(role: str = "super_admin") -> AdminContext:
     return AdminContext(
         user=AdminUser(
-            clerk_user_id=f"admin-int-{role}-{uuid4().hex[:6]}",
+            auth_subject=f"admin-int-{role}-{uuid4().hex[:6]}",
             email=f"{role}-int@porterchain.com",
             role=role,
         ),
@@ -104,7 +104,7 @@ def _stripe_settings() -> Settings:
 def _make_customer(db: Session) -> Customer:
     tag = uuid4().hex[:10]
     row = Customer(
-        clerk_user_id=f"user_int_{tag}",
+        auth_subject=f"user_int_{tag}",
         email=f"int-{tag}@p0.test",
         phone="+14165550111",
     )
@@ -385,7 +385,7 @@ def test_fb_confirmation_dual_writes_stops_and_order_created(db: Session, settin
         quote_id=quote.id,
         email=f"fb-{uuid4().hex[:6]}@p0.test",
         phone="+14165550888",
-        clerk_user_id=f"clerk_fb_{uuid4().hex[:8]}",
+        auth_subject=f"clerk_fb_{uuid4().hex[:8]}",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,

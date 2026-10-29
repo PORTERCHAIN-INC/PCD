@@ -14,22 +14,22 @@ from porterchain_api.auth.prepare import invalidate_auth_prepare
 logger = logging.getLogger("porterchain.security")
 
 
-def sync_authz_after_persona_mutation(db: Session, clerk_user_id: str | None) -> None:
+def sync_authz_after_persona_mutation(db: Session, auth_subject: str | None) -> None:
     """Invalidate caches, activate pending registry user, push SpiceDB tuples.
 
     Call after creating/linking AdminUser, MerchantUser, Driver, or Customer rows
     so same-request Checks (organization#portal, profile#access) see fresh tuples.
     """
-    if not clerk_user_id or is_dev_bypass_subject(clerk_user_id):
+    if not auth_subject or is_dev_bypass_subject(auth_subject):
         return
     # pending: seats have no SpiceDB subject yet; staff:{admin_id} is a real IdP subject.
-    if clerk_user_id.startswith("pending:"):
+    if auth_subject.startswith("pending:"):
         return
 
-    invalidate_persona_bundle(db, clerk_user_id)
-    invalidate_auth_prepare(db, clerk_user_id)
+    invalidate_persona_bundle(db, auth_subject)
+    invalidate_auth_prepare(db, auth_subject)
 
-    user = activate_user_for_clerk(db, clerk_user_id)
+    user = activate_user_for_clerk(db, auth_subject)
     if not user:
         return
 

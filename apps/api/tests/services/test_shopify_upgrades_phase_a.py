@@ -140,7 +140,7 @@ def _no_saved_promise(db):
 def _admin(db, role: AdminRole) -> AdminContext:
     suffix = uuid4().hex[:8]
     user = AdminUser(
-        clerk_user_id=f"clerk_{role.value}_{suffix}",
+        auth_subject=f"clerk_{role.value}_{suffix}",
         email=f"{role.value}-{suffix}@svc.test".lower(),
         name="Promise test",
         role=role.value,

@@ -57,7 +57,7 @@ export function UserFiltersBar({
     filters.invite_status ||
     filters.identity_status ||
     filters.account_status ||
-    filters.clerk_status
+    filters.directory_status
   );
 
   return (
@@ -126,14 +126,16 @@ export function UserFiltersBar({
           </Field>
           <Field label="Clerk status" className="min-w-[9rem]">
             <Select
-              value={filters.clerk_status ?? ""}
-              onChange={(e) => onChange({ ...filters, clerk_status: e.target.value || undefined })}
+              value={filters.directory_status ?? ""}
+              onChange={(e) =>
+                onChange({ ...filters, directory_status: e.target.value || undefined })
+              }
             >
               {CLERK_STATUS_OPTIONS.map((o) => (
                 <option key={o.value || "all"} value={o.value}>
                   {o.label}
-                  {o.value && facets?.clerk_status?.[o.value] != null
-                    ? ` (${facets.clerk_status[o.value]})`
+                  {o.value && facets?.directory_status?.[o.value] != null
+                    ? ` (${facets.directory_status[o.value]})`
                     : ""}
                 </option>
               ))}

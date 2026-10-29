@@ -48,17 +48,17 @@ def normalize_email(email: str | None) -> str | None:
     return cleaned or None
 
 
-def emails_match(system_email: str | None, clerk_email: str | None) -> bool:
+def emails_match(system_email: str | None, identity_email: str | None) -> bool:
     left = normalize_email(system_email)
-    right = normalize_email(clerk_email)
+    right = normalize_email(identity_email)
     if not left or not right:
         return False
     return left == right
 
 
-def require_clerk_email(clerk_email: str | None) -> str:
+def require_clerk_email(identity_email: str | None) -> str:
     """Fail closed when Clerk verified email is missing."""
-    normalized = normalize_email(clerk_email)
+    normalized = normalize_email(identity_email)
     if not normalized:
         raise PermissionError(CLERK_EMAIL_REQUIRED)
     return normalized
@@ -66,13 +66,13 @@ def require_clerk_email(clerk_email: str | None) -> str:
 
 def require_system_email_matches_clerk(
     system_email: str | None,
-    clerk_email: str | None,
+    identity_email: str | None,
     *,
     detail: str = EMAIL_IDENTITY_MISMATCH,
 ) -> None:
     """Raise PermissionError when Clerk email missing or ≠ system profile email."""
-    require_clerk_email(clerk_email)
-    if not emails_match(system_email, clerk_email):
+    require_clerk_email(identity_email)
+    if not emails_match(system_email, identity_email):
         raise PermissionError(detail)
 
 
@@ -114,7 +114,7 @@ def verified_primary_email_from_clerk_user(user: dict[str, Any]) -> tuple[str | 
 def resolve_verified_clerk_email(
     *,
     jwt_email: str | None,
-    clerk_user_id: str,
+    auth_subject: str,
     settings: Settings,
 ) -> str:
     """Resolve Clerk-attested verified email. Never reads Porterchain DB.
@@ -127,9 +127,9 @@ def resolve_verified_clerk_email(
 
     from porterchain_api.auth.dev import is_dev_bypass_subject
 
-    if not clerk_user_id or is_dev_bypass_subject(clerk_user_id):
+    if not auth_subject or is_dev_bypass_subject(auth_subject):
         raise PermissionError(CLERK_EMAIL_REQUIRED)
-    if clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_"):
+    if auth_subject.startswith("pending:") or auth_subject.startswith("pending_"):
         raise PermissionError(CLERK_EMAIL_REQUIRED)
 
     from porterchain_api.auth.identity_directory import fetch_identity_user, is_directory_configured
@@ -139,7 +139,7 @@ def resolve_verified_clerk_email(
         raise PermissionError(CLERK_EMAIL_REQUIRED)
 
     now = time.monotonic()
-    cached = _email_cache.get(clerk_user_id)
+    cached = _email_cache.get(auth_subject)
     if cached and cached[0] > now:
         email, detail = cached[1], cached[2]
         if email:
@@ -147,18 +147,18 @@ def resolve_verified_clerk_email(
         raise PermissionError(detail or CLERK_EMAIL_REQUIRED)
 
     try:
-        clerk_user, _kind = fetch_identity_user(settings, clerk_user_id)
+        clerk_user, _kind = fetch_identity_user(settings, auth_subject)
     except Exception:
         logger.warning("clerk_email_resolve_failed reason=backend_lookup_error", exc_info=True)
-        _email_cache[clerk_user_id] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
+        _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
         raise PermissionError(CLERK_EMAIL_REQUIRED) from None
 
     if not clerk_user:
-        _email_cache[clerk_user_id] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
+        _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
         raise PermissionError(CLERK_EMAIL_REQUIRED)
 
     email, detail = verified_primary_email_from_clerk_user(clerk_user)
-    _email_cache[clerk_user_id] = (now + _EMAIL_CACHE_TTL_S, email, detail)
+    _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, email, detail)
     if email:
         return email
     raise PermissionError(detail or CLERK_EMAIL_REQUIRED)
@@ -170,52 +170,52 @@ def enrich_claims_with_verified_email(claims: IdentityClaims, settings: Settings
         return replace(claims, email=normalize_email(claims.email))
     from porterchain_api.auth.dev import is_dev_bypass_subject
 
-    if not claims.clerk_user_id or is_dev_bypass_subject(claims.clerk_user_id):
+    if not claims.auth_subject or is_dev_bypass_subject(claims.auth_subject):
         return claims
-    if claims.clerk_user_id.startswith("pending:") or claims.clerk_user_id.startswith("pending_"):
+    if claims.auth_subject.startswith("pending:") or claims.auth_subject.startswith("pending_"):
         return claims
     try:
         email = resolve_verified_clerk_email(
             jwt_email=claims.email,
-            clerk_user_id=claims.clerk_user_id,
+            auth_subject=claims.auth_subject,
             settings=settings,
         )
     except PermissionError:
         logger.warning(
             "clerk_email_enrich_failed",
-            extra={"clerk_user_id": claims.clerk_user_id},
+            extra={"auth_subject": claims.auth_subject},
         )
         return claims
     return replace(claims, email=email)
 
 
-def assert_portal_email_identity(system_email: str | None, clerk_email: str | None) -> None:
+def assert_portal_email_identity(system_email: str | None, identity_email: str | None) -> None:
     """Portal gate: require Clerk email + exact match to system profile."""
-    require_system_email_matches_clerk(system_email, clerk_email)
+    require_system_email_matches_clerk(system_email, identity_email)
 
 
 def delete_email_mismatched_bindings(
     db: Session,
     *,
-    clerk_user_id: str,
-    clerk_email: str | None,
+    auth_subject: str,
+    identity_email: str | None,
 ) -> int:
-    """Hard-delete persona rows where clerk_user_id is bound to a different email.
+    """Hard-delete persona rows where auth_subject is bound to a different email.
 
     Returns the number of persona rows deleted. Safe to call on every auth sync.
     Does nothing when Clerk email is missing (cannot verify match).
     """
     from porterchain_api.auth.persona_bundle import invalidate_persona_bundle, load_persona_bundle
 
-    expected = normalize_email(clerk_email)
+    expected = normalize_email(identity_email)
     from porterchain_api.auth.dev import is_dev_bypass_subject
 
-    if not expected or not clerk_user_id or is_dev_bypass_subject(clerk_user_id):
+    if not expected or not auth_subject or is_dev_bypass_subject(auth_subject):
         return 0
-    if clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_"):
+    if auth_subject.startswith("pending:") or auth_subject.startswith("pending_"):
         return 0
 
-    bundle = load_persona_bundle(db, clerk_user_id, force=True)
+    bundle = load_persona_bundle(db, auth_subject, force=True)
     rows = [
         ("admin_users", bundle.admin),
         *[("merchant_users", mu) for mu in bundle.merchant_users],
@@ -236,15 +236,15 @@ def delete_email_mismatched_bindings(
                 "model": table_name,
                 "row_id": getattr(row, "id", None),
                 "system_email": row_email,
-                "clerk_email": expected,
+                "identity_email": expected,
             },
         )
         db.delete(row)
         deleted += 1
 
     if deleted:
-        invalidate_persona_bundle(db, clerk_user_id)
-        _strip_registry_if_no_matching_persona(db, clerk_user_id=clerk_user_id, clerk_email=expected)
+        invalidate_persona_bundle(db, auth_subject)
+        _strip_registry_if_no_matching_persona(db, auth_subject=auth_subject, identity_email=expected)
 
     return deleted
 
@@ -256,13 +256,13 @@ unlink_email_mismatched_bindings = delete_email_mismatched_bindings
 def _strip_registry_if_no_matching_persona(
     db: Session,
     *,
-    clerk_user_id: str,
-    clerk_email: str,
+    auth_subject: str,
+    identity_email: str,
 ) -> None:
     """If mismatch deletes removed all personas, drop elevated registry identity for that clerk id."""
     from porterchain_api.auth.persona_bundle import load_persona_bundle
 
-    bundle = load_persona_bundle(db, clerk_user_id, force=True)
+    bundle = load_persona_bundle(db, auth_subject, force=True)
     candidates = [
         bundle.admin,
         *bundle.merchant_users,
@@ -270,27 +270,27 @@ def _strip_registry_if_no_matching_persona(
         bundle.customer,
     ]
     still_bound = any(
-        row is not None and emails_match(getattr(row, "email", None), clerk_email)
+        row is not None and emails_match(getattr(row, "email", None), identity_email)
         for row in candidates
     )
     if still_bound:
         return
 
-    user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
+    user = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == auth_subject).first()
     if not user:
         return
     # Registry email must equal Clerk; if it already matches and has no personas, leave as unprovisioned.
-    if emails_match(user.email, clerk_email):
+    if emails_match(user.email, identity_email):
         user.role = "unprovisioned"
         return
 
     # Hard-delete registry identity that itself carried a mismatched email
     logger.warning(
         "email_identity_mismatch_registry_deleted",
-        extra={"user_id": user.id, "system_email": user.email, "clerk_email": clerk_email},
+        extra={"user_id": user.id, "system_email": user.email, "identity_email": identity_email},
     )
     db.query(UserEmail).filter(UserEmail.user_id == user.id).delete(synchronize_session=False)
     db.query(IdentityLink).filter(
-        or_(IdentityLink.platform_user_id == user.id, IdentityLink.clerk_user_id == clerk_user_id)
+        or_(IdentityLink.platform_user_id == user.id, IdentityLink.auth_subject == auth_subject)
     ).delete(synchronize_session=False)
     db.delete(user)

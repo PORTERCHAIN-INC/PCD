@@ -84,7 +84,7 @@ def _staff_identity_current(user: Any) -> bool:
     (slow, and racy with parallel requests). Role changes re-sync via
     ``sync_authz_after_persona_mutation``; a missing portal edge still self-heals here.
     """
-    if not user.porterchain_user_id or str(user.clerk_user_id or "") != f"staff:{user.id}":
+    if not user.porterchain_user_id or str(user.auth_subject or "") != f"staff:{user.id}":
         return False
     try:
         return _check_platform(user.porterchain_user_id, "portal")

@@ -55,7 +55,7 @@ def test_onboarding_payload_uses_same_words(db, settings, merchant_ctx) -> None:
     merchant_ctx.merchant.status = MerchantStatus.ONBOARDING.value
     db.commit()
     claims = IdentityClaims(
-        clerk_user_id=merchant_ctx.user.clerk_user_id,
+        auth_subject=merchant_ctx.user.auth_subject,
         email=merchant_ctx.user.email,
         clerk_app="merchant",
     )
@@ -74,10 +74,10 @@ def test_seat_serialize_uses_glossary() -> None:
         email="ops@test.com",
         role="merchant_ops",
         is_active=True,
-        clerk_user_id="pending:ops@test.com",
+        auth_subject="pending:ops@test.com",
         created_at=None,
     )
-    off = SimpleNamespace(id="u2", email="off@test.com", role="merchant_readonly", is_active=False, clerk_user_id="user_1", created_at=None)
+    off = SimpleNamespace(id="u2", email="off@test.com", role="merchant_readonly", is_active=False, auth_subject="user_1", created_at=None)
     assert seat_status(pending) == "pending"
     assert serialize_member(pending)["seat_status_label"] == "Pending"
     assert serialize_member(off)["seat_status_label"] == "Off"

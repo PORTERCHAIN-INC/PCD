@@ -67,8 +67,8 @@ class AdminMerchantService:
             clerk = directory_for_kind(settings, "merchant")
             existing_clerk = clerk.find_user_by_email(normalized)
             if existing_clerk:
-                clerk_id = str(existing_clerk["id"])
-                linked = get_seat_by_clerk(db, clerk_id)
+                subject_ref = str(existing_clerk["id"])
+                linked = get_seat_by_clerk(db, subject_ref)
                 if linked:
                     raise ValueError("merchant_user_email_exists")
 
@@ -86,19 +86,19 @@ class AdminMerchantService:
             clerk = directory_for_kind(settings, "merchant")
             existing_clerk = clerk.find_user_by_email(normalized)
             if existing_clerk:
-                clerk_id = str(existing_clerk["id"])
+                subject_ref = str(existing_clerk["id"])
                 add_linked_seat(
                     db,
                     merchant_id=merchant.id,
                     email=normalized,
-                    clerk_user_id=clerk_id,
+                    auth_subject=subject_ref,
                     role=MerchantRole.OWNER.value,
                     is_active=True,
                 )
                 set_status(merchant, MerchantStatus.ONBOARDING.value)
                 merge_profile(merchant, {"source": "admin_register_portal_user"})
                 clerk.update_user_metadata(
-                    clerk_id,
+                    subject_ref,
                     {
                         "role": MerchantRole.OWNER.value,
                         "porterchain_role": MerchantRole.OWNER.value,
@@ -112,7 +112,7 @@ class AdminMerchantService:
                     "merchant.created",
                     "merchant",
                     merchant.id,
-                    {"email": normalized, "clerk_linked": True, "via": "portal_clerk_user"},
+                    {"email": normalized, "identity_linked": True, "via": "portal_clerk_user"},
                 )
                 db.commit()
                 db.refresh(merchant)
@@ -133,7 +133,7 @@ class AdminMerchantService:
                     "merchant.created",
                     "merchant",
                     merchant.id,
-                    {"email": normalized, "clerk_linked": False, "via": "owner_seat"},
+                    {"email": normalized, "identity_linked": False, "via": "owner_seat"},
                 )
                 db.commit()
                 db.refresh(merchant)
@@ -153,7 +153,7 @@ class AdminMerchantService:
                 "merchant.created",
                 "merchant",
                 merchant.id,
-                {"email": normalized, "clerk_linked": False, "via": "owner_seat"},
+                {"email": normalized, "identity_linked": False, "via": "owner_seat"},
             )
             db.commit()
             db.refresh(merchant)
@@ -291,7 +291,7 @@ class AdminMerchantService:
         db.refresh(user)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         return user
 
     @staticmethod
@@ -299,7 +299,7 @@ class AdminMerchantService:
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         for mu in seats_for_merchant(db, merchant_id):
-            sync_authz_after_persona_mutation(db, mu.clerk_user_id)
+            sync_authz_after_persona_mutation(db, mu.auth_subject)
 
     def invite_owner(
         self,
@@ -474,7 +474,7 @@ class AdminMerchantService:
         db.commit()
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
 
     def list_subsidiaries(self, db: Session, parent_merchant_id: str) -> list[Any]:
         return lookup_subsidiaries(db, parent_merchant_id)

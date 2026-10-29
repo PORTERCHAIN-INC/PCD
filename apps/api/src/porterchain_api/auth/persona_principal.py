@@ -42,7 +42,7 @@ def resolve_persona_principal(
     settings: Settings | None = None,
 ) -> AuthPrincipal | None:
     _ = settings
-    bundle = load_persona_bundle(db, claims.clerk_user_id)
+    bundle = load_persona_bundle(db, claims.auth_subject)
 
     admin = bundle.admin
     if admin is not None and admin.is_active and _profile_email_ok(admin.email, claims.email):
@@ -98,11 +98,11 @@ def resolve_persona_principal(
     return None
 
 
-def _profile_email_ok(system_email: str | None, clerk_email: str | None) -> bool:
+def _profile_email_ok(system_email: str | None, identity_email: str | None) -> bool:
     # Fail closed: Clerk id alone must never authorize a persona.
-    if not clerk_email:
+    if not identity_email:
         return False
-    return emails_match(system_email, clerk_email)
+    return emails_match(system_email, identity_email)
 
 
 def _admin_user_type(role: AdminRole) -> UserType:

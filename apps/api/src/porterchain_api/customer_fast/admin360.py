@@ -91,7 +91,7 @@ def overview(db: Session, settings: Settings, customer_id: str) -> dict[str, Any
         "email": c.email,
         "phone": c.phone,
         "since": _iso(c.created_at),
-        "account": "guest (no sign-in yet)" if str(c.clerk_user_id or "").startswith("pending") else "signed in",
+        "account": "guest (no sign-in yet)" if str(c.auth_subject or "").startswith("pending") else "signed in",
         "numbers": {
             "orders": len(orders),
             "lifetime_value_cents": ltv,

@@ -86,10 +86,10 @@ def test_offboarding_revokes_clerk_sessions(monkeypatch):
             return 2
 
     monkeypatch.setattr(clerk_registry, "directory_for_kind", lambda s, k: _C())
-    d = type("D", (), {"id": "d1", "clerk_user_id": "user_x"})()
+    d = type("D", (), {"id": "d1", "auth_subject": "user_x"})()
     ds.revoke_driver_sessions(d, object())
     assert calls == ["user_x"]
-    ds.revoke_driver_sessions(type("D", (), {"id": "d2", "clerk_user_id": None})(), object())
+    ds.revoke_driver_sessions(type("D", (), {"id": "d2", "auth_subject": None})(), object())
     assert calls == ["user_x"]
 
 

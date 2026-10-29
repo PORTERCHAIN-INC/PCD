@@ -39,7 +39,7 @@ class Merchant(SoftDeleteMixin, Base):
     status: Mapped[str] = mapped_column(String(32), default=MerchantStatus.PENDING.value, index=True)
     company_name: Mapped[str] = mapped_column(String(255))
     legal_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    clerk_org_id: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
+    external_org_id: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
     parent_merchant_id: Mapped[str | None] = mapped_column(
         ForeignKey("merchants.id"), nullable=True, index=True
     )
@@ -86,13 +86,13 @@ class MerchantUser(Base):
     __tablename__ = "merchant_users"
     __table_args__ = (
         # M-26: same Clerk subject may hold seats on multiple merchants.
-        UniqueConstraint("clerk_user_id", "merchant_id", name="uq_merchant_users_clerk_merchant"),
+        UniqueConstraint("auth_subject", "merchant_id", name="uq_merchant_users_subject_merchant"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    clerk_user_id: Mapped[str] = mapped_column(String(128), index=True)
-    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    auth_subject: Mapped[str] = mapped_column(String(128), index=True)
+    # Phase 8 — internal UUID FK (nullable until backfill); auth_subject retained
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )

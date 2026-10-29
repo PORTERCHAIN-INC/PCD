@@ -54,13 +54,13 @@ def resolve_merchant_contact(
     if email:
         return email
 
-    clerk_id = claims.clerk_user_id or ""
-    if not clerk_id or _is_pending_clerk_id(clerk_id) or not settings:
+    subject_ref = claims.auth_subject or ""
+    if not subject_ref or _is_pending_clerk_id(subject_ref) or not settings:
         return None
     try:
         return resolve_verified_clerk_email(
             jwt_email=None,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             settings=settings,
         )
     except PermissionError:
@@ -91,12 +91,12 @@ def ensure_merchant_portal_signup(
     ONBOARDING while `settings_merchant.approval_required` is on.
     """
     email = resolve_merchant_contact(db, claims, settings) or ""
-    clerk_id = claims.clerk_user_id or ""
+    subject_ref = claims.auth_subject or ""
     if not email:
         raise HTTPException(status_code=400, detail="email_required")
 
-    if clerk_id and not _is_pending_clerk_id(clerk_id):
-        bundle = load_persona_bundle(db, clerk_id)
+    if subject_ref and not _is_pending_clerk_id(subject_ref):
+        bundle = load_persona_bundle(db, subject_ref)
         if bundle.admin is not None:
             raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_admin")
         if bundle.driver is not None:
@@ -105,13 +105,13 @@ def ensure_merchant_portal_signup(
     link_or_create_portal_merchant(
         db,
         email=email,
-        clerk_id=clerk_id,
+        subject_ref=subject_ref,
         company_name=_derive_company_name(claims, email),
     )
-    if clerk_id:
+    if subject_ref:
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, clerk_id)
+        sync_authz_after_persona_mutation(db, subject_ref)
 
     try:
         UserSyncService().sync(db, claims)
@@ -126,8 +126,8 @@ def _resolve_seat(
     settings: Settings | None = None,
 ) -> tuple[Any, Any]:
     email = resolve_merchant_contact(db, claims, settings) or ""
-    clerk_id = claims.clerk_user_id or ""
-    return resolve_seat(db, clerk_id=clerk_id, email=email)
+    subject_ref = claims.auth_subject or ""
+    return resolve_seat(db, subject_ref=subject_ref, email=email)
 
 
 def evaluate_merchant_onboarding(
@@ -139,12 +139,12 @@ def evaluate_merchant_onboarding(
     if settings and not allow_auth_dev_bypass(settings):
         ensure_merchant_portal_signup(db, claims, settings=settings)
 
-    clerk_id = claims.clerk_user_id or ""
+    subject_ref = claims.auth_subject or ""
     merchant_user, merchant = _resolve_seat(db, claims, settings=settings)
 
-    clerk_linked = not _is_pending_clerk_id(clerk_id)
+    identity_linked = not _is_pending_clerk_id(subject_ref)
     if settings and allow_auth_dev_bypass(settings):
-        clerk_linked = True
+        identity_linked = True
 
     invited = merchant_user is not None
     user_active = bool(merchant_user and merchant_user.is_active)
@@ -174,8 +174,8 @@ def evaluate_merchant_onboarding(
             "id": "clerk_account",
             "label": "Signed in",
             "description": "You signed in at the merchant portal. Password and MFA stay in your Clerk account.",
-            "complete": clerk_linked,
-            "status": "complete" if clerk_linked else "pending",
+            "complete": identity_linked,
+            "status": "complete" if identity_linked else "pending",
         },
         {
             "id": "merchant_provisioned",
@@ -231,7 +231,7 @@ def evaluate_merchant_onboarding(
         )
 
     blockers: list[str] = []
-    if not clerk_linked:
+    if not identity_linked:
         blockers.append("clerk_account")
     if not invited:
         blockers.append("merchant_provisioned")
@@ -251,7 +251,7 @@ def evaluate_merchant_onboarding(
         "blockers": blockers,
         "status": merchant_status,
         "status_label": merchant_status_label(merchant_status),
-        "clerk_linked": clerk_linked,
+        "identity_linked": identity_linked,
         "steps": steps,
         "pending_documents": 0,
         "can_access_portal": ready,

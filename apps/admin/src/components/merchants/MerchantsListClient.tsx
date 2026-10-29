@@ -720,7 +720,7 @@ export default function MerchantsListClient() {
             <div className="mt-2 divide-y divide-amber-100 rounded-xl border border-amber-100 bg-white">
               {unprovisioned.slice(0, 8).map((u) => (
                 <div
-                  key={u.clerk_user_id}
+                  key={u.auth_subject}
                   className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm"
                 >
                   <div>

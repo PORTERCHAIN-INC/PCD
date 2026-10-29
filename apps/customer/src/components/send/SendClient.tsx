@@ -147,7 +147,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         quote_id: quoteId,
         email: auth.email,
         phone: phone.trim(),
-        clerk_user_id: auth.userId ?? "",
+        auth_subject: auth.userId ?? "",
         terms_accepted: true,
         privacy_accepted: true,
         dangerous_goods_confirmed: true,

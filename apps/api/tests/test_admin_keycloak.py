@@ -29,7 +29,7 @@ needs_kc = pytest.mark.skipif(not BASE, reason="PCD_TEST_KEYCLOAK_URL not set")
 
 
 def _claims(azp="pc-admin", email="ops@porterchain.com", auth_time=None) -> IdentityClaims:
-    return IdentityClaims(clerk_user_id="kc-1", email=email, phone=None, org_id=None, org_role=None,
+    return IdentityClaims(auth_subject="kc-1", email=email, phone=None, org_id=None, org_role=None,
                        public_metadata={}, session_id="sid", authorized_party=azp, auth_time=auth_time)
 
 
@@ -242,7 +242,7 @@ def test_real_pc_admin_token_resolves_admin_context(db, pc_admin_user) -> None:
 
     tok = _browser_login(pc_admin_user["email"], pc_admin_user["password"])
     row = AdminUser(email=pc_admin_user["email"], name="Ops", role="support", is_active=True,
-                    clerk_user_id=f"pending:{pc_admin_user['email']}")
+                    auth_subject=f"pending:{pc_admin_user['email']}")
     db.add(row)
     db.commit()
     request = MagicMock()

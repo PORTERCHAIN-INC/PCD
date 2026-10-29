@@ -69,7 +69,7 @@ def _sig(body: bytes) -> str:
 
 def _admin(role: str) -> AdminContext:
     return AdminContext(
-        user=AdminUser(clerk_user_id=f"e2e-{role}", email=f"{role}@porterchain.com", role=role),
+        user=AdminUser(auth_subject=f"e2e-{role}", email=f"{role}@porterchain.com", role=role),
         role=parse_admin_role(role),
     )
 
@@ -98,7 +98,7 @@ def company(db):
                  payment_terms="NET_30", profile={})
     db.add(m)
     db.flush()
-    db.add(MerchantUser(merchant_id=m.id, clerk_user_id=f"user_{suffix}", email=f"o-{suffix}@test.local",
+    db.add(MerchantUser(merchant_id=m.id, auth_subject=f"user_{suffix}", email=f"o-{suffix}@test.local",
                         role=MerchantRole.OWNER.value, is_active=True))
     db.add(SavedAddress(merchant_id=m.id, label="Warehouse", address_type="pickup", is_default=True,
                         formatted="1 King St W, Toronto, ON M5H 1A1", postal="M5H1A1", lat=43.6487, lng=-79.3774))

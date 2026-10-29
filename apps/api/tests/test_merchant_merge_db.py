@@ -21,11 +21,11 @@ def _u() -> str:
 def pair(db):
     tag = _u()
     orig = create_onboarding_merchant(db, company_name=f"Kaylulu{tag}", email=f"tracy{tag}@gmail.com")
-    db.add(MerchantUser(merchant_id=orig.id, clerk_user_id=f"user_{tag}", email=f"tracy{tag}@gmail.com", role="merchant_owner"))
+    db.add(MerchantUser(merchant_id=orig.id, auth_subject=f"user_{tag}", email=f"tracy{tag}@gmail.com", role="merchant_owner"))
     dup = create_onboarding_merchant(
         db, company_name=f"Kaylulu{tag} Inc.", email=f"hello@kaylulu{tag}.ca", dedupe_source="admin_create"
     )
-    db.add(MerchantUser(merchant_id=dup.id, clerk_user_id=f"pending:hello@kaylulu{tag}.ca", email=f"hello@kaylulu{tag}.ca", role="merchant_owner"))
+    db.add(MerchantUser(merchant_id=dup.id, auth_subject=f"pending:hello@kaylulu{tag}.ca", email=f"hello@kaylulu{tag}.ca", role="merchant_owner"))
     db.add(ShopifyShop(merchant_id=dup.id, shop_domain=f"{tag}.myshopify.com", auto_dispatch=False))
     db.commit()
     return orig, dup

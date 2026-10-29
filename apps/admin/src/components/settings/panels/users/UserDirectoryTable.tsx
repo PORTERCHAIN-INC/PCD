@@ -24,7 +24,7 @@ function hasCol(cols: DirectoryColumn[], key: DirectoryColumn) {
 
 function clerkNeedsAttention(u: PlatformUser, tab: UserDirectoryTab): boolean {
   if (tab === "staff") return false;
-  return !u.provisioned || !u.clerk_linked || u.identity_status === "not_registered";
+  return !u.provisioned || !u.identity_linked || u.identity_status === "not_registered";
 }
 
 export function UserDirectoryTable({
@@ -95,7 +95,7 @@ export function UserDirectoryTable({
                         )}
                         {tab !== "staff" &&
                           u.provisioned &&
-                          (!u.clerk_linked || u.identity_status === "not_registered") && (
+                          (!u.identity_linked || u.identity_status === "not_registered") && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold uppercase text-red-700">
                               <ShieldAlert className="h-3 w-3" aria-hidden />
                               No Clerk
@@ -133,10 +133,10 @@ export function UserDirectoryTable({
                     <Badge
                       tone={identityTone(u.identity_status, {
                         provisioned: u.provisioned,
-                        clerkLinked: u.clerk_linked,
+                        clerkLinked: u.identity_linked,
                       })}
                     >
-                      {clerkLabel(u.clerk_status, u.identity_status, {
+                      {clerkLabel(u.directory_status, u.identity_status, {
                         provisioned: u.provisioned,
                       })}
                     </Badge>
@@ -145,7 +145,7 @@ export function UserDirectoryTable({
                 {hasCol(cols, "password") && (
                   <td className="py-3 pr-4">
                     <Badge tone={u.clerk_password_set ? "green" : "slate"}>
-                      {u.clerk_user_id ? (u.clerk_password_set ? "Set" : "Not set") : "—"}
+                      {u.auth_subject ? (u.clerk_password_set ? "Set" : "Not set") : "—"}
                     </Badge>
                   </td>
                 )}

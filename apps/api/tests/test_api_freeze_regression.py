@@ -62,7 +62,7 @@ async def _hammer_health(client: httpx.AsyncClient, seconds: float) -> list[floa
 @pytest.fixture
 def slow_clerk(monkeypatch):
     async def fake_verify(token, settings, **_):
-        return IdentityClaims(clerk_user_id="user_slow", email=None)
+        return IdentityClaims(auth_subject="user_slow", email=None)
 
     def slow_enrich(claims, settings):
         return claims
@@ -249,7 +249,7 @@ def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
     import porterchain_api.auth.email_identity as ei
 
     order: list[str] = []
-    monkeypatch.setattr(ei, "resolve_verified_clerk_email", lambda **k: order.append("clerk_email") or "a@b.c")
+    monkeypatch.setattr(ei, "resolve_verified_clerk_email", lambda **k: order.append("identity_email") or "a@b.c")
     monkeypatch.setattr(cust, "is_directory_configured", lambda s: True)
     monkeypatch.setattr(cust, "fetch_identity_user", lambda s, uid: (order.append("clerk_phone") or {"x": 1}, "customer"))
     monkeypatch.setattr(cust.IdentityDirectory, "primary_phone", staticmethod(lambda u: "+14165550000"))
@@ -259,12 +259,12 @@ def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
     db.query.side_effect = lambda *a, **k: order.append("db") or MagicMock(
         filter=lambda *a: MagicMock(first=lambda: None)
     )
-    email, phone = cust.resolve_customer_contact(db, IdentityClaims(clerk_user_id="user_c", email=None), MagicMock())
+    email, phone = cust.resolve_customer_contact(db, IdentityClaims(auth_subject="user_c", email=None), MagicMock())
     assert (email, phone) == ("a@b.c", "+14165550000")
     assert order.index("clerk_phone") < order.index("db"), order
     # cached: second call makes no Clerk request
     order.clear()
-    cust.resolve_customer_contact(db, IdentityClaims(clerk_user_id="user_c", email=None), MagicMock())
+    cust.resolve_customer_contact(db, IdentityClaims(auth_subject="user_c", email=None), MagicMock())
     assert "clerk_phone" not in order
 
 
@@ -272,7 +272,7 @@ def _fast_admin_verify(monkeypatch):
     from porterchain_api.auth import bearer, driver
 
     async def verify(token, settings, portal=None):
-        return MagicMock(clerk_user_id="kc-sub")
+        return MagicMock(auth_subject="kc-sub")
 
     def not_driver(token, settings):
         raise ValueError("not a driver token")

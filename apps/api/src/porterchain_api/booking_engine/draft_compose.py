@@ -215,7 +215,7 @@ def on_customer_authenticated(
     *,
     quote_id: str,
     customer_id: str,
-    clerk_user_id: str,
+    auth_subject: str,
 ) -> BookingDraft | None:
     draft = svc.get_by_quote_id(db, quote_id)
     if not draft:
@@ -239,7 +239,7 @@ def on_customer_authenticated(
             "Customer Authenticated",
             actor_type="customer",
             actor_id=customer_id,
-            payload={"clerk_user_id": clerk_user_id, "quote_id": quote_id},
+            payload={"auth_subject": auth_subject, "quote_id": quote_id},
             current_step="payment",
         )
         db.commit()

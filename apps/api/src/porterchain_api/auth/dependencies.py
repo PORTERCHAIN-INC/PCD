@@ -33,7 +33,7 @@ logger = logging.getLogger("porterchain.security")
 
 def _claims_for_sync(identity: AuthenticatedIdentity) -> IdentityClaims:
     return IdentityClaims(
-        clerk_user_id=identity.subject,
+        auth_subject=identity.subject,
         email=identity.email,
         session_id=identity.session_id,
         clerk_app=(identity.adapter_context or {}).get("clerk_app"),
@@ -91,11 +91,11 @@ def _identity_from_admin_claims(db: Session, claims) -> AuthenticatedIdentity:
     return AuthenticatedIdentity(
         provider="keycloak",
         issuer=claims.issuer or "keycloak",
-        subject=str(user.clerk_user_id or f"staff:{user.id}"),
+        subject=str(user.auth_subject or f"staff:{user.id}"),
         session_id=claims.session_id,
         email=user.email,
         email_verified=True,
-        adapter_context={"staff_admin_user_id": user.id, "keycloak_sub": claims.clerk_user_id},
+        adapter_context={"staff_admin_user_id": user.id, "keycloak_sub": claims.auth_subject},
     )
 
 
@@ -310,7 +310,7 @@ def assert_self_scope(principal: CurrentPrincipal, profile_id: str, db: Session)
 
 def resolve_principal_for_claims(db: Session, claims: IdentityClaims) -> CurrentPrincipal | None:
     """Best-effort CurrentPrincipal for portal contexts; None if not provisioned."""
-    if not claims.clerk_user_id:
+    if not claims.auth_subject:
         return None
     try:
         # Local AUTH_DEV_BYPASS uses synthetic Bearer-dev subjects.
@@ -321,7 +321,7 @@ def resolve_principal_for_claims(db: Session, claims: IdentityClaims) -> Current
             AuthenticatedIdentity(
                 provider="clerk",
                 issuer=claims.issuer,
-                subject=claims.clerk_user_id,
+                subject=claims.auth_subject,
                 email=claims.email,
                 email_verified=True,
                 session_id=claims.session_id,

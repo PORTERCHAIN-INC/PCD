@@ -19,5 +19,5 @@ class AdminUserRepository:
     def get_by_id(self, db: Session, user_id: str) -> AdminUser | None:
         return db.query(AdminUser).filter(AdminUser.id == user_id).first()
 
-    def get_by_clerk_id(self, db: Session, clerk_user_id: str) -> AdminUser | None:
-        return db.query(AdminUser).filter(AdminUser.clerk_user_id == clerk_user_id).first()
+    def get_by_subject(self, db: Session, auth_subject: str) -> AdminUser | None:
+        return db.query(AdminUser).filter(AdminUser.auth_subject == auth_subject).first()

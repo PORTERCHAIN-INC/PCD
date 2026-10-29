@@ -189,11 +189,11 @@ class CurrentPrincipal:
 
         sc = self.session_context()
         org_id = next(iter(sorted(self.organization_ids)), None)
-        pc_user = UserSyncService().get_by_clerk_id(db, self.auth_subject or "")
+        pc_user = UserSyncService().get_by_subject(db, self.auth_subject or "")
         primary_role = sc["roles"][0] if sc["roles"] else None
         return {
             "user_id": self.user_id,
-            "clerk_user_id": self.auth_subject,
+            "auth_subject": self.auth_subject,
             "user_type": self.deprecated_user_type_hint(),
             "roles": sc["roles"],
             "permissions": sc["permissions"],

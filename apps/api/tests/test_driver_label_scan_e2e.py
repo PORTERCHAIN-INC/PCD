@@ -28,7 +28,7 @@ D = "/driver-api/v1"
 def _driver(db):
     s = uuid4().hex[:8]
     d = Driver(email=f"e2e-{s}@test.local", full_name=f"E2E {s}", status="APPROVED",
-               clerk_user_id=f"clerk_e2e_{s}", phone="+14165550199")
+               auth_subject=f"clerk_e2e_{s}", phone="+14165550199")
     db.add(d)
     db.flush()
     return d

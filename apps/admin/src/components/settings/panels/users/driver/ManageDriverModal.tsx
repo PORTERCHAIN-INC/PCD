@@ -30,7 +30,7 @@ export function ManageDriverModal({
     actions_taken: string[];
   } | null>(null);
 
-  const hasClerk = Boolean(user.clerk_user_id && !user.clerk_user_id.startsWith("pending:"));
+  const hasClerk = Boolean(user.auth_subject && !user.auth_subject.startsWith("pending:"));
   const canAuthorize = user.access_status !== "authorized" || !user.provisioned;
   const platformId =
     user.provisioned && !user.id.startsWith("clerk:")
@@ -48,7 +48,7 @@ export function ManageDriverModal({
       const result = await withStaffStepUp(token, () =>
         settingsApi.authorizeUser(token, "driver", {
           platform_user_id: platformId,
-          clerk_user_id: hasClerk ? (user.clerk_user_id ?? undefined) : undefined,
+          auth_subject: hasClerk ? (user.auth_subject ?? undefined) : undefined,
           email: user.email,
           name: name.trim() || user.name || undefined,
         })
@@ -86,11 +86,11 @@ export function ManageDriverModal({
   }
 
   async function save(patch: { password?: string; banned?: boolean }) {
-    if (!hasClerk || !user.clerk_user_id) return;
+    if (!hasClerk || !user.auth_subject) return;
     setBusy(true);
     try {
       await settingsApi.updateDriverClerk(await requireApiToken(getApiToken), {
-        clerk_user_id: user.clerk_user_id,
+        auth_subject: user.auth_subject,
         name: name.trim() || undefined,
         password: patch.password,
         banned: patch.banned,
@@ -108,7 +108,7 @@ export function ManageDriverModal({
     try {
       const id = user.provisioned && !user.id.startsWith("clerk:") ? user.id : undefined;
       await settingsApi.deleteDriver(await requireApiToken(getApiToken), {
-        clerk_user_id: hasClerk ? (user.clerk_user_id ?? undefined) : undefined,
+        auth_subject: hasClerk ? (user.auth_subject ?? undefined) : undefined,
         platform_user_id: id,
       });
       onSaved();
@@ -148,7 +148,7 @@ export function ManageDriverModal({
         <p className="text-muted">
           {hasClerk ? (
             <>
-              Clerk ID: <code className="rounded bg-gray-bg px-1">{user.clerk_user_id}</code>
+              Clerk ID: <code className="rounded bg-gray-bg px-1">{user.auth_subject}</code>
             </>
           ) : (
             <>
@@ -219,7 +219,7 @@ export function ManageDriverModal({
               />
             </Field>
             <div className="flex flex-wrap gap-2">
-              {user.clerk_status === "banned" ? (
+              {user.directory_status === "banned" ? (
                 <Button
                   variant="outline"
                   disabled={busy}

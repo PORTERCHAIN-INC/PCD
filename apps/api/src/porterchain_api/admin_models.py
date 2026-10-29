@@ -18,7 +18,7 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    clerk_user_id: Mapped[str | None] = mapped_column(String(128), unique=True, index=True, nullable=True)
+    auth_subject: Mapped[str | None] = mapped_column(String(128), unique=True, index=True, nullable=True)
     # Staff subject may be staff:{id}. Nullable once porterchain_user_id is the join key.
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
@@ -59,8 +59,8 @@ class Driver(SoftDeleteMixin, Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     status: Mapped[str] = mapped_column(String(32), default=DriverStatus.PENDING.value, index=True)
-    clerk_user_id: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
-    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    auth_subject: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
+    # Phase 8 — internal UUID FK (nullable until backfill); auth_subject retained
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )

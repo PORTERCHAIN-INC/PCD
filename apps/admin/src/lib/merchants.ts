@@ -241,7 +241,7 @@ export type MerchantTeamUser = {
   seat_status?: string;
   seat_status_label?: string;
   created_at: string;
-  clerk_linked?: boolean;
+  identity_linked?: boolean;
   invite_status?: string;
   invite_status_label?: string;
 };
@@ -620,8 +620,8 @@ export const merchants = {
       Array<{
         email: string;
         name: string;
-        clerk_user_id: string;
-        clerk_status: string | null;
+        auth_subject: string;
+        directory_status: string | null;
         last_sign_in_at: string | null;
         suggested_company_name: string;
       }>

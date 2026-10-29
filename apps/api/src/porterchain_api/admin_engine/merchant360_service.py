@@ -145,9 +145,9 @@ class Merchant360Service:
             raise RuntimeError(f"identity_directory_unavailable: {exc}") from exc
 
         linked_clerk_ids = {
-            u.clerk_user_id
+            u.auth_subject
             for u in db.query(MerchantUser).all()
-            if u.clerk_user_id and not u.clerk_user_id.startswith("pending:")
+            if u.auth_subject and not u.auth_subject.startswith("pending:")
         }
         linked_emails = {u.email.lower() for u in db.query(MerchantUser).all()}
 
@@ -160,8 +160,8 @@ class Merchant360Service:
                 {
                     "email": email,
                     "name": name,
-                    "clerk_user_id": snap.subject,
-                    "clerk_status": snap.status,
+                    "auth_subject": snap.subject,
+                    "directory_status": snap.status,
                     "last_sign_in_at": snap.last_sign_in_at.isoformat() if snap.last_sign_in_at else None,
                     "suggested_company_name": name.title(),
                 }
@@ -241,7 +241,7 @@ class Merchant360Service:
         users = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant_id).all()
         rows: list[dict] = []
         for u in users:
-            invite = _invite_status(invitations.get(u.email.lower()), u.clerk_user_id)
+            invite = _invite_status(invitations.get(u.email.lower()), u.auth_subject)
             seat = seat_status(u)
             rows.append(
                 {
@@ -253,7 +253,7 @@ class Merchant360Service:
                     "seat_status": seat,
                     "seat_status_label": seat_status_label(seat),
                     "created_at": u.created_at.isoformat(),
-                    "clerk_linked": _identity_linked(u.clerk_user_id),
+                    "identity_linked": _identity_linked(u.auth_subject),
                     "invite_status": invite,
                     "invite_status_label": invite_status_label(invite),
                 }

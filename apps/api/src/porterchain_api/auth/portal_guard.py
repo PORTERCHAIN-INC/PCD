@@ -16,11 +16,11 @@ from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
 
 
-def subject_staff_portal(db: Session, clerk_user_id: str) -> str | None:
+def subject_staff_portal(db: Session, auth_subject: str) -> str | None:
     """Return admin, merchant, or driver when this Clerk id is provisioned outside retail."""
-    if not clerk_user_id or clerk_user_id.startswith("pending:") or is_dev_bypass_subject(clerk_user_id):
+    if not auth_subject or auth_subject.startswith("pending:") or is_dev_bypass_subject(auth_subject):
         return None
-    return load_persona_bundle(db, clerk_user_id).staff_portal()
+    return load_persona_bundle(db, auth_subject).staff_portal()
 
 
 def assert_portal_provisioned(
@@ -40,12 +40,12 @@ def assert_portal_provisioned(
     """
     _ = settings  # Platform-only; unused
 
-    clerk_id = claims.clerk_user_id
-    if not clerk_id or clerk_id.startswith("pending:") or is_dev_bypass_subject(clerk_id):
+    subject_ref = claims.auth_subject
+    if not subject_ref or subject_ref.startswith("pending:") or is_dev_bypass_subject(subject_ref):
         return
 
     portal_norm = "admin" if portal in ("admin", "staff") else portal
-    membership = load_persona_bundle(db, clerk_id).membership()
+    membership = load_persona_bundle(db, subject_ref).membership()
 
     # Customer auto-provisions; staff portals require a persona row.
     if portal_norm == "customer":

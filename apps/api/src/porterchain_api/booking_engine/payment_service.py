@@ -234,7 +234,7 @@ class PaymentService:
         settings: Settings,
         *,
         quote_id: str,
-        clerk_user_id: str,
+        auth_subject: str,
     ) -> tuple[str | None, Payment]:
         quote = db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
@@ -242,7 +242,7 @@ class PaymentService:
         if quote.state not in (QuoteState.PAYMENT_PENDING.value, QuoteState.BOOKING_PENDING.value):
             raise ValueError("quote_not_payable")
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
+        customer = db.query(Customer).filter(Customer.auth_subject == auth_subject).first()
         if not customer or customer.id != quote.customer_id:
             raise PermissionError("forbidden")
         return self.retry_payment(db, settings, quote, customer)

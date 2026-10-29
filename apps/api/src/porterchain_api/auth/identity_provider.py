@@ -21,7 +21,7 @@ def claims_to_identity(claims: IdentityClaims) -> AuthenticatedIdentity:
     return AuthenticatedIdentity(
         provider="keycloak",
         issuer=claims.issuer,
-        subject=claims.clerk_user_id,
+        subject=claims.auth_subject,
         session_id=claims.session_id,
         email=claims.email,
         email_verified=True if claims.email else None,

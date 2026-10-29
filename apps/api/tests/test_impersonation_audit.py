@@ -100,7 +100,7 @@ def test_start_forbidden_for_non_super_admin(db, settings, fake_redis) -> None:
         full_name="Imp Driver",
         email=f"imp-{uuid.uuid4().hex[:8]}@example.com",
         status=DriverStatus.APPROVED.value,
-        clerk_user_id=f"pending:imp-{uuid.uuid4().hex[:8]}@example.com",
+        auth_subject=f"pending:imp-{uuid.uuid4().hex[:8]}@example.com",
     )
     db.add(driver)
     db.commit()
@@ -120,7 +120,7 @@ def test_start_ok_for_super_admin(db, settings, fake_redis) -> None:
         full_name="Imp Driver SA",
         email=f"imp-sa-{uuid.uuid4().hex[:8]}@example.com",
         status=DriverStatus.APPROVED.value,
-        clerk_user_id=f"pending:imp-sa-{uuid.uuid4().hex[:8]}@example.com",
+        auth_subject=f"pending:imp-sa-{uuid.uuid4().hex[:8]}@example.com",
     )
     db.add(driver)
     db.commit()
@@ -147,7 +147,7 @@ def test_driver_context_accepts_impersonation_bearer(db, settings, fake_redis) -
         full_name="Ctx Driver",
         email=f"ctx-{uuid.uuid4().hex[:8]}@example.com",
         status=DriverStatus.APPROVED.value,
-        clerk_user_id=f"pending:ctx-{uuid.uuid4().hex[:8]}@example.com",
+        auth_subject=f"pending:ctx-{uuid.uuid4().hex[:8]}@example.com",
     )
     db.add(driver)
     db.commit()

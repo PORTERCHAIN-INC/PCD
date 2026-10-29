@@ -237,11 +237,11 @@ def _is_legacy_clerk_staff_id(subject: str | None) -> bool:
     return bool(subject) and subject.startswith("user_")
 
 
-def _identity_linked(clerk_user_id: str | None) -> bool:
+def _identity_linked(auth_subject: str | None) -> bool:
     """True only for real Clerk ``user_…`` (or other non-pending, non-staff) ids."""
-    if not clerk_user_id:
+    if not auth_subject:
         return False
-    if _is_pending_subject(clerk_user_id) or _is_staff_subject(clerk_user_id):
+    if _is_pending_subject(auth_subject) or _is_staff_subject(auth_subject):
         return False
     return True
 
@@ -261,29 +261,29 @@ def _latest_invitations(db: Session, user_type: str) -> dict[str, UserInvitation
     return out
 
 
-def _invite_status(inv: UserInvitation | None, clerk_user_id: str | None) -> str:
+def _invite_status(inv: UserInvitation | None, auth_subject: str | None) -> str:
     if inv and inv.revoked_at:
         return "revoked"
-    if _identity_linked(clerk_user_id):
+    if _identity_linked(auth_subject):
         return "accepted"
     if inv:
         if inv.status == "accepted":
             return "accepted"
-        action = (inv.invitation_metadata or {}).get("clerk_action", "")
+        action = (inv.invitation_metadata or {}).get("identity_action", "")
         if action in ("failed", "error"):
             return "invite_failed"
         return "invite_pending"
-    if _is_pending_subject(clerk_user_id):
+    if _is_pending_subject(auth_subject):
         return "invite_pending"
     return "not_invited"
 
 
-def _identity_status(clerk_user_id: str | None, invite_status: str) -> str:
-    if _identity_linked(clerk_user_id):
+def _identity_status(auth_subject: str | None, invite_status: str) -> str:
+    if _identity_linked(auth_subject):
         return "registered"
     if invite_status in ("invite_pending", "accepted"):
         return "invite_pending"
-    if _is_pending_subject(clerk_user_id):
+    if _is_pending_subject(auth_subject):
         return "invite_pending"
     return "not_registered"
 
@@ -377,14 +377,14 @@ def _facet_counts(items: list[PlatformUserItem]) -> PlatformUsersFacets:
         identity[item.identity_status] = identity.get(item.identity_status, 0) + 1
         key = (item.status or "unknown").lower()
         account[key] = account.get(key, 0) + 1
-        if item.clerk_status:
-            clerk[item.clerk_status] = clerk.get(item.clerk_status, 0) + 1
+        if item.directory_status:
+            clerk[item.directory_status] = clerk.get(item.directory_status, 0) + 1
     return PlatformUsersFacets(
         access_status=access,
         invite_status=invite,
         identity_status=identity,
         account_status=account,
-        clerk_status=clerk,
+        directory_status=clerk,
     )
 
 
@@ -446,15 +446,15 @@ class AdminSettingsService:
         invite_status: str | None = None,
         identity_status: str | None = None,
         account_status: str | None = None,
-        clerk_status: str | None = None,
+        directory_status: str | None = None,
     ) -> PlatformUsersResponse:
         items: list[PlatformUserItem] = []
 
         if user_type == "staff":
             # Staff IdP SoT — AdminUser rows only; never intersect retired Clerk admin app.
             for u in self.list_staff(db, active_only=False)[:limit]:
-                invite = _staff_invite_status(u.clerk_user_id)
-                identity = _staff_identity_status(u.clerk_user_id)
+                invite = _staff_invite_status(u.auth_subject)
+                identity = _staff_identity_status(u.auth_subject)
                 access = "authorized" if u.is_active else "inactive"
                 items.append(
                     PlatformUserItem(
@@ -468,10 +468,10 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_staff_status_label(
-                            access, invite, identity, subject=u.clerk_user_id
+                            access, invite, identity, subject=u.auth_subject
                         ),
-                        clerk_linked=False,
-                        clerk_user_id=None,
+                        identity_linked=False,
+                        auth_subject=None,
                         provisioned=True,
                         created_at=u.created_at,
                     )
@@ -497,8 +497,8 @@ class AdminSettingsService:
         if user_type == "driver":
             for d in db.query(Driver).order_by(Driver.created_at.desc()).limit(limit).all():
                 inv = invitations.get(d.email.lower())
-                invite = _invite_status(inv, d.clerk_user_id)
-                identity = _identity_status(d.clerk_user_id, invite)
+                invite = _invite_status(inv, d.auth_subject)
+                identity = _identity_status(d.auth_subject, invite)
                 if d.status == DriverStatus.APPROVED.value:
                     access = "authorized"
                 elif d.status == DriverStatus.PENDING.value:
@@ -519,15 +519,15 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_status_label(access, invite, identity),
-                        clerk_linked=_identity_linked(d.clerk_user_id),
-                        clerk_user_id=d.clerk_user_id if _identity_linked(d.clerk_user_id) else None,
+                        identity_linked=_identity_linked(d.auth_subject),
+                        auth_subject=d.auth_subject if _identity_linked(d.auth_subject) else None,
                         detail_href=f"/drivers/{d.id}",
                         created_at=d.created_at,
                     )
                 )
         elif user_type == "customer":
             for c in db.query(Customer).order_by(Customer.created_at.desc()).limit(limit).all():
-                linked = _identity_linked(c.clerk_user_id)
+                linked = _identity_linked(c.auth_subject)
                 identity = "registered" if linked else "not_registered"
                 access = "authorized" if linked else "not_authorized"
                 invite = "accepted" if linked else "not_invited"
@@ -548,8 +548,8 @@ class AdminSettingsService:
                             if hold
                             else _status_label(access, invite, identity)
                         ),
-                        clerk_linked=linked,
-                        clerk_user_id=c.clerk_user_id if linked else None,
+                        identity_linked=linked,
+                        auth_subject=c.auth_subject if linked else None,
                         detail_href=f"/customers/{c.id}",
                         created_at=c.created_at,
                     )
@@ -558,8 +558,8 @@ class AdminSettingsService:
             rows = list_directory_seats(db, limit=limit)
             for mu, m in rows:
                 inv = invitations.get(mu.email.lower())
-                invite = _invite_status(inv, mu.clerk_user_id)
-                identity = _identity_status(mu.clerk_user_id, invite)
+                invite = _invite_status(inv, mu.auth_subject)
+                identity = _identity_status(mu.auth_subject, invite)
                 if not mu.is_active:
                     access = "inactive"
                 elif m.status != MerchantStatus.ACTIVE.value:
@@ -580,8 +580,8 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_status_label(access, invite, identity),
-                        clerk_linked=_identity_linked(mu.clerk_user_id),
-                        clerk_user_id=mu.clerk_user_id if _identity_linked(mu.clerk_user_id) else None,
+                        identity_linked=_identity_linked(mu.auth_subject),
+                        auth_subject=mu.auth_subject if _identity_linked(mu.auth_subject) else None,
                         detail_href=f"/merchants/{m.id}",
                         created_at=mu.created_at,
                     )
@@ -604,7 +604,7 @@ class AdminSettingsService:
         facets = _facet_counts(items)
 
         def matches_clerk(item: PlatformUserItem) -> bool:
-            return not clerk_status or item.clerk_status == clerk_status
+            return not directory_status or item.directory_status == directory_status
 
         filtered = [
             i
@@ -654,7 +654,7 @@ class AdminSettingsService:
         from porterchain_api.auth.keycloak_admin import sync_staff_role
         from porterchain_api.config import get_settings
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         # Mirror the role into Keycloak (MFA tier) and force re-auth after privilege change.
         sync_staff_role(get_settings(), email=user.email, name=user.name, role=user.role)
         return user
@@ -667,7 +667,7 @@ class AdminSettingsService:
         user_type: str,
         *,
         platform_user_id: str | None = None,
-        clerk_user_id: str | None = None,
+        auth_subject: str | None = None,
         email: str | None = None,
         name: str | None = None,
         reason: str | None = None,
@@ -680,7 +680,7 @@ class AdminSettingsService:
             settings,
             user_type,
             platform_user_id=platform_user_id,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             email=email,
             name=name,
             reason=reason,

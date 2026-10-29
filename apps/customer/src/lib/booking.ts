@@ -204,7 +204,7 @@ export function startBooking(
     quote_id: string;
     email: string;
     phone: string;
-    clerk_user_id: string;
+    auth_subject: string;
     terms_accepted: boolean;
     privacy_accepted: boolean;
     dangerous_goods_confirmed: boolean;

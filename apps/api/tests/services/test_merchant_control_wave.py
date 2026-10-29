@@ -138,7 +138,7 @@ def test_duplicate_inherits_sandbox(db, settings, merchant_ctx, monkeypatch) -> 
 def test_seat_status_pending_active_off(db, merchant_ctx) -> None:
     pending = MerchantUser(
         merchant_id=merchant_ctx.merchant.id,
-        clerk_user_id="pending:ops@example.com",
+        auth_subject="pending:ops@example.com",
         email="ops@example.com",
         role="merchant_ops",
         is_active=True,

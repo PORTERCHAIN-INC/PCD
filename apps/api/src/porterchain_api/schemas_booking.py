@@ -153,7 +153,7 @@ class StartBookingRequest(BaseModel):
     quote_id: str
     email: str
     phone: str
-    clerk_user_id: str
+    auth_subject: str
     anonymous_session_id: str | None = None
     terms_accepted: bool = False
     privacy_accepted: bool = False

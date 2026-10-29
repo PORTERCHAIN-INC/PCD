@@ -30,7 +30,7 @@ def ensure_staff_identity(db: Session, user: AdminUser) -> str:
     from porterchain_api.authz.tuples import TupleWriter
 
     subject_key = f"staff:{user.id}"
-    current = str(user.clerk_user_id or "")
+    current = str(user.auth_subject or "")
     legacy = None
     if current.startswith("user_") or current == "dev_clerk_user":
         legacy = current
@@ -43,7 +43,7 @@ def ensure_staff_identity(db: Session, user: AdminUser) -> str:
         legacy_clerk_user_id=legacy,
     )
     user.porterchain_user_id = pc.id
-    user.clerk_user_id = subject_key
+    user.auth_subject = subject_key
     db.flush()
     TupleWriter().sync_user_from_profiles(db, pc)
     try:
@@ -108,7 +108,7 @@ class StaffAccountService:
             user.is_active = True
         else:
             user = AdminUser(
-                clerk_user_id=f"pending:{normalized}",
+                auth_subject=f"pending:{normalized}",
                 email=normalized,
                 name=name,
                 role=role,

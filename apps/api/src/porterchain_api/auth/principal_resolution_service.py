@@ -225,7 +225,7 @@ class PrincipalResolutionService:
         if identity.subject:
             return (
                 db.query(PorterchainUser)
-                .filter(PorterchainUser.clerk_user_id == identity.subject)
+                .filter(PorterchainUser.auth_subject == identity.subject)
                 .first()
             )
         return None
@@ -251,7 +251,7 @@ class PrincipalResolutionService:
             return
         by_clerk = (
             db.query(IdentityLink)
-            .filter(IdentityLink.clerk_user_id == identity.subject)
+            .filter(IdentityLink.auth_subject == identity.subject)
             .first()
         )
         if by_clerk:
@@ -262,7 +262,7 @@ class PrincipalResolutionService:
             return
         db.add(
             IdentityLink(
-                clerk_user_id=identity.subject,
+                auth_subject=identity.subject,
                 provider=identity.provider or AuthProvider.CLERK.value,
                 issuer=identity.issuer,
                 subject=identity.subject,

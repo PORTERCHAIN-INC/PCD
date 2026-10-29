@@ -208,13 +208,13 @@ def test_staff_push_fanout_device_aware_email_fallback(db) -> None:
     from porterchain_api.notification_engine.staff_fanout import expand_staff_specs, staff_sentinel
 
     with_device = AdminUser(
-        clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
+        auth_subject=f"clerk_{uuid.uuid4().hex[:12]}",
         email=f"dev-{uuid.uuid4().hex[:6]}@porterchain.test",
         role="dispatcher",
         is_active=True,
     )
     no_device = AdminUser(
-        clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
+        auth_subject=f"clerk_{uuid.uuid4().hex[:12]}",
         email=f"mail-{uuid.uuid4().hex[:6]}@porterchain.test",
         role="dispatcher",
         is_active=True,
@@ -288,7 +288,7 @@ def test_staff_contact_uses_admin_phone(db) -> None:
     from porterchain_api.notification_engine.delivery_service import DeliveryService
 
     admin = AdminUser(
-        clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
+        auth_subject=f"clerk_{uuid.uuid4().hex[:12]}",
         email=f"sms-{uuid.uuid4().hex[:6]}@porterchain.test",
         phone="+14165550100",
         role="dispatcher",

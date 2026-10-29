@@ -16,7 +16,7 @@ def test_rehire_rejects_approved() -> None:
         id="d1",
         status=DriverStatus.APPROVED.value,
         is_online=False,
-        clerk_user_id="user_x",
+        auth_subject="user_x",
     )
     db = MagicMock()
     ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))
@@ -64,7 +64,7 @@ def test_reject_and_rehire_lifecycle() -> None:
         status=DriverStatus.PENDING.value,
         is_online=True,
         availability="online",
-        clerk_user_id="user_x",
+        auth_subject="user_x",
     )
     db = MagicMock()
     ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))

@@ -33,7 +33,7 @@ def _make_merchant_ctx(db: Session, suffix: str) -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"clerk_{suffix}",
         email=f"user-{suffix}@idor.test",
         role=MerchantRole.OPS.value,
     )
@@ -44,7 +44,7 @@ def _make_merchant_ctx(db: Session, suffix: str) -> MerchantContext:
 
 def _make_customer(db: Session, suffix: str) -> Customer:
     customer = Customer(
-        clerk_user_id=f"customer_clerk_{suffix}",
+        auth_subject=f"customer_clerk_{suffix}",
         email=f"customer-{suffix}@idor.test",
     )
     db.add(customer)

@@ -41,7 +41,7 @@ IN = 2.54
 def _admin(db: Session, role: AdminRole) -> AdminContext:
     suffix = uuid4().hex[:8]
     user = AdminUser(
-        clerk_user_id=f"clerk_{role.value}_{suffix}",
+        auth_subject=f"clerk_{role.value}_{suffix}",
         email=f"{role.value}-{suffix}@svc.test".lower(),
         name="Pricing test",
         role=role.value,

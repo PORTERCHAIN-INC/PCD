@@ -15,10 +15,10 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 
 
-def _identity_linked(clerk_user_id: str | None) -> bool:
-    if not clerk_user_id:
+def _identity_linked(auth_subject: str | None) -> bool:
+    if not auth_subject:
         return False
-    s = str(clerk_user_id)
+    s = str(auth_subject)
     return not (s.startswith("pending:") or s.startswith("staff:") or s.startswith("impersonation:"))
 
 
@@ -64,14 +64,14 @@ def create_local_driver(
     if existing:
         return {
             "platform_user_id": existing.id,
-            "clerk_user_id": existing.clerk_user_id if _identity_linked(existing.clerk_user_id) else None,
-            "clerk_action": "reused_local",
+            "auth_subject": existing.auth_subject if _identity_linked(existing.auth_subject) else None,
+            "identity_action": "reused_local",
             "email": email,
         }
     driver = Driver(
         full_name=name or email.split("@")[0],
         email=email,
-        clerk_user_id=pending_clerk_id(email),
+        auth_subject=pending_clerk_id(email),
         status=DriverStatus.PENDING.value,
     )
     db.add(driver)
@@ -82,12 +82,12 @@ def create_local_driver(
         action="settings.user.created",
         resource_type="driver",
         resource_id=driver.id,
-        payload={"email": email, "clerk_action": "local_pending"},
+        payload={"email": email, "identity_action": "local_pending"},
     )
     db.commit()
     return {
         "platform_user_id": driver.id,
-        "clerk_user_id": None,
-        "clerk_action": "local_pending",
+        "auth_subject": None,
+        "identity_action": "local_pending",
         "email": email,
     }

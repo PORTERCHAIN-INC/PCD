@@ -33,7 +33,7 @@ class IdentityLink(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    auth_subject: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     # Phase 2 auth_identities fields (nullable until dual-write / backfill)
     provider: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     issuer: Mapped[str | None] = mapped_column(String(512), nullable=True, index=True)

@@ -13,7 +13,7 @@ from porterchain_driver import personal_profile as pp
 
 def _driver(**kw):
     base = dict(id="d1", documents={}, full_name="Old Name", email="a@x.com", phone="+14165550000",
-                performance={"rating_avg": 4.8, "app_settings": {"voice": True}}, clerk_user_id="user_1")
+                performance={"rating_avg": 4.8, "app_settings": {"voice": True}}, auth_subject="user_1")
     return SimpleNamespace(**{**base, **kw})
 
 
@@ -100,7 +100,7 @@ async def _sync(driver, clerk_user):
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = driver
     creds = SimpleNamespace(credentials="jwt")
-    with patch("porterchain_api.auth.bearer.verify_access_token", return_value=SimpleNamespace(clerk_user_id="user_1")), \
+    with patch("porterchain_api.auth.bearer.verify_access_token", return_value=SimpleNamespace(auth_subject="user_1")), \
          patch("porterchain_api.auth.identity_directory.fetch_identity_user", return_value=(clerk_user, "admin")), \
          patch.object(me_profile, "db_transaction", lambda _db: nullcontext()):
         return await me_profile.sync_my_identity(creds, db=db, settings=MagicMock()), db

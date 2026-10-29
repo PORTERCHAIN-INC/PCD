@@ -34,12 +34,12 @@ from porterchain_shared.auth.principal import AuthPrincipal
 from porterchain_shared.types.user_types import UserType
 
 
-def _is_pending_clerk_id(clerk_user_id: str | None) -> bool:
-    if not clerk_user_id:
+def _is_pending_clerk_id(auth_subject: str | None) -> bool:
+    if not auth_subject:
         return True
-    if is_dev_bypass_subject(clerk_user_id):
+    if is_dev_bypass_subject(auth_subject):
         return True
-    return clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_")
+    return auth_subject.startswith("pending:") or auth_subject.startswith("pending_")
 
 
 class UserSyncService:
@@ -54,11 +54,11 @@ class UserSyncService:
         from porterchain_api.auth.ensure_user_service import EnsureUserService
 
         unlink_email_mismatched_bindings(
-            db, clerk_user_id=claims.clerk_user_id, clerk_email=claims.email
+            db, auth_subject=claims.auth_subject, identity_email=claims.email
         )
         self._link_pending_domain_records(db, claims)
         if claims.email:
-            InvitationService().mark_accepted(db, email=claims.email, clerk_user_id=claims.clerk_user_id)
+            InvitationService().mark_accepted(db, email=claims.email, auth_subject=claims.auth_subject)
 
         identity = claims_to_identity(claims)
         # Unlink already ran above — skip the second scan inside EnsureUser.
@@ -72,15 +72,15 @@ class UserSyncService:
         self._sync_link_metadata(db, claims, user)
         return user
 
-    def get_by_clerk_id(self, db: Session, clerk_user_id: str) -> PorterchainUser | None:
-        return db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
+    def get_by_subject(self, db: Session, auth_subject: str) -> PorterchainUser | None:
+        return db.query(PorterchainUser).filter(PorterchainUser.auth_subject == auth_subject).first()
 
     def _sync_link_metadata(
         self, db: Session, claims: IdentityClaims, user: PorterchainUser
     ) -> None:
         """Refresh IdentityLink metadata without mis-pointing platform_user_id."""
         principal = resolve_persona_principal(db, claims)
-        link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == claims.clerk_user_id).first()
+        link = db.query(IdentityLink).filter(IdentityLink.auth_subject == claims.auth_subject).first()
         if not link:
             return
         link.platform_user_id = user.id
@@ -101,48 +101,48 @@ class UserSyncService:
         - stale clerk ids after Clerk account recreation (same verified email only)
         """
         email = normalize_email(claims.email)
-        if not email or not claims.clerk_user_id:
+        if not email or not claims.auth_subject:
             return
-        clerk_id = claims.clerk_user_id
+        subject_ref = claims.auth_subject
 
-        if self._clerk_id_bound_to_other_email(db, clerk_id, email):
+        if self._clerk_id_bound_to_other_email(db, subject_ref, email):
             return
 
         from porterchain_api.auth.persona_bundle import invalidate_persona_bundle
 
-        if rebind_admin_clerk(db, email, clerk_id):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
-            invalidate_persona_bundle(db, clerk_id)
+        if rebind_admin_clerk(db, email, subject_ref):
+            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+            invalidate_persona_bundle(db, subject_ref)
             return
 
-        if rebind_merchant_clerk(db, email, clerk_id):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
-            invalidate_persona_bundle(db, clerk_id)
+        if rebind_merchant_clerk(db, email, subject_ref):
+            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+            invalidate_persona_bundle(db, subject_ref)
             return
 
-        if rebind_driver_clerk(db, email, clerk_id):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
-            invalidate_persona_bundle(db, clerk_id)
+        if rebind_driver_clerk(db, email, subject_ref):
+            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+            invalidate_persona_bundle(db, subject_ref)
             return
 
-        if self._rebind_persona_clerk_id(db, Customer, email, clerk_id):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=clerk_id)
-            invalidate_persona_bundle(db, clerk_id)
+        if self._rebind_persona_clerk_id(db, Customer, email, subject_ref):
+            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+            invalidate_persona_bundle(db, subject_ref)
 
     @staticmethod
-    def _rebind_persona_clerk_id(db: Session, model: type, email: str, clerk_id: str) -> bool:
-        """Rebind a booking Customer row to clerk_id when email matches."""
+    def _rebind_persona_clerk_id(db: Session, model: type, email: str, subject_ref: str) -> bool:
+        """Rebind a booking Customer row to subject_ref when email matches."""
         row = db.query(model).filter(model.email == email).first()
         if not row or not emails_match(getattr(row, "email", None), email):
             return False
-        if row.clerk_user_id == clerk_id:
+        if row.auth_subject == subject_ref:
             return False
 
-        taken = db.query(model).filter(model.clerk_user_id == clerk_id).first()
+        taken = db.query(model).filter(model.auth_subject == subject_ref).first()
         if taken and taken.id != row.id:
             return False
 
-        row.clerk_user_id = clerk_id
+        row.auth_subject = subject_ref
         return True
 
     @staticmethod
@@ -156,12 +156,12 @@ class UserSyncService:
         )
         if not user:
             return
-        if user.clerk_user_id == new_clerk_id:
+        if user.auth_subject == new_clerk_id:
             return
 
         shell = (
             db.query(PorterchainUser)
-            .filter(PorterchainUser.clerk_user_id == new_clerk_id, PorterchainUser.id != user.id)
+            .filter(PorterchainUser.auth_subject == new_clerk_id, PorterchainUser.id != user.id)
             .first()
         )
         if shell:
@@ -172,29 +172,29 @@ class UserSyncService:
             db.delete(shell)
             db.flush()
 
-        old_clerk_id = user.clerk_user_id
-        user.clerk_user_id = new_clerk_id
+        old_clerk_id = user.auth_subject
+        user.auth_subject = new_clerk_id
         for link in (
             db.query(IdentityLink)
             .filter(
                 or_(
                     IdentityLink.platform_user_id == user.id,
-                    IdentityLink.clerk_user_id == old_clerk_id,
+                    IdentityLink.auth_subject == old_clerk_id,
                 )
             )
             .all()
         ):
-            link.clerk_user_id = new_clerk_id
+            link.auth_subject = new_clerk_id
             link.subject = new_clerk_id
             link.email = email
             link.is_current = True
 
     @staticmethod
-    def _clerk_id_bound_to_other_email(db: Session, clerk_user_id: str, email: str) -> bool:
+    def _clerk_id_bound_to_other_email(db: Session, auth_subject: str, email: str) -> bool:
         """True when this Clerk id is already linked to a different email in any user class."""
         from porterchain_api.auth.persona_bundle import load_persona_bundle
 
-        bundle = load_persona_bundle(db, clerk_user_id)
+        bundle = load_persona_bundle(db, auth_subject)
         rows = [
             bundle.admin,
             *bundle.merchant_users,
@@ -219,7 +219,7 @@ class UserSyncService:
                 "status": "pending",
                 "phone": claims.phone,
                 "profile": {
-                    "clerk_org_id": claims.org_id,
+                    "external_org_id": claims.org_id,
                     "public_metadata": claims.public_metadata or {},
                     "provisioned": False,
                 },
@@ -229,7 +229,7 @@ class UserSyncService:
         profile: dict[str, Any] = {
             "user_type": principal.user_type.value,
             "platform_user_id": principal.user_id,
-            "clerk_org_id": claims.org_id or principal.org_id,
+            "external_org_id": claims.org_id or principal.org_id,
             "public_metadata": claims.public_metadata or {},
             "provisioned": True,
         }
@@ -292,7 +292,7 @@ class UserSyncService:
 
     def _upsert_user(self, db: Session, claims: IdentityClaims, snapshot: dict[str, Any]) -> PorterchainUser:
         now = datetime.now(UTC)
-        row = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == claims.clerk_user_id).first()
+        row = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == claims.auth_subject).first()
         email = (claims.email or "").lower() or None
 
         if row:
@@ -308,7 +308,7 @@ class UserSyncService:
             return row
 
         row = PorterchainUser(
-            clerk_user_id=claims.clerk_user_id,
+            auth_subject=claims.auth_subject,
             email=email,
             phone=snapshot.get("phone"),
             role=snapshot["role"],
@@ -321,24 +321,24 @@ class UserSyncService:
 
     def _upsert_identity_link(self, db: Session, claims: IdentityClaims, principal: AuthPrincipal) -> IdentityLink:
         """Upsert IdentityLink. platform_user_id is always porterchain_users.id (never persona PK)."""
-        user = self.get_by_clerk_id(db, claims.clerk_user_id)
+        user = self.get_by_subject(db, claims.auth_subject)
         if not user:
             snapshot = self._platform_snapshot(db, claims, principal)
             user = self._upsert_user(db, claims, snapshot)
             db.flush()
 
-        link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == claims.clerk_user_id).first()
+        link = db.query(IdentityLink).filter(IdentityLink.auth_subject == claims.auth_subject).first()
 
         if not link:
             link = IdentityLink(
-                clerk_user_id=claims.clerk_user_id,
+                auth_subject=claims.auth_subject,
                 email=claims.email or principal.email,
                 user_type=principal.user_type.value,
                 platform_user_id=user.id,
                 platform_org_id=principal.org_id,
                 provider="clerk",
                 issuer=claims.issuer,
-                subject=claims.clerk_user_id,
+                subject=claims.auth_subject,
                 is_current=True,
                 is_legacy=False,
                 linked_at=datetime.now(UTC),
@@ -352,7 +352,7 @@ class UserSyncService:
             link.last_synced_at = datetime.now(UTC)
             if claims.issuer:
                 link.issuer = claims.issuer
-            link.subject = claims.clerk_user_id
+            link.subject = claims.auth_subject
             link.provider = link.provider or "clerk"
 
         return link

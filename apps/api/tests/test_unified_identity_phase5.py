@@ -96,19 +96,19 @@ def _db_membership(*, admin=False, merchant=False, driver=False, customer=False)
 def test_unified_allows_multi_role_same_subject_on_customer() -> None:
     """Admin + customer membership OK under unified — visit still needs provisioning elsewhere."""
     db = _db_membership(admin=True, customer=True)
-    claims = IdentityClaims(clerk_user_id="user_multi")
+    claims = IdentityClaims(auth_subject="user_multi")
     assert_portal_provisioned(db, claims, portal="customer", settings=_unified_settings())
 
 
 def test_unified_allows_multi_role_on_admin_when_provisioned() -> None:
     db = _db_membership(admin=True, customer=True)
-    claims = IdentityClaims(clerk_user_id="user_multi")
+    claims = IdentityClaims(auth_subject="user_multi")
     assert_portal_provisioned(db, claims, portal="admin", settings=_unified_settings())
 
 
 def test_unified_still_requires_admin_provisioning() -> None:
     db = _db_membership(customer=True)
-    claims = IdentityClaims(clerk_user_id="user_customer_only")
+    claims = IdentityClaims(auth_subject="user_customer_only")
     with pytest.raises(HTTPException) as exc:
         assert_portal_provisioned(db, claims, portal="admin", settings=_unified_settings())
     assert exc.value.status_code == 403
@@ -117,7 +117,7 @@ def test_unified_still_requires_admin_provisioning() -> None:
 
 def test_unified_still_requires_merchant_provisioning() -> None:
     db = _db_membership(admin=True)
-    claims = IdentityClaims(clerk_user_id="user_admin")
+    claims = IdentityClaims(auth_subject="user_admin")
     with pytest.raises(HTTPException) as exc:
         assert_portal_provisioned(db, claims, portal="merchant", settings=_unified_settings())
     assert exc.value.status_code == 403

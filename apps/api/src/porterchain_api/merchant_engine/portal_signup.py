@@ -25,7 +25,7 @@ from porterchain_api.merchant_engine.team_service import bind_seat_subject, ensu
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
 
-def claim_pending_seats_for_clerk(db: Session, *, email: str, clerk_id: str) -> int:
+def claim_pending_seats_for_clerk(db: Session, *, email: str, subject_ref: str) -> int:
     """Bind every reserved ``pending:{email}`` seat to this Clerk user.
 
     Admin can reserve Owner on company A while the same person already has a linked
@@ -34,26 +34,26 @@ def claim_pending_seats_for_clerk(db: Session, *, email: str, clerk_id: str) -> 
     ``Clerk off`` forever even though OTP login succeeded.
     """
     normalized = normalize_email(email)
-    if not normalized or not clerk_id or _is_pending_clerk_id(clerk_id):
+    if not normalized or not subject_ref or _is_pending_clerk_id(subject_ref):
         return 0
     claimed = 0
     for seat in db.query(MerchantUser).filter(MerchantUser.email == normalized).all():
-        if not _is_pending_clerk_id(seat.clerk_user_id):
+        if not _is_pending_clerk_id(seat.auth_subject):
             continue
-        if seat.clerk_user_id == clerk_id:
+        if seat.auth_subject == subject_ref:
             continue
         clash = (
             db.query(MerchantUser)
             .filter(
                 MerchantUser.merchant_id == seat.merchant_id,
-                MerchantUser.clerk_user_id == clerk_id,
+                MerchantUser.auth_subject == subject_ref,
                 MerchantUser.id != seat.id,
             )
             .first()
         )
         if clash:
             continue
-        bind_seat_subject(db, seat.id, clerk_id)
+        bind_seat_subject(db, seat.id, subject_ref)
         claimed += 1
     return claimed
 
@@ -61,12 +61,12 @@ def claim_pending_seats_for_clerk(db: Session, *, email: str, clerk_id: str) -> 
 def resolve_seat(
     db: Session,
     *,
-    clerk_id: str,
+    subject_ref: str,
     email: str,
 ) -> tuple[MerchantUser | None, Merchant | None]:
     merchant_user: MerchantUser | None = None
-    if clerk_id and not _is_pending_clerk_id(clerk_id):
-        seats = seats_for_clerk(db, clerk_id)
+    if subject_ref and not _is_pending_clerk_id(subject_ref):
+        seats = seats_for_clerk(db, subject_ref)
         merchant_user = seats[0] if seats else None
     if not merchant_user and email:
         merchant_user = get_merchant_user_by_email(db, normalize_email(email) or email)
@@ -80,26 +80,26 @@ def link_or_create_portal_merchant(
     db: Session,
     *,
     email: str,
-    clerk_id: str,
+    subject_ref: str,
     company_name: str,
 ) -> None:
     """Create merchants + owner seat on first portal sign-in, or bind a reserved seat."""
     email = normalize_email(email) or email
     merchant_user: MerchantUser | None = None
-    if clerk_id and not _is_pending_clerk_id(clerk_id):
-        seats = seats_for_clerk(db, clerk_id)
+    if subject_ref and not _is_pending_clerk_id(subject_ref):
+        seats = seats_for_clerk(db, subject_ref)
         merchant_user = seats[0] if seats else None
     if not merchant_user:
         merchant_user = get_merchant_user_by_email(db, email)
 
     if merchant_user:
         changed = False
-        if clerk_id and not _is_pending_clerk_id(clerk_id) and merchant_user.clerk_user_id != clerk_id:
-            if _is_pending_clerk_id(merchant_user.clerk_user_id):
-                bind_seat_subject(db, merchant_user.id, clerk_id)
+        if subject_ref and not _is_pending_clerk_id(subject_ref) and merchant_user.auth_subject != subject_ref:
+            if _is_pending_clerk_id(merchant_user.auth_subject):
+                bind_seat_subject(db, merchant_user.id, subject_ref)
                 changed = True
         # Always heal other reserved seats for this email (Kaylulu Owner, etc.).
-        if claim_pending_seats_for_clerk(db, email=email, clerk_id=clerk_id):
+        if claim_pending_seats_for_clerk(db, email=email, subject_ref=subject_ref):
             changed = True
         merchant = get_merchant(db, merchant_user.merchant_id)
         if merchant:
@@ -124,7 +124,7 @@ def link_or_create_portal_merchant(
     else:
         apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_PORTAL)
 
-    clerk_ref = clerk_id if clerk_id and not _is_pending_clerk_id(clerk_id) else f"pending:{email}"
+    clerk_ref = subject_ref if subject_ref and not _is_pending_clerk_id(subject_ref) else f"pending:{email}"
     user = ensure_merchant_seat(
         db,
         merchant_id=merchant.id,
@@ -133,9 +133,9 @@ def link_or_create_portal_merchant(
         audit_action="merchant.portal_signup_seat",
         commit=False,
     )
-    if user.clerk_user_id != clerk_ref:
+    if user.auth_subject != clerk_ref:
         bind_seat_subject(db, user.id, clerk_ref, activate=True)
-    claim_pending_seats_for_clerk(db, email=email, clerk_id=clerk_id)
+    claim_pending_seats_for_clerk(db, email=email, subject_ref=subject_ref)
     db.commit()
     if created_new:
         from porterchain_api.merchant_engine.contacts_service import record_portal_signup_lead
@@ -154,12 +154,12 @@ def save_vertical(db: Session, merchant: Any, vertical: str, industry: str | Non
     db.commit()
 
 
-def first_open_seat(db: Session, clerk_user_id: str) -> MerchantUser | None:
-    for seat in seats_for_clerk(db, clerk_user_id):
+def first_open_seat(db: Session, auth_subject: str) -> MerchantUser | None:
+    for seat in seats_for_clerk(db, auth_subject):
         if not seat.is_active:
             continue
         merchant = get_merchant(db, seat.merchant_id)
         if merchant and merchant.status in PORTAL_OPEN_STATUSES:
             return seat
-    seats = [s for s in seats_for_clerk(db, clerk_user_id) if s.is_active]
+    seats = [s for s in seats_for_clerk(db, auth_subject) if s.is_active]
     return seats[0] if seats else None

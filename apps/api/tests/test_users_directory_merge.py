@@ -20,10 +20,10 @@ from porterchain_api.schemas_admin import PlatformUserItem
 def _item(
     *,
     email: str,
-    clerk_user_id: str = "user_real",
+    auth_subject: str = "user_real",
     user_type: str = "customer",
     identity_status: str = "registered",
-    clerk_linked: bool = True,
+    identity_linked: bool = True,
     invite_status: str = "accepted",
 ) -> PlatformUserItem:
     return PlatformUserItem(
@@ -37,8 +37,8 @@ def _item(
         invite_status=invite_status,
         identity_status=identity_status,
         status_label="ok",
-        clerk_linked=clerk_linked,
-        clerk_user_id=clerk_user_id,
+        identity_linked=identity_linked,
+        auth_subject=auth_subject,
         created_at=datetime.now(UTC),
     )
 
@@ -83,8 +83,8 @@ def test_list_platform_users_staff_skips_clerk_merge(db, settings) -> None:
     assert isinstance(resp.items, list)
     for item in resp.items:
         assert item.user_type == "staff"
-        assert item.clerk_linked is False
-        assert item.clerk_user_id is None
+        assert item.identity_linked is False
+        assert item.auth_subject is None
         assert "Clerk" not in item.status_label
 
 
@@ -105,8 +105,8 @@ def test_merge_keeps_db_rows_missing_from_clerk() -> None:
     ):
         merged, synced, total = _merge_clerk_directory(
             [
-                _item(email="real@example.com", clerk_user_id="user_real"),
-                _item(email="ghost@example.com", clerk_user_id="clerk_fake_xyz"),
+                _item(email="real@example.com", auth_subject="user_real"),
+                _item(email="ghost@example.com", auth_subject="clerk_fake_xyz"),
             ],
             settings=MagicMock(),
             user_type="customer",
@@ -117,8 +117,8 @@ def test_merge_keeps_db_rows_missing_from_clerk() -> None:
     assert total == 1
     by_email = {i.email.lower(): i for i in merged}
     assert set(by_email) == {"real@example.com", "ghost@example.com"}
-    assert by_email["real@example.com"].clerk_linked is True
-    assert by_email["ghost@example.com"].clerk_linked is False
+    assert by_email["real@example.com"].identity_linked is True
+    assert by_email["ghost@example.com"].identity_linked is False
     assert by_email["ghost@example.com"].identity_status == "not_registered"
     assert "Not in Clerk" in by_email["ghost@example.com"].status_label
 
@@ -180,7 +180,7 @@ def test_merge_clerk_does_not_inject_unprovisioned_on_customer_tab() -> None:
         },
     ):
         merged, synced, total = _merge_clerk_directory(
-            [_item(email="real@example.com", clerk_user_id="user_staff")],
+            [_item(email="real@example.com", auth_subject="user_staff")],
             settings=MagicMock(),
             user_type="customer",
             limit=50,
@@ -228,15 +228,15 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
             [
                 _item(
                     email="live@example.com",
-                    clerk_user_id="user_live",
+                    auth_subject="user_live",
                     user_type="merchant",
                 ),
                 _item(
                     email="reserved@example.com",
-                    clerk_user_id="pending:abc",
+                    auth_subject="pending:abc",
                     user_type="merchant",
                     identity_status="invite_pending",
-                    clerk_linked=False,
+                    identity_linked=False,
                     invite_status="invite_pending",
                 ),
             ],
@@ -251,9 +251,9 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
     assert total == 2
     by_email = {i.email.lower(): i for i in merged}
     assert set(by_email) == {"live@example.com", "reserved@example.com", "orphan@example.com"}
-    assert by_email["live@example.com"].clerk_linked is True
+    assert by_email["live@example.com"].identity_linked is True
     assert by_email["reserved@example.com"].identity_status == "invite_pending"
-    assert by_email["reserved@example.com"].clerk_linked is False
+    assert by_email["reserved@example.com"].identity_linked is False
     assert by_email["orphan@example.com"].provisioned is False
     assert by_email["orphan@example.com"].detail_href == "/merchants"
 
@@ -267,9 +267,9 @@ def test_merchant_keep_unlinked_when_clerk_errors() -> None:
             [
                 _item(
                     email="seat@example.com",
-                    clerk_user_id="pending:x",
+                    auth_subject="pending:x",
                     user_type="merchant",
-                    clerk_linked=False,
+                    identity_linked=False,
                     identity_status="invite_pending",
                     invite_status="invite_pending",
                 )
@@ -303,12 +303,12 @@ def test_merchant_same_email_keeps_one_row_per_seat() -> None:
     )
     seat_a = _item(
         email="ops@example.com",
-        clerk_user_id="user_shared",
+        auth_subject="user_shared",
         user_type="merchant",
     ).model_copy(update={"id": "mu-a", "organization": "Acme Logistics"})
     seat_b = _item(
         email="ops@example.com",
-        clerk_user_id="user_shared",
+        auth_subject="user_shared",
         user_type="merchant",
     ).model_copy(update={"id": "mu-b", "organization": "Beta Freight"})
     with patch(
@@ -328,7 +328,7 @@ def test_merchant_same_email_keeps_one_row_per_seat() -> None:
     assert len(merged) == 2
     assert {i.id for i in merged} == {"mu-a", "mu-b"}
     assert {i.organization for i in merged} == {"Acme Logistics", "Beta Freight"}
-    assert all(i.clerk_linked for i in merged)
+    assert all(i.identity_linked for i in merged)
 
 
 def test_list_platform_users_customer_shows_db_when_clerk_empty(db, settings) -> None:

@@ -40,7 +40,7 @@ def _mock_driver(**kwargs) -> SimpleNamespace:
     base = dict(
         id="d-p0",
         status=DriverStatus.PENDING.value,
-        clerk_user_id="user_d_p0",
+        auth_subject="user_d_p0",
         vehicles=[],
         fleetbase_driver_id=None,
         is_online=True,
@@ -141,7 +141,7 @@ def test_identity_verified_does_not_auto_approve(db: Session) -> None:
         email=f"p0-ident-{suffix}@test.porterchain.com",
         full_name=f"P0 Ident {suffix}",
         status=DriverStatus.PENDING.value,
-        clerk_user_id=f"clerk_p0_ident_{suffix}",
+        auth_subject=f"clerk_p0_ident_{suffix}",
         license_verified=False,
         documents={},
     )
@@ -259,7 +259,7 @@ def test_get_driver_context_suspended_403(db: Session) -> None:
         email=f"p0-sus-{suffix}@test.porterchain.com",
         full_name=f"P0 Sus {suffix}",
         status=DriverStatus.SUSPENDED.value,
-        clerk_user_id=f"clerk_p0_sus_{suffix}",
+        auth_subject=f"clerk_p0_sus_{suffix}",
     )
     db.add(row)
     db.commit()

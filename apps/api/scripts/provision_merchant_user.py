@@ -135,17 +135,17 @@ def ensure_db_merchant(
     *,
     email: str,
     company_name: str,
-    clerk_org_id: str,
-    clerk_user_id: str,
+    external_org_id: str,
+    auth_subject: str,
 ) -> tuple[Merchant, MerchantUser]:
-    merchant = db.query(Merchant).filter(Merchant.clerk_org_id == clerk_org_id).first()
+    merchant = db.query(Merchant).filter(Merchant.external_org_id == external_org_id).first()
     if not merchant:
         by_email = db.query(Merchant).filter(Merchant.email == email).first()
         merchant = by_email
 
     if not merchant:
         merchant = Merchant(
-            clerk_org_id=clerk_org_id,
+            external_org_id=external_org_id,
             status=MerchantStatus.ACTIVE.value,
             company_name=company_name,
             legal_name=company_name,
@@ -158,7 +158,7 @@ def ensure_db_merchant(
         db.refresh(merchant)
         print(f"Created merchant {merchant.id}")
     else:
-        merchant.clerk_org_id = clerk_org_id
+        merchant.external_org_id = external_org_id
         merchant.status = MerchantStatus.ACTIVE.value
         merchant.company_name = company_name
         merchant.email = email
@@ -168,11 +168,11 @@ def ensure_db_merchant(
         db.refresh(merchant)
         print(f"Updated merchant {merchant.id}")
 
-    user = db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_user_id).first()
+    user = db.query(MerchantUser).filter(MerchantUser.auth_subject == auth_subject).first()
     if not user:
         user = MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             email=email,
             role="merchant_owner",
             is_active=True,
@@ -207,25 +207,25 @@ def main() -> None:
     try:
         with httpx.Client(headers=_clerk_headers(secret), timeout=30.0) as client:
             clerk_user = create_or_update_user(client, args.email, args.password)
-            clerk_user_id = clerk_user["id"]
+            auth_subject = clerk_user["id"]
             org = ensure_organization(
-                client, name=args.company, user_id=clerk_user_id
+                client, name=args.company, user_id=auth_subject
             )
-            clerk_org_id = org["id"]
+            external_org_id = org["id"]
 
         merchant, muser = ensure_db_merchant(
             db,
             email=args.email,
             company_name=args.company,
-            clerk_org_id=clerk_org_id,
-            clerk_user_id=clerk_user_id,
+            external_org_id=external_org_id,
+            auth_subject=auth_subject,
         )
 
         print()
         print("=== Merchant account ready ===")
         print(f"Email:           {args.email}")
-        print(f"Clerk user ID:   {clerk_user_id}")
-        print(f"Clerk org ID:    {clerk_org_id}")
+        print(f"Clerk user ID:   {auth_subject}")
+        print(f"Clerk org ID:    {external_org_id}")
         print(f"Merchant ID:     {merchant.id}")
         print(f"Merchant user:   {muser.id}")
         print()

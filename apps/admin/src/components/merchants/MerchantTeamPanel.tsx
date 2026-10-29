@@ -265,7 +265,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
                 <Badge tone={INVITE_TONE[u.invite_status ?? ""] ?? "slate"}>
                   {u.invite_status_label || inviteLabel(u.invite_status)}
                 </Badge>
-                {u.clerk_linked && <Badge tone="green">Clerk linked</Badge>}
+                {u.identity_linked && <Badge tone="green">Clerk linked</Badge>}
                 {u.is_active && (
                   <Select
                     value={u.role}

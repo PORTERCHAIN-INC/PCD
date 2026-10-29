@@ -75,7 +75,7 @@ def _token(settings: Settings, order: Order) -> str:
 def test_guest_checkout_books_without_account(db: Session, settings: Settings) -> None:
     order, customer = _paid_guest_order(db, settings, marketing_opt_in=True)
     assert order.tracking_number
-    assert customer.clerk_user_id.startswith("pending")
+    assert customer.auth_subject.startswith("pending")
     consent = service.latest_consent(db, customer.id, "marketing")
     assert consent is not None and consent.granted and "unsubscribe" in (consent.wording or "")
     assert consent.ip_hash and "10.0." not in consent.ip_hash

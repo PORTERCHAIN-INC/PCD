@@ -182,7 +182,7 @@ class MerchantInviteResponse(BaseModel):
     email: str
     role: str
     invitation_status: str
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
 
 
 class MerchantCreateRequest(BaseModel):
@@ -807,10 +807,10 @@ class PlatformUserItem(BaseModel):
     invite_status: str  # not_invited | invite_pending | accepted | revoked | invite_failed
     identity_status: str  # registered | invite_pending | not_registered
     status_label: str
-    clerk_linked: bool = False
-    clerk_user_id: str | None = None
+    identity_linked: bool = False
+    auth_subject: str | None = None
     provisioned: bool = True
-    clerk_status: str | None = None  # active | banned | locked | never_signed_in
+    directory_status: str | None = None  # active | banned | locked | never_signed_in
     clerk_email_verified: bool = False
     clerk_password_set: bool = False
     clerk_last_sign_in_at: datetime | None = None
@@ -823,7 +823,7 @@ class PlatformUsersFacets(BaseModel):
     invite_status: dict[str, int] = Field(default_factory=dict)
     identity_status: dict[str, int] = Field(default_factory=dict)
     account_status: dict[str, int] = Field(default_factory=dict)
-    clerk_status: dict[str, int] = Field(default_factory=dict)
+    directory_status: dict[str, int] = Field(default_factory=dict)
 
 
 class PlatformUsersResponse(BaseModel):
@@ -844,14 +844,14 @@ class PlatformUserCreateRequest(BaseModel):
 
 
 class PlatformUserUpdateRequest(BaseModel):
-    clerk_user_id: str
+    auth_subject: str
     name: str | None = None
     password: str | None = None
     banned: bool | None = None
 
 
 class PlatformUserDeleteRequest(BaseModel):
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
     platform_user_id: str | None = None
 
 
@@ -861,7 +861,7 @@ class PlatformUserInviteRequest(BaseModel):
 
 class PlatformUserAuthorizeRequest(BaseModel):
     platform_user_id: str | None = None
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
     email: str | None = None
     name: str | None = None
     reason: str | None = None
@@ -1252,10 +1252,10 @@ class AdminCreateCustomerResponse(BaseModel):
     phone: str | None = None
     customer_reference: str | None = None
     display_name: str
-    clerk_user_id: str | None = None
-    clerk_linked: bool = False
+    auth_subject: str | None = None
+    identity_linked: bool = False
     identity_status: str
-    clerk_action: str | None = None
+    identity_action: str | None = None
     created: bool = True
     created_at: str | None = None
 
@@ -1263,10 +1263,10 @@ class AdminCreateCustomerResponse(BaseModel):
 class AdminCustomerInviteResponse(BaseModel):
     id: str
     email: str
-    clerk_user_id: str | None = None
-    clerk_linked: bool = False
+    auth_subject: str | None = None
+    identity_linked: bool = False
     identity_status: str
-    clerk_action: str | None = None
+    identity_action: str | None = None
 
 
 class AdminCreateCustomerBookingDraftRequest(BaseModel):

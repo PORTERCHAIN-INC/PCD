@@ -58,7 +58,7 @@ class InvitationService:
         }
         clerk_result = clerk.invite_user(normalized, redirect_url=redirect, metadata=metadata)
         if clerk_result.subject:
-            driver.clerk_user_id = clerk_result.subject
+            driver.auth_subject = clerk_result.subject
 
         invitation = self._record_invitation(
             db,
@@ -111,8 +111,8 @@ class InvitationService:
             clerk = directory_for_kind(settings, "driver")
             existing = clerk.find_user_by_email(normalized)
             if existing:
-                clerk_user_id = str(existing["id"])
-                clerk.update_user_metadata(clerk_user_id, metadata)
+                auth_subject = str(existing["id"])
+                clerk.update_user_metadata(auth_subject, metadata)
                 action = "found"
             else:
                 first, _, last = (driver.full_name or "").strip().partition(" ")
@@ -123,7 +123,7 @@ class InvitationService:
                     public_metadata=metadata,
                     skip_password_requirement=True,
                 )
-                clerk_user_id = str(created["id"])
+                auth_subject = str(created["id"])
                 action = "created"
             try:
                 clerk.revoke_pending_invitations(normalized)
@@ -133,7 +133,7 @@ class InvitationService:
             logger.warning("driver_clerk_provision_failed driver=%s: %s", driver.id, exc)
             return self.invite_driver(db, ctx, settings, driver)
 
-        driver.clerk_user_id = clerk_user_id
+        driver.auth_subject = auth_subject
         now = datetime.now(UTC)
         for row in (
             db.query(UserInvitation)
@@ -145,7 +145,7 @@ class InvitationService:
             .all()
         ):
             row.status = "accepted"
-            row.clerk_user_id = clerk_user_id
+            row.auth_subject = auth_subject
             row.accepted_at = now
 
         invitation = self._record_invitation(
@@ -153,7 +153,7 @@ class InvitationService:
             email=normalized,
             user_type="driver",
             role="driver",
-            clerk_result=InviteResult(action=action, subject=clerk_user_id),
+            clerk_result=InviteResult(action=action, subject=auth_subject),
             platform_user_id=driver.id,
             invited_by=ctx.user.id if ctx and ctx.user else None,
             redirect_url=redirect,
@@ -166,14 +166,14 @@ class InvitationService:
                 action="driver.clerk_provisioned",
                 resource_type="driver",
                 resource_id=driver.id,
-                payload={"email": normalized, "clerk_action": action},
+                payload={"email": normalized, "identity_action": action},
             )
         db.commit()
         db.refresh(invitation)
         try:
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-            sync_authz_after_persona_mutation(db, clerk_user_id)
+            sync_authz_after_persona_mutation(db, auth_subject)
         except Exception:
             logger.warning("driver_authz_sync_failed driver=%s", driver.id, exc_info=True)
         return invitation
@@ -192,7 +192,7 @@ class InvitationService:
             "driver_id": driver.id,
             "email": driver.email,
             "invitation_status": invitation.status,
-            "clerk_action": invitation.invitation_metadata.get("clerk_action"),
+            "identity_action": invitation.invitation_metadata.get("identity_action"),
         }
 
     def invite_customer(
@@ -218,7 +218,7 @@ class InvitationService:
         }
         clerk_result = clerk.invite_user(normalized, redirect_url=redirect, metadata=metadata)
         if clerk_result.subject:
-            customer.clerk_user_id = clerk_result.subject
+            customer.auth_subject = clerk_result.subject
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
             sync_authz_after_persona_mutation(db, clerk_result.subject)
@@ -240,11 +240,11 @@ class InvitationService:
                 action="customer.invited",
                 resource_type="customer",
                 resource_id=customer.id,
-                payload={"email": normalized, "clerk_action": clerk_result.action},
+                payload={"email": normalized, "identity_action": clerk_result.action},
             )
         return invitation
 
-    def mark_accepted(self, db: Session, *, email: str, clerk_user_id: str) -> None:
+    def mark_accepted(self, db: Session, *, email: str, auth_subject: str) -> None:
         normalized = email.lower().strip()
         now = datetime.now(UTC)
         rows = (
@@ -257,7 +257,7 @@ class InvitationService:
         )
         for row in rows:
             row.status = "accepted"
-            row.clerk_user_id = clerk_user_id
+            row.auth_subject = auth_subject
             row.accepted_at = now
 
     def _record_invitation(
@@ -280,13 +280,13 @@ class InvitationService:
             user_type=user_type,
             role=role,
             status="accepted" if clerk_result.action in ACCEPTED_ACTIONS else "pending",
-            clerk_invitation_id=clerk_result.invitation_id,
-            clerk_user_id=clerk_result.subject,
+            external_invitation_id=clerk_result.invitation_id,
+            auth_subject=clerk_result.subject,
             platform_user_id=platform_user_id,
             merchant_id=merchant_id,
             invited_by=invited_by,
             redirect_url=redirect_url,
-            invitation_metadata={**(metadata or {}), "clerk_action": clerk_result.action},
+            invitation_metadata={**(metadata or {}), "identity_action": clerk_result.action},
             accepted_at=datetime.now(UTC) if clerk_result.action in ACCEPTED_ACTIONS else None,
         )
         db.add(invitation)

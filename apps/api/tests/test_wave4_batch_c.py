@@ -41,7 +41,7 @@ def test_suspend_driver_stays_on_porterchain() -> None:
         status="APPROVED",
         is_online=True,
         availability="idle",
-        clerk_user_id="user_x",
+        auth_subject="user_x",
     )
     db = MagicMock()
     ctx = SimpleNamespace(user=SimpleNamespace(id="admin-1"))

@@ -54,7 +54,7 @@ export type DriverDetail = DriverRow & {
   performance: Record<string, unknown>;
   assignable?: boolean;
   assign_blockers?: string[];
-  clerk_linked?: boolean;
+  identity_linked?: boolean;
   metrics: {
     orders_today: number;
     in_progress: number;

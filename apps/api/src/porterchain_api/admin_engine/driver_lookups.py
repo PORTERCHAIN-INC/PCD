@@ -31,9 +31,9 @@ __all__ = [
 
 
 def stamp_driver_porterchain_user_id(
-    db: Session, clerk_user_id: str, user_id: str
+    db: Session, auth_subject: str, user_id: str
 ) -> Driver | None:
-    driver = get_driver_by_clerk(db, clerk_user_id)
+    driver = get_driver_by_clerk(db, auth_subject)
     if driver and driver.porterchain_user_id != user_id:
         driver.porterchain_user_id = user_id
     return driver
@@ -46,23 +46,23 @@ def persist_presence(db: Session, driver: Any, *, is_online: bool) -> Any:
     return driver
 
 
-def rebind_clerk_by_email(db: Session, email: str, clerk_id: str) -> bool:
+def rebind_clerk_by_email(db: Session, email: str, subject_ref: str) -> bool:
     from porterchain_api.auth.email_identity import emails_match
 
     row = db.query(Driver).filter(Driver.email == email).first()
     if not row or not emails_match(getattr(row, "email", None), email):
         return False
-    if row.clerk_user_id == clerk_id:
+    if row.auth_subject == subject_ref:
         return False
-    taken = db.query(Driver).filter(Driver.clerk_user_id == clerk_id).first()
+    taken = db.query(Driver).filter(Driver.auth_subject == subject_ref).first()
     if taken and taken.id != row.id:
         return False
-    row.clerk_user_id = clerk_id
+    row.auth_subject = subject_ref
     return True
 
 
-def bind_clerk_user_id(db: Session, driver: Any, clerk_user_id: str) -> Any:
-    driver.clerk_user_id = clerk_user_id
+def bind_clerk_user_id(db: Session, driver: Any, auth_subject: str) -> Any:
+    driver.auth_subject = auth_subject
     db.commit()
     db.refresh(driver)
     return driver

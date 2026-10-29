@@ -21,14 +21,14 @@ def _settings() -> Settings:
     return Settings(app_env="local", auth_dev_bypass=False)
 
 
-def _claims(clerk_id: str, email: str) -> IdentityClaims:
-    return IdentityClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
+def _claims(subject_ref: str, email: str) -> IdentityClaims:
+    return IdentityClaims(auth_subject=subject_ref, email=email, clerk_app="merchant")
 
 
 def _company(
     db,
     *,
-    clerk_id: str,
+    subject_ref: str,
     email: str,
     name: str,
     status: str = MerchantStatus.ACTIVE.value,
@@ -45,7 +45,7 @@ def _company(
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             email=email,
             role=role,
             is_active=True,
@@ -57,23 +57,23 @@ def _company(
 
 def _two_companies(db) -> tuple[str, str, Merchant, Merchant]:
     """One working company and one suspended company on the same Clerk seat."""
-    clerk_id = f"user_{uuid4().hex[:12]}"
-    email = f"{clerk_id}@bf.test"
-    working = _company(db, clerk_id=clerk_id, email=email, name="Working Co")
+    subject_ref = f"user_{uuid4().hex[:12]}"
+    email = f"{subject_ref}@bf.test"
+    working = _company(db, subject_ref=subject_ref, email=email, name="Working Co")
     stopped = _company(
         db,
-        clerk_id=clerk_id,
+        subject_ref=subject_ref,
         email=email,
         name="Stopped Co",
         status=MerchantStatus.SUSPENDED.value,
         role=MerchantRole.FINANCE.value,
     )
-    return clerk_id, email, working, stopped
+    return subject_ref, email, working, stopped
 
 
-def _seats(db, clerk_id: str, email: str, selected: str | None = None):
+def _seats(db, subject_ref: str, email: str, selected: str | None = None):
     return get_merchant_seats(
-        claims=_claims(clerk_id, email),
+        claims=_claims(subject_ref, email),
         db=db,
         settings=_settings(),
         x_merchant_id=selected,
@@ -81,9 +81,9 @@ def _seats(db, clerk_id: str, email: str, selected: str | None = None):
 
 
 def test_memberships_name_every_company_in_english(db) -> None:
-    clerk_id, email, working, stopped = _two_companies(db)
+    subject_ref, email, working, stopped = _two_companies(db)
 
-    body = list_memberships(_seats(db, clerk_id, email, working.id), db=db)
+    body = list_memberships(_seats(db, subject_ref, email, working.id), db=db)
     rows = {m["company_name"]: m for m in body["memberships"]}
 
     assert set(rows) == {"Working Co", "Stopped Co"}
@@ -101,12 +101,12 @@ def test_memberships_name_every_company_in_english(db) -> None:
 
 def test_switcher_survives_a_suspended_selection(db) -> None:
     """The whole point of BF: you can still switch away from a dead company."""
-    clerk_id, email, working, stopped = _two_companies(db)
+    subject_ref, email, working, stopped = _two_companies(db)
 
     # The portal gate refuses the suspended company (AZ) ...
     with pytest.raises(HTTPException) as exc:
         get_merchant_context(
-            claims=_claims(clerk_id, email),
+            claims=_claims(subject_ref, email),
             db=db,
             settings=_settings(),
             x_merchant_id=stopped.id,
@@ -115,7 +115,7 @@ def test_switcher_survives_a_suspended_selection(db) -> None:
     assert exc.value.detail == "merchant_suspended"
 
     # ... but memberships still list both, so the switcher can move them.
-    body = list_memberships(_seats(db, clerk_id, email, stopped.id), db=db)
+    body = list_memberships(_seats(db, subject_ref, email, stopped.id), db=db)
     names = [m["company_name"] for m in body["memberships"]]
     assert names == ["Working Co", "Stopped Co"]
     assert [m["merchant_id"] for m in body["memberships"] if m["can_open"]] == [working.id]
@@ -123,7 +123,7 @@ def test_switcher_survives_a_suspended_selection(db) -> None:
 
 def test_stale_company_header_opens_this_users_seat(db) -> None:
     """A leftover X-Merchant-Id from another sign-in must not blank the portal."""
-    clerk_id, email, working, _stopped = _two_companies(db)
+    subject_ref, email, working, _stopped = _two_companies(db)
     other = Merchant(
         company_name="Someone Else Co",
         email=f"{uuid4().hex[:8]}@bf.test",
@@ -133,7 +133,7 @@ def test_stale_company_header_opens_this_users_seat(db) -> None:
     db.commit()
 
     ctx = get_merchant_context(
-        claims=_claims(clerk_id, email),
+        claims=_claims(subject_ref, email),
         db=db,
         settings=_settings(),
         x_merchant_id=other.id,
@@ -143,7 +143,7 @@ def test_stale_company_header_opens_this_users_seat(db) -> None:
 
 
 def test_a_company_you_have_no_seat_on_is_refused(db) -> None:
-    clerk_id, email, _working, _stopped = _two_companies(db)
+    subject_ref, email, _working, _stopped = _two_companies(db)
     other = Merchant(
         company_name="Someone Else Co",
         email=f"{uuid4().hex[:8]}@bf.test",
@@ -153,30 +153,30 @@ def test_a_company_you_have_no_seat_on_is_refused(db) -> None:
     db.commit()
 
     with pytest.raises(HTTPException) as exc:
-        _seats(db, clerk_id, email, other.id)
+        _seats(db, subject_ref, email, other.id)
     assert exc.value.status_code == 403
     assert exc.value.detail == "merchant_membership_not_found"
 
 
 def test_seat_turned_off_leaves_the_switcher(db) -> None:
-    clerk_id, email, working, stopped = _two_companies(db)
+    subject_ref, email, working, stopped = _two_companies(db)
     seat = (
         db.query(MerchantUser)
-        .filter(MerchantUser.clerk_user_id == clerk_id, MerchantUser.merchant_id == stopped.id)
+        .filter(MerchantUser.auth_subject == subject_ref, MerchantUser.merchant_id == stopped.id)
         .one()
     )
     seat.is_active = False
     db.commit()
 
-    body = list_memberships(_seats(db, clerk_id, email, working.id), db=db)
+    body = list_memberships(_seats(db, subject_ref, email, working.id), db=db)
     assert [m["merchant_id"] for m in body["memberships"]] == [working.id]
 
 
 def test_inbox_and_websocket_share_one_company_selector(db) -> None:
-    clerk_id, _email, working, _stopped = _two_companies(db)
+    subject_ref, _email, working, _stopped = _two_companies(db)
     settings = _settings()
 
-    inbox = _resolve_merchant_recipient(db, settings, clerk_id, working.id)
+    inbox = _resolve_merchant_recipient(db, settings, subject_ref, working.id)
     assert inbox is not None and inbox.user_id == working.id
 
     from porterchain_api.notification_engine.principal import resolve_notification_ws_user
@@ -196,17 +196,17 @@ def test_inbox_and_websocket_share_one_company_selector(db) -> None:
 
 
 def test_suspended_company_has_no_inbox(db) -> None:
-    clerk_id, _email, working, stopped = _two_companies(db)
+    subject_ref, _email, working, stopped = _two_companies(db)
     settings = _settings()
 
-    assert _resolve_merchant_recipient(db, settings, clerk_id, stopped.id) is None
+    assert _resolve_merchant_recipient(db, settings, subject_ref, stopped.id) is None
     # With no selector it falls back to the company that still works.
-    fallback = _resolve_merchant_recipient(db, settings, clerk_id, None)
+    fallback = _resolve_merchant_recipient(db, settings, subject_ref, None)
     assert fallback is not None and fallback.user_id == working.id
 
 
 def test_websocket_rejects_a_company_without_a_seat(db) -> None:
-    clerk_id, _email, _working, _stopped = _two_companies(db)
+    subject_ref, _email, _working, _stopped = _two_companies(db)
     other = Merchant(
         company_name="Not Yours Co",
         email=f"{uuid4().hex[:8]}@bf.test",
@@ -215,7 +215,7 @@ def test_websocket_rejects_a_company_without_a_seat(db) -> None:
     db.add(other)
     db.commit()
 
-    assert _resolve_merchant_recipient(db, _settings(), clerk_id, other.id) is None
+    assert _resolve_merchant_recipient(db, _settings(), subject_ref, other.id) is None
     assert asyncio.run(_no_ws_user(other.id)) is None
 
 

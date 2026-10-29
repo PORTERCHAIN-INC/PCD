@@ -317,7 +317,7 @@ def admin_client(db, monkeypatch):
         if name.startswith("porterchain_api.routers.admin") and hasattr(mod, "require_module"):
             monkeypatch.setattr(mod, "require_module", lambda ctx, module: None)
     admin = AdminContext(
-        user=AdminUser(id=str(uuid.uuid4()), clerk_user_id="cn-admin", email="ops@porterchain.com", role="super_admin"),
+        user=AdminUser(id=str(uuid.uuid4()), auth_subject="cn-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin
@@ -350,7 +350,7 @@ def test_api_requires_finance_module(db, monkeypatch) -> None:
 
     monkeypatch.setattr(finance_credit_notes, "require_module", deny)
     admin = AdminContext(
-        user=AdminUser(id=str(uuid.uuid4()), clerk_user_id="cn-viewer", email="v@porterchain.com", role="support"),
+        user=AdminUser(id=str(uuid.uuid4()), auth_subject="cn-viewer", email="v@porterchain.com", role="support"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

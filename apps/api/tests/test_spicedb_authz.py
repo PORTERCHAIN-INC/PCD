@@ -102,7 +102,7 @@ def test_require_module_does_not_bypass_via_portal_admin() -> None:
 
     user = AdminUser(
         id="adm-1",
-        clerk_user_id="clerk_sales",
+        auth_subject="clerk_sales",
         email="sales@example.com",
         name="Sales",
         role=AdminRole.SALES.value,
@@ -253,7 +253,7 @@ def test_platform_role_revoke_blocks_require_module_immediately() -> None:
 
     user = AdminUser(
         id="adm-revoke",
-        clerk_user_id="clerk_revoke",
+        auth_subject="clerk_revoke",
         email="revoke@example.com",
         name="Revoke",
         role=AdminRole.SALES.value,
@@ -281,7 +281,7 @@ def test_account_suspend_rejects_principal_without_ttl_wait() -> None:
 
     user = PorterchainUser(
         id="u-susp-1",
-        clerk_user_id="clerk_susp",
+        auth_subject="clerk_susp",
         email="susp@example.com",
         role="merchant_ops",
         status=AccountStatus.SUSPENDED.value,

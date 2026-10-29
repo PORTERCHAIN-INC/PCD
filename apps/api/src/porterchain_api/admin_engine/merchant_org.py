@@ -90,7 +90,7 @@ def admin_merchant_context(db: Session, merchant_id: str, admin_ctx: AdminContex
         return MerchantContext(merchant=merchant, user=user, role=parse_merchant_role(user.role))
     ctx = billing_context(merchant)
     ctx.user.id = admin_ctx.user.id
-    ctx.user.clerk_user_id = f"admin:{admin_ctx.user.id}"
+    ctx.user.auth_subject = f"admin:{admin_ctx.user.id}"
     ctx.user.email = admin_ctx.user.email or ctx.user.email
     return ctx
 
@@ -455,7 +455,7 @@ def invite_payload(user) -> dict:
         "email": user.email,
         "role": user.role,
         "invitation_status": "seat_reserved",
-        "clerk_user_id": user.clerk_user_id if user.clerk_user_id.startswith("user_") else None,
+        "auth_subject": user.auth_subject if user.auth_subject.startswith("user_") else None,
     }
 
 

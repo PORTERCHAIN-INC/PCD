@@ -224,7 +224,7 @@ export type DriverOnboarding = {
   ready: boolean;
   blockers: string[];
   status: string;
-  clerk_linked: boolean;
+  identity_linked: boolean;
   pending_documents: number;
   can_access_portal: boolean;
 };

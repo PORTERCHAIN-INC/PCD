@@ -187,7 +187,7 @@ def purge(db: Session, ctx: AdminContext | None, batch_id: str, *, confirm: str 
 def _system_ctx() -> AdminContext:
     from porterchain_api.admin_models import AdminUser
 
-    return AdminContext(user=AdminUser(id="system:auto_purge", clerk_user_id="system:auto_purge",
+    return AdminContext(user=AdminUser(id="system:auto_purge", auth_subject="system:auto_purge",
                                        email="auto-purge@porterchain.local", role="super_admin"),
                         role=AdminRole.SUPER_ADMIN)
 

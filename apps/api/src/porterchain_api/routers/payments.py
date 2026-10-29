@@ -16,11 +16,11 @@ def retry_payment(
     body: PaymentRetryRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: str = Depends(get_auth_subject),
+    auth_subject: str = Depends(get_auth_subject),
 ) -> PaymentResponse:
     try:
         checkout_url, payment = _payments.retry_payment_for_clerk(
-            db, settings, quote_id=body.quote_id, clerk_user_id=clerk_user_id
+            db, settings, quote_id=body.quote_id, auth_subject=auth_subject
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="quote_not_found") from None

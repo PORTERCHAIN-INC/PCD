@@ -16,7 +16,7 @@ def _admin_ctx(db):
 
     suffix = uuid4().hex[:8]
     user = AdminUser(
-        clerk_user_id=f"admin_{suffix}",
+        auth_subject=f"admin_{suffix}",
         email=f"admin-{suffix}@test.local",
         role=AdminRole.SUPER_ADMIN.value,
     )

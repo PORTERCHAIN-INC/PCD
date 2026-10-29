@@ -51,7 +51,7 @@ def _quote(db, settings, session: str):
 
 def test_finance_invoice_detail(db, dispatch_order) -> None:
     customer = Customer(
-        clerk_user_id=f"clerk_inv_{datetime.now(UTC).timestamp()}",
+        auth_subject=f"clerk_inv_{datetime.now(UTC).timestamp()}",
         email=f"inv-{datetime.now(UTC).timestamp()}@test.porterchain.com",
     )
     db.add(customer)
@@ -95,7 +95,7 @@ def test_full_retail_checkout_path(db, settings) -> None:
         quote_id=quote.id,
         email=f"retail-{session}@test.porterchain.com",
         phone="+1 416-555-0200",
-        clerk_user_id=f"clerk_{session}",
+        auth_subject=f"clerk_{session}",
         anonymous_session_id=session,
         consent={"terms_accepted": True, "privacy_accepted": True, "dangerous_goods_confirmed": True},
     )
@@ -119,7 +119,7 @@ def test_user_sync_sync_customer(db) -> None:
     from porterchain_api.auth.claims import IdentityClaims
 
     claims = IdentityClaims(
-        clerk_user_id=f"clerk_sync_{datetime.now(UTC).timestamp()}",
+        auth_subject=f"clerk_sync_{datetime.now(UTC).timestamp()}",
         email=f"sync-{datetime.now(UTC).timestamp()}@test.porterchain.com",
     )
     snapshot = {"role": "customer", "status": "active", "profile": {}, "phone": None}

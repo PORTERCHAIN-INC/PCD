@@ -23,15 +23,15 @@ def evaluate_customer_onboarding(
     customer: Customer | None = None,
     email: str | None = None,
 ) -> dict[str, Any]:
-    clerk_linked = not _is_pending_clerk_id(claims.clerk_user_id)
+    identity_linked = not _is_pending_clerk_id(claims.auth_subject)
     if settings and allow_auth_dev_bypass(settings):
-        clerk_linked = True
+        identity_linked = True
 
-    if customer is None and claims.clerk_user_id:
-        customer = load_persona_bundle(db, claims.clerk_user_id).customer
+    if customer is None and claims.auth_subject:
+        customer = load_persona_bundle(db, claims.auth_subject).customer
 
     email_ok = bool(email or (customer and customer.email))
-    conflict = subject_staff_portal(db, claims.clerk_user_id or "")
+    conflict = subject_staff_portal(db, claims.auth_subject or "")
     provisioned = customer is not None
 
     from porterchain_api.admin_engine.platform_settings import portal_enabled as customer_portal_enabled
@@ -43,8 +43,8 @@ def evaluate_customer_onboarding(
             "id": "clerk_account",
             "label": "Clerk account connected",
             "description": "Sign in with your Porterchain customer account.",
-            "complete": clerk_linked,
-            "status": "complete" if clerk_linked else "pending",
+            "complete": identity_linked,
+            "status": "complete" if identity_linked else "pending",
         },
         {
             "id": "email_on_account",
@@ -83,7 +83,7 @@ def evaluate_customer_onboarding(
         "ready": ready,
         "blockers": blockers,
         "status": "active" if ready else ("disabled" if not portal_on else "pending"),
-        "clerk_linked": clerk_linked,
+        "identity_linked": identity_linked,
         "steps": steps,
         "pending_documents": 0,
         "can_access_portal": ready,
@@ -111,7 +111,7 @@ def provision_customer_for_onboarding(
 
     from porterchain_api.auth.customer import require_customer
 
-    if not claims.clerk_user_id or subject_staff_portal(db, claims.clerk_user_id):
+    if not claims.auth_subject or subject_staff_portal(db, claims.auth_subject):
         return None
     try:
         customer = require_customer(db, claims, settings)

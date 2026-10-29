@@ -21,7 +21,7 @@ _CACHE_KEY = "_persona_bundles"
 
 @dataclass
 class PersonaBundle:
-    clerk_user_id: str
+    auth_subject: str
     admin: AdminUser | None = None
     merchant_users: list[MerchantUser] = field(default_factory=list)
     driver: Driver | None = None
@@ -63,34 +63,34 @@ class PersonaBundle:
         return [mu for mu in self.merchant_users if mu.is_active]
 
 
-def load_persona_bundle(db: Session, clerk_user_id: str, *, force: bool = False) -> PersonaBundle:
+def load_persona_bundle(db: Session, auth_subject: str, *, force: bool = False) -> PersonaBundle:
     """Load (and request-cache) persona rows for a Clerk subject."""
-    if not clerk_user_id or clerk_user_id.startswith("pending:") or is_dev_bypass_subject(clerk_user_id):
-        return PersonaBundle(clerk_user_id=clerk_user_id or "")
+    if not auth_subject or auth_subject.startswith("pending:") or is_dev_bypass_subject(auth_subject):
+        return PersonaBundle(auth_subject=auth_subject or "")
 
     cache: dict[str, PersonaBundle] = db.info.setdefault(_CACHE_KEY, {})
-    if not force and clerk_user_id in cache:
-        return cache[clerk_user_id]
+    if not force and auth_subject in cache:
+        return cache[auth_subject]
 
     bundle = PersonaBundle(
-        clerk_user_id=clerk_user_id,
-        admin=db.query(AdminUser).filter(AdminUser.clerk_user_id == clerk_user_id).first(),
+        auth_subject=auth_subject,
+        admin=db.query(AdminUser).filter(AdminUser.auth_subject == auth_subject).first(),
         merchant_users=list(
-            db.query(MerchantUser).filter(MerchantUser.clerk_user_id == clerk_user_id).all()
+            db.query(MerchantUser).filter(MerchantUser.auth_subject == auth_subject).all()
         ),
-        driver=db.query(Driver).filter(Driver.clerk_user_id == clerk_user_id).first(),
-        customer=db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first(),
+        driver=db.query(Driver).filter(Driver.auth_subject == auth_subject).first(),
+        customer=db.query(Customer).filter(Customer.auth_subject == auth_subject).first(),
     )
-    cache[clerk_user_id] = bundle
+    cache[auth_subject] = bundle
     return bundle
 
 
-def invalidate_persona_bundle(db: Session, clerk_user_id: str | None = None) -> None:
+def invalidate_persona_bundle(db: Session, auth_subject: str | None = None) -> None:
     """Drop cached bundles after persona mutations in the same request."""
     cache = db.info.get(_CACHE_KEY)
     if not cache:
         return
-    if clerk_user_id is None:
+    if auth_subject is None:
         cache.clear()
         return
-    cache.pop(clerk_user_id, None)
+    cache.pop(auth_subject, None)

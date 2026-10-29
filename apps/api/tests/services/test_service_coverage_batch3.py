@@ -101,7 +101,7 @@ def test_booking_quote_customer_payment_tracking(db, settings) -> None:
     )
     customer = CustomerService().upsert(
         db,
-        clerk_user_id="clerk_cov_test",
+        auth_subject="clerk_cov_test",
         email="cov@test.porterchain.com",
         phone="+1 416-555-0111",
         visitor_session_id=session,
@@ -153,4 +153,4 @@ def test_notification_delivery(monkeypatch) -> None:
 
 
 def test_user_sync_get_by_clerk(db) -> None:
-    assert UserSyncService().get_by_clerk_id(db, "missing-clerk-id") is None
+    assert UserSyncService().get_by_subject(db, "missing-clerk-id") is None

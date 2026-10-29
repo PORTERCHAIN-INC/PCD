@@ -260,7 +260,7 @@ def test_reprice_open_checkout_after_credit(db, monkeypatch) -> None:
 @pytest.fixture()
 def admin(clean):
     ctx = AdminContext(
-        user=AdminUser(id=str(uuid.uuid4()), clerk_user_id="tax-admin", email="ops@porterchain.com", role="super_admin"),
+        user=AdminUser(id=str(uuid.uuid4()), auth_subject="tax-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: ctx

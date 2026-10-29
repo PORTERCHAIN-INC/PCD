@@ -27,7 +27,7 @@ def _seat(
     vertical: str | None = "wholesale",
 ) -> tuple[str, Merchant]:
     suffix = uuid.uuid4().hex[:10]
-    clerk_id = f"user_onb_m_{suffix}"
+    subject_ref = f"user_onb_m_{suffix}"
     merchant = Merchant(
         status=status,
         company_name=f"ONB Co {suffix}",
@@ -45,21 +45,21 @@ def _seat(
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             email=merchant.email,
             role=role,
             is_active=is_active,
         )
     )
     db.commit()
-    return clerk_id, merchant
+    return subject_ref, merchant
 
 
 def test_evaluate_blocks_pending_admin_authorization(db, settings) -> None:
-    clerk_id, merchant = _seat(db, status=MerchantStatus.PENDING.value)
+    subject_ref, merchant = _seat(db, status=MerchantStatus.PENDING.value)
     settings.auth_dev_bypass = False
     claims = IdentityClaims(
-        clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"
+        auth_subject=subject_ref, email=merchant.email, clerk_app="merchant"
     )
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["ready"] is False
@@ -69,10 +69,10 @@ def test_evaluate_blocks_pending_admin_authorization(db, settings) -> None:
 
 
 def test_evaluate_blocks_onboarding_status_until_active(db, settings) -> None:
-    clerk_id, merchant = _seat(db, status=MerchantStatus.ONBOARDING.value)
+    subject_ref, merchant = _seat(db, status=MerchantStatus.ONBOARDING.value)
     settings.auth_dev_bypass = False
     claims = IdentityClaims(
-        clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"
+        auth_subject=subject_ref, email=merchant.email, clerk_app="merchant"
     )
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["ready"] is False
@@ -86,7 +86,7 @@ def test_evaluate_blocks_suspended_and_closed(db, settings) -> None:
     sus = evaluate_merchant_onboarding(
         db,
         IdentityClaims(
-            clerk_user_id=suspended_id, email=suspended.email, clerk_app="merchant"
+            auth_subject=suspended_id, email=suspended.email, clerk_app="merchant"
         ),
         settings=settings,
     )
@@ -96,7 +96,7 @@ def test_evaluate_blocks_suspended_and_closed(db, settings) -> None:
     closed_id, closed = _seat(db, status=MerchantStatus.CLOSED.value)
     clo = evaluate_merchant_onboarding(
         db,
-        IdentityClaims(clerk_user_id=closed_id, email=closed.email, clerk_app="merchant"),
+        IdentityClaims(auth_subject=closed_id, email=closed.email, clerk_app="merchant"),
         settings=settings,
     )
     assert "merchant_closed" in clo["blockers"]
@@ -104,13 +104,13 @@ def test_evaluate_blocks_suspended_and_closed(db, settings) -> None:
 
 
 def test_evaluate_blocks_inactive_seat(db, settings) -> None:
-    clerk_id, merchant = _seat(
+    subject_ref, merchant = _seat(
         db, status=MerchantStatus.ACTIVE.value, is_active=False
     )
     settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(
         db,
-        IdentityClaims(clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"),
+        IdentityClaims(auth_subject=subject_ref, email=merchant.email, clerk_app="merchant"),
         settings=settings,
     )
     assert result["ready"] is False
@@ -121,7 +121,7 @@ def test_evaluate_auto_signup_still_blocks_until_admin_active(db, settings) -> N
     """ensure_merchant_portal_signup creates a seat, but portal stays closed until ACTIVE."""
     settings.auth_dev_bypass = False
     claims = IdentityClaims(
-        clerk_user_id=f"user_orphan_{uuid.uuid4().hex[:8]}",
+        auth_subject=f"user_orphan_{uuid.uuid4().hex[:8]}",
         email=f"orphan-{uuid.uuid4().hex[:6]}@test.local",
         clerk_app="merchant",
     )

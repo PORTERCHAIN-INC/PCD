@@ -98,7 +98,7 @@ DRIVERS = [
 
 
 def _ensure_dev_merchant(db) -> Merchant:
-    merchant = db.query(Merchant).filter(Merchant.clerk_org_id == DEV_ORG).first()
+    merchant = db.query(Merchant).filter(Merchant.external_org_id == DEV_ORG).first()
     if merchant:
         merchant.status = MerchantStatus.ACTIVE.value
         merchant.company_name = merchant.company_name or "Dev Merchant Co."
@@ -108,7 +108,7 @@ def _ensure_dev_merchant(db) -> Merchant:
         return merchant
 
     merchant = Merchant(
-        clerk_org_id=DEV_ORG,
+        external_org_id=DEV_ORG,
         status=MerchantStatus.ACTIVE.value,
         company_name="Dev Merchant Co.",
         email="merchant@porterchain.com",
@@ -125,13 +125,13 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
     user = (
         db.query(MerchantUser)
         .filter(
-            MerchantUser.clerk_user_id.in_((DEV_CLERK_USER, "dev_clerk_user")),
+            MerchantUser.auth_subject.in_((DEV_CLERK_USER, "dev_clerk_user")),
             MerchantUser.merchant_id == merchant.id,
         )
         .first()
     )
     if user:
-        user.clerk_user_id = DEV_CLERK_USER
+        user.auth_subject = DEV_CLERK_USER
         user.email = DEV_MERCHANT_EMAIL
         user.merchant_id = merchant.id
         user.role = "merchant_owner"
@@ -141,7 +141,7 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
         return user
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=DEV_CLERK_USER,
+        auth_subject=DEV_CLERK_USER,
         email=DEV_MERCHANT_EMAIL,
         role="merchant_owner",
     )

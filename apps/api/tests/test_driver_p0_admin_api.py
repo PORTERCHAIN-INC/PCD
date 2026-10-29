@@ -22,7 +22,7 @@ def test_api_a_02_lifecycle_reject_rehire_roundtrip() -> None:
     driver = SimpleNamespace(
         id="d-admin-p0",
         status=DriverStatus.PENDING.value,
-        clerk_user_id="user_admin_p0",
+        auth_subject="user_admin_p0",
         vehicles=[],
         fleetbase_driver_id=None,
         is_online=True,

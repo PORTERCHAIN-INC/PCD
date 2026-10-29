@@ -22,7 +22,7 @@ class CustomerService:
         self,
         db: Session,
         *,
-        clerk_user_id: str,
+        auth_subject: str,
         email: str,
         phone: str | None,
         visitor_session_id: str | None = None,
@@ -31,65 +31,65 @@ class CustomerService:
         from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH, emails_match, normalize_email
         from porterchain_api.auth.portal_guard import subject_staff_portal
 
-        conflict = subject_staff_portal(db, clerk_user_id)
+        conflict = subject_staff_portal(db, auth_subject)
         if conflict:
             raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
 
-        clerk_email = normalize_email(email)
-        if not clerk_email:
+        identity_email = normalize_email(email)
+        if not identity_email:
             raise ValueError("email_required")
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
+        customer = db.query(Customer).filter(Customer.auth_subject == auth_subject).first()
         is_new = customer is None
 
         if customer:
             # C-15: never silently overwrite a bound email when Clerk disagrees.
-            if customer.email and not emails_match(customer.email, clerk_email):
+            if customer.email and not emails_match(customer.email, identity_email):
                 raise ValueError(EMAIL_IDENTITY_MISMATCH)
             if not customer.email:
-                customer.email = clerk_email
+                customer.email = identity_email
             if phone is not None:
                 customer.phone = phone
             if visitor_session_id:
                 customer.visitor_session_id = visitor_session_id
             if not customer.full_name:
-                customer.full_name = (full_name or "").strip() or _name_from_email(clerk_email)
+                customer.full_name = (full_name or "").strip() or _name_from_email(identity_email)
         else:
             # C-14: merge orphan / pending rows that already hold this email.
             orphan = (
                 db.query(Customer)
-                .filter(func.lower(Customer.email) == clerk_email)
+                .filter(func.lower(Customer.email) == identity_email)
                 .order_by(Customer.created_at.asc())
                 .first()
             )
             if orphan:
-                orphan_clerk = orphan.clerk_user_id or ""
-                if orphan_clerk and not orphan_clerk.startswith("pending") and orphan_clerk != clerk_user_id:
+                orphan_clerk = orphan.auth_subject or ""
+                if orphan_clerk and not orphan_clerk.startswith("pending") and orphan_clerk != auth_subject:
                     raise ValueError(EMAIL_IDENTITY_MISMATCH)
                 customer = orphan
-                customer.clerk_user_id = clerk_user_id
-                customer.email = clerk_email
+                customer.auth_subject = auth_subject
+                customer.email = identity_email
                 if phone is not None:
                     customer.phone = phone
                 if visitor_session_id:
                     customer.visitor_session_id = visitor_session_id
                 if not customer.full_name:
-                    customer.full_name = (full_name or "").strip() or _name_from_email(clerk_email)
+                    customer.full_name = (full_name or "").strip() or _name_from_email(identity_email)
                 is_new = False
             else:
                 customer = Customer(
-                    clerk_user_id=clerk_user_id,
-                    email=clerk_email,
+                    auth_subject=auth_subject,
+                    email=identity_email,
                     phone=phone,
                     visitor_session_id=visitor_session_id,
-                    full_name=(full_name or "").strip() or _name_from_email(clerk_email),
+                    full_name=(full_name or "").strip() or _name_from_email(identity_email),
                 )
                 db.add(customer)
         db.commit()
         db.refresh(customer)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, clerk_user_id)
+        sync_authz_after_persona_mutation(db, auth_subject)
 
         if is_new:
             emit_event(
@@ -98,8 +98,8 @@ class CustomerService:
                 aggregate_type="customer",
                 aggregate_id=customer.id,
                 actor_type="customer",
-                actor_id=clerk_user_id,
-                payload={"email": clerk_email},
+                actor_id=auth_subject,
+                payload={"email": identity_email},
             )
             db.commit()
 
@@ -134,7 +134,7 @@ class CustomerService:
                 existing.full_name = full_name.strip()[:255]
             return existing
         pending = pending_clerk_id(normalized)
-        clash = db.query(Customer).filter(Customer.clerk_user_id == pending).first()
+        clash = db.query(Customer).filter(Customer.auth_subject == pending).first()
         if clash:
             if phone and not clash.phone:
                 clash.phone = phone
@@ -143,7 +143,7 @@ class CustomerService:
             return clash
         name = (full_name or "").strip()[:255] or _name_from_email(normalized)
         customer = Customer(
-            clerk_user_id=pending,
+            auth_subject=pending,
             email=normalized,
             phone=phone,
             customer_reference=generate_customer_reference(),
@@ -249,30 +249,30 @@ class CustomerService:
         db.commit()
         return lead
 
-    def get_by_clerk(self, db: Session, clerk_user_id: str) -> Customer | None:
-        return db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
+    def get_by_clerk(self, db: Session, auth_subject: str) -> Customer | None:
+        return db.query(Customer).filter(Customer.auth_subject == auth_subject).first()
 
     def get_or_create_from_clerk(
         self,
         db: Session,
         *,
-        clerk_user_id: str,
+        auth_subject: str,
         email: str | None,
         phone: str | None = None,
     ) -> Customer:
         """Ensure a retail Customer row exists for a signed-in Clerk user."""
         from porterchain_api.auth.portal_guard import subject_staff_portal
 
-        conflict = subject_staff_portal(db, clerk_user_id)
+        conflict = subject_staff_portal(db, auth_subject)
         if conflict:
             raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
 
         from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH, emails_match, normalize_email
 
-        existing = self.get_by_clerk(db, clerk_user_id)
+        existing = self.get_by_clerk(db, auth_subject)
         if existing:
-            clerk_email = normalize_email(email)
-            if clerk_email and not emails_match(existing.email, clerk_email):
+            identity_email = normalize_email(email)
+            if identity_email and not emails_match(existing.email, identity_email):
                 # Never keep a Clerk id bound to a different system email.
                 raise ValueError(EMAIL_IDENTITY_MISMATCH)
             if phone and existing.phone != phone:
@@ -284,7 +284,7 @@ class CustomerService:
             raise ValueError("email_required")
         return self.upsert(
             db,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             email=email,
             phone=phone,
         )

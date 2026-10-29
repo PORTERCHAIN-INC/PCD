@@ -155,7 +155,7 @@ def _actor(db: Session, merchant: Merchant) -> MerchantUser:
         )
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"shopify:{merchant.id}",
+        auth_subject=f"shopify:{merchant.id}",
         email=merchant.email,
         role=MerchantRole.OWNER.value,
         is_active=True,

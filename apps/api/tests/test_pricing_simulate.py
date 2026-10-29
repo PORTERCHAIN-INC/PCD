@@ -28,7 +28,7 @@ from porterchain_pricing.types import GeoPoint, PricingRequest
 @pytest.fixture
 def client(db):
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="sim-admin", email="admin@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="sim-admin", email="admin@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

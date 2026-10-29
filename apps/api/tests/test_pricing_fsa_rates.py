@@ -44,7 +44,7 @@ def rates(db):
 def client(db):
     """Admin-authenticated client sharing the test transaction."""
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="test", email="admin@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="test", email="admin@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

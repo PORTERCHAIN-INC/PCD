@@ -154,7 +154,7 @@ class PrivacyService:
             aggregate_type="customer",
             aggregate_id=customer.id,
             actor_type="customer",
-            actor_id=customer.clerk_user_id,
+            actor_id=customer.auth_subject,
             payload=payload,
         )
         db.commit()

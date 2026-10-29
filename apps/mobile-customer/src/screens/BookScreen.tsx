@@ -475,7 +475,7 @@ export function BookScreen({
         quote_id: quote.quote_id,
         email: identity.email,
         phone: phone.trim(),
-        clerk_user_id: identity.userId,
+        auth_subject: identity.userId,
         terms_accepted: terms,
         privacy_accepted: privacy,
         dangerous_goods_confirmed: dangerous,

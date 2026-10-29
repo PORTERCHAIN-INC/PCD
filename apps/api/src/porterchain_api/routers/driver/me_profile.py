@@ -43,7 +43,7 @@ async def sync_my_identity(
 ):
     """After a verified email/phone change in Clerk, copy the new primary values to the driver.
 
-    Uses its own auth (signature-verified Clerk token -> driver by clerk_user_id) because the
+    Uses its own auth (signature-verified Clerk token -> driver by auth_subject) because the
     normal driver gate rejects a session whose Clerk email no longer matches the driver row,
     which is exactly the state right after a verified email change.
     """
@@ -62,15 +62,15 @@ async def sync_my_identity(
 
     def _sync() -> dict:
         # Clerk Backend first: no DB transaction is open while we wait on the network.
-        clerk_user, _ = fetch_identity_user(settings, claims.clerk_user_id)
-        driver = pp.driver_for_clerk_user(db, claims.clerk_user_id)
+        clerk_user, _ = fetch_identity_user(settings, claims.auth_subject)
+        driver = pp.driver_for_clerk_user(db, claims.auth_subject)
         if not driver:
             raise HTTPException(status_code=403, detail="driver_not_found")
         if not clerk_user:
             raise HTTPException(status_code=502, detail="identity_lookup_failed")
         email, _detail = email_identity.verified_primary_email_from_clerk_user(clerk_user)
         phone = pp.verified_primary_phone(clerk_user)
-        email_identity._email_cache.pop(claims.clerk_user_id, None)
+        email_identity._email_cache.pop(claims.auth_subject, None)
         with db_transaction(db):
             changed = pp.sync_identity(db, driver, email=email, phone=phone)
             if changed:

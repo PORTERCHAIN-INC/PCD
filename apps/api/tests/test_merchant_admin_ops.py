@@ -38,7 +38,7 @@ PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"
 
 def _ctx(role: str) -> AdminContext:
     return AdminContext(
-        user=AdminUser(clerk_user_id=f"ops-{role}", email=f"{role}@porterchain.com", role=role),
+        user=AdminUser(auth_subject=f"ops-{role}", email=f"{role}@porterchain.com", role=role),
         role=parse_admin_role(role),
     )
 

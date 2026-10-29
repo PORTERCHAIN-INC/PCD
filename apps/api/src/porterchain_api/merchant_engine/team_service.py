@@ -23,8 +23,8 @@ from porterchain_api.merchant_models import MerchantAuditLog, MerchantUser
 def seat_status(user: MerchantUser) -> str:
     if not user.is_active:
         return "off"
-    clerk_id = user.clerk_user_id or ""
-    if clerk_id.startswith("pending:") or clerk_id.startswith("pending_"):
+    subject_ref = user.auth_subject or ""
+    if subject_ref.startswith("pending:") or subject_ref.startswith("pending_"):
         return "pending"
     return "active"
 
@@ -135,7 +135,7 @@ class MerchantTeamService:
         db.commit()
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         self._sync_team_contacts(db, ctx.merchant)
 
     def update_member(
@@ -176,7 +176,7 @@ class MerchantTeamService:
         db.refresh(user)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         self._sync_team_contacts(db, ctx.merchant)
         return user
 
@@ -278,7 +278,7 @@ def ensure_merchant_seat(
 
     conflict = (
         db.query(MerchantUser)
-        .filter(MerchantUser.clerk_user_id == clerk_ref, MerchantUser.merchant_id != merchant_id)
+        .filter(MerchantUser.auth_subject == clerk_ref, MerchantUser.merchant_id != merchant_id)
         .first()
     )
     if conflict:
@@ -292,13 +292,13 @@ def ensure_merchant_seat(
     if existing:
         existing.role = role_value
         existing.is_active = True
-        if not existing.clerk_user_id or not str(existing.clerk_user_id).startswith("user_"):
-            existing.clerk_user_id = clerk_ref
+        if not existing.auth_subject or not str(existing.auth_subject).startswith("user_"):
+            existing.auth_subject = clerk_ref
         user = existing
     else:
         user = MerchantUser(
             merchant_id=merchant_id,
-            clerk_user_id=clerk_ref,
+            auth_subject=clerk_ref,
             email=normalized,
             role=role_value,
             is_active=True,
@@ -327,13 +327,13 @@ def add_linked_seat(
     *,
     merchant_id: str,
     email: str,
-    clerk_user_id: str,
+    auth_subject: str,
     role: str,
     is_active: bool = True,
 ) -> MerchantUser:
     user = MerchantUser(
         merchant_id=merchant_id,
-        clerk_user_id=clerk_user_id,
+        auth_subject=auth_subject,
         email=email,
         role=role,
         is_active=is_active,
@@ -371,14 +371,14 @@ def deactivate_seat(db: Session, user_id: str) -> None:
 def bind_seat_subject(
     db: Session,
     user_id: str,
-    clerk_user_id: str,
+    auth_subject: str,
     *,
     activate: bool = False,
 ) -> MerchantUser | None:
     user = db.get(MerchantUser, user_id)
     if not user:
         return None
-    user.clerk_user_id = clerk_user_id
+    user.auth_subject = auth_subject
     if activate:
         user.is_active = True
     return user

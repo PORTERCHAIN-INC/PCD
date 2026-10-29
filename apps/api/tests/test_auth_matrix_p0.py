@@ -42,7 +42,7 @@ def _persona(*, admin=False, merchant=False, driver=False, customer=False) -> Ma
     from porterchain_api.auth.persona_bundle import PersonaBundle
 
     return PersonaBundle(
-        clerk_user_id="user_x",
+        auth_subject="user_x",
         admin=MagicMock() if admin else None,
         merchant_users=[MagicMock()] if merchant else [],
         driver=MagicMock() if driver else None,
@@ -55,7 +55,7 @@ def _persona(*, admin=False, merchant=False, driver=False, customer=False) -> Ma
 
 def _kc_claims(azp: str, email: str | None = "ops@porterchain.com", auth_time: int | None = None):
     return IdentityClaims(
-        clerk_user_id="kc-sub-1",
+        auth_subject="kc-sub-1",
         email=email,
         phone=None,
         org_id=None,
@@ -173,7 +173,7 @@ def test_ad_auth_002_missing_credentials_401() -> None:
 
 
 def test_dr_auth_005_driver_portal_requires_provisioning() -> None:
-    claims = IdentityClaims(clerk_user_id="user_customer_only", email="c@example.com")
+    claims = IdentityClaims(auth_subject="user_customer_only", email="c@example.com")
     db = MagicMock()
     with patch(
         "porterchain_api.auth.portal_guard.load_persona_bundle",
@@ -186,7 +186,7 @@ def test_dr_auth_005_driver_portal_requires_provisioning() -> None:
 
 
 def test_dr_auth_004_driver_portal_ok_when_provisioned() -> None:
-    claims = IdentityClaims(clerk_user_id="user_driver", email="d@example.com")
+    claims = IdentityClaims(auth_subject="user_driver", email="d@example.com")
     db = MagicMock()
     with patch(
         "porterchain_api.auth.portal_guard.load_persona_bundle",
@@ -246,7 +246,7 @@ def test_dr_auth_007_email_mismatch_403() -> None:
 
     async def _run() -> None:
         claims = IdentityClaims(
-            clerk_user_id="clerk_drv",
+            auth_subject="clerk_drv",
             email="clerk@example.com",
         )
         driver = Driver(
@@ -254,7 +254,7 @@ def test_dr_auth_007_email_mismatch_403() -> None:
             email="other@example.com",
             full_name="Drv",
             status=DriverStatus.APPROVED.value,
-            clerk_user_id="clerk_drv",
+            auth_subject="clerk_drv",
         )
         bundle = MagicMock()
         bundle.driver = driver

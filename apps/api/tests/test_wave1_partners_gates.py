@@ -91,7 +91,7 @@ def test_customer_provision_from_clerk_links_row() -> None:
     customer = SimpleNamespace(
         id="cust-1",
         email="c@example.com",
-        clerk_user_id="pending:c@example.com",
+        auth_subject="pending:c@example.com",
         full_name=None,
     )
     db = MagicMock()
@@ -109,13 +109,13 @@ def test_customer_provision_from_clerk_links_row() -> None:
             MagicMock(),
             "customer",
             email="c@example.com",
-            clerk_user_id="user_x",
+            auth_subject="user_x",
             name="C",
             role=None,
             merchant_id=None,
         )
     assert platform_id == "cust-1"
-    assert customer.clerk_user_id == "user_x"
+    assert customer.auth_subject == "user_x"
     ensure.assert_called_once()
     sync.assert_called_once()
 
@@ -124,7 +124,7 @@ def test_dsr_sets_privacy_hold() -> None:
     customer = SimpleNamespace(
         id="cust-1",
         email="c@example.com",
-        clerk_user_id="user_c",
+        auth_subject="user_c",
         privacy_status=None,
         privacy_hold_reference=None,
         privacy_hold_at=None,

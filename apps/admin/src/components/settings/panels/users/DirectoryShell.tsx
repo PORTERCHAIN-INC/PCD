@@ -190,7 +190,7 @@ export function DirectoryShell({
       await withStaffStepUp(token, () =>
         settingsApi.authorizeUser(token, userType, {
           platform_user_id: user.id,
-          clerk_user_id: user.clerk_user_id ?? undefined,
+          auth_subject: user.auth_subject ?? undefined,
           email: user.email,
           name: user.name ?? undefined,
         })
@@ -274,7 +274,8 @@ export function DirectoryShell({
                 ? (() => {
                     const notInClerk = users.filter(
                       (u) =>
-                        u.provisioned && (!u.clerk_linked || u.identity_status === "not_registered")
+                        u.provisioned &&
+                        (!u.identity_linked || u.identity_status === "not_registered")
                     ).length;
                     const unprov = users.filter((u) => !u.provisioned).length;
                     const parts: string[] = [];
@@ -362,7 +363,7 @@ export function DirectoryShell({
                       ? (user) =>
                           user.provisioned && !user.id.startsWith("clerk:") ? (
                             <div className="flex flex-wrap gap-2">
-                              {!user.clerk_linked && (
+                              {!user.identity_linked && (
                                 <Button
                                   variant="outline"
                                   disabled={conciergeBusy === user.id}

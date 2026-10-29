@@ -271,7 +271,7 @@ def admin_client(db, monkeypatch):
         "porterchain_api.routers.admin.finance.require_module", lambda ctx, module: None
     )
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="col-admin", email="ops@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="col-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

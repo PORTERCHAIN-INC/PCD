@@ -57,7 +57,7 @@ def test_hs24_project_mode_endpoint_always_403() -> None:
 def test_hs24_http_post_project_mode_immutable() -> None:
     admin = AdminContext(
         user=AdminUser(
-            clerk_user_id="hs24-admin",
+            auth_subject="hs24-admin",
             email="hs24@porterchain.test",
             role="super_admin",
             is_active=True,

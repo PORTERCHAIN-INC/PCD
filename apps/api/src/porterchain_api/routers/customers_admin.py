@@ -46,7 +46,7 @@ def list_customers(
     ctx: Ctx,
     db: Session = Depends(get_db),
     search: str | None = None,
-    clerk_linked: bool | None = None,
+    identity_linked: bool | None = None,
     privacy_status: str | None = None,
     limit: int = Query(DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
 ) -> list[dict]:
@@ -54,7 +54,7 @@ def list_customers(
     return _svc.list_customers(
         db,
         search=search,
-        clerk_linked=clerk_linked,
+        identity_linked=identity_linked,
         privacy_status=privacy_status,
         limit=limit,
     )
@@ -90,10 +90,10 @@ def create_customer(
         phone=result.get("phone"),
         customer_reference=result.get("customer_reference"),
         display_name=result["display_name"],
-        clerk_user_id=result.get("clerk_user_id"),
-        clerk_linked=bool(result.get("clerk_linked")),
+        auth_subject=result.get("auth_subject"),
+        identity_linked=bool(result.get("identity_linked")),
         identity_status=result.get("identity_status") or "orphan",
-        clerk_action=result.get("clerk_action"),
+        identity_action=result.get("identity_action"),
         created=bool(result.get("created", True)),
         created_at=result.get("created_at"),
     )
@@ -129,10 +129,10 @@ def invite_customer(
     return AdminCustomerInviteResponse(
         id=result["id"],
         email=result["email"],
-        clerk_user_id=result.get("clerk_user_id"),
-        clerk_linked=bool(result.get("clerk_linked")),
+        auth_subject=result.get("auth_subject"),
+        identity_linked=bool(result.get("identity_linked")),
         identity_status=result.get("identity_status") or "orphan",
-        clerk_action=result.get("clerk_action"),
+        identity_action=result.get("identity_action"),
     )
 
 

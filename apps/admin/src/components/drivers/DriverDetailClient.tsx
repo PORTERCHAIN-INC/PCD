@@ -242,7 +242,7 @@ export default function DriverDetailClient({ id }: { id: string }) {
                 <h1 className="text-xl font-bold text-primary">{d.full_name}</h1>
                 <Badge tone={STATUS_TONE[d.status] ?? "slate"}>{titleCase(d.status)}</Badge>
                 {d.medical_transport_certified && <Badge tone="sky">Medical certified</Badge>}
-                {d.clerk_linked === false && <Badge tone="amber">Sign-in not connected</Badge>}
+                {d.identity_linked === false && <Badge tone="amber">Sign-in not connected</Badge>}
                 {d.rating != null && (
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -264,7 +264,7 @@ export default function DriverDetailClient({ id }: { id: string }) {
             >
               Users directory
             </Link>
-            {canWrite && d.clerk_linked === false && (
+            {canWrite && d.identity_linked === false && (
               <Button
                 variant="outline"
                 disabled={busy}

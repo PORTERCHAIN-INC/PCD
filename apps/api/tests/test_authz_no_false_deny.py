@@ -76,8 +76,8 @@ def test_bound_staff_with_portal_skips_per_request_reconcile(monkeypatch) -> Non
     from porterchain_api.auth import admin
 
     monkeypatch.setattr(admin, "_check_platform", lambda sid, perm: True)
-    u = SimpleNamespace(id="a1", porterchain_user_id="p1", clerk_user_id="staff:a1")
+    u = SimpleNamespace(id="a1", porterchain_user_id="p1", auth_subject="staff:a1")
     assert admin._staff_identity_current(u) is True
-    assert admin._staff_identity_current(SimpleNamespace(id="a1", porterchain_user_id=None, clerk_user_id="staff:a1")) is False
+    assert admin._staff_identity_current(SimpleNamespace(id="a1", porterchain_user_id=None, auth_subject="staff:a1")) is False
     monkeypatch.setattr(admin, "_check_platform", lambda sid, perm: False)
     assert admin._staff_identity_current(u) is False

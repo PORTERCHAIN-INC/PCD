@@ -50,7 +50,7 @@ def _send_clerk_invite(db, settings, driver: Driver) -> None:
     invitation = InvitationService().invite_driver(db, None, settings, driver)
     db.refresh(driver)
     print(f"Clerk invitation sent: status={invitation.status}")
-    print(f"clerk_user_id: {driver.clerk_user_id or '(pending)'}")
+    print(f"auth_subject: {driver.auth_subject or '(pending)'}")
 
 
 def main() -> None:
@@ -74,7 +74,7 @@ def main() -> None:
         existing = db.query(Driver).filter(Driver.email == email).first()
         if existing:
             print(f"Driver already exists: {existing.id} ({existing.email}) status={existing.status}")
-            if args.resend_invite or not existing.clerk_user_id:
+            if args.resend_invite or not existing.auth_subject:
                 _send_clerk_invite(db, settings, existing)
             return
 
@@ -103,7 +103,7 @@ def main() -> None:
         print(f"driver_id: {driver.id}")
         print(f"email:     {driver.email}")
         print(f"status:    {driver.status}")
-        print(f"clerk_id:  {driver.clerk_user_id or '(pending invite)'}")
+        print(f"subject_ref:  {driver.auth_subject or '(pending invite)'}")
     finally:
         db.close()
 

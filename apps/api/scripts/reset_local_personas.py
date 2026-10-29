@@ -198,7 +198,7 @@ def wipe_except_staff(db) -> dict[str, int]:
 def _pc_user(
     db,
     *,
-    clerk_user_id: str,
+    auth_subject: str,
     email: str,
     phone: str,
     role: str,
@@ -206,7 +206,7 @@ def _pc_user(
     profile: dict,
 ) -> PorterchainUser:
     user = PorterchainUser(
-        clerk_user_id=clerk_user_id,
+        auth_subject=auth_subject,
         email=email,
         phone=phone,
         role=role,
@@ -229,10 +229,10 @@ def _pc_user(
     )
     db.add(
         IdentityLink(
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             provider="clerk",
             issuer="https://clerk.porterchain.local",
-            subject=clerk_user_id,
+            subject=auth_subject,
             is_current=True,
             is_legacy=False,
             linked_at=NOW,
@@ -259,7 +259,7 @@ def seed_merchant(db, admin: AdminUser) -> tuple:
         preferred_vehicles=["cargo_van", "sprinter_van"],
         status=MerchantStatus.ACTIVE.value,
         payment_terms="NET_30",
-        clerk_org_id=DEV_ORG,
+        external_org_id=DEV_ORG,
         activated_at=NOW - timedelta(days=14),
         pricing_config={
             "gta_rate": {"base_cents": 1800, "per_km_cents": 95},
@@ -338,7 +338,7 @@ def seed_merchant(db, admin: AdminUser) -> tuple:
 
     owner = _pc_user(
         db,
-        clerk_user_id=DEV_MERCHANT_SUBJECT,
+        auth_subject=DEV_MERCHANT_SUBJECT,
         email=DEV_MERCHANT_EMAIL,
         phone="+1 416-555-2101",
         role="merchant_owner",
@@ -352,7 +352,7 @@ def seed_merchant(db, admin: AdminUser) -> tuple:
     )
     seat = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=DEV_MERCHANT_SUBJECT,
+        auth_subject=DEV_MERCHANT_SUBJECT,
         porterchain_user_id=owner.id,
         email=DEV_MERCHANT_EMAIL,
         role=MerchantRole.OWNER.value,
@@ -727,7 +727,7 @@ def seed_driver(db, admin: AdminUser) -> Driver:
     db.flush()
     pc = _pc_user(
         db,
-        clerk_user_id="dev_driver_marco",
+        auth_subject="dev_driver_marco",
         email="marco@porterchain.com",
         phone="+1 416-555-0101",
         role="driver",
@@ -778,7 +778,7 @@ def seed_customer(db) -> Customer:
     persist_address(db, CUSTOMER_HOME)
     pc = _pc_user(
         db,
-        clerk_user_id=DEV_CUSTOMER_SUBJECT,
+        auth_subject=DEV_CUSTOMER_SUBJECT,
         email=DEV_CUSTOMER_EMAIL,
         phone="+1 416-555-4401",
         role="customer",
@@ -786,7 +786,7 @@ def seed_customer(db) -> Customer:
         profile={"first_name": "Priya", "last_name": "Sharma"},
     )
     customer = Customer(
-        clerk_user_id=DEV_CUSTOMER_SUBJECT,
+        auth_subject=DEV_CUSTOMER_SUBJECT,
         porterchain_user_id=pc.id,
         email=DEV_CUSTOMER_EMAIL,
         phone="+1 416-555-4401",

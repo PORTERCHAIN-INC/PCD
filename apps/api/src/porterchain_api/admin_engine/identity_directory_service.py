@@ -121,8 +121,8 @@ class DirectoryUserService:
             )
             return {
                 "platform_user_id": row["id"],
-                "clerk_user_id": row.get("clerk_user_id"),
-                "clerk_action": row.get("clerk_action") or "created",
+                "auth_subject": row.get("auth_subject"),
+                "identity_action": row.get("identity_action") or "created",
                 "email": normalized,
             }
 
@@ -158,8 +158,8 @@ class DirectoryUserService:
             db.refresh(mu)
             return {
                 "platform_user_id": mu.id,
-                "clerk_user_id": mu.clerk_user_id if str(mu.clerk_user_id).startswith("user_") else None,
-                "clerk_action": "seat_reserved",
+                "auth_subject": mu.auth_subject if str(mu.auth_subject).startswith("user_") else None,
+                "identity_action": "seat_reserved",
                 "email": normalized,
             }
 
@@ -181,7 +181,7 @@ class DirectoryUserService:
 
         client = directory_for_kind(settings, kind)
         clerk_user: dict[str, Any] | None = None
-        clerk_action = "created"
+        identity_action = "created"
 
         if password:
             clerk_user = client.create_user(
@@ -191,7 +191,7 @@ class DirectoryUserService:
                 last_name=last_name,
                 public_metadata={"user_type": user_type},
             )
-            clerk_action = "created_with_password"
+            identity_action = "created_with_password"
         elif send_invite:
             inv = InvitationService()
             if user_type == "driver":
@@ -204,7 +204,7 @@ class DirectoryUserService:
                 db.flush()
                 inv.invite_driver(db, ctx, settings, driver)
                 db.commit()
-                return {"platform_user_id": driver.id, "clerk_action": "invited", "email": normalized}
+                return {"platform_user_id": driver.id, "identity_action": "invited", "email": normalized}
             raise ValueError(f"invite_unsupported_for_{user_type}")
         else:
             clerk_user = client.create_user(
@@ -218,13 +218,13 @@ class DirectoryUserService:
         if not clerk_user:
             raise ValueError("clerk_create_failed")
 
-        clerk_id = str(clerk_user["id"])
+        subject_ref = str(clerk_user["id"])
         platform_id = self._provision_from_clerk(
             db,
             ctx,
             user_type,
             email=normalized,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             name=name,
             role=role,
             merchant_id=merchant_id,
@@ -234,14 +234,14 @@ class DirectoryUserService:
             ctx,
             action="settings.user.created",
             resource_type=user_type,
-            resource_id=platform_id or clerk_id,
-            payload={"email": normalized, "clerk_action": clerk_action},
+            resource_id=platform_id or subject_ref,
+            payload={"email": normalized, "identity_action": identity_action},
         )
         db.commit()
         return {
             "platform_user_id": platform_id,
-            "clerk_user_id": clerk_id,
-            "clerk_action": clerk_action,
+            "auth_subject": subject_ref,
+            "identity_action": identity_action,
             "email": normalized,
         }
 
@@ -264,7 +264,7 @@ class DirectoryUserService:
         ctx: AdminContext,
         settings: Settings,
         user_type: str,
-        clerk_user_id: str,
+        auth_subject: str,
         *,
         name: str | None = None,
         password: str | None = None,
@@ -285,26 +285,26 @@ class DirectoryUserService:
             last_name = parts[1] if len(parts) > 1 else None
         if first_name is not None or password:
             client.update_user(
-                clerk_user_id,
+                auth_subject,
                 first_name=first_name,
                 last_name=last_name,
                 password=password,
             )
         if banned is True:
-            client.ban_user(clerk_user_id)
+            client.ban_user(auth_subject)
         elif banned is False:
-            client.unban_user(clerk_user_id)
+            client.unban_user(auth_subject)
         log_admin_audit(
             db,
             ctx,
             action="settings.user.updated",
             resource_type=user_type,
-            resource_id=clerk_user_id,
+            resource_id=auth_subject,
             payload={"banned": banned, "password_reset": bool(password)},
         )
         db.commit()
-        snap = IdentityDirectory.snapshot(client.get_user(clerk_user_id) or {})
-        return {"clerk_user_id": clerk_user_id, "clerk_status": snap.status if snap else None}
+        snap = IdentityDirectory.snapshot(client.get_user(auth_subject) or {})
+        return {"auth_subject": auth_subject, "directory_status": snap.status if snap else None}
 
     def delete_clerk_user(
         self,
@@ -313,11 +313,11 @@ class DirectoryUserService:
         settings: Settings,
         user_type: str,
         *,
-        clerk_user_id: str | None = None,
+        auth_subject: str | None = None,
         platform_user_id: str | None = None,
     ) -> None:
         require_platform_user_type(user_type)
-        if not clerk_user_id and not platform_user_id:
+        if not auth_subject and not platform_user_id:
             raise ValueError("clerk_user_id_or_platform_user_id_required")
         if user_type == "customer":
             # C-0: never wipe Platform Clerk retail identities from Admin Settings.
@@ -336,8 +336,8 @@ class DirectoryUserService:
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
             u = db.query(AdminUser).filter(AdminUser.id == platform_user_id).first()
-            if u and u.clerk_user_id:
-                sync_authz_after_persona_mutation(db, u.clerk_user_id)
+            if u and u.auth_subject:
+                sync_authz_after_persona_mutation(db, u.auth_subject)
             log_admin_audit(
                 db,
                 ctx,
@@ -349,7 +349,7 @@ class DirectoryUserService:
             db.commit()
             return
         kind = directory_kind_for_user_type(user_type)
-        resolved_clerk_id = clerk_user_id or self._clerk_id_for_platform(db, user_type, platform_user_id)
+        resolved_clerk_id = auth_subject or self._clerk_id_for_platform(db, user_type, platform_user_id)
         if resolved_clerk_id and is_directory_configured(settings, kind):
             directory_for_kind(settings, kind).delete_user(resolved_clerk_id)
         if platform_user_id:
@@ -367,7 +367,7 @@ class DirectoryUserService:
             action="settings.user.deleted",
             resource_type=user_type,
             resource_id=platform_user_id or resolved_clerk_id or "",
-            payload={"clerk_user_id": resolved_clerk_id},
+            payload={"auth_subject": resolved_clerk_id},
         )
         db.commit()
 
@@ -379,15 +379,15 @@ class DirectoryUserService:
             return None
         if user_type == "driver":
             d = db.query(Driver).filter(Driver.id == platform_user_id).first()
-            return d.clerk_user_id if d and _identity_linked(d.clerk_user_id) else None
+            return d.auth_subject if d and _identity_linked(d.auth_subject) else None
         if user_type == "merchant":
             mu = get_merchant_user(db, platform_user_id)
-            return mu.clerk_user_id if mu and _identity_linked(mu.clerk_user_id) else None
+            return mu.auth_subject if mu and _identity_linked(mu.auth_subject) else None
         if user_type == "customer":
             from porterchain_api.booking_models import Customer
 
             c = db.query(Customer).filter(Customer.id == platform_user_id).first()
-            return c.clerk_user_id if c and _identity_linked(c.clerk_user_id) else None
+            return c.auth_subject if c and _identity_linked(c.auth_subject) else None
         return None
 
     def _deactivate_platform_user(self, db: Session, user_type: str, platform_user_id: str) -> None:
@@ -415,7 +415,7 @@ class DirectoryUserService:
         user_type: str,
         *,
         email: str,
-        clerk_user_id: str,
+        auth_subject: str,
         name: str | None,
         role: str | None,
         merchant_id: str | None,
@@ -425,12 +425,12 @@ class DirectoryUserService:
         if user_type == "driver":
             existing = db.query(Driver).filter(Driver.email == email).first()
             if existing:
-                existing.clerk_user_id = clerk_user_id
+                existing.auth_subject = auth_subject
                 return existing.id
             driver = Driver(
                 full_name=name or email.split("@")[0],
                 email=email,
-                clerk_user_id=clerk_user_id,
+                auth_subject=auth_subject,
                 status=DriverStatus.PENDING.value,
             )
             db.add(driver)
@@ -442,27 +442,27 @@ class DirectoryUserService:
             customer = ensure_retail_customer(
                 db, email=email, phone=None, full_name=name
             )
-            if customer.clerk_user_id and not str(customer.clerk_user_id).startswith("pending"):
-                if customer.clerk_user_id != clerk_user_id:
+            if customer.auth_subject and not str(customer.auth_subject).startswith("pending"):
+                if customer.auth_subject != auth_subject:
                     raise ValueError("customer_email_exists")
-            customer.clerk_user_id = clerk_user_id
+            customer.auth_subject = auth_subject
             if name and name.strip() and not customer.full_name:
                 customer.full_name = name.strip()[:255]
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-            sync_authz_after_persona_mutation(db, clerk_user_id)
+            sync_authz_after_persona_mutation(db, auth_subject)
             return customer.id
         if user_type == "merchant" and merchant_id:
             mu = get_merchant_user_by_email(db, email, merchant_id=merchant_id)
             if mu:
-                bind_seat_subject(db, mu.id, clerk_user_id, activate=True)
+                bind_seat_subject(db, mu.id, auth_subject, activate=True)
                 return mu.id
         return None
 
 
-def _identity_linked(clerk_user_id: str | None) -> bool:
-    if not clerk_user_id:
+def _identity_linked(auth_subject: str | None) -> bool:
+    if not auth_subject:
         return False
-    if clerk_user_id.startswith("pending") or clerk_user_id.startswith("staff:"):
+    if auth_subject.startswith("pending") or auth_subject.startswith("staff:"):
         return False
     return True

@@ -323,7 +323,7 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
             "dispatch": _driver_profile_status(db, driver.id),
             "assignable": len(blockers) == 0,
             "assign_blockers": blockers,
-            "clerk_linked": not _is_pending_clerk_id(driver.clerk_user_id),
+            "identity_linked": not _is_pending_clerk_id(driver.auth_subject),
             "counts": {
                 "vehicles": len(vehicles),
                 "open_tasks": db.query(CrmSalesTask).filter(

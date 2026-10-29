@@ -22,10 +22,10 @@ export const platformUserSchema = z.object({
   invite_status: z.string(),
   identity_status: z.string(),
   status_label: z.string(),
-  clerk_linked: z.boolean(),
-  clerk_user_id: z.string().nullable().optional(),
+  identity_linked: z.boolean(),
+  auth_subject: z.string().nullable().optional(),
   provisioned: z.boolean().default(true),
-  clerk_status: z.string().nullable().optional(),
+  directory_status: z.string().nullable().optional(),
   clerk_email_verified: z.boolean().default(false),
   clerk_password_set: z.boolean().default(false),
   clerk_last_sign_in_at: z.string().nullable().optional(),
@@ -38,7 +38,7 @@ export const platformUsersFacetsSchema = z.object({
   invite_status: z.record(z.string(), z.number()),
   identity_status: z.record(z.string(), z.number()),
   account_status: z.record(z.string(), z.number()),
-  clerk_status: z.record(z.string(), z.number()),
+  directory_status: z.record(z.string(), z.number()),
 });
 
 export const platformUsersResponseSchema = z.object({
@@ -62,7 +62,7 @@ export type UserDirectoryFilters = {
   invite_status?: string;
   identity_status?: string;
   account_status?: string;
-  clerk_status?: string;
+  directory_status?: string;
 };
 
 export const CLERK_STATUS_OPTIONS = [
@@ -254,7 +254,7 @@ export const settingsApi = {
     if (filters.invite_status) params.set("invite_status", filters.invite_status);
     if (filters.identity_status) params.set("identity_status", filters.identity_status);
     if (filters.account_status) params.set("account_status", filters.account_status);
-    if (filters.clerk_status) params.set("clerk_status", filters.clerk_status);
+    if (filters.directory_status) params.set("directory_status", filters.directory_status);
     const qs = params.toString();
     const raw = await adminFetch<unknown>(`${B}/users/${userType}?${qs}`, token);
     return platformUsersResponseSchema.parse(raw);
@@ -294,13 +294,13 @@ export const settingsApi = {
     }),
   updateDriverClerk: (
     token: string,
-    body: { clerk_user_id: string; name?: string; password?: string; banned?: boolean }
+    body: { auth_subject: string; name?: string; password?: string; banned?: boolean }
   ) =>
     adminFetch<Record<string, unknown>>(`${B}/users/driver/clerk`, token, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
-  deleteDriver: (token: string, body: { clerk_user_id?: string; platform_user_id?: string }) =>
+  deleteDriver: (token: string, body: { auth_subject?: string; platform_user_id?: string }) =>
     adminFetch<void>(`${B}/users/driver/delete`, token, {
       method: "POST",
       body: JSON.stringify(body),
@@ -309,7 +309,7 @@ export const settingsApi = {
     token: string,
     body: {
       platform_user_id?: string;
-      clerk_user_id?: string;
+      auth_subject?: string;
       email?: string;
       name?: string;
       reason?: string;
@@ -333,7 +333,7 @@ export const settingsApi = {
     userType: "driver" | "merchant",
     body: {
       platform_user_id?: string;
-      clerk_user_id?: string;
+      auth_subject?: string;
       email?: string;
       name?: string;
       reason?: string;

@@ -45,7 +45,7 @@ def no_real_sends(monkeypatch):
 def client(db, monkeypatch):
     # SpiceDB is not in the unit suite: allow the module checks, assert RBAC separately.
     monkeypatch.setattr("porterchain_api.routers.notifications_center.require_module", lambda *_a: None)
-    user = AdminUser(id=str(uuid4()), clerk_user_id=f"nc-{uuid4().hex[:6]}", email="ravi@porterchain.com", role="super_admin")
+    user = AdminUser(id=str(uuid4()), auth_subject=f"nc-{uuid4().hex[:6]}", email="ravi@porterchain.com", role="super_admin")
     admin = AdminContext(user=user, role=parse_admin_role("super_admin"))
     app.dependency_overrides[get_admin_context] = lambda: admin
     app.dependency_overrides[get_db] = lambda: db
@@ -379,7 +379,7 @@ def test_every_email_has_preheader_plain_text_dark_mode_and_aa_colours() -> None
 
 
 def test_center_requires_notification_modules(db) -> None:
-    user = AdminUser(id=str(uuid4()), clerk_user_id="nc-x", email="x@porterchain.com", role="support")
+    user = AdminUser(id=str(uuid4()), auth_subject="nc-x", email="x@porterchain.com", role="support")
     app.dependency_overrides[get_admin_context] = lambda: AdminContext(user=user, role=parse_admin_role("super_admin"))
     app.dependency_overrides[get_db] = lambda: db
     try:

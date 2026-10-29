@@ -98,7 +98,7 @@ def test_require_customer_maps_identity_conflict() -> None:
     from porterchain_api.auth.customer import require_customer
 
     db = MagicMock()
-    claims = SimpleNamespace(clerk_user_id="user_staff", email="a@b.com")
+    claims = SimpleNamespace(auth_subject="user_staff", email="a@b.com")
     settings = SimpleNamespace()
 
     with (

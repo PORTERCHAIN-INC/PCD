@@ -35,7 +35,7 @@ class DevMerchantHeaders:
 class MerchantSeats:
     """Every seat this Clerk user holds, whatever each company's status is (BF)."""
 
-    clerk_user_id: str
+    auth_subject: str
     seats: list[Any]
     selected_merchant_id: str | None = None
 
@@ -72,12 +72,12 @@ def get_merchant_context(
     # Heal Admin-reserved pending seats even when AccessGate skips onboarding
     # because another company for this Clerk user is already ACTIVE.
     email = normalize_email(claims.email)
-    if email and claim_pending_seats_for_clerk(db, email=email, clerk_id=claims.clerk_user_id):
+    if email and claim_pending_seats_for_clerk(db, email=email, subject_ref=claims.auth_subject):
         db.commit()
 
-    user = _resolve_merchant_user(db, claims.clerk_user_id, x_merchant_id, settings)
+    user = _resolve_merchant_user(db, claims.auth_subject, x_merchant_id, settings)
     # Local Bearer-dev synthetic subjects have no SpiceDB tuples; email is the portal persona.
-    if not is_dev_bypass_subject(claims.clerk_user_id):
+    if not is_dev_bypass_subject(claims.auth_subject):
         try:
             assert_portal_email_identity(user.email, claims.email)
         except PermissionError as exc:
@@ -88,7 +88,7 @@ def get_merchant_context(
 
     # SpiceDB ReBAC: organization#portal required — fail closed when unprovisioned.
     # Local AUTH_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
-    if not is_dev_bypass_subject(claims.clerk_user_id):
+    if not is_dev_bypass_subject(claims.auth_subject):
         from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
 
         principal = resolve_principal_for_claims(db, claims)
@@ -153,20 +153,20 @@ def get_merchant_seats(
         if not mu or not mu.is_active:
             raise HTTPException(status_code=403, detail="merchant_user_not_found")
         return MerchantSeats(
-            clerk_user_id=claims.clerk_user_id,
+            auth_subject=claims.auth_subject,
             seats=[mu],
             selected_merchant_id=mu.merchant_id,
         )
 
     assert_portal_provisioned(db, claims, portal="merchant", settings=settings)
 
-    seats = [s for s in seats_for_clerk(db, claims.clerk_user_id) if s.is_active]
-    if not seats and allow_auth_dev_bypass(settings) and is_merchant_dev_subject(claims.clerk_user_id):
-        seats = [ensure_dev_merchant_seat(db, claims.clerk_user_id)]
+    seats = [s for s in seats_for_clerk(db, claims.auth_subject) if s.is_active]
+    if not seats and allow_auth_dev_bypass(settings) and is_merchant_dev_subject(claims.auth_subject):
+        seats = [ensure_dev_merchant_seat(db, claims.auth_subject)]
     if not seats:
         raise HTTPException(status_code=403, detail="merchant_user_not_found")
 
-    if not is_dev_bypass_subject(claims.clerk_user_id):
+    if not is_dev_bypass_subject(claims.auth_subject):
         try:
             assert_portal_email_identity(seats[0].email, claims.email)
         except PermissionError as exc:
@@ -177,7 +177,7 @@ def get_merchant_seats(
         raise HTTPException(status_code=403, detail="merchant_membership_not_found")
 
     return MerchantSeats(
-        clerk_user_id=claims.clerk_user_id,
+        auth_subject=claims.auth_subject,
         seats=seats,
         selected_merchant_id=requested,
     )
@@ -185,21 +185,21 @@ def get_merchant_seats(
 
 def _resolve_merchant_user(
     db: Session,
-    clerk_user_id: str,
+    auth_subject: str,
     merchant_id: str | None,
     settings: Settings,
 ) -> Any:
     if merchant_id:
-        seats = [s for s in seats_for_clerk(db, clerk_user_id) if s.merchant_id == merchant_id]
+        seats = [s for s in seats_for_clerk(db, auth_subject) if s.merchant_id == merchant_id]
         if seats:
             return seats[0]
         # Browser kept pc_merchant_id from a previous sign-in. Do not treat that
         # as "this owner withheld Overview" — open the company this user belongs to.
-    user = first_open_seat(db, clerk_user_id)
+    user = first_open_seat(db, auth_subject)
     if user:
         return user
 
-    if allow_auth_dev_bypass(settings) and is_merchant_dev_subject(clerk_user_id):
-        return ensure_dev_merchant_seat(db, clerk_user_id)
+    if allow_auth_dev_bypass(settings) and is_merchant_dev_subject(auth_subject):
+        return ensure_dev_merchant_seat(db, auth_subject)
 
     raise HTTPException(status_code=403, detail="merchant_user_not_found")

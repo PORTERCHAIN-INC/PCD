@@ -105,13 +105,13 @@ class TrackingService:
         db: Session,
         *,
         customer_id: str,
-        clerk_user_id: str,
+        auth_subject: str,
         limit: int = 50,
     ) -> list[OrderResponse]:
         customer = db.query(Customer).filter(Customer.id == customer_id).first()
         if not customer:
             raise LookupError("customer_not_found")
-        if customer.clerk_user_id != clerk_user_id:
+        if customer.auth_subject != auth_subject:
             raise PermissionError("forbidden")
 
         orders = self._orders.list_for_customer(db, customer_id, limit=limit)

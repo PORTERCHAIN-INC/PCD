@@ -46,7 +46,7 @@ def admin_client(db, monkeypatch):
     db.merge(
         PorterchainUser(
             id="user-desk-r2",
-            clerk_user_id="clerk-desk",
+            auth_subject="clerk-desk",
             email="desk@porterchain.com",
             role="super_admin",
             status="active",
@@ -55,7 +55,7 @@ def admin_client(db, monkeypatch):
     db.flush()
     admin = AdminContext(
         user=AdminUser(
-            clerk_user_id="clerk-desk",
+            auth_subject="clerk-desk",
             email="desk@porterchain.com",
             role="super_admin",
             porterchain_user_id="user-desk-r2",

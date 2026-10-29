@@ -28,7 +28,7 @@ from porterchain_api.merchant_models import (
 
 def _ctx(role: str) -> AdminContext:
     return AdminContext(
-        user=AdminUser(clerk_user_id=f"int-{role}", email=f"{role}@porterchain.com", role=role),
+        user=AdminUser(auth_subject=f"int-{role}", email=f"{role}@porterchain.com", role=role),
         role=parse_admin_role(role),
     )
 

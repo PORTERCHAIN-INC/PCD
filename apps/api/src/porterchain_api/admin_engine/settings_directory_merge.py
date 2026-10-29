@@ -41,9 +41,9 @@ def _enrich_with_directory(item: PlatformUserItem, snap: DirectoryUserSnapshot |
         label = f"{label} · Password not set"
     return item.model_copy(
         update={
-            "clerk_user_id": snap.subject,
-            "clerk_linked": True,
-            "clerk_status": snap.status,
+            "auth_subject": snap.subject,
+            "identity_linked": True,
+            "directory_status": snap.status,
             "clerk_email_verified": snap.email_verified,
             "clerk_password_set": snap.password_set,
             "clerk_last_sign_in_at": snap.last_sign_in_at,
@@ -59,7 +59,7 @@ def _enrich_with_directory(item: PlatformUserItem, snap: DirectoryUserSnapshot |
 
 def _mark_not_in_directory(item: PlatformUserItem) -> PlatformUserItem:
     """Seat exists in PorterChain but is absent from the live Clerk directory."""
-    cid = item.clerk_user_id or ""
+    cid = item.auth_subject or ""
     if cid.startswith("pending") or item.invite_status == "invite_pending":
         identity = "invite_pending"
     else:
@@ -69,8 +69,8 @@ def _mark_not_in_directory(item: PlatformUserItem) -> PlatformUserItem:
         label = f"{label} · Not in Clerk"
     return item.model_copy(
         update={
-            "clerk_linked": False,
-            "clerk_status": None,
+            "identity_linked": False,
+            "directory_status": None,
             "identity_status": identity,
             "status_label": label,
         }
@@ -108,15 +108,15 @@ def _merge_clerk_directory(
 
     snaps = snaps or {}
     by_clerk_id: dict[str, Any] = {
-        s.clerk_user_id: s for s in snaps.values() if getattr(s, "clerk_user_id", None)
+        s.auth_subject: s for s in snaps.values() if getattr(s, "auth_subject", None)
     }
 
     merged: list[PlatformUserItem] = []
     for item in items:
         email = (item.email or "").lower().strip()
         snap = snaps.get(email) if email else None
-        if not snap and item.clerk_user_id:
-            snap = by_clerk_id.get(item.clerk_user_id)
+        if not snap and item.auth_subject:
+            snap = by_clerk_id.get(item.auth_subject)
         if snap:
             merged.append(_enrich_with_directory(item, snap))
         else:
@@ -145,10 +145,10 @@ def _merge_clerk_directory(
                     invite_status=invite,
                     identity_status=identity,
                     status_label=label,
-                    clerk_linked=True,
-                    clerk_user_id=snap.subject,
+                    identity_linked=True,
+                    auth_subject=snap.subject,
                     provisioned=False,
-                    clerk_status=snap.status,
+                    directory_status=snap.status,
                     clerk_email_verified=snap.email_verified,
                     clerk_password_set=snap.password_set,
                     clerk_last_sign_in_at=snap.last_sign_in_at,

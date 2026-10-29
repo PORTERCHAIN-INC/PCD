@@ -89,7 +89,7 @@ async def test_real_keycloak_token_verifies(realm_user):
     token = _password_token(realm_user)
     s = Settings(keycloak_url=BASE, keycloak_allowed_clients="pc-test-direct")
     claims = await kc.verify_keycloak_token(token, s)
-    assert claims.clerk_user_id == realm_user["id"]
+    assert claims.auth_subject == realm_user["id"]
     assert claims.email == realm_user["email"]
     assert "driver" in claims.public_metadata["roles"]
 

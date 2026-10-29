@@ -134,7 +134,7 @@ def confirmation_links(db: Session, settings: Settings, order: Order, customer: 
         "preferences_url": preferences_url(settings, customer),
         "unsubscribe_url": preferences_url(settings, customer),
     }
-    if str(customer.clerk_user_id or "").startswith("pending"):
+    if str(customer.auth_subject or "").startswith("pending"):
         links["account_url"] = account_url(settings, customer)
     from porterchain_api.customer_fast.rules import order_locale
 
@@ -205,7 +205,7 @@ def express_checkout(db: Session, settings: Settings, body: Any, *, ip: str | No
             quote_id=body.quote_id,
             email=email,
             phone=phone,
-            clerk_user_id=None,
+            auth_subject=None,
             anonymous_session_id=body.anonymous_session_id,
             consent={
                 "terms_accepted": True,

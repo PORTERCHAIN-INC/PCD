@@ -15,8 +15,8 @@ from porterchain_api.auth.customer_onboarding import (
 )
 
 
-def _claims(*, clerk_user_id: str = "user_cust_1", email: str | None = "c@example.com") -> IdentityClaims:
-    return IdentityClaims(clerk_user_id=clerk_user_id, email=email, clerk_app="customer")
+def _claims(*, auth_subject: str = "user_cust_1", email: str | None = "c@example.com") -> IdentityClaims:
+    return IdentityClaims(auth_subject=auth_subject, email=email, clerk_app="customer")
 
 
 def test_evaluate_ready_when_all_steps_complete() -> None:
@@ -87,7 +87,7 @@ def test_evaluate_pending_clerk_id_blocks_unless_dev_bypass() -> None:
     customer = SimpleNamespace(email="c@example.com")
     db = MagicMock()
     settings = MagicMock()
-    claims = _claims(clerk_user_id="pending:c@example.com")
+    claims = _claims(auth_subject="pending:c@example.com")
     with (
         patch(
             "porterchain_api.auth.customer_onboarding.allow_auth_dev_bypass",
@@ -105,7 +105,7 @@ def test_evaluate_pending_clerk_id_blocks_unless_dev_bypass() -> None:
         out = evaluate_customer_onboarding(
             db, claims, settings=settings, customer=customer, email="c@example.com"
         )
-    assert out["clerk_linked"] is False
+    assert out["identity_linked"] is False
     assert "clerk_account" in out["blockers"]
 
     with (
@@ -125,7 +125,7 @@ def test_evaluate_pending_clerk_id_blocks_unless_dev_bypass() -> None:
         bypassed = evaluate_customer_onboarding(
             db, claims, settings=settings, customer=customer, email="c@example.com"
         )
-    assert bypassed["clerk_linked"] is True
+    assert bypassed["identity_linked"] is True
     assert "clerk_account" not in bypassed["blockers"]
 
 
@@ -214,7 +214,7 @@ def test_provision_returns_none_on_staff_conflict() -> None:
 def test_provision_returns_none_without_clerk_id() -> None:
     db = MagicMock()
     settings = MagicMock()
-    claims = IdentityClaims(clerk_user_id="", email="c@example.com", clerk_app="customer")
+    claims = IdentityClaims(auth_subject="", email="c@example.com", clerk_app="customer")
     assert provision_customer_for_onboarding(db, claims, settings) is None
 
 

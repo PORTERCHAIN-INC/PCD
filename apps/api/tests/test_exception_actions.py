@@ -18,7 +18,7 @@ from porterchain_api.booking_models import Order, OrderException
 
 def _ctx() -> AdminContext:
     return AdminContext(
-        user=AdminUser(id=str(uuid4()), clerk_user_id="test", email="ops@porterchain.test"),
+        user=AdminUser(id=str(uuid4()), auth_subject="test", email="ops@porterchain.test"),
         role=AdminRole.SUPER_ADMIN,
     )
 

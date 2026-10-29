@@ -59,7 +59,7 @@ class EnsureUserService:
     ) -> PorterchainUser:
         if not skip_unlink:
             unlink_email_mismatched_bindings(
-                db, clerk_user_id=identity.subject, clerk_email=identity.email
+                db, auth_subject=identity.subject, identity_email=identity.email
             )
         user = self._resolve_or_create_user(db, identity)
         verified = bool(email_verified if email_verified is not None else identity.email_verified)
@@ -94,7 +94,7 @@ class EnsureUserService:
         self,
         db: Session,
         *,
-        clerk_user_id: str,
+        auth_subject: str,
         email: str | None,
         email_verified: bool,
         phone: str | None,
@@ -104,7 +104,7 @@ class EnsureUserService:
         identity = AuthenticatedIdentity(
             provider=AuthProvider.CLERK.value,
             issuer=issuer,
-            subject=clerk_user_id,
+            subject=auth_subject,
             email=normalize_email(email),
             email_verified=email_verified,
         )
@@ -118,10 +118,10 @@ class EnsureUserService:
             db.flush()
         return user
 
-    def deactivate_clerk_user(self, db: Session, *, clerk_user_id: str, commit: bool = True) -> None:
+    def deactivate_clerk_user(self, db: Session, *, auth_subject: str, commit: bool = True) -> None:
         """Deactivate auth identity + account. Never cascade-delete operational data."""
         now = datetime.now(UTC)
-        user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
+        user = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == auth_subject).first()
         if user:
             user.status = AccountStatus.DEACTIVATED.value
             try:
@@ -130,12 +130,12 @@ class EnsureUserService:
                 TupleWriter().revoke_all_for_user(db, user)
             except Exception:  # noqa: BLE001
                 logger.exception("spicedb_revoke_on_deactivate_failed user_id=%s", user.id)
-        for link in db.query(IdentityLink).filter(IdentityLink.clerk_user_id == clerk_user_id).all():
+        for link in db.query(IdentityLink).filter(IdentityLink.auth_subject == auth_subject).all():
             link.is_current = False
             link.deactivated_at = now
         for link in (
             db.query(IdentityLink)
-            .filter(IdentityLink.subject == clerk_user_id, IdentityLink.deactivated_at.is_(None))
+            .filter(IdentityLink.subject == auth_subject, IdentityLink.deactivated_at.is_(None))
             .all()
         ):
             link.is_current = False
@@ -149,7 +149,7 @@ class EnsureUserService:
     def _resolve_or_create_user(self, db: Session, identity: AuthenticatedIdentity) -> PorterchainUser:
         user = (
             db.query(PorterchainUser)
-            .filter(PorterchainUser.clerk_user_id == identity.subject)
+            .filter(PorterchainUser.auth_subject == identity.subject)
             .first()
         )
         if not user and identity.issuer:
@@ -170,7 +170,7 @@ class EnsureUserService:
         created = False
         if not user:
             user = PorterchainUser(
-                clerk_user_id=identity.subject,
+                auth_subject=identity.subject,
                 email=email,
                 role="unprovisioned",
                 status=AccountStatus.PENDING.value,
@@ -185,7 +185,7 @@ class EnsureUserService:
             except IntegrityError:
                 existing = (
                     db.query(PorterchainUser)
-                    .filter(PorterchainUser.clerk_user_id == identity.subject)
+                    .filter(PorterchainUser.auth_subject == identity.subject)
                     .first()
                 )
                 if existing is None:
@@ -251,12 +251,12 @@ class EnsureUserService:
         identity: AuthenticatedIdentity,
         user: PorterchainUser,
     ) -> None:
-        link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == identity.subject).first()
+        link = db.query(IdentityLink).filter(IdentityLink.auth_subject == identity.subject).first()
         now = datetime.now(UTC)
         if not link:
             db.add(
                 IdentityLink(
-                    clerk_user_id=identity.subject,
+                    auth_subject=identity.subject,
                     email=normalize_email(identity.email) or user.email,
                     user_type="unprovisioned",
                     platform_user_id=user.id,
@@ -289,12 +289,12 @@ class EnsureUserService:
         db: Session,
         user: PorterchainUser,
         subject: str,
-        clerk_email: str | None = None,
+        identity_email: str | None = None,
     ) -> None:
         """Update display role hint from profiles. Authz is SpiceDB only."""
         bundle = load_persona_bundle(db, subject)
         admin = bundle.admin if bundle.admin is not None and bundle.admin.is_active else None
-        if admin and emails_match(admin.email, clerk_email):
+        if admin and emails_match(admin.email, identity_email):
             user.role = admin_role_to_assignable(parse_admin_role(admin.role)).value
             activate_pending_user(user)
             if not admin.porterchain_user_id:
@@ -306,7 +306,7 @@ class EnsureUserService:
             key=lambda row: row.created_at or datetime.min.replace(tzinfo=UTC),
         )
         mu = active_merchants[0] if active_merchants else None
-        if mu and emails_match(mu.email, clerk_email):
+        if mu and emails_match(mu.email, identity_email):
             user.role = merchant_role_to_assignable(parse_merchant_role(mu.role)).value
             activate_pending_user(user)
             if not mu.porterchain_user_id:
@@ -317,7 +317,7 @@ class EnsureUserService:
         if (
             driver
             and driver.status != DriverStatus.REJECTED.value
-            and emails_match(driver.email, clerk_email)
+            and emails_match(driver.email, identity_email)
         ):
             user.role = AssignableRole.DRIVER.value
             activate_pending_user(user)
@@ -326,7 +326,7 @@ class EnsureUserService:
             return
 
         customer = bundle.customer
-        if customer and emails_match(customer.email, clerk_email):
+        if customer and emails_match(customer.email, identity_email):
             user.role = AssignableRole.CUSTOMER.value
             activate_pending_user(user)
             # C-17: keep Customer → PorterchainUser FK in sync (authz / directory).

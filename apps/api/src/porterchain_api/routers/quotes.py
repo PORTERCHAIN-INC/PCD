@@ -183,9 +183,9 @@ def post_booking(
     body: StartBookingRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: str = Depends(get_auth_subject),
+    auth_subject: str = Depends(get_auth_subject),
 ) -> BookingResponse:
-    if body.clerk_user_id != clerk_user_id and not allow_auth_dev_bypass(settings):
+    if body.auth_subject != auth_subject and not allow_auth_dev_bypass(settings):
         raise HTTPException(status_code=403, detail="identity_subject_mismatch")
     from porterchain_api.admin_engine.platform_settings import booking_self_service
 
@@ -198,7 +198,7 @@ def post_booking(
             quote_id=body.quote_id,
             email=body.email,
             phone=body.phone,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             anonymous_session_id=body.anonymous_session_id,
             consent={
                 "terms_accepted": body.terms_accepted,

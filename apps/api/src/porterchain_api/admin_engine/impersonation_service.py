@@ -24,10 +24,10 @@ from porterchain_api.domain.admin_states import AdminRole, DriverStatus
 from porterchain_api.merchant_engine.lookups import get_merchant, get_merchant_user
 
 
-def _identity_linked(clerk_user_id: str | None) -> bool:
-    if not clerk_user_id:
+def _identity_linked(auth_subject: str | None) -> bool:
+    if not auth_subject:
         return False
-    s = str(clerk_user_id)
+    s = str(auth_subject)
     return not (s.startswith("pending:") or s.startswith("staff:") or s.startswith("impersonation:"))
 
 
@@ -56,7 +56,7 @@ class ImpersonationService:
             target_email=target["email"],
             reason=reason,
             staff_session_id=staff_session_id,
-            target_clerk_user_id=target.get("clerk_user_id"),
+            target_subject=target.get("auth_subject"),
             target_label=target.get("label") or target["email"],
             ttl_seconds=DEFAULT_TTL_SECONDS,
         )
@@ -127,7 +127,7 @@ class ImpersonationService:
                 "id": driver.id,
                 "email": driver.email,
                 "label": driver.full_name or driver.email,
-                "clerk_user_id": driver.clerk_user_id if _identity_linked(driver.clerk_user_id) else None,
+                "auth_subject": driver.auth_subject if _identity_linked(driver.auth_subject) else None,
             }
 
         if target_type == "merchant":
@@ -143,7 +143,7 @@ class ImpersonationService:
                 "id": mu.id,
                 "email": mu.email,
                 "label": f"{merchant.company_name or merchant.email} · {mu.email}",
-                "clerk_user_id": mu.clerk_user_id if _identity_linked(mu.clerk_user_id) else None,
+                "auth_subject": mu.auth_subject if _identity_linked(mu.auth_subject) else None,
                 "merchant_id": merchant.id,
             }
 
@@ -157,8 +157,8 @@ class ImpersonationService:
                 "id": customer.id,
                 "email": customer.email,
                 "label": customer.full_name or customer.email,
-                "clerk_user_id": customer.clerk_user_id
-                if _identity_linked(customer.clerk_user_id)
+                "auth_subject": customer.auth_subject
+                if _identity_linked(customer.auth_subject)
                 else None,
             }
 

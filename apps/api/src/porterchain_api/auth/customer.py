@@ -31,7 +31,7 @@ def resolve_customer_contact(
         try:
             email = resolve_verified_clerk_email(
                 jwt_email=None,
-                clerk_user_id=claims.clerk_user_id,
+                auth_subject=claims.auth_subject,
                 settings=settings,
             )
         except PermissionError:
@@ -41,18 +41,18 @@ def resolve_customer_contact(
     # transaction open while waiting on the network. DB phone still wins.
     clerk_phone: str | None = None
     if not phone and is_directory_configured(settings):
-        clerk_phone = _clerk_phone_cached(settings, claims.clerk_user_id)
+        clerk_phone = _clerk_phone_cached(settings, claims.auth_subject)
 
     if not phone:
         user = (
             db.query(PorterchainUser)
-            .filter(PorterchainUser.clerk_user_id == claims.clerk_user_id)
+            .filter(PorterchainUser.auth_subject == claims.auth_subject)
             .first()
         )
         if user and user.phone:
             phone = user.phone
         if not phone:
-            customer = _customers.get_by_clerk(db, claims.clerk_user_id)
+            customer = _customers.get_by_clerk(db, claims.auth_subject)
             if customer:
                 phone = customer.phone
 
@@ -66,23 +66,23 @@ _PHONE_CACHE_TTL_S = 300.0
 _phone_cache: dict[str, tuple[float, str | None]] = {}
 
 
-def _clerk_phone_cached(settings: Settings, clerk_user_id: str) -> str | None:
+def _clerk_phone_cached(settings: Settings, auth_subject: str) -> str | None:
     import time
 
     now = time.monotonic()
-    hit = _phone_cache.get(clerk_user_id)
+    hit = _phone_cache.get(auth_subject)
     if hit and hit[0] > now:
         return hit[1]
     phone = None
     try:
-        clerk_user, _kind = fetch_identity_user(settings, clerk_user_id)
+        clerk_user, _kind = fetch_identity_user(settings, auth_subject)
         if clerk_user:
             phone = IdentityDirectory.primary_phone(clerk_user)
     except Exception:  # noqa: BLE001
         phone = None
     if len(_phone_cache) > 10_000:
         _phone_cache.clear()
-    _phone_cache[clerk_user_id] = (now + _PHONE_CACHE_TTL_S, phone)
+    _phone_cache[auth_subject] = (now + _PHONE_CACHE_TTL_S, phone)
     return phone
 
 
@@ -104,7 +104,7 @@ def require_customer(
     try:
         customer = _customers.get_or_create_from_clerk(
             db,
-            clerk_user_id=claims.clerk_user_id,
+            auth_subject=claims.auth_subject,
             email=email,
             phone=phone,
         )
@@ -122,7 +122,7 @@ def require_customer(
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
     # Local AUTH_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
-    if not is_dev_bypass_subject(claims.clerk_user_id):
+    if not is_dev_bypass_subject(claims.auth_subject):
         principal = resolve_principal_for_claims(db, claims)
         if not principal:
             raise HTTPException(status_code=403, detail="user_not_provisioned")

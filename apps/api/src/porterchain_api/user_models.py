@@ -1,6 +1,6 @@
 """Canonical Porterchain user registry — internal UUID is the business identity.
 
-Phase 2: additive onboarding / workspace columns. ``clerk_user_id`` and exclusive
+Phase 2: additive onboarding / workspace columns. ``auth_subject`` and exclusive
 ``role`` remain for compatibility until Phase 3+ multi-role cutover.
 """
 
@@ -22,14 +22,14 @@ class PorterchainUser(Base):
     """
     Internal user record. Clerk owns credentials; Porterchain owns status + RBAC.
 
-    Prefer ``id`` (UUID) for business FKs. ``clerk_user_id`` is a legacy link column
+    Prefer ``id`` (UUID) for business FKs. ``auth_subject`` is a legacy link column
     retained for rollback; prefer ``identity_links`` issuer/subject (Phase 2+).
     """
 
     __tablename__ = "porterchain_users"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    clerk_user_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    auth_subject: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     # Display hint only — never used for SpiceDB Check

@@ -14,11 +14,11 @@ _PRINCIPAL_CACHE = "_auth_principals"
 
 
 def prepare_user_from_claims(db: Session, claims: IdentityClaims) -> PorterchainUser:
-    """Run UserSync once per request/clerk_user_id."""
+    """Run UserSync once per request/auth_subject."""
     from porterchain_api.auth.user_sync_service import UserSyncService
 
     cache: dict[str, PorterchainUser] = db.info.setdefault(_SYNC_CACHE, {})
-    key = claims.clerk_user_id or ""
+    key = claims.auth_subject or ""
     if key in cache:
         return cache[key]
     user = UserSyncService().sync(db, claims)
@@ -42,15 +42,15 @@ def resolve_principal_cached(
     return principal
 
 
-def invalidate_auth_prepare(db: Session, clerk_user_id: str | None = None) -> None:
+def invalidate_auth_prepare(db: Session, auth_subject: str | None = None) -> None:
     """Clear prepare caches after persona mutations."""
-    if clerk_user_id is None:
+    if auth_subject is None:
         db.info.pop(_SYNC_CACHE, None)
         db.info.pop(_PRINCIPAL_CACHE, None)
         return
     sync = db.info.get(_SYNC_CACHE)
     if sync:
-        sync.pop(clerk_user_id, None)
+        sync.pop(auth_subject, None)
     principals = db.info.get(_PRINCIPAL_CACHE)
     if principals:
-        principals.pop(clerk_user_id, None)
+        principals.pop(auth_subject, None)

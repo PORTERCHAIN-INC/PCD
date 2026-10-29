@@ -80,7 +80,7 @@ def _actor(db) -> AdminContext:
     )
     if user is None:
         user = AdminUser(
-            clerk_user_id="pending:bootstrap@porterchain.local",
+            auth_subject="pending:bootstrap@porterchain.local",
             email="bootstrap@porterchain.local",
             name="Bootstrap",
             role=AdminRole.SUPER_ADMIN.value,
@@ -201,7 +201,7 @@ def main() -> None:
                     "email": email,
                     "driver_id": driver.id,
                     "status": driver.status,
-                    "clerk_user_id": driver.clerk_user_id,
+                    "auth_subject": driver.auth_subject,
                     "invite": None,
                 }
                 if is_directory_configured(settings, "driver"):
@@ -209,7 +209,7 @@ def main() -> None:
                         invitation = InvitationService().invite_driver(db, ctx, settings, driver)
                         db.refresh(driver)
                         row["invite"] = invitation.status
-                        row["clerk_user_id"] = driver.clerk_user_id
+                        row["auth_subject"] = driver.auth_subject
                     except Exception as exc:  # noqa: BLE001
                         row["invite"] = f"error:{exc}"
                 else:

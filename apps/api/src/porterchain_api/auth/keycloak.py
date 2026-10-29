@@ -102,7 +102,7 @@ def claims_from_keycloak_payload(payload: dict[str, Any]) -> IdentityClaims:
         metadata["role"] = primary
     email = payload.get("email")
     return IdentityClaims(
-        clerk_user_id=str(sub),
+        auth_subject=str(sub),
         email=str(email).strip().lower() if email and payload.get("email_verified", True) else None,
         phone=payload.get("phone_number"),
         org_id=payload.get("org_id"),

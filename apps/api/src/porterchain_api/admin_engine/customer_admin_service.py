@@ -50,15 +50,15 @@ class CustomerAdminService:
             db.query(func.count(Customer.id))
             .filter(
                 or_(
-                    Customer.clerk_user_id.is_(None),
-                    Customer.clerk_user_id == "",
-                    Customer.clerk_user_id.like("pending%"),
+                    Customer.auth_subject.is_(None),
+                    Customer.auth_subject == "",
+                    Customer.auth_subject.like("pending%"),
                 )
             )
             .scalar()
             or 0
         )
-        clerk_linked = int(total) - int(orphan)
+        identity_linked = int(total) - int(orphan)
         dsr_hold = (
             db.query(func.count(Customer.id))
             .filter(Customer.privacy_status == "deletion_hold")
@@ -85,7 +85,7 @@ class CustomerAdminService:
         )
         return {
             "total": int(total),
-            "clerk_linked": int(clerk_linked),
+            "identity_linked": int(identity_linked),
             "orphan": int(orphan),
             "dsr_hold": int(dsr_hold),
             "orders_30d": int(orders_30d),
@@ -97,7 +97,7 @@ class CustomerAdminService:
         db: Session,
         *,
         search: str | None = None,
-        clerk_linked: bool | None = None,
+        identity_linked: bool | None = None,
         privacy_status: str | None = None,
         limit: int = 200,
     ) -> list[dict[str, Any]]:
@@ -114,18 +114,18 @@ class CustomerAdminService:
             )
         if privacy_status:
             q = q.filter(Customer.privacy_status == privacy_status.strip())
-        if clerk_linked is True:
+        if identity_linked is True:
             q = q.filter(
-                Customer.clerk_user_id.isnot(None),
-                Customer.clerk_user_id != "",
-                ~Customer.clerk_user_id.like("pending%"),
+                Customer.auth_subject.isnot(None),
+                Customer.auth_subject != "",
+                ~Customer.auth_subject.like("pending%"),
             )
-        elif clerk_linked is False:
+        elif identity_linked is False:
             q = q.filter(
                 or_(
-                    Customer.clerk_user_id.is_(None),
-                    Customer.clerk_user_id == "",
-                    Customer.clerk_user_id.like("pending%"),
+                    Customer.auth_subject.is_(None),
+                    Customer.auth_subject == "",
+                    Customer.auth_subject.like("pending%"),
                 )
             )
         rows = q.limit(limit).all()
@@ -296,7 +296,7 @@ class CustomerAdminService:
         }
 
     def _row(self, db: Session, customer: Customer, *, light: bool) -> dict[str, Any]:
-        linked = self._identity_linked(customer.clerk_user_id)
+        linked = self._identity_linked(customer.auth_subject)
         lifetime_orders = (
             db.query(func.count(Order.id)).filter(Order.customer_id == customer.id).scalar() or 0
         )
@@ -334,9 +334,9 @@ class CustomerAdminService:
             "phone": customer.phone,
             "customer_reference": customer.customer_reference,
             "display_name": display,
-            "clerk_user_id": customer.clerk_user_id if linked else None,
-            "clerk_linked": linked,
-            "identity_status": "clerk_linked" if linked else "orphan",
+            "auth_subject": customer.auth_subject if linked else None,
+            "identity_linked": linked,
+            "identity_status": "identity_linked" if linked else "orphan",
             "stripe_customer_id": getattr(customer, "stripe_customer_id", None),
             "privacy_status": customer.privacy_status,
             "privacy_hold_reference": customer.privacy_hold_reference,
@@ -391,7 +391,7 @@ class CustomerAdminService:
         return customer.id
 
     @staticmethod
-    def _identity_linked(clerk_user_id: str | None) -> bool:
-        if not clerk_user_id:
+    def _identity_linked(auth_subject: str | None) -> bool:
+        if not auth_subject:
             return False
-        return not str(clerk_user_id).startswith("pending")
+        return not str(auth_subject).startswith("pending")

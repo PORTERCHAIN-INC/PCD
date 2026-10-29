@@ -82,13 +82,13 @@ def get_active_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
+    auth_subject: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftResponse | None:
     """Restore the latest active booking draft for a visitor or authenticated customer."""
-    if not session_id and not clerk_user_id:
+    if not session_id and not auth_subject:
         raise HTTPException(status_code=400, detail="session_or_auth_required")
     try:
-        draft = _drafts.restore_active(db, session_id=session_id, clerk_user_id=clerk_user_id)
+        draft = _drafts.restore_active(db, session_id=session_id, auth_subject=auth_subject)
     except LookupError:
         return None
     return _draft_response(db, draft, settings)
@@ -100,13 +100,13 @@ def get_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
+    auth_subject: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftDetailResponse:
     draft = _drafts.get_by_id(db, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="draft_not_found")
     try:
-        _drafts.assert_access(db, draft, session_id=session_id, clerk_user_id=clerk_user_id)
+        _drafts.assert_access(db, draft, session_id=session_id, auth_subject=auth_subject)
     except PermissionError as exc:
         raise _access_denied(exc) from exc
     draft = _drafts.restore_draft(db, draft)
@@ -120,13 +120,13 @@ def update_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
+    auth_subject: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftResponse:
     draft = _drafts.get_by_id(db, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="draft_not_found")
     try:
-        _drafts.assert_access(db, draft, session_id=session_id, clerk_user_id=clerk_user_id)
+        _drafts.assert_access(db, draft, session_id=session_id, auth_subject=auth_subject)
         draft = _drafts.update_draft(db, settings, draft, body)
     except PermissionError as exc:
         raise _access_denied(exc) from exc
@@ -141,18 +141,18 @@ def cancel_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
+    auth_subject: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftResponse:
     draft = _drafts.get_by_id(db, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="draft_not_found")
     try:
-        _drafts.assert_access(db, draft, session_id=session_id, clerk_user_id=clerk_user_id)
+        _drafts.assert_access(db, draft, session_id=session_id, auth_subject=auth_subject)
         draft = _drafts.cancel_draft(
             db,
             draft,
-            actor_type="customer" if clerk_user_id else "visitor",
-            actor_id=clerk_user_id or session_id,
+            actor_type="customer" if auth_subject else "visitor",
+            actor_id=auth_subject or session_id,
             reason="customer_cancelled",
         )
     except PermissionError as exc:

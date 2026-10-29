@@ -16,10 +16,10 @@ from porterchain_api.booking_models import Customer
 from porterchain_api.config import Settings
 
 
-def _identity_linked(clerk_user_id: str | None) -> bool:
-    if not clerk_user_id:
+def _identity_linked(auth_subject: str | None) -> bool:
+    if not auth_subject:
         return False
-    return not str(clerk_user_id).startswith("pending")
+    return not str(auth_subject).startswith("pending")
 
 
 def create_customer(
@@ -45,7 +45,7 @@ def create_customer(
         .order_by(Customer.created_at.asc())
         .first()
     )
-    if existing and _identity_linked(existing.clerk_user_id):
+    if existing and _identity_linked(existing.auth_subject):
         raise ValueError("customer_email_exists")
 
     created = existing is None
@@ -60,22 +60,22 @@ def create_customer(
     if phone and phone.strip():
         customer.phone = phone.strip()[:32]
 
-    clerk_action = "created" if created else "reused"
+    identity_action = "created" if created else "reused"
     if send_invite:
         if not is_directory_configured(settings, "customer"):
             raise ValueError("identity_not_configured")
         from porterchain_api.auth.invitation_service import InvitationService
 
         inv = InvitationService().invite_customer(db, ctx, settings, customer)
-        clerk_action = str((inv.invitation_metadata or {}).get("clerk_action") or "invited")
+        identity_action = str((inv.invitation_metadata or {}).get("identity_action") or "invited")
     elif is_directory_configured(settings, "customer"):
         clerk = directory_for_kind(settings, "customer")
         found = clerk.find_user_by_email(normalized)
         if found:
-            clerk_id = str(found["id"])
-            customer.clerk_user_id = clerk_id
+            subject_ref = str(found["id"])
+            customer.auth_subject = subject_ref
             clerk.update_user_metadata(
-                clerk_id,
+                subject_ref,
                 {
                     "role": "customer",
                     "porterchain_role": "customer",
@@ -85,8 +85,8 @@ def create_customer(
             )
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-            sync_authz_after_persona_mutation(db, clerk_id)
-            clerk_action = "linked_existing_clerk"
+            sync_authz_after_persona_mutation(db, subject_ref)
+            identity_action = "linked_existing_clerk"
 
     log_admin_audit(
         db,
@@ -97,13 +97,13 @@ def create_customer(
         payload={
             "email": normalized,
             "send_invite": send_invite,
-            "clerk_action": clerk_action,
+            "identity_action": identity_action,
         },
     )
     db.commit()
     db.refresh(customer)
     row = CustomerAdminService().detail(db, customer.id)
-    row["clerk_action"] = clerk_action
+    row["identity_action"] = identity_action
     row["created"] = created
     return row
 
@@ -122,7 +122,7 @@ def send_invite(
         raise LookupError("customer_not_found")
     if customer.privacy_status == "deletion_hold":
         raise ValueError("customer_privacy_hold")
-    if _identity_linked(customer.clerk_user_id):
+    if _identity_linked(customer.auth_subject):
         raise ValueError("customer_already_clerk_linked")
     if not is_directory_configured(settings, "customer"):
         raise ValueError("identity_not_configured")
@@ -132,9 +132,9 @@ def send_invite(
     from porterchain_api.auth.invitation_service import InvitationService
 
     inv = InvitationService().invite_customer(db, ctx, settings, customer)
-    clerk_action = str((inv.invitation_metadata or {}).get("clerk_action") or "invited")
+    identity_action = str((inv.invitation_metadata or {}).get("identity_action") or "invited")
     db.commit()
     db.refresh(customer)
     row = CustomerAdminService().detail(db, customer.id)
-    row["clerk_action"] = clerk_action
+    row["identity_action"] = identity_action
     return row

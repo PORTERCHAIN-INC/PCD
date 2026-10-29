@@ -62,7 +62,7 @@ class TupleWriter:
 
     def sync_user_from_profiles(self, db: Session, user: PorterchainUser) -> str | None:
         """Reconcile SpiceDB tuples for a user from profile rows (data), not role assignment tables."""
-        subject = user.clerk_user_id
+        subject = user.auth_subject
         if not subject:
             return None
         desired: list[Relationship] = []
@@ -90,7 +90,7 @@ class TupleWriter:
                 Relationship("driver_profile", driver.id, "owner", "user", user.id)
             )
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
+        customer = db.query(Customer).filter(Customer.auth_subject == subject).first()
         if customer:
             if getattr(customer, "porterchain_user_id", None) != user.id:
                 try:
@@ -114,7 +114,7 @@ class TupleWriter:
 
     def _known_relationships(self, db: Session, user: PorterchainUser) -> list[Relationship]:
         """Every edge this user could hold (platform roles, seats, profiles)."""
-        subject = user.clerk_user_id
+        subject = user.auth_subject
         to_delete: list[Relationship] = []
         # Drop every known platform role relation (covers role changes + legacy staff).
         from porterchain_api.authz.platform_roles import PLATFORM_ROLE_RELATIONS
@@ -133,7 +133,7 @@ class TupleWriter:
                 to_delete.append(
                     Relationship("driver_profile", driver.id, "owner", "user", user.id)
                 )
-            customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
+            customer = db.query(Customer).filter(Customer.auth_subject == subject).first()
             if customer:
                 to_delete.append(
                     Relationship("customer_profile", customer.id, "owner", "user", user.id)
@@ -221,7 +221,7 @@ def bootstrap_all_profiles(db: Session) -> dict[str, int]:
     users = db.query(PorterchainUser).all()
     synced = 0
     for user in users:
-        if not user.clerk_user_id:
+        if not user.auth_subject:
             continue
         writer.sync_user_from_profiles(db, user)
         synced += 1

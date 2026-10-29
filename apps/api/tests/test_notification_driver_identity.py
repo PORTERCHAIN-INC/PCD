@@ -29,10 +29,10 @@ OWN_DRIVER_ID = "drv-own"
 def _rows() -> dict:
     return {
         Driver: [
-            Driver(id=VICTIM_DRIVER_ID, clerk_user_id="clerk_victim", email="v@example.com", full_name="V"),
-            Driver(id=OWN_DRIVER_ID, clerk_user_id="clerk_driver", email="d@example.com", full_name="D"),
+            Driver(id=VICTIM_DRIVER_ID, auth_subject="clerk_victim", email="v@example.com", full_name="V"),
+            Driver(id=OWN_DRIVER_ID, auth_subject="clerk_driver", email="d@example.com", full_name="D"),
         ],
-        Customer: [Customer(id="cust-1", clerk_user_id="clerk_customer")],
+        Customer: [Customer(id="cust-1", auth_subject="clerk_customer")],
         MerchantUser: [],
         Merchant: [],
         AdminUser: [],
@@ -97,11 +97,11 @@ def client():
         yield c
 
 
-def _as(clerk_user_id: str):
+def _as(auth_subject: str):
     return patch(
         "porterchain_api.auth.bearer.verify_access_token",
         new_callable=AsyncMock,
-        return_value=IdentityClaims(clerk_user_id=clerk_user_id, email=f"{clerk_user_id}@example.com"),
+        return_value=IdentityClaims(auth_subject=auth_subject, email=f"{auth_subject}@example.com"),
     )
 
 

@@ -152,13 +152,13 @@ def test_metadata_role_reads_public_metadata_role_or_porterchain_role() -> None:
 def test_assert_allows_admin_identity_on_customer_portal() -> None:
     """Multi-role OK — customer auto-provision path does not conflict with staff."""
     db = _db_membership(admin=True)
-    claims = IdentityClaims(clerk_user_id="user_staff")
+    claims = IdentityClaims(auth_subject="user_staff")
     assert_portal_provisioned(db, claims, portal="customer", settings=_unified_settings())
 
 
 def test_assert_requires_provisioned_admin() -> None:
     db = _db_membership()
-    claims = IdentityClaims(clerk_user_id="user_unknown")
+    claims = IdentityClaims(auth_subject="user_unknown")
     with pytest.raises(HTTPException) as exc:
         assert_portal_provisioned(db, claims, portal="admin", settings=_unified_settings())
     assert exc.value.status_code == 403
@@ -167,7 +167,7 @@ def test_assert_requires_provisioned_admin() -> None:
 
 def test_assert_allows_provisioned_admin_with_customer_membership() -> None:
     db = _db_membership(admin=True, customer=True)
-    claims = IdentityClaims(clerk_user_id="user_admin")
+    claims = IdentityClaims(auth_subject="user_admin")
     assert_portal_provisioned(db, claims, portal="admin", settings=_unified_settings())
 
 

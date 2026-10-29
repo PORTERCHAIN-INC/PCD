@@ -13,7 +13,7 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 
 def test_resolve_merchant_contact_from_jwt() -> None:
     claims = IdentityClaims(
-        clerk_user_id="user_merchant_jwt",
+        auth_subject="user_merchant_jwt",
         email="parevalogistics@gmail.com",
         clerk_app="merchant",
     )
@@ -22,7 +22,7 @@ def test_resolve_merchant_contact_from_jwt() -> None:
 
 def test_resolve_merchant_contact_never_trusts_db(db, settings) -> None:
     """DB persona email must not substitute for Clerk identity email."""
-    clerk_id = f"user_merchant_db_{uuid.uuid4().hex[:10]}"
+    subject_ref = f"user_merchant_db_{uuid.uuid4().hex[:10]}"
     merchant = Merchant(
         status=MerchantStatus.ACTIVE.value,
         company_name="Pareva Logistics",
@@ -33,7 +33,7 @@ def test_resolve_merchant_contact_never_trusts_db(db, settings) -> None:
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             email="parevalogistics@gmail.com",
             role=MerchantRole.OWNER.value,
             is_active=True,
@@ -41,7 +41,7 @@ def test_resolve_merchant_contact_never_trusts_db(db, settings) -> None:
     )
     db.commit()
 
-    claims = IdentityClaims(clerk_user_id=clerk_id, email=None, clerk_app="merchant")
+    claims = IdentityClaims(auth_subject=subject_ref, email=None, clerk_app="merchant")
     with patch(
         "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
         side_effect=PermissionError("clerk_email_required"),
@@ -50,7 +50,7 @@ def test_resolve_merchant_contact_never_trusts_db(db, settings) -> None:
 
 
 def test_resolve_merchant_contact_from_clerk_backend(db, settings) -> None:
-    claims = IdentityClaims(clerk_user_id="user_merchant_backend", email=None, clerk_app="merchant")
+    claims = IdentityClaims(auth_subject="user_merchant_backend", email=None, clerk_app="merchant")
     with patch(
         "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
         return_value="parevalogistics@gmail.com",
@@ -59,7 +59,7 @@ def test_resolve_merchant_contact_from_clerk_backend(db, settings) -> None:
 
 
 def test_evaluate_merchant_onboarding_with_clerk_email(db, settings) -> None:
-    clerk_id = f"user_merchant_onboard_{uuid.uuid4().hex[:10]}"
+    subject_ref = f"user_merchant_onboard_{uuid.uuid4().hex[:10]}"
     merchant = Merchant(
         status=MerchantStatus.ACTIVE.value,
         company_name="Pareva Logistics",
@@ -71,7 +71,7 @@ def test_evaluate_merchant_onboarding_with_clerk_email(db, settings) -> None:
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             email="parevalogistics@gmail.com",
             role=MerchantRole.OWNER.value,
             is_active=True,
@@ -81,7 +81,7 @@ def test_evaluate_merchant_onboarding_with_clerk_email(db, settings) -> None:
 
     settings.auth_dev_bypass = False
     claims = IdentityClaims(
-        clerk_user_id=clerk_id,
+        auth_subject=subject_ref,
         email="parevalogistics@gmail.com",
         clerk_app="merchant",
     )

@@ -15,20 +15,20 @@ from porterchain_api.notification_engine.principal import _resolve_merchant_reci
 from porterchain_api.notification_engine.user_settings import UserSettingsService
 
 
-def _seat(db, *, clerk_id: str, company: str, status: str = MerchantStatus.ACTIVE.value) -> Merchant:
+def _seat(db, *, subject_ref: str, company: str, status: str = MerchantStatus.ACTIVE.value) -> Merchant:
     merchant = Merchant(
         company_name=company,
         email=f"{uuid4().hex[:8]}@inbox.test",
         status=status,
-        clerk_org_id=f"org_{uuid4().hex[:8]}",
+        external_org_id=f"org_{uuid4().hex[:8]}",
     )
     db.add(merchant)
     db.flush()
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=clerk_id,
-            email=f"{clerk_id}@inbox.test",
+            auth_subject=subject_ref,
+            email=f"{subject_ref}@inbox.test",
             role=MerchantRole.OWNER.value,
             is_active=True,
         )
@@ -39,8 +39,8 @@ def _seat(db, *, clerk_id: str, company: str, status: str = MerchantStatus.ACTIV
 
 def test_inbox_follows_x_merchant_id_not_clerk_org(db):
     clerk = f"user_{uuid4().hex[:10]}"
-    first = _seat(db, clerk_id=clerk, company="North Co")
-    second = _seat(db, clerk_id=clerk, company="South Co")
+    first = _seat(db, subject_ref=clerk, company="North Co")
+    second = _seat(db, subject_ref=clerk, company="South Co")
     settings = Settings(app_env="local", auth_dev_bypass=False)
 
     db.add(
@@ -81,13 +81,13 @@ def test_inbox_follows_x_merchant_id_not_clerk_org(db):
     assert {item["title"] for item in south_box["items"]} == {"South booked"}
 
     # Clerk Organization id is not a company selector.
-    assert _resolve_merchant_recipient(db, settings, clerk, first.clerk_org_id) is None
+    assert _resolve_merchant_recipient(db, settings, clerk, first.external_org_id) is None
     assert _resolve_merchant_recipient(db, settings, clerk, "org_someone_else") is None
 
 
 def test_onboarding_merchant_can_open_inbox(db):
     clerk = f"user_{uuid4().hex[:10]}"
-    merchant = _seat(db, clerk_id=clerk, company="Onboarding Co", status=MerchantStatus.ONBOARDING.value)
+    merchant = _seat(db, subject_ref=clerk, company="Onboarding Co", status=MerchantStatus.ONBOARDING.value)
     settings = Settings(app_env="local", auth_dev_bypass=False)
     user = _resolve_merchant_recipient(db, settings, clerk, merchant.id)
     assert user is not None
@@ -96,10 +96,10 @@ def test_onboarding_merchant_can_open_inbox(db):
 
 def test_settings_overview_includes_quiet_hours(db):
     clerk = f"user_{uuid4().hex[:10]}"
-    merchant = _seat(db, clerk_id=clerk, company="Quiet Co")
+    merchant = _seat(db, subject_ref=clerk, company="Quiet Co")
     user = (
         db.query(MerchantUser)
-        .filter(MerchantUser.merchant_id == merchant.id, MerchantUser.clerk_user_id == clerk)
+        .filter(MerchantUser.merchant_id == merchant.id, MerchantUser.auth_subject == clerk)
         .one()
     )
     ctx = MerchantContext(merchant=merchant, user=user, role=MerchantRole.OWNER)

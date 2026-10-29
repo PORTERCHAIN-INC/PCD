@@ -65,7 +65,7 @@ def _actor_context(db) -> AdminContext:
     if actor is None:
         # First staff ever — enroll will create the row; audit ctx uses a ephemeral shell.
         actor = AdminUser(
-            clerk_user_id="pending:bootstrap@porterchain.local",
+            auth_subject="pending:bootstrap@porterchain.local",
             email="bootstrap@porterchain.local",
             name="Bootstrap",
             role=AdminRole.SUPER_ADMIN.value,

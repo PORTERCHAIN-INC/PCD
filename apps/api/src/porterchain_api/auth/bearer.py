@@ -83,7 +83,7 @@ async def get_identity_claims(
         request.state.impersonation = session
         # Synthetic claims — never a forged Clerk JWT. Persona resolvers key off metadata.
         return IdentityClaims(
-            clerk_user_id=session.target_clerk_user_id
+            auth_subject=session.target_subject
             or f"impersonation:{session.target_id}",
             email=session.target_email,
             public_metadata={
@@ -100,7 +100,7 @@ async def get_identity_claims(
 
 
 async def get_auth_subject(claims: IdentityClaims = Depends(get_identity_claims)) -> str:
-    return claims.clerk_user_id
+    return claims.auth_subject
 
 
 async def get_optional_auth_subject(
@@ -126,4 +126,4 @@ async def get_optional_auth_subject(
         except HTTPException:
             return None
     (await run_in_threadpool(lambda: _sync_and_ensure(db, claims)))
-    return claims.clerk_user_id
+    return claims.auth_subject

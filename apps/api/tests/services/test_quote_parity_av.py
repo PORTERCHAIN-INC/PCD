@@ -86,7 +86,7 @@ def test_admin_save_card_get_and_preview_cents_match(db, settings, admin_ctx, me
         environment="test",
     )
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="av-admin", email="av-admin@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="av-admin", email="av-admin@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

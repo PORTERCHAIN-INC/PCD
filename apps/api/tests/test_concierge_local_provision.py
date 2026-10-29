@@ -43,12 +43,12 @@ def test_create_driver_local_pending_when_clerk_down(db, settings) -> None:
             name="Local Driver",
             send_invite=True,
         )
-    assert out["clerk_action"] == "local_pending"
-    assert out["clerk_user_id"] is None
+    assert out["identity_action"] == "local_pending"
+    assert out["auth_subject"] is None
     driver = db.get(Driver, out["platform_user_id"])
     assert driver is not None
     assert driver.status == DriverStatus.PENDING.value
-    assert str(driver.clerk_user_id).startswith("pending:")
+    assert str(driver.auth_subject).startswith("pending:")
 
 
 def test_create_driver_skip_invite_is_local(db, settings) -> None:
@@ -63,10 +63,10 @@ def test_create_driver_skip_invite_is_local(db, settings) -> None:
         name="Ops Driver",
         send_invite=False,
     )
-    assert out["clerk_action"] == "local_pending"
+    assert out["identity_action"] == "local_pending"
     driver = db.get(Driver, out["platform_user_id"])
     assert driver is not None
-    assert str(driver.clerk_user_id).startswith("pending:")
+    assert str(driver.auth_subject).startswith("pending:")
 
 
 def test_merchant_seat_without_clerk_secret(db, settings) -> None:
@@ -94,7 +94,7 @@ def test_merchant_seat_without_clerk_secret(db, settings) -> None:
             role="merchant_ops",
             send_invite=False,
         )
-    assert out["clerk_action"] == "seat_reserved"
+    assert out["identity_action"] == "seat_reserved"
     seat = get_merchant_user_by_email(db, seat_email, merchant_id=merchant.id)
     assert seat is not None
 

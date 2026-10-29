@@ -155,7 +155,7 @@ def test_customer_ensure_sets_porterchain_user_id() -> None:
     customer = SimpleNamespace(
         porterchain_user_id=None,
         email="c@example.com",
-        clerk_user_id="clerk_c",
+        auth_subject="clerk_c",
     )
     bundle = SimpleNamespace(
         admin=None,

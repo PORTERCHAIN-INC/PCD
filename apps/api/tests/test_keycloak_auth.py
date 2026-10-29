@@ -46,7 +46,7 @@ def _token(key, **over):
 @pytest.mark.asyncio
 async def test_valid_token_maps_sub_roles_org(keypair):
     c = await kc.verify_keycloak_token(_token(keypair), _settings())
-    assert c.clerk_user_id == "kc-user-1"
+    assert c.auth_subject == "kc-user-1"
     assert c.email == "owner@example.com"
     assert c.org_id == "org-9"
     assert c.metadata_role == "merchant_owner"

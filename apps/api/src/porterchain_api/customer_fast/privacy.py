@@ -189,7 +189,7 @@ def approve_and_execute(db: Session, job_id: str, *, reviewer: str, note: str | 
     customer.full_name = None
     customer.phone = None
     customer.visitor_session_id = None
-    customer.clerk_user_id = f"erased:{customer.id}"
+    customer.auth_subject = f"erased:{customer.id}"
     customer.privacy_status = "erased"
     now = _now()
     job.status = "executed"

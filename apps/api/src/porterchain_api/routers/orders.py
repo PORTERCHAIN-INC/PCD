@@ -47,13 +47,13 @@ def get_order_live_tracking(
 def list_customer_orders(
     customer_id: str,
     db: Session = Depends(get_db),
-    clerk_user_id: str = Depends(get_auth_subject),
+    auth_subject: str = Depends(get_auth_subject),
 ) -> list[OrderResponse]:
     try:
         return _tracking.list_customer_orders_response(
             db,
             customer_id=customer_id,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             limit=50,
         )
     except LookupError as exc:

@@ -102,9 +102,9 @@ def is_unclaimed_install_merchant(db: Session, merchant_id: str, shop_domain: st
         .filter(
             MerchantUser.merchant_id == owner.id,
             MerchantUser.is_active.is_(True),
-            MerchantUser.clerk_user_id.isnot(None),
-            ~MerchantUser.clerk_user_id.startswith("pending:"),
-            ~MerchantUser.clerk_user_id.startswith("shopify:"),
+            MerchantUser.auth_subject.isnot(None),
+            ~MerchantUser.auth_subject.startswith("pending:"),
+            ~MerchantUser.auth_subject.startswith("shopify:"),
         )
         .first()
     )

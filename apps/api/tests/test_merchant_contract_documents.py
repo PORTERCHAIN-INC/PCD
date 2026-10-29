@@ -23,7 +23,7 @@ def _ctx(db, role=MerchantRole.OWNER) -> MerchantContext:
     m = Merchant(company_name=f"Doc Co {s}", email=f"d-{s}@test.local", status=MerchantStatus.ACTIVE.value)
     db.add(m)
     db.flush()
-    u = MerchantUser(merchant_id=m.id, clerk_user_id=f"c_{s}", email=f"u-{s}@test.local", role=role.value)
+    u = MerchantUser(merchant_id=m.id, auth_subject=f"c_{s}", email=f"u-{s}@test.local", role=role.value)
     db.add(u)
     db.flush()
     return MerchantContext(merchant=m, user=u, role=role)

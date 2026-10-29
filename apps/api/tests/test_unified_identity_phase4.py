@@ -69,7 +69,7 @@ def test_ensure_user_never_grants_invite_only_from_identity_alone() -> None:
 def test_user_sync_unprovisioned_ignores_metadata_role() -> None:
     svc = UserSyncService()
     claims = IdentityClaims(
-        clerk_user_id="user_x",
+        auth_subject="user_x",
         email="x@example.com",
         public_metadata={"role": "super_admin"},
         org_role="admin",
@@ -83,7 +83,7 @@ def test_deactivate_does_not_delete_user_row() -> None:
     db = MagicMock()
     user = PorterchainUser(
         id="u1",
-        clerk_user_id="clerk_del",
+        auth_subject="clerk_del",
         email="d@example.com",
         role="customer",
         status=AccountStatus.ACTIVE.value,
@@ -106,7 +106,7 @@ def test_deactivate_does_not_delete_user_row() -> None:
         return link_q
 
     db.query.side_effect = query
-    EnsureUserService().deactivate_clerk_user(db, clerk_user_id="clerk_del", commit=False)
+    EnsureUserService().deactivate_clerk_user(db, auth_subject="clerk_del", commit=False)
     assert user.status == AccountStatus.DEACTIVATED.value
     assert link.is_current is False
     assert link.deactivated_at is not None

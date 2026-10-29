@@ -75,7 +75,7 @@ def test_resolve_verified_clerk_email_jwt_wins() -> None:
     assert (
         resolve_verified_clerk_email(
             jwt_email="Pareva@Gmail.com",
-            clerk_user_id="user_x",
+            auth_subject="user_x",
             settings=settings,
         )
         == "pareva@gmail.com"
@@ -84,7 +84,7 @@ def test_resolve_verified_clerk_email_jwt_wins() -> None:
 
 def test_enrich_claims_fetches_backend_when_jwt_omits_email() -> None:
     settings = MagicMock()
-    claims = IdentityClaims(clerk_user_id="user_x", email=None)
+    claims = IdentityClaims(auth_subject="user_x", email=None)
     with patch(
         "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
         return_value="parevalogistics@gmail.com",
@@ -99,7 +99,7 @@ def test_delete_mismatched_admin_binding() -> None:
     db = MagicMock()
     admin = AdminUser(
         id="a1",
-        clerk_user_id="user_gmail",
+        auth_subject="user_gmail",
         email="admin@porterchain.com",
         name="Mismatch",
         role="super_admin",
@@ -107,7 +107,7 @@ def test_delete_mismatched_admin_binding() -> None:
     deleted: list[object] = []
     db.delete.side_effect = deleted.append
     bundle = PersonaBundle(
-        clerk_user_id="user_gmail",
+        auth_subject="user_gmail",
         admin=admin,
         merchant_users=[],
         driver=None,
@@ -122,7 +122,7 @@ def test_delete_mismatched_admin_binding() -> None:
         "porterchain_api.auth.email_identity._strip_registry_if_no_matching_persona",
     ):
         n = delete_email_mismatched_bindings(
-            db, clerk_user_id="user_gmail", clerk_email="ravichauhan7434@gmail.com"
+            db, auth_subject="user_gmail", identity_email="ravichauhan7434@gmail.com"
         )
     assert n == 1
     assert admin in deleted
@@ -132,7 +132,7 @@ def test_persona_principal_skips_email_mismatched_admin() -> None:
     db = MagicMock()
     admin = AdminUser(
         id="a1",
-        clerk_user_id="user_gmail",
+        auth_subject="user_gmail",
         email="admin@porterchain.com",
         name="Mismatch",
         role="super_admin",
@@ -148,7 +148,7 @@ def test_persona_principal_skips_email_mismatched_admin() -> None:
         return q
 
     db.query.side_effect = query
-    claims = IdentityClaims(clerk_user_id="user_gmail", email="ravichauhan7434@gmail.com")
+    claims = IdentityClaims(auth_subject="user_gmail", email="ravichauhan7434@gmail.com")
     assert resolve_persona_principal(db, claims) is None
 
 
@@ -158,19 +158,19 @@ def test_persona_principal_skips_missing_clerk_email() -> None:
     db = MagicMock()
     admin = AdminUser(
         id="a1",
-        clerk_user_id="user_gmail",
+        auth_subject="user_gmail",
         email="admin@porterchain.com",
         name="Staff",
         role="super_admin",
         is_active=True,
     )
     bundle = PersonaBundle(
-        clerk_user_id="user_gmail",
+        auth_subject="user_gmail",
         admin=admin,
         merchant_users=[],
         driver=None,
         customer=None,
     )
     with patch("porterchain_api.auth.persona_principal.load_persona_bundle", return_value=bundle):
-        claims = IdentityClaims(clerk_user_id="user_gmail", email=None)
+        claims = IdentityClaims(auth_subject="user_gmail", email=None)
         assert resolve_persona_principal(db, claims) is None

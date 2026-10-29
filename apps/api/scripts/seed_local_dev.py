@@ -83,7 +83,7 @@ def ensure_admin(db) -> AdminUser:
     user = db.query(AdminUser).filter(AdminUser.email == SEED_ADMIN_EMAIL).first()
     if not user:
         user = AdminUser(
-            clerk_user_id=f"seed:{SEED_ADMIN_EMAIL}",
+            auth_subject=f"seed:{SEED_ADMIN_EMAIL}",
             email=SEED_ADMIN_EMAIL,
             name="Seed Super Admin",
             role=AdminRole.SUPER_ADMIN.value,
@@ -115,7 +115,7 @@ def ensure_founder_super_admin(db) -> AdminUser | None:
         return None
     if not admin:
         admin = AdminUser(
-            clerk_user_id=pc.clerk_user_id if pc else f"pending:{email}",
+            auth_subject=pc.auth_subject if pc else f"pending:{email}",
             email=email,
             name="PorterChain Founder",
             role=AdminRole.SUPER_ADMIN.value,
@@ -128,8 +128,8 @@ def ensure_founder_super_admin(db) -> AdminUser | None:
         admin.is_active = True
         if pc:
             admin.porterchain_user_id = pc.id
-            if pc.clerk_user_id:
-                admin.clerk_user_id = pc.clerk_user_id
+            if pc.auth_subject:
+                admin.auth_subject = pc.auth_subject
     if pc and pc.status != "active":
         pc.status = "active"
     db.commit()
@@ -195,7 +195,7 @@ def create_retail_order(db, settings, *, label: str, pickup: AddressInput, dropo
 
     customer = customers.upsert(
         db,
-        clerk_user_id=f"seed:customer:{label}",
+        auth_subject=f"seed:customer:{label}",
         email=f"{label}@seed.porterchain.com",
         phone="+1 416-555-0144",
         visitor_session_id=f"seed-session-{label}",
@@ -500,7 +500,7 @@ def main() -> None:
         founder = ensure_founder_super_admin(db)
         ctx = AdminContext(user=admin, role=AdminRole.SUPER_ADMIN)
 
-        merchant = db.query(Merchant).filter(Merchant.clerk_org_id == DEV_ORG).first()
+        merchant = db.query(Merchant).filter(Merchant.external_org_id == DEV_ORG).first()
         if not merchant:
             raise RuntimeError("Dev merchant missing after portal seed")
         merchant_user = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant.id).first()

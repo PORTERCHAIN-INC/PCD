@@ -39,7 +39,7 @@ from porterchain_shared.redis_health import is_local_env  # noqa: E402
 
 
 def _list_clerk_ids(client: IdentityDirectory) -> dict[str, str]:
-    """clerk_user_id → primary email."""
+    """auth_subject → primary email."""
     out: dict[str, str] = {}
     offset = 0
     while True:
@@ -87,9 +87,9 @@ def main() -> None:
         db = SessionLocal()
         try:
             pc = db.query(PorterchainUser).all()
-            ghost = [u for u in pc if not u.clerk_user_id or u.clerk_user_id not in clerk_ids]
+            ghost = [u for u in pc if not u.auth_subject or u.auth_subject not in clerk_ids]
             print(f"dry_run: would remove {len(ghost)}/{len(pc)} porterchain_users")
-            print(f"keep: {[u.email for u in pc if u.clerk_user_id in clerk_ids]}")
+            print(f"keep: {[u.email for u in pc if u.auth_subject in clerk_ids]}")
         finally:
             db.close()
         if args.confirm != "PRUNE_LOCAL":
@@ -103,7 +103,7 @@ def main() -> None:
         ghosts = [
             u
             for u in db.query(PorterchainUser).all()
-            if not u.clerk_user_id or u.clerk_user_id not in clerk_ids
+            if not u.auth_subject or u.auth_subject not in clerk_ids
         ]
         ghost_ids = [u.id for u in ghosts]
         if ghost_ids:
@@ -133,32 +133,32 @@ def main() -> None:
 
         # 2) Admin / merchant — hard delete if not in Clerk
         for row in db.query(AdminUser).all():
-            if not row.clerk_user_id or row.clerk_user_id not in clerk_ids:
+            if not row.auth_subject or row.auth_subject not in clerk_ids:
                 db.delete(row)
                 summary["admin_users_deleted"] = summary.get("admin_users_deleted", 0) + 1
         for row in db.query(MerchantUser).all():
-            if not row.clerk_user_id or row.clerk_user_id not in clerk_ids:
+            if not row.auth_subject or row.auth_subject not in clerk_ids:
                 db.delete(row)
                 summary["merchant_users_deleted"] = summary.get("merchant_users_deleted", 0) + 1
 
         # 3) Drivers — unlink Clerk (nullable)
         for row in db.query(Driver).all():
-            if row.clerk_user_id and row.clerk_user_id not in clerk_ids:
-                row.clerk_user_id = None
+            if row.auth_subject and row.auth_subject not in clerk_ids:
+                row.auth_subject = None
                 if hasattr(row, "porterchain_user_id"):
                     row.porterchain_user_id = None
                 summary["drivers_unlinked"] = summary.get("drivers_unlinked", 0) + 1
 
-        # 4) Customers — clerk_user_id is NOT NULL; delete row or tombstone id
+        # 4) Customers — auth_subject is NOT NULL; delete row or tombstone id
         for row in list(db.query(Customer).all()):
-            if not row.clerk_user_id or row.clerk_user_id in clerk_ids:
+            if not row.auth_subject or row.auth_subject in clerk_ids:
                 continue
             try:
                 with db.begin_nested():
                     db.delete(row)
                 summary["customers_deleted"] = summary.get("customers_deleted", 0) + 1
             except Exception:  # noqa: BLE001
-                row.clerk_user_id = f"unlinked:{row.id}"
+                row.auth_subject = f"unlinked:{row.id}"
                 if hasattr(row, "porterchain_user_id"):
                     try:
                         row.porterchain_user_id = None
@@ -168,7 +168,7 @@ def main() -> None:
 
         # 4) Orphan identity_links
         for link in db.query(IdentityLink).all():
-            sub = link.subject or link.clerk_user_id
+            sub = link.subject or link.auth_subject
             if not sub or sub not in clerk_ids:
                 db.delete(link)
                 summary["identity_links_deleted"] = summary.get("identity_links_deleted", 0) + 1
@@ -181,7 +181,7 @@ def main() -> None:
         db.commit()
 
         kept = [
-            {"email": u.email, "clerk_user_id": u.clerk_user_id}
+            {"email": u.email, "auth_subject": u.auth_subject}
             for u in db.query(PorterchainUser).all()
         ]
         print(json.dumps({"status": "ok", "summary": summary, "kept": kept}, indent=2))

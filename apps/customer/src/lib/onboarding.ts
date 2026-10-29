@@ -11,7 +11,7 @@ export interface PortalOnboardingStatus {
   ready: boolean;
   blockers: string[];
   status: string;
-  clerk_linked: boolean;
+  identity_linked: boolean;
   steps: PortalOnboardingStep[];
   pending_documents: number;
   can_access_portal: boolean;

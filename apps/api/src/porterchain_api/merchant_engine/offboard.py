@@ -19,7 +19,7 @@ def billing_context(merchant: Merchant) -> MerchantContext:
     """Synthetic seat so billing totals can run without a live portal user."""
     dummy = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id="lifecycle",
+        auth_subject="lifecycle",
         email=merchant.email or "ops@porterchain.invalid",
         role=MerchantRole.OWNER.value,
         is_active=False,

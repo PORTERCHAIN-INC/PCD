@@ -99,12 +99,12 @@ def _make_customer(
     db: Session,
     *,
     suffix: str | None = None,
-    clerk_user_id: str | None = None,
+    auth_subject: str | None = None,
     email: str | None = None,
 ) -> Customer:
     tag = f"{suffix or 'c'}-{uuid4().hex[:10]}"
     customer = Customer(
-        clerk_user_id=clerk_user_id or f"customer_clerk_{tag}",
+        auth_subject=auth_subject or f"customer_clerk_{tag}",
         email=email or f"customer-{tag}@p0.test",
         phone="+14165550100",
     )
@@ -133,7 +133,7 @@ def _make_order(db: Session, *, customer_id: str) -> Order:
 def _admin_ctx(role: str = "super_admin") -> AdminContext:
     return AdminContext(
         user=AdminUser(
-            clerk_user_id=f"admin-{role}-{uuid4().hex[:6]}",
+            auth_subject=f"admin-{role}-{uuid4().hex[:6]}",
             email=f"{role}@porterchain.com",
             role=role,
         ),
@@ -355,22 +355,22 @@ def test_eng_privacy_delete_sets_hold_and_blocks_admin_draft(db: Session, settin
 
 def test_eng_admin_stats_list_detail(db: Session) -> None:
     """API-A-001/002/003 service layer."""
-    linked = _make_customer(db, suffix="lnk", clerk_user_id=f"user_{uuid4().hex[:10]}")
-    orphan = _make_customer(db, suffix="orp", clerk_user_id=f"pending:orphan-{uuid4().hex[:6]}@p0.test")
+    linked = _make_customer(db, suffix="lnk", auth_subject=f"user_{uuid4().hex[:10]}")
+    orphan = _make_customer(db, suffix="orp", auth_subject=f"pending:orphan-{uuid4().hex[:6]}@p0.test")
     db.commit()
     svc = CustomerAdminService()
     stats = svc.stats(db)
     assert stats["total"] >= 2
-    assert "clerk_linked" in stats and "orphan" in stats and "dsr_hold" in stats
+    assert "identity_linked" in stats and "orphan" in stats and "dsr_hold" in stats
 
     rows = svc.list_customers(db, search=linked.email, limit=20)
     assert any(r["id"] == linked.id for r in rows)
-    orphans = svc.list_customers(db, clerk_linked=False, limit=50)
+    orphans = svc.list_customers(db, identity_linked=False, limit=50)
     assert any(r["id"] == orphan.id for r in orphans)
 
     detail = svc.detail(db, linked.id)
     assert detail["id"] == linked.id
-    assert detail["clerk_linked"] is True
+    assert detail["identity_linked"] is True
     with pytest.raises(LookupError, match="customer_not_found"):
         svc.detail(db, "missing-customer-id")
 
@@ -402,7 +402,7 @@ def test_api_b_quote_equals_book_amount_cents(db: Session, settings: Settings) -
         quote_id=quote.id,
         email=f"qeqb-{uuid4().hex[:6]}@p0.test",
         phone="+14165550999",
-        clerk_user_id=f"clerk_qeqb_{uuid4().hex[:8]}",
+        auth_subject=f"clerk_qeqb_{uuid4().hex[:8]}",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,
@@ -476,7 +476,7 @@ def test_http_admin_customers_stats_list_detail(admin_client, db: Session) -> No
     stats = client.get("/v1/admin/customers/stats")
     assert stats.status_code == 200
     body = stats.json()
-    assert {"total", "clerk_linked", "orphan", "dsr_hold"} <= set(body)
+    assert {"total", "identity_linked", "orphan", "dsr_hold"} <= set(body)
 
     listed = client.get("/v1/admin/customers", params={"search": customer.email})
     assert listed.status_code == 200
@@ -539,7 +539,7 @@ def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatc
     body = resp.json()
     assert body["email"] == email
     assert body["created"] is True
-    assert body["clerk_linked"] is False
+    assert body["identity_linked"] is False
     assert body["identity_status"] == "orphan"
     assert body["id"]
 
@@ -558,7 +558,7 @@ def test_http_admin_create_customer_conflict_when_linked(
     )
     client, _holder = admin_client
     email = f"linked-{uuid4().hex[:8]}@p0.test"
-    _make_customer(db, suffix="lnk", clerk_user_id=f"user_{uuid4().hex[:10]}", email=email)
+    _make_customer(db, suffix="lnk", auth_subject=f"user_{uuid4().hex[:10]}", email=email)
     db.commit()
 
     resp = client.post(
@@ -602,7 +602,7 @@ def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatc
     from porterchain_api.auth.identity_directory import InviteResult
 
     client, _holder = admin_client
-    customer = _make_customer(db, suffix="inv", clerk_user_id=f"pending:inv-{uuid4().hex[:6]}@p0.test")
+    customer = _make_customer(db, suffix="inv", auth_subject=f"pending:inv-{uuid4().hex[:6]}@p0.test")
     db.commit()
 
     class _FakeClerk:
@@ -626,7 +626,7 @@ def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatc
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["id"] == customer.id
-    assert body["clerk_action"] == "invited"
+    assert body["identity_action"] == "invited"
 
 
 @pytest.fixture
@@ -634,17 +634,17 @@ def customer_client(db: Session):
     settings = _customer_settings()
     email = "dev-customer@p0.test"
     claims = IdentityClaims(
-        clerk_user_id="dev_clerk_user",
+        auth_subject="dev_clerk_user",
         email=email,
         phone="+14165550001",
         clerk_app="customer",
     )
     # Keep email aligned with claims — seed DBs often already bind dev_clerk_user.
-    existing = db.query(Customer).filter(Customer.clerk_user_id == "dev_clerk_user").first()
+    existing = db.query(Customer).filter(Customer.auth_subject == "dev_clerk_user").first()
     if existing is None:
         db.add(
             Customer(
-                clerk_user_id="dev_clerk_user",
+                auth_subject="dev_clerk_user",
                 email=email,
                 phone="+14165550001",
             )
@@ -667,7 +667,7 @@ def customer_client(db: Session):
 def test_http_customer_dashboard_support_rebook_privacy(customer_client, db: Session) -> None:
     """API-C-001/004/005/007/009/010 HTTP happy path."""
     client, _settings = customer_client
-    customer = db.query(Customer).filter(Customer.clerk_user_id == "dev_clerk_user").one()
+    customer = db.query(Customer).filter(Customer.auth_subject == "dev_clerk_user").one()
     order = _make_order(db, customer_id=customer.id)
     db.commit()
 

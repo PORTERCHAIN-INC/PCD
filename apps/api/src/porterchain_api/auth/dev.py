@@ -30,13 +30,13 @@ def allow_auth_dev_bypass(settings: Settings) -> bool:
     )
 
 
-def is_dev_bypass_subject(clerk_user_id: str | None) -> bool:
+def is_dev_bypass_subject(auth_subject: str | None) -> bool:
     """Synthetic local Bearer-dev Clerk ids — no SpiceDB tuples by design."""
-    return bool(clerk_user_id) and clerk_user_id in _DEV_SUBJECTS
+    return bool(auth_subject) and auth_subject in _DEV_SUBJECTS
 
 
-def is_merchant_dev_subject(clerk_user_id: str | None) -> bool:
-    return clerk_user_id in {DEV_MERCHANT_SUBJECT, DEV_LEGACY_SUBJECT}
+def is_merchant_dev_subject(auth_subject: str | None) -> bool:
+    return auth_subject in {DEV_MERCHANT_SUBJECT, DEV_LEGACY_SUBJECT}
 
 
 def resolve_dev_portal(*, path: str = "", header: str | None = None) -> str:
@@ -69,7 +69,7 @@ def dev_claims_for(portal: str) -> IdentityClaims:
     """One synthetic Clerk subject per portal — never reuse staff email on merchant/customer."""
     if portal == "merchant":
         return IdentityClaims(
-            clerk_user_id=DEV_MERCHANT_SUBJECT,
+            auth_subject=DEV_MERCHANT_SUBJECT,
             email=DEV_MERCHANT_EMAIL,
             org_id=None,
             org_role="org:admin",
@@ -82,7 +82,7 @@ def dev_claims_for(portal: str) -> IdentityClaims:
         )
     if portal == "customer":
         return IdentityClaims(
-            clerk_user_id=DEV_CUSTOMER_SUBJECT,
+            auth_subject=DEV_CUSTOMER_SUBJECT,
             email=DEV_CUSTOMER_EMAIL,
             phone="+1 416-555-4401",
             public_metadata={"role": "customer"},
@@ -93,7 +93,7 @@ def dev_claims_for(portal: str) -> IdentityClaims:
             auth_time=0,
         )
     return IdentityClaims(
-        clerk_user_id=DEV_LEGACY_SUBJECT,
+        auth_subject=DEV_LEGACY_SUBJECT,
         email=DEV_STAFF_EMAIL,
         org_id=None,
         org_role="dispatcher",

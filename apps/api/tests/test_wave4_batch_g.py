@@ -59,7 +59,7 @@ def test_privacy_export_includes_payments_and_tickets() -> None:
         customer_reference="CUST-1",
         stripe_customer_id="cus_x",
         created_at=None,
-        clerk_user_id="user_x",
+        auth_subject="user_x",
     )
     db = MagicMock()
     empty = MagicMock()

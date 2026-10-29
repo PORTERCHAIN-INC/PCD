@@ -6,7 +6,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class IdentityClaims:
-    clerk_user_id: str
+    auth_subject: str
     email: str | None = None
     org_id: str | None = None
     org_role: str | None = None
