@@ -77,3 +77,5 @@ flowchart LR
     RI2[retail booking] --> ST3[[Stripe Checkout + webhook]]
   end
 ```
+
+**L32 (29 Oct):** in 3 Dispatch/routing, the optimiser is VROOM on a Valhalla matrix (OSRM matrix only if it wins the benchmark), geometry from Valhalla truck costing, fallbacks Oracle then haversine ×1.35 flagged estimated (doc 60 §13).

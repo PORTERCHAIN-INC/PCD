@@ -53,3 +53,12 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - U66-2 Invoice enum values vs `billing_engine/models.py:140`.
 - U67-1 Which of `app.toml` / `shopify.app.custom.toml` is authoritative.
 - U-20 partly resolved: diagrams 61–67 rendered with mermaid-cli on the agent box (`rendered_p0/`); the older 01–28 diagrams are not rendered yet.
+
+## L32 decisions recorded (Ravi, 29 Oct 2026; doc 60 §12–13)
+
+- D-P0-1..7 all decided (pilot end of Phase 0 human-run; Redpanda P0; box truck + cooler P1; domain schemas; keep `com.porterchain.PCD`; Valhalla + VROOM, OSRM by benchmark; Google Play P1 with D-U-N-S in P0).
+- **U-L32-1** Whether Shopify App Review treats PorterChain's off-platform delivery invoices as "app charges" for a public (unlisted) app: no limited-visibility exemptions since March 2026. Ask Shopify Partner Support before Phase 2 public-app work (doc 51).
+- **U-L32-2** Pilot merchant's Shopify plan: carrier-calculated rates need Advanced/Plus or Grow with yearly billing or the CCS add-on; Basic falls back to delivery-profile flat rates.
+- **U-L32-3** Enough real Toronto+150 km stops for the routing benchmark (target 500; synthetic top-up labelled if short).
+- **U-L32-4** VROOM + Valhalla on Oracle A1 arm64 build and RAM fit (with Redpanda mirror + PG replica).
+- **U-L32-5** D-U-N-S issue time for Porterchain Inc. (free route can take up to ~30 days).

@@ -91,3 +91,5 @@ sequenceDiagram
   end
   API-->>P: plan + diff + reasons
 ```
+
+**L32 (29 Oct):** in "Routing with failover", the routing adapter calls VROOM after building the matrix; VROOM falls back to Oracle VROOM, then to the `vrp.py` heuristic on the estimated matrix (doc 60 §13.3).

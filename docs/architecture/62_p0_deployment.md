@@ -42,3 +42,5 @@ flowchart LR
 ```
 
 Phase 0 exit drill set (G15): Ubuntu off 24 h (business users unaffected; admin unavailable; routing falls back to Oracle then haversine "estimated"); Oracle off; droplet off (manual `promote.sh` on Oracle, customers see "please retry"); network split (no automatic promotion). Unknowns: wg0 peers (U28-1), Oracle A1 capacity (U28-3), Valhalla arm64 image (U28-4).
+
+**L32 (29 Oct):** VROOM runs on Ubuntu with a second copy on Oracle next to Valhalla; OSRM containers are removed unless the week 7 benchmark keeps them.

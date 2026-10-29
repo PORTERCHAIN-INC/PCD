@@ -29,7 +29,7 @@ flowchart LR
     CH --> PAY[Stripe payment sheet only]
     CH --> DEL[Account deletion]
   end
-  subgraph DRV[Driver app P0, ID D-P0-5]
+  subgraph DRV[Driver app P0, ID com.porterchain.PCD kept, L32]
     DS[SignIn: Keycloak driver realm] --> DT[Today / Job / POD]
     DT --> GPS[background location, declared]
     DT --> DEL2[Account deletion]
@@ -38,7 +38,7 @@ flowchart LR
   CUST & DRV --> ML[MapLibre + PMTiles]
   CUST & DRV --> API[(API)]
   CUST & DRV --> AS[[App Store]]
-  CUST & DRV --> GP[[Google Play, target API 36]]
+  CUST & DRV -.Phase 1.-> GP[[Google Play, target API 36, org account via D-U-N-S]]
 ```
 
 ## Shopify app: now vs Phase 0
@@ -52,6 +52,9 @@ flowchart LR
   end
   subgraph P0
     T2[one config: custom app, L30] --> W2[HMAC-verified webhooks + outbox ingest]
+    T2 --> CS[CarrierService rates: contract price + merchant rule, needs Advanced/Plus or Grow + CCS]
+    CS -.Basic plan.-> DP[flat/zone rates in delivery profiles]
+    T2 --> INV[PorterChain bills merchant by Interac, no Shopify Billing]
     W2 --> API2[(API)]
     T2 --> PIL[installed on pilot store]
     T2 -.Phase 2.-> PUB[public listing review, doc 51]

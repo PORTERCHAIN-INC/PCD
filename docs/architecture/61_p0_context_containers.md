@@ -42,9 +42,9 @@ flowchart LR
   PCD --> ZEPTO[[ZeptoMail]]
   PCD --> PUSH[[FCM / APNs / Web Push]]
   PCD --> GT[GlitchTip self-hosted P0]
-  PCD --> GEO[Valhalla, OSRM?, Photon, PMTiles self-hosted]
+  PCD --> GEO[Valhalla + VROOM, OSRM only if benchmark wins, Photon, PMTiles self-hosted]
   PCD --> SHOP[[Shopify]]
-  PCD --> STORES[[App Store, Google Play]]
+  PCD --> STORES[[App Store P0, Google Play P1]]
   PCD --> WA[[wa.me links only, human sends]]
 ```
 
@@ -85,7 +85,7 @@ flowchart TB
     CUST[customer]
     API[FastAPI api + DBOS workflows P0]
     KC[Keycloak P0]
-    RP[(Redpanda 1 node P0, D-P0-2)]
+    RP[(Redpanda 1 node P0, decided L32)]
     PG[(Postgres primary, domain schemas P0)]
     RD[(Redis: live GPS only)]
     SDB[(SpiceDB)]
