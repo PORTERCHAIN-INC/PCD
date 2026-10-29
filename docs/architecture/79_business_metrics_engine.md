@@ -182,7 +182,6 @@ Contribution margin per stop, route, order and org. Also: cost per stop, cost pe
 ## 6a. Service and claims metrics (70 §2.3; nightly in `dispatch.mv_service_quality`)
 
 - **OTIF** = orders with ATA ≤ promised window end **and** qty_delivered = qty_ordered on every line, with no POD noted short or damaged ÷ orders delivered. Target ≥ 98 % (warehouse and partner constraint in §5); green ≥ 98 %, yellow 95–98 %, red < 95 %.
-- **LIFR** = order lines filled complete ÷ order lines ordered. Only for orgs with line items (C8); otherwise it shows "n/a".
 - **Dwell** = ATD − ATA per stop, as p50/p90 per site, org and driver. Free time is 30 min (warehouse constraint in §5). Minutes over free time × the doc 72 waiting rate are billed as an accessorial (revenue 4xxx). Unbilled dwell is reported as **dwell leakage $** = over-free-time minutes × $0.50/min driver cost (doc 79 §6 rate).
 - **OS&D:**
   - OS&D rate = PODs noted ÷ PODs.
@@ -191,6 +190,22 @@ Contribution margin per stop, route, order and org. Also: cost per stop, cost pe
   - Claims past the 60-day notice deadline are flagged red.
 - **Into the financials:** contribution per stop now = revenue + dwell accessorial − (driver, fuel, km) − net OS&D claims. EBITDA, ROIC and EVA pick this up through 5700.
 - **Worked check (A-FIN-13):** 200 orders, 194 on time, 3 of those short → OTIF 191/200 = **95.5 % (yellow)**. A stop with ATA 10:00 and ATD 10:52 → dwell 52 min, 22 min over free time → $11.00 driver cost. One damaged claim: 12 kg, no declared value, invoice value $300 → cap $52.92 → 5700 posts $52.92.
+
+## 6b. Vehicle compliance money (doc 80 §3)
+
+- **Expected cost of a compliance gap: E_c = Pa × Pv × (Cf + Cl)**, per vehicle-day.
+  - Pa = probability of an inspection, roadside check or claim review that day.
+  - Pv = probability that a violation exists (e.g. no DVIR on a rental truck).
+  - Cf = fine + penalty.
+  - Cl = lost revenue + claim not paid.
+  - The app pays for itself when Σ E_c avoided > build cost.
+  - **Worked check (A-FIN-14, assumptions U80-2):** Pa 0.02, Pv 0.30 (no blocking checklist), Cf $310, Cl $96.75 (one lost GTA route day, §4) → **E_c = 0.02 × 0.30 × 406.75 = $2.44 per rental-truck day**. The blocking DVIR drives Pv → 0.
+- **OOS daily margin loss: L_oos = N_stops × CM_stop − (CM_sub × N_sub) + C_idle**.
+  - N_stops = stops planned that day; CM_stop = contribution per stop.
+  - N_sub = stops recovered by a substitute rental, at contribution CM_sub after the rental cost.
+  - C_idle = fixed cost that still runs (insurance, phone).
+  - **Worked check:** GTA route of 12 stops, $96.75 contribution → $8.0625/stop. Civic out of service, no substitute, C_idle $0 → **L_oos = $96.75/day**. With a substitute rental that recovers all 12 stops at $3.00 contribution each → L_oos = 96.75 − 36.00 = **$60.75/day**.
+- Both are shown in Insights next to the HOS and DVIR compliance %. Staff only.
 
 ## 7. How it is computed
 
@@ -223,6 +238,7 @@ Contribution margin per stop, route, order and org. Also: cost per stop, cost pe
 - **A-FIN-10:** CCC = DIO + DSO − DPO on seeded invoices and payouts.
 - **A-FIN-11:** margin colour thresholds are the same as doc 72.
 - **A-FIN-12:** materialised views refresh concurrently with no lock on `ordering.orders`.
+- **A-FIN-14:** E_c = $2.44 per rental-truck day and L_oos = $96.75 / $60.75 on the §6b worked checks.
 - **A-FIN-13:** the §6a worked check gives OTIF 95.5 % yellow, dwell 52 min / $11.00 leakage and claim cap $52.92 posted to 5700.
 
 ## 9. Schedule (doc 60)

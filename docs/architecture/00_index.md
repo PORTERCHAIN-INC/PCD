@@ -114,3 +114,6 @@ All 28 Mermaid blocks in 61–67 were rendered to SVG with mermaid-cli 11.17.1 (
 - `79_business_metrics_engine.md`: our main business formulas (EBITDA, ROI/ROIC/WACC/EVA, CCC, Little/Kingman/SS/EOQ, unit economics), $77k baseline, Insights, A-FIN tests
 
 Mermaid blocks in 70, 71, 73, 75 rendered to SVG (mermaid-cli, agent box) in `rendered_l35/`, 0 syntax errors.
+
+- `80_vehicle_compliance.md`: Ontario vehicle compliance for our reality (own phones, Civic, rentals): DVIR, phone HOS log, vehicle record, weight block, offline queue, POD → invoice; A-VC tests
+- `81_order_lifecycle_by_business_type.md`: 14-stage order lifecycle per business type on existing endpoints, API layers, 6 Mermaid blocks rendered to `rendered_l35/81_*.svg` (0 syntax errors); A-LC tests

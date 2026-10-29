@@ -36,12 +36,12 @@ sequenceDiagram
 
 ## 45.3 Vehicle telematics / OBD-II
 
-| Option                                                          | Cost                            | Notes                                                                            |
-| --------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------- |
-| Phone GPS only (as-built, Redis latest position)                | $0                              | **Phase 1 default**                                                              |
-| ELM327 BLE OBD-II dongle + phone                                | ~$20–40 per vehicle             | speed, RPM, fuel, DTCs; open protocol; for owned box truck only                  |
-| Traccar (Apache-2.0) self-hosted + Teltonika FMC-series tracker | ~$80–150 per vehicle + SIM data | always-on tracking independent of phone; Traccar on Oracle                       |
-| Box truck ELD                                                   | —                               | Only if hours-of-service rules apply to the truck class — legal check, **D45-2** |
+| Option                                                          | Cost                            | Notes                                                                                                                                                          |
+| --------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phone GPS only (as-built, Redis latest position)                | $0                              | **Phase 1 default**                                                                                                                                            |
+| ELM327 BLE OBD-II dongle + phone                                | ~$20–40 per vehicle             | speed, RPM, fuel, DTCs; open protocol; for owned box truck only                                                                                                |
+| Traccar (Apache-2.0) self-hosted + Teltonika FMC-series tracker | ~$80–150 per vehicle + SIM data | always-on tracking independent of phone; Traccar on Oracle                                                                                                     |
+| Box truck ELD                                                   | —                               | Not required: rentals of 30 days or less are ELD-exempt (O. Reg. 555/06 s. 18(6)(e)); phone HOS log (doc 80); certified ELD only for an owned fleet (Phase 2+) |
 
 ## 45.4 Barcode / QR scanning and labels
 
@@ -86,6 +86,6 @@ flowchart LR
 ## 45.8 Decisions for Ravi
 
 - **D45-1:** Buy BLE cooler sensors (Ruuvi ~1 per cooler) — mandatory only if cooler runs are offered in Phase 1.
-- **D45-2:** Telematics: phone GPS only (recommended Phase 1) vs OBD-II dongle / Traccar tracker for the box truck; legal check on ELD.
+- **D45-2:** Telematics: phone GPS only (recommended Phase 1) vs OBD-II dongle / Traccar tracker for the box truck; ELD answered in doc 80 (not required for rentals of 30 days or less).
 - **D45-3:** Dock label printer (Zebra) and scanner purchase, or phone camera + PDF only (recommended to start).
 - **D45-4:** Company tablets for dispatch/dock (and which MDM) vs BYOD only.

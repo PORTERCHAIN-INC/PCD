@@ -49,7 +49,7 @@ Source: **Home Depot Canada vehicle rental** first, **U-Haul Canada** for urgent
 - **Who is the operator:** the CVOR operator is "the person or corporation responsible for the operation of the commercial motor vehicle, driver and goods". When Porterchain Inc. rents the truck and dispatches the job, **Porterchain Inc. is the operator** and needs its own CVOR; carry the CVOR copy and the rental contract linking the truck to it. If a contractor driver rents in their own name, they may become the operator and need their own CVOR; we **do not allow** that model (rental must be in Porterchain Inc.'s name) ⚖.
 - **Out-of-province plates:** rental trucks plated in another province need that province's safety certificate instead of a CVOR; US-plated trucks need a CVOR (same source). Check the plate at pickup.
 - **Operator duties if CVOR applies:** daily trip inspection by the driver, records of hours, kilometres, driver qualification and training, commercial auto liability insurance; facility audits possible (same source).
-- **BOL:** Porterchain Inc. issues the bill of lading as carrier for every truck job (O. Reg. 643/05); liability is the $4.41/kg floor (no cargo insurance, D-68-1).
+- **BOL:** Porterchain Inc. issues the bill of lading as carrier for every truck job (O. Reg. 643/05; the rule for all jobs is 70 §2.2 C1 / §2.3); liability is the $4.41/kg floor (no cargo insurance, D-68-1).
 - **ELD:** not required for us in two independent ways: (1) **rented CMV with a rental agreement of 30 days or less** that is not extended or renewed, and (2) driving within **160 km of where the day starts and returning there**. Hours-of-service limits still apply, and under the 160 km exemption the operator keeps a daily record (date, driver, start/end place, cycle, duty times, previous 14 days' totals). Sources: https://www.ontario.ca/page/electronic-logging-devices-commercial-motor-vehicles ; https://www.ontario.ca/laws/regulation/060555 s.23. Our service area (Toronto + 150 km) fits inside 160 km for most days; a trip to the edge and beyond the depot side may not ⚖ check per route.
 
 ### Price-model inputs (truck price card, set when box truck work starts; prep pack below)
@@ -64,7 +64,7 @@ Superseded by the prep pack below (flag off). When switched on: **cargo insuranc
 
 1. Whether Home Depot's and U-Haul's rental terms allow paid courier/delivery use (U-Haul business accounts exclude moving companies).
 2. Who is operator if a contractor driver drives a Porterchain-rented truck; DPWRA/ESA effect.
-3. Whether the 160 km ELD/log exemption holds on long service-area days.
+3. Whether the 160 km ELD/log exemption holds on long service-area days. It is lost if the driver works for another operator the same day (O. Reg. 555/06 s. 23(2)(b), doc 80 §1).
 4. Liability to merchants with no cargo insurance (the $4.41/kg floor; U68-1).
 
 ### Hard gate G-INS: minimum insurance before the FIRST paid delivery (pilot blocker)

@@ -1,4 +1,4 @@
-# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC and §15 A-ID inside G19)
+# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC and §17 A-LC inside G19)
 
 Written before code. Each scenario becomes a pytest-bdd / Playwright / Maestro test with the ID below; all run against a sandbox org (PCDC-like) and never touch live data. Gate **G19** = all A-* scenarios green; **G20** = Shopify review-readiness (§10); **G21** = mobile review-readiness (§11). Order follows build order.
 
@@ -92,11 +92,33 @@ A-FIN-01..12 as listed in 79 §8: EBITDA top-down = bottom-up to the cent; no HS
 
 ## 15. Identifiers & milestones (A-ID, inside G19, doc 70 §2.3, doc 79 §6a)
 
+- **A-ID-09:** a 60 kg XL sofa from Toronto to Mississauga gets a BOL; a bakery shipment over 45 kg is rejected with `422 small_shop_weight_cap`.
 - **A-ID-01:** a 60 kg inter-municipal warehouse order gets a BOL no. with all O. Reg. 643/05 s. 4(1) fields populated. A 30 kg parcel, or a Toronto-to-Toronto order, gets no mandatory BOL.
 - **A-ID-02:** a PRO no. can be saved only on an order with an LTL carrier handoff leg. Otherwise it returns `422 identifier_not_applicable`.
 - **A-ID-03:** a trip cannot start without plate, a valid VIN (check digit) and insurance evidence, including a rental. A rental with RGW > 4,500 kg sets `cvor_required` and blocks without a CVOR no.
 - **A-ID-04:** an SSCC with a wrong check digit is rejected; a pallet stores gross/tare/net and net = gross − tare.
 - **A-ID-05:** a POD noted "short 2" opens an OS&D claim with notice deadline delivered + 60 days and cap max(declared, $4.41/kg).
 - **A-ID-06:** Incoterms, CCI, CUSMA COO and CAD refs are hidden for a bakery and a warehouse (UI, API 422, emails). For a CHA cross-border order they are stored as record-only, and no filing call exists.
-- **A-ID-07:** ATA/ATD give dwell; OTIF/LIFR/dwell/OS&D match the 79 §6a worked check (A-FIN-13).
-- **A-ID-08:** no AWB/sea-waybill module and no NMFC class field exist; density is computed from dims and weight.
+- **A-ID-07:** ATA/ATD give dwell; OTIF/dwell/OS&D match the 79 §6a worked check (A-FIN-13).
+- **A-ID-08:** no AWB/sea-waybill module, no NMFC class field, and no PTA or LIFR field exist; density is computed from dims and weight.
+
+## 16. Vehicle compliance (A-VC, inside G19, doc 80)
+
+- **A-VC-01:** a rental truck with RGW 5,000 kg: the job cannot start until the Schedule 1 DVIR is submitted. A major defect blocks the job; a minor defect is recorded and ops are notified. The DVIR expires after 24 h.
+- **A-VC-02:** a Civic or a 4,000 kg van job starts without a DVIR, and the 5-photo walk-around is offered, not forced.
+- **A-VC-03:** HOS: warning at 12 h driving; at 13 h driving, 14 h on-duty or 16 h elapsed, no new offers are made.
+- **A-VC-04:** a "worked for another operator today" answer of yes removes the 160 km exemption, and the full daily log is required.
+- **A-VC-05:** a trip cannot start without plate, VIN, rental agreement (if rental) and insurance evidence. RGW > 4,500 kg requires a CVOR no.
+- **A-VC-06:** a quote of 380 kg on a Civic with 350 kg payload returns `422 vehicle_overweight`.
+- **A-VC-07:** airplane mode: DVIR, HOS and POD actions queue in `offline.ts`, sync once with the same `client_id`, and the HOS timestamps are unchanged after sync.
+- **A-VC-08:** an invoice is finalised only after `order.pod_completed` (existing `invoice_requires_pod_completed`), and DSO counts from the POD date.
+
+## 17. Order lifecycle (A-LC, inside G19, doc 81)
+
+- **A-LC-01:** the same seeded order posted through Shopify, the API, CSV and the portal produces one order with identical stages 2–14 (Idempotency-Key replay returns the same id).
+- **A-LC-02:** a quote older than 72 h cannot be booked; a re-quote uses the current rate card version.
+- **A-LC-03:** an order without terms acceptance stays `draft` and is never offered to a driver.
+- **A-LC-04:** a brokered job's partner share is posted to the trust account, and a payout run cannot pay a partner from the operating account.
+- **A-LC-05:** each stage emits the internal event and the public webhook named in 81 §2 (`order.created`, `order.picked_up`, `order.out_for_delivery`, `order.delivered`, `order.failed`, `invoice.issued`, `partner_job.offered`, `claim.opened`, `payout.sent`), signed per doc 74 §4.
+- **A-LC-06:** a noted POD opens a claim with the 60-day notice deadline, and the claim pack contains POD, photos, BOL (if any), seal and weights.
+- **A-LC-07:** a CHA order stores the CAD, CCI and COO refs and makes no outbound CARM call.
