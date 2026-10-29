@@ -36,7 +36,7 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 
 ## L30 (29 Oct 2026, doc 56)
 
-- Still open: ELD requirement for the leased box truck (legal check); CVOR weight threshold (U-12) vs the leased truck's registered weight; lease wording vs insurance; pilot merchant name; lease cost numbers for the truck price.
+- Updated 29 Oct 2026: box truck is a **short-term rental** (Home Depot Canada, U-Haul backup; doc 56). ELD exempt (rental ≤ 30 days; 160 km). CVOR needed for any rented truck over 4,500 kg RGW/actual, Porterchain Inc. as operator. Pilot merchant = Kaylulu; test merchant = PCDC. Still open: Home Depot store rate sheet; rental commercial-use terms (lawyer).
 - Resolved: Checkr route, Doppler, Shopify listing type, pen test, French scope, Zapier/NetSuite, Meta tier, on-call, lawyer, GPU, insurance, Oracle signup.
 
 ## Phase 0 (doc 60–67, 29 Oct 2026)
@@ -76,3 +76,12 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U68-7** Confirm D-68-5 cancellation fee amounts (50 % after assignment proposed).
 
 - privacy@porterchain.com mailbox exists (D-68-6 done, 29 Oct 2026).
+
+## Updates 29 Oct 2026 (Ravi)
+
+- **U-INS-1** Cargo insurance **not in place**: Ravi buys it before box truck go-live; declared value stays off until then. Commercial (auto liability / non-owned auto) insurance status to confirm. Home Depot requires the renter's own non-owned-auto liability (sells none); U-Haul business accounts need a COI or SafeMove.
+- **U-TRK-1** Home Depot Canada rates are not published online; get the store's rate sheet (and whether any GTA store has a box truck). U-Haul per-km rates vary by dealer ($0.49–0.99/km seen).
+- **U-TRK-2** (lawyer) Do Home Depot / U-Haul rental terms allow paid courier use; operator status when a contractor drives a Porterchain-rented truck; 160 km exemption on edge-of-area days.
+- **U-QT-1** Quote validity 72 h vs code 30 min (`config.py:51`, `settings_service.py:130`, Shopify `QUOTE_TTL`): change in Phase 0 week 2.
+- Pilot merchant resolved: Kaylulu; test merchant PCDC.
+- Backup on-call resolved: named, contact held privately by Ravi.

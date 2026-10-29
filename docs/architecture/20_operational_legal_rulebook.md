@@ -90,5 +90,5 @@ Status: **B** built · **P** partial · **M** missing · **N/A**. Source marks: 
 ## L30 updates (29 Oct 2026, doc 56)
 
 - Background check: manual police check + driver's abstract (driver obtains). Checkr only if the insurer requires it (then a paid mandatory L26 exception). Consent under PIPEDA still applies.
-- Box truck is **leased**: PorterChain as lessee/operator holds CVOR if over threshold; lease copy in truck; insurance names lessor as required; ELD check still open (doc 56).
+- Box truck is a **short-term rental** (Home Depot Canada, U-Haul backup): Porterchain Inc. rents and is operator, holds CVOR for any truck over 4,500 kg; rental contract in the truck; ELD exempt (rental ≤ 30 days; 160 km); gated until cargo insurance is bought (doc 56)
 - Insurance (cargo + commercial) in place; lawyer review of legal docs by week 6.

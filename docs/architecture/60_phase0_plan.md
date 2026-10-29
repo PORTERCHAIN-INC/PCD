@@ -213,7 +213,7 @@ Verified 29 Oct 2026: App Store uploads must be built with Xcode 26+ and the iOS
 
 ## 12. Decisions needing Ravi
 
-All seven decided 29 Oct 2026 (L32, §13). Still open: truck lease numbers, ELD check, backup on-call by overall week 21, the Shopify App Review question in §13.5.
+All seven decided 29 Oct 2026 (L32, §13). Still open: the Shopify App Review question in §13.5; buy cargo insurance before box truck go-live; confirm commercial insurance status; the Home Depot store rate sheet for the truck price. Closed 29 Oct: ELD (rentals ≤ 30 days and within 160 km are exempt, 56), backup on-call (named, contact held privately by Ravi), pilot merchant = Kaylulu (test merchant PCDC).
 
 - **D-P0-1 decided:** pilot merchant at the end of Phase 0 (week 12), human-run, no agents.
 - **D-P0-2 decided:** Redpanda in Phase 0.
@@ -276,7 +276,15 @@ VROOM never calls a router itself in production: the routing service builds the 
 
 One PorterChain-branded Help Centre and versioned policy library, from `content/trust/`, on the website, the portals, both apps, the Shopify embedded app and emails, with consent records (`policy_versions`, `consent_records`). Lawyer review in week 5–6 with doc 49; French legal review weeks 7–8. Gate G18. Not legal advice.
 
-Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = cargo insurance limits (values pending U68-2; no declared value above them until the insurer confirms); D-68-2 French help + legal in Phase 0 (overrides L30-5 for this content); D-68-3 full Partner Agreement now; D-68-4 SLAs as targets; D-68-5 **proposed** 24 h quote validity and free cancel before driver assigned (amounts to confirm); D-68-6 privacy officer Ravi Chauhan, privacy@porterchain.com (mailbox exists, done); D-68-7 `/[locale]/help`. AODA: 1–19 employees, small-organisation duties (68 §8.1).
+Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = $4.41/kg legal floor because **no cargo insurance exists** (updated 29 Oct); no declared value offered until a cargo policy exists; D-68-2 French help + legal in Phase 0 (overrides L30-5 for this content); D-68-3 full Partner Agreement now; D-68-4 SLAs as targets; D-68-5 quote validity **3 days (72 h)** (Ravi, 29 Oct; the code's 30-minute `quote_ttl_minutes` changes in Phase 0) and **proposed** and free cancel before driver assigned (amounts to confirm); D-68-6 privacy officer Ravi Chauhan, privacy@porterchain.com (mailbox exists, done); D-68-7 `/[locale]/help`. AODA: 1–19 employees, small-organisation duties (68 §8.1).
+
+## 15. Updates 29 Oct 2026 (Ravi)
+
+- **Insurance:** cargo insurance **not in place**; commercial insurance status to confirm. Liability $4.41/kg floor, no declared value. Box truck stays gated; **Ravi action: buy cargo insurance before box truck go-live.**
+- **Quote validity:** 3 days (72 h). Code today: `config.py:51 quote_ttl_minutes = 30`, `admin_engine/settings_service.py:130`, Shopify `QUOTE_TTL = 30 min` (`integrations/shopify_carrier_rates.py:37`). Phase 0 week 2 sets the customer/merchant quote TTL to 4,320 min; the Shopify carrier-rate cache stays short (it is a checkout rate, not a quote) unless Ravi decides otherwise. Fuel/rental cost moves inside 72 h are absorbed by the margin band.
+- **Pilot merchant:** Kaylulu (real). **PCDC** is the test merchant for rehearsal (L13) and test data; never mix PCDC data into Kaylulu reports.
+- **Box truck:** short-term rental, Home Depot Canada first, U-Haul urgent/backup; CVOR/ELD/BOL/price inputs in 56.
+- **Backup on-call:** named, contact held privately by Ravi.
 
 ## Unknowns (also in 98)
 

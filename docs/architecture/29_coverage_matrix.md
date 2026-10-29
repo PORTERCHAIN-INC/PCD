@@ -937,23 +937,23 @@ Droplet 8 GB (~$48/mo); "please retry" message during failover with no queued bo
 
 ## L30 decisions recorded (Ravi, 29 Oct 2026; doc 56)
 
-| Topic               | Decision                                                        | Docs       |
-| ------------------- | --------------------------------------------------------------- | ---------- |
-| Checkr              | manual police check + abstract; Checkr only if insurer requires | 20, 54, 98 |
-| Doppler             | retired; SOPS weeks 1–2                                         | 37         |
-| Shopify             | unlisted custom app for pilot; public later                     | 24, 51     |
-| Pen test            | ZAP + Trivy + ASVS self-check                                   | 38         |
-| French              | customer-facing Phase 1; admin Phase 2                          | 53, 49     |
-| Zapier/NetSuite     | Phase 2                                                         | 55         |
-| Meta Cloud API tier | not now                                                         | 27         |
-| Pilot merchant      | exists, name TBD                                                | 48         |
-| On-call             | Ravi alone; quiet hours, agent first-response, safe mode        | 36, 39, 52 |
-| Box truck           | leased; lessee CVOR/insurance/BOL gating; ELD open              | 20, 98     |
-| Lawyer              | yes; review by week 6                                           | 49         |
-| GPU                 | stay 6 GB; Phi-4-mini on CPU; most agents at suggest            | 27         |
-| Drivers             | 10+ at pilot; capacity checked                                  | 26, 54     |
-| Insurance           | in place                                                        | 20         |
-| Oracle              | signed up, Toronto                                              | 28, 98     |
+| Topic               | Decision                                                                               | Docs       |
+| ------------------- | -------------------------------------------------------------------------------------- | ---------- |
+| Checkr              | manual police check + abstract; Checkr only if insurer requires                        | 20, 54, 98 |
+| Doppler             | retired; SOPS weeks 1–2                                                                | 37         |
+| Shopify             | unlisted custom app for pilot; public later                                            | 24, 51     |
+| Pen test            | ZAP + Trivy + ASVS self-check                                                          | 38         |
+| French              | customer-facing Phase 1; admin Phase 2                                                 | 53, 49     |
+| Zapier/NetSuite     | Phase 2                                                                                | 55         |
+| Meta Cloud API tier | not now                                                                                | 27         |
+| Pilot merchant      | Kaylulu (real); PCDC = test merchant                                                   | 48         |
+| On-call             | Ravi alone; quiet hours, agent first-response, safe mode                               | 36, 39, 52 |
+| Box truck           | short-term rental (Home Depot; U-Haul backup); gated until cargo insurance; ELD exempt | 20, 98     |
+| Lawyer              | yes; review by week 6                                                                  | 49         |
+| GPU                 | stay 6 GB; Phi-4-mini on CPU; most agents at suggest                                   | 27         |
+| Drivers             | 10+ at pilot; capacity checked                                                         | 26, 54     |
+| Insurance           | cargo NOT in place; commercial status to confirm                                       | 20         |
+| Oracle              | signed up, Toronto                                                                     | 28, 98     |
 
 Re-scan 29 Oct 2026: 768 items, COVERED 768, GAP 0, CONFLICT 0.
 
@@ -968,3 +968,7 @@ Trust & Help Centre added to Phase 0 as W9 (doc 68, gate G18): content repo, pol
 ## D-68-1..7 decided (29 Oct 2026)
 
 See 68 §11 / 60 §14. French help + legal content moves Phase 1 → Phase 0 (D-68-2, overrides L30-5 for that content only); Partner Agreement added to Phase 0; AODA scope = small organisation (1–19). Row counts unchanged.
+
+## Updates 29 Oct 2026
+
+Cargo insurance not in place (liability $4.41/kg, no declared value; box truck gated until bought); quote validity 72 h; pilot merchant Kaylulu, test merchant PCDC; box truck = short-term rental (doc 56); backup on-call named, contact held privately by Ravi. Plan items, no row changes.
