@@ -38,8 +38,11 @@ This is **L31**. It overrides any earlier text that places these items in Phase 
 | G16 | Audit               | A01–A08, A10–A30 closed with a test each (A09 BOL moves with the box truck to Phase 1, see §4)                                                                                                                                                                  | 30 open                                                                                                                                                   |
 | G18 | Trust & Help        | Every surface (68 §5) links every required policy at the current version; consent recorded on every accept path; lawyer sign-off on every policy; rules register reviewed                                                                                       | Hard-coded pages, no versions                                                                                                                             |
 | G17 | Rehearsal           | Full local rehearsal (L13) of every flow in 42 on the Phase 0 build                                                                                                                                                                                             | —                                                                                                                                                         |
+| G19 | Business journeys   | All acceptance scenarios in 76 §2–§9, §12 green (every business type, pricing, operating profile, French, ops console redirects)                                                                                                                                | Written 29 Oct (docs only)                                                                                                                                |
+| G20 | Shopify review      | 76 §10 A-SHR-01..07 green; reviewer notes + screencast + PCDC demo data; no login/OTP/CAPTCHA in embedded path                                                                                                                                                  | 4 rejections: link step opens Clerk sign-in (`shopifyEmbed.ts:92`)                                                                                        |
+| G21 | Mobile review       | 76 §11 A-APR-01..06 green (Maestro); review accounts per app; in-app deletion both apps                                                                                                                                                                         | Apple rejected: Clerk hosted auth, invite-only driver app                                                                                                 |
 
-Phase 0 ends only when G1–G18 are green in one CI run plus the drill log. No date beats a red gate.
+Phase 0 ends only when G1–G21 are green in one CI run plus the drill log. No date beats a red gate.
 
 ## 3. What moves from Phase 1 to Phase 0 (and what stays)
 
@@ -294,6 +297,23 @@ Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = $4.41/kg legal floor be
 - **Box truck:** not a priority; a ready-to-switch-on prep pack behind `FEATURE_BOX_TRUCK=false` (pricing inputs, onboarding + collaboration flows, checklists), doc 56. Ravi drives any rented vehicle until employees or a logistics contract.
 - **Cancellation fees (D-68-5 decided):** none for retail customers; merchants and partners only per contract. Pricing: remove the retail cancel fee from price cards; add `cancellation_fee` to merchant contract terms and partner rate cards.
 - **Broker model (W10, docs only in Phase 0):** partner onboarding with COI, partner rate cards, margin floors, partner portal + tables, dispatch own-vs-partner rule, HTA s.191.0.1 trust account, Partner Agreement updates. Build in Phase 1 after the pilot; doc 56.
+
+## 18. Ravi's asks: traceability (29 Oct 2026, doc 77)
+
+Every Ravi message of 28–29 Oct is traced in [77](77_phase0_traceability.md): 54 asks, 34 covered, 8 fixed (Leads/CRM module doc 78 in weeks 9–10; UI/UX 100% = every page spec'd + G8; supply-chain standards help pages; weather/delay rule; Ravi set up as a driver; Shopify Partner Support draft; matrix; consistency passes), 12 on docs 70–76 (verify after). No new Ravi decisions needed.
+
+**Leads/CRM (doc 78):** week 9 adds the `crm` schema, identity spine, instant website leads, spam rules, auto-ack and SLA timers; week 10 adds Meta (FB/IG) webhooks, YouTube comments and forwarded-email parsers (LinkedIn, X). Meta App Review is submitted in week 6. Still 12 weeks.
+
+## 17. L35 Business-ready Phase 0 (29 Oct 2026, docs 70–76)
+
+- **Weeks 1–2 TOP PRIORITY (independent of Keycloak):** Shopify review fix (74 §2: auto-provision org on install, everything inside the iframe, four-click onboarding default, link step removed, reviewer pack on PCDC) and mobile review fix (74 §3: flagged review accounts without OTP/CAPTCHA, driver sandbox jobs, customer in-app deletion). Gates G20, G21. Mobile review accounts use a temporary Clerk password-only path if Keycloak is not ready; moved to Keycloak in week 4–5 with the rest.
+- **Weeks 3–5:** Organisation model + operating profile + external_ref migration (70 §6), progressive onboarding (71).
+- **Weeks 6–7:** single pricing engine with bands, dim weight, add-ons, rate cards per type (72), alongside Valhalla/VROOM.
+- **Week 8:** support/ticket model and playbooks (73), API conventions, webhooks signing, label modes, developer portal (74 §4–6).
+- **Weeks 8–9:** ops console IA (75) with the §9 dispatch redesign.
+- **Weeks 10–12:** acceptance suite 76 green (G19) before the week-12 pilot.
+- Build order inside every workstream: Shopify merchant → warehouse → small shop → courier → logistics → supply chain → CHA. Partner job routing stays Phase 1 in production use (doc 56) but its tests A-CP/A-LP are written and run on sandbox in Phase 0.
+- Decisions for Ravi: D-70-1..4, D-72-1..4, D-75-1 (see 98).
 
 ## Unknowns (also in 98)
 

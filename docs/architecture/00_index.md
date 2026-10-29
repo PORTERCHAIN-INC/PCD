@@ -77,7 +77,7 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 
 (40–45 are the UI/UX and backend docs from other commits.)
 
-- 56 · L30 Ravi decisions of 29 Oct 2026 (Checkr, SOPS, Shopify unlisted, pen test, French, on-call, leased truck, GPU 6 GB re-check, 10+ drivers, Oracle)
+- 56 · L30 Ravi decisions of 29 Oct 2026 (Checkr, SOPS, Shopify unlisted, pen test, French, on-call, box truck short-term rental, GPU 6 GB re-check, 10+ drivers, Oracle)
 
 ## Phase 0 (added 29 Oct 2026, L31)
 
@@ -95,3 +95,21 @@ Ravi defined Phase 0 before Phase 1: no agentic mode; every replacement, routing
 | 67  | [Apps: mobile, Shopify, portals](67_p0_apps.md)                                                                                                                           |
 
 All 28 Mermaid blocks in 61–67 were rendered to SVG with mermaid-cli 11.17.1 (on the agent box, not this machine) and saved in `rendered_p0/` (`<doc>_<block>.svg`). The `29` matrix now has a **Phase** column (P0/P1/P2).
+
+## L35 Business-ready Phase 0 (29 Oct 2026)
+
+| #   | Doc                                                                                                        |
+| --- | ---------------------------------------------------------------------------------------------------------- |
+| 68  | [Trust & Help Centre](68_trust_help_centre.md)                                                             |
+| 70  | [Business model: Organisation + operating profile](70_business_model_architecture.md)                      |
+| 71  | [Progressive onboarding](71_progressive_onboarding.md)                                                     |
+| 72  | [Pricing, simplified](72_pricing_simplified.md)                                                            |
+| 73  | [Support and issue playbook](73_support_and_issue_playbook.md)                                             |
+| 74  | [Integrations per business type (+ Shopify and mobile review fixes)](74_integrations_per_business_type.md) |
+| 75  | [Ops console reorganisation](75_ops_console_reorganisation.md)                                             |
+| 76  | [Acceptance tests before build (G19–G21)](76_acceptance_tests_before_build.md)                             |
+
+- 77 · [Phase 0 traceability of Ravi's asks + consistency passes](77_phase0_traceability.md)
+- 78 · [Leads / CRM module](78_leads_crm_module.md)
+
+Mermaid blocks in 70, 71, 73, 75 rendered to SVG (mermaid-cli, agent box) in `rendered_l35/`, 0 syntax errors.

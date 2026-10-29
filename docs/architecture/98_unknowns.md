@@ -73,7 +73,7 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U68-6** Resolved: D-68-1..7 decided 29 Oct 2026 (68 §11); D-68-5 amounts are proposed and await confirmation.
 - **U68-2 (pending from Ravi)** cargo policy per-shipment and per-kg limits; declared value above them not offered until the insurer confirms.
 - **U68-3** resolved: 1–19 employees, AODA small-organisation duties (68 §8.1).
-- **U68-7** Confirm D-68-5 cancellation fee amounts (50 % after assignment proposed).
+- **U68-7 resolved** Retail: no cancellation fees; B2B fee amounts per contract (D-68-5).
 
 - privacy@porterchain.com mailbox exists (D-68-6 done, 29 Oct 2026).
 
@@ -94,3 +94,20 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U-CXL-1 resolved** Retail: no cancellation fees; merchants/partners per contract (D-68-5). Lawyer reviews the B2B fee clause.
 - **Box truck** downgraded: prep pack behind a flag; no open action until an order arrives. Ravi is the driver of rented vehicles.
 - PCDC = test development store created by Ravi in Shopify Partners.
+
+## Traceability (doc 77, 29 Oct 2026)
+
+- **U77-1** Ravi's 28 Oct message text was traced from decision records (main-chat transcript not readable by this job); any 28 Oct ask not recorded as an L-decision may be missing. Verify by Ravi skim of 77 §1.
+- **U77-2** "wether" in t100u read as "whether"; weather rule (77 §2.3) added anyway.
+- Shopify Partner Support message drafted (77 §3), not sent.
+
+## L35 (29 Oct 2026, docs 70–76)
+
+- **U-70-1** (lawyer) Pharmacy delivery scope: OTC and non-controlled Rx only, ID + signature; any Ontario College of Pharmacists conditions.
+- **U-72-1** Starting band prices and add-ons (72 §2, §5) are proposals; Ravi approves (D-72-2). Furniture by item class (D-72-3); fuel inside base (D-72-4).
+- **U-74-1** Shopify reviewer feedback text for the 4 rejections not in the repo; Ravi to paste the latest rejection email so A-SHR tests match it exactly.
+- **U-74-2** Apple/Google rejection notes not in the repo; same request.
+- **U-74-3** WhatsApp business number for click-to-chat (73 §1).
+- **U-75-1** Ravi confirms the new ops nav names (D-75-1).
+- Decisions needing Ravi: D-70-1 one Organisation model (rec. yes), D-70-2 PC id everywhere (yes), D-70-3 shipper+partner orgs (yes), D-70-4 pharmacy scope (yes, lawyer), D-72-1 one pricing engine (yes), D-72-2 prices, D-72-3 furniture by item class (yes), D-72-4 fuel inside base (yes), D-75-1 ops IA (yes).
+- **U78-1..3** Meta App Review timing; whether paid ads run (`lead_capi`); untracked `lead_channel_adapters.py` (doc 78).

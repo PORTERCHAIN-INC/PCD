@@ -894,7 +894,7 @@ L28 isn't defined in any doc or Page yet. It is probably the hybrid deployment d
 | K9  | Doc 20, Checkr (background checks)                                                                                               | Paid vendor                                                        | L26 list doesn't name Checkr                                                        | Decided L30-1: manual police check + abstract; Checkr only if insurer requires   |
 | K10 | Code: 11 Clerk scripts, `env/clerk.env.example`, `clerk_webhook_events` table, Sentry configs, `verify_wave10_w10_5_whatsapp.py` | Vendor code still present                                          | L26/L27                                                                             | Planned removal: Clerk week 5, Sentry week 3, WhatsApp check week 8 (rows above) |
 
-**Schedule math:** 14 build weeks + weeks 15–22 (8 weeks) = 22 weeks. This matches L24. The 11 S1 fixes land by week 6 (L21) and the pilot runs in week 14. Risk: 500 jobs per agent at 99% (L23) inside 8 weeks needs about 9 jobs per agent per day. Low-volume agents stay at suggest, as the plan already says.
+**Superseded by L31/L32 (Phase 0 12 weeks + Phase 1 8 + 8 = 28 weeks, doc 60 §4).** Earlier schedule math: 14 build weeks + weeks 15–22 (8 weeks) = 22 weeks. This matches L24. The 11 S1 fixes land by week 6 (L21) and the pilot runs in week 14. Risk: 500 jobs per agent at 99% (L23) inside 8 weeks needs about 9 jobs per agent per day. Low-volume agents stay at suggest, as the plan already says.
 
 ## Hybrid deployment decisions recorded (Ravi, 28 Oct 2026; file 28 §16)
 
@@ -976,3 +976,25 @@ Cargo insurance not in place (liability $4.41/kg, no declared value; box truck g
 ## Updates 29 Oct 2026, round 2
 
 G-INS hard gate added (pilot blocker); retail cancellation fees removed (D-68-5); broker model planned (doc 56, 60 §16); box truck reduced to a flagged prep pack. Plan items, no row coverage changes.
+
+## Traceability of Ravi's asks (29 Oct 2026, doc 77)
+
+54 asks traced: 34 covered, 8 fixed (incl. doc 78 Leads/CRM) (doc 77 §2–4), 12 on docs 70–76 (verify after). Plan items, no row changes.
+
+## L35 (29 Oct 2026)
+
+Docs 70–76 added (Organisation model + operating profile, progressive onboarding, simplified pricing, support playbook, integrations incl. Shopify and mobile review fixes, ops console IA, acceptance tests). New gates G19–G21 in 60 §2; weeks in 60 §17. Plan items, no code-row changes.
+
+| Area                                                         | Status       | Docs           |
+| ------------------------------------------------------------ | ------------ | -------------- |
+| Business types (8) and capability profiles                   | planned P0   | 70             |
+| Operating profile (pickup, refs, tracking, labels, barcodes) | planned P0   | 70, 71, 74, 76 |
+| Progressive onboarding + emails EN/FR                        | planned P0   | 71             |
+| Pricing: one engine, bands, dim weight, add-ons, no drip     | planned P0   | 72             |
+| Support tickets, SLAs as targets, playbooks                  | planned P0   | 73             |
+| Integrations, API keys/OAuth, webhooks, EDI-lite, labels     | planned P0   | 74             |
+| Shopify review fix (G20)                                     | P0 weeks 1–2 | 74, 76         |
+| Mobile review fix (G21)                                      | P0 weeks 1–2 | 74, 76         |
+| Ops console IA                                               | planned P0   | 75             |
+
+Re-scan 29 Oct 2026 (L35): code rows unchanged (768 COVERED, 0 GAP, 0 CONFLICT); 9 new plan areas mapped to docs 70–76; every gate G1–G21 has a measure and a doc; 0 broken doc references.
