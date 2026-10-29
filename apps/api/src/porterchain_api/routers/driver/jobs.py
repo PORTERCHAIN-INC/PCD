@@ -63,6 +63,10 @@ def list_jobs(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
+    from porterchain_api.review.reviewer_sandbox import is_reviewer_driver, sandbox_jobs
+
+    if is_reviewer_driver(ctx.driver, settings):  # G21: demo jobs only, never real dispatch
+        return sandbox_jobs()
     guard_portal_ready(ctx, settings)
     return svc.platform.jobs.list_jobs(db, ctx.driver)
 

@@ -151,6 +151,9 @@ def create_app() -> FastAPI:
     from porterchain_api.gateway_engine.middleware import MerchantApiGatewayMiddleware
 
     app.add_middleware(MerchantApiGatewayMiddleware)
+    from porterchain_api.review.reviewer_sandbox import ReviewerSandboxMiddleware
+
+    app.add_middleware(ReviewerSandboxMiddleware)
     app.include_router(gateway_router)
     app.include_router(auth.router)
     from porterchain_api.routers import oauth

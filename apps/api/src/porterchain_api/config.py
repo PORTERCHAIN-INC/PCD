@@ -580,6 +580,15 @@ class Settings(BaseSettings):
             "SHOPIFY_FULFILLMENT_SERVICE_ENABLED",
         ),
     )
+    # G21 reviewer accounts (doc 74 §3). Off by default; emails only, never passwords here.
+    reviewer_accounts_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("reviewer_accounts_enabled", "REVIEWER_ACCOUNTS_ENABLED"),
+    )
+    reviewer_driver_emails: str = Field(
+        default="",
+        validation_alias=AliasChoices("reviewer_driver_emails", "REVIEWER_DRIVER_EMAILS"),
+    )
     # 4-click embedded onboarding (confirm pickup → Go live). Phase 0 G20: the default path.
     # Set SHOPIFY_FOUR_CLICK_ONBOARDING_ENABLED=false to fall back to the legacy page.
     shopify_four_click_onboarding_enabled: bool = Field(
