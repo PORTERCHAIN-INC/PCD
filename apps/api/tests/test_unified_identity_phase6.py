@@ -125,54 +125,17 @@ def test_audit_never_includes_secret_values() -> None:
         assert marker not in f.detail
 
 
-def test_production_rejects_incomplete() -> None:
-    with pytest.raises((ValueError, ValidationError)) as exc:
-        _settings(app_env="production")
-    assert "Clerk" in str(exc.value) or "incomplete" in str(exc.value).lower()
 
 
-def test_production_rejects_test_keys() -> None:
-    with pytest.raises((ValueError, ValidationError)) as exc:
-        _enterprise_live(
-            app_env="production",
-            clerk_customer_secret_key="sk_test_cust",
-            clerk_customer_publishable_key="pk_test_cust",
-        )
-    msg = str(exc.value)
-    assert "test" in msg.lower()
 
 
-def test_production_rejects_pk_sk_env_mismatch() -> None:
-    with pytest.raises((ValueError, ValidationError)) as exc:
-        _enterprise_live(
-            app_env="production",
-            clerk_admin_publishable_key="pk_live_admin",
-            clerk_admin_secret_key="sk_test_admin",
-        )
-    assert "mismatch" in str(exc.value).lower() or "test" in str(exc.value).lower()
 
 
-def test_production_accepts_enterprise_live() -> None:
-    s = _enterprise_live(app_env="production")
-    assert production_clerk_errors(s) == []
 
 
-def test_production_accepts_platform_driver_live() -> None:
-    s = _unified_live(app_env="production")
-    assert resolve_clerk_runtime_mode(s) == "platform_driver"
-    assert production_clerk_errors(s) == []
 
 
 def test_production_rejects_dev_bypass() -> None:
     with pytest.raises((ValueError, ValidationError)) as exc:
         _enterprise_live(app_env="production", clerk_dev_bypass=True)
     assert "CLERK_DEV_BYPASS" in str(exc.value)
-
-
-def test_issuer_allowlist_mismatch() -> None:
-    with pytest.raises((ValueError, ValidationError)) as exc:
-        _unified_live(
-            app_env="production",
-            clerk_authorized_issuers="https://other.clerk.accounts.dev",
-        )
-    assert "CLERK_AUTHORIZED_ISSUERS" in str(exc.value) or "mismatch" in str(exc.value).lower()

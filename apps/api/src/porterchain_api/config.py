@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Self
+from typing import Literal, Self
 from urllib.parse import urlparse
 
 from pydantic import AliasChoices, Field, field_validator, model_validator
@@ -52,6 +52,18 @@ class Settings(BaseSettings):
     quote_ttl_minutes: int = 72 * 60
     booking_draft_ttl_minutes: int = 1440
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004"
+
+    # L36: Keycloak is the only auth provider (no Clerk / dual mode).
+    auth_provider: Literal["keycloak"] = "keycloak"
+    keycloak_url: str = ""  # public base, e.g. https://auth.porterchain.com
+    keycloak_internal_url: str = ""  # optional in-cluster base used for JWKS fetch
+    keycloak_realm: str = "porterchain"
+    keycloak_issuer: str = ""  # overrides {keycloak_url}/realms/{realm}
+    keycloak_audience: str = "pc-api"
+    keycloak_allowed_clients: str = (
+        "pc-website,pc-merchant-portal,pc-customer-portal,pc-driver-portal,pc-admin,"
+        "pc-customer-app,pc-driver-app"
+    )
 
     clerk_jwks_url: str = ""
     clerk_secret_key: str = ""
@@ -726,12 +738,12 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def require_clerk_in_production(self) -> Self:
+    def require_auth_in_production(self) -> Self:
         if is_local_env(self.app_env):
             return self
-        from porterchain_api.auth.clerk_config_audit import production_clerk_errors
+        from porterchain_api.auth.keycloak import production_auth_errors
 
-        errors = production_clerk_errors(self)
+        errors = production_auth_errors(self)
         if errors:
             raise ValueError("; ".join(errors))
         return self

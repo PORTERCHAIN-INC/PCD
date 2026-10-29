@@ -160,27 +160,3 @@ def test_clerk_unified_mode_flag_rejected() -> None:
             clerk_jwks_url="https://platform.clerk.accounts.dev/.well-known/jwks.json",
             jwt_secret="a" * 32,
         )
-
-
-def test_production_boot_requires_clerk() -> None:
-    try:
-        Settings(
-            _env_file=None,
-            app_env="production",
-            clerk_dev_bypass=False,
-            jwt_secret="a" * 32,
-            clerk_secret_key="",
-            clerk_jwks_url="",
-            clerk_customer_secret_key="",
-            clerk_customer_jwks_url="",
-            clerk_merchant_secret_key="",
-            clerk_merchant_jwks_url="",
-            clerk_admin_secret_key="",
-            clerk_admin_jwks_url="",
-            clerk_driver_secret_key="",
-            clerk_driver_jwks_url="",
-        )
-    except ValueError as exc:
-        assert "Clerk" in str(exc)
-    else:
-        raise AssertionError("expected ValueError for missing Clerk in production")

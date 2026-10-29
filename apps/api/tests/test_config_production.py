@@ -9,6 +9,7 @@ from porterchain_api.config import Settings
 
 _LEGACY_CLERK_PROD = {
     "_env_file": None,
+    "keycloak_url": "https://auth.porterchain.test",
     "clerk_secret_key": "sk_live_production_clerk_test_fixture",
     "clerk_publishable_key": "pk_live_production_clerk_test_fixture",
     "clerk_jwks_url": "https://clerk.example.com/.well-known/jwks.json",

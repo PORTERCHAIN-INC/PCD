@@ -49,6 +49,7 @@ def _settings(**overrides: object) -> Settings:
 
 def _live(**overrides: object) -> Settings:
     params: dict[str, object] = {
+        "keycloak_url": "https://auth.porterchain.test",
         "clerk_customer_secret_key": "sk_live_cust",
         "clerk_customer_publishable_key": "pk_live_cust",
         "clerk_customer_jwks_url": "https://cust.clerk.accounts.dev/.well-known/jwks.json",

@@ -235,32 +235,6 @@ async def _loop_stall_during(coro_factory, n: int = 3) -> float:
     return worst
 
 
-@pytest.mark.anyio
-async def test_verify_clerk_token_email_lookup_off_loop(monkeypatch):
-    """Customer/merchant/driver JWTs without email hit Clerk Backend inside verify."""
-    import porterchain_api.auth.clerk_identity_provider as cip
-    import porterchain_api.auth.email_identity as ei
-
-    async def jwks(url):
-        return {"keys": [{"kid": "k"}]}
-
-    monkeypatch.setattr(cip, "clerk_jwks_urls", lambda s: [("customer", "https://jwks")])
-    monkeypatch.setattr(cip, "_get_jwks", jwks)
-    monkeypatch.setattr(cip, "_rsa_key_for_token", lambda j, t: "key")
-    monkeypatch.setattr(cip.jwt, "decode", lambda *a, **k: {"sub": "user_c"})
-    monkeypatch.setattr(cip, "_enforce_token_policy", lambda p, s: None)
-    monkeypatch.setattr(cip, "_claims_from_payload", lambda p, clerk_app=None: ClerkClaims(clerk_user_id="user_c", email=None))
-
-    def slow_enrich(claims, settings):
-        time.sleep(SLOW_CLERK_S)
-        return claims
-
-    monkeypatch.setattr(ei, "enrich_claims_with_verified_email", slow_enrich)
-    settings = MagicMock(clerk_audience="")
-    stall = await _loop_stall_during(lambda: cip.verify_clerk_token("jwt", settings))
-    assert stall < 0.5, f"verify_clerk_token blocked the loop {stall:.2f}s"
-
-
 def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
     import porterchain_api.auth.customer as cust
     import porterchain_api.auth.email_identity as ei

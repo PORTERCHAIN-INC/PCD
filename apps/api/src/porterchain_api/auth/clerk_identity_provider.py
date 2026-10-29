@@ -1,105 +1,16 @@
-"""Clerk IdentityProvider adapter — JWKS verify only; no Backend API on the hot path."""
+"""Identity provider adapter — delegates bearer verification to Keycloak (L36)."""
 
 from __future__ import annotations
 
 import logging
 
-from fastapi import HTTPException
-import httpx
-import jwt
-from jwt import PyJWK, PyJWTError
 
 from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk_registry import clerk_jwks_urls
 from porterchain_api.auth.dev import allow_auth_dev_bypass, dev_claims_for, resolve_dev_portal
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.config import Settings
 
 logger = logging.getLogger("porterchain.security")
-
-_jwks_cache: dict[str, dict] = {}
-
-
-async def _get_jwks(url: str) -> dict:
-    if url in _jwks_cache:
-        return _jwks_cache[url]
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, timeout=10.0)
-        response.raise_for_status()
-        _jwks_cache[url] = response.json()
-        return _jwks_cache[url]
-
-
-def _rsa_key_for_token(jwks: dict, token: str):
-    """Return the verification key for the token's ``kid`` (PyJWT; python-jose removed)."""
-    try:
-        header = jwt.get_unverified_header(token)
-    except PyJWTError:
-        return None
-    kid = header.get("kid")
-    for key_data in jwks.get("keys", []):
-        if key_data.get("kid") == kid:
-            try:
-                return PyJWK(key_data, algorithm="RS256").key
-            except PyJWTError:
-                return None
-    return None
-
-
-# Clerk session JWTs live 60 s; tolerate small client/server clock drift on exp/nbf/iat.
-_CLOCK_LEEWAY_S = 10
-
-
-def _csv_set(raw: str) -> set[str]:
-    return {part.strip() for part in (raw or "").split(",") if part.strip()}
-
-
-def _enforce_token_policy(payload: dict, settings: Settings) -> None:
-    """Optional iss / azp / aud policy. Empty settings = skip (4-app dual-read era)."""
-    issuers = _csv_set(settings.clerk_authorized_issuers)
-    if issuers:
-        iss = payload.get("iss")
-        if not iss or str(iss) not in issuers:
-            logger.warning("auth_reject reason=issuer_mismatch")
-            raise HTTPException(status_code=401, detail="invalid_token_issuer")
-
-    parties = _csv_set(settings.clerk_authorized_parties)
-    if parties:
-        azp = payload.get("azp")
-        # Clerk may put client id in azp or in aud when single-valued
-        candidates = {str(azp)} if azp else set()
-        aud = payload.get("aud")
-        if isinstance(aud, str):
-            candidates.add(aud)
-        elif isinstance(aud, list):
-            candidates.update(str(a) for a in aud)
-        # Native (Expo) sessions carry no azp/aud; browser sessions always do. Enforce whenever
-        # the token names a party, so a token minted for another site is rejected.
-        if candidates and not candidates.intersection(parties):
-            logger.warning("auth_reject reason=authorized_party_mismatch")
-            raise HTTPException(status_code=401, detail="invalid_token_azp")
-
-
-def _claims_from_payload(payload: dict, *, clerk_app: str | None = None) -> ClerkClaims:
-    from porterchain_api.auth.email_identity import email_from_jwt_payload
-
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="invalid_token")
-    return ClerkClaims(
-        clerk_user_id=str(user_id),
-        email=email_from_jwt_payload(payload),
-        phone=payload.get("phone_number") or payload.get("primary_phone_number"),
-        org_id=payload.get("org_id"),
-        org_role=payload.get("org_role"),
-        public_metadata=payload.get("public_metadata") if isinstance(payload.get("public_metadata"), dict) else None,
-        session_id=payload.get("sid"),
-        clerk_app=clerk_app,
-        issuer=str(payload["iss"]) if payload.get("iss") else None,
-        authorized_party=str(payload["azp"]) if payload.get("azp") else None,
-        auth_time=int(payload["iat"]) if payload.get("iat") is not None else None,
-    )
-
 
 def _dev_claims(*, portal: str | None = None, path: str = "", header: str | None = None) -> ClerkClaims:
     """Local Bearer ``dev`` — one Clerk subject per portal, never staff email on merchant/customer."""
@@ -108,7 +19,7 @@ def _dev_claims(*, portal: str | None = None, path: str = "", header: str | None
 
 def claims_to_identity(claims: ClerkClaims) -> AuthenticatedIdentity:
     return AuthenticatedIdentity(
-        provider="clerk",
+        provider="keycloak",
         issuer=claims.issuer,
         subject=claims.clerk_user_id,
         session_id=claims.session_id,
@@ -131,57 +42,10 @@ async def verify_clerk_token(
     if token == "dev" and allow_auth_dev_bypass(settings):
         return _dev_claims(portal=portal, path=path, header=header)
 
-    jwks_entries = clerk_jwks_urls(settings)
-    if not jwks_entries:
-        raise HTTPException(status_code=503, detail="clerk_not_configured")
+    # L36: Keycloak is the only provider; Clerk JWKS verification removed.
+    from porterchain_api.auth.keycloak import verify_keycloak_token
 
-    audience = (settings.clerk_audience or "").strip() or None
-    decode_options = {
-        "verify_signature": True,
-        "verify_aud": bool(audience),
-        "verify_exp": True,
-        "verify_nbf": True,
-    }
-    last_error: PyJWTError | None = None
-
-    for clerk_app, jwks_url in jwks_entries:
-        jwks = await _get_jwks(jwks_url)
-        if not jwks.get("keys"):
-            continue
-        rsa_key = _rsa_key_for_token(jwks, token)
-        if not rsa_key:
-            continue
-        try:
-            payload = jwt.decode(
-                token,
-                rsa_key,
-                algorithms=["RS256"],
-                audience=audience,
-                options=decode_options,
-                leeway=_CLOCK_LEEWAY_S,
-            )
-            _enforce_token_policy(payload, settings)
-            claims = _claims_from_payload(payload, clerk_app=clerk_app)
-            # Default Clerk session JWTs omit email — resolve verified primary via Backend API.
-            from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
-
-            from starlette.concurrency import run_in_threadpool
-
-            # Sync httpx to Clerk Backend: never on the event loop (2026-10-14 freeze).
-            return await run_in_threadpool(enrich_claims_with_verified_email, claims, settings)
-        except HTTPException:
-            raise
-        except PyJWTError as exc:
-            last_error = exc
-            continue
-
-    if last_error:
-        # Name the jwt error class (ExpiredSignatureError, ImmatureSignatureError, ...) so
-        # 401 bursts can be diagnosed from logs; never log the token itself.
-        logger.warning("auth_reject reason=invalid_token error=%s", type(last_error).__name__)
-        raise HTTPException(status_code=401, detail="invalid_token") from last_error
-    logger.warning("auth_reject reason=invalid_token error=no_matching_jwks_key")
-    raise HTTPException(status_code=401, detail="invalid_token")
+    return await verify_keycloak_token(token, settings)
 
 
 class ClerkIdentityProvider:
