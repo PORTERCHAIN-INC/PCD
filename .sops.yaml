@@ -1,0 +1,22 @@
+# SOPS + age (doc 37, L30-2). Doppler is being retired.
+# Recipients are PUBLIC age keys (age1...). Never commit a private key (AGE-SECRET-KEY-...).
+# Ravi: replace each placeholder with the real public key printed by
+#   age-keygen -o ~/.config/sops/age/keys.txt     (on that host; see secrets/README.md)
+# then run: sops updatekeys secrets/<file>.enc.yaml
+creation_rules:
+  - path_regex: secrets/droplet\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1DROPLET_HOST_PUBLIC_KEY_PLACEHOLDER
+  - path_regex: secrets/ubuntu\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1UBUNTU_HOST_PUBLIC_KEY_PLACEHOLDER
+  - path_regex: secrets/oracle\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1ORACLE_HOST_PUBLIC_KEY_PLACEHOLDER
+  - path_regex: secrets/ci\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1CI_PUBLIC_KEY_PLACEHOLDER

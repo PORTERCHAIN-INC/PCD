@@ -11,7 +11,9 @@ doppler.token
 doppler.env
 
 # Credentials and key material
-secrets/
+secrets/*
+!secrets/README.md
+!secrets/*.enc.yaml
 apps/api/.secrets/
 **/firebase-service-account.json
 *firebase-adminsdk*.json

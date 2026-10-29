@@ -7,6 +7,7 @@
 # CLERK_UNIFIED_MODE must stay false. Do not strip portal slots.
 #
 # Modes:
+#   SOPS_SECRETS_FILE set → decrypt with sops + age (preferred, doc 37)
 #   DOPPLER_TOKEN set  → download from Doppler (secret manager SSOT)
 #   otherwise          → write .env from CI env vars (legacy / break-glass)
 #
@@ -262,9 +263,21 @@ verify_env() {
   return "$missing"
 }
 
-# Prefer CI-uploaded env file (downloaded on Actions runner). Avoids broken
-# appleboy DOPPLER_TOKEN forwarding and droplet-side Doppler CLI auth issues.
-if [ -f "${TARGET_DIR}/doppler.env" ]; then
+# SOPS + age first (doc 37). Doppler branches below stay as fallback until SOPS is verified.
+SOPS_FILE="${SOPS_SECRETS_FILE:-}"
+if [ -n "${SOPS_FILE}" ] && [ -f "${SOPS_FILE}" ] && command -v sops >/dev/null 2>&1; then
+  tmp_env="$(mktemp "${TARGET_DIR}/.env.sops.XXXXXX")"
+  trap 'rm -f "${tmp_env}"' EXIT
+  sops -d --output-type dotenv "${SOPS_FILE}" > "${tmp_env}"
+  if [ ! -s "${tmp_env}" ]; then echo "::error::sops decrypt produced an empty file" >&2; exit 1; fi
+  if [ -s .env ]; then cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"; fi
+  mv "${tmp_env}" .env
+  trap - EXIT
+  extract_firebase_from_env
+  strip_inline_firebase_from_env
+  normalize_clerk_platform_driver
+  echo "Secrets synced from SOPS (${SOPS_FILE})"
+elif [ -f "${TARGET_DIR}/doppler.env" ]; then
   bytes="$(wc -c < "${TARGET_DIR}/doppler.env")"
   echo "Using pre-downloaded doppler.env (${bytes} bytes)"
   if [ "$bytes" -lt 500 ]; then

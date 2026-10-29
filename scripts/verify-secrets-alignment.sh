@@ -80,7 +80,14 @@ else
   warn "gh CLI not authenticated — skip GitHub checks"
 fi
 
-# --- Doppler ---
+# --- SOPS (doc 37) ---
+for f in secrets/*.enc.yaml; do
+  [ -f "$f" ] || continue
+  if grep -q "^sops:" "$f"; then ok "SOPS encrypted: $f"; else warn "SOPS: $f is not encrypted"; fi
+done
+if grep -q "PLACEHOLDER" .sops.yaml 2>/dev/null; then warn "SOPS: .sops.yaml still has placeholder age recipients"; fi
+
+# --- Doppler (legacy, optional; removed once SOPS is verified) ---
 if command -v doppler >/dev/null 2>&1; then
   DOPPLER_OK=0
   if [ -n "${DOPPLER_TOKEN:-}" ]; then
