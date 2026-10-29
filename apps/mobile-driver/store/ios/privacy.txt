@@ -3,7 +3,7 @@ App Store privacy nutrition — Porterchain Driver
 Data used to provide the app (linked to identity, not used for tracking):
 
   Contact info
-    Email, name, phone — Clerk driver account and ops profile.
+    Email, name, phone — Keycloak driver account and ops profile.
 
   Location
     Precise location — on-duty GPS pings to PorterChain dispatch so the van can be seen on the map.
@@ -15,7 +15,7 @@ Data used to provide the app (linked to identity, not used for tracking):
     Stop exception notes, pre-trip checks.
 
   Identifiers
-    User ID (Clerk), device push token (APNs).
+    User ID (Keycloak), device push token (APNs).
 
   Product interaction
     Job accept/complete, scan events, duty status.
@@ -27,5 +27,5 @@ Tracking
   No. No third-party advertising SDK. ATT not required.
 
 Third parties
-  Clerk (authentication), Apple (APNs, Map tap-out to Apple Maps), Google Firebase Cloud Messaging (Android push), Porterchain API.
+  Keycloak (authentication), Apple (APNs, Map tap-out to Apple Maps), Google Firebase Cloud Messaging (Android push), Porterchain API.
   Google Maps is not used as a routing engine in this app.

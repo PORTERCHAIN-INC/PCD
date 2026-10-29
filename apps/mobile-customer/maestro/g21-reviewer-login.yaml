@@ -1,20 +1,20 @@
-# G21 A-APR-01/03/07: review account signs in with email + password (no code, no CAPTCHA),
-# sees PCDC orders, and can reach in-app account deletion. Build with
-# EXPO_PUBLIC_REVIEWER_LOGIN_ENABLED=true. Run:
+# G21 A-APR-01/03/07: review account signs in on the Keycloak page with email + password
+# (no code, no CAPTCHA), sees PCDC orders, and can reach in-app account deletion. Run:
 #   maestro test -e REVIEW_EMAIL=... -e REVIEW_PASSWORD=... maestro/g21-reviewer-login.yaml
 appId: com.porterchain.customer
 tags: [g21]
 ---
 - launchApp
 - assertVisible: { id: mobile-sign-in }
-- assertVisible: { id: reviewer-sign-in }
-- tapOn: { id: reviewer-email }
+- tapOn: { id: customer-sign-in }
+# Keycloak hosted login (ASWebAuthenticationSession / Custom Tab)
+- extendedWaitUntil: { visible: { id: username }, timeout: 15000 }
+- tapOn: { id: username }
 - inputText: ${REVIEW_EMAIL}
-- tapOn: { id: reviewer-password }
+- tapOn: { id: password }
 - inputText: ${REVIEW_PASSWORD}
-- tapOn: { id: reviewer-submit }
-- assertNotVisible: { text: ".*(code|captcha|verify).*" }
-- assertNotVisible: { id: reviewer-error }
+- tapOn: { id: kc-login }
+- assertNotVisible: { text: ".*(one-time code|captcha|verify).*" }
 - tapOn: { text: "Account" }
 - scrollUntilVisible: { element: { text: "Request account deletion" } }
 - assertVisible: { text: "Request account deletion" }

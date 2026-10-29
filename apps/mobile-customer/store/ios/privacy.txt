@@ -9,7 +9,7 @@ Data used to provide the app (linked to identity, not used for tracking):
     Pickup and drop-off addresses, delivery instructions, support messages.
 
   Identifiers
-    User ID from Clerk. This build does not register a push token.
+    User ID from Keycloak. This build does not register a push token.
 
   Purchases
     No in-app purchases. Card payment happens in Stripe Checkout in the browser. The app shows invoice and receipt links returned by Porterchain.
@@ -22,5 +22,5 @@ Tracking
   No. No advertising SDK. App Tracking Transparency is not required.
 
 Third parties
-  Clerk (PorterChain Platform sign-in), Stripe (Checkout in the browser), Porterchain API.
+  Keycloak (PorterChain Platform sign-in), Stripe (Checkout in the browser), Porterchain API.
   Google Places is optional and is used only for address autocomplete.

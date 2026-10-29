@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { View } from "react-native";
-import { useHostedAuth } from "@clerk/expo/hosted-auth";
-import { AppleSignInButton } from "../auth/AppleSignInButton";
-import { ReviewerSignIn } from "../auth/ReviewerSignIn";
+import { IdpButtons } from "../auth/IdpButtons";
 import { useSessionView } from "../auth/SessionGate";
-import { allowDevAuth, apiBaseUrl, clerkPublishableKey } from "../config";
-import { humanCustomerError } from "../errors";
-import { clearSession, waitForSignedSession } from "../session";
+import { allowDevAuth, apiBaseUrl } from "../config";
+import { clearSession } from "../session";
 import { Motion } from "../ui/Motion";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { spacing } from "../theme";
@@ -19,52 +16,10 @@ type Props = {
   onTrack: () => void;
 };
 
-function HostedButtons({ onSignedIn }: { onSignedIn: () => void }) {
-  const { startHostedAuth } = useHostedAuth();
-  const [busy, setBusy] = useState<"sign-in" | "sign-up" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function start(mode: "sign-in" | "sign-up") {
-    setBusy(mode);
-    setError(null);
-    try {
-      await startHostedAuth({ mode });
-      const ready = await waitForSignedSession();
-      if (!ready) throw new Error("signed_out");
-      onSignedIn();
-    } catch (err) {
-      setError(humanCustomerError(err instanceof Error ? err.message : "sign_in_failed"));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  return (
-    <>
-      <PrimaryButton
-        testID="customer-sign-in"
-        label="Sign in"
-        loading={busy === "sign-in"}
-        disabled={busy != null}
-        onPress={() => void start("sign-in")}
-      />
-      <PrimaryButton
-        testID="customer-sign-up"
-        tone="ghost"
-        label="Create account"
-        loading={busy === "sign-up"}
-        disabled={busy != null}
-        onPress={() => void start("sign-up")}
-      />
-      {error ? <Banner tone="danger" text={error} /> : null}
-    </>
-  );
-}
-
 export function SignInScreen({ apiUp, onSignedIn, onTrack }: Props) {
   const session = useSessionView();
   const [signingOut, setSigningOut] = useState(false);
-  const showHosted = Boolean(clerkPublishableKey);
+  const showHosted = Boolean(session.signIn);
   const stuckSession = session.signedIn && showHosted;
 
   return (
@@ -90,9 +45,7 @@ export function SignInScreen({ apiUp, onSignedIn, onTrack }: Props) {
       <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
         {showHosted && !stuckSession ? (
           <>
-            <HostedButtons onSignedIn={onSignedIn} />
-            <AppleSignInButton redirectUri="porterchain-customer://auth" />
-            <ReviewerSignIn onSignedIn={onSignedIn} />
+            <IdpButtons onSignedIn={onSignedIn} />
           </>
         ) : null}
         {!showHosted && allowDevAuth() ? (
@@ -101,7 +54,7 @@ export function SignInScreen({ apiUp, onSignedIn, onTrack }: Props) {
         {!showHosted && !allowDevAuth() ? (
           <Banner
             tone="danger"
-            text="This build has no PorterChain Platform key. Archive with the live publishable key."
+            text="This build has no sign-in server configured. Archive with EXPO_PUBLIC_KEYCLOAK_URL set."
           />
         ) : null}
         {stuckSession ? (

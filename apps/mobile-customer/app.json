@@ -22,8 +22,9 @@
       "associatedDomains": [
         "applinks:porterchain.com",
         "applinks:www.porterchain.com",
-        "webcredentials:clerk.admin.porterchain.com"
-      ]
+        "webcredentials:auth.porterchain.com"
+      ],
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.porterchain.customer",
@@ -89,12 +90,6 @@
       "expo-secure-store",
       "expo-web-browser",
       [
-        "@clerk/expo",
-        {
-          "appleSignIn": false
-        }
-      ],
-      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Porterchain uses Face ID to unlock your saved customer session on this device."
@@ -104,6 +99,13 @@
         "expo-notifications",
         {
           "color": "#2563eb"
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID"
         }
       ]
     ],

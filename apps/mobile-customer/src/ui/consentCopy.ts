@@ -107,7 +107,7 @@ export const PRIVACY_NOTICE: ConsentDocument = {
         "We share information with trusted processors only as needed to deliver our services. These providers are contractually required to protect your data.",
       ],
       list: [
-        "Clerk — merchant and customer authentication",
+        "Keycloak (self-hosted by PorterChain) — sign-in and account security",
         "Stripe — payment processing",
         "Google Maps — address autocomplete and mapping",
         "Zoho Mail — transactional email delivery",

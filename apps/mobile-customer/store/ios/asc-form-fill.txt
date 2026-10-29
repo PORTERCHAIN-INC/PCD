@@ -62,7 +62,7 @@ Yes. Public track works without an account. Booking requires sign-in.
 ────────────────────────────────────────
 User name (demo / App Review)
 ────────────────────────────────────────
-PorterChain Platform (clerk.admin.porterchain.com), not the driver instance:
+PorterChain Platform (auth.porterchain.com), not the driver instance:
 
   ravichauhan7434@gmail.com
 
@@ -71,7 +71,7 @@ The user must be a provisioned Porterchain customer. Do not use the local seed c
 ────────────────────────────────────────
 Password
 ────────────────────────────────────────
-Set the password yourself in the PorterChain Platform Clerk dashboard, then paste it into App Store Connect. Never commit the password.
+Set the password yourself in the Keycloak (set via infrastructure/keycloak/seed_reviewers.py from SOPS), then paste it into App Store Connect. Never commit the password.
 
 ────────────────────────────────────────
 Contact Information (App Review)
@@ -86,7 +86,7 @@ Notes (paste as one block)
 ────────────────────────────────────────
 Porterchain Customer (ASC name: PCDC, bundle com.porterchain.customer) is the customer app for Porterchain’s Transportation Capacity Network.
 
-Sign-in is PorterChain Platform (clerk.admin.porterchain.com), not the driver Clerk app. Tap Sign in and use ravichauhan7434@gmail.com with the password in this form. Create account is public self sign-up. Sign out is not shown on the empty form. It is at the bottom of Account and asks for confirmation.
+Sign-in is PorterChain Platform (auth.porterchain.com), one realm for all apps. Tap Sign in and use ravichauhan7434@gmail.com with the password in this form. Create account is public self sign-up. Sign out is not shown on the empty form. It is at the bottom of Account and asks for confirmation.
 
 Without an account, tap “Track a shipment without an account”. An unknown number says “Shipment not found.”
 

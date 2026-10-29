@@ -1,7 +1,7 @@
 App Review notes — Porterchain Driver (com.porterchain.PCD)
 
 What to test
-  1. Sign in with the App Review account (hosted Clerk: tap “Sign in with Porterchain”).
+  1. Sign in with the App Review account (PorterChain sign-in page (Keycloak): tap “Sign in with Porterchain”).
   2. Land on Work. Profile shows an approved driver.
   3. Open Today, Job and Me. None of these require a live route.
   4. Job shows the assigned stop when dispatch has given this driver a job. If no job is on the board, Job shows an empty state and Today shows the vehicle check and duty controls.
@@ -18,7 +18,7 @@ Camera
   Used for proof-of-delivery photos and scanning this-order package QR / Code 128 labels. Microphone is not requested.
 
 Face ID
-  Optional unlock of a saved Clerk session on this device. Simulator skips hardware.
+  Optional unlock of a saved Keycloak session on this device. Simulator skips hardware.
 
 Push
   APNs job-assigned and stop-change alerts. The review device may show Push as not registered; that does not block Work.
