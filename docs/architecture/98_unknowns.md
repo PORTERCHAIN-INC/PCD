@@ -110,4 +110,5 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U-74-3** WhatsApp business number for click-to-chat (73 §1).
 - **U-75-1 resolved** D-75-1 decided yes 29 Oct 2026.
 - Decisions (29 Oct 2026): D-70-1/2/3, D-72-1/3/4 and D-75-1 decided yes. D-70-4 decided with changed scope (70 §7a). Still open: **D-72-2** proposed rate card (72 §8).
+- **U79-1..4** (doc 79 §10): confirm WACC 18 %, software life 3 yr, Civic 5 yr to $7k, fuel $1.50/L, cash fixed ≈ $430/mo; accountant confirms CCA classes (12 vs 50; class 10); insurance cost unknown (G-INS) raises every break-even; 12-stop S route is yellow at the proposed price.
 - **U78-1..3** Meta App Review timing; whether paid ads run (`lead_capi`); untracked `lead_channel_adapters.py` (doc 78).

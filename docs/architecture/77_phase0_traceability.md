@@ -71,8 +71,9 @@ Legend: **C** = already covered; **F** = fixed in this commit; **R** = was on th
 | 61  | D-72-3 furniture priced by item class                                                                                                          | Decision                                              | Decided yes                                                                                                               | P0                | 72 §8.3                      | C                        |
 | 62  | D-72-4 fuel inside base price                                                                                                                  | Decision                                              | Decided yes                                                                                                               | P0                | 72 §7                        | C                        |
 | 63  | D-75-1 new ops console nav names                                                                                                               | Decision                                              | Decided yes                                                                                                               | P0                | 75 §2                        | C                        |
+| 64  | t121u "make sure this is our main business formulas … integrate in phase 0" + $77k invested capital                                            | Finance and ops math layer                            | Doc 79: formulas, chart of accounts, $77k baseline, source errors corrected, Insights, A-FIN in G19                       | P0 wk 9–10        | 79                           | F                        |
 
-**Counts (updated 29 Oct 2026, 11:30 EDT):** 63 rows: 54 Ravi asks + 9 decisions from docs 70–76. Covered: 53 (46 + 7 decisions Ravi accepted). Fixed: 9 (rows 7, 16, 19, 20, 38, 52, 53, 54, and 58 for the changed pharmacy scope). Needs Ravi: 1 (row 60, D-72-2 proposed rate card in 72 §8).
+**Counts (updated 29 Oct 2026, 11:50 EDT):** 64 rows: 55 Ravi asks + 9 decisions from docs 70–76. Covered: 53. Fixed: 10 (rows 7, 16, 19, 20, 38, 52, 53, 54, 58, 64). Needs Ravi: 1 decision (row 60, D-72-2), plus the doc 79 assumptions (98 U79).
 
 ## 2. Fixes written in this commit
 
@@ -118,3 +119,5 @@ Also: rows 40–51 (on the 70–76 job) verified against commit d97746e2 and set
 **Re-run of pass 3 after these fixes: 0 found.** Backup on-call name and phone: 0 occurrences in docs and Pages.
 
 **Quick pharmacy-terms check (29 Oct 2026, after D-70-4 changed):** grep for `rx_no_controlled`, `non-controlled`, `OTC + `, `exclude controlled` and `pharmacy scope` across docs 00–78 and 98, plus both Pages. Found 4 (70 §5 workflow line, 71 onboarding text, 76 A-SS-04, and the 70 subtype rule), fixed 4. Re-run found 0. The strict plan Page was updated too.
+
+**Margin/cost consistency pass (29 Oct 2026, after doc 79):** 72/79/60 and the Page checked for cost per km, cost per stop, margin colours and band margins. Found 5: 72 §8.2 XS/S/M costs used van $0.45/km and 10 min/stop; the 72 B2B S/M margins; the 72 'each passes the margin check' line; the 72 cost-model line; §5 examples not labelled as van-based. Fixed 5. Re-run: 0 conflicts. Colours are identical in 41, 72 and 79 (green ≥ 50 %, yellow < 50 %, red ≤ 35 %).

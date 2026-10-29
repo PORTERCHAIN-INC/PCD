@@ -32,7 +32,7 @@ Verdict: **accurate but not easy.** The engine is careful (integer cents, versio
 - **Add-ons (clear, upfront, toggles with price shown; proposed values in §8):** 2-person (+$60), stairs per floor without elevator (+$10/floor), assembly simple (+$35) or standard (+$65), white-glove unpack (+$25), time window ≤ 2 h (+$15), same-day/rush (+$20), upright/perishable/food handling (incl. for bakery/flowers, $0, it's a promise), signature/ID (+$3), liftgate (not offered until available, contract `liftgate_available=false`), waiting beyond free time ($30/h per 15 min, B2B only, shown in contract), return to sender on failed attempt (B2B per contract; retail: one free re-attempt). **No retail cancellation fee** (D-68-5).
 - **Competition Act drip pricing:** since June 2022 the Competition Act treats a price unattainable because of added mandatory fixed charges as false/misleading (s. 74.01(1.1), s. 52(1.2)); Competition Bureau guidance: https://competition-bureau.canada.ca/how-we-foster-competition/education-and-outreach/drip-pricing. Rule: every mandatory charge (fuel, zone, minimum, handling) is inside the headline price; only taxes and optional add-ons the user chooses are separate. Fuel surcharge becomes part of the zone base (reviewed monthly), not a later line.
 
-Numbers above are **PROPOSED starting values for Ravi's review** (D-72-2, §8), not final; each passes the margin check in §8.
+Numbers above are **PROPOSED starting values for Ravi's review** (D-72-2, §8), not final; §8 shows each margin, and yellow items (XS, B2B S at low density, pallet) are flagged for Ravi.
 
 ## 3. Rate card per business type
 
@@ -75,6 +75,8 @@ Proposed Z1 band bases: XS $14, S $18, M $26, L $49, XL $129, P $95/pallet. Z2 +
 
 Note on the sofa: dimensional weight would exceed XL if applied raw; furniture is priced by **item class** (XL) not dim weight above 120 kg billable, because volume is the constraint, not weight. This is the one explicit exception (D-72-3, decided yes 29 Oct 2026; item classes in §8.3). The flowers row shows why dim weight matters: a light but tall box takes van space. All five run as tests in 76 §9.
 
+Note: the §5 examples use van costs and single-job shares. Doc 79 §4 is the baseline route model (Civic, 15 min per stop all-in); margins in §8 use it.
+
 ## 6. Migration
 
 Phase 0 weeks 6–7: one `pricing_engine.quote()` entry; the five models become rate cards or are deleted (website calculator calls the same engine; `price_book.py` and `fsa_card.py` merged; `kaylulu_template.py` replaced by the contract card). Golden tests: Kaylulu's last 90 days of invoices reprice identically on the contract card (0 cent diff).
@@ -88,7 +90,7 @@ Phase 0 weeks 6–7: one `pricing_engine.quote()` entry; the five models become 
 
 ## 8. PROPOSED starting rate card (D-72-2, for Ravi's review, 29 Oct 2026)
 
-**Status: PROPOSED.** All prices are CAD, before HST. HST 13 % (Ontario) is always shown on its own line. Every mandatory charge is inside the price shown (drip-pricing rule, §2). Cost model (§5): driver $30/h, van $0.45/km. Margin = (price − cost) ÷ price, with colours green ≥ 50 %, yellow < 50 %, red ≤ 35 % (staff only, never blocks).
+**Status: PROPOSED.** All prices are CAD, before HST. HST 13 % (Ontario) is always shown on its own line. Every mandatory charge is inside the price shown (drip-pricing rule, §2). Cost model: driver $30/h; Civic sedan $0.17/km variable for XS/S/M ≤ 90 cm (doc 79 §0); van $0.45/km for L/XL/P (§5). Margin = (price − cost) ÷ price, with colours green ≥ 50 %, yellow < 50 %, red ≤ 35 % (staff only, never blocks).
 
 ### 8.1 Public GTA competitor prices checked 29 Oct 2026 (before HST)
 
@@ -106,17 +108,17 @@ Read: parcels sell for $10–$25 inside Toronto, so XS/S/M stay in that range. F
 
 ### 8.2 Size bands × zones
 
-| Band              | Z1 GTA                                                                | Z2 Regional | Z3 Extended | Z1 cost (assumption)             | Z1 margin   |
-| ----------------- | --------------------------------------------------------------------- | ----------- | ----------- | -------------------------------- | ----------- |
-| XS Envelope/small | $14                                                                   | $29         | $44         | route stop 10 min + 3 km = $6.35 | 55 % green  |
-| S Parcel          | $18                                                                   | $33         | $48         | $6.35                            | 65 % green  |
-| M Large parcel    | $26                                                                   | $41         | $56         | 15 min + 3 km = $8.85            | 66 % green  |
-| L Bulky           | $49                                                                   | $64         | $79         | 30 min + 10 km = $19.50          | 60 % green  |
-| XL Furniture      | $129                                                                  | $144        | $159        | 1 person 60 min + 25 km = $41.25 | 68 % green  |
-| P Pallet          | $95                                                                   | $110        | $125        | box/partner $60                  | 37 % yellow |
-| Vehicle           | `gta_rate` card unchanged ($45 sedan/SUV to $125 box, 20 km included) |             |             |                                  |             |
+| Band              | Z1 GTA                                                                | Z2 Regional | Z3 Extended | Z1 cost (assumption)                               | Z1 margin   |
+| ----------------- | --------------------------------------------------------------------- | ----------- | ----------- | -------------------------------------------------- | ----------- |
+| XS Envelope/small | $14                                                                   | $29         | $44         | Civic route stop 15 min + 3.75 km = $8.14 (79 §4)  | 42 % yellow |
+| S Parcel          | $18                                                                   | $33         | $48         | $8.14                                              | 55 % green  |
+| M Large parcel    | $26                                                                   | $41         | $56         | Civic 18 min + 3.75 km = $9.64 (≤ 90 cm; else van) | 63 % green  |
+| L Bulky           | $49                                                                   | $64         | $79         | 30 min + 10 km = $19.50                            | 60 % green  |
+| XL Furniture      | $129                                                                  | $144        | $159        | 1 person 60 min + 25 km = $41.25                   | 68 % green  |
+| P Pallet          | $95                                                                   | $110        | $125        | box/partner $60                                    | 37 % yellow |
+| Vehicle           | `gta_rate` card unchanged ($45 sedan/SUV to $125 box, 20 km included) |             |             |                                                    |             |
 
-Z2 adds about 20 km + 20 min ($19 cost) for $15, and Z3 adds about $30 cost for $30. A single XS or S job in Z2/Z3 shows yellow or red, so route minimums keep those jobs whole. Route minimums for `b2b-std`: $60 Z1, $90 Z2, $120 Z3 (proposed). `b2b-std` takes −10 % on S/M (§3), so B2B S is $16.20 (61 %) and M is $23.40 (62 %).
+Z2 adds about 20 km + 20 min ($19 cost) for $15, and Z3 adds about $30 cost for $30. A single XS or S job in Z2/Z3 shows yellow or red, so route minimums keep those jobs whole. Route minimums for `b2b-std`: $60 Z1, $90 Z2, $120 Z3 (proposed). `b2b-std` takes −10 % on S/M (§3), so B2B S is $16.20 (49.8 %, yellow at 12 stops per 3 h; green from 16 stops, 79 §4) and M is $23.40 (59 %). XS at $14 is yellow (42 %) on the doc 79 sedan route model; $17 would be green (52 %). Ravi decides (D-72-2).
 
 ### 8.3 Furniture item classes (D-72-3)
 

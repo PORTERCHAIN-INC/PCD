@@ -1,4 +1,4 @@
-# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35)
+# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN inside G19)
 
 Written before code. Each scenario becomes a pytest-bdd / Playwright / Maestro test with the ID below; all run against a sandbox org (PCDC-like) and never touch live data. Gate **G19** = all A-* scenarios green; **G20** = Shopify review-readiness (§10); **G21** = mobile review-readiness (§11). Order follows build order.
 
@@ -75,3 +75,7 @@ A-OP-01 each business type gets its default profile and the wizard needs only "L
 ## 12. Ops console (A-OPS)
 
 A-OPS-01 every old route in 75 §3 redirects to its new place · A-OPS-02 role `support` cannot open Billing · A-OPS-03 Today shows pickups, live, exceptions and tickets due in one page.
+
+## 13. Business metrics (A-FIN, inside G19, doc 79 §8)
+
+A-FIN-01..12 as listed in 79 §8: EBITDA top-down = bottom-up to the cent; no HST in revenue or cost; 3PL 1.5M / 15 %; AS/RS ROI −70 %, simple return 30 %, payback 3.33 yr; NOPAT 280k / ROIC 14 % / EVA +80k; $77k baseline D&A $19,666.67 and EVA break-even 19.1 stops/day; GTA route contribution $96.75 (49.8 % yellow); Kingman alert at ρ > 0.85; SS 177.7 and EOQ 1,510.4; CCC from seeded invoices and payouts; margin colours same as 72; concurrent MV refresh.

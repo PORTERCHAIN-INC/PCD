@@ -111,5 +111,6 @@ All 28 Mermaid blocks in 61–67 were rendered to SVG with mermaid-cli 11.17.1 (
 
 - 77 · [Phase 0 traceability of Ravi's asks + consistency passes](77_phase0_traceability.md)
 - 78 · [Leads / CRM module](78_leads_crm_module.md)
+- `79_business_metrics_engine.md`: our main business formulas (EBITDA, ROI/ROIC/WACC/EVA, CCC, Little/Kingman/SS/EOQ, unit economics), $77k baseline, Insights, A-FIN tests
 
 Mermaid blocks in 70, 71, 73, 75 rendered to SVG (mermaid-cli, agent box) in `rendered_l35/`, 0 syntax errors.
