@@ -352,3 +352,17 @@ Default role: **Merchant owner / merchant staff**.
 - **States:** inherit + page-specific empty text "No items yet" → primary action
 - **Responsive:** Phone: single column, sticky primary action bottom; Tablet: 2 col; Laptop+: full layout; Large: max content 1600 px (admin full-bleed)
 - **A11y / i18n / theme:** inherit; page `<h1>` matches nav label in EN/FR
+
+### 2.25 `/help + /settings/legal`
+
+- **File:** `merchant-portal/src/app/(portal)/help/page.tsx (existing, now content-repo driven); settings/legal/page.tsx` (planned, doc 68)
+- **Purpose:** In-portal help panel and Legal & billing settings: signed MSA/DPA/AUP versions, subprocessors, rate card, Interac instructions, re-consent prompt on material change
+- **Role:** Merchant owner/admin
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** HelpPanel, SignedAgreementsTable, ReconsentModal
+- **Key actions:** Accept new version (named signer), download DPA
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** Network error → cached copy with date
+- **States:** loading; offline cached; re-consent required
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off

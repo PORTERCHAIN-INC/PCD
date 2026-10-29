@@ -960,3 +960,7 @@ Re-scan 29 Oct 2026: 768 items, COVERED 768, GAP 0, CONFLICT 0.
 ## L32 (29 Oct 2026)
 
 D-P0-1..7 decided (doc 60 §12–13). Phase changes: Google Play release P0 → P1 (D-U-N-S and organisation account stay P0); pilot merchant P1 → P0 (week 12, human-run); VROOM optimiser and routing benchmark added to P0 (`dispatch_engine/routing/`, doc 60 §13.1–13.4); Shopify carrier-service rates with merchant rules added to P0 (doc 60 §13.5). Driver app ID `com.porterchain.PCD` kept. Item counts per phase unchanged (rows are code items; these are plan items).
+
+## L33 (29 Oct 2026)
+
+Trust & Help Centre added to Phase 0 as W9 (doc 68, gate G18): content repo, policy library, consent records, surface placement, rules register R-01..R-21. Page specs: 41 website 1.73–1.79, merchant 2.25, customer web 5.18, driver portal 4.26, mobile customer 7.9, mobile driver 6.13, Shopify S.T1. Plan items, not code rows.

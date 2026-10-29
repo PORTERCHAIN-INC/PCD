@@ -1024,3 +1024,103 @@ Default role: **Public visitor (guest), SEO**.
 - **States:** inherit + page-specific empty text "No items yet" → primary action
 - **Responsive:** Phone: single column, sticky primary action bottom; Tablet: 2 col; Laptop+: full layout; Large: max content 1600 px (admin full-bleed)
 - **A11y / i18n / theme:** inherit; page `<h1>` matches nav label in EN/FR
+
+## Trust & Help Centre pages (doc 68, Phase 0 W9)
+
+### 1.73 `/[locale]/help`
+
+- **File:** `website/src/app/[locale]/help/page.tsx` (planned, doc 68)
+- **Purpose:** Help Centre home: search, persona tiles (Customer, Merchant, Shopify merchant, Driver, Partner), top questions, status badge
+- **Role:** Public
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** SearchBox, PersonaTile, FaqList, StatusBadge, PolicyLinks
+- **Key actions:** Search, pick persona, open article, contact
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** No results → suggest Contact
+- **States:** loading skeleton; empty search; status degraded banner
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+
+### 1.74 `/[locale]/help/[persona]/[[...slug]]`
+
+- **File:** `website/src/app/[locale]/help/[persona]/[[...slug]]/page.tsx` (planned, doc 68)
+- **Purpose:** Persona sections (§2.1 of 68) and articles: pricing, delivery rules, prohibited items, payments/invoices, cancellations/claims, privacy, drivers, Shopify, partners
+- **Role:** Public
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** SectionNav, Article, Accordion FAQ, WasThisHelpful, RelatedPolicies
+- **Key actions:** Read, rate article, open policy
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** Unknown slug → 404 with search
+- **States:** article; FR pending
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+
+### 1.75 `/[locale]/legal/[slug]`
+
+- **File:** `website/src/app/[locale]/legal/[slug]/page.tsx (existing /terms, /privacy, /cookies, /accessibility redirect here)` (planned, doc 68)
+- **Purpose:** Policy library page: one policy at current version, version history, effective date, change summary
+- **Role:** Public
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** PolicyHeader(version, effective date), TOC, VersionSelect, DownloadHTML/print, ChangeLog
+- **Key actions:** Read, view older version, print
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** Unknown version → current with notice
+- **States:** draft (staging only); superseded version banner
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+
+### 1.76 `/[locale]/legal`
+
+- **File:** `website/src/app/[locale]/legal/page.tsx` (planned, doc 68)
+- **Purpose:** Policy library index grouped by audience
+- **Role:** Public
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** PolicyCard grid
+- **Key actions:** Open policy
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** —
+- **States:** list
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+
+### 1.77 `/[locale]/trust`
+
+- **File:** `website/src/app/[locale]/trust/page.tsx (existing, rebuilt)` (planned, doc 68)
+- **Purpose:** Trust & security: data location, encryption, access control, backups, subprocessors, incident contact, Porterchain Inc. + GST/HST no.
+- **Role:** Public, merchants' security reviewers
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** TrustSection, SubprocessorTable, SubscribeToChanges
+- **Key actions:** Read, subscribe to subprocessor changes (CASL transactional)
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** Email invalid
+- **States:** —
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+
+### 1.78 `status.porterchain.com`
+
+- **File:** `Uptime Kuma status page on Oracle (not in repo)` (planned, doc 68)
+- **Purpose:** Live status of quote, booking, tracking, driver app, Shopify rates, API
+- **Role:** Public
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** Uptime Kuma components, incident history
+- **Key actions:** Read, subscribe
+- **Data (API):** Uptime Kuma
+- **Validation / errors:** —
+- **States:** operational / degraded / outage
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+
+### 1.79 `/[locale]/account-deletion`
+
+- **File:** `website/src/app/[locale]/account-deletion/page.tsx` (planned, doc 68)
+- **Purpose:** Google Play web deletion request page (names PorterChain apps and developer Porterchain Inc.)
+- **Role:** Customer, driver
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** Form (email), what is deleted vs kept 6 y
+- **Key actions:** Request deletion (email link confirm)
+- **Data (API):** `POST /v1/privacy/deletion-requests`
+- **Validation / errors:** Unknown email → same neutral message
+- **States:** sent; confirmed
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off

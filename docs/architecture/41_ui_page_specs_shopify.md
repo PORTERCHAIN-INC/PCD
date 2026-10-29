@@ -17,3 +17,19 @@ Inherits: Polaris states (`s-spinner`/skeleton, empty `s-empty-state`, `s-banner
 | 8.9 | Order-intake agent card | Agent suggestion inside order detail                                         | `s-card` with Approve/Reject                   | Approve                                      | agent approvals API                                                       | Human approval for the six cases                                                        |
 
 Total: 9 screens.
+
+## Trust & Help placement (doc 68)
+
+### S.T1 `/app/help + /app/policies + onboarding step 1`
+
+- **File:** `shopify app embedded routes` (planned, doc 68)
+- **Purpose:** Onboarding 'How PorterChain works' (scopes and data use, Interac billing not Shopify, rate rules, service area, prohibited items) + accept MSA/DPA/Shopify App Privacy Policy; Help and Policies pages in Polaris
+- **Role:** Shopify merchant (staff with app access)
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** Polaris Page, Card, Checkbox, Banner, List
+- **Key actions:** Accept, read, contact
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** Not accepted → app features locked except help
+- **States:** onboarding; accepted; re-consent
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off

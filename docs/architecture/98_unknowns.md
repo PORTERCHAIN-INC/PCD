@@ -62,3 +62,12 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U-L32-3** Enough real Toronto+150 km stops for the routing benchmark (target 500; synthetic top-up labelled if short).
 - **U-L32-4** VROOM + Valhalla on Oracle A1 arm64 build and RAM fit (with Redpanda mirror + PG replica).
 - **U-L32-5** D-U-N-S issue time for Porterchain Inc. (free route can take up to ~30 days).
+
+## L33 Trust & Help Centre (doc 68)
+
+- **U68-1** Whether PorterChain cars/vans are "commercial motor vehicles" so O. Reg. 643/05 conditions and the $4.41/kg limit apply (lawyer).
+- **U68-2** Insurer requirements for drivers and cargo cover limit (sets the declared-value cap).
+- **U68-3** Employee count for AODA thresholds (20+ report, 50+ WCAG duty).
+- **U68-4** Claims deadlines (60 days notice / 9 months) to confirm against the regulation text.
+- **U68-5** CPA 2023 proclamation date; Bill C-36 progress.
+- **U68-6** Decisions D-68-1..7 (doc 68 §11).

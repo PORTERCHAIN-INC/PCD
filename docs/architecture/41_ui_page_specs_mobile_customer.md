@@ -99,3 +99,17 @@ Read-only from code. Tokens/components: doc 40 (React Native column). Flows: doc
 - **Data (API):** `/v1/customer/me`
 - **Validation / errors:** —
 - **Screen-specific states:** —
+
+### 7.9 `Settings → Help & Legal`
+
+- **File:** `mobile customer app` (planned, doc 68)
+- **Purpose:** Help articles (bundled JSON + web view), policies with version, Delete account (Apple 5.1.1(v)), notification consents
+- **Role:** Customer
+- **Layout:** PorterChain header, breadcrumb, left section nav (desktop) / section select (phone), article, "Last updated · version" line, related policies, Contact CTA
+- **Components:** HelpList, PolicyView, DeleteAccount
+- **Key actions:** Delete account, change consents
+- **Data (API):** content `GET /v1/trust/help?persona=&locale=` / `GET /v1/trust/policies/:slug?version=` (doc 68 §6)
+- **Validation / errors:** Network error → cached copy with date
+- **States:** loading; offline cached; re-consent required
+- **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
