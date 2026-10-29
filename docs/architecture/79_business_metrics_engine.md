@@ -53,6 +53,7 @@ Other assumptions used in this doc, all editable as Settings → Finance paramet
 | 5400 | Carrier / partner payouts              | `billing.payouts` (partner)                                            |
 | 5500 | Packaging and labels                   | `billing.expenses` category=packaging                                  |
 | 5600 | Payment fees (Stripe retail; Interac)  | `billing.payments.fee_cents`                                           |
+| 5700 | Cargo claims (net of recoveries)       | `ordering.osd_claims` paid − recovered (§6a)                           |
 | 6100 | Hosting (droplet, Oracle)              | `billing.expenses` category=hosting                                    |
 | 6200 | Software                               | `billing.expenses` category=software                                   |
 | 6300 | Insurance (when bound, G-INS)          | `billing.expenses` category=insurance                                  |
@@ -178,6 +179,19 @@ Contribution margin per stop, route, order and org. Also: cost per stop, cost pe
 - **LTV** = average monthly contribution per org × gross margin months, retention from orders.
 - **Margin colours are the same as doc 72:** green ≥ 50 %, yellow < 50 %, red ≤ 35 %. They are staff-only and never block.
 
+## 6a. Service and claims metrics (70 §2.3; nightly in `dispatch.mv_service_quality`)
+
+- **OTIF** = orders with ATA ≤ promised window end **and** qty_delivered = qty_ordered on every line, with no POD noted short or damaged ÷ orders delivered. Target ≥ 98 % (warehouse and partner constraint in §5); green ≥ 98 %, yellow 95–98 %, red < 95 %.
+- **LIFR** = order lines filled complete ÷ order lines ordered. Only for orgs with line items (C8); otherwise it shows "n/a".
+- **Dwell** = ATD − ATA per stop, as p50/p90 per site, org and driver. Free time is 30 min (warehouse constraint in §5). Minutes over free time × the doc 72 waiting rate are billed as an accessorial (revenue 4xxx). Unbilled dwell is reported as **dwell leakage $** = over-free-time minutes × $0.50/min driver cost (doc 79 §6 rate).
+- **OS&D:**
+  - OS&D rate = PODs noted ÷ PODs.
+  - Claims cost = Σ paid claims − Σ recovered (insurer or partner chargeback), capped per claim at max(declared value, $4.41/kg) (O. Reg. 643/05 Sch. 1 art. 9–10).
+  - Net claims cost is posted as COGS **5700 Cargo claims (net of recoveries)**, so it lowers contribution and EBITDA.
+  - Claims past the 60-day notice deadline are flagged red.
+- **Into the financials:** contribution per stop now = revenue + dwell accessorial − (driver, fuel, km) − net OS&D claims. EBITDA, ROIC and EVA pick this up through 5700.
+- **Worked check (A-FIN-13):** 200 orders, 194 on time, 3 of those short → OTIF 191/200 = **95.5 % (yellow)**. A stop with ATA 10:00 and ATD 10:52 → dwell 52 min, 22 min over free time → $11.00 driver cost. One damaged claim: 12 kg, no declared value, invoice value $300 → cap $52.92 → 5700 posts $52.92.
+
 ## 7. How it is computed
 
 - **Where:** SQL views and materialised views in the existing schemas. There is no new database and no new schema.
@@ -209,6 +223,7 @@ Contribution margin per stop, route, order and org. Also: cost per stop, cost pe
 - **A-FIN-10:** CCC = DIO + DSO − DPO on seeded invoices and payouts.
 - **A-FIN-11:** margin colour thresholds are the same as doc 72.
 - **A-FIN-12:** materialised views refresh concurrently with no lock on `ordering.orders`.
+- **A-FIN-13:** the §6a worked check gives OTIF 95.5 % yellow, dwell 52 min / $11.00 leakage and claim cap $52.92 posted to 5700.
 
 ## 9. Schedule (doc 60)
 

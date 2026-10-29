@@ -12,7 +12,7 @@ Cross-checked with doc 44 (API/data) and doc 24/51 (Shopify). New API lives unde
 | Courier partner   | —             | job API optional    | —                | —                                   | **primary**    | —                                                 |
 | Logistics partner | —             | optional            | —                | —                                   | primary        | **primary** (CSV over SFTP, 214-like status file) |
 | Supply chain      | —             | primary             | optional         | —                                   | —              | primary                                           |
-| CHA               | —             | optional            | optional         | —                                   | if partner     | primary (container/B3 refs)                       |
+| CHA               | —             | optional            | optional         | —                                   | if partner     | primary (container/CAD refs)                      |
 
 EDI-lite = fixed-column CSV (orders in, status out) over SFTP or email attachment, mapping to X12 204/214 and EDIFACT IFTMIN/IFTSTA fields without an EDI VAN cost.
 

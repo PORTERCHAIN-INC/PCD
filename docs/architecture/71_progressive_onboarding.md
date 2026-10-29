@@ -48,7 +48,7 @@ flowchart LR
 4. **Courier partner:** 4 fields → areas (FSA chips) + vehicles → COI + HST + WSIB upload → Partner Agreement e-sign → test job → live in job pool.
 5. **Logistics partner:** as courier plus CVOR and linehaul lanes; EDI-lite CSV/SFTP option.
 6. **Supply chain company:** 4 fields → lane quote request → Ravi call (booked from calendar link) → contract rate card → integration.
-7. **Import/export / CHA:** 4 fields → port/rail/airport pickup lanes → document pack (commercial invoice, B3/transaction no. as external refs) → contract.
+7. **Import/export / CHA:** 4 fields → port/rail/airport pickup lanes → document pack (commercial invoice, CAD (ex-B3) transaction no. as external refs) → contract.
 
 ## 5. Operating-profile setup wizard (one screen per question, defaults pre-selected)
 

@@ -1,4 +1,4 @@
-# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN and §14 A-DOC inside G19)
+# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC and §15 A-ID inside G19)
 
 Written before code. Each scenario becomes a pytest-bdd / Playwright / Maestro test with the ID below; all run against a sandbox org (PCDC-like) and never touch live data. Gate **G19** = all A-* scenarios green; **G20** = Shopify review-readiness (§10); **G21** = mobile review-readiness (§11). Order follows build order.
 
@@ -41,7 +41,7 @@ A-SC-01 lane quote request reaches Ravi's Today page with a booking link · A-SC
 
 ## 8. Import/export / CHA (A-CHA)
 
-A-CHA-01 container no. and B3 transaction no. stored as external refs and searchable · A-CHA-02 dock appointment at a terminal with document pack attached · A-CHA-03 org flagged both shipper and partner sees both menus.
+A-CHA-01 container no. and CAD (ex-B3) transaction no. stored as external refs and searchable · A-CHA-02 dock appointment at a terminal with document pack attached · A-CHA-03 org flagged both shipper and partner sees both menus.
 
 ## 8b. Retail and French (A-RT, A-FR)
 
@@ -86,6 +86,17 @@ A-FIN-01..12 as listed in 79 §8: EBITDA top-down = bottom-up to the cent; no HS
 - **A-DOC-02:** a warehouse parcel order (S band, single consignee) has no BOL. A warehouse pallet order (P band) or LTL/partner-handoff order gets a BOL in `required_documents[]` and the PDF.
 - **A-DOC-03:** a warehouse order with 2 pallets gets a pallet manifest; with 1 pallet it does not.
 - **A-DOC-04:** a pharmacy controlled-substance order requires the Rx custody log and ID + signature POD. A flowers order shows neither.
-- **A-DOC-05:** a customs pack appears only on a CHA/supply-chain order with a cross-border or in-bond leg, and stores B3/CARM references without filing.
+- **A-DOC-05:** a customs pack appears only on a CHA/supply-chain order with a cross-border or in-bond leg, and stores CAD (ex-B3)/CARM references without filing.
 - **A-DOC-06:** a TDG item from an org without TDG training is refused at quote time.
 - **A-DOC-07:** a new business type added as a config row (seeded test type `small_shop:bookstore` reusing existing modules) works end to end with zero code changes.
+
+## 15. Identifiers & milestones (A-ID, inside G19, doc 70 §2.3, doc 79 §6a)
+
+- **A-ID-01:** a 60 kg inter-municipal warehouse order gets a BOL no. with all O. Reg. 643/05 s. 4(1) fields populated. A 30 kg parcel, or a Toronto-to-Toronto order, gets no mandatory BOL.
+- **A-ID-02:** a PRO no. can be saved only on an order with an LTL carrier handoff leg. Otherwise it returns `422 identifier_not_applicable`.
+- **A-ID-03:** a trip cannot start without plate, a valid VIN (check digit) and insurance evidence, including a rental. A rental with RGW > 4,500 kg sets `cvor_required` and blocks without a CVOR no.
+- **A-ID-04:** an SSCC with a wrong check digit is rejected; a pallet stores gross/tare/net and net = gross − tare.
+- **A-ID-05:** a POD noted "short 2" opens an OS&D claim with notice deadline delivered + 60 days and cap max(declared, $4.41/kg).
+- **A-ID-06:** Incoterms, CCI, CUSMA COO and CAD refs are hidden for a bakery and a warehouse (UI, API 422, emails). For a CHA cross-border order they are stored as record-only, and no filing call exists.
+- **A-ID-07:** ATA/ATD give dwell; OTIF/LIFR/dwell/OS&D match the 79 §6a worked check (A-FIN-13).
+- **A-ID-08:** no AWB/sea-waybill module and no NMFC class field exist; density is computed from dims and weight.
