@@ -15,7 +15,6 @@ from porterchain_api.auth.dev import (
     allow_auth_dev_bypass,
     is_merchant_dev_subject,
 )
-from porterchain_api.auth.staff_session import STAFF_BEARER_PREFIX, get_session
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import MerchantStatus
@@ -34,21 +33,18 @@ class NotificationUser:
         self.user_id = user_id
 
 
-def _resolve_staff_notification_user(db: Session, token: str) -> NotificationUser | None:
-    """Map ``staff_sess_*`` Redis session → admin notification recipient (no Clerk)."""
-    if not token.startswith(STAFF_BEARER_PREFIX):
-        return None
-    session = get_session(token.removeprefix(STAFF_BEARER_PREFIX).strip())
-    if session is None:
+def _admin_recipient_from_claims(db: Session, claims) -> NotificationUser | None:
+    """Keycloak ``pc-admin`` token → admin inbox, matched by verified email."""
+    from porterchain_api.auth.keycloak_staff import ADMIN_CLIENT_ID
+
+    if getattr(claims, "authorized_party", None) != ADMIN_CLIENT_ID or not claims.email:
         return None
     user = (
         db.query(AdminUser)
-        .filter(AdminUser.id == session.admin_user_id, AdminUser.is_active.is_(True))
+        .filter(AdminUser.email == claims.email.lower(), AdminUser.is_active.is_(True))
         .first()
     )
-    if not user:
-        return None
-    return NotificationUser("admin", user.id)
+    return NotificationUser("admin", user.id) if user else None
 
 
 def _active_merchant_seats(db: Session, clerk_user_id: str) -> list[MerchantUser]:
@@ -138,10 +134,6 @@ async def get_notification_user(
 
 
 def _notification_pre_sync(db: Session, token: str, settings: Settings) -> NotificationUser | None:
-    staff_user = _resolve_staff_notification_user(db, token)
-    if staff_user:
-        return staff_user
-
     try:
         from porterchain_api.auth.driver import _driver_id_from_token
 
@@ -164,6 +156,9 @@ def _notification_post_sync(
     x_merchant_id: str | None,
     x_driver_id: str | None,
 ) -> NotificationUser | None:
+    staff = _admin_recipient_from_claims(db, claims)
+    if staff:
+        return staff
 
     # Prefer merchant/customer before admin — never auto-elevate merchants to admin
     # under CLERK_DEV_BYPASS (that stole inbox identity and masked membership bugs).
@@ -259,10 +254,6 @@ def _ws_pre_sync(token: str, settings: Settings) -> NotificationUser | None:
 
     db = SessionLocal()
     try:
-        staff_user = _resolve_staff_notification_user(db, token)
-        if staff_user:
-            return staff_user
-
         try:
             from porterchain_api.auth.driver import _driver_id_from_token
 
@@ -284,6 +275,9 @@ def _ws_post_sync(
 
     db = SessionLocal()
     try:
+        staff = _admin_recipient_from_claims(db, claims)
+        if staff:
+            return staff
         skip_merchant = ws_portal in {"admin", "customer", "driver"}
         merchant_user = None
         if not skip_merchant:

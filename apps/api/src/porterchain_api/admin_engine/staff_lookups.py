@@ -69,7 +69,7 @@ def ensure_local_super_admin(db: Session) -> AdminUser:
     Always ``super_admin`` + active + Staff IdP subject ``staff:{id}``.
     Reuses legacy ``dev_clerk_user`` / founder email rows when present.
     """
-    from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
+    from porterchain_api.admin_engine.staff_accounts import ensure_staff_identity
 
     email = LOCAL_SUPER_ADMIN_EMAIL
     user = (

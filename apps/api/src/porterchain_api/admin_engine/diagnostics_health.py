@@ -45,18 +45,14 @@ class DiagnosticsHealthMixin:
             from porterchain_api.auth.sli_metrics import auth_events_snapshot
 
             cached["auth_sli"] = auth_events_snapshot()
-            from porterchain_api.auth.staff_session import staff_cookie_params
             from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
             posture = runtime_posture_from_settings(settings)
-            cookie = staff_cookie_params(settings)
             cached["auth_posture"] = {
                 "cookie_domain_mode": posture.cookie_domain_mode,
                 "auth_bypass_allowed": posture.auth_bypass_allowed,
-                "cookie_secure": cookie["secure"],
-                "cookie_samesite": cookie["samesite"],
-                "cookie_domain": cookie["domain"],
-                "staff_idp": "redis_session",
+                "staff_idp": "keycloak",
+                "keycloak_realm": settings.keycloak_realm,
             }
             return cached
 
@@ -65,19 +61,15 @@ class DiagnosticsHealthMixin:
         _HEALTH_CACHE_AT = now
         out = dict(payload)
         from porterchain_api.auth.sli_metrics import auth_events_snapshot
-        from porterchain_api.auth.staff_session import staff_cookie_params
         from porterchain_shared.config.project_mode import runtime_posture_from_settings
 
         posture = runtime_posture_from_settings(settings)
-        cookie = staff_cookie_params(settings)
         out["auth_sli"] = auth_events_snapshot()
         out["auth_posture"] = {
             "cookie_domain_mode": posture.cookie_domain_mode,
             "auth_bypass_allowed": posture.auth_bypass_allowed,
-            "cookie_secure": cookie["secure"],
-            "cookie_samesite": cookie["samesite"],
-            "cookie_domain": cookie["domain"],
-            "staff_idp": "redis_session",
+            "staff_idp": "keycloak",
+            "keycloak_realm": settings.keycloak_realm,
         }
         return out
 

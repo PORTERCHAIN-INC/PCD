@@ -64,6 +64,11 @@ class Settings(BaseSettings):
         "pc-website,pc-merchant-portal,pc-customer-portal,pc-driver-portal,pc-admin,"
         "pc-customer-app,pc-driver-app"
     )
+    # Confidential service-account client (realm-management manage-users) used to
+    # provision staff accounts. Secret comes from SOPS (KEYCLOAK_ADMIN_CLIENT_SECRET).
+    keycloak_admin_client_id: str = "pc-api-admin"
+    keycloak_admin_client_secret: str = ""
+    admin_app_url: str = "http://localhost:3002"
 
     clerk_jwks_url: str = ""
     clerk_secret_key: str = ""

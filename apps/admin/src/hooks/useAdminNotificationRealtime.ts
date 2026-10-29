@@ -12,7 +12,7 @@ export function apiWsBase(): string {
 export async function resolveWsToken(getToken: () => Promise<string>): Promise<string | null> {
   const token = await getToken();
   if (!token) return null;
-  if (token === "dev" || token.startsWith("staff_sess_")) return token;
+  if (token === "dev") return token;
   if (token === STAFF_COOKIE_TOKEN) {
     const res = await fetch("/api/auth/ws-token", { cache: "no-store" });
     if (!res.ok) return null;

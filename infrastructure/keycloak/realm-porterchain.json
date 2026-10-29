@@ -377,13 +377,13 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://customer.porterchain.com/auth/callback",
-        "http://localhost:3002/auth/callback",
-        "http://127.0.0.1:3002/auth/callback"
+        "http://localhost:3004/auth/callback",
+        "http://127.0.0.1:3004/auth/callback"
       ],
       "webOrigins": [
         "https://customer.porterchain.com",
-        "http://localhost:3002",
-        "http://127.0.0.1:3002"
+        "http://localhost:3004",
+        "http://127.0.0.1:3004"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -519,13 +519,13 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://admin.porterchain.com/auth/callback",
-        "http://localhost:3004/auth/callback",
-        "http://127.0.0.1:3004/auth/callback"
+        "http://localhost:3002/auth/callback",
+        "http://127.0.0.1:3002/auth/callback"
       ],
       "webOrigins": [
         "https://admin.porterchain.com",
-        "http://localhost:3004",
-        "http://127.0.0.1:3004"
+        "http://localhost:3002",
+        "http://127.0.0.1:3002"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -713,6 +713,29 @@
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "protocol": "openid-connect"
+    },
+    {
+      "clientId": "pc-api-admin",
+      "name": "PorterChain API staff provisioning",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KEYCLOAK_ADMIN_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-pc-api-admin",
+      "enabled": true,
+      "serviceAccountClientId": "pc-api-admin",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users", "view-realm"]
+      }
     }
   ],
   "authenticationFlows": [
@@ -815,6 +838,22 @@
     }
   ],
   "requiredActions": [
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 1
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 5
+    },
     {
       "alias": "CONFIGURE_TOTP",
       "name": "Configure OTP",

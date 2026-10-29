@@ -37,28 +37,6 @@ def device_fingerprint(client_meta: dict[str, str] | None) -> str:
     return f"{ip}|{label}"
 
 
-def is_new_device(admin_user_id: str, client_meta: dict[str, str] | None) -> bool:
-    """True when fingerprint is absent from current sessions (and user has ≥1 other session)."""
-    fp = device_fingerprint(client_meta)
-    if not fp or not admin_user_id:
-        return False
-    from porterchain_api.auth.staff_session import list_sessions_for_user
-
-    sessions = list_sessions_for_user(admin_user_id)
-    if not sessions:
-        return False
-    for row in sessions:
-        row_fp = device_fingerprint(
-            {
-                "client_ip": str(row.get("client_ip") or ""),
-                "device_label": str(row.get("device_label") or ""),
-            }
-        )
-        if row_fp and row_fp == fp:
-            return False
-    return True
-
-
 def record_security_event(
     admin_user_id: str,
     *,

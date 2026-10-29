@@ -135,7 +135,7 @@ def _authorize_staff(
     if not user.is_active:
         user.is_active = True
         actions.append("activated")
-    from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
+    from porterchain_api.admin_engine.staff_accounts import ensure_staff_identity
 
     ensure_staff_identity(db, user)
     if not actions:

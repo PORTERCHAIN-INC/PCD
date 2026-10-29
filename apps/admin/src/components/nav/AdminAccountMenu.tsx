@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { KeyRound, Settings, Shield, User } from "lucide-react";
 import {
   AccountBadge,
   AccountMenu,
-  AccountMenuButton,
   AccountMenuLink,
   AccountSignInLink,
   AccountSignOutButton,
@@ -15,9 +13,6 @@ import { publicEnv } from "@/lib/env";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { clearStaffSession } from "@/lib/staff-session";
-import { createPasskey, credentialToJson, passkeysSupported } from "@/lib/staff-webauthn";
-import { adminFetch } from "@/lib/api";
-import { notifyStaffPasskeyChanged } from "@/lib/staff-security";
 import { useOptionalSessionContext } from "@porterchain/auth";
 
 /** Display labels for admin_users.role — never show a generic "Staff" for admins. */
@@ -76,12 +71,9 @@ function resolveAdminRole(
 }
 
 export default function AdminAccountMenu() {
-  const router = useRouter();
   const { profile } = useAdminProfile();
-  const { getApiToken, isSignedIn } = useAdminAuth();
+  const { isSignedIn } = useAdminAuth();
   const session = useOptionalSessionContext()?.session;
-  const [passkeyMsg, setPasskeyMsg] = useState<string | null>(null);
-  const [passkeyBusy, setPasskeyBusy] = useState(false);
   // Session lives in the browser (HttpOnly cookie → client provider), so the server always
   // renders signed-out. Render a neutral avatar slot until mounted to keep hydration identical.
   const [mounted, setMounted] = useState(false);
@@ -105,35 +97,6 @@ export default function AdminAccountMenu() {
   const role = resolveAdminRole(profile?.role, session?.roles);
   const label = roleLabel(role);
 
-  async function registerPasskey() {
-    setPasskeyBusy(true);
-    setPasskeyMsg(null);
-    try {
-      const token = await getApiToken();
-      const options = await adminFetch<Record<string, unknown> & { challenge_id?: string }>(
-        "/v1/auth/staff/passkey/register/options",
-        token,
-        { method: "POST" }
-      );
-      const challengeId = String(options.challenge_id || "");
-      const cred = await createPasskey(options);
-      await adminFetch("/v1/auth/staff/passkey/register/verify", token, {
-        method: "POST",
-        body: JSON.stringify({
-          challenge_id: challengeId,
-          credential: credentialToJson(cred),
-          device_label: "This device",
-        }),
-      });
-      notifyStaffPasskeyChanged();
-      setPasskeyMsg("Passkey saved — use it on sign-in.");
-    } catch (e) {
-      setPasskeyMsg(e instanceof Error ? e.message : "passkey_failed");
-    } finally {
-      setPasskeyBusy(false);
-    }
-  }
-
   return (
     <AccountMenu
       name={name}
@@ -147,14 +110,14 @@ export default function AdminAccountMenu() {
         </AccountBadge>
       }
       headerExtra={
-        <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-muted">Staff IdP</p>
+        <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-muted">
+          Keycloak · MFA
+        </p>
       }
       footer={
         <AccountSignOutButton
           onClick={() => {
-            void clearStaffSession(publicEnv.porterchainApiUrl).then(() =>
-              router.replace("/sign-in")
-            );
+            void clearStaffSession(publicEnv.porterchainApiUrl);
           }}
         />
       }
@@ -163,7 +126,7 @@ export default function AdminAccountMenu() {
         href="/account/security"
         icon={Shield}
         label="Security"
-        hint="Sessions & passkeys"
+        hint="Password, authenticator & sessions"
       />
       <AccountMenuLink
         href="/settings?section=users"
@@ -177,16 +140,12 @@ export default function AdminAccountMenu() {
         label="Admin settings"
         hint="Integrations & RBAC"
       />
-      {passkeysSupported() && (
-        <AccountMenuButton
-          disabled={passkeyBusy}
-          onClick={() => void registerPasskey()}
-          icon={KeyRound}
-          label={passkeyBusy ? "Registering…" : "Add passkey"}
-          hint="Passwordless sign-in on this device"
-        />
-      )}
-      {passkeyMsg && <p className="px-3 pb-2 text-xs text-muted">{passkeyMsg}</p>}
+      <AccountMenuLink
+        href="/auth/account"
+        icon={KeyRound}
+        label="Keycloak account"
+        hint="Manage sign-in methods"
+      />
     </AccountMenu>
   );
 }

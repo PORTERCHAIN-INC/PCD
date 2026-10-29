@@ -1,5 +1,3 @@
-import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
-
 function resolveApiUrl() {
   const raw = process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL?.trim();
   if (raw) return raw.replace(/\/$/, "");
@@ -20,17 +18,6 @@ export const publicEnv = {
 
 export function isLocalDev() {
   return publicEnv.appEnv === "local" || publicEnv.appEnv === "development";
-}
-
-/**
- * When true, Local Super Admin CTA is shown on staff sign-in.
- * API must also have CLERK_DEV_BYPASS=true (development project mode).
- *
- * Gated on the build, so a production bundle always returns false (BJ).
- * The CTA mints a real Staff IdP session — it does not send Bearer ``dev``.
- */
-export function useClerkDevApiBypass() {
-  return authDevBypassEnabled();
 }
 
 export function isAuthConfigured() {

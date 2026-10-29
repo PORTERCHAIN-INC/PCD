@@ -1,13 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { auth } from "@porterchain/auth/oidc/next";
 
-/**
- * Ephemeral Bearer for WebSocket clients (notifications).
- * Prefer BFF for HTTP; WS to :8001 cannot read the HttpOnly admin cookie.
- */
-export async function GET(req: NextRequest) {
-  const sid = req.cookies.get("pc_staff_sid")?.value?.trim();
-  if (!sid) {
+/** Access token for the notifications WebSocket (the browser cannot read the session cookie). */
+export async function GET() {
+  const token = await (await auth()).getToken();
+  if (!token) {
     return NextResponse.json({ detail: "missing_bearer_token" }, { status: 401 });
   }
-  return NextResponse.json({ token: `staff_sess_${sid}` });
+  return NextResponse.json({ token }, { headers: { "Cache-Control": "no-store" } });
 }

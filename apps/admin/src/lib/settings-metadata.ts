@@ -109,7 +109,7 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   users: "Every PorterChain persona in the DB — Staff IdP for staff; Clerk identity for others.",
   roles: "Staff role → module catalog (read-only). SpiceDB Checks are the authorization SoT.",
   authentication:
-    "Staff: first-party IdP (magic link + passkeys). Driver/merchant/customer: Clerk apps.",
+    "All portals sign in with Keycloak. Staff use the pc-admin client (authenticator app required for admin roles).",
   security:
     "API rate limits from Doppler/env. Staff sessions from IdP; portal passwords from Clerk.",
   vehicles:

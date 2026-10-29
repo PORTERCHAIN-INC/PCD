@@ -259,6 +259,19 @@ def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
     assert "clerk_phone" not in order
 
 
+def _fast_admin_verify(monkeypatch):
+    from porterchain_api.auth import clerk, driver
+
+    async def verify(token, settings, portal=None):
+        return MagicMock(clerk_user_id="kc-sub")
+
+    def not_driver(token, settings):
+        raise ValueError("not a driver token")
+
+    monkeypatch.setattr(clerk, "verify_clerk_token", verify)
+    monkeypatch.setattr(driver, "_driver_id_from_token", not_driver)
+
+
 @pytest.mark.anyio
 async def test_websocket_user_lookup_off_loop(monkeypatch):
     from porterchain_api import db as dbmod
@@ -266,15 +279,16 @@ async def test_websocket_user_lookup_off_loop(monkeypatch):
 
     monkeypatch.setattr(dbmod, "SessionLocal", lambda: MagicMock())
 
-    def slow_staff(db, token):
+    def slow_staff(db, claims):
         time.sleep(SLOW_CLERK_S)  # sync DB lookup under pool pressure
         return pr.NotificationUser("admin", "a1")
 
-    monkeypatch.setattr(pr, "_resolve_staff_notification_user", slow_staff)
+    monkeypatch.setattr(pr, "_admin_recipient_from_claims", slow_staff)
+    _fast_admin_verify(monkeypatch)
     results = []
 
     async def one():
-        results.append(await pr.resolve_notification_ws_user("staff_sess_x"))
+        results.append(await pr.resolve_notification_ws_user("eyJ.admin.jwt"))
 
     stall = await _loop_stall_during(one)
     assert stall < 0.5, f"ws user lookup blocked the loop {stall:.2f}s"
@@ -287,12 +301,13 @@ async def test_notification_http_dependency_off_loop(monkeypatch):
 
     from porterchain_api.notification_engine import principal as pr
 
-    def slow_staff(db, token):
+    def slow_staff(db, claims):
         time.sleep(SLOW_CLERK_S)
         return pr.NotificationUser("admin", "a1")
 
-    monkeypatch.setattr(pr, "_resolve_staff_notification_user", slow_staff)
-    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="staff_sess_x")
+    monkeypatch.setattr(pr, "_admin_recipient_from_claims", slow_staff)
+    _fast_admin_verify(monkeypatch)
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="eyJ.admin.jwt")
     stall = await _loop_stall_during(
         lambda: pr.get_notification_user(db=MagicMock(), settings=MagicMock(), credentials=creds)
     )

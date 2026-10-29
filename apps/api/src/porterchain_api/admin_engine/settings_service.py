@@ -651,11 +651,12 @@ class AdminSettingsService:
         db.commit()
         db.refresh(user)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
-        from porterchain_api.auth.staff_session import revoke_all_for_user
+        from porterchain_api.auth.keycloak_admin import sync_staff_role
+        from porterchain_api.config import get_settings
 
         sync_authz_after_persona_mutation(db, user.clerk_user_id)
-        # Force re-auth after privilege change.
-        revoke_all_for_user(user.id)
+        # Mirror the role into Keycloak (MFA tier) and force re-auth after privilege change.
+        sync_staff_role(get_settings(), email=user.email, name=user.name, role=user.role)
         return user
 
     def authorize_platform_user(

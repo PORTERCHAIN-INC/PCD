@@ -109,11 +109,11 @@ Engines may call public `route`, `route_with_source`, `route_distance_meters`, `
 
 Local: `CLERK_DEV_BYPASS=true` on API; portals `NEXT_PUBLIC_CLERK_DEV_BYPASS`. No customer Clerk bypass as a product shortcut.
 
-|              |                                                                                                                                 |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Finished** | Per-portal Clerk triad; FCM on Expo driver/customer; admin Clerk JWT retired                                                    |
-| **Current**  | Staff IdP (passkey/magic link + Redis session) for admin; Clerk for merchant/driver/customer portals + mobile; FCM is push only |
-| **Required** | Mobile still hits `:8001` with Clerk Bearer (driver) / public track (customer); admin browser prefers BFF cookie → Bearer       |
+|              |                                                                                                                                                                   |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Finished** | Per-portal Clerk triad; FCM on Expo driver/customer; admin Clerk JWT retired                                                                                      |
+| **Current**  | Keycloak (realm `porterchain`) for every login: `pc-admin` (TOTP for admin tiers) for staff, portal/mobile clients for merchant/driver/customer; FCM is push only |
+| **Required** | Mobile still hits `:8001` with Clerk Bearer (driver) / public track (customer); admin browser prefers BFF cookie → Bearer                                         |
 
 ---
 
@@ -144,15 +144,15 @@ Dispatch, driver duty, live GPS, proof, and the day plan live in PorterChain. Va
 
 One public interface per persona. Guard: `scripts/openapi_census.py`.
 
-| Persona         | Prefix                         | Auth                                                       |
-| --------------- | ------------------------------ | ---------------------------------------------------------- |
-| Staff           | `/v1/admin`                    | Staff IdP session (`pc_staff_sid` / `Bearer staff_sess_*`) |
-| Merchant portal | `/v1/merchant`                 | Clerk org                                                  |
-| Partner API     | `/v1/merchant-api`             | API key + idempotency                                      |
-| Driver mobile   | `/driver-api/v1`               | Clerk Bearer                                               |
-| Retail book     | `/v1/quotes` `/v1/bookings`    | session / checkout                                         |
-| Public track    | `/v1/orders/{tracking_number}` | none                                                       |
-| Vendors         | `/webhooks/clerk\|stripe`      | signatures                                                 |
+| Persona         | Prefix                         | Auth                                                  |
+| --------------- | ------------------------------ | ----------------------------------------------------- |
+| Staff           | `/v1/admin`                    | Keycloak `pc-admin` access token (BFF session cookie) |
+| Merchant portal | `/v1/merchant`                 | Clerk org                                             |
+| Partner API     | `/v1/merchant-api`             | API key + idempotency                                 |
+| Driver mobile   | `/driver-api/v1`               | Clerk Bearer                                          |
+| Retail book     | `/v1/quotes` `/v1/bookings`    | session / checkout                                    |
+| Public track    | `/v1/orders/{tracking_number}` | none                                                  |
+| Vendors         | `/webhooks/clerk\|stripe`      | signatures                                            |
 
 Cut (must stay gone): `POST /driver/location`, `GET /v1/merchant/tracking/orders/{id}`, `POST .../invoices/{id}/resend`.
 

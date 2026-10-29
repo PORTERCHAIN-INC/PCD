@@ -60,7 +60,7 @@ function notConfigured() {
   return NextResponse.json({ detail: "auth_not_configured" }, { status: 503 });
 }
 
-/** GET /auth/login?return_to=/x&register=1&idp=google */
+/** GET /auth/login?return_to=/x&register=1&idp=google&prompt=login (prompt=login forces re-auth for step-up) */
 async function login(req: NextRequest, c: OidcConfig) {
   const q = req.nextUrl.searchParams;
   const flow = newFlow(safeReturnTo(q.get("return_to") ?? q.get("redirect_url")));
@@ -69,6 +69,7 @@ async function login(req: NextRequest, c: OidcConfig) {
     register: q.get("register") === "1",
     idpHint: q.get("idp") ?? undefined,
     loginHint: q.get("login_hint") ?? undefined,
+    prompt: q.get("prompt") === "login" ? "login" : undefined,
   });
   const res = NextResponse.redirect(url);
   res.cookies.set(FLOW_COOKIE, await seal(flow, c.secret), {

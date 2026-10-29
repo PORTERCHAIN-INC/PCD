@@ -1,15 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { KeyRound, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import type { AdminStaffProfile } from "@/lib/admin-access";
 import { publicEnv } from "@/lib/env";
 import { useAdminProfile } from "@/components/nav/AdminProfileContext";
 import { clearStaffSession } from "@/lib/staff-session";
-import { fetchStaffSecurityStatus, STAFF_PASSKEY_EVENT } from "@/lib/staff-security";
 import {
   humanAuthError,
   useOptionalSessionContext,
@@ -31,35 +30,13 @@ function profileFromSession(ctx: SessionContext): AdminStaffProfile {
   };
 }
 
-function PasskeyRecommendBanner({ show }: { show: boolean }) {
-  const pathname = usePathname();
-  if (!show || pathname?.startsWith("/account/security")) return null;
-  return (
-    <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-950">
-      <div className="mx-auto flex w-full max-w-none flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 xl:px-8">
-        <p className="inline-flex items-center gap-2">
-          <KeyRound className="h-4 w-4 shrink-0" />
-          Add a passkey for phishing-resistant sign-in and step-up on sensitive actions.
-        </p>
-        <Link
-          href="/account/security"
-          className="font-semibold text-amber-900 underline underline-offset-2"
-        >
-          Account → Security
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminAccessGate({ children }: Props) {
   const router = useRouter();
-  const { isLoaded, isSignedIn, getApiToken, authReady } = useAdminAuth();
+  const { isLoaded, isSignedIn, getApiToken } = useAdminAuth();
   const { setProfile } = useAdminProfile();
   const sessionCtx = useOptionalSessionContext();
   const setSession = sessionCtx?.setSession;
   const setActiveWorkspaceId = sessionCtx?.setActiveWorkspaceId;
-  const [passkeyRecommended, setPasskeyRecommended] = useState(false);
 
   const onSession = useCallback(
     (ctx: SessionContext) => {
@@ -79,12 +56,10 @@ export default function AdminAccessGate({ children }: Props) {
   }, [router, setProfile, setSession]);
 
   const handleSignOut = useCallback(() => {
-    void clearStaffSession(publicEnv.porterchainApiUrl).then(() => {
-      setProfile(null);
-      setSession?.(null);
-      router.replace("/sign-in");
-    });
-  }, [router, setProfile, setSession]);
+    setProfile(null);
+    setSession?.(null);
+    void clearStaffSession(publicEnv.porterchainApiUrl);
+  }, [setProfile, setSession]);
 
   const { errorDetail } = usePortalSessionGate({
     portal: "admin",
@@ -95,30 +70,6 @@ export default function AdminAccessGate({ children }: Props) {
     onSession,
     onSignedOut,
   });
-
-  const refreshPasskeyStatus = useCallback(async () => {
-    if (!authReady) return;
-    try {
-      const token = await getApiToken();
-      const status = await fetchStaffSecurityStatus(token);
-      setPasskeyRecommended(status.passkey_count === 0 && Boolean(status.passkey_recommended));
-    } catch {
-      /* soft fail */
-    }
-  }, [authReady, getApiToken]);
-
-  // Once per authReady — not on every route change (was doubling shell cost on nav).
-  useEffect(() => {
-    void refreshPasskeyStatus();
-  }, [refreshPasskeyStatus]);
-
-  useEffect(() => {
-    const onPasskeyChanged = () => {
-      void refreshPasskeyStatus();
-    };
-    window.addEventListener(STAFF_PASSKEY_EVENT, onPasskeyChanged);
-    return () => window.removeEventListener(STAFF_PASSKEY_EVENT, onPasskeyChanged);
-  }, [refreshPasskeyStatus]);
 
   if (errorDetail) {
     return (
@@ -139,7 +90,7 @@ export default function AdminAccessGate({ children }: Props) {
             href="/sign-in"
             className="mt-6 flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold text-white hover:bg-secondary/90"
           >
-            Back to staff sign-in
+            Back to sign-in
           </Link>
           <button
             type="button"
@@ -154,10 +105,5 @@ export default function AdminAccessGate({ children }: Props) {
     );
   }
 
-  return (
-    <>
-      <PasskeyRecommendBanner show={passkeyRecommended} />
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

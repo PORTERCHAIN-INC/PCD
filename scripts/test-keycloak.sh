@@ -11,6 +11,7 @@ case "${1:-up}" in
   up)
     tmp="$(mktemp -d)"; chmod 755 "$tmp"
     GOOGLE_CLIENT_ID=test-google GOOGLE_CLIENT_SECRET=test-google-secret APPLE_IDP_ENABLED=false \
+      KEYCLOAK_ADMIN_CLIENT_SECRET=test-api-admin-secret \
       bash "$ROOT/infrastructure/keycloak/render-realm.sh" "$tmp/porterchain-realm.json" >/dev/null
     chmod 644 "$tmp/porterchain-realm.json"
     docker rm -f "$NAME" >/dev/null 2>&1 || true

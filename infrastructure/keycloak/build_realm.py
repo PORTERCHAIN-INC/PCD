@@ -14,9 +14,9 @@ SITES = {
     # client_id: (public base URLs, local port)
     "pc-website": (["https://porterchain.com", "https://www.porterchain.com"], 3000),
     "pc-merchant-portal": (["https://merchant.porterchain.com"], 3001),
-    "pc-customer-portal": (["https://customer.porterchain.com"], 3002),
+    "pc-customer-portal": (["https://customer.porterchain.com"], 3004),
     "pc-driver-portal": (["https://driver.porterchain.com"], 3003),
-    "pc-admin": (["https://admin.porterchain.com"], 3004),
+    "pc-admin": (["https://admin.porterchain.com"], 3002),
 }
 MOBILE = {
     "pc-customer-app": "porterchain-customer://auth",
@@ -55,7 +55,22 @@ def clients() -> list[dict]:
         "publicClient": False, "standardFlowEnabled": False, "directAccessGrantsEnabled": False,
         "protocol": "openid-connect",
     })
+    out.append({  # API service account: provisions staff users (invite / MFA reset / disable).
+        "clientId": "pc-api-admin", "name": "PorterChain API staff provisioning", "enabled": True,
+        "publicClient": False, "clientAuthenticatorType": "client-secret",
+        "secret": "${KEYCLOAK_ADMIN_CLIENT_SECRET}", "serviceAccountsEnabled": True,
+        "standardFlowEnabled": False, "directAccessGrantsEnabled": False,
+        "implicitFlowEnabled": False, "protocol": "openid-connect",
+    })
     return out
+
+
+def service_account_users() -> list[dict]:
+    return [{
+        "username": "service-account-pc-api-admin", "enabled": True,
+        "serviceAccountClientId": "pc-api-admin",
+        "clientRoles": {"realm-management": ["manage-users", "view-users", "query-users", "view-realm"]},
+    }]
 
 
 def pc_mappers() -> list[dict]:
@@ -159,10 +174,12 @@ def realm() -> dict:
         "webAuthnPolicyPasswordlessResidentKey": "Yes",
         "browserFlow": "pc-browser",
         "roles": roles(), "groups": groups(), "defaultRoles": ["customer"],
-        "clients": clients(),
+        "clients": clients(), "users": service_account_users(),
         "authenticationFlows": browser_flow(),
         "authenticatorConfig": [{"alias": "pc-mfa-role", "config": {"condUserRole": MFA_ROLE, "negate": "false"}}],
         "requiredActions": [
+            {"alias": "VERIFY_EMAIL", "name": "Verify Email", "providerId": "VERIFY_EMAIL", "enabled": True, "defaultAction": False, "priority": 1},
+            {"alias": "UPDATE_PASSWORD", "name": "Update Password", "providerId": "UPDATE_PASSWORD", "enabled": True, "defaultAction": False, "priority": 5},
             {"alias": "CONFIGURE_TOTP", "name": "Configure OTP", "providerId": "CONFIGURE_TOTP", "enabled": True, "defaultAction": False, "priority": 10},
             {"alias": "webauthn-register-passwordless", "name": "Passkey Register", "providerId": "webauthn-register-passwordless", "enabled": True, "defaultAction": False, "priority": 20},
         ],

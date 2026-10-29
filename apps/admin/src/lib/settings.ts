@@ -358,41 +358,19 @@ export const settingsApi = {
       body: JSON.stringify({ platform_user_id: platformUserId }),
     }),
   enrollStaff: (token: string, body: { email: string; role: string; name?: string }) =>
-    adminFetch<{
-      admin_user_id: string;
-      email: string;
-      role: string;
-      enrollment_token?: string | null;
-      expires_at: number;
-      clerk_invite: boolean;
-      email_sent?: boolean;
-    }>(`${B}/staff/enroll`, token, {
+    adminFetch<StaffAccountResult>(`${B}/staff/enroll`, token, {
       method: "POST",
       body: JSON.stringify(body),
     }),
   reissueStaffEnrollment: (token: string, userId: string) =>
-    adminFetch<{
-      admin_user_id: string;
-      email: string;
-      role: string;
-      enrollment_token?: string | null;
-      expires_at: number;
-      clerk_invite: boolean;
-      email_sent?: boolean;
-    }>(`${B}/staff/${userId}/enroll-reissue`, token, { method: "POST" }),
+    adminFetch<StaffAccountResult>(`${B}/staff/${userId}/enroll-reissue`, token, {
+      method: "POST",
+    }),
   recoverStaffDevice: (token: string, userId: string, reason?: string) => {
     const qs = reason ? `?reason=${encodeURIComponent(reason)}` : "";
-    return adminFetch<{
-      admin_user_id: string;
-      email: string;
-      role: string;
-      enrollment_token?: string | null;
-      expires_at: number;
-      clerk_invite: boolean;
-      email_sent?: boolean;
-      passkeys_removed?: number;
-      sessions_revoked?: number;
-    }>(`${B}/staff/${userId}/recover-device${qs}`, token, { method: "POST" });
+    return adminFetch<StaffAccountResult>(`${B}/staff/${userId}/recover-device${qs}`, token, {
+      method: "POST",
+    });
   },
   updateStaffRole: (token: string, userId: string, role: string, reason?: string) =>
     adminFetch<StaffUser>(`${B}/staff/${userId}/role`, token, {
@@ -551,4 +529,24 @@ export function exportSettingsJson(
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/** Staff account action result (Keycloak `pc-admin` user + setup email). */
+export type StaffAccountResult = {
+  admin_user_id: string;
+  email: string;
+  role: string;
+  keycloak_provisioned: boolean;
+  keycloak_user_created?: boolean;
+  email_sent: boolean;
+  credentials_removed?: number;
+  sessions_revoked?: boolean;
+};
+
+export function staffAccountNotice(r: StaffAccountResult): string {
+  if (!r.keycloak_provisioned)
+    return "Saved. Keycloak admin is not configured here, so no login was created.";
+  if (!r.email_sent)
+    return `Keycloak login ready for ${r.email}, but the setup email could not be sent (check realm SMTP).`;
+  return `Setup email sent to ${r.email}.`;
 }

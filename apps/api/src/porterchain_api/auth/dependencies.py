@@ -71,32 +71,31 @@ def _record_denial(
             pass
 
 
-def _identity_from_staff_bearer(db: Session, token: str) -> AuthenticatedIdentity:
-    """Map ``staff_sess_*`` Redis session → AuthenticatedIdentity (no Clerk JWT)."""
-    from porterchain_api.admin_engine.staff_idp_service import ensure_staff_identity
-    from porterchain_api.admin_engine.staff_lookups import get_admin_user
-    from porterchain_api.auth.staff_session import STAFF_BEARER_PREFIX, get_session
+def _unverified_azp(token: str) -> str | None:
+    import jwt as _jwt
 
-    session_id = token.removeprefix(STAFF_BEARER_PREFIX).strip()
-    session = get_session(session_id)
-    if session is None:
-        raise HTTPException(status_code=401, detail="staff_session_invalid")
+    try:
+        return _jwt.decode(token, options={"verify_signature": False}).get("azp")
+    except Exception:  # noqa: BLE001
+        return None
 
-    user = get_admin_user(db, session.admin_user_id)
-    if not user or not user.is_active:
-        raise HTTPException(status_code=403, detail="admin_user_not_found")
 
+def _identity_from_admin_claims(db: Session, claims) -> AuthenticatedIdentity:
+    """Keycloak ``pc-admin`` token → staff identity (``staff:{id}`` subject, no customer sync)."""
+    from porterchain_api.admin_engine.staff_accounts import ensure_staff_identity
+    from porterchain_api.auth.keycloak_staff import admin_user_for_claims
+
+    user = admin_user_for_claims(db, claims)
     ensure_staff_identity(db, user)
     db.refresh(user)
-    subject = str(user.clerk_user_id or f"staff:{user.id}")
     return AuthenticatedIdentity(
-        provider="staff_idp",
-        issuer="porterchain:staff",
-        subject=subject,
-        session_id=session_id,
+        provider="keycloak",
+        issuer=claims.issuer or "keycloak",
+        subject=str(user.clerk_user_id or f"staff:{user.id}"),
+        session_id=claims.session_id,
         email=user.email,
         email_verified=True,
-        adapter_context={"staff_admin_user_id": user.id},
+        adapter_context={"staff_admin_user_id": user.id, "keycloak_sub": claims.clerk_user_id},
     )
 
 
@@ -124,8 +123,11 @@ async def get_authenticated_identity(
         (await run_in_threadpool(lambda: prepare_user_from_claims(db, claims)))
         return claims_to_identity(claims)
 
-    if token.startswith("staff_sess_"):
-        return (await run_in_threadpool(lambda: _identity_from_staff_bearer(db, token)))
+    from porterchain_api.auth.keycloak_staff import ADMIN_CLIENT_ID, admin_claims_from_bearer
+
+    if _unverified_azp(token) == ADMIN_CLIENT_ID:
+        admin_claims = await admin_claims_from_bearer(token, settings)
+        return (await run_in_threadpool(lambda: _identity_from_admin_claims(db, admin_claims)))
 
     identity = await get_identity_provider().authenticate_bearer(token, settings)
     (await run_in_threadpool(lambda: prepare_user_from_claims(db, _claims_for_sync(identity))))

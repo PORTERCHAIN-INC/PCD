@@ -7,6 +7,7 @@ import { UserPlus } from "lucide-react";
 import { Button } from "@/components/crm/primitives";
 import {
   settingsApi,
+  staffAccountNotice,
   type PlatformUser,
   type StaffUser,
   type UserDirectoryFilters,
@@ -120,7 +121,7 @@ export function DirectoryShell({
           name: enrollForm.name.trim() || undefined,
         })
       );
-      setEnrollmentToken(result.enrollment_token ?? null);
+      setEnrollmentToken(staffAccountNotice(result));
       refresh();
     } catch (e) {
       setEnrollError(e instanceof Error ? e.message : "Enrollment failed");
@@ -139,7 +140,7 @@ export function DirectoryShell({
       const result = await withStaffStepUp(token, () =>
         settingsApi.reissueStaffEnrollment(token, userId)
       );
-      setEnrollmentToken(result.enrollment_token ?? null);
+      setEnrollmentToken(staffAccountNotice(result));
       setEnrollForm({ email: result.email, role: result.role, name: "" });
     } catch (e) {
       setEnrollError(e instanceof Error ? e.message : "Reissue failed");
@@ -150,7 +151,7 @@ export function DirectoryShell({
 
   async function recoverDevice(userId: string) {
     const ok = window.confirm(
-      "Lost-device recovery will revoke ALL sessions, delete ALL passkeys, and email a fresh activate link. Continue?"
+      "Lost-device recovery ends ALL sessions, removes the authenticator app and passkeys in Keycloak, and emails a setup link. Continue?"
     );
     if (!ok) return;
     setRecoverBusy(userId);
@@ -162,7 +163,7 @@ export function DirectoryShell({
       const result = await withStaffStepUp(token, () =>
         settingsApi.recoverStaffDevice(token, userId, "lost_device")
       );
-      setEnrollmentToken(result.enrollment_token ?? null);
+      setEnrollmentToken(staffAccountNotice(result));
       setEnrollForm({ email: result.email, role: result.role, name: "" });
       setEnrollError(null);
       void refresh();

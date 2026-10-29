@@ -58,18 +58,6 @@ class _Redis:
         return True
 
 
-def test_failed_login_alert_once_per_ip(monkeypatch):
-    from porterchain_api.auth import staff_login_alerts as a
-
-    r = _Redis()
-    monkeypatch.setattr(a, "_redis", lambda: r)
-    monkeypatch.setattr(a, "recipients", lambda db, s: ["owner@example.com"])
-    sent = []
-    results = [a.note_failed_login(None, None, client_ip="203.0.113.9", factor="passkey",
-                                   send=lambda to, m: sent.append(to)) for _ in range(8)]
-    assert results.count(True) == 1 and sent == ["owner@example.com"]
-
-
 def test_admin_ip_allowlist(monkeypatch):
     from porterchain_api.platform import admin_ip_allowlist as al
 
@@ -84,12 +72,6 @@ def test_admin_ip_allowlist(monkeypatch):
     assert al.ip_allowed("8.8.8.8", on)
     with pytest.raises(ValueError):
         al.normalize_admin_access({"ip_allowlist": ["not-an-ip"]})
-
-
-def test_staff_session_timeouts():
-    from porterchain_api.auth import staff_session as ss
-
-    assert ss.DEFAULT_TTL_SECONDS == 30 * 60 and ss.ABSOLUTE_MAX_SECONDS == 12 * 3600
 
 
 def test_offboarding_revokes_clerk_sessions(monkeypatch):

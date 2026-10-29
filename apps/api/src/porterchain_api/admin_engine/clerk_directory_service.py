@@ -398,9 +398,10 @@ class ClerkDirectoryService:
             u = db.query(AdminUser).filter(AdminUser.id == platform_user_id).first()
             if u:
                 u.is_active = False
-                from porterchain_api.auth.staff_session import revoke_all_for_user
+                from porterchain_api.auth.keycloak_admin import end_staff_sessions
+                from porterchain_api.config import get_settings
 
-                revoke_all_for_user(u.id)
+                end_staff_sessions(get_settings(), u.email, disable=True)
         elif user_type == "driver":
             d = db.query(Driver).filter(Driver.id == platform_user_id).first()
             if d:

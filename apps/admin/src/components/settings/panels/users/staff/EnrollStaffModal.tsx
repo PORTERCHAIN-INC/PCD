@@ -52,14 +52,11 @@ export function EnrollStaffModal({
       <div className="space-y-4">
         {enrollmentToken && (
           <div className="rounded-xl border border-green-200 bg-green-50/80 p-3 text-sm text-green-950">
-            <p className="font-medium">Activate link emailed.</p>
-            <code className="mt-2 block break-all rounded bg-white px-2 py-1 text-xs">
-              /activate-staff?token={enrollmentToken}
-            </code>
+            <p className="font-medium">{enrollmentToken}</p>
             <p className="mt-2 text-xs text-muted">
               {isLocalDev()
-                ? "Mailpit: localhost:8025. Staff can also request a link from sign-in."
-                : "They can also request a new link from staff sign-in if this one expires."}
+                ? "Mailpit: localhost:8025. Setup happens on the Keycloak page (password + authenticator)."
+                : "Setup happens on the Keycloak page. Use “Resend setup email” if the link expires."}
             </p>
           </div>
         )}
