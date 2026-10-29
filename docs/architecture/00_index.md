@@ -78,3 +78,20 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 (40–45 are the UI/UX and backend docs from other commits.)
 
 - 56 · L30 Ravi decisions of 29 Oct 2026 (Checkr, SOPS, Shopify unlisted, pen test, French, on-call, leased truck, GPU 6 GB re-check, 10+ drivers, Oracle)
+
+## Phase 0 (added 29 Oct 2026, L31)
+
+Ravi defined Phase 0 before Phase 1: no agentic mode; every replacement, routing + operations redesign, database organisation, store releases, dead-code removal, S1 fixes and hybrid deployment. 12 weeks, gated by G1–G17.
+
+| #   | NOW vs PHASE 0                                                                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 60  | [Phase 0 plan](60_phase0_plan.md): goals, gates, schedule, workstreams, cleanup inventory, migration order, DB plan, routing/ops pages, store checklist, risks, decisions |
+| 61  | [Context + containers](61_p0_context_containers.md)                                                                                                                       |
+| 62  | [Deployment + network](62_p0_deployment.md)                                                                                                                               |
+| 63  | [ER core entities](63_p0_er.md)                                                                                                                                           |
+| 64  | [DFD L1/L2](64_p0_dfd.md)                                                                                                                                                 |
+| 65  | [Sequences](65_p0_sequences.md)                                                                                                                                           |
+| 66  | [State machines](66_p0_state_machines.md)                                                                                                                                 |
+| 67  | [Apps: mobile, Shopify, portals](67_p0_apps.md)                                                                                                                           |
+
+All 28 Mermaid blocks in 61–67 were rendered to SVG with mermaid-cli 11.17.1 (on the agent box, not this machine) and saved in `rendered_p0/` (`<doc>_<block>.svg`). The `29` matrix now has a **Phase** column (P0/P1/P2).

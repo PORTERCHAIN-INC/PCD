@@ -38,3 +38,18 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 
 - Still open: ELD requirement for the leased box truck (legal check); CVOR weight threshold (U-12) vs the leased truck's registered weight; lease wording vs insurance; pilot merchant name; lease cost numbers for the truck price.
 - Resolved: Checkr route, Doppler, Shopify listing type, pen test, French scope, Zapier/NetSuite, Meta tier, on-call, lawyer, GPU, insurance, Oracle signup.
+
+## Phase 0 (doc 60–67, 29 Oct 2026)
+
+- U60-1 mypy `--strict` error count on billing/pricing/domain/dispatch (not run).
+- U60-2 Test line coverage % (not measured; pytest 3,636 pass / 2 fail / 23 skip on 28 Oct).
+- U60-3 Performance baseline (API p95/p99, LCP/INP/CLS, 50-stop optimise time).
+- U60-4 Whether live holds any merchant Stripe customers/cards (live DB not read).
+- U60-5 Whether `stripe_payouts` serves retail flows.
+- U60-6 Customer-app in-app account deletion completeness (`AccountScreen.tsx` references deletion; flow not traced).
+- U63-1 `interac_transfers` → `invoices` link (no FK found).
+- U63-2 How `dispatch_routes` links to `stops` today.
+- U66-1 `IN_TRANSIT → DAMAGED` edge (ops confirm).
+- U66-2 Invoice enum values vs `billing_engine/models.py:140`.
+- U67-1 Which of `app.toml` / `shopify.app.custom.toml` is authoritative.
+- U-20 partly resolved: diagrams 61–67 rendered with mermaid-cli on the agent box (`rendered_p0/`); the older 01–28 diagrams are not rendered yet.
