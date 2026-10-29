@@ -6,7 +6,7 @@ Nav groups: **Today** (/today, /dashboard) · **Dispatch** (/dispatch/today "Que
 
 Verdict: **works, but organised by how it was built, not by how Ravi works.** Problems: two homes (/today vs /dashboard vs /operations); Orders sits under Dispatch; drivers are not in the nav (only Fleet); merchants/customers split by persona (no place for warehouses, partners, CHA); "Leads Inbox" vs "Inbox (messages)" vs "Tickets" are three inboxes; Pricing sits in Finance; Blog/Notifications are in Administration next to System; duplicate system-health/system-tests routes; agent pages visible while agents are Phase 1.
 
-## 2. New information architecture (D-75-1)
+## 2. New information architecture (D-75-1, decided yes by Ravi 29 Oct 2026)
 
 ```mermaid
 flowchart TB

@@ -1,6 +1,6 @@
 # 70. Business model architecture: one Organisation model (Phase 0, L35)
 
-Status: plan (docs only). Decision owner: architect recommendation, Ravi to confirm D-70-1..4.
+Status: plan (docs only). D-70-1, D-70-2 and D-70-3 decided yes by Ravi on 29 Oct 2026. D-70-4 decided by Ravi on 29 Oct 2026 with a changed scope (all medicine types, §7a).
 Order of design and build: Shopify merchant → warehouse/3PL/storage → small local shop → courier partner → logistics partner → supply chain → import/export / customs broker (CHA) → retail customer.
 
 ## 1. Problem (evidence, 29 Oct 2026)
@@ -31,7 +31,7 @@ Two roles an org can play (both allowed at once, e.g. a 3PL that ships for clien
 | `import_export_cha`                                                                    | shipper + partner   | port/rail pickup, bonded_note, document_pack (CCI, B3 ref), edi_lite                           | dock_appointment                | theirs              | theirs primary       | contract                 |
 | `retail_customer`                                                                      | shipper (person)    | stripe_card, web/app booking                                                                   | on_demand                       | ours                | ours                 | retail card              |
 
-Subtype rules (small shops): `pharmacy` → `rx_no_controlled=true` (Phase 0 and 1 exclude controlled substances; signature + adult recipient), `bakery_cake` → `food_handling=true` (clean insulated bag, upright, no stacking, ≤ 2 h door to door), `flowers` → `perishable`, `upright`, `pet_food` → heavy bag weight bands, `candles` → `heat_sensitive` advisory in summer.
+Subtype rules (small shops): `pharmacy` → `rx_delivery=true` with the `controlled_substance` handling profile (§7a). PorterChain is the official delivery agent for local pharmacies, covering all medicine types including prescriptions and controlled substances. The pharmacy stays the dispenser and stays responsible., `bakery_cake` → `food_handling=true` (clean insulated bag, upright, no stacking, ≤ 2 h door to door), `flowers` → `perishable`, `upright`, `pet_food` → heavy bag weight bands, `candles` → `heat_sensitive` advisory in summer.
 
 ## 3. Data model (schema `org`, doc 63 domain schemas)
 
@@ -190,7 +190,7 @@ Profile changes are versioned (`operating_profile.version`); orders store the pr
 | UI                    | Portal nav and fields render from `org_capability` (e.g. no "Dock appointments" tab unless `dock_appointment`). One portal, not one per type. Labels come from `ref_schema`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | Pricing               | Quote engine picks the org's `rate_card_assignment` (contract first, then business-type card, then retail) (doc 72). Add-ons offered only if capability allows (e.g. `pallet`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Labels                | `label_profile` + `label_mode`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Workflows             | DBOS workflows read capabilities at start: `food_handling` adds an upright/insulated checklist step, `rx_no_controlled` adds ID + signature POD, `dock_appointment` adds a slot booking step, partner capabilities enable `partner_job` routing (doc 56).                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Workflows             | DBOS workflows read capabilities at start: `food_handling` adds an upright/insulated checklist step, `controlled_substance` profile adds seal/count scan, ID + patient-or-agent signature POD, no safe-drop, chain-of-custody scans and same-day return (§7a), `dock_appointment` adds a slot booking step, partner capabilities enable `partner_job` routing (doc 56).                                                                                                                                                                                                                                                                                                                           |
 | Permissions (SpiceDB) | `definition organisation { relation owner, admin, ops, billing, developer, viewer: person; relation parent: organisation; permission manage = owner + admin; permission ship = manage + ops; permission see_invoices = manage + billing; permission manage_keys = manage + developer; permission view = ship + see_invoices + manage_keys + viewer + parent->view }`, `definition order { relation shipper: organisation; relation partner: organisation; permission view = shipper->view + partner->view_jobs; permission edit = shipper->ship }`, capability checks are a caveat `has_capability(name)` evaluated from the org's flags. Staff roles stay in the `platform` definition (doc 17). |
 
 ## 6. Migration from the merchants model (Phase 0 weeks 3–5, with rollback)
@@ -199,7 +199,38 @@ Profile changes are versioned (`operating_profile.version`); orders store the pr
 
 ## 7. Decisions for Ravi
 
-- **D-70-1** One Organisation model with business types and capabilities (recommended) vs keep merchant/customer personas. _Recommend: yes._
-- **D-70-2** Order id format `PC-YYMM-XXXXXX` on everything. _Recommend: yes (already the plan)._
-- **D-70-3** An org may be both shipper and partner. _Recommend: yes (3PLs and CHAs are both)._
-- **D-70-4** Pharmacy: OTC + non-controlled Rx only, ID + signature at door. _Recommend: yes, lawyer confirms (98 U-70-1)._
+- **D-70-1 decided yes** (29 Oct 2026): one Organisation model with business types and capabilities.
+- **D-70-2 decided yes** (29 Oct 2026): order id `PC-YYMM-XXXXXX` on everything.
+- **D-70-3 decided yes** (29 Oct 2026): an org may be both shipper and partner.
+- **D-70-4 decided, CHANGED by Ravi** (29 Oct 2026): pharmacy delivery covers ALL medicine types (OTC, Schedule I prescriptions, monitored drugs and controlled substances). PorterChain is the official delivery agent of local pharmacies; the pharmacy remains the dispenser and is responsible. Handling profile in §7a; pharmacy delivery agreement goes to the lawyer (98 U-70-1).
+
+## 7a. Pharmacy delivery and the controlled-substance handling profile (D-70-4)
+
+**Rules checked 29 Oct 2026:**
+
+- **Ontario College of Pharmacists, Delivery of Prescriptions fact sheet** (https://ocpinfo.com/pharmacy-professionals/practice-topics/fact-sheets/delivery-of-prescriptions/). Dispensing is complete only when the patient or their agent takes custody; until then the drug is in the pharmacy's care and control. Schedule I delivery must be traceable and auditable, with the patient's or agent's signature (wet or electronic). No advance waiver for unattended drop-off is allowed. **A person delivering for the pharmacy cannot be the patient's agent.** Couriers' "no signature" preferences do not apply.
+- **Drug and Pharmacies Regulation Act, s.152** (https://www.ontario.ca/laws/statute/90h04): Schedule I (the NAPRA schedule adopted in Ontario) must go by registered mail, or by a method that is traceable and auditable, with a receipt signed by the patient or their agent.
+- **Health Canada CS-GD-022, Managing controlled substances** (https://www.canada.ca/en/health-canada/services/health-concerns/controlled-substances-precursor-chemicals/controlled-substances/compliance-monitoring/compliance-monitoring-controlled-substances/guidance-community-pharmacists-pharmacy-technicians/managing-controlled-substances.html):
+  - A pharmacist may hire a person or transport company to deliver a prescribed controlled substance. The method must track the substance until the consignee receives it.
+  - Health Canada recommends a chain of signatures (name or employee id of everyone handling it). The substance goes only to the patient or their designated person, with proof of delivery and never left unsecured.
+  - The pharmacy records sender, recipient, address, dates sent and received, means of transport and product details.
+  - **Loss or theft:** the agent must tell the pharmacist immediately. The pharmacist reports to the Office of Controlled Substances within 10 days, whatever the amount.
+- **Health Canada CS-GD-005** (https://www.canada.ca/en/health-canada/services/publications/healthy-living/loss-theft-controlled-substances-precursors/reporting-guideline-process.html): the sender (the pharmacy) reports and investigates losses in transit.
+- **Transportation of Controlled Substances in Canada** (https://www.canada.ca/en/health-canada/services/health-concerns/controlled-substances-precursor-chemicals/policy-regulations/policy-documents/transportation-of-controlled-substances-in-canada.html): NCR, FDR Part G and BOTSR let pharmacists supply and transport against a prescription. Packaging and labelling are done in the pharmacy.
+- **Federal regulations:** the new Controlled Substances Regulations (SOR/2025-242, s.109) are published but marked **"not in force"** (Justice Laws, current to 30 Sep 2026). Until they come into force, the NCR, FDR Part G and BOTSR apply. The design meets both.
+- Ontario's Narcotics Safety and Awareness Act, 2010 also applies to monitored drugs (named in the OCP fact sheet).
+
+**`controlled_substance` handling profile** (also applied to monitored drugs; Schedule I Rx uses the same profile without the count and lockbox steps):
+
+1. **Sealed package:** pharmacy-sealed, tamper-evident bag with a unique id and a logged package count, recorded at pickup. PorterChain never opens it and never sees its contents. The pharmacy keeps the product record (CS-GD-022).
+2. **No unattended delivery:** no safe-drop, mailbox, concierge or neighbour drop. The app hides those options for this profile.
+3. **At the door:** government photo ID check (name match only; no ID number or image stored) plus signature from the patient or the authorised agent named by the patient in advance. The driver can never act as the agent. Exceptions follow the OCP rules (e.g. an "x" witnessed, or an accommodation), and the pharmacy documents them.
+4. **Chain of custody:** scan with driver id and timestamp at every handoff: pharmacy → driver → (hub/transfer if any) → recipient. Seal intact is confirmed at each scan.
+5. **Failed delivery:** same-day return to the pharmacy, signed back in. Never held overnight by the driver.
+6. **In the vehicle:** a locked, fixed lockbox, out of sight; no stops unrelated to the route while a controlled package is aboard.
+7. **Cold chain** (insulin, vaccines, biologics): validated insulated container, 2–8 °C, logger reading recorded at pickup and delivery. An excursion is reported to the pharmacy.
+8. **Incident or loss:** the driver alerts ops immediately and ops notifies the pharmacist immediately with the custody log. **The pharmacy reports to Health Canada** (10 days). PorterChain keeps its records for at least 2 years and cooperates.
+9. **Driver training:** pharmacy-delivery module (privacy/PHIPA, ID and agent rules, seal checks, lockbox, cold chain, incident steps) with a yearly refresher. Only drivers with a clean background check and the training badge get these jobs.
+10. **Privacy:** labels show only patient name, address and package id, with no drug names. Drivers see only what is needed (PHIPA agent-of-custodian rules apply via the agreement).
+
+Contract: a **pharmacy delivery agreement** (lawyer list, 98 U-70-1) names PorterChain as the pharmacy's delivery agent and covers custody, records, loss reporting duties, PHIPA, insurance (cargo cover for high-value Rx under G-INS) and audit rights.

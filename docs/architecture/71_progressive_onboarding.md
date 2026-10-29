@@ -44,7 +44,7 @@ flowchart LR
 
 1. **Shopify merchant:** install from link → org auto-provisioned from shop data → confirm pickup (1 screen) → profile confirm → rates: plan check; if Advanced/Plus/Grow-annual show the 3 Shopify steps + deep link, else "Use flat rates" screen with our suggested rates → test order on PCDC-like sandbox → live.
 2. **Warehouse/3PL/storage:** 4 fields → pallet & parcel quote → add docks (hours, appointment slot length) → choose CSV template or API → first dock appointment → (optional) "Offer your space/capacity to PorterChain" partner switch.
-3. **Small shop:** 4 fields + shop chip → quote → book on-demand pickup; bakery/flowers see the handling promise; pharmacy sees "no controlled substances; ID + signature".
+3. **Small shop:** 4 fields + shop chip → quote → book on-demand pickup; bakery/flowers see the handling promise; pharmacy sees "all medicine types; sealed package, ID + signature from patient or agent, no safe-drop" (70 §7a), and signs the pharmacy delivery agreement before the first Rx job.
 4. **Courier partner:** 4 fields → areas (FSA chips) + vehicles → COI + HST + WSIB upload → Partner Agreement e-sign → test job → live in job pool.
 5. **Logistics partner:** as courier plus CVOR and linehaul lanes; EDI-lite CSV/SFTP option.
 6. **Supply chain company:** 4 fields → lane quote request → Ravi call (booked from calendar link) → contract rate card → integration.

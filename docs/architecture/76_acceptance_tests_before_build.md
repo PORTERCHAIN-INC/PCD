@@ -25,7 +25,7 @@ A-WH-01 4-field sign-up quotes a pallet in < 2 min · A-WH-02 docks with hours a
 
 ## 4. Small shops (A-SS)
 
-A-SS-01 pet food 20 kg → band M, price shown upfront · A-SS-02 flowers → billable 14.4 kg M, upright flag on driver job · A-SS-03 cake → food-handling checklist step required before pickup · A-SS-04 pharmacy → order form refuses "controlled substance" type and requires ID + signature POD · A-SS-05 email-to-order: an email to orders@ with address + item creates a draft for one-tap confirm · A-SS-06 on-demand pickup booked from mobile web in ≤ 5 taps.
+A-SS-01 pet food 20 kg → band M, price shown upfront · A-SS-02 flowers → billable 14.4 kg M, upright flag on driver job · A-SS-03 cake → food-handling checklist step required before pickup · A-SS-04 pharmacy controlled-substance job (70 §7a) → safe-drop hidden; POD needs seal id + count, ID check and patient/agent signature; every handoff scanned; failed attempt creates a same-day return-to-pharmacy job; loss raises an immediate pharmacy alert · A-SS-05 email-to-order: an email to orders@ with address + item creates a draft for one-tap confirm · A-SS-06 on-demand pickup booked from mobile web in ≤ 5 taps.
 
 ## 5. Courier partner (A-CP)
 

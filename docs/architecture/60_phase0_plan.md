@@ -309,7 +309,7 @@ Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = $4.41/kg legal floor be
 - **Weeks 8–9:** ops console IA (75) with the §9 dispatch redesign.
 - **Weeks 10–12:** acceptance suite 76 green (G19) before the week-12 pilot.
 - Build order inside every workstream: Shopify merchant → warehouse → small shop → courier → logistics → supply chain → CHA. Partner job routing stays Phase 1 in production use (doc 56) but its tests A-CP/A-LP are written and run on sandbox in Phase 0.
-- Decisions for Ravi: D-70-1..4, D-72-1..4, D-75-1 (see 98).
+- Decisions (29 Oct 2026): D-70-1/2/3, D-72-1/3/4 and D-75-1 decided yes. D-70-4 decided with changed scope: pharmacy covers all medicine types incl. controlled substances under the handling profile in 70 §7a. **D-72-2 PROPOSED:** rate card in 72 §8, awaiting Ravi's review.
 
 ## 18. Ravi's asks: traceability (29 Oct 2026, doc 77)
 

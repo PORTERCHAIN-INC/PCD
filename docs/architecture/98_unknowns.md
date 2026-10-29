@@ -103,11 +103,11 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 
 ## L35 (29 Oct 2026, docs 70–76)
 
-- **U-70-1** (lawyer) Pharmacy delivery scope: OTC and non-controlled Rx only, ID + signature; any Ontario College of Pharmacists conditions.
-- **U-72-1** Starting band prices and add-ons (72 §2, §5) are proposals; Ravi approves (D-72-2). Furniture by item class (D-72-3); fuel inside base (D-72-4).
+- **U-70-1** (lawyer) **Pharmacy delivery agreement** (D-70-4 changed: all medicine types incl. controlled substances; 70 §7a). Covers PorterChain as the pharmacy's delivery agent, custody and records, loss/theft notice duties (the pharmacy reports to Health Canada), PHIPA, insurance and audit. Also: confirm OCP/NSAA conditions, and track when CSR SOR/2025-242 comes into force.
+- **U-72-1** D-72-2 PROPOSED rate card in 72 §8 (competitor-checked, margins shown, Kaylulu reprice K1–K5), awaiting Ravi's review. D-72-1/3/4 decided yes 29 Oct 2026.
 - **U-74-1** Shopify reviewer feedback text for the 4 rejections not in the repo; Ravi to paste the latest rejection email so A-SHR tests match it exactly.
 - **U-74-2** Apple/Google rejection notes not in the repo; same request.
 - **U-74-3** WhatsApp business number for click-to-chat (73 §1).
-- **U-75-1** Ravi confirms the new ops nav names (D-75-1).
-- Decisions needing Ravi: D-70-1 one Organisation model (rec. yes), D-70-2 PC id everywhere (yes), D-70-3 shipper+partner orgs (yes), D-70-4 pharmacy scope (yes, lawyer), D-72-1 one pricing engine (yes), D-72-2 prices, D-72-3 furniture by item class (yes), D-72-4 fuel inside base (yes), D-75-1 ops IA (yes).
+- **U-75-1 resolved** D-75-1 decided yes 29 Oct 2026.
+- Decisions (29 Oct 2026): D-70-1/2/3, D-72-1/3/4 and D-75-1 decided yes. D-70-4 decided with changed scope (70 §7a). Still open: **D-72-2** proposed rate card (72 §8).
 - **U78-1..3** Meta App Review timing; whether paid ads run (`lead_capi`); untracked `lead_channel_adapters.py` (doc 78).
