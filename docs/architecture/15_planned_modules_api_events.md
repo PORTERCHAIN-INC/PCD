@@ -7,3 +7,8 @@
 | Events  | add `approval.requested/decided`, `agent.run.*`, `order.temp_reading`, `driver.access_removed_notice`; emit or delete the 4 unused events                                                                                             |
 | Infra   | `event_outbox` (same txn) → DBOS relay → Redpanda single node (Kafka API, L19), 12 `pc.*.v1` topics (see 12); Redis kept only for live GPS hash/GEO/Pub-Sub                                                                           |
 | Remove  | 22 sweeps → workflow timers/consumers; dead modules (11)                                                                                                                                                                              |
+
+## Promotions + public pricing (kept)
+
+- Promotions: admin CRUD + expire, `POST /v1/quotes` applies a code after tiers and before the margin band check (warn-only); promo use emitted on `pc.quotes.v1`.
+- Website calculator, `/rates`, `/quote` and merchant how-we-price read the live rate card through the public quote API (`rate_card_versions`); no prices hard-coded in `website/`.

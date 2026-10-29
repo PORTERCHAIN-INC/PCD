@@ -4,7 +4,7 @@
 | ---- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
 | U-01 | Live DB schema vs migrations (local 55632 not compared for every table)                                      | read-only diff on 55632                   |
 | U-02 | OpenAPI for 20 handlers missing from snapshot                                                                | regenerate offline                        |
-| U-03 | Where the 50 % margin floor is enforced in code                                                              | grep pricing engine; add test             |
+| U-03 | Where the 50 % / 35 % margin bands are computed in code (warn-only)                                          | grep pricing engine; add test             |
 | U-04 | Prod deployment topology beyond compose/Caddy                                                                | ops confirm                               |
 | U-05 | Driver status transitions (no map)                                                                           | define in 17                              |
 | U-06 | Outbox: confirmed absent; event delivery guarantees unknown                                                  | design step 2                             |

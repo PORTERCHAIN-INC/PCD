@@ -28,7 +28,7 @@ flowchart LR
   OB[(event_outbox in Postgres)] -->|DBOS relay| RP{{Redpanda single node, Kafka API, schema registry 28081}}
   subgraph Producers
     OWF[Order workflow DBOS]
-    QSV[Quote service + pricing floor]
+    QSV[Quote service + margin band (warn-only)]
     BWF[Billing workflow DBOS]
     DWF[Dispatch workflow + Dispatch agent]
     DMG[Driver mgmt service + agent]

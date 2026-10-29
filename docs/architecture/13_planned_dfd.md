@@ -5,7 +5,7 @@ flowchart TB
   IN1[WhatsApp msg (P)] --> P1((1 Intake agent))
   IN2[Portal/API/Shopify] --> P1
   P1 --> GATE{Goods gate: TDG/UN3373/controlled/white-glove refused; cooler flag}
-  GATE --> P2((2 Quote: cost model -> floor cost/0.50 -> public price))
+  GATE --> P2((2 Quote: cost model -> margin band green/yellow/red, never blocks -> public price))
   P2 --> SA{Service area: Toronto + 150 km}
   SA --> WF[[Durable order workflow (P)]]
   WF --> P3((3 Dispatch: courier vs box truck))

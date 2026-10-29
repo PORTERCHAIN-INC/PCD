@@ -20,3 +20,7 @@ erDiagram
 ```
 
 Status columns above must be enums with transition maps (rule: no hand-rolled state). `consent_records` may reuse `collaboration_engine/lead_consent.py` storage (U-09).
+
+## Promotions (kept)
+
+`promotions` (as-built `admin_models.py:194`) gains `max_uses`, `uses`, `merchant_scope`, `stackable`, `rate_card_version_id`; `booking_drafts.promo_code` and quotes reference `promotions.code`. Every promo is scored by the margin band (L2 amended; warns, never blocks).

@@ -84,7 +84,7 @@ stateDiagram-v2
   VOID --> [*]
 ```
 
-## 22.4 Credit note (one issuer, A03 fix; `pending_approval` when > $500, L15/L17 case 2)
+## 22.4 Credit note (one issuer, A03 fix; `pending_approval` when > $500, L17 approval case 2)
 
 ```mermaid
 stateDiagram-v2
@@ -115,13 +115,13 @@ stateDiagram-v2
   REMOVED --> [*]
 ```
 
-## 22.6 Quote (17: price >= cost / 0.50 before QUOTE; ACCEPTED exit)
+## 22.6 Quote (17: margin band stored, never blocks; ACCEPTED exit)
 
 ```mermaid
 stateDiagram-v2
   [*] --> DRAFT
-  DRAFT --> QUOTE: margin floor cost / 0.50 passes (L2)
-  DRAFT --> REFUSED: goods gate or outside 150 km (L1, L3)
+  DRAFT --> QUOTE: priced; margin band green/yellow/red recorded (L2 amended, no block)
+  DRAFT --> REFUSED: goods gate or outside 150 km only (L1, L3), never margin
   DRAFT --> CANCELLED
   QUOTE --> QUOTE_EXPIRED: DBOS timer
   QUOTE --> BOOKING_PENDING
