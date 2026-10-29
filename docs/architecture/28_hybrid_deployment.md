@@ -32,7 +32,7 @@ Locked: **L28** hybrid deployment, plus L25 local AI only, L26 no paid services 
 | Redis (sessions cache, live GPS latest-position)         | ✔                                                 | —                                                 | —                                                         | single; GPS is ephemeral (L19)                |
 | Redpanda                                                 | ✔ broker (1 core, 1 GB)                           | consumer only                                     | ✔ MirrorMaker2-style mirror (Redpanda Connect)            | primary + async mirror                        |
 | DBOS workflows (business: order, billing, notifications) | ✔                                                 | —                                                 | —                                                         | DBOS state lives in PG                        |
-| DBOS/LangGraph agent workflows, local LLMs (GPU)         | —                                                 | ✔                                                 | —                                                         | queue when off                                |
+| DBOS + PydanticAI agent workflows, local LLMs (GPU)      | —                                                 | ✔                                                 | —                                                         | queue when off                                |
 | OSRM + Valhalla full (Ontario / truck)                   | —                                                 | ✔ preferred                                       | ✔ GTA+150 km (ARM build)                                  | active-active routing pool                    |
 | Routing last-resort                                      | haversine × 1.35 + `distance_estimated=true` flag | —                                                 | —                                                         | fallback only                                 |
 | Photon geocoder                                          | ✔ (small, existing 700m)                          | ✔ full                                            | —                                                         | —                                             |
@@ -56,7 +56,7 @@ flowchart LR
     DWF[DBOS business workflows] --> DPG
   end
   subgraph H[Ubuntu home - no inbound ports]
-    HAD[admin + super-admin] ; HAG[LangGraph + DBOS agents\nlocal LLMs GPU] ; HR[OSRM + Valhalla full]
+    HAD[admin + super-admin] ; HAG[PydanticAI agents in DBOS\nlocal LLMs GPU] ; HR[OSRM + Valhalla full]
     HPG[(PG replica)] ; HG[(Garage archive)] ; HGT[GlitchTip]
   end
   subgraph O[Oracle Always Free A1 2 OCPU/12 GB]
@@ -111,7 +111,7 @@ flowchart LR
 
 ## 6. Load balancing (all free/self-hosted)
 
-**Honest limit:** Cloudflare free has **no** health-checked load balancer (that is the paid Load Balancing add-on, against L26). So: Cloudflare free DNS + proxy, and **Uptime Kuma on Oracle + a small script** that flips the proxied A record via the free Cloudflare API after 3 failed checks of 30 s (≈90 s + proxy propagation, seconds because records are proxied). A second checker on Ubuntu must agree (2-of-2 quorum) before any flip → avoids flapping when only Oracle's network is bad.
+**Honest limit:** Cloudflare free has **no** health-checked load balancer (that is the paid Load Balancing add-on, against L26). So: Cloudflare free DNS-only (D-PR1; proxy optional later), and **Uptime Kuma on Oracle + a small script** that flips the A record (TTL 60 s) via the free Cloudflare API after 3 failed checks of 30 s (≈90 s detection + 1–5 min DNS propagation, DNS-only). A second checker on Ubuntu must agree (2-of-2 quorum) before any flip → avoids flapping when only Oracle's network is bad.
 
 | Layer        | Tool                                                                                                                 | Health check                                                |
 | ------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -142,7 +142,7 @@ flowchart TB
 
 **Failover / failback steps**
 
-1. Kuma quorum fails droplet → script flips DNS to Oracle → Oracle serves website + portals read-only (merchants still see orders from replica) and queues new bookings to its local outbox table marked `pending_primary`. ⚠ Bookings in read-only mode: decision D-LB1 (accept-and-queue vs "try again" page).
+1. Kuma quorum fails droplet → script flips DNS to Oracle → Oracle serves website + portals read-only (merchants still see orders from replica) and shows a clear "please retry" message on booking and quote screens; no bookings are queued (D-LB1).
 2. If droplet is gone > 30 min: human runs `promote.sh` on Oracle (fence droplet, `pg_promote`, start Keycloak + Redpanda from mirror, API to read-write).
 3. Failback: rebuild droplet from latest image, make it a replica of Oracle, catch up, short write freeze (≤ 2 min), switchover back, flip DNS, Oracle returns to replica.
 
@@ -241,18 +241,18 @@ DO droplet backups (+20%) are optional; pgBackRest already covers data (D-BK2).
 | admin                                            | 0 — **moved** to Ubuntu                                                 |
 | **Total**                                        | **≈ 3.9 GB** → 4 GB + 2 GB swap is tight; **recommend 8 GB**            |
 
-| Option                | Spec                                           | Price (DO list, TOR1, not re-verified this run) |
-| --------------------- | ---------------------------------------------- | ----------------------------------------------- |
-| A minimal             | Basic 2 vCPU / 4 GB / 80 GB                    | ~$24/mo                                         |
-| B recommended         | Basic 4 vCPU / 8 GB / 160 GB                   | ~$48/mo                                         |
-| + optional DO backups | +20%                                           | ~$5–10                                          |
-| Oracle                | A1 2 OCPU / 12 GB / 200 GB block, 10 TB egress | $0                                              |
+| Option        | Spec                                           | Price (DO list, TOR1, not re-verified this run) |
+| ------------- | ---------------------------------------------- | ----------------------------------------------- |
+| A minimal     | Basic 2 vCPU / 4 GB / 80 GB                    | ~$24/mo                                         |
+| B recommended | Basic 4 vCPU / 8 GB / 160 GB                   | ~$48/mo                                         |
+| DO backups    | not used (D-BK2)                               | $0                                              |
+| Oracle        | A1 2 OCPU / 12 GB / 200 GB block, 10 TB egress | $0                                              |
 
 Option A works only if Redpanda and Keycloak stay at the limits above; any spike OOMs. Option B is the honest pick.
 
 **Oracle RAM plan (12 GB):** OSRM GTA+150 MLD ~1.5 GB, Valhalla GTA+150 ~1.5 GB, PG replica 1.5 GB, Redpanda mirror 1 GB, API/web standby 1.2 GB, Keycloak cold standby 0 (starts on promote, 0.6), Kuma 0.2, restic/WG/OS 1 GB → ~8 GB used, steady load keeps it above Oracle's idle thresholds.
 
-**Ubuntu RAM target:** OSRM Ontario 5 GB + Valhalla Ontario/truck 4 GB + Photon 2 GB + PG replica 2 GB + Garage 1 GB + agents/LangGraph/DBOS 3 GB + LLM host side (CPU offload, embeddings) 6 GB + admin 1 GB + OS/dev 4 GB ≈ 28 GB → **32 GB minimum, 64 GB recommended** (fine-tuning + full Canada extracts). Today: 15 GB.
+**Ubuntu RAM target:** OSRM Ontario 5 GB + Valhalla Ontario/truck 4 GB + Photon 2 GB + PG replica 2 GB + Garage 1 GB + agents/PydanticAI/DBOS + Langfuse 2 GB 3 GB + LLM host side (CPU offload, embeddings) 6 GB + admin 1 GB + OS/dev 4 GB ≈ 28 GB → **32 GB minimum, 64 GB recommended** (fine-tuning + full Canada extracts). Today: 15 GB.
 
 ## 12. Oracle Always Free — verified limits (✔ fetched 2026-10-28, docs.oracle.com freetier_topic-Always_Free_Resources)
 
@@ -287,15 +287,17 @@ Option A works only if Redpanda and Keycloak stay at the limits above; any spike
 5. Drill D: split network (droplet ↔ oracle cut, both alive) → no DNS flip (quorum fails), no promotion.
 6. Pass bar: zero lost orders, zero double primaries, RTO within table §10. Repeat quarterly on prod after pilot.
 
-## 16. Decisions needed
+## 16. Decisions (Ravi, 28 Oct 2026)
 
-- **D-SZ1** droplet 8 GB (~$48) vs 4 GB (~$24, tight).
-- **D-LB1** in read-only failover: accept-and-queue bookings vs "please retry".
-- **D-PR1** Cloudflare proxied (orange) vs DNS-only (failover slower, ~5 min TTL).
-- **D-BK1** monthly offline USB copy of the 6-year archive.
-- **D-BK2** skip DO backups (pgBackRest covers) or add +20%.
-- **D-RAM** Ubuntu to 32 GB now, 64 GB before fine-tuning.
-- **D-OCI** create Oracle account with home region Toronto (Ravi must sign up; card verification required by Oracle, not charged).
+| ID    | Decision                                                                                                | Effect                                                                                                                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-SZ1 | **Droplet 8 GB** (Basic 4 vCPU / 8 GB / 160 GB, about $48/mo)                                           | Option B in §11; 4 GB is dropped                                                                                                                                  |
+| D-LB1 | **"Please retry" during failover; no queued bookings**                                                  | Oracle read-only mode shows a clear bilingual message ("Booking is paused for a few minutes, please retry") on booking/quote screens; no `pending_primary` outbox |
+| D-PR1 | **Cloudflare DNS-only (grey cloud)**, final for now; the proxy can be enabled later for DDoS protection | Failover = DNS flip with TTL 60 s, so allow about 1–5 min for resolvers; Caddy on each node terminates TLS                                                        |
+| D-BK1 | **Monthly offline USB copy** of the encrypted archive                                                   | Added to the backup calendar (§10, doc 35)                                                                                                                        |
+| D-BK2 | **No paid DigitalOcean backups**                                                                        | pgBackRest + restic to Ubuntu/Oracle + USB cover it; the "+20%" line in §11 is dropped                                                                            |
+| D-RAM | **Ubuntu 32 GB now, 64 GB before fine-tuning** (week 10 QLoRA)                                          | §11 Ubuntu budget planned at 32 GB                                                                                                                                |
+| D-OCI | Oracle signup with home region Toronto (ca-toronto-1)                                                   | **Still Ravi's action** (card verification by Oracle, not charged)                                                                                                |
 
 ## Unknowns (also in 98)
 

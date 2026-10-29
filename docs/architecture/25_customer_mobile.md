@@ -89,7 +89,7 @@ Versions ✔: **Expo SDK 58** (RN **0.88**, React **19.3**, built for iOS 27, sc
 | C8  | **Apple Wallet / Google Wallet** delivery pass (tracking number, window, OTP) updated by push                                       | one-tap handoff code                  | M      | 11    | Low                                   | ok                            |
 | C9  | **WhatsApp** booking + status flow (Cloud API, template messages, opt-in)                                                           | book without app                      | M      | 9     | Med (Meta templates; $50 cap)         | spend cap L                   |
 | C10 | Offline-first: TanStack Query persisted cache + **op-sqlite**                                                                       | Activity/receipts readable offline    | S      | 6     | Low                                   | ok                            |
-| C11 | Customer support copilot (LangGraph, local model) with human handoff                                                                | instant answers, 99 % bar measured    | M      | 12    | Med                                   | LangGraph + autonomy bar      |
+| C11 | Customer support copilot (PydanticAI, local model) with human handoff                                                               | instant answers, 99 % bar measured    | M      | 12    | Med                                   | LangGraph + autonomy bar      |
 | C12 | **Accessibility**: Dynamic Type, VoiceOver/TalkBack labels, contrast, FR/EN                                                         | AODA + Ontario French customers       | S      | 5     | Low                                   | AODA (doc 19)                 |
 | C13 | Receipts with HST line, PIPEDA export/delete already present → surface in Account                                                   | tax + privacy                         | S      | 5     | Low                                   | ok                            |
 | C14 | Tests: Maestro P0 suite (book, pay, track, deep link) + vitest ≥ 60 %                                                               | release safety                        | S      | 6     | Low                                   | ok                            |
@@ -98,7 +98,7 @@ Versions ✔: **Expo SDK 58** (RN **0.88**, React **19.3**, built for iOS 27, sc
 
 ```mermaid
 flowchart TD
-  SI[Sign in - passkey / Clerk] --> R{Expo Router tabs}
+  SI[Sign in - Keycloak passkey] --> R{Expo Router tabs}
   R --> HO[Home] & BK[Book] & AC[Activity] & AL[Alerts] & ACC[Account + receipts + privacy]
   BK --> PAY[[Checkout]] --> TR[Track live map]
   TR --> LA[Live Activity / Android Live Update]

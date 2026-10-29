@@ -10,7 +10,7 @@ sequenceDiagram
   participant PG as Postgres (business rows + event_outbox)
   participant REL as DBOS relay workflow
   participant RP as Redpanda 127.0.0.1:29092
-  participant CON as Consumer (DBOS workflow / LangGraph agent)
+  participant CON as Consumer (DBOS workflow / PydanticAI agent step)
   participant DLQ as pc.dlq.v1
   SVC->>PG: one transaction: state change + INSERT event_outbox
   REL->>PG: SELECT unrelayed rows FOR UPDATE SKIP LOCKED
@@ -37,7 +37,7 @@ flowchart LR
     WAH[POST /v1/webhooks/whatsapp]
     NEN[notification_engine after CASL check]
     APV[GET/POST /v1/admin/approvals]
-    LGR[LangGraph runtime]
+    LGR[PydanticAI agents in DBOS]
     ANY[Any consumer after retries]
   end
   OWF --> T1[pc.orders.v1]

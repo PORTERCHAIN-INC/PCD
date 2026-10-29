@@ -52,3 +52,27 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 ## Added Oct 28, 2026 (deployment)
 
 - `28_hybrid_deployment.md` — L28 droplet + Ubuntu + Oracle Always Free: placement, WireGuard mesh, data ownership, load balancing/failover, Ubuntu-off and Oracle-off tables, sizing/cost, PIPEDA, failover drill.
+
+## Operations and coverage docs (29–39, 46–55)
+
+- `29_coverage_matrix.md`: every repo item with its as-built ref, plan ref and status
+- `30_operational_readiness.md`: the operational areas O1–O22, with the doc for each
+- `31_sweep_processor_mapping.md`: 22 sweeps + 5 processors → DBOS / Kafka
+- `32_script_triage_ci_lanes.md`: 229 scripts triaged; CI lanes for droplet, Ubuntu, Oracle, EAS, Shopify
+- `33_item_decisions.md`: tables, routers, pages
+- `34_data_migration_cutover.md`: Clerk → Keycloak, passkey re-enrolment, dual-run, rollback
+- `35_backups_dr.md`: RPO/RTO, 3-2-1, USB monthly
+- `36_monitoring_alerts.md`
+- `37_secrets.md`: SOPS replaces Doppler
+- `38_security.md`
+- `39_incident_response.md`: PIPEDA breach steps
+- `48_merchant_onboarding_offboarding.md`
+- `49_legal_documents.md`: for lawyer review
+- `50_mobile_release_store.md`
+- `51_shopify_review.md`
+- `52_runbooks.md`
+- `53_accessibility_french.md`
+- `54_support_sops_training.md`
+- `55_remaining_item_decisions.md`
+
+(40–45 are the UI/UX and backend docs from other commits.)

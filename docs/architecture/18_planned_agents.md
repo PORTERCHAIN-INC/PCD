@@ -4,7 +4,7 @@
 flowchart TB
   G[Goal agent] --> O[Orchestration agent] --> TK[Task agent]
   TK --> D1[Sales/CRM] & D2[Dispatch] & D3[Cooler/box truck] & D4[Billing/HST] & D5[Support/WhatsApp] & D6[Driver mgmt] & D7[Platform]
-  D1 & D2 & D3 & D4 & D5 & D6 & D7 --> CK[(LangGraph Postgres checkpointer)]
+  D1 & D2 & D3 & D4 & D5 & D6 & D7 --> CK[(DBOS workflow state in Postgres — sole durable store, L14 rev.)]
   D1 & D2 & D3 & D4 & D5 & D6 & D7 -.-> APR{{6 human approval cases}}
 ```
 

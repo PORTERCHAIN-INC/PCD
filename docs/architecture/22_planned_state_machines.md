@@ -1,6 +1,6 @@
 # 22 — PLANNED state machines (Phase 1)
 
-Sources: 17 (planned states), 12/15/21, strict plan locked decisions L1–L24. **(P)** = not in code today. All transitions run inside DBOS workflows (L18); agents (LangGraph, L14) may only request transitions, never write status columns. Enums + transition maps live in `domain/states.py` (21 step 3).
+Sources: 17 (planned states), 12/15/21, strict plan locked decisions L1–L24. **(P)** = not in code today. All transitions run inside DBOS workflows (L18); agents (PydanticAI inside DBOS steps, L14 revised 28 Oct 2026) may only request transitions, never write status columns. Enums + transition maps live in `domain/states.py` (21 step 3).
 
 ## 22.1 Order (17: remove `DELIVERED → FAILED`; add `CLOSED → CLAIM_OPEN` ≤ 60 d)
 

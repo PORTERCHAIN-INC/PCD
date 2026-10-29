@@ -44,7 +44,7 @@ Verdict: 6 GB is enough for shadow/suggest-rung agents and classification in Pha
 
 ```mermaid
 flowchart LR
-  A[LangGraph node] --> R{Router Qwen3.5-0.8B}
+  A[PydanticAI agent in DBOS step] --> R{Router Qwen3.5-0.8B}
   R -->|classify / extract| S[Small path: 0.8B]
   R -->|plan / tool use / reply| M[Qwen3.5-4B + PorterChain LoRA]
   M --> G[Grammar / JSON Schema constrained decode]
@@ -146,3 +146,7 @@ flowchart LR
 - Meta rules checked (developers.facebook.com WhatsApp pricing): since **1 Oct 2026** Cloud API service messages are no longer unlimited-free: **1,000 free service messages per business number per month**, only inside the 24-hour customer service window opened by the customer; user→business messages are free; templates are charged; free entry-point window only from click-to-WhatsApp ads. With **no payment method**, Meta stops delivering after the free 1,000. => Listed as an optional **free-capped option** (Cloud API, customer-initiated, 24 h window, max 1,000/month, no card on file) — Ravi decision, not in the plan by default.
 - **Not allowed:** whatsapp-web.js, Baileys, WAHA, Evolution (Baileys mode), Green API, Whapi — unofficial clients break WhatsApp Terms (no automated/bulk/non-personal use without authorization) and the number can be banned. Never used.
 - CASL/PIPEDA: customer-initiated chat = implied consent for that transaction's replies only; no promotional messages without express consent recorded in `lead_consent` (source `whatsapp`, timestamp, staff id, wording); unsubscribe honoured; pasted chats are personal info: stored only as the extracted order + hash of the source, raw paste deleted after 30 days, access by role.
+
+## L14 revision (Ravi, 28 Oct 2026)
+
+Agents run on **PydanticAI inside DBOS workflows**. DBOS is the only durable store (no LangGraph checkpointer). **DSPy is offline only**, for prompt/program optimization against golden sets; compiled prompts are versioned and loaded at runtime. **Self-hosted Langfuse on Ubuntu** (~2 GB RAM) handles traces and evals. Langfuse cloud isn't used (L26).

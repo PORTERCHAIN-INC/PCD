@@ -84,7 +84,7 @@ Versions ✔: **Expo SDK 58 / RN 0.88 / React 19.3** (expo.dev/changelog/sdk-58)
 | D1  | **Tamper-evident POD**: SHA-256 over photo+signature+GPS+time+device, signed, stored 6 y                                                        | claims-proof evidence          | S      | 2     | Low                                                                                                      | 6-year rule (audit fix)               |
 | D2  | **Auto POD verification via vision** (local model: parcel visible, doorway, not blurry, label OCR matches) → yellow flag to admin, never blocks | fewer disputes                 | M      | 9–10  | Med (model accuracy)                                                                                     | LangGraph node; local model, $100 cap |
 | D3  | **DPWRA pay statement** per period + per job (distance, time, rate, tips, deductions)                                                           | Ontario law                    | S      | 4     | Low (lawyer review wk 6)                                                                                 | doc 20                                |
-| D4  | **Driver copilot voice** (push-to-talk → local STT → LangGraph tools: "next stop", "report damage", "call customer")                            | hands-free, safer              | L      | 11–12 | **Med–High**: needs mic (now blocked), HTA distracted-driving rules — voice only, no screen while moving | LangGraph; unblock `RECORD_AUDIO`     |
+| D4  | **Driver copilot voice** (push-to-talk → local STT → PydanticAI tools: "next stop", "report damage", "call customer")                           | hands-free, safer              | L      | 11–12 | **Med–High**: needs mic (now blocked), HTA distracted-driving rules — voice only, no screen while moving | LangGraph; unblock `RECORD_AUDIO`     |
 | D5  | **Smart re-routing**: Valhalla 3.9.1 (truck costing for box truck) + live traffic, DBOS workflow re-sequences on delay/cancel                   | fewer late stops               | M      | 8     | Med                                                                                                      | Valhalla week 4 (tech review)         |
 | D6  | **ETA prediction** shared model with customer app                                                                                               | accurate customer ETA          | M      | 10–11 | Med                                                                                                      | —                                     |
 | D7  | Adaptive GPS (moving/idle/stop-near), **geofence auto-arrive**                                                                                  | battery + exact arrival time   | S      | 5     | Low                                                                                                      | GPS stays Redis                       |
@@ -124,7 +124,7 @@ flowchart LR
   VZ -- flag --> ADM[Admin yellow/red]
   BG[Adaptive GPS + geofence] --> API --> RD[(Redis GPS)]
   BLE[[Cooler BLE sensor]] --> APP
-  APP -- voice --> CP[LangGraph copilot]
+  APP -- voice --> CP[PydanticAI copilot]
 ```
 
 ### Mermaid — PLANNED stop state

@@ -1,6 +1,6 @@
 # 12 — PLANNED Phase 1: context + containers
 
-Source of decisions: strict plan canvas (L1–L24). **(P)** = not in code today. L18: DBOS + LangGraph. L19: Kafka API via single-node Redpanda + transactional outbox. L20: all 22 sweeps replaced in weeks 6–7. L24: schedule 14 + 8.
+Source of decisions: strict plan canvas (L1–L24). **(P)** = not in code today. L18 + L14 rev.: DBOS + PydanticAI agents inside DBOS. L19: Kafka API via single-node Redpanda + transactional outbox. L20: all 22 sweeps replaced in weeks 6–7. L24: schedule 14 + 8.
 
 ```mermaid
 flowchart LR
@@ -19,11 +19,11 @@ flowchart LR
 ```mermaid
 flowchart TB
   CADDY[Caddy] --> API[FastAPI api]
-  API --> PG[(Postgres: app + event_outbox + LangGraph checkpointer + DBOS system tables)]
+  API --> PG[(Postgres: app + event_outbox + DBOS system tables (sole durable store, L14 rev.))]
   PG -->|outbox relay - DBOS workflow (P)| KF[(Redpanda single node, Kafka API, KRaft-style no ZooKeeper (P, L19) - local 127.0.0.1:29092)]
   KF --> WRK2[Kafka consumers: DBOS workflows, agents, notifications (P)]
   API -->|live GPS only| RG[(Redis: gps:last hash + gps:geo + Pub/Sub porterchain:ops:live)]
-  AG[Agent runtime - LangGraph (P, L14)] --> PG
+  AG[Agent runtime - PydanticAI in DBOS (P, L14 rev.)] --> PG
   AG --> KF
   WF[Durable order/billing workflows + all former sweeps - DBOS (P, L18, L20)] --> PG
   API --> SDB[(SpiceDB)]

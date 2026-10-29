@@ -1,6 +1,6 @@
 # 43 — Agent framework decision (late-2026, local-only models)
 
-Status: **RECOMMENDATION — differs from locked L14 (LangGraph). Decision D43-1 for Ravi.**
+Status: **DECIDED by Ravi 28 Oct 2026: L14 revised to PydanticAI inside DBOS (DBOS sole durable store); DSPy offline only; self-hosted Langfuse on Ubuntu (~2 GB).**
 Rules applied: L25 (no paid AI), L26 (free only), DBOS locked, Redpanda locked, verifier-first (doc 27).
 Versions verified 28 Oct 2026 (PyPI / GitHub releases / vendor docs). Rows marked † are from a third-party tracker (agentatlas.dev, followagents.com), not the vendor page.
 
