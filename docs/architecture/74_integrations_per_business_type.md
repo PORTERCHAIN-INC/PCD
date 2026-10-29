@@ -46,7 +46,7 @@ EDI-lite = fixed-column CSV (orders in, status out) over SFTP or email attachmen
 - **Sandbox:** every org gets a sandbox twin (`env=sandbox`) like PCDC; same API, fake dispatch, test labels watermarked "TEST".
 - **Idempotency:** `Idempotency-Key` header required on POST; 24 h replay returns the same response; plus natural key `(org_id, ref_type, ref_value)` upsert (doc 70 §3).
 - **Reference mapping:** every request may carry `external_refs: [{type:"order", value:"#1043"}, {type:"sku", value:"SOFA-3"}]`; every response, webhook and tracking lookup returns both `id: "PC-2611-7K3QX9"` and their refs. `GET /v1/orders?ref=#1043` works.
-- **Webhooks:** events `order.created`, `order.picked_up`, `order.out_for_delivery`, `order.delivered`, `order.failed`, `label.ready`, `invoice.issued`, `partner_job.offered`, `claim.opened`, `payout.sent` (doc 81 §2); signed `PC-Signature: t=…,v1=HMAC-SHA256(secret, t.body)`, 5-min tolerance, retries 24 h exp. backoff, delivery log in portal, replay button.
+- **Webhooks:** events `order.created`, `order.picked_up`, `order.out_for_delivery`, `order.delivered`, `order.failed`, `label.ready`, `invoice.issued`, `partner_job.offered`, `order.price_changed, claim.opened`, `payout.sent` (doc 81 §2); signed `PC-Signature: t=…,v1=HMAC-SHA256(secret, t.body)`, 5-min tolerance, retries 24 h exp. backoff, delivery log in portal, replay button.
 - **Versioning:** URL major `/v1`, dated minor header `PC-API-Version: 2026-11-01`; 12-month deprecation notice.
 - **Errors:** RFC 9457 problem+json with plain-language `detail` and a `fix` field.
 

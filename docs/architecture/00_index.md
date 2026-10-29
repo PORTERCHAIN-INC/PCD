@@ -117,3 +117,4 @@ Mermaid blocks in 70, 71, 73, 75 rendered to SVG (mermaid-cli, agent box) in `re
 
 - `80_vehicle_compliance.md`: Ontario vehicle compliance for our reality (own phones, Civic, rentals): DVIR, phone HOS log, vehicle record, weight block, offline queue, POD → invoice; A-VC tests
 - `81_order_lifecycle_by_business_type.md`: 14-stage order lifecycle per business type on existing endpoints, API layers, 6 Mermaid blocks rendered to `rendered_l35/81_*.svg` (0 syntax errors); A-LC tests
+- `82_guided_job_flows.md`: server-driven driver wizards per job type (EN/FR, AODA, offline), one driver persona on web and mobile (repo diff + merge plan), driver data secrecy (SpiceDB), Shopify and customer guidance, interim decisions; A-GF/A-PAR tests; Mermaid rendered to `rendered_l35/82_0.svg`

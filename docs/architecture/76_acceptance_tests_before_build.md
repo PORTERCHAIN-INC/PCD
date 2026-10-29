@@ -1,4 +1,4 @@
-# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC and §17 A-LC inside G19)
+# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC, §17 A-LC and §18 A-GF/A-PAR and §19 A-PRA inside G19)
 
 Written before code. Each scenario becomes a pytest-bdd / Playwright / Maestro test with the ID below; all run against a sandbox org (PCDC-like) and never touch live data. Gate **G19** = all A-* scenarios green; **G20** = Shopify review-readiness (§10); **G21** = mobile review-readiness (§11). Order follows build order.
 
@@ -122,3 +122,40 @@ A-FIN-01..12 as listed in 79 §8: EBITDA top-down = bottom-up to the cent; no HS
 - **A-LC-05:** each stage emits the internal event and the public webhook named in 81 §2 (`order.created`, `order.picked_up`, `order.out_for_delivery`, `order.delivered`, `order.failed`, `invoice.issued`, `partner_job.offered`, `claim.opened`, `payout.sent`), signed per doc 74 §4.
 - **A-LC-06:** a noted POD opens a claim with the 60-day notice deadline, and the claim pack contains POD, photos, BOL (if any), seal and weights.
 - **A-LC-07:** a CHA order stores the CAD, CCI and COO refs and makes no outbound CARM call.
+
+## 18. Guided job flows and driver parity (A-GF, A-PAR, inside G19, doc 82)
+
+- **A-GF-01:** a parcel order's flow spec has no ID, seal or temperature step; a pharmacy order's spec always has seal, ID and signature steps (generated from required_documents and packs).
+- **A-GF-02:** every capture in an order's required-documents list appears in the spec, and no step appears that the list or a pack does not ask for (all 7 delivery types and 4 pickup modes).
+- **A-GF-03:** a broken or mismatched seal blocks the pharmacy drop and creates a same-day return task; the driver cannot hold the package overnight.
+- **A-GF-04:** a temperature reading outside 2–8 °C blocks a silent drop and raises an excursion report.
+- **A-GF-05:** 2-person furniture cannot start without the second driver checked in and the before photos taken; B2B dock cannot close when C1 fires without a signed BOL, or when a count is short without an OS&D note.
+- **A-GF-06:** in airplane mode a whole pharmacy wizard completes offline from the cached spec; captures sync once with no duplicates, and the seal check is verified again on the server.
+- **A-GF-07:** every card shows in EN and FR (no missing keys) and passes axe/WCAG 2.0 AA checks: labels on icons, 44 px targets, large text.
+- **A-GF-08 (secrecy):** the driver job payload has no price, rate card, contract, volume or other-customer fields (SpiceDB check denies them server-side). The address and contact return 403 two hours after completion. There is no export action, each contact view writes an audit row, and the watermark is shown.
+- **A-GF-09 (Shopify):** the in-admin setup finishes in 5 steps with no login screen (session token). The order page shows the packing guidance for the business type, and a bakery order shows no BOL.
+- **A-GF-10 (customer):** the reviewer demo account shows the "what to prepare" card for pharmacy (ID or named agent), signature, and furniture (elevator).
+- **A-PAR-01:** the same flow spec gives the same step ids, captures, blocking results and copy keys on driver web and mobile (shared `@porterchain/driver-flows` fixtures).
+- **A-PAR-02:** both apps use the one `@porterchain/queue` offline queue; `driver-portal/src/lib/offline-queue.ts` no longer exists.
+- **A-PAR-03:** both apps expose the same five areas (Today, Job, Pay, Inbox/Help, Me) and French; the web-only `impersonate` page is reachable only with the ops role.
+- **A-PAR-04:** the pharmacy subtype accepts no live order while its Phase 1 flag is off; the sandbox pharmacy wizard passes A-GF-01 to A-GF-06.
+
+## 19. Pricing admin (A-PRA, inside G19, doc 72 §9, doc 75 §4)
+
+- **A-PRA-01:** Standard v1 prices XS $17 / $32 / $47 (Z1/Z2/Z3), and every band's Z2/Z3 is +$15/+$30.
+- **A-PRA-02:** publishing a Standard draft needs owner; finance, dispatcher, support and sales get 403 (SpiceDB). Published versions cannot be edited.
+- **A-PRA-03:** the preview reports counts and changes without writing anything. After publishing, a quote issued 1 h earlier keeps its price and version until it expires (72 h). New quotes use the new version from `effective_from`.
+- **A-PRA-04:** an org set to Custom with a −40 % override is rejected (outside the min/max). A red-margin override saves only with a reason. Expiry falls back to Standard, and the alert goes out 14 days before.
+- **A-PRA-05:** Kaylulu is Custom on `contract-kaylulu-2026-09` with a contract link, and K1–K5 still price to the cent (A-PR-08).
+- **A-PRA-06:** a dispatcher can lower an order by ≤ 10 % / $25; a larger change becomes an owner request. Finance is capped at ±25 % / $100. Every change writes before/after, actor and reason to the audit log.
+- **A-PRA-07:** an increase after acceptance sets `consent_required`, charges nothing until the payer accepts, and keeps the original price on decline. A decrease after payment issues a refund or credit and a notification. `order.price_changed` fires each time.
+- **A-PRA-08:** after any adjustment, HST is recomputed on its own line and the total equals the sum of the lines (no drip).
+- **A-PRA-09:** a new org is on Standard with no setup. Only the owner can switch it to Custom. Presets −8 % plus −$2/stop plus "S Z1 = $16" give the preview prices, which equal the saved card's quotes to the cent.
+- **A-PRA-10:** "send quote now" creates a 72 h quote pinned to the custom card version, emails it and shows it in the portal. A merchant quote request appears in the admin screen.
+- **A-PRA-11 (one engine, identical price):** for the same custom merchant, parcel and lanes, the price is identical to the cent in all of these:
+  - the Shopify carrier-calculated rate;
+  - the Shopify flat-rate fallback (callback forced to time out);
+  - `POST /v1/quotes`, the merchant portal and the merchant-api;
+  - the invoice line after POD.
+    Every price comes from `get_pricing_service`, and the invoice does not re-price.
+- **A-PRA-12:** after a custom card change, the Shopify delivery-profile fallback rates are rewritten within 5 minutes and match the engine.

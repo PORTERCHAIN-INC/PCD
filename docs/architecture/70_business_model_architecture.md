@@ -3,6 +3,8 @@
 Status: plan (docs only). D-70-1, D-70-2 and D-70-3 decided yes by Ravi on 29 Oct 2026. D-70-4 decided by Ravi on 29 Oct 2026 with a changed scope (all medicine types, §7a).
 Order of design and build: Shopify merchant → warehouse/3PL/storage → small local shop → courier partner → logistics partner → supply chain → import/export / customs broker (CHA) → retail customer.
 
+**Phase placement (interim, doc 82 §0; Ravi has not answered the card yet, so the recommendations are used):** the pilot is **Shopify merchants + local shops** (Phase 0). **Pharmacy is the first Phase 1 niche:** its pack (C5 custody, C10 ID, cold chain, §7a) is **designed and tested in Phase 0 and live in Phase 1**. There are **no heavy trucks until we hold a CVOR**. Customs, ports, rail and air cover **released goods only**. **Partners join in Phase 1**, and only with insurance certificates on file. Profile architecture = organisation + business type + operating profile + compliance packs + credentials. Warehouse, supply chain and CHA are modelled in Phase 0 but are not pilot types.
+
 ## 1. Problem (evidence, 29 Oct 2026)
 
 - The code models two personas: `merchants` (+ 12 `merchant_*` tables: `merchant_users`, `merchant_api_keys`, `merchant_webhooks`, `merchant_webhook_deliveries`, `merchant_contracts`, `merchant_documents`, `merchant_recipients`, `merchant_booking_templates`, `merchant_merges`, `merchant_alerts`, `merchant_audit_logs`, `merchant_api_usage_logs`) and `customers` (+ `customer_addresses`, `customer_consents`, `customer_credits`, `customer_notes`). `merchant_models.py` alone has 242 column definitions.

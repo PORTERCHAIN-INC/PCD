@@ -62,3 +62,24 @@ Roles (SpiceDB `platform`): `owner` (Ravi, all), `dispatcher` (Today, Orders, Di
 | /activate-staff, /sign-in                                                         | unchanged (Keycloak)                                                        |
 
 Build: Phase 0 weeks 8–9 with the doc 60 §9 dispatch redesign; old routes 308-redirect for one release; Playwright checks every old URL lands on its new place (76 §12).
+
+## 4. Pricing admin screens (doc 72 §9)
+
+- **Settings → Pricing**
+  - The **Rate cards** list shows Standard, the business-type cards and the custom cards, each with its current version, effective date and owner.
+  - The **Card editor** has tabs for Bands × zones (grid with the Z1/Z2/Z3 columns and a margin colour chip per cell), Add-ons, Furniture classes and B2B fees.
+  - The editor's top bar reads "Draft v4 of Standard · effective from [date picker] · Preview impact · Publish". Only the owner sees Publish.
+  - **Preview impact** opens a side panel: orders and open quotes re-priced (count, average/max change, colour changes per band). It also notes "Quotes already issued keep their price until they expire (72 h)".
+  - The **History** tab lists versions and offers diff and rollback. The **Audit** tab is a filterable log.
+- **Customers & Orgs → Organisation profile → Pricing tab** (one screen)
+  - The header reads "Pricing: **PorterChain Standard** (default)", with a "Switch to Custom" button (owner only).
+  - Custom shows three preset rows: "% on all lines [−8 %]", "Per stop [−$2.00]", and "Band override [S · Z1 · $16]" (add more).
+  - Beside them, a **live preview** table (band/route, Standard, Custom, HST, margin chip) updates as you type. A red chip opens a required "Reason" field.
+  - Below: effective/expiry dates, the contract link picker, and **Send quote now** (72 h quote PDF to the merchant). A link reads "Advanced: full custom card / per-line overrides".
+  - Kaylulu shows "Custom · contract card contract-kaylulu-2026-09".
+  - A **Quote requests** badge shows merchant requests waiting for "Send quote now".
+- **Orders → order detail → Price**
+  - An "Adjust price" button opens a dialog: new amount or %, a reason list plus text, and a live HST recompute.
+  - The dialog shows the caller's limit ("You can change up to ±10 %, max $25"). After acceptance an increase shows "Customer must accept; nothing is charged until they do".
+  - The timeline records every change.
+- **Role rules** follow 72 §9.4 and are enforced by SpiceDB on the API. The UI only hides the buttons.

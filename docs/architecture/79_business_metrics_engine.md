@@ -252,4 +252,4 @@ Contribution margin per stop, route, order and org. Also: cost per stop, cost pe
 1. Confirm the assumptions: WACC 18 %, software life 3 years (or 5), Civic 5 years to $7,000, fuel $1.50/L, cash fixed about $430/month.
 2. Your accountant confirms the CCA classes (12 vs 50 for the build; class 10 for the Civic).
 3. Insurance cost is unknown (G-INS) and will raise every break-even.
-4. At the proposed prices, a 12-stop route of S parcels is yellow (49.8 %). You can accept that, or raise density (16 stops = green) or the B2B S price (doc 72 D-72-2).
+4. At the approved prices (D-72-2), a 12-stop route of S parcels is yellow (49.8 %). You can accept that, or raise density (16 stops = green) or the B2B S price (doc 72 D-72-2).
