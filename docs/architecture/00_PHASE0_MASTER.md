@@ -251,8 +251,8 @@ Engineering gates are measured in CI (60 §2). Traceability of every Ravi ask is
    - B2B cancellation clause.
 3. **Kaylulu:** pilot start date and expected daily volume. Also their Shopify plan (carrier-calculated rates need Advanced/Plus or the add-on).
 4. **Accountant:** chart of accounts and the HST/CRA records setup (79), the T4A process for contractors, and the DSO target.
-5. **WhatsApp:** the business number for the free WhatsApp Business app (L27).
-6. **Social keys:** Meta (Facebook/Instagram) and YouTube app credentials for Leads (78), held in SOPS and never in docs.
+5. ~~**WhatsApp:** the business number~~ **Done (Ravi, 29 Oct):** +1 647 619 7951, `wa.me/16476197951` (public; used in 73, 78).
+6. **Social keys:** Meta (Facebook/Instagram) and YouTube app credentials for Leads (78), held in SOPS and never in docs. **Deferred by Ravi to the end** (not needed now).
 7. **Repo and code go-ahead:** approval to start Phase 0 code changes (weeks count from it), plus the one-time CI runner token.
 
 ## 14. Risks

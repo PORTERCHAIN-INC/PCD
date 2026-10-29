@@ -140,7 +140,7 @@ flowchart LR
 
 ## L27 WhatsApp: free only (verified 28 Oct 2026)
 
-- Channel: free **WhatsApp Business app** on one company phone (no API, no Meta billing). `wa.me/<number>?text=<prefilled order template>` links and QR codes on website, customer/merchant portals, Shopify app, invoices and labels.
+- Channel: free **WhatsApp Business app** on one company phone (no API, no Meta billing). `wa.me/16476197951?text=<prefilled order template>` links and QR codes on website, customer/merchant portals, Shopify app, invoices and labels.
 - Agents: WhatsApp concierge (13) becomes **WhatsApp intake + reply drafter**. Staff copy/forward a chat (or export chat .txt) into the admin "WhatsApp inbox" paste box / share sheet; 0.8B classifies, 4B extracts an order draft (schema-validated, zone/goods/price rules from T0). Agent drafts the reply; **a human sends it from the app**. Booking is created only after the verifier passes and staff confirm.
 - Status updates go by free channels: web push, email (ZeptoMail), live tracking link. No outbound WhatsApp automation.
 - Meta rules checked (developers.facebook.com WhatsApp pricing): since **1 Oct 2026** Cloud API service messages are no longer unlimited-free: **1,000 free service messages per business number per month**, only inside the 24-hour customer service window opened by the customer; user→business messages are free; templates are charged; free entry-point window only from click-to-WhatsApp ads. With **no payment method**, Meta stops delivering after the free 1,000. => Listed as an optional **free-capped option** (Cloud API, customer-initiated, 24 h window, max 1,000/month, no card on file) — **Decided L30-7: not now.**

@@ -4,7 +4,7 @@ Today: `support_tickets` (`admin_models.py:130-151`) has free-text `status`/`pri
 
 ## 1. Contact channels (all free)
 
-Help centre `porterchain.com/help` (doc 68) with search → "Still stuck?" ticket form (pre-filled org, order, page) · email `support@porterchain.com` (email-to-ticket) · WhatsApp click-to-chat `wa.me/<business number>` (free link, no API cost; Ravi replies from WhatsApp Business app, logs ticket with one tap from the ops console) · in-app "Get help" on every order (portal, iOS, Android, Shopify embed) · partner portal "Report a problem". Phone: voicemail-to-ticket only in Phase 0.
+Help centre `porterchain.com/help` (doc 68) with search → "Still stuck?" ticket form (pre-filled org, order, page) · email `support@porterchain.com` (email-to-ticket) · WhatsApp click-to-chat +1 647 619 7951 (`wa.me/16476197951`) (free link, no API cost; Ravi replies from WhatsApp Business app, logs ticket with one tap from the ops console) · in-app "Get help" on every order (portal, iOS, Android, Shopify embed) · partner portal "Report a problem". Phone: voicemail-to-ticket only in Phase 0.
 
 ## 2. Categories, priorities, targets (published as **targets**, not guarantees, D-68-4)
 
