@@ -1,4 +1,4 @@
-# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN inside G19)
+# 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN and §14 A-DOC inside G19)
 
 Written before code. Each scenario becomes a pytest-bdd / Playwright / Maestro test with the ID below; all run against a sandbox org (PCDC-like) and never touch live data. Gate **G19** = all A-* scenarios green; **G20** = Shopify review-readiness (§10); **G21** = mobile review-readiness (§11). Order follows build order.
 
@@ -79,3 +79,13 @@ A-OPS-01 every old route in 75 §3 redirects to its new place · A-OPS-02 role `
 ## 13. Business metrics (A-FIN, inside G19, doc 79 §8)
 
 A-FIN-01..12 as listed in 79 §8: EBITDA top-down = bottom-up to the cent; no HST in revenue or cost; 3PL 1.5M / 15 %; AS/RS ROI −70 %, simple return 30 %, payback 3.33 yr; NOPAT 280k / ROIC 14 % / EVA +80k; $77k baseline D&A $19,666.67 and EVA break-even 19.1 stops/day; GTA route contribution $96.75 (49.8 % yellow); Kingman alert at ρ > 0.85; SS 177.7 and EOQ 1,510.4; CCC from seeded invoices and payouts; margin colours same as 72; concurrent MV refresh.
+
+## 14. Documents & capabilities (A-DOC, inside G19, doc 70 §2.2)
+
+- **A-DOC-01:** a bakery org never sees a BOL. No BOL tab or download in the portal, no `bol` field in the API response, `422 capability_not_enabled` if the field is sent, no BOL in emails or webhooks, and the render service refuses.
+- **A-DOC-02:** a warehouse parcel order (S band, single consignee) has no BOL. A warehouse pallet order (P band) or LTL/partner-handoff order gets a BOL in `required_documents[]` and the PDF.
+- **A-DOC-03:** a warehouse order with 2 pallets gets a pallet manifest; with 1 pallet it does not.
+- **A-DOC-04:** a pharmacy controlled-substance order requires the Rx custody log and ID + signature POD. A flowers order shows neither.
+- **A-DOC-05:** a customs pack appears only on a CHA/supply-chain order with a cross-border or in-bond leg, and stores B3/CARM references without filing.
+- **A-DOC-06:** a TDG item from an org without TDG training is refused at quote time.
+- **A-DOC-07:** a new business type added as a config row (seeded test type `small_shop:bookstore` reusing existing modules) works end to end with zero code changes.

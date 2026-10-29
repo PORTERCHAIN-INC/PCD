@@ -11,7 +11,7 @@ Order of design and build: Shopify merchant → warehouse/3PL/storage → small 
 
 ## 2. Decision D-70-1 (recommended): one `organisation` + `business_type` + capability profile
 
-Every party that is not a person is an **Organisation**. A retail customer is a **person** who may optionally belong to a personal org (auto-created, invisible). Behaviour is driven by **capabilities** (data, not code). Separate persona tables per business type were rejected: 8 types × the same 12 tables = schema explosion and duplicate code; a single `merchants` table with flags was rejected because partners (who _receive_ jobs) and shippers (who _send_ jobs) need different relations.
+Every party that is not a person is an **Organisation**. A retail customer is a **person** who may optionally belong to a personal org (auto-created, invisible). Behaviour is driven by **capabilities**. **A new business type that reuses existing capabilities is config only**: a `business_type` row with default capabilities, rate card, copy and onboarding fields, and no new code or tables. **A new capability or document is a new module**, with its own code, migration, templates and tests (§2.2). Separate persona tables per business type were rejected: 8 types × the same 12 tables = schema explosion and duplicate code; a single `merchants` table with flags was rejected because partners (who _receive_ jobs) and shippers (who _send_ jobs) need different relations.
 
 Two roles an org can play (both allowed at once, e.g. a 3PL that ships for clients and also takes our overflow):
 
@@ -32,6 +32,50 @@ Two roles an org can play (both allowed at once, e.g. a 3PL that ships for clien
 | `retail_customer`                                                                      | shipper (person)    | stripe_card, web/app booking                                                                   | on_demand                       | ours                | ours                 | retail card              |
 
 Subtype rules (small shops): `pharmacy` → `rx_delivery=true` with the `controlled_substance` handling profile (§7a). PorterChain is the official delivery agent for local pharmacies, covering all medicine types including prescriptions and controlled substances. The pharmacy stays the dispenser and stays responsible., `bakery_cake` → `food_handling=true` (clean insulated bag, upright, no stacking, ≤ 2 h door to door), `flowers` → `perishable`, `upright`, `pet_food` → heavy bag weight bands, `candles` → `heat_sensitive` advisory in summer.
+
+### 2.2 Documents & capabilities matrix (Ravi 29 Oct 2026: "a bakery has no bill of lading, a warehouse sometimes does")
+
+Business types share one system, but each **sees only its own documents and capabilities**. **A** = Always, **C** = Conditional (rule number below), **–** = Off (module not available to that type).
+
+| Type / subtype                     | BOL | Pallet manifest | Customs docs (CBSA B3 / CARM, commercial invoice) | POD | Rx custody log    | Cold-chain temp log | TDG declaration | Packing slip | Labels               | Signature / ID                   | 2-person | Pallets | Bulk upload / API     |
+| ---------------------------------- | --- | --------------- | ------------------------------------------------- | --- | ----------------- | ------------------- | --------------- | ------------ | -------------------- | -------------------------------- | -------- | ------- | --------------------- |
+| shopify_merchant                   | C1  | –               | –                                                 | A   | –                 | C6                  | –               | C8           | ours / C9            | C10                              | C11      | –       | A (Shopify app + API) |
+| warehouse_3pl                      | C1  | C2              | –                                                 | A   | –                 | C6                  | C7              | C8           | C9 (theirs default)  | C10                              | C11      | C3      | A                     |
+| small_shop: bakery_cake            | –   | –               | –                                                 | A   | –                 | C6                  | –               | –            | ours                 | –                                | –        | –       | – (email-to-order)    |
+| small_shop: flowers                | –   | –               | –                                                 | A   | –                 | –                   | –               | –            | ours                 | –                                | –        | –       | –                     |
+| small_shop: pet_food               | –   | –               | –                                                 | A   | –                 | –                   | –               | C8           | ours                 | –                                | C11      | –       | –                     |
+| small_shop: pharmacy               | –   | –               | –                                                 | A   | A (C5 sets level) | C6                  | –               | –            | ours (no drug names) | A (ID + patient/agent signature) | –        | –       | –                     |
+| small_shop: gift / candles / other | –   | –               | –                                                 | A   | –                 | –                   | –               | C8           | ours                 | C10                              | –        | –       | –                     |
+| supply_chain                       | C1  | C2              | C4                                                | A   | –                 | C6                  | C7              | C8           | C9                   | C10                              | C11      | C3      | A                     |
+| import_export_cha                  | C1  | C2              | C4                                                | A   | –                 | –                   | C7              | C8           | C9                   | C10                              | C11      | C3      | C12                   |
+| courier_partner                    | C1  | –               | –                                                 | A   | C5                | C6                  | –               | –            | C9                   | C10                              | –        | –       | A (job feed)          |
+| logistics_partner                  | C1  | C2              | C4                                                | A   | –                 | C6                  | C7              | –            | C9                   | C10                              | C11      | C3      | A (EDI-lite)          |
+| retail_customer                    | –   | –               | –                                                 | A   | –                 | –                   | –               | –            | ours                 | C10                              | C11      | –       | –                     |
+
+**Rules:**
+
+- **C1 BOL:** the order contains a pallet (P band), freight over 150 kg, a B2B LTL/linehaul leg, or a handoff to a partner carrier. **Never on parcel bands XS–XL** for a single consignee. A warehouse therefore sees BOL on a pallet or LTL order and not on a parcel order.
+- **C2 Pallet manifest:** 2 or more pallets on one order or route.
+- **C3 Pallets:** the org has the `pallet` capability and the order uses the P band. The vehicle must be a van, truck or partner (no Civic, doc 79 §0).
+- **C4 Customs docs:** a cross-border leg or an in-bond/bonded movement. We **capture** the importer's B3 / transaction number and CARM reference and carry the CBSA commercial invoice/CCI. **We never file customs entries**; the licensed customs broker/CHA files in CARM.
+- **C5 Rx custody log:** controlled substances and monitored drugs get the full log (70 §7a: seal id, count, every handoff). Other Schedule I Rx gets the signature log only. A courier partner sees it only if we hand them a pharmacy job, which is off in Phase 0.
+- **C6 Cold-chain temp log:** an item is flagged 2–8 °C or frozen (e.g. a cream cake, insulin, meal kits). It records logger readings at pickup and drop.
+- **C7 TDG declaration:** the item is declared dangerous goods **and** the org and driver hold TDG training. Otherwise the order is refused. Off for small shops and retail; lithium batteries and aerosols are declared through this module.
+- **C8 Packing slip:** the merchant turns it on, or the order has line items they send.
+- **C9 Their labels:** `label_mode = theirs/both` (§4). Otherwise we print ours.
+- **C10 Signature / ID:** declared value over $500, the merchant's setting, or the customer requests it. Pharmacy is always A.
+- **C11 2-person:** furniture class F4, a single item over 50 kg, or the customer picks the add-on (doc 72 §8).
+- **C12 Bulk upload / API for CHA:** on when the org has a developer key or uploads CSV.
+
+**Each document is a separate module** (`doc_bol`, `doc_pallet_manifest`, `doc_customs_pack`, `doc_pod`, `doc_rx_custody`, `doc_cold_chain`, `doc_tdg`, `doc_packing_slip`, `label_*`). Each has its own templates, table and tests.
+
+- **On for an org** only if its capability is enabled. **On for an order** only if the rule above evaluates true at quote time; the result is stored on the order as `required_documents[]`.
+- **Hidden everywhere when off:**
+  - In the UI, there is no tab, field, button or download for it.
+  - In the API, the fields are omitted from responses, and sending them returns `422 capability_not_enabled`.
+  - In emails and webhooks, there is no attachment or link.
+- **Enforced server-side:** the DBOS order workflow and the SpiceDB caveat `has_capability()` check it, and the PDF render service refuses to generate a document that is not in `required_documents[]`. Front-end hiding is never the only control.
+- **Code rule:** a new type that reuses these modules = config only. A new document or capability (e.g. a future `doc_customs_filing`) = a new module, with code, migration and acceptance tests.
 
 ## 3. Data model (schema `org`, doc 63 domain schemas)
 
@@ -169,7 +213,7 @@ Key rules:
 - **Idempotent upsert:** every inbound create is `INSERT … ON CONFLICT (org_id, ref_type, ref_value) DO UPDATE` guarded by `Idempotency-Key`; replay returns the same `PC-` id (doc 74 §4).
 - Status columns are Postgres enums (gate G13). Money is integer cents. All org-scoped tables carry `org_id` with row-level security keyed on the Keycloak token's org claim.
 
-## 4. Operating profile (per org, configurable, no custom code)
+## 4. Operating profile (per org, configurable; no custom code per org, only existing modules switched on)
 
 Set by the onboarding wizard (doc 71 §5) with business-type defaults so most users only press **Looks right**.
 
