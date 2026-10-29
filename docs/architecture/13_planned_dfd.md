@@ -13,7 +13,7 @@ flowchart TB
   P4 --> P5((5 POD: photo/signature/OTP, e-signature record (ECA)))
   P5 --> P6((6 Invoice: HST, BN RT, credit-note approval > $500))
   P6 --> P7((7 Payment: Interac merchant / Stripe retail))
-  WF -.events.-> RS[(Redis Streams)]
+  WF -.outbox events.-> RS[(Kafka API - Redpanda)]
   RS -.-> P8((8 Notifications: CASL consent check before send))
   P4 --> TL[(temp_readings (P))]
 ```
