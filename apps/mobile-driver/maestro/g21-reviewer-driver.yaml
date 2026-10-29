@@ -1,16 +1,20 @@
-# G21 A-APR-02: reviewer demo driver signs in (password only) and sees 2 sandbox jobs.
-# API needs REVIEWER_ACCOUNTS_ENABLED=true and REVIEWER_DRIVER_EMAILS=<review email>.
+# G21 A-APR-01/03/07: review account signs in on the Keycloak page with email + password
+# (no code, no CAPTCHA), sees the review shift, and can reach in-app account deletion. Run:
 #   maestro test -e REVIEW_EMAIL=... -e REVIEW_PASSWORD=... maestro/g21-reviewer-driver.yaml
 appId: com.porterchain.PCD
 tags: [g21]
 ---
 - launchApp
 - assertVisible: { id: mobile-sign-in }
-- tapOn: { id: reviewer-email }
+- tapOn: { id: hosted-sign-in }
+# Keycloak hosted login (ASWebAuthenticationSession / Custom Tab)
+- extendedWaitUntil: { visible: { id: username }, timeout: 15000 }
+- tapOn: { id: username }
 - inputText: ${REVIEW_EMAIL}
-- tapOn: { id: reviewer-password }
+- tapOn: { id: password }
 - inputText: ${REVIEW_PASSWORD}
-- tapOn: { id: reviewer-submit }
-- assertNotVisible: { text: ".*(code|captcha|verify).*" }
-- extendedWaitUntil: { visible: { text: ".*PC-REVIEW-1.*" }, timeout: 15000 }
-- assertVisible: { text: ".*Demo job for app review.*" }
+- tapOn: { id: kc-login }
+- assertNotVisible: { text: ".*(one-time code|captcha|verify).*" }
+- tapOn: { text: "Profile" }
+- scrollUntilVisible: { element: { id: profile-delete-account } }
+- assertVisible: { id: profile-delete-account }

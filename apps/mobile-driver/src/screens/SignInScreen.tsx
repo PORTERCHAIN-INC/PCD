@@ -1,17 +1,14 @@
 /**
  * Daily path: saved session → Face ID / fingerprint → handshake, with no taps.
- * Hosted sign-in only when there is no live session. An invite link switches it to sign-up.
+ * Keycloak sign-in only when there is no live session. An invite link switches it to sign-up.
  */
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { useHostedAuth } from "@clerk/expo/hosted-auth";
-import { AppleSignInButton } from "../auth/AppleSignInButton";
 import { unlockWithDeviceAuth } from "../auth/deviceUnlock";
-import { ReviewerSignIn } from "../auth/ReviewerSignIn";
+import { IdpButtons } from "../auth/IdpButtons";
 import { useSessionView } from "../auth/SessionGate";
-import { allowDevAuth, clerkPublishableKey, isStoreProfile } from "../config";
+import { allowDevAuth, isStoreProfile } from "../config";
 import { humanError, needsAccountSwitch } from "../errorCopy";
-import { waitForSignedSession } from "../session";
 import { Banner, Body, Button, Label, Muted, Screen, Title } from "../ui/kit";
 import { color, space, type } from "../ui/theme";
 
@@ -23,38 +20,6 @@ type Props = {
   onSignOut: () => Promise<void>;
 };
 
-/** Mounted only when Clerk is configured (the hook needs ClerkProvider). */
-function HostedSignIn({
-  invite,
-  onDone,
-  onError,
-}: {
-  invite: boolean;
-  onDone: () => void;
-  onError: (code: string) => void;
-}) {
-  const { startHostedAuth } = useHostedAuth();
-  const [busy, setBusy] = useState(false);
-  return (
-    <Button
-      tone="primary"
-      testID="hosted-sign-in"
-      label={invite ? "Accept invite" : "Sign in"}
-      busy={busy}
-      onPress={() => {
-        setBusy(true);
-        void startHostedAuth({ mode: invite ? "sign-up" : "sign-in" })
-          .then(async () => {
-            if (!(await waitForSignedSession())) throw new Error("invalid_driver_token");
-            onDone();
-          })
-          .catch((err: unknown) => onError(err instanceof Error ? err.message : "sign_in_failed"))
-          .finally(() => setBusy(false));
-      }}
-    />
-  );
-}
-
 function unlockCopy(reason: string | undefined): string {
   return reason === "unlock_cancelled"
     ? "Unlock cancelled. Tap Continue to try again."
@@ -64,8 +29,8 @@ function unlockCopy(reason: string | undefined): string {
 export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOut }: Props) {
   const session = useSessionView();
   const canDev = allowDevAuth();
-  const storeBlocked = isStoreProfile && !clerkPublishableKey;
-  const needHosted = Boolean(clerkPublishableKey) && session.ready && !session.signedIn && !canDev;
+  const storeBlocked = isStoreProfile && !session.signIn;
+  const needHosted = Boolean(session.signIn) && session.ready && !session.signedIn && !canDev;
   const switchAccount = session.signedIn && needsAccountSwitch(error);
   const autoTried = useRef(false);
   const [hint, setHint] = useState<string | null>(null);
@@ -124,13 +89,11 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
           />
         ) : needHosted ? (
           <>
-            <HostedSignIn
+            <IdpButtons
               invite={Boolean(inviteToken)}
               onDone={onContinue}
-              onError={(code) => setLocalError(humanError(code))}
+              onError={(message) => setLocalError(message)}
             />
-            <AppleSignInButton redirectUri="porterchain-driver://auth" />
-            <ReviewerSignIn onSignedIn={onContinue} />
           </>
         ) : (
           <Button

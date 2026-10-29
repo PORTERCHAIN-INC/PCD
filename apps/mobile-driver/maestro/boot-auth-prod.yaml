@@ -9,4 +9,4 @@ appId: com.porterchain.PCD
     visible:
       text: "Sign in|env=production|Couldn't start sign-in"
     timeout: 90000
-- takeScreenshot: /tmp/pcd-metro-clerk-boot
+- takeScreenshot: /tmp/pcd-metro-auth-boot

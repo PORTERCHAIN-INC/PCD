@@ -31,24 +31,9 @@ export EXPO_PUBLIC_ALLOW_DEV_AUTH=false
 export EXPO_PUBLIC_API_URL="${EXPO_PUBLIC_API_URL:-https://api.porterchain.com}"
 export EXPO_USE_PRECOMPILED_MODULES=0
 
-# Prefer local Clerk live key file if present (not committed).
-KEYS="$ROOT/../../infrastructure/deploy/scripts/clerk-keys.local.env"
-if [[ -f "$KEYS" ]]; then
-  # shellcheck disable=SC1090
-  set -a
-  # Only export driver publishable if defined in that file
-  # shellcheck disable=SC1091
-  source "$KEYS"
-  set +a
-  if [[ -n "${CLERK_DRIVER_PUBLISHABLE_KEY:-}" ]]; then
-    export EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY="$CLERK_DRIVER_PUBLISHABLE_KEY"
-  fi
-fi
-
-if [[ -z "${EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:-}" ]]; then
-  echo "Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY (pk_live…) before archiving."
-  exit 1
-fi
+# Keycloak (L36): release builds default to https://auth.porterchain.com, realm porterchain.
+export EXPO_PUBLIC_KEYCLOAK_URL="${EXPO_PUBLIC_KEYCLOAK_URL:-https://auth.porterchain.com}"
+export EXPO_PUBLIC_KEYCLOAK_CLIENT_ID="${EXPO_PUBLIC_KEYCLOAK_CLIENT_ID:-pc-driver-app}"
 
 mkdir -p "$ROOT/build"
 cat >"$EXPORT_PLIST" <<'PLIST'
