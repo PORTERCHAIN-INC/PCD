@@ -48,7 +48,8 @@ class Settings(BaseSettings):
         default=1800,
         validation_alias=AliasChoices("db_pool_recycle", "DB_POOL_RECYCLE"),
     )
-    quote_ttl_minutes: int = 30
+    # L33/doc 72: issued quotes are honoured for 72 h (was 30 min). Env QUOTE_TTL_MINUTES overrides.
+    quote_ttl_minutes: int = 72 * 60
     booking_draft_ttl_minutes: int = 1440
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004"
 

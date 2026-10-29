@@ -127,7 +127,7 @@ DEFAULTS: dict[str, Any] = {
     # Branding / auth / security SystemConfig rows were decorative theater —
     # Staff IdP + Clerk + env own those surfaces. Do not reintroduce defaults.
     "settings_booking": {
-        "quote_ttl_minutes": 30,
+        "quote_ttl_minutes": 72 * 60,
         "booking_draft_ttl_minutes": 1440,
         "default_currency": "cad",
         "default_vehicle_class": "sedan_suv",

@@ -55,7 +55,7 @@ class MerchantBookingFlowService:
         quoted = self._aware(getattr(draft, "updated_at", None)) or self._aware(
             getattr(draft, "created_at", None)
         )
-        ttl = timedelta(minutes=max(1, int(settings.quote_ttl_minutes or 30)))
+        ttl = timedelta(minutes=max(1, int(settings.quote_ttl_minutes or 72 * 60)))
         if quoted is not None and now - quoted > ttl:
             raise ValueError("quote_expired")
 
