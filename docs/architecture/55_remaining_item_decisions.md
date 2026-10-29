@@ -66,3 +66,5 @@ Items the second-pass scan still couldn't match by name to docs 31–55, given a
 | `website:/[locale]/faq`                                             | portal page         | KEEP; update prices from rate card v2; week 2                                                           |
 | `website:/[locale]`                                                 | portal page         | KEEP (home); droplet; week 2                                                                            |
 | `web-push`                                                          | app/service/package | KEEP: web push for portals (red-margin alert to admins, doc 36); week 3                                 |
+
+**L30-6 (29 Oct 2026):** Zapier and NetSuite decided Phase 2.

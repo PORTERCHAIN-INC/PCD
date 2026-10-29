@@ -18,3 +18,5 @@ Legal entity: Porterchain Inc. (L8), GST/HST 743402620 RT0001. None of these is 
 | Acceptable use / API terms                                                         | no                                           | to draft                                                                                                     | 6                     |
 | Shopify app privacy policy + listing terms                                         | no                                           | to draft                                                                                                     | 7                     |
 | App Store / Play privacy labels                                                    | no                                           | after L26 vendor changes                                                                                     | 11                    |
+
+**L30-11:** Ravi has a lawyer; review of this set by week 6. French versions in Phase 1 (L30-5).

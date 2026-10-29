@@ -32,3 +32,5 @@ A limit returns 429 with `Retry-After`. Limits are set in Caddy (edge) and the A
 - Trivy scans container images in CI.
 
 Done check: no high findings open at week 14.
+
+**L30-4 (29 Oct 2026):** no paid pen test; OWASP ZAP + Trivy in CI + ASVS L1 self-check before pilot.

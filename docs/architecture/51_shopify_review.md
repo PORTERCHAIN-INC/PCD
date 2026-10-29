@@ -11,3 +11,5 @@
 - Listing assets in `integrations/shopify/listing`, plus an updated privacy policy URL (doc 49).
 - Uninstall cleans up the token and data (doc 48).
 - Test store + reviewer instructions + demo video.
+
+**L30-3:** pilot uses an unlisted custom app; this checklist applies when the app goes public later.

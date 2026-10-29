@@ -76,3 +76,5 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 - `55_remaining_item_decisions.md`
 
 (40–45 are the UI/UX and backend docs from other commits.)
+
+- 56 · L30 Ravi decisions of 29 Oct 2026 (Checkr, SOPS, Shopify unlisted, pen test, French, on-call, leased truck, GPU 6 GB re-check, 10+ drivers, Oracle)

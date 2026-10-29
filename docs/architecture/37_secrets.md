@@ -9,3 +9,5 @@
 - gitleaks in pre-commit and the PR gate.
 
 Weeks: 1 (SOPS in place, Doppler read-only), 2 (Doppler off), 5 (rotate).
+
+**L30-2 (29 Oct 2026):** decided — Doppler retired, SOPS weeks 1–2.

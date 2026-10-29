@@ -15,3 +15,5 @@ Each entry has symptoms → checks → fix → rollback. It has to exist before 
 | Payments                     | Interac match failures, Stripe webhook backlog                                                                            | 5    |
 | Cooler excursion             | temperature alarm → hold load → notify → claim                                                                            | 5    |
 | Load balancing               | Caddy/Cloudflare health-check failover between droplet and Oracle for public portals (doc 28)                             | 6    |
+
+**L30-9:** every runbook gets an "agent can do / Ravi must do" split and a phone-sized version (doc 56).

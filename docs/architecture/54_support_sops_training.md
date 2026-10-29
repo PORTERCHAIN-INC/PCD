@@ -21,3 +21,5 @@ Admin and super-admin handbook: Today screen, margin bands, approvals with signe
 
 - **Drivers:** POD photo and signature rules, cooler log, box truck safety and BOL, TDG awareness (refuse DG), distracted-driving voice-only rule, DPWRA rights notice. A short quiz in the driver portal training page; pass is required before the first job.
 - **Staff:** a walkthrough plus a tabletop incident drill.
+
+**L30-1/13:** driver onboarding for 10+ pilot drivers: police check + abstract + agreement + DPWRA notices, 2–3 drivers/week in weeks 10–13 (doc 56).

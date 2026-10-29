@@ -23,3 +23,5 @@ Done check: checklist in admin with every box ticked and logged.
 7. Close in the CRM with a reason.
 
 Weeks: onboarding 6, offboarding 9.
+
+**L30-8:** a pilot merchant exists (name TBD from Ravi).

@@ -871,7 +871,7 @@ L28 isn't defined in any doc or Page yet. It is probably the hybrid deployment d
 | K6  | Architecture page, Driver app passkeys                                                                                           | "Clerk passkeys may need a paid plan; option self-hosted WebAuthn" | L26                                                                                 | Fixed on Page: Keycloak passkeys                                                 |
 | K7  | Architecture page, rulebook Partners row                                                                                         | Partial list includes "Clerk, LLMs"                                | L25/L26                                                                             | Fixed on Page: "Stripe, Keycloak (self-hosted), Shopify"                         |
 | K8  | Strict plan section 9 note                                                                                                       | "may not reach their job count by week 20"                         | L24: the proven window ends at week 22                                              | Fixed on Page: week 22                                                           |
-| K9  | Doc 20, Checkr (background checks)                                                                                               | Paid vendor                                                        | L26 list doesn't name Checkr                                                        | **Open for Ravi:** mark Checkr as mandatory, or use a manual police check (CPIC) |
+| K9  | Doc 20, Checkr (background checks)                                                                                               | Paid vendor                                                        | L26 list doesn't name Checkr                                                        | Decided L30-1: manual police check + abstract; Checkr only if insurer requires   |
 | K10 | Code: 11 Clerk scripts, `env/clerk.env.example`, `clerk_webhook_events` table, Sentry configs, `verify_wave10_w10_5_whatsapp.py` | Vendor code still present                                          | L26/L27                                                                             | Planned removal: Clerk week 5, Sentry week 3, WhatsApp check week 8 (rows above) |
 
 **Schedule math:** 14 build weeks + weeks 15–22 (8 weeks) = 22 weeks. This matches L24. The 11 S1 fixes land by week 6 (L21) and the pilot runs in week 14. Risk: 500 jobs per agent at 99% (L23) inside 8 weeks needs about 9 jobs per agent per day. Low-volume agents stay at suggest, as the plan already says.
@@ -880,7 +880,7 @@ L28 isn't defined in any doc or Page yet. It is probably the hybrid deployment d
 
 Droplet 8 GB (~$48/mo); "please retry" message during failover with no queued bookings; Cloudflare DNS-only (proxy optional later); monthly offline USB archive copy; no paid DO backups; Ubuntu 32 GB now and 64 GB before fine-tuning. Oracle signup (Toronto home region) is still Ravi's action.
 
-## Ravi decisions still open (after the second pass)
+## Ravi decisions after the second pass (all 1–7 decided 29 Oct, L30, doc 56)
 
 1. **Checkr (paid background checks):** treat it as mandatory under L26, or switch to a manual CPIC police check plus a driver abstract that the driver obtains themselves.
 2. **Doppler retirement:** confirm SOPS replaces it in weeks 1–2 (doc 37). Doppler's free tier would technically pass L26.
@@ -914,3 +914,25 @@ Droplet 8 GB (~$48/mo); "please retry" message during failover with no queued bo
 | No-payment test checkout path in the customer app                  | 25           | remove it (week-1 fix list)                     | 1    | COVERED |
 | Driver pay statement PDF (DPWRA)                                   | 26           | planned build                                   | 6    | COVERED |
 | POD certificate PDF                                                | 26           | planned build                                   | 2    | COVERED |
+
+## L30 decisions recorded (Ravi, 29 Oct 2026; doc 56)
+
+| Topic               | Decision                                                        | Docs       |
+| ------------------- | --------------------------------------------------------------- | ---------- |
+| Checkr              | manual police check + abstract; Checkr only if insurer requires | 20, 54, 98 |
+| Doppler             | retired; SOPS weeks 1–2                                         | 37         |
+| Shopify             | unlisted custom app for pilot; public later                     | 24, 51     |
+| Pen test            | ZAP + Trivy + ASVS self-check                                   | 38         |
+| French              | customer-facing Phase 1; admin Phase 2                          | 53, 49     |
+| Zapier/NetSuite     | Phase 2                                                         | 55         |
+| Meta Cloud API tier | not now                                                         | 27         |
+| Pilot merchant      | exists, name TBD                                                | 48         |
+| On-call             | Ravi alone; quiet hours, agent first-response, safe mode        | 36, 39, 52 |
+| Box truck           | leased; lessee CVOR/insurance/BOL gating; ELD open              | 20, 98     |
+| Lawyer              | yes; review by week 6                                           | 49         |
+| GPU                 | stay 6 GB; Phi-4-mini on CPU; most agents at suggest            | 27         |
+| Drivers             | 10+ at pilot; capacity checked                                  | 26, 54     |
+| Insurance           | in place                                                        | 20         |
+| Oracle              | signed up, Toronto                                              | 28, 98     |
+
+Re-scan 29 Oct 2026: 768 items, COVERED 768, GAP 0, CONFLICT 0.

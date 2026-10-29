@@ -151,3 +151,5 @@ stateDiagram-v2
 - **L25 no paid AI**: every AI feature here runs on the self-hosted tiers in file 27 (T1 Qwen3.5-0.8B router, T2 Qwen3.5-4B + LoRA, T2v Phi-4-mini, CPU ML). References to a "$100 model cap" are void.
 - **L26 no paid services**: D10 passkeys: same Clerk caveat as 25 (C2). D11 needs a BLE sensor (hardware, one-off) → flag `mandatory?`. Valhalla, op-sqlite, ble-plx, Expo Widgets are free/open source.
 - **L27 free WhatsApp only**: D14 job offers via WhatsApp is **dropped** (would need the paid Cloud API); fallback is SMS-free push retry + in-app inbox, and a dispatcher can message from the free WhatsApp Business app by hand.
+
+**L30-13:** 10+ drivers at pilot; GPS/push/dispatch sizing checked in doc 56.

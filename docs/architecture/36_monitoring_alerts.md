@@ -19,3 +19,5 @@
 - Telegram bot (free) is an optional second push channel. No SMS (Twilio removed, L26).
 
 Rollout: week 3 (stack, host and API alerts), week 6 (business alerts), week 13 (Kafka lag + DR alerts). Done check: a seeded outage reaches Ravi's phone within 2 minutes.
+
+**L30-9:** single on-call (Ravi). Quiet hours 22:00–07:00, Sev1 only pages; agent first-response; safe mode after 30 min un-acked Sev1. See doc 56.

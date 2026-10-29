@@ -1,10 +1,10 @@
 # 39 · Incident response (with PIPEDA breach steps)
 
-| Sev | Example                                                             | Response                               | Who                                    |
-| --- | ------------------------------------------------------------------- | -------------------------------------- | -------------------------------------- |
-| 1   | site/payments down, data breach, cooler excursion with medical load | ack in 15 min, fix or fail over in 1 h | Ravi (backup: named staff member, TBD) |
-| 2   | one portal degraded, Kafka lag, failed backup                       | ack in 1 h, fix same day               | Ravi                                   |
-| 3   | cosmetic bug                                                        | next release                           | —                                      |
+| Sev | Example                                                             | Response                               | Who                                                          |
+| --- | ------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
+| 1   | site/payments down, data breach, cooler excursion with medical load | ack in 15 min, fix or fail over in 1 h | Ravi alone (L30-9; agent first-response + safe mode, doc 56) |
+| 2   | one portal degraded, Kafka lag, failed backup                       | ack in 1 h, fix same day               | Ravi                                                         |
+| 3   | cosmetic bug                                                        | next release                           | —                                                            |
 
 **Flow:** detect (alert, doc 36) → declare a Sev in a `#incident` log (admin incident page) → contain → fix → status page update (Uptime Kuma on Oracle) → merchant email if their orders are affected → post-mortem within 5 business days (template: timeline, cause, fix, prevention).
 

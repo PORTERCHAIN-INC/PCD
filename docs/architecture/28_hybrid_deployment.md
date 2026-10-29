@@ -305,3 +305,5 @@ Option A works only if Redpanda and Keycloak stay at the limits above; any spike
 - U28-2 actual droplet size and memory use today (no droplet access this run; only the 4 GB comment).
 - U28-3 A1 capacity in ca-toronto-1 at signup time.
 - U28-4 Valhalla ARM image availability (OSRM builds on arm64; Valhalla needs a verified arm64 tag).
+
+**L30-15 (29 Oct 2026):** Oracle account signed up, home region Toronto. Next setup steps in doc 56. GPU stays 6 GB (L30-12).

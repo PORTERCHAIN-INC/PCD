@@ -16,7 +16,7 @@
 | U-12 | CVOR weight threshold for the box truck                                                                      | read ontario.ca CVOR page/HTA                                 |
 | U-13 | GUI-0069 exact URL and transport/temperature record requirements                                             | fetch Health Canada page                                      |
 | U-14 | Whether O. Reg. 643/05 s.2 local-municipality exemption covers in-Toronto runs                               | legal review                                                  |
-| U-15 | Retention period for driver documents and Checkr results                                                     | legal review                                                  |
+| U-15 | Retention period for driver documents and police-check/abstract results (Checkr only if insurer requires)    | legal review                                                  |
 | U-16 | PIPEDA breach-record retention period                                                                        | read OPC guidance                                             |
 | U-17 | CPA 2002 internet-agreement section numbers (not read)                                                       | read statute                                                  |
 | U-18 | Unread official pages marked ○ in 19/20 (ETA, ITA, CPA, PIPEDA, CASL, ESA, HTA, TDG, AODA, ECA, CRA records) | open each link                                                |
@@ -29,7 +29,12 @@ Resolved Oct 28 2026: live GPS path verified as Redis hash/GEO + Pub/Sub `porter
 
 - U28-1 Ubuntu `wg0` 10.66.0.1/24 peers unknown (`/etc/wireguard` permission denied).
 - U28-2 Real droplet size and RAM use today (only `bootstrap-droplet.sh:34` "4GB" comment).
-- U28-3 Oracle A1 capacity in ca-toronto-1.
+- U28-3 Oracle A1 capacity in ca-toronto-1. **Partly resolved 29 Oct (L30-15):** account in Toronto; capacity confirmed when the A1 instance is created.
 - U28-4 Valhalla arm64 image tag for Oracle.
 
-Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "please retry" message during failover, no queued bookings; D-PR1 Cloudflare DNS-only (proxy can be enabled later); D-BK1 monthly offline USB archive copy; D-BK2 no paid DO backups; D-RAM Ubuntu 32 GB now, 64 GB before fine-tuning. U28-2 still open (the planned size is 8 GB, but actual use today is unverified). Open: D-OCI Oracle signup with Toronto home region, which is Ravi's action.
+Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "please retry" message during failover, no queued bookings; D-PR1 Cloudflare DNS-only (proxy can be enabled later); D-BK1 monthly offline USB archive copy; D-BK2 no paid DO backups; D-RAM Ubuntu 32 GB now, 64 GB before fine-tuning. U28-2 still open (the planned size is 8 GB, but actual use today is unverified). D-OCI RESOLVED 29 Oct: Oracle signed up, Toronto home region.
+
+## L30 (29 Oct 2026, doc 56)
+
+- Still open: ELD requirement for the leased box truck (legal check); CVOR weight threshold (U-12) vs the leased truck's registered weight; lease wording vs insurance; pilot merchant name; lease cost numbers for the truck price.
+- Resolved: Checkr route, Doppler, Shopify listing type, pen test, French scope, Zapier/NetSuite, Meta tier, on-call, lawyer, GPU, insurance, Oracle signup.

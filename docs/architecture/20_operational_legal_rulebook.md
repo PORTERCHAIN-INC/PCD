@@ -86,3 +86,9 @@ Status: **B** built · **P** partial · **M** missing · **N/A**. Source marks: 
 | Merchant | Keycloak org + BN format                                     | KYB: BN RT validated, legal name match, director contact |
 | Driver   | Keycloak + licence/abstract/Checkr                           | + insurance cert, contractor agreement, DPWRA notices    |
 | Staff    | staff IdP + SpiceDB                                          | MFA enforced (U-11)                                      |
+
+## L30 updates (29 Oct 2026, doc 56)
+
+- Background check: manual police check + driver's abstract (driver obtains). Checkr only if the insurer requires it (then a paid mandatory L26 exception). Consent under PIPEDA still applies.
+- Box truck is **leased**: PorterChain as lessee/operator holds CVOR if over threshold; lease copy in truck; insurance names lessor as required; ELD check still open (doc 56).
+- Insurance (cargo + commercial) in place; lawyer review of legal docs by week 6.
