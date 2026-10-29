@@ -964,3 +964,7 @@ D-P0-1..7 decided (doc 60 §12–13). Phase changes: Google Play release P0 → 
 ## L33 (29 Oct 2026)
 
 Trust & Help Centre added to Phase 0 as W9 (doc 68, gate G18): content repo, policy library, consent records, surface placement, rules register R-01..R-21. Page specs: 41 website 1.73–1.79, merchant 2.25, customer web 5.18, driver portal 4.26, mobile customer 7.9, mobile driver 6.13, Shopify S.T1. Plan items, not code rows.
+
+## D-68-1..7 decided (29 Oct 2026)
+
+See 68 §11 / 60 §14. French help + legal content moves Phase 1 → Phase 0 (D-68-2, overrides L30-5 for that content only); Partner Agreement added to Phase 0; AODA scope = small organisation (1–19). Row counts unchanged.

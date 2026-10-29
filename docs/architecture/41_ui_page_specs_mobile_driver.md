@@ -156,4 +156,4 @@ Read-only from code. Tokens/components: doc 40 (React Native column). Flows: doc
 - **Validation / errors:** Network error → cached copy with date
 - **States:** loading; offline cached; re-consent required
 - **Responsive:** Phone single column with sticky search; tablet 2 col; laptop+ 3 col (nav, article, on-this-page)
-- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR "translation pending" banner until D-68-2); legal text marked DRAFT until lawyer sign-off
+- **A11y / i18n / theme:** WCAG 2.2 AA, one `<h1>`, skip link, plain language; EN/FR from `content/trust/` (FR required in Phase 0, D-68-2); legal text marked DRAFT until lawyer sign-off

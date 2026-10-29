@@ -14,7 +14,7 @@ Everyone who deals with PorterChain (merchants, retail customers, drivers, and p
 
 ```mermaid
 flowchart TB
-  HC{{PorterChain Trust & Help Centre<br/>help.porterchain.com + /[locale]/help}}
+  HC{{"PorterChain Trust & Help Centre<br/>porterchain.com/(locale)/help"}}
   HC --> S1[Getting started]
   HC --> S2[Pricing & quotes]
   HC --> S3[Booking & delivery rules]
@@ -179,7 +179,7 @@ Contractor terms (own vehicle, own schedule, right to decline, no exclusivity); 
 
 - `content/trust/` in the monorepo: `policies/<slug>/<version>/{en,fr}.md` and `help/<section>/<slug>.{en,fr}.md`, front-matter: `id, version, effective_date, audience[], surfaces[], rules[] (register IDs), legal_reviewed_by, reviewed_at, summary`.
 - Build step (`packages/trust-content`) validates front-matter, links, readability, missing FR, and outputs: JSON for the API (`GET /v1/trust/policies`, `/v1/trust/help?persona=`), static pages for website/portals (Next), bundled JSON + web view fallback for Expo, Polaris pages for the Shopify app, MJML partials for emails.
-- CI gate: a policy file change without a new `version` fails; a surface rendering a policy not at its `current` version fails; EN/FR pair check (FR may be marked "translation pending" until Phase 1 per L30-5, see D-68-2).
+- CI gate: a policy file change without a new `version` fails; a surface rendering a policy not at its `current` version fails; EN/FR pair check (FR required for every policy and help article in Phase 0, D-68-2).
 - Changes publish only after `legal_reviewed_by` is set for policy docs (help articles need Ops review only).
 
 ## 7. Versioning and consent records (data design, `identity` / `platform` schemas)
@@ -196,8 +196,17 @@ Rules: material change → re-consent prompt at next login (merchants and driver
 ## 8. Bilingual, AODA, review cadence
 
 - **Bilingual:** EN and FR side by side in the repo; language switch on every page; FR legal text needs its own lawyer review (D-68-2).
-- **AODA / WCAG 2.2 AA:** headings, plain language (grade ≤ 9 target for help, not legal text), accessible PDFs not used (HTML only), accessible feedback form (AODA customer service), alternate formats on request; part of gate G8.
+- **AODA (Ravi: 1–19 employees → small organisation, see §8.1). WCAG 2.2 AA (our own target, gate G8):** headings, plain language (grade ≤ 9 target for help, not legal text), accessible PDFs not used (HTML only), accessible feedback form (AODA customer service), alternate formats on request; part of gate G8.
 - **Review cadence:** policies yearly and on any trigger (law change, new vendor, new service, incident); rules register monthly check of sources (owner gets a reminder); help articles every 6 months or on product change; subprocessor list on every vendor change with 30 days' notice to merchants (DPA).
+
+### 8.1 AODA duties for an organisation with 1–19 employees (checked 29 Oct 2026)
+
+Duties that apply to us (Integrated Accessibility Standards, O. Reg. 191/11, and the customer service standard in Part IV.2):
+
+- Accessible customer service: provide goods and services with dignity, independence, integration and equal opportunity; allow assistive devices, service animals and support persons; give public notice when an accessible service is temporarily unavailable; an accessible **feedback process** (accessible formats on request); **train everyone** who serves the public or makes policy (keep a training log as good practice). Written, documented policies are required only for 50+ employees; we publish the Accessibility Statement anyway.
+- General: accessible formats and communication supports on request, in a timely way and at no extra cost; accessible emergency information if we publish any; employment duties (recruitment accommodation notices, individual accommodation) when we hire.
+- **Not required at our size:** WCAG 2.0 AA website duty (50+ employees), documented multi-year accessibility plan (50+), accessibility compliance report (20+ only, next due 31 Dec 2026). Contractors (drivers) are not employees for this count; recheck if staff reaches 20.
+- Sources: https://www.ontario.ca/page/how-make-customer-service-accessible (page updated 21 Sep 2026); https://www.ontario.ca/laws/regulation/110191 ; https://www.ontario.ca/laws/statute/05a11 ; https://accessibilityreporting.ontario.ca/en-US/
 
 ## 9. Rules register
 
@@ -235,19 +244,19 @@ Rules: material change → re-consent prompt at next login (merchants and driver
 | 6–7 | `policy_versions`, `consent_records` (DB step 1/2), API `/v1/trust/*`                                                                    | consent written on every accept path in tests |
 | 8   | Render on website, portals, Shopify embedded app, emails                                                                                 | each surface shows the same version and date  |
 | 9   | Expo apps: Settings → Legal, delete account, deletion web page; status page                                                              | Apple 5.1.1(v) checklist green                |
-| 10  | AODA/WCAG pass, plain-language pass, FR placeholders or FR text (D-68-2)                                                                 | axe 0 serious on all help pages               |
+| 10  | AODA/WCAG pass, plain-language pass, FR text live (D-68-2)                                                                               | axe 0 serious on all help pages               |
 | 11  | App Store listing URLs, privacy labels; Shopify onboarding screen; pilot merchant walk-through                                           | App Store submission uses final URLs          |
 | 12  | Gate **G18**: every surface links every required policy at the current version; consent recorded on every accept path; register reviewed | G18 green                                     |
 
 ## 11. Unknowns and decisions (also in 98)
 
-- **D-68-1** Liability: default $4.41/kg vs a higher default (e.g. $100 per shipment) and the declared-value cap; depends on cargo insurance limits.
-- **D-68-2** French for the Help Centre and policies in Phase 0 (needs FR legal review) or Phase 1 per L30-5 (EN only at pilot).
-- **D-68-3** Partner Agreement in Phase 0 (no partners signed yet) or template only.
-- **D-68-4** Public SLA wording: targets only until the proven window ends (recommended) or guarantees with credits.
-- **D-68-5** Cancellation fee amounts and quote validity window.
-- **D-68-6** Privacy officer named (Ravi by default) and contact address published.
-- **D-68-7** Help hosting: `help.porterchain.com` subdomain vs `/[locale]/help` on the website (recommended: path on the website, one build).
+- **D-68-1 DECIDED** Liability = match the cargo insurance limits: per-shipment and per-kg amounts come from Ravi's policy (**pending, U68-2**). Until the insurer confirms, no declared value above the insured limit is offered (the booking field caps at the insured limit). The statutory $4.41/kg default (U68-1) stays the floor in the draft text.
+- **D-68-2 DECIDED** French Help Centre and all legal documents in Phase 0 for the pilot. For help and legal content this overrides L30-5 (other customer-facing French stays as L30). The lawyer (or a French-speaking lawyer they nominate) reviews the French legal text in weeks 7–8.
+- **D-68-3 DECIDED** A full Partner Agreement for courier, logistics and warehouse partners is drafted in Phase 0 and goes to the lawyer with the rest (weeks 3–6).
+- **D-68-4 DECIDED** Service levels are published as targets, not guarantees (no service credits).
+- **D-68-5 PROPOSED (not yet confirmed; Ravi/lawyer to confirm the amounts)** Quote valid **24 hours** from issue (price re-quoted after); **free cancellation before a driver is assigned**; after assignment and before pickup a fee of 50 % of the base delivery price (proposed); after pickup no refund for the leg already driven, return trip billed at the quoted rate (proposed); failed delivery attempt through the customer's fault billed as one extra attempt (proposed). Merchant contract terms can override.
+- **D-68-6 DECIDED** Privacy officer: **Ravi Chauhan**, `privacy@porterchain.com` (mailbox to create in Phase 0 week 1; set up only by Ravi). Published in the Privacy Policy, DPA and Shopify app privacy policy.
+- **D-68-7 DECIDED** Help on the website path `/[locale]/help` (no subdomain); `help.porterchain.com` not used.
 - U68-1 Whether our cars and vans count as "commercial motor vehicles" under HTA, so O. Reg. 643/05 conditions and the $4.41/kg limit apply (lawyer).
-- U68-2 Insurer's requirements for drivers (commercial-use endorsement) and our cargo cover limits.
-- U68-3 Employee count for AODA thresholds (contractors usually not counted; confirm).
+- U68-2 **Pending from Ravi:** cargo policy per-shipment and per-kg limits (sets D-68-1), and the insurer's driver requirements (commercial-use endorsement).
+- U68-3 **Resolved:** 1–19 employees → AODA small-organisation obligations (§8.1).

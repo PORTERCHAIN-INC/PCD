@@ -70,4 +70,7 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U68-3** Employee count for AODA thresholds (20+ report, 50+ WCAG duty).
 - **U68-4** Claims deadlines (60 days notice / 9 months) to confirm against the regulation text.
 - **U68-5** CPA 2023 proclamation date; Bill C-36 progress.
-- **U68-6** Decisions D-68-1..7 (doc 68 §11).
+- **U68-6** Resolved: D-68-1..7 decided 29 Oct 2026 (68 §11); D-68-5 amounts are proposed and await confirmation.
+- **U68-2 (pending from Ravi)** cargo policy per-shipment and per-kg limits; declared value above them not offered until the insurer confirms.
+- **U68-3** resolved: 1–19 employees, AODA small-organisation duties (68 §8.1).
+- **U68-7** Confirm D-68-5 cancellation fee amounts (50 % after assignment proposed).
