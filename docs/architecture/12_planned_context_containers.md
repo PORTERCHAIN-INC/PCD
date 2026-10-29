@@ -39,3 +39,7 @@ GPS evidence (verified in code, Oct 28 2026): live GPS does **not** use Redis St
 
 - **Driver app** (`apps/mobile-driver`, Expo/React Native, iOS + Android, kept): on-duty GPS → API → Redis latest-position → admin live map, unchanged and outside Kafka (L19); push for job assigned / stop changed via existing FCM/APNs; job and stop updates driven by `pc.dispatch.v1`; releases through EAS only after local rehearsal (L13). The web driver portal stays alongside.
 - **Customer app** (`apps/mobile-customer`, Expo, kept): book, track, alerts on the same quote/order API and `pc.notifications.out.v1` (CASL gate).
+
+## Deployment (L28)
+
+Three-node hybrid: droplet TOR1 = source of truth for all business users; Ubuntu = admin/super-admin, agents, local LLMs, full OSRM/Valhalla, Garage archive; Oracle Always Free = routing fallback, PG/Redpanda replicas, standby edge, backups, monitoring. Full design, tables and diagrams: [28_hybrid_deployment.md](28_hybrid_deployment.md).

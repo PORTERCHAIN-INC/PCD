@@ -68,21 +68,21 @@ Status: **B** built · **P** partial · **M** missing · **N/A**. Source marks: 
 
 ## E. Partners / subprocessors
 
-| Partner                        | Rule                                | Enforced                   | St  | Source                                    |
-| ------------------------------ | ----------------------------------- | -------------------------- | --- | ----------------------------------------- |
-| Stripe (retail payments)       | PCI; data transfer disclosure       | hosted fields              | P   | ○ PCI SSC; ○ PIPEDA                       |
-| Interac via bank IMAP          | records 6 y                         | `finance_ops/retention.py` | B   | ○ CRA                                     |
-| Clerk / staff IdP (auth)       | subprocessor disclosure, residency  | setting only               | P   | ○ PIPEDA                                  |
-| WhatsApp Business Platform (P) | template opt-in + CASL              | not built                  | M   | ○ CASL; Meta policy (no official CA link) |
-| Shopify                        | merchant data DPA                   | integration exists         | P   | ○ PIPEDA                                  |
-| Checkr                         | consent for background checks       | built                      | B   | ○ PIPEDA                                  |
-| LLM providers (T0–T3)          | no personal info without disclosure | `ai_usage_logs`            | P   | ○ PIPEDA                                  |
+| Partner                                                           | Rule                                | Enforced                   | St  | Source                                    |
+| ----------------------------------------------------------------- | ----------------------------------- | -------------------------- | --- | ----------------------------------------- |
+| Stripe (retail payments)                                          | PCI; data transfer disclosure       | hosted fields              | P   | ○ PCI SSC; ○ PIPEDA                       |
+| Interac via bank IMAP                                             | records 6 y                         | `finance_ops/retention.py` | B   | ○ CRA                                     |
+| Keycloak (self-hosted, replaces Clerk per L26) / staff IdP (auth) | subprocessor disclosure, residency  | setting only               | P   | ○ PIPEDA                                  |
+| WhatsApp Business Platform (P)                                    | template opt-in + CASL              | not built                  | M   | ○ CASL; Meta policy (no official CA link) |
+| Shopify                                                           | merchant data DPA                   | integration exists         | P   | ○ PIPEDA                                  |
+| Checkr                                                            | consent for background checks       | built                      | B   | ○ PIPEDA                                  |
+| LLM providers (T0–T3)                                             | no personal info without disclosure | `ai_usage_logs`            | P   | ○ PIPEDA                                  |
 
 ## Authentication & verification levels
 
-| Party    | Level today                                         | Planned                                                  |
-| -------- | --------------------------------------------------- | -------------------------------------------------------- |
-| Retail   | Clerk login or guest + email; delivery OTP optional | OTP for high-value, declared value > threshold           |
-| Merchant | Clerk org + BN format                               | KYB: BN RT validated, legal name match, director contact |
-| Driver   | Clerk + licence/abstract/Checkr                     | + insurance cert, contractor agreement, DPWRA notices    |
-| Staff    | staff IdP + SpiceDB                                 | MFA enforced (U-11)                                      |
+| Party    | Level today                                                  | Planned                                                  |
+| -------- | ------------------------------------------------------------ | -------------------------------------------------------- |
+| Retail   | Keycloak login (L26) or guest + email; delivery OTP optional | OTP for high-value, declared value > threshold           |
+| Merchant | Keycloak org + BN format                                     | KYB: BN RT validated, legal name match, director contact |
+| Driver   | Keycloak + licence/abstract/Checkr                           | + insurance cert, contractor agreement, DPWRA notices    |
+| Staff    | staff IdP + SpiceDB                                          | MFA enforced (U-11)                                      |

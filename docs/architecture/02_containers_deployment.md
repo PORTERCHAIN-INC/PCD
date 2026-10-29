@@ -40,3 +40,5 @@ flowchart TB
 | Mobile                                | `apps/mobile-driver`, `apps/mobile-customer` (Expo)                                                                                                                                                     | —                                                                         |
 | Retired hosts                         | Caddyfile: `fleetbase.`, `console.`                                                                                                                                                                     | —                                                                         |
 | Unrelated containers on host          | pch-keycloak 0.0.0.0:8180/8543, pch-infra-garage 3900, crm-postgres 5433, pch-dev-postgres 55433 (0 refs in PCD)                                                                                        | —                                                                         |
+
+> PLANNED replacement: see [28_hybrid_deployment.md](28_hybrid_deployment.md) (L28 — droplet + Ubuntu + Oracle Always Free). Today everything, including public `admin.`, runs on one 4 GB droplet.

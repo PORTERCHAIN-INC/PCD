@@ -24,3 +24,10 @@
 | U-20 | Rendering SVG/PNG: mmdc install blocked by safety check                                                      | render on approval                        |
 
 Resolved Oct 28 2026: live GPS path verified as Redis hash/GEO + Pub/Sub `porterchain:ops:live`, not Redis Streams (evidence in 12).
+
+## Hybrid deployment (file 28)
+
+- U28-1 Ubuntu `wg0` 10.66.0.1/24 peers unknown (`/etc/wireguard` permission denied).
+- U28-2 Real droplet size and RAM use today (only `bootstrap-droplet.sh:34` "4GB" comment).
+- U28-3 Oracle A1 capacity in ca-toronto-1.
+- U28-4 Valhalla arm64 image tag for Oracle.

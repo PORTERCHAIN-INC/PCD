@@ -16,7 +16,8 @@ Generated 2026-10-28 (America/Toronto) from repo `/home/pcd/PCD` at HEAD `56865d
 | 08  | [State machines](08_state_machines.md)                             | 19  | [Compliance layer + checklist](19_compliance_layer.md)          |
 | 09  | [Authz (Clerk + staff IdP + SpiceDB)](09_authz.md)                 | 20  | [Operational legal rulebook](20_operational_legal_rulebook.md)  |
 | 10  | [Events + async](10_events_async.md)                               | 21  | [NOW vs PLANNED delta + migration order](21_delta_migration.md) |
-| 11  | [AUDIT](11_audit.md)                                               | 98  | [Unknowns](98_unknowns.md)                                      |
+| 11  | [AUDIT](11_audit.md)                                               | 28  | [Hybrid deployment (L28)](28_hybrid_deployment.md)              |
+|     |                                                                    | 98  | [Unknowns](98_unknowns.md)                                      |
 
 Older `mermaid/*.mmd` (2026-10-27) are kept untouched; this set supersedes them where they conflict.
 
@@ -47,3 +48,7 @@ Rendering: `mmdc` (mermaid-cli) install was refused by the shell safety classifi
 - `24_shopify_app.md` — Shopify app now vs planned (API 2026-10, Polaris web components, Functions, Flow, checkout extension, outbox ingest, BFS).
 - `25_customer_mobile.md` — customer Expo app now vs planned (push, Live Activities/Live Updates, Wallet, WhatsApp, passkeys, ETA).
 - `26_driver_mobile.md` — driver Expo app now vs planned (tamper-evident POD, vision POD check, voice copilot, re-routing, BLE cooler log, DPWRA pay).
+
+## Added Oct 28, 2026 (deployment)
+
+- `28_hybrid_deployment.md` — L28 droplet + Ubuntu + Oracle Always Free: placement, WireGuard mesh, data ownership, load balancing/failover, Ubuntu-off and Oracle-off tables, sizing/cost, PIPEDA, failover drill.
