@@ -286,6 +286,15 @@ Decided (Ravi, 29 Oct 2026; 68 §11): D-68-1 liability = $4.41/kg legal floor be
 - **Box truck:** short-term rental, Home Depot Canada first, U-Haul urgent/backup; CVOR/ELD/BOL/price inputs in 56.
 - **Backup on-call:** named, contact held privately by Ravi.
 
+## 16. Updates 29 Oct 2026, round 2 (Ravi)
+
+- **No business yet:** Porterchain builds software and systems only. No commercial auto, HNOA, cargo or CGL insurance; all bought after business arrives.
+- **New hard gate G-INS (pilot blocker):** minimum insurance (commercial auto or appropriate courier cover, HNOA, cargo, CGL) bound and on file **before the first paid delivery, including the Kaylulu pilot**. G-INS sits beside G1–G18 for the week-12 exit: if unbound, Phase 0 still exits on software gates but **the pilot stays on unpaid PCDC test runs**. Detail and sources: doc 56.
+- **PCDC:** test development store Ravi created in Shopify Partners (rehearsal, test data).
+- **Box truck:** not a priority; a ready-to-switch-on prep pack behind `FEATURE_BOX_TRUCK=false` (pricing inputs, onboarding + collaboration flows, checklists), doc 56. Ravi drives any rented vehicle until employees or a logistics contract.
+- **Cancellation fees (D-68-5 decided):** none for retail customers; merchants and partners only per contract. Pricing: remove the retail cancel fee from price cards; add `cancellation_fee` to merchant contract terms and partner rate cards.
+- **Broker model (W10, docs only in Phase 0):** partner onboarding with COI, partner rate cards, margin floors, partner portal + tables, dispatch own-vs-partner rule, HTA s.191.0.1 trust account, Partner Agreement updates. Build in Phase 1 after the pilot; doc 56.
+
 ## Unknowns (also in 98)
 
 U60-1 mypy-strict error count; U60-2 coverage %; U60-3 performance baseline; U60-4 whether any merchant card/Stripe customer records exist in live; U60-5 retail use of `stripe_payouts`; U60-6 customer-app account deletion completeness.

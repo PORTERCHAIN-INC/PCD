@@ -20,3 +20,7 @@ Legal entity: Porterchain Inc. (L8), GST/HST 743402620 RT0001. None of these is 
 | App Store / Play privacy labels                                                    | no                                           | after L26 vendor changes                                                                                     | 11                    |
 
 **L30-11:** Ravi has a lawyer; review of this set by week 6. French versions in Phase 1 (L30-5).
+
+## Updates 29 Oct 2026 (Ravi)
+
+Drafts to change (lawyer review): retail ToS / Shipping & Delivery / Refunds: **no cancellation fees for retail customers**; MSA and Partner Agreement: cancellation, no-show and failed-attempt fees per contract schedule; Partner Agreement: subcontracting/broker clauses, insurance minimums + COI, HTA s.191.0.1 trust payments, indemnity, PIPEDA processor terms (doc 56 Broker model). No text may state that Porterchain holds insurance until G-INS is met.

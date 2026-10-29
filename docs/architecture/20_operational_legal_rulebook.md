@@ -90,5 +90,12 @@ Status: **B** built · **P** partial · **M** missing · **N/A**. Source marks: 
 ## L30 updates (29 Oct 2026, doc 56)
 
 - Background check: manual police check + driver's abstract (driver obtains). Checkr only if the insurer requires it (then a paid mandatory L26 exception). Consent under PIPEDA still applies.
-- Box truck is a **short-term rental** (Home Depot Canada, U-Haul backup): Porterchain Inc. rents and is operator, holds CVOR for any truck over 4,500 kg; rental contract in the truck; ELD exempt (rental ≤ 30 days; 160 km); gated until cargo insurance is bought (doc 56)
+- Box truck: **not a priority**; prep pack behind `FEATURE_BOX_TRUCK=false` (doc 56). When switched on: short-term rental (Home Depot Canada, U-Haul backup) in Porterchain Inc.'s name, **Ravi as driver**, CVOR if over 4,500 kg, rental contract in the truck, ELD exempt (≤ 30 days; 160 km), cargo + HNOA insurance bound first
 - Insurance (cargo + commercial) in place; lawyer review of legal docs by week 6.
+
+## Updates 29 Oct 2026, round 2 (draft, lawyer review, not legal advice)
+
+- **G-INS:** no paid delivery (including the Kaylulu pilot) until commercial auto or courier cover, hired/non-owned auto, cargo and CGL are bound and the certificates are in admin. Personal auto policies exclude paid delivery.
+- **Cancellation:** retail customers are never charged a cancellation fee; merchants and partners only per signed contract.
+- **Broker jobs:** Ontario has no broker licence (O. Reg. 556/92 revoked 2006) but HTA s.191.0.1 requires money owed to the carrier to be held in trust; partner COIs (auto, cargo, CGL) and CVOR checked before any offer; liability passed through by the Partner Agreement.
+- **Driver of rented vehicles:** Ravi, until employees or a logistics contract.

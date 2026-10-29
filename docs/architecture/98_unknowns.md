@@ -85,3 +85,12 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U-QT-1** Quote validity 72 h vs code 30 min (`config.py:51`, `settings_service.py:130`, Shopify `QUOTE_TTL`): change in Phase 0 week 2.
 - Pilot merchant resolved: Kaylulu; test merchant PCDC.
 - Backup on-call resolved: named, contact held privately by Ravi.
+
+## Updates 29 Oct 2026, round 2 (Ravi)
+
+- **U-INS-2 (pilot blocker)** No commercial auto, HNOA, cargo or CGL insurance. Gate G-INS: bind all before the first paid delivery incl. Kaylulu; get quotes from a licensed insurance broker before week 12. Replaces U-INS-1's "confirm commercial insurance" (answer: none).
+- **U-TRK-1 updated** Home Depot rates not on any static page; homedepot.ca blocks scripted fetches; Ravi checks the vehicle page with a GTA store set, or calls. U-Haul Toronto per-km only in the reservation quote; plan $0.69–1.09/km.
+- **U-BRK-1** Broker model: open a separate trust account (HTA s.191.0.1) before the first brokered job; buy contingent cargo/broker liability; lawyer: carrier-vs-broker status when Porterchain issues the BOL, Partner Agreement clauses, non-solicitation.
+- **U-CXL-1 resolved** Retail: no cancellation fees; merchants/partners per contract (D-68-5). Lawyer reviews the B2B fee clause.
+- **Box truck** downgraded: prep pack behind a flag; no open action until an order arrives. Ravi is the driver of rented vehicles.
+- PCDC = test development store created by Ravi in Shopify Partners.
