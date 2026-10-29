@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.user_models import PorterchainUser
@@ -13,7 +13,7 @@ _SYNC_CACHE = "_auth_sync_users"
 _PRINCIPAL_CACHE = "_auth_principals"
 
 
-def prepare_user_from_claims(db: Session, claims: ClerkClaims) -> PorterchainUser:
+def prepare_user_from_claims(db: Session, claims: IdentityClaims) -> PorterchainUser:
     """Run UserSync once per request/clerk_user_id."""
     from porterchain_api.auth.user_sync_service import UserSyncService
 

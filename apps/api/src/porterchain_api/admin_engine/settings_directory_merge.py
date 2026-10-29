@@ -9,8 +9,8 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
-from porterchain_api.auth.clerk_client import ClerkUserSnapshot
+from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
+from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
 from porterchain_api.config import Settings
 from porterchain_api.schemas_admin import PlatformUserItem
 
@@ -23,10 +23,10 @@ def _access_status_label(access_status: str, invite_status: str, identity_status
     return _status_label(access_status, invite_status, identity_status)
 
 
-def _enrich_with_clerk(item: PlatformUserItem, snap: ClerkUserSnapshot | None) -> PlatformUserItem:
+def _enrich_with_directory(item: PlatformUserItem, snap: DirectoryUserSnapshot | None) -> PlatformUserItem:
     if not snap:
         return item
-    invite = "accepted" if snap.clerk_user_id else item.invite_status
+    invite = "accepted" if snap.subject else item.invite_status
     identity = "registered"
     access = item.access_status
     if snap.banned:
@@ -35,15 +35,15 @@ def _enrich_with_clerk(item: PlatformUserItem, snap: ClerkUserSnapshot | None) -
     if not name and (snap.first_name or snap.last_name):
         name = " ".join(p for p in (snap.first_name, snap.last_name) if p)
     label = _access_status_label(access, invite, identity)
-    if snap.clerk_status == "banned":
+    if snap.status == "banned":
         label = f"{label} · Banned in Clerk"
     elif not snap.password_set and item.provisioned:
         label = f"{label} · Password not set"
     return item.model_copy(
         update={
-            "clerk_user_id": snap.clerk_user_id,
+            "clerk_user_id": snap.subject,
             "clerk_linked": True,
-            "clerk_status": snap.clerk_status,
+            "clerk_status": snap.status,
             "clerk_email_verified": snap.email_verified,
             "clerk_password_set": snap.password_set,
             "clerk_last_sign_in_at": snap.last_sign_in_at,
@@ -57,7 +57,7 @@ def _enrich_with_clerk(item: PlatformUserItem, snap: ClerkUserSnapshot | None) -
     )
 
 
-def _mark_not_in_clerk(item: PlatformUserItem) -> PlatformUserItem:
+def _mark_not_in_directory(item: PlatformUserItem) -> PlatformUserItem:
     """Seat exists in PorterChain but is absent from the live Clerk directory."""
     cid = item.clerk_user_id or ""
     if cid.startswith("pending") or item.invite_status == "invite_pending":
@@ -100,11 +100,11 @@ def _merge_clerk_directory(
     if user_type == "staff":
         raise ValueError("staff_directory_is_staff_idp_not_clerk")
     try:
-        snaps = fetch_clerk_snapshots(settings, user_type, limit=limit, query=search)
+        snaps = fetch_directory_snapshots(settings, user_type, limit=limit, query=search)
     except Exception:
         logger = __import__("logging").getLogger(__name__)
         logger.warning("clerk_directory_sync_failed keep_db_rows", exc_info=True)
-        return [_mark_not_in_clerk(i) for i in items], False, 0
+        return [_mark_not_in_directory(i) for i in items], False, 0
 
     snaps = snaps or {}
     by_clerk_id: dict[str, Any] = {
@@ -118,9 +118,9 @@ def _merge_clerk_directory(
         if not snap and item.clerk_user_id:
             snap = by_clerk_id.get(item.clerk_user_id)
         if snap:
-            merged.append(_enrich_with_clerk(item, snap))
+            merged.append(_enrich_with_directory(item, snap))
         else:
-            merged.append(_mark_not_in_clerk(item))
+            merged.append(_mark_not_in_directory(item))
 
     seen = {(i.email or "").lower() for i in merged if i.email}
 
@@ -135,7 +135,7 @@ def _merge_clerk_directory(
             label = f"{_access_status_label(access, invite, identity)} · Clerk only · no PorterChain seat"
             merged.append(
                 PlatformUserItem(
-                    id=f"clerk:{snap.clerk_user_id}",
+                    id=f"clerk:{snap.subject}",
                     user_type=user_type,
                     email=email,
                     name=name,
@@ -146,9 +146,9 @@ def _merge_clerk_directory(
                     identity_status=identity,
                     status_label=label,
                     clerk_linked=True,
-                    clerk_user_id=snap.clerk_user_id,
+                    clerk_user_id=snap.subject,
                     provisioned=False,
-                    clerk_status=snap.clerk_status,
+                    clerk_status=snap.status,
                     clerk_email_verified=snap.email_verified,
                     clerk_password_set=snap.password_set,
                     clerk_last_sign_in_at=snap.last_sign_in_at,

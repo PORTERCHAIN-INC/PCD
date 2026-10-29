@@ -5,14 +5,14 @@ from __future__ import annotations
 import uuid
 from unittest.mock import patch
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.merchant_onboarding import evaluate_merchant_onboarding, resolve_merchant_contact
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
 
 def test_resolve_merchant_contact_from_jwt() -> None:
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id="user_merchant_jwt",
         email="parevalogistics@gmail.com",
         clerk_app="merchant",
@@ -41,7 +41,7 @@ def test_resolve_merchant_contact_never_trusts_db(db, settings) -> None:
     )
     db.commit()
 
-    claims = ClerkClaims(clerk_user_id=clerk_id, email=None, clerk_app="merchant")
+    claims = IdentityClaims(clerk_user_id=clerk_id, email=None, clerk_app="merchant")
     with patch(
         "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
         side_effect=PermissionError("clerk_email_required"),
@@ -50,7 +50,7 @@ def test_resolve_merchant_contact_never_trusts_db(db, settings) -> None:
 
 
 def test_resolve_merchant_contact_from_clerk_backend(db, settings) -> None:
-    claims = ClerkClaims(clerk_user_id="user_merchant_backend", email=None, clerk_app="merchant")
+    claims = IdentityClaims(clerk_user_id="user_merchant_backend", email=None, clerk_app="merchant")
     with patch(
         "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
         return_value="parevalogistics@gmail.com",
@@ -79,8 +79,8 @@ def test_evaluate_merchant_onboarding_with_clerk_email(db, settings) -> None:
     )
     db.commit()
 
-    settings.clerk_dev_bypass = False
-    claims = ClerkClaims(
+    settings.auth_dev_bypass = False
+    claims = IdentityClaims(
         clerk_user_id=clerk_id,
         email="parevalogistics@gmail.com",
         clerk_app="merchant",

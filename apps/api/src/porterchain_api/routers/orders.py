@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_clerk_user_id, get_optional_clerk_user_id
+from porterchain_api.auth.bearer import get_auth_subject, get_optional_auth_subject
 from porterchain_api.booking_engine import TrackingService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -15,7 +15,7 @@ _tracking = TrackingService()
 def get_order_by_tracking(
     tracking_number: str,
     db: Session = Depends(get_db),
-    viewer: str | None = Depends(get_optional_clerk_user_id),
+    viewer: str | None = Depends(get_optional_auth_subject),
 ) -> OrderResponse:
     result = _tracking.get_order_response_by_tracking(db, tracking_number, viewer_clerk_user_id=viewer)
     if not result:
@@ -30,7 +30,7 @@ def get_order_live_tracking(
     response: Response,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    viewer: str | None = Depends(get_optional_clerk_user_id),
+    viewer: str | None = Depends(get_optional_auth_subject),
 ) -> OrderTrackingResponse:
     """Public live status. Driver position is coarse, fresh, active-only and rate-limited."""
     from porterchain_api.booking_engine.public_tracking_limit import enforce_public_tracking_limit
@@ -47,7 +47,7 @@ def get_order_live_tracking(
 def list_customer_orders(
     customer_id: str,
     db: Session = Depends(get_db),
-    clerk_user_id: str = Depends(get_clerk_user_id),
+    clerk_user_id: str = Depends(get_auth_subject),
 ) -> list[OrderResponse]:
     try:
         return _tracking.list_customer_orders_response(

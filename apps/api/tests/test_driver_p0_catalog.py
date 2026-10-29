@@ -220,10 +220,10 @@ def test_require_assigned_order_missing() -> None:
 def test_allow_auth_dev_bypass_only_in_development() -> None:
     from porterchain_api.auth.dev import allow_auth_dev_bypass
 
-    local = SimpleNamespace(app_env="local", clerk_dev_bypass=True)
-    prod = SimpleNamespace(app_env="production", clerk_dev_bypass=True)
-    local_off = SimpleNamespace(app_env="local", clerk_dev_bypass=False)
-    staging = SimpleNamespace(app_env="staging", clerk_dev_bypass=True)
+    local = SimpleNamespace(app_env="local", auth_dev_bypass=True)
+    prod = SimpleNamespace(app_env="production", auth_dev_bypass=True)
+    local_off = SimpleNamespace(app_env="local", auth_dev_bypass=False)
+    staging = SimpleNamespace(app_env="staging", auth_dev_bypass=True)
 
     assert allow_auth_dev_bypass(local) is True  # type: ignore[arg-type]
     assert allow_auth_dev_bypass(prod) is False  # type: ignore[arg-type]
@@ -235,7 +235,7 @@ def test_dev_login_404_when_bypass_disabled() -> None:
     """Dev picker must 404 when bypass is off (even in local)."""
     settings = Settings(
         app_env="local",
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
     )
@@ -267,7 +267,7 @@ def test_get_driver_context_suspended_403(db: Session) -> None:
 
     bypass_settings = Settings(
         app_env="local",
-        clerk_dev_bypass=True,
+        auth_dev_bypass=True,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
         spicedb_enabled=False,

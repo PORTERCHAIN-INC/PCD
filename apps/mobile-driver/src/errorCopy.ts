@@ -24,7 +24,7 @@ const COPY: Record<string, string> = {
   driver_suspended: "This driver account is suspended. Call dispatch.",
   driver_not_found: "No driver profile is linked to this sign-in. Call dispatch.",
   driver_not_active: "This driver account is not active yet. Call dispatch.",
-  email_clerk_mismatch: "This email does not match your driver profile. Call dispatch.",
+  email_identity_mismatch: "This email does not match your driver profile. Call dispatch.",
   clerk_email_required: "Add a verified email to your account, then try again.",
   clerk_email_unverified: "Verify your email, then try again.",
   sign_in_failed: "Sign-in failed. Try again.",
@@ -59,7 +59,7 @@ const SWITCH_ACCOUNT_CODES = [
   "driver_not_found",
   "driver_not_active",
   "driver_suspended",
-  "email_clerk_mismatch",
+  "email_identity_mismatch",
   "clerk_email_required",
   "clerk_email_unverified",
 ];

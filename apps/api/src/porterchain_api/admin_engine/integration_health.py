@@ -7,7 +7,7 @@ from typing import Any
 from porterchain_shared.config.settings import PlatformSettings
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk_registry import is_clerk_configured
+from porterchain_api.auth.identity_directory import is_identity_configured
 from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
 from porterchain_api.platform.health_status import normalize_check_status
@@ -62,8 +62,8 @@ def build_integration_health(
         ),
         "clerk": _entry(
             "configured"
-            if is_clerk_configured(settings)
-            else ("dev_bypass" if settings.clerk_dev_bypass else "unconfigured")
+            if is_identity_configured(settings)
+            else ("dev_bypass" if settings.auth_dev_bypass else "unconfigured")
         ),
         "storage": _entry("local", note="File storage via API deployment volume"),
         "email": _entry(

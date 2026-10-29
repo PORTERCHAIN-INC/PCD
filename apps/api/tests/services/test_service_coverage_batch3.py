@@ -41,7 +41,7 @@ def test_settings_all_platform_user_types(db, settings) -> None:
     assert staff_resp.total >= 0
     assert staff_resp.clerk_synced is False
     for user_type in ("merchant", "driver", "customer"):
-        with patch("porterchain_api.admin_engine.settings_service.fetch_clerk_snapshots", return_value={}):
+        with patch("porterchain_api.admin_engine.settings_service.fetch_directory_snapshots", return_value={}):
             resp = svc.list_platform_users(db, settings, user_type, limit=5)
             assert resp.total >= 0
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog
-from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.lifecycle import merge_profile, set_status
@@ -63,8 +63,8 @@ class AdminMerchantService:
         if existing_user:
             raise ValueError("merchant_user_email_exists")
 
-        if send_invite and is_clerk_secret_configured(settings, "merchant"):
-            clerk = clerk_client_for_kind(settings, "merchant")
+        if send_invite and is_directory_configured(settings, "merchant"):
+            clerk = directory_for_kind(settings, "merchant")
             existing_clerk = clerk.find_user_by_email(normalized)
             if existing_clerk:
                 clerk_id = str(existing_clerk["id"])
@@ -82,8 +82,8 @@ class AdminMerchantService:
             pricing_config=dict(pricing_config or {}),
         )
 
-        if send_invite and is_clerk_secret_configured(settings, "merchant"):
-            clerk = clerk_client_for_kind(settings, "merchant")
+        if send_invite and is_directory_configured(settings, "merchant"):
+            clerk = directory_for_kind(settings, "merchant")
             existing_clerk = clerk.find_user_by_email(normalized)
             if existing_clerk:
                 clerk_id = str(existing_clerk["id"])

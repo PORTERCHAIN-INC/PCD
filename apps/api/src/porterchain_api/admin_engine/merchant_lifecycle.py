@@ -376,7 +376,7 @@ def complete_onboarding(
     from datetime import UTC, datetime
 
     from porterchain_api.admin_engine import events as E
-    from porterchain_api.admin_engine.clerk_directory_service import _clerk_linked
+    from porterchain_api.admin_engine.identity_directory_service import _identity_linked
     from porterchain_api.booking_engine._core import emit_event
     from porterchain_api.merchant_engine.lifecycle import set_status
     from porterchain_api.merchant_engine.lookups import seats_for_merchant
@@ -389,13 +389,13 @@ def complete_onboarding(
 
     users = seats_for_merchant(db, merchant_id)
     owner = next((u for u in users if u.role == MerchantRole.OWNER.value), None)
-    needs_seat = not owner or not _clerk_linked(owner.clerk_user_id)
+    needs_seat = not owner or not _identity_linked(owner.clerk_user_id)
     if needs_seat:
         svc.invite_owner(db, ctx, settings, merchant_id, email=owner.email if owner else target)
 
     users = seats_for_merchant(db, merchant_id)
     owner = next((u for u in users if u.role == MerchantRole.OWNER.value), None)
-    owner_linked = bool(owner and _clerk_linked(owner.clerk_user_id))
+    owner_linked = bool(owner and _identity_linked(owner.clerk_user_id))
     if not owner_linked:
         if merchant.status != MerchantStatus.ACTIVE.value:
             set_status(merchant, MerchantStatus.ONBOARDING.value)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import clerk_kind_for_user_type
+from porterchain_api.admin_engine.identity_directory_service import directory_kind_for_user_type
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
@@ -12,11 +12,11 @@ from porterchain_api.merchant_engine.webhook_delivery_service import _hook_match
 
 
 def test_clerk_kind_for_user_type() -> None:
-    assert clerk_kind_for_user_type("merchant") == "merchant"
-    assert clerk_kind_for_user_type("driver") == "driver"
-    assert clerk_kind_for_user_type("customer") == "customer"
+    assert directory_kind_for_user_type("merchant") == "merchant"
+    assert directory_kind_for_user_type("driver") == "driver"
+    assert directory_kind_for_user_type("customer") == "customer"
     with pytest.raises(ValueError, match="staff_uses_staff_idp_not_clerk"):
-        clerk_kind_for_user_type("staff")
+        directory_kind_for_user_type("staff")
 
 
 def test_bulk_normalize_row() -> None:

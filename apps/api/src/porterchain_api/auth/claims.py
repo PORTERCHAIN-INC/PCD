@@ -5,7 +5,7 @@ from typing import Any
 
 
 @dataclass(frozen=True)
-class ClerkClaims:
+class IdentityClaims:
     clerk_user_id: str
     email: str | None = None
     org_id: str | None = None

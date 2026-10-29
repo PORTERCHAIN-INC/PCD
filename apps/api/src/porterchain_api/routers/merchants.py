@@ -89,7 +89,7 @@ def _invoke(ctx: AdminContext, module: str, fn, *args, org=False, copy=None, **k
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
-        if str(exc) == "clerk_not_configured":
+        if str(exc) == "identity_not_configured":
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         if org:
             raise_org_http(exc)

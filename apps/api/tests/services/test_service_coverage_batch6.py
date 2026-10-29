@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
@@ -17,12 +17,12 @@ from porterchain_api.merchant_engine.billing_service import MerchantBillingServi
 from porterchain_api.merchant_engine.webhook_delivery_service import deliver_merchant_fanout
 
 
-@patch("porterchain_api.admin_engine.clerk_directory_service.clerk_client_for_kind")
-@patch("porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured", return_value=True)
+@patch("porterchain_api.admin_engine.identity_directory_service.directory_for_kind")
+@patch("porterchain_api.admin_engine.identity_directory_service.is_directory_configured", return_value=True)
 def test_clerk_directory_create_user(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
     clerk_id = f"user_new_clerk_{datetime.now(UTC).timestamp()}"
     mock_client.return_value.create_user.return_value = {"id": clerk_id}
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     email = f"driver-new-{datetime.now(UTC).timestamp()}@svc.test"
     result = svc.create_user(
         db,
@@ -36,12 +36,12 @@ def test_clerk_directory_create_user(mock_cfg, mock_client, db, admin_ctx, setti
     assert result["email"] == email
 
 
-@patch("porterchain_api.auth.invitation_service.clerk_client_for_kind")
+@patch("porterchain_api.auth.invitation_service.directory_for_kind")
 def test_invite_driver(mock_clerk, db, admin_ctx, settings, driver) -> None:
     clerk_id = f"user_driver_inv_{datetime.now(UTC).timestamp()}"
     mock_clerk.return_value.invite_user.return_value = SimpleNamespace(
-        clerk_user_id=clerk_id,
-        clerk_invitation_id=f"inv_drv_{datetime.now(UTC).timestamp()}",
+        subject=clerk_id,
+        invitation_id=f"inv_drv_{datetime.now(UTC).timestamp()}",
         action="invited",
     )
     inv = InvitationService().invite_driver(db, admin_ctx, settings, driver)
@@ -49,7 +49,7 @@ def test_invite_driver(mock_clerk, db, admin_ctx, settings, driver) -> None:
 
 
 def test_user_sync_full(db) -> None:
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id=f"clerk_full_{datetime.now(UTC).timestamp()}",
         email=f"full-{datetime.now(UTC).timestamp()}@test.porterchain.com",
     )

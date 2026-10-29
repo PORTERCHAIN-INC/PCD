@@ -18,7 +18,7 @@ import pytest
 from fastapi import HTTPException
 
 from porterchain_api.auth import keycloak_admin
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.keycloak_staff import STEP_UP_MAX_AGE_SECONDS, assert_recent_login, looks_like_jwt
 from porterchain_api.config import Settings
 
@@ -28,8 +28,8 @@ if BASE and any(p in BASE for p in (":8180", ":8543")):
 needs_kc = pytest.mark.skipif(not BASE, reason="PCD_TEST_KEYCLOAK_URL not set")
 
 
-def _claims(azp="pc-admin", email="ops@porterchain.com", auth_time=None) -> ClerkClaims:
-    return ClerkClaims(clerk_user_id="kc-1", email=email, phone=None, org_id=None, org_role=None,
+def _claims(azp="pc-admin", email="ops@porterchain.com", auth_time=None) -> IdentityClaims:
+    return IdentityClaims(clerk_user_id="kc-1", email=email, phone=None, org_id=None, org_role=None,
                        public_metadata={}, session_id="sid", authorized_party=azp, auth_time=auth_time)
 
 
@@ -55,7 +55,7 @@ def test_step_up_freshness() -> None:
 def test_enforce_staff_step_up_uses_verified_admin_claims() -> None:
     from porterchain_api.auth.staff_step_up import enforce_staff_step_up
 
-    s = Settings(_env_file=None, app_env="local", clerk_dev_bypass=False)
+    s = Settings(_env_file=None, app_env="local", auth_dev_bypass=False)
     req = MagicMock()
     req.state = SimpleNamespace(admin_claims=_claims(auth_time=int(time.time())))
     enforce_staff_step_up(req, "Bearer a.b.c", s)
@@ -67,7 +67,7 @@ def test_enforce_staff_step_up_uses_verified_admin_claims() -> None:
     with pytest.raises(HTTPException):
         enforce_staff_step_up(req, "Bearer a.b.c", s)
     # dev bypass: Bearer dev skips step-up
-    enforce_staff_step_up(MagicMock(), "Bearer dev", Settings(_env_file=None, app_env="local", clerk_dev_bypass=True))
+    enforce_staff_step_up(MagicMock(), "Bearer dev", Settings(_env_file=None, app_env="local", auth_dev_bypass=True))
 
 
 def test_notification_admin_recipient_only_for_pc_admin() -> None:

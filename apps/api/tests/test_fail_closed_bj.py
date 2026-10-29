@@ -8,9 +8,9 @@ import os
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.auth.keycloak import production_auth_errors
-from porterchain_api.auth.clerk_identity_provider import verify_clerk_token
+from porterchain_api.auth.identity_provider import verify_access_token
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.config import Settings
 
@@ -31,7 +31,7 @@ def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
         "clerk_secret_key": "",
@@ -87,27 +87,27 @@ def test_bypass_needs_development_project_mode() -> None:
     """Aliases (dev/development) normalize to local → development mode can unlock bypass.
     testing (APP_ENV=test) must not.
     """
-    assert allow_auth_dev_bypass(_settings(app_env="local", clerk_dev_bypass=True))
-    assert allow_auth_dev_bypass(_settings(app_env="development", clerk_dev_bypass=True))
-    assert allow_auth_dev_bypass(_settings(app_env="dev", clerk_dev_bypass=True))
-    assert not allow_auth_dev_bypass(_settings(app_env="test", clerk_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="local", auth_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="development", auth_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="dev", auth_dev_bypass=True))
+    assert not allow_auth_dev_bypass(_settings(app_env="test", auth_dev_bypass=True))
 
 
 def test_bypass_is_off_locally_unless_asked_for() -> None:
-    assert not allow_auth_dev_bypass(_settings(app_env="local", clerk_dev_bypass=False))
+    assert not allow_auth_dev_bypass(_settings(app_env="local", auth_dev_bypass=False))
 
 
 def test_production_refuses_to_boot_with_the_bypass_on() -> None:
-    """A leaked CLERK_DEV_BYPASS is a boot failure, not a warning served to users."""
+    """A leaked AUTH_DEV_BYPASS is a boot failure, not a warning served to users."""
     for env in ("production", "staging", "prod"):
         with pytest.raises(Exception) as exc:
-            _live(app_env=env, clerk_dev_bypass=True)
+            _live(app_env=env, auth_dev_bypass=True)
         # The message must name the variable, or nobody can fix the deploy.
-        assert "CLERK_DEV_BYPASS) must be false" in str(exc.value), env
+        assert "AUTH_DEV_BYPASS) must be false" in str(exc.value), env
 
 
 def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
-    settings = _settings(app_env="local", clerk_dev_bypass=False)
+    settings = _settings(app_env="local", auth_dev_bypass=False)
 
     async def _run() -> None:
         from starlette.requests import Request
@@ -126,7 +126,7 @@ def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
             "server": ("test", 80),
         }
         with pytest.raises(HTTPException) as exc:
-            await get_clerk_claims(
+            await get_identity_claims(
                 request=Request(scope),
                 authorization="Bearer dev",
                 settings=settings,
@@ -161,11 +161,11 @@ def test_plain_http_issuer_is_refused_in_production() -> None:
 
 def test_a_token_cannot_be_verified_without_keycloak_issuer() -> None:
     """No Keycloak issuer/JWKS means 503 — never a trusted claim set, never a pass-through."""
-    settings = _settings(app_env="development", clerk_dev_bypass=True, keycloak_url="", keycloak_issuer="")
+    settings = _settings(app_env="development", auth_dev_bypass=True, keycloak_url="", keycloak_issuer="")
 
     async def _run() -> None:
         with pytest.raises(HTTPException) as exc:
-            await verify_clerk_token("eyJhbGciOiJSUzI1NiJ9.e30.sig", settings)
+            await verify_access_token("eyJhbGciOiJSUzI1NiJ9.e30.sig", settings)
         assert exc.value.status_code == 503
         assert exc.value.detail == "auth_not_configured"
 
@@ -192,7 +192,7 @@ def test_missing_bearer_is_refused_not_waved_through() -> None:
             "server": ("test", 80),
         }
         with pytest.raises(HTTPException) as exc:
-            await get_clerk_claims(
+            await get_identity_claims(
                 request=Request(scope),
                 authorization=None,
                 settings=settings,

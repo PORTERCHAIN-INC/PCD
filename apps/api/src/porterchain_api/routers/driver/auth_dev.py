@@ -1,4 +1,4 @@
-"""Local/dev-only driver email login (CLERK_DEV_BYPASS). Real path remains Clerk invite."""
+"""Local/dev-only driver email login (AUTH_DEV_BYPASS). Real path remains Clerk invite."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def driver_dev_login(
     body: DriverDevLoginRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)) -> DriverDevLoginResponse:
-    """Email → approved driver id. Only when CLERK_DEV_BYPASS is enabled (local)."""
+    """Email → approved driver id. Only when AUTH_DEV_BYPASS is enabled (local)."""
     if not allow_auth_dev_bypass(settings):
         raise HTTPException(status_code=404, detail="not_found")
     payload = _auth.approved_dev_login(db, body.email)

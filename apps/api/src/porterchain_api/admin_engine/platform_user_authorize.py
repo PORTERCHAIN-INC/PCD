@@ -13,7 +13,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
-from porterchain_api.admin_engine.clerk_directory_service import require_platform_user_type
+from porterchain_api.admin_engine.identity_directory_service import require_platform_user_type
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext, parse_admin_role
@@ -30,7 +30,7 @@ from porterchain_api.merchant_engine.lookups import (
     seats_for_clerk,
 )
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
-from porterchain_api.merchant_engine.team_service import bind_seat_clerk, ensure_merchant_seat
+from porterchain_api.merchant_engine.team_service import bind_seat_subject, ensure_merchant_seat
 from porterchain_api.schemas_admin import PlatformUserAuthorizeResponse
 
 
@@ -259,7 +259,7 @@ def _authorize_merchant(
             audit_action="merchant.authorize_owner_seat",
             commit=False,
         )
-        bind_seat_clerk(
+        bind_seat_subject(
             db,
             merchant_user.id,
             clerk_user_id or f"pending:{normalized}",
@@ -268,7 +268,7 @@ def _authorize_merchant(
         actions.append("created_merchant_user")
     else:
         if clerk_user_id and merchant_user.clerk_user_id != clerk_user_id:
-            bind_seat_clerk(db, merchant_user.id, clerk_user_id)
+            bind_seat_subject(db, merchant_user.id, clerk_user_id)
             actions.append("linked_clerk_id")
 
     merchant = get_merchant(db, merchant_user.merchant_id)

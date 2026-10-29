@@ -1,4 +1,4 @@
-"""Local / re-invite helpers for ClerkDirectoryService (keeps service under ENG-G2 LOC)."""
+"""Local / re-invite helpers for DirectoryUserService (keeps service under ENG-G2 LOC)."""
 
 from __future__ import annotations
 
@@ -9,13 +9,13 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Driver
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService, pending_clerk_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 
 
-def _clerk_linked(clerk_user_id: str | None) -> bool:
+def _identity_linked(clerk_user_id: str | None) -> bool:
     if not clerk_user_id:
         return False
     s = str(clerk_user_id)
@@ -39,8 +39,8 @@ def invite_directory_user(
     if user_type == "merchant":
         raise ValueError("merchant_seats_bind_on_signin_not_invite")
     if user_type == "driver":
-        if not is_clerk_secret_configured(settings, "driver"):
-            raise ValueError("clerk_not_configured")
+        if not is_directory_configured(settings, "driver"):
+            raise ValueError("identity_not_configured")
         driver = db.query(Driver).filter(Driver.id == platform_user_id).first()
         if not driver:
             raise LookupError("driver_not_found")
@@ -64,7 +64,7 @@ def create_local_driver(
     if existing:
         return {
             "platform_user_id": existing.id,
-            "clerk_user_id": existing.clerk_user_id if _clerk_linked(existing.clerk_user_id) else None,
+            "clerk_user_id": existing.clerk_user_id if _identity_linked(existing.clerk_user_id) else None,
             "clerk_action": "reused_local",
             "email": email,
         }

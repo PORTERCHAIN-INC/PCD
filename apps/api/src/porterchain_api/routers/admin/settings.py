@@ -42,7 +42,7 @@ from porterchain_api.routers.admin._deps import (
 _staff_idp = StaffAccountService()
 T = TypeVar("T")
 _SETTINGS_UNAVAILABLE = frozenset(
-    {"clerk_not_configured", "keycloak_admin_unconfigured", "keycloak_admin_unavailable", "keycloak_admin_auth_failed", "impersonation_redis_unavailable"}
+    {"identity_not_configured", "keycloak_admin_unconfigured", "keycloak_admin_unavailable", "keycloak_admin_auth_failed", "impersonation_redis_unavailable"}
 )
 
 

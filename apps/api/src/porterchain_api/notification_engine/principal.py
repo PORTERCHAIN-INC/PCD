@@ -114,12 +114,12 @@ async def get_notification_user(
         return pre_user
 
     try:
-        from porterchain_api.auth.clerk import verify_clerk_token
+        from porterchain_api.auth.bearer import verify_access_token
 
         portal = (x_porterchain_portal or "").strip().lower() or None
         if not portal and (x_merchant_id or "").strip():
             portal = "merchant"
-        claims = await verify_clerk_token(token, settings, portal=portal)
+        claims = await verify_access_token(token, settings, portal=portal)
         found = await run_in_threadpool(
             _notification_post_sync, db, token, settings, claims, portal, x_merchant_id, x_driver_id
         )
@@ -161,7 +161,7 @@ def _notification_post_sync(
         return staff
 
     # Prefer merchant/customer before admin — never auto-elevate merchants to admin
-    # under CLERK_DEV_BYPASS (that stole inbox identity and masked membership bugs).
+    # under AUTH_DEV_BYPASS (that stole inbox identity and masked membership bugs).
     # X-Merchant-Id is the company UUID, and the only company selector (BF).
     # Ignore Clerk org_id on the JWT.
     requested_merchant = (x_merchant_id or "").strip() or None
@@ -239,9 +239,9 @@ async def resolve_notification_ws_user(
     if pre_user:
         return pre_user
     try:
-        from porterchain_api.auth.clerk import verify_clerk_token
+        from porterchain_api.auth.bearer import verify_access_token
 
-        claims = await verify_clerk_token(token, settings, portal=ws_portal)
+        claims = await verify_access_token(token, settings, portal=ws_portal)
         return await run_in_threadpool(
             _ws_post_sync, token, settings, claims, merchant_id, ws_portal
         )

@@ -10,13 +10,13 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.merchant_lifecycle import ensure_retail_customer
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
 from porterchain_api.auth.email_identity import normalize_email
 from porterchain_api.booking_models import Customer
 from porterchain_api.config import Settings
 
 
-def _clerk_linked(clerk_user_id: str | None) -> bool:
+def _identity_linked(clerk_user_id: str | None) -> bool:
     if not clerk_user_id:
         return False
     return not str(clerk_user_id).startswith("pending")
@@ -45,7 +45,7 @@ def create_customer(
         .order_by(Customer.created_at.asc())
         .first()
     )
-    if existing and _clerk_linked(existing.clerk_user_id):
+    if existing and _identity_linked(existing.clerk_user_id):
         raise ValueError("customer_email_exists")
 
     created = existing is None
@@ -62,14 +62,14 @@ def create_customer(
 
     clerk_action = "created" if created else "reused"
     if send_invite:
-        if not is_clerk_secret_configured(settings, "customer"):
-            raise ValueError("clerk_not_configured")
+        if not is_directory_configured(settings, "customer"):
+            raise ValueError("identity_not_configured")
         from porterchain_api.auth.invitation_service import InvitationService
 
         inv = InvitationService().invite_customer(db, ctx, settings, customer)
         clerk_action = str((inv.invitation_metadata or {}).get("clerk_action") or "invited")
-    elif is_clerk_secret_configured(settings, "customer"):
-        clerk = clerk_client_for_kind(settings, "customer")
+    elif is_directory_configured(settings, "customer"):
+        clerk = directory_for_kind(settings, "customer")
         found = clerk.find_user_by_email(normalized)
         if found:
             clerk_id = str(found["id"])
@@ -122,10 +122,10 @@ def send_invite(
         raise LookupError("customer_not_found")
     if customer.privacy_status == "deletion_hold":
         raise ValueError("customer_privacy_hold")
-    if _clerk_linked(customer.clerk_user_id):
+    if _identity_linked(customer.clerk_user_id):
         raise ValueError("customer_already_clerk_linked")
-    if not is_clerk_secret_configured(settings, "customer"):
-        raise ValueError("clerk_not_configured")
+    if not is_directory_configured(settings, "customer"):
+        raise ValueError("identity_not_configured")
     if not (customer.email or "").strip():
         raise ValueError("email_required")
 

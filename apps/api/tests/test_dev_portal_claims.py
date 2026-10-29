@@ -1,6 +1,6 @@
 """Local Bearer-dev must not reuse staff email on merchant or customer."""
 
-from porterchain_api.auth.clerk_identity_provider import _dev_claims
+from porterchain_api.auth.identity_provider import _dev_claims
 from porterchain_api.auth.dev import (
     DEV_CUSTOMER_EMAIL,
     DEV_CUSTOMER_SUBJECT,

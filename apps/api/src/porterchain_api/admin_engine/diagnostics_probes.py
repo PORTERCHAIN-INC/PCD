@@ -9,7 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import HealthClass, _probe_http
-from porterchain_api.auth.clerk_registry import clerk_jwks_urls, is_clerk_configured, is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import identity_jwks_urls, is_identity_configured, is_directory_configured
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order
 from porterchain_api.platform.health import readiness
@@ -248,11 +248,9 @@ class DiagnosticsProbesMixin:
         }
 
     def _probe_clerk(self, settings: Settings, platform: PlatformSettings) -> dict[str, Any]:
-        if settings.clerk_dev_bypass and not is_clerk_configured(settings):
-            return {"status": "warning", "warnings": ["Clerk dev bypass active"], "details": {"dev_bypass": True}}
-        jwks_entries = clerk_jwks_urls(settings)
-        if not jwks_entries and platform.clerk_jwks_url:
-            jwks_entries = [("legacy", platform.clerk_jwks_url)]
+        if settings.auth_dev_bypass and not is_identity_configured(settings):
+            return {"status": "warning", "warnings": ["Auth dev bypass active"], "details": {"dev_bypass": True}}
+        jwks_entries = identity_jwks_urls(settings)
         if jwks_entries:
             errors: list[str] = []
             latencies: list[int] = []
@@ -268,9 +266,9 @@ class DiagnosticsProbesMixin:
                 "errors": errors,
                 "details": {"jwks_apps": len(jwks_entries)},
             }
-        if is_clerk_secret_configured(settings):
+        if is_directory_configured(settings):
             return {"status": "healthy", "details": {"configured": True}}
-        return {"status": "critical", "errors": ["Clerk not configured"]}
+        return {"status": "critical", "errors": ["Keycloak not configured"]}
 
     def _probe_stripe(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
         if settings.stripe_mock or not settings.stripe_secret:

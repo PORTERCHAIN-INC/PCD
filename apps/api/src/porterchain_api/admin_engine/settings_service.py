@@ -31,9 +31,9 @@ from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_dr
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
-from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
-from porterchain_api.auth.clerk_client import ClerkUserSnapshot
-from porterchain_api.auth.clerk_registry import is_clerk_configured, is_clerk_secret_configured
+from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
+from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
+from porterchain_api.auth.identity_directory import is_identity_configured, is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.config import Settings
 from porterchain_api.invitation_models import UserInvitation
@@ -237,7 +237,7 @@ def _is_legacy_clerk_staff_id(subject: str | None) -> bool:
     return bool(subject) and subject.startswith("user_")
 
 
-def _clerk_linked(clerk_user_id: str | None) -> bool:
+def _identity_linked(clerk_user_id: str | None) -> bool:
     """True only for real Clerk ``user_…`` (or other non-pending, non-staff) ids."""
     if not clerk_user_id:
         return False
@@ -264,7 +264,7 @@ def _latest_invitations(db: Session, user_type: str) -> dict[str, UserInvitation
 def _invite_status(inv: UserInvitation | None, clerk_user_id: str | None) -> str:
     if inv and inv.revoked_at:
         return "revoked"
-    if _clerk_linked(clerk_user_id):
+    if _identity_linked(clerk_user_id):
         return "accepted"
     if inv:
         if inv.status == "accepted":
@@ -279,7 +279,7 @@ def _invite_status(inv: UserInvitation | None, clerk_user_id: str | None) -> str
 
 
 def _identity_status(clerk_user_id: str | None, invite_status: str) -> str:
-    if _clerk_linked(clerk_user_id):
+    if _identity_linked(clerk_user_id):
         return "registered"
     if invite_status in ("invite_pending", "accepted"):
         return "invite_pending"
@@ -416,9 +416,9 @@ def _apply_user_filters(
     return [i for i in items if matches(i)]
 
 
-from porterchain_api.admin_engine.settings_clerk_merge import (  # noqa: E402
-    _enrich_with_clerk,
-    _mark_not_in_clerk,
+from porterchain_api.admin_engine.settings_directory_merge import (  # noqa: E402
+    _enrich_with_directory,
+    _mark_not_in_directory,
     _merge_clerk_directory,
 )
 
@@ -519,15 +519,15 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_status_label(access, invite, identity),
-                        clerk_linked=_clerk_linked(d.clerk_user_id),
-                        clerk_user_id=d.clerk_user_id if _clerk_linked(d.clerk_user_id) else None,
+                        clerk_linked=_identity_linked(d.clerk_user_id),
+                        clerk_user_id=d.clerk_user_id if _identity_linked(d.clerk_user_id) else None,
                         detail_href=f"/drivers/{d.id}",
                         created_at=d.created_at,
                     )
                 )
         elif user_type == "customer":
             for c in db.query(Customer).order_by(Customer.created_at.desc()).limit(limit).all():
-                linked = _clerk_linked(c.clerk_user_id)
+                linked = _identity_linked(c.clerk_user_id)
                 identity = "registered" if linked else "not_registered"
                 access = "authorized" if linked else "not_authorized"
                 invite = "accepted" if linked else "not_invited"
@@ -580,8 +580,8 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_status_label(access, invite, identity),
-                        clerk_linked=_clerk_linked(mu.clerk_user_id),
-                        clerk_user_id=mu.clerk_user_id if _clerk_linked(mu.clerk_user_id) else None,
+                        clerk_linked=_identity_linked(mu.clerk_user_id),
+                        clerk_user_id=mu.clerk_user_id if _identity_linked(mu.clerk_user_id) else None,
                         detail_href=f"/merchants/{m.id}",
                         created_at=mu.created_at,
                     )
@@ -1128,7 +1128,7 @@ class AdminSettingsService:
             if not platform.firebase_project_id:
                 warnings.append("Firebase project not configured for push notifications")
 
-        if not is_clerk_configured(settings) and not settings.clerk_dev_bypass:
+        if not is_identity_configured(settings) and not settings.auth_dev_bypass:
             warnings.append("Clerk authentication not fully configured")
 
         ready = readiness(db, settings)
@@ -1291,8 +1291,8 @@ class AdminSettingsService:
         return {"imported": imported, "dry_run": False, **preview}
 
 # Re-exports kept for existing importers (integration).
-from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots  # noqa: E402, F401
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured  # noqa: E402, F401
-from porterchain_api.auth.clerk_client import ClerkUserSnapshot  # noqa: E402, F401
-from porterchain_api.admin_engine.settings_clerk_merge import _enrich_with_clerk  # noqa: E402, F401
-from porterchain_api.admin_engine.settings_clerk_merge import _mark_not_in_clerk  # noqa: E402, F401
+from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots  # noqa: E402, F401
+from porterchain_api.auth.identity_directory import is_directory_configured  # noqa: E402, F401
+from porterchain_api.auth.identity_directory import DirectoryUserSnapshot  # noqa: E402, F401
+from porterchain_api.admin_engine.settings_directory_merge import _enrich_with_directory  # noqa: E402, F401
+from porterchain_api.admin_engine.settings_directory_merge import _mark_not_in_directory  # noqa: E402, F401

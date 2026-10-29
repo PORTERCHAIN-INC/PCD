@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Driver
 from porterchain_api.domain.admin_states import AdminRole, DriverStatus
@@ -28,10 +28,10 @@ def _email(prefix: str) -> str:
 
 
 def test_create_driver_local_pending_when_clerk_down(db, settings) -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     email = _email("local-driver")
     with patch(
-        "porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.identity_directory_service.is_directory_configured",
         return_value=False,
     ):
         out = svc.create_user(
@@ -52,7 +52,7 @@ def test_create_driver_local_pending_when_clerk_down(db, settings) -> None:
 
 
 def test_create_driver_skip_invite_is_local(db, settings) -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     email = _email("ops-driver")
     out = svc.create_user(
         db,
@@ -79,9 +79,9 @@ def test_merchant_seat_without_clerk_secret(db, settings) -> None:
         status=MerchantStatus.ACTIVE.value,
     )
     db.commit()
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     with patch(
-        "porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.identity_directory_service.is_directory_configured",
         return_value=False,
     ):
         out = svc.create_user(
@@ -100,6 +100,6 @@ def test_merchant_seat_without_clerk_secret(db, settings) -> None:
 
 
 def test_invite_user_rejects_merchant(db, settings) -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     with pytest.raises(ValueError, match="merchant_seats_bind"):
         svc.invite_user(db, _ctx(db), settings, "merchant", platform_user_id="x")

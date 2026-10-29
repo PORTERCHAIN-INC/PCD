@@ -368,7 +368,7 @@ def deactivate_seat(db: Session, user_id: str) -> None:
         user.is_active = False
 
 
-def bind_seat_clerk(
+def bind_seat_subject(
     db: Session,
     user_id: str,
     clerk_user_id: str,

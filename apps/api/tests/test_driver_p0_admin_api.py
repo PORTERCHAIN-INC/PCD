@@ -74,7 +74,7 @@ def test_api_a_01_unauthenticated_list_not_200() -> None:
 
     settings = Settings(
         app_env="local",
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
     )
@@ -134,8 +134,8 @@ def test_auth_06_invite_existing_driver_requires_clerk() -> None:
     settings = SimpleNamespace(clerk_driver_secret_key="", clerk_driver_jwks_url="")
     driver = SimpleNamespace(id="d1", email="driver@example.com", full_name="D")
     with patch(
-        "porterchain_api.auth.invitation_service.is_clerk_secret_configured",
+        "porterchain_api.auth.invitation_service.is_directory_configured",
         return_value=False,
     ):
-        with pytest.raises(RuntimeError, match="clerk_not_configured"):
+        with pytest.raises(RuntimeError, match="identity_not_configured"):
             InvitationService().invite_existing_driver(MagicMock(), None, settings, driver)

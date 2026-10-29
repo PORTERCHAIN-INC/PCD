@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.merchant_onboarding import evaluate_merchant_onboarding
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_models import Merchant, MerchantUser
@@ -57,8 +57,8 @@ def _seat(
 
 def test_evaluate_blocks_pending_admin_authorization(db, settings) -> None:
     clerk_id, merchant = _seat(db, status=MerchantStatus.PENDING.value)
-    settings.clerk_dev_bypass = False
-    claims = ClerkClaims(
+    settings.auth_dev_bypass = False
+    claims = IdentityClaims(
         clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"
     )
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
@@ -70,8 +70,8 @@ def test_evaluate_blocks_pending_admin_authorization(db, settings) -> None:
 
 def test_evaluate_blocks_onboarding_status_until_active(db, settings) -> None:
     clerk_id, merchant = _seat(db, status=MerchantStatus.ONBOARDING.value)
-    settings.clerk_dev_bypass = False
-    claims = ClerkClaims(
+    settings.auth_dev_bypass = False
+    claims = IdentityClaims(
         clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"
     )
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
@@ -80,12 +80,12 @@ def test_evaluate_blocks_onboarding_status_until_active(db, settings) -> None:
 
 
 def test_evaluate_blocks_suspended_and_closed(db, settings) -> None:
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
 
     suspended_id, suspended = _seat(db, status=MerchantStatus.SUSPENDED.value)
     sus = evaluate_merchant_onboarding(
         db,
-        ClerkClaims(
+        IdentityClaims(
             clerk_user_id=suspended_id, email=suspended.email, clerk_app="merchant"
         ),
         settings=settings,
@@ -96,7 +96,7 @@ def test_evaluate_blocks_suspended_and_closed(db, settings) -> None:
     closed_id, closed = _seat(db, status=MerchantStatus.CLOSED.value)
     clo = evaluate_merchant_onboarding(
         db,
-        ClerkClaims(clerk_user_id=closed_id, email=closed.email, clerk_app="merchant"),
+        IdentityClaims(clerk_user_id=closed_id, email=closed.email, clerk_app="merchant"),
         settings=settings,
     )
     assert "merchant_closed" in clo["blockers"]
@@ -107,10 +107,10 @@ def test_evaluate_blocks_inactive_seat(db, settings) -> None:
     clerk_id, merchant = _seat(
         db, status=MerchantStatus.ACTIVE.value, is_active=False
     )
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(
         db,
-        ClerkClaims(clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"),
+        IdentityClaims(clerk_user_id=clerk_id, email=merchant.email, clerk_app="merchant"),
         settings=settings,
     )
     assert result["ready"] is False
@@ -119,8 +119,8 @@ def test_evaluate_blocks_inactive_seat(db, settings) -> None:
 
 def test_evaluate_auto_signup_still_blocks_until_admin_active(db, settings) -> None:
     """ensure_merchant_portal_signup creates a seat, but portal stays closed until ACTIVE."""
-    settings.clerk_dev_bypass = False
-    claims = ClerkClaims(
+    settings.auth_dev_bypass = False
+    claims = IdentityClaims(
         clerk_user_id=f"user_orphan_{uuid.uuid4().hex[:8]}",
         email=f"orphan-{uuid.uuid4().hex[:6]}@test.local",
         clerk_app="merchant",

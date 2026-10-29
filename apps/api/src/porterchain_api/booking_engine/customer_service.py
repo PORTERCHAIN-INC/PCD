@@ -28,10 +28,10 @@ class CustomerService:
         visitor_session_id: str | None = None,
         full_name: str | None = None,
     ) -> Customer:
-        from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match, normalize_email
-        from porterchain_api.auth.portal_guard import clerk_id_staff_portal
+        from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH, emails_match, normalize_email
+        from porterchain_api.auth.portal_guard import subject_staff_portal
 
-        conflict = clerk_id_staff_portal(db, clerk_user_id)
+        conflict = subject_staff_portal(db, clerk_user_id)
         if conflict:
             raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
 
@@ -45,7 +45,7 @@ class CustomerService:
         if customer:
             # C-15: never silently overwrite a bound email when Clerk disagrees.
             if customer.email and not emails_match(customer.email, clerk_email):
-                raise ValueError(EMAIL_CLERK_MISMATCH)
+                raise ValueError(EMAIL_IDENTITY_MISMATCH)
             if not customer.email:
                 customer.email = clerk_email
             if phone is not None:
@@ -65,7 +65,7 @@ class CustomerService:
             if orphan:
                 orphan_clerk = orphan.clerk_user_id or ""
                 if orphan_clerk and not orphan_clerk.startswith("pending") and orphan_clerk != clerk_user_id:
-                    raise ValueError(EMAIL_CLERK_MISMATCH)
+                    raise ValueError(EMAIL_IDENTITY_MISMATCH)
                 customer = orphan
                 customer.clerk_user_id = clerk_user_id
                 customer.email = clerk_email
@@ -261,20 +261,20 @@ class CustomerService:
         phone: str | None = None,
     ) -> Customer:
         """Ensure a retail Customer row exists for a signed-in Clerk user."""
-        from porterchain_api.auth.portal_guard import clerk_id_staff_portal
+        from porterchain_api.auth.portal_guard import subject_staff_portal
 
-        conflict = clerk_id_staff_portal(db, clerk_user_id)
+        conflict = subject_staff_portal(db, clerk_user_id)
         if conflict:
             raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
 
-        from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH, emails_match, normalize_email
+        from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH, emails_match, normalize_email
 
         existing = self.get_by_clerk(db, clerk_user_id)
         if existing:
             clerk_email = normalize_email(email)
             if clerk_email and not emails_match(existing.email, clerk_email):
                 # Never keep a Clerk id bound to a different system email.
-                raise ValueError(EMAIL_CLERK_MISMATCH)
+                raise ValueError(EMAIL_IDENTITY_MISMATCH)
             if phone and existing.phone != phone:
                 existing.phone = phone
                 db.commit()

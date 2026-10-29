@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.merchant import get_merchant_context, get_merchant_seats
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
@@ -18,11 +18,11 @@ from porterchain_api.routers.merchant.profile_team import list_memberships
 
 
 def _settings() -> Settings:
-    return Settings(app_env="local", clerk_dev_bypass=False)
+    return Settings(app_env="local", auth_dev_bypass=False)
 
 
-def _claims(clerk_id: str, email: str) -> ClerkClaims:
-    return ClerkClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
+def _claims(clerk_id: str, email: str) -> IdentityClaims:
+    return IdentityClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
 
 
 def _company(

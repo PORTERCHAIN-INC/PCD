@@ -3,11 +3,11 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import ClerkClaims
-from porterchain_api.auth.clerk_client import ClerkClient
-from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
+from porterchain_api.auth.bearer import IdentityClaims
+from porterchain_api.auth.identity_directory import IdentityDirectory
+from porterchain_api.auth.identity_directory import fetch_identity_user, is_directory_configured
 from porterchain_api.auth.dev import is_dev_bypass_subject
-from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
+from porterchain_api.auth.portal_guard import assert_portal_provisioned
 from porterchain_api.booking_engine import CustomerService
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer
@@ -18,7 +18,7 @@ _customers = CustomerService()
 
 def resolve_customer_contact(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     settings: Settings,
 ) -> tuple[str | None, str | None]:
     """Resolve Clerk-attested email (JWT / verified Backend). Phone may use DB fallback."""
@@ -40,7 +40,7 @@ def resolve_customer_contact(
     # Clerk Backend lookup happens BEFORE any query so the request never holds a
     # transaction open while waiting on the network. DB phone still wins.
     clerk_phone: str | None = None
-    if not phone and is_clerk_secret_configured(settings):
+    if not phone and is_directory_configured(settings):
         clerk_phone = _clerk_phone_cached(settings, claims.clerk_user_id)
 
     if not phone:
@@ -75,9 +75,9 @@ def _clerk_phone_cached(settings: Settings, clerk_user_id: str) -> str | None:
         return hit[1]
     phone = None
     try:
-        clerk_user, _kind = fetch_clerk_user(settings, clerk_user_id)
+        clerk_user, _kind = fetch_identity_user(settings, clerk_user_id)
         if clerk_user:
-            phone = ClerkClient.primary_phone(clerk_user)
+            phone = IdentityDirectory.primary_phone(clerk_user)
     except Exception:  # noqa: BLE001
         phone = None
     if len(_phone_cache) > 10_000:
@@ -88,7 +88,7 @@ def _clerk_phone_cached(settings: Settings, clerk_user_id: str) -> str | None:
 
 def require_customer(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     settings: Settings,
 ) -> Customer:
     meta = getattr(claims, "public_metadata", None) or {}
@@ -100,7 +100,7 @@ def require_customer(
 
     # Contact first: its Clerk lookups run before this request's first query.
     email, phone = resolve_customer_contact(db, claims, settings)
-    assert_clerk_id_exclusive(db, claims, portal="customer", settings=settings)
+    assert_portal_provisioned(db, claims, portal="customer", settings=settings)
     try:
         customer = _customers.get_or_create_from_clerk(
             db,
@@ -112,8 +112,8 @@ def require_customer(
         detail = str(exc)
         if detail == "email_required":
             raise HTTPException(status_code=400, detail="email_required") from exc
-        if detail == "email_clerk_mismatch":
-            raise HTTPException(status_code=403, detail="email_clerk_mismatch") from exc
+        if detail == "email_identity_mismatch":
+            raise HTTPException(status_code=403, detail="email_identity_mismatch") from exc
         # C-23: staff/driver Clerk on customer portal must not 500.
         if detail.startswith("identity_conflict"):
             raise HTTPException(status_code=403, detail=detail) from exc
@@ -121,7 +121,7 @@ def require_customer(
 
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
-    # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
+    # Local AUTH_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
     if not is_dev_bypass_subject(claims.clerk_user_id):
         principal = resolve_principal_for_claims(db, claims)
         if not principal:

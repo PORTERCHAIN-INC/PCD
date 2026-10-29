@@ -102,7 +102,7 @@ def test_require_customer_maps_identity_conflict() -> None:
     settings = SimpleNamespace()
 
     with (
-        patch("porterchain_api.auth.customer.assert_clerk_id_exclusive"),
+        patch("porterchain_api.auth.customer.assert_portal_provisioned"),
         patch(
             "porterchain_api.auth.customer.resolve_customer_contact",
             return_value=("a@b.com", None),

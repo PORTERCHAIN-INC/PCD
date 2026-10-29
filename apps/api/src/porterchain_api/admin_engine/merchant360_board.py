@@ -10,7 +10,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.settings_service import (
-    _clerk_linked,
+    _identity_linked,
     _invite_status,
     _latest_invitations,
 )
@@ -266,7 +266,7 @@ def batch_onboarding_summaries(db: Session, merchants: list[Merchant]) -> dict[s
             if owner
             else "not_invited"
         )
-        owner_linked = _clerk_linked(owner.clerk_user_id) if owner else False
+        owner_linked = _identity_linked(owner.clerk_user_id) if owner else False
         merchant_active = merchant.status == MerchantStatus.ACTIVE.value
         user_active = bool(owner and owner.is_active)
         company_ready = bool(merchant.company_name and merchant.email)
@@ -448,7 +448,7 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
     owner_invite = (
         _invite_status(invitations.get(owner.email.lower()), owner.clerk_user_id) if owner else "not_invited"
     )
-    owner_linked = _clerk_linked(owner.clerk_user_id) if owner else False
+    owner_linked = _identity_linked(owner.clerk_user_id) if owner else False
     merchant_active = merchant.status == MerchantStatus.ACTIVE.value
     company_ready = bool(merchant.company_name and merchant.email)
     owner_provisioned = owner is not None

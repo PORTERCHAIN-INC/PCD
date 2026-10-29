@@ -64,15 +64,15 @@ def test_integration_health_emits_triad_and_validates_schema() -> None:
     with patch("porterchain_api.platform.health.ping_redis", return_value=True):
         with patch("porterchain_api.platform.health._routing_health", return_value="ok"):
             with patch(
-                "porterchain_api.auth.clerk_registry.clerk_health_checks",
+                "porterchain_api.auth.identity_directory.identity_health_checks",
                 return_value={"customer": "ok", "merchant": "ok", "admin": "ok", "driver": "ok"},
             ):
                 with patch(
-                    "porterchain_api.auth.clerk_registry.clerk_configuration_mode",
+                    "porterchain_api.auth.identity_directory.identity_configuration_mode",
                     return_value="enterprise",
                 ):
                     with patch(
-                        "porterchain_api.auth.clerk_registry.is_clerk_configured",
+                        "porterchain_api.auth.identity_directory.is_identity_configured",
                         return_value=True,
                     ):
                         health = AdminSettingsService().integration_health(db, settings)

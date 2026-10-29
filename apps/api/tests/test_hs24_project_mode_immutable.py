@@ -19,7 +19,7 @@ from porterchain_api.routers.admin.settings import settings_project_mode_change
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
         "stripe_mock": True,

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.driver_lookups import get_driver, rebind_clerk_by_email as rebind_driver_clerk
 from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.staff_lookups import get_admin_user, rebind_clerk_by_email as rebind_admin_clerk
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.email_identity import (
     emails_match,
@@ -49,8 +49,8 @@ class UserSyncService:
     writes that pointed platform_user_id at persona PKs).
     """
 
-    def sync(self, db: Session, claims: ClerkClaims) -> PorterchainUser:
-        from porterchain_api.auth.clerk_identity_provider import claims_to_identity
+    def sync(self, db: Session, claims: IdentityClaims) -> PorterchainUser:
+        from porterchain_api.auth.identity_provider import claims_to_identity
         from porterchain_api.auth.ensure_user_service import EnsureUserService
 
         unlink_email_mismatched_bindings(
@@ -76,7 +76,7 @@ class UserSyncService:
         return db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == clerk_user_id).first()
 
     def _sync_link_metadata(
-        self, db: Session, claims: ClerkClaims, user: PorterchainUser
+        self, db: Session, claims: IdentityClaims, user: PorterchainUser
     ) -> None:
         """Refresh IdentityLink metadata without mis-pointing platform_user_id."""
         principal = resolve_persona_principal(db, claims)
@@ -93,7 +93,7 @@ class UserSyncService:
         link.last_synced_at = datetime.now(UTC)
         db.commit()
 
-    def _link_pending_domain_records(self, db: Session, claims: ClerkClaims) -> None:
+    def _link_pending_domain_records(self, db: Session, claims: IdentityClaims) -> None:
         """Attach Clerk user id when invite email equals Clerk verified email.
 
         Covers:
@@ -209,7 +209,7 @@ class UserSyncService:
     def _platform_snapshot(
         self,
         db: Session,
-        claims: ClerkClaims,
+        claims: IdentityClaims,
         principal: AuthPrincipal | None,
     ) -> dict[str, Any]:
         if not principal:
@@ -290,7 +290,7 @@ class UserSyncService:
             "profile": profile,
         }
 
-    def _upsert_user(self, db: Session, claims: ClerkClaims, snapshot: dict[str, Any]) -> PorterchainUser:
+    def _upsert_user(self, db: Session, claims: IdentityClaims, snapshot: dict[str, Any]) -> PorterchainUser:
         now = datetime.now(UTC)
         row = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == claims.clerk_user_id).first()
         email = (claims.email or "").lower() or None
@@ -319,7 +319,7 @@ class UserSyncService:
         db.add(row)
         return row
 
-    def _upsert_identity_link(self, db: Session, claims: ClerkClaims, principal: AuthPrincipal) -> IdentityLink:
+    def _upsert_identity_link(self, db: Session, claims: IdentityClaims, principal: AuthPrincipal) -> IdentityLink:
         """Upsert IdentityLink. platform_user_id is always porterchain_users.id (never persona PK)."""
         user = self.get_by_clerk_id(db, claims.clerk_user_id)
         if not user:

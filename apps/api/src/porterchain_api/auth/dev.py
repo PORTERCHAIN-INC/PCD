@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.config import Settings
 from porterchain_shared.config.project_mode import ProjectMode, project_mode_for_app_env
 
@@ -23,10 +23,10 @@ _PORTALS = frozenset({"merchant", "customer", "admin", "driver"})
 
 
 def allow_auth_dev_bypass(settings: Settings) -> bool:
-    """True only in development project mode with CLERK_DEV_BYPASS=true."""
+    """True only in development project mode with AUTH_DEV_BYPASS=true."""
     return (
         project_mode_for_app_env(settings.app_env) is ProjectMode.DEVELOPMENT
-        and settings.clerk_dev_bypass
+        and settings.auth_dev_bypass
     )
 
 
@@ -65,10 +65,10 @@ def resolve_dev_portal(*, path: str = "", header: str | None = None) -> str:
     return "admin"
 
 
-def dev_claims_for(portal: str) -> ClerkClaims:
+def dev_claims_for(portal: str) -> IdentityClaims:
     """One synthetic Clerk subject per portal — never reuse staff email on merchant/customer."""
     if portal == "merchant":
-        return ClerkClaims(
+        return IdentityClaims(
             clerk_user_id=DEV_MERCHANT_SUBJECT,
             email=DEV_MERCHANT_EMAIL,
             org_id=None,
@@ -81,7 +81,7 @@ def dev_claims_for(portal: str) -> ClerkClaims:
             auth_time=0,
         )
     if portal == "customer":
-        return ClerkClaims(
+        return IdentityClaims(
             clerk_user_id=DEV_CUSTOMER_SUBJECT,
             email=DEV_CUSTOMER_EMAIL,
             phone="+1 416-555-4401",
@@ -92,7 +92,7 @@ def dev_claims_for(portal: str) -> ClerkClaims:
             authorized_party="pk_dev",
             auth_time=0,
         )
-    return ClerkClaims(
+    return IdentityClaims(
         clerk_user_id=DEV_LEGACY_SUBJECT,
         email=DEV_STAFF_EMAIL,
         org_id=None,

@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_optional_clerk_user_id
+from porterchain_api.auth.bearer import get_optional_auth_subject
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -82,7 +82,7 @@ def get_active_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_clerk_user_id)] = None,
+    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftResponse | None:
     """Restore the latest active booking draft for a visitor or authenticated customer."""
     if not session_id and not clerk_user_id:
@@ -100,7 +100,7 @@ def get_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_clerk_user_id)] = None,
+    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftDetailResponse:
     draft = _drafts.get_by_id(db, draft_id)
     if not draft:
@@ -120,7 +120,7 @@ def update_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_clerk_user_id)] = None,
+    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftResponse:
     draft = _drafts.get_by_id(db, draft_id)
     if not draft:
@@ -141,7 +141,7 @@ def cancel_booking_draft(
     session_id: str | None = Query(None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: Annotated[str | None, Depends(get_optional_clerk_user_id)] = None,
+    clerk_user_id: Annotated[str | None, Depends(get_optional_auth_subject)] = None,
 ) -> BookingDraftResponse:
     draft = _drafts.get_by_id(db, draft_id)
     if not draft:

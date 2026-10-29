@@ -50,16 +50,16 @@ def test_360_row_uses_glossary(db, merchant_ctx) -> None:
 
 
 def test_onboarding_payload_uses_same_words(db, settings, merchant_ctx) -> None:
-    from porterchain_api.auth.claims import ClerkClaims
+    from porterchain_api.auth.claims import IdentityClaims
 
     merchant_ctx.merchant.status = MerchantStatus.ONBOARDING.value
     db.commit()
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id=merchant_ctx.user.clerk_user_id,
         email=merchant_ctx.user.email,
         clerk_app="merchant",
     )
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["status_label"] == "Onboarding"
     auth = next(s for s in result["steps"] if s["id"] == "admin_authorization")

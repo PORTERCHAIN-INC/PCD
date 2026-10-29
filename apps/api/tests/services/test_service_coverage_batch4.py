@@ -116,9 +116,9 @@ def test_driver_auth_link_clerk_service_loads() -> None:
 
 
 def test_user_sync_sync_customer(db) -> None:
-    from porterchain_api.auth.claims import ClerkClaims
+    from porterchain_api.auth.claims import IdentityClaims
 
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id=f"clerk_sync_{datetime.now(UTC).timestamp()}",
         email=f"sync-{datetime.now(UTC).timestamp()}@test.porterchain.com",
     )

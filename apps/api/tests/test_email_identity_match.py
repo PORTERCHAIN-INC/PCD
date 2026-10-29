@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from porterchain_api.admin_models import AdminUser
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.email_identity import (
     CLERK_EMAIL_REQUIRED,
     CLERK_EMAIL_UNVERIFIED,
-    EMAIL_CLERK_MISMATCH,
+    EMAIL_IDENTITY_MISMATCH,
     delete_email_mismatched_bindings,
     email_from_jwt_payload,
     emails_match,
@@ -32,7 +32,7 @@ def test_normalize_and_match() -> None:
 
 def test_require_system_email_matches_clerk() -> None:
     require_system_email_matches_clerk("a@x.com", "A@x.com")
-    with pytest.raises(PermissionError, match=EMAIL_CLERK_MISMATCH):
+    with pytest.raises(PermissionError, match=EMAIL_IDENTITY_MISMATCH):
         require_system_email_matches_clerk("admin@porterchain.com", "ravichauhan7434@gmail.com")
     with pytest.raises(PermissionError, match=CLERK_EMAIL_REQUIRED):
         require_system_email_matches_clerk("admin@porterchain.com", None)
@@ -84,7 +84,7 @@ def test_resolve_verified_clerk_email_jwt_wins() -> None:
 
 def test_enrich_claims_fetches_backend_when_jwt_omits_email() -> None:
     settings = MagicMock()
-    claims = ClerkClaims(clerk_user_id="user_x", email=None)
+    claims = IdentityClaims(clerk_user_id="user_x", email=None)
     with patch(
         "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
         return_value="parevalogistics@gmail.com",
@@ -148,7 +148,7 @@ def test_persona_principal_skips_email_mismatched_admin() -> None:
         return q
 
     db.query.side_effect = query
-    claims = ClerkClaims(clerk_user_id="user_gmail", email="ravichauhan7434@gmail.com")
+    claims = IdentityClaims(clerk_user_id="user_gmail", email="ravichauhan7434@gmail.com")
     assert resolve_persona_principal(db, claims) is None
 
 
@@ -172,5 +172,5 @@ def test_persona_principal_skips_missing_clerk_email() -> None:
         customer=None,
     )
     with patch("porterchain_api.auth.persona_principal.load_persona_bundle", return_value=bundle):
-        claims = ClerkClaims(clerk_user_id="user_gmail", email=None)
+        claims = IdentityClaims(clerk_user_id="user_gmail", email=None)
         assert resolve_persona_principal(db, claims) is None

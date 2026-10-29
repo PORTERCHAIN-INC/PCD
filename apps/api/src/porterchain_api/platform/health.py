@@ -77,20 +77,20 @@ def readiness(db: Session, settings: Settings) -> dict:
     checks["redis"] = "ok" if ping_redis() else "unavailable"
     checks["routing"] = _routing_health()
     try:
-        from porterchain_api.auth.clerk_registry import clerk_configuration_mode, clerk_health_checks
+        from porterchain_api.auth.identity_directory import identity_configuration_mode, identity_health_checks
 
-        clerk_apps = clerk_health_checks(settings)
-        clerk_mode = clerk_configuration_mode(settings)
-        if clerk_mode == "incomplete":
-            checks["clerk"] = "not_configured"
-        elif all(status == "ok" for status in clerk_apps.values()):
-            checks["clerk"] = "ok" if clerk_mode == "enterprise" else "legacy_ok"
+        identity_apps = identity_health_checks(settings)
+        identity_mode = identity_configuration_mode(settings)
+        if identity_mode == "incomplete":
+            checks["identity"] = "not_configured"
+        elif all(status == "ok" for status in identity_apps.values()):
+            checks["identity"] = "ok"
         else:
-            checks["clerk"] = "degraded"
+            checks["identity"] = "degraded"
     except Exception as exc:  # noqa: BLE001
-        checks["clerk"] = f"error: {exc}"
-        clerk_apps = {}
-        clerk_mode = "error"
+        checks["identity"] = f"error: {exc}"
+        identity_apps = {}
+        identity_mode = "error"
     queue = _queue_health()
     checks["queues"] = queue["status"]
     checks["stripe"] = "configured" if settings.stripe_secret else "mock_or_unconfigured"
@@ -142,9 +142,9 @@ def readiness(db: Session, settings: Settings) -> dict:
     except Exception as exc:  # noqa: BLE001
         checks["merchant_webhook_delivery"] = f"error: {exc}"
 
-    if clerk_apps:
-        payload["clerk_apps"] = clerk_apps
-        payload["clerk_mode"] = clerk_mode
+    if identity_apps:
+        payload["identity_apps"] = identity_apps
+        payload["identity_mode"] = identity_mode
     return payload
 
 

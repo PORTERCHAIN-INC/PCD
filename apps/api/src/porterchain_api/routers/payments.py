@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_clerk_user_id
+from porterchain_api.auth.bearer import get_auth_subject
 from porterchain_api.booking_engine import PaymentService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -16,7 +16,7 @@ def retry_payment(
     body: PaymentRetryRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: str = Depends(get_clerk_user_id),
+    clerk_user_id: str = Depends(get_auth_subject),
 ) -> PaymentResponse:
     try:
         checkout_url, payment = _payments.retry_payment_for_clerk(

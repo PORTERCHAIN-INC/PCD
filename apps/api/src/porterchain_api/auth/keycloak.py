@@ -16,7 +16,7 @@ import jwt
 from fastapi import HTTPException
 from jwt import PyJWK, PyJWTError
 
-from porterchain_api.auth.claims import ClerkClaims as IdentityClaims
+from porterchain_api.auth.claims import IdentityClaims as IdentityClaims
 from porterchain_api.config import Settings
 
 logger = logging.getLogger("porterchain.security")
@@ -163,8 +163,8 @@ def production_auth_errors(settings: Settings) -> list[str]:
     if is_local_env(settings.app_env):
         return []
     errors: list[str] = []
-    if settings.clerk_dev_bypass:
-        errors.append("AUTH_DEV_BYPASS (CLERK_DEV_BYPASS) must be false outside local/development")
+    if settings.auth_dev_bypass:
+        errors.append("AUTH_DEV_BYPASS (AUTH_DEV_BYPASS) must be false outside local/development")
     issuer = keycloak_issuer(settings)
     if not issuer:
         errors.append("KEYCLOAK_URL (or KEYCLOAK_ISSUER) required outside local")

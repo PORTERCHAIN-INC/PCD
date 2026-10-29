@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
 from porterchain_api.booking_engine.public_address import public_address_snapshot
@@ -75,7 +75,7 @@ def test_public_live_tracking_redacts_addresses(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_customer_delete_forbidden() -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     with pytest.raises(ValueError, match="customer_delete_forbidden"):
         svc.delete_clerk_user(
             MagicMock(),
@@ -87,7 +87,7 @@ def test_customer_delete_forbidden() -> None:
 
 
 def test_customer_provision_from_clerk_links_row() -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     customer = SimpleNamespace(
         id="cust-1",
         email="c@example.com",

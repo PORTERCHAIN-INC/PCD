@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.merchant_onboarding import (
     ensure_merchant_portal_signup,
     evaluate_merchant_onboarding,
@@ -14,8 +14,8 @@ from porterchain_api.merchant_engine.rbac import ROLE_LABELS
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
 
-def _claims(clerk_id: str, email: str) -> ClerkClaims:
-    return ClerkClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
+def _claims(clerk_id: str, email: str) -> IdentityClaims:
+    return IdentityClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
 
 
 def _company(
@@ -53,7 +53,7 @@ def test_reserved_seat_links_clerk_id_on_first_sign_in(db, settings) -> None:
     email = f"dispatch_{uuid.uuid4().hex[:8]}@firstrun.test"
     seat = _reserved_seat(db, merchant, role=MerchantRole.OPS.value, email=email)
     clerk_id = f"user_{uuid.uuid4().hex[:12]}"
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
 
     ensure_merchant_portal_signup(db, _claims(clerk_id, email), settings=settings)
 
@@ -85,7 +85,7 @@ def test_second_company_pending_owner_claimed_when_already_linked_elsewhere(db, 
     )
     db.add_all([linked, pending])
     db.commit()
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
 
     ensure_merchant_portal_signup(db, _claims(clerk_id, email), settings=settings)
 
@@ -108,7 +108,7 @@ def test_seat_turned_off_stays_off_after_sign_in(db, settings) -> None:
     )
     db.add(seat)
     db.commit()
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
 
     result = evaluate_merchant_onboarding(db, _claims(clerk_id, email), settings=settings)
 
@@ -126,7 +126,7 @@ def test_active_company_new_seat_is_ready_for_dashboard(db, settings) -> None:
     email = f"ready_{uuid.uuid4().hex[:8]}@firstrun.test"
     _reserved_seat(db, merchant, role=MerchantRole.FINANCE.value, email=email)
     clerk_id = f"user_{uuid.uuid4().hex[:12]}"
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
 
     result = evaluate_merchant_onboarding(db, _claims(clerk_id, email), settings=settings)
 
@@ -141,7 +141,7 @@ def test_onboarding_company_makes_every_seat_wait(db, settings) -> None:
     email = f"wait_{uuid.uuid4().hex[:8]}@firstrun.test"
     _reserved_seat(db, merchant, role=MerchantRole.OPS.value, email=email)
     clerk_id = f"user_{uuid.uuid4().hex[:12]}"
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
 
     result = evaluate_merchant_onboarding(db, _claims(clerk_id, email), settings=settings)
 
@@ -154,7 +154,7 @@ def test_onboarding_company_makes_every_seat_wait(db, settings) -> None:
 
 def test_first_run_copy_never_shows_internal_role_ids(db, settings) -> None:
     merchant = _company(db, status=MerchantStatus.ONBOARDING.value)
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     for role in MerchantRole:
         email = f"role_{role.value}_{uuid.uuid4().hex[:6]}@firstrun.test"
         _reserved_seat(db, merchant, role=role.value, email=email)

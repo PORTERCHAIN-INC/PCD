@@ -41,7 +41,7 @@ def test_inbox_follows_x_merchant_id_not_clerk_org(db):
     clerk = f"user_{uuid4().hex[:10]}"
     first = _seat(db, clerk_id=clerk, company="North Co")
     second = _seat(db, clerk_id=clerk, company="South Co")
-    settings = Settings(app_env="local", clerk_dev_bypass=False)
+    settings = Settings(app_env="local", auth_dev_bypass=False)
 
     db.add(
         NotificationRecord(
@@ -88,7 +88,7 @@ def test_inbox_follows_x_merchant_id_not_clerk_org(db):
 def test_onboarding_merchant_can_open_inbox(db):
     clerk = f"user_{uuid4().hex[:10]}"
     merchant = _seat(db, clerk_id=clerk, company="Onboarding Co", status=MerchantStatus.ONBOARDING.value)
-    settings = Settings(app_env="local", clerk_dev_bypass=False)
+    settings = Settings(app_env="local", auth_dev_bypass=False)
     user = _resolve_merchant_recipient(db, settings, clerk, merchant.id)
     assert user is not None
     assert user.user_id == merchant.id

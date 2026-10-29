@@ -12,8 +12,8 @@ from typing import Annotated, Callable
 from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk_identity_provider import (
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.identity_provider import (
     _dev_claims,
     claims_to_identity,
     get_identity_provider,
@@ -31,8 +31,8 @@ from starlette.concurrency import run_in_threadpool
 logger = logging.getLogger("porterchain.security")
 
 
-def _claims_for_sync(identity: AuthenticatedIdentity) -> ClerkClaims:
-    return ClerkClaims(
+def _claims_for_sync(identity: AuthenticatedIdentity) -> IdentityClaims:
+    return IdentityClaims(
         clerk_user_id=identity.subject,
         email=identity.email,
         session_id=identity.session_id,
@@ -308,12 +308,12 @@ def assert_self_scope(principal: CurrentPrincipal, profile_id: str, db: Session)
     raise HTTPException(status_code=403, detail="self_scope_denied")
 
 
-def resolve_principal_for_claims(db: Session, claims: ClerkClaims) -> CurrentPrincipal | None:
+def resolve_principal_for_claims(db: Session, claims: IdentityClaims) -> CurrentPrincipal | None:
     """Best-effort CurrentPrincipal for portal contexts; None if not provisioned."""
     if not claims.clerk_user_id:
         return None
     try:
-        # Local CLERK_DEV_BYPASS uses synthetic Bearer-dev subjects.
+        # Local AUTH_DEV_BYPASS uses synthetic Bearer-dev subjects.
         # Still sync/resolve so merchant/customer portal guards can run.
         prepare_user_from_claims(db, claims)
         return resolve_principal_cached(

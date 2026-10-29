@@ -12,17 +12,11 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.clerk_webhook_idempotency import claim_clerk_event
-from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
-from porterchain_api.auth.clerk_webhook_verify import (
-    ClerkWebhookSignatureError,
-    verify_clerk_webhook_signature,
-)
 from porterchain_api.auth.ensure_user_service import EnsureUserService
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, is_invite_only
 from porterchain_api.auth.user_sync_service import UserSyncService
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.config import Settings
 from porterchain_api.user_models import PorterchainUser
 
@@ -36,33 +30,6 @@ def _sign(payload: bytes, *, key: bytes, svix_id: str, ts: str) -> str:
     signed = f"{svix_id}.{ts}.{payload.decode()}".encode()
     digest = hmac.new(key, signed, hashlib.sha256).digest()
     return "v1," + base64.b64encode(digest).decode()
-
-
-def test_verify_clerk_webhook_signature_ok() -> None:
-    secret, key = _whsec_secret()
-    payload = b'{"type":"user.created"}'
-    svix_id = "msg_test_1"
-    ts = str(int(time.time()))
-    sig = _sign(payload, key=key, svix_id=svix_id, ts=ts)
-    verify_clerk_webhook_signature(
-        payload=payload,
-        secret=secret,
-        svix_id=svix_id,
-        svix_timestamp=ts,
-        svix_signature=sig,
-    )
-
-
-def test_verify_clerk_webhook_signature_rejects_bad_sig() -> None:
-    secret, _key = _whsec_secret()
-    with pytest.raises(ClerkWebhookSignatureError):
-        verify_clerk_webhook_signature(
-            payload=b"{}",
-            secret=secret,
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,notavalidsignature",
-        )
 
 
 def test_ensure_user_never_grants_invite_only_from_identity_alone() -> None:
@@ -101,7 +68,7 @@ def test_ensure_user_never_grants_invite_only_from_identity_alone() -> None:
 
 def test_user_sync_unprovisioned_ignores_metadata_role() -> None:
     svc = UserSyncService()
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id="user_x",
         email="x@example.com",
         public_metadata={"role": "super_admin"},
@@ -144,83 +111,3 @@ def test_deactivate_does_not_delete_user_row() -> None:
     assert link.is_current is False
     assert link.deactivated_at is not None
     db.delete.assert_not_called()
-
-
-def test_webhook_requires_secret() -> None:
-    settings = Settings(
-        _env_file=None,
-        jwt_secret="a" * 32,
-        clerk_webhook_signing_secret="",
-        clerk_secret_key="",
-        clerk_jwks_url="",
-        clerk_customer_secret_key="",
-        clerk_customer_jwks_url="",
-        clerk_merchant_secret_key="",
-        clerk_merchant_jwks_url="",
-        clerk_admin_secret_key="",
-        clerk_admin_jwks_url="",
-        clerk_driver_secret_key="",
-        clerk_driver_jwks_url="",
-    )
-    with pytest.raises(HTTPException) as exc:
-        ClerkWebhookService().handle(
-            MagicMock(),
-            settings,
-            payload=b"{}",
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,x",
-        )
-    assert exc.value.status_code == 503
-
-
-def test_webhook_duplicate_returns_duplicate(monkeypatch: pytest.MonkeyPatch) -> None:
-    secret, key = _whsec_secret()
-    settings = Settings(
-        _env_file=None,
-        jwt_secret="a" * 32,
-        clerk_webhook_signing_secret=secret,
-        clerk_secret_key="",
-        clerk_jwks_url="",
-        clerk_customer_secret_key="",
-        clerk_customer_jwks_url="",
-        clerk_merchant_secret_key="",
-        clerk_merchant_jwks_url="",
-        clerk_admin_secret_key="",
-        clerk_admin_jwks_url="",
-        clerk_driver_secret_key="",
-        clerk_driver_jwks_url="",
-    )
-    body = {
-        "type": "user.created",
-        "data": {
-            "id": "user_abc",
-            "email_addresses": [
-                {
-                    "id": "em_1",
-                    "email_address": "new@example.com",
-                    "verification": {"status": "verified"},
-                }
-            ],
-            "primary_email_address_id": "em_1",
-        },
-    }
-    payload = json.dumps(body).encode()
-    svix_id = "msg_dup_1"
-    ts = str(int(time.time()))
-    sig = _sign(payload, key=key, svix_id=svix_id, ts=ts)
-
-    monkeypatch.setattr(
-        "porterchain_api.auth.clerk_webhook_service.claim_clerk_event",
-        lambda *a, **k: False,
-    )
-    db = MagicMock()
-    result = ClerkWebhookService().handle(
-        db,
-        settings,
-        payload=payload,
-        svix_id=svix_id,
-        svix_timestamp=ts,
-        svix_signature=sig,
-    )
-    assert result == {"status": "duplicate"}

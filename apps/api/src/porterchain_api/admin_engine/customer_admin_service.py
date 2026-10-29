@@ -296,7 +296,7 @@ class CustomerAdminService:
         }
 
     def _row(self, db: Session, customer: Customer, *, light: bool) -> dict[str, Any]:
-        linked = self._clerk_linked(customer.clerk_user_id)
+        linked = self._identity_linked(customer.clerk_user_id)
         lifetime_orders = (
             db.query(func.count(Order.id)).filter(Order.customer_id == customer.id).scalar() or 0
         )
@@ -391,7 +391,7 @@ class CustomerAdminService:
         return customer.id
 
     @staticmethod
-    def _clerk_linked(clerk_user_id: str | None) -> bool:
+    def _identity_linked(clerk_user_id: str | None) -> bool:
         if not clerk_user_id:
             return False
         return not str(clerk_user_id).startswith("pending")

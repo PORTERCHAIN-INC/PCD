@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.diagnostics_service import AdminDiagnosticsService
 from porterchain_api.admin_engine.e2e_validation_catalog import DEFAULT_MERCHANT_BULK_COUNT, E2E_MARKER, ValidationStatus
 from porterchain_api.admin_engine.e2e_validation_helpers import StepResult, _now_iso
-from porterchain_api.auth.clerk_registry import is_clerk_configured
+from porterchain_api.auth.identity_directory import is_identity_configured
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order
 
@@ -113,11 +113,11 @@ class E2EValidationCoreMixin:
                         "applied": "documented",
                     }
                 )
-            if not is_clerk_configured(settings) and not settings.clerk_dev_bypass:
+            if not is_identity_configured(settings) and not settings.auth_dev_bypass:
                 fixes.append(
                     {
                         "fix": "clerk_dev_bypass_recommended",
-                        "action": "Enable CLERK_DEV_BYPASS=true for local validation",
+                        "action": "Enable AUTH_DEV_BYPASS=true for local validation",
                         "applied": "documented",
                     }
                 )

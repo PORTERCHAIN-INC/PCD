@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.dependencies import assert_organization_scope, assert_self_scope
 from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
@@ -136,7 +136,7 @@ def test_user_sync_identity_link_points_at_porterchain_user(db) -> None:
     db.add(admin)
     db.commit()
 
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id=clerk_id,
         email=email,
         issuer="https://example.clerk.accounts.dev",

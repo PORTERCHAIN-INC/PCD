@@ -14,7 +14,7 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims as IdentityClaims
+from porterchain_api.auth.claims import IdentityClaims as IdentityClaims
 from porterchain_api.config import Settings
 
 ADMIN_CLIENT_ID = "pc-admin"

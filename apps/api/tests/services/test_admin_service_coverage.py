@@ -103,7 +103,7 @@ def test_admin_merchant360_read_paths(db: Session, settings, merchant_ctx) -> No
         assert isinstance(svc.unprovisioned_signups(db, settings), list)
     except RuntimeError as exc:
         # M-4: Clerk directory failures surface instead of silent [].
-        assert "clerk_directory_unavailable" in str(exc)
+        assert "identity_directory_unavailable" in str(exc)
 
 
 def test_admin_operations_assign_and_queues(

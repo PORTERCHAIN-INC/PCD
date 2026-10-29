@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.e2e_validation_catalog import FAILURE_SCENARIOS, ValidationStatus
 from porterchain_api.admin_engine.e2e_validation_helpers import StepResult
-from porterchain_api.auth.clerk_registry import is_clerk_configured
+from porterchain_api.auth.identity_directory import is_identity_configured
 from porterchain_api.config import Settings
 from porterchain_api.notification_engine.models import NotificationRecord
 
@@ -45,9 +45,9 @@ class E2EValidationFailuresMixin:
                 root_cause = "Webhook secret missing" if status == "WARNING" else ""
                 fix = "Configure STRIPE_WEBHOOK_SECRET (ADR-006)"
             elif scenario == "authentication_failed":
-                status = "PASS" if is_clerk_configured(settings) or settings.clerk_dev_bypass else "BLOCKER"
+                status = "PASS" if is_identity_configured(settings) or settings.auth_dev_bypass else "BLOCKER"
                 root_cause = "Clerk not configured" if status != "PASS" else ""
-                fix = "Configure Clerk or enable CLERK_DEV_BYPASS"
+                fix = "Configure Clerk or enable AUTH_DEV_BYPASS"
                 priority = "P0" if status == "BLOCKER" else "P2"
             elif scenario == "payment_failed":
                 fix = "PaymentService records FAILED status + draft PAYMENT_FAILED"

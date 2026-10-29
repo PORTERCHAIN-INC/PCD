@@ -371,7 +371,7 @@ Use inventory §0 + live route list (~330 admin-facing routes). Minimum per reso
 
 | ID          | Case                                          |
 | ----------- | --------------------------------------------- |
-| INT-CLK-001 | `_portal_slot_apps` returns admin slot        |
+| INT-CLK-001 | admin recipient only for Keycloak `pc-admin`  |
 | INT-CLK-002 | JWKS fetch; clerk health in readiness         |
 | INT-CLK-003 | Directory sync staff/driver/merchant/customer |
 | INT-CLK-004 | Invitation / enroll emails                    |

@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.rbac import AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminUser, SupportTicket
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.booking_engine.customer_service import CustomerService
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.booking_models import (
@@ -283,13 +283,13 @@ def test_signed_in_orders_and_addresses_routes(db: Session, settings: Settings) 
     original = customer.clerk_user_id
     customer.clerk_user_id = "dev_clerk_user"
     db.commit()
-    claims = ClerkClaims(clerk_user_id="dev_clerk_user", email=customer.email, phone=None, clerk_app="customer")
+    claims = IdentityClaims(clerk_user_id="dev_clerk_user", email=customer.email, phone=None, clerk_app="customer")
 
-    async def _claims() -> ClerkClaims:
+    async def _claims() -> IdentityClaims:
         return claims
 
-    local = settings.model_copy(update={"clerk_dev_bypass": True, "spicedb_required": False})
-    app.dependency_overrides[get_clerk_claims] = _claims
+    local = settings.model_copy(update={"auth_dev_bypass": True, "spicedb_required": False})
+    app.dependency_overrides[get_identity_claims] = _claims
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_settings] = lambda: local
     try:

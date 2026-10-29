@@ -5,19 +5,19 @@ from __future__ import annotations
 import logging
 
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass, dev_claims_for, resolve_dev_portal
 from porterchain_api.auth.identity import AuthenticatedIdentity
 from porterchain_api.config import Settings
 
 logger = logging.getLogger("porterchain.security")
 
-def _dev_claims(*, portal: str | None = None, path: str = "", header: str | None = None) -> ClerkClaims:
+def _dev_claims(*, portal: str | None = None, path: str = "", header: str | None = None) -> IdentityClaims:
     """Local Bearer ``dev`` — one Clerk subject per portal, never staff email on merchant/customer."""
     return dev_claims_for(portal or resolve_dev_portal(path=path, header=header))
 
 
-def claims_to_identity(claims: ClerkClaims) -> AuthenticatedIdentity:
+def claims_to_identity(claims: IdentityClaims) -> AuthenticatedIdentity:
     return AuthenticatedIdentity(
         provider="keycloak",
         issuer=claims.issuer,
@@ -31,14 +31,14 @@ def claims_to_identity(claims: ClerkClaims) -> AuthenticatedIdentity:
     )
 
 
-async def verify_clerk_token(
+async def verify_access_token(
     token: str,
     settings: Settings,
     *,
     portal: str | None = None,
     path: str = "",
     header: str | None = None,
-) -> ClerkClaims:
+) -> IdentityClaims:
     if token == "dev" and allow_auth_dev_bypass(settings):
         return _dev_claims(portal=portal, path=path, header=header)
 
@@ -48,13 +48,13 @@ async def verify_clerk_token(
     return await verify_keycloak_token(token, settings)
 
 
-class ClerkIdentityProvider:
+class KeycloakIdentityProvider:
     """Clerk adapter implementing IdentityProvider (no Backend API on authenticate)."""
 
     async def authenticate_bearer(self, token: str, settings: Settings) -> AuthenticatedIdentity:
-        claims = await verify_clerk_token(token, settings)
+        claims = await verify_access_token(token, settings)
         return claims_to_identity(claims)
 
 
-def get_identity_provider() -> ClerkIdentityProvider:
-    return ClerkIdentityProvider()
+def get_identity_provider() -> KeycloakIdentityProvider:
+    return KeycloakIdentityProvider()

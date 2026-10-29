@@ -541,12 +541,14 @@
     },
     {
       "id": "INT-CLK-001",
-      "title": "Admin portal slot in clerk_registry",
+      "title": "Admin recipient only for Keycloak pc-admin client",
       "persona": "BOTH",
       "layer": "api",
       "runner": "pytest",
       "status": "implemented",
-      "covers": ["tests/test_clerk_registry.py::test_enterprise_clerk_per_portal"]
+      "covers": [
+        "tests/test_admin_keycloak.py::test_notification_admin_recipient_only_for_pc_admin"
+      ]
     },
     {
       "id": "INT-ST-002",

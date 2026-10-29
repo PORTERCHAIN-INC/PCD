@@ -8,7 +8,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.email_identity import emails_match
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
@@ -37,7 +37,7 @@ _ADMIN_PLATFORM: dict[AdminRole, PlatformRole] = {
 
 def resolve_persona_principal(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> AuthPrincipal | None:

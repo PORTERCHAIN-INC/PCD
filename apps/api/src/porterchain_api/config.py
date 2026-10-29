@@ -70,35 +70,7 @@ class Settings(BaseSettings):
     keycloak_admin_client_secret: str = ""
     admin_app_url: str = "http://localhost:3002"
 
-    clerk_jwks_url: str = ""
-    clerk_secret_key: str = ""
-    clerk_publishable_key: str = ""
-    clerk_dev_bypass: bool = False
-
-    # Per user-class Clerk apps (enterprise isolation). Empty → fall back to CLERK_* above.
-    clerk_customer_secret_key: str = ""
-    clerk_customer_jwks_url: str = ""
-    clerk_customer_publishable_key: str = ""
-    clerk_merchant_secret_key: str = ""
-    clerk_merchant_jwks_url: str = ""
-    clerk_merchant_publishable_key: str = ""
-    clerk_admin_secret_key: str = ""
-    clerk_admin_jwks_url: str = ""
-    clerk_admin_publishable_key: str = ""
-    clerk_driver_secret_key: str = ""
-    clerk_driver_jwks_url: str = ""
-    clerk_driver_publishable_key: str = ""
-
-    # Phase 3 — optional JWT policy (empty = skip; required after unified Clerk cutover)
-    clerk_audience: str = ""
-    clerk_authorized_parties: str = ""  # comma-separated azp allowlist
-    clerk_authorized_issuers: str = ""  # comma-separated iss allowlist
-    # Phase 4 — Clerk webhook (Svix) signing secret
-    clerk_webhook_signing_secret: str = ""  # Platform instance endpoint (whsec_...)
-    #: Porterchain Driver instance endpoint (whsec_...). Separate Clerk app = separate secret.
-    clerk_driver_webhook_signing_secret: str = ""
-    # RETIRED — must stay false. platform_driver is the only supported layout.
-    clerk_unified_mode: bool = False
+    auth_dev_bypass: bool = False
 
     # SpiceDB (Zanzibar) — access-rules graph (not business data)
     # Default off until compose SpiceDB is up; set SPICEDB_ENABLED=true locally.
@@ -730,15 +702,6 @@ class Settings(BaseSettings):
             raise ValueError(
                 "JWT_SECRET must be set to a secure non-default value when APP_ENV is not local "
                 "(generate with: openssl rand -hex 32)"
-            )
-        return self
-
-    @model_validator(mode="after")
-    def reject_retired_clerk_unified_mode(self) -> Self:
-        if self.clerk_unified_mode:
-            raise ValueError(
-                "CLERK_UNIFIED_MODE is retired — use CLERK_MODE=platform_driver "
-                "(Platform + distinct Driver). Set CLERK_UNIFIED_MODE=false."
             )
         return self
 

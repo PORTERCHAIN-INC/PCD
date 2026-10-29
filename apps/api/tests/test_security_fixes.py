@@ -76,7 +76,7 @@ def test_admin_ip_allowlist(monkeypatch):
 
 def test_offboarding_revokes_clerk_sessions(monkeypatch):
     from porterchain_api.admin_engine import driver_service as ds
-    from porterchain_api.auth import clerk_registry
+    from porterchain_api.auth import identity_directory as clerk_registry
 
     calls = []
 
@@ -85,7 +85,7 @@ def test_offboarding_revokes_clerk_sessions(monkeypatch):
             calls.append(uid)
             return 2
 
-    monkeypatch.setattr(clerk_registry, "clerk_client_for_kind", lambda s, k: _C())
+    monkeypatch.setattr(clerk_registry, "directory_for_kind", lambda s, k: _C())
     d = type("D", (), {"id": "d1", "clerk_user_id": "user_x"})()
     ds.revoke_driver_sessions(d, object())
     assert calls == ["user_x"]

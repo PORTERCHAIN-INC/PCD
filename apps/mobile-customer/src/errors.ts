@@ -1,7 +1,7 @@
 const COPY: Record<string, string> = {
   signed_out: "Sign in to continue.",
   email_required: "Add a verified email in Clerk, then try again.",
-  email_clerk_mismatch: "This email is linked to a different Porterchain account.",
+  email_identity_mismatch: "This email is linked to a different Porterchain account.",
   user_not_provisioned: "This account is not provisioned for the customer portal.",
   missing_portal_permission: "This account is not provisioned for the customer portal.",
   booking_self_service_disabled: "Booking is turned off. You can still track a shipment.",
@@ -21,7 +21,7 @@ const COPY: Record<string, string> = {
   checkout_unavailable: "Porterchain did not return a payment link.",
   payment_failed: "Payment did not complete. Retry from Activity.",
   payment_still_processing: "Payment may still be confirming. Check Activity in a few minutes.",
-  clerk_user_mismatch: "Sign in again, then retry the booking.",
+  identity_subject_mismatch: "Sign in again, then retry the booking.",
   http_401: "Sign in again to continue.",
   http_403: "Porterchain refused this request.",
   request_failed: "Porterchain could not complete that request.",

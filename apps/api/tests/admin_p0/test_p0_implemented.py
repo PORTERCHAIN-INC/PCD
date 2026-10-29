@@ -149,7 +149,7 @@ def test_api_x_001_admin_routes_require_auth() -> None:
 
     settings = Settings(
         app_env="local",
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
         spicedb_enabled=False,

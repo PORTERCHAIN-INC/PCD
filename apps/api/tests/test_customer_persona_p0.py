@@ -20,8 +20,8 @@ from porterchain_api.admin_engine.customer_booking_admin_service import Customer
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.booking_engine.booking_service import BookingService
 from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
 from porterchain_api.booking_engine.customer_service import CustomerService
@@ -149,7 +149,7 @@ def _customer_settings() -> Settings:
         spicedb_enabled=False,
         spicedb_use_memory=True,
         spicedb_required=False,
-        clerk_dev_bypass=True,
+        auth_dev_bypass=True,
     )
 
 
@@ -422,7 +422,7 @@ def test_api_b_quote_equals_book_amount_cents(db: Session, settings: Settings) -
 
 
 def test_http_customer_and_admin_routes_require_auth() -> None:
-    """API-C-002 / API-A auth gate (bypass off — local CLERK_DEV_BYPASS would otherwise open admin)."""
+    """API-C-002 / API-A auth gate (bypass off — local AUTH_DEV_BYPASS would otherwise open admin)."""
     locked = Settings(
         app_env="local",
         stripe_mock=True,
@@ -430,7 +430,7 @@ def test_http_customer_and_admin_routes_require_auth() -> None:
         spicedb_enabled=False,
         spicedb_use_memory=True,
         spicedb_required=False,
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
     )
     app.dependency_overrides[get_settings] = lambda: locked
     try:
@@ -526,7 +526,7 @@ def test_http_admin_dispatcher_cannot_create_booking_draft(admin_client, db: Ses
 def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     """API-A-014: POST creates orphan retail customer."""
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
     )
     client, _holder = admin_client
@@ -553,7 +553,7 @@ def test_http_admin_create_customer_conflict_when_linked(
 ) -> None:
     """API-A-014: 409 when email already Clerk-linked."""
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
     )
     client, _holder = admin_client
@@ -572,9 +572,9 @@ def test_http_admin_create_customer_conflict_when_linked(
 def test_http_admin_create_customer_invite_requires_clerk(
     admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """API-A-014: send_invite without Clerk secrets → 400 clerk_not_configured."""
+    """API-A-014: send_invite without Clerk secrets → 400 identity_not_configured."""
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
     )
     client, _holder = admin_client
@@ -583,7 +583,7 @@ def test_http_admin_create_customer_invite_requires_clerk(
         json={"email": f"invite-{uuid4().hex[:8]}@p0.test", "send_invite": True},
     )
     assert resp.status_code == 400
-    assert resp.json()["detail"] == "clerk_not_configured"
+    assert resp.json()["detail"] == "identity_not_configured"
 
 
 def test_http_admin_dispatcher_cannot_create_customer(admin_client, db: Session) -> None:
@@ -599,26 +599,26 @@ def test_http_admin_dispatcher_cannot_create_customer(admin_client, db: Session)
 
 def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     """API-A-014 companion: POST /{id}/invite for orphan rows."""
-    from porterchain_api.auth.clerk_client import ClerkInviteResult
+    from porterchain_api.auth.identity_directory import InviteResult
 
     client, _holder = admin_client
     customer = _make_customer(db, suffix="inv", clerk_user_id=f"pending:inv-{uuid4().hex[:6]}@p0.test")
     db.commit()
 
     class _FakeClerk:
-        def invite_user(self, email, *, redirect_url, public_metadata):
-            return ClerkInviteResult(action="invited", clerk_invitation_id="inv_test")
+        def invite_user(self, email, *, redirect_url, metadata):
+            return InviteResult(action="invited", invitation_id="inv_test")
 
     monkeypatch.setattr(
-        "porterchain_api.auth.invitation_service.is_clerk_secret_configured",
+        "porterchain_api.auth.invitation_service.is_directory_configured",
         lambda *a, **k: True,
     )
     monkeypatch.setattr(
-        "porterchain_api.auth.invitation_service.clerk_client_for_kind",
+        "porterchain_api.auth.invitation_service.directory_for_kind",
         lambda *a, **k: _FakeClerk(),
     )
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: True,
     )
 
@@ -633,7 +633,7 @@ def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatc
 def customer_client(db: Session):
     settings = _customer_settings()
     email = "dev-customer@p0.test"
-    claims = ClerkClaims(
+    claims = IdentityClaims(
         clerk_user_id="dev_clerk_user",
         email=email,
         phone="+14165550001",
@@ -654,10 +654,10 @@ def customer_client(db: Session):
         existing.phone = existing.phone or "+14165550001"
     db.commit()
 
-    async def _claims() -> ClerkClaims:
+    async def _claims() -> IdentityClaims:
         return claims
 
-    app.dependency_overrides[get_clerk_claims] = _claims
+    app.dependency_overrides[get_identity_claims] = _claims
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_settings] = lambda: settings
     yield TestClient(app), settings

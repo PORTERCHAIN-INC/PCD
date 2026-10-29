@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 def resolve_merchant_contact(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     settings: Settings | None,
 ) -> str | None:
     """Resolve Clerk-attested email only (JWT or verified Backend primary). Never DB."""
@@ -68,7 +68,7 @@ def resolve_merchant_contact(
         return None
 
 
-def _derive_company_name(claims: ClerkClaims, email: str) -> str:
+def _derive_company_name(claims: IdentityClaims, email: str) -> str:
     meta = claims.public_metadata or {}
     if meta.get("company_name"):
         return str(meta["company_name"]).strip()
@@ -79,7 +79,7 @@ def _derive_company_name(claims: ClerkClaims, email: str) -> str:
 
 def ensure_merchant_portal_signup(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> None:
@@ -121,7 +121,7 @@ def ensure_merchant_portal_signup(
 
 def _resolve_seat(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> tuple[Any, Any]:
@@ -132,7 +132,7 @@ def _resolve_seat(
 
 def evaluate_merchant_onboarding(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> dict[str, Any]:
@@ -274,7 +274,7 @@ def evaluate_merchant_onboarding(
 
 def _require_seat(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> tuple[Any, Any]:
@@ -288,7 +288,7 @@ def _require_seat(
 
 def save_merchant_vertical(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     vertical: str,
     *,
     settings: Settings | None = None,
@@ -315,7 +315,7 @@ def save_merchant_vertical(
 
 def save_merchant_company_file(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     body: MerchantProfileUpdateRequest,
     *,
     settings: Settings | None = None,

@@ -22,9 +22,9 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT.parents[1] / "shared" / "python"))
 
 from porterchain_api.admin_models import AdminUser, Driver  # noqa: E402
-from porterchain_api.auth.clerk_client import ClerkClient  # noqa: E402
-from porterchain_api.auth.clerk_registry import (  # noqa: E402
-    clerk_client_for_kind,
+from porterchain_api.auth.identity_directory import IdentityDirectory  # noqa: E402
+from porterchain_api.auth.identity_directory import (  # noqa: E402
+    directory_for_kind,
     resolve_platform_clerk_config,
 )
 from porterchain_api.authz.tuples import TupleWriter  # noqa: E402
@@ -38,7 +38,7 @@ from porterchain_api.user_models import PorterchainUser  # noqa: E402
 from porterchain_shared.redis_health import is_local_env  # noqa: E402
 
 
-def _list_clerk_ids(client: ClerkClient) -> dict[str, str]:
+def _list_clerk_ids(client: IdentityDirectory) -> dict[str, str]:
     """clerk_user_id → primary email."""
     out: dict[str, str] = {}
     offset = 0
@@ -50,7 +50,7 @@ def _list_clerk_ids(client: ClerkClient) -> dict[str, str]:
             cid = str(u.get("id") or "")
             if not cid:
                 continue
-            out[cid] = (ClerkClient.primary_email(u) or "").lower()
+            out[cid] = (IdentityDirectory.primary_email(u) or "").lower()
         if len(batch) < 100:
             break
         offset += 100
@@ -75,7 +75,7 @@ def main() -> None:
     if "porterchain.com" in host and not host.endswith(".clerk.accounts.dev"):
         raise SystemExit(f"refusing live JWKS host: {host}")
 
-    client = clerk_client_for_kind(settings, "admin")
+    client = directory_for_kind(settings, "admin")
     clerk_map = _list_clerk_ids(client)
     clerk_ids = set(clerk_map.keys())
     print(json.dumps({"clerk_host": host, "clerk_users": len(clerk_ids), "emails": list(clerk_map.values())}, indent=2))

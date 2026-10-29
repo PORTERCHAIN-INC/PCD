@@ -48,7 +48,7 @@ class KeycloakAdmin:
         self.settings = settings
         self.realm = settings.keycloak_realm
         self.base = _base(settings)
-        self.http = client or httpx.Client(timeout=10.0)
+        self.http = client or httpx.Client(timeout=httpx.Timeout(5.0, connect=2.0))
 
     # -- plumbing -------------------------------------------------------------
     def _token(self) -> str:
@@ -142,7 +142,14 @@ class KeycloakAdmin:
         self._sync_roles(existing["id"], role)
         return existing["id"], created
 
-    def send_actions_email(self, user_id: str, actions: list[str]) -> bool:
+    def send_actions_email(
+        self,
+        user_id: str,
+        actions: list[str],
+        *,
+        client_id: str = "pc-admin",
+        redirect_uri: str | None = None,
+    ) -> bool:
         """Keycloak emails the action link (needs realm SMTP). False when mail failed."""
         try:
             res = self._call(
@@ -150,8 +157,9 @@ class KeycloakAdmin:
                 f"/users/{user_id}/execute-actions-email",
                 params={
                     "lifespan": ACTION_LIFESPAN_SECONDS,
-                    "client_id": "pc-admin",
-                    "redirect_uri": f"{self.settings.admin_app_url.rstrip('/')}/auth/login",
+                    "client_id": client_id,
+                    "redirect_uri": redirect_uri
+                    or f"{self.settings.admin_app_url.rstrip('/')}/auth/login",
                 },
                 json=actions,
             )

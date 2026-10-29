@@ -27,12 +27,12 @@ from porterchain_api.unified_identity_models import UserEmail
 from porterchain_api.user_models import PorterchainUser
 
 if TYPE_CHECKING:
-    from porterchain_api.auth.claims import ClerkClaims
+    from porterchain_api.auth.claims import IdentityClaims
     from porterchain_api.config import Settings
 
 logger = logging.getLogger("porterchain.security")
 
-EMAIL_CLERK_MISMATCH = "email_clerk_mismatch"
+EMAIL_IDENTITY_MISMATCH = "email_identity_mismatch"
 CLERK_EMAIL_REQUIRED = "clerk_email_required"
 CLERK_EMAIL_UNVERIFIED = "clerk_email_unverified"
 
@@ -68,7 +68,7 @@ def require_system_email_matches_clerk(
     system_email: str | None,
     clerk_email: str | None,
     *,
-    detail: str = EMAIL_CLERK_MISMATCH,
+    detail: str = EMAIL_IDENTITY_MISMATCH,
 ) -> None:
     """Raise PermissionError when Clerk email missing or ≠ system profile email."""
     require_clerk_email(clerk_email)
@@ -132,9 +132,9 @@ def resolve_verified_clerk_email(
     if clerk_user_id.startswith("pending:") or clerk_user_id.startswith("pending_"):
         raise PermissionError(CLERK_EMAIL_REQUIRED)
 
-    from porterchain_api.auth.clerk_registry import fetch_clerk_user, is_clerk_secret_configured
+    from porterchain_api.auth.identity_directory import fetch_identity_user, is_directory_configured
 
-    if not is_clerk_secret_configured(settings):
+    if not is_directory_configured(settings):
         logger.warning("clerk_email_resolve_failed reason=secret_not_configured")
         raise PermissionError(CLERK_EMAIL_REQUIRED)
 
@@ -147,7 +147,7 @@ def resolve_verified_clerk_email(
         raise PermissionError(detail or CLERK_EMAIL_REQUIRED)
 
     try:
-        clerk_user, _kind = fetch_clerk_user(settings, clerk_user_id)
+        clerk_user, _kind = fetch_identity_user(settings, clerk_user_id)
     except Exception:
         logger.warning("clerk_email_resolve_failed reason=backend_lookup_error", exc_info=True)
         _email_cache[clerk_user_id] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
@@ -164,7 +164,7 @@ def resolve_verified_clerk_email(
     raise PermissionError(detail or CLERK_EMAIL_REQUIRED)
 
 
-def enrich_claims_with_verified_email(claims: ClerkClaims, settings: Settings) -> ClerkClaims:
+def enrich_claims_with_verified_email(claims: IdentityClaims, settings: Settings) -> IdentityClaims:
     """Attach Clerk verified email onto claims before UserSync / portal authz."""
     if normalize_email(claims.email):
         return replace(claims, email=normalize_email(claims.email))
@@ -231,7 +231,7 @@ def delete_email_mismatched_bindings(
         if row_email and row_email == expected:
             continue
         logger.warning(
-            "email_clerk_mismatch_deleted",
+            "email_identity_mismatch_deleted",
             extra={
                 "model": table_name,
                 "row_id": getattr(row, "id", None),
@@ -286,7 +286,7 @@ def _strip_registry_if_no_matching_persona(
 
     # Hard-delete registry identity that itself carried a mismatched email
     logger.warning(
-        "email_clerk_mismatch_registry_deleted",
+        "email_identity_mismatch_registry_deleted",
         extra={"user_id": user.id, "system_email": user.email, "clerk_email": clerk_email},
     )
     db.query(UserEmail).filter(UserEmail.user_id == user.id).delete(synchronize_session=False)

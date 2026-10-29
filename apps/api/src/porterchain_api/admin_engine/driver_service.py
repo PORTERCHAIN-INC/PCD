@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.driver_account_ops import DriverAccountOps
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService
 
 if TYPE_CHECKING:
@@ -106,7 +106,7 @@ class AdminDriverService(DriverAccountOps):
         db.commit()
         db.refresh(driver)
 
-        if settings and is_clerk_secret_configured(settings, "driver"):
+        if settings and is_directory_configured(settings, "driver"):
             try:
                 InvitationService().provision_driver_account(db, ctx, settings, driver)
                 db.refresh(driver)
@@ -183,7 +183,7 @@ class AdminDriverService(DriverAccountOps):
             settings
             and not driver.clerk_user_id
             and getattr(driver, "email", None)
-            and is_clerk_secret_configured(settings, "driver")
+            and is_directory_configured(settings, "driver")
         ):
             try:
                 InvitationService().provision_driver_account(db, ctx, settings, driver)
@@ -454,10 +454,10 @@ def revoke_driver_sessions(driver: Driver, settings: Settings | None) -> None:
     if not driver.clerk_user_id:
         return
     try:
-        from porterchain_api.auth.clerk_registry import clerk_client_for_kind
+        from porterchain_api.auth.identity_directory import directory_for_kind
         from porterchain_api.config import get_settings
 
-        n = clerk_client_for_kind(settings or get_settings(), "driver").revoke_sessions(driver.clerk_user_id)
+        n = directory_for_kind(settings or get_settings(), "driver").revoke_sessions(driver.clerk_user_id)
         logger.info("driver_sessions_revoked driver=%s count=%s", driver.id, n)
     except Exception as exc:  # noqa: BLE001
         logger.warning("driver_session_revoke_failed driver=%s: %s", driver.id, exc)

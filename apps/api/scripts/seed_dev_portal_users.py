@@ -209,7 +209,7 @@ def main() -> None:
         print(f"  User email:  {user.email}")
         print()
         print("DRIVER PORTAL (http://localhost:3003/login)")
-        print("  Dev login: email only (no password) — set CLERK_DEV_BYPASS=true on API")
+        print("  Dev login: email only (no password) — set AUTH_DEV_BYPASS=true on API")
         for spec, driver in zip(DRIVERS, drivers, strict=True):
             print(f"  • {spec['email']}  (driver_id: {driver.id})")
         print()

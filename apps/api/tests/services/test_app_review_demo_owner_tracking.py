@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 import pytest
 from fastapi.testclient import TestClient
 
-from porterchain_api.auth.clerk import get_optional_clerk_user_id
+from porterchain_api.auth.bearer import get_optional_auth_subject
 from porterchain_api.booking_engine.numbers import (
     generate_order_number,
     generate_tracking_number,
@@ -60,7 +60,7 @@ def call(db):
     client = TestClient(app)
 
     def _get(path: str, viewer: str | None) -> int:
-        app.dependency_overrides[get_optional_clerk_user_id] = lambda: viewer
+        app.dependency_overrides[get_optional_auth_subject] = lambda: viewer
         return client.get(path).status_code
 
     return _get

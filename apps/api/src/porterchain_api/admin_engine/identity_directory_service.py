@@ -14,17 +14,16 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_engine.audit import log_admin_audit
-from porterchain_api.admin_engine.clerk_directory_local import create_local_driver, invite_directory_user
+from porterchain_api.admin_engine.identity_directory_local import create_local_driver, invite_directory_user
 from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.auth.clerk_client import ClerkClient
-from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
-from porterchain_api.auth.clerk_registry import ClerkAppKind
-from porterchain_api.auth.portal_guard import is_legacy_shared_clerk_app
+from porterchain_api.auth.identity_directory import IdentityDirectory
+from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
+from porterchain_api.auth.identity_directory import UserKind
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.merchant_engine.lookups import get_merchant, get_merchant_user, get_merchant_user_by_email
-from porterchain_api.merchant_engine.team_service import bind_seat_clerk, deactivate_seat
+from porterchain_api.merchant_engine.team_service import bind_seat_subject, deactivate_seat
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ def require_platform_user_type(user_type: str) -> str:
     return user_type
 
 
-def require_clerk_directory_type(user_type: str) -> str:
+def require_directory_user_type(user_type: str) -> str:
     """Staff uses Staff IdP — never a Clerk directory application."""
     if user_type == "staff":
         raise ValueError("staff_uses_staff_idp_not_clerk")
@@ -48,43 +47,41 @@ def require_clerk_directory_type(user_type: str) -> str:
     return user_type
 
 
-def clerk_kind_for_user_type(user_type: str) -> ClerkAppKind:
-    require_clerk_directory_type(user_type)
+def directory_kind_for_user_type(user_type: str) -> UserKind:
+    require_directory_user_type(user_type)
     return user_type  # type: ignore[return-value]
 
 
-def fetch_clerk_snapshots(
+def fetch_directory_snapshots(
     settings: Settings,
     user_type: str,
     *,
     limit: int = 500,
     query: str | None = None,
 ) -> dict[str, Any]:
-    """Email → ClerkUserSnapshot for the tab's Clerk application."""
-    from porterchain_api.auth.clerk_client import ClerkUserSnapshot
+    """Email → DirectoryUserSnapshot for the tab's Clerk application."""
+    from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
 
-    require_clerk_directory_type(user_type)
-    kind = clerk_kind_for_user_type(user_type)
-    if not is_clerk_secret_configured(settings, kind):
+    require_directory_user_type(user_type)
+    kind = directory_kind_for_user_type(user_type)
+    if not is_directory_configured(settings, kind):
         return {}
-    client = clerk_client_for_kind(settings, kind)
+    client = directory_for_kind(settings, kind)
     users, _total = client.list_users(limit=limit, query=query)
-    out: dict[str, ClerkUserSnapshot] = {}
+    out: dict[str, DirectoryUserSnapshot] = {}
     expected_type = user_type
-    legacy_shared = is_legacy_shared_clerk_app(settings)
     for raw in users:
-        snap = ClerkClient.snapshot(raw)
+        snap = IdentityDirectory.snapshot(raw)
         if not snap:
             continue
-        if legacy_shared:
-            meta_type = (snap.public_metadata or {}).get("user_type")
-            if meta_type and meta_type != expected_type:
-                continue
+        meta_type = (snap.metadata or {}).get("user_type")
+        if meta_type and meta_type != expected_type:
+            continue
         out[snap.email] = snap
     return out
 
 
-class ClerkDirectoryService:
+class DirectoryUserService:
     """Create / update / delete users via Clerk + Porterchain provisioning."""
 
     def create_user(
@@ -130,7 +127,7 @@ class ClerkDirectoryService:
             }
 
         # Merchant seats are always reserved locally — never Clerk-invite from Settings (M-16).
-        # Must run before clerk_not_configured so Super Admin can add seats without Clerk.
+        # Must run before identity_not_configured so Super Admin can add seats without Clerk.
         if user_type == "merchant":
             if not merchant_id:
                 raise ValueError("merchant_id_required")
@@ -169,11 +166,11 @@ class ClerkDirectoryService:
         # Driver: local PENDING row when Super Admin skips Clerk, or when Clerk is down.
         if user_type == "driver" and not password and not send_invite:
             return create_local_driver(db, ctx, email=normalized, name=name)
-        kind = clerk_kind_for_user_type(user_type)
-        if not is_clerk_secret_configured(settings, kind):
+        kind = directory_kind_for_user_type(user_type)
+        if not is_directory_configured(settings, kind):
             if user_type == "driver":
                 return create_local_driver(db, ctx, email=normalized, name=name)
-            raise ValueError("clerk_not_configured")
+            raise ValueError("identity_not_configured")
 
         first_name = None
         last_name = None
@@ -182,7 +179,7 @@ class ClerkDirectoryService:
             first_name = parts[0]
             last_name = parts[1] if len(parts) > 1 else None
 
-        client = clerk_client_for_kind(settings, kind)
+        client = directory_for_kind(settings, kind)
         clerk_user: dict[str, Any] | None = None
         clerk_action = "created"
 
@@ -278,8 +275,8 @@ class ClerkDirectoryService:
             raise ValueError("staff_manage_via_staff_idp")
         if user_type in ("merchant", "customer"):
             raise ValueError("clerk_manage_forbidden_for_retail")
-        kind = clerk_kind_for_user_type(user_type)
-        client = clerk_client_for_kind(settings, kind)
+        kind = directory_kind_for_user_type(user_type)
+        client = directory_for_kind(settings, kind)
         first_name = None
         last_name = None
         if name and name.strip():
@@ -306,8 +303,8 @@ class ClerkDirectoryService:
             payload={"banned": banned, "password_reset": bool(password)},
         )
         db.commit()
-        snap = ClerkClient.snapshot(client.get_user(clerk_user_id) or {})
-        return {"clerk_user_id": clerk_user_id, "clerk_status": snap.clerk_status if snap else None}
+        snap = IdentityDirectory.snapshot(client.get_user(clerk_user_id) or {})
+        return {"clerk_user_id": clerk_user_id, "clerk_status": snap.status if snap else None}
 
     def delete_clerk_user(
         self,
@@ -351,10 +348,10 @@ class ClerkDirectoryService:
             )
             db.commit()
             return
-        kind = clerk_kind_for_user_type(user_type)
+        kind = directory_kind_for_user_type(user_type)
         resolved_clerk_id = clerk_user_id or self._clerk_id_for_platform(db, user_type, platform_user_id)
-        if resolved_clerk_id and is_clerk_secret_configured(settings, kind):
-            clerk_client_for_kind(settings, kind).delete_user(resolved_clerk_id)
+        if resolved_clerk_id and is_directory_configured(settings, kind):
+            directory_for_kind(settings, kind).delete_user(resolved_clerk_id)
         if platform_user_id:
             self._deactivate_platform_user(db, user_type, platform_user_id)
             clerk_for_sync = resolved_clerk_id or self._clerk_id_for_platform(
@@ -382,15 +379,15 @@ class ClerkDirectoryService:
             return None
         if user_type == "driver":
             d = db.query(Driver).filter(Driver.id == platform_user_id).first()
-            return d.clerk_user_id if d and _clerk_linked(d.clerk_user_id) else None
+            return d.clerk_user_id if d and _identity_linked(d.clerk_user_id) else None
         if user_type == "merchant":
             mu = get_merchant_user(db, platform_user_id)
-            return mu.clerk_user_id if mu and _clerk_linked(mu.clerk_user_id) else None
+            return mu.clerk_user_id if mu and _identity_linked(mu.clerk_user_id) else None
         if user_type == "customer":
             from porterchain_api.booking_models import Customer
 
             c = db.query(Customer).filter(Customer.id == platform_user_id).first()
-            return c.clerk_user_id if c and _clerk_linked(c.clerk_user_id) else None
+            return c.clerk_user_id if c and _identity_linked(c.clerk_user_id) else None
         return None
 
     def _deactivate_platform_user(self, db: Session, user_type: str, platform_user_id: str) -> None:
@@ -458,12 +455,12 @@ class ClerkDirectoryService:
         if user_type == "merchant" and merchant_id:
             mu = get_merchant_user_by_email(db, email, merchant_id=merchant_id)
             if mu:
-                bind_seat_clerk(db, mu.id, clerk_user_id, activate=True)
+                bind_seat_subject(db, mu.id, clerk_user_id, activate=True)
                 return mu.id
         return None
 
 
-def _clerk_linked(clerk_user_id: str | None) -> bool:
+def _identity_linked(clerk_user_id: str | None) -> bool:
     if not clerk_user_id:
         return False
     if clerk_user_id.startswith("pending") or clerk_user_id.startswith("staff:"):

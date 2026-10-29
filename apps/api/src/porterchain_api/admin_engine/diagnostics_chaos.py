@@ -133,10 +133,10 @@ class DiagnosticsChaosMixin:
     def _chaos_clerk(self, settings: Settings) -> dict[str, Any]:
         # Scenario = Clerk JWKS unreachable. Pass if auth fails closed (JWT required or
         # explicit local bypass) — do not fail on live JWKS HTTP errors.
-        from porterchain_api.auth.clerk_registry import is_clerk_configured
+        from porterchain_api.auth.identity_directory import is_identity_configured
 
-        bypass = bool(settings.clerk_dev_bypass)
-        configured = is_clerk_configured(settings)
+        bypass = bool(settings.auth_dev_bypass)
+        configured = is_identity_configured(settings)
         if bypass and not configured:
             status: HealthClass = "warning"
             note = "Clerk dev bypass active (local only)"

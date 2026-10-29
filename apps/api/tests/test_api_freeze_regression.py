@@ -22,7 +22,7 @@ from sqlalchemy.pool import QueuePool
 from starlette.concurrency import run_in_threadpool
 
 from porterchain_api.auth import driver as driver_auth
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.db import get_db
 
 SLOW_CLERK_S = 1.5
@@ -62,22 +62,22 @@ async def _hammer_health(client: httpx.AsyncClient, seconds: float) -> list[floa
 @pytest.fixture
 def slow_clerk(monkeypatch):
     async def fake_verify(token, settings, **_):
-        return ClerkClaims(clerk_user_id="user_slow", email=None)
+        return IdentityClaims(clerk_user_id="user_slow", email=None)
 
     def slow_enrich(claims, settings):
         return claims
 
     def stop_after_enrich(db, claims):
-        # prepare -> UserSync -> email identity -> fetch_clerk_user: blocking
+        # prepare -> UserSync -> email identity -> fetch_identity_user: blocking
         # Clerk Backend HTTP with a DB transaction already open, like prod.
         time.sleep(SLOW_CLERK_S)
         raise HTTPException(status_code=403, detail="driver_not_found")
 
-    import porterchain_api.auth.clerk as clerk_mod
+    import porterchain_api.auth.bearer as clerk_mod
     import porterchain_api.auth.email_identity as ei
     import porterchain_api.auth.prepare as prep
 
-    monkeypatch.setattr(clerk_mod, "verify_clerk_token", fake_verify)
+    monkeypatch.setattr(clerk_mod, "verify_access_token", fake_verify)
     monkeypatch.setattr(ei, "enrich_claims_with_verified_email", slow_enrich)
     monkeypatch.setattr(prep, "prepare_user_from_claims", stop_after_enrich)
 
@@ -165,8 +165,8 @@ def test_health_does_not_touch_db_pool(monkeypatch):
     assert client.get("/health/live").status_code == 200
 
 
-def test_clerk_get_user_has_short_timeout(monkeypatch):
-    from porterchain_api.auth import clerk_client
+def test_identity_directory_get_user_has_short_timeout(monkeypatch):
+    from porterchain_api.auth import keycloak_admin
 
     seen = {}
     real = httpx.Client
@@ -175,10 +175,19 @@ def test_clerk_get_user_has_short_timeout(monkeypatch):
         seen["timeout"] = k.get("timeout")
         return real(*a, transport=httpx.MockTransport(lambda r: httpx.Response(404)), **k)
 
-    monkeypatch.setattr(clerk_client.httpx, "Client", spy)
-    assert clerk_client.ClerkClient("sk_test").get_user("user_x") is None
+    monkeypatch.setattr(keycloak_admin.httpx, "Client", spy)
+    seen.clear()
+    try:
+        from porterchain_api.config import Settings
+
+        keycloak_admin.KeycloakAdmin(
+            Settings(_env_file=None, keycloak_url="http://kc.invalid", keycloak_admin_client_secret="s")  # type: ignore[call-arg]
+        )
+    except Exception:  # noqa: BLE001 — token fetch 404s; only the timeout matters
+        pass
     t = seen["timeout"]
-    assert isinstance(t, httpx.Timeout) and t.read <= 5 and t.connect <= 2
+    t = t if isinstance(t, httpx.Timeout) else httpx.Timeout(t)
+    assert t.read <= 5 and t.connect <= 2
 
 
 def test_pool_monitor_alerts(caplog):
@@ -241,26 +250,26 @@ def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
 
     order: list[str] = []
     monkeypatch.setattr(ei, "resolve_verified_clerk_email", lambda **k: order.append("clerk_email") or "a@b.c")
-    monkeypatch.setattr(cust, "is_clerk_secret_configured", lambda s: True)
-    monkeypatch.setattr(cust, "fetch_clerk_user", lambda s, uid: (order.append("clerk_phone") or {"x": 1}, "customer"))
-    monkeypatch.setattr(cust.ClerkClient, "primary_phone", staticmethod(lambda u: "+14165550000"))
+    monkeypatch.setattr(cust, "is_directory_configured", lambda s: True)
+    monkeypatch.setattr(cust, "fetch_identity_user", lambda s, uid: (order.append("clerk_phone") or {"x": 1}, "customer"))
+    monkeypatch.setattr(cust.IdentityDirectory, "primary_phone", staticmethod(lambda u: "+14165550000"))
     monkeypatch.setattr(cust._customers, "get_by_clerk", lambda db, uid: None)
     cust._phone_cache.clear()
     db = MagicMock()
     db.query.side_effect = lambda *a, **k: order.append("db") or MagicMock(
         filter=lambda *a: MagicMock(first=lambda: None)
     )
-    email, phone = cust.resolve_customer_contact(db, ClerkClaims(clerk_user_id="user_c", email=None), MagicMock())
+    email, phone = cust.resolve_customer_contact(db, IdentityClaims(clerk_user_id="user_c", email=None), MagicMock())
     assert (email, phone) == ("a@b.c", "+14165550000")
     assert order.index("clerk_phone") < order.index("db"), order
     # cached: second call makes no Clerk request
     order.clear()
-    cust.resolve_customer_contact(db, ClerkClaims(clerk_user_id="user_c", email=None), MagicMock())
+    cust.resolve_customer_contact(db, IdentityClaims(clerk_user_id="user_c", email=None), MagicMock())
     assert "clerk_phone" not in order
 
 
 def _fast_admin_verify(monkeypatch):
-    from porterchain_api.auth import clerk, driver
+    from porterchain_api.auth import bearer, driver
 
     async def verify(token, settings, portal=None):
         return MagicMock(clerk_user_id="kc-sub")
@@ -268,7 +277,7 @@ def _fast_admin_verify(monkeypatch):
     def not_driver(token, settings):
         raise ValueError("not a driver token")
 
-    monkeypatch.setattr(clerk, "verify_clerk_token", verify)
+    monkeypatch.setattr(bearer, "verify_access_token", verify)
     monkeypatch.setattr(driver, "_driver_id_from_token", not_driver)
 
 
@@ -340,7 +349,7 @@ def test_no_sync_db_or_http_in_async_defs():
                     continue
                 uses_db = any(isinstance(a, ast.Name) and a.id == "db" for a in c.args)
                 if uses_db or name.startswith("db.") or name in {"SessionLocal", "httpx.Client"} or name.endswith(
-                    ("fetch_clerk_user", "enrich_claims_with_verified_email", "prepare_user_from_claims")
+                    ("fetch_identity_user", "enrich_claims_with_verified_email", "prepare_user_from_claims")
                 ):
                     bad.append(f"{f.relative_to(root)}:{c.lineno} {fn.name} -> {name}")
     assert not bad, "blocking calls on the event loop:\n" + "\n".join(bad)

@@ -7,8 +7,8 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.auth.customer import require_customer
 from porterchain_api.booking_attachments import service as svc
 from porterchain_api.config import Settings, get_settings
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/v1/customers/me", tags=["booking-attachments"])
 
 @router.post("/attachments/suggest")
 async def customer_suggest(
-    file: UploadFile = File(...), claims: ClerkClaims = Depends(get_clerk_claims)
+    file: UploadFile = File(...), claims: IdentityClaims = Depends(get_identity_claims)
 ):
     del claims  # signed-in only; nothing is stored
     data = await read(file)
@@ -38,7 +38,7 @@ async def customer_suggest(
 def customer_list(
     order_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ):
     c = require_customer(db, claims, settings)
@@ -49,7 +49,7 @@ def customer_list(
 async def customer_upload(
     order_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
     file: UploadFile = File(...),
     kind: str | None = Form(None),
@@ -85,7 +85,7 @@ def customer_patch(
     attachment_id: str,
     body: AttachmentPatch,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ):
     c = require_customer(db, claims, settings)
@@ -105,7 +105,7 @@ def customer_patch(
 def customer_delete(
     attachment_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ):
     c = require_customer(db, claims, settings)
@@ -125,7 +125,7 @@ def customer_delete(
 def customer_file(
     attachment_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ):
     c = require_customer(db, claims, settings)

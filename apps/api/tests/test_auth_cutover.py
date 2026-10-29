@@ -11,7 +11,6 @@ from fastapi import HTTPException
 from porterchain_api.admin_engine.platform_user_authorize import authorize_platform_user
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, permissions_catalog
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.clerk_config_audit import audit_clerk_settings, resolve_clerk_runtime_mode
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.merchant_engine.rbac import permissions_catalog as merchant_permissions_catalog
@@ -65,34 +64,6 @@ def test_architecture_census_staff_not_clerk() -> None:
     text = Path(__file__).resolve().parents[3].joinpath("ARCHITECTURE.md").read_text()
     assert "Keycloak `pc-admin`" in text
     assert "| Staff | `/v1/admin` | Clerk staff |" not in text
-
-
-def test_clerk_audit_platform_driver_secret_matrix() -> None:
-    settings = Settings(
-        app_env="local",
-        clerk_unified_mode=False,
-        clerk_publishable_key="pk_test_platform",
-        clerk_secret_key="sk_test_platform",
-        clerk_jwks_url="https://platform.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_customer_publishable_key="pk_test_platform",
-        clerk_customer_secret_key="sk_test_platform",
-        clerk_customer_jwks_url="https://platform.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_merchant_publishable_key="pk_test_platform",
-        clerk_merchant_secret_key="sk_test_platform",
-        clerk_merchant_jwks_url="https://platform.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_admin_publishable_key="pk_test_platform",
-        clerk_admin_secret_key="sk_test_platform",
-        clerk_admin_jwks_url="https://platform.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_driver_publishable_key="pk_test_driver",
-        clerk_driver_secret_key="sk_test_driver",
-        clerk_driver_jwks_url="https://driver.clerk.accounts.dev/.well-known/jwks.json",
-    )
-    assert resolve_clerk_runtime_mode(settings) == "platform_driver"
-    findings = {f.name: f for f in audit_clerk_settings(settings)}
-    assert findings["CLERK_CONFIGURATION_MODE"].detail == "platform_driver"
-    assert findings["SECRET_ACCESS_MATRIX"].status == "info"
-    assert "staff IdP" in findings["SECRET_ACCESS_MATRIX"].detail
-    assert "CLERK_MODE_RETIRED" not in findings
 
 
 def test_invite_admin_staff_and_merchant_invite_deleted() -> None:
@@ -175,6 +146,6 @@ def test_enforce_staff_step_up_dev_bypass() -> None:
 
     req = MagicMock()
     req.cookies = {}
-    settings = Settings(app_env="local", clerk_dev_bypass=True)
+    settings = Settings(app_env="local", auth_dev_bypass=True)
     # Should not raise for Bearer dev
     enforce_staff_step_up(req, "Bearer dev", settings)

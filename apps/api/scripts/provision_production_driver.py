@@ -22,7 +22,7 @@ sys.path.insert(0, str(API_ROOT.parent.parent / "services" / "driver-platform"))
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.config import get_settings
 from porterchain_api.db import SessionLocal, init_db
@@ -44,7 +44,7 @@ def _bootstrap_admin_ctx(db) -> AdminContext | None:
 
 
 def _send_clerk_invite(db, settings, driver: Driver) -> None:
-    if not is_clerk_secret_configured(settings, "driver"):
+    if not is_directory_configured(settings, "driver"):
         print("Clerk driver secret not configured — skipped invite")
         return
     invitation = InvitationService().invite_driver(db, None, settings, driver)

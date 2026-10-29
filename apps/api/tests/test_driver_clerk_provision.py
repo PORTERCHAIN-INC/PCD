@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from porterchain_api.auth import invitation_service as inv_mod
-from porterchain_api.auth.clerk_client import ClerkInviteResult
+from porterchain_api.auth.identity_directory import InviteResult
 from porterchain_api.auth.invitation_service import InvitationService
 
 
@@ -39,11 +39,11 @@ class FakeClerk:
 
     def invite_user(self, email: str, **kw):
         self.invited.append(email)
-        return ClerkInviteResult(action="invited", clerk_invitation_id="inv_x")
+        return InviteResult(action="invited", invitation_id="inv_x")
 
 
 def _setup(monkeypatch, clerk: FakeClerk, pending_rows=()):
-    monkeypatch.setattr(inv_mod, "clerk_client_for_kind", lambda s, k: clerk)
+    monkeypatch.setattr(inv_mod, "directory_for_kind", lambda s, k: clerk)
     monkeypatch.setattr(inv_mod, "log_admin_audit", lambda *a, **k: None)
     import porterchain_api.auth.authz_sync as authz
 

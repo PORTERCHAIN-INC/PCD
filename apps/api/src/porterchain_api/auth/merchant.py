@@ -7,15 +7,15 @@ from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.dev import allow_auth_dev_bypass, is_dev_bypass_subject, is_merchant_dev_subject
-from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
+from porterchain_api.auth.bearer import IdentityClaims, get_identity_claims
 from porterchain_api.auth.email_identity import (
     CLERK_EMAIL_REQUIRED,
     CLERK_EMAIL_UNVERIFIED,
-    EMAIL_CLERK_MISMATCH,
+    EMAIL_IDENTITY_MISMATCH,
     assert_portal_email_identity,
     normalize_email,
 )
-from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
+from porterchain_api.auth.portal_guard import assert_portal_provisioned
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantStatus
@@ -52,7 +52,7 @@ def portal_access_denied(merchant: Any) -> str | None:
 
 
 def get_merchant_context(
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    claims: Annotated[IdentityClaims, Depends(get_identity_claims)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     x_merchant_id: Annotated[str | None, Header()] = None,
@@ -67,7 +67,7 @@ def get_merchant_context(
     if meta.get("impersonation") and meta.get("user_type") == "merchant":
         return _merchant_context_from_impersonation(db, str(meta.get("target_id") or ""))
 
-    assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
+    assert_portal_provisioned(db, claims, portal="merchant", settings=settings)
 
     # Heal Admin-reserved pending seats even when AccessGate skips onboarding
     # because another company for this Clerk user is already ACTIVE.
@@ -82,12 +82,12 @@ def get_merchant_context(
             assert_portal_email_identity(user.email, claims.email)
         except PermissionError as exc:
             detail = str(exc)
-            if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_CLERK_MISMATCH}:
+            if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_IDENTITY_MISMATCH}:
                 raise HTTPException(status_code=403, detail=detail) from exc
-            raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
+            raise HTTPException(status_code=403, detail=EMAIL_IDENTITY_MISMATCH) from exc
 
     # SpiceDB ReBAC: organization#portal required — fail closed when unprovisioned.
-    # Local CLERK_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
+    # Local AUTH_DEV_BYPASS synthetic subject has no SpiceDB tuples by design.
     if not is_dev_bypass_subject(claims.clerk_user_id):
         from porterchain_api.auth.dependencies import assert_organization_scope, resolve_principal_for_claims
 
@@ -134,7 +134,7 @@ def _merchant_context_from_impersonation(db: Session, merchant_user_id: str) -> 
 
 
 def get_merchant_seats(
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    claims: Annotated[IdentityClaims, Depends(get_identity_claims)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     x_merchant_id: Annotated[str | None, Header()] = None,
@@ -158,7 +158,7 @@ def get_merchant_seats(
             selected_merchant_id=mu.merchant_id,
         )
 
-    assert_clerk_id_exclusive(db, claims, portal="merchant", settings=settings)
+    assert_portal_provisioned(db, claims, portal="merchant", settings=settings)
 
     seats = [s for s in seats_for_clerk(db, claims.clerk_user_id) if s.is_active]
     if not seats and allow_auth_dev_bypass(settings) and is_merchant_dev_subject(claims.clerk_user_id):
@@ -170,7 +170,7 @@ def get_merchant_seats(
         try:
             assert_portal_email_identity(seats[0].email, claims.email)
         except PermissionError as exc:
-            raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
+            raise HTTPException(status_code=403, detail=EMAIL_IDENTITY_MISMATCH) from exc
 
     requested = (x_merchant_id or "").strip() or None
     if requested and not any(seat.merchant_id == requested for seat in seats):

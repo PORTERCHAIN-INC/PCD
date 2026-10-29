@@ -48,21 +48,21 @@ async def sync_my_identity(
     which is exactly the state right after a verified email change.
     """
     from porterchain_api.auth import email_identity
-    from porterchain_api.auth.clerk import verify_clerk_token
-    from porterchain_api.auth.clerk_registry import fetch_clerk_user
+    from porterchain_api.auth.bearer import verify_access_token
+    from porterchain_api.auth.identity_directory import fetch_identity_user
 
     token = credentials.credentials if credentials else None
     if not token or token == "dev":
         raise HTTPException(status_code=401, detail="driver_auth_required")
     try:
-        claims = await verify_clerk_token(token, settings)
+        claims = await verify_access_token(token, settings)
     except Exception as exc:
         raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
     from starlette.concurrency import run_in_threadpool
 
     def _sync() -> dict:
         # Clerk Backend first: no DB transaction is open while we wait on the network.
-        clerk_user, _ = fetch_clerk_user(settings, claims.clerk_user_id)
+        clerk_user, _ = fetch_identity_user(settings, claims.clerk_user_id)
         driver = pp.driver_for_clerk_user(db, claims.clerk_user_id)
         if not driver:
             raise HTTPException(status_code=403, detail="driver_not_found")

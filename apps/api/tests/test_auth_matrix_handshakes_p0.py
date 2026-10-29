@@ -26,7 +26,7 @@ from porterchain_api.schemas_driver import PushRegisterRequest
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
         "sso_jwt_secret": "b" * 32,
         "spicedb_enabled": False,
@@ -95,7 +95,7 @@ def test_hs_fcm_007_garbage_token_does_not_authenticate() -> None:
                 side_effect=HTTPException(status_code=401, detail="invalid_driver_token"),
             ),
             patch(
-                "porterchain_api.auth.clerk.verify_clerk_token",
+                "porterchain_api.auth.bearer.verify_access_token",
                 new_callable=AsyncMock,
                 side_effect=ValueError("not jwt"),
             ),
@@ -137,7 +137,7 @@ def test_hs_fcm_004_ws_bad_token_returns_none_not_raise() -> None:
                 side_effect=ValueError("bad"),
             ),
             patch(
-                "porterchain_api.auth.clerk.verify_clerk_token",
+                "porterchain_api.auth.bearer.verify_access_token",
                 new_callable=AsyncMock,
                 side_effect=ValueError("bad"),
             ),

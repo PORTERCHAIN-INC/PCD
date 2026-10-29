@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import ClerkClaims, get_clerk_claims
+from porterchain_api.auth.bearer import IdentityClaims, get_identity_claims
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.customer_onboarding import customer_onboarding_payload
 from porterchain_api.auth.dependencies import require_authenticated
@@ -65,7 +65,7 @@ def auth_session_context(
 
 @router.get("/merchant/onboarding", response_model=PortalOnboardingResponse)
 def merchant_onboarding(
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    claims: Annotated[IdentityClaims, Depends(get_identity_claims)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> PortalOnboardingResponse:
@@ -76,7 +76,7 @@ def merchant_onboarding(
 @router.patch("/merchant/onboarding/vertical", response_model=PortalOnboardingResponse)
 def merchant_onboarding_vertical(
     body: MerchantVerticalRequest,
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    claims: Annotated[IdentityClaims, Depends(get_identity_claims)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> PortalOnboardingResponse:
@@ -91,7 +91,7 @@ def merchant_onboarding_vertical(
 @router.patch("/merchant/onboarding/profile", response_model=PortalOnboardingResponse)
 def merchant_onboarding_profile(
     body: MerchantProfileUpdateRequest,
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    claims: Annotated[IdentityClaims, Depends(get_identity_claims)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> PortalOnboardingResponse:
@@ -101,7 +101,7 @@ def merchant_onboarding_profile(
 
 @router.get("/customer/onboarding", response_model=PortalOnboardingResponse)
 def customer_onboarding(
-    claims: Annotated[ClerkClaims, Depends(get_clerk_claims)],
+    claims: Annotated[IdentityClaims, Depends(get_identity_claims)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> PortalOnboardingResponse:

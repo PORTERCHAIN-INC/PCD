@@ -64,10 +64,10 @@ export function CustomerCreateModal({
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Could not create customer";
       if (msg === "customer_email_exists") {
-        setError("A Clerk-linked customer already uses this email — open them from the list.");
-      } else if (msg === "clerk_not_configured") {
+        setError("A signed-in customer already uses this email — open them from the list.");
+      } else if (msg === "identity_not_configured") {
         setError(
-          "Platform Clerk is not configured — create without invite, or configure customer Clerk keys."
+          "Keycloak is not configured — create without invite, or set the Keycloak admin client secret."
         );
       } else {
         setError(msg);
@@ -138,7 +138,7 @@ export function CustomerCreateModal({
         </label>
         {sendInvite && (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Invite fails with <code>clerk_not_configured</code> if customer Clerk secrets are
+            Invite fails with <code>identity_not_configured</code> if the Keycloak admin client is
             missing in this environment.
           </p>
         )}

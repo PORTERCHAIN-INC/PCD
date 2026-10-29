@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.auth.clerk import ClerkClaims
+from porterchain_api.auth.bearer import IdentityClaims
 from porterchain_api.booking_models import Customer
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -79,7 +79,7 @@ def client():
     app.include_router(notifications.router)
     fake = _FakeDb()
     app.dependency_overrides[get_db] = lambda: fake
-    app.dependency_overrides[get_settings] = lambda: Settings(app_env="local", clerk_dev_bypass=False, jwt_secret="test-jwt-secret-local")
+    app.dependency_overrides[get_settings] = lambda: Settings(app_env="local", auth_dev_bypass=False, jwt_secret="test-jwt-secret-local")
     device = MagicMock(id="dev-1")
     pref = MagicMock(category="jobs", email_enabled=True, push_enabled=False, sms_enabled=False, in_app_enabled=True)
     with (
@@ -99,9 +99,9 @@ def client():
 
 def _as(clerk_user_id: str):
     return patch(
-        "porterchain_api.auth.clerk.verify_clerk_token",
+        "porterchain_api.auth.bearer.verify_access_token",
         new_callable=AsyncMock,
-        return_value=ClerkClaims(clerk_user_id=clerk_user_id, email=f"{clerk_user_id}@example.com"),
+        return_value=IdentityClaims(clerk_user_id=clerk_user_id, email=f"{clerk_user_id}@example.com"),
     )
 
 

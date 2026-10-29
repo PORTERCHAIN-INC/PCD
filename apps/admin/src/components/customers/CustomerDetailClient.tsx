@@ -106,10 +106,10 @@ export default function CustomerDetailClient({ id }: { id: string }) {
       setDetailVersion((v) => v + 1);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Invite failed";
-      if (msg === "clerk_not_configured") {
-        setInviteError("Platform Clerk is not configured — cannot send invite.");
+      if (msg === "identity_not_configured") {
+        setInviteError("Keycloak is not configured — cannot send invite.");
       } else if (msg === "customer_already_clerk_linked") {
-        setInviteError("Already Clerk-linked.");
+        setInviteError("Already linked to a sign-in account.");
       } else {
         setInviteError(msg);
       }

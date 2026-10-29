@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_clerk_user_id
+from porterchain_api.auth.bearer import get_auth_subject
 from porterchain_api.booking_engine import BookingConfirmationService, BookingService, QuoteService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.auth.dev import allow_auth_dev_bypass
@@ -183,10 +183,10 @@ def post_booking(
     body: StartBookingRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: str = Depends(get_clerk_user_id),
+    clerk_user_id: str = Depends(get_auth_subject),
 ) -> BookingResponse:
     if body.clerk_user_id != clerk_user_id and not allow_auth_dev_bypass(settings):
-        raise HTTPException(status_code=403, detail="clerk_user_mismatch")
+        raise HTTPException(status_code=403, detail="identity_subject_mismatch")
     from porterchain_api.admin_engine.platform_settings import booking_self_service
 
     if not booking_self_service(db):

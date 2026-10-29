@@ -9,7 +9,7 @@ import pytest
 
 from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS
-from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH
+from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH
 from porterchain_api.booking_engine.customer_service import CustomerService
 
 
@@ -70,7 +70,7 @@ def test_create_customer_mints_orphan_row() -> None:
             return_value=orphan,
         ),
         patch(
-            "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+            "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
             return_value=False,
         ),
         patch("porterchain_api.admin_engine.customer_admin_mutations.log_admin_audit"),
@@ -112,12 +112,12 @@ def test_upsert_rejects_email_mismatch_on_bound_customer() -> None:
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = existing
     with patch(
-        "porterchain_api.auth.portal_guard.clerk_id_staff_portal",
+        "porterchain_api.auth.portal_guard.subject_staff_portal",
         return_value=None,
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",
     ):
-        with pytest.raises(ValueError, match=EMAIL_CLERK_MISMATCH):
+        with pytest.raises(ValueError, match=EMAIL_IDENTITY_MISMATCH):
             CustomerService().upsert(
                 db,
                 clerk_user_id="user_1",
@@ -141,7 +141,7 @@ def test_upsert_merges_orphan_by_email() -> None:
     db.query.return_value.filter.return_value.order_by.return_value.first.return_value = orphan
 
     with patch(
-        "porterchain_api.auth.portal_guard.clerk_id_staff_portal",
+        "porterchain_api.auth.portal_guard.subject_staff_portal",
         return_value=None,
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",

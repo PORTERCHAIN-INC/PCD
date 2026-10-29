@@ -6,10 +6,10 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
-from porterchain_api.auth.portal_guard import clerk_id_staff_portal
+from porterchain_api.auth.portal_guard import subject_staff_portal
 from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer
@@ -17,7 +17,7 @@ from porterchain_api.booking_models import Customer
 
 def evaluate_customer_onboarding(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
     customer: Customer | None = None,
@@ -31,7 +31,7 @@ def evaluate_customer_onboarding(
         customer = load_persona_bundle(db, claims.clerk_user_id).customer
 
     email_ok = bool(email or (customer and customer.email))
-    conflict = clerk_id_staff_portal(db, claims.clerk_user_id or "")
+    conflict = subject_staff_portal(db, claims.clerk_user_id or "")
     provisioned = customer is not None
 
     from porterchain_api.admin_engine.platform_settings import portal_enabled as customer_portal_enabled
@@ -91,7 +91,7 @@ def evaluate_customer_onboarding(
     }
 
 
-def customer_onboarding_payload(db: Session, claims: ClerkClaims, settings: Settings) -> dict[str, Any]:
+def customer_onboarding_payload(db: Session, claims: IdentityClaims, settings: Settings) -> dict[str, Any]:
     from porterchain_api.auth.customer import resolve_customer_contact
 
     email, _phone = resolve_customer_contact(db, claims, settings)
@@ -103,7 +103,7 @@ def customer_onboarding_payload(db: Session, claims: ClerkClaims, settings: Sett
 
 def provision_customer_for_onboarding(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     settings: Settings,
 ) -> Customer | None:
     """Create/link the customers row when this Clerk id is allowed on the customer portal."""
@@ -111,7 +111,7 @@ def provision_customer_for_onboarding(
 
     from porterchain_api.auth.customer import require_customer
 
-    if not claims.clerk_user_id or clerk_id_staff_portal(db, claims.clerk_user_id):
+    if not claims.clerk_user_id or subject_staff_portal(db, claims.clerk_user_id):
         return None
     try:
         customer = require_customer(db, claims, settings)
@@ -123,7 +123,7 @@ def provision_customer_for_onboarding(
 
 def require_customer_portal_ready(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     customer: Customer,
     *,
     settings: Settings | None = None,

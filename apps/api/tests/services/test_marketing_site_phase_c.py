@@ -325,7 +325,7 @@ def test_admin_attribution_route_requires_crm_read(monkeypatch):
 
     # Local dev staff context needs the dev bypass explicitly (CI has no .env).
     monkeypatch.setenv("APP_ENV", "local")
-    monkeypatch.setenv("CLERK_DEV_BYPASS", "true")
+    monkeypatch.setenv("AUTH_DEV_BYPASS", "true")
     get_settings.cache_clear()
     client = TestClient(create_app())
     res = client.get("/v1/admin/marketing/lead-attribution?days=7")  # local dev staff context

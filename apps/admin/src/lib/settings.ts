@@ -110,7 +110,7 @@ export type RuntimePosture = {
   app_env: string;
   auth_bypass_allowed: boolean;
   stripe_mock_allowed: boolean;
-  requires_live_clerk: boolean;
+  requires_live_identity: boolean;
   cookie_domain_mode: string;
   restart_required_to_change: boolean;
   change_control: string;

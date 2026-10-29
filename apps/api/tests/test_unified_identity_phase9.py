@@ -19,12 +19,6 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from porterchain_api.auth.clerk_webhook_idempotency import claim_clerk_event
-from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
-from porterchain_api.auth.clerk_webhook_verify import (
-    ClerkWebhookSignatureError,
-    verify_clerk_webhook_signature,
-)
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.dependencies import (
     get_authenticated_identity,
@@ -62,7 +56,7 @@ PHASE9_MATRIX = (
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
         "clerk_audience": "",
         "clerk_authorized_parties": "",
@@ -150,7 +144,7 @@ def test_missing_bearer_returns_401() -> None:
             await get_authenticated_identity(
                 request=_http_request(),
                 authorization=None,
-                settings=_settings(clerk_dev_bypass=False),
+                settings=_settings(auth_dev_bypass=False),
                 db=MagicMock(),
             )
         assert exc.value.status_code == 401
@@ -165,7 +159,7 @@ def test_non_bearer_authorization_returns_401() -> None:
             await get_authenticated_identity(
                 request=_http_request(),
                 authorization="Basic abc",
-                settings=_settings(clerk_dev_bypass=False),
+                settings=_settings(auth_dev_bypass=False),
                 db=MagicMock(),
             )
         assert exc.value.status_code == 401
@@ -299,91 +293,6 @@ def test_session_context_never_leaks_secrets() -> None:
 
 
 # --- Webhook signature + idempotency ---
-
-
-def test_webhook_bad_signature_raises_signature_error() -> None:
-    secret, _key = _whsec()
-    with pytest.raises(ClerkWebhookSignatureError):
-        verify_clerk_webhook_signature(
-            payload=b'{"type":"user.created"}',
-            secret=secret,
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,notavalidsignature",
-        )
-
-
-def test_webhook_service_maps_bad_signature_to_400() -> None:
-    secret, _key = _whsec()
-    settings = _settings(clerk_webhook_signing_secret=secret)
-    with pytest.raises(HTTPException) as exc:
-        ClerkWebhookService().handle(
-            MagicMock(),
-            settings,
-            payload=b'{"type":"user.created","data":{"id":"u1"}}',
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,bad",
-        )
-    assert exc.value.status_code == 400
-    assert exc.value.detail == "invalid_signature"
-
-
-def test_webhook_service_missing_secret_is_503() -> None:
-    with pytest.raises(HTTPException) as exc:
-        ClerkWebhookService().handle(
-            MagicMock(),
-            _settings(clerk_webhook_signing_secret=""),
-            payload=b"{}",
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,x",
-        )
-    assert exc.value.status_code == 503
-
-
-def test_claim_clerk_event_idempotent_claim() -> None:
-    db = MagicMock()
-    db.execute.return_value.scalar_one_or_none.side_effect = ["row-1", None]
-    assert claim_clerk_event(db, clerk_event_id="evt_1", event_type="user.created") is True
-    assert claim_clerk_event(db, clerk_event_id="evt_1", event_type="user.created") is False
-
-
-def test_webhook_duplicate_delivery_status(monkeypatch: pytest.MonkeyPatch) -> None:
-    secret, key = _whsec()
-    settings = _settings(clerk_webhook_signing_secret=secret)
-    payload = json.dumps(
-        {
-            "type": "user.updated",
-            "data": {
-                "id": "user_x",
-                "email_addresses": [
-                    {
-                        "id": "em_1",
-                        "email_address": "x@example.com",
-                        "verification": {"status": "verified"},
-                    }
-                ],
-                "primary_email_address_id": "em_1",
-            },
-        }
-    ).encode()
-    svix_id = "msg_phase9_dup"
-    ts = str(int(time.time()))
-    sig = _sign(payload, key=key, svix_id=svix_id, ts=ts)
-    monkeypatch.setattr(
-        "porterchain_api.auth.clerk_webhook_service.claim_clerk_event",
-        lambda *a, **k: False,
-    )
-    result = ClerkWebhookService().handle(
-        MagicMock(),
-        settings,
-        payload=payload,
-        svix_id=svix_id,
-        svix_timestamp=ts,
-        svix_signature=sig,
-    )
-    assert result == {"status": "duplicate"}
 
 
 # --- FK matrix hooks (4→1 migration CLI deleted) ---

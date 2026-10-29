@@ -16,8 +16,8 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.auth.clerk_client import ClerkInviteResult
-from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import InviteResult
+from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.invitation_models import UserInvitation
@@ -47,7 +47,7 @@ class InvitationService:
         driver: Any,
     ) -> UserInvitation:
         normalized = driver.email.lower().strip()
-        clerk = clerk_client_for_kind(settings, "driver")
+        clerk = directory_for_kind(settings, "driver")
         redirect = f"{settings.driver_portal_url.rstrip('/')}/login"
         metadata = {
             "role": "driver",
@@ -56,9 +56,9 @@ class InvitationService:
             "driver_id": driver.id,
             "invitation_only": True,
         }
-        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, public_metadata=metadata)
-        if clerk_result.clerk_user_id:
-            driver.clerk_user_id = clerk_result.clerk_user_id
+        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, metadata=metadata)
+        if clerk_result.subject:
+            driver.clerk_user_id = clerk_result.subject
 
         invitation = self._record_invitation(
             db,
@@ -108,7 +108,7 @@ class InvitationService:
             "invitation_only": True,
         }
         try:
-            clerk = clerk_client_for_kind(settings, "driver")
+            clerk = directory_for_kind(settings, "driver")
             existing = clerk.find_user_by_email(normalized)
             if existing:
                 clerk_user_id = str(existing["id"])
@@ -153,7 +153,7 @@ class InvitationService:
             email=normalized,
             user_type="driver",
             role="driver",
-            clerk_result=ClerkInviteResult(action=action, clerk_user_id=clerk_user_id),
+            clerk_result=InviteResult(action=action, subject=clerk_user_id),
             platform_user_id=driver.id,
             invited_by=ctx.user.id if ctx and ctx.user else None,
             redirect_url=redirect,
@@ -185,8 +185,8 @@ class InvitationService:
         settings: Settings,
         driver: Any,
     ) -> dict[str, Any]:
-        if not is_clerk_secret_configured(settings, "driver"):
-            raise RuntimeError("clerk_not_configured")
+        if not is_directory_configured(settings, "driver"):
+            raise RuntimeError("identity_not_configured")
         invitation = self.invite_driver(db, ctx, settings, driver)
         return {
             "driver_id": driver.id,
@@ -203,12 +203,12 @@ class InvitationService:
         customer: Any,
     ) -> UserInvitation:
         """Invite (or link) a retail customer on Platform Clerk. Does not commit."""
-        if not is_clerk_secret_configured(settings, "customer"):
-            raise ValueError("clerk_not_configured")
+        if not is_directory_configured(settings, "customer"):
+            raise ValueError("identity_not_configured")
         normalized = (customer.email or "").lower().strip()
         if not normalized:
             raise ValueError("email_required")
-        clerk = clerk_client_for_kind(settings, "customer")
+        clerk = directory_for_kind(settings, "customer")
         redirect = f"{settings.customer_portal_url.rstrip('/')}/sign-up"
         metadata = {
             "role": "customer",
@@ -216,12 +216,12 @@ class InvitationService:
             "user_type": "customer",
             "customer_id": customer.id,
         }
-        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, public_metadata=metadata)
-        if clerk_result.clerk_user_id:
-            customer.clerk_user_id = clerk_result.clerk_user_id
+        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, metadata=metadata)
+        if clerk_result.subject:
+            customer.clerk_user_id = clerk_result.subject
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-            sync_authz_after_persona_mutation(db, clerk_result.clerk_user_id)
+            sync_authz_after_persona_mutation(db, clerk_result.subject)
         invitation = self._record_invitation(
             db,
             email=normalized,
@@ -267,7 +267,7 @@ class InvitationService:
         email: str,
         user_type: str,
         role: str,
-        clerk_result: ClerkInviteResult,
+        clerk_result: InviteResult,
         platform_user_id: str,
         invited_by: str | None,
         redirect_url: str,
@@ -280,8 +280,8 @@ class InvitationService:
             user_type=user_type,
             role=role,
             status="accepted" if clerk_result.action in ACCEPTED_ACTIONS else "pending",
-            clerk_invitation_id=clerk_result.clerk_invitation_id,
-            clerk_user_id=clerk_result.clerk_user_id,
+            clerk_invitation_id=clerk_result.invitation_id,
+            clerk_user_id=clerk_result.subject,
             platform_user_id=platform_user_id,
             merchant_id=merchant_id,
             invited_by=invited_by,

@@ -105,7 +105,7 @@ export default function DashboardPanel({
             <div>
               <p className="text-xs text-muted">Live Clerk</p>
               <p className="font-mono font-semibold">
-                {dash.project_mode.requires_live_clerk ? "required" : "optional"}
+                {dash.project_mode.requires_live_identity ? "required" : "optional"}
               </p>
             </div>
           </div>

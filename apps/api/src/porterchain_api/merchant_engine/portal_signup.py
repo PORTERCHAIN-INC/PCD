@@ -21,7 +21,7 @@ from porterchain_api.merchant_engine.lookups import (
     seats_for_clerk,
 )
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
-from porterchain_api.merchant_engine.team_service import bind_seat_clerk, ensure_merchant_seat
+from porterchain_api.merchant_engine.team_service import bind_seat_subject, ensure_merchant_seat
 from porterchain_api.merchant_models import Merchant, MerchantUser
 
 
@@ -53,7 +53,7 @@ def claim_pending_seats_for_clerk(db: Session, *, email: str, clerk_id: str) -> 
         )
         if clash:
             continue
-        bind_seat_clerk(db, seat.id, clerk_id)
+        bind_seat_subject(db, seat.id, clerk_id)
         claimed += 1
     return claimed
 
@@ -96,7 +96,7 @@ def link_or_create_portal_merchant(
         changed = False
         if clerk_id and not _is_pending_clerk_id(clerk_id) and merchant_user.clerk_user_id != clerk_id:
             if _is_pending_clerk_id(merchant_user.clerk_user_id):
-                bind_seat_clerk(db, merchant_user.id, clerk_id)
+                bind_seat_subject(db, merchant_user.id, clerk_id)
                 changed = True
         # Always heal other reserved seats for this email (Kaylulu Owner, etc.).
         if claim_pending_seats_for_clerk(db, email=email, clerk_id=clerk_id):
@@ -134,7 +134,7 @@ def link_or_create_portal_merchant(
         commit=False,
     )
     if user.clerk_user_id != clerk_ref:
-        bind_seat_clerk(db, user.id, clerk_ref, activate=True)
+        bind_seat_subject(db, user.id, clerk_ref, activate=True)
     claim_pending_seats_for_clerk(db, email=email, clerk_id=clerk_id)
     db.commit()
     if created_new:

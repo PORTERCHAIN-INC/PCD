@@ -100,8 +100,8 @@ async def _sync(driver, clerk_user):
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = driver
     creds = SimpleNamespace(credentials="jwt")
-    with patch("porterchain_api.auth.clerk.verify_clerk_token", return_value=SimpleNamespace(clerk_user_id="user_1")), \
-         patch("porterchain_api.auth.clerk_registry.fetch_clerk_user", return_value=(clerk_user, "admin")), \
+    with patch("porterchain_api.auth.bearer.verify_access_token", return_value=SimpleNamespace(clerk_user_id="user_1")), \
+         patch("porterchain_api.auth.identity_directory.fetch_identity_user", return_value=(clerk_user, "admin")), \
          patch.object(me_profile, "db_transaction", lambda _db: nullcontext()):
         return await me_profile.sync_my_identity(creds, db=db, settings=MagicMock()), db
 

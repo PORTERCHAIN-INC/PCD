@@ -31,7 +31,7 @@ sys.path.insert(0, str(REPO_ROOT / "services" / "driver-platform"))
 from porterchain_api.admin_engine.rbac import AdminContext  # noqa: E402
 from porterchain_api.admin_engine.staff_idp_service import StaffIdpService, ensure_staff_identity  # noqa: E402
 from porterchain_api.admin_models import AdminUser, Driver  # noqa: E402
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured  # noqa: E402
+from porterchain_api.auth.identity_directory import is_directory_configured  # noqa: E402
 from porterchain_api.auth.invitation_service import InvitationService  # noqa: E402
 from porterchain_api.config import get_settings  # noqa: E402
 from porterchain_api.db import SessionLocal, init_db  # noqa: E402
@@ -204,7 +204,7 @@ def main() -> None:
                     "clerk_user_id": driver.clerk_user_id,
                     "invite": None,
                 }
-                if is_clerk_secret_configured(settings, "driver"):
+                if is_directory_configured(settings, "driver"):
                     try:
                         invitation = InvitationService().invite_driver(db, ctx, settings, driver)
                         db.refresh(driver)

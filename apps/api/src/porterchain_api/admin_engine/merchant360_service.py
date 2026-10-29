@@ -28,7 +28,7 @@ from porterchain_api.admin_engine.merchant360_board import (
     timeline_payload,
 )
 from porterchain_api.admin_engine.settings_service import (
-    _clerk_linked,
+    _identity_linked,
     _invite_status,
     _latest_invitations,
 )
@@ -137,12 +137,12 @@ class Merchant360Service:
 
         Raises on Clerk directory failure so Admin can surface the error (M-4).
         """
-        from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
+        from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
 
         try:
-            snaps = fetch_clerk_snapshots(settings, "merchant", limit=500)
+            snaps = fetch_directory_snapshots(settings, "merchant", limit=500)
         except Exception as exc:
-            raise RuntimeError(f"clerk_directory_unavailable: {exc}") from exc
+            raise RuntimeError(f"identity_directory_unavailable: {exc}") from exc
 
         linked_clerk_ids = {
             u.clerk_user_id
@@ -153,15 +153,15 @@ class Merchant360Service:
 
         out: list[dict[str, Any]] = []
         for email, snap in snaps.items():
-            if email in linked_emails or snap.clerk_user_id in linked_clerk_ids:
+            if email in linked_emails or snap.subject in linked_clerk_ids:
                 continue
             name = " ".join(p for p in (snap.first_name, snap.last_name) if p) or email.split("@")[0]
             out.append(
                 {
                     "email": email,
                     "name": name,
-                    "clerk_user_id": snap.clerk_user_id,
-                    "clerk_status": snap.clerk_status,
+                    "clerk_user_id": snap.subject,
+                    "clerk_status": snap.status,
                     "last_sign_in_at": snap.last_sign_in_at.isoformat() if snap.last_sign_in_at else None,
                     "suggested_company_name": name.title(),
                 }
@@ -253,7 +253,7 @@ class Merchant360Service:
                     "seat_status": seat,
                     "seat_status_label": seat_status_label(seat),
                     "created_at": u.created_at.isoformat(),
-                    "clerk_linked": _clerk_linked(u.clerk_user_id),
+                    "clerk_linked": _identity_linked(u.clerk_user_id),
                     "invite_status": invite,
                     "invite_status_label": invite_status_label(invite),
                 }

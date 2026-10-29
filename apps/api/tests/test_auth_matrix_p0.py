@@ -16,9 +16,9 @@ from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH
-from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH
+from porterchain_api.auth.portal_guard import assert_portal_provisioned
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 
@@ -26,7 +26,7 @@ from porterchain_api.domain.admin_states import AdminRole
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
         "spicedb_enabled": False,
         "spicedb_use_memory": True,
@@ -54,7 +54,7 @@ def _persona(*, admin=False, merchant=False, driver=False, customer=False) -> Ma
 
 
 def _kc_claims(azp: str, email: str | None = "ops@porterchain.com", auth_time: int | None = None):
-    return ClerkClaims(
+    return IdentityClaims(
         clerk_user_id="kc-sub-1",
         email=email,
         phone=None,
@@ -83,7 +83,7 @@ def test_ad_auth_003_non_admin_client_token_rejected(bypass: bool) -> None:
             with pytest.raises(HTTPException) as exc:
                 await get_admin_context(
                     request, authorization=JWT, db=MagicMock(),
-                    settings=_settings(clerk_dev_bypass=bypass), x_admin_role=None,
+                    settings=_settings(auth_dev_bypass=bypass), x_admin_role=None,
                 )
         assert exc.value.status_code == 401
         assert exc.value.detail == "admin_token_wrong_client"
@@ -160,7 +160,7 @@ def test_ad_auth_002_missing_credentials_401() -> None:
                 request,
                 authorization=None,
                 db=MagicMock(),
-                settings=_settings(clerk_dev_bypass=False),
+                settings=_settings(auth_dev_bypass=False),
                 x_admin_role=None,
             )
         assert exc.value.status_code == 401
@@ -173,26 +173,26 @@ def test_ad_auth_002_missing_credentials_401() -> None:
 
 
 def test_dr_auth_005_driver_portal_requires_provisioning() -> None:
-    claims = ClerkClaims(clerk_user_id="user_customer_only", email="c@example.com")
+    claims = IdentityClaims(clerk_user_id="user_customer_only", email="c@example.com")
     db = MagicMock()
     with patch(
         "porterchain_api.auth.portal_guard.load_persona_bundle",
         return_value=_persona(customer=True),
     ):
         with pytest.raises(HTTPException) as exc:
-            assert_clerk_id_exclusive(db, claims, portal="driver", settings=_settings())
+            assert_portal_provisioned(db, claims, portal="driver", settings=_settings())
     assert exc.value.status_code == 403
     assert exc.value.detail == "driver_user_not_provisioned"
 
 
 def test_dr_auth_004_driver_portal_ok_when_provisioned() -> None:
-    claims = ClerkClaims(clerk_user_id="user_driver", email="d@example.com")
+    claims = IdentityClaims(clerk_user_id="user_driver", email="d@example.com")
     db = MagicMock()
     with patch(
         "porterchain_api.auth.portal_guard.load_persona_bundle",
         return_value=_persona(driver=True),
     ):
-        assert_clerk_id_exclusive(db, claims, portal="driver", settings=_settings())
+        assert_portal_provisioned(db, claims, portal="driver", settings=_settings())
 
 
 # ── get_driver_context fail-closed ──────────────────────────────────────────
@@ -206,7 +206,7 @@ def test_dr_auth_002_driver_auth_required_when_bypass_off() -> None:
         with pytest.raises(HTTPException) as exc:
             await get_driver_context(
                 db=MagicMock(),
-                settings=_settings(clerk_dev_bypass=False, app_env="local"),
+                settings=_settings(auth_dev_bypass=False, app_env="local"),
                 credentials=None,
                 x_driver_id=None,
             )
@@ -222,14 +222,14 @@ def test_dr_auth_003_invalid_driver_token() -> None:
     async def _run() -> None:
         creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="not-a-jwt")
         with patch(
-            "porterchain_api.auth.clerk.verify_clerk_token",
+            "porterchain_api.auth.bearer.verify_access_token",
             new_callable=AsyncMock,
             side_effect=ValueError("bad"),
         ):
             with pytest.raises(HTTPException) as exc:
                 await get_driver_context(
                     db=MagicMock(),
-                    settings=_settings(clerk_dev_bypass=False),
+                    settings=_settings(auth_dev_bypass=False),
                     credentials=creds,
                     x_driver_id=None,
                 )
@@ -245,7 +245,7 @@ def test_dr_auth_007_email_mismatch_403() -> None:
     from porterchain_api.domain.admin_states import DriverStatus
 
     async def _run() -> None:
-        claims = ClerkClaims(
+        claims = IdentityClaims(
             clerk_user_id="clerk_drv",
             email="clerk@example.com",
         )
@@ -262,13 +262,13 @@ def test_dr_auth_007_email_mismatch_403() -> None:
 
         with (
             patch(
-                "porterchain_api.auth.clerk.verify_clerk_token",
+                "porterchain_api.auth.bearer.verify_access_token",
                 new_callable=AsyncMock,
                 return_value=claims,
             ),
             patch("porterchain_api.auth.prepare.prepare_user_from_claims"),
             patch(
-                "porterchain_api.auth.portal_guard.assert_clerk_id_exclusive",
+                "porterchain_api.auth.portal_guard.assert_portal_provisioned",
             ),
             patch(
                 "porterchain_api.auth.persona_bundle.load_persona_bundle",
@@ -278,12 +278,12 @@ def test_dr_auth_007_email_mismatch_403() -> None:
             with pytest.raises(HTTPException) as exc:
                 await get_driver_context(
                     db=MagicMock(),
-                    settings=_settings(clerk_dev_bypass=False),
+                    settings=_settings(auth_dev_bypass=False),
                     credentials=creds,
                     x_driver_id=None,
                 )
             assert exc.value.status_code == 403
-            assert exc.value.detail == EMAIL_CLERK_MISMATCH
+            assert exc.value.detail == EMAIL_IDENTITY_MISMATCH
 
     asyncio.run(_run())
 

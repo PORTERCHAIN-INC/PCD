@@ -21,7 +21,7 @@ from porterchain_shared.config.project_mode import (
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
         "stripe_mock": True,
@@ -92,10 +92,10 @@ def test_project_modes() -> None:
 
 
 def test_bypass_only_in_development_mode() -> None:
-    assert allow_auth_dev_bypass(_settings(app_env="local", clerk_dev_bypass=True))
-    assert allow_auth_dev_bypass(_settings(app_env="dev", clerk_dev_bypass=True))
-    assert not allow_auth_dev_bypass(_settings(app_env="test", clerk_dev_bypass=True))
-    assert not allow_auth_dev_bypass(_live(app_env="production", clerk_dev_bypass=False))
+    assert allow_auth_dev_bypass(_settings(app_env="local", auth_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="dev", auth_dev_bypass=True))
+    assert not allow_auth_dev_bypass(_settings(app_env="test", auth_dev_bypass=True))
+    assert not allow_auth_dev_bypass(_live(app_env="production", auth_dev_bypass=False))
 
 
 def test_stripe_mock_only_in_development() -> None:
@@ -107,7 +107,7 @@ def test_stripe_mock_only_in_development() -> None:
 
 
 def test_runtime_posture_payload_shape() -> None:
-    p = _settings(app_env="local", clerk_dev_bypass=True).runtime_posture
+    p = _settings(app_env="local", auth_dev_bypass=True).runtime_posture
     assert p["mode"] == "development"
     assert p["app_env"] == "local"
     assert p["auth_bypass_allowed"] is True
