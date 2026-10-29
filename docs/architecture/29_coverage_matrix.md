@@ -959,7 +959,7 @@ Re-scan 29 Oct 2026: 768 items, COVERED 768, GAP 0, CONFLICT 0.
 
 ## L32 (29 Oct 2026)
 
-D-P0-1..7 decided (doc 60 §12–13). Phase changes: Google Play release P0 → P1 (D-U-N-S and organisation account stay P0); pilot merchant P1 → P0 (week 12, human-run); VROOM optimiser and routing benchmark added to P0 (`dispatch_engine/routing/`, doc 60 §13.1–13.4); Shopify carrier-service rates with merchant rules added to P0 (doc 60 §13.5). Driver app ID `com.porterchain.PCD` kept. Item counts per phase unchanged (rows are code items; these are plan items).
+D-P0-1..7 decided (doc 60 §12–13). Phase changes: Google Play release P0 → P1 (organisation account stays P0, D-U-N-S 243332549 issued); pilot merchant P1 → P0 (week 12, human-run); VROOM optimiser and routing benchmark added to P0 (`dispatch_engine/routing/`, doc 60 §13.1–13.4); Shopify carrier-service rates with merchant rules added to P0 (doc 60 §13.5). Driver app ID `com.porterchain.PCD` kept. Item counts per phase unchanged (rows are code items; these are plan items).
 
 ## L33 (29 Oct 2026)
 

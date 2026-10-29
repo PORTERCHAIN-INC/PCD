@@ -56,12 +56,12 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 
 ## L32 decisions recorded (Ravi, 29 Oct 2026; doc 60 §12–13)
 
-- D-P0-1..7 all decided (pilot end of Phase 0 human-run; Redpanda P0; box truck + cooler P1; domain schemas; keep `com.porterchain.PCD`; Valhalla + VROOM, OSRM by benchmark; Google Play P1 with D-U-N-S in P0).
+- D-P0-1..7 all decided (pilot end of Phase 0 human-run; Redpanda P0; box truck + cooler P1; domain schemas; keep `com.porterchain.PCD`; Valhalla + VROOM, OSRM by benchmark; Google Play P1; D-U-N-S 243332549 issued).
 - **U-L32-1** Whether Shopify App Review treats PorterChain's off-platform delivery invoices as "app charges" for a public (unlisted) app: no limited-visibility exemptions since March 2026. Ask Shopify Partner Support before Phase 2 public-app work (doc 51).
 - **U-L32-2** Pilot merchant's Shopify plan: carrier-calculated rates need Advanced/Plus or Grow with yearly billing or the CCS add-on; Basic falls back to delivery-profile flat rates.
 - **U-L32-3** Enough real Toronto+150 km stops for the routing benchmark (target 500; synthetic top-up labelled if short).
 - **U-L32-4** VROOM + Valhalla on Oracle A1 arm64 build and RAM fit (with Redpanda mirror + PG replica).
-- **U-L32-5** D-U-N-S issue time for Porterchain Inc. (free route can take up to ~30 days).
+- **U-L32-5 RESOLVED** (29 Oct 2026): Porterchain Inc. D-U-N-S 243332549 issued; used to create the Google Play organisation account (Phase 0 week 11).
 
 ## L33 Trust & Help Centre (doc 68)
 
@@ -74,3 +74,5 @@ Resolved Oct 28 2026 (Ravi, file 28 §16): D-SZ1 droplet 8 GB (~$48/mo); D-LB1 "
 - **U68-2 (pending from Ravi)** cargo policy per-shipment and per-kg limits; declared value above them not offered until the insurer confirms.
 - **U68-3** resolved: 1–19 employees, AODA small-organisation duties (68 §8.1).
 - **U68-7** Confirm D-68-5 cancellation fee amounts (50 % after assignment proposed).
+
+- privacy@porterchain.com mailbox exists (D-68-6 done, 29 Oct 2026).

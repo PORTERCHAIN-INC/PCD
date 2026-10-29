@@ -255,7 +255,7 @@ Duties that apply to us (Integrated Accessibility Standards, O. Reg. 191/11, and
 - **D-68-3 DECIDED** A full Partner Agreement for courier, logistics and warehouse partners is drafted in Phase 0 and goes to the lawyer with the rest (weeks 3–6).
 - **D-68-4 DECIDED** Service levels are published as targets, not guarantees (no service credits).
 - **D-68-5 PROPOSED (not yet confirmed; Ravi/lawyer to confirm the amounts)** Quote valid **24 hours** from issue (price re-quoted after); **free cancellation before a driver is assigned**; after assignment and before pickup a fee of 50 % of the base delivery price (proposed); after pickup no refund for the leg already driven, return trip billed at the quoted rate (proposed); failed delivery attempt through the customer's fault billed as one extra attempt (proposed). Merchant contract terms can override.
-- **D-68-6 DECIDED** Privacy officer: **Ravi Chauhan**, `privacy@porterchain.com` (mailbox to create in Phase 0 week 1; set up only by Ravi). Published in the Privacy Policy, DPA and Shopify app privacy policy.
+- **D-68-6 DECIDED** Privacy officer: **Ravi Chauhan**, `privacy@porterchain.com` (mailbox exists, **done** 29 Oct 2026). Published in the Privacy Policy, DPA and Shopify app privacy policy.
 - **D-68-7 DECIDED** Help on the website path `/[locale]/help` (no subdomain); `help.porterchain.com` not used.
 - U68-1 Whether our cars and vans count as "commercial motor vehicles" under HTA, so O. Reg. 643/05 conditions and the $4.41/kg limit apply (lawyer).
 - U68-2 **Pending from Ravi:** cargo policy per-shipment and per-kg limits (sets D-68-1), and the insurer's driver requirements (commercial-use endorsement).
