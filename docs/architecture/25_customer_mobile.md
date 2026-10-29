@@ -135,3 +135,9 @@ stateDiagram-v2
   LiveTracking --> Delivered: POD event
   Delivered --> Receipt
 ```
+
+## 3. Reconciled with L25–L27 (committed f1cb078f, same evening)
+
+- **L25 no paid AI**: every AI feature here runs on the self-hosted tiers in file 27 (T1 Qwen3.5-0.8B router, T2 Qwen3.5-4B + LoRA, T2v Phi-4-mini, CPU ML). References to a "$100 model cap" are void.
+- **L26 no paid services**: C2 passkeys: Clerk passkeys may need a paid Clerk plan → mark `mandatory?` or use self-hosted WebAuthn on the API (free). C5 Live Activities via APNs/FCM are free. Google Play fee is allowed only if Android ships.
+- **L27 free WhatsApp only**: C9 changes from WhatsApp Cloud API templates to **click-to-chat on the free WhatsApp Business app**; the agent drafts, a human sends. Status updates go by push/email (ZeptoMail), not WhatsApp templates.

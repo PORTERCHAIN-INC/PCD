@@ -144,3 +144,9 @@ stateDiagram-v2
   Retrying --> DLQ: max attempts
   DLQ --> Replayed: admin replay
 ```
+
+## 3. Reconciled with L25–L27 (committed f1cb078f, same evening)
+
+- **L25 no paid AI**: every AI feature here runs on the self-hosted tiers in file 27 (T1 Qwen3.5-0.8B router, T2 Qwen3.5-4B + LoRA, T2v Phi-4-mini, CPU ML). References to a "$100 model cap" are void.
+- **L26 no paid services**: Shopify is on the allowed list. S11 (App Pricing vs free listing) still needs Ravi's call. All other S-items use free Shopify platform features.
+- **L27 free WhatsApp only**: not used by the Shopify app (no WhatsApp items).
