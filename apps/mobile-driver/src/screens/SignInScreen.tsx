@@ -5,7 +5,9 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useHostedAuth } from "@clerk/expo/hosted-auth";
+import { AppleSignInButton } from "../auth/AppleSignInButton";
 import { unlockWithDeviceAuth } from "../auth/deviceUnlock";
+import { ReviewerSignIn } from "../auth/ReviewerSignIn";
 import { useSessionView } from "../auth/SessionGate";
 import { allowDevAuth, clerkPublishableKey, isStoreProfile } from "../config";
 import { humanError, needsAccountSwitch } from "../errorCopy";
@@ -121,11 +123,15 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
             onPress={() => void onSignOut()}
           />
         ) : needHosted ? (
-          <HostedSignIn
-            invite={Boolean(inviteToken)}
-            onDone={onContinue}
-            onError={(code) => setLocalError(humanError(code))}
-          />
+          <>
+            <HostedSignIn
+              invite={Boolean(inviteToken)}
+              onDone={onContinue}
+              onError={(code) => setLocalError(humanError(code))}
+            />
+            <AppleSignInButton redirectUri="porterchain-driver://auth" />
+            <ReviewerSignIn onSignedIn={onContinue} />
+          </>
         ) : (
           <Button
             tone="primary"

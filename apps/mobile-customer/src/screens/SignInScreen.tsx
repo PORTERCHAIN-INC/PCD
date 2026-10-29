@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { useHostedAuth } from "@clerk/expo/hosted-auth";
+import { AppleSignInButton } from "../auth/AppleSignInButton";
+import { ReviewerSignIn } from "../auth/ReviewerSignIn";
 import { useSessionView } from "../auth/SessionGate";
 import { allowDevAuth, apiBaseUrl, clerkPublishableKey } from "../config";
 import { humanCustomerError } from "../errors";
@@ -86,7 +88,13 @@ export function SignInScreen({ apiUp, onSignedIn, onTrack }: Props) {
       ) : null}
       {session.bootError ? <Banner tone="danger" text={session.bootError} /> : null}
       <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
-        {showHosted && !stuckSession ? <HostedButtons onSignedIn={onSignedIn} /> : null}
+        {showHosted && !stuckSession ? (
+          <>
+            <HostedButtons onSignedIn={onSignedIn} />
+            <AppleSignInButton redirectUri="porterchain-customer://auth" />
+            <ReviewerSignIn onSignedIn={onSignedIn} />
+          </>
+        ) : null}
         {!showHosted && allowDevAuth() ? (
           <PrimaryButton testID="dev-sign-in" label="Continue" onPress={onSignedIn} />
         ) : null}

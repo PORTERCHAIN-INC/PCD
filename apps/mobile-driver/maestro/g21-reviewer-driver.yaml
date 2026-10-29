@@ -1,0 +1,16 @@
+# G21 A-APR-02: reviewer demo driver signs in (password only) and sees 2 sandbox jobs.
+# API needs REVIEWER_ACCOUNTS_ENABLED=true and REVIEWER_DRIVER_EMAILS=<review email>.
+#   maestro test -e REVIEW_EMAIL=... -e REVIEW_PASSWORD=... maestro/g21-reviewer-driver.yaml
+appId: com.porterchain.PCD
+tags: [g21]
+---
+- launchApp
+- assertVisible: { id: mobile-sign-in }
+- tapOn: { id: reviewer-email }
+- inputText: ${REVIEW_EMAIL}
+- tapOn: { id: reviewer-password }
+- inputText: ${REVIEW_PASSWORD}
+- tapOn: { id: reviewer-submit }
+- assertNotVisible: { text: ".*(code|captcha|verify).*" }
+- extendedWaitUntil: { visible: { text: ".*PC-REVIEW-1.*" }, timeout: 15000 }
+- assertVisible: { text: ".*Demo job for app review.*" }
