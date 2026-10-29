@@ -51,6 +51,12 @@ export function embeddedAppHtml(opts: {
   portalUrl: string;
   /** 4-click onboarding (confirm pickup → Go live). Off: page is byte-identical to the reviewed one. */
   fourClick?: boolean;
+  /**
+   * Reviewer-proof onboarding (74 §2, G20): the install auto-provisions the organisation,
+   * so an unlinked store is shown as ready inside the iframe. No new-tab link step, no
+   * Clerk/Keycloak page, no OTP or CAPTCHA. Off: legacy "Link to my PorterChain account".
+   */
+  autoProvision?: boolean;
 }): string {
   const errors = Object.fromEntries(ERROR_CODES.map((c) => [c, shopifyInstallError(c)]));
   errors._default = shopifyInstallError("unknown_code");
@@ -74,7 +80,7 @@ background:#0f2742;color:#fff;text-decoration:none;font-weight:600;font-size:.9r
 <body><main><h1>PorterChain Delivery</h1><div id="app"><p>Connecting your store…</p></div></main>${opts.fourClick ? fourClickJs(opts.apiUrl) : ""}
 <script>
 (function(){
-var API=${js(opts.apiUrl)},PORTAL=${js(opts.portalUrl)},ERR=${js(errors)},RATES=${js(rates)},SHIP=${js(ADMIN_SHIPPING)};
+var AUTO=${opts.autoProvision ? "true" : "false"},API=${js(opts.apiUrl)},PORTAL=${js(opts.portalUrl)},ERR=${js(errors)},RATES=${js(rates)},SHIP=${js(ADMIN_SHIPPING)};
 var app=document.getElementById("app");
 function e(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function openShipping(){try{open(SHIP,"_top")}catch(x){}return false}
@@ -89,6 +95,7 @@ if(s.rates!=="ready"){h+='<p class="box warn">'+e(p||RATES.carrier_register_fail
 else{h+='<div class="box ok"><p>PorterChain is registered as a carrier on '+e(s.shop_domain)+'. Shopify does not switch new carriers on by itself. If checkout already lists PorterChain for Canada you are done; otherwise:</p><p><strong>Newer admin (“Shipping has moved to Markets”):</strong></p><ol><li>Open Settings → Shipping and delivery → Markets, then the Canada market.</li><li>Under shipping rates, click Add rate → “Use carrier or app to calculate rates”.</li><li>Choose PorterChain (via app), select its services, then Save.</li></ol><p><strong>Older admin:</strong> Settings → Shipping and delivery → your shipping profile → the zone with Canada → Add rate → “Use carrier or app to calculate rates” → PorterChain → Done → Save.</p><a class="btn alt" target="_top" href="'+SHIP+'" onclick="return openShipping()">Open Shipping and delivery</a></div>'}
 h+='<p class="box note">PorterChain delivers in Toronto and up to 150 km around it. Orders shipping farther (other regions, provinces or countries) simply don’t see a PorterChain rate at checkout; your other rates keep working.</p>';
 if(s.linked){h+="<p>Linked to <strong>"+e(s.company_name)+'</strong>. Pickups, orders and invoices live in the PorterChain portal.</p><p><a class="btn" target="_blank" rel="noreferrer" href="'+e(PORTAL)+'/shopify">Open PorterChain portal</a></p>'+PRICING_NOTE}
+else if(AUTO){h+='<p class="box ok">Your PorterChain account for <strong>'+e(s.shop_domain)+'</strong> is ready. No sign-up or login is needed: everything runs here in Shopify admin.</p>'+PRICING_NOTE;s.linked=true}
 else{h+='<p>Last step: link this store to your PorterChain account so its orders, pickup address and invoices are yours. New to PorterChain? You can create an account on the next screen.</p><p><a class="btn" target="_blank" rel="noreferrer" href="'+e(PORTAL)+"/shopify?link="+encodeURIComponent(s.link_token||"")+'">Link to my PorterChain account</a></p>'}
 h+="<p><small>The app is free. Deliveries are invoiced monthly and paid by Interac e-Transfer.</small></p>";if(s.linked)h+='<div id="rp"></div>';app.innerHTML=h;if(s.linked)rp()}
 bridge().then(function(b){return b.idToken()}).then(function(tok){
@@ -115,7 +122,7 @@ if(a.formatted!==p.address.formatted){a.lat=null;a.lng=null}
 app.innerHTML='<p class="box note"><strong>Step 4 of 4.</strong> Pickup: '+e(a.formatted)+'</p><button class="btn" id="live">Go live</button>';
 document.getElementById("live").onclick=function(){this.disabled=true;this.textContent="Going live…";
 call("/v1/integrations/shopify/onboarding/go-live",{method:"POST",body:JSON.stringify({address:a})}).then(function(r){
-app.innerHTML='<div class="box ok"><p><strong>'+(r.live?"You’re live.":"Almost there.")+'</strong> Pickup saved, rate card '+e(r.rate_card)+'.</p><p>Last step in Shopify:</p><ol>'+r.next_step.steps.map(function(x){return"<li>"+e(x)+"</li>"}).join("")+'</ol><a class="btn" target="_top" href="'+r.next_step.deep_link+'">Open Shipping and delivery</a></div><p><small>Invoices and orders: sign in to the PorterChain portal with '+e(r.account.email)+' — no separate signup.</small></p>'
+app.innerHTML='<div class="box ok"><p><strong>'+(r.live?"You’re live.":"Almost there.")+'</strong> Pickup saved, rate card '+e(r.rate_card)+'.</p><p>Last step in Shopify:</p><ol>'+r.next_step.steps.map(function(x){return"<li>"+e(x)+"</li>"}).join("")+'</ol><a class="btn" target="_top" href="'+r.next_step.deep_link+'">Open Shipping and delivery</a></div><p><small>Invoices are emailed to '+e(r.account.email)+' each month. No separate signup or login.</small></p>'
 }).catch(function(x){app.innerHTML='<p class="box warn">'+e(x.message)+'</p>'})}}
 }).catch(function(){return orig(s)})};
 })();

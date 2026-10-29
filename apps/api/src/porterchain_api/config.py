@@ -579,9 +579,10 @@ class Settings(BaseSettings):
             "SHOPIFY_FULFILLMENT_SERVICE_ENABLED",
         ),
     )
-    # 4-click embedded onboarding (confirm pickup → Go live). OFF in prod while App Review runs.
+    # 4-click embedded onboarding (confirm pickup → Go live). Phase 0 G20: the default path.
+    # Set SHOPIFY_FOUR_CLICK_ONBOARDING_ENABLED=false to fall back to the legacy page.
     shopify_four_click_onboarding_enabled: bool = Field(
-        default=False,
+        default=True,
         validation_alias=AliasChoices(
             "shopify_four_click_onboarding_enabled",
             "SHOPIFY_FOUR_CLICK_ONBOARDING_ENABLED",

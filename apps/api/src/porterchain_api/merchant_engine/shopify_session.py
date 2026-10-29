@@ -344,6 +344,9 @@ def open_embedded(
         "linked": linked,
         "company_name": merchant.company_name if merchant and linked else None,
         "link_token": None if linked else sign_link_token(shop, settings),
+        # G20: the install auto-provisioned an organisation for this store (idempotent on
+        # shop domain), so the embedded UI is usable without any login or link step.
+        "account_ready": bool(row) and getattr(row, "uninstalled_at", None) is None,
     }
 
 

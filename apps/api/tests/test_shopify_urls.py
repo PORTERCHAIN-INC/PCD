@@ -158,6 +158,7 @@ def test_reopen_heals_rates_and_shows_linked_company() -> None:
         "linked": True,
         "company_name": "Maple Leaf Supply",
         "link_token": None,
+        "account_ready": True,
     }
     heal.assert_called_once()
     install.assert_not_called()
