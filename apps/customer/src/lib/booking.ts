@@ -204,7 +204,7 @@ export function startBooking(
     quote_id: string;
     email: string;
     phone: string;
-    clerk_user_id: string;
+    auth_subject: string;
     terms_accepted: boolean;
     privacy_accepted: boolean;
     dangerous_goods_confirmed: boolean;
@@ -237,12 +237,4 @@ export function syncBookingCheckout(quoteId: string) {
     method: "POST",
     body: JSON.stringify({ quote_id: quoteId }),
   });
-}
-
-export function getOrderByTracking(trackingNumber: string) {
-  return apiFetch<OrderResult>(`/v1/orders/${encodeURIComponent(trackingNumber)}`);
-}
-
-export function getOrderLiveTracking(trackingNumber: string) {
-  return apiFetch<OrderLiveTracking>(`/v1/orders/${encodeURIComponent(trackingNumber)}/tracking`);
 }

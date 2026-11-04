@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import { EmptyState } from "@porterchain/ui/empty-state";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
-import { reportsApi, type ReportsOverview } from "@/lib/reports";
+import { reportsApi } from "@/lib/reports";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDeferredValue, useState } from "react";
 

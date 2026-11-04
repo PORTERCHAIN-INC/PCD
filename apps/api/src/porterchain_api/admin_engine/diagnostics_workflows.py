@@ -13,7 +13,7 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
     HealthClass,
     _now_iso,
 )
-from porterchain_api.auth.clerk_registry import is_clerk_configured
+from porterchain_api.auth.identity_directory import is_identity_configured
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import DomainEvent
 from porterchain_shared.config.settings import get_platform_settings
@@ -28,7 +28,7 @@ class DiagnosticsWorkflowsMixin:
                 "steps": [
                     "Quote",
                     "Booking Draft",
-                    "Clerk Authentication",
+                    "Keycloak Authentication",
                     "Stripe Sandbox Payment",
                     "Order Creation",
                     "Operations Queue",
@@ -205,7 +205,7 @@ class DiagnosticsWorkflowsMixin:
         if scenario_id == "retail_customer":
             step("Quote", True, "QuoteService via booking_engine")
             step("Booking Draft", True, "Server-persisted drafts")
-            step("Clerk Authentication", is_clerk_configured(settings) or settings.clerk_dev_bypass, "Clerk or dev bypass")
+            step("Keycloak Authentication", is_identity_configured(settings) or settings.auth_dev_bypass, "Keycloak or dev bypass")
             step("Stripe Sandbox Payment", settings.stripe_secret or settings.stripe_mock, "Stripe or mock", warn=settings.stripe_mock)
             step("Order Creation", True, "PaymentService webhook flow")
             step("Operations Queue", True, "Control Tower")

@@ -89,13 +89,17 @@ export default function FinanceMerchantArPanel() {
         </label>
         <DateTimeField
           label="Period start (optional)"
+          allowPast
+          defaultTime={[0, 0]}
           value={periodStart}
           onChange={setPeriodStart}
           hourFormat={12}
           timeInterval={30}
         />
         <DateTimeField
-          label="Period end (optional)"
+          label="Period end (optional, through end of day)"
+          allowPast
+          defaultTime={[23, 30]}
           value={periodEnd}
           onChange={setPeriodEnd}
           hourFormat={12}
@@ -123,11 +127,13 @@ export default function FinanceMerchantArPanel() {
       {preview && (
         <div className="rounded-lg bg-gray-bg/60 p-4 text-sm">
           <p className="font-medium text-primary">
-            {preview.merchant_name} · {preview.order_count} order(s) ·{" "}
+            {preview.merchant_name} · {preview.order_count}{" "}
+            {preview.order_count === 1 ? "order" : "orders"} ·{" "}
             {formatCents(preview.uninvoiced_cents)}
           </p>
           <p className="mt-1 text-muted">
-            Terms {preview.payment_terms || "—"} · Cycle {preview.billing_cycle || "—"} · Period{" "}
+            Terms {(preview.payment_terms || "—").replace(/_/g, " ")} · Cycle{" "}
+            {(preview.billing_cycle || "—").toLowerCase()} · Period{" "}
             {String(preview.period_start).slice(0, 10)} → {String(preview.period_end).slice(0, 10)}
           </p>
           {preview.orders.length > 0 && (

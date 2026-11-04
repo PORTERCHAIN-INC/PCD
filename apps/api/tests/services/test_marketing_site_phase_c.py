@@ -143,7 +143,7 @@ def test_fsa_centroid_uses_registry_and_rejects_outside():
     assert fsa_centroid("hello") is None
 
 
-def test_estimate_returns_real_price_without_storing_anything(client, db):
+def test_estimate_returns_real_price_without_storing_anything(gst_registered, client, db):
     from porterchain_api.booking_models import Quote
 
     quotes_before = db.query(Quote).count()
@@ -177,7 +177,8 @@ def test_estimate_matches_quote_preview_engine(client):
             "pickup": {"formatted": "M5V, Ontario, Canada", "postal": "M5V", "lat": a[1], "lng": a[2]},
             "dropoff": {"formatted": "M4W, Ontario, Canada", "postal": "M4W", "lat": b[1], "lng": b[2]},
             "vehicle_class": "sedan_suv",
-            "booking_mode": "vehicle",
+            "booking_mode": "parcels",  # 2026-10-31: customers are parcel-priced only
+                "parcels": [{"preset_id": "small", "quantity": 1}],
             "scheduled_at": "2026-10-12T15:00:00Z",
         },
     ).json()
@@ -325,7 +326,7 @@ def test_admin_attribution_route_requires_crm_read(monkeypatch):
 
     # Local dev staff context needs the dev bypass explicitly (CI has no .env).
     monkeypatch.setenv("APP_ENV", "local")
-    monkeypatch.setenv("CLERK_DEV_BYPASS", "true")
+    monkeypatch.setenv("AUTH_DEV_BYPASS", "true")
     get_settings.cache_clear()
     client = TestClient(create_app())
     res = client.get("/v1/admin/marketing/lead-attribution?days=7")  # local dev staff context

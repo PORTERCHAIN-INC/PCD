@@ -64,6 +64,21 @@ export async function capturePodPhotoDataUrl(): Promise<string> {
     throw new Error("camera_permission_denied");
   }
 
+  // Local Beta on the iOS Simulator only (.env.beta): the simulator camera can't take a picture
+  // and the iOS 27.1 simulator photo library crashes (L171), so QA picks an image from Files.
+  // Never set in store builds.
+  if (process.env.EXPO_PUBLIC_POD_LIBRARY_FALLBACK === "1") {
+    const DocumentPicker = await import("expo-document-picker");
+    const r = await DocumentPicker.getDocumentAsync({
+      type: ["image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+    const picked = r.assets[0].uri;
+    const u = await shrinkToFit((step) => renderStep(picked, step));
+    if (!u) throw new Error("photo_too_large");
+    return u;
+  }
   const result = await ImagePicker.launchCameraAsync({
     mediaTypes: ["images"],
     quality: 0.7,
@@ -94,13 +109,7 @@ export async function captureDocumentDataUrl(
     if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
     uri = r.assets[0].uri;
   } else if (source === "library") {
-    const r = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-      exif: false,
-    });
-    if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
-    uri = r.assets[0].uri;
+    uri = await pickFromLibrary({ mediaTypes: ["images"], quality: 0.8, exif: false });
   } else {
     let { status } = await ImagePicker.getCameraPermissionsAsync();
     if (status !== "granted") status = (await ImagePicker.requestCameraPermissionsAsync()).status;
@@ -118,6 +127,29 @@ export async function captureDocumentDataUrl(
   return url;
 }
 
+/**
+ * L171: the photo library can fail on some devices/simulators. Use the Files
+ * picker when it throws (or when the build asks for it), never crash the flow.
+ */
+async function pickFromLibrary(opts: ImagePicker.ImagePickerOptions): Promise<string> {
+  if (process.env.EXPO_PUBLIC_POD_LIBRARY_FALLBACK !== "1") {
+    try {
+      const r = await ImagePicker.launchImageLibraryAsync(opts);
+      if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+      return r.assets[0].uri;
+    } catch (e) {
+      if (e instanceof Error && e.message === "photo_cancelled") throw e;
+    }
+  }
+  const DocumentPicker = await import("expo-document-picker");
+  const d = await DocumentPicker.getDocumentAsync({
+    type: ["image/*"],
+    copyToCacheDirectory: true,
+  });
+  if (d.canceled || !d.assets?.[0]) throw new Error("photo_cancelled");
+  return d.assets[0].uri;
+}
+
 /** Square profile photo (512 px, ~60 KB) from camera or library. No EXIF/GPS kept. */
 export async function captureAvatarDataUrl(source: "camera" | "library"): Promise<string> {
   const opts = {
@@ -132,12 +164,15 @@ export async function captureAvatarDataUrl(source: "camera" | "library"): Promis
     if (status !== "granted") status = (await ImagePicker.requestCameraPermissionsAsync()).status;
     if (status !== "granted") throw new Error("camera_permission_denied");
   }
-  const r =
-    source === "camera"
-      ? await ImagePicker.launchCameraAsync(opts)
-      : await ImagePicker.launchImageLibraryAsync(opts);
-  if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
-  const b64 = await renderStep(r.assets[0].uri, { width: 512, compress: 0.8 });
+  let uri: string;
+  if (source === "camera") {
+    const r = await ImagePicker.launchCameraAsync(opts);
+    if (r.canceled || !r.assets?.[0]) throw new Error("photo_cancelled");
+    uri = r.assets[0].uri;
+  } else {
+    uri = await pickFromLibrary(opts);
+  }
+  const b64 = await renderStep(uri, { width: 512, compress: 0.8 });
   if (!b64) throw new Error("photo_failed");
   return toDataUrl(b64);
 }

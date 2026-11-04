@@ -41,6 +41,7 @@ export const LOCALE_APP_SECTIONS = new Set([
   "compare",
   "contact",
   "cookies",
+  "delete-account",
   "delivery",
   "delivery-cost-calculator",
   "developers",

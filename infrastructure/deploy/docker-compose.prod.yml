@@ -177,7 +177,7 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # Free address autocomplete (replaces Google Places). GTA +150 km Photon index built
+  # Free self-hosted address autocomplete. GTA +150 km Photon index built
   # on the home build server (build-geo-artifacts.sh) and rsynced to /opt/porterchain/photon.
   # Measured on the home server (2.36M places, 2.1 GB index): cgroup peak 453 MiB, no OOM,
   # under 2000 queries at 8-way concurrency with -Xmx384m and MemoryMax=700M.
@@ -292,10 +292,8 @@ services:
       PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
       PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
       PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
-      STRIPE_CONNECT_REFRESH_URL: https://merchant.porterchain.com/billing
-      STRIPE_CONNECT_RETURN_URL: https://merchant.porterchain.com/billing?connect=return
       DRIVER_IDENTITY_RETURN_URL: https://driver.porterchain.com/profile?identity=return
-      CLERK_DEV_BYPASS: "false"
+      AUTH_DEV_BYPASS: "false"
       # Security audit 2026-10-10
       AUDIT_SIGNING_KEY: ${AUDIT_SIGNING_KEY:-}
       TRUSTED_SERVER_IPS: ${TRUSTED_SERVER_IPS:-}
@@ -307,43 +305,22 @@ services:
       SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT:-spicedb:50051}
       SPICEDB_PRESHARED_KEY: ${SPICEDB_PRESHARED_KEY}
       STRIPE_MOCK: "false"
-      CLERK_MODE: ${CLERK_MODE:-platform_driver}
-      CLERK_UNIFIED_MODE: ${CLERK_UNIFIED_MODE:-false}
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
-      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
-      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
-      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
-      CLERK_ADMIN_PUBLISHABLE_KEY: ${CLERK_ADMIN_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
-      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
-      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY}}
-      CLERK_CUSTOMER_PUBLISHABLE_KEY: ${CLERK_CUSTOMER_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
-      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
-      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
-      CLERK_MERCHANT_PUBLISHABLE_KEY: ${CLERK_MERCHANT_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
-      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
-      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY (Porterchain Driver) is required}
-      CLERK_DRIVER_PUBLISHABLE_KEY: ${CLERK_DRIVER_PUBLISHABLE_KEY:-}
-      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}
-      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-}
-      CLERK_AUTHORIZED_ISSUERS: ${CLERK_AUTHORIZED_ISSUERS:-}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
-      CLERK_DRIVER_WEBHOOK_SIGNING_SECRET: ${CLERK_DRIVER_WEBHOOK_SIGNING_SECRET:-}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      KEYCLOAK_INTERNAL_URL: ${KEYCLOAK_INTERNAL_URL:-}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-porterchain}
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:?KEYCLOAK_ADMIN_CLIENT_SECRET (SOPS) is required}
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       JWT_SECRET: ${JWT_SECRET}
-      SENTRY_DSN: ${SENTRY_DSN:-}
+      GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
       PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
       PORTERCHAIN_PUSH_SEND: ${PORTERCHAIN_PUSH_SEND:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
       PHOTON_URL: http://photon:2322
-      # Capped Google Places (New) backup for address search (IP-restricted server key).
-      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
-      GEO_GOOGLE_FALLBACK: ${GEO_GOOGLE_FALLBACK:-1}
-      GEO_GOOGLE_DAILY_CAP: ${GEO_GOOGLE_DAILY_CAP:-300}
       # Interac e-Transfer inbox reader (read-only IMAP → Admin review queue; never applies money).
-      # Off unless INTERAC_IMAP_ENABLED=true AND host/user/password are set in Doppler → .env.
+      # Off unless INTERAC_IMAP_ENABLED=true AND host/user/password are set in secrets/droplet.enc.yaml → .env.
       INTERAC_IMAP_ENABLED: ${INTERAC_IMAP_ENABLED:-false}
       INTERAC_IMAP_HOST: ${INTERAC_IMAP_HOST:-imap.gmail.com}
       INTERAC_IMAP_PORT: ${INTERAC_IMAP_PORT:-993}
@@ -352,7 +329,7 @@ services:
       INTERAC_IMAP_FOLDER: ${INTERAC_IMAP_FOLDER:-INBOX}
       INTERAC_IMAP_LOOKBACK_DAYS: ${INTERAC_IMAP_LOOKBACK_DAYS:-60}
       INTERAC_AUTHSERV_ID: ${INTERAC_AUTHSERV_ID:-mx.google.com}
-      # Shopify partner app (merchant OAuth + CarrierService). Keys live in Doppler → .env;
+      # Shopify partner app (merchant OAuth + CarrierService). Keys live in secrets/droplet.enc.yaml → .env;
       # must be passed explicitly — compose does not auto-inject unused .env keys.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
       SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET:-}
@@ -390,13 +367,7 @@ services:
       LEAD_SLA_MINUTES_JSON: ${LEAD_SLA_MINUTES_JSON:-}
       LEAD_INGEST_ASYNC: ${LEAD_INGEST_ASYNC:-false}
       REFERRAL_CREDIT_CENTS: ${REFERRAL_CREDIT_CENTS:-25000}
-      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
-      NVIDIA_API_BASE: ${NVIDIA_API_BASE:-}
-      NVIDIA_MODEL: ${NVIDIA_MODEL:-}
-      # Admin Settings → Lead Ingest write-through to Doppler
-      DOPPLER_TOKEN: ${DOPPLER_TOKEN:-}
-      PORTERCHAIN_DOPPLER_PROJECT: ${PORTERCHAIN_DOPPLER_PROJECT:-pcd}
-      PORTERCHAIN_DOPPLER_CONFIG: ${PORTERCHAIN_DOPPLER_CONFIG:-prd}
+      FEATURE_AI: "false"
     volumes:
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     expose:
@@ -446,15 +417,13 @@ services:
       PORTERCHAIN_STRIPE_SUCCESS_URL: https://merchant.porterchain.com/invoices?paid=1
       PORTERCHAIN_STRIPE_CANCEL_URL: https://merchant.porterchain.com/invoices?cancelled=1
       PORTERCHAIN_TRACKING_URL: https://porterchain.com/track/
-      STRIPE_CONNECT_REFRESH_URL: https://merchant.porterchain.com/billing
-      STRIPE_CONNECT_RETURN_URL: https://merchant.porterchain.com/billing?connect=return
       DRIVER_IDENTITY_RETURN_URL: https://driver.porterchain.com/profile?identity=return
       STRIPE_MOCK: "false"
       STRIPE_SECRET: ${STRIPE_SECRET}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       JWT_SECRET: ${JWT_SECRET}
-      SENTRY_DSN: ${SENTRY_DSN:-}
-      CLERK_DEV_BYPASS: "false"
+      GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+      AUTH_DEV_BYPASS: "false"
       # Security audit 2026-10-10
       AUDIT_SIGNING_KEY: ${AUDIT_SIGNING_KEY:-}
       TRUSTED_SERVER_IPS: ${TRUSTED_SERVER_IPS:-}
@@ -465,34 +434,18 @@ services:
       SPICEDB_REQUIRED: ${SPICEDB_REQUIRED:-true}
       SPICEDB_ENDPOINT: ${SPICEDB_ENDPOINT:-spicedb:50051}
       SPICEDB_PRESHARED_KEY: ${SPICEDB_PRESHARED_KEY}
-      CLERK_MODE: ${CLERK_MODE:-platform_driver}
-      CLERK_UNIFIED_MODE: ${CLERK_UNIFIED_MODE:-false}
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
-      CLERK_JWKS_URL: ${CLERK_JWKS_URL:?CLERK_JWKS_URL is required}
-      CLERK_ADMIN_SECRET_KEY: ${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
-      CLERK_ADMIN_JWKS_URL: ${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
-      CLERK_CUSTOMER_SECRET_KEY: ${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY}}
-      CLERK_CUSTOMER_JWKS_URL: ${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
-      CLERK_MERCHANT_SECRET_KEY: ${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
-      CLERK_MERCHANT_JWKS_URL: ${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
-      CLERK_DRIVER_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY (Porterchain Driver) is required}
-      CLERK_DRIVER_JWKS_URL: ${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}
-      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-}
-      CLERK_AUTHORIZED_ISSUERS: ${CLERK_AUTHORIZED_ISSUERS:-}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET:-}
-      CLERK_DRIVER_WEBHOOK_SIGNING_SECRET: ${CLERK_DRIVER_WEBHOOK_SIGNING_SECRET:-}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      KEYCLOAK_INTERNAL_URL: ${KEYCLOAK_INTERNAL_URL:-}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-porterchain}
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:?KEYCLOAK_ADMIN_CLIENT_SECRET (SOPS) is required}
       PORTERCHAIN_PUSH_ENABLED: ${PORTERCHAIN_PUSH_ENABLED:-false}
       PORTERCHAIN_PUSH_SEND: ${PORTERCHAIN_PUSH_SEND:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CREDENTIALS_PATH: /run/secrets/firebase-service-account.json
       FIREBASE_WEB_VAPID_KEY: ${FIREBASE_WEB_VAPID_KEY:-}
       PHOTON_URL: http://photon:2322
-      # Capped Google Places (New) backup for address search (IP-restricted server key).
-      GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
-      GEO_GOOGLE_FALLBACK: ${GEO_GOOGLE_FALLBACK:-1}
-      GEO_GOOGLE_DAILY_CAP: ${GEO_GOOGLE_DAILY_CAP:-300}
       # Interac e-Transfer inbox reader (read-only IMAP → Admin review queue; never applies money).
-      # Off unless INTERAC_IMAP_ENABLED=true AND host/user/password are set in Doppler → .env.
+      # Off unless INTERAC_IMAP_ENABLED=true AND host/user/password are set in secrets/droplet.enc.yaml → .env.
       INTERAC_IMAP_ENABLED: ${INTERAC_IMAP_ENABLED:-false}
       INTERAC_IMAP_HOST: ${INTERAC_IMAP_HOST:-imap.gmail.com}
       INTERAC_IMAP_PORT: ${INTERAC_IMAP_PORT:-993}
@@ -548,7 +501,8 @@ services:
     environment:
       <<: *node-ram
       PORT: "3000"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
       ROUTING_ENGINE: valhalla
       VALHALLA_BASE_URL: http://valhalla:8002
       OSRM_HOST: ${OSRM_HOST:-}
@@ -568,7 +522,8 @@ services:
     environment:
       <<: *node-ram
       PORT: "3002"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
     expose:
       - "3002"
     networks:
@@ -584,7 +539,8 @@ services:
     environment:
       <<: *node-ram
       PORT: "3001"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
       # Public Shopify client id: rendered as the shopify-api-key meta on /shopify-app
       # (App Bridge cannot mint session tokens without it). Never the secret.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
@@ -604,10 +560,8 @@ services:
     environment:
       <<: *node-ram
       PORT: "3003"
-      # Driver portal is built with CLERK_DRIVER_PUBLISHABLE_KEY (Driver instance), so the
-      # server must verify sessions with the Driver instance secret. The Platform/admin key
-      # fails every token with jwk-kid-mismatch -> /onboarding <-> /login redirect loop.
-      CLERK_SECRET_KEY: ${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY (Porterchain Driver) is required}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
     expose:
       - "3003"
     networks:
@@ -623,7 +577,8 @@ services:
     environment:
       <<: *node-ram
       PORT: "3004"
-      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform / admin.porterchain.com) is required}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
     expose:
       - "3004"
     networks:

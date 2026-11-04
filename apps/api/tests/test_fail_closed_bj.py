@@ -1,4 +1,4 @@
-"""BJ — production with missing Clerk keys fails closed; the dev bypass never ships."""
+"""BJ — production with missing Keycloak keys fails closed; the dev bypass never ships."""
 
 from __future__ import annotations
 
@@ -8,72 +8,73 @@ import os
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.clerk import get_clerk_claims
-from porterchain_api.auth.clerk_config_audit import production_clerk_errors
-from porterchain_api.auth.clerk_identity_provider import verify_clerk_token
+from porterchain_api.auth.bearer import get_identity_claims
+from porterchain_api.auth.keycloak import production_auth_errors
+from porterchain_api.auth.identity_provider import verify_access_token
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.config import Settings
 
-_CLERK_ENV_PREFIXES = ("CLERK_", "NEXT_PUBLIC_CLERK_")
+_IDP_ENV_PREFIXES = ("IDP_", "NEXT_PUBLIC_IDP_")
 
 # Every environment name a deploy might carry. Only "local" is a developer laptop.
 SERVER_ENVS = ("production", "staging", "development", "dev", "test", "prod", "")
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The local .env has test Clerk keys; they must not leak into these cases."""
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The local .env has test Keycloak keys; they must not leak into these cases."""
     for key in list(os.environ):
-        if key.startswith(_CLERK_ENV_PREFIXES):
+        if key.startswith(_IDP_ENV_PREFIXES):
             monkeypatch.delenv(key, raising=False)
 
 
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
-        "clerk_secret_key": "",
-        "clerk_publishable_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_publishable_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_publishable_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_publishable_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_publishable_key": "",
-        "clerk_driver_jwks_url": "",
-        "clerk_unified_mode": False,
-        "clerk_authorized_issuers": "",
-        "clerk_authorized_parties": "",
-        "clerk_audience": "",
-        "clerk_webhook_signing_secret": "",
+        "idp_secret_key": "",
+        "idp_publishable_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_publishable_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_publishable_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_publishable_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_publishable_key": "",
+        "idp_driver_jwks_url": "",
+        "idp_unified_mode": False,
+        "idp_authorized_issuers": "",
+        "idp_authorized_parties": "",
+        "idp_audience": "",
+        "idp_webhook_signing_secret": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
 
 
 def _live(**overrides: object) -> Settings:
-    """A complete, live Clerk config — what a correct production deploy looks like."""
+    """A complete, live Keycloak config — what a correct production deploy looks like."""
     params: dict[str, object] = {
-        "clerk_customer_secret_key": "sk_live_cust",
-        "clerk_customer_publishable_key": "pk_live_cust",
-        "clerk_customer_jwks_url": "https://cust.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_merchant_secret_key": "sk_live_merch",
-        "clerk_merchant_publishable_key": "pk_live_merch",
-        "clerk_merchant_jwks_url": "https://merch.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_admin_secret_key": "sk_live_admin",
-        "clerk_admin_publishable_key": "pk_live_admin",
-        "clerk_admin_jwks_url": "https://admin.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_driver_secret_key": "sk_live_driver",
-        "clerk_driver_publishable_key": "pk_live_driver",
-        "clerk_driver_jwks_url": "https://driver.clerk.accounts.dev/.well-known/jwks.json",
+        "keycloak_url": "https://auth.porterchain.test",
+        "idp_customer_secret_key": "sk_live_cust",
+        "idp_customer_publishable_key": "pk_live_cust",
+        "idp_customer_jwks_url": "https://cust.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_merchant_secret_key": "sk_live_merch",
+        "idp_merchant_publishable_key": "pk_live_merch",
+        "idp_merchant_jwks_url": "https://merch.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_admin_secret_key": "sk_live_admin",
+        "idp_admin_publishable_key": "pk_live_admin",
+        "idp_admin_jwks_url": "https://admin.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_driver_secret_key": "sk_live_driver",
+        "idp_driver_publishable_key": "pk_live_driver",
+        "idp_driver_jwks_url": "https://driver.keycloak.accounts.dev/.well-known/jwks.json",
     }
     params.update(overrides)
     return _settings(**params)
@@ -86,27 +87,27 @@ def test_bypass_needs_development_project_mode() -> None:
     """Aliases (dev/development) normalize to local → development mode can unlock bypass.
     testing (APP_ENV=test) must not.
     """
-    assert allow_auth_dev_bypass(_settings(app_env="local", clerk_dev_bypass=True))
-    assert allow_auth_dev_bypass(_settings(app_env="development", clerk_dev_bypass=True))
-    assert allow_auth_dev_bypass(_settings(app_env="dev", clerk_dev_bypass=True))
-    assert not allow_auth_dev_bypass(_settings(app_env="test", clerk_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="local", auth_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="development", auth_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="dev", auth_dev_bypass=True))
+    assert not allow_auth_dev_bypass(_settings(app_env="test", auth_dev_bypass=True))
 
 
 def test_bypass_is_off_locally_unless_asked_for() -> None:
-    assert not allow_auth_dev_bypass(_settings(app_env="local", clerk_dev_bypass=False))
+    assert not allow_auth_dev_bypass(_settings(app_env="local", auth_dev_bypass=False))
 
 
 def test_production_refuses_to_boot_with_the_bypass_on() -> None:
-    """A leaked CLERK_DEV_BYPASS is a boot failure, not a warning served to users."""
+    """A leaked AUTH_DEV_BYPASS is a boot failure, not a warning served to users."""
     for env in ("production", "staging", "prod"):
         with pytest.raises(Exception) as exc:
-            _live(app_env=env, clerk_dev_bypass=True)
+            _live(app_env=env, auth_dev_bypass=True)
         # The message must name the variable, or nobody can fix the deploy.
-        assert "CLERK_DEV_BYPASS must be false" in str(exc.value), env
+        assert "AUTH_DEV_BYPASS) must be false" in str(exc.value), env
 
 
 def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
-    settings = _settings(app_env="local", clerk_dev_bypass=False)
+    settings = _settings(app_env="local", auth_dev_bypass=False)
 
     async def _run() -> None:
         from starlette.requests import Request
@@ -125,7 +126,7 @@ def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
             "server": ("test", 80),
         }
         with pytest.raises(HTTPException) as exc:
-            await get_clerk_claims(
+            await get_identity_claims(
                 request=Request(scope),
                 authorization="Bearer dev",
                 settings=settings,
@@ -137,40 +138,36 @@ def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
     asyncio.run(_run())
 
 
-# --- Missing Clerk keys fail closed ---
+# --- Missing Keycloak keys fail closed ---
 
 
-def test_production_refuses_to_boot_without_clerk() -> None:
+def test_production_refuses_to_boot_without_keycloak() -> None:
     for env in ("production", "staging"):
         with pytest.raises(Exception) as exc:
-            _settings(app_env=env)
-        assert "Clerk incomplete" in str(exc.value), env
+            _settings(app_env=env, keycloak_url="", keycloak_issuer="")
+        assert "KEYCLOAK_URL" in str(exc.value), env
 
 
 def test_a_complete_live_config_boots() -> None:
     """The guard must not block a correctly configured production deploy."""
-    assert production_clerk_errors(_live(app_env="production")) == []
+    assert production_auth_errors(_live(app_env="production")) == []
 
 
-def test_test_keys_are_refused_in_production() -> None:
+def test_plain_http_issuer_is_refused_in_production() -> None:
     with pytest.raises(Exception) as exc:
-        _live(
-            app_env="production",
-            clerk_merchant_secret_key="sk_test_merch",
-            clerk_merchant_publishable_key="pk_test_merch",
-        )
-    assert "test key" in str(exc.value).lower()
+        _live(app_env="production", keycloak_url="http://auth.porterchain.test")
+    assert "must be https" in str(exc.value).lower()
 
 
-def test_a_token_cannot_be_verified_without_clerk_keys() -> None:
-    """No JWKS means 503 — never a trusted claim set, never a pass-through."""
-    settings = _settings(app_env="development", clerk_dev_bypass=True)
+def test_a_token_cannot_be_verified_without_keycloak_issuer() -> None:
+    """No Keycloak issuer/JWKS means 503 — never a trusted claim set, never a pass-through."""
+    settings = _settings(app_env="development", auth_dev_bypass=True, keycloak_url="", keycloak_issuer="")
 
     async def _run() -> None:
         with pytest.raises(HTTPException) as exc:
-            await verify_clerk_token("eyJhbGciOiJSUzI1NiJ9.e30.sig", settings)
+            await verify_access_token("eyJhbGciOiJSUzI1NiJ9.e30.sig", settings)
         assert exc.value.status_code == 503
-        assert exc.value.detail == "clerk_not_configured"
+        assert exc.value.detail == "auth_not_configured"
 
     asyncio.run(_run())
 
@@ -195,7 +192,7 @@ def test_missing_bearer_is_refused_not_waved_through() -> None:
             "server": ("test", 80),
         }
         with pytest.raises(HTTPException) as exc:
-            await get_clerk_claims(
+            await get_identity_claims(
                 request=Request(scope),
                 authorization=None,
                 settings=settings,

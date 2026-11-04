@@ -65,7 +65,7 @@ MERCHANT_STATUS_LABELS: dict[str, str] = {
 ONBOARDING_PHASE_LABELS: dict[str, str] = {
     "ready": "Portal ready",
     "needs_invite": "Needs invite",
-    "awaiting_clerk": "Awaiting sign-in",
+    "awaiting_idp": "Awaiting sign-in",
     "needs_activation": "User inactive",
     "needs_approval": "Needs approval",
     "onboarding": "Onboarding",
@@ -193,7 +193,7 @@ QUOTE_LINE_LABELS: dict[str, str] = {
     "overweight": "Weight",
     "oversize": "Oversize",
     "declared_value": "Declared value coverage",
-    "coverage_upgrade": "Coverage up to $25,000",
+    "coverage_upgrade": "Declared-value cover (1.5%, min $3, up to $2,500 per parcel)",
     "downtown": "Downtown surcharge",
     "upper_zone": "Upper zone surcharge",
     "liftgate": "Liftgate",

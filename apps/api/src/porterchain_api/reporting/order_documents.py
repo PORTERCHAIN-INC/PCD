@@ -273,7 +273,7 @@ def render_branded_invoice_pdf(
         story.append(
             LiteralBlock(
                 [
-                    f"{issuer_legal_name}",
+                    f"{comp.get('supplier_legal_name') or issuer_legal_name}",
                     *( [str(comp["issuer_address"])] if comp.get("issuer_address") else [] ),
                     f"GST/HST Reg. No.: {comp['supplier_tax_number']}",
                 ],
@@ -381,7 +381,11 @@ def render_branded_invoice_pdf(
         LiteralBlock(
             [
                 f"Amount: {amount}",
-                f"Tax: {tax}" + (f" ({comp['tax_label']})" if comp.get("tax_label") else ""),
+                *(
+                    [f"Tax: {tax}" + (f" ({comp['tax_label']})" if comp.get("tax_label") else "")]
+                    if int(tax_cents or 0) > 0
+                    else []
+                ),
                 f"Fees: {fees}",
                 *([f"Paid: {_money(int(comp['amount_paid_cents']), currency)}"] if comp.get("amount_paid_cents") else []),
                 f"Outstanding: {due_amount}",
@@ -477,9 +481,12 @@ def invoice_compliance(db: Any, invoice: Any) -> dict[str, Any]:
         etransfer_autodeposit,
         etransfer_recipient_email,
         finance_settings,
-        supplier_gst_hst_number,
-        tax_label,
     )
+    from porterchain_api.platform.tax_registration import registration_at
+
+    # Registration in force when the invoice was issued (never today's, never retroactive).
+    reg = registration_at(db, getattr(invoice, "issued_at", None) or getattr(invoice, "created_at", None))
+    taxed = int(getattr(invoice, "tax_cents", 0) or 0) > 0
 
     is_b2b = bool(getattr(invoice, "merchant_id", None)) and not getattr(invoice, "customer_id", None)
     start = getattr(invoice, "billing_period_start", None)
@@ -490,9 +497,10 @@ def invoice_compliance(db: Any, invoice: Any) -> dict[str, Any]:
 
         period = f"{start.date().isoformat()} to {(end - timedelta(seconds=1)).date().isoformat()}"
     return {
-        "supplier_tax_number": supplier_gst_hst_number(db),
+        "supplier_tax_number": reg.gst_hst_number,
+        "supplier_legal_name": reg.legal_name or None,
         "issuer_address": str(finance_settings(db).get("business_address") or "").strip() or None,
-        "tax_label": _province_tax_label(db, getattr(invoice, "tax_province", None)) or tax_label(db),
+        "tax_label": (_province_tax_label(db, getattr(invoice, "tax_province", None)) or "GST/HST") if taxed else None,
         "payment_reference": getattr(invoice, "payment_reference", None) if is_b2b else None,
         "etransfer_email": etransfer_recipient_email(db) if is_b2b else None,
         "autodeposit": etransfer_autodeposit(db),
@@ -583,6 +591,19 @@ def pdf_for_invoice_record(db: Any, invoice: Any, *, lines: Sequence[dict[str, A
             }
         )
 
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    pen = penalty_fields(db, invoice)
+    if pen["penalty_cents"]:
+        line_rows.append(
+            {
+                "description": pen["penalty_label"],
+                "amount_cents": pen["penalty_cents"],
+                "order_number": None,
+                "channel": None,
+                "pricing_model": None,
+            }
+        )
     issuer_name, legal, support = _issuer_from_db(db)
     issued = getattr(invoice, "issued_at", None) or getattr(invoice, "created_at", None)
     due_at = getattr(invoice, "due_at", None)

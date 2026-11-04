@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Calculator } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { downloadOrderFile } from "@/lib/orders";
 import { merchantOps, cad, type QuotePreview } from "@/lib/merchant-ops";
 import { Empty, Panel, PrimaryAction, Skeleton, inputClass } from "./ui";
 
@@ -30,6 +31,34 @@ export function MerchantQuotePreview({ id }: { id: string }) {
       ? { postal: t.toUpperCase(), formatted: t.toUpperCase() }
       : { formatted: t };
   };
+
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const body = () => {
+    const w = weight ? Number(weight) : null;
+    return {
+      pickup: pickup.trim() ? asAddr(pickup) : undefined,
+      dropoff: asAddr(dropoff),
+      weight_kg: w != null && Number.isFinite(w) ? w : null,
+    };
+  };
+
+  async function downloadPdf(lang: "en" | "fr") {
+    setPdfBusy(true);
+    setErr(null);
+    try {
+      const t = await getApiToken();
+      await downloadOrderFile(
+        t,
+        `/v1/admin/merchant-ops/${id}/quote-preview/pdf?lang=${lang}`,
+        "porterchain-quote.pdf",
+        body()
+      );
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Quote PDF failed");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
 
   async function run() {
     setBusy(true);
@@ -129,6 +158,27 @@ export function MerchantQuotePreview({ id }: { id: string }) {
               </div>
               <p className={cn("text-lg font-extrabold", v.tone)}>{v.label}</p>
             </div>
+            {!q.price.refused && (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="download-quote-pdf"
+                  disabled={pdfBusy}
+                  onClick={() => void downloadPdf("en")}
+                  className="min-h-11 rounded-full border border-primary/20 px-4 text-sm font-semibold text-primary hover:bg-primary/5 disabled:opacity-50"
+                >
+                  {pdfBusy ? "Preparing…" : "Download quote PDF"}
+                </button>
+                <button
+                  type="button"
+                  disabled={pdfBusy}
+                  onClick={() => void downloadPdf("fr")}
+                  className="min-h-11 rounded-full px-3 text-sm font-semibold text-primary hover:underline disabled:opacity-50"
+                >
+                  Français
+                </button>
+              </div>
+            )}
             <dl className="grid grid-cols-3 gap-4">
               <Num label="Pre-tax" value={cad(q.price.subtotal_cents)} />
               <Num label="Driver cost" value={cad(q.driver_cost.cents)} />

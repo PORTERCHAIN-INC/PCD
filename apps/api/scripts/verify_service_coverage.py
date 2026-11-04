@@ -18,7 +18,7 @@ TARGET_SERVICE_COVERAGE = 60.0
 _EXCLUDED_SERVICE_PATH_PARTS = (
     "/auth/ensure_user_service.py",
     "/auth/principal_resolution_service.py",
-    "/auth/clerk_webhook_service.py",
+    "/auth/idp_webhook_service.py",
     "/admin_engine/order_assist_service.py",
     "/admin_engine/utilization_service.py",
     "/admin_engine/customer_booking_admin_service.py",

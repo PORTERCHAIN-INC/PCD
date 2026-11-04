@@ -177,6 +177,9 @@ class QuoteService:
         if matrix_id not in customer_rates.vehicles:
             raise ValueError("vehicle_rate_missing")
 
+        # Ravi 2026-10-31: hourly whole-vehicle pricing is merchants only; customers book parcels.
+        if body.booking_mode == "vehicle":
+            raise ValueError("whole_vehicle_merchants_only")
         load = resolve_load(
             booking_mode=body.booking_mode,
             parcels=body.parcels,
@@ -204,6 +207,24 @@ class QuoteService:
             use_overrides=True,
             parcel_count=len(load.items) or 1,
         )
+        # Per-parcel pricing ($6/$9 + size/weight table) needs each piece, not the rolled-up load.
+        from dataclasses import replace as _dc_replace
+
+        from porterchain_pricing.types import ParcelSpec
+
+        specs = [
+            ParcelSpec(
+                weight_kg=it.get("weight_kg"),
+                dimensions=(
+                    {"length": it["length_cm"], "width": it["width_cm"], "height": it["height_cm"]}
+                    if it.get("length_cm")
+                    else it.get("dimensions")
+                ),
+            )
+            for it in load.items
+        ]
+        if specs:
+            request = _dc_replace(request, parcels=specs)
         # Production quotes need Valhalla/OSRM. Local/CI may fall back to haversine
         # when those services are not running (never Google).
         from porterchain_shared.redis_health import is_local_env
@@ -213,7 +234,11 @@ class QuoteService:
 
         pricing = get_pricing_service(db)
         breakdown = pricing.calculate_retail(request)
+        if breakdown.metadata.get("manual_quote"):
+            raise ValueError(f"manual_quote_required:{breakdown.metadata.get('manual_reason')}")
         items = [PricingLineItem(code=i.code, label=i.label, amount_cents=i.amount_cents) for i in breakdown.items]
+        if breakdown.tax_cents:  # doc 72: HST always on its own line (parcel and whole-vehicle alike)
+            items.append(PricingLineItem(code="hst", label="HST (13%)", amount_cents=int(breakdown.tax_cents)))
         summary = pricing.to_api_breakdown(breakdown)
         summary["engine"] = "porterchain_pricing"
         if body.website_pricing:

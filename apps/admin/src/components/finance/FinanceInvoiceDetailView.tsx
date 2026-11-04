@@ -21,6 +21,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { withStaffStepUp } from "@/lib/staff-step-up";
 import AdminPage from "@/components/layout/AdminPage";
 import { FinanceNav } from "@/components/finance/FinanceShell";
+import InvoiceAdjustmentsPanel from "@/components/finance/InvoiceAdjustmentsPanel";
 
 type Props = { detail: InvoiceDetail | null; loading: boolean };
 
@@ -30,6 +31,8 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
   const [method, setMethod] = useState("interac");
   const [reference, setReference] = useState("");
   const [amount, setAmount] = useState("");
+  // Date the e-Transfer arrived (YYYY-MM-DD, Toronto). Empty = today.
+  const [paidOn, setPaidOn] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
 
@@ -62,6 +65,8 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           financeApi.recordPayment(token, detail.invoice_id, {
             method,
             reference: reference || undefined,
+            // Noon Toronto time on the chosen day, so the date never slips across midnight UTC.
+            paid_at: paidOn ? `${paidOn}T12:00:00-05:00` : undefined,
             amount_cents: amount.trim() ? Math.round(Number(amount) * 100) : undefined,
             allow_reference_mismatch: allowMismatch || undefined,
           })
@@ -82,6 +87,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
     },
     onSuccess: async (res) => {
       setAmount("");
+      setPaidOn("");
       setMsg(
         res.excess_cents
           ? `Paid. ${formatCents(res.excess_cents)} extra kept as credit for the next invoice.`
@@ -120,7 +126,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
 
   const payment = detail.payment as Record<string, unknown> | null | undefined;
   const canRecord =
-    detail.outstanding_cents > 0 && detail.status !== "paid" && detail.status !== "void";
+    detail.outstanding_cents > 0 && !["paid", "void", "credited"].includes(detail.status);
 
   return (
     <AdminPage>
@@ -150,6 +156,15 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           <h2 className="mb-3 font-semibold">Invoice</h2>
           <Row label="Amount" value={formatCents(detail.amount_cents)} />
           <Row label="Tax" value={formatCents(detail.tax_cents)} />
+          {detail.penalty_cents ? (
+            <Row
+              label={detail.penalty_label || "Late payment penalty"}
+              value={formatCents(detail.penalty_cents)}
+            />
+          ) : null}
+          {detail.credited_cents ? (
+            <Row label="Credited (credit notes)" value={`−${formatCents(detail.credited_cents)}`} />
+          ) : null}
           {detail.amount_paid_cents ? (
             <Row label="Paid" value={formatCents(detail.amount_paid_cents)} />
           ) : null}
@@ -168,7 +183,7 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
               <Row label="Tracking" value={detail.tracking_number || "—"} mono />
             </>
           ) : null}
-          <Row label="Terms" value={detail.payment_terms} />
+          <Row label="Terms" value={termsText(detail.payment_terms)} />
           {hostedPdf ? (
             <a
               href={hostedPdf}
@@ -230,7 +245,9 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
               >
                 {remindMut.isPending ? "Sending…" : "Send reminder to primary AP"}
               </Button>
-              <p className="text-sm font-medium text-primary">Record offline payment</p>
+              <p className="text-sm font-medium text-primary">
+                {method === "interac" ? "Record Interac payment" : "Record offline payment"}
+              </p>
               <select
                 aria-label="Payment method"
                 className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
@@ -252,8 +269,21 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
                 onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
               />
               <input
+                type="date"
+                aria-label="Date received"
                 className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
-                placeholder="Reference (optional)"
+                value={paidOn}
+                max={new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" })}
+                onChange={(e) => setPaidOn(e.target.value)}
+              />
+              <input
+                aria-label="Payment reference"
+                className="w-full rounded-lg border border-primary/15 px-3 py-2 text-sm"
+                placeholder={
+                  method === "interac"
+                    ? `e-Transfer message (${detail.payment_reference || detail.invoice_number})`
+                    : "Reference (optional)"
+                }
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
               />
@@ -310,6 +340,8 @@ export default function FinanceInvoiceDetailView({ detail, loading }: Props) {
           ) : null}
         </div>
       ) : null}
+
+      <InvoiceAdjustmentsPanel invoiceId={detail.invoice_id} />
 
       {(detail.pricing_breakdown || detail.pricing_model) && (
         <div className="rounded-2xl border border-primary/10 bg-white p-6">
@@ -380,4 +412,12 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
       <span className={cn("text-right text-primary", mono && "font-mono text-xs")}>{value}</span>
     </div>
   );
+}
+
+/** L65: "NET_30" -> "Net 30", "IMMEDIATE" -> "Due on receipt". */
+function termsText(v: string | null | undefined): string {
+  if (!v) return "—";
+  if (v === "IMMEDIATE") return "Due on receipt";
+  const m = /^NET_(\d+)$/.exec(v);
+  return m ? `Net ${m[1]}` : v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, " ");
 }

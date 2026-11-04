@@ -5,7 +5,7 @@ import { Search, X } from "lucide-react";
 import { Button, Field, Input, Select } from "@/components/crm/primitives";
 import {
   ACCESS_STATUS_OPTIONS,
-  CLERK_STATUS_OPTIONS,
+  IDP_STATUS_OPTIONS,
   IDENTITY_STATUS_OPTIONS,
   INVITE_STATUS_OPTIONS,
   type PlatformUsersFacets,
@@ -17,11 +17,11 @@ const EMPTY_FILTERS: UserDirectoryFilters = {};
 
 export { EMPTY_FILTERS };
 
-/** Filter chrome keyed to persona — Clerk facets for drivers + merchant seats. */
+/** Filter chrome keyed to persona — Keycloak facets for drivers + merchant seats. */
 export function filterChromeFor(tab: UserDirectoryTab) {
   return {
     showInviteFilter: tab === "driver",
-    showClerkFilters: tab === "driver" || tab === "merchant" || tab === "customer",
+    showIdpFilters: tab === "driver" || tab === "merchant" || tab === "customer",
     showAccountFilter: tab === "driver",
   };
 }
@@ -31,7 +31,7 @@ export function UserFiltersBar({
   facets,
   showAccountFilter,
   showInviteFilter = true,
-  showClerkFilters = true,
+  showIdpFilters = true,
   onChange,
   onClear,
 }: {
@@ -39,7 +39,7 @@ export function UserFiltersBar({
   facets?: PlatformUsersFacets;
   showAccountFilter?: boolean;
   showInviteFilter?: boolean;
-  showClerkFilters?: boolean;
+  showIdpFilters?: boolean;
   onChange: (next: UserDirectoryFilters) => void;
   onClear: () => void;
 }) {
@@ -57,7 +57,7 @@ export function UserFiltersBar({
     filters.invite_status ||
     filters.identity_status ||
     filters.account_status ||
-    filters.clerk_status
+    filters.directory_status
   );
 
   return (
@@ -105,9 +105,9 @@ export function UserFiltersBar({
           </Select>
         </Field>
       )}
-      {showClerkFilters && (
+      {showIdpFilters && (
         <>
-          <Field label="Clerk identity" className="min-w-[9rem]">
+          <Field label="Keycloak identity" className="min-w-[9rem]">
             <Select
               value={filters.identity_status ?? ""}
               onChange={(e) =>
@@ -124,16 +124,18 @@ export function UserFiltersBar({
               ))}
             </Select>
           </Field>
-          <Field label="Clerk status" className="min-w-[9rem]">
+          <Field label="Keycloak status" className="min-w-[9rem]">
             <Select
-              value={filters.clerk_status ?? ""}
-              onChange={(e) => onChange({ ...filters, clerk_status: e.target.value || undefined })}
+              value={filters.directory_status ?? ""}
+              onChange={(e) =>
+                onChange({ ...filters, directory_status: e.target.value || undefined })
+              }
             >
-              {CLERK_STATUS_OPTIONS.map((o) => (
+              {IDP_STATUS_OPTIONS.map((o) => (
                 <option key={o.value || "all"} value={o.value}>
                   {o.label}
-                  {o.value && facets?.clerk_status?.[o.value] != null
-                    ? ` (${facets.clerk_status[o.value]})`
+                  {o.value && facets?.directory_status?.[o.value] != null
+                    ? ` (${facets.directory_status[o.value]})`
                     : ""}
                 </option>
               ))}

@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@porterchain/auth/oidc/next";
 
 /**
- * Admin BFF — attach Staff IdP Bearer from HttpOnly ``pc_staff_sid``.
- * Browser never needs sessionStorage for API calls (Dean single-credential path).
+ * Admin BFF — attach the Keycloak `pc-admin` access token from the HttpOnly session.
+ * The browser never holds the token for HTTP calls.
  */
-const COOKIE = "pc_staff_sid";
-const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-  /\/$/,
-  ""
-);
+// Server-side BFF: prefer the in-cluster URL (containers may not reach the public/LAN host).
+const API_BASE = (
+  process.env.PORTERCHAIN_API_INTERNAL_URL ??
+  process.env.PORTERCHAIN_API_URL ??
+  process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
+  "http://localhost:8001"
+).replace(/\/$/, "");
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -22,9 +25,9 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const target = `${API_BASE}/${path.join("/")}${url.search}`;
   const incomingAuth = (request.headers.get("authorization") || "").trim();
   const isDevBearer = incomingAuth === "Bearer dev";
-  const sid = request.cookies.get(COOKIE)?.value?.trim();
+  const token = isDevBearer ? null : await (await auth()).getToken();
 
-  if (!isDevBearer && !sid) {
+  if (!isDevBearer && !token) {
     return NextResponse.json({ detail: "missing_bearer_token" }, { status: 401 });
   }
 
@@ -39,7 +42,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
   if (isDevBearer) {
     headers.set("Authorization", "Bearer dev");
   } else {
-    headers.set("Authorization", `Bearer staff_sess_${sid}`);
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const requestBody =

@@ -5,13 +5,14 @@ export const TAB_IDS = new Set<string>(["overview", "orders", "money", "connecti
 /** Five tabs. Everything else is a panel inside one of them. */
 export type TabId = "overview" | "orders" | "money" | "connections" | "people";
 export type MoneyPanel =
-  "pricing" | "quote" | "credit" | "invoices" | "contracts" | "statement" | "credits";
+  "pricing" | "terms" | "quote" | "credit" | "invoices" | "contracts" | "statement" | "credits";
 export type PeoplePanel =
   "team" | "contacts" | "locations" | "documents" | "support" | "activity" | "settings" | "privacy";
 export type ActivityPanel = "timeline" | "activities" | "tasks";
 
 export const MONEY_PANELS: { id: MoneyPanel; label: string }[] = [
   { id: "pricing", label: "Pricing" },
+  { id: "terms", label: "Payment terms" }, // L59: terms + billing cycle live under Money
   { id: "quote", label: "Quote preview" },
   { id: "credit", label: "Credit" },
   { id: "invoices", label: "Invoices" },

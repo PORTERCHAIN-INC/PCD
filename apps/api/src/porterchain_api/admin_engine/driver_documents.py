@@ -35,7 +35,8 @@ def admin_review_files(docs: dict | None) -> list[dict]:
     payload = docs or {}
     files = payload.get("files") or []
     out: list[dict] = []
-    seen: set[str] = set()
+    seen: dict[str, set[str]] = {}
+    latest: dict[str, str] = {}
     if isinstance(files, list):
         for raw in files:
             if not isinstance(raw, dict):
@@ -46,16 +47,19 @@ def admin_review_files(docs: dict | None) -> list[dict]:
                 item["file_url"] = url
             key = portal_doc_key(str(item.get("doc_type") or ""))
             if key and url:
-                seen.add(key)
+                seen.setdefault(key, set()).add(str(url))
+                at = str(item.get("uploaded_at") or "")
+                latest[key] = max(latest.get(key, ""), at)
             out.append(item)
     for key, label in _PORTAL_REVIEW_KEYS:
-        if key in seen:
-            continue
         entry = payload.get(key)
         if not isinstance(entry, dict):
             continue
         url = entry.get("url") or entry.get("file_url")
-        if not url:
+        # A driver re-upload must reach the reviewer even when an older admin file of the same type exists.
+        if not url or str(url) in seen.get(key, set()):
+            continue
+        if key in seen and str(entry.get("uploaded_at") or "") <= latest.get(key, ""):
             continue
         out.append(
             {

@@ -249,14 +249,29 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
+    >
       <div className="absolute inset-0 bg-primary/30 backdrop-blur-sm" onClick={onClose} />
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pc-modal-title"
         className={cn("relative w-full max-w-lg rounded-2xl bg-white shadow-2xl", panelClassName)}
       >
         <div className="flex items-center justify-between border-b border-primary/10 px-5 py-4">
-          <div className="text-base font-semibold text-primary">{title}</div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-gray-bg">
+          <div id="pc-modal-title" className="text-base font-semibold text-primary">
+            {title}
+          </div>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-muted hover:bg-gray-bg"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>

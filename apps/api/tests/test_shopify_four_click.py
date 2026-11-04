@@ -46,7 +46,7 @@ def test_four_clicks_install_to_live(db) -> None:
     shop_json = {
         "shop": {
             "id": 1,
-            "name": "PCDC Test",
+            "name": f"PCDC Test {shop}",  # unique: dedupe links same name+postal
             "email": f"owner+{shop}@example.com",
             "address1": "100 King St W",
             "city": "Toronto",

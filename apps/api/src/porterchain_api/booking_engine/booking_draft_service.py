@@ -219,11 +219,11 @@ class BookingDraftService:
         *,
         quote_id: str,
         customer_id: str,
-        clerk_user_id: str,
+        auth_subject: str,
     ) -> BookingDraft | None:
         from porterchain_api.booking_engine.draft_compose import on_customer_authenticated as _auth
 
-        return _auth(self, db, quote_id=quote_id, customer_id=customer_id, clerk_user_id=clerk_user_id)
+        return _auth(self, db, quote_id=quote_id, customer_id=customer_id, auth_subject=auth_subject)
 
     def on_payment_started(
         self,
@@ -370,12 +370,12 @@ class BookingDraftService:
         draft: BookingDraft,
         *,
         session_id: str | None = None,
-        clerk_user_id: str | None = None,
+        auth_subject: str | None = None,
     ) -> None:
-        """Require visitor session or owning Clerk customer (masterrule §10, §15)."""
-        if clerk_user_id and draft.customer_id:
+        """Require visitor session or owning Keycloak customer (masterrule §10, §15)."""
+        if auth_subject and draft.customer_id:
             customer = db.query(Customer).filter(Customer.id == draft.customer_id).first()
-            if customer and customer.clerk_user_id == clerk_user_id:
+            if customer and customer.auth_subject == auth_subject:
                 return
         if session_id and session_id == draft.session_id:
             return
@@ -386,11 +386,11 @@ class BookingDraftService:
         db: Session,
         *,
         session_id: str | None = None,
-        clerk_user_id: str | None = None,
+        auth_subject: str | None = None,
     ) -> BookingDraft:
         draft = None
-        if clerk_user_id:
-            customer = db.query(Customer).filter(Customer.clerk_user_id == clerk_user_id).first()
+        if auth_subject:
+            customer = db.query(Customer).filter(Customer.auth_subject == auth_subject).first()
             if customer:
                 draft = self.find_active_draft(db, customer_id=customer.id)
         if not draft and session_id:

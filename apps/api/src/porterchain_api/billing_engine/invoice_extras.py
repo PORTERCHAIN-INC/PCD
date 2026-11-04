@@ -20,6 +20,7 @@ def invoice_line_count(db: Session, invoice: Invoice) -> int:
 def invoice_payment_fields(db: Session, invoice: Invoice) -> dict[str, Any]:
     return {
         "amount_paid_cents": int(getattr(invoice, "amount_paid_cents", 0) or 0),
+        "credited_cents": int(getattr(invoice, "credited_cents", 0) or 0),
         "payment_reference": getattr(invoice, "payment_reference", None),
         "billing_kind": getattr(invoice, "billing_kind", None) or "order",
         "order_count": invoice_line_count(db, invoice),
@@ -45,11 +46,26 @@ def invoice_detail_extras(db: Session, invoice: Invoice) -> dict[str, Any]:
         order = db.get(Order, ln.order_id) if ln.order_id else None
         lines.append(
             {
+                "line_id": ln.id,
                 "order_id": ln.order_id,
                 "order_number": order.order_number if order else None,
                 "description": ln.description,
                 "amount_cents": int(ln.amount_cents or 0),
                 "tax_cents": int(ln.tax_cents or 0),
+            }
+        )
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    pen = penalty_fields(db, invoice)
+    if pen["penalty_cents"]:
+        lines.append(
+            {
+                "line_id": None,
+                "order_id": None,
+                "order_number": None,
+                "description": pen["penalty_label"],
+                "amount_cents": pen["penalty_cents"],
+                "tax_cents": 0,
             }
         )
     payments = (

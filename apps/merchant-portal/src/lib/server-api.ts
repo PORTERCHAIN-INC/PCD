@@ -1,14 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { cookies } from "next/headers";
-import { clerkDevBypassEnabled } from "@porterchain/auth/devBypass";
+import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
 import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { MERCHANT_ID_COOKIE } from "@/lib/merchant-cookie";
 
+/** Server-side: prefer the in-cluster API address (the public URL may not be reachable from the container). */
 function apiBase(): string {
-  return (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-    /\/$/,
-    ""
-  );
+  return (
+    process.env.PORTERCHAIN_API_INTERNAL_URL ||
+    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ||
+    "http://localhost:8001"
+  ).replace(/\/$/, "");
 }
 
 export async function merchantOrgId(): Promise<string | null> {
@@ -24,7 +26,7 @@ export async function merchantOrgId(): Promise<string | null> {
 async function merchantBearer(): Promise<string | null> {
   const jar = await cookies();
   if (jar.get(PC_IMP_FLAG)?.value === "1") return null;
-  if (clerkDevBypassEnabled()) return "dev";
+  if (authDevBypassEnabled()) return "dev";
   const { getToken, userId } = await auth();
   if (!userId) return null;
   return (await getToken()) ?? null;

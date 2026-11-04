@@ -23,6 +23,12 @@ from tests.test_hub_split import HUB, _events, _hub, _quiet  # noqa: F401  (auto
 pytestmark = pytest.mark.usefixtures("quiet_pool")
 
 
+@pytest.fixture(autouse=True)
+def _collect_only_flag_on(monkeypatch):
+    """The feature is off by default (Phase 0: no storage); these tests cover the kept code."""
+    monkeypatch.setattr(co, "enabled", lambda: True)
+
+
 def _collect_order(db: Session, hub, **kw) -> Order:
     o = _order(db, W, S, **kw)
     o.compliance_metadata = co.mark({}, hub)
@@ -37,7 +43,7 @@ def _charge_events(db, order_id):
                                        | OrderEvent.event_type.ilike("%invoice%")).count()
 
 
-def test_end_to_end_pickup_to_warehouse_then_release(db: Session) -> None:
+def test_end_to_end_pickup_to_warehouse_then_release(uncapped_plan_pool, db: Session) -> None:
     ctx, hub, first = _ctx(db), _hub(db), _driver(db)
     o = _collect_order(db, hub, state="PICKED_UP", assigned_driver_id=first.id)
     assert hub_leg(db, o.id).stage == TO_HUB and co.is_collect_only(o)

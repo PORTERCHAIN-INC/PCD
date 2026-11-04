@@ -1,160 +1,165 @@
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { ActivityIndicator } from "react-native";
-import { ClerkProvider, useAuth, useClerk } from "@clerk/expo";
-import { tokenCache } from "@clerk/expo/token-cache";
-import { allowDevAuth, appEnv, clerkPublishableKey } from "../config";
+import { allowDevAuth, appEnv } from "../config";
 import { setSessionSnapshot } from "../session";
-import { Body, Button, Muted, Screen } from "../ui/kit";
+import { Body, Muted, Screen } from "../ui/kit";
 import { color } from "../ui/theme";
+import {
+  endpoints,
+  type IdpHint,
+  type KeycloakConfig,
+  keycloakConfig,
+  needsRefresh,
+  refreshTokens,
+  revoke,
+  type Tokens,
+} from "./keycloak";
+import { loadTokens, nativeSignIn, saveTokens, signInWithKeycloak } from "./keycloakNative";
 
-/** Clerk FAPI should settle well under this on a healthy network. */
-const CLERK_BOOT_TIMEOUT_MS = 15_000;
+export type SignInOptions = { idpHint?: IdpHint; register?: boolean; native?: boolean };
 
 type SessionView = {
   ready: boolean;
   signedIn: boolean;
   bootError: string | null;
+  /** Keycloak sign-in (null in dev builds without Keycloak). */
+  signIn: ((opts?: SignInOptions) => Promise<void>) | null;
+  accountUrl: string | null;
 };
 
 const SessionContext = createContext<SessionView>({
   ready: true,
   signedIn: allowDevAuth(),
   bootError: null,
+  signIn: null,
+  accountUrl: null,
 });
 
 export function useSessionView(): SessionView {
   return useContext(SessionContext);
 }
 
-function Boot({
-  timedOut,
-  detail,
-  onRetry,
-}: {
-  timedOut: boolean;
-  detail?: string | null;
-  onRetry?: () => void;
-}) {
+function Boot({ detail }: { detail?: string | null }) {
   return (
-    <Screen testID="clerk-boot" scroll={false}>
-      {!timedOut ? <ActivityIndicator size="large" color={color.ink} /> : null}
-      <Body>{timedOut ? "Couldn't start sign-in." : "Starting PorterChain…"}</Body>
+    <Screen testID="auth-boot" scroll={false}>
+      <ActivityIndicator size="large" color={color.ink} />
+      <Body>Starting Porterchain…</Body>
       {detail ? <Muted>{detail}</Muted> : null}
-      {timedOut ? <Muted>Check your connection, then retry.</Muted> : null}
-      {timedOut && onRetry ? <Button tone="primary" label="Retry" onPress={onRetry} /> : null}
     </Screen>
   );
 }
 
-function clerkStatus(clerk: ReturnType<typeof useClerk>): string {
-  return String((clerk as { status?: string }).status ?? "?");
-}
+const keycloak = keycloakConfig(undefined, allowDevAuth());
 
-function clerkErrorMessage(clerk: ReturnType<typeof useClerk>): string | null {
-  const anyClerk = clerk as {
-    error?: unknown;
-    errors?: Array<{ message?: string; longMessage?: string; code?: string }>;
-  };
-  if (typeof anyClerk.error === "string" && anyClerk.error.trim()) return anyClerk.error;
-  if (anyClerk.error instanceof Error) return anyClerk.error.message;
-  const first = anyClerk.errors?.[0];
-  if (first?.code === "native_api_disabled") {
-    return "Clerk Native API is disabled. Enable it in Clerk Dashboard → Native applications.";
-  }
-  return first?.longMessage?.trim() || first?.message?.trim() || null;
-}
+/** Keycloak session (L36): tokens in SecureStore, refreshed before expiry. */
+function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactNode }) {
+  const [tokens, setTokens] = useState<Tokens | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [bootError, setBootError] = useState<string | null>(null);
+  const tokensRef = useRef<Tokens | null>(null);
+  const refreshing = useRef<Promise<Tokens | null> | null>(null);
 
-const CLERK_CLIENT_JWT_KEY = "__clerk_client_jwt";
-
-function ClerkBridge({ children, onRemount }: { children: ReactNode; onRemount: () => void }) {
-  const { getToken, isLoaded, isSignedIn, signOut } = useAuth();
-  const clerk = useClerk();
-  const status = clerkStatus(clerk);
-  const clerkErr = clerkErrorMessage(clerk);
-  // @clerk/expo can leave isLoaded=false forever when status is already "error"
-  // (e.g. native_api_disabled). Treat error/degraded as settled so Sign-in can render.
-  const settled = isLoaded || status === "error" || status === "degraded";
-  const [timedOut, setTimedOut] = useState(false);
-  const [storedSession, setStoredSession] = useState(false);
-  const bootError =
-    status === "error"
-      ? (clerkErr ??
-        "Clerk Native API may be disabled for this instance. Enable it in the Clerk Dashboard.")
-      : timedOut && !isLoaded
-        ? "Clerk timed out before ready."
-        : null;
-  const view = useMemo(
-    () => ({
-      ready: settled || timedOut,
-      signedIn: Boolean(isSignedIn) || (!settled && storedSession),
-      bootError,
-    }),
-    [bootError, isSignedIn, settled, storedSession, timedOut]
-  );
-  const detail = `env=${appEnv} loaded=${String(isLoaded)} status=${status}`;
+  const store = useCallback(async (next: Tokens | null) => {
+    tokensRef.current = next;
+    setTokens(next);
+    await saveTokens(next);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    void tokenCache?.getToken(CLERK_CLIENT_JWT_KEY).then((token) => {
-      if (!cancelled) setStoredSession(Boolean(token));
+    void loadTokens().then((t) => {
+      if (cancelled) return;
+      tokensRef.current = t;
+      setTokens(t);
+      setLoaded(true);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  useEffect(() => {
-    if (settled) {
-      setTimedOut(false);
-      return;
-    }
-    const t = setTimeout(() => setTimedOut(true), CLERK_BOOT_TIMEOUT_MS);
-    return () => clearTimeout(t);
-  }, [settled]);
+  const getToken = useCallback(
+    async (opts?: { fresh?: boolean }): Promise<string | null> => {
+      const current = tokensRef.current;
+      if (!current) return null;
+      if (!opts?.fresh && !needsRefresh(current)) return current.accessToken;
+      refreshing.current ??= refreshTokens(fetch as never, kc, current)
+        .then(async (t) => {
+          await store(t);
+          return t;
+        })
+        .catch(async (err: unknown) => {
+          if (err instanceof Error && err.message === "invalid_grant") await store(null);
+          else setBootError("Couldn’t refresh your session. Check your connection.");
+          return null;
+        })
+        .finally(() => {
+          refreshing.current = null;
+        });
+      const t = await refreshing.current;
+      return t?.accessToken ?? null;
+    },
+    [kc, store]
+  );
+
+  const signIn = useCallback(
+    async (opts: SignInOptions = {}) => {
+      setBootError(null);
+      const native = opts.native && opts.idpHint ? await nativeSignIn(kc, opts.idpHint) : null;
+      await store(native ?? (await signInWithKeycloak(kc, opts)));
+    },
+    [kc, store]
+  );
+
+  const signOut = useCallback(async () => {
+    const current = tokensRef.current;
+    await store(null);
+    if (current) await revoke(fetch as never, kc, current);
+  }, [kc, store]);
+
+  const view = useMemo(
+    () => ({
+      ready: loaded,
+      signedIn: Boolean(tokens),
+      bootError,
+      signIn,
+      accountUrl: endpoints(kc).account,
+    }),
+    [bootError, kc, loaded, signIn, tokens]
+  );
 
   useLayoutEffect(() => {
     setSessionSnapshot({
-      ready: settled || timedOut,
-      signedIn: Boolean(isSignedIn) || (!settled && storedSession),
-      getToken: async (opts?: { fresh?: boolean }) => {
-        if (!isLoaded) return allowDevAuth() ? "dev" : null;
-        const token = (await getToken(opts?.fresh ? { skipCache: true } : undefined)) ?? null;
-        if (token) return token;
-        return allowDevAuth() ? "dev" : null;
-      },
-      signOut: async () => {
-        if (isLoaded) await signOut();
-      },
+      ready: loaded,
+      signedIn: Boolean(tokens),
+      getToken,
+      signOut,
     });
-  }, [getToken, isLoaded, isSignedIn, settled, signOut, storedSession, timedOut]);
+  }, [getToken, loaded, signOut, tokens]);
 
-  // Stored session: paint Sign-in / last shell while Clerk settles. Boot only on cold start.
-  if (!settled && !timedOut && storedSession) {
-    return <SessionContext.Provider value={view}>{children}</SessionContext.Provider>;
-  }
-
-  if (!settled && !timedOut) {
-    return <Boot timedOut={false} detail={detail} />;
-  }
-
-  if (!settled && timedOut) {
-    return <Boot timedOut detail={detail} onRetry={onRemount} />;
-  }
-
+  if (!loaded) return <Boot detail={`env=${appEnv}`} />;
   return <SessionContext.Provider value={view}>{children}</SessionContext.Provider>;
 }
 
 function DevBridge({ children }: { children: ReactNode }) {
   const view = useMemo(
-    () => ({ ready: true, signedIn: allowDevAuth(), bootError: null as string | null }),
+    () => ({
+      ready: true,
+      signedIn: allowDevAuth(),
+      bootError: null as string | null,
+      signIn: null,
+      accountUrl: null,
+    }),
     []
   );
 
@@ -178,21 +183,6 @@ function DevBridge({ children }: { children: ReactNode }) {
 }
 
 export function SessionGate({ children }: { children: ReactNode }) {
-  const [epoch, setEpoch] = useState(0);
-
-  if (!clerkPublishableKey) {
-    return <DevBridge>{children}</DevBridge>;
-  }
-
-  return (
-    <ClerkProvider
-      key={epoch}
-      publishableKey={clerkPublishableKey}
-      tokenCache={tokenCache}
-      // Native ClerkKit sync can hang on RN 0.86 when clerk-ios SPM is mismatched.
-      __experimental_disableNativeClientSync
-    >
-      <ClerkBridge onRemount={() => setEpoch((n) => n + 1)}>{children}</ClerkBridge>
-    </ClerkProvider>
-  );
+  if (!keycloak) return <DevBridge>{children}</DevBridge>;
+  return <KeycloakBridge kc={keycloak}>{children}</KeycloakBridge>;
 }

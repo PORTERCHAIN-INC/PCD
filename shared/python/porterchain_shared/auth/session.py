@@ -1,4 +1,4 @@
-"""Session and refresh token models — Clerk handles web sessions; Porterchain issues driver tokens."""
+"""Session and refresh token models — Keycloak handles web sessions; Porterchain issues driver tokens."""
 
 from dataclasses import dataclass
 from datetime import datetime

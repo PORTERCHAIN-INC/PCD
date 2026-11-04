@@ -33,7 +33,7 @@ class UserEmail(Base):
     normalized_email: Mapped[str] = mapped_column(String(320))
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
-    source: Mapped[str] = mapped_column(String(64), default="clerk")
+    source: Mapped[str] = mapped_column(String(64), default="keycloak")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -61,7 +61,7 @@ class AccessAuditLog(Base):
 
 
 class IdentityMigrationRun(Base):
-    """Bookkeeping for Clerk consolidation import tooling."""
+    """Bookkeeping for Keycloak consolidation import tooling."""
 
     __tablename__ = "identity_migration_runs"
 
@@ -80,12 +80,12 @@ class IdentityMigrationRecord(Base):
     __tablename__ = "identity_migration_records"
     __table_args__ = (
         Index("ix_identity_migration_records_run", "run_id"),
-        Index("ix_identity_migration_records_source", "source_app", "source_clerk_user_id"),
+        Index("ix_identity_migration_records_source", "source_app", "source_subject"),
         Index("ix_identity_migration_records_internal", "internal_user_id"),
         UniqueConstraint(
             "run_id",
             "source_app",
-            "source_clerk_user_id",
+            "source_subject",
             name="uq_identity_migration_records_run_source",
         ),
     )
@@ -94,9 +94,9 @@ class IdentityMigrationRecord(Base):
     run_id: Mapped[str] = mapped_column(ForeignKey("identity_migration_runs.id"), index=True)
     source_app: Mapped[str] = mapped_column(String(32))
     source_issuer: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    source_clerk_user_id: Mapped[str] = mapped_column(String(128))
+    source_subject: Mapped[str] = mapped_column(String(128))
     internal_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    target_clerk_user_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    target_subject: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
     conflict_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     proposed_roles: Mapped[list] = mapped_column(JSON, default=list)

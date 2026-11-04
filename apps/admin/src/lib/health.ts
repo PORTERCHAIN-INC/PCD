@@ -150,14 +150,14 @@ export const INTEGRATION_HEALTH_LABELS: Record<string, string> = {
   queue: "Queue",
   stripe: "Stripe",
   dispatch: "Dispatch",
-  google_maps: "Google Maps",
+  maps: "Maps (PMTiles + Photon)",
   firebase: "Firebase",
-  clerk: "Clerk",
+  keycloak: "Keycloak",
   storage: "Storage",
   email: "Email",
   sms: "SMS",
   push: "Push",
-  nvidia_nim: "NVIDIA NIM",
+  llm: "AI assist",
 };
 
 export const INTEGRATION_HEALTH_CORE_KEYS = [
@@ -166,9 +166,9 @@ export const INTEGRATION_HEALTH_CORE_KEYS = [
   "redis",
   "stripe",
   "dispatch",
-  "google_maps",
+  "maps",
   "firebase",
-  "clerk",
+  "keycloak",
   "email",
   "storage",
 ] as const;

@@ -3,18 +3,78 @@
 from __future__ import annotations
 
 import os
+from urllib.parse import urlsplit
 
 import pytest
+
+# --- Test infrastructure guard -------------------------------------------------
+# Tests only ever talk to the throwaway containers from scripts/test-infra.sh.
+# These defaults apply before any app module reads its settings, and the guard
+# below refuses to run when anything points at the live dev stack.
+TEST_DATABASE_URL = "postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain_test"
+TEST_REDIS_URL = "redis://127.0.0.1:56379/0"
+TEST_SPICEDB_ENDPOINT = "127.0.0.1:55051"
+TEST_SPICEDB_KEY = "porterchain-spicedb-test-key"
+
+os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
+os.environ.setdefault("REDIS_URL", TEST_REDIS_URL)
+os.environ.setdefault("SPICEDB_ENDPOINT", TEST_SPICEDB_ENDPOINT)
+os.environ.setdefault("SPICEDB_PRESHARED_KEY", TEST_SPICEDB_KEY)
+
+# Tests may ONLY use the throwaway test containers (scripts/test-infra.sh): anything else
+# — live dev stack (5432/6379/50051), the local stack (~/pcd-local, pg 55632), a remote
+# host — is refused, even when inherited from a sourced app.env.
+_TEST_PORTS = {"DATABASE_URL": {55432}, "REDIS_URL": {56379}, "SPICEDB_ENDPOINT": {55051}}
+_DEFAULT_PORTS = {"DATABASE_URL": 5432, "REDIS_URL": 6379, "SPICEDB_ENDPOINT": 50051}
+_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
+
+def _host_port(name: str, value: str) -> tuple[str, int | None]:
+    parts = urlsplit(value if "://" in value else f"grpc://{value}")
+    return (parts.hostname or ""), parts.port
+
+
+def live_service_violations(env: dict[str, str] | None = None) -> list[str]:
+    """Return a message per setting that is not a local test-container endpoint."""
+    env = os.environ if env is None else env
+    bad: list[str] = []
+    for name, ok_ports in _TEST_PORTS.items():
+        value = env.get(name, "")
+        if not value or value.startswith("sqlite"):
+            continue
+        host, port = _host_port(name, value)
+        if (port or _DEFAULT_PORTS[name]) not in ok_ports or host not in _LOCAL_HOSTS:
+            bad.append(f"{name}={value!r} is not a test container (allowed: localhost:{sorted(ok_ports)[0]})")
+    return bad
+
+
+def pytest_configure(config):
+    bad = live_service_violations()
+    if bad:
+        raise pytest.UsageError(
+            "Refusing to run tests outside the test containers:\n  "
+            + "\n  ".join(bad)
+            + "\nStart throwaway containers with `bash scripts/test-infra.sh up` and unset these vars."
+        )
+
+
+# Fresh, migrated test DB for every session (tests/_test_db_reset.py). Runs before any
+# app module opens a connection, and only after the guard above found nothing unsafe.
+if os.environ.get("PCD_TEST_DB_RESET", "1") != "0" and not live_service_violations():
+    import sys as _sys
+
+    _sys.path.insert(0, os.path.dirname(__file__))
+    from _test_db_reset import reset_test_database, reset_test_spicedb
+
+    print(reset_test_database(os.environ["DATABASE_URL"], os.environ.get("REDIS_URL", "")))
+    reset_test_spicedb(os.environ["SPICEDB_ENDPOINT"], os.environ["SPICEDB_PRESHARED_KEY"])
 
 from porterchain_api.db import SessionLocal, init_db
 
 
 @pytest.fixture(scope="session")
 def db_url() -> str:
-    url = os.environ.get(
-        "DATABASE_URL",
-        "postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain",
-    )
+    url = os.environ.get("DATABASE_URL", TEST_DATABASE_URL)
     if url.startswith("sqlite"):
         pytest.skip("SQLite is not supported for integration tests")
     return url
@@ -105,3 +165,54 @@ def quiet_pool(db_url: str):
         s.commit()
     finally:
         s.close()
+
+
+@pytest.fixture
+def gst_registered(db_url: str):
+    """Register a GST/HST number from 2000-01-01 for tests that expect tax to be charged.
+
+    Without a registration the system charges and shows no GST/HST anywhere
+    (docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md §10).
+    """
+    from datetime import date
+
+    from porterchain_api.admin_models import TaxRegistration
+    from porterchain_api.platform import tax_registration as reg
+
+    init_db()
+    s = SessionLocal()
+    s.query(TaxRegistration).delete()
+    reg.record_registration(
+        s, gst_hst_number="123456789RT0001", legal_name="PorterChain Inc.", effective_from=date(2000, 1, 1), actor_id=None
+    )
+    s.commit()
+    s.close()
+    reg.clear_cache(None)
+    yield "123456789 RT0001"
+    s = SessionLocal()
+    s.query(TaxRegistration).delete()
+    s.commit()
+    s.close()
+    reg.clear_cache(None)
+
+
+@pytest.fixture
+def uncapped_plan_pool(monkeypatch):
+    """Plan-the-day caps its pool at MAX_ORDERS, earliest scheduled first.
+
+    The shared test DB keeps hundreds of old unassigned orders from earlier runs, so a
+    test's new order can fall past the cap. Lift the cap so a membership check only
+    depends on the filters under test.
+    """
+    from porterchain_api.admin_engine import fleet_plan_service
+
+    monkeypatch.setattr(fleet_plan_service, "MAX_ORDERS", 1_000_000)
+
+
+@pytest.fixture
+def legacy_pricing(monkeypatch):
+    """Pin a test to the previous distance/FSA/contract engine (Standard card off)."""
+    from porterchain_api.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "pricing_standard_card_live", False)
+    yield

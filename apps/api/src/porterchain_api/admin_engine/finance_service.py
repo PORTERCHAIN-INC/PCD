@@ -45,6 +45,12 @@ INVOICE_STATUSES = frozenset({
 })
 
 
+def _penalty_fields(db: Session, invoice: Invoice) -> dict[str, Any]:
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    return penalty_fields(db, invoice)
+
+
 @dataclass
 class FinanceFilters:
     status: str | None = None
@@ -174,6 +180,7 @@ class AdminFinanceService:
             "amount_cents": invoice.amount_cents,
             "tax_cents": invoice.tax_cents,
             "fees_cents": invoice.fees_cents,
+            **_penalty_fields(db, invoice),
             "outstanding_cents": outstanding,
             **invoice_payment_fields(db, invoice),
             "currency": invoice.currency,
@@ -498,36 +505,6 @@ class AdminFinanceService:
         from porterchain_api.admin_engine.finance_board import export_gl_payload
 
         return export_gl_payload(self, db)
-
-    def record_credit_note(
-        self,
-        db: Session,
-        ctx: AdminContext,
-        *,
-        order_id: str,
-        amount_cents: int,
-        reason: str,
-    ) -> BillingLedgerEntry:
-        entry = BillingLedgerEntry(
-            kind="credit_note",
-            order_id=order_id,
-            amount_cents=amount_cents,
-            status="recorded",
-            metadata_json={"reason": reason, "created_by": ctx.user.id},
-        )
-        db.add(entry)
-        db.flush()
-        log_admin_audit(
-            db,
-            ctx,
-            action="finance.credit_note",
-            resource_type="order",
-            resource_id=order_id,
-            payload={"amount_cents": amount_cents, "reason": reason},
-        )
-        db.commit()
-        db.refresh(entry)
-        return entry
 
     def refund_invoice(
         self,

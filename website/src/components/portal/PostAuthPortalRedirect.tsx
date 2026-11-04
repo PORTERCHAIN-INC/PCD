@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -19,7 +19,7 @@ type PortalChoice = { portal: string; url: string; label: string };
 type NonRetailHint = { kind: "admin" | "driver"; url: string };
 
 /**
- * After Platform Clerk session exists, route to customer / merchant only.
+ * After Keycloak session exists, route to customer / merchant only.
  * Admin and driver must use their separate portal URLs.
  */
 export default function PostAuthPortalRedirect() {
@@ -147,7 +147,7 @@ export default function PostAuthPortalRedirect() {
                 </a>
               ))}
             </div>
-            <SignOutButton redirectUrl="/login">
+            <SignOutButton returnTo="/en/login">
               <button
                 type="button"
                 className="w-full rounded-xl border border-primary/10 px-5 py-3 text-sm font-medium text-primary hover:bg-gray-bg transition-colors"
@@ -188,7 +188,7 @@ export default function PostAuthPortalRedirect() {
           >
             {t("contactSupport")}
           </Link>
-          <SignOutButton redirectUrl="/login">
+          <SignOutButton returnTo="/en/login">
             <button
               type="button"
               className="w-full rounded-xl border border-primary/10 px-5 py-3 text-sm font-medium text-primary hover:bg-gray-bg transition-colors"

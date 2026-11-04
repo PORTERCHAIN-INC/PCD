@@ -15,10 +15,10 @@ from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.config import Settings
 from porterchain_api.marketing_site.fsa_geo import fsa_centroid
 from porterchain_api.marketing_site.schemas import CALCULATOR_VEHICLES
-from porterchain_api.schemas_booking import AddressInput, CreateQuoteRequest
+from porterchain_api.schemas_booking import ParcelInput, AddressInput, CreateQuoteRequest
 
 DISCLAIMER = (
-    "Estimate between postal-area centres for a whole-vehicle booking, including HST. "
+    "Estimate for one small parcel (fits 20x14x14 in) between postal-area centres, including HST. "
     "Your final price is confirmed with exact addresses before you pay."
 )
 
@@ -45,7 +45,9 @@ def estimate_price(
         pickup=_address(*a),
         dropoff=_address(*b),
         vehicle_class=vehicle,
-        booking_mode="vehicle",
+        # Ravi 2026-10-31: customers are priced per parcel; the website estimate shows one small parcel.
+        booking_mode="parcels",
+        parcels=[ParcelInput(preset_id="small", quantity=1)],
         scheduled_at=datetime.now(UTC) + timedelta(hours=1),
     )
     preview = _quotes.preview_quote(db, settings, body)
@@ -54,8 +56,11 @@ def estimate_price(
         for i in preview.get("pricing_breakdown") or []
     ]
     total = int(preview["amount_cents"])
+    # Doc 72: HST arrives as its own "hst" line; keep it out of the pre-tax lines/subtotal.
+    hst = sum(line["amount_cents"] for line in lines if line["code"] == "hst")
+    lines = [line for line in lines if line["code"] != "hst"]
     subtotal = sum(line["amount_cents"] for line in lines)
-    tax = max(0, total - subtotal) if lines else 0
+    tax = hst or (max(0, total - subtotal) if lines else 0)
     return {
         "amount_cents": total,
         "amount_display": preview.get("amount_display") or f"${total / 100:.2f} CAD",

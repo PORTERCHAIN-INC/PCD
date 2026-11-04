@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { QuoteLines } from "@porterchain/ui/quote-lines";
 import { cn, formatCents } from "@porterchain/ui/utils";
 import { PAYMENT_STYLES, type OrderDetail } from "@/lib/orders";

@@ -67,7 +67,7 @@ export function BulkAssignDriverModal({
       onDone?.({ assigned: res.results.length - failed.length, failed });
       if (failed.length) {
         setError(
-          `${failed.length} not assigned: ${failed.map((f) => f.status.replace(/^error:/, "")).join("; ")}`
+          `${failed.length} not assigned: ${failed.map((f) => f.status.replace(/^error:/, "").replace(/^order_with_courier_partner: /, "")).join("; ")}`
         );
       } else {
         onClose();

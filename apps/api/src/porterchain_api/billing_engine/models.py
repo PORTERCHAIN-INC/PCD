@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -19,10 +19,10 @@ class BillingLedgerEntry(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     kind: Mapped[str] = mapped_column(String(64), index=True)
-    payment_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    payment_id: Mapped[str | None] = mapped_column(ForeignKey("payments.id", ondelete="RESTRICT"), nullable=True, index=True)
     invoice_id: Mapped[str | None] = mapped_column(ForeignKey("invoices.id"), nullable=True, index=True)
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="RESTRICT"), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="RESTRICT"), nullable=True, index=True)
     amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     currency: Mapped[str] = mapped_column(String(8), default="cad")
     status: Mapped[str] = mapped_column(String(32), default="recorded")
@@ -47,6 +47,7 @@ class InvoiceLine(Base):
 
 class CreditNote(Base):
     __tablename__ = "credit_notes"
+    __table_args__ = (Index("uq_credit_notes_number", "credit_note_number", unique=True),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id"), nullable=True, index=True)
@@ -55,6 +56,27 @@ class CreditNote(Base):
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="open", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # GST/HST credit-note fields (SOR/91-44 s.3); see docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md.
+    credit_note_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    kind: Mapped[str | None] = mapped_column(String(16), nullable=True)  # void | lines | partial
+    reason_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    internal_note: Mapped[str | None] = mapped_column(Text, nullable=True)  # staff only, never shown
+    customer_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    subtotal_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tax_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tax_province: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    lines_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    original_invoice_number: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    original_invoice_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    customer_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    recipient_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    issued_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    approved_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    settlement: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    settlement_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    settlement_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
 
 class InvoiceNumberSequence(Base):
@@ -91,11 +113,11 @@ class InteracTransfer(Base):
     auth_ok: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     auth_detail: Mapped[str | None] = mapped_column(String(255), nullable=True)
     invoice_id: Mapped[str | None] = mapped_column(ForeignKey("invoices.id"), nullable=True, index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="RESTRICT"), nullable=True, index=True)
     match_method: Mapped[str | None] = mapped_column(String(32), nullable=True)  # reference | sender_amount
     match_note: Mapped[str | None] = mapped_column(String(255), nullable=True)  # exact | partial | over | unmatched
     status: Mapped[str] = mapped_column(String(32), default="needs_review", index=True)
-    payment_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    payment_id: Mapped[str | None] = mapped_column(ForeignKey("payments.id", ondelete="SET NULL"), nullable=True, index=True)
     reviewed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     review_note: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -108,7 +130,7 @@ class FinanceReminderDraft(Base):
     __tablename__ = "finance_reminder_drafts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    merchant_id: Mapped[str] = mapped_column(String(36), index=True)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id", ondelete="CASCADE"), index=True)
     invoice_ids: Mapped[list] = mapped_column(JSON, default=list)
     to_email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     subject: Mapped[str] = mapped_column(String(255))

@@ -1,6 +1,5 @@
 "use client";
 
-import { SpendPerformanceChart } from "@/components/dashboard/PerformanceChart";
 import type { ReportsOverview } from "@/lib/reports";
 import { formatCents } from "@/lib/utils";
 import { Metric } from "./shared";

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
 from porterchain_api.booking_engine.public_address import public_address_snapshot
@@ -75,9 +75,9 @@ def test_public_live_tracking_redacts_addresses(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_customer_delete_forbidden() -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     with pytest.raises(ValueError, match="customer_delete_forbidden"):
-        svc.delete_clerk_user(
+        svc.delete_idp_user(
             MagicMock(),
             MagicMock(),
             MagicMock(),
@@ -86,12 +86,12 @@ def test_customer_delete_forbidden() -> None:
         )
 
 
-def test_customer_provision_from_clerk_links_row() -> None:
-    svc = ClerkDirectoryService()
+def test_customer_provision_from_idp_links_row() -> None:
+    svc = DirectoryUserService()
     customer = SimpleNamespace(
         id="cust-1",
         email="c@example.com",
-        clerk_user_id="pending:c@example.com",
+        auth_subject="pending:c@example.com",
         full_name=None,
     )
     db = MagicMock()
@@ -104,18 +104,18 @@ def test_customer_provision_from_clerk_links_row() -> None:
             "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"
         ) as sync,
     ):
-        platform_id = svc._provision_from_clerk(
+        platform_id = svc._provision_from_idp(
             db,
             MagicMock(),
             "customer",
             email="c@example.com",
-            clerk_user_id="user_x",
+            auth_subject="user_x",
             name="C",
             role=None,
             merchant_id=None,
         )
     assert platform_id == "cust-1"
-    assert customer.clerk_user_id == "user_x"
+    assert customer.auth_subject == "user_x"
     ensure.assert_called_once()
     sync.assert_called_once()
 
@@ -124,7 +124,7 @@ def test_dsr_sets_privacy_hold() -> None:
     customer = SimpleNamespace(
         id="cust-1",
         email="c@example.com",
-        clerk_user_id="user_c",
+        auth_subject="user_c",
         privacy_status=None,
         privacy_hold_reference=None,
         privacy_hold_at=None,

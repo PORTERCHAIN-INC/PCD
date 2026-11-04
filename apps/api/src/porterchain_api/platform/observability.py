@@ -1,4 +1,8 @@
-"""Sentry + OpenTelemetry bootstrap (DD-02)."""
+"""GlitchTip + OpenTelemetry bootstrap (DD-02, doc 36).
+
+GlitchTip is self-hosted and speaks the Sentry protocol, so ``sentry_sdk`` is the client; the
+DSN points at our GlitchTip. No DSN = error tracking off.
+"""
 
 from __future__ import annotations
 
@@ -8,16 +12,16 @@ import os
 logger = logging.getLogger(__name__)
 
 
-def init_observability(*, sentry_dsn: str, app_env: str, service_name: str = "porterchain-api") -> None:
+def init_observability(*, glitchtip_dsn: str, app_env: str, service_name: str = "porterchain-api") -> None:
     """Initialize error tracking when configured."""
-    if sentry_dsn:
+    if glitchtip_dsn:
         import sentry_sdk
         from sentry_sdk.integrations.fastapi import FastApiIntegration
         from sentry_sdk.integrations.logging import LoggingIntegration
         from sentry_sdk.integrations.starlette import StarletteIntegration
 
         sentry_sdk.init(
-            dsn=sentry_dsn,
+            dsn=glitchtip_dsn,
             environment=app_env,
             integrations=[
                 StarletteIntegration(),
@@ -27,9 +31,9 @@ def init_observability(*, sentry_dsn: str, app_env: str, service_name: str = "po
             traces_sample_rate=0.2 if app_env == "production" else 1.0,
             send_default_pii=False,
         )
-        logger.info("Sentry initialized for %s (%s)", service_name, app_env)
+        logger.info("GlitchTip error tracking on for %s (%s)", service_name, app_env)
     else:
-        logger.debug("SENTRY_DSN not set — Sentry disabled")
+        logger.debug("GLITCHTIP_DSN not set — error tracking off")
 
 
 def instrument_app(app, *, app_env: str, service_name: str = "porterchain-api") -> None:
@@ -59,7 +63,7 @@ def instrument_app(app, *, app_env: str, service_name: str = "porterchain-api") 
 
 
 def bind_request_context(*, request_id: str, path: str, method: str) -> None:
-    """Attach correlation ID to Sentry scope and active OTel span."""
+    """Attach correlation ID to the error-tracking scope and active OTel span."""
     try:
         import sentry_sdk
 

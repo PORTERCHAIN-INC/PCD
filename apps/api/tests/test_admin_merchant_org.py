@@ -33,7 +33,7 @@ def client(db, monkeypatch):
         lambda ctx, module: None,
     )
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="org-admin", email="ops@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="org-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

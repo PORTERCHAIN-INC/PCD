@@ -79,7 +79,7 @@ def test_full_split_flow_two_drivers(db: Session) -> None:
     assert db.get(Order, o.id).state == "IN_TRANSIT" and _events(db, o.id, "order.in_transit") == 1
 
 
-def test_parcel_at_hub_without_driver_goes_to_plan_the_day(db: Session) -> None:
+def test_parcel_at_hub_without_driver_goes_to_plan_the_day(uncapped_plan_pool, db: Session) -> None:
     ctx, hub, first = _ctx(db), _hub(db), _driver(db)
     o = _order(db, W, S, state="PICKED_UP", assigned_driver_id=first.id)
     db.commit()

@@ -31,10 +31,8 @@ def start_impersonation(
     settings: Settings = Depends(get_settings),
     authorization: Annotated[str | None, Header()] = None,
 ) -> ImpersonationSessionResponse:
-    """Mint a short-lived audited persona session (no forged Clerk JWT)."""
+    """Mint a short-lived audited persona session (no forged Keycloak JWT)."""
     _step_up(request, authorization, settings)
-    from porterchain_api.auth.staff_session import session_id_from_authorization
-
     result = _invoke(
         ctx,
         _impersonation.start,
@@ -44,7 +42,7 @@ def start_impersonation(
         target_type=body.target_type,
         target_id=body.target_id,
         reason=body.reason,
-        staff_session_id=session_id_from_authorization(authorization) or "",
+        staff_session_id=str(getattr(getattr(request.state, "admin_claims", None), "session_id", "") or ""),
         module="impersonation",
     )
     return ImpersonationSessionResponse(**result)

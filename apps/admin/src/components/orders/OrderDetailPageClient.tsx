@@ -1,6 +1,7 @@
 "use client";
 
 import { HubSplitPanel } from "@/components/orders/HubSplitPanel";
+import { PartnerAssignPanel } from "@/components/orders/PartnerAssignPanel";
 import { useCallback, useMemo, useState } from "react";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import dynamic from "next/dynamic";
@@ -107,6 +108,18 @@ function prefillFromDetail(detail: OrderDetail, title: string): OrderBuilderPref
   };
 }
 
+/** L104: show the API reason in plain words (drop the "code: " prefix). */
+export function readableActionError(message: string): string {
+  const m = /^([a-z0-9_]+):\s*([\s\S]+)$/.exec(message.trim());
+  if (m) return m[2].charAt(0).toUpperCase() + m[2].slice(1);
+  const plain: Record<string, string> = {
+    return_not_delivered: "Only delivered orders can be returned.",
+    return_already_open: "A return pickup is already open for this order.",
+    return_of_return: "This order is itself a return.",
+  };
+  return plain[message.trim()] ?? message;
+}
+
 export default function OrderDetailPageClient({ id }: { id: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -157,7 +170,7 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
 
   const flashError = useCallback((message: string) => {
     setActionNotice(null);
-    setActionError(message);
+    setActionError(readableActionError(message));
   }, []);
 
   const flashNotice = useCallback((message: string) => {
@@ -216,7 +229,20 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
         }
         openBuilderFromDetail("Rebook order");
       },
-      onCreateReturn: () => router.push(`/claims?order_id=${id}`),
+      onCreateReturn: () => {
+        // L105: book the return pickup (customer -> merchant), not just open Claims.
+        if (!window.confirm("Book a return pickup from the customer back to the merchant?")) return;
+        void (async () => {
+          try {
+            const token = await getApiToken();
+            const res = await ordersApi.createReturn(token, id);
+            flashNotice(`Return pickup booked: ${res.tracking_number}.`);
+            await invalidate();
+          } catch (err) {
+            flashError(err instanceof Error ? err.message : "Create return failed");
+          }
+        })();
+      },
       onGenerateInvoice: () => {
         void (async () => {
           try {
@@ -309,15 +335,21 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
 
   return (
     <>
-      <div className="flex justify-end px-4 pt-3">
-        <DeleteButton
-          entity="order"
-          id={id}
-          onDeleted={() => {
-            window.location.href = "/orders";
-          }}
-        />
-      </div>
+      {/* L47: delete only for closed orders; live orders use Cancel. */}
+      {detail &&
+        ["DELIVERED", "CANCELLED", "FAILED", "RETURNED", "DRAFT", "REFUNDED"].includes(
+          String(detail.state)
+        ) && (
+          <div className="flex justify-end px-4 pt-3">
+            <DeleteButton
+              entity="order"
+              id={id}
+              onDeleted={() => {
+                router.push("/orders");
+              }}
+            />
+          </div>
+        )}
       <OrderDetailView
         detail={detail ?? null}
         tracking={tracking ?? null}
@@ -329,7 +361,43 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
         actionNotice={actionNotice}
         onRefresh={() => void invalidate()}
       />
+      {actionError || actionNotice ? (
+        <div
+          role={actionError ? "alert" : "status"}
+          className={
+            actionError
+              ? "fixed bottom-4 right-4 z-50 max-w-md rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-lg"
+              : "fixed bottom-4 right-4 z-50 max-w-md rounded-xl border border-secondary/20 bg-white px-4 py-3 text-sm text-primary shadow-lg"
+          }
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex-1">{actionError ?? actionNotice}</span>
+            <button
+              type="button"
+              className="text-xs font-semibold"
+              onClick={() => {
+                setActionError(null);
+                setActionNotice(null);
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ) : null}
       {detail ? <OrderAttachmentsPanel orderId={id} getApiToken={getApiToken} /> : null}
+      {detail ? (
+        <PartnerAssignPanel
+          orderId={id}
+          orderState={detail.state}
+          hasDriver={Boolean(detail.driver_id)}
+          getApiToken={getApiToken}
+          onChanged={() => {
+            flashNotice("Order assigned to the fleet partner.");
+            void invalidate();
+          }}
+        />
+      ) : null}
       {detail ? (
         <HubSplitPanel
           orderId={id}

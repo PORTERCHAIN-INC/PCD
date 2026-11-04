@@ -28,7 +28,7 @@ D = "/driver-api/v1"
 def _driver(db):
     s = uuid4().hex[:8]
     d = Driver(email=f"e2e-{s}@test.local", full_name=f"E2E {s}", status="APPROVED",
-               clerk_user_id=f"clerk_e2e_{s}", phone="+14165550199")
+               auth_subject=f"idp_e2e_{s}", phone="+14165550199")
     db.add(d)
     db.flush()
     return d
@@ -132,6 +132,11 @@ def test_e2e_label_scan_flows(world):
         assert r.status_code == 404 and r.json()["detail"] == {"code": "not_yours"}
         assert "order" not in r.text and "parcel" not in r.text
 
+    # Delivery scan before the pickup stop is confirmed -> refused (rehearsal bug b)
+    r = c.post(f"{D}/orders/{mine.id}/packages/scan", json={"qr_payload": pages[0]["qr_payload"], "phase": "delivery"})
+    assert r.status_code == 400 and r.json()["detail"] == "scan_pickup_required_first"
+    mine.state = "PICKED_UP"
+    db.commit()
     # Delivery scan + offline replay of the second box
     r = c.post(f"{D}/orders/{mine.id}/packages/scan", json={"qr_payload": pages[0]["qr_payload"], "phase": "delivery"})
     assert r.status_code == 200

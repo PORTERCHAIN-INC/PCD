@@ -42,6 +42,18 @@ def _amount_display(cents: int | None, currency: str | None) -> str:
     return f"${(cents or 0) / 100:.2f} {cur}"
 
 
+def supplier_tax_identity(db: Session, invoice: Invoice) -> dict[str, Any]:
+    """CRA: invoices/receipts showing GST/HST carry the supplier's legal name + registration number
+    (registration in force when issued; empty when not a registrant)."""
+    from porterchain_api.platform.tax_registration import registration_at
+
+    reg = registration_at(db, getattr(invoice, "issued_at", None) or getattr(invoice, "created_at", None))
+    return {
+        "supplier_legal_name": reg.legal_name or None,
+        "supplier_gst_hst_number": reg.gst_hst_number or None,
+    }
+
+
 def _receipt_links(invoice: Invoice, payment: Payment | None) -> dict[str, Any]:
     receipt_url = public_document_url(
         invoice.stripe_receipt_url or (payment.receipt_url if payment else None)
@@ -76,16 +88,21 @@ class InvoiceService:
             # Net-terms merchant: billed on the consolidated cycle invoice, not per order.
             return None
 
+        # L181: paid bookings already got "Invoice ready" at payment (confirmation_service).
+        already = db.query(Invoice.id).filter(Invoice.order_id == order.id).first() is not None
         invoice = self.ensure_invoice(db, order)
         db.flush()
 
+        payload = self._invoice_event_payload(db, order, invoice)
+        if already:
+            payload = {**payload, "invoice_already_notified": True}
         transition_order_state(
             db,
             order,
             OrderState.INVOICED,
             event_type=E.ORDER_INVOICED,
             actor_type="system",
-            payload=self._invoice_event_payload(db, order, invoice),
+            payload=payload,
         )
         db.refresh(order)
         return invoice
@@ -221,7 +238,7 @@ class InvoiceService:
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
             "order_id": order.id if order is not None else None,
-            "order_number": order.order_number if order is not None else "Billing cycle",
+            "order_number": order.order_number if order is not None else None,  # L70: no fake "Billing cycle" order
             "tracking_number": order.tracking_number if order is not None else None,
             "payment_reference": getattr(invoice, "payment_reference", None),
             "customer_id": customer_id,
@@ -236,6 +253,7 @@ class InvoiceService:
             "currency": invoice.currency,
             "customer_deep_link": f"{customer_portal}/invoices/{invoice.id}",
             "merchant_deep_link": f"{merchant_portal}/billing/invoices/{invoice.id}",
+            **supplier_tax_identity(db, invoice),
             **links,
         }
 
@@ -272,6 +290,7 @@ class InvoiceService:
         ]
 
     def detail_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> dict[str, Any]:
+        from porterchain_api.billing_engine.invoice_adjustments import notes_for_invoice
         from porterchain_api.billing_engine.merchant_service import invoice_status, outstanding_cents
         from porterchain_api.billing_engine.models import InvoiceLine
         from porterchain_api.merchant_engine.lookups import get_merchant
@@ -318,6 +337,7 @@ class InvoiceService:
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
             "receipt_number": invoice.receipt_number,
+            **supplier_tax_identity(db, invoice),
             "order_id": invoice.order_id,
             "amount_cents": int(invoice.amount_cents or 0),
             "tax_cents": int(invoice.tax_cents or 0),
@@ -337,7 +357,19 @@ class InvoiceService:
             "pickup": order.pickup if order and isinstance(order.pickup, dict) else None,
             "dropoff": order.dropoff if order and isinstance(order.dropoff, dict) else None,
             "lines": lines,
+            "credited_cents": int(getattr(invoice, "credited_cents", 0) or 0),
+            "credit_notes": notes_for_invoice(db, invoice.id, internal=False),
         }
+
+    def credit_note_pdf_for_customer(self, db: Session, customer_id: str, credit_note_id: str) -> tuple[bytes, str]:
+        from porterchain_api.billing_engine.models import CreditNote
+        from porterchain_api.reporting.credit_note_pdf import credit_note_pdf
+
+        note = db.get(CreditNote, credit_note_id)
+        if note is None or note.status != "issued" or not note.invoice_id:
+            raise LookupError("credit_note_not_found")
+        self._customer_invoice(db, customer_id, note.invoice_id)
+        return credit_note_pdf(db, note)
 
     def pdf_for_customer(self, db: Session, customer_id: str, invoice_id: str) -> tuple[bytes, str]:
         from porterchain_api.reporting.order_documents import pdf_for_invoice_record
@@ -354,11 +386,22 @@ class InvoiceService:
             invoice = db.query(Invoice).filter(Invoice.order_id == order.id).first()
             if not invoice:
                 invoice = self.ensure_invoice(db, order)
-        elif order.state != OrderState.POD_COMPLETED.value:
+        elif order.state not in (OrderState.POD_COMPLETED.value, OrderState.DELIVERED.value):
             raise ValueError(
-                f"invoice_requires_pod_completed: current state is {order.state}"
+                f"invoice_requires_delivery: this order is {order.state.replace('_', ' ').lower()}, "
+                "so it can't be invoiced yet"
             )
         else:
+            from porterchain_api.admin_engine.merchant_ar_service import is_cycle_billed
+
+            if is_cycle_billed(db, order):
+                # Net-terms merchant: billed on the cycle statement. Say so (400), not a 500.
+                raise ValueError("invoice_cycle_billed: this merchant is billed on its monthly statement. Use Finance > Invoices > Run a billing cycle")
+            if order.state == OrderState.DELIVERED.value:
+                # L104: driver Confirm Delivery (photo POD) stops at DELIVERED; admin invoicing closes POD.
+                transition_order_state(db, order, OrderState.POD_COMPLETED, event_type="order.pod_completed",
+                                       actor_type="admin", payload={"manual_invoice": True})
+                db.refresh(order)
             invoice = self.finalize_after_pod(db, order_id)
             if not invoice:
                 raise RuntimeError("invoice_finalize_failed")

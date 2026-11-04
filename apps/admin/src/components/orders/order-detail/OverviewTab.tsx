@@ -1,24 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { QuoteLines } from "@porterchain/ui/quote-lines";
 import { formatCents } from "@porterchain/ui/utils";
-import {
-  formatState,
-  orderSourceLabel,
-  ordersApi,
-  shopifyAdminUrl,
-  PAYMENT_STYLES,
-  SLA_STYLES,
-  STATE_STYLES,
-  type OrderDetail,
-} from "@/lib/orders";
+import { orderSourceLabel, ordersApi, shopifyAdminUrl, type OrderDetail } from "@/lib/orders";
 import { relativeTime, titleCase } from "@/lib/crmFormat";
-import { Badge, Button } from "@/components/crm/primitives";
-import { OrderMoneyDownloads } from "@/components/orders/sections/OrderMoneyDownloads";
+import { Button } from "@/components/crm/primitives";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Row } from "./shared";
+import { AddressNoteTranslations, TranslatedNote } from "@/components/translation/TranslatedNote";
 
 export function OverviewTab({
   detail,
@@ -80,6 +69,12 @@ export function OverviewTab({
           <Row label="Pickup" value={detail.pickup} />
           <Row label="Destination" value={detail.destination} />
           <Row label="Special instructions" value={detail.special_instructions || "—"} />
+          <TranslatedNote
+            entityType="order"
+            entityId={detail.order_id}
+            field="special_instructions"
+          />
+          <AddressNoteTranslations entityId={detail.order_id} />
         </div>
         <div>
           <h3 className="mb-3 font-semibold text-primary">Financial</h3>

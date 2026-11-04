@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  BOOKING_VEHICLES,
   MAX_DROPS,
   bookingText,
   buildQuoteInput,
@@ -13,14 +12,13 @@ import {
   type BookingCopyKey,
   type VehicleId,
 } from "@porterchain/types/booking";
-import { AddressAutocompleteInput, GoogleMapsProvider } from "@porterchain/maps";
+import { AddressAutocompleteInput } from "@porterchain/maps";
 import {
   normalizeDeliveryOptions,
   type DeliveryOptions,
 } from "@porterchain/types/delivery-options";
 import { DeliveryOptionsFields } from "@porterchain/ui/delivery-options-fields";
 import CustomerShell from "@/components/CustomerShell";
-import { publicEnv } from "@/lib/env";
 import PortalAuth, { type PortalAuthValue } from "@/components/auth/PortalAuth";
 import { accountApi, type SavedAddress } from "@/lib/account";
 import { ACCEPT, attachAll, stashFiles, type PendingFile } from "@/lib/attachments";
@@ -42,11 +40,28 @@ const PHONE_KEY = "pc_customer_phone";
 export default function SendClient() {
   return (
     <CustomerShell>
-      <GoogleMapsProvider>
+      <>
         <PortalAuth>{(auth) => <SendBody auth={auth} />}</PortalAuth>
-      </GoogleMapsProvider>
+      </>
     </CustomerShell>
   );
+}
+
+type ParcelRow = { qty: string; l: string; w: string; h: string; lb: string };
+const emptyRow = (): ParcelRow => ({ qty: "1", l: "", w: "", h: "", lb: "" });
+
+function parcelsPayload(rows: ParcelRow[]) {
+  const out = rows
+    .map((r) => ({
+      preset_id: "other",
+      quantity: Math.max(1, Math.floor(Number(r.qty) || 1)),
+      length_in: Number(r.l),
+      width_in: Number(r.w),
+      height_in: Number(r.h),
+      weight_lb: Number(r.lb),
+    }))
+    .filter((p) => p.length_in > 0 && p.width_in > 0 && p.height_in > 0 && p.weight_lb > 0);
+  return out.length ? out : null;
 }
 
 /** Send: the signed-in booking screen. Same shared rules as the website, plus the address book. */
@@ -57,12 +72,16 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
   const [docs, setDocs] = useState<PendingFile[]>([]);
   const [pickup, setPickup] = useState("");
   const [drops, setDrops] = useState<string[]>([""]);
-  const [vehicle, setVehicle] = useState<VehicleId>("sedan_suv");
+  // Ravi 2026-10-31: customers pay per parcel ($6 small / $9 larger + size/weight handling).
+  // PorterChain picks the vehicle; there is no vehicle picker.
+  const vehicle: VehicleId = "cargo_van" as VehicleId;
+  const [items, setItems] = useState<ParcelRow[]>([emptyRow()]);
   const [phone, setPhone] = useState("");
   const [dlv, setDlv] = useState<DeliveryOptions>({});
   const [book, setBook] = useState<SavedAddress[]>([]);
   const [focus, setFocus] = useState<number | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const [customQuote, setCustomQuote] = useState<string | null>(null);
   const [resumed, setResumed] = useState<string | null>(null);
   const [pricing, setPricing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -99,10 +118,11 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
       .catch(() => setError(tx("expired")));
   }, [resumeId]);
 
-  const input = useMemo(
-    () => buildQuoteInput({ pickup, drops, vehicle }),
-    [pickup, drops, vehicle]
-  );
+  const input = useMemo(() => {
+    const base = buildQuoteInput({ pickup, drops, vehicle });
+    const parcels = parcelsPayload(items);
+    return base && parcels ? { ...base, parcels } : null;
+  }, [pickup, drops, vehicle, items]);
 
   useEffect(() => {
     if (!input) {
@@ -112,12 +132,22 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
     setResumed(null);
     setPricing(true);
     const timer = window.setTimeout(() => {
-      previewQuote({ ...input, booking_mode: "vehicle", schedule_mode: "now" })
+      previewQuote({ ...input, booking_mode: "parcels", schedule_mode: "now" })
         .then((p) => {
           setAmount(p.amount_cents);
+          setCustomQuote(null);
           setError(null);
         })
-        .catch(() => setAmount(null))
+        .catch((err: unknown) => {
+          setAmount(null);
+          const msg = err instanceof Error ? err.message : "";
+          // L133: over the size/weight table → tell the customer plainly instead of a bare "—".
+          setCustomQuote(
+            msg.startsWith("manual_quote_required")
+              ? `This parcel needs a custom quote (${msg.split(":").slice(1).join(":").replace(/ x /g, " × ") || "over 150 lb or over 90 × 50 in"}). We can't price it online — contact PorterChain and we'll quote it for you.`
+              : null
+          );
+        })
         .finally(() => setPricing(false));
     }, 350);
     return () => window.clearTimeout(timer);
@@ -139,7 +169,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
           await createQuote({
             ...input!,
             dropoff: { ...input!.dropoff, delivery_options: normalizeDeliveryOptions(dlv) },
-            booking_mode: "vehicle",
+            booking_mode: "parcels",
             schedule_mode: "now",
           })
         ).quote_id;
@@ -148,7 +178,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         quote_id: quoteId,
         email: auth.email,
         phone: phone.trim(),
-        clerk_user_id: auth.userId ?? "",
+        auth_subject: auth.userId ?? "",
         terms_accepted: true,
         privacy_accepted: true,
         dangerous_goods_confirmed: true,
@@ -269,30 +299,45 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
           <p className="text-sm text-primary/70">{tx("dropsLimit")}</p>
         )}
         <fieldset>
-          <legend className={labelCls}>{tx("vehicle")}</legend>
-          <div className="mt-1.5 grid grid-cols-3 gap-2">
-            {BOOKING_VEHICLES.map((v) => (
-              <button
-                type="button"
-                key={v.id}
-                aria-pressed={vehicle === v.id}
-                aria-current={vehicle === v.id ? "true" : undefined}
-                onClick={() => setVehicle(v.id)}
-                className={`rounded-2xl border px-3 py-3 text-center focus-visible:ring-2 focus-visible:ring-secondary ${
-                  vehicle === v.id
-                    ? "border-primary bg-primary text-white"
-                    : "border-primary/15 bg-white text-primary"
-                }`}
-              >
-                <span className="block text-base font-bold">{v.label.en}</span>
-                <span
-                  className={`block text-xs ${vehicle === v.id ? "text-white/85" : "text-primary/65"}`}
-                >
-                  {v.hint.en}
-                </span>
-              </button>
-            ))}
-          </div>
+          <legend className={labelCls}>Parcels</legend>
+          <p className="mt-0.5 text-xs text-primary/65">
+            $6 per small parcel (fits 20 × 14 × 14 in), $9 per larger parcel. Over 100 lb or 70 × 45
+            in adds a handling charge; over 150 lb or 90 × 50 in needs a custom quote. Before HST.
+          </p>
+          {items.map((row, idx) => (
+            <div key={idx} className="mt-2 grid grid-cols-5 gap-2">
+              {(["qty", "l", "w", "h", "lb"] as const).map((k) => (
+                <label key={k} className="text-xs text-primary/70">
+                  {
+                    { qty: "Qty", l: "Length in", w: "Width in", h: "Height in", lb: "Weight lb" }[
+                      k
+                    ]
+                  }
+                  <input
+                    aria-label={`Parcel ${idx + 1} ${{ qty: "quantity", l: "length (in)", w: "width (in)", h: "height (in)", lb: "weight (lb)" }[k]}`}
+                    type="number"
+                    min={k === "qty" ? 1 : 0}
+                    step="any"
+                    inputMode="decimal"
+                    className="mt-0.5 w-full rounded-xl border border-primary/15 px-2 py-2 text-sm"
+                    value={row[k]}
+                    onChange={(e) =>
+                      setItems((cur) =>
+                        cur.map((r, i2) => (i2 === idx ? { ...r, [k]: e.target.value } : r))
+                      )
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          ))}
+          <button
+            type="button"
+            className="mt-2 text-sm font-bold text-primary underline underline-offset-4"
+            onClick={() => setItems((cur) => [...cur, emptyRow()])}
+          >
+            + Add another parcel size
+          </button>
         </fieldset>
         {!auth.phone ? (
           <label className={labelCls}>
@@ -319,6 +364,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             value={dlv}
             onChange={setDlv}
             idPrefix="send-dlv"
+            hideFlags={["load_help"]}
           />
         </details>
       </div>
@@ -364,6 +410,15 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         </label>
       </div>
 
+      {customQuote ? (
+        <p
+          role="status"
+          data-testid="send-custom-quote"
+          className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"
+        >
+          {customQuote}
+        </p>
+      ) : null}
       {error ? (
         <p
           role="alert"
@@ -377,7 +432,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
         <div className="mx-auto max-w-xl">
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || Boolean(customQuote)}
             data-testid="send-pay"
             className="flex w-full items-center justify-between rounded-2xl bg-primary px-6 py-4 text-white shadow-lg shadow-primary/20 focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 disabled:opacity-60"
           >
@@ -387,12 +442,16 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
               aria-live="polite"
               data-testid="send-price"
             >
-              {amount !== null ? formatPrice(amount) : pricing ? "…" : "—"}
+              {amount !== null
+                ? formatPrice(amount)
+                : pricing
+                  ? "…"
+                  : customQuote
+                    ? "Custom quote"
+                    : "—"}
             </span>
           </button>
-          <p className="mt-2 text-center text-xs text-primary/70">
-            Incl. HST. Card, Apple Pay or Google Pay.
-          </p>
+          <p className="mt-2 text-center text-xs text-primary/70">Card, Apple Pay or Google Pay.</p>
         </div>
       </div>
     </form>

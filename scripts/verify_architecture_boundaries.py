@@ -58,6 +58,7 @@ _API_BASE_MARKERS = (
     "porterchainApiUrl",
     "PORTERCHAIN_API_URL",
     "getPorterchainApiBase",
+    "getPorterchainFetchBase",
     "localhost:8001",
     "api.porterchain.com",
     "/api/driver",

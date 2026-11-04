@@ -32,24 +32,9 @@ export EXPO_USE_PRECOMPILED_MODULES=0
 # Do not bake apps/mobile-customer/.env (test Platform key) into the Release bundle.
 export EXPO_NO_DOTENV=1
 
-# Live PorterChain Platform key. Do not use the driver instance or the local test .env.
-KEYS="$ROOT/../../infrastructure/deploy/scripts/clerk-keys.local.env"
-if [[ -f "$KEYS" ]]; then
-  set -a
-  # shellcheck disable=SC1090
-  source "$KEYS"
-  set +a
-  if [[ -n "${CLERK_CUSTOMER_PUBLISHABLE_KEY:-}" ]]; then
-    export EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY="$CLERK_CUSTOMER_PUBLISHABLE_KEY"
-  elif [[ -n "${CLERK_PUBLISHABLE_KEY:-}" ]]; then
-    export EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY="$CLERK_PUBLISHABLE_KEY"
-  fi
-fi
-
-if [[ -z "${EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:-}" ]]; then
-  echo "Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY to the live PorterChain Platform key (clerk.admin.porterchain.com) before archiving."
-  exit 1
-fi
+# Keycloak (L36): release builds default to https://auth.porterchain.com, realm porterchain.
+export EXPO_PUBLIC_KEYCLOAK_URL="${EXPO_PUBLIC_KEYCLOAK_URL:-https://auth.porterchain.com}"
+export EXPO_PUBLIC_KEYCLOAK_CLIENT_ID="${EXPO_PUBLIC_KEYCLOAK_CLIENT_ID:-pc-customer-app}"
 
 mkdir -p "$ROOT/build"
 cat >"$EXPORT_PLIST" <<'PLIST'

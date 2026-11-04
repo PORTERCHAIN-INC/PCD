@@ -1,6 +1,6 @@
 import {
   ACCESS_STATUS_OPTIONS,
-  CLERK_STATUS_OPTIONS,
+  IDP_STATUS_OPTIONS,
   IDENTITY_STATUS_OPTIONS,
   INVITE_STATUS_OPTIONS,
 } from "@/lib/settings";
@@ -25,10 +25,10 @@ export function inviteTone(s: string): BadgeTone {
 
 export function identityTone(
   s: string,
-  opts?: { provisioned?: boolean; clerkLinked?: boolean }
+  opts?: { provisioned?: boolean; idpLinked?: boolean }
 ): BadgeTone {
   if (opts?.provisioned === false) return "red";
-  if (opts?.clerkLinked === false || s === "not_registered") return "red";
+  if (opts?.idpLinked === false || s === "not_registered") return "red";
   if (s === "registered") return "green";
   if (s === "invite_pending") return "amber";
   return "slate";
@@ -46,13 +46,13 @@ export function inviteLabel(value: string) {
   return labelFor(value, INVITE_STATUS_OPTIONS);
 }
 
-export function clerkLabel(
-  clerkStatus: string | null | undefined,
+export function idpLabel(
+  idpStatus: string | null | undefined,
   identityStatus: string,
   opts?: { provisioned?: boolean }
 ) {
   if (opts?.provisioned === false) return "Unprovisioned";
-  if (identityStatus === "not_registered") return "Not in Clerk";
-  if (clerkStatus) return labelFor(clerkStatus, CLERK_STATUS_OPTIONS);
+  if (identityStatus === "not_registered") return "Not in Keycloak";
+  if (idpStatus) return labelFor(idpStatus, IDP_STATUS_OPTIONS);
   return labelFor(identityStatus, IDENTITY_STATUS_OPTIONS);
 }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_clerk_user_id
+from porterchain_api.auth.bearer import get_auth_subject
 from porterchain_api.booking_engine import BookingConfirmationService, BookingService, QuoteService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.auth.dev import allow_auth_dev_bypass
@@ -183,10 +183,10 @@ def post_booking(
     body: StartBookingRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: str = Depends(get_clerk_user_id),
+    auth_subject: str = Depends(get_auth_subject),
 ) -> BookingResponse:
-    if body.clerk_user_id != clerk_user_id and not allow_auth_dev_bypass(settings):
-        raise HTTPException(status_code=403, detail="clerk_user_mismatch")
+    if body.auth_subject != auth_subject and not allow_auth_dev_bypass(settings):
+        raise HTTPException(status_code=403, detail="identity_subject_mismatch")
     from porterchain_api.admin_engine.platform_settings import booking_self_service
 
     if not booking_self_service(db):
@@ -198,7 +198,7 @@ def post_booking(
             quote_id=body.quote_id,
             email=body.email,
             phone=body.phone,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             anonymous_session_id=body.anonymous_session_id,
             consent={
                 "terms_accepted": body.terms_accepted,
@@ -260,3 +260,22 @@ def sync_checkout_confirmation(
         status=status,
         confirmation=BookingConfirmationResponse(**_confirmation_service.build_confirmation_response(db, order)),
     )
+
+
+@router.get("/quotes/{quote_id}/pdf")
+def get_quote_pdf(
+    quote_id: str,
+    db: Session = Depends(get_db),
+    lang: str = "en",
+):
+    """Quote PDF for a stored quote (same access as GET /quotes/{id}: the unguessable id)."""
+    from fastapi.responses import Response
+
+    from porterchain_api.reporting.quote_pdf import pdf_for_stored_quote
+
+    quote = _quote_service.get_quote(db, quote_id)
+    if not quote:
+        raise HTTPException(status_code=404, detail="quote_not_found")
+    pdf, name = pdf_for_stored_quote(db, quote, lang=lang)
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})

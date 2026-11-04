@@ -1,9 +1,9 @@
-import * as Sentry from "@sentry/nextjs";
+import { captureRequestError } from "@porterchain/config/glitchtip/portal";
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    await import("../sentry.server.config");
+    await import("../glitchtip.server.config");
   }
 }
 
-export const onRequestError = Sentry.captureRequestError;
+export const onRequestError = captureRequestError;

@@ -16,6 +16,7 @@ const fullCsp = websiteCsp({
   apiUrl:
     websitePublicEnv().NEXT_PUBLIC_PORTERCHAIN_API_URL ||
     process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL,
+  errorsDsn: process.env.NEXT_PUBLIC_GLITCHTIP_DSN,
   dev: isDev,
 });
 // Full allowlist is ENFORCED (validated against live pages 2026-10-10); WEBSITE_CSP_ENFORCE=false falls back to report-only
@@ -40,6 +41,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Local stack opened by LAN IP / 127.0.0.1: without this `next dev` blocks HMR and never hydrates.
+  allowedDevOrigins: (process.env.NEXT_ALLOWED_DEV_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean),
   output: "standalone",
   turbopack: {
     root: monorepoRoot,

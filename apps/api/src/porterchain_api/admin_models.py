@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -18,7 +18,7 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    clerk_user_id: Mapped[str | None] = mapped_column(String(128), unique=True, index=True, nullable=True)
+    auth_subject: Mapped[str | None] = mapped_column(String(128), unique=True, index=True, nullable=True)
     # Staff subject may be staff:{id}. Nullable once porterchain_user_id is the join key.
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
@@ -59,8 +59,8 @@ class Driver(SoftDeleteMixin, Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     status: Mapped[str] = mapped_column(String(32), default=DriverStatus.PENDING.value, index=True)
-    clerk_user_id: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
-    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    auth_subject: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
+    # Phase 8 — internal UUID FK (nullable until backfill); auth_subject retained
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -181,7 +181,7 @@ class PricingTariff(SoftDeleteMixin, Base):
     tariff_type: Mapped[str] = mapped_column(String(32), index=True)
     vehicle_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
     zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="CASCADE"), nullable=True, index=True)
     base_cents: Mapped[int] = mapped_column(Integer, default=0)
     per_km_cents: Mapped[int] = mapped_column(Integer, default=0)
     fuel_surcharge_percent: Mapped[float] = mapped_column(default=0.0)
@@ -196,7 +196,7 @@ class Promotion(SoftDeleteMixin, Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     code: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     promotion_type: Mapped[str] = mapped_column(String(32), default="coupon")
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="CASCADE"), nullable=True, index=True)
     discount_percent: Mapped[float | None] = mapped_column(nullable=True)
     discount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -227,7 +227,7 @@ class PricingFsaRate(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="CASCADE"), nullable=True, index=True)
     origin_fsa: Mapped[str | None] = mapped_column(String(3), nullable=True)
     dest_fsa: Mapped[str] = mapped_column(String(3), index=True)
     vehicle_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -263,7 +263,7 @@ class MerchantContract(Base):
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     name: Mapped[str] = mapped_column(String(128))
     rules: Mapped[dict] = mapped_column(JSON, default=dict)
-    crm_contract_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    crm_contract_id: Mapped[str | None] = mapped_column(ForeignKey("crm_contracts.id", ondelete="SET NULL"), nullable=True, index=True)
     minimum_monthly_commitment_cents: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     effective_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -284,14 +284,16 @@ class AdminAuditLog(Base):
 
 
 class RouteCenterTemplate(Base):
-    """Wholesale / recurring route templates (§8.1.10) — alias: RouteTemplate."""
+    """Wholesale / recurring route templates (§8.1.10)."""
 
     __tablename__ = "route_center_templates"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     name: Mapped[str] = mapped_column(String(128))
     template_type: Mapped[str] = mapped_column(String(32), default="daily", index=True)
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(
+        ForeignKey("merchants.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     zone: Mapped[str | None] = mapped_column(String(64), nullable=True)
     schedule: Mapped[dict] = mapped_column(JSON, default=dict)
     stops: Mapped[list] = mapped_column(JSON, default=list)
@@ -300,9 +302,6 @@ class RouteCenterTemplate(Base):
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-
-# Checklist §8.1.10 wholesale route templates
-RouteTemplate = RouteCenterTemplate
 
 
 class SystemConfig(Base):
@@ -313,6 +312,21 @@ class SystemConfig(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class TaxRegistration(Base):
+    """Append-only GST/HST registration history (see platform.tax_registration)."""
+
+    __tablename__ = "tax_registrations"
+    __table_args__ = (Index("ix_tax_registrations_effective", "effective_from", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    gst_hst_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    legal_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    effective_from: Mapped[date] = mapped_column(Date, nullable=False)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 # Tamper-evident audit chain: registers the mirror listeners for the audit tables above.

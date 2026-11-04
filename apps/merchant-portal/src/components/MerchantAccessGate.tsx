@@ -2,17 +2,19 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { LogOut } from "lucide-react";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { merchantProfileFromSession } from "@/lib/merchant-access";
 import { fetchMerchantOnboarding, isPendingMerchantPath } from "@/lib/onboarding";
-import { isClerkConfigured, publicEnv, useLocalDevAuth } from "@/lib/env";
+import { isAuthConfigured, publicEnv, useLocalDevAuth } from "@/lib/env";
 import {
   readImpersonationBearer,
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
+  humanAuthError,
+  isWrongPortalError,
 } from "@porterchain/auth";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 
@@ -23,17 +25,15 @@ type Props = {
 
 export default function MerchantAccessGate({ children, onProfile }: Props) {
   const localDevAuth = useLocalDevAuth();
-  // Ungated only in a development build. A shipped portal with no Clerk keys
+  // Ungated only in a development build. A shipped portal with no Keycloak keys
   // shows a wall instead of the portal — missing keys fail closed (BJ).
-  if (isDevelopmentBuild() && (localDevAuth || !isClerkConfigured())) {
+  if (isDevelopmentBuild() && (localDevAuth || !isAuthConfigured())) {
     return <>{children}</>;
   }
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <MerchantSignInUnavailable />;
   }
-  return (
-    <MerchantAccessGateWithClerk onProfile={onProfile}>{children}</MerchantAccessGateWithClerk>
-  );
+  return <MerchantAccessGateWithAuth onProfile={onProfile}>{children}</MerchantAccessGateWithAuth>;
 }
 
 function MerchantSignInUnavailable() {
@@ -81,10 +81,10 @@ function sessionFromMerchant(merchant: {
   };
 }
 
-function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
+function MerchantAccessGateWithAuth({ children, onProfile }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
+  const { isLoaded: idpLoaded, isSignedIn } = useAuth();
   const { isLoaded: merchantAuthLoaded, getApiToken, session: merchantSession } = useMerchantAuth();
   // Sync init — async useEffect is too late; PortalSessionGate would call onSignedOut → /sign-in.
   const [impToken] = useState<string | null>(() =>
@@ -140,17 +140,14 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
     [merchantSession?.status]
   );
 
-  const resolveSession = useCallback(
-    async (_token: string): Promise<SessionContext | null> => {
-      const st = (merchantSession?.status || "").toUpperCase();
-      if (!merchantSession || (st !== "ACTIVE" && st !== "APPROVED")) return null;
-      return sessionFromMerchant(merchantSession);
-    },
-    [merchantSession]
-  );
+  const resolveSession = useCallback(async (): Promise<SessionContext | null> => {
+    const st = (merchantSession?.status || "").toUpperCase();
+    if (!merchantSession || (st !== "ACTIVE" && st !== "APPROVED")) return null;
+    return sessionFromMerchant(merchantSession);
+  }, [merchantSession]);
 
   // Wait for merchant session so ACTIVE users skip the duplicate session-context call.
-  const gateReady = clerkLoaded && merchantAuthLoaded;
+  const gateReady = idpLoaded && merchantAuthLoaded;
 
   const { denied, errorDetail } = usePortalSessionGate({
     portal: "merchant",
@@ -168,22 +165,31 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
 
   if ((denied || errorDetail) && !impToken) {
     const loginUrl = "/sign-in";
-    const deniedAccess = errorDetail === "missing_portal_permission" || denied;
+    const deniedAccess = isWrongPortalError(errorDetail) || denied;
+    // L83: the API only trusts a verified email; say so instead of a raw code.
+    const needsVerify = ["email_required", "idp_email_required", "idp_email_unverified"].includes(
+      errorDetail || ""
+    );
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center gap-3 p-6 text-center">
         <h1 className="text-lg font-semibold text-primary">
-          {deniedAccess ? "Access denied" : "Session error"}
+          {deniedAccess ? "Access denied" : needsVerify ? "Verify your email" : "Session error"}
         </h1>
         <p className="text-sm text-muted">
           {deniedAccess
-            ? "This account is not provisioned for the Merchant portal."
-            : errorDetail === "porterchain_api_timeout"
-              ? "Porterchain API did not respond. Start the API on port 8001 and refresh."
-              : errorDetail === "merchant_closed"
-                ? "This company account is closed. Use Company at the top to switch to another company, or contact PorterChain."
-                : errorDetail === "merchant_suspended"
-                  ? "This company is suspended. Use Company at the top to switch to another company, or contact PorterChain to restore access."
-                  : `Could not load your session (${errorDetail || "unknown"}).`}
+            ? humanAuthError(
+                errorDetail === "missing_portal_permission" ? "" : errorDetail,
+                "This account is not provisioned for the Merchant portal."
+              )
+            : needsVerify
+              ? "Open the link in the email we sent you to verify your address, then sign in again. No email? Sign out and sign in again to get a new link."
+              : errorDetail === "porterchain_api_timeout"
+                ? "Porterchain API did not respond. Start the API on port 8001 and refresh."
+                : errorDetail === "merchant_closed"
+                  ? "This company account is closed. Use Company at the top to switch to another company, or contact PorterChain."
+                  : errorDetail === "merchant_suspended"
+                    ? "This company is suspended. Use Company at the top to switch to another company, or contact PorterChain to restore access."
+                    : `Could not load your session (${errorDetail || "unknown"}).`}
         </p>
         <a
           href={loginUrl}
@@ -191,7 +197,7 @@ function MerchantAccessGateWithClerk({ children, onProfile }: Props) {
         >
           Back to sign in
         </a>
-        <SignOutButton redirectUrl={loginUrl}>
+        <SignOutButton returnTo={loginUrl}>
           <button
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"

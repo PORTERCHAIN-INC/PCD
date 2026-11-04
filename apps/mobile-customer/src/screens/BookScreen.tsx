@@ -52,6 +52,7 @@ import {
   type Address,
   type BookingConfirmation,
   type QuoteResult,
+  checkoutReturnScheme,
 } from "../api";
 import { humanCustomerError } from "../errors";
 import type { VisitorTracking } from "../linking";
@@ -475,7 +476,7 @@ export function BookScreen({
         quote_id: quote.quote_id,
         email: identity.email,
         phone: phone.trim(),
-        clerk_user_id: identity.userId,
+        auth_subject: identity.userId,
         terms_accepted: terms,
         privacy_accepted: privacy,
         dangerous_goods_confirmed: dangerous,
@@ -487,7 +488,11 @@ export function BookScreen({
         confirmed = await mockComplete(quote.quote_id);
       } else {
         if (!booking.checkout_url) throw new Error("checkout_unavailable");
-        await WebBrowser.openBrowserAsync(booking.checkout_url);
+        // Closes by itself when Stripe redirects to <scheme>://book/success (L178).
+        await WebBrowser.openAuthSessionAsync(
+          booking.checkout_url,
+          `${checkoutReturnScheme}://book`
+        );
         confirmed = await pollCheckout(quote.quote_id);
       }
       if (docs.length) {
@@ -698,7 +703,7 @@ export function BookScreen({
               <Progress steps={["Details", "Review", "Pay"]} current={stepIndex} />
               <Txt v="caption" tone="muted">
                 Step {stepIndex + 1} of 3 ·{" "}
-                {["Addresses and load", "Price with HST", "Card payment"][stepIndex]}
+                {["Addresses and load", "Price", "Card payment"][stepIndex]}
               </Txt>
               {error ? <Banner tone="danger" text={error} /> : null}
 
@@ -1150,7 +1155,7 @@ export function BookScreen({
                       </Txt>
                     </View>
                     <Txt v="caption" tone="muted">
-                      {priced.taxItemised ? "HST shown above." : "Total includes 13% HST."}{" "}
+                      {priced.taxItemised ? "Tax shown above. " : ""}
                       {expiresIn(quote.expires_at)}.
                     </Txt>
                   </Card>
@@ -1162,7 +1167,7 @@ export function BookScreen({
                   <Card style={styles.rowBetween}>
                     <View>
                       <Txt v="caption" tone="muted">
-                        Total incl. HST
+                        Total
                       </Txt>
                       <Txt v="title">{total}</Txt>
                     </View>

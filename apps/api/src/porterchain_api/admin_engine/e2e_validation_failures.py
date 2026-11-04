@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.e2e_validation_catalog import FAILURE_SCENARIOS, ValidationStatus
 from porterchain_api.admin_engine.e2e_validation_helpers import StepResult
-from porterchain_api.auth.clerk_registry import is_clerk_configured
+from porterchain_api.auth.identity_directory import is_identity_configured
 from porterchain_api.config import Settings
 from porterchain_api.notification_engine.models import NotificationRecord
 
@@ -21,9 +21,9 @@ class E2EValidationFailuresMixin:
         chaos_map = {
             "day_plan_offline": "day_plan_offline",
             "stripe_offline": "stripe_offline",
-            "clerk_offline": "clerk_offline",
+            "idp_offline": "idp_offline",
             "firebase_failure": "firebase_offline",
-            "google_maps_failure": "google_maps_failure",
+            "maps_failure": "maps_failure",
             "osrm_failure": "osrm_failure",
             "valhalla_failure": "valhalla_failure",
             "redis_restart": "redis_restart",
@@ -45,9 +45,9 @@ class E2EValidationFailuresMixin:
                 root_cause = "Webhook secret missing" if status == "WARNING" else ""
                 fix = "Configure STRIPE_WEBHOOK_SECRET (ADR-006)"
             elif scenario == "authentication_failed":
-                status = "PASS" if is_clerk_configured(settings) or settings.clerk_dev_bypass else "BLOCKER"
-                root_cause = "Clerk not configured" if status != "PASS" else ""
-                fix = "Configure Clerk or enable CLERK_DEV_BYPASS"
+                status = "PASS" if is_identity_configured(settings) or settings.auth_dev_bypass else "BLOCKER"
+                root_cause = "Keycloak not configured" if status != "PASS" else ""
+                fix = "Configure Keycloak or enable AUTH_DEV_BYPASS"
                 priority = "P0" if status == "BLOCKER" else "P2"
             elif scenario == "payment_failed":
                 fix = "PaymentService records FAILED status + draft PAYMENT_FAILED"

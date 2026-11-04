@@ -12,24 +12,21 @@ import { BindingBadge, SettingsCard, SettingsPageHeader } from "../ui/SettingsPr
 import { LeadSuppressionCard } from "./LeadSuppressionCard";
 import { LeadRopaCard } from "./LeadRopaCard";
 
-const SECRET_META: Array<{ key: string; label: string; hint: string; canGenerate?: boolean }> = [
+const SECRET_META: Array<{ key: string; label: string; hint: string }> = [
   {
     key: "PUBLIC_INGEST_API_KEY",
     label: "Public ingest API key",
     hint: "Website → API inquiries (X-Ingest-Key)",
-    canGenerate: true,
   },
   {
     key: "GOOGLE_LEAD_WEBHOOK_SECRET",
     label: "Google lead webhook secret",
     hint: "Header X-Lead-Webhook-Secret for Google Ads / GBP",
-    canGenerate: true,
   },
   {
     key: "SOCIAL_LEAD_WEBHOOK_SECRET",
     label: "Social lead webhook secret",
     hint: "LinkedIn / X / YouTube shared header secret",
-    canGenerate: true,
   },
   {
     key: "META_APP_SECRET",
@@ -40,7 +37,6 @@ const SECRET_META: Array<{ key: string; label: string; hint: string; canGenerate
     key: "META_WEBHOOK_VERIFY_TOKEN",
     label: "Meta webhook verify token",
     hint: "Hub challenge token for Meta callback",
-    canGenerate: true,
   },
   {
     key: "META_CAPI_ACCESS_TOKEN",
@@ -105,12 +101,13 @@ export default function LeadIngestPanel() {
       setError(query.error instanceof Error ? query.error.message : "Failed to load");
   }, [query.error]);
 
+  const { refetch } = query;
   const load = useCallback(async () => {
     setError("");
-    await query.refetch();
-  }, [query.refetch]);
+    await refetch();
+  }, [refetch]);
 
-  async function save(extra?: { generate?: string[] }) {
+  async function save() {
     setBusy(true);
     setError("");
     setOkMsg("");
@@ -124,7 +121,6 @@ export default function LeadIngestPanel() {
         settingsApi.updateLeadIngest(token, {
           secrets,
           visible,
-          generate: extra?.generate,
         })
       );
       setData(res);
@@ -137,9 +133,9 @@ export default function LeadIngestPanel() {
         REFERRAL_CREDIT_CENTS: res.visible.REFERRAL_CREDIT_CENTS ?? 25000,
       });
       setSecretDrafts({});
-      const written = res.save?.written?.length
-        ? `Saved to Doppler: ${res.save.written.join(", ")}`
-        : "Saved";
+      const written = res.save?.keys?.length
+        ? `Checked. Set in ${res.secrets_store.file}: ${res.save.keys.join(", ")}`
+        : "No changes";
       setOkMsg(written);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -165,16 +161,13 @@ export default function LeadIngestPanel() {
         Secret values never displayed — leave blank to keep current
       </div>
 
-      <SettingsCard title="Doppler">
+      <SettingsCard title="Secrets store">
         <p className="text-sm text-muted">
-          Project <code className="text-xs">{data?.doppler.project}</code> / config{" "}
-          <code className="text-xs">{data?.doppler.config}</code>
+          SOPS file <code className="text-xs">{data?.secrets_store.file}</code>
           {" · "}
-          {data?.doppler.configured ? (
-            <span className="text-emerald-700">write enabled</span>
-          ) : (
-            <span className="text-amber-700">DOPPLER_TOKEN missing on API — saves will fail</span>
-          )}
+          <span className="text-amber-700">
+            read-only here: saving checks values and lists the keys to set with sops
+          </span>
         </p>
         <p className="mt-2 text-xs text-muted">{data?.note}</p>
       </SettingsCard>
@@ -205,16 +198,6 @@ export default function LeadIngestPanel() {
                     onChange={(e) => setSecretDrafts((d) => ({ ...d, [row.key]: e.target.value }))}
                   />
                 </div>
-                {row.canGenerate ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    className="rounded-lg border border-primary/15 px-3 py-2 text-xs font-medium text-primary hover:bg-slate-50 disabled:opacity-50"
-                    onClick={() => void save({ generate: [row.key] })}
-                  >
-                    Generate & save
-                  </button>
-                ) : null}
               </li>
             );
           })}
@@ -300,9 +283,9 @@ export default function LeadIngestPanel() {
           disabled={busy}
           className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           onClick={() => void save()}
-          aria-label="Save lead ingest settings to Doppler"
+          aria-label="Check lead ingest settings for the SOPS file"
         >
-          {busy ? "Saving…" : "Save to Doppler"}
+          {busy ? "Checking…" : "Check changes"}
         </button>
         <button
           type="button"

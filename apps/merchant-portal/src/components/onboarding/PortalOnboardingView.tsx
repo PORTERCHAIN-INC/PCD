@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Circle, Clock, LogOut, RefreshCw, Shield, XCircle } from "lucide-react";
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton } from "@porterchain/auth/oidc/client";
 import MerchantLogo from "@/components/branding/MerchantLogo";
 import Button from "@/components/ui/Button";
 import { merchantStatusLabel, onboardingStepStatusLabel } from "@/lib/catalog";
@@ -11,13 +11,9 @@ import {
   shouldAskOwnerForCompanyFile,
   type PortalOnboardingStatus,
 } from "@/lib/onboarding";
-import { publicEnv } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { cn } from "@/lib/utils";
-import {
-  AddressAutocompleteInput,
-  GoogleMapsProvider,
-  type BookingAddress,
-} from "@porterchain/maps";
+import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { useState } from "react";
 
 function stepIcon(step: PortalOnboardingStatus["steps"][number]) {
@@ -120,7 +116,7 @@ export default function PortalOnboardingView({
   }
 
   return (
-    <GoogleMapsProvider>
+    <>
       <div className="min-h-dvh bg-gray-bg">
         <header className="border-b border-primary/10 bg-white">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
@@ -134,15 +130,17 @@ export default function PortalOnboardingView({
                 </p>
               </div>
             </div>
-            <SignOutButton redirectUrl="/sign-in">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-primary/10 px-3 py-2 text-sm text-muted"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </button>
-            </SignOutButton>
+            {isAuthConfigured() ? (
+              <SignOutButton returnTo="/sign-in">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-xl border border-primary/10 px-3 py-2 text-sm text-muted"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </SignOutButton>
+            ) : null}
           </div>
         </header>
 
@@ -182,6 +180,8 @@ export default function PortalOnboardingView({
                   Operating name
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="company_name"
+                    autoComplete="organization"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                   />
@@ -190,6 +190,8 @@ export default function PortalOnboardingView({
                   Legal name
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="legal_name"
+                    autoComplete="organization"
                     value={legalName}
                     onChange={(e) => setLegalName(e.target.value)}
                   />
@@ -198,6 +200,9 @@ export default function PortalOnboardingView({
                   Phone
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -206,6 +211,8 @@ export default function PortalOnboardingView({
                   HST number
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="hst_number"
+                    autoComplete="off"
                     value={hst}
                     onChange={(e) => setHst(e.target.value)}
                     placeholder="123456789RT0001"
@@ -330,12 +337,12 @@ export default function PortalOnboardingView({
               <a href={signupUrl} className="font-medium text-secondary underline">
                 {signupUrl}
               </a>{" "}
-              with the email you reserved. Password stays in Clerk. Status refreshes every 30
+              with the email you reserved. Password stays in Keycloak. Status refreshes every 30
               seconds.
             </p>
           )}
         </main>
       </div>
-    </GoogleMapsProvider>
+    </>
   );
 }

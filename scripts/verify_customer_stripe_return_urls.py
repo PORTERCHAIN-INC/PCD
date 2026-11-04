@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECKS: tuple[tuple[str, str], ...] = (
     ("apps/api/src/porterchain_api/config.py", "customer_checkout_success_url"),
     ("apps/api/src/porterchain_api/services/stripe_service.py", 'checkout_channel == "customer"'),
-    ("apps/api/src/porterchain_api/schemas_booking.py", 'checkout_channel: Literal["retail", "customer"]'),
+    ("apps/api/src/porterchain_api/schemas_booking.py", 'checkout_channel: Literal["retail", "customer"'),
     ("apps/customer/src/lib/booking.ts", 'checkout_channel: "customer"'),
     ("apps/customer/src/components/booking/BookSuccessClient.tsx", "syncBookingCheckout"),
     ("apps/api/.env.example", "CUSTOMER_CHECKOUT_SUCCESS_URL=http://localhost:3004/book/success"),

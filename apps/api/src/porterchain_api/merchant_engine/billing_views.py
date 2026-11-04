@@ -37,7 +37,7 @@ def list_payments(svc: Any, db: Session, ctx: MerchantContext) -> list[dict[str,
             "currency": pay.currency,
             "status": pay.status,
             "payment_method": pay.payment_method
-            or ("stripe" if pay.stripe_payment_intent_id else "net_terms"),
+            or "interac",
             "payment_reference": pay.payment_reference,
             "created_at": pay.created_at.isoformat() if pay.created_at else None,
         }
@@ -59,7 +59,38 @@ def list_credit_notes(svc: Any, db: Session, ctx: MerchantContext) -> list[dict[
         .limit(100)
         .all()
     )
+    from porterchain_api.billing_engine.models import CreditNote
+
     result = []
+    notes = (
+        db.query(CreditNote)
+        .filter(
+            CreditNote.merchant_id == ctx.merchant.id,
+            CreditNote.customer_id.is_(None),
+            CreditNote.status == "issued",
+            CreditNote.kind.isnot(None),
+        )
+        .order_by(CreditNote.issued_at.desc())
+        .limit(100)
+        .all()
+    )
+    for n in notes:
+        result.append(
+            {
+                "credit_note_id": n.id,
+                "credit_note_number": n.credit_note_number,
+                "invoice_id": n.invoice_id,
+                "invoice_number": n.original_invoice_number,
+                "amount_cents": int(n.amount_cents or 0),
+                "subtotal_cents": int(n.subtotal_cents or 0),
+                "tax_cents": int(n.tax_cents or 0),
+                "currency": n.currency or "cad",
+                "reason": n.customer_reason,
+                "status": n.status,
+                "pdf_available": True,
+                "created_at": n.issued_at.isoformat() if n.issued_at else None,
+            }
+        )
     for e in entries:
         order = db.query(Order).filter(Order.id == e.order_id).first()
         result.append(

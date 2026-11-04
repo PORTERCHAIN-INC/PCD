@@ -28,6 +28,12 @@ from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.merchant_engine import reporting_metrics as report_engine
 
 
+def _late_penalty_fields(db: Session, inv: Any) -> dict[str, Any]:
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    return penalty_fields(db, inv)
+
+
 class MerchantBillingService:
     def _merchant_order_ids(self, db: Session, merchant_id: str):
         return db.query(Order.id).filter(Order.merchant_id == merchant_id)
@@ -128,15 +134,20 @@ class MerchantBillingService:
             )
 
         for entry in self._merchant_ledger(db, ctx):
-            if entry.kind == "credit_note":
+            if entry.kind in ("credit_note", "invoice_credit_note"):
+                meta = entry.metadata_json or {}
                 lines.append(
                     {
                         "type": "credit_note",
                         "date": entry.created_at.isoformat() if entry.created_at else None,
-                        "reference": entry.id,
-                        "description": (entry.metadata_json or {}).get("reason", "Credit note"),
+                        "reference": meta.get("credit_note_number") or entry.id,
+                        "description": (
+                            f"Credit note against {meta['invoice_number']}"
+                            if meta.get("invoice_number")
+                            else meta.get("reason", "Credit note")
+                        ),
                         "amount_cents": -(entry.amount_cents or 0),
-                        "tax_cents": 0,
+                        "tax_cents": -int(meta.get("tax_cents") or 0),
                     }
                 )
 
@@ -202,6 +213,7 @@ class MerchantBillingService:
         from datetime import UTC, datetime
 
         from porterchain_api.billing_engine.ar import aging_bucket
+        from porterchain_api.billing_engine.invoice_adjustments import notes_for_invoice
         from porterchain_api.billing_engine.models import InvoiceLine
         from porterchain_api.billing_engine.merchant_service import (
             invoice_due_date,
@@ -231,11 +243,12 @@ class MerchantBillingService:
         aging = None
         if due:
             due_naive = due.replace(tzinfo=None) if getattr(due, "tzinfo", None) else due
-            due_iso = due_naive.isoformat()
+            # L207: stored as UTC; say so, or browsers read it as local time (4:59 a.m. not 11:59 p.m.).
+            due_iso = due_naive.replace(tzinfo=UTC).isoformat()
             now = datetime.now(UTC).replace(tzinfo=None)
             if status == "overdue" and now > due_naive:
                 aging = aging_bucket(max(0, (now - due_naive).days))
-            elif status not in ("paid", "void", "cancelled"):
+            elif status not in ("paid", "void", "cancelled", "credited"):
                 aging = "Current"
 
         pricing_model = getattr(ctx.merchant, "pricing_model", None) or "distance"
@@ -292,15 +305,19 @@ class MerchantBillingService:
             "amount_cents": int(inv.amount_cents or 0),
             "tax_cents": int(inv.tax_cents or 0),
             "fees_cents": int(inv.fees_cents or 0),
+            **_late_penalty_fields(db, inv),
             "outstanding_cents": outstanding,
             "currency": inv.currency or "cad",
             "created_at": inv.created_at,
             "pdf_url": inv.pdf_url,
+            **_supplier_tax_identity(db, inv),
             "lines": lines,
             "lines_total_cents": line_sum,
             "remittance_memo": getattr(inv, "payment_reference", None) or inv.invoice_number,
             "payment_reference": getattr(inv, "payment_reference", None),
             "amount_paid_cents": int(getattr(inv, "amount_paid_cents", 0) or 0),
+            "credited_cents": int(getattr(inv, "credited_cents", 0) or 0),
+            "credit_notes": notes_for_invoice(db, inv.id, internal=False),
         }
         try:
             from porterchain_api.merchant_engine.commerce_metrics import check_invoice_detail_consistency
@@ -387,6 +404,15 @@ class MerchantBillingService:
             merchant_email=ctx.merchant.email,
         )
 
+    def credit_note_pdf(self, db: Session, ctx: MerchantContext, credit_note_id: str) -> tuple[bytes, str]:
+        from porterchain_api.billing_engine.models import CreditNote
+        from porterchain_api.reporting.credit_note_pdf import credit_note_pdf
+
+        note = db.get(CreditNote, credit_note_id)
+        if note is None or note.merchant_id != ctx.merchant.id or note.customer_id or note.status != "issued":
+            raise LookupError("credit_note_not_found")
+        return credit_note_pdf(db, note)
+
     def remind_invoice(self, db: Session, ctx: MerchantContext, invoice_id: str) -> dict[str, Any]:
         from porterchain_api.merchant_engine.invoice_reminder import remind_invoice
 
@@ -467,3 +493,9 @@ class MerchantBillingService:
 from porterchain_api.admin_models import MerchantContract  # noqa: E402, F401
 from porterchain_api.billing_engine.merchant_service import build_tax_summary  # noqa: E402, F401
 from porterchain_api.billing_engine.merchant_service import rows_to_csv  # noqa: E402, F401
+
+
+def _supplier_tax_identity(db: Session, inv: Any) -> dict[str, Any]:
+    from porterchain_api.platform.engine_ports.booking_engine__invoice_service import supplier_tax_identity
+
+    return supplier_tax_identity(db, inv)

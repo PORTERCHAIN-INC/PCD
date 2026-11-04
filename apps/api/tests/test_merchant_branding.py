@@ -53,7 +53,7 @@ def _ctx(db, *, logo: str | None = "https://cdn.example.com/acme.png") -> Mercha
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"owner-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )

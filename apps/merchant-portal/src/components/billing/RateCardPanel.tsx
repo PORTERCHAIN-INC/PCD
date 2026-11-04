@@ -7,7 +7,7 @@ import { COMPACT_SCHEDULE_DEFAULTS, pricingModelLabel } from "@porterchain/types
 import type { MerchantRateCard } from "@/lib/rate-card";
 import { formatCents } from "@/lib/utils";
 
-export function RateCardPanel({
+function LegacyRateCardPanel({
   getToken,
   orgId,
 }: {
@@ -141,12 +141,14 @@ export function RateCardPanel({
                   <dt className="text-muted">Fuel</dt>
                   <dd>{card.fuel_surcharge_percent}%</dd>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted">HST</dt>
-                  <dd>
-                    {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
-                  </dd>
-                </div>
+                {card.tax.hst_percent > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">HST</dt>
+                    <dd>
+                      {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
               {card.schedule?.fsa_miss !== "refuse" && card.vehicles.length > 0 ? (
                 <details className="rounded-xl border border-primary/10 px-4 py-3">
@@ -221,12 +223,14 @@ export function RateCardPanel({
                     </div>
                   </>
                 ) : null}
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted">HST</dt>
-                  <dd>
-                    {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
-                  </dd>
-                </div>
+                {card.tax.hst_percent > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">HST</dt>
+                    <dd>
+                      {card.tax.hst_percent}%{card.tax.tax_included ? " (included)" : ""}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted">Ontario FSA rows</dt>
                   <dd>
@@ -283,6 +287,110 @@ function VehicleTable({ card }: { card: MerchantRateCard }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+const PARCEL_ROWS: [string, string][] = [
+  ["Small parcel (fits 20 × 14 × 14 in, up to 100 lb)", "$6 each"],
+  ["Van parcel (anything larger)", "$9 each"],
+  ["101–125 lb, or up to 80 × 45 in", "+$30 handling"],
+  ["126–150 lb, or up to 90 × 50 in", "+$60 handling"],
+  ["Over 150 lb or over 90 × 50 in", "Custom quote"],
+];
+const HOURLY_ROWS: [string, string][] = [
+  ["Sedan / SUV / pickup", "$40 / h"],
+  ["Cargo van / small van", "$60 / h"],
+  ["16 ft+ box / cube van", "$70 / h"],
+  ["Load help, per stop where you ask for it", "+$30"],
+];
+
+function RatesTable({
+  title,
+  note,
+  rows,
+}: {
+  title: string;
+  note: string;
+  rows: [string, string][];
+}) {
+  return (
+    <div>
+      <h3 className="font-medium text-primary">{title}</h3>
+      <p className="text-muted">{note}</p>
+      <table className="mt-2 w-full">
+        <tbody>
+          {rows.map(([a, b]) => (
+            <tr key={a} className="border-t border-primary/5">
+              <td className="py-1.5">{a}</td>
+              <td className="py-1.5 text-right font-medium">{b}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Billing → Rates (2026-10-31 pricing): $6 / $9 parcels + handling, hourly vehicles, or a custom price. */
+export function RateCardPanel({
+  getToken,
+  orgId,
+}: {
+  getToken: () => Promise<string>;
+  orgId?: string;
+}) {
+  const { data: card, error: queryError } = useQuery({
+    queryKey: ["merchant-rate-card", orgId ?? null],
+    queryFn: async () => billingApi.rateCard(await getToken(), orgId),
+  });
+  const error = queryError instanceof Error ? queryError.message : null;
+  const custom = Boolean(card?.custom_price);
+  const adj = [
+    card?.custom_flat_parcel_cents
+      ? `${formatCents(card.custom_flat_parcel_cents)} per parcel, any size`
+      : null,
+    card?.custom_pct
+      ? `${card.custom_pct > 0 ? "+" : ""}${card.custom_pct}% on the standard price`
+      : null,
+    card?.custom_per_stop_cents
+      ? `${card.custom_per_stop_cents > 0 ? "+" : "−"}${formatCents(Math.abs(card.custom_per_stop_cents))} per stop`
+      : null,
+  ].filter(Boolean);
+  return (
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-primary/10 bg-white p-6 text-sm">
+        <h2 className="font-semibold text-primary">Your rates</h2>
+        {error && <p className="mt-2 text-red-600">{error}</p>}
+        {!card && !error && <PageSkeleton rows={3} />}
+        {card && (
+          <div className="mt-4 space-y-5">
+            {custom ? (
+              <p className="rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3">
+                <span className="font-semibold">Custom price agreed with PorterChain.</span>{" "}
+                {adj.length
+                  ? `Your quotes use ${adj.join(" and ")}.`
+                  : "Your quotes use your contract schedule."}{" "}
+                It replaces the standard rates below.
+              </p>
+            ) : null}
+            <RatesTable
+              title="Per parcel"
+              note="The higher of weight and size decides the handling tier; tiers do not stack."
+              rows={PARCEL_ROWS}
+            />
+            <RatesTable
+              title="Hourly vehicle (we send a vehicle and driver)"
+              note="3 hour minimum, from arrival at pickup to the last drop."
+              rows={HOURLY_ROWS}
+            />
+            <p className="text-muted">All prices before 13% HST.</p>
+          </div>
+        )}
+      </section>
+      {custom && card && !adj.length ? (
+        <LegacyRateCardPanel getToken={getToken} orgId={orgId} />
+      ) : null}
     </div>
   );
 }

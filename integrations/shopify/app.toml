@@ -3,7 +3,8 @@
 # Install: Shopify grants [access_scopes] itself, then loads application_url inside
 # admin. The page loads App Bridge, posts its session token to
 # POST /v1/integrations/shopify/session, and the API token-exchanges it once.
-# Billing: none. The app is free; deliveries are invoiced by Interac e-Transfer.
+# Billing: Shopify Billing API (usage-based, capped "PorterChain Delivery" plan; approval asked
+# on install and again after reinstall). Shopify-installed stores are never invoiced by Interac.
 # FO request topics stay out of this file; they register only when
 # SHOPIFY_FULFILLMENT_SERVICE_ENABLED=true (default off).
 # read_returns + returns/* topics: add back with SHOPIFY_RETURNS_SCOPE_ENABLED=true
@@ -18,7 +19,7 @@ application_url = "https://merchant.porterchain.com/shopify-app"
 embedded = true
 
 [access_scopes]
-scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders"
+scopes = "read_orders,write_fulfillments,write_shipping,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders"
 use_legacy_install_flow = false
 
 [webhooks]
@@ -33,7 +34,9 @@ api_version = "2026-10"
     "orders/cancelled",
     "orders/delete",
     "refunds/create",
-    "app/uninstalled"
+    "app/uninstalled",
+    "app_subscriptions/update",
+    "app_subscriptions/approaching_capped_amount"
   ]
   uri = "https://api.porterchain.com/v1/integrations/shopify/webhooks"
 

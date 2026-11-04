@@ -2,7 +2,7 @@
 
 ## Auth (staff IdP)
 
-Admin no longer uses Clerk on the shell. Playwright needs one of:
+Admin no longer uses Keycloak on the shell. Playwright needs one of:
 
 1. **Cookie jar** (preferred for live staff handshake)
 
@@ -12,13 +12,7 @@ pnpm exec playwright codegen http://localhost:3002/dashboard \
   --save-storage=e2e/.auth/staff.json
 ```
 
-2. **Sid inject** — copy `pc_staff_sid` from a signed-in browser DevTools → Application → Cookies
-
-```bash
-ADMIN_STAFF_SID='staff_sess_…' ADMIN_RUN_LIVE=1 pnpm test:e2e:leads
-```
-
-3. **Local bypass** — admin must be running with `NEXT_PUBLIC_CLERK_DEV_BYPASS=true`. Empty storageState is fine; middleware lets the shell through and `AdminAuthProvider` issues Bearer `dev`. BFF stubs still intercept `/api/porterchain/v1/...`.
+2. **Local bypass** — admin must be running with `NEXT_PUBLIC_AUTH_DEV_BYPASS=true`. Empty storageState is fine; middleware lets the shell through and `AdminAuthProvider` issues Bearer `dev`. BFF stubs still intercept `/api/porterchain/v1/...`.
 
 `.auth/*.json` is gitignored — never commit staff cookies.
 

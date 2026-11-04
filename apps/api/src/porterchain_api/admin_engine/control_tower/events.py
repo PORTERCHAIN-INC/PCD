@@ -84,9 +84,9 @@ class EventsMixin:
         risk_orders.sort(key=lambda c: c["risk_score"], reverse=True)
         suggested = self.assignable_drivers(db)
         from porterchain_api.config import get_settings
-        from porterchain_api.intelligence_engine.nim_client import nim_status
+        from porterchain_api.intelligence_engine.llm import llm_status
 
-        llm = nim_status()
+        llm = llm_status()
         flags = get_settings().phase2_flags
         return {
             "risk_orders": risk_orders[:25],

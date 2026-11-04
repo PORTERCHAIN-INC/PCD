@@ -285,5 +285,4 @@ class MerchantDashboardService:
             "invoice_id": row.id,
             "invoice_number": row.invoice_number,
             "pdf_url": row.pdf_url,
-            "stripe_receipt_url": row.stripe_receipt_url,
         }

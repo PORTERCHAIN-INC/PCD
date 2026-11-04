@@ -123,10 +123,16 @@ def _book_from_shopify_payload(
     shop = shopify._active_shop(db, shop_domain)
     if not shop:
         raise LookupError("shop_not_connected")
-    if not porterchain_shipping_selected(payload):
+    forced = bool(payload.get("_force_book"))  # merchant chose "Book with PorterChain"
+    if not forced and not porterchain_shipping_selected(payload):
         return {"ok": True, "skipped": "not_porterchain_rate"}
     if unpaid_non_cod(payload):
         return {"ok": True, "skipped": "unpaid"}
+    from porterchain_api.merchant_engine.shopify_billing import booking_block
+
+    _blk = booking_block(db, settings, shop.merchant_id)
+    if _blk:
+        return {"ok": True, "skipped": _blk}
     address = shipping_address(payload) or {}
     country = address.get("country") or address.get("country_code") or address.get("countryCode")
     if not is_canada_country(country):
@@ -222,6 +228,8 @@ def _book_from_shopify_payload(
         shopify_meta["rate_quote_hash"] = rate_quote.request_hash
     extra["shopify"] = shopify_meta
     order.compliance_metadata = extra
+    if _name and not getattr(order, "internal_reference", None):
+        order.internal_reference = str(_name)[:120]  # Orders search by "#1374" (review 139170)
     db.commit()
     return {
         "ok": True,
@@ -623,6 +631,7 @@ def _push_reverse_delivery(
         return
     try:
         from porterchain_api.merchant_engine.shopify_admin_graphql import reverse_delivery_create
+        from porterchain_api.merchant_engine.shopify_fulfillment_ops import public_tracking_url
 
         delivery_id = reverse_delivery_create(
             shop.shop_domain,
@@ -631,7 +640,7 @@ def _push_reverse_delivery(
             reverse_fulfillment_order_id=reverse_id,
             tracking={
                 "number": order.tracking_number,
-                "url": f"{settings.website_url.rstrip('/')}/track/{order.tracking_number}",
+                "url": public_tracking_url(settings, order.tracking_number),
             },
         )
         if delivery_id:

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from "@porterchain/auth/oidc/client";
 import {
   Camera,
   Check,
@@ -27,8 +27,9 @@ import {
   type DriverEmergencyContact,
   type DriverMeProfile,
 } from "@/lib/api";
-import { isClerkConfigured } from "@/lib/env";
-import { cn, initials } from "@/lib/utils";
+import { isAuthConfigured } from "@/lib/env";
+import { cn } from "@/lib/utils";
+import { initials } from "@porterchain/ui/account-menu";
 
 const PROVINCES = ["AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"];
 const RELATIONSHIPS = ["spouse", "partner", "parent", "child", "sibling", "friend", "other"];
@@ -57,8 +58,9 @@ function errText(e: unknown): string {
   } catch {
     /* plain */
   }
-  const clerk = (e as { errors?: Array<{ longMessage?: string; message?: string }> })?.errors?.[0];
-  return clerk?.longMessage || clerk?.message || msg || "Something went wrong";
+  const keycloak = (e as { errors?: Array<{ longMessage?: string; message?: string }> })
+    ?.errors?.[0];
+  return keycloak?.longMessage || keycloak?.message || msg || "Something went wrong";
 }
 
 export default function AccountClient({ version }: { version: string }) {
@@ -433,15 +435,15 @@ function PersonalSection({
   );
 }
 
-/** Email/phone change: add in Clerk -> 6-digit code -> make primary -> API copies verified value. */
+/** Email/phone change: add in Keycloak -> 6-digit code -> make primary -> API copies verified value. */
 function ContactSection({
   profile,
-  onSynced,
 }: {
   profile: DriverMeProfile;
   onSynced: (p: DriverMeProfile) => void;
 }) {
-  if (!isClerkConfigured()) {
+  const { openAccount } = useAuth();
+  if (!isAuthConfigured()) {
     return (
       <Card title="Email & phone">
         <p className="text-sm text-[var(--muted)]">
@@ -451,182 +453,37 @@ function ContactSection({
     );
   }
   return (
-    <>
-      <VerifiedChange kind="email" current={profile.email} onSynced={onSynced} />
-      <VerifiedChange kind="phone" current={profile.phone} onSynced={onSynced} />
-    </>
-  );
-}
-
-type Pending = {
-  prepare: () => Promise<unknown>;
-  attempt: (
-    code: string
-  ) => Promise<{ id: string; verification?: { status?: string | null } | null }>;
-};
-
-function VerifiedChange({
-  kind,
-  current,
-  onSynced,
-}: {
-  kind: "email" | "phone";
-  current: string | null;
-  onSynced: (p: DriverMeProfile) => void;
-}) {
-  const { user } = useUser();
-  const [value, setValue] = useState("");
-  const [code, setCode] = useState("");
-  const [step, setStep] = useState<"idle" | "code">("idle");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const pending = useRef<Pending | null>(null);
-  const Icon = kind === "email" ? Mail : Phone;
-
-  const start = async () => {
-    if (!user) return;
-    setBusy(true);
-    setMsg(null);
-    try {
-      if (kind === "email") {
-        const res = await user.createEmailAddress({ email: value.trim() });
-        pending.current = {
-          prepare: () => res.prepareVerification({ strategy: "email_code" }),
-          attempt: (c) => res.attemptVerification({ code: c }),
-        };
-      } else {
-        const digits = value.replace(/[^\d+]/g, "");
-        const e164 = digits.startsWith("+")
-          ? digits
-          : digits.length === 10
-            ? `+1${digits}`
-            : `+${digits}`;
-        const res = await user.createPhoneNumber({ phoneNumber: e164 });
-        pending.current = {
-          prepare: () => res.prepareVerification(),
-          attempt: (c) => res.attemptVerification({ code: c }),
-        };
-      }
-      await pending.current.prepare();
-      setStep("code");
-      setMsg(`We sent a 6-digit code to ${value.trim()}`);
-    } catch (e) {
-      setMsg(errText(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const confirm = async () => {
-    if (!user || !pending.current) return;
-    setBusy(true);
-    setMsg(null);
-    try {
-      const verified = await pending.current.attempt(code.trim());
-      if (verified.verification?.status !== "verified") throw new Error("Code not accepted");
-      await user.update(
-        kind === "email"
-          ? { primaryEmailAddressId: verified.id }
-          : { primaryPhoneNumberId: verified.id }
-      );
-      await user.reload();
-      const out = await accountApi.syncIdentity();
-      onSynced(out.profile);
-      setStep("idle");
-      setValue("");
-      setCode("");
-      setMsg(`${kind === "email" ? "Email" : "Phone"} verified and updated`);
-    } catch (e) {
-      setMsg(errText(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card
-      title={kind === "email" ? "Email" : "Mobile phone"}
-      action={<Icon className="h-4 w-4 text-[var(--muted)]" />}
-    >
-      <p className="mb-4 text-sm text-[var(--primary)]">
-        <span className="text-[var(--muted)]">Current: </span>
-        {current || "Not set"}
-        {current ? (
-          <Check className="ml-1.5 inline h-4 w-4 text-emerald-600" aria-label="verified" />
-        ) : null}
+    <Card title="Email & phone">
+      <dl className="grid gap-2 text-sm">
+        <div className="flex justify-between gap-4">
+          <dt className="text-[var(--muted)]">Email</dt>
+          <dd className="font-semibold">{profile.email || "—"}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-[var(--muted)]">Phone</dt>
+          <dd className="font-semibold">{profile.phone || "—"}</dd>
+        </div>
+      </dl>
+      <p className="mt-3 text-sm text-[var(--muted)]">
+        Your sign-in email is changed and verified in account security. Call dispatch to change your
+        phone number.
       </p>
-      {step === "idle" ? (
-        <div className="flex max-w-lg gap-2">
-          <div className="flex-1">
-            <Field
-              label={kind === "email" ? "New email" : "New phone"}
-              type={kind === "email" ? "email" : "tel"}
-              value={value}
-              onChange={setValue}
-              autoComplete={kind === "email" ? "email" : "tel"}
-            />
-          </div>
-          <button
-            type="button"
-            disabled={busy || value.trim().length < 5}
-            onClick={start}
-            className="mt-6 h-11 rounded-xl bg-[var(--secondary)] px-5 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {busy ? "Sending…" : "Send code"}
-          </button>
-        </div>
-      ) : (
-        <div className="flex max-w-lg gap-2">
-          <div className="flex-1">
-            <Field
-              label="6-digit code"
-              value={code}
-              onChange={setCode}
-              autoComplete="one-time-code"
-            />
-          </div>
-          <button
-            type="button"
-            disabled={busy || code.trim().length < 6}
-            onClick={confirm}
-            className="mt-6 h-11 rounded-xl bg-[var(--secondary)] px-5 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {busy ? "Checking…" : "Verify"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setStep("idle")}
-            className="mt-6 h-11 px-3 text-sm text-[var(--muted)]"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-      {msg ? (
-        <p role="status" className="mt-3 text-sm text-[var(--muted)]">
-          {msg}
-        </p>
-      ) : null}
+      <button
+        type="button"
+        data-testid="driver-account-security"
+        onClick={() => openAccount()}
+        className="mt-3 inline-flex h-11 items-center rounded-xl border border-[var(--border)] px-5 text-sm font-bold"
+      >
+        Change sign-in email
+      </button>
     </Card>
   );
 }
 
-type SessionRow = {
-  id: string;
-  status: string;
-  lastActiveAt: Date;
-  latestActivity?: {
-    browserName?: string;
-    deviceType?: string;
-    city?: string;
-    country?: string;
-    isMobile?: boolean;
-  } | null;
-  revoke: () => Promise<unknown>;
-};
-
+/** Password, passkeys, two-step and signed-in devices live in the Keycloak account console (L36). */
 function SecuritySection() {
-  if (!isClerkConfigured()) {
+  const { openAccount, signOut } = useAuth();
+  if (!isAuthConfigured()) {
     return (
       <Card title="Security">
         <p className="text-sm text-[var(--muted)]">
@@ -636,177 +493,26 @@ function SecuritySection() {
     );
   }
   return (
-    <>
-      <PasswordCard />
-      <SessionsCard />
-    </>
-  );
-}
-
-function PasswordCard() {
-  const { user } = useUser();
-  const [current, setCurrent] = useState("");
-  const [next, setNext] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [signOutOthers, setSignOutOthers] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const hasPassword = Boolean(user?.passwordEnabled);
-
-  const save = async () => {
-    if (!user) return;
-    if (next.length < 8) return setMsg("Use at least 8 characters");
-    if (next !== confirm) return setMsg("Passwords do not match");
-    setBusy(true);
-    setMsg(null);
-    try {
-      await user.updatePassword({
-        ...(hasPassword ? { currentPassword: current } : {}),
-        newPassword: next,
-        signOutOfOtherSessions: signOutOthers,
-      });
-      setCurrent("");
-      setNext("");
-      setConfirm("");
-      setMsg(hasPassword ? "Password changed" : "Password set");
-    } catch (e) {
-      setMsg(errText(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card
-      title={hasPassword ? "Change password" : "Set a password"}
-      action={<KeyRound className="h-4 w-4 text-[var(--muted)]" />}
-    >
-      {!hasPassword ? (
-        <p className="mb-4 text-sm text-[var(--muted)]">
-          You sign in with a code or Google today. A password is optional.
-        </p>
-      ) : null}
-      <div className="grid max-w-md gap-4">
-        {hasPassword ? (
-          <Field
-            label="Current password"
-            type="password"
-            value={current}
-            onChange={setCurrent}
-            autoComplete="current-password"
-          />
-        ) : null}
-        <Field
-          label="New password"
-          type="password"
-          value={next}
-          onChange={setNext}
-          autoComplete="new-password"
-        />
-        <Field
-          label="Confirm new password"
-          type="password"
-          value={confirm}
-          onChange={setConfirm}
-          autoComplete="new-password"
-        />
-        <label className="flex items-center gap-2 text-sm text-[var(--primary)]">
-          <input
-            type="checkbox"
-            checked={signOutOthers}
-            onChange={(e) => setSignOutOthers(e.target.checked)}
-          />
-          Sign out of all other devices
-        </label>
-      </div>
-      <SaveBar
-        busy={busy}
-        msg={msg}
-        onSave={save}
-        label={hasPassword ? "Change password" : "Set password"}
-      />
-    </Card>
-  );
-}
-
-function SessionsCard() {
-  const { user } = useUser();
-  const { session: currentSession, signOut } = useClerk();
-  const [rows, setRows] = useState<SessionRow[] | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-  const load = useMemo(
-    () => async () => {
-      if (!user) return;
-      setRows((await user.getSessions()) as unknown as SessionRow[]);
-    },
-    [user]
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const others = (rows ?? []).filter((s) => s.id !== currentSession?.id && s.status === "active");
-  return (
-    <Card title="Signed-in devices" action={<Laptop className="h-4 w-4 text-[var(--muted)]" />}>
-      <ul className="divide-y divide-[var(--primary)]/8">
-        {(rows ?? []).map((s) => (
-          <li key={s.id} className="flex items-center justify-between py-3 text-sm">
-            <div>
-              <p className="font-semibold text-[var(--primary)]">
-                {s.latestActivity?.browserName ?? "Device"} ·{" "}
-                {s.latestActivity?.deviceType ??
-                  (s.latestActivity?.isMobile ? "Mobile" : "Computer")}
-                {s.id === currentSession?.id ? (
-                  <span className="ml-2 text-xs text-[var(--secondary)]">This device</span>
-                ) : null}
-              </p>
-              <p className="text-xs text-[var(--muted)]">
-                {[s.latestActivity?.city, s.latestActivity?.country].filter(Boolean).join(", ")} ·
-                active {new Date(s.lastActiveAt).toLocaleString()}
-              </p>
-            </div>
-            {s.id !== currentSession?.id ? (
-              <button
-                type="button"
-                onClick={async () => {
-                  await s.revoke();
-                  await load();
-                }}
-                className="text-sm font-semibold text-red-600"
-              >
-                Sign out
-              </button>
-            ) : null}
-          </li>
-        ))}
-        {rows === null ? <li className="h-12 animate-pulse rounded bg-[var(--gray-bg)]" /> : null}
-      </ul>
-      <div className="mt-5 flex flex-wrap gap-3">
+    <Card title="Security">
+      <p className="text-sm text-[var(--muted)]">
+        Change your password, add a passkey or authenticator, and sign out other devices.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
-          disabled={!others.length}
-          onClick={async () => {
-            await Promise.all(others.map((s) => s.revoke()));
-            await load();
-            setMsg("Signed out of all other devices");
-          }}
-          className="h-11 rounded-xl border border-[var(--primary)]/12 px-5 text-sm font-semibold disabled:opacity-40"
+          onClick={() => openAccount()}
+          className="inline-flex h-11 items-center rounded-xl border border-[var(--border)] px-5 text-sm font-bold"
         >
-          Sign out other devices
+          Open account security
         </button>
         <button
           type="button"
-          onClick={() => signOut({ redirectUrl: "/login" })}
+          onClick={() => signOut({ returnTo: "/login" })}
           className="inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--primary)] px-5 text-sm font-bold text-white"
         >
           <LogOut className="h-4 w-4" /> Sign out
         </button>
       </div>
-      {msg ? (
-        <p role="status" className="mt-3 text-sm text-[var(--muted)]">
-          {msg}
-        </p>
-      ) : null}
     </Card>
   );
 }

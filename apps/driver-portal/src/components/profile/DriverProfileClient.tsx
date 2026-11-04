@@ -23,6 +23,7 @@ import {
   statusBadge,
   UPLOADABLE_DOC_TYPES,
 } from "@/lib/profile";
+import { shrinkImageToDataUrl } from "@/lib/shrink-image";
 import { cn } from "@/lib/utils";
 
 export default function DriverProfileClient() {
@@ -271,7 +272,12 @@ export default function DriverProfileClient() {
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
             <Row label="Unit" value={snap.vehicle.make_model} />
             <Row label="Plate" value={snap.vehicle.plate_number} />
-            <Row label="Class" value={snap.vehicle.vehicle_class} />
+            <Row
+              label="Class"
+              value={String(snap.vehicle.vehicle_class ?? "")
+                .replace(/_/g, " ")
+                .replace(/^./, (c) => c.toUpperCase())}
+            />
             <Row
               label="Capacity"
               value={snap.vehicle.capacity_kg ? `${snap.vehicle.capacity_kg} kg` : null}
@@ -446,7 +452,11 @@ export default function DriverProfileClient() {
       </section>
 
       <p className="mt-6 text-xs text-[var(--muted)]">
-        Last synced {new Date(snap.last_updated).toLocaleString()}
+        Last synced{" "}
+        {new Date(snap.last_updated).toLocaleString("en-CA", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })}
       </p>
     </DriverShell>
   );
@@ -615,13 +625,17 @@ function DocumentUploadForm({
   const [docType, setDocType] = useState("license");
   const [fileUrl, setFileUrl] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [fileError, setFileError] = useState("");
 
   return (
     <form
       className="mt-6 space-y-3 border-t border-[var(--primary)]/10 pt-4"
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!fileUrl.trim()) return;
+        if (!fileUrl.trim()) {
+          setFileError("Choose a photo of the document first.");
+          return;
+        }
         await onUpload(docType, fileUrl.trim(), expiresAt ? { expires_at: expiresAt } : undefined);
         setFileUrl("");
         setExpiresAt("");
@@ -639,14 +653,42 @@ function DocumentUploadForm({
           </option>
         ))}
       </select>
+      <label className="block text-sm">
+        <span className="text-xs text-[var(--muted,#64748b)]">
+          Photo of the document (JPG, PNG or WebP — big phone photos are shrunk automatically)
+        </span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          aria-label="Choose document photo"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            setFileError("");
+            if (!file) return;
+            shrinkImageToDataUrl(file)
+              .then(setFileUrl)
+              .catch(() => setFileError("We couldn't use this photo. Try another one."));
+          }}
+          className="mt-1 w-full text-sm"
+        />
+      </label>
+      {fileError ? (
+        <p role="alert" className="text-xs text-red-700">
+          {fileError}
+        </p>
+      ) : null}
       <input
-        type="url"
-        required
-        placeholder="Document file URL"
-        value={fileUrl}
+        type="text"
+        placeholder="Or paste a document link (https://…)"
+        aria-label="Document link"
+        value={fileUrl.startsWith("data:") ? "" : fileUrl}
         onChange={(e) => setFileUrl(e.target.value)}
         className="w-full rounded-xl border border-[var(--primary)]/10 px-3 py-2 text-sm"
       />
+      {fileUrl.startsWith("data:image") ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={fileUrl} alt="Selected document" className="max-h-32 rounded-lg border" />
+      ) : null}
       <DateField
         label="Expires"
         value={expiresAt}
@@ -688,10 +730,26 @@ function UploadVehiclePhotoForm({
     >
       <p className="text-sm font-semibold">Upload vehicle photo</p>
       <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        aria-label="Choose vehicle photo"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file)
+            shrinkImageToDataUrl(file)
+              .then(setFileUrl)
+              .catch(() => setFileUrl(""));
+        }}
+        className="w-full text-sm"
+      />
+      {fileUrl.startsWith("data:image") ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={fileUrl} alt="Selected vehicle photo" className="max-h-32 rounded-lg border" />
+      ) : null}
+      <input
         type="url"
-        required
-        placeholder="Photo URL"
-        value={fileUrl}
+        placeholder="Or paste a photo link (https://…)"
+        value={fileUrl.startsWith("data:") ? "" : fileUrl}
         onChange={(e) => setFileUrl(e.target.value)}
         className="w-full rounded-xl border border-[var(--primary)]/10 px-3 py-2 text-sm"
       />

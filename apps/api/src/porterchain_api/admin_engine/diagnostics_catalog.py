@@ -37,10 +37,10 @@ COMPONENT_CATEGORY: dict[str, str] = {
     "postgresql": "infrastructure",
     "redis": "infrastructure",
     "dispatch": "integrations",
-    "google_maps": "integrations",
+    "maps": "integrations",
     "osrm": "integrations",
     "valhalla": "integrations",
-    "clerk": "integrations",
+    "keycloak": "integrations",
     "stripe": "integrations",
     "firebase_fcm": "integrations",
     "email_smtp": "integrations",
@@ -53,10 +53,10 @@ COMPONENT_CATEGORY: dict[str, str] = {
 }
 
 TEST_CATALOG: list[dict[str, str]] = [
-    {"id": "clerk", "name": "Clerk", "category": "integrations", "description": "JWKS + auth configuration", "masterrule": "§15"},
+    {"id": "keycloak", "name": "Keycloak", "category": "integrations", "description": "JWKS + auth configuration", "masterrule": "§15"},
     {"id": "stripe", "name": "Stripe", "category": "integrations", "description": "Live API + checkout config", "masterrule": "§14"},
     {"id": "firebase", "name": "Firebase FCM", "category": "integrations", "description": "Push notification project", "masterrule": "§11.3"},
-    {"id": "google_maps", "name": "Google Maps", "category": "integrations", "description": "Geocoding API probe", "masterrule": "Appendix B"},
+    {"id": "maps", "name": "Maps (PMTiles + Photon)", "category": "integrations", "description": "Self-hosted tiles + Photon geocoder", "masterrule": "Appendix B"},
     {"id": "osrm", "name": "OSRM", "category": "integrations", "description": "Routing fallback", "masterrule": "Appendix B"},
     {"id": "valhalla", "name": "Valhalla", "category": "integrations", "description": "Primary routing engine", "masterrule": "Appendix B"},
     {"id": "dispatch", "name": "Dispatch (day plan)", "category": "integrations", "description": "OR-Tools day plan + Valhalla road cost", "masterrule": "§13"},

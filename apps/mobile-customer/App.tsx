@@ -77,7 +77,7 @@ function Root() {
         raw.startsWith("identity_conflict") ||
         raw === "user_not_provisioned" ||
         raw === "missing_portal_permission" ||
-        raw === "email_clerk_mismatch"
+        raw === "email_identity_mismatch"
       ) {
         setDenied(message);
         setPhase("denied");

@@ -8,8 +8,7 @@ import { customersApi, type CreateCustomerBookingDraftResult } from "@/lib/custo
 import { RETAIL_VEHICLE_OPTIONS } from "@/lib/merchants";
 import { money } from "@/lib/crmFormat";
 import { publicEnv } from "@/lib/env";
-import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
-import { Button, Input, Modal, Select } from "@/components/crm/primitives";
+import { Button, Modal, Select } from "@/components/crm/primitives";
 import { DateTimeField } from "@porterchain/ui/date-fields";
 
 type Props = {
@@ -131,7 +130,7 @@ export function CustomerAddOrderModal({
         </div>
       }
     >
-      <GoogleMapsProvider>
+      <>
         <div className="space-y-4 text-sm">
           <p className="text-muted">
             Retail booking for <span className="font-medium text-primary">{customerEmail}</span>.
@@ -236,7 +235,7 @@ export function CustomerAddOrderModal({
           </label>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
-      </GoogleMapsProvider>
+      </>
     </Modal>
   );
 }

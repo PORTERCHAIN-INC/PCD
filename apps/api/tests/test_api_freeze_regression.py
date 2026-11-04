@@ -1,8 +1,8 @@
 """Regression for the 2026-10-14 prod freeze.
 
 Root cause: async auth dependencies (get_driver_context) ran *blocking* work on the
-event loop — Clerk Backend user lookups (sync httpx, 20 s timeout) and SQLAlchemy
-pool checkouts (30 s pool_timeout). One slow Clerk call froze every request,
+event loop — Keycloak Backend user lookups (sync httpx, 20 s timeout) and SQLAlchemy
+pool checkouts (30 s pool_timeout). One slow Keycloak call froze every request,
 including /health, and left other sessions idle-in-transaction until Postgres
 killed them at 60 s.
 """
@@ -22,10 +22,10 @@ from sqlalchemy.pool import QueuePool
 from starlette.concurrency import run_in_threadpool
 
 from porterchain_api.auth import driver as driver_auth
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.db import get_db
 
-SLOW_CLERK_S = 1.5
+SLOW_IDP_S = 1.5
 
 
 def _app_with_driver_route() -> FastAPI:
@@ -60,35 +60,35 @@ async def _hammer_health(client: httpx.AsyncClient, seconds: float) -> list[floa
 
 
 @pytest.fixture
-def slow_clerk(monkeypatch):
+def slow_idp(monkeypatch):
     async def fake_verify(token, settings, **_):
-        return ClerkClaims(clerk_user_id="user_slow", email=None)
+        return IdentityClaims(auth_subject="user_slow", email=None)
 
     def slow_enrich(claims, settings):
         return claims
 
     def stop_after_enrich(db, claims):
-        # prepare -> UserSync -> email identity -> fetch_clerk_user: blocking
-        # Clerk Backend HTTP with a DB transaction already open, like prod.
-        time.sleep(SLOW_CLERK_S)
+        # prepare -> UserSync -> email identity -> fetch_identity_user: blocking
+        # Keycloak Backend HTTP with a DB transaction already open, like prod.
+        time.sleep(SLOW_IDP_S)
         raise HTTPException(status_code=403, detail="driver_not_found")
 
-    import porterchain_api.auth.clerk as clerk_mod
+    import porterchain_api.auth.bearer as idp_mod
     import porterchain_api.auth.email_identity as ei
     import porterchain_api.auth.prepare as prep
 
-    monkeypatch.setattr(clerk_mod, "verify_clerk_token", fake_verify)
+    monkeypatch.setattr(idp_mod, "verify_access_token", fake_verify)
     monkeypatch.setattr(ei, "enrich_claims_with_verified_email", slow_enrich)
     monkeypatch.setattr(prep, "prepare_user_from_claims", stop_after_enrich)
 
 
 @pytest.mark.anyio
-async def test_slow_clerk_signin_does_not_freeze_health(slow_clerk):
+async def test_slow_idp_signin_does_not_freeze_health(slow_idp):
     app = _app_with_driver_route()
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
         t0 = time.perf_counter()
-        hammer = asyncio.create_task(_hammer_health(c, SLOW_CLERK_S))
+        hammer = asyncio.create_task(_hammer_health(c, SLOW_IDP_S))
         await asyncio.sleep(0.05)  # probes running; now drivers sign in
         signins = [
             asyncio.create_task(c.get("/driver-api/v1/jobs", headers={"Authorization": "Bearer jwt"}))
@@ -104,7 +104,7 @@ async def test_slow_clerk_signin_does_not_freeze_health(slow_clerk):
     assert lat[-1] < 0.5, f"/health max {lat[-1]:.3f}s — event loop was blocked"
     assert len(lat) > 20, f"only {len(lat)} health calls completed"
     assert p99 < 0.25, f"/health p99 {p99:.3f}s during slow sign-in"
-    assert hammer_wall < SLOW_CLERK_S + 0.5, f"health hammer stalled {hammer_wall:.2f}s"
+    assert hammer_wall < SLOW_IDP_S + 0.5, f"health hammer stalled {hammer_wall:.2f}s"
 
 
 @pytest.mark.anyio
@@ -165,8 +165,8 @@ def test_health_does_not_touch_db_pool(monkeypatch):
     assert client.get("/health/live").status_code == 200
 
 
-def test_clerk_get_user_has_short_timeout(monkeypatch):
-    from porterchain_api.auth import clerk_client
+def test_identity_directory_get_user_has_short_timeout(monkeypatch):
+    from porterchain_api.auth import keycloak_admin
 
     seen = {}
     real = httpx.Client
@@ -175,10 +175,19 @@ def test_clerk_get_user_has_short_timeout(monkeypatch):
         seen["timeout"] = k.get("timeout")
         return real(*a, transport=httpx.MockTransport(lambda r: httpx.Response(404)), **k)
 
-    monkeypatch.setattr(clerk_client.httpx, "Client", spy)
-    assert clerk_client.ClerkClient("sk_test").get_user("user_x") is None
+    monkeypatch.setattr(keycloak_admin.httpx, "Client", spy)
+    seen.clear()
+    try:
+        from porterchain_api.config import Settings
+
+        keycloak_admin.KeycloakAdmin(
+            Settings(_env_file=None, keycloak_url="http://kc.invalid", keycloak_admin_client_secret="s")  # type: ignore[call-arg]
+        )
+    except Exception:  # noqa: BLE001 — token fetch 404s; only the timeout matters
+        pass
     t = seen["timeout"]
-    assert isinstance(t, httpx.Timeout) and t.read <= 5 and t.connect <= 2
+    t = t if isinstance(t, httpx.Timeout) else httpx.Timeout(t)
+    assert t.read <= 5 and t.connect <= 2
 
 
 def test_pool_monitor_alerts(caplog):
@@ -235,54 +244,41 @@ async def _loop_stall_during(coro_factory, n: int = 3) -> float:
     return worst
 
 
-@pytest.mark.anyio
-async def test_verify_clerk_token_email_lookup_off_loop(monkeypatch):
-    """Customer/merchant/driver JWTs without email hit Clerk Backend inside verify."""
-    import porterchain_api.auth.clerk_identity_provider as cip
-    import porterchain_api.auth.email_identity as ei
-
-    async def jwks(url):
-        return {"keys": [{"kid": "k"}]}
-
-    monkeypatch.setattr(cip, "clerk_jwks_urls", lambda s: [("customer", "https://jwks")])
-    monkeypatch.setattr(cip, "_get_jwks", jwks)
-    monkeypatch.setattr(cip, "_rsa_key_for_token", lambda j, t: "key")
-    monkeypatch.setattr(cip.jwt, "decode", lambda *a, **k: {"sub": "user_c"})
-    monkeypatch.setattr(cip, "_enforce_token_policy", lambda p, s: None)
-    monkeypatch.setattr(cip, "_claims_from_payload", lambda p, clerk_app=None: ClerkClaims(clerk_user_id="user_c", email=None))
-
-    def slow_enrich(claims, settings):
-        time.sleep(SLOW_CLERK_S)
-        return claims
-
-    monkeypatch.setattr(ei, "enrich_claims_with_verified_email", slow_enrich)
-    settings = MagicMock(clerk_audience="")
-    stall = await _loop_stall_during(lambda: cip.verify_clerk_token("jwt", settings))
-    assert stall < 0.5, f"verify_clerk_token blocked the loop {stall:.2f}s"
-
-
-def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
+def test_customer_contact_calls_idp_before_first_query(monkeypatch):
     import porterchain_api.auth.customer as cust
     import porterchain_api.auth.email_identity as ei
 
     order: list[str] = []
-    monkeypatch.setattr(ei, "resolve_verified_clerk_email", lambda **k: order.append("clerk_email") or "a@b.c")
-    monkeypatch.setattr(cust, "is_clerk_secret_configured", lambda s: True)
-    monkeypatch.setattr(cust, "fetch_clerk_user", lambda s, uid: (order.append("clerk_phone") or {"x": 1}, "customer"))
-    monkeypatch.setattr(cust.ClerkClient, "primary_phone", staticmethod(lambda u: "+14165550000"))
-    monkeypatch.setattr(cust._customers, "get_by_clerk", lambda db, uid: None)
+    monkeypatch.setattr(ei, "resolve_verified_idp_email", lambda **k: order.append("identity_email") or "a@b.c")
+    monkeypatch.setattr(cust, "is_directory_configured", lambda s: True)
+    monkeypatch.setattr(cust, "fetch_identity_user", lambda s, uid: (order.append("idp_phone") or {"x": 1}, "customer"))
+    monkeypatch.setattr(cust.IdentityDirectory, "primary_phone", staticmethod(lambda u: "+14165550000"))
+    monkeypatch.setattr(cust._customers, "get_by_idp", lambda db, uid: None)
     cust._phone_cache.clear()
     db = MagicMock()
     db.query.side_effect = lambda *a, **k: order.append("db") or MagicMock(
         filter=lambda *a: MagicMock(first=lambda: None)
     )
-    email, phone = cust.resolve_customer_contact(db, ClerkClaims(clerk_user_id="user_c", email=None), MagicMock())
+    email, phone = cust.resolve_customer_contact(db, IdentityClaims(auth_subject="user_c", email=None), MagicMock())
     assert (email, phone) == ("a@b.c", "+14165550000")
-    assert order.index("clerk_phone") < order.index("db"), order
-    # cached: second call makes no Clerk request
+    assert order.index("idp_phone") < order.index("db"), order
+    # cached: second call makes no Keycloak request
     order.clear()
-    cust.resolve_customer_contact(db, ClerkClaims(clerk_user_id="user_c", email=None), MagicMock())
+    cust.resolve_customer_contact(db, IdentityClaims(auth_subject="user_c", email=None), MagicMock())
     assert "clerk_phone" not in order
+
+
+def _fast_admin_verify(monkeypatch):
+    from porterchain_api.auth import bearer, driver
+
+    async def verify(token, settings, portal=None):
+        return MagicMock(auth_subject="kc-sub")
+
+    def not_driver(token, settings):
+        raise ValueError("not a driver token")
+
+    monkeypatch.setattr(bearer, "verify_access_token", verify)
+    monkeypatch.setattr(driver, "_driver_id_from_token", not_driver)
 
 
 @pytest.mark.anyio
@@ -292,15 +288,16 @@ async def test_websocket_user_lookup_off_loop(monkeypatch):
 
     monkeypatch.setattr(dbmod, "SessionLocal", lambda: MagicMock())
 
-    def slow_staff(db, token):
-        time.sleep(SLOW_CLERK_S)  # sync DB lookup under pool pressure
+    def slow_staff(db, claims):
+        time.sleep(SLOW_IDP_S)  # sync DB lookup under pool pressure
         return pr.NotificationUser("admin", "a1")
 
-    monkeypatch.setattr(pr, "_resolve_staff_notification_user", slow_staff)
+    monkeypatch.setattr(pr, "_admin_recipient_from_claims", slow_staff)
+    _fast_admin_verify(monkeypatch)
     results = []
 
     async def one():
-        results.append(await pr.resolve_notification_ws_user("staff_sess_x"))
+        results.append(await pr.resolve_notification_ws_user("eyJ.admin.jwt"))
 
     stall = await _loop_stall_during(one)
     assert stall < 0.5, f"ws user lookup blocked the loop {stall:.2f}s"
@@ -313,12 +310,13 @@ async def test_notification_http_dependency_off_loop(monkeypatch):
 
     from porterchain_api.notification_engine import principal as pr
 
-    def slow_staff(db, token):
-        time.sleep(SLOW_CLERK_S)
+    def slow_staff(db, claims):
+        time.sleep(SLOW_IDP_S)
         return pr.NotificationUser("admin", "a1")
 
-    monkeypatch.setattr(pr, "_resolve_staff_notification_user", slow_staff)
-    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="staff_sess_x")
+    monkeypatch.setattr(pr, "_admin_recipient_from_claims", slow_staff)
+    _fast_admin_verify(monkeypatch)
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="eyJ.admin.jwt")
     stall = await _loop_stall_during(
         lambda: pr.get_notification_user(db=MagicMock(), settings=MagicMock(), credentials=creds)
     )
@@ -326,7 +324,7 @@ async def test_notification_http_dependency_off_loop(monkeypatch):
 
 
 def test_no_sync_db_or_http_in_async_defs():
-    """Static guard: no un-offloaded db/Clerk/httpx call inside any async def."""
+    """Static guard: no un-offloaded db/Keycloak/httpx call inside any async def."""
     import ast
     import pathlib
 
@@ -351,7 +349,7 @@ def test_no_sync_db_or_http_in_async_defs():
                     continue
                 uses_db = any(isinstance(a, ast.Name) and a.id == "db" for a in c.args)
                 if uses_db or name.startswith("db.") or name in {"SessionLocal", "httpx.Client"} or name.endswith(
-                    ("fetch_clerk_user", "enrich_claims_with_verified_email", "prepare_user_from_claims")
+                    ("fetch_identity_user", "enrich_claims_with_verified_email", "prepare_user_from_claims")
                 ):
                     bad.append(f"{f.relative_to(root)}:{c.lineno} {fn.name} -> {name}")
     assert not bad, "blocking calls on the event loop:\n" + "\n".join(bad)

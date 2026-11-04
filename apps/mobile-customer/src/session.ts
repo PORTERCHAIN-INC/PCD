@@ -31,13 +31,6 @@ export function getSessionSnapshot(): SessionSnapshot {
   return snapshot;
 }
 
-export function subscribeSession(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-}
-
 export async function requireBearer(): Promise<string> {
   const token = await snapshot.getToken();
   if (token) return token;

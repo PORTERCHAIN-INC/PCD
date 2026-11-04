@@ -21,6 +21,23 @@ def test_preferred_vehicles_rejects_outside_catalog() -> None:
             AdminMerchantService._validate_preferred_vehicles(db, ["sedan", "truck"])
 
 
+def test_preferred_vehicles_keeps_existing_disabled_class() -> None:
+    """A class disabled after the merchant chose it must not block unrelated edits."""
+    db = MagicMock()
+    with patch(
+        "porterchain_api.admin_engine.settings_service.AdminSettingsService.enabled_retail_vehicle_ids",
+        return_value={"cargo_van"},
+    ):
+        out = AdminMerchantService._validate_preferred_vehicles(
+            db, ["cargo_van", "sprinter_van"], ["cargo_van", "sprinter_van"]
+        )
+        assert out == ["cargo_van", "sprinter_van"]
+        with pytest.raises(ValueError, match="preferred_vehicle_not_in_catalog:pickup"):
+            AdminMerchantService._validate_preferred_vehicles(
+                db, ["cargo_van", "sprinter_van", "pickup"], ["cargo_van", "sprinter_van"]
+            )
+
+
 def test_preferred_vehicles_accepts_catalog_subset() -> None:
     db = MagicMock()
     with patch(
@@ -155,7 +172,7 @@ def test_customer_ensure_sets_porterchain_user_id() -> None:
     customer = SimpleNamespace(
         porterchain_user_id=None,
         email="c@example.com",
-        clerk_user_id="clerk_c",
+        auth_subject="idp_c",
     )
     bundle = SimpleNamespace(
         admin=None,
@@ -170,6 +187,6 @@ def test_customer_ensure_sets_porterchain_user_id() -> None:
         patch("porterchain_api.auth.ensure_user_service.emails_match", return_value=True),
         patch("porterchain_api.auth.ensure_user_service.activate_pending_user"),
     ):
-        svc._refresh_account_role_hint(db, user, "clerk_c", "c@example.com")
+        svc._refresh_account_role_hint(db, user, "idp_c", "c@example.com")
 
     assert customer.porterchain_user_id == "pc-user-1"

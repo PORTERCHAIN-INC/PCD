@@ -63,6 +63,12 @@ export const MERCHANT_NAV_GROUPS: MerchantNavGroup[] = [
         description: "Multi-stop routes, CSV, recurring",
         icon: MapPinned,
       },
+      {
+        href: "/batches",
+        label: "Bulk batches",
+        description: "CSV batches, pickup documents, instructions",
+        icon: Package,
+      },
     ],
   },
   {

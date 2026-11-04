@@ -7,6 +7,7 @@ import { dateTime, money, relativeTime, titleCase } from "@/lib/crmFormat";
 import { Badge, EmptyState } from "@/components/crm/primitives";
 import { PodDownloadAll, PodDownloadOne } from "@/components/orders/PodDownloads";
 import { OrderMoneyDownloads } from "@/components/orders/sections";
+import { OrderAdjustmentsPanel } from "@/components/pricing/QuoteAndAdjustments";
 import { paymentTone, pickupWindowFromStops, str, Strip } from "./shared";
 
 export function DetailsTab({ detail }: { detail: OrderDetail }) {
@@ -231,6 +232,8 @@ export function MoneyTab({ detail }: { detail: OrderDetail }) {
           }
         />
       </div>
+
+      <OrderAdjustmentsPanel orderId={detail.order_id} />
 
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">

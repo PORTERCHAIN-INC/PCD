@@ -79,11 +79,12 @@ def oauth_configured(settings: Settings) -> bool:
 
 # Scopes released on PorterChain Delivery. Extra env scopes (read_products,
 # write_orders, …) make Shopify's grant screen refuse the automated install.
+# Review 139170 (3.2 minimum scopes): *_assigned_fulfillment_orders were dropped; they are only
+# used by the fulfillment-service path (SHOPIFY_FULFILLMENT_SERVICE_ENABLED, default off).
+# Re-add them here AND in integrations/shopify/*.toml before turning that flag on.
 _RELEASED_APP_SCOPES = (
-    "read_assigned_fulfillment_orders",
     "read_merchant_managed_fulfillment_orders",
     "read_orders",
-    "write_assigned_fulfillment_orders",
     "write_fulfillments",
     "write_merchant_managed_fulfillment_orders",
     "write_shipping",

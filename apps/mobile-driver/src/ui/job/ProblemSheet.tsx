@@ -6,6 +6,7 @@ import { STOP_EXCEPTION_TYPES, stopExceptionById } from "../../stopExceptions";
 import { Body, Button, Strong } from "../kit";
 import { Sheet } from "../Sheet";
 import { color, radius, space, target } from "../theme";
+import { isSilentError } from "../../errorCopy";
 
 export function ProblemSheet({
   visible,
@@ -38,7 +39,10 @@ export function ProblemSheet({
               onPress={() =>
                 void capturePodPhotoDataUrl()
                   .then(setPhoto)
-                  .catch((e: unknown) => onError(e instanceof Error ? e.message : "photo_failed"))
+                  .catch((e: unknown) => {
+                    const m = e instanceof Error ? e.message : "photo_failed";
+                    if (!isSilentError(m)) onError(m); // L170
+                  })
               }
             />
           ) : null}

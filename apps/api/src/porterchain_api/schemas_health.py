@@ -28,14 +28,14 @@ class IntegrationHealthResponse(BaseModel):
     redis: IntegrationComponent
     queue: IntegrationComponent | None = None
     stripe: IntegrationComponent | None = None
-    google_maps: IntegrationComponent | None = None
+    maps: IntegrationComponent | None = None
     firebase: IntegrationComponent | None = None
-    clerk: IntegrationComponent | None = None
+    keycloak: IntegrationComponent | None = None
     storage: IntegrationComponent | None = None
     email: IntegrationComponent | None = None
     sms: IntegrationComponent | None = None
     push: IntegrationComponent | None = None
-    nvidia_nim: IntegrationComponent | None = None
+    llm: IntegrationComponent | None = None
     routing: dict[str, Any] | None = None
 
 

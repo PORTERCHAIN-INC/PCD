@@ -10,7 +10,7 @@ describe("driver portal anti-flicker guards", () => {
     expect(src("../app/globals.css")).not.toMatch(/::view-transition-(old|new)\(root\)/);
   });
 
-  it("reserves a fixed-height slot for the Clerk sign-in card in every login state", () => {
+  it("reserves a fixed-height slot for the Keycloak sign-in card in every login state", () => {
     const page = src("../app/login/[[...sign-in]]/page.tsx");
     expect(page).toMatch(/const SIGN_IN_SLOT = "[^"]*min-h-\[/);
     // loading, signed-in "Preparing…", the <SignIn/> card, and the Suspense fallback

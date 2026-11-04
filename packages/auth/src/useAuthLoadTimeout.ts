@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { reportAuthEvent } from "./authTelemetry";
 
-export const CLERK_LOAD_TIMEOUT_MS = 15_000;
+export const AUTH_LOAD_TIMEOUT_MS = 15_000;
 
 /**
- * True once Clerk has failed to load for `timeoutMs`. Pages show `AuthLoadFailed`
+ * True once the session has failed to load for `timeoutMs`. Pages show `AuthLoadFailed`
  * instead of an endless "Preparing sign-in…" spinner (blocked CDN, CSP, network).
  */
-export function useAuthLoadTimeout(isLoaded: boolean, timeoutMs = CLERK_LOAD_TIMEOUT_MS): boolean {
+export function useAuthLoadTimeout(isLoaded: boolean, timeoutMs = AUTH_LOAD_TIMEOUT_MS): boolean {
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {
     if (isLoaded) {
@@ -21,7 +21,7 @@ export function useAuthLoadTimeout(isLoaded: boolean, timeoutMs = CLERK_LOAD_TIM
       reportAuthEvent(
         typeof navigator !== "undefined" && navigator.onLine === false
           ? "offline"
-          : "clerk_load_timeout"
+          : "auth_load_timeout"
       );
     }, timeoutMs);
     return () => window.clearTimeout(id);

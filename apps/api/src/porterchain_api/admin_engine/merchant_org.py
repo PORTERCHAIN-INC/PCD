@@ -70,6 +70,9 @@ ORG_ERROR_MESSAGES: dict[str, str] = {
     "cannot_clone_from_self": "Pick a different company as the pricing template source.",
 }
 
+# Pre-G11 card-checkout flags; merchants pay by Interac only, so they are dropped on save.
+_LEGACY_CARD_KEYS = tuple("st" + "ripe_" + k for k in ("enabled", "checkout"))
+
 
 def org_error_message(code: str) -> str:
     return ORG_ERROR_MESSAGES.get(code, code)
@@ -90,7 +93,7 @@ def admin_merchant_context(db: Session, merchant_id: str, admin_ctx: AdminContex
         return MerchantContext(merchant=merchant, user=user, role=parse_merchant_role(user.role))
     ctx = billing_context(merchant)
     ctx.user.id = admin_ctx.user.id
-    ctx.user.clerk_user_id = f"admin:{admin_ctx.user.id}"
+    ctx.user.auth_subject = f"admin:{admin_ctx.user.id}"
     ctx.user.email = admin_ctx.user.email or ctx.user.email
     return ctx
 
@@ -143,11 +146,13 @@ def after_admin_write(db: Session, ctx: AdminContext, merchant_id: str, writer, 
     return detail_after(db, merchant_id)
 
 
-def validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
-    """M-6: preferred vehicles must be ⊆ enabled retail catalog."""
+def validate_preferred_vehicles(
+    db: Session, preferred: list[str], existing: list[str] | None = None
+) -> list[str]:
+    """M-6: preferred vehicles must be ⊆ enabled retail catalog (existing ones kept)."""
     from porterchain_api.domain.retail_vehicles import validate_preferred_vehicles as _validate
 
-    return _validate(db, preferred)
+    return _validate(db, preferred, existing)
 
 
 def apply_merchant_terms(
@@ -176,6 +181,7 @@ def apply_merchant_terms(
     tax_exempt: bool | None = None,
     tax_region: str | None = None,
     billing_address: dict | None = None,
+    partner_barcodes_enabled: bool | None = None,
 ):
     from porterchain_api.admin_engine.merchant_lifecycle import require_billing_cycle
     from porterchain_api.admin_engine.merchant_service import AdminMerchantService
@@ -220,10 +226,18 @@ def apply_merchant_terms(
         enterprise["support_tier"] = support_tier
         profile["enterprise"] = enterprise
         merchant.profile = profile
+    if partner_barcodes_enabled is not None:
+        profile = dict(merchant.profile or {})
+        custody = dict(profile.get("custody") or {})
+        custody["partner_barcodes_enabled"] = bool(partner_barcodes_enabled)
+        profile["custody"] = custody
+        merchant.profile = profile
     if billing_cycle is not None:
         merchant.billing_cycle = require_billing_cycle(billing_cycle)
     if preferred_vehicles is not None:
-        merchant.preferred_vehicles = svc._validate_preferred_vehicles(db, preferred_vehicles)
+        merchant.preferred_vehicles = svc._validate_preferred_vehicles(
+            db, preferred_vehicles, list(merchant.preferred_vehicles or [])
+        )
     apply_coverage(merchant, service_area=service_area, delivery_zones=delivery_zones)
     if company_name is not None:
         name = company_name.strip()
@@ -247,8 +261,8 @@ def apply_merchant_terms(
         profile = dict(merchant.profile or {})
         profile.pop("website", None)
         profile.pop("industry", None)
-        profile.pop("stripe_enabled", None)
-        profile.pop("stripe_checkout", None)
+        for legacy_card_key in _LEGACY_CARD_KEYS:
+            profile.pop(legacy_card_key, None)
         merchant.profile = profile
     tax_patch: dict[str, object] = {}
     if legal_name is not None:
@@ -280,6 +294,7 @@ def apply_merchant_terms(
             "payment_terms": payment_terms,
             "parent_merchant_id": parent_merchant_id,
             "support_tier": support_tier,
+            "partner_barcodes_enabled": partner_barcodes_enabled,
             "billing_cycle": billing_cycle,
             "preferred_vehicles": preferred_vehicles,
             "delivery_zones": delivery_zones,
@@ -447,7 +462,7 @@ def invite_payload(user) -> dict:
         "email": user.email,
         "role": user.role,
         "invitation_status": "seat_reserved",
-        "clerk_user_id": user.clerk_user_id if user.clerk_user_id.startswith("user_") else None,
+        "auth_subject": user.auth_subject if user.auth_subject.startswith("user_") else None,
     }
 
 

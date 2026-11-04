@@ -99,6 +99,25 @@ class JobOffersService:
         db.commit()
         return {"offer": serialize(created, now=now) if created else None, "created": created is not None}
 
+    def auto_offer_ready(self, db: Session, *, limit: int = 20, now: datetime | None = None) -> int:
+        """L41: rules-based auto-dispatch. Offer each never-offered DISPATCH_READY order
+        (not held by a partner) to its best-ranked driver; expiry cascades via sweep()."""
+        from porterchain_api.admin_engine.operations_service import AdminOperationsService
+
+        made = 0
+        for order in AdminOperationsService().dispatch_queue(db, limit=limit):
+            if order.assigned_driver_id:
+                continue
+            seen = db.query(DispatchJobOffer.id).filter(DispatchJobOffer.order_id == order.id).first()
+            if seen is not None:
+                continue
+            try:
+                if self.offer(db, order.id, actor_id="system:auto_dispatch", now=now).get("created"):
+                    made += 1
+            except (LookupError, ValueError):
+                db.rollback()
+        return made
+
     def _next(self, db: Session, order_id: str, *, actor_id: str | None, now: datetime) -> DispatchJobOffer | None:
         tried = {
             r[0]

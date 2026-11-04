@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import Settings
 from porterchain_api.integrations.shopify_hmac import verify_webhook_hmac
 from porterchain_api.merchant_engine import shopify_tokens as tokens
+# Load shopify_service first: it re-exports from shopify_payload_ops, which imports it back.
+# Importing payload_ops first (worker path) hits a circular ImportError.
+from porterchain_api.merchant_engine import shopify_service as _shopify_service  # noqa: F401, E402
 from porterchain_api.merchant_engine.shopify_payload_ops import (
     _book_from_shopify_payload,
     _cancel_from_shopify_payload,
@@ -137,8 +140,23 @@ def ingest_webhook(
             webhook_id=webhook_id,
             remember=_remember_gdpr,
         )
+    if topic_name in {"app/subscriptions/update", "app/subscriptions/approaching/capped/amount"}:
+        if shop and shop.uninstalled_at is None:
+            from porterchain_api.merchant_engine import shopify_billing
+
+            try:
+                shopify_billing.refresh_status(db, settings, shop)
+            except Exception:  # noqa: BLE001
+                db.rollback()
+                logger.warning("shopify_billing_refresh_failed shop=%s", shop_domain, exc_info=True)
+            _remember_webhook(shop, webhook_id)
+            db.commit()
+        return {"ok": True, "billing": getattr(shop, "billing_status", None)}
     if topic_name in {"app/uninstalled"}:
         if shop:
+            from porterchain_api.merchant_engine.shopify_billing import on_uninstall
+
+            on_uninstall(shop)
             _delete_partner_services(shop)
             shop.uninstalled_at = datetime.now(UTC)
             tokens.clear_tokens(shop)
@@ -186,6 +204,43 @@ def ingest_webhook(
     _remember_webhook(shop, webhook_id)
     db.commit()
     return {"ok": True, "queued": True, "action": action}
+
+
+_ORDER_ACTIONS = {"shopify_orders_create", "shopify_orders_updated", "shopify_orders_cancelled"}
+
+
+def process_order_payload(
+    db: Session,
+    settings: Settings,
+    *,
+    shop_domain: str,
+    action: str,
+    body: dict[str, Any],
+    topic: str | None = None,
+    source: str = "webhook",
+) -> dict[str, Any]:
+    """Book / update / cancel one Shopify order and ALWAYS record the outcome (139170)."""
+    from porterchain_api.merchant_engine.shopify_order_sync import record
+
+    fn = {
+        "shopify_orders_create": _book_from_shopify_payload,
+        "shopify_orders_updated": _update_from_shopify_payload,
+        "shopify_orders_cancelled": _cancel_from_shopify_payload,
+    }[action]
+    # refunds/create carries a refund, not an order: do not create a ledger row from it.
+    track = (topic or "") != "refunds/create"
+    try:
+        result = fn(db, settings, shop_domain=shop_domain, payload=body)
+    except Exception as exc:
+        db.rollback()
+        shop = _active_shop(db, shop_domain)
+        if shop and track:
+            record(db, shop, body, action=action, exc=exc, source=source)
+        raise
+    shop = _active_shop(db, shop_domain)
+    if shop and track:
+        record(db, shop, body, action=action, result=result, source=source)
+    return result
 
 
 def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, Any]) -> dict[str, Any]:
@@ -248,12 +303,10 @@ def process_queued_webhook(db: Session, settings: Settings, payload: dict[str, A
         return {"ok": True, "skipped": "ingress_paused", "held": True}
 
     try:
-        if action == "shopify_orders_create":
-            return _book_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
-        if action == "shopify_orders_updated":
-            return _update_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
-        if action == "shopify_orders_cancelled":
-            return _cancel_from_shopify_payload(db, settings, shop_domain=shop_domain, payload=body)
+        if action in _ORDER_ACTIONS:
+            return process_order_payload(
+                db, settings, shop_domain=shop_domain, action=str(action), body=body, topic=topic
+            )
         if action in {"shopify_return_approve", "shopify_return_cancel"}:
             return _return_from_shopify_payload(
                 db, settings, shop_domain=shop_domain, payload=body, action=str(action)

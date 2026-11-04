@@ -1,0 +1,20 @@
+# G21 A-APR-01/03/07: review account signs in on the Keycloak page with email + password
+# (no code, no CAPTCHA), sees the review shift, and can reach in-app account deletion. Run:
+#   maestro test -e REVIEW_EMAIL=... -e REVIEW_PASSWORD=... maestro/g21-reviewer-driver.yaml
+appId: com.porterchain.PCD
+tags: [g21]
+---
+- launchApp
+- assertVisible: { id: mobile-sign-in }
+- tapOn: { id: hosted-sign-in }
+# Keycloak hosted login (ASWebAuthenticationSession / Custom Tab)
+- extendedWaitUntil: { visible: { id: username }, timeout: 15000 }
+- tapOn: { id: username }
+- inputText: ${REVIEW_EMAIL}
+- tapOn: { id: password }
+- inputText: ${REVIEW_PASSWORD}
+- tapOn: { id: kc-login }
+- assertNotVisible: { text: ".*(one-time code|captcha|verify).*" }
+- tapOn: { text: "Profile" }
+- scrollUntilVisible: { element: { id: profile-delete-account } }
+- assertVisible: { id: profile-delete-account }

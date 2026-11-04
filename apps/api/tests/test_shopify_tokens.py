@@ -86,7 +86,7 @@ def _company(db) -> Merchant:
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=f"user_{suffix}",
+            auth_subject=f"user_{suffix}",
             email=f"owner-{suffix}@test.local",
             role=MerchantRole.OWNER.value,
             is_active=True,

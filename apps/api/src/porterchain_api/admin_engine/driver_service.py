@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.driver_account_ops import DriverAccountOps
 from porterchain_api.admin_engine.rbac import AdminContext
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService
 
 if TYPE_CHECKING:
@@ -106,17 +106,17 @@ class AdminDriverService(DriverAccountOps):
         db.commit()
         db.refresh(driver)
 
-        if settings and is_clerk_secret_configured(settings, "driver"):
+        if settings and is_directory_configured(settings, "driver"):
             try:
                 InvitationService().provision_driver_account(db, ctx, settings, driver)
                 db.refresh(driver)
             except Exception as exc:
-                logger.warning("driver_clerk_provision_failed: %s", exc)
+                logger.warning("driver_idp_provision_failed: %s", exc)
 
         return driver
 
     def provision_pending_from_lead(self, db: Session, ctx: AdminContext, lead) -> Driver:
-        """Idempotent PENDING driver. No Clerk invite."""
+        """Idempotent PENDING driver. No Keycloak invite."""
         existing = db.query(Driver).filter(Driver.crm_lead_id == lead.id).first()
         if existing:
             return existing
@@ -181,18 +181,18 @@ class AdminDriverService(DriverAccountOps):
         db.refresh(driver)
         if (
             settings
-            and not driver.clerk_user_id
+            and not driver.auth_subject
             and getattr(driver, "email", None)
-            and is_clerk_secret_configured(settings, "driver")
+            and is_directory_configured(settings, "driver")
         ):
             try:
                 InvitationService().provision_driver_account(db, ctx, settings, driver)
                 db.refresh(driver)
             except Exception as exc:
-                logger.warning("driver_clerk_provision_failed %s: %s", driver_id, exc)
+                logger.warning("driver_idp_provision_failed %s: %s", driver_id, exc)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        sync_authz_after_persona_mutation(db, driver.auth_subject)
         warning: str | None = None
         try:
             from porterchain_api.auth.driver_admin_action import run_admin_driver_action
@@ -233,7 +233,7 @@ class AdminDriverService(DriverAccountOps):
         db.refresh(driver)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        sync_authz_after_persona_mutation(db, driver.auth_subject)
         revoke_driver_sessions(driver, settings)
         return driver, None
 
@@ -274,7 +274,7 @@ class AdminDriverService(DriverAccountOps):
         db.refresh(driver)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        sync_authz_after_persona_mutation(db, driver.auth_subject)
         revoke_driver_sessions(driver, settings)
         return driver, None
 
@@ -303,7 +303,7 @@ class AdminDriverService(DriverAccountOps):
         db.refresh(driver)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, driver.clerk_user_id)
+        sync_authz_after_persona_mutation(db, driver.auth_subject)
         return driver
 
     def update_verification(
@@ -449,15 +449,15 @@ class AdminDriverService(DriverAccountOps):
 
 
 def revoke_driver_sessions(driver: Driver, settings: Settings | None) -> None:
-    """Offboarding: sign the driver out of Clerk everywhere (best effort; API access is
+    """Offboarding: sign the driver out of Keycloak everywhere (best effort; API access is
     already blocked by status on every request)."""
-    if not driver.clerk_user_id:
+    if not driver.auth_subject:
         return
     try:
-        from porterchain_api.auth.clerk_registry import clerk_client_for_kind
+        from porterchain_api.auth.identity_directory import directory_for_kind
         from porterchain_api.config import get_settings
 
-        n = clerk_client_for_kind(settings or get_settings(), "driver").revoke_sessions(driver.clerk_user_id)
+        n = directory_for_kind(settings or get_settings(), "driver").revoke_sessions(driver.auth_subject)
         logger.info("driver_sessions_revoked driver=%s count=%s", driver.id, n)
     except Exception as exc:  # noqa: BLE001
         logger.warning("driver_session_revoke_failed driver=%s: %s", driver.id, exc)

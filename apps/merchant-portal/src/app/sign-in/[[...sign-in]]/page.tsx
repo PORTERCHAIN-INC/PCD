@@ -3,18 +3,17 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SignIn, useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import {
   AuthLoadFailed,
-  AuthStallNotice,
-  porterchainClerkAppearance,
   safeAppRedirect,
   useAuthLoadTimeout,
   signInUnavailableCopy,
+  KeycloakSignInPanel,
 } from "@porterchain/auth";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { MerchantAuthLoading, MerchantAuthScreen } from "@/components/auth/MerchantAuthScreen";
-import { isClerkConfigured, useLocalDevAuth } from "@/lib/env";
+import { isAuthConfigured, useLocalDevAuth } from "@/lib/env";
 
 function LocalDevSignIn() {
   const router = useRouter();
@@ -31,7 +30,7 @@ function LocalDevSignIn() {
   return (
     <MerchantAuthScreen
       title="Local development"
-      subtitle="Clerk is off on localhost. You continue as the local merchant account."
+      subtitle="Keycloak is off on localhost. You continue as the local merchant account."
     >
       <Link
         href={redirectUrl}
@@ -43,8 +42,8 @@ function LocalDevSignIn() {
   );
 }
 
-/** Missing Clerk keys. A shipped build gets no dev-mode door and no internal instructions (BJ). */
-function ClerkUnavailable() {
+/** Missing Keycloak keys. A shipped build gets no dev-mode door and no internal instructions (BJ). */
+function AuthUnavailable() {
   if (!isDevelopmentBuild()) {
     return (
       <MerchantAuthScreen
@@ -58,12 +57,12 @@ function ClerkUnavailable() {
   return (
     <MerchantAuthScreen
       title="Local development"
-      subtitle="Clerk is not configured for this environment. The sign-in widget cannot load without keys."
+      subtitle="Keycloak is not configured for this environment. The sign-in widget cannot load without keys."
     >
       <div className="space-y-4">
         <p className="text-sm leading-relaxed text-muted">
-          Add Platform Clerk keys via <code className="text-primary">pnpm clerk:sync</code>, then
-          refresh.
+          Set NEXT_PUBLIC_KEYCLOAK_CLIENT_ID, KEYCLOAK_URL and AUTH_SESSION_SECRET (see
+          .env.example), then refresh.
         </p>
         <Link
           href="/dashboard"
@@ -76,7 +75,7 @@ function ClerkUnavailable() {
   );
 }
 
-function SignInWithClerk() {
+function SignInWithAuth() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
@@ -121,15 +120,7 @@ function SignInWithClerk() {
         </>
       }
     >
-      <SignIn
-        routing="path"
-        path="/sign-in"
-        signUpUrl="/sign-up"
-        forceRedirectUrl={redirectUrl}
-        fallbackRedirectUrl={redirectUrl}
-        appearance={porterchainClerkAppearance}
-      />
-      <AuthStallNotice />
+      <KeycloakSignInPanel mode="sign-in" returnTo={redirectUrl} />
     </MerchantAuthScreen>
   );
 }
@@ -142,12 +133,12 @@ export default function SignInPage() {
       </Suspense>
     );
   }
-  if (!isClerkConfigured()) {
-    return <ClerkUnavailable />;
+  if (!isAuthConfigured()) {
+    return <AuthUnavailable />;
   }
   return (
     <Suspense fallback={<MerchantAuthLoading label="Preparing sign-in…" />}>
-      <SignInWithClerk />
+      <SignInWithAuth />
     </Suspense>
   );
 }

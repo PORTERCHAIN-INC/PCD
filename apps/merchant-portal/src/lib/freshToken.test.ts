@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { withFreshToken } from "./freshToken.ts";
 
-test("every call mints a new token (no stale 60s Clerk JWT)", async () => {
+test("every call mints a new token (no stale 60s Keycloak JWT)", async () => {
   let n = 0;
   const getToken = async () => `tok-${++n}`;
   const seen: string[] = [];

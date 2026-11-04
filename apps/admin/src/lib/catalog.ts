@@ -11,7 +11,7 @@ const MERCHANT_STATUS_LABELS: Record<string, string> = {
 const ONBOARDING_PHASE_LABELS: Record<string, string> = {
   ready: "Portal ready",
   needs_invite: "Needs invite",
-  awaiting_clerk: "Awaiting sign-in",
+  awaiting_idp: "Awaiting sign-in",
   needs_activation: "User inactive",
   needs_approval: "Needs approval",
   onboarding: "Onboarding",

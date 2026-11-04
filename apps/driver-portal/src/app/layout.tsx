@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Carlito } from "next/font/google";
-import { AppClerkProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
+import { AppAuthProvider, ImpersonationBanner, SessionContextProvider } from "@porterchain/auth";
 import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { CommunicationsProvider } from "@/components/providers/CommunicationsProvider";
 import DriverQueryProvider from "@/components/providers/DriverQueryProvider";
@@ -29,12 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={brand.variable} style={{ colorScheme: "light" }}>
       <body className={brand.className}>
-        <AppClerkProvider
-          publishableKey={publicEnv.clerkPublishableKey}
-          signInUrl="/login"
-          afterSignOutUrl="/login"
-          fallbackRedirect="/onboarding"
-        >
+        <AppAuthProvider>
           <SessionContextProvider>
             <ImpersonationBanner portal="driver" active={impersonating} />
             <DriverQueryProvider>
@@ -43,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </CommunicationsProvider>
             </DriverQueryProvider>
           </SessionContextProvider>
-        </AppClerkProvider>
+        </AppAuthProvider>
       </body>
     </html>
   );

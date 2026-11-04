@@ -30,7 +30,7 @@ export type P0Case = {
 export type MerchantSeat = "dispatcher" | "viewer" | "owner";
 
 function loadRegistry(): { cases: P0Case[] } {
-  const registryPath = path.join(process.cwd(), "../../docs/testing/merchant_p0_registry.json");
+  const registryPath = path.resolve(__dirname, "../../../docs/testing/merchant_p0_registry.json");
   return JSON.parse(fs.readFileSync(registryPath, "utf8")) as { cases: P0Case[] };
 }
 
@@ -71,7 +71,7 @@ export function storageStatePath(role: MerchantSeat): string | undefined {
 
 /**
  * Local stack only: the merchant portal dev auth (Bearer "dev") signs in as the seeded
- * owner seat, so dispatcher/owner journeys can run without a Clerk jar. Viewer-role checks
+ * owner seat, so dispatcher/owner journeys can run without a Keycloak jar. Viewer-role checks
  * still need a real viewer jar.
  */
 export const localBypass = process.env.MERCHANT_E2E_LOCAL_BYPASS === "1";
@@ -86,7 +86,7 @@ export function liveReady(role: MerchantSeat): boolean {
 export function liveSkipReason(role: MerchantSeat): string {
   if (!liveEnabled) return "Set MERCHANT_E2E_LIVE=1";
   if (!envStoragePath(role)) {
-    return `Set MERCHANT_STORAGE_STATE_${role.toUpperCase()} to a Clerk storageState JSON`;
+    return `Set MERCHANT_STORAGE_STATE_${role.toUpperCase()} to a Keycloak storageState JSON`;
   }
   return `Storage jar missing on disk for ${role} — run pnpm test:e2e:codegen:${role} and sign in`;
 }
@@ -98,7 +98,7 @@ export const apiBase = () =>
     "http://localhost:8001"
   ).replace(/\/$/, "");
 
-/** Capture the first Clerk bearer the portal attaches to API calls. */
+/** Capture the first Keycloak bearer the portal attaches to API calls. */
 export async function captureBearer(page: Page, seedPath = "/dashboard"): Promise<string> {
   let bearer: string | undefined;
   page.on("request", (req) => {
@@ -112,15 +112,17 @@ export async function captureBearer(page: Page, seedPath = "/dashboard"): Promis
   await page.waitForTimeout(1500);
   if (!bearer) {
     bearer = await page.evaluate(async () => {
-      const clerk = (
-        window as unknown as { Clerk?: { session?: { getToken: () => Promise<string | null> } } }
-      ).Clerk;
-      const token = await clerk?.session?.getToken?.();
+      const keycloak = (
+        window as unknown as { Keycloak?: { session?: { getToken: () => Promise<string | null> } } }
+      ).Keycloak;
+      const token = await keycloak?.session?.getToken?.();
       return token || "";
     });
   }
   if (!bearer) {
-    throw new Error("Could not capture Clerk bearer — is storageState a signed-in merchant seat?");
+    throw new Error(
+      "Could not capture Keycloak bearer — is storageState a signed-in merchant seat?"
+    );
   }
   return bearer;
 }

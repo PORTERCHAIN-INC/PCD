@@ -40,6 +40,27 @@ def _route_hint(order: Order) -> str:
     return ""
 
 
+def _merchant_phone(db: Session, merchant_id: str | None) -> str | None:
+    """L86: merchant phone for the label FROM line (pickup contact phone wins)."""
+    if not merchant_id:
+        return None
+    try:
+        from porterchain_api.merchant_models import Merchant
+
+        m = db.get(Merchant, merchant_id)
+        return (m.phone or None) if m is not None else None
+    except Exception:  # noqa: BLE001 - label must still print
+        return None
+
+
+def _from_line(merchant_name: str | None, pickup: dict[str, Any], phone: str | None) -> str:
+    """L86: sender name + pickup address + phone (was the name only)."""
+    addr = _addr(pickup) if pickup else ""
+    tel = pickup.get("phone") or pickup.get("contact_phone") or phone
+    parts = [p for p in (merchant_name, addr if addr != "—" else "", f"Tel {tel}" if tel else "") if p]
+    return ", ".join(parts) or "—"
+
+
 class LabelService:
     def __init__(self) -> None:
         self._packages = PackageService()
@@ -54,7 +75,9 @@ class LabelService:
         packages = self._packages.ensure_for_order(db, order)
         if not packages:
             raise PackagesRequired("packages_required")
-        pdf = self._render(order, packages, merchant_name=merchant_name)
+        pdf = self._render(
+            order, packages, merchant_name=merchant_name, merchant_phone=_merchant_phone(db, order.merchant_id)
+        )
         return pdf, f"labels-{order.tracking_number}.pdf"
 
     def build_bulk_labels_pdf(
@@ -77,6 +100,7 @@ class LabelService:
                     order,
                     packages,
                     merchant_name=names.get(order.merchant_id or ""),
+                    merchant_phone=_merchant_phone(db, order.merchant_id),
                 )
             )
             if len(pages) > max_pages:
@@ -116,9 +140,10 @@ class LabelService:
         packages: Sequence[Package],
         *,
         merchant_name: str | None,
+        merchant_phone: str | None = None,
     ) -> bytes:
         return render_thermal_labels(
-            self._page_dicts(order, packages, merchant_name=merchant_name)
+            self._page_dicts(order, packages, merchant_name=merchant_name, merchant_phone=merchant_phone)
         )
 
     def _page_dicts(
@@ -127,9 +152,10 @@ class LabelService:
         packages: Sequence[Package],
         *,
         merchant_name: str | None,
+        merchant_phone: str | None = None,
     ) -> list[dict[str, Any]]:
         pickup = order.pickup if isinstance(order.pickup, dict) else {}
-        from_line = merchant_name or _addr(pickup)
+        from_line = _from_line(merchant_name, pickup, merchant_phone)
         to_line = _addr(order.dropoff if isinstance(order.dropoff, dict) else None)
         sandbox = order_is_sandbox(order)
         ordinals = item_ordinals(packages)

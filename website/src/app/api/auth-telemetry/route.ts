@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { authTelemetryLogLine } from "@porterchain/auth/authTelemetry";
 
 /**
- * Sign-in / sign-up failures the browser saw (Clerk not loading, bot-check stall,
- * offline, Clerk form errors). One structured log line each: grep
+ * Sign-in / sign-up failures the browser saw (IdP not reachable, bot-check stall,
+ * offline, sign-in errors). One structured log line each: grep
  * `auth_client_failure` in the container logs. No email, password or code.
  */
 export async function POST(request: Request) {

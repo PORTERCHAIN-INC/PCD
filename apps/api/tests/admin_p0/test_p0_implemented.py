@@ -40,22 +40,16 @@ def _iter_text(root: Path, suffixes: tuple[str, ...]) -> list[tuple[Path, str]]:
 @pytest.mark.admin_p0
 @pytest.mark.tc_id("AUTH-019")
 def test_auth_019_no_admin_clerk_env_names() -> None:
-    """No ad-hoc ADMIN_CLERK_* — Clerk triad via env/clerk.env + pnpm clerk:sync."""
-    hits: list[str] = []
-    for path in ENV_DIR.glob("*"):
-        if not path.is_file():
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        if "ADMIN_CLERK_" in text:
-            hits.append(path.name)
-    assert hits == [], f"ADMIN_CLERK_* found in env files: {hits}"
-    clerk_example = ENV_DIR / "clerk.env.example"
-    api_example = ENV_DIR / "api.env.example"
-    assert api_example.is_file()
-    combined = api_example.read_text(encoding="utf-8", errors="ignore")
-    if clerk_example.is_file():
-        combined += clerk_example.read_text(encoding="utf-8", errors="ignore")
-    assert "CLERK_" in combined
+    """Clerk removed: env templates carry Keycloak settings and no CLERK_* keys."""
+    hits = [
+        p.name
+        for p in ENV_DIR.glob("*.example")
+        if p.is_file() and "CLERK_" in p.read_text(encoding="utf-8", errors="ignore")
+    ]
+    assert hits == [], f"CLERK_* found in env templates: {hits}"
+    assert not (ENV_DIR / "clerk.env.example").exists()
+    api_example = (ENV_DIR / "api.env.example").read_text(encoding="utf-8", errors="ignore")
+    assert "KEYCLOAK_URL=" in api_example
 
 
 @pytest.mark.admin_p0
@@ -149,7 +143,7 @@ def test_api_x_001_admin_routes_require_auth() -> None:
 
     settings = Settings(
         app_env="local",
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
         spicedb_enabled=False,

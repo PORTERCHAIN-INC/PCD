@@ -20,8 +20,8 @@ from porterchain_api.admin_engine.customer_booking_admin_service import Customer
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS, AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.booking_engine.booking_service import BookingService
 from porterchain_api.booking_engine.confirmation_service import BookingConfirmationService
 from porterchain_api.booking_engine.customer_service import CustomerService
@@ -99,12 +99,12 @@ def _make_customer(
     db: Session,
     *,
     suffix: str | None = None,
-    clerk_user_id: str | None = None,
+    auth_subject: str | None = None,
     email: str | None = None,
 ) -> Customer:
     tag = f"{suffix or 'c'}-{uuid4().hex[:10]}"
     customer = Customer(
-        clerk_user_id=clerk_user_id or f"customer_clerk_{tag}",
+        auth_subject=auth_subject or f"customer_idp_{tag}",
         email=email or f"customer-{tag}@p0.test",
         phone="+14165550100",
     )
@@ -133,7 +133,7 @@ def _make_order(db: Session, *, customer_id: str) -> Order:
 def _admin_ctx(role: str = "super_admin") -> AdminContext:
     return AdminContext(
         user=AdminUser(
-            clerk_user_id=f"admin-{role}-{uuid4().hex[:6]}",
+            auth_subject=f"admin-{role}-{uuid4().hex[:6]}",
             email=f"{role}@porterchain.com",
             role=role,
         ),
@@ -149,7 +149,7 @@ def _customer_settings() -> Settings:
         spicedb_enabled=False,
         spicedb_use_memory=True,
         spicedb_required=False,
-        clerk_dev_bypass=True,
+        auth_dev_bypass=True,
     )
 
 
@@ -228,7 +228,7 @@ def test_arch_no_google_distance_matrix_on_customer_quote_path() -> None:
         elif t.is_dir():
             blob += _read_globs(t, "*.py") + _read_globs(t, "*.ts") + _read_globs(t, "*.tsx")
     lowered = blob.lower()
-    for needle in ("distancematrix", "distance_matrix", "maps.googleapis.com/maps/api/distancematrix"):
+    for needle in ("distancematrix", "distance_matrix", "googleapis.com/maps/api/distancematrix"):
         assert needle not in lowered, f"Google Distance Matrix on customer quote path: {needle}"
 
 
@@ -271,7 +271,7 @@ def test_arch_customer_lib_hits_expected_endpoints() -> None:
     assert "/v1/customers/me/privacy/export" in api
     assert "/v1/customers/me/privacy/delete-request" in api
     assert "/v1/quotes" in booking and "/v1/bookings" in booking
-    assert "/v1/orders/" in booking
+    # Order tracking lives on the website track page (portal redirects there).
     assert "/v1/notifications/inbox" in notif
     assert "/v1/auth/customer/onboarding" in onboarding
 
@@ -355,22 +355,22 @@ def test_eng_privacy_delete_sets_hold_and_blocks_admin_draft(db: Session, settin
 
 def test_eng_admin_stats_list_detail(db: Session) -> None:
     """API-A-001/002/003 service layer."""
-    linked = _make_customer(db, suffix="lnk", clerk_user_id=f"user_{uuid4().hex[:10]}")
-    orphan = _make_customer(db, suffix="orp", clerk_user_id=f"pending:orphan-{uuid4().hex[:6]}@p0.test")
+    linked = _make_customer(db, suffix="lnk", auth_subject=f"user_{uuid4().hex[:10]}")
+    orphan = _make_customer(db, suffix="orp", auth_subject=f"pending:orphan-{uuid4().hex[:6]}@p0.test")
     db.commit()
     svc = CustomerAdminService()
     stats = svc.stats(db)
     assert stats["total"] >= 2
-    assert "clerk_linked" in stats and "orphan" in stats and "dsr_hold" in stats
+    assert "identity_linked" in stats and "orphan" in stats and "dsr_hold" in stats
 
     rows = svc.list_customers(db, search=linked.email, limit=20)
     assert any(r["id"] == linked.id for r in rows)
-    orphans = svc.list_customers(db, clerk_linked=False, limit=50)
+    orphans = svc.list_customers(db, identity_linked=False, limit=50)
     assert any(r["id"] == orphan.id for r in orphans)
 
     detail = svc.detail(db, linked.id)
     assert detail["id"] == linked.id
-    assert detail["clerk_linked"] is True
+    assert detail["identity_linked"] is True
     with pytest.raises(LookupError, match="customer_not_found"):
         svc.detail(db, "missing-customer-id")
 
@@ -402,7 +402,7 @@ def test_api_b_quote_equals_book_amount_cents(db: Session, settings: Settings) -
         quote_id=quote.id,
         email=f"qeqb-{uuid4().hex[:6]}@p0.test",
         phone="+14165550999",
-        clerk_user_id=f"clerk_qeqb_{uuid4().hex[:8]}",
+        auth_subject=f"idp_qeqb_{uuid4().hex[:8]}",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,
@@ -422,7 +422,7 @@ def test_api_b_quote_equals_book_amount_cents(db: Session, settings: Settings) -
 
 
 def test_http_customer_and_admin_routes_require_auth() -> None:
-    """API-C-002 / API-A auth gate (bypass off — local CLERK_DEV_BYPASS would otherwise open admin)."""
+    """API-C-002 / API-A auth gate (bypass off — local AUTH_DEV_BYPASS would otherwise open admin)."""
     locked = Settings(
         app_env="local",
         stripe_mock=True,
@@ -430,7 +430,7 @@ def test_http_customer_and_admin_routes_require_auth() -> None:
         spicedb_enabled=False,
         spicedb_use_memory=True,
         spicedb_required=False,
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
     )
     app.dependency_overrides[get_settings] = lambda: locked
     try:
@@ -476,7 +476,7 @@ def test_http_admin_customers_stats_list_detail(admin_client, db: Session) -> No
     stats = client.get("/v1/admin/customers/stats")
     assert stats.status_code == 200
     body = stats.json()
-    assert {"total", "clerk_linked", "orphan", "dsr_hold"} <= set(body)
+    assert {"total", "identity_linked", "orphan", "dsr_hold"} <= set(body)
 
     listed = client.get("/v1/admin/customers", params={"search": customer.email})
     assert listed.status_code == 200
@@ -526,7 +526,7 @@ def test_http_admin_dispatcher_cannot_create_booking_draft(admin_client, db: Ses
 def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     """API-A-014: POST creates orphan retail customer."""
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
     )
     client, _holder = admin_client
@@ -539,7 +539,7 @@ def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatc
     body = resp.json()
     assert body["email"] == email
     assert body["created"] is True
-    assert body["clerk_linked"] is False
+    assert body["identity_linked"] is False
     assert body["identity_status"] == "orphan"
     assert body["id"]
 
@@ -551,14 +551,14 @@ def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatc
 def test_http_admin_create_customer_conflict_when_linked(
     admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """API-A-014: 409 when email already Clerk-linked."""
+    """API-A-014: 409 when email already Keycloak-linked."""
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
     )
     client, _holder = admin_client
     email = f"linked-{uuid4().hex[:8]}@p0.test"
-    _make_customer(db, suffix="lnk", clerk_user_id=f"user_{uuid4().hex[:10]}", email=email)
+    _make_customer(db, suffix="lnk", auth_subject=f"user_{uuid4().hex[:10]}", email=email)
     db.commit()
 
     resp = client.post(
@@ -569,12 +569,12 @@ def test_http_admin_create_customer_conflict_when_linked(
     assert resp.json()["detail"] == "customer_email_exists"
 
 
-def test_http_admin_create_customer_invite_requires_clerk(
+def test_http_admin_create_customer_invite_requires_idp(
     admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """API-A-014: send_invite without Clerk secrets → 400 clerk_not_configured."""
+    """API-A-014: send_invite without Keycloak secrets → 400 identity_not_configured."""
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
     )
     client, _holder = admin_client
@@ -583,7 +583,7 @@ def test_http_admin_create_customer_invite_requires_clerk(
         json={"email": f"invite-{uuid4().hex[:8]}@p0.test", "send_invite": True},
     )
     assert resp.status_code == 400
-    assert resp.json()["detail"] == "clerk_not_configured"
+    assert resp.json()["detail"] == "identity_not_configured"
 
 
 def test_http_admin_dispatcher_cannot_create_customer(admin_client, db: Session) -> None:
@@ -599,26 +599,26 @@ def test_http_admin_dispatcher_cannot_create_customer(admin_client, db: Session)
 
 def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     """API-A-014 companion: POST /{id}/invite for orphan rows."""
-    from porterchain_api.auth.clerk_client import ClerkInviteResult
+    from porterchain_api.auth.identity_directory import InviteResult
 
     client, _holder = admin_client
-    customer = _make_customer(db, suffix="inv", clerk_user_id=f"pending:inv-{uuid4().hex[:6]}@p0.test")
+    customer = _make_customer(db, suffix="inv", auth_subject=f"pending:inv-{uuid4().hex[:6]}@p0.test")
     db.commit()
 
-    class _FakeClerk:
-        def invite_user(self, email, *, redirect_url, public_metadata):
-            return ClerkInviteResult(action="invited", clerk_invitation_id="inv_test")
+    class _FakeIdp:
+        def invite_user(self, email, *, redirect_url, metadata):
+            return InviteResult(action="invited", invitation_id="inv_test")
 
     monkeypatch.setattr(
-        "porterchain_api.auth.invitation_service.is_clerk_secret_configured",
+        "porterchain_api.auth.invitation_service.is_directory_configured",
         lambda *a, **k: True,
     )
     monkeypatch.setattr(
-        "porterchain_api.auth.invitation_service.clerk_client_for_kind",
-        lambda *a, **k: _FakeClerk(),
+        "porterchain_api.auth.invitation_service.directory_for_kind",
+        lambda *a, **k: _FakeIdp(),
     )
     monkeypatch.setattr(
-        "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: True,
     )
 
@@ -626,25 +626,25 @@ def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatc
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["id"] == customer.id
-    assert body["clerk_action"] == "invited"
+    assert body["identity_action"] == "invited"
 
 
 @pytest.fixture
 def customer_client(db: Session):
     settings = _customer_settings()
     email = "dev-customer@p0.test"
-    claims = ClerkClaims(
-        clerk_user_id="dev_clerk_user",
+    claims = IdentityClaims(
+        auth_subject="dev_idp_user",
         email=email,
         phone="+14165550001",
-        clerk_app="customer",
+        idp_app="customer",
     )
-    # Keep email aligned with claims — seed DBs often already bind dev_clerk_user.
-    existing = db.query(Customer).filter(Customer.clerk_user_id == "dev_clerk_user").first()
+    # Keep email aligned with claims — seed DBs often already bind dev_idp_user.
+    existing = db.query(Customer).filter(Customer.auth_subject == "dev_idp_user").first()
     if existing is None:
         db.add(
             Customer(
-                clerk_user_id="dev_clerk_user",
+                auth_subject="dev_idp_user",
                 email=email,
                 phone="+14165550001",
             )
@@ -654,10 +654,10 @@ def customer_client(db: Session):
         existing.phone = existing.phone or "+14165550001"
     db.commit()
 
-    async def _claims() -> ClerkClaims:
+    async def _claims() -> IdentityClaims:
         return claims
 
-    app.dependency_overrides[get_clerk_claims] = _claims
+    app.dependency_overrides[get_identity_claims] = _claims
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_settings] = lambda: settings
     yield TestClient(app), settings
@@ -667,7 +667,7 @@ def customer_client(db: Session):
 def test_http_customer_dashboard_support_rebook_privacy(customer_client, db: Session) -> None:
     """API-C-001/004/005/007/009/010 HTTP happy path."""
     client, _settings = customer_client
-    customer = db.query(Customer).filter(Customer.clerk_user_id == "dev_clerk_user").one()
+    customer = db.query(Customer).filter(Customer.auth_subject == "dev_idp_user").one()
     order = _make_order(db, customer_id=customer.id)
     db.commit()
 

@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import _now_iso
 from porterchain_api.admin_engine.diagnostics_timeline import ControlTowerTimeline
-from porterchain_api.auth.clerk_registry import is_clerk_configured
+from porterchain_api.auth.identity_directory import is_identity_configured
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import DomainEvent
 from porterchain_api.platform.health import readiness
@@ -194,7 +194,7 @@ class DiagnosticsReportsMixin:
         lines = [
             "# Security Report",
             "",
-            f"- Clerk: {'configured' if is_clerk_configured(settings) else 'dev bypass' if settings.clerk_dev_bypass else 'missing'}",
+            f"- Keycloak: {'configured' if is_identity_configured(settings) else 'dev bypass' if settings.auth_dev_bypass else 'missing'}",
             f"- Stripe webhook secret: {'yes' if settings.stripe_webhook_secret else 'no'}",
             f"- Dispatch engine: {settings.dispatch_engine or 'porterchain'}",
         ]

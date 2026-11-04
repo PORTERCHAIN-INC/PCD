@@ -1,6 +1,6 @@
 """DB pool pressure + idle-in-transaction kill alerts (2026-10-14 freeze follow-up).
 
-Logs at ERROR (picked up by Sentry's logging integration) when:
+Logs at ERROR (picked up by GlitchTip via the logging integration) when:
 - pool checkout usage crosses POOL_ALERT_RATIO of pool_size + max_overflow, or
 - Postgres kills a connection with IdleInTransactionSessionTimeout.
 """

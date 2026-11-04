@@ -26,7 +26,7 @@ def _merchant_ctx(db) -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"user-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )
@@ -93,3 +93,12 @@ def test_shopify_connect_with_pickup(db, settings):
     db.commit()
     assert shop.shop_domain == shop_domain
     assert shop.default_pickup_address_id == addr.id
+    # Doc 70: the install auto-provisions an organisation (same id) with the Shopify capability on.
+    from porterchain_api.org_engine.models import Organisation
+    from porterchain_api.org_engine.service import capabilities, ensure_org_for_shopify
+
+    org = db.get(Organisation, ctx.merchant.id)
+    assert org is not None and org.business_type == "shopify_merchant" and org.merchant_id == ctx.merchant.id
+    assert capabilities(db, org.id)["shopify_app"] is True
+    again = ensure_org_for_shopify(db, ctx.merchant, shop_domain)
+    assert again.id == org.id and again.public_id == org.public_id

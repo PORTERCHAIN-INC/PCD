@@ -9,9 +9,9 @@
       "types": "./monorepo-env.d.ts",
       "default": "./monorepo-env.mjs"
     },
-    "./sentry/portal": {
-      "types": "./sentry/portal.ts",
-      "default": "./sentry/portal.ts"
+    "./glitchtip/portal": {
+      "types": "./glitchtip/portal.ts",
+      "default": "./glitchtip/portal.ts"
     },
     "./phase2": {
       "types": "./phase2.ts",
@@ -26,7 +26,7 @@
     "prettier.config.mjs",
     "monorepo-env.mjs",
     "monorepo-env.d.ts",
-    "sentry/portal.ts",
+    "glitchtip/portal.ts",
     "phase2.mjs",
     "phase2.ts",
     "tsconfig.base.json",

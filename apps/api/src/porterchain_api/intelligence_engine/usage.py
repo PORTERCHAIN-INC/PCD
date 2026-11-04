@@ -50,7 +50,7 @@ def ai_usage_summary(db: Session, *, limit: int = 40) -> dict[str, Any]:
 
     from sqlalchemy import case, func
 
-    from porterchain_api.intelligence_engine.nim_client import nim_status
+    from porterchain_api.intelligence_engine.llm import llm_status
     from porterchain_api.config import get_settings
 
     since = datetime.now(UTC) - timedelta(hours=24)
@@ -82,7 +82,7 @@ def ai_usage_summary(db: Session, *, limit: int = 40) -> dict[str, Any]:
     return {
         "checked_at": datetime.now(UTC).isoformat(),
         "window": "24h",
-        "nim": nim_status(),
+        "llm": llm_status(),
         "phase2": {
             "intelligence": bool(flags.get("intelligence")),
             "ai_dispatch": bool(flags.get("ai_dispatch")),

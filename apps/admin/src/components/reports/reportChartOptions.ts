@@ -83,84 +83,6 @@ export function sparklineOption(data: number[], color = "#2563eb"): EChartsOptio
   };
 }
 
-export function gaugeChartOption(
-  value: number,
-  opts?: { name?: string; max?: number; dangerBelow?: number }
-): EChartsOption {
-  const max = opts?.max ?? 100;
-  const dangerBelow = opts?.dangerBelow ?? 70;
-  const clamped = Math.max(0, Math.min(max, value));
-  const color =
-    clamped < dangerBelow ? "#f59e0b" : clamped < dangerBelow + 15 ? "#0ea5e9" : "#10b981";
-  return {
-    series: [
-      {
-        type: "gauge",
-        startAngle: 200,
-        endAngle: -20,
-        min: 0,
-        max,
-        progress: { show: true, width: 10, itemStyle: { color } },
-        axisLine: { lineStyle: { width: 10, color: [[1, "#e2e8f0"]] } },
-        axisTick: { show: false },
-        splitLine: { show: false },
-        axisLabel: { show: false },
-        pointer: { show: false },
-        anchor: { show: false },
-        title: {
-          show: Boolean(opts?.name),
-          offsetCenter: [0, "68%"],
-          fontSize: 11,
-          color: "#64748b",
-        },
-        detail: {
-          valueAnimation: true,
-          formatter: "{value}%",
-          fontSize: 18,
-          fontWeight: 700,
-          color: "#0f172a",
-          offsetCenter: [0, "20%"],
-        },
-        data: [{ value: Math.round(clamped * 10) / 10, name: opts?.name ?? "" }],
-      },
-    ],
-  };
-}
-
-export function barChartOption(labels: string[], values: number[], title?: string): EChartsOption {
-  return {
-    color: ["#2563eb"],
-    title: title
-      ? { text: title, left: 0, textStyle: { fontSize: 13, fontWeight: 600 } }
-      : undefined,
-    tooltip: { trigger: "axis" },
-    grid: { left: 48, right: 16, top: title ? 40 : 24, bottom: 32 },
-    xAxis: { type: "category", data: labels, axisLabel: { rotate: labels.length > 6 ? 30 : 0 } },
-    yAxis: { type: "value" },
-    series: [
-      { type: "bar", data: values, barMaxWidth: 48, itemStyle: { borderRadius: [4, 4, 0, 0] } },
-    ],
-  };
-}
-
-export function pieChartOption(labels: string[], values: number[], title?: string): EChartsOption {
-  return {
-    color: ["#2563eb", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#64748b"],
-    title: title
-      ? { text: title, left: 0, textStyle: { fontSize: 13, fontWeight: 600 } }
-      : undefined,
-    tooltip: { trigger: "item" },
-    series: [
-      {
-        type: "pie",
-        radius: ["42%", "68%"],
-        data: labels.map((name, i) => ({ name, value: values[i] })),
-        label: { formatter: "{b}: {d}%" },
-      },
-    ],
-  };
-}
-
 /** Hollow donut — good for order / CRM mix. */
 export function donutChartOption(
   slices: Array<{ name: string; value: number }>,
@@ -213,41 +135,6 @@ export function roseChartOption(
         itemStyle: { borderRadius: 5 },
         label: { fontSize: 11 },
         data: slices.filter((s) => s.value > 0),
-      },
-    ],
-  };
-}
-
-/** Circular progress bars for ops pressure (legacy; prefer OpsPressureCard). */
-export function radialBarOption(
-  items: Array<{ name: string; value: number; max?: number }>
-): EChartsOption {
-  const max = Math.max(1, ...items.map((i) => i.max ?? Math.max(i.value, 1)));
-  return {
-    color: ["#2563eb", "#0ea5e9", "#f59e0b", "#ef4444"],
-    tooltip: { trigger: "item" },
-    legend: { bottom: 0, textStyle: { fontSize: 11 } },
-    polar: { radius: ["28%", "78%"] },
-    angleAxis: { max, startAngle: 90, show: false },
-    radiusAxis: {
-      type: "category",
-      data: items.map((i) => i.name),
-      show: false,
-    },
-    series: [
-      {
-        type: "bar",
-        coordinateSystem: "polar",
-        data: items.map((i) => i.value),
-        barWidth: 12,
-        itemStyle: { borderRadius: 6 },
-        label: {
-          show: true,
-          position: "middle",
-          formatter: "{b}",
-          fontSize: 10,
-          color: "#0a1628",
-        },
       },
     ],
   };

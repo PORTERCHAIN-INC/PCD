@@ -20,5 +20,8 @@
 env/clerk.env
 env/clerk.env.*
 !env/clerk.env.example
-apps/fleetbase
 terminals
+
+# Mac beta copy: local-stack secrets/screenshots live inside the repo dir here; never send to builds
+.pcd-local-stack
+.pcd-local-stack/**

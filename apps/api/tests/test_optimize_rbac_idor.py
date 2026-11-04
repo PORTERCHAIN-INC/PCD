@@ -34,7 +34,7 @@ def _memory_authz(monkeypatch: pytest.MonkeyPatch):
 def _ctx(role: AdminRole, uid: str, *, porterchain_user_id: str) -> AdminContext:
     user = AdminUser(
         id=uid,
-        clerk_user_id=f"clerk_{uid}",
+        auth_subject=f"idp_{uid}",
         email=f"{uid}@example.com",
         name=role.value,
         role=role.value,
@@ -187,7 +187,7 @@ def test_assert_driver_scoped_rejects_foreign_orders() -> None:
 def test_unlinked_admin_user_forbidden() -> None:
     user = AdminUser(
         id="adm-nolink",
-        clerk_user_id="clerk_nolink",
+        auth_subject="idp_nolink",
         email="nolink@example.com",
         name="No Link",
         role=AdminRole.ADMIN.value,

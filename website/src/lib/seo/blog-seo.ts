@@ -5,7 +5,7 @@
 import type { Locale } from "@/i18n/routing";
 import type { BlogCategory } from "@/data/blog-categories";
 import { buildInternalLinksForArticle } from "./internal-linking";
-import { business, cityIndustrySeo, industrySlug } from "./routes";
+import { business, cityIndustrySeo } from "./routes";
 
 type PostSeoInput = {
   category: BlogCategory;
@@ -116,5 +116,3 @@ export function buildBlogInternalLinks(locale: Locale, post: PostSeoInput) {
 
   return links.slice(0, 10);
 }
-
-export { industrySlug };

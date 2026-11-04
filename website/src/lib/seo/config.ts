@@ -1,5 +1,5 @@
 import { publicEnv } from "@/lib/env";
-import { routing, type Locale } from "@/i18n/routing";
+import { type Locale } from "@/i18n/routing";
 
 export const siteConfig = {
   name: "PorterChain",
@@ -11,6 +11,3 @@ export const siteConfig = {
 } as const;
 
 export type { Locale };
-
-export const locales = routing.locales;
-export const defaultLocale = routing.defaultLocale;

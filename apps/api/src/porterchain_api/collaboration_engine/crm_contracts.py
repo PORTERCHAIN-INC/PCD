@@ -159,7 +159,7 @@ class CrmContractsMixin:
             "merchant_id": merchant.id,
             "created": True,
             "seat_added": seat_added,
-            "invitation_sent": seat_added,  # legacy key — seat reserved, no Clerk invite
+            "invitation_sent": seat_added,  # legacy key — seat reserved, no Keycloak invite
             "invitation_email": email,
         }
 

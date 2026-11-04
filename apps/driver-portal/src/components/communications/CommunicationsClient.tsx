@@ -211,7 +211,11 @@ export default function CommunicationsClient() {
       )}
 
       <p className="mt-6 text-xs text-[var(--muted)]">
-        Last synced {new Date(snap.last_updated).toLocaleString()}
+        Last synced{" "}
+        {new Date(snap.last_updated).toLocaleString("en-CA", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })}
         {snap.offline.last_sync_at
           ? ` · Offline sync ${formatCommTime(snap.offline.last_sync_at)}`
           : ""}

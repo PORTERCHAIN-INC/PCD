@@ -16,12 +16,6 @@ const COPY = {
   },
 } as const;
 
-/** Has the visitor opted in to a non-essential category? Default: no (privacy by default). */
-export function hasConsent(): boolean {
-  if (typeof document === "undefined") return false;
-  return document.cookie.split("; ").some((c) => c === `${KEY}=all`);
-}
-
 /** EU-style opt-in banner (ePrivacy / TKG 2021 §165). Shown only when the region requires it. */
 export default function CookieConsent({ show, locale }: { show: boolean; locale: string }) {
   const [open, setOpen] = useState(false);

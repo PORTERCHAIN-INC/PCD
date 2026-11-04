@@ -21,27 +21,27 @@ from porterchain_shared.config.project_mode import (
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
         "stripe_mock": True,
         "stripe_secret": "",
-        "clerk_unified_mode": False,
-        "clerk_secret_key": "",
-        "clerk_publishable_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_publishable_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_publishable_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_publishable_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_publishable_key": "",
-        "clerk_driver_jwks_url": "",
+        "idp_unified_mode": False,
+        "idp_secret_key": "",
+        "idp_publishable_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_publishable_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_publishable_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_publishable_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_publishable_key": "",
+        "idp_driver_jwks_url": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
@@ -49,18 +49,19 @@ def _settings(**overrides: object) -> Settings:
 
 def _live(**overrides: object) -> Settings:
     params: dict[str, object] = {
-        "clerk_customer_secret_key": "sk_live_cust",
-        "clerk_customer_publishable_key": "pk_live_cust",
-        "clerk_customer_jwks_url": "https://cust.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_merchant_secret_key": "sk_live_merch",
-        "clerk_merchant_publishable_key": "pk_live_merch",
-        "clerk_merchant_jwks_url": "https://merch.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_admin_secret_key": "sk_live_admin",
-        "clerk_admin_publishable_key": "pk_live_admin",
-        "clerk_admin_jwks_url": "https://admin.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_driver_secret_key": "sk_live_driver",
-        "clerk_driver_publishable_key": "pk_live_driver",
-        "clerk_driver_jwks_url": "https://driver.clerk.accounts.dev/.well-known/jwks.json",
+        "keycloak_url": "https://auth.porterchain.test",
+        "idp_customer_secret_key": "sk_live_cust",
+        "idp_customer_publishable_key": "pk_live_cust",
+        "idp_customer_jwks_url": "https://cust.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_merchant_secret_key": "sk_live_merch",
+        "idp_merchant_publishable_key": "pk_live_merch",
+        "idp_merchant_jwks_url": "https://merch.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_admin_secret_key": "sk_live_admin",
+        "idp_admin_publishable_key": "pk_live_admin",
+        "idp_admin_jwks_url": "https://admin.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_driver_secret_key": "sk_live_driver",
+        "idp_driver_publishable_key": "pk_live_driver",
+        "idp_driver_jwks_url": "https://driver.keycloak.accounts.dev/.well-known/jwks.json",
     }
     params.update(overrides)
     return _settings(**params)
@@ -91,10 +92,10 @@ def test_project_modes() -> None:
 
 
 def test_bypass_only_in_development_mode() -> None:
-    assert allow_auth_dev_bypass(_settings(app_env="local", clerk_dev_bypass=True))
-    assert allow_auth_dev_bypass(_settings(app_env="dev", clerk_dev_bypass=True))
-    assert not allow_auth_dev_bypass(_settings(app_env="test", clerk_dev_bypass=True))
-    assert not allow_auth_dev_bypass(_live(app_env="production", clerk_dev_bypass=False))
+    assert allow_auth_dev_bypass(_settings(app_env="local", auth_dev_bypass=True))
+    assert allow_auth_dev_bypass(_settings(app_env="dev", auth_dev_bypass=True))
+    assert not allow_auth_dev_bypass(_settings(app_env="test", auth_dev_bypass=True))
+    assert not allow_auth_dev_bypass(_live(app_env="production", auth_dev_bypass=False))
 
 
 def test_stripe_mock_only_in_development() -> None:
@@ -106,7 +107,7 @@ def test_stripe_mock_only_in_development() -> None:
 
 
 def test_runtime_posture_payload_shape() -> None:
-    p = _settings(app_env="local", clerk_dev_bypass=True).runtime_posture
+    p = _settings(app_env="local", auth_dev_bypass=True).runtime_posture
     assert p["mode"] == "development"
     assert p["app_env"] == "local"
     assert p["auth_bypass_allowed"] is True

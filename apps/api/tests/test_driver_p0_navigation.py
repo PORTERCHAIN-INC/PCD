@@ -47,7 +47,7 @@ def test_api_d_05_navigation_idle_session() -> None:
     assert engines["eta"] == "osrm"
     assert engines["optimized_route"] == "valhalla"
     assert engines["gps"] == "last_known"
-    assert engines["map_display"] == "google_maps"
+    assert engines["map_display"] == "maplibre_pmtiles"
     assert "google" not in engines["eta"].lower()
     assert "google" not in engines["optimized_route"].lower()
 

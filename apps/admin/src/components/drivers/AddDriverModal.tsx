@@ -176,7 +176,7 @@ export function AddDriverModal({
           </p>
         )}
         <p className="rounded-xl border border-primary/10 bg-gray-bg px-3 py-2 text-xs text-muted">
-          Full supply profile (license, vehicle, docs). For identity-only PENDING + Clerk invite,
+          Full supply profile (license, vehicle, docs). For identity-only PENDING + Keycloak invite,
           use{" "}
           <Link
             href="/settings?section=users&tab=driver"

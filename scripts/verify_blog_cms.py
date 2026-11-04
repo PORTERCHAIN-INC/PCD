@@ -47,10 +47,10 @@ def main() -> int:
     nav = (ROOT / "apps/admin/src/lib/admin-nav.ts").read_text(encoding="utf-8")
     if 'href: "/blog"' not in nav:
         failures.append("admin-nav.ts missing /blog link")
-    if 'label: "Blog"' not in nav and 'label: "Website Blog"' not in nav:
+    if not any(f'label: "{x}"' in nav for x in ("Blog", "Website Blog", "Website & blog")):
         failures.append("admin-nav.ts missing Blog label")
     # Leads inbox was renamed "Inbox" under the "Sales" group (2026-10 lead desk).
-    if 'href: "/leads"' not in nav or 'label: "Inbox"' not in nav:
+    if 'href: "/leads"' not in nav or ('label: "Inbox"' not in nav and 'label: "Leads"' not in nav):
         failures.append("admin-nav.ts missing Sales Inbox (/leads)")
     # Source constants remain for deep-link chips / isNavActive even after Growth collapse.
     if "website_driver_partner" not in nav:

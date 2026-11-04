@@ -34,7 +34,7 @@ class ScopeType(StrEnum):
 
 
 class AuthProvider(StrEnum):
-    CLERK = "clerk"
+    KEYCLOAK = "keycloak"
 
 
 class AssignableRole(StrEnum):

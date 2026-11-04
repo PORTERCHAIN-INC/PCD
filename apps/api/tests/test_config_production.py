@@ -7,15 +7,16 @@ from pydantic import ValidationError
 
 from porterchain_api.config import Settings
 
-_LEGACY_CLERK_PROD = {
+_LEGACY_IDP_PROD = {
     "_env_file": None,
-    "clerk_secret_key": "sk_live_production_clerk_test_fixture",
-    "clerk_publishable_key": "pk_live_production_clerk_test_fixture",
-    "clerk_jwks_url": "https://clerk.example.com/.well-known/jwks.json",
-    "clerk_unified_mode": False,
-    "clerk_driver_secret_key": "sk_live_driver_clerk_test_fixture",
-    "clerk_driver_jwks_url": "https://clerk-driver.example.com/.well-known/jwks.json",
-    "clerk_driver_publishable_key": "pk_live_driver_clerk_test_fixture",
+    "keycloak_url": "https://auth.porterchain.test",
+    "idp_secret_key": "sk_live_production_idp_test_fixture",
+    "idp_publishable_key": "pk_live_production_idp_test_fixture",
+    "idp_jwks_url": "https://keycloak.example.com/.well-known/jwks.json",
+    "idp_unified_mode": False,
+    "idp_driver_secret_key": "sk_live_driver_idp_test_fixture",
+    "idp_driver_jwks_url": "https://keycloak-driver.example.com/.well-known/jwks.json",
+    "idp_driver_publishable_key": "pk_live_driver_idp_test_fixture",
 }
 
 
@@ -36,7 +37,7 @@ def test_jwt_secret_empty_rejected_in_production() -> None:
 
 def test_jwt_secret_custom_allowed_in_production() -> None:
     secret = "a" * 64
-    settings = Settings(app_env="production", jwt_secret=secret, **_LEGACY_CLERK_PROD)
+    settings = Settings(app_env="production", jwt_secret=secret, **_LEGACY_IDP_PROD)
     assert settings.jwt_secret == secret
 
 

@@ -230,9 +230,9 @@ export function MasterruleCallout() {
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
       <p>
         <span className="font-semibold text-primary">Commercial & access settings.</span> Badges
-        show what actually changes runtime (Wired), what lives in Doppler/IdP (Env), and what is
-        stored as policy only. Secrets never appear here. Live GPS and fleet execution live in
-        Dispatch. There is no separate console login.
+        show what actually changes runtime (Wired), what lives in SOPS/IdP (Env), and what is stored
+        as policy only. Secrets never appear here. Live GPS and fleet execution live in Dispatch.
+        There is no separate console login.
       </p>
     </div>
   );

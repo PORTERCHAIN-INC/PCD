@@ -4,6 +4,7 @@ import { OrdersTable } from "@/components/orders/OrdersTable";
 import { OrdersToolbar } from "@/components/orders/OrdersToolbar";
 import { ListPager } from "@/components/portal/ListPager";
 import { StatCard } from "@/components/portal/StatCard";
+import { ShopifyOrderSyncPanel } from "@/components/shopify/ShopifyOrderSyncPanel";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import {
@@ -170,7 +171,7 @@ export default function OrdersListClient() {
           {hasMerchantModule(modules, "billing") ? (
             <StatCard label="Revenue today" value={formatCents(dashboard.revenue_today_cents)} />
           ) : null}
-          <StatCard label="Avg delivery" value={`${dashboard.avg_delivery_hours}h`} />
+          <StatCard label="Avg delivery" value={fmtAvgDelivery(dashboard.avg_delivery_hours)} />
         </div>
       )}
 
@@ -274,6 +275,15 @@ export default function OrdersListClient() {
           </div>
         )}
       </div>
+
+      <ShopifyOrderSyncPanel search={deferredSearch} hideWhenEmpty />
     </div>
   );
+}
+
+/** L32: "0h" for sub-hour averages was misleading; show minutes under an hour. */
+function fmtAvgDelivery(h: number | null | undefined): string {
+  if (h == null || !Number.isFinite(h) || h <= 0) return "—";
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
+  return `${Math.round(h * 10) / 10}h`;
 }

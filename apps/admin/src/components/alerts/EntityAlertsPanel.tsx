@@ -135,7 +135,7 @@ export function EntityAlertsPanel({
                       {r.title || r.template_key}
                     </p>
                     <p className="truncate text-xs text-muted">
-                      {r.channel} · {r.template_key}
+                      {plainLabel(r.channel)} · {plainLabel(r.template_key)}
                       {r.body ? ` — ${r.body.slice(0, 80)}` : ""}
                     </p>
                   </div>
@@ -172,4 +172,21 @@ export function EntityAlertsPanel({
       </div>
     </SectionCard>
   );
+}
+
+const CHANNEL_LABELS: Record<string, string> = {
+  in_app: "In-app",
+  sms: "SMS",
+  email: "Email",
+  push: "Push",
+};
+
+/** L61: "in_app" / "sla_breached" read as "In-app" / "Sla breached" → "SLA breached". */
+function plainLabel(raw: unknown): string {
+  const s = String(raw ?? "");
+  if (CHANNEL_LABELS[s]) return CHANNEL_LABELS[s];
+  const t = s.replace(/[_.]+/g, " ").trim();
+  return (t.charAt(0).toUpperCase() + t.slice(1))
+    .replace(/\bsla\b/gi, "SLA")
+    .replace(/\beta\b/gi, "ETA");
 }

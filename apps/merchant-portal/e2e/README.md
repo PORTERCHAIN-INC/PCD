@@ -2,8 +2,8 @@
 
 ## What this proves
 
-1. **Dispatcher** Clerk seat can preview (`routing_source` ∈ valhalla|osrm|haversine) and sandbox-confirm.
-2. **Viewer** Clerk seat soft-forbids `/book` (ModuleGate) and gets API 403 on preview.
+1. **Dispatcher** Keycloak seat can preview (`routing_source` ∈ valhalla|osrm|haversine) and sandbox-confirm.
+2. **Viewer** Keycloak seat soft-forbids `/book` (ModuleGate) and gets API 403 on preview.
 3. Day-plan / optimize enqueue after _live_ (non-sandbox) confirm is asserted in pytest `MP-BOOK-004`.
 
 ## One-time setup
@@ -57,7 +57,7 @@ pnpm test:merchant-p0:live
 
 Do **not** paste comment lines (`# ...`) into the same shell paste as commands on zsh.
 
-## Local stack without Clerk jars
+## Local stack without Keycloak jars
 
 Against the local dev stack (merchant portal dev auth, Bearer `dev`), dispatcher/owner journeys
 and the page smoke tests run without a storage state:

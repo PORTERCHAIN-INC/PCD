@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -9,16 +9,16 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import { customerApi } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 
 export default function InvoicesClient() {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <InvoicesBody ready signedIn getToken={async () => "dev"} />;
   }
-  return <InvoicesWithClerk />;
+  return <InvoicesWithAuth />;
 }
 
-function InvoicesWithClerk() {
+function InvoicesWithAuth() {
   const router = useRouter();
   const { isSignedIn, isLoaded, getToken } = useAuth();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { useAuth } from "./oidc/client";
 import { useCallback } from "react";
 import { INACTIVITY_TIMEOUT_MS, clearActivityMarker } from "./inactivity";
 import { useInactivityTimeout } from "./useInactivityTimeout";
@@ -11,16 +11,15 @@ type Props = {
 };
 
 /**
- * Clerk portals: force re-login after idle inactivity on phone, desktop, or any device.
- * Pair with Clerk Dashboard → Sessions → Inactivity timeout = 45 minutes (Platform + Driver apps).
+ * Portals: force re-login after idle inactivity on phone, desktop, or any device.
+ * Pair with the Keycloak realm SSO idle timeout (45 minutes).
  */
 export function InactivityLogout({ timeoutMs = INACTIVITY_TIMEOUT_MS }: Props) {
-  const { isLoaded, isSignedIn } = useAuth();
-  const { signOut } = useClerk();
+  const { isLoaded, isSignedIn, signOut } = useAuth();
 
   const onTimeout = useCallback(async () => {
     clearActivityMarker();
-    await signOut();
+    signOut();
   }, [signOut]);
 
   useInactivityTimeout({

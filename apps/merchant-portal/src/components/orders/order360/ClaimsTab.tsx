@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { claimStatusLabel, claimTypeLabel } from "@/lib/catalog";
-import { ordersApi, type OrderDetail } from "@/lib/orders";
 import { settingsApi } from "@/lib/settings";
-import { formatCents, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { Card } from "./shared";
 
 export function ClaimsTab({

@@ -19,19 +19,13 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from porterchain_api.auth.clerk_webhook_idempotency import claim_clerk_event
-from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
-from porterchain_api.auth.clerk_webhook_verify import (
-    ClerkWebhookSignatureError,
-    verify_clerk_webhook_signature,
-)
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.dependencies import (
     get_authenticated_identity,
     require_all_permissions,
     require_permission,
 )
-from porterchain_api.auth.identity_fk_backfill import PROFILE_TARGETS, _is_skippable_clerk_id
+from porterchain_api.auth.identity_fk_backfill import PROFILE_TARGETS, _is_skippable_idp_id
 from porterchain_api.auth.unified_catalog import (
     AssignableRole,
     UnifiedPermission,
@@ -54,7 +48,7 @@ PHASE9_MATRIX = (
     ("idempotency", "duplicate Svix claim returns False / duplicate status"),
     ("session-context", "no token/secret material in payload"),
     ("invite-only", "admin/super_admin not open signup"),
-    ("fk-backfill", "profile targets defined; pending clerk ids skipped"),
+    ("fk-backfill", "profile targets defined; pending keycloak ids skipped"),
     ("client-parity", "portal access permission keys match UnifiedPermission"),
 )
 
@@ -62,22 +56,22 @@ PHASE9_MATRIX = (
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
-        "clerk_audience": "",
-        "clerk_authorized_parties": "",
-        "clerk_authorized_issuers": "",
-        "clerk_secret_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_jwks_url": "",
-        "clerk_webhook_signing_secret": "",
+        "idp_audience": "",
+        "idp_authorized_parties": "",
+        "idp_authorized_issuers": "",
+        "idp_secret_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_jwks_url": "",
+        "idp_webhook_signing_secret": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
@@ -100,7 +94,7 @@ def _principal(
         roles=frozenset(roles),
         permissions=perms,
         organization_ids=frozenset(organization_ids or ()),
-        auth_subject="clerk_subj",
+        auth_subject="idp_subj",
         auth_issuer="https://iss.example",
     )
 
@@ -150,7 +144,7 @@ def test_missing_bearer_returns_401() -> None:
             await get_authenticated_identity(
                 request=_http_request(),
                 authorization=None,
-                settings=_settings(clerk_dev_bypass=False),
+                settings=_settings(auth_dev_bypass=False),
                 db=MagicMock(),
             )
         assert exc.value.status_code == 401
@@ -165,7 +159,7 @@ def test_non_bearer_authorization_returns_401() -> None:
             await get_authenticated_identity(
                 request=_http_request(),
                 authorization="Basic abc",
-                settings=_settings(clerk_dev_bypass=False),
+                settings=_settings(auth_dev_bypass=False),
                 db=MagicMock(),
             )
         assert exc.value.status_code == 401
@@ -301,100 +295,15 @@ def test_session_context_never_leaks_secrets() -> None:
 # --- Webhook signature + idempotency ---
 
 
-def test_webhook_bad_signature_raises_signature_error() -> None:
-    secret, _key = _whsec()
-    with pytest.raises(ClerkWebhookSignatureError):
-        verify_clerk_webhook_signature(
-            payload=b'{"type":"user.created"}',
-            secret=secret,
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,notavalidsignature",
-        )
-
-
-def test_webhook_service_maps_bad_signature_to_400() -> None:
-    secret, _key = _whsec()
-    settings = _settings(clerk_webhook_signing_secret=secret)
-    with pytest.raises(HTTPException) as exc:
-        ClerkWebhookService().handle(
-            MagicMock(),
-            settings,
-            payload=b'{"type":"user.created","data":{"id":"u1"}}',
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,bad",
-        )
-    assert exc.value.status_code == 400
-    assert exc.value.detail == "invalid_signature"
-
-
-def test_webhook_service_missing_secret_is_503() -> None:
-    with pytest.raises(HTTPException) as exc:
-        ClerkWebhookService().handle(
-            MagicMock(),
-            _settings(clerk_webhook_signing_secret=""),
-            payload=b"{}",
-            svix_id="msg_1",
-            svix_timestamp=str(int(time.time())),
-            svix_signature="v1,x",
-        )
-    assert exc.value.status_code == 503
-
-
-def test_claim_clerk_event_idempotent_claim() -> None:
-    db = MagicMock()
-    db.execute.return_value.scalar_one_or_none.side_effect = ["row-1", None]
-    assert claim_clerk_event(db, clerk_event_id="evt_1", event_type="user.created") is True
-    assert claim_clerk_event(db, clerk_event_id="evt_1", event_type="user.created") is False
-
-
-def test_webhook_duplicate_delivery_status(monkeypatch: pytest.MonkeyPatch) -> None:
-    secret, key = _whsec()
-    settings = _settings(clerk_webhook_signing_secret=secret)
-    payload = json.dumps(
-        {
-            "type": "user.updated",
-            "data": {
-                "id": "user_x",
-                "email_addresses": [
-                    {
-                        "id": "em_1",
-                        "email_address": "x@example.com",
-                        "verification": {"status": "verified"},
-                    }
-                ],
-                "primary_email_address_id": "em_1",
-            },
-        }
-    ).encode()
-    svix_id = "msg_phase9_dup"
-    ts = str(int(time.time()))
-    sig = _sign(payload, key=key, svix_id=svix_id, ts=ts)
-    monkeypatch.setattr(
-        "porterchain_api.auth.clerk_webhook_service.claim_clerk_event",
-        lambda *a, **k: False,
-    )
-    result = ClerkWebhookService().handle(
-        MagicMock(),
-        settings,
-        payload=payload,
-        svix_id=svix_id,
-        svix_timestamp=ts,
-        svix_signature=sig,
-    )
-    assert result == {"status": "duplicate"}
-
-
 # --- FK matrix hooks (4→1 migration CLI deleted) ---
 
 
 def test_fk_backfill_targets_and_skips() -> None:
     assert "admin_users" in PROFILE_TARGETS
     assert "customers" in PROFILE_TARGETS
-    assert _is_skippable_clerk_id("pending:x")
-    assert _is_skippable_clerk_id("dev_clerk_user")
-    assert not _is_skippable_clerk_id("user_live")
+    assert _is_skippable_idp_id("pending:x")
+    assert _is_skippable_idp_id("dev_idp_user")
+    assert not _is_skippable_idp_id("user_live")
 
 
 # --- Client permission key parity (portal AccessGates / packages/auth) ---

@@ -81,6 +81,10 @@ class FleetPlanService:
                 ),
             )
         rows = q.order_by(Order.scheduled_at).limit(MAX_ORDERS).all()
+        from porterchain_api.dispatch_engine.partner_hold import held_order_ids
+
+        held = held_order_ids(db, [o.id for o in rows])  # with a courier partner: not ours to plan
+        rows = [o for o in rows if o.id not in held]
         if order_ids:
             return rows
         from porterchain_api.services import collect_only as co

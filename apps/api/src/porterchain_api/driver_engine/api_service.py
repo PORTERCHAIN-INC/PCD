@@ -29,6 +29,18 @@ class DriverApiService:
         db.commit()
         return result
 
+    def enforce_shift_limit(self, db: Session, driver: Any) -> None:
+        """L184: a 16h+ open shift is clocked out (and committed) before "Online" is shown."""
+        if self.platform.shift.enforce_shift_limit(db, driver):
+            db.commit()
+
+    def shift_snapshot(self, db: Session, driver: Any) -> dict[str, Any]:
+        """L185: persist the 16h auto clock-out (GET used to roll it back)."""
+        snap = self.platform.shift.snapshot(db, driver)
+        if snap.get("auto_clocked_out"):
+            db.commit()
+        return snap
+
     @staticmethod
     def require_assigned_order(db: Session, *, driver_id: str, order_id: str) -> Any:
         """Load the order and reject drivers who are not assigned to it."""

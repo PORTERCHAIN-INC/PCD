@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.customer_fast import service as fast
 from porterchain_api.db import get_db
@@ -180,7 +180,7 @@ def get_my_track_link(
     tracking_number: str,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> dict[str, Any]:
     """Signed-in customers open the same single tracking page, with actions unlocked."""
     from porterchain_api.auth.customer import require_customer
@@ -193,7 +193,7 @@ def get_my_track_link(
 
 
 # --------------------------------------------------------------------------- signed-in account
-# Orders, address book, autofill, report a problem. Clerk session; the customers row is created
+# Orders, address book, autofill, report a problem. Keycloak session; the customers row is created
 # on first call (no onboarding step).
 
 
@@ -217,7 +217,7 @@ class AddressRequest(BaseModel):
     phone: str | None = Field(default=None, max_length=32)
 
 
-def _me(db: Session, claims: ClerkClaims, settings: Settings):
+def _me(db: Session, claims: IdentityClaims, settings: Settings):
     from porterchain_api.customer_fast.account import ensure_customer
 
     return ensure_customer(db, claims, settings)
@@ -227,7 +227,7 @@ def _me(db: Session, claims: ClerkClaims, settings: Settings):
 def get_my_orders(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> dict[str, Any]:
     from porterchain_api.customer_fast import account
 
@@ -238,7 +238,7 @@ def get_my_orders(
 def get_my_addresses(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> list[dict[str, Any]]:
     from porterchain_api.customer_fast import account
 
@@ -250,7 +250,7 @@ def get_my_address_suggestions(
     q: str | None = None,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> list[dict[str, Any]]:
     from porterchain_api.customer_fast import account
 
@@ -262,7 +262,7 @@ def post_my_address(
     body: AddressRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> dict[str, Any]:
     from porterchain_api.customer_fast import account
 
@@ -274,7 +274,7 @@ def delete_my_address(
     address_id: str,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> dict[str, Any]:
     from porterchain_api.customer_fast import account
 
@@ -288,7 +288,7 @@ def post_my_problem(
     body: ProblemRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> dict[str, Any]:
     from porterchain_api.customer_fast import account
 
@@ -312,7 +312,7 @@ def post_signed_problem(
 def get_my_preferences_link(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
 ) -> dict[str, Any]:
     """Signed-in Account page opens the same email-preferences page the emails link to."""
     return {"url": fast.preferences_url(settings, _me(db, claims, settings))}

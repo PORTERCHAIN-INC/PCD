@@ -1,11 +1,11 @@
 "use client";
+import { uuid } from "@/lib/uuid";
 
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { confirmRouteImport, createRouteImport, type RouteImportJob } from "@/lib/api";
 import { billingApi, type BillingOverview } from "@/lib/billing";
 import { billingSummaryLine } from "@/lib/route-module/billingLine";
 import { formatCents, listSavedAddresses } from "@/lib/booking";
-import { publicEnv } from "@/lib/env";
 import { ordersApi } from "@/lib/orders";
 import {
   allocateVehicle,
@@ -36,7 +36,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 function newId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return uuid();
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 

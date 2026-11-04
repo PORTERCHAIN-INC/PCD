@@ -4,11 +4,10 @@
  * Live path (Jeff slice — real staff handshake):
  *   ADMIN_RUN_LIVE=1
  *   ADMIN_STORAGE_STATE=e2e/.auth/staff.json
- *   # or inject HttpOnly cookie without codegen:
- *   ADMIN_STAFF_SID=<pc_staff_sid value>
+ *   (Keycloak session cookies, captured after a real pc-admin login incl. TOTP)
  *
  * Local bypass path (dev shell only):
- *   Admin must run with NEXT_PUBLIC_CLERK_DEV_BYPASS=true
+ *   Admin must run with NEXT_PUBLIC_AUTH_DEV_BYPASS=true
  *   Empty storageState is enough — middleware + AdminAuthProvider use Bearer "dev".
  *
  * Capture storageState once while signed in:
@@ -46,7 +45,7 @@ export type StaffStorageState =
     };
 
 function loadRegistry(): { cases: P0Case[] } {
-  const registryPath = path.join(process.cwd(), "../../docs/testing/admin_p0_registry.json");
+  const registryPath = path.resolve(__dirname, "../../../docs/testing/admin_p0_registry.json");
   return JSON.parse(fs.readFileSync(registryPath, "utf8")) as { cases: P0Case[] };
 }
 
@@ -75,14 +74,13 @@ export function adminBaseUrl(): string {
 /** True when a real staff cookie jar or sid is configured (not empty bypass). */
 export function hasStaffAuth(): boolean {
   const statePath = process.env.ADMIN_STORAGE_STATE?.trim();
-  if (statePath && fs.existsSync(statePath)) return true;
-  return Boolean(process.env.ADMIN_STAFF_SID?.trim());
+  return Boolean(statePath && fs.existsSync(statePath));
 }
 
 /**
  * Resolve Playwright storageState for staff IdP.
- * Prefer ADMIN_STORAGE_STATE file; else build cookie jar from ADMIN_STAFF_SID;
- * else empty jar (Clerk/staff bypass on a local admin build).
+ * Prefer ADMIN_STORAGE_STATE file (Keycloak session);
+ * else empty jar (Keycloak/staff bypass on a local admin build).
  */
 export function resolveStaffStorageState(): StaffStorageState {
   const statePath = process.env.ADMIN_STORAGE_STATE?.trim();
@@ -93,35 +91,15 @@ export function resolveStaffStorageState(): StaffStorageState {
     return statePath;
   }
 
-  const sid = process.env.ADMIN_STAFF_SID?.trim();
-  if (sid) {
-    const url = new URL(adminBaseUrl());
-    return {
-      cookies: [
-        {
-          name: "pc_staff_sid",
-          value: sid,
-          domain: url.hostname,
-          path: "/",
-          httpOnly: true,
-          secure: url.protocol === "https:",
-          sameSite: "Lax",
-          expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
-        },
-      ],
-      origins: [],
-    };
-  }
-
   return { cookies: [], origins: [] };
 }
 
 /** Soft-skip unless live; hard-fail live runs when auth env is missing. */
-export function requireLiveStaffAuth(): void {
+function requireLiveStaffAuth(): void {
   test.skip(!liveEnabled, "Set ADMIN_RUN_LIVE=1 for the live admin golden path");
   if (!hasStaffAuth()) {
     throw new Error(
-      "Set ADMIN_STORAGE_STATE (Playwright cookie jar) or ADMIN_STAFF_SID (pc_staff_sid value)"
+      "Set ADMIN_STORAGE_STATE (Playwright cookie jar from a Keycloak pc-admin login)"
     );
   }
 }

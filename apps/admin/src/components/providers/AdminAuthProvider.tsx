@@ -1,27 +1,25 @@
 "use client";
 
-import { useInactivityTimeout } from "@porterchain/auth";
+import { AppAuthProvider } from "@porterchain/auth";
+import { useAuth } from "@porterchain/auth/oidc/client";
+import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { publicEnv } from "@/lib/env";
-import {
-  clearStaffSession,
-  probeStaffCookie,
-  STAFF_COOKIE_TOKEN,
-  STAFF_AUTH_EVENT,
-} from "@/lib/staff-session";
+import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
+import { useHydrated } from "@/hooks/useHydrated";
 
 export type AdminAuthState = {
   isLoaded: boolean;
   isSignedIn: boolean;
-  /** True once Porterchain API calls may proceed (Staff IdP cookie). */
+  /** True once Porterchain API calls may proceed. */
   authReady: boolean;
   getApiToken: () => Promise<string>;
 };
@@ -29,45 +27,56 @@ export type AdminAuthState = {
 const AdminAuthContext = createContext<AdminAuthState | null>(null);
 
 /**
- * Staff IdP auth — HttpOnly cookie via BFF.
- * Development uses the same path after Local Super Admin mints a real session.
+ * Staff auth = Keycloak `pc-admin` (password + TOTP for admin tiers). The session is HttpOnly
+ * cookies; the BFF attaches the access token, so callers pass the STAFF_COOKIE_TOKEN sentinel.
+ * Local dev bypass uses API Bearer `dev`.
  */
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [cookieReady, setCookieReady] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  if (authDevBypassEnabled()) {
+    return <AdminAuthInner dev>{children}</AdminAuthInner>;
+  }
+  return (
+    <AppAuthProvider>
+      <AdminAuthInner>{children}</AdminAuthInner>
+    </AppAuthProvider>
+  );
+}
 
-  const refreshCookie = useCallback(async () => {
-    const ok = await probeStaffCookie();
-    setCookieReady(ok);
-    setLoaded(true);
-  }, []);
+function AdminAuthInner({ children, dev = false }: { children: ReactNode; dev?: boolean }) {
+  const oidc = useAuth();
+  // The server never knows the browser session. If the client already has it on its first
+  // render, queries start "loading" there but not in the SSR HTML -> React #418 (intermittent,
+  // any page). Expose auth only after mount so SSR and first client paint always match.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isLoaded = mounted && (dev || oidc.isLoaded);
+  const isSignedIn = mounted && (dev || Boolean(oidc.isSignedIn));
+  const authReady = isLoaded && isSignedIn;
 
+  // Callers that fire before the session probe finishes wait for it instead of throwing an
+  // unhandled "Not authenticated" (that crashed pages such as Unit economics on first load).
+  const state = useRef({ isLoaded, isSignedIn });
+  const waiters = useRef<Array<() => void>>([]);
   useEffect(() => {
-    void refreshCookie();
-  }, [refreshCookie]);
-
-  useEffect(() => {
-    const onAuth = () => {
-      void refreshCookie();
-    };
-    window.addEventListener(STAFF_AUTH_EVENT, onAuth);
-    return () => window.removeEventListener(STAFF_AUTH_EVENT, onAuth);
-  }, [refreshCookie]);
-
-  // Prefer in-memory cookieReady — BFF already attaches the real bearer.
-  // Re-probe only when state says signed-out (avoids N round-trips per page).
-  const getApiToken = useCallback(async () => {
-    if (cookieReady) return STAFF_COOKIE_TOKEN;
-    const ok = await probeStaffCookie();
-    if (ok) {
-      setCookieReady(true);
-      return STAFF_COOKIE_TOKEN;
+    state.current = { isLoaded, isSignedIn };
+    if (isLoaded) {
+      const w = waiters.current;
+      waiters.current = [];
+      w.forEach((fn) => fn());
     }
-    throw new Error("Not authenticated");
-  }, [cookieReady]);
+  }, [isLoaded, isSignedIn]);
 
-  const isSignedIn = cookieReady;
-  const authReady = loaded && isSignedIn;
+  const getApiToken = useCallback(async () => {
+    if (dev) return "dev";
+    if (!state.current.isLoaded) {
+      await new Promise<void>((resolve) => {
+        waiters.current.push(resolve);
+        window.setTimeout(resolve, 15000);
+      });
+    }
+    if (state.current.isSignedIn) return STAFF_COOKIE_TOKEN;
+    throw new Error("Not authenticated");
+  }, [dev]);
 
   useEffect(() => {
     if (!authReady || typeof window === "undefined") return;
@@ -96,18 +105,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         }
       })();
     };
-    // Defer past first paint so page queries win the network/main-thread race.
-    const idle =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(run, { timeout: 4000 })
-        : window.setTimeout(run, 2500);
+    const id = window.setTimeout(run, 2500);
     return () => {
       cancelled = true;
-      if (typeof window.cancelIdleCallback === "function" && typeof idle === "number") {
-        window.cancelIdleCallback(idle);
-      } else {
-        window.clearTimeout(idle as number);
-      }
+      window.clearTimeout(id);
     };
   }, [authReady, getApiToken]);
 
@@ -115,11 +116,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     if (!authReady || typeof window === "undefined") return;
     let unsub: (() => void) | null = null;
     let cancelled = false;
-    const run = () => {
-      if (cancelled) return;
+    const id = window.setTimeout(() => {
       void (async () => {
         try {
-          const { attachForegroundMessaging } = await import("@/lib/firebase-messaging");
+          const { attachForegroundMessaging } = await import("@porterchain/web-push/messaging");
           const stop = await attachForegroundMessaging((msg) => {
             if (typeof Notification === "undefined" || Notification.permission !== "granted")
               return;
@@ -135,51 +135,24 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
               /* Notification constructor may fail in some browsers */
             }
           });
-          if (cancelled) {
-            stop?.();
-            return;
-          }
-          unsub = stop;
+          if (cancelled) stop?.();
+          else unsub = stop;
         } catch {
           /* FCM unsupported */
         }
       })();
-    };
-    const idle =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(run, { timeout: 5000 })
-        : window.setTimeout(run, 3000);
+    }, 3000);
     return () => {
       cancelled = true;
       unsub?.();
-      if (typeof window.cancelIdleCallback === "function" && typeof idle === "number") {
-        window.cancelIdleCallback(idle);
-      } else {
-        window.clearTimeout(idle as number);
-      }
+      window.clearTimeout(id);
     };
   }, [authReady]);
 
-  const onIdleTimeout = useCallback(async () => {
-    await clearStaffSession(publicEnv.porterchainApiUrl);
-    window.location.assign("/sign-in?reason=idle");
-  }, []);
-
-  useInactivityTimeout({
-    enabled: loaded && cookieReady,
-    onTimeout: onIdleTimeout,
-  });
-
   const value = useMemo<AdminAuthState>(
-    () => ({
-      isLoaded: loaded,
-      isSignedIn,
-      authReady,
-      getApiToken,
-    }),
-    [authReady, getApiToken, isSignedIn, loaded]
+    () => ({ isLoaded, isSignedIn, authReady, getApiToken }),
+    [authReady, getApiToken, isSignedIn, isLoaded]
   );
-
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
@@ -188,5 +161,12 @@ export function useAdminAuth(): AdminAuthState {
   if (!ctx) {
     throw new Error("useAdminAuth must be used within AdminAuthProvider");
   }
-  return ctx;
+  // Report signed-out while this component hydrates, so late-streamed boundaries render exactly
+  // what the server rendered (see useHydrated).
+  const hydrated = useHydrated();
+  const pre = useMemo(
+    () => ({ ...ctx, isLoaded: false, isSignedIn: false, authReady: false }),
+    [ctx]
+  );
+  return hydrated ? ctx : pre;
 }

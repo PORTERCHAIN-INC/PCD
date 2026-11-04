@@ -172,7 +172,7 @@ class E2EValidationReverseMixin:
 
         customer = customers.upsert(
             db,
-            clerk_user_id=f"e2e:{label}",
+            auth_subject=f"e2e:{label}",
             email=f"{label}@validation.porterchain.com",
             phone="+1 416-555-0188",
             visitor_session_id=f"e2e-reverse-{label}",

@@ -88,6 +88,21 @@ def order_navigation(
         raise HTTPException(status_code=404, detail="order_not_found") from exc
 
 
+def _media_ref(ctx: DriverContext, key: str | None, legacy: str | None, field: str) -> str:
+    from porterchain_api.media_store.service import require_own_keys
+    if key:
+        try:
+            require_own_keys({field: key}, str(ctx.driver.id))
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        return "garage:" + key
+    if not legacy:
+        raise HTTPException(status_code=422, detail=field + "_required")
+    return legacy
+
+
 @router.post("/routes/{route_id}/stops/{stop_id}/pod-photo")
 def pod_photo(
     route_id: str,
@@ -97,13 +112,14 @@ def pod_photo(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
+    ref = _media_ref(ctx, body.file_key, body.file_url, "file_key")
     try:
         with db_transaction(db):
             result = svc.platform.pod.capture_photo(
                 db,
                 ctx.driver,
                 stop_id,
-                file_url=body.file_url)
+                file_url=ref)
         return {"success": result.success}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc
@@ -118,13 +134,14 @@ def pod_signature(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
+    ref = _media_ref(ctx, body.signature_key, body.signature_data, "signature_key")
     try:
         with db_transaction(db):
             result = svc.platform.pod.capture_signature(
                 db,
                 ctx.driver,
                 stop_id,
-                signature_data=body.signature_data)
+                signature_data=ref)
         return {"success": result.success}
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="stop_not_found") from exc

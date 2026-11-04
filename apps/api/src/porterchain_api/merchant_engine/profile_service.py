@@ -269,6 +269,7 @@ class MerchantProfileService:
         return {
             "user_id": ctx.user.id,
             "user_email": ctx.user.email,
+            "display_name": user_display_name(ctx.merchant, ctx.user.id),
             "role": ctx.role.value,
             "role_label": english_role(ctx.role),
             "merchant_id": ctx.merchant.id,
@@ -293,6 +294,7 @@ class MerchantProfileService:
             "role_label": english_role(ctx.role),
             "modules": sorted(modules_for_role(ctx.role)),
             "user_email": ctx.user.email,
+            "display_name": user_display_name(ctx.merchant, ctx.user.id),
             "status": ctx.merchant.status,
             "status_label": merchant_status_label(ctx.merchant.status),
             "logo_url": branding_logo_url(ctx.merchant),
@@ -312,3 +314,31 @@ def profile_public_fields(merchant: Merchant) -> dict[str, Any]:
         "industry": industry_of(merchant),
         "identity_meta": meta if isinstance(meta, dict) else None,
     }
+
+
+# L34: a seat's own display name (header/account menu). Kept on the company file keyed by
+# seat id, so no schema change; the Keycloak login name is untouched.
+def user_display_name(merchant: Any, user_id: str) -> str | None:
+    prof = merchant.profile if isinstance(merchant.profile, dict) else {}
+    names = ((prof.get("settings") or {}).get("user_display_names")) or {}
+    value = str(names.get(user_id) or "").strip()
+    return value or None
+
+
+def set_user_display_name(db: Session, merchant: Any, user_id: str, name: str) -> str | None:
+    from sqlalchemy.orm.attributes import flag_modified
+
+    clean = " ".join(str(name or "").split())[:80]
+    prof = dict(merchant.profile) if isinstance(merchant.profile, dict) else {}
+    settings = dict(prof.get("settings") or {})
+    names = dict(settings.get("user_display_names") or {})
+    if clean:
+        names[user_id] = clean
+    else:
+        names.pop(user_id, None)
+    settings["user_display_names"] = names
+    prof["settings"] = settings
+    merchant.profile = prof
+    flag_modified(merchant, "profile")
+    db.commit()
+    return clean or None

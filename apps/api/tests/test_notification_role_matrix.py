@@ -140,7 +140,7 @@ def test_event_dispatch_multi_populates_all_primary_roles(db) -> None:
     from porterchain_api.notification_engine.staff_fanout import expand_staff_specs
 
     admin = AdminUser(
-        clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
+        auth_subject=f"idp_{uuid.uuid4().hex[:12]}",
         email=f"ops-{uuid.uuid4().hex[:6]}@porterchain.test",
         role="dispatcher",
         is_active=True,

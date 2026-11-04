@@ -1,4 +1,4 @@
-"""Resolve Clerk subject → AuthPrincipal from persona tables.
+"""Resolve Keycloak subject → AuthPrincipal from persona tables.
 
 Authorization Checks use SpiceDB via CurrentPrincipal — not this helper.
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.email_identity import emails_match
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.config import Settings
@@ -37,12 +37,12 @@ _ADMIN_PLATFORM: dict[AdminRole, PlatformRole] = {
 
 def resolve_persona_principal(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> AuthPrincipal | None:
     _ = settings
-    bundle = load_persona_bundle(db, claims.clerk_user_id)
+    bundle = load_persona_bundle(db, claims.auth_subject)
 
     admin = bundle.admin
     if admin is not None and admin.is_active and _profile_email_ok(admin.email, claims.email):
@@ -98,11 +98,11 @@ def resolve_persona_principal(
     return None
 
 
-def _profile_email_ok(system_email: str | None, clerk_email: str | None) -> bool:
-    # Fail closed: Clerk id alone must never authorize a persona.
-    if not clerk_email:
+def _profile_email_ok(system_email: str | None, identity_email: str | None) -> bool:
+    # Fail closed: Keycloak id alone must never authorize a persona.
+    if not identity_email:
         return False
-    return emails_match(system_email, clerk_email)
+    return emails_match(system_email, identity_email)
 
 
 def _admin_user_type(role: AdminRole) -> UserType:

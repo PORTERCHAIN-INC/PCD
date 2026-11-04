@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog
-from porterchain_api.auth.clerk_registry import clerk_client_for_kind, is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.lifecycle import merge_profile, set_status
@@ -15,7 +15,7 @@ from porterchain_api.merchant_engine.lookups import (
     get_merchant_by_email,
     get_merchant_user_by_email,
     get_seat,
-    get_seat_by_clerk,
+    get_seat_by_idp,
     list_merchants as lookup_list_merchants,
     list_subsidiaries as lookup_subsidiaries,
     seats_for_merchant,
@@ -63,12 +63,12 @@ class AdminMerchantService:
         if existing_user:
             raise ValueError("merchant_user_email_exists")
 
-        if send_invite and is_clerk_secret_configured(settings, "merchant"):
-            clerk = clerk_client_for_kind(settings, "merchant")
-            existing_clerk = clerk.find_user_by_email(normalized)
-            if existing_clerk:
-                clerk_id = str(existing_clerk["id"])
-                linked = get_seat_by_clerk(db, clerk_id)
+        if send_invite and is_directory_configured(settings, "merchant"):
+            keycloak = directory_for_kind(settings, "merchant")
+            existing_idp = keycloak.find_user_by_email(normalized)
+            if existing_idp:
+                subject_ref = str(existing_idp["id"])
+                linked = get_seat_by_idp(db, subject_ref)
                 if linked:
                     raise ValueError("merchant_user_email_exists")
 
@@ -82,23 +82,23 @@ class AdminMerchantService:
             pricing_config=dict(pricing_config or {}),
         )
 
-        if send_invite and is_clerk_secret_configured(settings, "merchant"):
-            clerk = clerk_client_for_kind(settings, "merchant")
-            existing_clerk = clerk.find_user_by_email(normalized)
-            if existing_clerk:
-                clerk_id = str(existing_clerk["id"])
+        if send_invite and is_directory_configured(settings, "merchant"):
+            keycloak = directory_for_kind(settings, "merchant")
+            existing_idp = keycloak.find_user_by_email(normalized)
+            if existing_idp:
+                subject_ref = str(existing_idp["id"])
                 add_linked_seat(
                     db,
                     merchant_id=merchant.id,
                     email=normalized,
-                    clerk_user_id=clerk_id,
+                    auth_subject=subject_ref,
                     role=MerchantRole.OWNER.value,
                     is_active=True,
                 )
                 set_status(merchant, MerchantStatus.ONBOARDING.value)
                 merge_profile(merchant, {"source": "admin_register_portal_user"})
-                clerk.update_user_metadata(
-                    clerk_id,
+                keycloak.update_user_metadata(
+                    subject_ref,
                     {
                         "role": MerchantRole.OWNER.value,
                         "porterchain_role": MerchantRole.OWNER.value,
@@ -112,7 +112,7 @@ class AdminMerchantService:
                     "merchant.created",
                     "merchant",
                     merchant.id,
-                    {"email": normalized, "clerk_linked": True, "via": "portal_clerk_user"},
+                    {"email": normalized, "identity_linked": True, "via": "portal_idp_user"},
                 )
                 db.commit()
                 db.refresh(merchant)
@@ -133,7 +133,7 @@ class AdminMerchantService:
                     "merchant.created",
                     "merchant",
                     merchant.id,
-                    {"email": normalized, "clerk_linked": False, "via": "owner_seat"},
+                    {"email": normalized, "identity_linked": False, "via": "owner_seat"},
                 )
                 db.commit()
                 db.refresh(merchant)
@@ -153,7 +153,7 @@ class AdminMerchantService:
                 "merchant.created",
                 "merchant",
                 merchant.id,
-                {"email": normalized, "clerk_linked": False, "via": "owner_seat"},
+                {"email": normalized, "identity_linked": False, "via": "owner_seat"},
             )
             db.commit()
             db.refresh(merchant)
@@ -164,8 +164,8 @@ class AdminMerchantService:
                     db, ctx, settings, merchant.id, email=normalized
                 )
             except ValueError as exc:
-                # Seat reserved but owner not Clerk-linked yet — stay ONBOARDING (M-11).
-                if str(exc) != "owner_not_clerk_linked":
+                # Seat reserved but owner not Keycloak-linked yet — stay ONBOARDING (M-11).
+                if str(exc) != "owner_not_idp_linked":
                     raise
                 merchant = self._get_or_raise(db, merchant.id)
 
@@ -291,7 +291,7 @@ class AdminMerchantService:
         db.refresh(user)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         return user
 
     @staticmethod
@@ -299,7 +299,7 @@ class AdminMerchantService:
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         for mu in seats_for_merchant(db, merchant_id):
-            sync_authz_after_persona_mutation(db, mu.clerk_user_id)
+            sync_authz_after_persona_mutation(db, mu.auth_subject)
 
     def invite_owner(
         self,
@@ -310,7 +310,7 @@ class AdminMerchantService:
         *,
         email: str,
     ) -> Any:
-        """Reserve owner seat by email (no Clerk invite). ``settings`` unused."""
+        """Reserve owner seat by email (no Keycloak invite). ``settings`` unused."""
         _ = settings
         merchant = self._get_or_raise(db, merchant_id)
         user = ensure_merchant_seat(
@@ -344,7 +344,7 @@ class AdminMerchantService:
         email: str,
         role: str = MerchantRole.OPS.value,
     ) -> Any:
-        """Reserve teammate seat by email (no Clerk invite). ``settings`` unused."""
+        """Reserve teammate seat by email (no Keycloak invite). ``settings`` unused."""
         _ = settings
         merchant = self._get_or_raise(db, merchant_id)
         user = ensure_merchant_seat(
@@ -444,10 +444,12 @@ class AdminMerchantService:
         return merchant
 
     @staticmethod
-    def _validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
+    def _validate_preferred_vehicles(
+        db: Session, preferred: list[str], existing: list[str] | None = None
+    ) -> list[str]:
         from porterchain_api.admin_engine.merchant_org import validate_preferred_vehicles
 
-        return validate_preferred_vehicles(db, preferred)
+        return validate_preferred_vehicles(db, preferred, existing)
 
     def remove_team_member(
         self,
@@ -474,7 +476,7 @@ class AdminMerchantService:
         db.commit()
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
 
     def list_subsidiaries(self, db: Session, parent_merchant_id: str) -> list[Any]:
         return lookup_subsidiaries(db, parent_merchant_id)

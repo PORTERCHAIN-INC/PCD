@@ -47,7 +47,7 @@
           "Nous partageons des renseignements avec des processeurs de confiance uniquement lorsque nécessaire. Ces fournisseurs sont tenus contractuellement de protéger vos données."
         ],
         "list": [
-          "Clerk — authentification marchands et clients",
+          "Keycloak — authentification marchands et clients",
           "Stripe — traitement des paiements",
           "Google Maps — autocomplétion d'adresses et cartographie",
           "Zoho Mail — courriels transactionnels",
@@ -72,7 +72,7 @@
         "title": "Commandes Shopify",
         "paragraphs": [
           "Lorsqu'un marchand connecte Shopify, Porterchain est le sous-traitant et le marchand est le responsable du traitement de l'acheteur. Nous conservons le nom, le courriel, le téléphone et la rue de livraison seulement pour livrer la commande et répondre à une demande de confidentialité. Ce contact ne sert pas au marketing.",
-          "Nous conservons ce contact 24 mois après la livraison, puis nous retirons la rue, le nom, le courriel et le téléphone. Le code postal et le montant peuvent rester si un dossier fiscal ou une réclamation est encore ouvert. Shopify, Clerk et Stripe peuvent traiter des données hors du Canada.",
+          "Nous conservons ce contact 24 mois après la livraison, puis nous retirons la rue, le nom, le courriel et le téléphone. Le code postal et le montant peuvent rester si un dossier fiscal ou une réclamation est encore ouvert. Shopify, Keycloak et Stripe peuvent traiter des données hors du Canada.",
           "L'acheteur s'adresse au marchand. L'admin Shopify envoie un webhook de confidentialité. Le marchand télécharge le fichier dans les paramètres de confidentialité Porterchain. Nous n'envoyons pas ce fichier à l'acheteur."
         ]
       },
@@ -128,7 +128,7 @@
       {
         "title": "Responsabilité et réclamations",
         "paragraphs": [
-          "Une assurance marchandises jusqu'à 2 500 $ en cas de perte ou de dommage est incluse. Une couverture améliorée jusqu'à 25 000 $ est offerte pour 10 $ de plus par arrêt lorsqu'elle est choisie à la réservation. La couverture est soumise aux exclusions des présentes conditions et de votre entente marchande, sauf si la loi l'interdit.",
+          "Notre responsabilité en cas de perte ou de dommage est limitée à 4,41 $ par kg des marchandises touchées (Règl. de l'Ont. 643/05), sauf si une couverture à valeur déclarée a été achetée à la réservation. Une couverture facultative à valeur déclarée (1,5 % de la valeur déclarée, minimum 3 $, jusqu'à 2 500 $ par colis; argent, bijoux, médicaments et denrées périssables exclus; preuve de valeur requise pour réclamer) sera offerte dès que notre assurance marchandises sera confirmée. La couverture est soumise aux exclusions des présentes conditions et de votre entente marchande, sauf si la loi l'interdit.",
           "Les réclamations doivent être signalées rapidement avec les références d'expédition et la documentation à l'appui. Contactez ops@porterchain.com pour assistance."
         ]
       },
@@ -175,7 +175,7 @@
           "Témoins d'analyse — seulement si vous autorisez Analyse dans la bannière (Consent Mode)",
           "Témoins marketing — pixels pub/remarketing seulement si vous autorisez Marketing et que les IDs env sont configurés",
           "Témoins d'expérience — Clarity/Hotjar optionnels seulement si vous autorisez Expérience",
-          "Témoins d'authentification — définis par Clerk lors de la connexion ou vérification du compte",
+          "Témoins d'authentification — définis par Keycloak lors de la connexion ou vérification du compte",
           "Témoins de préférence — langue (anglais / français) et choix de la bannière de témoins",
           "Témoins de paiement — définis par Stripe lors du paiement",
           "Témoins de cartes — définis par Google Maps pour l'autocomplétion et les cartes"
@@ -187,8 +187,7 @@
           "Les services tiers suivants peuvent charger des scripts ou définir des témoins lorsque vous utilisez notre site :"
         ],
         "list": [
-          "Clerk — authentification pour réservation, portail marchand, admin et chauffeurs",
-          "Google Maps (maps.googleapis.com) — autocomplétion et cartes",
+          "Keycloak — authentification pour réservation, portail marchand, admin et chauffeurs",
           "Stripe (stripe.com) — traitement des paiements"
         ]
       },

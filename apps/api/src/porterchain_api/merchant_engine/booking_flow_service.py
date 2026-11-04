@@ -55,7 +55,7 @@ class MerchantBookingFlowService:
         quoted = self._aware(getattr(draft, "updated_at", None)) or self._aware(
             getattr(draft, "created_at", None)
         )
-        ttl = timedelta(minutes=max(1, int(settings.quote_ttl_minutes or 30)))
+        ttl = timedelta(minutes=max(1, int(settings.quote_ttl_minutes or 72 * 60)))
         if quoted is not None and now - quoted > ttl:
             raise ValueError("quote_expired")
 
@@ -137,11 +137,11 @@ class MerchantBookingFlowService:
 
         pricing_request = self._booking.build_pricing_request(ctx, body, vehicle_class=vehicle_class, db=db)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
-        if (breakdown.metadata.get("coverage") or {}).get("over_max"):
-            raise BookingValidationError(
-                "declared_value_over_max",
-                "Declared value is above the $25,000 coverage maximum. Contact us to arrange cover.",
-            )
+        from porterchain_api.merchant_engine.booking_validation import declared_value_block
+
+        cover_block = declared_value_block(breakdown.metadata.get("coverage"))
+        if cover_block:
+            raise BookingValidationError(*cover_block)
         try:
             assert_not_fsa_refused(breakdown)
             validated = self._sync.validate_booking(db, ctx.merchant, amount_cents=breakdown.final_cents)

@@ -109,6 +109,23 @@ def _stops_line(stops_away: int | None) -> str:
     return f"You're {stops_away} stop{'s' if stops_away != 1 else ''} away."
 
 
+def _proof_types(order: Order) -> list[str] | None:
+    """Proof kinds captured at the stop (photo / signature), for the delivered email (L180)."""
+    from sqlalchemy.orm import object_session
+
+    from porterchain_api.platform.driver_reads import stop_meta_for_order
+
+    db = object_session(order)
+    if db is None:
+        return None
+    try:
+        row = stop_meta_for_order(db, order.id)
+    except Exception:  # noqa: BLE001 — generic proof line
+        return None
+    proofs = (row.meta or {}).get("proofs", []) if row else []
+    return sorted({str(p.get("type")) for p in proofs if isinstance(p, dict) and p.get("type")})
+
+
 def build_context(
     settings: Settings,
     order: Order,
@@ -170,6 +187,7 @@ def build_context(
     ctx.update(
         {
             "lang": lang,
+            "direct_booking": merchant is None,
             "website_url": settings.website_url,
             "support_email": cfg["tracking"]["support_email"] or "",
             "window_label": str(schedule.get("label") or extra.get("window_label") or ""),
@@ -181,6 +199,8 @@ def build_context(
             else "",
         }
     )
+    if kind == "delivered":
+        ctx["proof_types"] = _proof_types(order)
     if kind == "schedule_request" and not ctx["reschedule_url"]:
         ctx["reschedule_url"] = links.get("manage_url_signed", "")
     return ctx

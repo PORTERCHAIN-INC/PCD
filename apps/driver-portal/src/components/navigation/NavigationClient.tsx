@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Clock, MapPin, Navigation, Radio, Route } from "lucide-react";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import DriverShell from "@/components/DriverShell";
-import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { DriverNavigationMap } from "@/components/navigation/DriverNavigationMap";
 import { useDriverNavigation } from "@/hooks/useDriverNavigation";
 import { hasDriverSession } from "@/lib/api";
@@ -21,9 +20,9 @@ export default function NavigationClient() {
         </div>
       }
     >
-      <WithGoogleMaps>
+      <>
         <NavigationPageContent />
-      </WithGoogleMaps>
+      </>
     </Suspense>
   );
 }
@@ -136,7 +135,8 @@ function NavigationPageContent() {
                 {session.gps_source && (
                   <span className="ml-2 inline-flex items-center gap-1 text-emerald-700">
                     <Radio className="h-3 w-3" />
-                    GPS: {session.gps_source}
+                    GPS:{" "}
+                    {GPS_LABEL[String(session.gps_source)] ?? human(String(session.gps_source))}
                   </span>
                 )}
               </p>
@@ -235,7 +235,7 @@ function NavigationPageContent() {
                   className="flex items-center justify-between rounded-xl bg-[var(--gray-bg)] px-3 py-2 text-sm"
                 >
                   <span className="font-medium capitalize">{String(stop.stop_type)}</span>
-                  <span className="text-[var(--muted)]">{String(stop.status)}</span>
+                  <span className="text-[var(--muted)]">{human(String(stop.status))}</span>
                 </li>
               ))}
             </ul>
@@ -284,4 +284,15 @@ function Metric({
       {hint && <p className="mt-0.5 text-xs text-[var(--muted)]">{hint}</p>}
     </div>
   );
+}
+
+const GPS_LABEL: Record<string, string> = {
+  last_known: "Last known",
+  live: "Live",
+  device: "Live",
+};
+/** New-issue fix: no raw snake_case on the navigation screen. */
+function human(v: string): string {
+  const t = v.replace(/_/g, " ").toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }

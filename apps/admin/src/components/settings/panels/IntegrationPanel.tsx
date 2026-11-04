@@ -29,10 +29,10 @@ const INTEGRATION_DOCS: Record<string, string[]> = {
   stripe: [
     "Stripe Checkout for retail; invoicing for merchants.",
     "Webhook secrets verified server-side — never exposed in admin UI.",
-    "API keys live in Doppler / env — change them there, then restart API.",
+    "API keys live in the SOPS secrets file / env — change them there, then restart API.",
   ],
-  google_maps: [
-    "No Google services. Maps: MapLibre + self-hosted Protomaps tiles (tiles.porterchain.com).",
+  maps: [
+    "Self-hosted only. Maps: MapLibre + self-hosted Protomaps tiles (tiles.porterchain.com).",
     "Address search: /v1/geo (self-hosted Photon, Nominatim fallback), GTA ±150 km.",
     "Routing runs on Valhalla (primary) with OSRM fallback, configured via env.",
   ],
@@ -40,11 +40,11 @@ const INTEGRATION_DOCS: Record<string, string[]> = {
     "Email uses SMTP from environment (Mailpit in local dev).",
     "Staff push uses FCM with OS priority for critical/high only — see alert budget below.",
     "Quiet hours never mute critical/high or security. Staff cannot mute those categories.",
-    "SMS transactional copy still goes through Clerk where applicable; ops SMS remains optional.",
+    "SMS transactional copy still goes through Keycloak where applicable; ops SMS remains optional.",
   ],
   firebase: [
     "FCM credentials are env-managed (service account / project id).",
-    "Configure in Doppler, then restart worker/API for push delivery.",
+    "Configure in the SOPS secrets file, then restart worker/API for push delivery.",
   ],
   storage: [
     "Document/media storage is deployment volume or object-store env config.",
@@ -63,13 +63,7 @@ const ACTIONS: Record<string, Action[]> = {
     { label: "Stripe Dashboard", href: "https://dashboard.stripe.com", external: true },
     { label: "Env / secrets map", href: "/settings?section=backup" },
   ],
-  google_maps: [
-    {
-      label: "Google Cloud Console",
-      href: "https://console.cloud.google.com/google/maps-apis",
-      external: true,
-    },
-  ],
+  maps: [{ label: "System health", href: "/system" }],
   firebase: [
     { label: "Firebase Console", href: "https://console.firebase.google.com", external: true },
   ],
@@ -119,8 +113,8 @@ export default function IntegrationPanel({
         <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
           <Lock className="h-3.5 w-3.5" />
           {sectionId === "channels"
-            ? "Alert budget locked in code — FCM secrets in Doppler"
-            : "Secrets in Doppler / env — not editable here"}
+            ? "Alert budget locked in code — FCM secrets in SOPS"
+            : "Secrets in SOPS / env — not editable here"}
         </span>
       </div>
 
@@ -131,9 +125,9 @@ export default function IntegrationPanel({
       >
         <p className="text-sm text-primary/80">
           API keys, webhook secrets, and SMTP passwords must never live in the admin database or
-          browser. They are set in <strong>Doppler / environment variables</strong>, then the API
-          reports health on this page. Use the actions below to open the right console or ops
-          surface.
+          browser. They are set in <strong>the SOPS secrets file / environment variables</strong>,
+          then the API reports health on this page. Use the actions below to open the right console
+          or ops surface.
         </p>
       </SettingsCard>
 

@@ -9,7 +9,7 @@ import pytest
 
 from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
 from porterchain_api.admin_engine.rbac import MODULE_PERMISSIONS
-from porterchain_api.auth.email_identity import EMAIL_CLERK_MISMATCH
+from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH
 from porterchain_api.booking_engine.customer_service import CustomerService
 
 
@@ -30,7 +30,7 @@ def test_create_customer_rejects_linked_email() -> None:
     linked = SimpleNamespace(
         id="cust-1",
         email="c@example.com",
-        clerk_user_id="user_abc",
+        auth_subject="user_abc",
         full_name="C",
         phone=None,
     )
@@ -48,7 +48,7 @@ def test_create_customer_mints_orphan_row() -> None:
     orphan = SimpleNamespace(
         id="cust-new",
         email="new@example.com",
-        clerk_user_id="pending:new@example.com",
+        auth_subject="pending:new@example.com",
         full_name="New User",
         phone=None,
         customer_reference="PC-1",
@@ -70,7 +70,7 @@ def test_create_customer_mints_orphan_row() -> None:
             return_value=orphan,
         ),
         patch(
-            "porterchain_api.admin_engine.customer_admin_mutations.is_clerk_secret_configured",
+            "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
             return_value=False,
         ),
         patch("porterchain_api.admin_engine.customer_admin_mutations.log_admin_audit"),
@@ -81,7 +81,7 @@ def test_create_customer_mints_orphan_row() -> None:
                 "id": orphan.id,
                 "email": orphan.email,
                 "display_name": "New User",
-                "clerk_linked": False,
+                "identity_linked": False,
                 "identity_status": "orphan",
             },
         ),
@@ -97,14 +97,14 @@ def test_create_customer_mints_orphan_row() -> None:
 
     assert row["id"] == "cust-new"
     assert row["created"] is True
-    assert row["clerk_action"] == "created"
+    assert row["identity_action"] == "created"
     db.commit.assert_called_once()
 
 
 def test_upsert_rejects_email_mismatch_on_bound_customer() -> None:
     existing = SimpleNamespace(
         id="c1",
-        clerk_user_id="user_1",
+        auth_subject="user_1",
         email="a@example.com",
         phone=None,
         visitor_session_id=None,
@@ -112,15 +112,15 @@ def test_upsert_rejects_email_mismatch_on_bound_customer() -> None:
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = existing
     with patch(
-        "porterchain_api.auth.portal_guard.clerk_id_staff_portal",
+        "porterchain_api.auth.portal_guard.subject_staff_portal",
         return_value=None,
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",
     ):
-        with pytest.raises(ValueError, match=EMAIL_CLERK_MISMATCH):
+        with pytest.raises(ValueError, match=EMAIL_IDENTITY_MISMATCH):
             CustomerService().upsert(
                 db,
-                clerk_user_id="user_1",
+                auth_subject="user_1",
                 email="other@example.com",
                 phone=None,
             )
@@ -129,19 +129,19 @@ def test_upsert_rejects_email_mismatch_on_bound_customer() -> None:
 def test_upsert_merges_orphan_by_email() -> None:
     orphan = SimpleNamespace(
         id="c-orphan",
-        clerk_user_id="pending:old@example.com",
+        auth_subject="pending:old@example.com",
         email="old@example.com",
         phone=None,
         visitor_session_id=None,
         full_name=None,
     )
     db = MagicMock()
-    # First query: by clerk_user_id → None; second: by email → orphan
+    # First query: by auth_subject → None; second: by email → orphan
     db.query.return_value.filter.return_value.first.side_effect = [None]
     db.query.return_value.filter.return_value.order_by.return_value.first.return_value = orphan
 
     with patch(
-        "porterchain_api.auth.portal_guard.clerk_id_staff_portal",
+        "porterchain_api.auth.portal_guard.subject_staff_portal",
         return_value=None,
     ), patch(
         "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation",
@@ -150,12 +150,12 @@ def test_upsert_merges_orphan_by_email() -> None:
     ):
         out = CustomerService().upsert(
             db,
-            clerk_user_id="user_new",
+            auth_subject="user_new",
             email="OLD@example.com",
             phone="+14165550100",
         )
     assert out is orphan
-    assert orphan.clerk_user_id == "user_new"
+    assert orphan.auth_subject == "user_new"
     assert orphan.email == "old@example.com"
     assert orphan.phone == "+14165550100"
 
@@ -167,7 +167,7 @@ def test_approve_driver_does_not_push_fleetbase() -> None:
     driver = SimpleNamespace(
         id="d1",
         status=DriverStatus.PENDING.value,
-        clerk_user_id="user_d",
+        auth_subject="user_d",
         vehicles=[],
         fleetbase_driver_id=None,
     )
@@ -196,7 +196,7 @@ def test_approve_driver_works_without_settings() -> None:
     driver = SimpleNamespace(
         id="d1",
         status=DriverStatus.PENDING.value,
-        clerk_user_id="user_d",
+        auth_subject="user_d",
         vehicles=[],
         fleetbase_driver_id=None,
     )

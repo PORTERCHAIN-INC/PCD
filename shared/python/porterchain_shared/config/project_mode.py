@@ -1,7 +1,7 @@
 """Project runtime mode — boot-time SoT derived from APP_ENV (Jeff Dean).
 
 Mode is a process/deploy property. Do not store it in Postgres or flip it from
-a live production Admin UI. Change APP_ENV (Doppler / .env), then restart.
+a live production Admin UI. Change APP_ENV (SOPS secrets file / .env), then restart.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ def project_mode_for_app_env(app_env: str | None) -> ProjectMode:
 
 
 def is_relaxed_boot_env(app_env: str | None) -> bool:
-    """True for development + testing — JWT defaults / Clerk optional at boot."""
+    """True for development + testing — JWT defaults / Keycloak optional at boot."""
     return project_mode_for_app_env(app_env) in (ProjectMode.DEVELOPMENT, ProjectMode.TESTING)
 
 
@@ -64,10 +64,10 @@ class RuntimePosture:
     app_env: str
     auth_bypass_allowed: bool
     stripe_mock_allowed: bool
-    requires_live_clerk: bool
+    requires_live_identity: bool
     cookie_domain_mode: str  # "host_only" | "porterchain_domain"
     restart_required_to_change: bool = True
-    change_control: str = "Set APP_ENV in Doppler or env/.env, then restart API and portals."
+    change_control: str = "Set APP_ENV in the SOPS secrets file or env/.env, then restart API and portals."
 
     def as_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -78,7 +78,7 @@ class RuntimePosture:
 def runtime_posture(
     *,
     app_env: str,
-    clerk_dev_bypass: bool = False,
+    auth_dev_bypass: bool = False,
     stripe_mock: bool = False,
     stripe_secret: str = "",
 ) -> RuntimePosture:
@@ -90,9 +90,9 @@ def runtime_posture(
     return RuntimePosture(
         mode=mode,
         app_env=normalized,
-        auth_bypass_allowed=is_dev and bool(clerk_dev_bypass),
+        auth_bypass_allowed=is_dev and bool(auth_dev_bypass),
         stripe_mock_allowed=is_dev and (bool(stripe_mock) or not stripe_secret),
-        requires_live_clerk=is_prod,
+        requires_live_identity=is_prod,
         cookie_domain_mode="host_only" if is_dev else "porterchain_domain",
     )
 
@@ -100,7 +100,7 @@ def runtime_posture(
 def runtime_posture_from_settings(settings: Any) -> RuntimePosture:
     return runtime_posture(
         app_env=getattr(settings, "app_env", APP_ENV_DEVELOPMENT),
-        clerk_dev_bypass=bool(getattr(settings, "clerk_dev_bypass", False)),
+        auth_dev_bypass=bool(getattr(settings, "auth_dev_bypass", False)),
         stripe_mock=bool(getattr(settings, "stripe_mock", False)),
         stripe_secret=str(getattr(settings, "stripe_secret", "") or ""),
     )

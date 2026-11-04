@@ -6,32 +6,32 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
-from porterchain_api.auth.portal_guard import clerk_id_staff_portal
-from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
+from porterchain_api.auth.portal_guard import subject_staff_portal
+from porterchain_api.auth.user_sync_service import _is_pending_idp_id
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer
 
 
 def evaluate_customer_onboarding(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
     customer: Customer | None = None,
     email: str | None = None,
 ) -> dict[str, Any]:
-    clerk_linked = not _is_pending_clerk_id(claims.clerk_user_id)
+    identity_linked = not _is_pending_idp_id(claims.auth_subject)
     if settings and allow_auth_dev_bypass(settings):
-        clerk_linked = True
+        identity_linked = True
 
-    if customer is None and claims.clerk_user_id:
-        customer = load_persona_bundle(db, claims.clerk_user_id).customer
+    if customer is None and claims.auth_subject:
+        customer = load_persona_bundle(db, claims.auth_subject).customer
 
     email_ok = bool(email or (customer and customer.email))
-    conflict = clerk_id_staff_portal(db, claims.clerk_user_id or "")
+    conflict = subject_staff_portal(db, claims.auth_subject or "")
     provisioned = customer is not None
 
     from porterchain_api.admin_engine.platform_settings import portal_enabled as customer_portal_enabled
@@ -40,11 +40,11 @@ def evaluate_customer_onboarding(
 
     steps: list[dict[str, Any]] = [
         {
-            "id": "clerk_account",
-            "label": "Clerk account connected",
+            "id": "idp_account",
+            "label": "Sign-in account connected",
             "description": "Sign in with your Porterchain customer account.",
-            "complete": clerk_linked,
-            "status": "complete" if clerk_linked else "pending",
+            "complete": identity_linked,
+            "status": "complete" if identity_linked else "pending",
         },
         {
             "id": "email_on_account",
@@ -63,7 +63,7 @@ def evaluate_customer_onboarding(
         {
             "id": "identity_authorized",
             "label": "Customer identity authorized",
-            "description": "This Clerk account must not be provisioned as staff, merchant, or driver.",
+            "description": "This Keycloak account must not be provisioned as staff, merchant, or driver.",
             "complete": conflict is None,
             "status": "complete" if conflict is None else f"conflict_{conflict}",
         },
@@ -83,7 +83,7 @@ def evaluate_customer_onboarding(
         "ready": ready,
         "blockers": blockers,
         "status": "active" if ready else ("disabled" if not portal_on else "pending"),
-        "clerk_linked": clerk_linked,
+        "identity_linked": identity_linked,
         "steps": steps,
         "pending_documents": 0,
         "can_access_portal": ready,
@@ -91,7 +91,7 @@ def evaluate_customer_onboarding(
     }
 
 
-def customer_onboarding_payload(db: Session, claims: ClerkClaims, settings: Settings) -> dict[str, Any]:
+def customer_onboarding_payload(db: Session, claims: IdentityClaims, settings: Settings) -> dict[str, Any]:
     from porterchain_api.auth.customer import resolve_customer_contact
 
     email, _phone = resolve_customer_contact(db, claims, settings)
@@ -103,15 +103,15 @@ def customer_onboarding_payload(db: Session, claims: ClerkClaims, settings: Sett
 
 def provision_customer_for_onboarding(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     settings: Settings,
 ) -> Customer | None:
-    """Create/link the customers row when this Clerk id is allowed on the customer portal."""
+    """Create/link the customers row when this Keycloak id is allowed on the customer portal."""
     from fastapi import HTTPException
 
     from porterchain_api.auth.customer import require_customer
 
-    if not claims.clerk_user_id or clerk_id_staff_portal(db, claims.clerk_user_id):
+    if not claims.auth_subject or subject_staff_portal(db, claims.auth_subject):
         return None
     try:
         customer = require_customer(db, claims, settings)
@@ -123,7 +123,7 @@ def provision_customer_for_onboarding(
 
 def require_customer_portal_ready(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     customer: Customer,
     *,
     settings: Settings | None = None,

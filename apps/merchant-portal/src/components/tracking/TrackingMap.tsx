@@ -7,7 +7,6 @@ import {
   resolveRoutePolylineEncoding,
 } from "@/lib/tracking-map";
 import type { LiveTracking } from "@/lib/tracking";
-import { MapShell } from "@/components/tracking/MapShell";
 import type { LatLng, MapCircle, MapLine, MapMarker } from "@porterchain/maps";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
@@ -91,7 +90,7 @@ export function TrackingMap({ tracking, replayIndex, height = "420px" }: Props) 
   }, [tracking.geofences]);
 
   return (
-    <MapShell height={height}>
+    <>
       <div className="overflow-hidden rounded-2xl border border-primary/10" style={{ height }}>
         <LibreMap
           center={driver ?? dropoff ?? pickup ?? GTA_CENTER}
@@ -102,6 +101,6 @@ export function TrackingMap({ tracking, replayIndex, height = "420px" }: Props) 
           fitPadding={48}
         />
       </div>
-    </MapShell>
+    </>
   );
 }

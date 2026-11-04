@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import clerk_kind_for_user_type
+from porterchain_api.admin_engine.identity_directory_service import directory_kind_for_user_type
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.merchant_engine.bulk_service import MerchantBulkService
 from porterchain_api.merchant_engine.reports_service import MerchantReportsService
 from porterchain_api.merchant_engine.webhook_delivery_service import _hook_matches_event, _sign_payload
 
 
-def test_clerk_kind_for_user_type() -> None:
-    assert clerk_kind_for_user_type("merchant") == "merchant"
-    assert clerk_kind_for_user_type("driver") == "driver"
-    assert clerk_kind_for_user_type("customer") == "customer"
-    with pytest.raises(ValueError, match="staff_uses_staff_idp_not_clerk"):
-        clerk_kind_for_user_type("staff")
+def test_idp_kind_for_user_type() -> None:
+    assert directory_kind_for_user_type("merchant") == "merchant"
+    assert directory_kind_for_user_type("driver") == "driver"
+    assert directory_kind_for_user_type("customer") == "customer"
+    with pytest.raises(ValueError, match="staff_uses_staff_idp_not_idp"):
+        directory_kind_for_user_type("staff")
 
 
 def test_bulk_normalize_row() -> None:
@@ -59,7 +59,7 @@ def test_settings_authorize_platform_user_staff(db, admin_ctx, settings) -> None
     assert staff.is_active is True
 
 
-def test_settings_authorize_staff_refuses_clerk_only_create(db, admin_ctx, settings) -> None:
+def test_settings_authorize_staff_refuses_idp_only_create(db, admin_ctx, settings) -> None:
     svc = AdminSettingsService()
     with pytest.raises(LookupError, match="invite|not_found"):
         svc.authorize_platform_user(
@@ -67,18 +67,18 @@ def test_settings_authorize_staff_refuses_clerk_only_create(db, admin_ctx, setti
             admin_ctx,
             settings,
             "staff",
-            clerk_user_id="user_random_platform",
+            auth_subject="user_random_platform",
             email="random@example.com",
             reason="should_fail",
         )
-    with pytest.raises(ValueError, match="staff_clerk_retired_use_staff_idp"):
+    with pytest.raises(ValueError, match="staff_idp_retired_use_staff_idp"):
         svc.authorize_platform_user(
             db,
             admin_ctx,
             settings,
             "staff",
             platform_user_id=admin_ctx.user.id,
-            clerk_user_id="user_legacy_admin",
+            auth_subject="user_legacy_admin",
             reason="should_fail",
         )
 

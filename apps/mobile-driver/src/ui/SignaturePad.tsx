@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PanResponder, View, StyleSheet, type LayoutChangeEvent } from "react-native";
+import { signatureReady, strokesToPngDataUrl } from "@porterchain/driver-flows";
 import { color, radius, space } from "./theme";
 
 type Point = { x: number; y: number };
@@ -10,26 +11,14 @@ type Props = {
   onChange: (signatureData: string) => void;
 };
 
-function encodeSvgDataUrl(svg: string): string {
-  if (typeof globalThis.btoa === "function") {
-    return `data:image/svg+xml;base64,${globalThis.btoa(svg)}`;
-  }
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
-function strokesToSvg(strokes: Stroke[], width: number, height: number): string {
-  const paths = strokes
-    .filter((s) => s.length > 0)
-    .map((stroke) => {
-      const [first, ...rest] = stroke;
-      const d = [`M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`]
-        .concat(rest.map((p) => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`))
-        .join(" ");
-      return `<path d="${d}" fill="none" stroke="#111827" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-    })
-    .join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(width)}" height="${Math.round(height)}" viewBox="0 0 ${Math.round(width)} ${Math.round(height)}">${paths}</svg>`;
-  return encodeSvgDataUrl(svg);
+/** PNG (not SVG): the API stores signatures as PNG only. Scaled to ≤ 360 px wide to stay well under 300 KB. */
+function strokesToPng(strokes: Stroke[], width: number, height: number): string {
+  const k = Math.min(1, 360 / Math.max(1, width));
+  return strokesToPngDataUrl(
+    strokes.map((st) => st.map((p) => ({ x: p.x * k, y: p.y * k }))),
+    width * k,
+    height * k
+  );
 }
 
 export function SignaturePad({ disabled, onChange }: Props) {
@@ -50,12 +39,12 @@ export function SignaturePad({ disabled, onChange }: Props) {
   const publish = useCallback((next: Stroke[]) => {
     strokesRef.current = next;
     setStrokes(next);
-    if (next.length === 0) {
+    if (next.length === 0 || !signatureReady(next)) {
       onChangeRef.current("");
       return;
     }
     const { width, height } = sizeRef.current;
-    onChangeRef.current(strokesToSvg(next, width, height));
+    onChangeRef.current(strokesToPng(next, width, height));
   }, []);
 
   const responder = useRef(

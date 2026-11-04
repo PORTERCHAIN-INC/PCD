@@ -129,6 +129,7 @@ class JobsService:
             "upcoming": upcoming,
             "completed": completed,
             "jobs": self._sort_by_priority(active_jobs) + completed_jobs,
+            "can_undo": _can_undo(plan),
         }
 
     def optimize_route(
@@ -268,6 +269,8 @@ class JobsService:
                 "error": "nothing_to_undo",
                 "message": "No previous stop order to restore.",
                 "jobs": jobs,
+                # L120: response_model requires plan_id; without it this was a 500.
+                "plan_id": "none",
             }
         return {
             "ok": True,
@@ -490,12 +493,7 @@ class JobsService:
                 if merchant
                 else None
             ),
-            "customer": {
-                "id": customer.id if customer else None,
-                "email": customer.email if customer else dropoff.get("email") or pickup.get("email"),
-                "phone": customer.phone if customer else dropoff.get("phone") or pickup.get("phone"),
-                "name": dropoff.get("name") or dropoff.get("contact_name") or pickup.get("name"),
-            },
+            "customer": _customer_block(order, customer, pickup, dropoff),
             "packages": packages,
             "packages_error": packages_error,
             "scan_pickup": {
@@ -656,7 +654,7 @@ class JobsService:
             "delivery_stop_id": f"{order.id}-dropoff",
             "scheduled_at": order.scheduled_at.isoformat() if order.scheduled_at else None,
             "special_instructions": order.special_instructions,
-            "delivery_notes": _delivery_lines(dropoff),
+            "delivery_notes": _english_lines(db, order.id, _delivery_lines(dropoff)),
             "urgency": urgency,
             "high_priority": urgency in ("critical", "high"),
             "priority_rank": ranks.get(order.id),
@@ -759,7 +757,36 @@ def _pod_gate(db: Session, driver: Any, order: Any) -> dict[str, Any]:
     }
 
 
+def _english_lines(db: Session, order_id: str, lines: list[str]) -> list[str]:
+    from porterchain_api.platform.free_text_translation import english_note_lines
+
+    return english_note_lines(db, order_id, lines)
+
+
 def _delivery_lines(dropoff: Any) -> list[str]:
     from porterchain_api.domain.delivery_options import summary_lines
 
     return summary_lines(dropoff)
+
+
+def _can_undo(plan: Any) -> bool:
+    from porterchain_driver.sequence_store import can_undo
+
+    return can_undo(plan)
+
+
+def _customer_block(order: Any, customer: Any, pickup: dict, dropoff: dict) -> dict[str, Any]:
+    """L56: merchant orders have no customer account; fall back to the consignee (recipient)."""
+    meta = getattr(order, "compliance_metadata", None) or {}
+    cons = meta.get("consignee") if isinstance(meta, dict) else None
+    cons = cons if isinstance(cons, dict) else {}
+    name = (
+        dropoff.get("name")
+        or dropoff.get("contact_name")
+        or cons.get("name")
+        or (getattr(customer, "full_name", None) if customer else None)
+        or pickup.get("name")
+    )
+    email = (customer.email if customer else None) or dropoff.get("email") or cons.get("email") or pickup.get("email")
+    phone = (customer.phone if customer else None) or dropoff.get("phone") or cons.get("phone") or pickup.get("phone")
+    return {"id": customer.id if customer else None, "email": email, "phone": phone, "name": name}

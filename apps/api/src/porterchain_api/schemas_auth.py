@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class AuthMeResponse(BaseModel):
     user_id: str
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
     user_type: str  # Deprecated hint for routing; prefer permissions / session-context
     roles: list[str]
     permissions: list[str]
@@ -67,7 +67,7 @@ class PortalOnboardingResponse(BaseModel):
     ready: bool
     blockers: list[str]
     status: str
-    clerk_linked: bool
+    identity_linked: bool
     steps: list[PortalOnboardingStep]
     pending_documents: int = 0
     can_access_portal: bool
@@ -75,7 +75,7 @@ class PortalOnboardingResponse(BaseModel):
     merchant_id: str | None = None
     vertical: str | None = None
     vertical_label: str | None = None
-    vertical_options: list[dict[str, str]] = Field(default_factory=list)
+    vertical_options: list[dict[str, str | None]] = Field(default_factory=list)  # note may be null (L163)
     status_label: str | None = None
     role: str | None = None
     role_label: str | None = None

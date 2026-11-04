@@ -16,6 +16,7 @@ from porterchain_api.collaboration_engine.lead_ops import (
 from porterchain_api.config import Settings
 from porterchain_api.crm_models import CrmLead
 from porterchain_api.domain.crm_states import LeadSourceChannel
+from tests.fk_parents import make_company
 
 
 def test_linkedin_x_youtube_parsers() -> None:
@@ -63,9 +64,10 @@ def test_referral_credit_idempotent(db) -> None:
     db.commit()
     db.refresh(lead)
     settings = Settings(referral_credit_cents=12345)
-    a = grant_referral_credit(db, lead=lead, company_id="co-1", settings=settings)
+    company_id = make_company(db).id
+    a = grant_referral_credit(db, lead=lead, company_id=company_id, settings=settings)
     db.commit()
-    b = grant_referral_credit(db, lead=lead, company_id="co-1", settings=settings)
+    b = grant_referral_credit(db, lead=lead, company_id=company_id, settings=settings)
     assert a is not None and b is not None
     assert a.id == b.id
     assert a.amount_cents == 12345

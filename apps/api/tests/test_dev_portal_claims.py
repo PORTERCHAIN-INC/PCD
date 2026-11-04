@@ -1,6 +1,6 @@
 """Local Bearer-dev must not reuse staff email on merchant or customer."""
 
-from porterchain_api.auth.clerk_identity_provider import _dev_claims
+from porterchain_api.auth.identity_provider import _dev_claims
 from porterchain_api.auth.dev import (
     DEV_CUSTOMER_EMAIL,
     DEV_CUSTOMER_SUBJECT,
@@ -19,19 +19,19 @@ def test_staff_customer_merchant_are_distinct_personas() -> None:
     merchant = dev_claims_for("merchant")
     customer = dev_claims_for("customer")
     assert staff.email == DEV_STAFF_EMAIL
-    assert staff.clerk_user_id == DEV_LEGACY_SUBJECT
+    assert staff.auth_subject == DEV_LEGACY_SUBJECT
     assert merchant.email == DEV_MERCHANT_EMAIL
-    assert merchant.clerk_user_id == DEV_MERCHANT_SUBJECT
+    assert merchant.auth_subject == DEV_MERCHANT_SUBJECT
     assert customer.email == DEV_CUSTOMER_EMAIL
-    assert customer.clerk_user_id == DEV_CUSTOMER_SUBJECT
-    assert len({staff.clerk_user_id, merchant.clerk_user_id, customer.clerk_user_id}) == 3
+    assert customer.auth_subject == DEV_CUSTOMER_SUBJECT
+    assert len({staff.auth_subject, merchant.auth_subject, customer.auth_subject}) == 3
     assert len({staff.email, merchant.email, customer.email}) == 3
 
 
 def test_portal_header_wins_over_path() -> None:
     claims = _dev_claims(path="/v1/admin/orders", header="merchant")
     assert claims.email == DEV_MERCHANT_EMAIL
-    assert claims.clerk_user_id == DEV_MERCHANT_SUBJECT
+    assert claims.auth_subject == DEV_MERCHANT_SUBJECT
 
 
 def test_session_context_path_is_staff_without_header() -> None:
@@ -47,4 +47,4 @@ def test_all_synthetic_subjects_are_bypass() -> None:
     assert is_dev_bypass_subject(DEV_LEGACY_SUBJECT)
     assert is_dev_bypass_subject(DEV_MERCHANT_SUBJECT)
     assert is_dev_bypass_subject(DEV_CUSTOMER_SUBJECT)
-    assert not is_dev_bypass_subject("user_live_clerk")
+    assert not is_dev_bypass_subject("user_live_idp")

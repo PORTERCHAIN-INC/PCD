@@ -36,14 +36,14 @@ class DiagnosticsValidationMixin:
         meta = TEST_BY_ID.get(test_id, {})
 
         try:
-            if test_id == "clerk":
-                probe = self._probe_clerk(settings, get_platform_settings())
+            if test_id == "keycloak":
+                probe = self._probe_idp(settings, get_platform_settings())
                 status = probe["status"]
                 details = probe.get("details", {}) or {}
                 logs = (
                     probe.get("errors", [])
                     or probe.get("warnings", [])
-                    or [f"Clerk JWKS OK ({details.get('jwks_apps', 0)} apps)"]
+                    or [f"Keycloak JWKS OK ({details.get('jwks_apps', 0)} apps)"]
                 )
             elif test_id == "stripe":
                 probe = self._probe_stripe(settings, live=True)
@@ -56,8 +56,8 @@ class DiagnosticsValidationMixin:
             elif test_id == "firebase":
                 probe = self._probe_firebase(get_platform_settings())
                 status, logs = probe["status"], [f"Firebase: {probe['status']}"]
-            elif test_id == "google_maps":
-                probe = self._probe_google_maps(
+            elif test_id == "maps":
+                probe = self._probe_maps(
                     get_platform_settings(), live=True, app_env=settings.app_env
                 )
                 status = probe["status"]
@@ -65,9 +65,9 @@ class DiagnosticsValidationMixin:
                     probe.get("errors", [])
                     or probe.get("warnings", [])
                     or (
-                        [(probe.get("details") or {}).get("note") or "Google Maps skipped (local)"]
+                        [(probe.get("details") or {}).get("note") or "Maps probe skipped (local)"]
                         if (probe.get("details") or {}).get("skipped")
-                        else ["Google Maps probe OK"]
+                        else ["Maps (PMTiles + Photon) probe OK"]
                     )
                 )
             elif test_id == "osrm":

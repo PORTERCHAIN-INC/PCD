@@ -19,34 +19,34 @@ from porterchain_api.routers.admin.settings import settings_project_mode_change
 def _settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "local",
-        "clerk_dev_bypass": False,
+        "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
         "stripe_mock": True,
         "stripe_secret": "",
-        "clerk_unified_mode": False,
-        "clerk_secret_key": "",
-        "clerk_publishable_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_publishable_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_publishable_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_publishable_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_publishable_key": "",
-        "clerk_driver_jwks_url": "",
+        "idp_unified_mode": False,
+        "idp_secret_key": "",
+        "idp_publishable_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_publishable_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_publishable_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_publishable_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_publishable_key": "",
+        "idp_driver_jwks_url": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
 
 
 def test_hs24_project_mode_endpoint_always_403() -> None:
-    """In-process flip is intentional-skip — change via pnpm mode:set / Doppler + restart."""
+    """In-process flip is intentional-skip — change via pnpm mode:set / SOPS secrets file + restart."""
     with patch("porterchain_api.routers.admin.settings.require_module"):
         with pytest.raises(HTTPException) as exc:
             settings_project_mode_change(MagicMock(), _settings())
@@ -57,7 +57,7 @@ def test_hs24_project_mode_endpoint_always_403() -> None:
 def test_hs24_http_post_project_mode_immutable() -> None:
     admin = AdminContext(
         user=AdminUser(
-            clerk_user_id="hs24-admin",
+            auth_subject="hs24-admin",
             email="hs24@porterchain.test",
             role="super_admin",
             is_active=True,

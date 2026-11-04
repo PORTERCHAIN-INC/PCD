@@ -2,8 +2,8 @@
 
 import { useApiData } from "@/hooks/useApiData";
 import { drivers } from "@/lib/drivers";
-import { SectionCard, Spinner } from "@/components/crm/primitives";
-import { dateTime, relativeTime, titleCase } from "@/lib/crmFormat";
+import { SectionCard } from "@/components/crm/primitives";
+import { dateTime, titleCase } from "@/lib/crmFormat";
 import { cn } from "@porterchain/ui/utils";
 
 export function TimelineTab({ id }: { id: string }) {

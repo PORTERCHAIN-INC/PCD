@@ -30,7 +30,7 @@ def test_company_status_words_are_english() -> None:
 
 def test_onboarding_and_seat_words() -> None:
     assert onboarding_phase_label("needs_invite") == "Needs invite"
-    assert onboarding_phase_label("awaiting_clerk") == "Awaiting sign-in"
+    assert onboarding_phase_label("awaiting_idp") == "Awaiting sign-in"
     assert onboarding_phase_label("needs_approval") == "Needs approval"
     assert seat_status_label("pending") == "Pending"
     assert seat_status_label("active") == "Active"
@@ -50,16 +50,16 @@ def test_360_row_uses_glossary(db, merchant_ctx) -> None:
 
 
 def test_onboarding_payload_uses_same_words(db, settings, merchant_ctx) -> None:
-    from porterchain_api.auth.claims import ClerkClaims
+    from porterchain_api.auth.claims import IdentityClaims
 
     merchant_ctx.merchant.status = MerchantStatus.ONBOARDING.value
     db.commit()
-    claims = ClerkClaims(
-        clerk_user_id=merchant_ctx.user.clerk_user_id,
+    claims = IdentityClaims(
+        auth_subject=merchant_ctx.user.auth_subject,
         email=merchant_ctx.user.email,
-        clerk_app="merchant",
+        idp_app="merchant",
     )
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["status_label"] == "Onboarding"
     auth = next(s for s in result["steps"] if s["id"] == "admin_authorization")
@@ -74,10 +74,10 @@ def test_seat_serialize_uses_glossary() -> None:
         email="ops@test.com",
         role="merchant_ops",
         is_active=True,
-        clerk_user_id="pending:ops@test.com",
+        auth_subject="pending:ops@test.com",
         created_at=None,
     )
-    off = SimpleNamespace(id="u2", email="off@test.com", role="merchant_readonly", is_active=False, clerk_user_id="user_1", created_at=None)
+    off = SimpleNamespace(id="u2", email="off@test.com", role="merchant_readonly", is_active=False, auth_subject="user_1", created_at=None)
     assert seat_status(pending) == "pending"
     assert serialize_member(pending)["seat_status_label"] == "Pending"
     assert serialize_member(off)["seat_status_label"] == "Off"

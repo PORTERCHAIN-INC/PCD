@@ -1,6 +1,1 @@
-export {
-  QuoteLines,
-  quoteLines,
-  type QuoteLine,
-  type QuotePicture,
-} from "@porterchain/ui/quote-lines";
+export { QuoteLines, type QuoteLine, type QuotePicture } from "@porterchain/ui/quote-lines";

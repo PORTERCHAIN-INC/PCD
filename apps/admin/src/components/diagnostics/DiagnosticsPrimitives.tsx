@@ -34,7 +34,7 @@ export function HealthComponentCard({ component }: { component: HealthComponent 
         </span>
       </div>
       <dl className="mt-3 space-y-1.5 text-sm">
-        <Row label="Status" value={component.status} />
+        <Row label="Status" value={statusLabel(component)} />
         {component.latency_ms != null && (
           <Row label="Latency" value={`${component.latency_ms} ms`} />
         )}
@@ -360,4 +360,12 @@ export function ValidationProgressBar({
       </div>
     </div>
   );
+}
+
+/** Probes that missed the short deadline carry details.reachability = "unreachable". */
+export function statusLabel(c: {
+  status: string;
+  details?: Record<string, unknown> | null;
+}): string {
+  return c.details?.reachability === "unreachable" ? "unreachable" : c.status;
 }

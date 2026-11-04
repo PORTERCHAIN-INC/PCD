@@ -39,7 +39,7 @@ class Merchant(SoftDeleteMixin, Base):
     status: Mapped[str] = mapped_column(String(32), default=MerchantStatus.PENDING.value, index=True)
     company_name: Mapped[str] = mapped_column(String(255))
     legal_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    clerk_org_id: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
+    external_org_id: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
     parent_merchant_id: Mapped[str | None] = mapped_column(
         ForeignKey("merchants.id"), nullable=True, index=True
     )
@@ -48,9 +48,6 @@ class Merchant(SoftDeleteMixin, Base):
     payment_terms: Mapped[str] = mapped_column(String(16), default="NET_30")
     billing_cycle: Mapped[str] = mapped_column(String(16), default="MONTHLY")
     credit_limit_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    stripe_connect_account_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    #: DEPRECATED (no-COD rule): never read or written. Drop in a later approved migration.
-    cod_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     hst_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     business_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     website: Mapped[str | None] = mapped_column(String(512), nullable=True)
@@ -88,14 +85,14 @@ class Merchant(SoftDeleteMixin, Base):
 class MerchantUser(Base):
     __tablename__ = "merchant_users"
     __table_args__ = (
-        # M-26: same Clerk subject may hold seats on multiple merchants.
-        UniqueConstraint("clerk_user_id", "merchant_id", name="uq_merchant_users_clerk_merchant"),
+        # M-26: same Keycloak subject may hold seats on multiple merchants.
+        UniqueConstraint("auth_subject", "merchant_id", name="uq_merchant_users_subject_merchant"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    clerk_user_id: Mapped[str] = mapped_column(String(128), index=True)
-    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    auth_subject: Mapped[str] = mapped_column(String(128), index=True)
+    # Phase 8 — internal UUID FK (nullable until backfill); auth_subject retained
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -286,11 +283,10 @@ class ShopifyShop(Base):
     """One Shopify store connected to a PorterChain merchant."""
 
     __tablename__ = "shopify_shops"
-    __table_args__ = (UniqueConstraint("shop_domain", name="uq_shopify_shops_shop_domain"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    shop_domain: Mapped[str] = mapped_column(String(255), index=True)
+    shop_domain: Mapped[str] = mapped_column(String(255))
     encrypted_access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Expiring offline token (1 h) + refresh token (90 d). See shopify_tokens.py.
     access_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -324,7 +320,54 @@ class ShopifyShop(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # Shopify Billing API (review 139170): usage subscription approved by the merchant.
+    # NULL = never asked; pending | active | declined | cancelled | frozen | not_required.
+    billing_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    billing_subscription_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    billing_usage_line_item_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    billing_test: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    billing_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_reconciled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     merchant: Mapped[Merchant] = relationship(back_populates="shopify_shops")
+
+
+class ShopifyOrderSync(Base):
+    """Every Shopify order we saw (webhook or reconcile) and what PorterChain did with it.
+
+    Review 139170 (2.1.4): an order must never vanish. Orders that are not booked
+    (other shipping rate, outside area, unpaid, billing not approved) stay visible
+    to the merchant with the reason and a "Book with PorterChain" action.
+    """
+
+    __tablename__ = "shopify_order_syncs"
+    __table_args__ = (UniqueConstraint("shop_domain", "shopify_order_id", name="uq_shopify_order_sync"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    shop_domain: Mapped[str] = mapped_column(String(255))
+    shopify_order_id: Mapped[str] = mapped_column(String(64))
+    order_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # booked | not_booked | cancelled | error
+    status: Mapped[str] = mapped_column(String(32), default="not_booked")
+    reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_test: Mapped[bool] = mapped_column(Boolean, default=False)
+    financial_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    shipping_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    ship_to: Mapped[str | None] = mapped_column(Text, nullable=True)
+    customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    line_items: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    subtotal_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    shipping_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    porterchain_order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    source: Mapped[str] = mapped_column(String(16), default="webhook")
+    shopify_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class ShopifyIngressDlq(Base):

@@ -55,7 +55,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     () =>
       base.map((g) => ({
         id: g.id,
-        label: g.id === "dashboard" ? "" : g.label,
+        label: g.id === "today" ? "" : g.label,
         items: g.items.map((i) => ({ ...i, badge: i.badgeKey ? badges[i.badgeKey] : undefined })),
       })),
     [base, badges]

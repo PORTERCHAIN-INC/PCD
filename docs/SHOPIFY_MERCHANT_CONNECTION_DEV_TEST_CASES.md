@@ -13,7 +13,6 @@
 
 | Moment | Tool          | What it named                                                                                                                                                                                                                                     |
 | ------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A      | Graphify      | `shopify_service.py`, `routers/merchant/shopify.py`, `routers/shopify.py`, `Shopify HMAC`, `BookingSyncService`, `FleetbaseClient`, `WebhookProcessor`, god nodes `Merchant` / `MerchantContext` / `Order`                                        |
 | B      | CodeGraph CLI | `ShopifyShop` ORM · `ShopifyConnectRequest` · `carrier_service_rates` → HMAC + rate card · `resolve_route_distance` → `MapsService` Valhalla/OSRM · blast: `merchant360_board`, `test_shopify_*`                                                  |
 | C      | Ripwire       | Worker `process_webhook` → `_shopify_ingress` / `_shopify_fulfillment` · `connect_custom_app` · `push_fulfillment` callers · `ingest_webhook` impact · UI `ShopifyConnectCard` / `ShopifyAppClient` · `ERP_READINESS` · NetSuite adapter neighbor |
 
@@ -39,30 +38,27 @@ Shopify Admin / Checkout / Webhooks
 
 ## 0. ID scheme & layers
 
-| Prefix    | Layer                                                                 |
-| --------- | --------------------------------------------------------------------- |
-| `M-UI-*`  | Merchant portal pages / Shopify UX `:3001`                            |
-| `A-UI-*`  | Admin Merchant 360 / settings / diagnostics `:3002`                   |
-| `API-M-*` | Authenticated `/v1/merchant/shopify*` (+ integrations neighbors)      |
-| `API-S-*` | Public `/v1/integrations/shopify/*`                                   |
-| `API-P-*` | Partner `/v1/merchant-api/*` (ERP substitute path)                    |
-| `ENG-*`   | `shopify_service`, carrier rates, order map, booking                  |
-| `MAP-*`   | MapsService Valhalla → OSRM (carrier + book geocode)                  |
-| `FB-*`    | Fleetbase adapter + booking/merchant sync + RetryQueue                |
-| `VRM-*`   | VROOM **only** via Fleetbase orchestrator (negative for Shopify path) |
-| `AUTH-*`  | Clerk merchant session / `require_module("api_keys")` / OAuth state   |
-| `SEC-*`   | HMAC, secrets encryption, rate limits, hijack blocks                  |
-| `EVT-*`   | EventBus / DomainEventType / fulfillment fan-out                      |
-| `WRK-*`   | Worker `processors/webhooks.py` ingress + fulfillment                 |
-| `NOTIF-*` | Email (Mailpit) / FCM / merchant realtime WS / admin push             |
-| `BILL-*`  | Quote≡Book · `ShopifyRateQuote` · AR channel · COD capture            |
-| `DB-*`    | `ShopifyShop` · `ShopifyRateQuote` · Order source SHOPIFY             |
-| `DOC-*`   | Docker / tunnel / compose / env pins                                  |
-| `ARCH-*`  | Ownership laws · no Fleetbase from browser · no Google routing        |
-| `ERP-*`   | NetSuite / WooCommerce / custom ERP readiness (mostly _not_offered_)  |
-| `DIAG-*`  | Readiness · Prometheus commerce metrics · e2e validation              |
-| `UX-*`    | Copy, empty states, confirm dialogs, embedded app flow                |
-| `NEG-*`   | Explicit non-goals / intentional skips as automated guards            |
+| Prefix    | Layer                                                                |
+| --------- | -------------------------------------------------------------------- |
+| `M-UI-*`  | Merchant portal pages / Shopify UX `:3001`                           |
+| `A-UI-*`  | Admin Merchant 360 / settings / diagnostics `:3002`                  |
+| `API-M-*` | Authenticated `/v1/merchant/shopify*` (+ integrations neighbors)     |
+| `API-S-*` | Public `/v1/integrations/shopify/*`                                  |
+| `API-P-*` | Partner `/v1/merchant-api/*` (ERP substitute path)                   |
+| `ENG-*`   | `shopify_service`, carrier rates, order map, booking                 |
+| `MAP-*`   | MapsService Valhalla → OSRM (carrier + book geocode)                 |
+| `AUTH-*`  | Clerk merchant session / `require_module("api_keys")` / OAuth state  |
+| `SEC-*`   | HMAC, secrets encryption, rate limits, hijack blocks                 |
+| `EVT-*`   | EventBus / DomainEventType / fulfillment fan-out                     |
+| `WRK-*`   | Worker `processors/webhooks.py` ingress + fulfillment                |
+| `NOTIF-*` | Email (Mailpit) / FCM / merchant realtime WS / admin push            |
+| `DB-*`    | `ShopifyShop` · `ShopifyRateQuote` · Order source SHOPIFY            |
+| `DOC-*`   | Docker / tunnel / compose / env pins                                 |
+| `ARCH-*`  | Ownership laws · no Fleetbase from browser · no Google routing       |
+| `ERP-*`   | NetSuite / WooCommerce / custom ERP readiness (mostly _not_offered_) |
+| `DIAG-*`  | Readiness · Prometheus commerce metrics · e2e validation             |
+| `UX-*`    | Copy, empty states, confirm dialogs, embedded app flow               |
+| `NEG-*`   | Explicit non-goals / intentional skips as automated guards           |
 
 **Priority:** P0 = ship-blocker · P1 = trust/money/utilization · P2 = polish/regression · P3 = chaos/soak/future.
 
@@ -101,7 +97,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | Board compose         | `admin_engine/merchant360_board.py`                   | Queries `ShopifyShop`                                  |
 | Orders                | `lib/orders.ts` `shopifyAdminUrl`                     | Deep-link to Shopify Admin                             |
 | Integrations settings | `IntegrationPanel.tsx`                                | Platform Shopify env readiness (not merchant install)  |
-| Diagnostics           | `SystemCenter` / readiness                            | Fleetbase + Firebase + routing + clerk                 |
 | Operations            | `/operations`                                         | Post-book Fleetbase sync / dispatch (not Shopify HTTP) |
 | Finance               | `/finance`                                            | AR channel attribution for Shopify                     |
 
@@ -117,31 +112,24 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 
 ### 1.4 Engines / integrations / models
 
-| Module              | Path                                                                               | Responsibility                                                              |
-| ------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Shopify service     | `merchant_engine/shopify_service.py`                                               | Connect, OAuth, ingest, book/cancel, fulfillment, carrier register, secrets |
-| Carrier rates       | `integrations/shopify_carrier_rates.py`                                            | HMAC → quote → `ShopifyRateQuote` persist · Quote≡Book                      |
-| Order map           | `integrations/shopify_orders.py`                                                   | Payload → addresses/ids/weight                                              |
-| HMAC                | `integrations/shopify_hmac.py`                                                     | Webhook + OAuth query HMAC                                                  |
-| Booking             | `merchant_engine/booking_service.py`                                               | Creates Order from Shopify book                                             |
-| Activation          | `merchant_engine/activation_service.py`                                            | `SIGNUP_SOURCE_SHOPIFY` policy                                              |
-| Secrets             | `merchant_engine/secrets.py`                                                       | Encrypt/decrypt tokens                                                      |
-| Geocode             | `merchant_engine/import_geocode.py`                                                | Nominatim/Google Places fallback for coords                                 |
-| Service area        | `merchant_engine/service_area.py`                                                  | Ontario / GTA gate                                                          |
-| Fleetbase book sync | `fleetbase_engine/booking_sync_service.py`                                         | Order → Fleetbase                                                           |
-| Merchant sync       | `fleetbase_engine/merchant_sync_service.py`                                        | Profile mirror; `BookingValidationError`                                    |
-| Webhook processor   | `fleetbase_engine/webhook_processor.py`                                            | Fleetbase → PC status (downstream of Shopify book)                          |
-| Retry queue         | `fleetbase_engine/retry_queue.py`                                                  | Adapter blips                                                               |
-| Status translator   | `fleetbase_engine/status_translator.py`                                            | FB status → PC                                                              |
-| Tracking façade     | `fleetbase_engine/tracking_facade.py`                                              | Tracking for fulfillment push                                               |
-| Stripe COD          | `merchant_engine` `capture_cod_transaction`                                        | Optional COD after delivery                                                 |
-| ORM                 | `merchant_models.py`                                                               | `ShopifyShop`, `ShopifyRateQuote`                                           |
-| Schemas             | `schemas_merchant.py`                                                              | `ShopifyConnectRequest`, `ShopifyPickupRequest`                             |
-| Domain              | `domain/states.py`                                                                 | `OrderSource.SHOPIFY`                                                       |
-| Gateway ERP         | `gateway_engine/merchant_api.py`                                                   | `ERP_READINESS`, `OAUTH_PROVIDERS`, channel map                             |
-| NetSuite adapter    | `integrations/netsuite_adapter.py`                                                 | **not_offered** neighbor                                                    |
-| Base adapter        | `integrations/base_adapter.py`                                                     | Pattern for future ERPs                                                     |
-| Migrations          | `alembic/.../l4m5n6o7p8q9_shopify_shops.py`, `b0c1d2e3f4a5_shopify_rate_quotes.py` | Schema                                                                      |
+| Module           | Path                                                                               | Responsibility                                                              |
+| ---------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Shopify service  | `merchant_engine/shopify_service.py`                                               | Connect, OAuth, ingest, book/cancel, fulfillment, carrier register, secrets |
+| Carrier rates    | `integrations/shopify_carrier_rates.py`                                            | HMAC → quote → `ShopifyRateQuote` persist · Quote≡Book                      |
+| Order map        | `integrations/shopify_orders.py`                                                   | Payload → addresses/ids/weight                                              |
+| HMAC             | `integrations/shopify_hmac.py`                                                     | Webhook + OAuth query HMAC                                                  |
+| Booking          | `merchant_engine/booking_service.py`                                               | Creates Order from Shopify book                                             |
+| Activation       | `merchant_engine/activation_service.py`                                            | `SIGNUP_SOURCE_SHOPIFY` policy                                              |
+| Secrets          | `merchant_engine/secrets.py`                                                       | Encrypt/decrypt tokens                                                      |
+| Geocode          | `merchant_engine/import_geocode.py`                                                | Nominatim/Google Places fallback for coords                                 |
+| Service area     | `merchant_engine/service_area.py`                                                  | Ontario / GTA gate                                                          |
+| ORM              | `merchant_models.py`                                                               | `ShopifyShop`, `ShopifyRateQuote`                                           |
+| Schemas          | `schemas_merchant.py`                                                              | `ShopifyConnectRequest`, `ShopifyPickupRequest`                             |
+| Domain           | `domain/states.py`                                                                 | `OrderSource.SHOPIFY`                                                       |
+| Gateway ERP      | `gateway_engine/merchant_api.py`                                                   | `ERP_READINESS`, `OAUTH_PROVIDERS`, channel map                             |
+| NetSuite adapter | `integrations/netsuite_adapter.py`                                                 | **not_offered** neighbor                                                    |
+| Base adapter     | `integrations/base_adapter.py`                                                     | Pattern for future ERPs                                                     |
+| Migrations       | `alembic/.../l4m5n6o7p8q9_shopify_shops.py`, `b0c1d2e3f4a5_shopify_rate_quotes.py` | Schema                                                                      |
 
 ### 1.5 Worker / EventBus / notifications
 
@@ -158,16 +146,15 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 
 ### 1.6 Spatial / Fleetbase / Docker
 
-| Box               | Role for Shopify                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| Valhalla `:8002`  | Primary road distance for carrier + book pricing                                     |
-| OSRM `:5000`      | Fallback ETA/distance                                                                |
-| Google            | Places/geocode assist only — **never** Distance Matrix for rates                     |
-| Fleetbase `:8000` | Dispatch SoT after book; VROOM behind adapter                                        |
-| VROOM             | Optimize multi-stop **after** Shopify order is a PC+FB job — not in carrier callback |
-| Redis             | Shopify rate-limit buckets; OAuth state TTL; EventBus                                |
-| Postgres 18       | `shopify_shops`, `shopify_rate_quotes`, orders                                       |
-| Tunnel            | `scripts/shopify-dev-tunnel.sh` for local webhook/carrier                            |
+| Box              | Role for Shopify                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| Valhalla `:8002` | Primary road distance for carrier + book pricing                                     |
+| OSRM `:5000`     | Fallback ETA/distance                                                                |
+| Google           | Places/geocode assist only — **never** Distance Matrix for rates                     |
+| VROOM            | Optimize multi-stop **after** Shopify order is a PC+FB job — not in carrier callback |
+| Redis            | Shopify rate-limit buckets; OAuth state TTL; EventBus                                |
+| Postgres 18      | `shopify_shops`, `shopify_rate_quotes`, orders                                       |
+| Tunnel           | `scripts/shopify-dev-tunnel.sh` for local webhook/carrier                            |
 
 ### 1.7 Existing test seeds (extend, do not blindly duplicate)
 
@@ -321,13 +308,11 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | FB-001  | P0  | handshake | Shopify-booked Order enqueues Fleetbase booking sync                                   |
 | FB-002  | P0  | handshake | Adapter creates/updates Fleetbase order; PC stores fleetbase ids                       |
 | FB-003  | P0  | handshake | Adapter timeout → RetryQueue job; worker drains to success                             |
-| FB-004  | P0  | handshake | Fleetbase status webhook → `WebhookProcessor` → PC OrderState advances                 |
 | FB-005  | P0  | handshake | Tracking URL available for `push_fulfillment` notify_customer                          |
 | FB-006  | P1  | handshake | Merchant profile fields mirrored via `merchant_sync_service` when required             |
 | FB-007  | P1  | chaos     | Fleetbase 500 storm → queue depth visible in ops diagnostics; no portal→Fleetbase HTTP |
 | FB-008  | P0  | contract  | Merchant/admin browsers never import SocketCluster or call Fleetbase URL               |
 | VRM-001 | P0  | NEG       | Carrier callback does **not** import/call VROOM                                        |
-| VRM-002 | P1  | handshake | Multi-stop optimize of Shopify-origin jobs only via Fleetbase orchestrator             |
 | VRM-003 | P1  | contract  | No `*_engine` VROOM client (architecture census)                                       |
 
 ---
@@ -399,7 +384,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | BILL-002 | P0  | unit      | AR cycle creates `InvoiceLine` with channel `shopify`            |
 | BILL-003 | P1  | api       | Merchant invoice GET exposes channel / pricing_model / quote id  |
 | BILL-004 | P1  | handshake | Stripe Checkout / Connect pay settles Shopify-channel invoice    |
-| BILL-005 | P1  | unit      | COD capture after delivery when Shopify order is COD             |
 | BILL-006 | P1  | metrics   | Prometheus: `shopify_quote`, related commerce metrics increment  |
 | BILL-007 | P2  | report    | Spend by channel / FSA                                           | distance bands include Shopify |
 | BILL-008 | P2  | contract  | Retail website Stripe Checkout path untouched by Shopify carrier |
@@ -470,29 +454,24 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 
 | ID       | P   | Kind  | Assert                                                                 |
 | -------- | --- | ----- | ---------------------------------------------------------------------- |
-| DIAG-001 | P0  | diag  | `/ready` includes routing + Fleetbase sync + clerk + firebase checks   |
 | DIAG-002 | P1  | diag  | Commerce Prometheus metrics scrape includes shopify_quote counters     |
 | DIAG-003 | P1  | e2e   | Admin e2e validation catalog can exercise Shopify webhook HMAC fixture |
 | DIAG-004 | P1  | diag  | Execution metrics dashboard counts Shopify-channel orders              |
 | DIAG-005 | P2  | chaos | Kill Valhalla mid-carrier → empty or OSRM rates; no 500                |
-| DIAG-006 | P2  | chaos | Kill Fleetbase after book → RetryQueue grows; PC order remains         |
 | DIAG-007 | P3  | soak  | 1k webhooks/hour under rate limit; no duplicate books (idempotency)    |
 
 ---
 
 ## 19. End-to-end golden paths (compose these)
 
-| ID      | P   | Path                                                                                                                                                                       |
-| ------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| E2E-001 | P0  | OAuth install → set pickup → CarrierService quote at checkout → orders/create webhook → PC Order → Fleetbase sync → driver complete → fulfillment push → Shopify fulfilled |
-| E2E-002 | P0  | Custom Admin API token connect → same book loop                                                                                                                            |
-| E2E-003 | P0  | Quote≡Book≡Invoice channel for one checkout                                                                                                                                |
-| E2E-004 | P0  | orders/cancelled before dispatch → PC cancel + Fleetbase notified                                                                                                          |
-| E2E-005 | P1  | app/uninstalled mid-flight → no new books; open orders still execute                                                                                                       |
-| E2E-006 | P1  | GDPR redact topic → ack + privacy workflow hooks                                                                                                                           |
-| E2E-007 | P1  | COD Shopify order → capture after delivery                                                                                                                                 |
-| E2E-008 | P2  | Multi-shop same merchant (if product allows) or hard-block second domain                                                                                                   |
-| E2E-009 | P2  | Sandbox vs live booking preference does not break HMAC ingress                                                                                                             |
+| ID      | P   | Path                                                                     |
+| ------- | --- | ------------------------------------------------------------------------ |
+| E2E-002 | P0  | Custom Admin API token connect → same book loop                          |
+| E2E-003 | P0  | Quote≡Book≡Invoice channel for one checkout                              |
+| E2E-005 | P1  | app/uninstalled mid-flight → no new books; open orders still execute     |
+| E2E-006 | P1  | GDPR redact topic → ack + privacy workflow hooks                         |
+| E2E-008 | P2  | Multi-shop same merchant (if product allows) or hard-block second domain |
+| E2E-009 | P2  | Sandbox vs live booking preference does not break HMAC ingress           |
 
 **Explicitly out of local CI (ops / Partners secrets) — still checklist:**
 
@@ -512,7 +491,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | Files/subfiles every level                              | §1 inventory |
 | FastAPI / endpoints                                     | §4–5         |
 | Microservices / worker / EventBus                       | §1.5, §11    |
-| Fleetbase handshake                                     | §8           |
 | Firebase / push                                         | §12          |
 | Clerk                                                   | §9           |
 | VROOM / Valhalla / OSRM / Google                        | §7, VRM-*    |
@@ -532,7 +510,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | `app/uninstalled`                                      | Token hygiene                                 |
 | Install **hijack** / email bind                        | Security                                      |
 | Fulfillment push-back loop                             | Merchant trust closure                        |
-| COD capture                                            | Stripe Connect adjacency                      |
 | Channel AR / Prometheus                                | Finance + observability                       |
 | Intentional skips (App Store, WooCommerce, admin mint) | Prevent scope creep                           |
 | Dev tunnel script                                      | Local realism                                 |
@@ -550,8 +527,7 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 4. **P0 ingress pack** — API-S webhooks + WRK + ENG book/cancel idempotency
 5. **P0 Fleetbase pack** — FB-001…005 + ARCH browser isolation
 6. **P1 notifications + admin 360 + fulfillment push**
-7. **P2 chaos** — Redis/Valhalla/Fleetbase/Mailpit downs
-8. **P3 soak + Partners live E2E (ops)**
+7. **P3 soak + Partners live E2E (ops)**
 
 Run existing suites first:
 

@@ -208,7 +208,7 @@ def reply_inbound_whatsapp(
 
     name = lead.primary_contact_name or "there"
     company = lead.company_name or "your business"
-    # Prefer short heuristic reply (NIM optional later)
+    # Prefer short heuristic reply (LLM optional later)
     reply = (
         f"Hi {name.split()[0] if name else 'there'} — thanks for messaging PorterChain. "
         f"We provide vehicle + driver capacity for merchants like {company}. "
@@ -318,22 +318,8 @@ def run_lead_agent(
         if "needs_enrich" not in tags:
             tags.append("needs_enrich")
             lead.tags = tags
-        try:
-            from porterchain_api.collaboration_engine.lead_enrich import enrich_lead_email
-
-            er = enrich_lead_email(db, lead)
-            out["channels"]["enrich"] = er
-            if er.get("status") == "found" and (lead.consent or {}).get("marketing"):
-                email_result = _send_email(
-                    db,
-                    lead,
-                    template_key=_INTRO_TEMPLATE,
-                    recipient=str(lead.email),
-                    website_url=website_url,
-                )
-                out["channels"]["email"] = email_result
-        except Exception:
-            logger.exception("inline_enrich_failed lead=%s", lead.id)
+        # Doc 78 §1: no scraping for contact data a person did not give us (PIPEDA).
+        # The lead stays tagged needs_enrich for a human to ask the person directly.
     elif action in ("stop", "noop", "capture_contact"):
         out["channels"]["agent"] = {
             "status": "skipped",

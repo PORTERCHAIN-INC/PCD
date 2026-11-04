@@ -1,15 +1,8 @@
 "use client";
 
-import { OrderStateBadge } from "@/components/orders/OrderStateBadge";
-import {
-  orderSourceLabel,
-  orderStateLabel,
-  packageLabel,
-  slaStatusLabel,
-  vehicleLabel,
-} from "@/lib/catalog";
+import { orderSourceLabel, slaStatusLabel, vehicleLabel } from "@/lib/catalog";
 import type { OrderDetail } from "@/lib/orders";
-import { formatCents, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import type { DeliveryOptions } from "@porterchain/types/delivery-options";
 import OrderDeliveryOptionsEditor from "@/components/delivery/OrderDeliveryOptionsEditor";

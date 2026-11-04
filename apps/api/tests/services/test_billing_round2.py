@@ -77,7 +77,7 @@ def test_split_exclusive_inclusive_and_province():
     assert (inc.pretax_cents, inc.tax_cents, inc.gross_cents) == (10000, 1300, 11300)
 
 
-def test_cycle_invoice_is_tax_exclusive_by_destination(db: Session):
+def test_cycle_invoice_is_tax_exclusive_by_destination(gst_registered, db: Session):
     m = _fresh_merchant(db)
     _order(db, m, cents=10000, postal="M5V 2T6")
     _order(db, m, cents=10000, postal="T2P 1J9")  # Calgary: GST only
@@ -96,7 +96,7 @@ def test_cycle_invoice_is_tax_exclusive_by_destination(db: Session):
     assert (s["subtotal_cents"], s["tax_cents"], s["total_cents"]) == (20000, 1800, 21800)
 
 
-def test_hst_report_and_accounting_csv(db: Session):
+def test_hst_report_and_accounting_csv(gst_registered, db: Session):
     from porterchain_api.reporting.tax_report import accounting_csv, hst_report, hst_report_csv
 
     m = _fresh_merchant(db)

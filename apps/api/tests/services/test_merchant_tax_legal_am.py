@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import pytest
+from sqlalchemy import text
+
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.collaboration_engine.crm_service import CrmSalesService
 from porterchain_api.merchant_engine.contacts_service import MerchantContactsService
@@ -9,6 +12,21 @@ from porterchain_api.merchant_engine.organization_sync import tax_legal_snapshot
 from porterchain_api.merchant_engine.profile_service import MerchantProfileService
 from porterchain_api.merchant_engine.settings_service import MerchantSettingsService
 from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
+
+_TEST_HSTS = ("1234567890001", "1111111110001", "2222222220001", "3333333330001")
+
+
+@pytest.fixture(autouse=True)
+def _release_test_hsts(db):
+    """Free the fixed HSTs from merchants left by earlier runs (unique normalized HST)."""
+    db.execute(
+        text(
+            "UPDATE merchants SET hst_number = NULL "
+            "WHERE regexp_replace(hst_number, '\\D', '', 'g') = ANY(:hsts)"
+        ),
+        {"hsts": list(_TEST_HSTS)},
+    )
+    db.commit()
 
 
 def test_tax_patch_does_not_wipe_legal_name(db, merchant_ctx) -> None:

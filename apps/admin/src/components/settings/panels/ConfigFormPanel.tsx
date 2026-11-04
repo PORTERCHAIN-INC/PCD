@@ -126,7 +126,7 @@ export default function ConfigFormPanel({
         <SettingsCard
           collapsed
           title="Quote & draft TTL (environment)"
-          description="Runtime uses Doppler/env — not SystemConfig. Shown read-only."
+          description="Runtime uses SOPS/env — not SystemConfig. Shown read-only."
         >
           <div className="grid gap-3 sm:grid-cols-2 text-sm">
             <div>

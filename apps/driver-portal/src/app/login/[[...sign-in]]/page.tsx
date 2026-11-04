@@ -2,20 +2,20 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SignIn, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
+import { SignInRedirect, SignOutButton, useAuth, useUser } from "@porterchain/auth/oidc/client";
 import {
   PortalAuthScreen,
   humanAuthError,
   isDevelopmentBuild,
-  porterchainClerkAppearanceInviteOnly,
   safeAppRedirect,
   signInUnavailableCopy,
+  KeycloakSignInPanel,
 } from "@porterchain/auth";
-import { isClerkConfigured, isDevEmailLogin } from "@/lib/env";
+import { isAuthConfigured, isDevEmailLogin } from "@/lib/env";
 import { hasDriverSession } from "@/lib/api";
 
 /**
- * Fixed-height slot for the Clerk card. Without it the page re-centres twice while Clerk
+ * Fixed-height slot for the sign-in card. Without it the page re-centres twice while it
  * loads (48px "Loading sign-in…" → ~270px card → +logo), which reads as the page jumping.
  */
 const SIGN_IN_SLOT = "flex min-h-[19rem] flex-col items-center justify-center";
@@ -119,7 +119,7 @@ function DevEmailLogin({ redirectUrl }: { redirectUrl: string }) {
   );
 }
 
-function ClerkDriverContinue({ redirectUrl }: { redirectUrl: string }) {
+function KeycloakDriverContinue({ redirectUrl }: { redirectUrl: string }) {
   const router = useRouter();
   const { isSignedIn, isLoaded } = useAuth();
   const { user } = useUser();
@@ -129,10 +129,10 @@ function ClerkDriverContinue({ redirectUrl }: { redirectUrl: string }) {
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    if (!user?.primaryEmailAddress?.emailAddress) return;
+    if (!user?.email) return;
     let cancelled = false;
     // Only leave /login once the server also accepts the session. If the browser is signed
-    // in but the server is not (e.g. Clerk key mismatch), bouncing to a protected page just
+    // in but the server is not (e.g. issuer or client mismatch), bouncing to a protected page just
     // sends us straight back here: an endless /login <-> /onboarding flicker loop.
     void hasDriverSession()
       .catch(() => false)
@@ -165,7 +165,7 @@ function ClerkDriverContinue({ redirectUrl }: { redirectUrl: string }) {
           We couldn&apos;t confirm your sign-in. Please sign out and try again, or contact
           Porterchain operations if this keeps happening.
         </p>
-        <SignOutButton redirectUrl="/login">
+        <SignOutButton returnTo="/login">
           <button
             type="button"
             className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-primary"
@@ -189,14 +189,7 @@ function ClerkDriverContinue({ redirectUrl }: { redirectUrl: string }) {
 
   return (
     <div className={SIGN_IN_SLOT}>
-      <SignIn
-        routing="path"
-        path="/login"
-        signUpUrl={undefined}
-        forceRedirectUrl={redirectUrl}
-        fallbackRedirectUrl={redirectUrl}
-        appearance={porterchainClerkAppearanceInviteOnly}
-      />
+      <KeycloakSignInPanel mode="sign-in" returnTo={redirectUrl} />
     </div>
   );
 }
@@ -209,7 +202,7 @@ function LoginPageContent() {
   });
   const showDevEmail = isDevEmailLogin();
 
-  if (!isClerkConfigured() && !showDevEmail) {
+  if (!isAuthConfigured() && !showDevEmail) {
     if (!isDevelopmentBuild()) {
       return (
         <PortalAuthScreen
@@ -227,11 +220,11 @@ function LoginPageContent() {
       <PortalAuthScreen
         portalLabel="Driver"
         title="Local development"
-        subtitle="Clerk is not configured for this environment."
+        subtitle="Keycloak is not configured for this environment."
       >
         <p className="text-sm leading-relaxed text-muted">
-          Add Driver Clerk keys via <code className="text-primary">pnpm clerk:sync</code>, then
-          refresh.
+          Set <code className="text-primary">KEYCLOAK_URL</code> and{" "}
+          <code className="text-primary">AUTH_SESSION_SECRET</code>, then restart.
         </p>
       </PortalAuthScreen>
     );
@@ -243,8 +236,8 @@ function LoginPageContent() {
       title="Driver sign-in"
       subtitle={
         showDevEmail
-          ? "Local email picker or Clerk invitation for approved partners."
-          : "Invitation-only. Returning drivers stay signed in until the Clerk session expires."
+          ? "Local email picker or Keycloak invitation for approved partners."
+          : "Invitation-only. Returning drivers stay signed in until the session expires."
       }
       footer={
         <>Need access? Contact Porterchain operations after your partner application is approved.</>
@@ -252,14 +245,14 @@ function LoginPageContent() {
     >
       <div className="space-y-8">
         {showDevEmail ? <DevEmailLogin redirectUrl={redirectUrl} /> : null}
-        {isClerkConfigured() ? (
+        {isAuthConfigured() ? (
           <>
             {showDevEmail ? (
               <p className="text-center text-xs font-medium uppercase tracking-wide text-muted">
-                or Clerk invite
+                or Keycloak invite
               </p>
             ) : null}
-            <ClerkDriverContinue redirectUrl={redirectUrl} />
+            <KeycloakDriverContinue redirectUrl={redirectUrl} />
           </>
         ) : null}
       </div>
@@ -274,7 +267,7 @@ export default function LoginPage() {
         <PortalAuthScreen
           portalLabel="Driver"
           title="Driver sign-in"
-          subtitle="Invitation-only. Returning drivers stay signed in until the Clerk session expires."
+          subtitle="Invitation-only. Returning drivers stay signed in until the session expires."
         >
           <div className={SIGN_IN_SLOT} role="status">
             <p className="text-center text-sm text-muted">Loading sign-in…</p>

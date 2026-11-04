@@ -8,9 +8,8 @@ import { useApiData } from "@/hooks/useApiData";
 import { merchants, merchantActionMessage } from "@/lib/merchants";
 import { financeApi } from "@/lib/finance";
 import { withStaffStepUp } from "@/lib/staff-step-up";
-import { ListPager } from "@/components/crm/ListPager";
 import { Badge, Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
-import { money, shortDate, titleCase, dateTime } from "@/lib/crmFormat";
+import { money, shortDate, titleCase } from "@/lib/crmFormat";
 import { PageSkeleton } from "@porterchain/ui/loading";
 
 const CONTRACT_STATUSES = ["draft", "active", "expired", "cancelled"] as const;

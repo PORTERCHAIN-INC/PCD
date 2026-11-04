@@ -1,6 +1,6 @@
 /**
  * Session-context helpers — SpiceDB permissions drive portal/module access.
- * Clerk is identity only; PostgreSQL holds business data, not ACLs.
+ * Keycloak is identity only; PostgreSQL holds business data, not ACLs.
  */
 
 export type PorterchainPortal = "admin" | "merchant" | "driver" | "customer";
@@ -42,7 +42,7 @@ export const PORTAL_ACCESS_PERMISSION: Record<PorterchainPortal, string> = {
   customer: "customer_portal.access",
 };
 
-/** Login redirect priority after Platform Clerk sign-in. */
+/** Login redirect priority after Keycloak sign-in. */
 export const PORTAL_LOGIN_PRIORITY: readonly PorterchainPortal[] = [
   "admin",
   "merchant",
@@ -77,7 +77,7 @@ export function canAccessPortal(
 
 /**
  * Resolve which portal a signed-in user should enter.
- * Permission-only — never Clerk metadata, never stale role-name heuristics.
+ * Permission-only — never token metadata, never stale role-name heuristics.
  */
 export function resolvePortalFromSession(
   ctx: Pick<SessionContext, "permissions"> | null | undefined

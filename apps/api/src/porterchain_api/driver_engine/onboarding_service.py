@@ -1,4 +1,4 @@
-"""Driver onboarding gate — Clerk invite, admin approval, compliance verification."""
+"""Driver onboarding gate — Keycloak invite, admin approval, compliance verification."""
 
 from __future__ import annotations
 
@@ -6,12 +6,12 @@ from typing import Any, Literal
 
 from porterchain_api.admin_models import Driver
 from porterchain_api.auth.dev import allow_auth_dev_bypass
-from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
+from porterchain_api.auth.user_sync_service import _is_pending_idp_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 
 OnboardingStepId = Literal[
-    "clerk_account",
+    "idp_account",
     "admin_approval",
     "license_verified",
     "insurance_verified",
@@ -75,9 +75,9 @@ def _compliance_docs_complete(driver: Driver) -> bool:
 
 def evaluate_driver_onboarding(driver: Driver, *, settings: Settings | None = None) -> dict[str, Any]:
     """Return structured onboarding checklist for driver portal gate."""
-    clerk_linked = not _is_pending_clerk_id(driver.clerk_user_id)
+    identity_linked = not _is_pending_idp_id(driver.auth_subject)
     if settings and allow_auth_dev_bypass(settings):
-        clerk_linked = True
+        identity_linked = True
     status = driver.status or DriverStatus.PENDING.value
     bg_status = (driver.background_check_status or "pending").lower()
 
@@ -86,11 +86,11 @@ def evaluate_driver_onboarding(driver: Driver, *, settings: Settings | None = No
 
     steps: list[dict[str, Any]] = [
         {
-            "id": "clerk_account",
-            "label": "Clerk account connected",
+            "id": "idp_account",
+            "label": "Sign-in account connected",
             "description": "Accept your Porterchain driver invitation and sign in with the email we invited.",
-            "complete": clerk_linked,
-            "status": "complete" if clerk_linked else "pending",
+            "complete": identity_linked,
+            "status": "complete" if identity_linked else "pending",
         },
         {
             "id": "admin_approval",
@@ -193,7 +193,7 @@ def evaluate_driver_onboarding(driver: Driver, *, settings: Settings | None = No
         "ready": ready,
         "blockers": blockers,
         "status": status,
-        "clerk_linked": clerk_linked,
+        "identity_linked": identity_linked,
         "steps": steps,
         "pending_documents": len(missing_docs),
         "can_access_portal": ready,

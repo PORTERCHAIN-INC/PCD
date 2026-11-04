@@ -31,7 +31,7 @@ def _merchant_ctx(db):
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"user-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )
@@ -98,7 +98,7 @@ def test_export_audit_logs_include_summary(db):
 def admin_client(db, monkeypatch):
     monkeypatch.setattr("porterchain_api.routers.merchants.require_module", lambda ctx, module: None)
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="privacy-admin", email="ops@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="privacy-admin", email="ops@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

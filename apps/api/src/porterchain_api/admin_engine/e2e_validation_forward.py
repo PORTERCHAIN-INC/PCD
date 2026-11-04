@@ -122,7 +122,7 @@ class E2EValidationForwardMixin:
 
             customer = customers.upsert(
                 db,
-                clerk_user_id=f"e2e:{correlation_id}",
+                auth_subject=f"e2e:{correlation_id}",
                 email=f"e2e-{correlation_id}@validation.porterchain.com",
                 phone="+1 416-555-0199",
                 visitor_session_id=session_id,
@@ -147,7 +147,7 @@ class E2EValidationForwardMixin:
                 db,
                 quote_id=ctx["quote_id"],
                 customer_id=ctx["customer_id"],
-                clerk_user_id=f"e2e:{correlation_id}",
+                auth_subject=f"e2e:{correlation_id}",
             )
             emit_event(
                 db,
@@ -157,12 +157,12 @@ class E2EValidationForwardMixin:
                 correlation_id=ctx["quote_id"],
                 actor_type="customer",
                 actor_id=ctx["customer_id"],
-                payload={"e2e": True, "clerk_user_id": f"e2e:{correlation_id}"},
+                payload={"e2e": True, "auth_subject": f"e2e:{correlation_id}"},
             )
             db.commit()
             return "PASS"
 
-        record("Clerk Authentication", do_auth, layer="auth")
+        record("Keycloak Authentication", do_auth, layer="auth")
 
         def do_restore():
             draft = db.get(__import__("porterchain_api.booking_draft_models", fromlist=["BookingDraft"]).BookingDraft, ctx["draft_id"])

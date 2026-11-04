@@ -33,7 +33,6 @@ Plus `services/fleetbase-adapter/tests/`: **35 passed**.
 | NOTIF crm category        | allow `crm` in template meta matrix                                        |
 | AUTH SpiceDB heal         | patch `get_porterchain_user`                                               |
 | Shopify connect flake     | unique shop domain                                                         |
-| RUNBOOK G2                | document ≥98% Fleetbase sync SLO                                           |
 | Size-weight default       | isolate from live SystemConfig rate card                                   |
 | OSRM live map             | probe host directly; skip on proxy/down                                    |
 | admin_p0 imports          | relative imports + `tests/__init__.py`                                     |
@@ -82,11 +81,10 @@ Board health (`/v1/admin/diagnostics/health`): overall **critical** — portals 
 
 ### Still open (ops, not unit)
 
-| Priority | Next                                                                    |
-| -------- | ----------------------------------------------------------------------- |
-| P0       | Raise Fleetbase sync ≥98% (replay DLQ / link backlog; 295 dead letters) |
-| P1       | Fix DIAG `metrics_endpoint` hostname; optional VROOM auth / SMTP creds  |
-| P2       | Nightly e2e / chaos; `validate:p0` without `--skip-e2e`                 |
+| Priority | Next                                                                   |
+| -------- | ---------------------------------------------------------------------- |
+| P1       | Fix DIAG `metrics_endpoint` hostname; optional VROOM auth / SMTP creds |
+| P2       | Nightly e2e / chaos; `validate:p0` without `--skip-e2e`                |
 
 ## How to resume
 

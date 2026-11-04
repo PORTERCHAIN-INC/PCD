@@ -30,19 +30,6 @@ export function gpsSourceLabel(source: string | null | undefined): string {
   }
 }
 
-export function gpsAgeLabel(
-  recordedAt: string | null | undefined,
-  nowMs = Date.now()
-): string | null {
-  if (!recordedAt) return null;
-  const then = Date.parse(recordedAt);
-  if (Number.isNaN(then)) return null;
-  const sec = Math.max(0, Math.round((nowMs - then) / 1000));
-  if (sec < 45) return `${sec}s ago`;
-  if (sec < 3600) return `${Math.round(sec / 60)}m ago`;
-  return `${Math.round(sec / 3600)}h ago`;
-}
-
 export function isStaleGps(recordedAt: string | null | undefined, nowMs = Date.now()): boolean {
   if (!recordedAt) return false;
   const then = Date.parse(recordedAt);

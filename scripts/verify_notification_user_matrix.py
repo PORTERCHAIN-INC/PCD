@@ -5,7 +5,7 @@ Usage (from apps/api with venv):
   PYTHONPATH=src:../../shared/python:... python ../../scripts/verify_notification_user_matrix.py
   # or via monorepo helper if wired
 
-Prints a pass/fail matrix and optional HTTP inbox checks when API is up with CLERK_DEV_BYPASS.
+Prints a pass/fail matrix and optional HTTP inbox checks when API is up with IDP_DEV_BYPASS.
 """
 
 from __future__ import annotations

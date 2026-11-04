@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { cookies } from "next/headers";
-import { clerkDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
+import { authDevBypassEnabled, isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { PC_IMP_COOKIE, PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
 import type { DriverDashboard, DriverIncident, DriverProfile, DriverVehicle } from "@/lib/api";
@@ -15,11 +15,13 @@ import {
   splitQueues,
 } from "@/lib/workspace";
 
+/** Server-side: prefer the in-cluster API address (the public URL may not be reachable from the container). */
 function apiBase(): string {
-  return (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-    /\/$/,
-    ""
-  );
+  return (
+    process.env.PORTERCHAIN_API_INTERNAL_URL ||
+    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ||
+    "http://localhost:8001"
+  ).replace(/\/$/, "");
 }
 
 function devLoginEnabled(): boolean {
@@ -38,7 +40,7 @@ async function driverHeaders(): Promise<Record<string, string> | null> {
     if (imp?.startsWith("pc_imp_")) return { Authorization: `Bearer ${imp}` };
     return null;
   }
-  if (clerkDevBypassEnabled()) return { Authorization: "Bearer dev" };
+  if (authDevBypassEnabled()) return { Authorization: "Bearer dev" };
   const { getToken, userId } = await auth();
   if (userId) {
     const token = await getToken();

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -10,6 +12,7 @@ from porterchain_api.admin_models import AdminUser, PricingFsaRate
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.db import get_db
 from porterchain_api.main import app
+from porterchain_api.merchant_models import Merchant
 from porterchain_api.pricing_engine.repository import SqlAlchemyPricingRepository
 
 
@@ -41,7 +44,7 @@ def rates(db):
 def client(db):
     """Admin-authenticated client sharing the test transaction."""
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="test", email="admin@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="test", email="admin@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin
@@ -53,15 +56,31 @@ def client(db):
 # ------------------------------------------------------- repository loading
 
 
-def test_repository_loads_platform_and_own_rates_only(db, rates):
-    rates(dest_fsa="M5V", flat_cents=2500)  # platform-wide
-    rates(dest_fsa="M4B", flat_cents=1800, merchant_id="mine")
-    rates(dest_fsa="M6H", flat_cents=900, merchant_id="theirs")
+def _merchant(db) -> str:
+    """pricing_fsa_rates.merchant_id is a real FK (CASCADE), so owners must exist."""
+    suffix = uuid.uuid4().hex[:8]
+    row = Merchant(
+        company_name=f"FSA {suffix}",
+        email=f"fsa-{suffix}@test.local",
+        status="active",
+        payment_terms="NET_30",
+        profile={},
+    )
+    db.add(row)
+    db.flush()
+    return row.id
 
-    loaded = SqlAlchemyPricingRepository(db)._load_fsa_rates("mine")
+
+def test_repository_loads_platform_and_own_rates_only(db, rates):
+    mine, theirs = _merchant(db), _merchant(db)
+    rates(dest_fsa="M5V", flat_cents=2500)  # platform-wide
+    rates(dest_fsa="M4B", flat_cents=1800, merchant_id=mine)
+    rates(dest_fsa="M6H", flat_cents=900, merchant_id=theirs)
+
+    loaded = SqlAlchemyPricingRepository(db)._load_fsa_rates(mine)
     owners = {r.merchant_id for r in loaded}
-    assert "theirs" not in owners
-    assert {None, "mine"} <= owners
+    assert theirs not in owners
+    assert {None, mine} <= owners
 
 
 def test_inactive_rates_are_not_loaded(db, rates):

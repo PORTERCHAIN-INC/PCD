@@ -3,8 +3,11 @@
 from porterchain_api.db import get_report_db
 from datetime import UTC, datetime, timedelta
 
+from fastapi import Header, Request
 from fastapi.responses import Response
+from pydantic import BaseModel, Field
 
+from porterchain_api.auth.staff_step_up import enforce_staff_step_up
 from porterchain_api.routers.admin._deps import (
     AdminContext,
     Annotated,
@@ -12,8 +15,10 @@ from porterchain_api.routers.admin._deps import (
     HTTPException,
     Query,
     Session,
+    Settings,
     get_admin_context,
     get_db,
+    get_settings,
     require_module,
     router,
 )
@@ -64,10 +69,37 @@ def tax_registration(
 ) -> dict:
     """Our GST/HST number (single source for all documents) or a warning when unset."""
     require_module(ctx, "finance_read")
-    from porterchain_api.admin_engine.platform_settings import supplier_gst_hst_number
     from porterchain_api.platform.tax_registration import registration_status
 
-    return registration_status(supplier_gst_hst_number(db))
+    return registration_status(db)
+
+
+class TaxRegistrationChange(BaseModel):
+    #: Empty/null = we stop being a registrant from ``effective_from``.
+    gst_hst_number: str | None = Field(default=None, max_length=32)
+    legal_name: str | None = Field(default=None, max_length=255)
+    effective_from: str = Field(min_length=10, max_length=10)
+    note: str | None = Field(default=None, max_length=500)
+
+
+@router.post("/finance/tax-registration")
+def change_tax_registration(
+    body: TaxRegistrationChange,
+    request: Request,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict:
+    """Register / change / end GST/HST from a date (append-only; step-up; audited)."""
+    require_module(ctx, "finance")
+    enforce_staff_step_up(request, authorization, settings)
+    from porterchain_api.admin_engine.tax_registration_admin import change_registration
+
+    try:
+        return change_registration(db, ctx, **body.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
 
 
 @router.get("/analytics/ops")

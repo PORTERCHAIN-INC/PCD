@@ -8,10 +8,10 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
-from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
+from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_idp_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.catalog_labels import onboarding_step_status_label
@@ -30,6 +30,7 @@ from porterchain_api.merchant_engine.verticals import (
     VERTICAL_INDUSTRY,
     VERTICAL_LABELS,
     is_valid_merchant_vertical,
+    vertical_option,
 )
 from porterchain_api.merchant_engine.portal_signup import (
     link_or_create_portal_merchant,
@@ -43,32 +44,32 @@ logger = logging.getLogger(__name__)
 
 def resolve_merchant_contact(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     settings: Settings | None,
 ) -> str | None:
-    """Resolve Clerk-attested email only (JWT or verified Backend primary). Never DB."""
+    """Resolve Keycloak-attested email only (JWT or verified Backend primary). Never DB."""
     _ = db
-    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_idp_email
 
     email = normalize_email(claims.email)
     if email:
         return email
 
-    clerk_id = claims.clerk_user_id or ""
-    if not clerk_id or _is_pending_clerk_id(clerk_id) or not settings:
+    subject_ref = claims.auth_subject or ""
+    if not subject_ref or _is_pending_idp_id(subject_ref) or not settings:
         return None
     try:
-        return resolve_verified_clerk_email(
+        return resolve_verified_idp_email(
             jwt_email=None,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             settings=settings,
         )
     except PermissionError:
-        logger.warning("merchant_email_clerk_lookup_failed", exc_info=False)
+        logger.warning("merchant_email_idp_lookup_failed", exc_info=False)
         return None
 
 
-def _derive_company_name(claims: ClerkClaims, email: str) -> str:
+def _derive_company_name(claims: IdentityClaims, email: str) -> str:
     meta = claims.public_metadata or {}
     if meta.get("company_name"):
         return str(meta["company_name"]).strip()
@@ -79,39 +80,39 @@ def _derive_company_name(claims: ClerkClaims, email: str) -> str:
 
 def ensure_merchant_portal_signup(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> None:
     """
-    Any authenticated merchant-portal Clerk session is a merchant candidate.
+    Any authenticated merchant-portal Keycloak session is a merchant candidate.
 
     First sign-in at :3001 creates merchants + merchant_users so admin /merchants
     lists them immediately. Starting status comes from the activation policy —
     ONBOARDING while `settings_merchant.approval_required` is on.
     """
     email = resolve_merchant_contact(db, claims, settings) or ""
-    clerk_id = claims.clerk_user_id or ""
+    subject_ref = claims.auth_subject or ""
     if not email:
         raise HTTPException(status_code=400, detail="email_required")
 
-    if clerk_id and not _is_pending_clerk_id(clerk_id):
-        bundle = load_persona_bundle(db, clerk_id)
+    if subject_ref and not _is_pending_idp_id(subject_ref):
+        bundle = load_persona_bundle(db, subject_ref)
         if bundle.admin is not None:
-            raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_admin")
+            raise HTTPException(status_code=403, detail="identity_conflict:idp_user_is_admin")
         if bundle.driver is not None:
-            raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_driver")
+            raise HTTPException(status_code=403, detail="identity_conflict:idp_user_is_driver")
 
     link_or_create_portal_merchant(
         db,
         email=email,
-        clerk_id=clerk_id,
+        subject_ref=subject_ref,
         company_name=_derive_company_name(claims, email),
     )
-    if clerk_id:
+    if subject_ref:
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, clerk_id)
+        sync_authz_after_persona_mutation(db, subject_ref)
 
     try:
         UserSyncService().sync(db, claims)
@@ -121,30 +122,30 @@ def ensure_merchant_portal_signup(
 
 def _resolve_seat(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> tuple[Any, Any]:
     email = resolve_merchant_contact(db, claims, settings) or ""
-    clerk_id = claims.clerk_user_id or ""
-    return resolve_seat(db, clerk_id=clerk_id, email=email)
+    subject_ref = claims.auth_subject or ""
+    return resolve_seat(db, subject_ref=subject_ref, email=email)
 
 
 def evaluate_merchant_onboarding(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> dict[str, Any]:
     if settings and not allow_auth_dev_bypass(settings):
         ensure_merchant_portal_signup(db, claims, settings=settings)
 
-    clerk_id = claims.clerk_user_id or ""
+    subject_ref = claims.auth_subject or ""
     merchant_user, merchant = _resolve_seat(db, claims, settings=settings)
 
-    clerk_linked = not _is_pending_clerk_id(clerk_id)
+    identity_linked = not _is_pending_idp_id(subject_ref)
     if settings and allow_auth_dev_bypass(settings):
-        clerk_linked = True
+        identity_linked = True
 
     invited = merchant_user is not None
     user_active = bool(merchant_user and merchant_user.is_active)
@@ -171,11 +172,11 @@ def evaluate_merchant_onboarding(
 
     steps: list[dict[str, Any]] = [
         {
-            "id": "clerk_account",
+            "id": "idp_account",
             "label": "Signed in",
-            "description": "You signed in at the merchant portal. Password and MFA stay in your Clerk account.",
-            "complete": clerk_linked,
-            "status": "complete" if clerk_linked else "pending",
+            "description": "You signed in at the merchant portal. Your password and sign-in codes are managed from your profile.",
+            "complete": identity_linked,
+            "status": "complete" if identity_linked else "pending",
         },
         {
             "id": "merchant_provisioned",
@@ -231,8 +232,8 @@ def evaluate_merchant_onboarding(
         )
 
     blockers: list[str] = []
-    if not clerk_linked:
-        blockers.append("clerk_account")
+    if not identity_linked:
+        blockers.append("idp_account")
     if not invited:
         blockers.append("merchant_provisioned")
     if invited and not user_active:
@@ -251,7 +252,7 @@ def evaluate_merchant_onboarding(
         "blockers": blockers,
         "status": merchant_status,
         "status_label": merchant_status_label(merchant_status),
-        "clerk_linked": clerk_linked,
+        "identity_linked": identity_linked,
         "steps": steps,
         "pending_documents": 0,
         "can_access_portal": ready,
@@ -267,14 +268,14 @@ def evaluate_merchant_onboarding(
         "vertical": str(vertical_slug) if vertical_slug else None,
         "vertical_label": VERTICAL_LABELS.get(str(vertical_slug), None) if vertical_slug else None,
         "vertical_options": [
-            {"slug": slug, "label": VERTICAL_LABELS[slug]} for slug in MERCHANT_VERTICAL_SLUGS
+            vertical_option(slug) for slug in MERCHANT_VERTICAL_SLUGS
         ],
     }
 
 
 def _require_seat(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     *,
     settings: Settings | None = None,
 ) -> tuple[Any, Any]:
@@ -288,7 +289,7 @@ def _require_seat(
 
 def save_merchant_vertical(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     vertical: str,
     *,
     settings: Settings | None = None,
@@ -315,7 +316,7 @@ def save_merchant_vertical(
 
 def save_merchant_company_file(
     db: Session,
-    claims: ClerkClaims,
+    claims: IdentityClaims,
     body: MerchantProfileUpdateRequest,
     *,
     settings: Settings | None = None,

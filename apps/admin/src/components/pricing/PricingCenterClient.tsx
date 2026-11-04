@@ -158,6 +158,11 @@ export default function PricingCenterClient() {
   return (
     <AdminPage>
       <FinanceNav />
+      <p className="text-sm">
+        <Link className="underline" href="/pricing/rate-card">
+          Standard rate card and organisation pricing →
+        </Link>
+      </p>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-2xl font-bold tracking-tight text-primary">Pricing</h1>
         <nav className="flex flex-wrap gap-3 text-xs text-muted">

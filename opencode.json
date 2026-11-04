@@ -30,7 +30,7 @@
   },
   "agent": {
     "porterchain": {
-      "description": "Primary PorterChain logistics coding agent — Fleetbase-first, Valhalla/OSRM routing, commercial domain ownership",
+      "description": "Primary PorterChain logistics coding agent — PorterChain-owned dispatch, Valhalla/OSRM routing, commercial domain ownership",
       "mode": "primary",
       "model": "ollama/qwen3-coder:30b-64k",
       "temperature": 0.2,

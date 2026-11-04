@@ -275,10 +275,18 @@ def test_set_auto_dispatch(db: Session, shopify_shop: ShopifyShop) -> None:
 
 
 def test_control_tower_lists_shopify_dlq(db: Session, shopify_shop: ShopifyShop) -> None:
+    """Shopify DLQ rows are listed even when open order exceptions exceed the limit.
+
+    Root cause of the old flake: the order-exception query used the whole limit first,
+    so once the shared test DB held more open order exceptions than the limit, no
+    Shopify row was ever returned.
+    """
+    from datetime import UTC, datetime
+
     from porterchain_api.admin_engine.control_tower.service import ControlTowerService
     from porterchain_api.merchant_engine.shopify_ingress_dlq import record_ingress_dlq
 
-    record_ingress_dlq(
+    row = record_ingress_dlq(
         db,
         shop=shopify_shop,
         shop_domain=shopify_shop.shop_domain,
@@ -289,11 +297,19 @@ def test_control_tower_lists_shopify_dlq(db: Session, shopify_shop: ShopifyShop)
         detail="default_pickup_required",
         status="open",
     )
-    # Open order exceptions pile up in the shared test DB and are listed first; leave room for the DLQ row.
-    items = ControlTowerService().exceptions(db, limit=1000)
-    shopify_items = [i for i in items if str(i.get("id", "")).startswith("shopify-dlq:")]
-    assert shopify_items
-    assert any(i["type"] == "shopify.ingress.missing_pickup" for i in shopify_items)
+    try:
+        # Oldest-first board: an old DLQ row must outrank newer order exceptions.
+        row.created_at = datetime(2000, 1, 1, tzinfo=UTC)
+        db.commit()
+        open_order_exceptions = len(ControlTowerService().exceptions(db, limit=5))
+        assert open_order_exceptions >= 1
+        items = ControlTowerService().exceptions(db, limit=5)
+        mine = [i for i in items if i.get("id") == f"shopify-dlq:{row.id}"]
+        assert mine and mine[0]["type"] == "shopify.ingress.missing_pickup"
+        assert len(items) <= 5
+    finally:
+        db.delete(row)
+        db.commit()
 
 
 def test_push_fulfillment_records_silent_error(db: Session, shopify_shop: ShopifyShop) -> None:

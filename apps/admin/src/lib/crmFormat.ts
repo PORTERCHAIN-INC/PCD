@@ -9,19 +9,32 @@ export function moneyExact(cents: number | null | undefined, currency = "CAD"): 
 
 export function shortDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeZone: "America/Toronto",
+  }).format(new Date(iso));
 }
 
 export function dateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(iso)
-  );
+  return new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "America/Toronto",
+  }).format(new Date(iso));
 }
 
 export function relativeTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   const diff = Date.now() - new Date(iso).getTime();
+  if (diff < -60000) {
+    // L183: future times (a promised ETA) were all shown as "just now".
+    const ahead = Math.round(-diff / 60000);
+    if (ahead < 60) return `in ${ahead}m`;
+    const h = Math.round(ahead / 60);
+    if (h < 24) return `in ${h}h`;
+    return `in ${Math.round(h / 24)}d`;
+  }
   const mins = Math.round(diff / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
@@ -95,58 +108,13 @@ export const STATUS_TONE: Record<string, Tone> = {
   urgent: "red",
 };
 
-// ---- CSV helpers (client-side parse / generate) ----
-export function parseCsv(text: string): Array<Record<string, string>> {
-  const rows: string[][] = [];
-  let field = "";
-  let row: string[] = [];
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        field += char;
-      }
-    } else if (char === '"') {
-      inQuotes = true;
-    } else if (char === ",") {
-      row.push(field);
-      field = "";
-    } else if (char === "\n" || char === "\r") {
-      if (char === "\r" && text[i + 1] === "\n") i++;
-      row.push(field);
-      field = "";
-      if (row.some((c) => c.trim() !== "")) rows.push(row);
-      row = [];
-    } else {
-      field += char;
-    }
-  }
-  if (field !== "" || row.length) {
-    row.push(field);
-    if (row.some((c) => c.trim() !== "")) rows.push(row);
-  }
-  if (rows.length === 0) return [];
-  const header = rows[0].map((h) => h.trim());
-  return rows.slice(1).map((cells) => {
-    const obj: Record<string, string> = {};
-    header.forEach((key, idx) => {
-      obj[key] = (cells[idx] ?? "").trim();
-    });
-    return obj;
-  });
-}
-
 export function toCsv(headers: string[], rows: string[][]): string {
-  const escape = (value: string) =>
-    /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  // Neutralise spreadsheet formulas (CSV injection) before quoting.
+  const safe = (value: string) => (/^[=+\-@\t\r]/.test(value) ? `'${value}` : value);
+  const escape = (raw: string) => {
+    const value = safe(raw);
+    return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  };
   return [headers, ...rows].map((r) => r.map(escape).join(",")).join("\n");
 }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainFetchBase } from "@/lib/api-base";
 
 /** Calculator lead form -> CRM lead pipeline (server adds the ingest key). */
 export async function POST(request: Request) {
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const apiKey = (process.env.PUBLIC_INGEST_API_KEY ?? "").trim();
     const forwardedFor =
       request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "";
-    const res = await fetch(`${getPorterchainApiBase()}/v1/public/calculator-leads`, {
+    const res = await fetch(`${getPorterchainFetchBase()}/v1/public/calculator-leads`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

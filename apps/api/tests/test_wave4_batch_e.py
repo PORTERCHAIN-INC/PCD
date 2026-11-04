@@ -98,19 +98,19 @@ def test_require_customer_maps_identity_conflict() -> None:
     from porterchain_api.auth.customer import require_customer
 
     db = MagicMock()
-    claims = SimpleNamespace(clerk_user_id="user_staff", email="a@b.com")
+    claims = SimpleNamespace(auth_subject="user_staff", email="a@b.com")
     settings = SimpleNamespace()
 
     with (
-        patch("porterchain_api.auth.customer.assert_clerk_id_exclusive"),
+        patch("porterchain_api.auth.customer.assert_portal_provisioned"),
         patch(
             "porterchain_api.auth.customer.resolve_customer_contact",
             return_value=("a@b.com", None),
         ),
         patch.object(
             __import__("porterchain_api.auth.customer", fromlist=["_customers"])._customers,
-            "get_or_create_from_clerk",
-            side_effect=ValueError("identity_conflict:clerk_user_is_admin"),
+            "get_or_create_from_idp",
+            side_effect=ValueError("identity_conflict:idp_user_is_admin"),
         ),
     ):
         with pytest.raises(HTTPException) as ei:

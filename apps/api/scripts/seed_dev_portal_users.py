@@ -20,7 +20,7 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.user_models import PorterchainUser as _PorterchainUser  # noqa: F401
 
 DEV_ORG = "dev_merchant_org"
-DEV_CLERK_USER = "dev_merchant_user"
+DEV_IDP_USER = "dev_merchant_user"
 DEV_MERCHANT_EMAIL = "merchant@porterchain.com"
 
 SEED_COMPLIANCE_DOCS = {
@@ -98,7 +98,7 @@ DRIVERS = [
 
 
 def _ensure_dev_merchant(db) -> Merchant:
-    merchant = db.query(Merchant).filter(Merchant.clerk_org_id == DEV_ORG).first()
+    merchant = db.query(Merchant).filter(Merchant.external_org_id == DEV_ORG).first()
     if merchant:
         merchant.status = MerchantStatus.ACTIVE.value
         merchant.company_name = merchant.company_name or "Dev Merchant Co."
@@ -108,7 +108,7 @@ def _ensure_dev_merchant(db) -> Merchant:
         return merchant
 
     merchant = Merchant(
-        clerk_org_id=DEV_ORG,
+        external_org_id=DEV_ORG,
         status=MerchantStatus.ACTIVE.value,
         company_name="Dev Merchant Co.",
         email="merchant@porterchain.com",
@@ -125,13 +125,13 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
     user = (
         db.query(MerchantUser)
         .filter(
-            MerchantUser.clerk_user_id.in_((DEV_CLERK_USER, "dev_clerk_user")),
+            MerchantUser.auth_subject.in_((DEV_IDP_USER, "dev_idp_user")),
             MerchantUser.merchant_id == merchant.id,
         )
         .first()
     )
     if user:
-        user.clerk_user_id = DEV_CLERK_USER
+        user.auth_subject = DEV_IDP_USER
         user.email = DEV_MERCHANT_EMAIL
         user.merchant_id = merchant.id
         user.role = "merchant_owner"
@@ -141,7 +141,7 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
         return user
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=DEV_CLERK_USER,
+        auth_subject=DEV_IDP_USER,
         email=DEV_MERCHANT_EMAIL,
         role="merchant_owner",
     )
@@ -203,13 +203,13 @@ def main() -> None:
         print()
         print("MERCHANT PORTAL (http://localhost:3001)")
         print("  Dev mode: open /dashboard directly — no password")
-        print("  Clerk mode: sign in at /sign-in, org auto: dev_merchant_org")
+        print("  Keycloak mode: sign in at /sign-in, org auto: dev_merchant_org")
         print(f"  Merchant ID: {merchant.id}")
         print(f"  Org ID:      {DEV_ORG}")
         print(f"  User email:  {user.email}")
         print()
         print("DRIVER PORTAL (http://localhost:3003/login)")
-        print("  Dev login: email only (no password) — set CLERK_DEV_BYPASS=true on API")
+        print("  Dev login: email only (no password) — set AUTH_DEV_BYPASS=true on API")
         for spec, driver in zip(DRIVERS, drivers, strict=True):
             print(f"  • {spec['email']}  (driver_id: {driver.id})")
         print()

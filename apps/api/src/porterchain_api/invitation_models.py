@@ -1,4 +1,4 @@
-"""User invitations — Clerk invite tracking (invitation-only roles)."""
+"""User invitations — Keycloak invite tracking (invitation-only roles)."""
 
 import uuid
 from datetime import datetime
@@ -15,7 +15,7 @@ def _uuid() -> str:
 
 
 class UserInvitation(Base):
-    """Audit log for Clerk invitations sent by Porterchain staff."""
+    """Audit log for Keycloak invitations sent by Porterchain staff."""
 
     __tablename__ = "user_invitations"
 
@@ -24,14 +24,14 @@ class UserInvitation(Base):
     user_type: Mapped[str] = mapped_column(String(32), index=True)
     role: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
-    clerk_invitation_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    clerk_user_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    external_invitation_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    auth_subject: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     platform_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    # Phase 8 — internal UUID FK (nullable until backfill); clerk_user_id retained
+    # Phase 8 — internal UUID FK (nullable until backfill); auth_subject retained
     porterchain_user_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("porterchain_users.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    merchant_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    merchant_id: Mapped[str | None] = mapped_column(ForeignKey("merchants.id", ondelete="CASCADE"), nullable=True, index=True)
     invited_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     redirect_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     invitation_metadata: Mapped[dict] = mapped_column("metadata", JSON, default=dict)

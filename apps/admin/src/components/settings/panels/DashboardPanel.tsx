@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Clock, Database, Globe, Mail, Server, Shield } from "lucide-react";
+import { Activity, Clock, Database, Globe, Server, Shield } from "lucide-react";
 import { relativeTime } from "@/lib/crmFormat";
 import { healthStatus } from "@/lib/health";
 import type { SettingsDashboard } from "@/lib/settings";
@@ -11,15 +11,15 @@ const INTEGRATION_META: Record<string, { label: string; note: string }> = {
   redis: { label: "Redis / Queue", note: "Event bus and job queue" },
   stripe: { label: "Stripe", note: "Payments — masterrule §14" },
   dispatch: { label: "Dispatch", note: "PorterChain day plan" },
-  google_maps: { label: "Google Maps", note: "Places autocomplete & map tiles only" },
+  maps: { label: "Maps (PMTiles + Photon)", note: "Self-hosted tiles & address search" },
   firebase: { label: "Firebase", note: "Push notifications" },
-  clerk: { label: "Clerk", note: "Identity — auth only, not RBAC" },
-  nvidia_nim: {
-    label: "NVIDIA NIM",
-    note: "Read-only language assist — phase2 env flags",
+  keycloak: { label: "Keycloak", note: "Identity — auth only, not RBAC" },
+  llm: {
+    label: "AI assist",
+    note: "FEATURE_AI off — heuristics only",
   },
   email: { label: "Email (SMTP)", note: "Transactional delivery" },
-  sms: { label: "SMS", note: "Clerk handles phone verification" },
+  sms: { label: "SMS", note: "Keycloak handles phone verification" },
   push: { label: "Push", note: "Driver & customer mobile" },
   storage: { label: "Storage", note: "Documents and media" },
   api: { label: "API", note: "Porterchain orchestrator" },
@@ -83,7 +83,7 @@ export default function DashboardPanel({
         <SettingsCard
           collapsed
           title="Project mode (boot-time)"
-          description="Deploy property — change APP_ENV in Doppler or env/.env, then restart. This process cannot switch itself."
+          description="Deploy property — change APP_ENV in the SOPS secrets file or env/.env, then restart. This process cannot switch itself."
         >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -103,9 +103,9 @@ export default function DashboardPanel({
               </p>
             </div>
             <div>
-              <p className="text-xs text-muted">Live Clerk</p>
+              <p className="text-xs text-muted">Live Keycloak</p>
               <p className="font-mono font-semibold">
-                {dash.project_mode.requires_live_clerk ? "required" : "optional"}
+                {dash.project_mode.requires_live_identity ? "required" : "optional"}
               </p>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function DashboardPanel({
               typeof raw === "object" && raw !== null
                 ? Object.entries(raw as Record<string, unknown>)
                     .filter(([k]) => k !== "status" && k !== "raw")
-                    .slice(0, key === "nvidia_nim" ? 4 : 2)
+                    .slice(0, key === "llm" ? 4 : 2)
                     .map(([k, v]) => `${k}: ${v}`)
                     .join(" · ")
                 : undefined;

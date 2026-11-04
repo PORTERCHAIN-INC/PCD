@@ -1,0 +1,1029 @@
+{
+  "realm": "porterchain",
+  "enabled": true,
+  "displayName": "PorterChain",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "verifyEmail": true,
+  "sslRequired": "external",
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 10,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+  "minimumQuickLoginWaitSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "passwordPolicy": "length(10) and notUsername and notEmail and passwordHistory(3)",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 2592000,
+  "ssoSessionMaxLifespan": 7776000,
+  "offlineSessionIdleTimeout": 7776000,
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "webAuthnPolicyPasswordlessRpEntityName": "PorterChain",
+  "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
+  "webAuthnPolicyPasswordlessResidentKey": "Yes",
+  "browserFlow": "pc-browser",
+  "roles": {
+    "realm": [
+      {
+        "name": "mfa_required",
+        "description": "TOTP required at login (staff admin tiers only)"
+      },
+      {
+        "name": "super_admin",
+        "description": "Staff: super_admin",
+        "composite": true,
+        "composites": {
+          "realm": ["mfa_required"]
+        }
+      },
+      {
+        "name": "admin",
+        "description": "Staff: admin",
+        "composite": true,
+        "composites": {
+          "realm": ["mfa_required"]
+        }
+      },
+      {
+        "name": "dispatcher",
+        "description": "Staff: dispatcher"
+      },
+      {
+        "name": "support",
+        "description": "Staff: support"
+      },
+      {
+        "name": "support_lead",
+        "description": "Staff: support_lead"
+      },
+      {
+        "name": "sales",
+        "description": "Staff: sales"
+      },
+      {
+        "name": "sales_manager",
+        "description": "Staff: sales_manager"
+      },
+      {
+        "name": "finance",
+        "description": "Staff: finance"
+      },
+      {
+        "name": "compliance",
+        "description": "Staff: compliance"
+      },
+      {
+        "name": "developer",
+        "description": "Staff: developer"
+      },
+      {
+        "name": "marketing",
+        "description": "Staff: marketing"
+      },
+      {
+        "name": "read_only",
+        "description": "Staff: read_only"
+      },
+      {
+        "name": "fleet_manager",
+        "description": "Staff: fleet_manager"
+      },
+      {
+        "name": "customer",
+        "description": "Persona: customer"
+      },
+      {
+        "name": "driver",
+        "description": "Persona: driver"
+      },
+      {
+        "name": "merchant_owner",
+        "description": "Persona: merchant_owner"
+      },
+      {
+        "name": "merchant_admin",
+        "description": "Persona: merchant_admin"
+      },
+      {
+        "name": "merchant_dispatcher",
+        "description": "Persona: merchant_dispatcher"
+      },
+      {
+        "name": "merchant_viewer",
+        "description": "Persona: merchant_viewer"
+      },
+      {
+        "name": "reviewer",
+        "description": "Persona: reviewer"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "name": "staff",
+      "subGroups": [
+        {
+          "name": "super_admin",
+          "realmRoles": ["super_admin"]
+        },
+        {
+          "name": "admin",
+          "realmRoles": ["admin"]
+        },
+        {
+          "name": "dispatcher",
+          "realmRoles": ["dispatcher"]
+        },
+        {
+          "name": "support",
+          "realmRoles": ["support"]
+        },
+        {
+          "name": "support_lead",
+          "realmRoles": ["support_lead"]
+        },
+        {
+          "name": "sales",
+          "realmRoles": ["sales"]
+        },
+        {
+          "name": "sales_manager",
+          "realmRoles": ["sales_manager"]
+        },
+        {
+          "name": "finance",
+          "realmRoles": ["finance"]
+        },
+        {
+          "name": "compliance",
+          "realmRoles": ["compliance"]
+        },
+        {
+          "name": "developer",
+          "realmRoles": ["developer"]
+        },
+        {
+          "name": "marketing",
+          "realmRoles": ["marketing"]
+        },
+        {
+          "name": "read_only",
+          "realmRoles": ["read_only"]
+        },
+        {
+          "name": "fleet_manager",
+          "realmRoles": ["fleet_manager"]
+        }
+      ]
+    },
+    {
+      "name": "customers",
+      "realmRoles": ["customer"]
+    },
+    {
+      "name": "drivers",
+      "realmRoles": ["driver"]
+    },
+    {
+      "name": "merchants",
+      "subGroups": [
+        {
+          "name": "merchant_owner",
+          "realmRoles": ["merchant_owner"]
+        },
+        {
+          "name": "merchant_admin",
+          "realmRoles": ["merchant_admin"]
+        },
+        {
+          "name": "merchant_dispatcher",
+          "realmRoles": ["merchant_dispatcher"]
+        },
+        {
+          "name": "merchant_viewer",
+          "realmRoles": ["merchant_viewer"]
+        }
+      ]
+    },
+    {
+      "name": "reviewers",
+      "realmRoles": ["reviewer"]
+    }
+  ],
+  "defaultRoles": ["customer"],
+  "clients": [
+    {
+      "clientId": "pc-website",
+      "name": "pc-website",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://porterchain.com/auth/callback",
+        "https://porterchain.com/auth/login",
+        "https://porterchain.com/login",
+        "https://porterchain.com/sign-in",
+        "https://porterchain.com/sign-up",
+        "https://www.porterchain.com/auth/callback",
+        "https://www.porterchain.com/auth/login",
+        "https://www.porterchain.com/login",
+        "https://www.porterchain.com/sign-in",
+        "https://www.porterchain.com/sign-up",
+        "http://localhost:3000/auth/callback",
+        "http://localhost:3000/auth/login",
+        "http://localhost:3000/login",
+        "http://localhost:3000/sign-in",
+        "http://localhost:3000/sign-up",
+        "http://127.0.0.1:3000/auth/callback",
+        "http://127.0.0.1:3000/auth/login",
+        "http://127.0.0.1:3000/login",
+        "http://127.0.0.1:3000/sign-in",
+        "http://127.0.0.1:3000/sign-up"
+      ],
+      "webOrigins": [
+        "https://porterchain.com",
+        "https://www.porterchain.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ],
+      "baseUrl": "https://porterchain.com/"
+    },
+    {
+      "clientId": "pc-merchant-portal",
+      "name": "pc-merchant-portal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://merchant.porterchain.com/auth/callback",
+        "https://merchant.porterchain.com/auth/login",
+        "https://merchant.porterchain.com/login",
+        "https://merchant.porterchain.com/sign-in",
+        "https://merchant.porterchain.com/sign-up",
+        "http://localhost:3001/auth/callback",
+        "http://localhost:3001/auth/login",
+        "http://localhost:3001/login",
+        "http://localhost:3001/sign-in",
+        "http://localhost:3001/sign-up",
+        "http://127.0.0.1:3001/auth/callback",
+        "http://127.0.0.1:3001/auth/login",
+        "http://127.0.0.1:3001/login",
+        "http://127.0.0.1:3001/sign-in",
+        "http://127.0.0.1:3001/sign-up"
+      ],
+      "webOrigins": [
+        "https://merchant.porterchain.com",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ],
+      "baseUrl": "https://merchant.porterchain.com/"
+    },
+    {
+      "clientId": "pc-customer-portal",
+      "name": "pc-customer-portal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://customer.porterchain.com/auth/callback",
+        "https://customer.porterchain.com/auth/login",
+        "https://customer.porterchain.com/login",
+        "https://customer.porterchain.com/sign-in",
+        "https://customer.porterchain.com/sign-up",
+        "http://localhost:3004/auth/callback",
+        "http://localhost:3004/auth/login",
+        "http://localhost:3004/login",
+        "http://localhost:3004/sign-in",
+        "http://localhost:3004/sign-up",
+        "http://127.0.0.1:3004/auth/callback",
+        "http://127.0.0.1:3004/auth/login",
+        "http://127.0.0.1:3004/login",
+        "http://127.0.0.1:3004/sign-in",
+        "http://127.0.0.1:3004/sign-up"
+      ],
+      "webOrigins": [
+        "https://customer.porterchain.com",
+        "http://localhost:3004",
+        "http://127.0.0.1:3004"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ],
+      "baseUrl": "https://customer.porterchain.com/"
+    },
+    {
+      "clientId": "pc-driver-portal",
+      "name": "pc-driver-portal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://driver.porterchain.com/auth/callback",
+        "https://driver.porterchain.com/auth/login",
+        "https://driver.porterchain.com/login",
+        "https://driver.porterchain.com/sign-in",
+        "https://driver.porterchain.com/sign-up",
+        "http://localhost:3003/auth/callback",
+        "http://localhost:3003/auth/login",
+        "http://localhost:3003/login",
+        "http://localhost:3003/sign-in",
+        "http://localhost:3003/sign-up",
+        "http://127.0.0.1:3003/auth/callback",
+        "http://127.0.0.1:3003/auth/login",
+        "http://127.0.0.1:3003/login",
+        "http://127.0.0.1:3003/sign-in",
+        "http://127.0.0.1:3003/sign-up"
+      ],
+      "webOrigins": [
+        "https://driver.porterchain.com",
+        "http://localhost:3003",
+        "http://127.0.0.1:3003"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ],
+      "baseUrl": "https://driver.porterchain.com/"
+    },
+    {
+      "clientId": "pc-admin",
+      "name": "pc-admin",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://admin.porterchain.com/auth/callback",
+        "https://admin.porterchain.com/auth/login",
+        "https://admin.porterchain.com/login",
+        "https://admin.porterchain.com/sign-in",
+        "https://admin.porterchain.com/sign-up",
+        "http://localhost:3002/auth/callback",
+        "http://localhost:3002/auth/login",
+        "http://localhost:3002/login",
+        "http://localhost:3002/sign-in",
+        "http://localhost:3002/sign-up",
+        "http://127.0.0.1:3002/auth/callback",
+        "http://127.0.0.1:3002/auth/login",
+        "http://127.0.0.1:3002/login",
+        "http://127.0.0.1:3002/sign-in",
+        "http://127.0.0.1:3002/sign-up"
+      ],
+      "webOrigins": [
+        "https://admin.porterchain.com",
+        "http://localhost:3002",
+        "http://127.0.0.1:3002"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ],
+      "baseUrl": "https://admin.porterchain.com/"
+    },
+    {
+      "clientId": "pc-customer-app",
+      "name": "pc-customer-app",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["porterchain-customer://auth"],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "pc-driver-app",
+      "name": "pc-driver-app",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["porterchain-driver://auth"],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-pc-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pc-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "pc_roles",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "pc-groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "pc_groups",
+            "full.path": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "pc-org",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "pc-api",
+      "name": "PorterChain API",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "pc-api-admin",
+      "name": "PorterChain API staff provisioning",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KEYCLOAK_ADMIN_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-pc-api-admin",
+      "enabled": true,
+      "serviceAccountClientId": "pc-api-admin",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users", "view-realm"]
+      }
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "pc-browser",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "description": "PorterChain browser login: email code only on a new device (non-staff); staff admin TOTP",
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "autheticatorFlow": false
+        },
+        {
+          "authenticator": "identity-provider-redirector",
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "autheticatorFlow": false
+        },
+        {
+          "flowAlias": "pc-forms",
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "autheticatorFlow": true
+        }
+      ]
+    },
+    {
+      "alias": "pc-forms",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "flowAlias": "pc-first-factor",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "autheticatorFlow": true
+        },
+        {
+          "flowAlias": "pc-new-device-code",
+          "requirement": "CONDITIONAL",
+          "priority": 15,
+          "autheticatorFlow": true
+        },
+        {
+          "flowAlias": "pc-staff-otp",
+          "requirement": "CONDITIONAL",
+          "priority": 20,
+          "autheticatorFlow": true
+        }
+      ]
+    },
+    {
+      "alias": "pc-new-device-code",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "description": "Email code on a new/unrecognised browser (not staff)",
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-role",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "autheticatorFlow": false,
+          "authenticatorConfig": "pc-not-staff"
+        },
+        {
+          "authenticator": "email-otp-form",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "autheticatorFlow": false,
+          "authenticatorConfig": "pc-new-device-code-cfg"
+        }
+      ]
+    },
+    {
+      "alias": "pc-first-factor",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-password-form",
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "autheticatorFlow": false
+        },
+        {
+          "authenticator": "webauthn-authenticator-passwordless",
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "autheticatorFlow": false
+        }
+      ]
+    },
+    {
+      "alias": "pc-staff-otp",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-role",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "autheticatorFlow": false,
+          "authenticatorConfig": "pc-mfa-role"
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "autheticatorFlow": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "pc-mfa-role",
+      "config": {
+        "condUserRole": "mfa_required",
+        "negate": "false"
+      }
+    },
+    {
+      "alias": "pc-not-staff",
+      "config": {
+        "condUserRole": "mfa_required",
+        "negate": "true"
+      }
+    },
+    {
+      "alias": "pc-new-device-code-cfg",
+      "config": {
+        "code-length": "6",
+        "code-alphabet": "0123456789",
+        "code-lifetime": "600",
+        "device-trust-enabled": "true",
+        "device-trust-duration": "180",
+        "ip-trust-enabled": "false",
+        "trust-only-when-sole": "false",
+        "resend-cooldown": "60",
+        "issuance-limit": "5",
+        "issuance-limit-window": "900"
+      }
+    }
+  ],
+  "requiredActions": [
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 1
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 5
+    },
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 10
+    },
+    {
+      "alias": "webauthn-register-passwordless",
+      "name": "Passkey Register",
+      "providerId": "webauthn-register-passwordless",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 20
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "syncMode": "IMPORT",
+        "defaultScope": "openid profile email"
+      }
+    },
+    {
+      "alias": "apple",
+      "providerId": "apple",
+      "enabled": true,
+      "trustEmail": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${APPLE_SERVICES_ID}",
+        "teamId": "${APPLE_TEAM_ID}",
+        "keyId": "${APPLE_KEY_ID}",
+        "p8Content": "${APPLE_P8_KEY}",
+        "clientSecret": "unused-apple-signs-its-own",
+        "syncMode": "IMPORT",
+        "defaultScope": "openid name email"
+      }
+    }
+  ],
+  "attributes": {
+    "frontendUrl": "",
+    "actionTokenGeneratedByUserLifespan.verify-email": "43200"
+  }
+}

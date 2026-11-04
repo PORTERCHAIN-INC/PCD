@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainFetchBase } from "@/lib/api-base";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const apiBase = getPorterchainApiBase();
+    const apiBase = getPorterchainFetchBase();
     const res = await fetch(`${apiBase}/v1/public/leads/unsubscribe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

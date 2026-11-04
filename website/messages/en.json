@@ -386,7 +386,7 @@
     "passwordAllowedLabel": "Allowed symbols",
     "passwordStrength": "A strength meter appears as you type. Common or leaked passwords are blocked even if they match this pattern.",
     "haveAccount": "Already have an account?",
-    "roleNote": "Authenticated by Clerk. Access is decided by Porterchain roles.",
+    "roleNote": "Authenticated by Keycloak. Access is decided by Porterchain roles.",
     "trustLine": "Secure authentication · Role-based access",
     "needHelp": "Need an account?",
     "needHelpLink": "Sign up",
@@ -418,11 +418,11 @@
     "driverSignIn": "Driver sign-in",
     "identityConflict": "This account needs support to finish provisioning. Contact us with the email you used to sign in.",
     "error": "We couldn't sign you in. Check your connection and try again.",
-    "missingToken": "Clerk did not return a session token. Sign out and try again.",
+    "missingToken": "Keycloak did not return a session token. Sign out and try again.",
     "apiUnreachable": "Porterchain API is not reachable. Ensure the API is running on port 8001.",
     "signOut": "Sign out and try again",
-    "devModeNote": "Clerk is not configured in this environment.",
-    "devSetupNote": "Clerk is not configured. Run pnpm clerk:sync, then refresh.",
+    "devModeNote": "Keycloak is not configured in this environment.",
+    "devSetupNote": "Keycloak is not configured. Set NEXT_PUBLIC_KEYCLOAK_CLIENT_ID, KEYCLOAK_URL and AUTH_SESSION_SECRET, then restart.",
     "unavailableTitle": "Sign-in unavailable",
     "unavailableBody": "We cannot sign you in right now. Nothing is wrong with your account. Please try again shortly.",
     "signUpUnavailableTitle": "Sign-up unavailable",
@@ -685,8 +685,8 @@
       "ariaLabel": "Coverage at a glance",
       "postalAreas": "GTA + ~150 km",
       "postalAreasHint": "{count} postal areas, checked instantly. Core areas: Vaughan, Concord, Brampton, Mississauga.",
-      "areas": "$2,500 goods insurance",
-      "areasHint": "Included. Need more? Enhanced coverage up to $25,000 for +$10 per stop.",
+      "areas": "Clear liability: $4.41/kg",
+      "areasHint": "Included. Need more? Optional declared-value cover up to $2,500 per parcel (1.5%, $3 min) once cargo insurance is confirmed.",
       "vehicles": "{count} vehicle sizes",
       "vehiclesHint": "Sedan / SUV (~80 kg), cargo van (~900 kg), 16 ft box truck (~3,000 kg)"
     },
@@ -807,8 +807,8 @@
         },
         "coverage": {
           "need": "Coverage in the fine print",
-          "title": "$2,500 goods insurance included.",
-          "body": "Enhanced coverage up to $25,000 for +$10 per stop."
+          "title": "Clear liability and claims.",
+          "body": "Optional declared-value cover up to $2,500 per parcel (1.5%, $3 min) once cargo insurance is confirmed."
         },
         "payment": {
           "need": "Card only, or long credit forms",
@@ -843,7 +843,7 @@
         "pharmacy-medical": "Pharmacies"
       }
     },
-    "riskReversal": "HST extra · $2,500 goods insurance included · Merchants pay by Interac e-Transfer"
+    "riskReversal": "HST extra · Clear liability and claims · Merchants pay by Interac e-Transfer"
   },
   "marketing": {
     "consent": {
@@ -872,7 +872,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Included with every delivery",
-      "insured": "$2,500 goods insurance included",
+      "insured": "Clear liability and claims",
       "tracked": "Live tracking",
       "pod": "Photo proof of delivery"
     }
@@ -939,14 +939,14 @@
       "signInBusinessNote": "Shipping for your business?",
       "signInBusinessLink": "Use the merchant portal",
       "signedInAs": "Signed in as {email}",
-      "devModeNote": "Clerk is not configured. Local dev uses API bypass.",
+      "devModeNote": "Keycloak is not configured. Local dev uses API bypass.",
       "continueDev": "Continue to dashboard",
       "emptyTitle": "No deliveries yet",
       "emptySubtitle": "Book your first delivery and it will appear here with tracking, invoices, and support.",
       "emptyCta": "Book a delivery",
       "guestTrackTitle": "Track without signing in",
       "guestTrackSubtitle": "Enter your tracking number for a one-time status lookup.",
-      "guestTrackPlaceholder": "PC-XXXXXXXX",
+      "guestTrackPlaceholder": "PC-20261015-F4BC86A21D",
       "guestTrackSubmit": "Track shipment",
       "trackPortalPrompt": "Want your full order history, invoices, and support?",
       "trackPortalCta": "Sign in to customer portal",
@@ -1670,7 +1670,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, $2,500 goods insurance included."
+            "description": "Photo and signature proof with shipment reference, GPS-backed timestamps, clear liability and claims."
           }
         }
       }
@@ -1782,7 +1782,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Shipment-level proof with timestamps for billing disputes, $2,500 goods insurance included."
+            "description": "Shipment-level proof with timestamps for billing disputes, clear liability and claims."
           }
         }
       }
@@ -1894,7 +1894,7 @@
           },
           "legalProcurement": {
             "title": "Legal, procurement & finance",
-            "description": "Proof of delivery with shipment reference for billing disputes, $2,500 goods insurance included."
+            "description": "Proof of delivery with shipment reference for billing disputes, clear liability and claims."
           }
         }
       }

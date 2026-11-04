@@ -3,7 +3,7 @@
  * SSOT: docs/testing/admin_p0_registry.json UI-LEAD-*
  *
  * Run: pnpm --filter @porterchain/admin test:e2e:leads
- * Auth: global storageState from fixtures (ADMIN_STORAGE_STATE | ADMIN_STAFF_SID | bypass).
+ * Auth: global storageState from fixtures (ADMIN_STORAGE_STATE | bypass).
  * Live: ADMIN_RUN_LIVE=1 fails hard if admin on ADMIN_BASE_URL is down.
  */
 import { test, expect, gotoAsStaff, tcId, ensureAdminReachable } from "./fixtures";
@@ -174,7 +174,7 @@ test.describe(`UI-LEAD-002 ${tcId("UI-LEAD-002")} @p0`, () => {
     await ensureAdminReachable(page);
     await stubLeadsApi(page);
     await gotoAsStaff(page, "/leads/pipeline");
-    await expect(page.getByRole("heading", { name: /acquisition pipeline/i })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /^Pipeline$/, level: 1 })).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByText(/prospecting/i).first()).toBeVisible();

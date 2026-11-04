@@ -2,15 +2,17 @@
 
 import { useCallback, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { LogOut } from "lucide-react";
 import {
   humanAuthError,
+  isBlockedAccountError,
+  isWrongPortalError,
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
 } from "@porterchain/auth";
-import { isClerkConfigured, isDevEmailLogin, publicEnv } from "@/lib/env";
+import { isAuthConfigured, isDevEmailLogin, publicEnv } from "@/lib/env";
 import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
 
 type Props = {
@@ -18,17 +20,17 @@ type Props = {
 };
 
 export default function DriverAccessGate({ children }: Props) {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <>{children}</>;
   }
-  // Local email picker: middleware + BFF cookie; do not wait on Clerk isLoaded.
+  // Local email picker: middleware + BFF cookie; do not wait on Keycloak isLoaded.
   if (isDevEmailLogin()) {
     return <>{children}</>;
   }
-  return <DriverAccessGateWithClerk>{children}</DriverAccessGateWithClerk>;
+  return <DriverAccessGateWithAuth>{children}</DriverAccessGateWithAuth>;
 }
 
-function DriverAccessGateWithClerk({ children }: Props) {
+function DriverAccessGateWithAuth({ children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
@@ -72,7 +74,7 @@ function DriverAccessGateWithClerk({ children }: Props) {
     onNeedOnboarding,
   });
 
-  // Local email-picker session: middleware + BFF enforce cookie; skip Clerk gate.
+  // Local email-picker session: middleware + BFF enforce cookie; skip Keycloak gate.
   if (isLoaded && !isSignedIn && isDevEmailLogin()) {
     return <>{children}</>;
   }
@@ -83,7 +85,11 @@ function DriverAccessGateWithClerk({ children }: Props) {
       <div className="flex min-h-dvh items-center justify-center bg-gray-bg p-6">
         <div className="max-w-md rounded-2xl border border-primary/10 bg-white p-8 text-center shadow-sm">
           <h1 className="text-xl font-bold text-primary">
-            {errorDetail === "missing_portal_permission" ? "Access denied" : "Session error"}
+            {isWrongPortalError(errorDetail)
+              ? "Access denied"
+              : isBlockedAccountError(errorDetail)
+                ? "Account unavailable"
+                : "Session error"}
           </h1>
           <p className="mt-2 text-sm text-muted">
             {humanAuthError(
@@ -99,7 +105,7 @@ function DriverAccessGateWithClerk({ children }: Props) {
           >
             Back to sign in
           </a>
-          <SignOutButton redirectUrl={loginUrl}>
+          <SignOutButton returnTo={loginUrl}>
             <button
               type="button"
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"

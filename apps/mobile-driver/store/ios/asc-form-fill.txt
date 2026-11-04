@@ -63,24 +63,24 @@ Yes (check Sign-in required)
 ────────────────────────────────────────
 User name (demo / App Review)
 ────────────────────────────────────────
-Suggested production Clerk email (provision first if missing):
+Suggested production Keycloak email (provision first if missing):
 
   review.driver@porterchain.com
 
-Alternate already used in ops scripts (only if that live Clerk user exists and is APPROVED):
+Alternate already used in ops scripts (only if that live Keycloak user exists and is APPROVED):
 
   priya.sharma@porterchain.com
 
-Do NOT use local-only marco@porterchain.com for App Review — that is a local seed, not guaranteed on production Clerk.
+Do NOT use local-only marco@porterchain.com for App Review — that is a local seed, not guaranteed on production Keycloak.
 
 ────────────────────────────────────────
 Password
 ────────────────────────────────────────
-YOU MUST SET THIS YOURSELF in Clerk (production driver instance), then paste here.
+YOU MUST SET THIS YOURSELF in Keycloak (production driver instance), then paste here.
 
 Steps:
   1. Create/approve the driver in production (or run provision_production_driver.py on the droplet).
-  2. In Clerk Dashboard → Drivers app → Users → set a known password for that user.
+  2. In Keycloak (set via infrastructure/keycloak/seed_reviewers.py from SOPS).
   3. Paste the same password into App Store Connect → App Review Information → Password.
 
 Never commit the password to git.
@@ -98,7 +98,7 @@ Notes (App Review Information — paste as one block)
 ────────────────────────────────────────
 Porterchain Driver (ASC name: PCD) is for approved Porterchain network drivers only. There is no public self-signup.
 
-Sign in: tap “Sign in with Porterchain”, then use the User name / Password in this form (Clerk hosted auth).
+Sign in: tap “Sign in with Porterchain”, then use the User name / Password in this form (Keycloak sign-in page).
 
 After sign-in you land on Today (vehicle check and duty). Job shows the current stop when dispatch has assigned one; otherwise it shows an empty state. Me has dispatch contact, SOS, location & privacy, and sign-out. Earnings and documents are on the driver web portal, not in the app.
 

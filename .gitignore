@@ -7,11 +7,12 @@ env/.env
 env/clerk.env
 env/clerk.env.prod-live.bak
 env/go-live-*.local.md
-doppler.token
-doppler.env
+runtime.env
 
 # Credentials and key material
-secrets/
+secrets/*
+!secrets/README.md
+!secrets/*.enc.yaml
 apps/api/.secrets/
 **/firebase-service-account.json
 *firebase-adminsdk*.json
@@ -76,8 +77,6 @@ infrastructure/docker/osrm/data/*
 # TypeScript
 *.tsbuildinfo
 
-# Fleetbase OSS — clone via `pnpm docker:fleetbase:install` (do not commit upstream tree)
-apps/fleetbase/
 
 # local coverage artifacts
 .coverage
@@ -100,9 +99,8 @@ tmp/
 # Playwright Clerk cookie jars (never commit)
 apps/merchant-portal/e2e/.auth/
 apps/admin/e2e/.auth/
-apps/merchant-portal/playwright-report/
+**/playwright-report/
 apps/merchant-portal/test-results/
-website/playwright-report/
 website/test-results/
 
 # Accidental absolute-path write leftovers from agent plan paths
@@ -119,3 +117,6 @@ docs/archive/vendor-leads/*.csv
 
 # Shopify CLI local state
 integrations/shopify/.shopify/
+
+# Local ops scratch, backups and progress notes (never commit)
+.pcd-local-stack/

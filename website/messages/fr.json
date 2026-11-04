@@ -620,8 +620,8 @@
       "ariaLabel": "Couverture en bref",
       "postalAreas": "Grand Toronto + ~150 km",
       "postalAreasHint": "{count} zones postales, vérifiées instantanément. Zones principales : Vaughan, Concord, Brampton, Mississauga.",
-      "areas": "Assurance marchandises de 2 500 $",
-      "areasHint": "Incluse. Besoin de plus? Couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt.",
+      "areas": "Responsabilité claire : 4,41 $/kg",
+      "areasHint": "Incluse. Besoin de plus? Couverture facultative à valeur déclarée jusqu'à 2 500 $ par colis (1,5 %, min. 3 $) dès que l'assurance marchandises sera confirmée.",
       "vehicles": "{count} tailles de véhicule",
       "vehiclesHint": "Berline / VUS (~80 kg), fourgon (~900 kg), camion cube 16 pi (~3 000 kg)"
     },
@@ -742,8 +742,8 @@
         },
         "coverage": {
           "need": "Couverture en petits caractères",
-          "title": "Assurance marchandises de 2 500 $ incluse.",
-          "body": "Couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt."
+          "title": "Responsabilité et réclamations claires.",
+          "body": "Couverture facultative à valeur déclarée jusqu'à 2 500 $ par colis (1,5 %, min. 3 $) dès que l'assurance marchandises sera confirmée."
         },
         "payment": {
           "need": "Carte seulement, ou longs formulaires de crédit",
@@ -778,7 +778,7 @@
         "pharmacy-medical": "Pharmacies"
       }
     },
-    "riskReversal": "TVH en sus · Assurance marchandises de 2 500 $ incluse · Les marchands paient par virement Interac"
+    "riskReversal": "TVH en sus · Responsabilité et réclamations claires · Les marchands paient par virement Interac"
   },
   "marketing": {
     "consent": {
@@ -807,7 +807,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Inclus dans chaque livraison",
-      "insured": "Assurance marchandises de 2 500 $ incluse",
+      "insured": "Responsabilité et réclamations claires",
       "tracked": "Suivi en direct",
       "pod": "Preuve de livraison photo"
     }
@@ -834,7 +834,7 @@
     "passwordAllowedLabel": "Symboles autorisés",
     "passwordStrength": "Un indicateur de force s'affiche pendant la saisie. Les mots de passe courants ou compromis sont refusés, même s'ils respectent ce modèle.",
     "haveAccount": "Vous avez déjà un compte?",
-    "roleNote": "Authentifié par Clerk. L'accès est décidé par les rôles Porterchain.",
+    "roleNote": "Authentifié par Keycloak. L'accès est décidé par les rôles Porterchain.",
     "trustLine": "Authentification sécurisée · Accès selon le rôle",
     "needHelp": "Besoin d'un compte?",
     "needHelpLink": "S'inscrire",
@@ -866,11 +866,11 @@
     "driverSignIn": "Connexion chauffeur",
     "identityConflict": "Ce compte nécessite de l'aide pour terminer le provisionnement. Contactez-nous avec le courriel utilisé pour vous connecter.",
     "error": "Impossible de vous connecter. Vérifiez votre connexion et réessayez.",
-    "missingToken": "Clerk n'a pas renvoyé de jeton de session. Déconnectez-vous et réessayez.",
+    "missingToken": "Keycloak n'a pas renvoyé de jeton de session. Déconnectez-vous et réessayez.",
     "apiUnreachable": "L'API Porterchain est inaccessible. Assurez-vous que l'API tourne sur le port 8001.",
     "signOut": "Se déconnecter et réessayer",
-    "devModeNote": "Clerk n'est pas configuré dans cet environnement.",
-    "devSetupNote": "Clerk n'est pas configuré. Exécutez pnpm clerk:sync, puis actualisez.",
+    "devModeNote": "Keycloak n'est pas configuré dans cet environnement.",
+    "devSetupNote": "Keycloak n'est pas configuré. Définissez NEXT_PUBLIC_KEYCLOAK_CLIENT_ID, KEYCLOAK_URL et AUTH_SESSION_SECRET, puis redémarrez.",
     "unavailableTitle": "Connexion indisponible",
     "unavailableBody": "Nous ne pouvons pas vous connecter pour le moment. Rien n'est anormal avec votre compte. Réessayez sous peu.",
     "signUpUnavailableTitle": "Inscription indisponible",
@@ -939,14 +939,14 @@
       "signInBusinessNote": "Expédition pour votre entreprise?",
       "signInBusinessLink": "Utilisez le portail marchand",
       "signedInAs": "Connecté en tant que {email}",
-      "devModeNote": "Clerk n'est pas configuré. Le mode dev utilise l'API en contournement.",
+      "devModeNote": "Keycloak n'est pas configuré. Le mode dev utilise l'API en contournement.",
       "continueDev": "Continuer vers le tableau de bord",
       "emptyTitle": "Aucune livraison pour le moment",
       "emptySubtitle": "Réservez votre première livraison et elle apparaîtra ici avec suivi, factures et soutien.",
       "emptyCta": "Réserver une livraison",
       "guestTrackTitle": "Suivre sans connexion",
       "guestTrackSubtitle": "Entrez votre numéro de suivi pour une consultation unique.",
-      "guestTrackPlaceholder": "PC-XXXXXXXX",
+      "guestTrackPlaceholder": "PC-20261015-F4BC86A21D",
       "guestTrackSubmit": "Suivre l'envoi",
       "trackPortalPrompt": "Vous voulez l'historique complet, les factures et le soutien?",
       "trackPortalCta": "Connexion au portail client",
@@ -1688,7 +1688,7 @@
           },
           "legalProcurement": {
             "title": "Juridique, approvisionnement et finance",
-            "description": "Preuve photo et signature avec référence d'envoi, horodatage GPS, assurance marchandises de 2 500 $ incluse."
+            "description": "Preuve photo et signature avec référence d'envoi, horodatage GPS, responsabilité et réclamations claires."
           }
         }
       }
@@ -1800,7 +1800,7 @@
           },
           "legalProcurement": {
             "title": "Juridique, approvisionnement et finance",
-            "description": "Preuve par envoi avec horodatage pour litiges facturation, assurance marchandises de 2 500 $ incluse."
+            "description": "Preuve par envoi avec horodatage pour litiges facturation, responsabilité et réclamations claires."
           }
         }
       }
@@ -1912,7 +1912,7 @@
           },
           "legalProcurement": {
             "title": "Juridique, approvisionnement et finance",
-            "description": "Preuve de livraison avec référence d'envoi pour litiges, assurance marchandises de 2 500 $ incluse."
+            "description": "Preuve de livraison avec référence d'envoi pour litiges, responsabilité et réclamations claires."
           }
         }
       }

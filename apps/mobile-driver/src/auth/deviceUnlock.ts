@@ -1,5 +1,5 @@
 /**
- * Optional device unlock (Face ID / fingerprint) before restoring a Clerk session.
+ * Optional device unlock (Face ID / fingerprint) before restoring a saved Keycloak session.
  * Soft-fails open when the module or hardware is unavailable (simulators / web).
  */
 

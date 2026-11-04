@@ -345,5 +345,3 @@ def bulk_confirm(
         raise HTTPException(status_code=404, detail="bulk_job_not_found") from None
     except PermissionError as exc:
         _handle_permission(exc)
-
-

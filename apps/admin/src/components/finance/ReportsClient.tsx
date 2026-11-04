@@ -266,9 +266,12 @@ export default function ReportsClient() {
                 key={String(e.id)}
                 className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
               >
-                <span className="font-mono text-xs text-primary">{String(e.kind)}</span>
+                <span className="text-xs font-medium text-primary">{humanCode(e.kind)}</span>
                 <span className="text-xs text-muted">
-                  {String(e.status)} · {String(e.created_at).slice(0, 10)}
+                  {humanCode(e.status)} ·{" "}
+                  {new Date(String(e.created_at)).toLocaleDateString("en-CA", {
+                    dateStyle: "medium",
+                  })}
                 </span>
                 <span className="w-24 text-right font-semibold tabular-nums text-primary">
                   {e.amount_cents != null ? formatCents(Number(e.amount_cents)) : "—"}
@@ -281,4 +284,12 @@ export default function ReportsClient() {
       </Section>
     </FinanceShell>
   );
+}
+
+/** Pass 6: ledger shows "Merchant card payment", not merchant_card_payment. */
+function humanCode(v: unknown): string {
+  const t = String(v ?? "")
+    .replace(/_/g, " ")
+    .trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "—";
 }

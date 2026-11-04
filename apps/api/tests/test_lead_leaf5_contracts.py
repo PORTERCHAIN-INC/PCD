@@ -257,8 +257,8 @@ def test_e2e_smoke_inquiry_assist_convert(db) -> None:
     assist = build_lead_assist(db, lead, flags={"phase2_intelligence": False})
     assert assist.get("summary")
     assert assist.get("draft_reply")
-    assert assist.get("source") in ("heuristic", "nvidia_nim", None) or "draft_reply" in assist
-    # Heuristic path when NIM dark
+    assert assist.get("source") in ("heuristic", "llm", None) or "draft_reply" in assist
+    # Heuristic path (FEATURE_AI off)
     assert assist.get("suggested_decision_status") or assist.get("decision_status") or True
 
     converted = crm.convert_lead(db, ctx, lead.id, create_deal=True)

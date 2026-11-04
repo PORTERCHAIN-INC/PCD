@@ -1,6 +1,6 @@
 """Server-side coordinates for typed merchant addresses (Kaylulu 2026-10-15).
 
-When Places autocomplete fails in the browser (or the merchant never picks a suggestion) the
+When address autocomplete fails in the browser (or the merchant never picks a suggestion) the
 quote arrives with ``formatted`` but no lat/lng. Geocode it here: Nominatim first, then the
 FSA centroid from the postal code. Never raises; unresolved addresses keep lat/lng None so
 ``validate_addresses`` still reports ``coordinates_required``.

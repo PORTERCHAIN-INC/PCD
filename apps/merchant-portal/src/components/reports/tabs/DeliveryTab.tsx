@@ -2,7 +2,6 @@
 
 import { OrdersPerformanceChart, PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { formatPercent, type DeliveryPerformance, type ReportsOverview } from "@/lib/reports";
-import { formatCents } from "@/lib/utils";
 import { Metric, RankedList } from "./shared";
 
 export function DeliveryTab({ data }: { data: DeliveryPerformance }) {

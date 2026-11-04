@@ -183,6 +183,23 @@ services:
       retries: 5
       start_period: 20s
 
+  # Self-hosted VRP solver (BSD-2) over the local OSRM above. Opt-in: `--profile routing`.
+  # API uses it when VROOM_URL is set; otherwise the built-in heuristic in batch_engine/vrp.py.
+  vroom:
+    profiles: [routing]
+    image: ghcr.io/vroom-project/vroom-docker:v1.14.0
+    container_name: porterchain-vroom
+    restart: unless-stopped
+    depends_on: [osrm]
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      VROOM_ROUTER: osrm
+    volumes:
+      - ./vroom/conf:/conf
+    networks:
+      - porterchain-internal
+
   proxy:
     profiles: [proxy]
     image: nginx:1.31-alpine3.23

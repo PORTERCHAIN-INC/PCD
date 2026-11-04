@@ -137,6 +137,8 @@ class MerchantUpdateRequest(BaseModel):
     credit_limit_cents: int | None = None
     parent_merchant_id: str | None = None
     support_tier: str | None = Field(default=None, pattern="^(standard|priority|enterprise)$")
+    #: Ops switch for partner-barcode registration + scan fallback (default on).
+    partner_barcodes_enabled: bool | None = None
     billing_cycle: str | None = Field(
         default=None, pattern="^(WEEKLY|BIWEEKLY|MONTHLY|CUSTOM)$"
     )
@@ -180,7 +182,7 @@ class MerchantInviteResponse(BaseModel):
     email: str
     role: str
     invitation_status: str
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
 
 
 class MerchantCreateRequest(BaseModel):
@@ -382,6 +384,7 @@ class AdminOrderStopInput(BaseModel):
     lat: float | None = None
     lng: float | None = None
     city: str | None = None
+    postal: str | None = None
     time_window_start: datetime | None = None
     time_window_end: datetime | None = None
     service_time_seconds: int | None = None
@@ -399,6 +402,15 @@ class AdminCreateOrderRequest(BaseModel):
     vehicle_class: str = "cargo_van"
     package_type: str = "looseParcel"
     weight_kg: float | None = None
+    #: L128: parcel size (inches) so admin quotes match the merchant/customer parcel model.
+    length_in: float | None = Field(default=None, gt=0, le=500)
+    width_in: float | None = Field(default=None, gt=0, le=500)
+    height_in: float | None = Field(default=None, gt=0, le=500)
+    weight_lb: float | None = Field(default=None, gt=0, le=5000)
+    parcel_count: int = Field(default=1, ge=1, le=500)
+    booking_mode: str = Field(default="parcels", pattern="^(parcels|vehicle)$")
+    dedicated_hours: float | None = Field(default=None, gt=0, le=24)
+    help_stops: int = Field(default=0, ge=0, le=50)
     scheduled_at: datetime
     schedule_mode: str = "now"
     special_instructions: str | None = None
@@ -805,13 +817,13 @@ class PlatformUserItem(BaseModel):
     invite_status: str  # not_invited | invite_pending | accepted | revoked | invite_failed
     identity_status: str  # registered | invite_pending | not_registered
     status_label: str
-    clerk_linked: bool = False
-    clerk_user_id: str | None = None
+    identity_linked: bool = False
+    auth_subject: str | None = None
     provisioned: bool = True
-    clerk_status: str | None = None  # active | banned | locked | never_signed_in
-    clerk_email_verified: bool = False
-    clerk_password_set: bool = False
-    clerk_last_sign_in_at: datetime | None = None
+    directory_status: str | None = None  # active | banned | locked | never_signed_in
+    idp_email_verified: bool = False
+    idp_password_set: bool = False
+    idp_last_sign_in_at: datetime | None = None
     detail_href: str | None = None
     created_at: datetime
 
@@ -821,15 +833,15 @@ class PlatformUsersFacets(BaseModel):
     invite_status: dict[str, int] = Field(default_factory=dict)
     identity_status: dict[str, int] = Field(default_factory=dict)
     account_status: dict[str, int] = Field(default_factory=dict)
-    clerk_status: dict[str, int] = Field(default_factory=dict)
+    directory_status: dict[str, int] = Field(default_factory=dict)
 
 
 class PlatformUsersResponse(BaseModel):
     items: list[PlatformUserItem]
     total: int
     facets: PlatformUsersFacets
-    clerk_synced: bool = False
-    clerk_total: int | None = None
+    idp_synced: bool = False
+    idp_total: int | None = None
 
 
 class PlatformUserCreateRequest(BaseModel):
@@ -842,14 +854,14 @@ class PlatformUserCreateRequest(BaseModel):
 
 
 class PlatformUserUpdateRequest(BaseModel):
-    clerk_user_id: str
+    auth_subject: str
     name: str | None = None
     password: str | None = None
     banned: bool | None = None
 
 
 class PlatformUserDeleteRequest(BaseModel):
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
     platform_user_id: str | None = None
 
 
@@ -859,7 +871,7 @@ class PlatformUserInviteRequest(BaseModel):
 
 class PlatformUserAuthorizeRequest(BaseModel):
     platform_user_id: str | None = None
-    clerk_user_id: str | None = None
+    auth_subject: str | None = None
     email: str | None = None
     name: str | None = None
     reason: str | None = None
@@ -920,7 +932,7 @@ class StaffEnrollResponse(BaseModel):
     role: str
     enrollment_token: str | None = None
     expires_at: float
-    clerk_invite: bool = False
+    idp_invite: bool = False
     email_sent: bool = False
     passkeys_removed: int | None = None
     sessions_revoked: int | None = None
@@ -980,8 +992,11 @@ class FinanceInvoiceItem(BaseModel):
     amount_cents: int
     tax_cents: int
     fees_cents: int
+    penalty_cents: int = 0
+    penalty_label: str | None = None
     outstanding_cents: int
     amount_paid_cents: int = 0
+    credited_cents: int = 0
     payment_reference: str | None = None
     billing_kind: str = "order"
     order_count: int = 1
@@ -1081,12 +1096,6 @@ class FinanceLedgerItem(BaseModel):
     currency: str
     status: str
     created_at: datetime
-
-
-class FinanceCreditNoteRequest(BaseModel):
-    order_id: str
-    amount_cents: int
-    reason: str
 
 
 class MerchantArGenerateRequest(BaseModel):
@@ -1255,10 +1264,10 @@ class AdminCreateCustomerResponse(BaseModel):
     phone: str | None = None
     customer_reference: str | None = None
     display_name: str
-    clerk_user_id: str | None = None
-    clerk_linked: bool = False
+    auth_subject: str | None = None
+    identity_linked: bool = False
     identity_status: str
-    clerk_action: str | None = None
+    identity_action: str | None = None
     created: bool = True
     created_at: str | None = None
 
@@ -1266,10 +1275,10 @@ class AdminCreateCustomerResponse(BaseModel):
 class AdminCustomerInviteResponse(BaseModel):
     id: str
     email: str
-    clerk_user_id: str | None = None
-    clerk_linked: bool = False
+    auth_subject: str | None = None
+    identity_linked: bool = False
     identity_status: str
-    clerk_action: str | None = None
+    identity_action: str | None = None
 
 
 class AdminCreateCustomerBookingDraftRequest(BaseModel):
@@ -1437,7 +1446,7 @@ class CopilotActionBody(BaseModel):
 
 
 class CopilotLlmSuggestBody(BaseModel):
-    """Read-only LLM ops assist (NVIDIA NIM when configured). Not on pay path."""
+    """Read-only LLM ops assist (an LLM (FEATURE_AI, off in Phase 0) when configured). Not on pay path."""
 
     context: str = Field(min_length=1, max_length=8000)
     enable_intelligence: bool = True

@@ -74,7 +74,7 @@ class DriverOffDuty(PermissionError):
     def payload(self) -> dict[str, Any]:
         return {
             "code": "driver_off_duty",
-            "message": "Start your shift before completing deliveries.",
+            "message": "Start your shift first. Deliveries need an active shift.",
         }
 
 

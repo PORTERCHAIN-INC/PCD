@@ -17,7 +17,10 @@ export function RolesPanel() {
     queryFn: async () => settingsApi.center(await getApiToken()),
   });
 
-  const roles = (center?.role_catalog?.roles ?? center?.roles ?? []) as RoleCatalogEntry[];
+  const roles = useMemo(
+    () => (center?.role_catalog?.roles ?? center?.roles ?? []) as RoleCatalogEntry[],
+    [center]
+  );
   const modules = useMemo(() => {
     if (center?.role_catalog?.modules?.length) {
       return center.role_catalog.modules.map((m) => m.module);
@@ -95,7 +98,7 @@ export function RolesPanel() {
 
       <SettingsCard
         title="SpiceDB authorization"
-        description="Clerk authenticates retail portals. Staff use PorterChain IdP. SpiceDB authorizes every Check."
+        description="Keycloak authenticates retail portals. Staff use PorterChain IdP. SpiceDB authorizes every Check."
       >
         <p className="text-sm text-muted">
           Live rules are in <code className="rounded bg-gray-bg px-1">authz/schema.zed</code>

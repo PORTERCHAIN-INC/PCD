@@ -16,7 +16,6 @@
     "@porterchain/types": "workspace:*"
   },
   "devDependencies": {
-    "@porterchain/config": "workspace:*",
     "typescript": "^6.0.3"
   }
 }

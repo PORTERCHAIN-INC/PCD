@@ -43,8 +43,8 @@ export function UsersPanel({ onRefetch }: { onRefetch: () => void }) {
 
       <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
         <strong>Concierge rule:</strong> Super Admin operates via Staff IdP — create users,
-        authorize access, and book deliveries here without waiting for Clerk. Clerk invite is only
-        for their portal/mobile login. Red identity = not linked yet (invite or they sign up).
+        authorize access, and book deliveries here without waiting for Keycloak. Keycloak invite is
+        only for their portal/mobile login. Red identity = not linked yet (invite or they sign up).
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-primary/10 pb-1">

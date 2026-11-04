@@ -7,9 +7,6 @@ sequenceDiagram
   participant DB as Database
   participant Bus as Event Bus
   participant Worker as apps/worker
-  participant FBE as fleetbase_engine
-  participant FBA as fleetbase-adapter
-  participant FB as Fleetbase API
 
   UI->>Router: HTTPS /v1/*
   Router->>Auth: get_clerk_user_id / get_admin_context / get_merchant_context
@@ -22,10 +19,7 @@ sequenceDiagram
   Svc->>Bus: emit_event (side effects)
   Bus->>Worker: async handlers / queues
   alt dispatch ready
-    Worker->>FBE: sync_order_from_event
-    FBE->>FBA: FleetbaseIntegrationBridge
-    FBA->>FB: HTTP
-    FB-->>FBA: response
+    Worker->>Worker: DISPATCH queue score_suggestions (event-bus handlers/__init__.py:48)
   end
   Svc-->>Router: DTO / result
   Router-->>UI: JSON response

@@ -40,7 +40,7 @@ def _merchant_ctx(db, *, suffix: str | None = None) -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{tag}",
+        auth_subject=f"idp_{tag}",
         email=f"user-{tag}@test.local",
         role=MerchantRole.OWNER.value,
     )

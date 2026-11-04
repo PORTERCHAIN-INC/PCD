@@ -64,7 +64,7 @@ def admin_client(db, monkeypatch):
 
     pc = PorterchainUser(
         id="user-leads-dev",
-        clerk_user_id="clerk-leads-dev",
+        auth_subject="keycloak-leads-dev",
         email="leads-dev@porterchain.com",
         role="super_admin",
         status="active",
@@ -74,7 +74,7 @@ def admin_client(db, monkeypatch):
 
     admin = AdminContext(
         user=AdminUser(
-            clerk_user_id="clerk-leads-dev",
+            auth_subject="keycloak-leads-dev",
             email="leads-dev@porterchain.com",
             role="super_admin",
             porterchain_user_id="user-leads-dev",
@@ -475,7 +475,7 @@ class TestLeadsApi:
         monkeypatch.setattr(leads_mod, "require_module", lambda ctx, module: None)
         ctx = AdminContext(
             user=AdminUser(
-                clerk_user_id="x",
+                auth_subject="x",
                 email="x@t.test",
                 role="sales",
             ),

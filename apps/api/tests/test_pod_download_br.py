@@ -289,7 +289,7 @@ def merchant_ctx(db):
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"user-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )
@@ -464,3 +464,43 @@ def _stub_media(monkeypatch, responses: dict[str, tuple[bytes, str]]) -> None:
         return original(*args, **kwargs)
 
     monkeypatch.setattr(httpx, "Client", client)
+
+
+def test_fetch_url_reads_inhouse_garage_media(monkeypatch) -> None:
+    """Rehearsal bug (c): in-house driver POD photos are ``garage:<key>`` refs."""
+    from porterchain_api.media_store import s3
+    from porterchain_api.reporting import pod_export
+
+    monkeypatch.setattr(s3, "config_from_env", lambda: object())
+    monkeypatch.setattr(s3, "get_object", lambda cfg, key: (b"\xff\xd8jpg", "image/jpeg"))
+    monkeypatch.setattr("porterchain_api.media_store.service.is_media_key", lambda k: True)
+    assert pod_export._fetch_url("garage:pod/photo/d/2026/10/x") == (b"\xff\xd8jpg", "image/jpeg")
+
+
+def test_local_pod_proofs_maps_driver_meta() -> None:
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from porterchain_api.merchant_engine.tracking_service import local_pod_proofs
+
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = SimpleNamespace(
+        meta={"proofs": [{"type": "photo", "value": "garage:k"}, {"type": "signature", "value": "data:x"}]}
+    )
+    out = local_pod_proofs(db, SimpleNamespace(id="o1"))
+    assert out[0]["url"] == "garage:k" and out[1]["signature"] == "data:x"
+
+
+def test_drawn_signature_data_url_exports_as_png():
+    import base64
+
+    from porterchain_api.reporting.pod_export import artifact_bytes, artifact_filename, list_artifacts
+
+    png = base64.b64encode(b"\x89PNG\r\n\x1a\nfake").decode()
+    gallery = {"signatures": [{"signature": f"data:image/png;base64,{png}"}, {"signature": "Jane Doe"}]}
+    drawn, typed = list_artifacts(gallery)
+    payload, media_type, ext = artifact_bytes(drawn)
+    assert (media_type, ext) == ("image/png", ".png")
+    assert payload.startswith(b"\x89PNG")
+    assert artifact_filename("PC-1", drawn, ext).endswith(".png")
+    assert artifact_bytes(typed)[2] == ".txt"

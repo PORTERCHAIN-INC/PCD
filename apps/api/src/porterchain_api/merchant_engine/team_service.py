@@ -1,7 +1,7 @@
-"""Merchant team seats — email bind, no Clerk Invitation API.
+"""Merchant team seats — email bind, no Keycloak Invitation API.
 
 Teammate signs up / signs in on PorterChain Platform; UserSync rebinds
-``pending:{email}`` → real ``user_`` clerk id on verified email match.
+``pending:{email}`` → real ``user_`` keycloak id on verified email match.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.auth.email_identity import normalize_email
-from porterchain_api.auth.invitation_service import pending_clerk_id
+from porterchain_api.auth.invitation_service import pending_idp_id
 from porterchain_api.domain.catalog_labels import merchant_status_label, seat_status_label
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantRole
 from porterchain_api.merchant_engine.audit_copy import serialize_audit_log
@@ -23,8 +23,8 @@ from porterchain_api.merchant_models import MerchantAuditLog, MerchantUser
 def seat_status(user: MerchantUser) -> str:
     if not user.is_active:
         return "off"
-    clerk_id = user.clerk_user_id or ""
-    if clerk_id.startswith("pending:") or clerk_id.startswith("pending_"):
+    subject_ref = user.auth_subject or ""
+    if subject_ref.startswith("pending:") or subject_ref.startswith("pending_"):
         return "pending"
     return "active"
 
@@ -48,7 +48,7 @@ def list_switcher_memberships(
     seats: list[Any],
     selected_merchant_id: str | None,
 ) -> dict:
-    """Companies this Clerk user can switch to with X-Merchant-Id (not Clerk orgs)."""
+    """Companies this Keycloak user can switch to with X-Merchant-Id (not Keycloak orgs)."""
     memberships = []
     for seat in seats:
         merchant = get_merchant(db, seat.merchant_id)
@@ -109,7 +109,7 @@ class MerchantTeamService:
         email: str,
         role: str,
     ) -> MerchantUser:
-        """Reserve a team seat by email. No Clerk invite email is sent."""
+        """Reserve a team seat by email. No Keycloak invite email is sent."""
         user = ensure_merchant_seat(
             db,
             merchant_id=ctx.merchant.id,
@@ -135,7 +135,7 @@ class MerchantTeamService:
         db.commit()
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         self._sync_team_contacts(db, ctx.merchant)
 
     def update_member(
@@ -176,7 +176,7 @@ class MerchantTeamService:
         db.refresh(user)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
         self._sync_team_contacts(db, ctx.merchant)
         return user
 
@@ -199,7 +199,7 @@ class MerchantTeamService:
             "enabled": False,
             "method": "none",
             "enforced_org_wide": False,
-            "note": "Two-factor authentication is managed in Clerk for merchant portal users.",
+            "note": "Two-factor authentication is managed in Keycloak for merchant portal users.",
         }
 
     def update_two_factor(
@@ -266,7 +266,7 @@ def ensure_merchant_seat(
     audit_action: str = "team.seat_added",
     commit: bool = True,
 ) -> MerchantUser:
-    """Create or reactivate a MerchantUser seat bound by email (pending Clerk id)."""
+    """Create or reactivate a MerchantUser seat bound by email (pending Keycloak id)."""
     normalized = normalize_email(email)
     if not normalized:
         raise ValueError("email_required")
@@ -274,11 +274,11 @@ def ensure_merchant_seat(
     if role not in {r.value for r in MerchantRole}:
         raise ValueError("invalid_team_role")
     role_value = role
-    clerk_ref = pending_clerk_id(normalized)
+    idp_ref = pending_idp_id(normalized)
 
     conflict = (
         db.query(MerchantUser)
-        .filter(MerchantUser.clerk_user_id == clerk_ref, MerchantUser.merchant_id != merchant_id)
+        .filter(MerchantUser.auth_subject == idp_ref, MerchantUser.merchant_id != merchant_id)
         .first()
     )
     if conflict:
@@ -292,13 +292,13 @@ def ensure_merchant_seat(
     if existing:
         existing.role = role_value
         existing.is_active = True
-        if not existing.clerk_user_id or not str(existing.clerk_user_id).startswith("user_"):
-            existing.clerk_user_id = clerk_ref
+        if not existing.auth_subject or not str(existing.auth_subject).startswith("user_"):
+            existing.auth_subject = idp_ref
         user = existing
     else:
         user = MerchantUser(
             merchant_id=merchant_id,
-            clerk_user_id=clerk_ref,
+            auth_subject=idp_ref,
             email=normalized,
             role=role_value,
             is_active=True,
@@ -313,7 +313,7 @@ def ensure_merchant_seat(
             action=audit_action,
             resource_type="merchant_user",
             resource_id=user.id,
-            payload={"email": normalized, "role": role_value, "clerk_invite": False},
+            payload={"email": normalized, "role": role_value, "idp_invite": False},
         )
     )
     if commit:
@@ -327,13 +327,13 @@ def add_linked_seat(
     *,
     merchant_id: str,
     email: str,
-    clerk_user_id: str,
+    auth_subject: str,
     role: str,
     is_active: bool = True,
 ) -> MerchantUser:
     user = MerchantUser(
         merchant_id=merchant_id,
-        clerk_user_id=clerk_user_id,
+        auth_subject=auth_subject,
         email=email,
         role=role,
         is_active=is_active,
@@ -368,17 +368,17 @@ def deactivate_seat(db: Session, user_id: str) -> None:
         user.is_active = False
 
 
-def bind_seat_clerk(
+def bind_seat_subject(
     db: Session,
     user_id: str,
-    clerk_user_id: str,
+    auth_subject: str,
     *,
     activate: bool = False,
 ) -> MerchantUser | None:
     user = db.get(MerchantUser, user_id)
     if not user:
         return None
-    user.clerk_user_id = clerk_user_id
+    user.auth_subject = auth_subject
     if activate:
         user.is_active = True
     return user

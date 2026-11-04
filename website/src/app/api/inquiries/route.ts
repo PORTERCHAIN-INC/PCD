@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainFetchBase } from "@/lib/api-base";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const apiKey = (process.env.PUBLIC_INGEST_API_KEY ?? "").trim();
-    const apiBase = getPorterchainApiBase();
+    const apiBase = getPorterchainFetchBase();
     // Per-IP rate limit + CASL evidence need the visitor's IP, not this server's.
     const forwardedFor =
       request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "";

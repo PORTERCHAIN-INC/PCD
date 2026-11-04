@@ -72,8 +72,8 @@ export function DispatchShell({ view }: { view: DispatchView }) {
   const [menu, setMenu] = useState(false);
   const [help, setHelp] = useState(false);
   const [fleetSection, setFleetSection] = useState<FleetSection>("drivers");
-  const { data: exc } = useApiData((t) => dispatch.exceptions(t), [tick], {
-    key: "dispatch-exceptions",
+  const { data: exc } = useApiData((t) => dispatch.exceptionsCount(t), [tick], {
+    key: "dispatch-exceptions-count",
   });
   const excTotal = exc?.total ?? 0;
 

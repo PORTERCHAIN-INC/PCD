@@ -63,7 +63,7 @@ export default function CustomerCareQueue({ canWrite }: { canWrite: boolean }) {
           <p className="text-primary/75">
             {nudges?.enabled
               ? "Sending is on. Each batch still needs your approval."
-              : "Sending is off (Settings → Customers → reorder_nudges_enabled). Drafts only."}
+              : "Sending reorder reminders is turned off, so these stay as drafts. A super admin can turn sending on in the customer settings."}
           </p>
           <ul className="space-y-1">
             {drafts.slice(0, 5).map((n) => (

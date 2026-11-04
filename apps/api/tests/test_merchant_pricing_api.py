@@ -38,7 +38,7 @@ def client(db, monkeypatch):
     """Admin client sharing the test transaction. Module authz has its own tests."""
     monkeypatch.setattr("porterchain_api.routers.merchants.require_module", lambda ctx, module: None)
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="test", email="admin@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="test", email="admin@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

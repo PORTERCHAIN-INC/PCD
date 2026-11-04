@@ -15,6 +15,8 @@ from typing import Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from porterchain_pricing.tax.provinces import PROVINCES
+
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.pricing_versioning import bump_price_version
 from porterchain_api.domain.pricing_version import (
@@ -29,9 +31,9 @@ from porterchain_pricing.driver_pay import default_driver_pay_plan, normalize_dr
 from porterchain_pricing.price_book import default_price_book, normalize_price_book
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog, AdminUser, Driver, SystemConfig, Vehicle
-from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
-from porterchain_api.auth.clerk_client import ClerkUserSnapshot
-from porterchain_api.auth.clerk_registry import is_clerk_configured, is_clerk_secret_configured
+from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
+from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
+from porterchain_api.auth.identity_directory import is_identity_configured, is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.config import Settings
 from porterchain_api.invitation_models import UserInvitation
@@ -71,7 +73,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "customer", "label": "Customer", "group": "partners"},
     {"id": "dispatch", "label": "Dispatch", "group": "connections"},
     {"id": "stripe", "label": "Stripe", "group": "connections"},
-    {"id": "google_maps", "label": "Google Maps", "group": "connections"},
+    {"id": "maps", "label": "Maps (PMTiles + Photon)", "group": "connections"},
     {"id": "firebase", "label": "Firebase", "group": "connections"},
     {"id": "storage", "label": "Storage", "group": "connections"},
     {"id": "channels", "label": "Channels", "group": "connections"},
@@ -123,9 +125,9 @@ DEFAULTS: dict[str, Any] = {
         "holidays": [],
     },
     # Branding / auth / security SystemConfig rows were decorative theater —
-    # Staff IdP + Clerk + env own those surfaces. Do not reintroduce defaults.
+    # Staff IdP + Keycloak + env own those surfaces. Do not reintroduce defaults.
     "settings_booking": {
-        "quote_ttl_minutes": 30,
+        "quote_ttl_minutes": 72 * 60,
         "booking_draft_ttl_minutes": 1440,
         "default_currency": "cad",
         "default_vehicle_class": "sedan_suv",
@@ -153,9 +155,8 @@ DEFAULTS: dict[str, Any] = {
     "settings_finance": {
         "invoice_number_prefix": "INV",
         "receipt_number_prefix": "RCP",
-        "default_tax_percent": 13.0,
+        "default_tax_percent": PROVINCES["ON"].freight_percent(),
         "tax_name": "HST",
-        "gst_hst_number": "",
         "etransfer_email": "porterchaininc@gmail.com",
         "etransfer_autodeposit": True,
         "merchant_cycle_invoicing": True,
@@ -183,7 +184,7 @@ DEFAULTS: dict[str, Any] = {
     # GTA delivery rate matrix — filled below from porterchain_pricing (one source of defaults)
     "pricing_gta_rate": None,
     "pricing_customer_distance": None,
-    "pricing_tax": {"hst_percent": 13.0, "tax_included": False, "exempt_merchant_ids": []},
+    "pricing_tax": {"hst_percent": PROVINCES["ON"].freight_percent(), "tax_included": False, "exempt_merchant_ids": []},
     "pricing_fuel": {
         "surcharge_percent": 5.0,
         "base_fuel_price_cents": 145,
@@ -231,16 +232,16 @@ def _is_staff_subject(subject: str | None) -> bool:
     return bool(subject) and subject.startswith("staff:")
 
 
-def _is_legacy_clerk_staff_id(subject: str | None) -> bool:
-    """Pre-cutover AdminUser rows still holding a Clerk ``user_…`` id."""
+def _is_legacy_idp_staff_id(subject: str | None) -> bool:
+    """Pre-cutover AdminUser rows still holding a Keycloak ``user_…`` id."""
     return bool(subject) and subject.startswith("user_")
 
 
-def _clerk_linked(clerk_user_id: str | None) -> bool:
-    """True only for real Clerk ``user_…`` (or other non-pending, non-staff) ids."""
-    if not clerk_user_id:
+def _identity_linked(auth_subject: str | None) -> bool:
+    """True only for real Keycloak ``user_…`` (or other non-pending, non-staff) ids."""
+    if not auth_subject:
         return False
-    if _is_pending_subject(clerk_user_id) or _is_staff_subject(clerk_user_id):
+    if _is_pending_subject(auth_subject) or _is_staff_subject(auth_subject):
         return False
     return True
 
@@ -260,35 +261,35 @@ def _latest_invitations(db: Session, user_type: str) -> dict[str, UserInvitation
     return out
 
 
-def _invite_status(inv: UserInvitation | None, clerk_user_id: str | None) -> str:
+def _invite_status(inv: UserInvitation | None, auth_subject: str | None) -> str:
     if inv and inv.revoked_at:
         return "revoked"
-    if _clerk_linked(clerk_user_id):
+    if _identity_linked(auth_subject):
         return "accepted"
     if inv:
         if inv.status == "accepted":
             return "accepted"
-        action = (inv.invitation_metadata or {}).get("clerk_action", "")
+        action = (inv.invitation_metadata or {}).get("identity_action", "")
         if action in ("failed", "error"):
             return "invite_failed"
         return "invite_pending"
-    if _is_pending_subject(clerk_user_id):
+    if _is_pending_subject(auth_subject):
         return "invite_pending"
     return "not_invited"
 
 
-def _identity_status(clerk_user_id: str | None, invite_status: str) -> str:
-    if _clerk_linked(clerk_user_id):
+def _identity_status(auth_subject: str | None, invite_status: str) -> str:
+    if _identity_linked(auth_subject):
         return "registered"
     if invite_status in ("invite_pending", "accepted"):
         return "invite_pending"
-    if _is_pending_subject(clerk_user_id):
+    if _is_pending_subject(auth_subject):
         return "invite_pending"
     return "not_registered"
 
 
 def _staff_invite_status(subject: str | None) -> str:
-    if _is_staff_subject(subject) or _is_legacy_clerk_staff_id(subject):
+    if _is_staff_subject(subject) or _is_legacy_idp_staff_id(subject):
         return "accepted"
     if _is_pending_subject(subject):
         return "invite_pending"
@@ -298,7 +299,7 @@ def _staff_invite_status(subject: str | None) -> str:
 def _staff_identity_status(subject: str | None) -> str:
     if _is_staff_subject(subject):
         return "registered"
-    if _is_legacy_clerk_staff_id(subject):
+    if _is_legacy_idp_staff_id(subject):
         # Still provisioned; subject rebinds to staff:{id} on next IdP login/enroll.
         return "registered"
     if _is_pending_subject(subject):
@@ -328,13 +329,13 @@ def _invite_label(invite_status: str) -> str:
 
 
 def _status_label(access_status: str, invite_status: str, identity_status: str) -> str:
-    """Clerk-persona status line (driver / merchant / customer)."""
+    """Keycloak-persona status line (driver / merchant / customer)."""
     if identity_status == "registered":
-        identity = "Clerk registered"
+        identity = "Keycloak registered"
     elif identity_status == "invite_pending":
-        identity = "Clerk pending"
+        identity = "Keycloak pending"
     else:
-        identity = "No Clerk account"
+        identity = "No Keycloak account"
     return f"{_access_label(access_status)} · {_invite_label(invite_status)} · {identity}"
 
 
@@ -345,7 +346,7 @@ def _staff_status_label(
     *,
     subject: str | None = None,
 ) -> str:
-    """Staff IdP status line — never mentions Clerk as the live auth path."""
+    """Staff IdP status line — never mentions Keycloak as the live auth path."""
     invite = {
         "not_invited": "Not enrolled",
         "invite_pending": "Activation pending",
@@ -353,7 +354,7 @@ def _staff_status_label(
         "revoked": "Revoked",
         "invite_failed": "Enroll failed",
     }.get(invite_status, invite_status.replace("_", " ").title())
-    if _is_legacy_clerk_staff_id(subject):
+    if _is_legacy_idp_staff_id(subject):
         identity = "Legacy id (rebinds on login)"
     elif identity_status == "registered":
         identity = "Staff IdP bound"
@@ -369,21 +370,21 @@ def _facet_counts(items: list[PlatformUserItem]) -> PlatformUsersFacets:
     invite: dict[str, int] = {}
     identity: dict[str, int] = {}
     account: dict[str, int] = {}
-    clerk: dict[str, int] = {}
+    keycloak: dict[str, int] = {}
     for item in items:
         access[item.access_status] = access.get(item.access_status, 0) + 1
         invite[item.invite_status] = invite.get(item.invite_status, 0) + 1
         identity[item.identity_status] = identity.get(item.identity_status, 0) + 1
         key = (item.status or "unknown").lower()
         account[key] = account.get(key, 0) + 1
-        if item.clerk_status:
-            clerk[item.clerk_status] = clerk.get(item.clerk_status, 0) + 1
+        if item.directory_status:
+            keycloak[item.directory_status] = keycloak.get(item.directory_status, 0) + 1
     return PlatformUsersFacets(
         access_status=access,
         invite_status=invite,
         identity_status=identity,
         account_status=account,
-        clerk_status=clerk,
+        directory_status=keycloak,
     )
 
 
@@ -415,10 +416,10 @@ def _apply_user_filters(
     return [i for i in items if matches(i)]
 
 
-from porterchain_api.admin_engine.settings_clerk_merge import (  # noqa: E402
-    _enrich_with_clerk,
-    _mark_not_in_clerk,
-    _merge_clerk_directory,
+from porterchain_api.admin_engine.settings_directory_merge import (  # noqa: E402
+    _enrich_with_directory,
+    _mark_not_in_directory,
+    _merge_idp_directory,
 )
 
 
@@ -445,15 +446,15 @@ class AdminSettingsService:
         invite_status: str | None = None,
         identity_status: str | None = None,
         account_status: str | None = None,
-        clerk_status: str | None = None,
+        directory_status: str | None = None,
     ) -> PlatformUsersResponse:
         items: list[PlatformUserItem] = []
 
         if user_type == "staff":
-            # Staff IdP SoT — AdminUser rows only; never intersect retired Clerk admin app.
+            # Staff IdP SoT — AdminUser rows only; never intersect retired Keycloak admin app.
             for u in self.list_staff(db, active_only=False)[:limit]:
-                invite = _staff_invite_status(u.clerk_user_id)
-                identity = _staff_identity_status(u.clerk_user_id)
+                invite = _staff_invite_status(u.auth_subject)
+                identity = _staff_identity_status(u.auth_subject)
                 access = "authorized" if u.is_active else "inactive"
                 items.append(
                     PlatformUserItem(
@@ -467,10 +468,10 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_staff_status_label(
-                            access, invite, identity, subject=u.clerk_user_id
+                            access, invite, identity, subject=u.auth_subject
                         ),
-                        clerk_linked=False,
-                        clerk_user_id=None,
+                        identity_linked=False,
+                        auth_subject=None,
                         provisioned=True,
                         created_at=u.created_at,
                     )
@@ -488,16 +489,16 @@ class AdminSettingsService:
                 items=filtered,
                 total=len(filtered),
                 facets=facets,
-                clerk_synced=False,
-                clerk_total=None,
+                idp_synced=False,
+                idp_total=None,
             )
 
         invitations = _latest_invitations(db, user_type)
         if user_type == "driver":
             for d in db.query(Driver).order_by(Driver.created_at.desc()).limit(limit).all():
                 inv = invitations.get(d.email.lower())
-                invite = _invite_status(inv, d.clerk_user_id)
-                identity = _identity_status(d.clerk_user_id, invite)
+                invite = _invite_status(inv, d.auth_subject)
+                identity = _identity_status(d.auth_subject, invite)
                 if d.status == DriverStatus.APPROVED.value:
                     access = "authorized"
                 elif d.status == DriverStatus.PENDING.value:
@@ -518,15 +519,15 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_status_label(access, invite, identity),
-                        clerk_linked=_clerk_linked(d.clerk_user_id),
-                        clerk_user_id=d.clerk_user_id if _clerk_linked(d.clerk_user_id) else None,
+                        identity_linked=_identity_linked(d.auth_subject),
+                        auth_subject=d.auth_subject if _identity_linked(d.auth_subject) else None,
                         detail_href=f"/drivers/{d.id}",
                         created_at=d.created_at,
                     )
                 )
         elif user_type == "customer":
             for c in db.query(Customer).order_by(Customer.created_at.desc()).limit(limit).all():
-                linked = _clerk_linked(c.clerk_user_id)
+                linked = _identity_linked(c.auth_subject)
                 identity = "registered" if linked else "not_registered"
                 access = "authorized" if linked else "not_authorized"
                 invite = "accepted" if linked else "not_invited"
@@ -547,8 +548,8 @@ class AdminSettingsService:
                             if hold
                             else _status_label(access, invite, identity)
                         ),
-                        clerk_linked=linked,
-                        clerk_user_id=c.clerk_user_id if linked else None,
+                        identity_linked=linked,
+                        auth_subject=c.auth_subject if linked else None,
                         detail_href=f"/customers/{c.id}",
                         created_at=c.created_at,
                     )
@@ -557,8 +558,8 @@ class AdminSettingsService:
             rows = list_directory_seats(db, limit=limit)
             for mu, m in rows:
                 inv = invitations.get(mu.email.lower())
-                invite = _invite_status(inv, mu.clerk_user_id)
-                identity = _identity_status(mu.clerk_user_id, invite)
+                invite = _invite_status(inv, mu.auth_subject)
+                identity = _identity_status(mu.auth_subject, invite)
                 if not mu.is_active:
                     access = "inactive"
                 elif m.status != MerchantStatus.ACTIVE.value:
@@ -579,8 +580,8 @@ class AdminSettingsService:
                         invite_status=invite,
                         identity_status=identity,
                         status_label=_status_label(access, invite, identity),
-                        clerk_linked=_clerk_linked(mu.clerk_user_id),
-                        clerk_user_id=mu.clerk_user_id if _clerk_linked(mu.clerk_user_id) else None,
+                        identity_linked=_identity_linked(mu.auth_subject),
+                        auth_subject=mu.auth_subject if _identity_linked(mu.auth_subject) else None,
                         detail_href=f"/merchants/{m.id}",
                         created_at=mu.created_at,
                     )
@@ -588,9 +589,9 @@ class AdminSettingsService:
         else:
             raise ValueError("invalid_user_type")
 
-        # PorterChain DB is the directory SoT. Clerk enriches identity when available.
-        # Merchant also injects Clerk-only orphans (no seat yet).
-        items, clerk_synced, clerk_total = _merge_clerk_directory(
+        # PorterChain DB is the directory SoT. Keycloak enriches identity when available.
+        # Merchant also injects Keycloak-only orphans (no seat yet).
+        items, idp_synced, idp_total = _merge_idp_directory(
             items,
             settings,
             user_type,
@@ -602,8 +603,8 @@ class AdminSettingsService:
 
         facets = _facet_counts(items)
 
-        def matches_clerk(item: PlatformUserItem) -> bool:
-            return not clerk_status or item.clerk_status == clerk_status
+        def matches_idp(item: PlatformUserItem) -> bool:
+            return not directory_status or item.directory_status == directory_status
 
         filtered = [
             i
@@ -615,14 +616,14 @@ class AdminSettingsService:
                 identity_status=identity_status,
                 account_status=account_status,
             )
-            if matches_clerk(i)
+            if matches_idp(i)
         ]
         return PlatformUsersResponse(
             items=filtered,
             total=len(filtered),
             facets=facets,
-            clerk_synced=clerk_synced,
-            clerk_total=clerk_total if clerk_synced else None,
+            idp_synced=idp_synced,
+            idp_total=idp_total if idp_synced else None,
         )
 
     def update_staff_role(
@@ -650,11 +651,12 @@ class AdminSettingsService:
         db.commit()
         db.refresh(user)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
-        from porterchain_api.auth.staff_session import revoke_all_for_user
+        from porterchain_api.auth.keycloak_admin import sync_staff_role
+        from porterchain_api.config import get_settings
 
-        sync_authz_after_persona_mutation(db, user.clerk_user_id)
-        # Force re-auth after privilege change.
-        revoke_all_for_user(user.id)
+        sync_authz_after_persona_mutation(db, user.auth_subject)
+        # Mirror the role into Keycloak (MFA tier) and force re-auth after privilege change.
+        sync_staff_role(get_settings(), email=user.email, name=user.name, role=user.role)
         return user
 
     def authorize_platform_user(
@@ -665,7 +667,7 @@ class AdminSettingsService:
         user_type: str,
         *,
         platform_user_id: str | None = None,
-        clerk_user_id: str | None = None,
+        auth_subject: str | None = None,
         email: str | None = None,
         name: str | None = None,
         reason: str | None = None,
@@ -678,7 +680,7 @@ class AdminSettingsService:
             settings,
             user_type,
             platform_user_id=platform_user_id,
-            clerk_user_id=clerk_user_id,
+            auth_subject=auth_subject,
             email=email,
             name=name,
             reason=reason,
@@ -953,16 +955,13 @@ class AdminSettingsService:
         ready: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         from porterchain_api.admin_engine.integration_health import build_integration_health
-        from porterchain_api.intelligence_engine import nim_client
-        from porterchain_shared.config.settings import PlatformSettings
+        from porterchain_api.intelligence_engine import llm as llm_client
 
-        platform = PlatformSettings()
         return build_integration_health(
             db,
             settings,
             ready=ready,
-            nvidia_nim_configured=nim_client.nim_configured(),
-            nvidia_model=getattr(platform, "nvidia_model", None),
+            llm_configured=llm_client.llm_configured(),
         )
 
     def dashboard(self, db: Session, settings: Settings) -> dict[str, Any]:
@@ -1004,7 +1003,7 @@ class AdminSettingsService:
             "role_catalog": catalog,
             "authz": {
                 "engine": "spicedb",
-                "docs": "docs/architecture/auth-clerk-spicedb.md",
+                "docs": "docs/architecture/auth-keycloak-spicedb.md",
                 "schema": "apps/api/src/porterchain_api/authz/schema.zed",
             },
             "validation": self.validate(settings, db),
@@ -1126,8 +1125,8 @@ class AdminSettingsService:
             if not platform.firebase_project_id:
                 warnings.append("Firebase project not configured for push notifications")
 
-        if not is_clerk_configured(settings) and not settings.clerk_dev_bypass:
-            warnings.append("Clerk authentication not fully configured")
+        if not is_identity_configured(settings) and not settings.auth_dev_bypass:
+            warnings.append("Keycloak authentication not fully configured")
 
         ready = readiness(db, settings)
         if ready.get("status") != "ok":
@@ -1289,8 +1288,8 @@ class AdminSettingsService:
         return {"imported": imported, "dry_run": False, **preview}
 
 # Re-exports kept for existing importers (integration).
-from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots  # noqa: E402, F401
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured  # noqa: E402, F401
-from porterchain_api.auth.clerk_client import ClerkUserSnapshot  # noqa: E402, F401
-from porterchain_api.admin_engine.settings_clerk_merge import _enrich_with_clerk  # noqa: E402, F401
-from porterchain_api.admin_engine.settings_clerk_merge import _mark_not_in_clerk  # noqa: E402, F401
+from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots  # noqa: E402, F401
+from porterchain_api.auth.identity_directory import is_directory_configured  # noqa: E402, F401
+from porterchain_api.auth.identity_directory import DirectoryUserSnapshot  # noqa: E402, F401
+from porterchain_api.admin_engine.settings_directory_merge import _enrich_with_directory  # noqa: E402, F401
+from porterchain_api.admin_engine.settings_directory_merge import _mark_not_in_directory  # noqa: E402, F401

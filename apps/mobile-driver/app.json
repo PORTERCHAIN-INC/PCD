@@ -30,8 +30,9 @@
         "applinks:porterchain.com",
         "applinks:www.porterchain.com",
         "applinks:driver.porterchain.com",
-        "webcredentials:clerk.driver.porterchain.com"
-      ]
+        "webcredentials:auth.porterchain.com"
+      ],
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.porterchain.PCD",
@@ -105,12 +106,6 @@
       ],
       "expo-secure-store",
       [
-        "@clerk/expo",
-        {
-          "appleSignIn": false
-        }
-      ],
-      [
         "expo-notifications",
         {
           "color": "#124835",
@@ -153,6 +148,13 @@
         "expo-audio",
         {
           "microphonePermission": false
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID"
         }
       ]
     ],

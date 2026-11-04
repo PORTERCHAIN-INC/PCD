@@ -15,18 +15,16 @@ flowchart TB
     BE["booking_engine"]
     ME["merchant_engine"]
     AE["admin_engine"]
-    FE["fleetbase_engine"]
     DE["driver_engine"]
     PE["pricing_engine"]
     BLE["billing_engine"]
     NE["notification_engine"]
-    ROUTERS --> BE & ME & AE & FE & DE & PE & BLE & NE
+    ROUTERS --> BE & ME & AE & DE & PE & BLE & NE
   end
 
   subgraph Data["Data & Messaging"]
     PG[("PostgreSQL 18")]
     REDIS[("Redis 8.8")]
-    VALKEY[("Fleetbase Valkey 8")]
     EB["Event Bus<br/>porterchain_event_bus"]
     Q["Queues<br/>emails|sms|push|billing|webhooks|dispatch|reports"]
   end
@@ -36,14 +34,12 @@ flowchart TB
   end
 
   subgraph Adapters["Integration Adapters"]
-    FBA["fleetbase-adapter<br/>porterchain_fleetbase_adapter"]
     STRIPE["Stripe SDK<br/>porterchain_services/stripe/sdk.py"]
     MAPS["MapsService<br/>Valhalla then local OSRM"]
     GMAPS["@porterchain/maps<br/>Google Maps (viz)"]
   end
 
   subgraph External["External Systems"]
-    FB["Fleetbase :8000"]
     CLERK["Clerk Auth"]
     STRIPE_EXT["Stripe"]
     OSRM["OSRM :5000 GTA"]
@@ -54,16 +50,13 @@ flowchart TB
 
   WEB & CUST & MERCH & ADMIN & DRIVER & MOBILE_D & MOBILE_C -->|"HTTPS /v1/* and /driver-api/v1"| ROUTERS
   ADMIN -->|"WS live-map/ws"| ROUTERS
-  BE & ME & AE & FE & DE --> PG
+  BE & ME & AE & DE --> PG
   BE & ME & AE --> EB
   EB --> REDIS
-  FBA --> VALKEY
   EB --> WP
   WP --> Q
   Q --> WP
   WP --> NE & BLE
-  FE & DE --> FBA
-  FBA --> FB
   BE --> STRIPE
   STRIPE --> STRIPE_EXT
   BE & PE --> MAPS

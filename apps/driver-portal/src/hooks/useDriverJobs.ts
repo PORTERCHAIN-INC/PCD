@@ -54,7 +54,7 @@ export function useDriverJobs() {
   const [optimizing, setOptimizing] = useState(false);
   const [optimizeMessage, setOptimizeMessage] = useState("");
   const [preview, setPreview] = useState<DriverJobsOptimizeResult | null>(null);
-  const [canUndo, setCanUndo] = useState(false);
+  const [undoFlag, setCanUndo] = useState<boolean | null>(null);
   const [actionError, setActionError] = useState("");
 
   const jobsQuery = useQuery({
@@ -215,7 +215,7 @@ export function useDriverJobs() {
     optimizing,
     optimizeMessage,
     preview,
-    canUndo,
+    canUndo: undoFlag ?? Boolean(jobsQuery.data?.jobs?.can_undo),
     lastUpdated,
     lastUpdatedLabel: lastUpdated ? formatLastUpdated(lastUpdated) : null,
     refresh,

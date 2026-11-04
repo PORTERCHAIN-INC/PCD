@@ -22,7 +22,7 @@ def test_api_a_02_lifecycle_reject_rehire_roundtrip() -> None:
     driver = SimpleNamespace(
         id="d-admin-p0",
         status=DriverStatus.PENDING.value,
-        clerk_user_id="user_admin_p0",
+        auth_subject="user_admin_p0",
         vehicles=[],
         fleetbase_driver_id=None,
         is_online=True,
@@ -74,7 +74,7 @@ def test_api_a_01_unauthenticated_list_not_200() -> None:
 
     settings = Settings(
         app_env="local",
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
     )
@@ -129,13 +129,13 @@ def test_api_a_04_driver360_board_envelopes() -> None:
 
 
 @pytest.mark.driver_p0
-def test_auth_06_invite_existing_driver_requires_clerk() -> None:
-    """AUTH-06 — invite_existing_driver fails closed when Clerk secret missing."""
-    settings = SimpleNamespace(clerk_driver_secret_key="", clerk_driver_jwks_url="")
+def test_auth_06_invite_existing_driver_requires_idp() -> None:
+    """AUTH-06 — invite_existing_driver fails closed when Keycloak secret missing."""
+    settings = SimpleNamespace(idp_driver_secret_key="", idp_driver_jwks_url="")
     driver = SimpleNamespace(id="d1", email="driver@example.com", full_name="D")
     with patch(
-        "porterchain_api.auth.invitation_service.is_clerk_secret_configured",
+        "porterchain_api.auth.invitation_service.is_directory_configured",
         return_value=False,
     ):
-        with pytest.raises(RuntimeError, match="clerk_not_configured"):
+        with pytest.raises(RuntimeError, match="identity_not_configured"):
             InvitationService().invite_existing_driver(MagicMock(), None, settings, driver)

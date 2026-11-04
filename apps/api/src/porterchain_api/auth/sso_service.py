@@ -44,7 +44,7 @@ class SsoService:
     def auth_principal_from_current(
         self, db: Session, current: CurrentPrincipal
     ) -> AuthPrincipal | None:
-        """Build AuthPrincipal from session CurrentPrincipal (staff or Clerk)."""
+        """Build AuthPrincipal from session CurrentPrincipal (staff or Keycloak)."""
         admin_id = current.legacy_profile_ids.get("admin_user_id")
         admin = get_admin_user(db, admin_id) if admin_id else None
         if not admin and current.auth_subject:

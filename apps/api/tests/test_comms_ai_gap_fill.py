@@ -1,4 +1,4 @@
-"""Comms + AI gap fills: NIM stub path, sandbox notify tags, Twilio SMS config."""
+"""Comms + AI gap fills: LLM-off stub path, sandbox notify tags."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from porterchain_api.intelligence_engine.copilot_service import (
     _parse_suggestions,
     suggest_ops_action,
 )
-from porterchain_api.intelligence_engine.nim_client import nim_configured, nim_status
+from porterchain_api.intelligence_engine.llm import chat_completion, llm_configured, llm_status
 from porterchain_api.notification_engine.delivery_service import DeliveryService
 
 
@@ -17,56 +17,28 @@ def test_suggest_ops_action_phase2_disabled() -> None:
     assert out["suggestions"] == []
 
 
-def test_suggest_ops_action_stub_without_nim(db, monkeypatch) -> None:
-    monkeypatch.setattr(
-        "porterchain_api.intelligence_engine.nim_client.nim_configured",
-        lambda: False,
-    )
-    monkeypatch.setattr(
-        "porterchain_api.intelligence_engine.nim_client.nim_status",
-        lambda: {
-            "configured": False,
-            "provider": "nvidia_nim",
-            "model": "openai/gpt-oss-20b",
-            "api_base": "https://integrate.api.nvidia.com/v1",
-            "circuit_open": False,
-            "fail_streak": 0,
-        },
-    )
+def test_suggest_ops_action_stub_without_llm(db) -> None:
     out = suggest_ops_action(
         "SLA risk on downtown pickup",
         flags={"intelligence": True},
         db=db,
     )
     assert out["status"] == "stub"
+    assert out["llm"]["configured"] is False and out["llm"]["provider"] == "none"
     assert out["suggestions"]
     assert out["suggestions"][0]["auto_apply"] is False
     assert out["suggestions"][0]["priority"] in {"p0", "p1", "p2"}
 
 
-def test_nim_configured_respects_settings(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "porterchain_api.intelligence_engine.nim_client.get_platform_settings",
-        lambda: type("S", (), {"nvidia_api_key": ""})(),
-    )
-    assert nim_configured() is False
+def test_llm_is_off_in_phase0(monkeypatch) -> None:
+    import pytest
 
-    monkeypatch.setattr(
-        "porterchain_api.intelligence_engine.nim_client.get_platform_settings",
-        lambda: type(
-            "S",
-            (),
-            {
-                "nvidia_api_key": "nvapi-test",
-                "nvidia_model": "openai/gpt-oss-20b",
-                "nvidia_api_base": "https://integrate.api.nvidia.com/v1",
-            },
-        )(),
-    )
-    assert nim_configured() is True
-    status = nim_status()
-    assert status["configured"] is True
-    assert status["provider"] == "nvidia_nim"
+    monkeypatch.setenv("FEATURE_AI", "true")
+    assert llm_configured() is False  # flag alone wires nothing
+    status = llm_status()
+    assert status["feature_ai"] is True and status["configured"] is False
+    with pytest.raises(ValueError, match="llm_disabled"):
+        chat_completion(messages=[])
 
 
 def test_parse_suggestions_allowlist_and_sort() -> None:

@@ -100,8 +100,11 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
                   ) : null}
                 </div>
               </td>
-              <td className="max-w-[14rem] truncate px-3 py-3 text-muted">
-                {row.pickup} → {row.destination}
+              <td
+                className="max-w-[14rem] truncate px-3 py-3 text-muted"
+                title={`${row.pickup} → ${row.destination}`}
+              >
+                {shortAddress(row.pickup)} → {shortAddress(row.destination)}
               </td>
               <td className="px-3 py-3 text-muted">{row.driver_name ?? "—"}</td>
               <td className="px-3 py-3">
@@ -122,4 +125,22 @@ export function OrdersTable({ rows, selected, onSelect }: Props) {
       )}
     </div>
   );
+}
+
+/** L30: geocoder addresses ("Place, 100, Queen Street West, Ward, City, …") → "Place, 100 Queen Street West". */
+function shortAddress(a: string | null | undefined): string {
+  if (!a) return "—";
+  const parts = a
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length <= 3) return a;
+  const out: string[] = [];
+  for (let i = 0; i < parts.length && out.length < 2; i++) {
+    if (/^\d+[A-Za-z]?$/.test(parts[i]) && parts[i + 1]) {
+      out.push(`${parts[i]} ${parts[i + 1]}`);
+      i++;
+    } else out.push(parts[i]);
+  }
+  return out.join(", ");
 }

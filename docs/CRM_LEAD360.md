@@ -25,7 +25,6 @@
 | Meta / LinkedIn / ad webhooks                                        | Yes                      |
 | WhatsApp **Cloud API** webhooks                                      | Yes                      |
 | WhatsApp FAB deep-link on marketing site                             | **No** — opens chat only |
-| `HomeVehicleLeadCapture`                                             | **No** — CTA only        |
 
 ## Support / claims
 

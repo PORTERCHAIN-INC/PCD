@@ -125,6 +125,10 @@ def list_artifacts(gallery: dict[str, Any] | None) -> list[PodArtifact]:
             url = str(entry.get("url") or "").strip() or None
             text = entry.get("signature") if kind == "signature" else entry.get("otp")
             text = str(text or "").strip() or None
+            # A drawn signature arrives as ``data:image/png;base64,...`` in the signature field.
+            # That is an image, not typed text: export it as .png, never as a .txt of base64.
+            if not url and text and text.lower().startswith("data:image/"):
+                url, text = text, None
             if not url and not text:
                 continue
 
@@ -199,6 +203,19 @@ def _fetch_url(url: str) -> tuple[bytes, str]:
             raise PodUnavailable("pod_artifact_unreadable")
         ext = url.rsplit(".", 1)[-1]
         return blob, {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext, "application/octet-stream")
+    if url.startswith("garage:"):
+        # In-house driver app media (``garage:<key>`` written by the POD endpoints).
+        from porterchain_api.media_store import s3
+        from porterchain_api.media_store.service import is_media_key
+
+        key = url[len("garage:"):]
+        cfg = s3.config_from_env()
+        if not is_media_key(key) or cfg is None:
+            raise PodUnavailable("pod_artifact_unreadable")
+        try:
+            return s3.get_object(cfg, key)
+        except Exception as exc:  # noqa: BLE001 - storage outage -> unreadable, not 500
+            raise PodUnavailable("pod_artifact_unreadable") from exc
     if url.startswith("data:"):
         return _decode_data_url(url)
     if urlparse(url).scheme not in ("http", "https"):

@@ -36,7 +36,7 @@ BILLING_GLOSSARY: list[dict[str, str]] = [
     },
     {
         "term": "Tax",
-        "meaning": "HST/GST shown on invoices. Tax is included in invoice totals when applied — see the Tax tab for the period rollup.",
+        "meaning": "Sales tax shown on an invoice only when it was charged on that invoice. Invoices with no tax line carry no sales tax.",
     },
     {
         "term": "Contract pricing",
@@ -54,7 +54,6 @@ _ERRORS = {
     "billing_contact_missing": "Add a billing email in Settings so we can send reminders.",
     "nothing_outstanding": "Nothing is due on this account right now.",
     "invoice_not_payable": "This invoice cannot be paid (already paid or void).",
-    "stripe_not_configured": "Card payments are not configured yet. Contact PorterChain support.",
 }
 
 
@@ -129,17 +128,31 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
     open_numbers = [
         str(r.get("invoice_number") or "")
         for r in enriched
-        if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled")
+        if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled", "credited")
     ]
+    from porterchain_api.platform.engine_ports.admin_engine__merchant_ar_cycles import is_weekly_billed_merchant
+    from porterchain_api.platform.engine_ports.billing_engine__weekly_billing import TERMS_LABEL
+
+    weekly = is_weekly_billed_merchant(merchant)
+    from porterchain_api.config import get_settings
+    from porterchain_api.merchant_engine.shopify_billing import is_shopify_billed
+
+    # Review 139170: Shopify-installed stores pay through their Shopify bill, not Interac.
+    shopify_billed = is_shopify_billed(db, get_settings(), merchant.id)
+    hide_remittance = shopify_billed and int(outstanding_invoices or 0) <= 0
     return {
+        "shopify_billed": shopify_billed,
         **summary,
+        **({"billing_cycle": "WEEKLY", "billing_terms_label": TERMS_LABEL} if weekly else {}),
         "credit_limit_cents": merchant.credit_limit_cents,
         "available_credit_cents": available,
         "headroom_cents": available,
         "credits_applied_cents": credit_notes_cents,
         "credit_balance_cents": _credit_balance(db, merchant.id),
         "glossary": BILLING_GLOSSARY,
-        "remittance": remittance_pack(
+        "remittance": None
+        if hide_remittance
+        else remittance_pack(
             merchant,
             outstanding_cents=outstanding_balance,
             open_invoice_numbers=open_numbers,
@@ -148,7 +161,7 @@ def overview_payload(svc, db, ctx, *, billing_cycles: tuple[str, ...]) -> dict[s
             open_references=[
                 str(r.get("payment_reference") or "")
                 for r in enriched
-                if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled")
+                if r.get("outstanding_cents", 0) > 0 and r.get("status") not in ("paid", "void", "cancelled", "credited")
             ],
             etransfer_email=_etransfer_email(db),
         )

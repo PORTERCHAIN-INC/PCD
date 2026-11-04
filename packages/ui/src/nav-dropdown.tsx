@@ -137,5 +137,3 @@ export function NavDropdown({
     </>
   );
 }
-
-export default NavDropdown;

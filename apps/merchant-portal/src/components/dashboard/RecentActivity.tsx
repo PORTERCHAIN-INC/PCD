@@ -1,3 +1,5 @@
+"use client";
+
 import type { DashboardActivity } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
@@ -24,8 +26,10 @@ export function RecentActivity({ items }: RecentActivityProps) {
                 }`}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-primary">{item.title}</p>
-                {item.detail && <p className="text-xs text-muted">{item.detail}</p>}
+                <p className="text-sm font-medium text-primary">{niceTitle(item.title)}</p>
+                {item.detail && !/^[A-Z_]+$/.test(item.detail) && (
+                  <p className="text-xs text-muted">{item.detail}</p>
+                )}
                 <p className="mt-0.5 text-xs text-muted">{formatDate(item.occurred_at)}</p>
               </div>
             </li>
@@ -43,7 +47,7 @@ export function RecentActivity({ items }: RecentActivityProps) {
                 key={`${item.kind}-${item.id}`}
                 className="border-b border-primary/5 py-2 last:border-0"
               >
-                <p className="font-medium text-primary">{item.title}</p>
+                <p className="font-medium text-primary">{niceTitle(item.title)}</p>
                 <p className="text-xs text-muted">{formatDate(item.occurred_at)}</p>
               </li>
             ))}
@@ -52,4 +56,11 @@ export function RecentActivity({ items }: RecentActivityProps) {
       )}
     </section>
   );
+}
+
+/** Raw state codes are never shown; "Order Pod Completed" reads as "Proof of delivery completed". */
+function niceTitle(t: string): string {
+  return String(t ?? "")
+    .replace(/\bPod\b/g, "Proof of delivery")
+    .replace(/Proof of delivery Completed/, "Proof of delivery completed");
 }

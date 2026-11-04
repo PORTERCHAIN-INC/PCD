@@ -1165,7 +1165,7 @@ input[type="tel"].biz-input::-webkit-contacts-auto-fill-button {
   border-radius: 0.5rem !important;
 }
 
-/* Google Places API (New) autocomplete widget */
+/* Address autocomplete (/v1/geo, self-hosted Photon) */
 .booking-address-autocomplete,
 .booking-address-fallback {
   display: block;

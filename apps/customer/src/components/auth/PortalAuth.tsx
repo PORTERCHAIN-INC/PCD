@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from "@porterchain/auth/oidc/client";
 import type { ReactNode } from "react";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 
 export type PortalAuthValue = {
   ready: boolean;
@@ -12,29 +12,29 @@ export type PortalAuthValue = {
   phone: string;
 };
 
-/** One place that hands pages a token: Clerk in prod, the local `dev` bearer otherwise. */
+/** One place that hands pages a token: Keycloak in prod, the local `dev` bearer otherwise. */
 export default function PortalAuth({
   children,
 }: {
   children: (auth: PortalAuthValue) => ReactNode;
 }) {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return (
       <>
         {children({
           ready: true,
           getToken: async () => "dev",
-          userId: "dev_clerk_user",
+          userId: "dev_customer_user",
           email: "",
           phone: "",
         })}
       </>
     );
   }
-  return <ClerkAuth>{children}</ClerkAuth>;
+  return <KeycloakAuth>{children}</KeycloakAuth>;
 }
 
-function ClerkAuth({ children }: { children: (auth: PortalAuthValue) => ReactNode }) {
+function KeycloakAuth({ children }: { children: (auth: PortalAuthValue) => ReactNode }) {
   const { isLoaded, getToken, userId } = useAuth();
   const { user } = useUser();
   return (
@@ -43,8 +43,8 @@ function ClerkAuth({ children }: { children: (auth: PortalAuthValue) => ReactNod
         ready: isLoaded,
         getToken,
         userId: userId ?? null,
-        email: user?.primaryEmailAddress?.emailAddress ?? "",
-        phone: user?.primaryPhoneNumber?.phoneNumber ?? "",
+        email: user?.email ?? "",
+        phone: "",
       })}
     </>
   );

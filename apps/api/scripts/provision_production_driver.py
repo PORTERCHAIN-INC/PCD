@@ -1,4 +1,4 @@
-"""Provision an approved driver in Porterchain + send Clerk driver invitation.
+"""Provision an approved driver in Porterchain + send Keycloak driver invitation.
 
 Intended for one-off production ops via:
 
@@ -22,7 +22,7 @@ sys.path.insert(0, str(API_ROOT.parent.parent / "services" / "driver-platform"))
 from porterchain_api.admin_engine.driver_service import AdminDriverService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.auth.clerk_registry import is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import is_directory_configured
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.config import get_settings
 from porterchain_api.db import SessionLocal, init_db
@@ -43,18 +43,18 @@ def _bootstrap_admin_ctx(db) -> AdminContext | None:
     return AdminContext(user=user, role=role)
 
 
-def _send_clerk_invite(db, settings, driver: Driver) -> None:
-    if not is_clerk_secret_configured(settings, "driver"):
-        print("Clerk driver secret not configured — skipped invite")
+def _send_idp_invite(db, settings, driver: Driver) -> None:
+    if not is_directory_configured(settings, "driver"):
+        print("Keycloak driver secret not configured — skipped invite")
         return
     invitation = InvitationService().invite_driver(db, None, settings, driver)
     db.refresh(driver)
-    print(f"Clerk invitation sent: status={invitation.status}")
-    print(f"clerk_user_id: {driver.clerk_user_id or '(pending)'}")
+    print(f"Keycloak invitation sent: status={invitation.status}")
+    print(f"auth_subject: {driver.auth_subject or '(pending)'}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Provision production driver + Clerk invite")
+    parser = argparse.ArgumentParser(description="Provision production driver + Keycloak invite")
     parser.add_argument("--email", required=True)
     parser.add_argument("--full-name", required=True)
     parser.add_argument("--phone", default="+1 416-555-0205")
@@ -74,8 +74,8 @@ def main() -> None:
         existing = db.query(Driver).filter(Driver.email == email).first()
         if existing:
             print(f"Driver already exists: {existing.id} ({existing.email}) status={existing.status}")
-            if args.resend_invite or not existing.clerk_user_id:
-                _send_clerk_invite(db, settings, existing)
+            if args.resend_invite or not existing.auth_subject:
+                _send_idp_invite(db, settings, existing)
             return
 
         ctx = _bootstrap_admin_ctx(db)
@@ -103,7 +103,7 @@ def main() -> None:
         print(f"driver_id: {driver.id}")
         print(f"email:     {driver.email}")
         print(f"status:    {driver.status}")
-        print(f"clerk_id:  {driver.clerk_user_id or '(pending invite)'}")
+        print(f"subject_ref:  {driver.auth_subject or '(pending invite)'}")
     finally:
         db.close()
 

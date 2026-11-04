@@ -20,7 +20,7 @@ from porterchain_api.routers.admin._deps import (
     StaffInviteRequest,
     StaffItem,
     StaffRoleUpdateRequest,
-    _clerk_directory,
+    _idp_directory,
     _settings,
     get_admin_context,
     require_module,
@@ -28,7 +28,7 @@ from porterchain_api.routers.admin._deps import (
 )
 from porterchain_api.routers.admin.settings import (
     _invoke,
-    _reject_staff_clerk_route,
+    _reject_staff_idp_route,
     _staff_idp,
     _staff_item,
     _step_up,
@@ -54,7 +54,7 @@ def list_platform_users(
     invite_status: str | None = Query(None),
     identity_status: str | None = Query(None),
     account_status: str | None = Query(None),
-    clerk_status: str | None = Query(None),
+    directory_status: str | None = Query(None),
 ) -> PlatformUsersResponse:
     return _invoke(
         ctx,
@@ -68,7 +68,7 @@ def list_platform_users(
         invite_status=invite_status,
         identity_status=identity_status,
         account_status=account_status,
-        clerk_status=clerk_status,
+        directory_status=directory_status,
     )
 
 
@@ -80,10 +80,10 @@ def create_platform_user(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    _reject_staff_clerk_route(user_type)
+    _reject_staff_idp_route(user_type)
     return _invoke(
         ctx,
-        _clerk_directory.create_user,
+        _idp_directory.create_user,
         db,
         ctx,
         settings,
@@ -98,23 +98,23 @@ def create_platform_user(
     )
 
 
-@router.patch("/settings/users/{user_type}/clerk")
-def update_platform_clerk_user(
+@router.patch("/settings/users/{user_type}/keycloak")
+def update_platform_idp_user(
     user_type: str,
     body: PlatformUserUpdateRequest,
     ctx: Annotated[AdminContext, Depends(get_admin_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    _reject_staff_clerk_route(user_type)
+    _reject_staff_idp_route(user_type)
     return _invoke(
         ctx,
-        _clerk_directory.update_clerk_user,
+        _idp_directory.update_idp_user,
         db,
         ctx,
         settings,
         user_type,
-        body.clerk_user_id,
+        body.auth_subject,
         name=body.name,
         password=body.password,
         banned=body.banned,
@@ -135,12 +135,12 @@ def delete_platform_user(
     _step_up(request, authorization, settings)
     return _invoke(
         ctx,
-        _clerk_directory.delete_clerk_user,
+        _idp_directory.delete_idp_user,
         db,
         ctx,
         settings,
         user_type,
-        clerk_user_id=body.clerk_user_id,
+        auth_subject=body.auth_subject,
         platform_user_id=body.platform_user_id,
         module="settings_identity",
     )
@@ -165,7 +165,7 @@ def authorize_platform_user(
         settings,
         user_type,
         platform_user_id=body.platform_user_id,
-        clerk_user_id=body.clerk_user_id,
+        auth_subject=body.auth_subject,
         email=body.email,
         name=body.name,
         reason=body.reason,
@@ -183,12 +183,12 @@ def invite_platform_user(
     settings: Settings = Depends(get_settings),
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict:
-    """Re-send Clerk invite for driver/customer. Merchant seats bind on sign-in."""
-    _reject_staff_clerk_route(user_type)
+    """Re-send Keycloak invite for driver/customer. Merchant seats bind on sign-in."""
+    _reject_staff_idp_route(user_type)
     _step_up(request, authorization, settings)
     return _invoke(
         ctx,
-        _clerk_directory.invite_user,
+        _idp_directory.invite_user,
         db,
         ctx,
         settings,
@@ -264,6 +264,33 @@ def recover_staff_device(
         module="settings_identity",
     )
     return StaffEnrollResponse(**result)
+
+
+@router.post("/settings/staff/{user_id}/deactivate")
+def deactivate_staff(
+    user_id: str,
+    request: Request,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict:
+    """L220: block a staff login (offboarding). Ends their sessions."""
+    _step_up(request, authorization, settings)
+    return _invoke(ctx, _staff_idp.set_active, db, ctx, settings, user_id, False, module="settings_identity")
+
+
+@router.post("/settings/staff/{user_id}/reactivate")
+def reactivate_staff(
+    user_id: str,
+    request: Request,
+    ctx: Annotated[AdminContext, Depends(get_admin_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict:
+    _step_up(request, authorization, settings)
+    return _invoke(ctx, _staff_idp.set_active, db, ctx, settings, user_id, True, module="settings_identity")
 
 
 @router.patch("/settings/staff/{user_id}/role", response_model=StaffItem)

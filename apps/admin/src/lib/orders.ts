@@ -234,6 +234,13 @@ export const ordersApi = {
       method: "POST",
       body: JSON.stringify({ order_ids: orderIds, action, ...opts }),
     }),
+  createReturn: (token: string, id: string) =>
+    adminFetch<{
+      order_id: string;
+      tracking_number: string;
+      state: string;
+      price_cents: number | null;
+    }>(`${B}/${id}/return`, token, { method: "POST" }),
   generateInvoice: (token: string, id: string) =>
     adminFetch<{
       order_id: string;
@@ -380,7 +387,7 @@ export type AssistProposal = {
   preview: Record<string, unknown>;
   requires_confirm: boolean;
   payload: Record<string, unknown>;
-  draft_source?: "heuristic" | "nvidia_nim" | string;
+  draft_source?: "heuristic" | "llm" | string;
 };
 
 export type Playbook = {
@@ -413,16 +420,23 @@ function filenameFromHeader(header: string | null): string | null {
  * `filename` is the fallback: the API names its own downloads, and for POD the
  * extension is only known server-side once the media type is read.
  */
-export async function downloadOrderFile(token: string, path: string, filename: string) {
+export async function downloadOrderFile(
+  token: string,
+  path: string,
+  filename: string,
+  post?: unknown
+) {
   const headers: Record<string, string> = {};
   if (token === "dev") {
     headers.Authorization = "Bearer dev";
   } else {
     headers.Authorization = `Bearer ${token}`;
   }
+  if (post !== undefined) headers["Content-Type"] = "application/json";
   const res = await fetch(`/api/porterchain${path.startsWith("/") ? path : `/${path}`}`, {
     credentials: "include",
     headers,
+    ...(post !== undefined ? { method: "POST", body: JSON.stringify(post) } : {}),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

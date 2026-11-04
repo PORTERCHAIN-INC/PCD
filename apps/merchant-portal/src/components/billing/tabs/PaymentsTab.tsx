@@ -4,11 +4,19 @@ import { type PaymentRow } from "@/lib/billing";
 import { formatCents, formatDate } from "@/lib/utils";
 import { StatusBadge } from "./shared";
 
-export function PaymentsTab({ payments }: { payments: PaymentRow[] }) {
+export function PaymentsTab({
+  payments,
+  shopifyBilled = false,
+}: {
+  payments: PaymentRow[];
+  shopifyBilled?: boolean;
+}) {
   if (!payments.length) {
     return (
       <p className="text-sm text-muted">
-        No payments recorded yet. Interac e-Transfers show here once matched.
+        {shopifyBilled
+          ? "No payments here: your deliveries are charged on your Shopify bill."
+          : "No payments recorded yet. Interac e-Transfers show here once matched."}
       </p>
     );
   }

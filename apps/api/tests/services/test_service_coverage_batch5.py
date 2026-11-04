@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService, fetch_clerk_snapshots
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService, fetch_directory_snapshots
 from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
@@ -186,15 +186,15 @@ def test_booking_draft_update(db, settings) -> None:
     assert updated.dropoff is not None
 
 
-@patch("porterchain_api.admin_engine.clerk_directory_service.clerk_client_for_kind")
-@patch("porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured", return_value=True)
-def test_fetch_clerk_snapshots(mock_configured, mock_client, settings) -> None:
+@patch("porterchain_api.admin_engine.identity_directory_service.directory_for_kind")
+@patch("porterchain_api.admin_engine.identity_directory_service.is_directory_configured", return_value=True)
+def test_fetch_idp_snapshots(mock_configured, mock_client, settings) -> None:
     snap = MagicMock()
-    snap.email = "clerk@example.com"
+    snap.email = "keycloak@example.com"
     snap.public_metadata = {"user_type": "driver"}
     mock_client.return_value.list_users.return_value = ([{"id": "u1", "email_addresses": []}], 1)
-    with patch("porterchain_api.admin_engine.clerk_directory_service.ClerkClient.snapshot", return_value=snap):
-        result = fetch_clerk_snapshots(settings, "driver", limit=10)
+    with patch("porterchain_api.admin_engine.identity_directory_service.IdentityDirectory.snapshot", return_value=snap):
+        result = fetch_directory_snapshots(settings, "driver", limit=10)
         assert isinstance(result, dict)
 
 

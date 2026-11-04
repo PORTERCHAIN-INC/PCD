@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk_webhook_service import ClerkWebhookService
 from porterchain_api.booking_engine.stripe_webhook_service import StripeWebhookService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -11,7 +10,6 @@ from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 _stripe_webhooks = StripeWebhookService()
-_clerk_webhooks = ClerkWebhookService()
 _background_checks = DriverBackgroundCheckService()
 
 
@@ -34,24 +32,6 @@ async def stripe_webhook(
         raise HTTPException(status_code=400, detail="invalid_signature") from exc
 
     return (await run_in_threadpool(lambda: _stripe_webhooks.handle(db, settings, event)))
-
-
-@router.post("/clerk")
-async def clerk_webhook(
-    request: Request,
-    db: Session = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict[str, str]:
-    """Clerk user lifecycle webhooks (Svix-signed). Idempotent; no operational cascade deletes."""
-    payload = await request.body()
-    return (await run_in_threadpool(lambda: _clerk_webhooks.handle(
-        db,
-        settings,
-        payload=payload,
-        svix_id=request.headers.get("svix-id"),
-        svix_timestamp=request.headers.get("svix-timestamp"),
-        svix_signature=request.headers.get("svix-signature"),
-    )))
 
 
 @router.post("/checkr")

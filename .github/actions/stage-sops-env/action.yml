@@ -1,0 +1,129 @@
+name: Stage SOPS env
+description: >
+  Decrypt the committed SOPS file (age) on the Actions runner into runtime.env, check the
+  required keys, and optionally SCP it to the droplet. The age private key never leaves the
+  runner and secret values are never printed. (doc 37).
+
+inputs:
+  age_key:
+    description: age private key (AGE-SECRET-KEY-...) for the CI recipient in .sops.yaml
+    required: true
+  sops_file:
+    description: Encrypted file to decrypt
+    required: false
+    default: secrets/droplet.enc.yaml
+  require_keys:
+    description: Comma-separated env keys that must be non-empty
+    required: false
+    default: POSTGRES_PASSWORD
+  min_bytes:
+    description: Minimum runtime.env size
+    required: false
+    default: "500"
+  skip_decrypt:
+    description: If true, reuse existing ./runtime.env (must already exist)
+    required: false
+    default: "false"
+  upload:
+    description: If true, SCP runtime.env to the droplet
+    required: false
+    default: "true"
+  deploy_host:
+    description: Droplet host (required when upload=true)
+    required: false
+    default: ""
+  deploy_user:
+    description: SSH user (required when upload=true)
+    required: false
+    default: ""
+  deploy_ssh_key:
+    description: SSH private key (required when upload=true)
+    required: false
+    default: ""
+  deploy_port:
+    description: SSH port
+    required: false
+    default: "22"
+  remote_path:
+    description: Target directory on droplet
+    required: false
+    default: /opt/porterchain
+
+runs:
+  using: composite
+  steps:
+    - name: Install sops
+      if: inputs.skip_decrypt != 'true'
+      shell: bash
+      env:
+        SOPS_VERSION: "3.10.2"
+      run: |
+        set -euo pipefail
+        if ! command -v sops >/dev/null 2>&1; then
+          curl -sSfL --retry 3 -o /tmp/sops \
+            "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.amd64"
+          sudo install -m 0755 /tmp/sops /usr/local/bin/sops
+        fi
+        sops --version
+
+    - name: Decrypt and validate SOPS env
+      if: inputs.skip_decrypt != 'true'
+      shell: bash
+      env:
+        SOPS_AGE_KEY: ${{ inputs.age_key }}
+        SOPS_FILE: ${{ inputs.sops_file }}
+        REQUIRE_KEYS: ${{ inputs.require_keys }}
+        MIN_BYTES: ${{ inputs.min_bytes }}
+      run: |
+        set -euo pipefail
+        umask 077
+        if [ -z "${SOPS_AGE_KEY}" ]; then
+          echo "::error::SOPS_AGE_KEY is required. Runtime secrets are in ${SOPS_FILE} (SOPS + age). See secrets/README.md"
+          exit 1
+        fi
+        if [ ! -f "${SOPS_FILE}" ]; then
+          echo "::error::${SOPS_FILE} is missing. Create it with sops (see secrets/README.md)"
+          exit 1
+        fi
+        if ! sops -d --output-type dotenv "${SOPS_FILE}" > runtime.env 2>/tmp/sops.err; then
+          echo "::error::sops could not decrypt ${SOPS_FILE} with SOPS_AGE_KEY (is the CI recipient in .sops.yaml?)"
+          rm -f runtime.env
+          exit 1
+        fi
+        bytes="$(wc -c < runtime.env)"
+        if [ "$bytes" -lt "$MIN_BYTES" ]; then
+          echo "::error::decrypted env too small (${bytes} bytes)"
+          exit 1
+        fi
+        IFS=',' read -r -a keys <<< "${REQUIRE_KEYS}"
+        for key in "${keys[@]}"; do
+          key="$(echo "$key" | tr -d '[:space:]')"
+          [ -z "$key" ] && continue
+          if ! grep -qE "^${key}=.+" runtime.env; then
+            echo "::error::runtime.env missing ${key}"
+            exit 1
+          fi
+        done
+        echo "SOPS env staged (${SOPS_FILE}, ${bytes} bytes, keys=${REQUIRE_KEYS})"
+
+    - name: Require existing runtime.env
+      if: inputs.skip_decrypt == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f runtime.env ]; then
+          echo "::error::skip_decrypt=true but ./runtime.env is missing"
+          exit 1
+        fi
+        echo "Reusing ./runtime.env ($(wc -c < runtime.env) bytes)"
+
+    - name: SCP runtime.env to droplet
+      if: inputs.upload == 'true'
+      uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
+      with:
+        host: ${{ inputs.deploy_host }}
+        username: ${{ inputs.deploy_user }}
+        key: ${{ inputs.deploy_ssh_key }}
+        port: ${{ inputs.deploy_port }}
+        source: runtime.env
+        target: ${{ inputs.remote_path }}

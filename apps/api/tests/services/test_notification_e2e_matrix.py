@@ -51,7 +51,7 @@ def captured(monkeypatch):
         raise AssertionError("real send attempted")
 
     monkeypatch.setattr(ds.DeliveryService, "_send_email", _capture)
-    for name in ("_send_sms", "_send_push", "_send_sms_twilio"):
+    for name in ("_send_sms", "_send_push"):
         monkeypatch.setattr(ds.DeliveryService, name, _boom)
     return sent
 
@@ -59,7 +59,7 @@ def captured(monkeypatch):
 @pytest.fixture
 def staff(db, monkeypatch):
     user = AdminUser(
-        id=str(uuid4()), clerk_user_id=f"e2e-{uuid4().hex[:6]}", email=f"ops-{uuid4().hex[:6]}@porterchain.com",
+        id=str(uuid4()), auth_subject=f"e2e-{uuid4().hex[:6]}", email=f"ops-{uuid4().hex[:6]}@porterchain.com",
         role="super_admin", is_active=True,
     )
     db.add(user)

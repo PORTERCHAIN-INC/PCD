@@ -82,7 +82,17 @@ export function DocumentsTab({
               <Button
                 key={item.type}
                 variant="outline"
-                onClick={() => void decide(item.type, "verified")}
+                onClick={() => {
+                  // L197e: verifying with no file unlocks the driver — ask first.
+                  if (
+                    typeof window !== "undefined" &&
+                    !window.confirm(
+                      `Mark ${item.label} as verified without a file? The driver can take jobs right away.`
+                    )
+                  )
+                    return;
+                  void decide(item.type, "verified");
+                }}
               >
                 Verify {item.label}
               </Button>
@@ -157,7 +167,6 @@ export function DocumentsTab({
         <SectionCard title="Expiry reminders">
           <div className="divide-y divide-primary/5">
             {expiries.map((e, i) => {
-              // eslint-disable-next-line react-hooks/purity -- relative "expiring soon" check needs the current time at render
               const soon = new Date(e.expires_at) <= new Date(Date.now() + 30 * 86400000);
               return (
                 <div key={i} className="flex items-center justify-between px-5 py-3">

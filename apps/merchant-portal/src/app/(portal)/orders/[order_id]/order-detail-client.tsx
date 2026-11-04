@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { useMerchantRealtime } from "@/hooks/useMerchantRealtime";
 import { ordersApi, type OrderDetail } from "@/lib/orders";
@@ -18,9 +17,9 @@ const Order360View = dynamic(
 export default function OrderDetailClient({ orderId }: { orderId: string }) {
   return (
     <Suspense fallback={<PageSkeleton rows={5} />}>
-      <WithGoogleMaps>
+      <>
         <OrderDetailInner orderId={orderId} />
-      </WithGoogleMaps>
+      </>
     </Suspense>
   );
 }

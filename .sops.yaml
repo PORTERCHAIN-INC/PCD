@@ -1,0 +1,24 @@
+# SOPS + age (doc 37, L30-2): the only secrets store.
+# Recipients are PUBLIC age keys (age1...). Never commit a private key (AGE-SECRET-KEY-...).
+# Ravi: replace each placeholder with the real public key printed by
+#   age-keygen -o ~/.config/sops/age/keys.txt     (on that host; see secrets/README.md)
+# then run: sops updatekeys secrets/<file>.enc.yaml
+creation_rules:
+  - path_regex: secrets/droplet\.enc\.yaml$
+    # owner (Ravi, Mac ~/.config/sops/age/porterchain-owner.txt), droplet host, CI (GitHub env secret SOPS_AGE_KEY)
+    age: >-
+      age1ktmgy0wadexzfksyfrj8fgjllnlklwmzlxuwvntque43mpl2m46qq95mfc,
+      age12y9ck34vtr7hug3fys4phut55s7twm4tavrxm95wyc4k55nmxp6qkq2rtd,
+      age18h4yldck2axyc6zrqpdgpf8kudr8uxn70hxga2p30nkdsprrrgpqpk6vl4
+  - path_regex: secrets/ubuntu\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1UBUNTU_HOST_PUBLIC_KEY_PLACEHOLDER
+  - path_regex: secrets/oracle\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1ORACLE_HOST_PUBLIC_KEY_PLACEHOLDER
+  - path_regex: secrets/ci\.enc\.yaml$
+    age: >-
+      age1RAVI_OFFLINE_BACKUP_PUBLIC_KEY_PLACEHOLDER,
+      age1CI_PUBLIC_KEY_PLACEHOLDER

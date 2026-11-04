@@ -35,13 +35,17 @@ from porterchain_api.reporting.label_service import LabelService
 from porterchain_api.reporting.qr_codec import encode_label_qr
 from porterchain_pricing import GeoPoint, ParcelSpec, PricingRequest
 
+# Legacy engine behaviour (version stamp / overrides / old card parity).
+pytestmark = pytest.mark.usefixtures("legacy_pricing")
+
+
 IN = 2.54
 
 
 def _admin(db: Session, role: AdminRole) -> AdminContext:
     suffix = uuid4().hex[:8]
     user = AdminUser(
-        clerk_user_id=f"clerk_{role.value}_{suffix}",
+        auth_subject=f"idp_{role.value}_{suffix}",
         email=f"{role.value}-{suffix}@svc.test".lower(),
         name="Pricing test",
         role=role.value,

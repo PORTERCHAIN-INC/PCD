@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { cn } from "@porterchain/ui/utils";
 import { Button } from "@/components/crm/primitives";
 import { assignDriverLabel, canAssignDriver, type OrderDetail } from "@/lib/orders";
@@ -57,7 +56,6 @@ export function QuickActions({
 }) {
   const merchant = detail.merchant as Record<string, unknown> | null | undefined;
   const merchantEmail = merchant?.email ? String(merchant.email) : null;
-  const merchantPhone = merchant?.phone ? String(merchant.phone) : null;
 
   const items: Array<{
     label: string;
@@ -90,12 +88,8 @@ export function QuickActions({
       label: "Email customer",
       href: detail.customer_email ? `mailto:${detail.customer_email}` : undefined,
     },
-    {
-      label: "Call customer",
-      href: detail.customer_phone ? `tel:${detail.customer_phone}` : undefined,
-    },
     { label: "Email merchant", href: merchantEmail ? `mailto:${merchantEmail}` : undefined },
-    { label: "Call merchant", href: merchantPhone ? `tel:${merchantPhone}` : undefined },
+    // L48 (Ravi 2026-10-31): contact is email-only, so there are no Call buttons.
     { label: "Print preview", onClick: actions.onPrintLabels },
     { label: "Print pickup list", onClick: actions.onPrintManifest },
     { label: "Download shipment record", onClick: actions.onDownloadRecord },

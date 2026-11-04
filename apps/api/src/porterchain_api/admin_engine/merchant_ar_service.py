@@ -9,16 +9,30 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.admin_engine.merchant_ar_helpers import (  # noqa: F401 — re-exported
+    _METHOD_LABELS,
+    _aware,
+    _cycle_email_fields,
+    _display_cycle,
+    _end_of_day,
+    _naive,
+    _payment_email_fields,
+    _toronto_wall_to_utc,
+    ELIGIBLE_STATES,
+    eligible_orders,
+    interac_instructions,
+    previous_billing_period_bounds,
+)
 from porterchain_api.billing_engine.merchant_service import (
-    billing_period_bounds,
     invoice_due_date,
     invoice_status,
-    invoice_total_cents,
+    invoice_net_total_cents,
     outstanding_cents,
 )
 from porterchain_api.billing_engine.models import BillingLedgerEntry, InvoiceLine
 from porterchain_api.booking_engine import events as BookingEvents
 from porterchain_api.booking_engine._core import emit_event
+from porterchain_api.billing_engine.invoice_document import persist_invoice_status
 from porterchain_api.billing_engine.invoice_numbering import allocate_invoice_number, ensure_payment_reference
 from porterchain_api.billing_engine.merchant_credit import add_merchant_credit
 from porterchain_api.booking_engine.order_transitions import transition_order_state
@@ -26,45 +40,14 @@ from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine import events as MerchantEvents
 from porterchain_api.merchant_engine.lookups import get_merchant
 from porterchain_api.booking_models import Invoice, Order, Payment
-
-ELIGIBLE_STATES = frozenset(
-    {
-        OrderState.DELIVERED.value,
-        OrderState.POD_COMPLETED.value,
-        # Allow recovering state-only "INVOICED" orders that never got an Invoice row.
-        OrderState.INVOICED.value,
-    }
-)
+from porterchain_api.billing_engine.weekly_billing import due_at_for_issue as weekly_due_at_for_issue
+from porterchain_api.billing_engine.weekly_billing import terms_line as weekly_terms_line
 
 # Merchants pay by Interac e-Transfer. Cheque/wire/other stay for edge cases; "ach" is
 # a US rail and is no longer offered (still readable on historical payments).
 OFFLINE_METHODS = frozenset({"interac", "cheque", "wire", "other"})
 LEGACY_METHODS = frozenset({"ach"})
 NET_TERMS_CYCLES = frozenset({"WEEKLY", "BIWEEKLY", "MONTHLY"})
-
-
-def previous_billing_period_bounds(
-    cycle: str,
-    reference: datetime | None = None,
-) -> tuple[datetime, datetime]:
-    """Return the fully closed period immediately before the current cycle window."""
-    cur_start, cur_end = billing_period_bounds(cycle, reference)
-    duration = cur_end - cur_start
-    return cur_start - duration, cur_start
-
-
-def _aware(dt: datetime | None) -> datetime | None:
-    if dt is None:
-        return None
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=UTC)
-    return dt
-
-
-def _naive(dt: datetime | None) -> datetime | None:
-    if dt is None:
-        return None
-    return dt.replace(tzinfo=None) if dt.tzinfo else dt
 
 
 class MerchantArService:
@@ -80,11 +63,15 @@ class MerchantArService:
         period_end: datetime | None,
     ) -> tuple[datetime, datetime]:
         if period_start and period_end:
-            start, end = _naive(period_start), _naive(period_end)
+            # L107: the admin date pickers send Toronto wall time (with a Z suffix). Read the
+            # clock face as America/Toronto, then store/compare in UTC.
+            start, end = _toronto_wall_to_utc(period_start), _toronto_wall_to_utc(_end_of_day(period_end))
             if start >= end:
                 raise ValueError("invalid_period")
             return start, end
-        return previous_billing_period_bounds(merchant.billing_cycle or "MONTHLY")
+        from porterchain_api.billing_engine.weekly_billing import previous_week_bounds
+
+        return previous_week_bounds()
 
     def _eligible_orders(
         self,
@@ -93,38 +80,7 @@ class MerchantArService:
         period_start: datetime,
         period_end: datetime,
     ) -> list[Order]:
-        invoiced_ids = {
-            row[0]
-            for row in db.query(Invoice.order_id).filter(Invoice.order_id.isnot(None)).all()
-        }
-        invoiced_ids |= {
-            row[0]
-            for row in db.query(InvoiceLine.order_id).filter(InvoiceLine.order_id.isnot(None)).all()
-        }
-        end = _aware(period_end)  # period_start is informational: older uninvoiced work carries forward
-        rows = (
-            db.query(Order)
-            .filter(
-                Order.merchant_id == merchant_id,
-                Order.state.in_(list(ELIGIBLE_STATES)),
-            )
-            .order_by(Order.updated_at.asc())
-            .all()
-        )
-        out: list[Order] = []
-        for order in rows:
-            if order.id in invoiced_ids:
-                continue
-            # Activity rule: updated_at within [start, end).
-            stamp = order.updated_at or order.created_at
-            if stamp is None:
-                continue
-            stamp_a = _aware(stamp)
-            # Anything delivered before the period closes and never invoiced is billed now
-            # (carried forward), so a late POD never falls through the cracks.
-            if stamp_a < end:
-                out.append(order)
-        return out
+        return eligible_orders(db, merchant_id, period_end)
 
     def preview(
         self,
@@ -142,9 +98,11 @@ class MerchantArService:
         cents = sum(int(o.amount_cents or 0) for o in orders)
         return {
             "merchant_id": merchant_id,
-            "merchant_name": merchant.legal_name or merchant.company_name,
+            "merchant_name": merchant.company_name or merchant.legal_name,
+            "legal_name": merchant.legal_name,
             "payment_terms": merchant.payment_terms,
-            "billing_cycle": merchant.billing_cycle,
+            # Weekly billing (Ravi 2026-10-31): show the cycle the run actually uses.
+            "billing_cycle": _display_cycle(merchant),
             "period_start": _aware(start),
             "period_end": _aware(end),
             "order_count": len(orders),
@@ -210,7 +168,7 @@ class MerchantArService:
                 tax_province=next(iter(provinces)) if len(provinces) == 1 else None,
                 fees_cents=0,
                 currency=orders[0].currency or "cad",
-                due_at=_aware(invoice_due_date(now, terms)),
+                due_at=_aware(weekly_due_at_for_issue(now)),
                 issued_at=now,
                 billing_period_start=_aware(start),
                 billing_period_end=_aware(end),
@@ -285,6 +243,7 @@ class MerchantArService:
                 payload={
                     "invoice_id": invoice.id,
                     "invoice_number": invoice.invoice_number,
+                    "billing_terms_line": weekly_terms_line(start, end, invoice.due_at),
                     "payment_reference": invoice.payment_reference,
                     "merchant_id": merchant_id,
                     "merchant_name": merchant.company_name,
@@ -293,6 +252,9 @@ class MerchantArService:
                     "amount_cents": invoice.amount_cents,
                     "amount_display": f"${(invoice.amount_cents or 0) / 100:.2f} {(invoice.currency or 'cad').upper()}",
                     "billing_kind": "cycle",
+                    # L126: week, lines, due date and working links in the cycle email.
+                    **_cycle_email_fields(invoice, line_specs, extras, start, end),
+                    "interac_line": interac_instructions(db, invoice),
                 },
             )
             created.append(
@@ -346,11 +308,14 @@ class MerchantArService:
         paid_at: datetime | None = None,
         source: dict[str, Any] | None = None,
         commit: bool = True,
+        online_card: bool = False,
+        transaction_id: str | None = None,
     ) -> dict[str, Any]:
         """Record an offline payment. Partial payments leave a balance; any excess over
         the outstanding amount becomes merchant credit (applied to the next cycle invoice)."""
         method_n = (method or "").strip().lower()
-        if method_n not in OFFLINE_METHODS:
+        # "card" only through the merchant Stripe Checkout (online_card); admins record offline methods.
+        if not (method_n in OFFLINE_METHODS or (online_card and method_n == "card")):
             raise ValueError("invalid_payment_method")
 
         invoice = db.query(Invoice).filter(Invoice.id == invoice_id).with_for_update().first()
@@ -384,7 +349,7 @@ class MerchantArService:
             raise ValueError("overpayment_requires_merchant")
 
         invoice.amount_paid_cents = int(invoice.amount_paid_cents or 0) + settle_cents
-        fully_paid = invoice.amount_paid_cents >= invoice_total_cents(invoice)
+        fully_paid = invoice.amount_paid_cents >= invoice_net_total_cents(invoice)
         when = _aware(paid_at) or datetime.now(UTC)
         if fully_paid:
             invoice.paid_at = when
@@ -401,13 +366,17 @@ class MerchantArService:
             currency=invoice.currency or (order.currency if order else None) or "cad",
             payment_method=method_n,
             payment_reference=(reference or "")[:32] or None,
-            transaction_id=f"offline:{invoice.id}",
+            transaction_id=transaction_id or f"offline:{invoice.id}",
         )
         db.add(pay)
         db.flush()
-
+        persist_invoice_status(invoice, order, pay if fully_paid else None, terms=terms)
         entry = BillingLedgerEntry(
-            kind="merchant_offline_payment",
+            kind=(
+                "merchant_card_payment"
+                if online_card
+                else "merchant_interac_payment" if method_n == "interac" else "merchant_offline_payment"
+            ),
             payment_id=pay.id,
             invoice_id=invoice.id,
             order_id=order.id if order else None,
@@ -445,7 +414,7 @@ class MerchantArService:
             aggregate_type="merchant",
             aggregate_id=merchant_id or "",
             correlation_id=invoice.id,
-            actor_type="admin",
+            actor_type="merchant" if online_card else "admin",
             actor_id=ctx.user.id if ctx else None,
             payload={
                 "invoice_id": invoice.id,
@@ -454,6 +423,7 @@ class MerchantArService:
                 "method": method_n,
                 "merchant_id": merchant_id,
                 "merchant_email": primary_billing_email(billed) if billed else None,
+                **_payment_email_fields(invoice, billed, received, method_n),
             },
         )
         log_admin_audit(
@@ -475,7 +445,7 @@ class MerchantArService:
             db.commit()
         else:
             db.flush()
-        balance = max(0, invoice_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
+        balance = max(0, invoice_net_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
         return {
             "invoice_id": invoice.id,
             "payment_id": pay.id,
@@ -496,5 +466,4 @@ def is_cycle_billed(db: Session, order: Order) -> bool:
 
     return _impl(db, order)
 
-# Re-exports kept for existing importers (integration).
 from porterchain_api.booking_engine.numbers import generate_invoice_number  # noqa: E402, F401

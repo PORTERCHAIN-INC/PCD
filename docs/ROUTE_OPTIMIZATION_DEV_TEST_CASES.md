@@ -7,34 +7,31 @@
 
 ### Sensor trail (this pass)
 
-| Moment | Tool          | What it named                                                                                                                                                                             |
-| ------ | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A      | Graphify      | `OptimizePanel`, `OrchestratorOpsService`, `MapsService.optimized_route`, VROOM probe rationale, `MerchantRouteImportService.optimize`, `DriverRouteOptimizer`                            |
-| B      | CodeGraph CLI | Commit chain `OrchestratorOpsService.commit` → `commit_orchestrator` → Fleetbase `OrchestratorService`; schemas `OptimizeRunBody`; blast radius on `MapsService` / driver jobs            |
-| C      | Ripwire       | Thin router `optimize_run` → `_orch.enqueue_run`; impact radius 63 symbols (worker, driver accept/undo, fuel tools, offline executor); Shopify carrier + merchant bulk optimize neighbors |
+| Moment | Tool     | What it named                                                                                                                                                                             |
+| ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Graphify | `OptimizePanel`, `OrchestratorOpsService`, `MapsService.optimized_route`, VROOM probe rationale, `MerchantRouteImportService.optimize`, `DriverRouteOptimizer`                            |
+| C      | Ripwire  | Thin router `optimize_run` → `_orch.enqueue_run`; impact radius 63 symbols (worker, driver accept/undo, fuel tools, offline executor); Shopify carrier + merchant bulk optimize neighbors |
 
 **Existing coverage seed (do not duplicate blindly):**
 
-| File                                                    | Focus                                                        |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| `apps/api/tests/test_optimize_commit_p0.py`             | **P0 commit idempotency, CAS→409, undo**                     |
-| `apps/api/tests/test_optimize_rbac_idor.py`             | **dispatch RBAC + driver cross-run IDOR**                    |
-| `apps/admin/e2e/optimize.p0.spec.ts`                    | **UI-OPS-006 OptimizePanel smoke (mocked BFF)**              |
-| `apps/api/tests/test_optimize_run_queue.py`             | Enqueue without adapter; synced fleet gates; execute → ready |
-| `apps/api/tests/test_orchestrator_ops.py`               | Fleetbase id resolution helpers                              |
-| `apps/api/tests/test_step2_optimize_enqueue.py`         | Driver/merchant enqueue; no in-process TSP                   |
-| `apps/api/tests/test_import_route_optimize.py`          | Drop-order / sequence import shim                            |
-| `apps/api/tests/test_gps_ingest_wave4.py`               | `DriverRouteOptimizer` does not build local TSP              |
-| `apps/api/tests/test_remaining_to_live_prove.py`        | Handler enqueues without solver                              |
-| `apps/api/tests/test_offline_optimize_route.py`         | Offline queue alias / preview flag                           |
-| `apps/api/tests/test_fuel_scorecard.py`                 | Fuel metrics on optimize plan                                |
-| `apps/api/tests/test_phase5c_baseline_events.py`        | `optimize.enqueued` events                                   |
-| `apps/api/tests/test_phase5_ops_hardening.py`           | Sequence apply / conflict / rollback                         |
-| `apps/api/tests/test_phase_ui_driver_preview.py`        | Preview→Accept apply_on_ready                                |
-| `services/fleetbase-adapter/tests/test_orchestrator.py` | Adapter orchestrator contract                                |
-| `services/python/tests/test_valhalla_costing.py`        | Vehicle-class costing                                        |
-| `scripts/verify_no_ops_spatial_math.py`                 | Ban haversine/TSP in ops engines                             |
-| `scripts/verify_vendor_leaves.py`                       | No PC VROOM client; local OSRM default                       |
+| File                                             | Focus                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `apps/api/tests/test_optimize_commit_p0.py`      | **P0 commit idempotency, CAS→409, undo**                     |
+| `apps/api/tests/test_optimize_rbac_idor.py`      | **dispatch RBAC + driver cross-run IDOR**                    |
+| `apps/admin/e2e/optimize.p0.spec.ts`             | **UI-OPS-006 OptimizePanel smoke (mocked BFF)**              |
+| `apps/api/tests/test_optimize_run_queue.py`      | Enqueue without adapter; synced fleet gates; execute → ready |
+| `apps/api/tests/test_step2_optimize_enqueue.py`  | Driver/merchant enqueue; no in-process TSP                   |
+| `apps/api/tests/test_import_route_optimize.py`   | Drop-order / sequence import shim                            |
+| `apps/api/tests/test_gps_ingest_wave4.py`        | `DriverRouteOptimizer` does not build local TSP              |
+| `apps/api/tests/test_remaining_to_live_prove.py` | Handler enqueues without solver                              |
+| `apps/api/tests/test_offline_optimize_route.py`  | Offline queue alias / preview flag                           |
+| `apps/api/tests/test_fuel_scorecard.py`          | Fuel metrics on optimize plan                                |
+| `apps/api/tests/test_phase5c_baseline_events.py` | `optimize.enqueued` events                                   |
+| `apps/api/tests/test_phase5_ops_hardening.py`    | Sequence apply / conflict / rollback                         |
+| `apps/api/tests/test_phase_ui_driver_preview.py` | Preview→Accept apply_on_ready                                |
+| `services/python/tests/test_valhalla_costing.py` | Vehicle-class costing                                        |
+| `scripts/verify_no_ops_spatial_math.py`          | Ban haversine/TSP in ops engines                             |
+| `scripts/verify_vendor_leaves.py`                | No PC VROOM client; local OSRM default                       |
 
 ---
 
@@ -52,7 +49,6 @@
 | `API-S-*` | Shopify carrier rates (distance handshake, not VROOM)        |
 | `ENG-*`   | `OrchestratorOpsService`, import/jobs, maps                  |
 | `MAP-*`   | `MapsService` Valhalla → OSRM → labeled public demo          |
-| `FB-*`    | Fleetbase adapter + VROOM orchestrator                       |
 | `VRM-*`   | Local `porterchain-vroom` + `VROOM_ROUTER=valhalla`          |
 | `AUTH-*`  | Staff IdP / Clerk driver-merchant / RBAC `dispatch`          |
 | `EVT-*`   | EventBus optimize.* / route.optimized                        |
@@ -61,7 +57,6 @@
 | `SEQ-*`   | Driver sequence store CAS / conflict 409                     |
 | `FUEL-*`  | Fuel scorecard / delta vs plan                               |
 | `DB-*`    | Models / sync ids / BulkImportJob optimize fields            |
-| `DOC-*`   | Docker compose Valhalla/OSRM/VROOM/Fleetbase                 |
 | `ARCH-*`  | Ownership laws, OpenAPI census, sensor CI guards             |
 | `INT-*`   | Shopify / partner API / ERP / website (adjacent)             |
 | `DIAG-*`  | Diagnostics VROOM probe / integration health                 |
@@ -76,23 +71,22 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 
 ### 1.1 Admin Operations (`apps/admin`) — `/operations`
 
-| Tab / sub-surface      | Files                                        | Optimize relevance                                    |
-| ---------------------- | -------------------------------------------- | ----------------------------------------------------- |
-| Shell + tabs           | `app/(ops)/operations/page.tsx`              | Tab `optimize`; refresh after commit                  |
-| **Optimize**           | `components/operations/OptimizePanel.tsx`    | Pool / run / poll / commit / discard                  |
-| Overview               | same page + `KpiStrip`, `PushHealthStrip`    | Post-commit KPI / push health                         |
-| Dispatch Board         | `DispatchBoard.tsx`                          | Assignments appear after commit                       |
-| Live Map               | `LiveMapPanel.tsx`                           | Geometry via MapsService (not Google routing)         |
-| Orders table           | `OrdersTablePanel.tsx`                       | Open order from optimize assignments                  |
-| Dispatch Queue         | `DispatchQueuePanel.tsx`                     | Synced pool prerequisite                              |
-| Scheduled batches      | `ScheduledBatchesPanel.tsx`                  | Batch vs ad-hoc optimize interaction                  |
-| Utilization            | `UtilizationPanel.tsx`                       | Utilization after apply                               |
-| Exceptions / SLA       | page tabs                                    | Unassigned / SLA after bad plan                       |
-| AI Copilot             | `DispatcherCopilotPanel.tsx`                 | May read optimize run tools                           |
-| Live Activity          | `ActivityTab`                                | `optimize.*` activity rows                            |
-| Client lib             | `lib/operations.ts`                          | `OptimizeRunResult`, `optimizePool/Run/Status/Commit` |
-| Auth                   | `AdminAuthProvider`, staff session / step-up | Token for optimize APIs                               |
-| Settings / diagnostics | `SystemCenter`, Integration panel            | Fleetbase + VROOM health                              |
+| Tab / sub-surface | Files                                        | Optimize relevance                                    |
+| ----------------- | -------------------------------------------- | ----------------------------------------------------- |
+| Shell + tabs      | `app/(ops)/operations/page.tsx`              | Tab `optimize`; refresh after commit                  |
+| **Optimize**      | `components/operations/OptimizePanel.tsx`    | Pool / run / poll / commit / discard                  |
+| Overview          | same page + `KpiStrip`, `PushHealthStrip`    | Post-commit KPI / push health                         |
+| Dispatch Board    | `DispatchBoard.tsx`                          | Assignments appear after commit                       |
+| Live Map          | `LiveMapPanel.tsx`                           | Geometry via MapsService (not Google routing)         |
+| Orders table      | `OrdersTablePanel.tsx`                       | Open order from optimize assignments                  |
+| Dispatch Queue    | `DispatchQueuePanel.tsx`                     | Synced pool prerequisite                              |
+| Scheduled batches | `ScheduledBatchesPanel.tsx`                  | Batch vs ad-hoc optimize interaction                  |
+| Utilization       | `UtilizationPanel.tsx`                       | Utilization after apply                               |
+| Exceptions / SLA  | page tabs                                    | Unassigned / SLA after bad plan                       |
+| AI Copilot        | `DispatcherCopilotPanel.tsx`                 | May read optimize run tools                           |
+| Live Activity     | `ActivityTab`                                | `optimize.*` activity rows                            |
+| Client lib        | `lib/operations.ts`                          | `OptimizeRunResult`, `optimizePool/Run/Status/Commit` |
+| Auth              | `AdminAuthProvider`, staff session / step-up | Token for optimize APIs                               |
 
 ### 1.2 Merchant portal
 
@@ -123,20 +117,16 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 
 ### 1.5 Engines / adapters / maps
 
-| Area                     | Path                                                                                                                        |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| Orchestrator ops         | `admin_engine/orchestrator_ops_service.py`                                                                                  |
-| Optimize store / events  | `fleetbase_engine/optimize_run_store.py`, `optimize_events.py`                                                              |
-| Merchant import          | `merchant_engine/route_import_service.py`, `import_jobs.py`                                                                 |
-| Admin ops enqueue helper | `admin_engine/operations_service.py` `_enqueue_driver_book_optimize`                                                        |
-| Maps                     | `services/python/porterchain_services/maps/{service,sequence,route_helpers}.py`                                             |
-| Pricing façade           | `apps/api/.../services/routing.py` `resolve_route_distance`                                                                 |
-| Fleetbase orchestrator   | `services/fleetbase-adapter/.../orchestrator/`, `integration.py`, `routes/`                                                 |
-| Worker                   | `apps/worker/processors/dispatch.py`                                                                                        |
-| Intelligence             | `intelligence_engine/tools.py` (`get_optimize_run`, fuel)                                                                   |
-| Diagnostics              | `admin_engine/diagnostics_fleetbase_probes.py` `_probe_vroom`                                                               |
-| Schemas                  | `schemas_admin.py` `OptimizeRunBody`, `OptimizeCommitBody`                                                                  |
-| Models                   | `booking_models.Order`, `admin_models.Driver/Vehicle`, `merchant_models.BulkImportJob`, `fleetbase_models.FleetbaseSyncJob` |
+| Area                     | Path                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| Orchestrator ops         | `admin_engine/orchestrator_ops_service.py`                                      |
+| Merchant import          | `merchant_engine/route_import_service.py`, `import_jobs.py`                     |
+| Admin ops enqueue helper | `admin_engine/operations_service.py` `_enqueue_driver_book_optimize`            |
+| Maps                     | `services/python/porterchain_services/maps/{service,sequence,route_helpers}.py` |
+| Pricing façade           | `apps/api/.../services/routing.py` `resolve_route_distance`                     |
+| Worker                   | `apps/worker/processors/dispatch.py`                                            |
+| Intelligence             | `intelligence_engine/tools.py` (`get_optimize_run`, fuel)                       |
+| Schemas                  | `schemas_admin.py` `OptimizeRunBody`, `OptimizeCommitBody`                      |
 
 ### 1.6 Docker / infra
 
@@ -145,14 +135,12 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | Valhalla                           | `porterchain-valhalla` digest-pinned            | `:8002`           |
 | OSRM                               | `osrm-backend:v5.27.1` GTA ±150 km              | `:5000`           |
 | VROOM                              | `vroom-docker:v1.14.0`, `VROOM_ROUTER=valhalla` | profile `routing` |
-| Fleetbase                          | `:8000` + Valkey 8 override                     | orchestrator API  |
 | API / worker / Redis / Postgres 18 | standard stack                                  | EventBus drain    |
 
 ### 1.7 Integrations in / adjacent to optimize
 
 | System                     | Role in optimize                                                   |
 | -------------------------- | ------------------------------------------------------------------ |
-| **Fleetbase + VROOM**      | Only TSP/VRP SoT for dispatch apply                                |
 | **Valhalla**               | Matrix/route for Maps + VROOM router                               |
 | **OSRM**                   | Maps fallback ETA/distance                                         |
 | **Google Maps**            | Places + tiles only — never optimize distance                      |
@@ -184,7 +172,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | A-UI-011 | P0  | Shape `fleet` / `merchant` / `vehicle` toggles correct secondary selects                  |
 | A-UI-012 | P0  | Merchant shape with no merchant selected → run blocked or clear validation error          |
 | A-UI-013 | P0  | Vehicle shape requires vehicle id; sends `vehicle_ids: [id]`                              |
-| A-UI-014 | P1  | Engine select `vroom` vs greedy labels match API (`Fleetbase VROOM` / greedy)             |
 | A-UI-015 | P1  | Mode `allocate` (and any other allowed modes) round-trips to `OptimizeRunBody.mode`       |
 
 ### 2.3 Run / poll / ready / error
@@ -195,7 +182,6 @@ Each case: **Precondition → Steps → Expected → Layer tags**.
 | A-UI-021 | P0  | Poll `optimize_run_not_found` early does not abort until `POLL_MAX`                    |
 | A-UI-022 | P0  | `status=error` stops busy, shows `error`/`message`                                     |
 | A-UI-023 | P0  | Timeout after max polls: “Preview timed out. Try again.” and clears runId              |
-| A-UI-024 | P1  | Ready with **zero** assignments shows Fleetbase sync hint (vans online / live fb ids)  |
 | A-UI-025 | P1  | Metrics strip renders distance/duration/fuel fields when present                       |
 | A-UI-026 | P1  | Unassigned details list is readable; clicking assignment opens order via `onOpenOrder` |
 | A-UI-027 | P2  | Discard clears plan/runId/error and stops poll                                         |
@@ -290,7 +276,6 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | API-A-010 | P0  | Commit with `expected_sequence_version` mismatch → 409 Sequence conflict                             |
 | API-A-011 | P0  | RBAC: `dispatch_read` for pool/engines/status; `dispatch` for run/commit                             |
 | API-A-012 | P1  | Unsynced orders/vehicles → enqueue skips queue (empty/error message, no adapter call)                |
-| API-A-013 | P1  | Placeholder Fleetbase ids (`fb-123`) excluded from pool / resolve                                    |
 | API-A-014 | P1  | `PREVIEW_ORDER_CAP` enforced; oversized request rejected or truncated per contract                   |
 | API-A-015 | P1  | OpenAPI shapes match `OptimizeRunBody` / `OptimizeCommitBody` / admin TS types                       |
 | API-A-016 | P2  | Concurrent commits same `run_id` return same applied result                                          |
@@ -332,7 +317,6 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | ------- | --- | ------------------------------------------------------------------------------------------- |
 | ENG-001 | P0  | `OrchestratorOpsService.enqueue_run` writes store + queue; **does not** call adapter        |
 | ENG-002 | P0  | `execute_queued_run` calls adapter `run`, writes ready + metrics                            |
-| ENG-003 | P0  | `commit` → `commit_orchestrator` → Fleetbase COMMIT_PATH                                    |
 | ENG-004 | P0  | `DriverRouteOptimizer` has no local TSP / nearest-neighbor solver                           |
 | ENG-005 | P0  | `MerchantRouteImportService.optimize` only enqueues; worker applies                         |
 | ENG-007 | P1  | Fuel enrichment `_enrich_fuel_scorecard` attaches liters/cents without mutating assignments |
@@ -367,12 +351,10 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | FB-002  | P0  | Orchestrator run uses Fleetbase public API (fleetops orchestrator), not PC HTTP to VROOM |
 | FB-003  | P0  | Commit assignments normalize via `normalize_commit_result`                               |
 | FB-004  | P0  | Web portals never fetch Fleetbase HTTP or SocketCluster                                  |
-| FB-005  | P1  | Booking sync must mint real Fleetbase order/vehicle/driver ids before pool eligibility   |
 | FB-006  | P1  | Retry queue replays failed sync without duplicate optimize commit                        |
 | FB-007  | P1  | Webhook status updates do not wipe sequence applied by optimize                          |
 | VRM-001 | P0  | Compose: `VROOM_ROUTER=valhalla`; vroom depends on valhalla                              |
 | VRM-002 | P0  | Local VROOM health via Fleetbase engines probe — not direct PC `/solve` productization   |
-| VRM-003 | P1  | Greedy engine path still goes through Fleetbase orchestrator                             |
 | VRM-004 | P2  | VROOM timeout / empty solution → ready with empty assignments + message                  |
 
 ---
@@ -440,7 +422,6 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 
 | ID     | P   | Case                                                                                |
 | ------ | --- | ----------------------------------------------------------------------------------- |
-| DB-001 | P0  | Orders in pool require consumable Fleetbase public id                               |
 | DB-002 | P0  | `BulkImportJob` stores optimize_status / stop order / geometry JSON safely          |
 | DB-003 | P0  | Driver/Vehicle online + synced flags gate `_synced_fleet`                           |
 | DB-004 | P1  | Optimize run store keyed by `run_id`; TTL/expiry behavior documented/tested         |
@@ -471,10 +452,8 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | DOC-001  | P0  | `docker compose` Valhalla digest pin; no `:latest`                          |
 | DOC-002  | P0  | OSRM serves `/data/gta-150km.osrm`; prepare scripts document GTA ±150 km    |
 | DOC-003  | P0  | VROOM profile starts only with routing profile; config mounted read-only    |
-| DOC-004  | P1  | Fleetbase override `ROUTING_ENGINE=valhalla`                                |
 | DOC-005  | P1  | API env points Maps to local Valhalla/OSRM, not public demo                 |
 | DIAG-001 | P0  | Diagnostics `_probe_vroom` hits orchestrator engines, not a PC VROOM client |
-| DIAG-002 | P1  | Integration health surfaces Fleetbase + routing reachability                |
 | ARCH-001 | P0  | `scripts/verify_no_ops_spatial_math.py` clean                               |
 | ARCH-002 | P0  | OpenAPI census still single public interface per persona                    |
 | ARCH-003 | P0  | Thin router: `optimize_*` only `_invoke` + one service call                 |
@@ -501,7 +480,6 @@ Base: `/v1/admin` operations optimize family (exact mount per OpenAPI census).
 | Events                                   | `test_phase5c_baseline_events.py`                                                                              |
 | Offline                                  | `test_offline_optimize_route.py`                                                                               |
 | Fuel                                     | `test_fuel_scorecard.py`                                                                                       |
-| Adapter                                  | `services/fleetbase-adapter/tests/test_orchestrator.py`, timeout breaker                                       |
 | Maps costing / polyline                  | `services/python/tests/test_valhalla_costing.py`, `test_polyline.py`                                           |
 | Shopify rates                            | `test_shopify_carrier_*`                                                                                       |
 | Architecture CI                          | `verify_no_ops_spatial_math.py`, `verify_vendor_leaves.py`, OpenAPI census                                     |
@@ -539,7 +517,6 @@ ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.sp
 | Files / subfiles                        | §1.4–1.5 inventory    |
 | API / FastAPI / endpoints               | §5–7                  |
 | Microservices / worker                  | §8, §12               |
-| Fleetbase / VROOM                       | §10                   |
 | Valhalla / OSRM / Google                | §9                    |
 | Firebase / push / email / notifications | §14                   |
 | Clerk / auth                            | §11                   |
@@ -567,7 +544,6 @@ ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.sp
 
 - Building a PorterChain VROOM/TSP HTTP client.
 - Using Google for distance/ETA/matrix/geometry in optimize.
-- Rebuilding a Fleetbase dispatch board in admin.
 - Calling SocketCluster from any web/mobile app.
 
 ---
@@ -582,7 +558,6 @@ ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.sp
 | 4   | Driver accept/undo + sequence CAS                   | `test_phase_ui_driver_preview`, `test_phase5_ops_hardening`, `test_optimize_commit_p0`              |
 | 5   | Merchant route-import optimize enqueue              | `test_step2_optimize_enqueue`, `test_import_route_optimize`                                         |
 | 6   | Valhalla-first / OSRM fallback / Google places-only | Maps unit + `verify_vendor_leaves` / policy                                                         |
-| 7   | VROOM only via Fleetbase                            | `verify_vendor_leaves`, adapter orchestrator tests                                                  |
 | 8   | Events enqueued/ready/applied                       | `test_phase5c_baseline_events` (+ accept emit in preview tests)                                     |
 | 9   | RBAC/IDOR                                           | `test_optimize_rbac_idor.py` (sales 403; support read-only; driver cross-run 404)                   |
 | 10  | Arch guards                                         | `verify_no_ops_spatial_math`, `verify_vendor_leaves`, commit isolation in `test_optimize_commit_p0` |

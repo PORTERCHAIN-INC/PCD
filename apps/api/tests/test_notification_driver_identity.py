@@ -1,6 +1,6 @@
 """Audit day 4 #1: driver identity in the notification API comes from the token only.
 
-A customer or merchant Clerk token with forged ``X-Porterchain-Portal: driver`` +
+A customer or merchant Keycloak token with forged ``X-Porterchain-Portal: driver`` +
 ``X-Driver-Id`` must be rejected (403) for inbox read, preferences update and push
 device registration. The real driver keeps working, and a driver cannot use the
 header to reach another driver's inbox.
@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from porterchain_api.admin_models import AdminUser, Driver
-from porterchain_api.auth.clerk import ClerkClaims
+from porterchain_api.auth.bearer import IdentityClaims
 from porterchain_api.booking_models import Customer
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -29,10 +29,10 @@ OWN_DRIVER_ID = "drv-own"
 def _rows() -> dict:
     return {
         Driver: [
-            Driver(id=VICTIM_DRIVER_ID, clerk_user_id="clerk_victim", email="v@example.com", full_name="V"),
-            Driver(id=OWN_DRIVER_ID, clerk_user_id="clerk_driver", email="d@example.com", full_name="D"),
+            Driver(id=VICTIM_DRIVER_ID, auth_subject="idp_victim", email="v@example.com", full_name="V"),
+            Driver(id=OWN_DRIVER_ID, auth_subject="idp_driver", email="d@example.com", full_name="D"),
         ],
-        Customer: [Customer(id="cust-1", clerk_user_id="clerk_customer")],
+        Customer: [Customer(id="cust-1", auth_subject="idp_customer")],
         MerchantUser: [],
         Merchant: [],
         AdminUser: [],
@@ -79,7 +79,7 @@ def client():
     app.include_router(notifications.router)
     fake = _FakeDb()
     app.dependency_overrides[get_db] = lambda: fake
-    app.dependency_overrides[get_settings] = lambda: Settings(app_env="local", clerk_dev_bypass=False, jwt_secret="test-jwt-secret-local")
+    app.dependency_overrides[get_settings] = lambda: Settings(app_env="local", auth_dev_bypass=False, jwt_secret="test-jwt-secret-local")
     device = MagicMock(id="dev-1")
     pref = MagicMock(category="jobs", email_enabled=True, push_enabled=False, sms_enabled=False, in_app_enabled=True)
     with (
@@ -97,11 +97,11 @@ def client():
         yield c
 
 
-def _as(clerk_user_id: str):
+def _as(auth_subject: str):
     return patch(
-        "porterchain_api.auth.clerk.verify_clerk_token",
+        "porterchain_api.auth.bearer.verify_access_token",
         new_callable=AsyncMock,
-        return_value=ClerkClaims(clerk_user_id=clerk_user_id, email=f"{clerk_user_id}@example.com"),
+        return_value=IdentityClaims(auth_subject=auth_subject, email=f"{auth_subject}@example.com"),
     )
 
 
@@ -120,7 +120,7 @@ CALLS = [
 ]
 
 
-@pytest.mark.parametrize("attacker", ["clerk_customer", "clerk_merchant_user"])
+@pytest.mark.parametrize("attacker", ["idp_customer", "idp_merchant_user"])
 @pytest.mark.parametrize("method,path,body", CALLS)
 def test_non_driver_with_forged_driver_header_is_403(client, attacker, method, path, body) -> None:
     with _as(attacker):
@@ -132,7 +132,7 @@ def test_non_driver_with_forged_driver_header_is_403(client, attacker, method, p
 
 @pytest.mark.parametrize("method,path,body", CALLS)
 def test_driver_cannot_target_another_driver(client, method, path, body) -> None:
-    with _as("clerk_driver"):
+    with _as("idp_driver"):
         res = client.request(method, path, headers=_forged(VICTIM_DRIVER_ID), json=body)
     assert res.status_code == 403
     client.upsert.assert_not_called()
@@ -145,7 +145,7 @@ def test_real_driver_still_works(client, with_header) -> None:
         "Authorization": "Bearer tok",
         "X-Porterchain-Portal": "driver",
     }
-    with _as("clerk_driver"):
+    with _as("idp_driver"):
         inbox = client.get("/v1/notifications/inbox", headers=headers)
         prefs = client.patch("/v1/notifications/preferences", headers=headers, json={"category": "jobs"})
         dev = client.post(
@@ -161,7 +161,7 @@ def test_real_driver_still_works(client, with_header) -> None:
 
 
 def test_customer_without_driver_header_still_gets_own_inbox(client) -> None:
-    with _as("clerk_customer"):
+    with _as("idp_customer"):
         res = client.get("/v1/notifications/inbox", headers={"Authorization": "Bearer tok"})
     assert res.status_code == 200
     assert res.json() == {"for": "cust-1", "role": "customer"}

@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CompanyCompletenessBanner from "@/components/onboarding/CompanyCompletenessBanner";
-import WithGoogleMaps from "@/components/maps/WithGoogleMaps";
 import { EmptyState } from "@porterchain/ui/empty-state";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
@@ -187,14 +186,14 @@ export default function SettingsClient() {
       </nav>
 
       {tab === "profile" && (
-        <WithGoogleMaps>
+        <>
           <ProfileTab
             profile={data.profile}
             onRefresh={load}
             getToken={getApiToken}
             orgId={orgId}
           />
-        </WithGoogleMaps>
+        </>
       )}
       {tab === "delivery" && <DeliveryDefaultsCard />}
       {tab === "recipients" && (
@@ -206,9 +205,9 @@ export default function SettingsClient() {
         />
       )}
       {tab === "locations" && (
-        <WithGoogleMaps>
+        <>
           <LocationsTab data={data} onRefresh={load} getToken={getApiToken} orgId={orgId} />
-        </WithGoogleMaps>
+        </>
       )}
       {tab === "notifications" && (
         <NotificationsTab

@@ -1,4 +1,4 @@
-"""Resolve driver context from Clerk bearer (or local X-Driver-Id bypass)."""
+"""Resolve driver context from Keycloak bearer (or local X-Driver-Id bypass)."""
 
 from typing import Annotated
 
@@ -23,8 +23,8 @@ async def get_driver_context(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)] = None,
     x_driver_id: Annotated[str | None, Header()] = None,
 ) -> DriverContext:
-    """Async shell: only the JWKS verify is awaited; all DB + Clerk Backend I/O runs
-    in the threadpool so a slow Clerk call or an exhausted pool can never block the
+    """Async shell: only the JWKS verify is awaited; all DB + Keycloak Backend I/O runs
+    in the threadpool so a slow Keycloak call or an exhausted pool can never block the
     event loop (2026-10-14 freeze)."""
     token = credentials.credentials if credentials and credentials.credentials else None
     claims = None
@@ -32,10 +32,10 @@ async def get_driver_context(
         from porterchain_api.auth.impersonation_session import IMP_BEARER_PREFIX
 
         if not token.startswith(IMP_BEARER_PREFIX):
-            from porterchain_api.auth.clerk import verify_clerk_token
+            from porterchain_api.auth.bearer import verify_access_token
 
             try:
-                claims = await verify_clerk_token(token, settings)
+                claims = await verify_access_token(token, settings)
             except Exception as exc:
                 raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
     return await run_in_threadpool(
@@ -71,7 +71,7 @@ def _resolve_driver_context_sync(
             if driver.status == DriverStatus.SUSPENDED.value:
                 raise HTTPException(status_code=403, detail="driver_suspended")
             return DriverContext(driver=driver)
-        driver_id = _clerk_driver_id_from_claims(db, claims, settings)
+        driver_id = _idp_driver_id_from_claims(db, claims, settings)
     elif allow_auth_dev_bypass(settings) and x_driver_id:
         driver_id = x_driver_id
     elif allow_auth_dev_bypass(settings):
@@ -94,40 +94,29 @@ def _resolve_driver_context_sync(
 
 def _assert_driver_self_scope(db: Session, driver: Driver) -> None:
     """When self-scoped driver assignments exist, driver.id must match."""
-    from porterchain_api.auth.claims import ClerkClaims
+    from porterchain_api.auth.claims import IdentityClaims
     from porterchain_api.auth.dependencies import assert_self_scope, resolve_principal_for_claims
 
-    if not driver.clerk_user_id:
+    if not driver.auth_subject:
         return
     principal = resolve_principal_for_claims(
         db,
-        ClerkClaims(clerk_user_id=driver.clerk_user_id, email=driver.email),
+        IdentityClaims(auth_subject=driver.auth_subject, email=driver.email),
     )
     if not principal:
         raise HTTPException(status_code=403, detail="user_not_provisioned")
     assert_self_scope(principal, driver.id, db)
 
 
-async def _clerk_driver_id(db: Session, token: str, settings: Settings) -> str:
-    """Back-compat async entry: verify on the loop, resolve in the threadpool."""
-    from porterchain_api.auth.clerk import verify_clerk_token
-
-    try:
-        claims = await verify_clerk_token(token, settings)
-    except Exception as exc:
-        raise HTTPException(status_code=401, detail="invalid_driver_token") from exc
-    return await run_in_threadpool(_clerk_driver_id_from_claims, db, claims, settings)
-
-
-def _clerk_driver_id_from_claims(db: Session, claims, settings: Settings) -> str:
+def _idp_driver_id_from_claims(db: Session, claims, settings: Settings) -> str:
     from porterchain_api.auth.email_identity import enrich_claims_with_verified_email
     from porterchain_api.auth.persona_bundle import load_persona_bundle
-    from porterchain_api.auth.portal_guard import assert_clerk_id_exclusive
+    from porterchain_api.auth.portal_guard import assert_portal_provisioned
     from porterchain_api.auth.prepare import prepare_user_from_claims
 
     if claims is None:
         raise HTTPException(status_code=401, detail="invalid_driver_token")
-    # Clerk Backend lookup BEFORE the first query: never hold a transaction open
+    # Keycloak Backend lookup BEFORE the first query: never hold a transaction open
     # ("idle in transaction") while waiting on the network.
     try:
         claims = enrich_claims_with_verified_email(claims, settings)
@@ -136,14 +125,14 @@ def _clerk_driver_id_from_claims(db: Session, claims, settings: Settings) -> str
 
     # Align with other portals: prepare (UserSync + SpiceDB) once, then exclusive check.
     prepare_user_from_claims(db, claims)
-    assert_clerk_id_exclusive(db, claims, portal="driver", settings=settings)
-    driver = load_persona_bundle(db, claims.clerk_user_id).driver
+    assert_portal_provisioned(db, claims, portal="driver", settings=settings)
+    driver = load_persona_bundle(db, claims.auth_subject).driver
     if not driver:
         raise HTTPException(status_code=403, detail="driver_not_found")
     from porterchain_api.auth.email_identity import (
-        CLERK_EMAIL_REQUIRED,
-        CLERK_EMAIL_UNVERIFIED,
-        EMAIL_CLERK_MISMATCH,
+        IDP_EMAIL_REQUIRED,
+        IDP_EMAIL_UNVERIFIED,
+        EMAIL_IDENTITY_MISMATCH,
         assert_portal_email_identity,
     )
 
@@ -151,16 +140,16 @@ def _clerk_driver_id_from_claims(db: Session, claims, settings: Settings) -> str
         assert_portal_email_identity(driver.email, claims.email)
     except PermissionError as exc:
         detail = str(exc)
-        if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_CLERK_MISMATCH}:
+        if detail in {IDP_EMAIL_REQUIRED, IDP_EMAIL_UNVERIFIED, EMAIL_IDENTITY_MISMATCH}:
             raise HTTPException(status_code=403, detail=detail) from exc
-        raise HTTPException(status_code=403, detail=EMAIL_CLERK_MISMATCH) from exc
+        raise HTTPException(status_code=403, detail=EMAIL_IDENTITY_MISMATCH) from exc
     return driver.id
 
 
 def _driver_id_from_token(token: str, settings: Settings) -> str:
     """Legacy sync helper for audit / notification callers (old driver JWT only).
 
-    Portal BFF uses Clerk bearer via get_driver_context. Cookie JWT minting is retired.
+    Portal BFF uses Keycloak bearer via get_driver_context. Cookie JWT minting is retired.
     """
     from porterchain_driver.auth_tokens import decode_driver_token
 

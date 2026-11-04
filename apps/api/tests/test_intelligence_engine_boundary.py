@@ -109,8 +109,8 @@ def test_readonly_tools_and_usage_summary(db) -> None:
 
     record_ai_usage(
         db,
-        provider="nvidia_nim",
-        model="meta/llama-3.2-11b-vision-instruct",
+        provider="llm",
+        model="none",
         feature="ops_copilot",
         prompt_tokens=10,
         completion_tokens=5,
@@ -118,7 +118,7 @@ def test_readonly_tools_and_usage_summary(db) -> None:
     )
     db.commit()
     summary = ai_usage_summary(db, limit=10)
-    assert summary["nim"]["provider"] == "nvidia_nim"
+    assert summary["llm"]["provider"] == "none"
     assert "phase2" in summary
     assert any(r["feature"] == "ops_copilot" for r in summary["recent"])
 

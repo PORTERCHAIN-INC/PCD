@@ -31,24 +31,24 @@ describe("clearSession (sign-out wipe)", () => {
       ready: true,
       signedIn: true,
       getToken: async () => "t",
-      signOut: async () => void calls.push("clerk_out"),
+      signOut: async () => void calls.push("auth_out"),
     });
     await clearSession();
-    expect(calls).toEqual(["flush", "gps_off", "push_off", "clerk_out", "wipe", "consent_off"]);
+    expect(calls).toEqual(["flush", "gps_off", "push_off", "auth_out", "wipe", "consent_off"]);
     expect(getSessionSnapshot().signedIn).toBe(false);
   });
 
-  it("still wipes when offline sync and Clerk sign-out both fail", async () => {
+  it("still wipes when offline sync and Keycloak sign-out both fail", async () => {
     offline.flushOfflineQueues.mockRejectedValue(new Error("offline"));
     setSessionSnapshot({
       ready: true,
       signedIn: true,
       getToken: async () => "t",
       signOut: async () => {
-        throw new Error("clerk_down");
+        throw new Error("auth_down");
       },
     });
-    await expect(clearSession()).rejects.toThrow("clerk_down");
+    await expect(clearSession()).rejects.toThrow("auth_down");
     expect(offline.wipeOfflineData).toHaveBeenCalled();
     expect(getSessionSnapshot().signedIn).toBe(false);
   });

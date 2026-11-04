@@ -160,7 +160,8 @@ export default function OrderDetailView({
   return (
     <div className="admin-page flex min-h-[calc(100vh-4rem)] w-full min-w-0 max-w-none flex-col">
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 border-b border-primary/10 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      {/* L119: sticky only on tall screens; on short laptops it covered the page below. */}
+      <header className="relative z-30 border-b [@media(min-height:900px)]:sticky [@media(min-height:900px)]:top-0 border-primary/10 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
         <div className="px-4 py-4 lg:px-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
@@ -203,7 +204,6 @@ export default function OrderDetailView({
             </div>
             <QuickActions detail={detail} actions={actions} />
           </div>
-          <SuperAdminDriverOps detail={detail} onRefresh={onRefresh} />
 
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12">
             <SummaryCard
@@ -272,6 +272,9 @@ export default function OrderDetailView({
           <ActionFlash error={actionError} notice={actionNotice} className="mt-3" />
         </div>
       </header>
+      <div className="px-4 lg:px-6">
+        <SuperAdminDriverOps detail={detail} onRefresh={onRefresh} />
+      </div>
 
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* Left navigation — horizontal chips on mobile */}

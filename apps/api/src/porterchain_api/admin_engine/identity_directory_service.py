@@ -1,0 +1,468 @@
+"""Settings user directory — Keycloak live sync for driver/merchant/customer.
+
+Staff provisioning and directory listing are Staff IdP only
+(``StaffIdpService`` / ``AdminSettingsService.list_platform_users``).
+This module must not treat staff as a Keycloak application kind.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from sqlalchemy.orm import Session
+
+from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.admin_engine.audit import log_admin_audit
+from porterchain_api.admin_engine.identity_directory_local import create_local_driver, invite_directory_user
+from porterchain_api.admin_models import AdminUser, Driver
+from porterchain_api.auth.identity_directory import IdentityDirectory
+from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
+from porterchain_api.auth.identity_directory import UserKind
+from porterchain_api.auth.invitation_service import InvitationService
+from porterchain_api.config import Settings
+from porterchain_api.domain.admin_states import DriverStatus
+from porterchain_api.merchant_engine.lookups import get_merchant, get_merchant_user, get_merchant_user_by_email
+from porterchain_api.merchant_engine.team_service import bind_seat_subject, deactivate_seat
+
+logger = logging.getLogger(__name__)
+
+
+_PLATFORM_USER_TYPES = frozenset({"staff", "driver", "customer", "merchant"})
+_IDP_DIRECTORY_TYPES = frozenset({"driver", "customer", "merchant"})
+
+
+def require_platform_user_type(user_type: str) -> str:
+    if user_type not in _PLATFORM_USER_TYPES:
+        raise ValueError("invalid_user_type")
+    return user_type
+
+
+def require_directory_user_type(user_type: str) -> str:
+    """Staff uses Staff IdP — never a Keycloak directory application."""
+    if user_type == "staff":
+        raise ValueError("staff_uses_staff_idp_not_idp")
+    if user_type not in _IDP_DIRECTORY_TYPES:
+        raise ValueError("invalid_user_type")
+    return user_type
+
+
+def directory_kind_for_user_type(user_type: str) -> UserKind:
+    require_directory_user_type(user_type)
+    return user_type  # type: ignore[return-value]
+
+
+def fetch_directory_snapshots(
+    settings: Settings,
+    user_type: str,
+    *,
+    limit: int = 500,
+    query: str | None = None,
+) -> dict[str, Any]:
+    """Email → DirectoryUserSnapshot for the tab's Keycloak application."""
+    from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
+
+    require_directory_user_type(user_type)
+    kind = directory_kind_for_user_type(user_type)
+    if not is_directory_configured(settings, kind):
+        return {}
+    client = directory_for_kind(settings, kind)
+    users, _total = client.list_users(limit=limit, query=query)
+    out: dict[str, DirectoryUserSnapshot] = {}
+    expected_type = user_type
+    for raw in users:
+        snap = IdentityDirectory.snapshot(raw)
+        if not snap:
+            continue
+        meta_type = (snap.metadata or {}).get("user_type")
+        if meta_type and meta_type != expected_type:
+            continue
+        out[snap.email] = snap
+    return out
+
+
+class DirectoryUserService:
+    """Create / update / delete users via Keycloak + Porterchain provisioning."""
+
+    def create_user(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Settings,
+        user_type: str,
+        *,
+        email: str,
+        name: str | None = None,
+        role: str | None = None,
+        password: str | None = None,
+        send_invite: bool = True,
+        merchant_id: str | None = None,
+    ) -> dict[str, Any]:
+        require_platform_user_type(user_type)
+        normalized = email.lower().strip()
+        if not normalized:
+            raise ValueError("email_required")
+        # Retail / staff guards: never set passwords for merchant/customer; staff use IdP enroll.
+        if user_type == "staff":
+            raise ValueError("staff_use_enroll_endpoint")
+        if user_type in ("merchant", "customer") and password:
+            raise ValueError("password_create_forbidden_for_retail")
+        # Customers: mint local row (+ optional Platform invite) — same path as Customers page.
+        if user_type == "customer":
+            from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
+
+            row = CustomerAdminService().create_customer(
+                db,
+                ctx,
+                settings,
+                email=normalized,
+                full_name=name,
+                send_invite=send_invite,
+            )
+            return {
+                "platform_user_id": row["id"],
+                "auth_subject": row.get("auth_subject"),
+                "identity_action": row.get("identity_action") or "created",
+                "email": normalized,
+            }
+
+        # Merchant seats are always reserved locally — never Keycloak-invite from Settings (M-16).
+        # Must run before identity_not_configured so Super Admin can add seats without Keycloak.
+        if user_type == "merchant":
+            if not merchant_id:
+                raise ValueError("merchant_id_required")
+            merchant = get_merchant(db, merchant_id)
+            if not merchant:
+                raise ValueError("merchant_not_found")
+            from porterchain_api.merchant_engine.team_service import ensure_merchant_seat
+
+            m_role = role or "merchant_ops"
+            mu = ensure_merchant_seat(
+                db,
+                merchant_id=merchant_id,
+                email=normalized,
+                role=m_role,
+                actor_user_id=ctx.user.id,
+                audit_action="merchant.member_seat_added",
+                commit=False,
+            )
+            log_admin_audit(
+                db,
+                ctx,
+                action="settings.user.seat_added",
+                resource_type="merchant",
+                resource_id=mu.id,
+                payload={"email": normalized, "idp_invite": False, "role": m_role},
+            )
+            db.commit()
+            db.refresh(mu)
+            return {
+                "platform_user_id": mu.id,
+                "auth_subject": mu.auth_subject if str(mu.auth_subject).startswith("user_") else None,
+                "identity_action": "seat_reserved",
+                "email": normalized,
+            }
+
+        # Driver: local PENDING row when Super Admin skips Keycloak, or when Keycloak is down.
+        if user_type == "driver" and not password and not send_invite:
+            return create_local_driver(db, ctx, email=normalized, name=name)
+        kind = directory_kind_for_user_type(user_type)
+        if not is_directory_configured(settings, kind):
+            if user_type == "driver":
+                return create_local_driver(db, ctx, email=normalized, name=name)
+            raise ValueError("identity_not_configured")
+
+        first_name = None
+        last_name = None
+        if name and name.strip():
+            parts = name.strip().split(None, 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else None
+
+        client = directory_for_kind(settings, kind)
+        idp_user: dict[str, Any] | None = None
+        identity_action = "created"
+
+        if password:
+            idp_user = client.create_user(
+                normalized,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                public_metadata={"user_type": user_type},
+            )
+            identity_action = "created_with_password"
+        elif send_invite:
+            inv = InvitationService()
+            if user_type == "driver":
+                driver = Driver(
+                    full_name=name or normalized.split("@")[0],
+                    email=normalized,
+                    status=DriverStatus.PENDING.value,
+                )
+                db.add(driver)
+                db.flush()
+                inv.invite_driver(db, ctx, settings, driver)
+                db.commit()
+                return {"platform_user_id": driver.id, "identity_action": "invited", "email": normalized}
+            raise ValueError(f"invite_unsupported_for_{user_type}")
+        else:
+            idp_user = client.create_user(
+                normalized,
+                first_name=first_name,
+                last_name=last_name,
+                skip_password_requirement=True,
+                public_metadata={"user_type": user_type},
+            )
+
+        if not idp_user:
+            raise ValueError("idp_create_failed")
+
+        subject_ref = str(idp_user["id"])
+        platform_id = self._provision_from_idp(
+            db,
+            ctx,
+            user_type,
+            email=normalized,
+            auth_subject=subject_ref,
+            name=name,
+            role=role,
+            merchant_id=merchant_id,
+        )
+        log_admin_audit(
+            db,
+            ctx,
+            action="settings.user.created",
+            resource_type=user_type,
+            resource_id=platform_id or subject_ref,
+            payload={"email": normalized, "identity_action": identity_action},
+        )
+        db.commit()
+        return {
+            "platform_user_id": platform_id,
+            "auth_subject": subject_ref,
+            "identity_action": identity_action,
+            "email": normalized,
+        }
+
+    def invite_user(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Settings,
+        user_type: str,
+        *,
+        platform_user_id: str,
+    ) -> dict[str, Any]:
+        return invite_directory_user(
+            db, ctx, settings, user_type, platform_user_id=platform_user_id
+        )
+
+    def update_idp_user(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Settings,
+        user_type: str,
+        auth_subject: str,
+        *,
+        name: str | None = None,
+        password: str | None = None,
+        banned: bool | None = None,
+    ) -> dict[str, Any]:
+        require_platform_user_type(user_type)
+        if user_type == "staff":
+            raise ValueError("staff_manage_via_staff_idp")
+        if user_type in ("merchant", "customer"):
+            raise ValueError("idp_manage_forbidden_for_retail")
+        kind = directory_kind_for_user_type(user_type)
+        client = directory_for_kind(settings, kind)
+        first_name = None
+        last_name = None
+        if name and name.strip():
+            parts = name.strip().split(None, 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else None
+        if first_name is not None or password:
+            client.update_user(
+                auth_subject,
+                first_name=first_name,
+                last_name=last_name,
+                password=password,
+            )
+        if banned is True:
+            client.ban_user(auth_subject)
+        elif banned is False:
+            client.unban_user(auth_subject)
+        log_admin_audit(
+            db,
+            ctx,
+            action="settings.user.updated",
+            resource_type=user_type,
+            resource_id=auth_subject,
+            payload={"banned": banned, "password_reset": bool(password)},
+        )
+        db.commit()
+        snap = IdentityDirectory.snapshot(client.get_user(auth_subject) or {})
+        return {"auth_subject": auth_subject, "directory_status": snap.status if snap else None}
+
+    def delete_idp_user(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        settings: Settings,
+        user_type: str,
+        *,
+        auth_subject: str | None = None,
+        platform_user_id: str | None = None,
+    ) -> None:
+        require_platform_user_type(user_type)
+        if not auth_subject and not platform_user_id:
+            raise ValueError("idp_user_id_or_platform_user_id_required")
+        if user_type == "customer":
+            # C-0: never wipe Platform Keycloak retail identities from Admin Settings.
+            # C-19: DSR hold also blocks any future tombstone path.
+            if platform_user_id:
+                from porterchain_api.booking_models import Customer
+
+                customer = db.query(Customer).filter(Customer.id == platform_user_id).first()
+                if customer and (customer.privacy_status or "").lower() == "deletion_hold":
+                    raise ValueError("customer_privacy_deletion_hold")
+            raise ValueError("customer_delete_forbidden")
+        if user_type == "staff":
+            if not platform_user_id:
+                raise ValueError("staff_delete_requires_platform_user_id")
+            self._deactivate_platform_user(db, user_type, platform_user_id)
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+            u = db.query(AdminUser).filter(AdminUser.id == platform_user_id).first()
+            if u and u.auth_subject:
+                sync_authz_after_persona_mutation(db, u.auth_subject)
+            log_admin_audit(
+                db,
+                ctx,
+                action="settings.user.deleted",
+                resource_type=user_type,
+                resource_id=platform_user_id,
+                payload={"staff_idp": True},
+            )
+            db.commit()
+            return
+        kind = directory_kind_for_user_type(user_type)
+        resolved_idp_id = auth_subject or self._idp_id_for_platform(db, user_type, platform_user_id)
+        if resolved_idp_id and is_directory_configured(settings, kind):
+            directory_for_kind(settings, kind).delete_user(resolved_idp_id)
+        if platform_user_id:
+            self._deactivate_platform_user(db, user_type, platform_user_id)
+            idp_for_sync = resolved_idp_id or self._idp_id_for_platform(
+                db, user_type, platform_user_id
+            )
+            if idp_for_sync:
+                from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+                sync_authz_after_persona_mutation(db, idp_for_sync)
+        log_admin_audit(
+            db,
+            ctx,
+            action="settings.user.deleted",
+            resource_type=user_type,
+            resource_id=platform_user_id or resolved_idp_id or "",
+            payload={"auth_subject": resolved_idp_id},
+        )
+        db.commit()
+
+    def _idp_id_for_platform(self, db: Session, user_type: str, platform_user_id: str | None) -> str | None:
+        if not platform_user_id:
+            return None
+        if user_type == "staff":
+            # Staff IdP subject is not a Keycloak user id — never send to Keycloak APIs.
+            return None
+        if user_type == "driver":
+            d = db.query(Driver).filter(Driver.id == platform_user_id).first()
+            return d.auth_subject if d and _identity_linked(d.auth_subject) else None
+        if user_type == "merchant":
+            mu = get_merchant_user(db, platform_user_id)
+            return mu.auth_subject if mu and _identity_linked(mu.auth_subject) else None
+        if user_type == "customer":
+            from porterchain_api.booking_models import Customer
+
+            c = db.query(Customer).filter(Customer.id == platform_user_id).first()
+            return c.auth_subject if c and _identity_linked(c.auth_subject) else None
+        return None
+
+    def _deactivate_platform_user(self, db: Session, user_type: str, platform_user_id: str) -> None:
+        if user_type == "staff":
+            u = db.query(AdminUser).filter(AdminUser.id == platform_user_id).first()
+            if u:
+                u.is_active = False
+                from porterchain_api.auth.keycloak_admin import end_staff_sessions
+                from porterchain_api.config import get_settings
+
+                end_staff_sessions(get_settings(), u.email, disable=True)
+        elif user_type == "driver":
+            d = db.query(Driver).filter(Driver.id == platform_user_id).first()
+            if d:
+                d.status = DriverStatus.SUSPENDED.value
+        elif user_type == "merchant":
+            mu = get_merchant_user(db, platform_user_id)
+            if mu:
+                deactivate_seat(db, mu.id)
+
+    def _provision_from_idp(
+        self,
+        db: Session,
+        ctx: AdminContext,
+        user_type: str,
+        *,
+        email: str,
+        auth_subject: str,
+        name: str | None,
+        role: str | None,
+        merchant_id: str | None,
+    ) -> str | None:
+        if user_type == "staff":
+            raise ValueError("staff_use_enroll_endpoint")
+        if user_type == "driver":
+            existing = db.query(Driver).filter(Driver.email == email).first()
+            if existing:
+                existing.auth_subject = auth_subject
+                return existing.id
+            driver = Driver(
+                full_name=name or email.split("@")[0],
+                email=email,
+                auth_subject=auth_subject,
+                status=DriverStatus.PENDING.value,
+            )
+            db.add(driver)
+            db.flush()
+            return driver.id
+        if user_type == "customer":
+            from porterchain_api.admin_engine.merchant_lifecycle import ensure_retail_customer
+
+            customer = ensure_retail_customer(
+                db, email=email, phone=None, full_name=name
+            )
+            if customer.auth_subject and not str(customer.auth_subject).startswith("pending"):
+                if customer.auth_subject != auth_subject:
+                    raise ValueError("customer_email_exists")
+            customer.auth_subject = auth_subject
+            if name and name.strip() and not customer.full_name:
+                customer.full_name = name.strip()[:255]
+            from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
+
+            sync_authz_after_persona_mutation(db, auth_subject)
+            return customer.id
+        if user_type == "merchant" and merchant_id:
+            mu = get_merchant_user_by_email(db, email, merchant_id=merchant_id)
+            if mu:
+                bind_seat_subject(db, mu.id, auth_subject, activate=True)
+                return mu.id
+        return None
+
+
+def _identity_linked(auth_subject: str | None) -> bool:
+    if not auth_subject:
+        return False
+    if auth_subject.startswith("pending") or auth_subject.startswith("staff:"):
+        return False
+    return True

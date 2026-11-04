@@ -9,7 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.diagnostics_helpers import HealthClass, _probe_http
-from porterchain_api.auth.clerk_registry import clerk_jwks_urls, is_clerk_configured, is_clerk_secret_configured
+from porterchain_api.auth.identity_directory import identity_jwks_urls, is_identity_configured, is_directory_configured
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Order
 from porterchain_api.platform.health import readiness
@@ -174,17 +174,19 @@ class DiagnosticsProbesMixin:
     def _engine_support(self, db: Session) -> dict[str, Any]:
         return {"status": "healthy", "details": {"module": "admin_engine.support_service"}}
 
-    def _probe_google_maps(
+    def _probe_maps(
         self, platform: PlatformSettings, *, live: bool = False, app_env: str | None = None
     ) -> dict[str, Any]:
-        # Routing, ETA, and optimization never call Google. Do not probe the paid Geocoding API.
+        # Maps are self-hosted (PMTiles + Photon); routing is Valhalla/OSRM.
         del live, app_env
         return {
             "status": "healthy",
             "details": {
                 "used_for_routing": False,
                 "routing_engine": platform.routing_engine or "valhalla",
-                "note": "Valhalla, then OSRM. Optimization is OR-Tools. Google is not required.",
+                "tiles": "self-hosted PMTiles (MapLibre)",
+                "geocoder": "photon",
+                "note": "Valhalla, then OSRM. Optimization is OR-Tools.",
             },
         }
 
@@ -247,12 +249,10 @@ class DiagnosticsProbesMixin:
             "details": {"url": base, "local": local, "role": "primary_routing"},
         }
 
-    def _probe_clerk(self, settings: Settings, platform: PlatformSettings) -> dict[str, Any]:
-        if settings.clerk_dev_bypass and not is_clerk_configured(settings):
-            return {"status": "warning", "warnings": ["Clerk dev bypass active"], "details": {"dev_bypass": True}}
-        jwks_entries = clerk_jwks_urls(settings)
-        if not jwks_entries and platform.clerk_jwks_url:
-            jwks_entries = [("legacy", platform.clerk_jwks_url)]
+    def _probe_idp(self, settings: Settings, platform: PlatformSettings) -> dict[str, Any]:
+        if settings.auth_dev_bypass and not is_identity_configured(settings):
+            return {"status": "warning", "warnings": ["Auth dev bypass active"], "details": {"dev_bypass": True}}
+        jwks_entries = identity_jwks_urls(settings)
         if jwks_entries:
             errors: list[str] = []
             latencies: list[int] = []
@@ -268,9 +268,9 @@ class DiagnosticsProbesMixin:
                 "errors": errors,
                 "details": {"jwks_apps": len(jwks_entries)},
             }
-        if is_clerk_secret_configured(settings):
+        if is_directory_configured(settings):
             return {"status": "healthy", "details": {"configured": True}}
-        return {"status": "critical", "errors": ["Clerk not configured"]}
+        return {"status": "critical", "errors": ["Keycloak not configured"]}
 
     def _probe_stripe(self, settings: Settings, *, live: bool = False) -> dict[str, Any]:
         if settings.stripe_mock or not settings.stripe_secret:

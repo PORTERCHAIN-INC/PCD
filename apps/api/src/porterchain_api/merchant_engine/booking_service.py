@@ -39,43 +39,18 @@ from porterchain_api.merchant_engine.stop_cargo import (
     cargo_stop,
     packages_from_stops,
     parcels_for_pricing,
+    route_parcel_specs_from_dicts,
     parse_dt,
     pickup_stop,
 )
 
+from porterchain_api.merchant_engine.booking_replay import (  # noqa: F401 — re-exported
+    booking_value_error_detail,
+    confirm_replay_payload,
+    parse_idempotency_key,
+)
 
 T = TypeVar("T")
-
-
-def parse_idempotency_key(raw: str | None, *, max_len: int = 128) -> str | None:
-    key = (raw or "").strip() or None
-    if key and len(key) > max_len:
-        raise ValueError("idempotency_key_too_long")
-    return key
-
-
-def booking_value_error_detail(exc: BaseException) -> str:
-    detail = str(exc)
-    if detail == "quote_expired":
-        return "This quote expired. Request a new price before booking."
-    return detail
-
-
-def confirm_replay_payload(order: Order) -> dict:
-    from porterchain_api.domain.sandbox import order_is_sandbox
-
-    sandbox = order_is_sandbox(order)
-    return {
-        "order_id": order.id,
-        "order_number": order.order_number,
-        "tracking_number": order.tracking_number,
-        "amount_cents": order.amount_cents,
-        "preview": {"valid": True, "amount_cents": order.amount_cents},
-        "is_sandbox": sandbox,
-        "public_track_url": None,
-        "consignee_email": None,
-        "consignee_emailed": False,
-    }
 
 
 def _canonical_vehicle(code: str | None) -> str:
@@ -116,6 +91,13 @@ def _assert_not_on_credit_hold(db: Session, ctx: MerchantContext) -> None:
     try:
         assert_can_book(db, ctx.merchant)
     except ValueError as exc:
+        from porterchain_api.config import get_settings
+        from porterchain_api.merchant_engine.shopify_billing import is_shopify_billed
+
+        if is_shopify_billed(db, get_settings(), ctx.merchant.id):  # review 139170: no off-platform pay text
+            raise BookingValidationError(
+                "credit_hold", "This account is on hold. Contact PorterChain support to book."
+            ) from exc
         raise BookingValidationError(
             "credit_hold",
             "This account is on credit hold because an invoice is overdue. "
@@ -145,6 +127,20 @@ def schedule_from_body(body: MerchantBookDeliveryRequest) -> tuple:
     return scheduled_at, mode
 
 
+def _help_stops(body: Any) -> int:
+    """Vehicle hourly: +$30 per stop with load/unload help (pickup flag + each drop's load_help)."""
+    if getattr(body, "booking_mode", "parcels") != "vehicle":
+        return 0
+    drops = [body.dropoff, *(body.additional_stops or [])]
+    n = 1 if getattr(body, "help_at_pickup", False) else 0
+    for d in drops:
+        opts = getattr(d, "delivery_options", None) or {}
+        if hasattr(opts, "model_dump"):
+            opts = opts.model_dump()
+        n += 1 if opts.get("load_help") else 0
+    return n
+
+
 class MerchantBookingService:
     def build_pricing_request(
         self,
@@ -165,8 +161,13 @@ class MerchantBookingService:
         scheduled_at, schedule_mode = schedule_from_body(body)
         packages = getattr(body, "packages", None) or []
         parcels = parcels_for_pricing(body)
+        route_specs = route_parcel_specs_from_dicts(getattr(body, "route_parcels", None))
+        if route_specs:
+            parcels = route_specs
         parcel_count = (
-            max(len(parcels), len(packages), 1)
+            len(route_specs)
+            if route_specs
+            else max(len(parcels), len(packages), 1)
             if packages
             else max(int(getattr(body, "parcel_count", 1) or 1), 1)
         )
@@ -194,6 +195,9 @@ class MerchantBookingService:
             coverage_upgrade=getattr(body, "coverage_upgrade", None),
             item_category=getattr(body, "item_category", None),
             delivery_point=getattr(body, "delivery_point", None),
+            booking_mode="vehicle" if getattr(body, "booking_mode", "parcels") == "vehicle" else "parcels",
+            dedicated_hours=getattr(body, "dedicated_hours", None),
+            help_stops=_help_stops(body),
         )
 
     def find_by_idempotency_key(
@@ -256,6 +260,11 @@ class MerchantBookingService:
                 "merchant_not_active",
                 f"Merchant must be ACTIVE to book (status={ctx.merchant.status}).",
             )
+        from porterchain_api.merchant_engine import shopify_billing
+
+        _blk = shopify_billing.booking_block(db, settings, ctx.merchant.id)
+        if _blk:
+            raise BookingValidationError(_blk, shopify_billing.block_message(_blk))
         assert_ontario_booking(body, extra_fsas=merchant_coverage_fsas(db, ctx.merchant))
         assert_pickup_window(body)
 
@@ -269,11 +278,11 @@ class MerchantBookingService:
         hub = co.for_booking(db, body)  # collect-only: priced pickup -> receiver
         pricing_request = self.build_pricing_request(ctx, body, db=db)
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
-        if (breakdown.metadata.get("coverage") or {}).get("over_max"):
-            raise BookingValidationError(
-                "declared_value_over_max",
-                "Declared value is above the $25,000 coverage maximum. Contact us to arrange cover.",
-            )
+        from porterchain_api.merchant_engine.booking_validation import declared_value_block
+
+        cover_block = declared_value_block(breakdown.metadata.get("coverage"))
+        if cover_block:
+            raise BookingValidationError(*cover_block)
         assert_not_fsa_refused(breakdown)
         amount_cents = breakdown.final_cents
 

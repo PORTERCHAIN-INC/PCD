@@ -74,11 +74,11 @@ export type AiUsageFeatureAgg = {
 export type AiUsageDashboard = {
   checked_at: string;
   window: string;
-  nim: {
+  llm: {
     configured: boolean;
     provider: string;
-    model: string;
-    api_base: string;
+    model: string | null;
+    feature_ai: boolean;
     circuit_open: boolean;
     fail_streak: number;
   };
@@ -245,9 +245,9 @@ export const diagnosticsApi = {
 export const CHAOS_SCENARIOS = [
   "day_plan_offline",
   "stripe_offline",
-  "clerk_offline",
+  "idp_offline",
   "firebase_offline",
-  "google_maps_failure",
+  "maps_failure",
   "osrm_failure",
   "valhalla_failure",
   "redis_restart",

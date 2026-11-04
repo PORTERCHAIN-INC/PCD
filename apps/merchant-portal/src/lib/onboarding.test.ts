@@ -10,7 +10,7 @@ function status(overrides: Partial<PortalOnboardingStatus> = {}): PortalOnboardi
     ready: false,
     blockers: [],
     status: "ONBOARDING",
-    clerk_linked: true,
+    identity_linked: true,
     steps: [],
     pending_documents: 0,
     can_access_portal: false,

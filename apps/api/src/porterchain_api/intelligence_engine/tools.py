@@ -1,4 +1,4 @@
-"""Read-only tools for ops NIM context — never mutate Stripe, day plans, or orders.
+"""Read-only tools for ops LLM context — never mutate Stripe, day plans, or orders.
 
 Used to ground suggest_ops_action with live PorterChain snapshots. Tools return
 JSON-serialisable dicts suitable for prompt injection only.
@@ -97,7 +97,7 @@ def get_sla_queue(db: Session, *, limit: int = 12) -> dict[str, Any]:
 
 
 def get_optimize_run(db: Session, run_id: str) -> dict[str, Any]:
-    """Slim PorterChain day-plan run for NIM insert/reject narration."""
+    """Slim PorterChain day-plan run for LLM insert/reject narration."""
     del db  # run store is Redis — Session unused but keeps tool signature uniform
     from porterchain_api.admin_engine.orchestrator_ops_service import OrchestratorOpsService
 

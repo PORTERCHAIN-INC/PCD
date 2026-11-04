@@ -16,6 +16,12 @@ class DriverOfflineExecutor:
 
     def execute(self, db: Any, driver: Any, action_type: str, payload: dict) -> None:
         action = action_type.lower()
+        if action in ("hos_event", "dvir"):
+            # Doc 80 §2: HOS timestamps are the phone clock at the event; never rewritten on sync.
+            from porterchain_api.platform.engine_ports.compliance_engine__pkg import service as comp
+
+            (comp.record_hos if action == "hos_event" else comp.submit_dvir)(db, str(driver.id), payload)
+            return
         if action == "arrive_stop":
             self._platform.stops.arrive_stop(
                 db, driver, payload["stop_id"]

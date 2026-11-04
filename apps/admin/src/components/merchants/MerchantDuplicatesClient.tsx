@@ -46,7 +46,7 @@ function Row({ item, onDone }: { item: DuplicateItem; onDone: () => void }) {
         <Badge tone={item.score >= 0.9 ? "red" : "amber"}>
           Match {Math.round(item.score * 100)}%
         </Badge>
-        <span className="text-xs text-slate-500">via {item.source}</span>
+        <span className="text-xs text-slate-500">via {humanCode(item.source)}</span>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <div>
@@ -152,4 +152,12 @@ export default function MerchantDuplicatesClient() {
       </SectionCard>
     </div>
   );
+}
+
+/** Pass 6: never show raw snake_case codes ("cargo_van" -> "Cargo van"). */
+function humanCode(v: unknown): string {
+  const t = String(v ?? "")
+    .replace(/_/g, " ")
+    .trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "—";
 }

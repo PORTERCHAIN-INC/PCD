@@ -16,11 +16,16 @@ const shopifyEmbedHeaders = portalSecurityHeaders("merchant", {
 const defaultSecurityHeaders = portalSecurityHeaders("merchant");
 
 const nextConfig: NextConfig = {
+  // Local stack opened by LAN IP / 127.0.0.1: without this `next dev` blocks HMR and never hydrates.
+  allowedDevOrigins: (process.env.NEXT_ALLOWED_DEV_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean),
   output: "standalone",
   turbopack: {
     root: monorepoRoot,
   },
-  transpilePackages: ["@porterchain/ui", "@porterchain/config"],
+  transpilePackages: ["@porterchain/ui", "@porterchain/config", "@porterchain/web-push"],
   reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react"],

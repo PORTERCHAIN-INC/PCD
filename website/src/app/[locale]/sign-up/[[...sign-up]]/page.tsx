@@ -1,29 +1,26 @@
 "use client";
 
 /**
- * Platform Clerk open SignUp for retail (customer + merchant).
+ * Keycloak open sign-up (pc-website) for retail (customer + merchant).
  * After success → /login/continue for portal routing.
  */
 
 import { Suspense, useEffect, useState } from "react";
-import { SignUp, useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import {
   AuthLoadFailed,
-  AuthStallNotice,
+  KeycloakSignInPanel,
   useAuthLoadTimeout,
-  PasswordRequirements,
   isDevelopmentBuild,
-  porterchainClerkAppearance,
 } from "@porterchain/auth";
 import LoginShell from "@/components/portal/LoginShell";
 import PlatformAuthLayout, { PlatformAuthLoading } from "@/components/portal/PlatformAuthLayout";
 import PostAuthPortalRedirect from "@/components/portal/PostAuthPortalRedirect";
-import { isClerkConfigured } from "@/lib/env";
-import { getStoredAttribution } from "@/lib/seo/attribution";
-import { getOrCreateVisitorId, readQuoteIntent, rememberQuoteIntent } from "@/lib/visitor-tracking";
+import { isAuthConfigured } from "@/lib/env";
+import { readQuoteIntent, rememberQuoteIntent } from "@/lib/visitor-tracking";
 
 export default function SignUpPage() {
   return (
@@ -65,29 +62,6 @@ function SignUpContent() {
     }
   }, [intent, from, vehicle, ref]);
 
-  // Session UTM / landing attribution travels with the new account (Clerk unsafeMetadata).
-  const [signupAttribution, setSignupAttribution] = useState<Record<string, string>>({});
-  useEffect(() => {
-    const att = getStoredAttribution();
-    const picked: Record<string, string | undefined> = {
-      utm_source: att.utm_source,
-      utm_medium: att.utm_medium,
-      utm_campaign: att.utm_campaign,
-      utm_term: att.utm_term,
-      utm_content: att.utm_content,
-      from: from ?? att.from,
-      landing_page: att.landingPageUrl,
-      referrer: att.referrer,
-      pc_vid: getOrCreateVisitorId(),
-    };
-    setSignupAttribution(
-      Object.fromEntries(Object.entries(picked).filter(([, v]) => Boolean(v))) as Record<
-        string,
-        string
-      >
-    );
-  }, [from]);
-
   const continueParams = new URLSearchParams();
   if (intent) continueParams.set("intent", intent);
   if (from) continueParams.set("from", from);
@@ -97,8 +71,6 @@ function SignUpContent() {
   const continuePath = continueQs
     ? `/${locale}/login/continue?${continueQs}`
     : `/${locale}/login/continue`;
-  const signUpPath = `/${locale}/sign-up`;
-  const signInPath = `/${locale}/login`;
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -107,7 +79,7 @@ function SignUpContent() {
     window.location.replace(continuePath);
   }, [isLoaded, isSignedIn, continuePath]);
 
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     const dev = isDevelopmentBuild();
     return (
       <LoginShell>
@@ -149,28 +121,10 @@ function SignUpContent() {
           </>
         }
       >
-        <SignUp
-          routing="path"
-          path={signUpPath}
-          signInUrl={signInPath}
-          forceRedirectUrl={continuePath}
-          fallbackRedirectUrl={continuePath}
-          appearance={porterchainClerkAppearance}
-          unsafeMetadata={{ signup_attribution: signupAttribution }}
-        />
-        <AuthStallNotice />
-        <PasswordRequirements
-          copy={{
-            title: t("passwordTitle"),
-            intro: t("passwordIntro"),
-            minLength: t("passwordMinLength"),
-            uppercase: t("passwordUppercase"),
-            lowercase: t("passwordLowercase"),
-            number: t("passwordNumber"),
-            special: t("passwordSpecial"),
-            allowedLabel: t("passwordAllowedLabel"),
-            strength: t("passwordStrength"),
-          }}
+        <KeycloakSignInPanel
+          mode="sign-up"
+          returnTo={continuePath}
+          primaryLabel={t("signUpTitle")}
         />
       </PlatformAuthLayout>
     </LoginShell>

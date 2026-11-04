@@ -39,19 +39,6 @@ export function DeliverySection({
   );
 }
 
-export function QuickFacts({ items }: { items: Array<{ label: string; value: string }> }) {
-  return (
-    <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {items.map((item) => (
-        <div key={item.label} className="rounded-2xl border border-primary/10 bg-white p-4">
-          <dt className="text-xs font-medium uppercase tracking-wide text-muted">{item.label}</dt>
-          <dd className="mt-1 text-base font-semibold text-primary">{item.value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 export function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -248,13 +235,5 @@ export function LinkGrid({
         </li>
       ))}
     </ul>
-  );
-}
-
-export function AnswerFirst({ text }: { text: string }) {
-  return (
-    <p className="max-w-3xl rounded-2xl border-l-4 border-secondary bg-secondary/5 p-5 text-base leading-relaxed text-primary">
-      {text}
-    </p>
   );
 }

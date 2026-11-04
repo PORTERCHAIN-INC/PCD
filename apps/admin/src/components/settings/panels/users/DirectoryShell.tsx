@@ -7,6 +7,7 @@ import { UserPlus } from "lucide-react";
 import { Button } from "@/components/crm/primitives";
 import {
   settingsApi,
+  staffAccountNotice,
   type PlatformUser,
   type StaffUser,
   type UserDirectoryFilters,
@@ -48,16 +49,16 @@ function staffFromPlatform(user: PlatformUser): StaffUser {
 
 function cardDescription(tab: UserDirectoryTab): string {
   if (tab === "customer") {
-    return "All retail customers in PorterChain — create here or under Customers; Clerk status when linked.";
+    return "All retail customers in PorterChain — create here or under Customers; Keycloak status when linked.";
   }
   if (tab === "staff") {
     return "All AdminUser rows — enroll via Staff IdP; reissue activation link if session expired.";
   }
   if (tab === "merchant") {
-    return "All portal seats in PorterChain + Clerk-only orphans. Companies live under Merchants.";
+    return "All portal seats in PorterChain + Keycloak-only orphans. Companies live under Merchants.";
   }
   if (tab === "driver") {
-    return "All drivers in PorterChain — Clerk invite / link status shown on each row.";
+    return "All drivers in PorterChain — Keycloak invite / link status shown on each row.";
   }
   return tabMeta(tab).description;
 }
@@ -120,7 +121,7 @@ export function DirectoryShell({
           name: enrollForm.name.trim() || undefined,
         })
       );
-      setEnrollmentToken(result.enrollment_token ?? null);
+      setEnrollmentToken(staffAccountNotice(result));
       refresh();
     } catch (e) {
       setEnrollError(e instanceof Error ? e.message : "Enrollment failed");
@@ -139,7 +140,7 @@ export function DirectoryShell({
       const result = await withStaffStepUp(token, () =>
         settingsApi.reissueStaffEnrollment(token, userId)
       );
-      setEnrollmentToken(result.enrollment_token ?? null);
+      setEnrollmentToken(staffAccountNotice(result));
       setEnrollForm({ email: result.email, role: result.role, name: "" });
     } catch (e) {
       setEnrollError(e instanceof Error ? e.message : "Reissue failed");
@@ -148,9 +149,38 @@ export function DirectoryShell({
     }
   }
 
+  async function setStaffActive(userId: string, email: string, active: boolean) {
+    if (
+      !active &&
+      !window.confirm(
+        `Deactivate ${email}? They are signed out everywhere and can't sign in until reactivated.`
+      )
+    )
+      return;
+    setRecoverBusy(userId);
+    setEnrollError(null);
+    try {
+      const token = await requireApiToken(getApiToken);
+      await withStaffStepUp(token, () => settingsApi.setStaffActive(token, userId, active));
+      refresh();
+    } catch (e) {
+      setEnrollOpen(true);
+      const msg = e instanceof Error ? e.message : "";
+      setEnrollError(
+        /cannot_deactivate_self/.test(msg)
+          ? "You can't deactivate your own account."
+          : /last_super_admin/.test(msg)
+            ? "This is the last active super admin. Add another super admin first."
+            : msg || "Update failed"
+      );
+    } finally {
+      setRecoverBusy(null);
+    }
+  }
+
   async function recoverDevice(userId: string) {
     const ok = window.confirm(
-      "Lost-device recovery will revoke ALL sessions, delete ALL passkeys, and email a fresh activate link. Continue?"
+      "Lost-device recovery ends ALL sessions, removes the authenticator app and passkeys in Keycloak, and emails a setup link. Continue?"
     );
     if (!ok) return;
     setRecoverBusy(userId);
@@ -162,7 +192,7 @@ export function DirectoryShell({
       const result = await withStaffStepUp(token, () =>
         settingsApi.recoverStaffDevice(token, userId, "lost_device")
       );
-      setEnrollmentToken(result.enrollment_token ?? null);
+      setEnrollmentToken(staffAccountNotice(result));
       setEnrollForm({ email: result.email, role: result.role, name: "" });
       setEnrollError(null);
       void refresh();
@@ -181,7 +211,7 @@ export function DirectoryShell({
   }
 
   async function authorizePersona(user: PlatformUser, userType: "driver" | "merchant") {
-    if (!user.provisioned || user.id.startsWith("clerk:")) return;
+    if (!user.provisioned || user.id.startsWith("keycloak:")) return;
     setConciergeBusy(user.id);
     setConciergeError(null);
     try {
@@ -189,7 +219,7 @@ export function DirectoryShell({
       await withStaffStepUp(token, () =>
         settingsApi.authorizeUser(token, userType, {
           platform_user_id: user.id,
-          clerk_user_id: user.clerk_user_id ?? undefined,
+          auth_subject: user.auth_subject ?? undefined,
           email: user.email,
           name: user.name ?? undefined,
         })
@@ -203,7 +233,7 @@ export function DirectoryShell({
   }
 
   async function invitePersona(user: PlatformUser, userType: "driver" | "customer") {
-    if (!user.provisioned || user.id.startsWith("clerk:")) return;
+    if (!user.provisioned || user.id.startsWith("keycloak:")) return;
     setConciergeBusy(user.id);
     setConciergeError(null);
     try {
@@ -249,7 +279,7 @@ export function DirectoryShell({
           facets={facets}
           showAccountFilter={chrome.showAccountFilter}
           showInviteFilter={chrome.showInviteFilter}
-          showClerkFilters={chrome.showClerkFilters}
+          showIdpFilters={chrome.showIdpFilters}
           onChange={setFilters}
           onClear={() => setFilters(EMPTY_FILTERS)}
         />
@@ -265,19 +295,20 @@ export function DirectoryShell({
                   ? `seat${(data?.total ?? 0) === 1 ? "" : "s"}`
                   : `user${(data?.total ?? 0) === 1 ? "" : "s"}`}
               {tab === "driver" || tab === "merchant" || tab === "customer"
-                ? data?.clerk_synced
-                  ? ` · ${data.clerk_total ?? 0} in Clerk`
-                  : " · Clerk enrich unavailable"
+                ? data?.idp_synced
+                  ? ` · ${data.idp_total ?? 0} in Keycloak`
+                  : " · Keycloak enrich unavailable"
                 : null}
               {tab === "merchant" && users.length > 0
                 ? (() => {
-                    const notInClerk = users.filter(
+                    const notInIdp = users.filter(
                       (u) =>
-                        u.provisioned && (!u.clerk_linked || u.identity_status === "not_registered")
+                        u.provisioned &&
+                        (!u.identity_linked || u.identity_status === "not_registered")
                     ).length;
                     const unprov = users.filter((u) => !u.provisioned).length;
                     const parts: string[] = [];
-                    if (notInClerk) parts.push(`${notInClerk} not in Clerk`);
+                    if (notInIdp) parts.push(`${notInIdp} not in Keycloak`);
                     if (unprov) parts.push(`${unprov} unprovisioned`);
                     return parts.length ? ` · ${parts.join(" · ")}` : "";
                   })()
@@ -303,7 +334,7 @@ export function DirectoryShell({
                         >
                           Change role
                         </Button>
-                        {user.provisioned && !user.id.startsWith("clerk:") && (
+                        {user.provisioned && !user.id.startsWith("keycloak:") && (
                           <>
                             <Button
                               variant="ghost"
@@ -321,13 +352,27 @@ export function DirectoryShell({
                             >
                               {recoverBusy === user.id ? "Recovering…" : "Lost device recovery"}
                             </Button>
+                            <Button
+                              variant="ghost"
+                              className="text-xs"
+                              disabled={reissueBusy === user.id || recoverBusy === user.id}
+                              onClick={() =>
+                                void setStaffActive(
+                                  user.id,
+                                  user.email,
+                                  user.access_status === "inactive"
+                                )
+                              }
+                            >
+                              {user.access_status === "inactive" ? "Reactivate" : "Deactivate"}
+                            </Button>
                           </>
                         )}
                       </div>
                     )
                   : tab === "merchant"
                     ? (user) =>
-                        user.provisioned && !user.id.startsWith("clerk:") ? (
+                        user.provisioned && !user.id.startsWith("keycloak:") ? (
                           <div className="flex flex-wrap gap-2">
                             <Button
                               variant="outline"
@@ -359,15 +404,15 @@ export function DirectoryShell({
                         ) : null
                     : tab === "customer"
                       ? (user) =>
-                          user.provisioned && !user.id.startsWith("clerk:") ? (
+                          user.provisioned && !user.id.startsWith("keycloak:") ? (
                             <div className="flex flex-wrap gap-2">
-                              {!user.clerk_linked && (
+                              {!user.identity_linked && (
                                 <Button
                                   variant="outline"
                                   disabled={conciergeBusy === user.id}
                                   onClick={() => void invitePersona(user, "customer")}
                                 >
-                                  {conciergeBusy === user.id ? "…" : "Send Clerk invite"}
+                                  {conciergeBusy === user.id ? "…" : "Send Keycloak invite"}
                                 </Button>
                               )}
                               {canImpersonate && (
@@ -389,7 +434,7 @@ export function DirectoryShell({
                           ) : null
                       : tab === "driver"
                         ? (user) =>
-                            user.provisioned && !user.id.startsWith("clerk:") ? (
+                            user.provisioned && !user.id.startsWith("keycloak:") ? (
                               <div className="flex flex-wrap gap-2">
                                 {user.access_status !== "authorized" && (
                                   <Button

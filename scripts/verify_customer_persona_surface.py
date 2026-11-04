@@ -87,7 +87,7 @@ def main() -> int:
 
     # Portal booking = Send (shared @porterchain/types/booking rules); auth via PortalAuth.
     book_ui = _read(CUSTOMER / "components/send/SendClient.tsx") + _read(CUSTOMER / "components/auth/PortalAuth.tsx")
-    for needle in ("createQuote", "isClerkConfigured", "@porterchain/types/booking"):
+    for needle in ("createQuote", "isIdpConfigured", "@porterchain/types/booking"):
         if needle not in book_ui:
             failures.append(f"Send flow missing {needle}")
     if "mockCompleteCheckout" not in book_ui and "syncBookingCheckout" not in book_ui:

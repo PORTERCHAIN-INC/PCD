@@ -11,10 +11,9 @@
 **Mapped:** 2026-09-17 via **Graphify** (`query` driver mobile↔Fleetbase, `explain` App.tsx / fleetbase_bridge / communications, `god-nodes`).  
 **Sensor note:** This session used **Graphify only** (one sensor / session). Next moments:
 
-| Next | Tool                                       | Use for                                                                      |
-| ---- | ------------------------------------------ | ---------------------------------------------------------------------------- |
-| B    | CodeGraph `codegraph_explore`              | Pydantic `Driver*` responses, POD/offline payloads, MapsService nav shapes   |
-| C    | Ripwire `--for` / `--callers` / `--impact` | Thin `routers/driver/*`, `handshake.ts`, `push.ts`, Fleetbase adapter leaves |
+| Next | Tool                          | Use for                                                                    |
+| ---- | ----------------------------- | -------------------------------------------------------------------------- |
+| B    | CodeGraph `codegraph_explore` | Pydantic `Driver*` responses, POD/offline payloads, MapsService nav shapes |
 
 **App root:** `apps/mobile-driver` (Expo SDK 57) · API prefix `/driver-api/v1` on `:8001` · **never** Fleetbase `:8000` / SocketCluster from the device.
 
@@ -56,11 +55,9 @@ apps/mobile-driver (Expo)
 | `MD-FILE-*`  | Client modules (`api`, `offline`, `push`, `maps`, …)      |
 | `MD-API-*`   | Every `/driver-api/v1` op used by mobile                  |
 | `MD-ENG-*`   | `driver_engine` / `porterchain_driver` services           |
-| `MD-FB-*`    | Fleetbase bridge / GPS / assignment / POD sync            |
 | `MD-MAP-*`   | Valhalla · OSRM · VROOM (via FB) · Google Places/deeplink |
 | `MD-PUSH-*`  | Expo → FCM register / loud assignment                     |
 | `MD-MAIL-*`  | Invite / SOS / support email (Mailpit local)              |
-| `MD-PAY-*`   | COD Checkout · wallet ledger read                         |
 | `MD-SHOP-*`  | Shopify order on route (indirect)                         |
 | `MD-ERP-*`   | Partner/ERP-sourced jobs on driver surface                |
 | `MD-DB-*`    | Driver ORM / offline queue / wallet rows                  |
@@ -86,7 +83,6 @@ apps/mobile-driver (Expo)
 | `sign-in`          | `SignInScreen.tsx`                                         | Clerk / `auth/dev-login` (local) · handshake           |
 | `onboarding`       | `OnboardingScreen.tsx`                                     | `GET /onboarding` · `POST /documents` · verification\* |
 | `route` (tab work) | `RouteScreen.tsx`                                          | nav session/route · arrive/deliver · POD · location    |
-| `job-detail`       | `JobDetailScreen.tsx`                                      | `GET /jobs/{id}` · accept/reject · scan · COD          |
 | `inbox`            | `InboxScreen.tsx`                                          | communications notifications\*                         |
 | `support`          | `SupportScreen.tsx`                                        | support hub/claims/emergency · SOS                     |
 | (via tabs)         | `JobsScreen` · `MoneyScreen` · `DocsScreen` · `MoreScreen` | jobs\* · wallet/earnings · docs · profile/more         |
@@ -125,12 +121,9 @@ apps/mobile-driver (Expo)
 | Package                                         | Role                                                                                                                              |
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `routers/driver/*`                              | Thin FastAPI (`profile`, `dashboard`, `shift`, `jobs`, `navigation_pod`, `communications`, `support`, `verification`, `auth_dev`) |
-| `driver_engine/*`                               | Auth, onboarding, verification, wallet_ledger, fleetbase_bridge, offline_executor, api_service                                    |
 | `services/driver-platform/porterchain_driver/*` | jobs, pod, push, location, navigation, offline, wallet, shift, …                                                                  |
-| `fleetbase-adapter`                             | GPS SoT, assignment, POD mirror, orchestrator/VROOM                                                                               |
 | `MapsService`                                   | Valhalla → OSRM                                                                                                                   |
 | `notification_engine`                           | DeviceService FCM + DeliveryService                                                                                               |
-| Worker                                          | EventBus + Fleetbase retry queue                                                                                                  |
 
 ---
 
@@ -145,7 +138,6 @@ apps/mobile-driver (Expo)
 | MD-HS-005 | P0  | Nav bits from MapsService          | ETA/distance labels; no Google DM               | nav session        |
 | MD-HS-006 | P0  | Push probe in handshake            | FCM token path or `unavailable` honest          | `collectPush`      |
 | MD-HS-007 | P0  | Location idle → granted            | Permission UX; denied still allows offline read | location           |
-| MD-HS-008 | P1  | Platform status from health        | Degraded Fleetbase/Maps labeled                 | public health      |
 | MD-HS-009 | P1  | Offline note after flush           | Pending count matches queue                     | offline flush      |
 | MD-HS-010 | P0  | Web BFF ≠ mobile Bearer            | Dual path intentional                           | ARCHITECTURE       |
 
@@ -205,17 +197,15 @@ apps/mobile-driver (Expo)
 
 ### 5.3 Jobs
 
-| ID         | P   | Case                         | Assert                                           |
-| ---------- | --- | ---------------------------- | ------------------------------------------------ |
-| MD-SCR-030 | P0  | Jobs list                    | Assigned-only; IDOR impossible                   |
-| MD-SCR-031 | P0  | Accept / reject              | Legal transitions only                           |
-| MD-SCR-032 | P0  | Job detail                   | Stops, COD CTA, scan phases                      |
-| MD-SCR-033 | P0  | Package scan pickup/delivery | ScanGateService progress                         |
-| MD-SCR-034 | P1  | COD checkout                 | Returns Checkout URL; existing Checkout unbroken |
-| MD-SCR-035 | P1  | Optimize preview             | Enqueues Fleetbase/VROOM — **no local TSP**      |
-| MD-SCR-036 | P1  | Optimize accept / undo       | Version conflict → `sequence_version_conflict`   |
-| MD-SCR-037 | P1  | Jobs history                 | Read-only past jobs                              |
-| MD-SCR-038 | P2  | Deep link `/jobs/{id}`       | Opens JobDetail                                  |
+| ID         | P   | Case                         | Assert                                         |
+| ---------- | --- | ---------------------------- | ---------------------------------------------- |
+| MD-SCR-030 | P0  | Jobs list                    | Assigned-only; IDOR impossible                 |
+| MD-SCR-031 | P0  | Accept / reject              | Legal transitions only                         |
+| MD-SCR-033 | P0  | Package scan pickup/delivery | ScanGateService progress                       |
+| MD-SCR-035 | P1  | Optimize preview             | Enqueues Fleetbase/VROOM — **no local TSP**    |
+| MD-SCR-036 | P1  | Optimize accept / undo       | Version conflict → `sequence_version_conflict` |
+| MD-SCR-037 | P1  | Jobs history                 | Read-only past jobs                            |
+| MD-SCR-038 | P2  | Deep link `/jobs/{id}`       | Opens JobDetail                                |
 
 ### 5.4 Money / docs / more / inbox / support
 
@@ -279,15 +269,14 @@ Prefix: `/driver-api/v1`. Auth: Clerk Bearer (or gated dev-login).
 
 ### 7.2 Dashboard / money / shift
 
-| ID         | P   | Method path                                            | Expected                                      |
-| ---------- | --- | ------------------------------------------------------ | --------------------------------------------- |
-| MD-API-010 | P0  | `GET /dashboard`                                       | Shift + next job summary                      |
-| MD-API-011 | P1  | `GET /wallet`                                          | Ledger ownership `driver_engine`              |
-| MD-API-012 | P1  | `GET /earnings` · `/today` · `/statements*` · download | CSV OK                                        |
-| MD-API-013 | P1  | `GET /bonuses` · `POST .../claim`                      |                                               |
-| MD-API-014 | P1  | `GET /performance` · `/ratings`                        |                                               |
-| MD-API-015 | P0  | `POST /availability`                                   | online/offline/busy/idle → Fleetbase presence |
-| MD-API-016 | P0  | `GET                                                   | POST /shift*` start/end/break/resume          |     |
+| ID         | P   | Method path                                            | Expected                             |
+| ---------- | --- | ------------------------------------------------------ | ------------------------------------ |
+| MD-API-010 | P0  | `GET /dashboard`                                       | Shift + next job summary             |
+| MD-API-011 | P1  | `GET /wallet`                                          | Ledger ownership `driver_engine`     |
+| MD-API-012 | P1  | `GET /earnings` · `/today` · `/statements*` · download | CSV OK                               |
+| MD-API-013 | P1  | `GET /bonuses` · `POST .../claim`                      |                                      |
+| MD-API-014 | P1  | `GET /performance` · `/ratings`                        |                                      |
+| MD-API-016 | P0  | `GET                                                   | POST /shift*` start/end/break/resume |     |
 
 ### 7.3 Jobs / routes / location / COD
 
@@ -299,8 +288,6 @@ Prefix: `/driver-api/v1`. Auth: Clerk Bearer (or gated dev-login).
 | MD-API-023 | P0  | `GET /routes/assigned` · `POST .../start` · stops · earnings |                                |
 | MD-API-024 | P0  | `POST .../arrive` · `/deliver` · `/exception`                |                                |
 | MD-API-025 | P0  | `POST /orders/{id}/packages/scan`                            | ScanGate                       |
-| MD-API-026 | P1  | `POST /orders/{id}/cod-checkout`                             | StripeCodService               |
-| MD-API-027 | P1  | `POST /jobs/optimize*` · accept · undo                       | Via Fleetbase VROOM            |
 | MD-API-028 | P0  | IDOR other driver job                                        | 403/404                        |
 
 ### 7.4 Navigation / POD / offline
@@ -342,44 +329,38 @@ Prefer `DRIVER_API_DRIVER_ID=<onboarded-uuid>` locally — see §19.1 (Bearer `d
 | MD-ENG-006 | P1  | `verification_service`                    | Status badges; no auto APPROVE                         |
 | MD-ENG-007 | P0  | `porterchain_driver.jobs`                 | List/detail/optimize façade                            |
 | MD-ENG-008 | P0  | `porterchain_driver.pod`                  | Media + complete                                       |
-| MD-ENG-009 | P0  | `porterchain_driver.location`             | Forward to Fleetbase                                   |
 | MD-ENG-010 | P0  | `porterchain_driver.push`                 | Delegates DeviceService                                |
 | MD-ENG-011 | P1  | `porterchain_driver.navigation`           | MapsService only                                       |
 | MD-ENG-012 | P1  | `ScanGateService`                         | QR parse ownership                                     |
-| MD-ENG-013 | P1  | `StripeCodService`                        | COD issue for assigned order                           |
 | MD-ENG-014 | P2  | Thin routers LOC                          | Under allowlist; logic in services                     |
 
 ---
 
 ## 9. Fleetbase — `MD-FB-*`
 
-| ID        | P   | Case                              | Expected                              |
-| --------- | --- | --------------------------------- | ------------------------------------- |
-| MD-FB-001 | P0  | Approve driver → `push_driver`    | Public id stored                      |
-| MD-FB-002 | P0  | Assignment webhook → job appears  | Mobile refresh/push                   |
-| MD-FB-003 | P0  | Location → Fleetbase GPS SoT      | PC not SoT                            |
-| MD-FB-004 | P0  | POD complete mirrored             | Adapter path                          |
-| MD-FB-005 | P0  | Mobile never calls `:8000`        | vendor-leaves CI                      |
-| MD-FB-006 | P0  | No SocketCluster in Expo          | Import ban                            |
-| MD-FB-007 | P1  | Adapter circuit / retry           | Sync job + worker drain               |
-| MD-FB-008 | P1  | Availability → Fleetbase presence | online/offline                        |
-| MD-FB-009 | P1  | Optimize run via orchestrator     | VROOM inside Fleetbase                |
-| MD-FB-010 | P2  | Chaos `fleetbase_offline`         | Mobile queues offline; honest degrade |
+| ID        | P   | Case                             | Expected                |
+| --------- | --- | -------------------------------- | ----------------------- |
+| MD-FB-001 | P0  | Approve driver → `push_driver`   | Public id stored        |
+| MD-FB-002 | P0  | Assignment webhook → job appears | Mobile refresh/push     |
+| MD-FB-003 | P0  | Location → Fleetbase GPS SoT     | PC not SoT              |
+| MD-FB-004 | P0  | POD complete mirrored            | Adapter path            |
+| MD-FB-005 | P0  | Mobile never calls `:8000`       | vendor-leaves CI        |
+| MD-FB-006 | P0  | No SocketCluster in Expo         | Import ban              |
+| MD-FB-007 | P1  | Adapter circuit / retry          | Sync job + worker drain |
 
 ---
 
 ## 10. Maps / VROOM / Google — `MD-MAP-*`
 
-| ID         | P   | Case                                | Expected                   |
-| ---------- | --- | ----------------------------------- | -------------------------- |
-| MD-MAP-001 | P0  | Nav route Valhalla-first            | OSRM fallback labeled      |
-| MD-MAP-002 | P0  | No Google Distance Matrix / ETA API | ARCH + static              |
-| MD-MAP-003 | P1  | Google Places unused on driver nav  | Tiles/deeplink OK only     |
-| MD-MAP-004 | P0  | No PorterChain VROOM HTTP client    | Optimize via Fleetbase     |
-| MD-MAP-005 | P1  | VROOM_ROUTER=valhalla in Fleetbase  | Probe orchestrator engines |
-| MD-MAP-006 | P1  | Chaos valhalla_failure → OSRM       | Degrade path               |
-| MD-MAP-007 | P1  | Chaos osrm_failure                  | Honest error in nav        |
-| MD-MAP-008 | P2  | External maps deeplink coords       | Match dest lat/lng         |
+| ID         | P   | Case                                | Expected               |
+| ---------- | --- | ----------------------------------- | ---------------------- |
+| MD-MAP-001 | P0  | Nav route Valhalla-first            | OSRM fallback labeled  |
+| MD-MAP-002 | P0  | No Google Distance Matrix / ETA API | ARCH + static          |
+| MD-MAP-003 | P1  | Google Places unused on driver nav  | Tiles/deeplink OK only |
+| MD-MAP-004 | P0  | No PorterChain VROOM HTTP client    | Optimize via Fleetbase |
+| MD-MAP-006 | P1  | Chaos valhalla_failure → OSRM       | Degrade path           |
+| MD-MAP-007 | P1  | Chaos osrm_failure                  | Honest error in nav    |
+| MD-MAP-008 | P2  | External maps deeplink coords       | Match dest lat/lng     |
 
 ---
 
@@ -401,31 +382,28 @@ Prefer `DRIVER_API_DRIVER_ID=<onboarded-uuid>` locally — see §19.1 (Bearer `d
 
 ## 12. Money / Shopify / ERP — `MD-PAY-*` / `MD-SHOP-*` / `MD-ERP-*`
 
-| ID          | P   | Case                                | Expected                             |
-| ----------- | --- | ----------------------------------- | ------------------------------------ |
-| MD-PAY-001  | P0  | COD Checkout issue                  | Stripe Checkout URL; webhook settles |
-| MD-PAY-002  | P0  | Existing retail Checkout unbroken   | Freeze lift additive only            |
-| MD-PAY-003  | P1  | Wallet ledger immutable from mobile | Read-only                            |
-| MD-SHOP-001 | P1  | Shopify-origin order on route       | Same job UX; source badge optional   |
-| MD-SHOP-002 | P2  | Carrier quote ≠ driver optimize     | No Shopify→VROOM confusion           |
-| MD-ERP-001  | P1  | Partner API / OAuth booked job      | Driver sees assigned job only        |
-| MD-ERP-002  | P2  | Merchant webhook-created order      | Same Fleetbase assignment path       |
-| MD-ERP-003  | P3  | Future ERP adapters                 | Catalog only — no fake green         |
+| ID          | P   | Case                                | Expected                           |
+| ----------- | --- | ----------------------------------- | ---------------------------------- |
+| MD-PAY-002  | P0  | Existing retail Checkout unbroken   | Freeze lift additive only          |
+| MD-PAY-003  | P1  | Wallet ledger immutable from mobile | Read-only                          |
+| MD-SHOP-001 | P1  | Shopify-origin order on route       | Same job UX; source badge optional |
+| MD-SHOP-002 | P2  | Carrier quote ≠ driver optimize     | No Shopify→VROOM confusion         |
+| MD-ERP-001  | P1  | Partner API / OAuth booked job      | Driver sees assigned job only      |
+| MD-ERP-003  | P3  | Future ERP adapters                 | Catalog only — no fake green       |
 
 **Missed integrations explicitly covered above:** Clerk, Fleetbase, Firebase/FCM, Valhalla, OSRM, VROOM (via FB), Google Maps (Places/deeplink only), Mailpit/email, notification_engine, Stripe COD, Shopify (indirect), partner/ERP ingest, worker retry, Docker health.
 
 **Also assert (often forgotten):**
 
-| Extra                    | Case                                                |
-| ------------------------ | --------------------------------------------------- |
-| Redis                    | Session/rate limits don't break mobile Bearer       |
-| Postgres 18              | Migrations head; integrity FKs                      |
-| Valkey (Fleetbase cache) | Dispatch presence unaffected by PC Redis            |
-| Sentry                   | Mobile + API error boundary breadcrumbs             |
-| EAS / app.json           | Bundle id `com.porterchain.PCD`; FCM plists present |
-| Deep links               | Universal links registered                          |
-| Background location      | OS permission + task name stable                    |
-| Sequence version         | Optimize conflict messaging                         |
+| Extra               | Case                                                |
+| ------------------- | --------------------------------------------------- |
+| Redis               | Session/rate limits don't break mobile Bearer       |
+| Postgres 18         | Migrations head; integrity FKs                      |
+| Sentry              | Mobile + API error boundary breadcrumbs             |
+| EAS / app.json      | Bundle id `com.porterchain.PCD`; FCM plists present |
+| Deep links          | Universal links registered                          |
+| Background location | OS permission + task name stable                    |
+| Sequence version    | Optimize conflict messaging                         |
 
 ---
 
@@ -437,23 +415,21 @@ Prefer `DRIVER_API_DRIVER_ID=<onboarded-uuid>` locally — see §19.1 (Bearer `d
 | MD-DB-002 | P0  | Offline action rows            | Idempotent client_id           |
 | MD-DB-003 | P1  | Wallet ledger                  | `driver_engine/wallet_ledger`  |
 | MD-DB-004 | P1  | NotificationRecord / devices   | Persona=driver                 |
-| MD-DB-005 | P1  | FleetbaseSyncJob on fail       | RetryQueue                     |
 | MD-DB-006 | P2  | Incidents / support tickets    | FK integrity                   |
 
 ---
 
 ## 14. Docker / EAS — `MD-DOC-*`
 
-| ID         | P   | Case                              | Expected                                     |
-| ---------- | --- | --------------------------------- | -------------------------------------------- |
-| MD-DOC-001 | P0  | Compose API `:8001` healthy       | Mobile can probe                             |
-| MD-DOC-002 | P0  | Image pins exact                  | No `:latest`                                 |
-| MD-DOC-003 | P0  | Valhalla `:8002` · OSRM `:5000`   | Maps degrade tests                           |
-| MD-DOC-004 | P0  | Fleetbase `:8000` + VROOM sidecar | Optimize path                                |
-| MD-DOC-005 | P1  | Mailpit up                        | Invite email                                 |
-| MD-DOC-006 | P1  | Redis 8.8                         | Worker + sessions                            |
-| MD-DOC-007 | P1  | EAS profiles                      | `eas.json` preview/production                |
-| MD-DOC-008 | P2  | Android/iOS Firebase configs      | Present; not committed secrets beyond public |
+| ID         | P   | Case                            | Expected                                     |
+| ---------- | --- | ------------------------------- | -------------------------------------------- |
+| MD-DOC-001 | P0  | Compose API `:8001` healthy     | Mobile can probe                             |
+| MD-DOC-002 | P0  | Image pins exact                | No `:latest`                                 |
+| MD-DOC-003 | P0  | Valhalla `:8002` · OSRM `:5000` | Maps degrade tests                           |
+| MD-DOC-005 | P1  | Mailpit up                      | Invite email                                 |
+| MD-DOC-006 | P1  | Redis 8.8                       | Worker + sessions                            |
+| MD-DOC-007 | P1  | EAS profiles                    | `eas.json` preview/production                |
+| MD-DOC-008 | P2  | Android/iOS Firebase configs    | Present; not committed secrets beyond public |
 
 ---
 
@@ -526,9 +502,8 @@ maestro test apps/mobile-driver/maestro/login-and-track.yaml
 3. **MD-FB-*** + **MD-MAP-*** vendor leaves CI.
 4. **MD-PUSH-*** / DeviceService FCM-only.
 5. **MD-SCR-*** Maestro P0/P1 flows.
-6. Money/COD/Shopify-indirect.
-7. Verification CTAs per intentional skips.
-8. Chaos drills in System Test Center.
+6. Verification CTAs per intentional skips.
+7. Chaos drills in System Test Center.
 
 ### How to add a case
 
@@ -549,7 +524,6 @@ maestro test apps/mobile-driver/maestro/login-and-track.yaml
 | GPS            | `test_gps_ingest_wave01.py`, `wave3`, `wave4`                                                                                                          |
 | Push/maps gaps | `test_maps_firebase_push_gaps.py`                                                                                                                      |
 | Notifications  | `test_notification_*.py`                                                                                                                               |
-| Fleetbase      | `test_fleetbase_*.py`, approve-push wave2                                                                                                              |
 | Arch CI        | `verify_architecture_boundaries`, `verify_vendor_leaves`, model ownership, no ops spatial math                                                         |
 
 ### 19.1 Live probe auth seed (`DRIVER_API_DRIVER_ID`)
@@ -586,13 +560,11 @@ PYTHONPATH=src:../../shared/python:../../services/python:../../services/fleetbas
 | Each page / subpage / tab         | §2 · §5    |
 | Each file / module                | §2.3 · §6  |
 | API / FastAPI / microservices     | §7 · §8    |
-| Fleetbase handshakes              | §9 · §3    |
 | Firebase / push / notify / email  | §11        |
 | Clerk                             | §4         |
 | VROOM / Valhalla / OSRM / Google  | §10        |
 | Backend / UI / UX / models / DB   | §5–8 · §13 |
 | Docker / architecture             | §14 · §16  |
 | Shopify / ERP / other connections | §12        |
-| COD / wallet / Stripe             | §12        |
 | Maestro                           | §15        |
 | Chaos                             | §17        |

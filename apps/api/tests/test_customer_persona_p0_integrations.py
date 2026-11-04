@@ -53,7 +53,7 @@ def _matrix_require_module(ctx: AdminContext, module: str) -> None:
 def _admin_ctx(role: str = "super_admin") -> AdminContext:
     return AdminContext(
         user=AdminUser(
-            clerk_user_id=f"admin-int-{role}-{uuid4().hex[:6]}",
+            auth_subject=f"admin-int-{role}-{uuid4().hex[:6]}",
             email=f"{role}-int@porterchain.com",
             role=role,
         ),
@@ -104,7 +104,7 @@ def _stripe_settings() -> Settings:
 def _make_customer(db: Session) -> Customer:
     tag = uuid4().hex[:10]
     row = Customer(
-        clerk_user_id=f"user_int_{tag}",
+        auth_subject=f"user_int_{tag}",
         email=f"int-{tag}@p0.test",
         phone="+14165550111",
     )
@@ -279,8 +279,8 @@ def test_ui_admin_add_order_modal_wires_payment_link() -> None:
     assert "sendPaymentLink" in lib or "send-payment-link" in lib
 
 
-def test_ui_customer_book_clerk_quote_mock_complete() -> None:
-    """C-UI-010/042/043 contract: book flow uses Clerk + quotes + mock-complete."""
+def test_ui_customer_book_auth_quote_mock_complete() -> None:
+    """C-UI-010/042/043 contract: book flow uses Keycloak OIDC + quotes + mock-complete."""
     book = (CUSTOMER_SRC / "components/send/SendClient.tsx").read_text(encoding="utf-8") + (
         CUSTOMER_SRC / "components/auth/PortalAuth.tsx"
     ).read_text(encoding="utf-8")
@@ -290,7 +290,9 @@ def test_ui_customer_book_clerk_quote_mock_complete() -> None:
     assert 'checkout_channel: "customer"' in booking_lib
     assert "/v1/quotes" in booking_lib
     assert "/v1/bookings" in booking_lib
-    assert "isClerkConfigured" in book
+    assert "@porterchain/auth/oidc/client" in book or "useAuth" in book
+    assert "@clerk/" not in book
+    assert "isAuthConfigured" in book
     assert "useAuth" in book or "useUser" in book
 
 
@@ -383,7 +385,7 @@ def test_fb_confirmation_dual_writes_stops_and_order_created(db: Session, settin
         quote_id=quote.id,
         email=f"fb-{uuid4().hex[:6]}@p0.test",
         phone="+14165550888",
-        clerk_user_id=f"clerk_fb_{uuid4().hex[:8]}",
+        auth_subject=f"idp_fb_{uuid4().hex[:8]}",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,

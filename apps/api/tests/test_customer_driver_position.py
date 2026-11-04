@@ -117,7 +117,7 @@ def test_route_requires_sign_in():
     from porterchain_api.config import Settings, get_settings
     from porterchain_api.main import app
 
-    # Bypass off: a local CLERK_DEV_BYPASS would otherwise sign the request in.
+    # Bypass off: a local AUTH_DEV_BYPASS would otherwise sign the request in.
     locked = Settings(
         app_env="local",
         stripe_mock=True,
@@ -125,7 +125,7 @@ def test_route_requires_sign_in():
         spicedb_enabled=False,
         spicedb_use_memory=True,
         spicedb_required=False,
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
     )
     app.dependency_overrides[get_settings] = lambda: locked
     try:

@@ -31,6 +31,8 @@ export function ProofSheets({
   onClose: () => void;
 }) {
   const [signature, setSignature] = useState("");
+  const [signerName, setSignerName] = useState(pod.signerName ?? "");
+  const nameOk = signerName.trim().length >= 2;
   const [padKey, setPadKey] = useState(0);
   const [otp, setOtp] = useState(pod.otp);
 
@@ -46,9 +48,10 @@ export function ProofSheets({
             <Button
               tone="primary"
               label="Save signature"
-              disabled={!signature}
+              disabled={!signature || !nameOk}
+              hint={signature && !nameOk ? "Type the signer's name" : undefined}
               onPress={() => {
-                onChange({ ...pod, signature });
+                onChange({ ...pod, signature, signerName: signerName.trim() });
                 onClose();
               }}
             />
@@ -65,6 +68,18 @@ export function ProofSheets({
       >
         <Body>Hand the phone to the receiver. They sign in the box with a finger.</Body>
         <SignaturePad key={padKey} onChange={setSignature} />
+        <Muted>Name of the person signing</Muted>
+        <TextInput
+          style={styles.signer}
+          value={signerName}
+          onChangeText={(v) => setSignerName(v.slice(0, 120))}
+          autoCapitalize="words"
+          autoComplete="name"
+          accessibilityLabel="Name of the person signing"
+          placeholder="Full name"
+          placeholderTextColor={color.border}
+          testID="signer-name-input"
+        />
       </Sheet>
 
       <Sheet
@@ -143,6 +158,16 @@ export function ProofSheets({
 }
 
 const styles = StyleSheet.create({
+  signer: {
+    minHeight: target.min,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: color.ink,
+    backgroundColor: color.surface,
+    paddingHorizontal: space.lg,
+    fontSize: 18,
+    color: color.ink,
+  },
   choice: {
     minHeight: target.min,
     borderRadius: radius.md,

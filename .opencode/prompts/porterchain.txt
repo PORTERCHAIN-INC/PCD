@@ -8,17 +8,13 @@ Optimize the network: utilization, trust, automation, merchant/driver retention 
 - Node 24 LTS · pnpm 11 · Next 16 · React 19 · TypeScript 6 · Tailwind 4
 - Python 3.14 · FastAPI · Pydantic v2 · SQLAlchemy 2 · Postgres 18 · Redis 8 · Mailpit
 - Expo SDK 57 for mobile shells
-- Auth: Clerk (CLERK_<PORTAL>_* keys; local bypass Bearer `dev`)
+- Auth: Keycloak (IDP_<PORTAL>_* keys; local bypass Bearer `dev`)
 - No SocketCluster in web apps; no Fleetbase HTTP from frontends
 
-## Fleetbase-first (hard rule)
-Before any ops/logistics feature (dispatch, drivers, vehicles, live GPS, geofences, POD, fleet views, driver notifications):
-1. Use Fleetbase if it exists (Core / FleetOps / console)
-2. Wrap via services/fleetbase-adapter/
-3. Extend Fleetbase only through extension points — never fork apps/fleetbase/
-4. Build custom ONLY for commercial/domain-unique work: pricing, quotes, Stripe, CRM, claims, merchant UX, onboarding/compliance
-
-Forbidden re-builds: dispatch boards, driver availability state, live tracking maps, GPS ping storage, vehicle registries, geofence engines, POD storage, route optimizers, SocketCluster listeners in web apps.
+## Dispatch ownership (hard rule)
+Fleetbase is retired. PorterChain owns dispatch, driver duty, live GPS, proof files and the day plan
+(see .cursor/rules/dispatch-routing-policy.mdc and ARCHITECTURE.md). Do not add a Fleetbase adapter,
+a second console, SocketCluster listeners in web apps, or a VROOM client.
 
 ## Routing providers
 1. Valhalla (porterchain-valhalla :8002) — routes, matrix, isochrones, costing

@@ -39,6 +39,14 @@ _KEEP_PREFIXES: tuple[str, ...] = (
     "/v1/oauth",
     "/v1/integrations",
     "/v1/security",
+    # Live customer surfaces that were missing from the stale snapshot until the
+    # Oct 2026 regeneration (tracking page manage-delivery, express checkout,
+    # email preferences, booking attachment links, address lookup).
+    "/v1/delivery-manage",
+    "/v1/express",
+    "/v1/email-preferences",
+    "/v1/attachment-links",
+    "/v1/geo",
     "/webhooks",
     "/health",
     "/metrics",

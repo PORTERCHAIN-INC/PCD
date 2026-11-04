@@ -12,7 +12,7 @@ from porterchain_api.admin_engine.finance_service import AdminFinanceService, Fi
 from porterchain_api.admin_engine.operations_service import AdminOperationsService
 from porterchain_api.admin_engine.orders_service import AdminOrderFilters, AdminOrdersService
 from porterchain_api.admin_engine.rbac import AdminContext, require_module
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
 from porterchain_api.admin_engine.support_service import AdminSupportService, SupportFilters
 from porterchain_api.auth.admin import get_admin_context
@@ -84,7 +84,6 @@ from porterchain_api.schemas_admin import (
     FinancePaymentPage,
     FinancePayoutItem,
     FinanceLedgerItem,
-    FinanceCreditNoteRequest,
     MerchantArGenerateRequest,
     MerchantArRecordPaymentRequest,
     BookingDraftAdminItem,
@@ -128,7 +127,7 @@ _merchant_ar = __import__(
 ).MerchantArService()
 _support = AdminSupportService()
 _settings = AdminSettingsService()
-_clerk_directory = ClerkDirectoryService()
+_idp_directory = DirectoryUserService()
 _draft_admin = AdminBookingDraftService()
 _blog = BlogService()
 _data_moat = AdminDataMoatService()
@@ -254,7 +253,6 @@ __all__ = [
     "ClaimNoteRequest",
     "ClaimStatusUpdateRequest",
     "Depends",
-    "FinanceCreditNoteRequest",
     "MerchantArGenerateRequest",
     "MerchantArRecordPaymentRequest",
     "FinanceDashboardResponse",
@@ -313,7 +311,7 @@ __all__ = [
     "_audit_export",
     "_claims",
     "_data_moat",
-    "_clerk_directory",
+    "_idp_directory",
     "_dashboard",
     "_draft_admin",
     "_finance",

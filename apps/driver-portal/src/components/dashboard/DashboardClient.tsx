@@ -58,8 +58,9 @@ export default function DashboardClient() {
 
   const { dashboard, performance, ratings, queues, route, vehicle } = data;
   const shiftActive = data.shiftActive;
-  const deliveriesToday =
-    performance.deliveries_today > 0 ? performance.deliveries_today : queues.todaysDeliveries;
+  // L187: completed today = delivered orders today (API) or completed route stops, whichever is higher.
+  const completedToday = Math.max(performance.deliveries_today, queues.completedDeliveries);
+  const deliveriesToday = Math.max(queues.todaysDeliveries, completedToday);
 
   return (
     <DriverShell>
@@ -123,12 +124,12 @@ export default function DashboardClient() {
           <MetricCard
             label="Today's Deliveries"
             value={String(deliveriesToday)}
-            hint={`${queues.completedDeliveries} completed`}
+            hint={`${completedToday} completed`}
             icon={Target}
           />
           <MetricCard
             label="Completed Deliveries"
-            value={String(queues.completedDeliveries)}
+            value={String(completedToday)}
             icon={CheckCircle2}
           />
           <MetricCard

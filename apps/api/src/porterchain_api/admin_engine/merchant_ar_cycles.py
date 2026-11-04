@@ -11,7 +11,7 @@ from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.merchant_models import Merchant
 from porterchain_api.platform.merchant_billing import apply_available_credit
 
-__all__ = ["apply_available_credit", "is_cycle_billed", "run_due_cycles"]
+__all__ = ["apply_available_credit", "is_cycle_billed", "is_weekly_billed_merchant", "run_due_cycles"]
 
 NET_TERMS_CYCLES = frozenset({"WEEKLY", "BIWEEKLY", "MONTHLY"})
 
@@ -21,20 +21,21 @@ def run_due_cycles(svc, db: Session, *, now: datetime | None = None) -> dict[str
 
     Idempotent — orders already on an invoice are excluded, so re-running is a no-op.
     """
+    from porterchain_api.platform.engine_ports.billing_engine__pkg import weekly_billing
+
+    # Weekly billing (Ravi 2026-10-31): last Mon-Sun Toronto week, invoiced from Wednesday.
+    if not weekly_billing.invoice_day_reached(now):
+        return {"processed": 0, "invoiced": 0, "failed": 0}
     merchants = db.query(Merchant).all()
     processed = invoiced = failed = 0
     for m in merchants:
-        cycle = (m.billing_cycle or "").upper()
-        terms = (m.payment_terms or "").upper()
-        if cycle not in NET_TERMS_CYCLES or terms in ("", "IMMEDIATE", "PREPAID"):
+        if not is_weekly_billed_merchant(m):
             continue
-        if m.status != MerchantStatus.ACTIVE.value:
+        if m.status not in (MerchantStatus.ACTIVE.value, MerchantStatus.SUSPENDED.value):
             continue
         processed += 1
         try:
-            from porterchain_api.admin_engine.merchant_ar_service import previous_billing_period_bounds
-
-            start, end = previous_billing_period_bounds(cycle, now)
+            start, end = weekly_billing.previous_week_bounds(now)
             out = svc.generate(db, None, merchant_id=m.id, period_start=start, period_end=end)
             invoiced += int(out["created_count"])
         except Exception:  # noqa: BLE001 - one bad merchant must not stop the run
@@ -52,8 +53,12 @@ def is_cycle_billed(db: Session, order: Order) -> bool:
 
     if not merchant_cycle_invoicing_enabled(db):
         return False
-    terms = (order.payment_terms or "").upper()
-    if terms in ("", "IMMEDIATE", "PREPAID"):
+    if (order.payment_terms or "").upper() == "PREPAID":
         return False
     merchant = db.get(Merchant, order.merchant_id)
-    return bool(merchant and (merchant.billing_cycle or "").upper() in NET_TERMS_CYCLES)
+    return bool(merchant and is_weekly_billed_merchant(merchant))
+
+
+def is_weekly_billed_merchant(merchant: Merchant) -> bool:
+    """Every merchant is billed weekly, except one that prepays by card at booking."""
+    return (getattr(merchant, "payment_terms", None) or "").upper() != "PREPAID"

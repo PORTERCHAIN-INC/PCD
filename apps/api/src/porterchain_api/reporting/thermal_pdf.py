@@ -143,16 +143,18 @@ def _wrap(text: str, font: str, size: float, width: float) -> list[str]:
 
 
 def _address_text(raw: str) -> str:
-    """Drop repeated comma parts (formatted address + city + postal often duplicate)."""
+    """Drop repeated comma parts (formatted address + city + postal often duplicate).
+
+    L87: only exact repeats are dropped. A substring test removed "Toronto" after
+    "Toronto City Hall" and "ON" after "Continental"."""
     parts: list[str] = []
-    seen = ""
+    seen: set[str] = set()
     for part in (p.strip() for p in raw.split(",")):
-        if not part:
-            continue
-        if part.lower() in seen.lower():
+        key = " ".join(part.lower().split())
+        if not key or key in seen:
             continue
         parts.append(part)
-        seen += " " + part
+        seen.add(key)
     return ", ".join(parts)
 
 
@@ -216,11 +218,11 @@ def layout_page(page: dict[str, Any]) -> list[Box]:
     y -= 6
 
     # FROM (small, max 2 lines) then TO (prominent, max 4 lines) — full width each.
-    from_text = _present(page.get("from_line")) or "—"
+    from_text = _address_text(_present(page.get("from_line")) or "—")
     b = _text_box("FROM", "Helvetica-Bold", 7, left, y, width)
     boxes.append(b)
     y = b.y0 - 2
-    lines, size = _fit_lines(from_text, "Helvetica", (8, 7), width, 2)
+    lines, size = _fit_lines(from_text, "Helvetica", (8, 7, 6.5), width, 3)
     for line in lines:
         b = _text_box(line, "Helvetica", size, left, y, width)
         boxes.append(b)

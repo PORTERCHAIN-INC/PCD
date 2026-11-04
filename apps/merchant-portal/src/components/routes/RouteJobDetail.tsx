@@ -8,7 +8,6 @@ import {
   getRouteImport,
   patchOrderParcels,
   patchRouteImportStop,
-  type RouteImportJob,
 } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
 import { VEHICLE_CHOICES } from "@/lib/route-module/allocateVehicle";

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.driver_lookups import (
-    get_driver_by_clerk,
+    get_driver_by_idp,
     stamp_driver_porterchain_user_id,
 )
 from porterchain_api.admin_engine.staff_lookups import stamp_admin_porterchain_user_id
@@ -16,7 +16,7 @@ from porterchain_api.authz.client import AuthzClient, Relationship, get_authz_cl
 from porterchain_api.authz.platform_roles import relation_for_admin_role
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantRole
-from porterchain_api.merchant_engine.lookups import active_seats_for_clerk, seats_for_clerk
+from porterchain_api.merchant_engine.lookups import active_seats_for_idp, seats_for_idp
 from porterchain_api.booking_models import Customer
 from porterchain_api.user_models import PorterchainUser
 
@@ -62,7 +62,7 @@ class TupleWriter:
 
     def sync_user_from_profiles(self, db: Session, user: PorterchainUser) -> str | None:
         """Reconcile SpiceDB tuples for a user from profile rows (data), not role assignment tables."""
-        subject = user.clerk_user_id
+        subject = user.auth_subject
         if not subject:
             return None
         desired: list[Relationship] = []
@@ -74,7 +74,7 @@ class TupleWriter:
                 Relationship("platform", PLATFORM_ID, rel, "user", user.id)
             )
 
-        for mu in active_seats_for_clerk(db, subject, user_id=user.id):
+        for mu in active_seats_for_idp(db, subject, user_id=user.id):
             rel = relation_for_merchant_role(mu.role)
             desired.append(
                 Relationship("organization", mu.merchant_id, rel, "user", user.id)
@@ -90,7 +90,7 @@ class TupleWriter:
                 Relationship("driver_profile", driver.id, "owner", "user", user.id)
             )
 
-        customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
+        customer = db.query(Customer).filter(Customer.auth_subject == subject).first()
         if customer:
             if getattr(customer, "porterchain_user_id", None) != user.id:
                 try:
@@ -114,7 +114,7 @@ class TupleWriter:
 
     def _known_relationships(self, db: Session, user: PorterchainUser) -> list[Relationship]:
         """Every edge this user could hold (platform roles, seats, profiles)."""
-        subject = user.clerk_user_id
+        subject = user.auth_subject
         to_delete: list[Relationship] = []
         # Drop every known platform role relation (covers role changes + legacy staff).
         from porterchain_api.authz.platform_roles import PLATFORM_ROLE_RELATIONS
@@ -123,17 +123,17 @@ class TupleWriter:
             to_delete.append(Relationship("platform", PLATFORM_ID, rel, "user", user.id))
 
         if subject:
-            for mu in seats_for_clerk(db, subject):
+            for mu in seats_for_idp(db, subject):
                 for rel in ORG_ROLE_RELATIONS:
                     to_delete.append(
                         Relationship("organization", mu.merchant_id, rel, "user", user.id)
                     )
-            driver = get_driver_by_clerk(db, subject)
+            driver = get_driver_by_idp(db, subject)
             if driver:
                 to_delete.append(
                     Relationship("driver_profile", driver.id, "owner", "user", user.id)
                 )
-            customer = db.query(Customer).filter(Customer.clerk_user_id == subject).first()
+            customer = db.query(Customer).filter(Customer.auth_subject == subject).first()
             if customer:
                 to_delete.append(
                     Relationship("customer_profile", customer.id, "owner", "user", user.id)
@@ -221,7 +221,7 @@ def bootstrap_all_profiles(db: Session) -> dict[str, int]:
     users = db.query(PorterchainUser).all()
     synced = 0
     for user in users:
-        if not user.clerk_user_id:
+        if not user.auth_subject:
             continue
         writer.sync_user_from_profiles(db, user)
         synced += 1

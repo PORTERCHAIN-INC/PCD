@@ -197,6 +197,20 @@ class DriverRouteService:
                 if phase == "pickup" or not short_reason:
                     raise PermissionError(f"scan_required:{phase}:" + ",".join(progress.get("missing_suffixes") or []))
                 self._short_alert(db, order, driver.id, progress, short_reason)
+        if event in DONE_EVENTS:
+            # Pickup document checklist + must-read instructions (doc 80/81; steering 2026-10-29).
+            from porterchain_api.job_docs import service as JD
+            if stop["kind"] in PICKUP_KINDS:
+                try:
+                    JD.assert_pickup_docs(db, JD.required_for_order(db, order), order_id=order.id)
+                    JD.assert_acknowledged(db, str(driver.id), "pickup", order_id=order.id)
+                except ValueError as exc:
+                    raise PermissionError(str(exc)) from exc
+            elif stop["kind"] in POD_KINDS:
+                try:
+                    JD.assert_acknowledged(db, str(driver.id), "delivery", order_id=order.id)
+                except ValueError as exc:
+                    raise PermissionError(str(exc)) from exc
         if event == "delivered" and stop["kind"] in POD_KINDS and not self._has_photo(db, order.id):
             if not pod_photo:
                 raise PermissionError("pod_required:photo")

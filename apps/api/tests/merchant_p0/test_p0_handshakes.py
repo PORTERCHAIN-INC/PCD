@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.auth.clerk_registry import clerk_app_configs, clerk_app_for_kind
+from porterchain_api.auth.identity_directory import ALL_USER_KINDS  # noqa: F401
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole
 from porterchain_api.merchant_engine.rbac import MODULE_PERMISSIONS
@@ -31,9 +31,9 @@ NAV_TS = REPO_ROOT / "apps" / "merchant-portal" / "src" / "lib" / "merchant-nav.
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
-        if key.startswith("CLERK_"):
+        if key.startswith("IDP_"):
             monkeypatch.delenv(key, raising=False)
 
 
@@ -98,37 +98,6 @@ def test_neg_no_google_distance_in_routing_facade() -> None:
     text = (REPO_ROOT / "apps/api/src/porterchain_api/services/routing.py").read_text(encoding="utf-8")
     assert "google" not in text.lower()
     assert "DistanceMatrix" not in text
-
-
-@pytest.mark.merchant_p0
-@pytest.mark.tc_id("HS-CLERK-001")
-def test_hs_clerk_merchant_slot() -> None:
-    settings = Settings(
-        _env_file=None,
-        jwt_secret="a" * 32,
-        clerk_unified_mode=False,
-        clerk_merchant_secret_key="sk_test_merchant",
-        clerk_merchant_jwks_url="https://merchant.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_merchant_publishable_key="pk_test_merchant",
-        clerk_customer_secret_key="sk_test_customer",
-        clerk_customer_jwks_url="https://customer.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_customer_publishable_key="pk_test_customer",
-        clerk_admin_secret_key="sk_test_admin",
-        clerk_admin_jwks_url="https://admin.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_admin_publishable_key="pk_test_admin",
-        clerk_driver_secret_key="sk_test_driver",
-        clerk_driver_jwks_url="https://driver.clerk.accounts.dev/.well-known/jwks.json",
-        clerk_driver_publishable_key="pk_test_driver",
-        clerk_secret_key="",
-        clerk_jwks_url="",
-        clerk_publishable_key="",
-    )
-    apps = {a.kind: a for a in clerk_app_configs(settings)}
-    assert "merchant" in apps
-    merchant = clerk_app_for_kind(settings, "merchant")
-    assert merchant is not None
-    assert merchant.secret_key == "sk_test_merchant"
-    assert "jwks" in merchant.jwks_url
 
 
 @pytest.mark.merchant_p0

@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Platform, useColorScheme, View } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from "react-native-maps";
+import { useMemo } from "react";
+import { useColorScheme, View } from "react-native";
+import { Camera, GeoJSONSource, Layer, Map, Marker } from "@maplibre/maplibre-react-native";
 import { radius, spacing, usePalette } from "../theme";
 import { Txt } from "./kit";
-
-type LatLng = { latitude: number; longitude: number };
+import { boundsOf, porterchainNativeStyle, type LatLng } from "./mapStyle";
 
 type Props = {
   pickup: LatLng | null;
@@ -15,34 +14,39 @@ type Props = {
   note?: string | null;
 };
 
+const lngLat = (p: LatLng): [number, number] => [p.longitude, p.latitude];
+
+function Dot({ size, color }: { size: number; color: string }) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        borderWidth: 3,
+        borderColor: "#ffffff",
+      }}
+    />
+  );
+}
+
 /**
- * Native in-app live map: Apple Maps on iOS, Google Maps on Android.
- * Shows pickup (A), drop-off (B) and the driver's coarse latest position, with the ETA.
+ * Native in-app live map on iOS and Android: MapLibre Native + self-hosted PMTiles
+ * (doc 60 R4, no map vendor or key). Shows pickup, drop-off and the driver's coarse
+ * latest position, with the ETA.
  */
 export function LiveMap({ pickup, dropoff, driver, eta, note }: Props) {
   const c = usePalette();
   const scheme = useColorScheme() === "dark" ? "dark" : "light";
-  const ref = useRef<MapView>(null);
+  const mapStyle = useMemo(() => porterchainNativeStyle(scheme), [scheme]);
   const points = useMemo(
     () => [pickup, dropoff, driver].filter((p): p is LatLng => p != null),
     [pickup, dropoff, driver]
   );
+  const bounds = useMemo(() => boundsOf(points), [points]);
 
-  useEffect(() => {
-    if (points.length < 1) return;
-    const t = setTimeout(
-      () =>
-        ref.current?.fitToCoordinates(points, {
-          edgePadding: { top: 48, right: 48, bottom: 48, left: 48 },
-          animated: false,
-        }),
-      250
-    );
-    return () => clearTimeout(t);
-  }, [points]);
-
-  if (points.length === 0) return null;
-  const first = points[0]!;
+  if (!bounds) return null;
   const a11y = [
     "Live map.",
     driver ? "Driver position shown." : "Driver position not available yet.",
@@ -56,49 +60,50 @@ export function LiveMap({ pickup, dropoff, driver, eta, note }: Props) {
       accessibilityLabel={a11y}
       style={{ height: 240, borderRadius: radius.lg, overflow: "hidden" }}
     >
-      <MapView
-        ref={ref}
+      <Map
         style={{ flex: 1 }}
-        provider={Platform.OS === "android" ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
-        userInterfaceStyle={scheme}
-        initialRegion={{ ...first, latitudeDelta: 0.3, longitudeDelta: 0.3 }}
-        pitchEnabled={false}
-        rotateEnabled={false}
-        toolbarEnabled={false}
-        showsPointsOfInterests={false}
+        mapStyle={mapStyle}
+        touchRotate={false}
+        touchPitch={false}
+        compass={false}
+        logo={false}
+        attribution
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
       >
+        <Camera bounds={bounds} padding={{ top: 48, right: 48, bottom: 48, left: 48 }} />
         {pickup && dropoff ? (
-          <Polyline
-            coordinates={[pickup, dropoff]}
-            strokeColor={c.secondary}
-            strokeWidth={3}
-            lineDashPattern={[6, 6]}
-          />
-        ) : null}
-        {pickup ? <Marker coordinate={pickup} title="Pickup" pinColor="#2563eb" /> : null}
-        {dropoff ? <Marker coordinate={dropoff} title="Drop-off" pinColor="#0a1628" /> : null}
-        {driver ? (
-          <Marker
-            coordinate={driver}
-            title="Driver"
-            anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
+          <GeoJSONSource
+            id="route"
+            data={{
+              type: "Feature",
+              properties: {},
+              geometry: { type: "LineString", coordinates: [lngLat(pickup), lngLat(dropoff)] },
+            }}
           >
-            <View
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: 11,
-                backgroundColor: c.secondary,
-                borderWidth: 3,
-                borderColor: "#ffffff",
-              }}
+            <Layer
+              id="route-line"
+              type="line"
+              paint={{ "line-color": c.secondary, "line-width": 3, "line-dasharray": [2, 2] }}
             />
+          </GeoJSONSource>
+        ) : null}
+        {pickup ? (
+          <Marker id="pickup" lngLat={lngLat(pickup)}>
+            <Dot size={18} color="#2563eb" />
           </Marker>
         ) : null}
-      </MapView>
+        {dropoff ? (
+          <Marker id="dropoff" lngLat={lngLat(dropoff)}>
+            <Dot size={18} color="#0a1628" />
+          </Marker>
+        ) : null}
+        {driver ? (
+          <Marker id="driver" lngLat={lngLat(driver)} anchor="center">
+            <Dot size={22} color={c.secondary} />
+          </Marker>
+        ) : null}
+      </Map>
       {eta ? (
         <View
           style={{

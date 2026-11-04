@@ -15,8 +15,18 @@ export {
   useSessionContext,
 } from "./SessionContextProvider";
 export type { SessionContextValue } from "./SessionContextProvider";
-export { AppClerkProvider } from "./AppClerkProvider";
-export type { AppClerkProviderConfig, AppClerkProviderProps } from "./AppClerkProvider";
+export { AppAuthProvider } from "./AppAuthProvider";
+export type { AppAuthProviderProps } from "./AppAuthProvider";
+export {
+  AuthProvider,
+  SignInRedirect,
+  SignOutButton,
+  UserButton,
+  useAuth,
+  useUser,
+} from "./oidc/client";
+export type { AuthState } from "./oidc/client";
+export type { SessionUser } from "./oidc/core";
 export { InactivityLogout } from "./InactivityLogout";
 export { useInactivityTimeout } from "./useInactivityTimeout";
 export type { UseInactivityTimeoutOptions } from "./useInactivityTimeout";
@@ -33,10 +43,6 @@ export type {
   UsePortalSessionGateOptions,
 } from "./usePortalSessionGate";
 export {
-  porterchainClerkAppearance,
-  porterchainClerkAppearanceInviteOnly,
-} from "./clerkAppearance";
-export {
   PC_IMP_COOKIE,
   PC_IMP_FLAG,
   PC_IMP_STORAGE_KEY,
@@ -45,24 +51,15 @@ export {
   storeImpersonationBearer,
 } from "./impersonation";
 export { ImpersonationBanner } from "./ImpersonationBanner";
-export {
-  PASSWORD_ALLOWED_SPECIAL,
-  PASSWORD_ALLOWED_SPECIAL_DISPLAY,
-  PASSWORD_MIN_LENGTH,
-} from "./passwordPolicy";
-export { PasswordRequirements } from "./PasswordRequirements";
-export type { PasswordRequirementsCopy } from "./PasswordRequirements";
+export { KeycloakSignInPanel, authErrorMessage } from "./KeycloakSignInPanel";
 export { PortalAuthScreen } from "./PortalAuthScreen";
 export type { PortalAuthMode, PortalAuthScreenProps } from "./PortalAuthScreen";
 export { safeAppRedirect } from "./safeRedirect";
-export { clerkDevBypassEnabled, clerkDevBypassIgnored, isDevelopmentBuild } from "./devBypass";
-export { hasClerkSessionHint } from "./clerkEdgeSession";
-export type { CookieReader } from "./clerkEdgeSession";
-export { humanAuthError } from "./authErrors";
+export { authDevBypassEnabled, authDevBypassIgnored, isDevelopmentBuild } from "./devBypass";
+export { hasSessionCookie } from "./oidc/core";
+export type { CookieReader } from "./oidc/core";
+export { humanAuthError, isBlockedAccountError, isWrongPortalError } from "./authErrors";
 export { signInUnavailableCopy, signUpUnavailableCopy } from "./authUnavailable";
-export { AuthStallNotice } from "./AuthStallNotice";
-export type { AuthStallNoticeCopy } from "./AuthStallNotice";
-export { AUTH_STALL_TIMEOUT_MS, isPrimaryButtonBusy, nextStallState } from "./authStall";
 export {
   AUTH_EVENT_KINDS,
   AUTH_TELEMETRY_PATH,
@@ -72,5 +69,5 @@ export {
   scrubDetail,
 } from "./authTelemetry";
 export type { AuthEventKind, AuthEventPayload } from "./authTelemetry";
-export { CLERK_LOAD_TIMEOUT_MS, useAuthLoadTimeout } from "./useAuthLoadTimeout";
+export { AUTH_LOAD_TIMEOUT_MS, useAuthLoadTimeout } from "./useAuthLoadTimeout";
 export { AuthLoadFailed } from "./AuthLoadFailed";

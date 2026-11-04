@@ -95,7 +95,6 @@ Never forward DOPPLER_TOKEN through appleboy SSH env (truncation / auth failures
 | `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                                                          |
 | `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                                                          |
 | `API_REPLICAS`                                                                 | `1` (4GB droplet)                                                               |
-| `FLEETBASE_*`                                                                  | When bridge enabled (blocked)                                                   |
 | `CLERK_WEBHOOK_SIGNING_SECRET`                                                 | Clerk Svix webhook (`POST /webhooks/clerk`) — add when unified webhooks enabled |
 
 **Retired:** divergent 4-app enterprise keys as a supported mode. Slot names remain for dual-read / compose.

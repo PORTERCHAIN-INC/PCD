@@ -21,7 +21,7 @@ def _driver(db: Session) -> Driver:
         email=f"abs-{suffix}@test.porterchain.com",
         full_name=f"Abstract Driver {suffix}",
         status=DriverStatus.PENDING.value,
-        clerk_user_id=f"clerk_abs_{suffix}",
+        auth_subject=f"idp_abs_{suffix}",
         license_verified=True,
         insurance_verified=True,
         vehicle_verified=True,

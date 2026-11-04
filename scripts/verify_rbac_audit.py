@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 PATHS = {
-    "authz ADR": ROOT / "docs/architecture/auth-clerk-spicedb.md",
+    "authz ADR": ROOT / "docs/architecture/auth-keycloak-spicedb.md",
     "spicedb schema": ROOT / "apps/api/src/porterchain_api/authz/schema.zed",
     "platform roles": ROOT / "apps/api/src/porterchain_api/authz/platform_roles.py",
     "admin rbac": ROOT / "apps/api/src/porterchain_api/admin_engine/rbac.py",
@@ -76,7 +76,7 @@ def main() -> int:
     if adr_path.is_file():
         adr = adr_path.read_text(encoding="utf-8")
         if "SpiceDB" not in adr:
-            failures.append("auth-clerk-spicedb.md missing SpiceDB")
+            failures.append("auth-keycloak-spicedb.md missing SpiceDB")
 
     stub_path = PATHS["retired matrix stub"]
     if stub_path.is_file():

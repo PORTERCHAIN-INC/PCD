@@ -1,13 +1,13 @@
 /**
  * Profile & account: photo, name, home address, emergency contact (from cache, instantly);
- * email/phone change with a 6-digit code (Clerk), password, signed-in devices, sign out.
+ * email/password/passkeys/devices via the Keycloak account console, sign out.
  * One full-screen page; every edit expands inline. No pop-ups.
  */
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { useClerk, useUser } from "@clerk/expo";
+import * as WebBrowser from "expo-web-browser";
+import { useSessionView } from "../auth/SessionGate";
 import type { Address, EmergencyContact, MeProfile } from "../api";
-import { syncMyIdentity } from "../api";
 import { fieldError } from "../account";
 import { qk } from "../data/keys";
 import { queryClient } from "../data/queryClient";
@@ -24,11 +24,6 @@ import { UpdatedAgo } from "../ui/UpdatedAgo";
 import { confirmDeleteAccount } from "../ui/confirmDeleteAccount";
 
 const RELS = ["spouse", "parent", "sibling", "friend", "other"];
-function clerkMsg(e: unknown): string {
-  const c = (e as { errors?: { longMessage?: string; message?: string }[] })?.errors?.[0];
-  return c?.longMessage || c?.message || (e instanceof Error ? e.message : "Something went wrong");
-}
-
 export function ProfilePage({
   visible,
   onClose,
@@ -53,10 +48,10 @@ export function ProfilePage({
 
 export function ProfileBody({
   onSignOut,
-  clerk = true,
+  account = true,
 }: {
   onSignOut: () => Promise<void>;
-  clerk?: boolean;
+  account?: boolean;
 }) {
   const q = useMyProfile();
   const p = q.data;
@@ -80,7 +75,7 @@ export function ProfileBody({
       <Identity p={p} />
       <Personal p={p} />
       <Emergency p={p} />
-      {clerk ? (
+      {account ? (
         <ContactAndSecurity p={p} onSignOut={onSignOut} />
       ) : (
         <SignOutOnly onSignOut={onSignOut} />
@@ -312,180 +307,17 @@ function Emergency({ p }: { p: MeProfile }) {
   );
 }
 
-type Verifiable = { id: string; verification?: { status?: string | null } | null };
-type Pending = { attempt: (code: string) => Promise<Verifiable> };
-
+/** Email, password, passkeys and signed-in devices live in the Keycloak account console (L36). */
 function ContactAndSecurity({ p, onSignOut }: { p: MeProfile; onSignOut: () => Promise<void> }) {
-  const { user } = useUser();
-  const clerk = useClerk();
-  const [editing, setEditing] = useState<null | "email" | "phone" | "password">(null);
-  const [value, setValue] = useState("");
-  const [code, setCode] = useState("");
-  const [pending, setPending] = useState<Pending | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [cur, setCur] = useState("");
-  const [next, setNext] = useState("");
-  const [others, setOthers] = useState(true);
-  const [sessions, setSessions] = useState<
-    {
-      id: string;
-      revoke: () => Promise<unknown>;
-      latestActivity?: { deviceType?: string; browserName?: string; city?: string } | null;
-    }[]
-  >([]);
-
-  const userId = user?.id;
-  useEffect(() => {
-    if (!user) return;
-    void user
-      .getSessions()
-      .then((x) => setSessions(x as never))
-      .catch(() => undefined);
-    // Keyed on the user id: the user object is re-created on every Clerk update.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
-
-  const reset = () => {
-    setEditing(null);
-    setValue("");
-    setCode("");
-    setPending(null);
-    setMsg(null);
-    setCur("");
-    setNext("");
+  const { accountUrl } = useSessionView();
+  const openAccount = () => {
+    if (accountUrl) void WebBrowser.openBrowserAsync(accountUrl);
   };
-
-  const sendCode = async (kind: "email" | "phone") => {
-    if (!user) return;
-    setBusy(true);
-    setMsg(null);
-    try {
-      if (kind === "email") {
-        const r = await user.createEmailAddress({ email: value.trim() });
-        await r.prepareVerification({ strategy: "email_code" });
-        setPending({ attempt: (c) => r.attemptVerification({ code: c }) as Promise<Verifiable> });
-      } else {
-        const d = value.replace(/[^\d+]/g, "");
-        const e164 = d.startsWith("+") ? d : d.length === 10 ? `+1${d}` : `+${d}`;
-        const r = await user.createPhoneNumber({ phoneNumber: e164 });
-        await r.prepareVerification();
-        setPending({ attempt: (c) => r.attemptVerification({ code: c }) as Promise<Verifiable> });
-      }
-      setMsg(`Code sent to ${value.trim()}`);
-    } catch (e) {
-      setMsg(clerkMsg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const verify = async (kind: "email" | "phone") => {
-    if (!user || !pending) return;
-    setBusy(true);
-    try {
-      const v = await pending.attempt(code.trim());
-      if (v.verification?.status !== "verified") throw new Error("That code didn't work");
-      await user.update(
-        kind === "email" ? { primaryEmailAddressId: v.id } : { primaryPhoneNumberId: v.id }
-      );
-      await user.reload();
-      const out = await syncMyIdentity();
-      queryClient.setQueryData(qk.profile, out.profile);
-      haptic.success();
-      toast.show("success", kind === "email" ? "Email updated" : "Phone updated", "Verified.");
-      reset();
-    } catch (e) {
-      setMsg(clerkMsg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const changePassword = async () => {
-    if (!user) return;
-    if (next.length < 8) return setMsg("Use at least 8 characters");
-    setBusy(true);
-    try {
-      await user.updatePassword({
-        ...(user.passwordEnabled ? { currentPassword: cur } : {}),
-        newPassword: next,
-        signOutOfOtherSessions: others,
-      });
-      haptic.success();
-      toast.show("success", "Password saved", others ? "Other devices were signed out." : "");
-      reset();
-    } catch (e) {
-      setMsg(clerkMsg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const otherSessions = sessions.filter((s) => s.id !== clerk.session?.id);
-  const field = (kind: "email" | "phone") => (
-    <>
-      {!pending ? (
-        <>
-          <InputRow
-            label={kind === "email" ? "NEW EMAIL" : "NEW MOBILE NUMBER"}
-            value={value}
-            onChange={setValue}
-            keyboardType={kind === "email" ? "email-address" : "phone-pad"}
-            autoCapitalize="none"
-            autoComplete={kind === "email" ? "email" : "tel"}
-          />
-          <View style={st.pad}>
-            <Button
-              tone="primary"
-              label="Send code"
-              busy={busy}
-              disabled={value.trim().length < 5}
-              onPress={() => void sendCode(kind)}
-            />
-          </View>
-        </>
-      ) : (
-        <>
-          <InputRow
-            label="6-DIGIT CODE"
-            value={code}
-            onChange={setCode}
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            textContentType="oneTimeCode"
-            maxLength={6}
-          />
-          <View style={st.pad}>
-            <Button
-              tone="primary"
-              label="Verify"
-              busy={busy}
-              disabled={code.trim().length < 6}
-              onPress={() => void verify(kind)}
-            />
-          </View>
-        </>
-      )}
-      {msg ? <Text style={st.msg}>{msg}</Text> : null}
-    </>
-  );
-
   return (
     <>
       <Section title="CONTACT · VERIFIED" testID="profile-contact">
-        <Row
-          label="Email"
-          value={p.email}
-          onPress={() => (editing === "email" ? reset() : (reset(), setEditing("email")))}
-        />
-        {editing === "email" ? field("email") : null}
-        <Row
-          label="Mobile"
-          value={p.phone ?? "Add"}
-          onPress={() => (editing === "phone" ? reset() : (reset(), setEditing("phone")))}
-        />
-        {editing === "phone" ? field("phone") : null}
+        <Row label="Email" value={p.email} onPress={accountUrl ? openAccount : undefined} />
+        <Row label="Mobile" value={p.phone ?? "Add"} />
       </Section>
 
       <Section title="SECURITY" testID="profile-security">
@@ -495,63 +327,12 @@ function ContactAndSecurity({ p, onSignOut }: { p: MeProfile; onSignOut: () => P
           onPress={() => confirmDeleteAccount()}
           testID="profile-delete-account"
         />
-        <Row
-          label={user?.passwordEnabled ? "Change password" : "Set a password"}
-          sub="Optional if you sign in with a code"
-          onPress={() => (editing === "password" ? reset() : (reset(), setEditing("password")))}
-        />
-        {editing === "password" ? (
-          <>
-            {user?.passwordEnabled ? (
-              <InputRow
-                label="CURRENT PASSWORD"
-                value={cur}
-                onChange={setCur}
-                secureTextEntry
-                autoComplete="current-password"
-              />
-            ) : null}
-            <InputRow
-              label="NEW PASSWORD"
-              value={next}
-              onChange={setNext}
-              secureTextEntry
-              autoComplete="new-password"
-            />
-            <ToggleRow label="Sign out other devices" value={others} onChange={setOthers} />
-            <View style={st.pad}>
-              <Button
-                tone="primary"
-                label="Save password"
-                busy={busy}
-                onPress={() => void changePassword()}
-              />
-            </View>
-            {msg ? <Text style={st.msg}>{msg}</Text> : null}
-          </>
-        ) : null}
-        <Row label="Signed-in devices" value={String(sessions.length || 1)} />
-        {otherSessions.map((s) => (
+        {accountUrl ? (
           <Row
-            key={s.id}
-            label={`${s.latestActivity?.deviceType ?? s.latestActivity?.browserName ?? "Device"}`}
-            sub={s.latestActivity?.city ?? undefined}
-            value="Sign out"
-            tone="danger"
-            onPress={() =>
-              void s.revoke().then(() => setSessions((x) => x.filter((y) => y.id !== s.id)))
-            }
-          />
-        ))}
-        {otherSessions.length ? (
-          <Row
-            label="Sign out all other devices"
-            tone="danger"
-            onPress={() =>
-              void Promise.all(otherSessions.map((s) => s.revoke())).then(() =>
-                setSessions((x) => x.filter((y) => y.id === clerk.session?.id))
-              )
-            }
+            label="Password, passkeys and devices"
+            sub="Change email or password, add a passkey, sign out other devices"
+            onPress={openAccount}
+            testID="profile-account-security"
           />
         ) : null}
       </Section>

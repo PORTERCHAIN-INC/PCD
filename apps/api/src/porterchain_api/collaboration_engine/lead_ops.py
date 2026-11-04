@@ -185,10 +185,8 @@ def _quick_actions(lead: CrmLead) -> str:
 
 
 def _owner_direct_alerts(lead: CrmLead, ctx: dict) -> list[dict]:
-    """Mobile-first: email the owner; SMS only when enabled AND Twilio is configured."""
+    """Mobile-first: email the owner; plus in-app/push via the fan-out (no SMS: doc 60 R7)."""
     from porterchain_api.config import get_settings
-    from porterchain_shared.config.settings import get_platform_settings
-
     s = get_settings()
     base = {
         "template_key": "lead_new_hot",
@@ -205,10 +203,6 @@ def _owner_direct_alerts(lead: CrmLead, ctx: dict) -> list[dict]:
     owner = (s.lead_alert_email or "").strip()
     if "@" in owner:
         out.append({**base, "channel": "email", "recipient_id": "lead-alert-owner", "recipient_address": owner})
-    sms_to = (s.lead_alert_sms_to or "").strip()
-    twilio = bool((getattr(get_platform_settings(), "twilio_account_sid", "") or "").strip())
-    if s.lead_alert_sms_enabled and twilio and sms_to:
-        out.append({**base, "channel": "sms", "recipient_id": "lead-alert-owner", "recipient_address": sms_to})
     return out
 
 

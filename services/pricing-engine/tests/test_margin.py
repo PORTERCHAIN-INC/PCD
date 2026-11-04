@@ -45,18 +45,22 @@ def test_km_cost_per_vehicle_box_equals_van():
 def test_coverage_tiers_and_charge():
     from porterchain_pricing.coverage import charge_cents, normalize_coverage, recommend
 
-    # B4 universal default: $2,500 goods insurance included; $25,000 for +$10 per stop.
-    assert recommend(50_000)["tier"] == "included"
-    assert recommend(210_000)["tier"] == "upgrade"  # near the $2,500 cap
-    assert recommend(20_000, "Electronics")["tier"] == "upgrade"
-    assert recommend(2_600_000)["tier"] == "over_max"
-    assert charge_cents(True, 3) == 3000
-    assert charge_cents(True, 3, {"unit": "delivery"}) == 1000
-    assert charge_cents(False, 3) == 0
+    # Ravi 2026-10-29: default liability $4.41/kg; optional cover 1.5% (min $3) per parcel, max $2,500; off (G-INS).
+    assert recommend(50_000)["tier"] == "included"  # off -> standard liability only
+    assert recommend(260_000)["tier"] == "over_max"
+    assert recommend(20_000, "Jewelry")["tier"] == "excluded"
+    on = normalize_coverage({"enabled": True}, {"confirmed": True, "insurer": "T", "policy_ref": "P"})
+    assert recommend(50_000, cfg=on)["tier"] == "upgrade"
+    assert charge_cents(True, 1, on, 10_000) == 300  # $100 -> 1.5% = $1.50 -> $3 minimum
+    assert charge_cents(True, 2, on, 400_000) == 6000  # 2 x $2,000 -> 2 x $30
+    assert charge_cents(True, 1, None, 100_000) == 0  # flag off: never charged
+    assert charge_cents(False, 3, on, 100_000) == 0
+    assert normalize_coverage({"excluded_categories": []})["excluded_categories"] == sorted(
+        ["cash", "jewellery", "medicines", "perishables"])  # can't un-exclude
     import pytest
 
     with pytest.raises(ValueError):
-        normalize_coverage({"unit": "box"})
+        normalize_coverage({"rate_bps": -1})
 
 
 def test_liftgate_suggestion():

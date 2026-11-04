@@ -47,7 +47,7 @@
           "We share information with trusted processors only as needed to deliver our services. These providers are contractually required to protect your data."
         ],
         "list": [
-          "Clerk — merchant and customer authentication",
+          "Keycloak — merchant and customer authentication",
           "Stripe — payment processing",
           "Google Maps — address autocomplete and mapping",
           "Zoho Mail — transactional email delivery",
@@ -72,7 +72,7 @@
         "title": "Shopify delivery orders",
         "paragraphs": [
           "When a merchant connects Shopify, Porterchain is the processor and the merchant is the controller of the buyer. We keep the buyer name, email, phone, and delivery street only to deliver the order and to answer a privacy request. We do not use that contact for marketing.",
-          "We keep that contact for 24 months after delivery, then remove the street, name, email, and phone. Postal area and the charge can remain when a tax record or a claim is still open. Shopify, Clerk, and Stripe may process data outside Canada. The database and PorterChain dispatch stay in Canada when a stop is released.",
+          "We keep that contact for 24 months after delivery, then remove the street, name, email, and phone. Postal area and the charge can remain when a tax record or a claim is still open. Shopify, Keycloak, and Stripe may process data outside Canada. The database and PorterChain dispatch stay in Canada when a stop is released.",
           "A buyer asks the merchant. The merchant's Shopify admin sends Porterchain a privacy webhook. The merchant downloads the access file from the Porterchain privacy settings. We do not email the file to the buyer."
         ]
       },
@@ -128,7 +128,7 @@
       {
         "title": "Liability and claims",
         "paragraphs": [
-          "Goods insurance for loss or damage up to $2,500 is included. Optional enhanced coverage up to $25,000 is available for +$10 per stop when selected at booking. Coverage is subject to the exclusions in these terms and in your merchant agreement, except where prohibited by law.",
+          "Our liability for loss or damage is limited to $4.41 per kg of the goods affected (O. Reg. 643/05), unless declared-value cover was bought at booking. Optional declared-value cover (1.5% of the declared value, $3 minimum, up to $2,500 per parcel; cash, jewellery, medicines and perishables excluded; proof of value required to claim) will be offered once our cargo insurance is confirmed. Coverage is subject to the exclusions in these terms and in your merchant agreement, except where prohibited by law.",
           "Claims for loss, damage, or service issues must be reported promptly with shipment references and supporting documentation. Contact ops@porterchain.com for claims assistance."
         ]
       },
@@ -175,7 +175,7 @@
           "Analytics cookies — load only if you allow Analytics in the cookie banner (Consent Mode)",
           "Marketing cookies — ads/remarketing pixels only if you allow Marketing and the related env IDs are configured",
           "Experience cookies — optional Clarity/Hotjar only if you allow Experience",
-          "Authentication cookies — set by Clerk when you sign in or verify your account",
+          "Authentication cookies — set by Keycloak when you sign in or verify your account",
           "Preference cookies — such as language selection (English / French) and your cookie banner choices",
           "Payment cookies — set by Stripe during checkout on tracking and billing pages",
           "Maps cookies — set by Google Maps when using address autocomplete or map features"
@@ -187,8 +187,7 @@
           "The following third-party services may load scripts or set cookies when you use our website:"
         ],
         "list": [
-          "Clerk — authentication for retail booking, merchant portal, admin, and driver portals",
-          "Google Maps (maps.googleapis.com) — address autocomplete and maps",
+          "Keycloak — authentication for retail booking, merchant portal, admin, and driver portals",
           "Stripe (stripe.com) — payment processing"
         ]
       },

@@ -1,6 +1,6 @@
 """Audited impersonation sessions (Redis) — break-glass \"open as user\".
 
-Staff never receives a forged Clerk JWT. Portals accept ``Bearer pc_imp_<id>``
+Staff never receives a forged Keycloak JWT. Portals accept ``Bearer pc_imp_<id>``
 which resolves to the target persona for a short absolute TTL. Every start/stop
 is written to AdminAuditLog; request.state carries the session for engines.
 """
@@ -36,7 +36,7 @@ class ImpersonationSession:
     created_at: float
     expires_at: float
     staff_session_id: str = ""
-    target_clerk_user_id: str | None = None
+    target_subject: str | None = None
     target_label: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -56,9 +56,9 @@ class ImpersonationSession:
             created_at=float(data["created_at"]),
             expires_at=float(data["expires_at"]),
             staff_session_id=str(data.get("staff_session_id") or ""),
-            target_clerk_user_id=(
-                str(data["target_clerk_user_id"])
-                if data.get("target_clerk_user_id")
+            target_subject=(
+                str(data["target_subject"])
+                if data.get("target_subject")
                 else None
             ),
             target_label=str(data.get("target_label") or ""),
@@ -122,7 +122,7 @@ def create_session(
     target_email: str,
     reason: str,
     staff_session_id: str = "",
-    target_clerk_user_id: str | None = None,
+    target_subject: str | None = None,
     target_label: str = "",
     ttl_seconds: int = DEFAULT_TTL_SECONDS,
 ) -> ImpersonationSession | None:
@@ -151,7 +151,7 @@ def create_session(
         created_at=now,
         expires_at=now + ttl,
         staff_session_id=staff_session_id,
-        target_clerk_user_id=target_clerk_user_id,
+        target_subject=target_subject,
         target_label=(target_label or target_email)[:120],
     )
     client.setex(f"{IMP_PREFIX}{sid}", ttl, json.dumps(session.to_dict()))

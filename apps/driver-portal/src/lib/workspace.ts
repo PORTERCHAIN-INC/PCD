@@ -97,7 +97,11 @@ export function formatWorkingHours(startedAt: string | null, now = new Date()): 
 export function formatLastUpdated(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(value.getTime())) return "";
-  return format(value, "h:mm:ss a");
+  return value.toLocaleTimeString("en-CA", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 export function countOpenClaims(incidents: { status: string; incident_type: string }[]): number {

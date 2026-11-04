@@ -44,6 +44,10 @@ class AdminOperationsService:
             )
             .all()
         )
+        from porterchain_api.dispatch_engine.partner_hold import held_order_ids
+
+        held = held_order_ids(db, [o.id for o in rows])
+        rows = [o for o in rows if o.id not in held]
         rows.sort(key=dispatch_queue_sort_key)
         return rows[:limit]
 
@@ -62,6 +66,9 @@ class AdminOperationsService:
             raise LookupError("order_not_found")
         if order_is_sandbox(order):
             raise ValueError("sandbox_orders_block_live_assign")
+        from porterchain_api.dispatch_engine.partner_hold import assert_not_with_partner
+
+        assert_not_with_partner(db, order.id)
         if order.state in HANDOFF_STATES and (
             order.assigned_driver_id or order.state in ONBOARD_STATES
         ):
@@ -170,6 +177,9 @@ class AdminOperationsService:
             raise LookupError("order_not_found")
         if order_is_sandbox(order):
             raise ValueError("sandbox_orders_block_live_assign")
+        from porterchain_api.dispatch_engine.partner_hold import assert_not_with_partner
+
+        assert_not_with_partner(db, order.id)
         driver = db.query(Driver).filter(Driver.id == driver_id).first()
         if not driver:
             raise LookupError("driver_not_found")

@@ -63,7 +63,7 @@ function isLocationStale(now = Date.now()): boolean {
   return now - lastSuccessfulPingAt > STALE_LOCATION_MS;
 }
 
-async function loadLocation() {
+export async function loadLocation() {
   return import("expo-location");
 }
 

@@ -10,7 +10,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.settings_service import (
-    _clerk_linked,
+    _identity_linked,
     _invite_status,
     _latest_invitations,
 )
@@ -262,11 +262,11 @@ def batch_onboarding_summaries(db: Session, merchants: list[Merchant]) -> dict[s
             owner = users[0]
 
         owner_invite = (
-            _invite_status(invitations.get(owner.email.lower()), owner.clerk_user_id)
+            _invite_status(invitations.get(owner.email.lower()), owner.auth_subject)
             if owner
             else "not_invited"
         )
-        owner_linked = _clerk_linked(owner.clerk_user_id) if owner else False
+        owner_linked = _identity_linked(owner.auth_subject) if owner else False
         merchant_active = merchant.status == MerchantStatus.ACTIVE.value
         user_active = bool(owner and owner.is_active)
         company_ready = bool(merchant.company_name and merchant.email)
@@ -287,7 +287,7 @@ def batch_onboarding_summaries(db: Session, merchants: list[Merchant]) -> dict[s
         elif not owner or owner_invite in ("not_invited", "invite_failed", "revoked"):
             phase = "needs_invite"
         elif not owner_linked:
-            phase = "awaiting_clerk"
+            phase = "awaiting_idp"
         elif not user_active:
             phase = "needs_activation"
         elif not merchant_active:
@@ -302,7 +302,7 @@ def batch_onboarding_summaries(db: Session, merchants: list[Merchant]) -> dict[s
             "onboarding_progress": int(steps_complete / len(steps) * 100),
             "owner_email": owner.email if owner else merchant.email,
             "owner_invite_status": owner_invite,
-            "owner_clerk_linked": owner_linked,
+            "owner_idp_linked": owner_linked,
             "owner_active": user_active,
             "team_count": len(users),
             "blockers_count": 0 if ready else len(steps) - steps_complete,
@@ -364,7 +364,7 @@ def detail_payload(
     company = svc._linked_company(db, merchant_id)
     metrics = svc._metrics(db, merchant, company)
     health = svc._health(merchant, metrics)
-    # Heuristic only on this GET — NIM paraphrase is 12s×retries and trips the
+    # Heuristic only on this GET — LLM paraphrase is 12s×retries and trips the
     # admin 15s fetch abort (`porterchain_api_timeout` / endless Loading merchant).
     ai = svc._ai_insights(merchant, company, metrics, health, db=None, flags=flags)
     row = svc._row(db, merchant, light=False)
@@ -389,7 +389,6 @@ def detail_payload(
             "coverage": coverage,
             "pricing_config": merchant.pricing_config or {},
             "profile": merchant.profile or {},
-            "stripe_connect_account_id": getattr(merchant, "stripe_connect_account_id", None),
             "documents": list(
                 ((merchant.profile or {}).get("settings") or {}).get("documents") or []
             )
@@ -447,9 +446,9 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
         owner = users[0]
 
     owner_invite = (
-        _invite_status(invitations.get(owner.email.lower()), owner.clerk_user_id) if owner else "not_invited"
+        _invite_status(invitations.get(owner.email.lower()), owner.auth_subject) if owner else "not_invited"
     )
-    owner_linked = _clerk_linked(owner.clerk_user_id) if owner else False
+    owner_linked = _identity_linked(owner.auth_subject) if owner else False
     merchant_active = merchant.status == MerchantStatus.ACTIVE.value
     company_ready = bool(merchant.company_name and merchant.email)
     owner_provisioned = owner is not None
@@ -466,8 +465,8 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
             "complete": owner_provisioned and owner_invite != "not_invited",
         },
         {
-            "id": "clerk_activated",
-            "label": "Owner signed in (Clerk linked)",
+            "id": "idp_activated",
+            "label": "Owner signed in (Keycloak linked)",
             "complete": owner_linked,
         },
         {
@@ -496,7 +495,7 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
         "owner_email": owner.email if owner else merchant.email,
         "owner_invite_status": owner_invite,
         "owner_invite_status_label": invite_status_label(owner_invite),
-        "owner_clerk_linked": owner_linked,
+        "owner_idp_linked": owner_linked,
         "team_count": len(users),
         "steps": steps,
         "blockers": blockers,

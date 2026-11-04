@@ -84,7 +84,21 @@ def get_invoice_detail(
         data = _billing.invoice_detail(db, ctx, invoice_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=billing_error_message(str(exc))) from None
-    return InvoiceDetailResponse(**{k: v for k, v in data.items() if k != "lines_total_cents"})
+    from porterchain_api.billing_engine.merchant_invoice_checkout import card_payments_available
+
+    from porterchain_api.admin_engine.platform_settings import etransfer_recipient_email
+
+    card = card_payments_available(get_settings())  # always False for merchants now
+    from porterchain_api.booking_models import Invoice
+
+    rest = {k: v for k, v in data.items() if k not in ("lines_total_cents", "etransfer_email", "payment_reference")}
+    inv = db.get(Invoice, invoice_id)
+    return InvoiceDetailResponse(
+        card_payment_available=card,
+        etransfer_email=etransfer_recipient_email(db),
+        payment_reference=getattr(inv, "payment_reference", None),
+        **rest,
+    )
 
 
 @router.get("/billing/invoices/{invoice_id}/pdf")
@@ -126,6 +140,49 @@ def remind_invoice(
         raise HTTPException(status_code=400, detail=billing_error_message(str(exc))) from None
 
 
+@router.post("/billing/invoices/{invoice_id}/pay-card")
+def pay_invoice_by_card(
+    invoice_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """G11 exception (flag merchant_card_payments_enabled): hosted card checkout for the invoice's
+    outstanding balance; the portal redirects to ``url``."""
+    require_module(ctx, "invoices")
+    from porterchain_api.billing_engine.merchant_invoice_checkout import create_invoice_checkout
+
+    try:
+        return create_invoice_checkout(db, settings, ctx.merchant, invoice_id, getattr(ctx.user, "email", None))
+    except LookupError:
+        raise HTTPException(status_code=404, detail="invoice_not_found") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+
+
+@router.post("/billing/invoices/{invoice_id}/pay-card/sync")
+def sync_invoice_card_payment(
+    invoice_id: str,
+    body: dict,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Return page: confirm the hosted checkout and record the payment (webhook-safe, idempotent)."""
+    require_module(ctx, "invoices")
+    from porterchain_api.billing_engine.merchant_invoice_checkout import sync_invoice_checkout
+
+    session_id = str((body or {}).get("session_id") or "").strip()
+    if not session_id.startswith("cs_"):
+        raise HTTPException(status_code=400, detail="invalid_session_id")
+    try:
+        return sync_invoice_checkout(db, settings, ctx.merchant, invoice_id, session_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="invoice_not_found") from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+
+
 @router.get("/billing/payments", response_model=list[MerchantPaymentItem])
 def list_billing_payments(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
@@ -142,6 +199,24 @@ def list_credit_notes(
 ) -> list[MerchantCreditNoteItem]:
     require_module(ctx, "billing")
     return [MerchantCreditNoteItem(**r) for r in _billing.list_credit_notes(db, ctx)]
+
+
+@router.get("/billing/credit-notes/{credit_note_id}/pdf")
+def download_credit_note_pdf(
+    credit_note_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+):
+    require_module(ctx, "billing")
+    try:
+        pdf, filename = _billing.credit_note_pdf(db, ctx, credit_note_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="credit_note_not_found") from None
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/billing/history", response_model=list[MerchantBillingHistoryItem])

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Button from "@/components/ui/Button";
 import { notificationsApi } from "@/lib/notifications";
 import { settingsApi, type NotificationPrefs, type QuietHours } from "@/lib/settings";
 

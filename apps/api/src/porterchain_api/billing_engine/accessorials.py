@@ -139,16 +139,53 @@ def stamp(order: Any, acc: Accessorial, invoice_id: str) -> None:
     order.compliance_metadata = meta
 
 
+def adjustment_lines(db: Session, orders: list[Any]) -> list[Accessorial]:
+    """Doc 72 §9.4 per-order adjustments (waiting, extra stop, credits...) billed as their own lines."""
+    from porterchain_api.platform.engine_ports.pricing_engine__models import PricingOrderAdjustment
+
+    by_id = {o.id: o for o in orders}
+    if not by_id:
+        return []
+    rows = (db.query(PricingOrderAdjustment).filter(PricingOrderAdjustment.order_id.in_(list(by_id)))
+            .order_by(PricingOrderAdjustment.created_at).all())
+    out = []
+    for a in rows:
+        o = by_id[a.order_id]
+        label = a.category.replace("_", " ")
+        desc = f"Adjustment {o.order_number} · {label}: {a.reason}"[:255]
+        out.append(Accessorial(o, f"adjustment:{a.id}", desc, int(a.cents),
+                               {"adjustment_id": a.id, "category": a.category, "reason": a.reason,
+                                "actor_role": a.actor_role, "source": "pricing_order_adjustments"}))
+    return out
+
+
 def fee_tax_split(db: Session, order: Any, cents: int) -> Any:
     """Fees are pre-tax amounts; HST/GST by the order's destination province."""
-    from porterchain_api.billing_engine.tax import _settings, order_province, split_amount
+    from porterchain_api.billing_engine.tax import _settings, order_province, registered_on, split_amount
 
     _mode, default_prov, qst = _settings(db)
-    return split_amount(cents, province=order_province(order, default_prov), mode="exclusive", collect_qst=qst)
+    return split_amount(
+        cents,
+        province=order_province(order, default_prov),
+        mode="exclusive",
+        collect_qst=qst,
+        registered=registered_on(db),
+    )
 
 
 def fee_specs(db: Session, merchant: Any, delivered: list[Any]) -> list[tuple[Accessorial, Any]]:
-    return [(x, fee_tax_split(db, x.order, x.amount_cents)) for x in accessorial_lines(db, merchant, delivered)]
+    lines = [*accessorial_lines(db, merchant, delivered), *adjustment_lines(db, delivered)]
+    return [(x, _signed_split(db, x.order, x.amount_cents)) for x in lines]
+
+
+def _signed_split(db: Session, order: Any, cents: int) -> Any:
+    """Credits (negative adjustments) reverse tax at the same rate as a charge."""
+    from dataclasses import replace
+
+    if cents >= 0:
+        return fee_tax_split(db, order, cents)
+    s = fee_tax_split(db, order, -cents)
+    return replace(s, pretax_cents=-s.pretax_cents, tax_cents=-s.tax_cents, gross_cents=-s.gross_cents)
 
 
 def add_fee_lines(db: Session, invoice_id: str, specs: list[tuple[Accessorial, Any]]) -> None:

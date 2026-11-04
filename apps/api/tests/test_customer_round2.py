@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.rbac import AdminContext, parse_admin_role
 from porterchain_api.admin_models import AdminUser, SupportTicket
 from porterchain_api.auth.admin import get_admin_context
-from porterchain_api.auth.claims import ClerkClaims
-from porterchain_api.auth.clerk import get_clerk_claims
+from porterchain_api.auth.claims import IdentityClaims
+from porterchain_api.auth.bearer import get_identity_claims
 from porterchain_api.booking_engine.customer_service import CustomerService
 from porterchain_api.booking_engine.quote_service import QuoteService
 from porterchain_api.booking_models import (
@@ -42,7 +42,7 @@ from tests.test_customer_fast_book import _body, _paid_guest_order, _quote, _tok
 
 def _admin_ctx(role: str = "super_admin") -> AdminContext:
     return AdminContext(
-        user=AdminUser(clerk_user_id=f"admin-{role}-{uuid4().hex[:6]}", email=f"{role}@porterchain.com", role=role),
+        user=AdminUser(auth_subject=f"admin-{role}-{uuid4().hex[:6]}", email=f"{role}@porterchain.com", role=role),
         role=parse_admin_role(role),
     )
 
@@ -257,9 +257,9 @@ def test_deletion_reject_releases_hold(db: Session, settings: Settings) -> None:
 
 def test_pending_guest_adopted_on_first_sign_in(db: Session, settings: Settings) -> None:
     order, customer = _paid_guest_order(db, settings)
-    clerk_id = f"user_{uuid4().hex[:10]}"
-    adopted = CustomerService().get_or_create_from_clerk(db, clerk_user_id=clerk_id, email=customer.email, phone=None)
-    assert adopted.id == customer.id and adopted.clerk_user_id == clerk_id
+    subject_ref = f"user_{uuid4().hex[:10]}"
+    adopted = CustomerService().get_or_create_from_idp(db, auth_subject=subject_ref, email=customer.email, phone=None)
+    assert adopted.id == customer.id and adopted.auth_subject == subject_ref
 
 
 def test_french_emails(db: Session, settings: Settings) -> None:
@@ -275,21 +275,21 @@ def test_french_emails(db: Session, settings: Settings) -> None:
 def test_signed_in_orders_and_addresses_routes(db: Session, settings: Settings) -> None:
     # Local dev-bypass subject (no SpiceDB tuples by design); bind it to a fresh guest for the test.
     order, customer = _paid_guest_order(db, settings)
-    dev = db.query(Customer).filter(Customer.clerk_user_id == "dev_clerk_user").first()
+    dev = db.query(Customer).filter(Customer.auth_subject == "dev_idp_user").first()
     parked = f"parked:{uuid4().hex[:8]}"
     if dev is not None:
-        dev.clerk_user_id = parked
+        dev.auth_subject = parked
         db.flush()
-    original = customer.clerk_user_id
-    customer.clerk_user_id = "dev_clerk_user"
+    original = customer.auth_subject
+    customer.auth_subject = "dev_idp_user"
     db.commit()
-    claims = ClerkClaims(clerk_user_id="dev_clerk_user", email=customer.email, phone=None, clerk_app="customer")
+    claims = IdentityClaims(auth_subject="dev_idp_user", email=customer.email, phone=None, idp_app="customer")
 
-    async def _claims() -> ClerkClaims:
+    async def _claims() -> IdentityClaims:
         return claims
 
-    local = settings.model_copy(update={"clerk_dev_bypass": True, "spicedb_required": False})
-    app.dependency_overrides[get_clerk_claims] = _claims
+    local = settings.model_copy(update={"auth_dev_bypass": True, "spicedb_required": False})
+    app.dependency_overrides[get_identity_claims] = _claims
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_settings] = lambda: local
     try:
@@ -304,8 +304,8 @@ def test_signed_in_orders_and_addresses_routes(db: Session, settings: Settings) 
         assert r.status_code == 200, r.text
     finally:
         app.dependency_overrides.clear()
-        customer.clerk_user_id = original
+        customer.auth_subject = original
         db.flush()
         if dev is not None:
-            dev.clerk_user_id = "dev_clerk_user"
+            dev.auth_subject = "dev_idp_user"
         db.commit()

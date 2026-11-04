@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.current_principal import CurrentPrincipal
 from porterchain_api.auth.dependencies import assert_organization_scope, assert_self_scope
 from porterchain_api.auth.unified_catalog import AccountStatus, AssignableRole, UnifiedPermission
@@ -57,7 +57,7 @@ def test_assert_organization_scope_fail_closed_on_check_error() -> None:
 def test_assert_organization_scope_heals_stale_spicedb() -> None:
     principal = _principal()
     db = MagicMock()
-    user = PorterchainUser(id="u1", clerk_user_id="user_x", email="a@example.com", role="merchant_owner")
+    user = PorterchainUser(id="u1", auth_subject="user_x", email="a@example.com", role="merchant_owner")
     with (
         patch("porterchain_api.authz.client.get_authz_client") as get_client,
         patch("porterchain_api.authz.tuples.TupleWriter") as writer_cls,
@@ -103,7 +103,7 @@ def test_revoke_all_for_user_clears_memory_graph() -> None:
         ]
     )
     writer = TupleWriter(client=client)
-    user = PorterchainUser(id=uid, clerk_user_id="clerk_x", email="x@example.com", role="sales")
+    user = PorterchainUser(id=uid, auth_subject="idp_x", email="x@example.com", role="sales")
     db = MagicMock()
     db.query.return_value.filter.return_value.all.return_value = []
     db.query.return_value.filter.return_value.first.return_value = None
@@ -124,10 +124,10 @@ def test_user_sync_identity_link_points_at_porterchain_user(db) -> None:
     from porterchain_api.auth.user_sync_service import UserSyncService
     from porterchain_api.identity_models import IdentityLink
 
-    clerk_id = f"clerk_link_{uuid.uuid4().hex[:12]}"
+    subject_ref = f"idp_link_{uuid.uuid4().hex[:12]}"
     email = f"link_{uuid.uuid4().hex[:8]}@example.com"
     admin = AdminUser(
-        clerk_user_id=clerk_id,
+        auth_subject=subject_ref,
         email=email,
         name="Link",
         role="sales",
@@ -136,12 +136,12 @@ def test_user_sync_identity_link_points_at_porterchain_user(db) -> None:
     db.add(admin)
     db.commit()
 
-    claims = ClerkClaims(
-        clerk_user_id=clerk_id,
+    claims = IdentityClaims(
+        auth_subject=subject_ref,
         email=email,
-        issuer="https://example.clerk.accounts.dev",
+        issuer="https://example.keycloak.accounts.dev",
     )
     user = UserSyncService().sync(db, claims)
-    link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == clerk_id).one()
+    link = db.query(IdentityLink).filter(IdentityLink.auth_subject == subject_ref).one()
     assert link.platform_user_id == user.id
     assert link.platform_user_id != admin.id

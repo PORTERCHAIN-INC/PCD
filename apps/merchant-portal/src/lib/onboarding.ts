@@ -38,7 +38,7 @@ export interface PortalOnboardingStatus {
   blockers: string[];
   status: string;
   status_label?: string | null;
-  clerk_linked: boolean;
+  identity_linked: boolean;
   steps: PortalOnboardingStep[];
   pending_documents: number;
   can_access_portal: boolean;

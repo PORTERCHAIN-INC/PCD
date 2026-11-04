@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
-import { publicEnv } from "@/lib/env";
-import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
 import {
@@ -18,7 +16,7 @@ import {
 } from "@/lib/merchants";
 import MerchantBillingContactsCard from "@/components/merchants/MerchantBillingContactsCard";
 import MerchantPrivacyCard from "@/components/merchants/MerchantPrivacyCard";
-import { Badge, Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
+import { Button, Field, Input, Select, SectionCard } from "@/components/crm/primitives";
 import { dateTime, money, titleCase } from "@/lib/crmFormat";
 
 const TERMS = ["IMMEDIATE", "NET_7", "NET_14", "NET_15", "NET_30", "NET_45", "CUSTOM"];
@@ -166,7 +164,15 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
       setSaved(false);
-      setSaveError(e instanceof Error ? e.message : "Save failed");
+      const msg = e instanceof Error ? e.message : "";
+      const veh = msg.match(/preferred_vehicle_not_in_catalog:([a-z0-9_]+)/);
+      setSaveError(
+        veh
+          ? `Couldn't save: "${titleCase(veh[1])}" isn't in the enabled vehicle catalog. Remove it from Vehicles or enable it in Settings → Vehicles.`
+          : msg
+            ? `Couldn't save: ${msg}`
+            : "Couldn't save. Try again."
+      );
     } finally {
       setBusy(false);
     }
@@ -201,7 +207,7 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
           </Field>
           <div className="col-span-2">
             <p className="mb-1 text-xs font-medium text-primary/70">Billing address</p>
-            <GoogleMapsProvider>
+            <>
               <AddressAutocompleteInput
                 id={`admin-merchant-billing-${m.id}`}
                 value={billing.formatted}
@@ -210,7 +216,7 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
                 placeholder="Ontario billing address"
                 fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
               />
-            </GoogleMapsProvider>
+            </>
           </div>
         </div>
       </SectionCard>

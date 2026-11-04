@@ -1,4 +1,4 @@
-"""Platform user types — distinct from Clerk org membership."""
+"""Platform user types — distinct from Keycloak org membership."""
 
 from enum import StrEnum
 

@@ -8,6 +8,10 @@ export type MerchantRateCardVehicle = {
 };
 
 export type MerchantRateCard = {
+  custom_price?: boolean;
+  custom_pct?: number | null;
+  custom_per_stop_cents?: number | null;
+  custom_flat_parcel_cents?: number | null;
   pricing_model: string;
   what_wins: string;
   vehicles: MerchantRateCardVehicle[];

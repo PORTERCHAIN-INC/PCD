@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.config import get_settings
 from porterchain_api.db import get_db, init_db
 from porterchain_api.gateway.router import router as gateway_router
+import porterchain_api.platform.free_text_translation  # noqa: F401  (queues admin translations)
 from porterchain_api.platform.middleware import REQUEST_ID_HEADER, RequestIdMiddleware
 from porterchain_api.routers import (
     admin,
@@ -39,6 +40,12 @@ from porterchain_api.routers import (
     geo,
     email_inbound,
     pricing_admin,
+    pricing_cards,
+    metrics as metrics_router,
+    batches as batches_router,
+    job_docs as job_docs_router,
+    ops_rules as ops_rules_router,
+    admin_orgs,
     pricing_components,
     public_blog,
     public_guide,
@@ -71,7 +78,7 @@ async def lifespan(_app: FastAPI):
         instrument_app,
     )
 
-    init_observability(sentry_dsn=settings.sentry_dsn, app_env=settings.app_env)
+    init_observability(glitchtip_dsn=settings.glitchtip_dsn, app_env=settings.app_env)
     instrument_app(_app, app_env=settings.app_env)
     require_redis_for_production()
     from porterchain_api.config import require_public_urls_for_production
@@ -151,6 +158,9 @@ def create_app() -> FastAPI:
     from porterchain_api.gateway_engine.middleware import MerchantApiGatewayMiddleware
 
     app.add_middleware(MerchantApiGatewayMiddleware)
+    from porterchain_api.review.reviewer_sandbox import ReviewerSandboxMiddleware
+
+    app.add_middleware(ReviewerSandboxMiddleware)
     app.include_router(gateway_router)
     app.include_router(auth.router)
     from porterchain_api.routers import oauth
@@ -159,6 +169,17 @@ def create_app() -> FastAPI:
     app.include_router(quotes.router)
     app.include_router(pricing_components.router)
     app.include_router(pricing_admin.router)
+    app.include_router(pricing_cards.router)
+    app.include_router(pricing_cards.public_router)
+    app.include_router(metrics_router.router)
+    app.include_router(batches_router.merchant_router)
+    app.include_router(batches_router.admin_router)
+    app.include_router(job_docs_router.admin_router)
+    app.include_router(job_docs_router.merchant_router)
+    app.include_router(job_docs_router.customer_router)
+    app.include_router(ops_rules_router.admin_router)
+    app.include_router(ops_rules_router.merchant_router)
+    app.include_router(admin_orgs.router)
     app.include_router(shopify.router)
     app.include_router(shopify_route_pricing.router)
     app.include_router(public_inquiries.router)

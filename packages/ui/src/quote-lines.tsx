@@ -1,6 +1,9 @@
 "use client";
 
 import { formatCents } from "./utils";
+import { splitHstLine } from "./quote-hst";
+
+export { splitHstLine };
 
 export type QuoteLine = {
   code?: string | null;
@@ -46,11 +49,11 @@ type Props = {
 };
 
 export function QuoteLines({ breakdown, quotedCents, chargedCents, currency = "CAD" }: Props) {
-  const lines = quoteLines(breakdown);
+  const { pretax: lines, hstCents } = splitHstLine(quoteLines(breakdown));
   const picture = asPicture(breakdown);
   const nested = picture.summary ?? {};
   const subtotal = picture.subtotal_cents ?? nested.subtotal_cents;
-  const tax = picture.tax_cents ?? nested.tax_cents;
+  const tax = picture.tax_cents ?? nested.tax_cents ?? hstCents;
   const total =
     picture.final_cents ??
     picture.amount_cents ??
@@ -81,7 +84,7 @@ export function QuoteLines({ breakdown, quotedCents, chargedCents, currency = "C
           <span>{formatCents(subtotal, currency)}</span>
         </p>
       )}
-      {tax != null && (
+      {tax != null && tax > 0 && (
         <p className="flex justify-between gap-4">
           <span className="text-muted">HST</span>
           <span>{formatCents(tax, currency)}</span>

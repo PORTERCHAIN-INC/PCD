@@ -21,7 +21,7 @@ def _driver(**overrides: object) -> Driver:
         email=f"gate-{suffix}@porterchain.test",
         full_name=f"Gate {suffix}",
         status=DriverStatus.APPROVED.value,
-        clerk_user_id=f"clerk_gate_{suffix}",
+        auth_subject=f"idp_gate_{suffix}",
         license_verified=False,
         insurance_verified=False,
         vehicle_verified=False,

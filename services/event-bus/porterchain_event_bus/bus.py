@@ -111,7 +111,11 @@ class EventBus:
         envelope.setdefault("version", schema_version_for(event_type))
 
         if self._redis_client:
-            fields = {k: (json.dumps(v) if isinstance(v, (dict, list)) else str(v)) for k, v in envelope.items()}
+            # L94: None must not become the string "None" (it was used as a shared idempotency key).
+            fields = {
+                k: (json.dumps(v) if isinstance(v, (dict, list)) else ("" if v is None else str(v)))
+                for k, v in envelope.items()
+            }
             self._redis_client.xadd(STREAM_KEY, fields, maxlen=100_000, approximate=True)
             logger.info("event published: %s (%s)", event_id, event_type)
         else:
@@ -271,7 +275,7 @@ class EventBus:
                 envelope[key] = int(value)
             elif key in ("occurred_at",):
                 envelope[key] = value
-            elif key in ("correlation_id", "actor_id") and value == "":
+            elif key in ("correlation_id", "actor_id") and value in ("", "None"):
                 envelope[key] = None
             else:
                 envelope[key] = value

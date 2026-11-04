@@ -42,7 +42,7 @@ def test_dod_quote_book_channel_invoice_cents(db):
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"u-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )

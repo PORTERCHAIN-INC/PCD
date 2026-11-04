@@ -16,13 +16,24 @@ import { readQuoteIntent, withVisitorHandoff } from "@/lib/visitor-tracking";
 
 export type { SessionContext };
 
-/** Website Platform Clerk only routes retail personas. */
+function withSso(url: string): string {
+  try {
+    const u = new URL(url);
+    u.searchParams.set("sso", "1");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+/** Website Keycloak only routes retail personas. */
 const RETAIL_PORTALS = ["merchant", "customer"] as const satisfies readonly PorterchainPortal[];
 
 const PORTAL_HOME: Record<(typeof RETAIL_PORTALS)[number], string> = {
-  merchant: merchantPortalUrl,
+  // sso=1: the portal reuses this website Keycloak session instead of asking to sign in again.
+  merchant: withSso(merchantPortalUrl),
   // Mobile welcome home — primary CTA is quote/book.
-  customer: customerPortalDashboardUrl,
+  customer: withSso(customerPortalDashboardUrl),
 };
 
 function customerHomeUrl(): string {
@@ -32,9 +43,10 @@ function customerHomeUrl(): string {
       intent: "quote",
       from: intent.from,
       vehicle: intent.vehicle,
+      sso: "1",
     });
   }
-  return withVisitorHandoff(customerPortalDashboardUrl);
+  return withVisitorHandoff(customerPortalDashboardUrl, { sso: "1" });
 }
 
 const PORTAL_LABEL: Record<(typeof RETAIL_PORTALS)[number], string> = {

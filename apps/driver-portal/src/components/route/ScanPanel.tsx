@@ -136,6 +136,7 @@ const RESULT: Record<string, string> = {
   not_yours: "Not your parcel",
   invalid_label_qr: "Unreadable label",
   invalid_label_qr_unknown_package: "Unreadable label",
+  illegal_package_transition: "Wrong step for this box",
 };
 
 /** The driver's own recent scans (from the app or typed here), newest first. */

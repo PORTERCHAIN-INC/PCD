@@ -50,7 +50,8 @@ def packages_from_row(row: dict[str, Any], sequence: int) -> list[dict[str, Any]
     length = optional_float(row.get("length"))
     width = optional_float(row.get("width"))
     height = optional_float(row.get("height"))
-    if weight is None and length is None and width is None and height is None and not sku:
+    # L202: a template row with 0/0/0/0 (e.g. the pickup line) is "no cargo", not a 0 kg parcel.
+    if not weight and not length and not width and not height and not sku:
         return []
 
     dim_unit = (str(row.get("dimensions_unit") or "cm").strip().lower())

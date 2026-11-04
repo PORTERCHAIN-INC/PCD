@@ -83,6 +83,7 @@ export interface DriverJobsList {
   plan_id: string | null;
   route_metrics: DriverRouteMetrics | null;
   optimize_available: boolean;
+  can_undo?: boolean;
   next_stop: DriverNextStop | null;
   current: DriverJobSummary | null;
   upcoming: DriverJobSummary[];
@@ -185,6 +186,8 @@ export interface DriverJobDetail extends DriverJobSummary {
     reasons?: string[];
   };
   pod_missing?: string[];
+  /** Doc 82 §1.1: server-generated guided flow (pickup + delivery). */
+  flow_spec?: import("@porterchain/driver-flows").JobFlowSpecs | Record<string, never>;
   on_duty?: boolean;
   incidents: Array<{
     id: string;
@@ -201,7 +204,6 @@ export interface DriverJobDetail extends DriverJobSummary {
   max_delivery_attempts?: number;
 }
 
-const PICKUP_LEG = new Set(["DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP"]);
 const DELIVERY_LEG = new Set(["PICKED_UP", "IN_TRANSIT", "AT_DESTINATION"]);
 const DONE = new Set(["DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED"]);
 
@@ -302,16 +304,20 @@ export function actionErrorMessage(code: string): string {
   const map: Record<string, string> = {
     pickup_required: "Complete pickup before starting delivery.",
     earlier_stops_open: "Finish the earlier stops on this order first (see All stops).",
+    stop_parcels_unscanned: "Scan this stop's parcel(s) first, or report a missing one.",
     pickup_already_completed: "Parcel already picked up.",
-    not_current_stop: "This is not your next stop — finish the current job first.",
+    not_current_stop: "Finish your current stop first. This is not your next stop.",
     not_at_stop:
       "GPS says you are not at this stop yet. Drive into the 150 m zone, then tap arrived.",
     pretrip_required: "Complete the 30-second vehicle check before starting shift.",
     shift_required: "Start shift (30-second vehicle check) before going online.",
     stop_not_found: "Stop not found or not assigned to you.",
     packages_incomplete: "Scan all package labels before confirming.",
-    invalid_label_qr: "That is not a PorterChain package label.",
-    invalid_label_qr_unknown_package: "That is not a PorterChain package label.",
+    invalid_label_qr: "That is not a PorterChain label or a barcode registered for this order.",
+    invalid_label_qr_unknown_package:
+      "That is not a PorterChain label or a barcode registered for this order.",
+    illegal_package_transition:
+      "This box can't move to that step (for example it is already delivered). Check the box and rescan.",
     package_not_found_unknown_package: "Package not found on this order.",
     qr_order_mismatch: "That label belongs to a different order.",
     scan_pickup_required_first: "Scan this box at pickup before delivery scan.",
@@ -320,7 +326,7 @@ export function actionErrorMessage(code: string): string {
     package_not_found: "Package not found on this order.",
     pod_required: "Capture the required proof (photo, signature or ID check) before completing.",
     pod_complete_required: "Complete proof of delivery (with the receiver OTP) first.",
-    driver_off_duty: "Start your shift before completing deliveries.",
+    driver_off_duty: "Start your shift first. Deliveries need an active shift.",
     id_name_mismatch: "The name on the ID must match the receiver. Do not hand over the parcel.",
     invalid_id_type: "Choose the type of ID you checked.",
   };

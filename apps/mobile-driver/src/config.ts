@@ -6,9 +6,7 @@ function trimSlash(url: string): string {
 
 export const appEnv = process.env.EXPO_PUBLIC_APP_ENV ?? "development";
 
-export const clerkPublishableKey = (process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim();
-
-/** Release, preview, and store builds never skip Clerk, even if the flag is set. */
+/** Release, preview, and store builds never skip sign-in, even if the flag is set. */
 export const isStoreProfile = appEnv === "production" || appEnv === "preview";
 
 export const allowDevAuth = (): boolean => {

@@ -28,7 +28,7 @@ from porterchain_api.admin_engine.merchant360_board import (
     timeline_payload,
 )
 from porterchain_api.admin_engine.settings_service import (
-    _clerk_linked,
+    _identity_linked,
     _invite_status,
     _latest_invitations,
 )
@@ -133,35 +133,35 @@ class Merchant360Service:
         return stats_payload(db, outstanding=delivery_ar_total_cents(db))
 
     def unprovisioned_signups(self, db: Session, settings: Settings) -> list[dict[str, Any]]:
-        """Clerk merchant-app users with no Porterchain merchant_users row.
+        """Keycloak merchant-app users with no Porterchain merchant_users row.
 
-        Raises on Clerk directory failure so Admin can surface the error (M-4).
+        Raises on Keycloak directory failure so Admin can surface the error (M-4).
         """
-        from porterchain_api.admin_engine.clerk_directory_service import fetch_clerk_snapshots
+        from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
 
         try:
-            snaps = fetch_clerk_snapshots(settings, "merchant", limit=500)
+            snaps = fetch_directory_snapshots(settings, "merchant", limit=500)
         except Exception as exc:
-            raise RuntimeError(f"clerk_directory_unavailable: {exc}") from exc
+            raise RuntimeError(f"identity_directory_unavailable: {exc}") from exc
 
-        linked_clerk_ids = {
-            u.clerk_user_id
+        linked_idp_ids = {
+            u.auth_subject
             for u in db.query(MerchantUser).all()
-            if u.clerk_user_id and not u.clerk_user_id.startswith("pending:")
+            if u.auth_subject and not u.auth_subject.startswith("pending:")
         }
         linked_emails = {u.email.lower() for u in db.query(MerchantUser).all()}
 
         out: list[dict[str, Any]] = []
         for email, snap in snaps.items():
-            if email in linked_emails or snap.clerk_user_id in linked_clerk_ids:
+            if email in linked_emails or snap.subject in linked_idp_ids:
                 continue
             name = " ".join(p for p in (snap.first_name, snap.last_name) if p) or email.split("@")[0]
             out.append(
                 {
                     "email": email,
                     "name": name,
-                    "clerk_user_id": snap.clerk_user_id,
-                    "clerk_status": snap.clerk_status,
+                    "auth_subject": snap.subject,
+                    "directory_status": snap.status,
                     "last_sign_in_at": snap.last_sign_in_at.isoformat() if snap.last_sign_in_at else None,
                     "suggested_company_name": name.title(),
                 }
@@ -241,7 +241,7 @@ class Merchant360Service:
         users = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant_id).all()
         rows: list[dict] = []
         for u in users:
-            invite = _invite_status(invitations.get(u.email.lower()), u.clerk_user_id)
+            invite = _invite_status(invitations.get(u.email.lower()), u.auth_subject)
             seat = seat_status(u)
             rows.append(
                 {
@@ -253,7 +253,7 @@ class Merchant360Service:
                     "seat_status": seat,
                     "seat_status_label": seat_status_label(seat),
                     "created_at": u.created_at.isoformat(),
-                    "clerk_linked": _clerk_linked(u.clerk_user_id),
+                    "identity_linked": _identity_linked(u.auth_subject),
                     "invite_status": invite,
                     "invite_status_label": invite_status_label(invite),
                 }

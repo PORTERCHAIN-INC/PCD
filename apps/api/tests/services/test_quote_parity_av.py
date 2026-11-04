@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
@@ -20,6 +22,10 @@ from porterchain_api.domain.merchant_states import MerchantRole
 from porterchain_api.main import app
 from porterchain_api.merchant_models import MerchantApiKey
 from porterchain_pricing.gta_rate import default_gta_rate_config
+
+# Legacy engine behaviour (version stamp / overrides / old card parity).
+pytestmark = pytest.mark.usefixtures("legacy_pricing")
+
 
 LIFTGATE_CENTS = 7777
 SIZE_TIER_CENTS = 1300
@@ -86,7 +92,7 @@ def test_admin_save_card_get_and_preview_cents_match(db, settings, admin_ctx, me
         environment="test",
     )
     admin = AdminContext(
-        user=AdminUser(clerk_user_id="av-admin", email="av-admin@porterchain.com", role="super_admin"),
+        user=AdminUser(auth_subject="av-admin", email="av-admin@porterchain.com", role="super_admin"),
         role=parse_admin_role("super_admin"),
     )
     app.dependency_overrides[get_admin_context] = lambda: admin

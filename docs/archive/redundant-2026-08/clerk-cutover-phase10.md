@@ -1,6 +1,6 @@
 # Clerk cutover Phase 10 (pointer stub)
 
-**Status:** archived pointer — do **not** execute from Cursor agents.
+**Status:** superseded by [docs/runbooks/KEYCLOAK_CUTOVER.md](../../runbooks/KEYCLOAK_CUTOVER.md) (Clerk removed, L36). Archived pointer — do **not** execute from Cursor agents.
 
 Production Clerk cutover is **manual ops only** (Doppler + `upload-clerk-to-doppler`).  
 Agents must not mutate prod. See retirement / rollback notes in living SSOT:

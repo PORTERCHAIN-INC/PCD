@@ -13,10 +13,7 @@ from porterchain_api.db import SessionLocal, engine, init_db
 
 @pytest.fixture(scope="module")
 def db_url() -> str:
-    url = os.environ.get(
-        "DATABASE_URL",
-        "postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain",
-    )
+    url = os.environ["DATABASE_URL"]  # tests/conftest.py defaults it to the test container
     if url.startswith("sqlite"):
         pytest.skip("SQLite is not supported")
     return url

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { isEnhancedExperience, type TrackingExperience } from "@porterchain/types";
 import { Link } from "@/i18n/navigation";
-import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { TrackEtaPanel, TrackRouteMap } from "@porterchain/maps";
 import Container from "@/components/ui/Container";
 import TrackLookupForm from "@/components/track/TrackLookupForm";
@@ -124,7 +123,7 @@ export default function TrackView({
               </div>
             </div>
           )}
-          <GoogleMapsProvider>
+          <>
             <TrackRouteMap
               pickup={pickup as Record<string, unknown> | null | undefined}
               dropoff={dropoff as Record<string, unknown> | null | undefined}
@@ -133,7 +132,7 @@ export default function TrackView({
               height="min(50vw, 320px)"
               className="mb-8"
             />
-          </GoogleMapsProvider>
+          </>
           <TrackEtaPanel
             eta={eta}
             delivered={delivered}

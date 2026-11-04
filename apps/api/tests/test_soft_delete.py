@@ -25,7 +25,7 @@ from porterchain_api.platform.soft_delete import DeletedBatch, including_deleted
 
 
 def _ctx(role: str) -> AdminContext:
-    return AdminContext(user=AdminUser(id=str(uuid4()), clerk_user_id=f"sd-{role}-{uuid4().hex[:6]}",
+    return AdminContext(user=AdminUser(id=str(uuid4()), auth_subject=f"sd-{role}-{uuid4().hex[:6]}",
                                        email=f"{role}@porterchain.com", role=role), role=parse_admin_role(role))
 
 
@@ -44,7 +44,7 @@ def _merchant(db) -> Merchant:
 
 
 def _customer(db) -> Customer:
-    c = Customer(clerk_user_id=f"sd_{_u()}", email=f"c{_u()}@ex.com", full_name="Tracy Test", phone="+14165550100")
+    c = Customer(auth_subject=f"sd_{_u()}", email=f"c{_u()}@ex.com", full_name="Tracy Test", phone="+14165550100")
     db.add(c)
     db.flush()
     return c

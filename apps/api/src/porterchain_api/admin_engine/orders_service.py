@@ -11,72 +11,12 @@ from porterchain_api.booking_engine.order_transitions import transition_order_st
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderState
 from porterchain_api.booking_models import Order
-from porterchain_api.merchant_engine.toronto import parse_toronto_day_bound
 from porterchain_api.order_engine.filters import AdminOrderFilters, OrderFilters
 from porterchain_api.order_engine.platform_service import OrderPlatformService
 from porterchain_api.reporting.compliance_dossier import build_compliance_dossier_pdf
+from porterchain_api.admin_engine.order_filters import _list_date_bound, build_admin_order_filters  # noqa: F401
 
 __all__ = ["AdminOrderFilters", "AdminOrdersService", "OrderFilters", "build_admin_order_filters"]
-
-
-def _list_date_bound(value: str | None, *, end: bool, date_field: str | None) -> datetime | None:
-    if not value:
-        return None
-    if date_field == "scheduled":
-        parsed = parse_toronto_day_bound(value, end=end)
-        if parsed is None:
-            raise ValueError("invalid_date")
-        return parsed
-    return datetime.fromisoformat(value)
-
-
-def build_admin_order_filters(
-    *,
-    state: str | None,
-    payment_status: str | None,
-    invoice_status: str | None,
-    merchant_id: str | None,
-    driver_id: str | None,
-    customer_id: str | None,
-    priority: str | None,
-    service_type: str | None,
-    city: str | None,
-    search: str | None,
-    date_from: str | None,
-    date_to: str | None,
-    date_field: str | None,
-    queue: str | None,
-    include_carryover: bool,
-    amount_min_cents: int | None,
-    amount_max_cents: int | None,
-    include_sandbox: bool,
-    sandbox_only: bool,
-    limit: int,
-    offset: int,
-) -> OrderFilters:
-    return OrderFilters(
-        state=state,
-        payment_status=payment_status,
-        invoice_status=invoice_status,
-        merchant_id=merchant_id,
-        driver_id=driver_id,
-        customer_id=customer_id,
-        priority=priority,
-        service_type=service_type,
-        city=city,
-        search=search,
-        date_from=_list_date_bound(date_from, end=False, date_field=date_field),
-        date_to=_list_date_bound(date_to, end=True, date_field=date_field),
-        date_field=date_field,
-        queue=queue,
-        include_carryover=include_carryover,
-        amount_min_cents=amount_min_cents,
-        amount_max_cents=amount_max_cents,
-        include_sandbox=include_sandbox or sandbox_only,
-        sandbox_only=sandbox_only,
-        limit=limit,
-        offset=offset,
-    )
 
 
 class AdminOrdersService(OrderPlatformService):
@@ -417,6 +357,40 @@ class AdminOrdersService(OrderPlatformService):
             "receipt_number": invoice.receipt_number,
             "amount_cents": invoice.amount_cents,
         }
+
+    def create_return_committed(self, db: Session, settings, order_id: str, *, actor_id: str | None = None) -> dict:
+        """L105: admin Create return books the return pickup (customer -> merchant), as the merchant portal does."""
+        from porterchain_api.merchant_engine import return_service as returns
+        from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+        from porterchain_api.domain.merchant_states import MerchantRole
+        from porterchain_api.merchant_engine.offboard import billing_context
+        from porterchain_api.merchant_engine.rbac import MerchantContext
+        from porterchain_api.merchant_engine import lookups as merchant_lookups
+
+        original = db.query(Order).filter(Order.id == order_id).first()
+        if not original:
+            raise LookupError("order_not_found")
+        merchant = merchant_lookups.get_merchant(db, original.merchant_id)
+        if not merchant:
+            raise ValueError("return_requires_merchant: only merchant orders can be returned here")
+        returns.assert_can_open_return(db, original)
+        owner = merchant_lookups.first_seat(db, merchant.id)
+        mctx = (
+            MerchantContext(merchant=merchant, user=owner, role=MerchantRole.OWNER)
+            if owner
+            else billing_context(merchant)
+        )
+        key = f"admin-return:{original.id}:{len(returns.open_returns(original)) + 1}"
+        try:
+            order = returns.create_return_order(
+                db, settings, mctx, original,
+                source=returns.SOURCE_PORTAL, idempotency_key=key,
+                extra={"booked_by": "admin", "admin_user_id": actor_id},
+            )
+        except BookingValidationError as exc:
+            raise ValueError(exc.code) from exc
+        db.commit()
+        return returns.return_summary(order)
 
     def resend_receipt_committed(self, db: Session, order_id: str) -> dict:
         from porterchain_api.booking_engine.invoice_service import InvoiceService

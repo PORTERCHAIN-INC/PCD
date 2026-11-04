@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_clerk_user_id
+from porterchain_api.auth.bearer import get_auth_subject
 from porterchain_api.booking_engine import PaymentService
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
@@ -16,11 +16,11 @@ def retry_payment(
     body: PaymentRetryRequest,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
-    clerk_user_id: str = Depends(get_clerk_user_id),
+    auth_subject: str = Depends(get_auth_subject),
 ) -> PaymentResponse:
     try:
-        checkout_url, payment = _payments.retry_payment_for_clerk(
-            db, settings, quote_id=body.quote_id, clerk_user_id=clerk_user_id
+        checkout_url, payment = _payments.retry_payment_for_idp(
+            db, settings, quote_id=body.quote_id, auth_subject=auth_subject
         )
     except LookupError:
         raise HTTPException(status_code=404, detail="quote_not_found") from None

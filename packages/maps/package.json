@@ -4,7 +4,6 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./provider": "./src/GoogleMapsProvider.tsx",
     "./address-autocomplete": "./src/AddressAutocompleteInput.tsx",
     "./track-map": "./src/TrackRouteMap.tsx",
     "./types": "./src/types.ts",

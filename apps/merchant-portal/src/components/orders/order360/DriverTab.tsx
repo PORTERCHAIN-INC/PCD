@@ -1,6 +1,5 @@
 "use client";
 
-import type { OrderDetail } from "@/lib/orders";
 import { Card } from "./shared";
 
 export function DriverTab({

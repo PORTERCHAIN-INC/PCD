@@ -7,7 +7,6 @@ packages:
   - "packages/maps"
   - "packages/ui"
 allowBuilds:
-  "@clerk/shared": true
   "@parcel/watcher": true
   "@sentry/cli": true
   "@swc/core": true
@@ -17,13 +16,6 @@ allowBuilds:
   unrs-resolver: true
   esbuild: true
 minimumReleaseAgeExclude:
-  - "@clerk/backend@3.26.1"
-  - "@clerk/nextjs@7.9.19"
-  - "@clerk/expo@4.14.0"
-  - "@clerk/backend@3.11.1"
-  - "@clerk/nextjs@7.5.14"
-  - "@clerk/react@6.12.0"
-  - "@clerk/shared@4.25.0"
   - "@sentry/browser-utils@10.64.0"
   - "@sentry/browser@10.64.0"
   - "@sentry/core@10.64.0"
@@ -45,7 +37,7 @@ minimumReleaseAgeExclude:
 overrides:
   next: 16.4.1
   sharp: 0.35.5
-  # One copy. openai 4.0.68 pulls 4.0.16; ai 7 pulls 4.0.3. Two copies fail website typecheck.
+  # One copy of @ai-sdk/provider-utils (ai 7 + @ai-sdk/react). Two copies fail website typecheck.
   "@ai-sdk/provider": 4.0.16
   # Readiness audit 2026-10-09: patched transitive deps flagged by pnpm audit --prod.
   "@expo/dom-webview": 57.0.1

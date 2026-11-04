@@ -199,7 +199,7 @@ function PersonaHero({ job, data }: { job: MerchantPortalJob; data: MerchantDash
               Orders →
             </Link>
             <Link href="/book" className="text-xs text-muted hover:underline">
-              Request capacity →
+              Book delivery →
             </Link>
           </div>
         </div>

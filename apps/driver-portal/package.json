@@ -16,13 +16,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@clerk/nextjs": "7.9.19",
     "@porterchain/auth": "workspace:*",
     "@porterchain/config": "workspace:*",
     "@porterchain/maps": "workspace:*",
     "@porterchain/types": "workspace:*",
     "@porterchain/ui": "workspace:*",
-    "@sentry/nextjs": "^10.64.0",
+    "@porterchain/web-push": "workspace:*",
     "@tanstack/react-query": "^5.101.2",
     "date-fns": "^4.4.0",
     "firebase": "^12.19.0",

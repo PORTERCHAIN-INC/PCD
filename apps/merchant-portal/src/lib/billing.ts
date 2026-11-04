@@ -6,6 +6,8 @@ export type TaxSummary = {
   subtotal_cents: number;
   tax_cents: number;
   fees_cents: number;
+  penalty_cents?: number;
+  penalty_label?: string | null;
   total_cents: number;
   invoice_count: number;
   currency: string;
@@ -26,6 +28,7 @@ export type BillingOverview = {
   payment_terms: string;
   billing_cycle: string;
   billing_cycles_available: string[];
+  billing_terms_label?: string | null;
   net_terms_days: number;
   credit_limit_cents?: number | null;
   available_credit_cents?: number | null;
@@ -87,7 +90,6 @@ export type InvoiceRow = {
   last_reminded_at?: string | null;
   created_at: string;
   pdf_url?: string | null;
-  stripe_receipt_url?: string | null;
 };
 
 export type InvoiceDetailLine = {
@@ -114,6 +116,12 @@ export type InvoiceDetailLine = {
 };
 
 export type InvoiceDetail = {
+  /** G11 exception: card checkout is offered only when the API flag is on. */
+  card_payment_available?: boolean;
+  etransfer_email?: string | null;
+  payment_reference?: string | null;
+  supplier_legal_name?: string | null;
+  supplier_gst_hst_number?: string | null;
   invoice_id: string;
   invoice_number: string;
   status: string;
@@ -123,6 +131,8 @@ export type InvoiceDetail = {
   amount_cents: number;
   tax_cents: number;
   fees_cents: number;
+  penalty_cents?: number;
+  penalty_label?: string | null;
   outstanding_cents: number;
   currency: string;
   created_at: string;
@@ -130,6 +140,22 @@ export type InvoiceDetail = {
   remittance_memo?: string | null;
   lines: InvoiceDetailLine[];
   lines_total_cents?: number;
+  credited_cents?: number;
+  credit_notes?: InvoiceCreditNote[];
+};
+
+/** Issued GST/HST credit note against one invoice (tax 0 when none was charged). */
+export type InvoiceCreditNote = {
+  credit_note_id: string;
+  credit_note_number: string | null;
+  kind: string;
+  customer_reason?: string | null;
+  amount_cents: number;
+  subtotal_cents: number;
+  tax_cents: number;
+  currency: string;
+  settlement?: string | null;
+  issued_at?: string | null;
 };
 
 export type PaymentRow = {
@@ -147,6 +173,10 @@ export type PaymentRow = {
 
 export type CreditNoteRow = {
   credit_note_id: string;
+  credit_note_number?: string | null;
+  invoice_id?: string | null;
+  invoice_number?: string | null;
+  pdf_available?: boolean;
   order_id?: string | null;
   order_number?: string | null;
   amount_cents?: number | null;
@@ -242,6 +272,14 @@ export const billingApi = {
   payments: (token: string, orgId?: string) =>
     billingFetch<PaymentRow[]>("/v1/merchant/billing/payments", token, { orgId }),
 
+  downloadCreditNotePdf: (token: string, creditNoteId: string, orgId?: string, filename?: string) =>
+    billingDownload(
+      `/v1/merchant/billing/credit-notes/${creditNoteId}/pdf`,
+      token,
+      orgId,
+      filename || `credit-note-${creditNoteId}.pdf`
+    ),
+
   creditNotes: (token: string, orgId?: string) =>
     billingFetch<CreditNoteRow[]>("/v1/merchant/billing/credit-notes", token, { orgId }),
 
@@ -283,6 +321,21 @@ export const billingApi = {
       orgId,
     }),
 
+  /** Hosted card checkout for the outstanding balance (we never see the card). Off unless enabled. */
+  payInvoiceByCard: (token: string, invoiceId: string, orgId?: string) =>
+    billingFetch<{ url: string; session_id: string; amount_cents: number }>(
+      `/v1/merchant/billing/invoices/${invoiceId}/pay-card`,
+      token,
+      { method: "POST", orgId }
+    ),
+
+  syncInvoiceCardPayment: (token: string, invoiceId: string, sessionId: string, orgId?: string) =>
+    billingFetch<{ status: string; merchant_reinstated?: boolean }>(
+      `/v1/merchant/billing/invoices/${invoiceId}/pay-card/sync`,
+      token,
+      { method: "POST", orgId, body: JSON.stringify({ session_id: sessionId }) }
+    ),
+
   invoiceDetail: (token: string, invoiceId: string, orgId?: string) =>
     billingFetch<InvoiceDetail>(`/v1/merchant/billing/invoices/${invoiceId}`, token, { orgId }),
 
@@ -316,7 +369,12 @@ export const billingApi = {
 
 export function formatTerms(terms: string | null | undefined) {
   if (!terms) return "—";
-  return terms.replace(/_/g, " ").replace(/\bnet\b/i, "Net");
+  // Pass 6: "IMMEDIATE" -> "Due on receipt", "NET_30" -> "Net 30".
+  if (terms.toUpperCase() === "IMMEDIATE") return "Due on receipt";
+  const m = /^NET_?(\d+)$/i.exec(terms);
+  if (m) return `Net ${m[1]}`;
+  const t = terms.replace(/_/g, " ").toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 export function formatCycle(cycle: string | null | undefined) {

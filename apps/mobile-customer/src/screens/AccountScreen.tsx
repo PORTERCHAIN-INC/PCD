@@ -1,4 +1,5 @@
-import { useClerk } from "@clerk/expo";
+import { siteLocale } from "../lib/siteLocale";
+import { useSessionView } from "../auth/SessionGate";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Share, StyleSheet, TextInput, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
@@ -21,14 +22,7 @@ import { Screen } from "../ui/Screen";
 
 export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
   const identity = sessionIdentity();
-  let clerk: ReturnType<typeof useClerk> | null = null;
-  try {
-    // Throws when no ClerkProvider (dev builds without a publishable key).
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    clerk = useClerk();
-  } catch {
-    clerk = null;
-  }
+  const { accountUrl } = useSessionView();
   const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [subject, setSubject] = useState("");
@@ -203,7 +197,7 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
           icon="globe-outline"
           title="Questions & answers"
           subtitle="porterchain.com/faq"
-          onPress={() => void WebBrowser.openBrowserAsync(`${websiteUrl}/en/faq`)}
+          onPress={() => void WebBrowser.openBrowserAsync(`${websiteUrl}/${siteLocale()}/faq`)}
         />
       </Card>
 
@@ -213,8 +207,7 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
           icon="lock-closed-outline"
           title="Password and security"
           onPress={() => {
-            const open = (clerk as { openUserProfile?: () => void } | null)?.openUserProfile;
-            if (open) open();
+            if (accountUrl) void WebBrowser.openBrowserAsync(accountUrl);
             else {
               Alert.alert(
                 "Password",

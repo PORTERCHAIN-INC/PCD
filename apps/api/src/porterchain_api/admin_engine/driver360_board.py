@@ -311,7 +311,7 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
     row = svc._row(db, driver, light=False)
     active_vehicles = [v for v in vehicles if v.is_active]
     from porterchain_api.admin_engine.driver_documents import assign_blockers
-    from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
+    from porterchain_api.auth.user_sync_service import _is_pending_idp_id
 
     blockers = assign_blockers(driver, active_vehicle_count=len(active_vehicles))
     row.update(
@@ -323,7 +323,7 @@ def detail_payload(svc: Any, db: Session, driver: Driver) -> dict[str, Any]:
             "dispatch": _driver_profile_status(db, driver.id),
             "assignable": len(blockers) == 0,
             "assign_blockers": blockers,
-            "clerk_linked": not _is_pending_clerk_id(driver.clerk_user_id),
+            "identity_linked": not _is_pending_idp_id(driver.auth_subject),
             "counts": {
                 "vehicles": len(vehicles),
                 "open_tasks": db.query(CrmSalesTask).filter(

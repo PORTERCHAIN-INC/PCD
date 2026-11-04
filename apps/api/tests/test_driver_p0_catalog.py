@@ -40,7 +40,7 @@ def _mock_driver(**kwargs) -> SimpleNamespace:
     base = dict(
         id="d-p0",
         status=DriverStatus.PENDING.value,
-        clerk_user_id="user_d_p0",
+        auth_subject="user_d_p0",
         vehicles=[],
         fleetbase_driver_id=None,
         is_online=True,
@@ -141,7 +141,7 @@ def test_identity_verified_does_not_auto_approve(db: Session) -> None:
         email=f"p0-ident-{suffix}@test.porterchain.com",
         full_name=f"P0 Ident {suffix}",
         status=DriverStatus.PENDING.value,
-        clerk_user_id=f"clerk_p0_ident_{suffix}",
+        auth_subject=f"idp_p0_ident_{suffix}",
         license_verified=False,
         documents={},
     )
@@ -220,10 +220,10 @@ def test_require_assigned_order_missing() -> None:
 def test_allow_auth_dev_bypass_only_in_development() -> None:
     from porterchain_api.auth.dev import allow_auth_dev_bypass
 
-    local = SimpleNamespace(app_env="local", clerk_dev_bypass=True)
-    prod = SimpleNamespace(app_env="production", clerk_dev_bypass=True)
-    local_off = SimpleNamespace(app_env="local", clerk_dev_bypass=False)
-    staging = SimpleNamespace(app_env="staging", clerk_dev_bypass=True)
+    local = SimpleNamespace(app_env="local", auth_dev_bypass=True)
+    prod = SimpleNamespace(app_env="production", auth_dev_bypass=True)
+    local_off = SimpleNamespace(app_env="local", auth_dev_bypass=False)
+    staging = SimpleNamespace(app_env="staging", auth_dev_bypass=True)
 
     assert allow_auth_dev_bypass(local) is True  # type: ignore[arg-type]
     assert allow_auth_dev_bypass(prod) is False  # type: ignore[arg-type]
@@ -235,7 +235,7 @@ def test_dev_login_404_when_bypass_disabled() -> None:
     """Dev picker must 404 when bypass is off (even in local)."""
     settings = Settings(
         app_env="local",
-        clerk_dev_bypass=False,
+        auth_dev_bypass=False,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
     )
@@ -259,7 +259,7 @@ def test_get_driver_context_suspended_403(db: Session) -> None:
         email=f"p0-sus-{suffix}@test.porterchain.com",
         full_name=f"P0 Sus {suffix}",
         status=DriverStatus.SUSPENDED.value,
-        clerk_user_id=f"clerk_p0_sus_{suffix}",
+        auth_subject=f"idp_p0_sus_{suffix}",
     )
     db.add(row)
     db.commit()
@@ -267,7 +267,7 @@ def test_get_driver_context_suspended_403(db: Session) -> None:
 
     bypass_settings = Settings(
         app_env="local",
-        clerk_dev_bypass=True,
+        auth_dev_bypass=True,
         stripe_mock=True,
         jwt_secret="test-jwt-secret-local",
         spicedb_enabled=False,

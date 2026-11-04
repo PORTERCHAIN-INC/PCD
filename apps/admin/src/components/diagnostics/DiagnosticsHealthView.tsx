@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "react";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import { AlertTriangle, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, RefreshCw, Search } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@porterchain/ui/utils";
 import {
@@ -10,8 +10,9 @@ import {
   HealthSummaryBar,
   MasterruleCompliancePanel,
   ProgressRing,
+  statusLabel,
 } from "@/components/diagnostics/DiagnosticsPrimitives";
-import { Badge, Button } from "@/components/crm/primitives";
+import { Button } from "@/components/crm/primitives";
 import { SettingsCard, SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
 import { useApiData } from "@/hooks/useApiData";
 import {
@@ -19,7 +20,6 @@ import {
   HEALTH_CATEGORY_ORDER,
   diagnosticsApi,
   filterComponents,
-  type HealthDashboard,
 } from "@/lib/diagnostics";
 
 export function DiagnosticsHealthView({
@@ -202,7 +202,9 @@ export function DiagnosticsHealthView({
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                     <div>
                       <span className="font-medium">{c.name}</span>
-                      <span className="ml-2 text-xs uppercase text-amber-800">{c.status}</span>
+                      <span className="ml-2 text-xs uppercase text-amber-800">
+                        {statusLabel(c)}
+                      </span>
                       {(c.errors[0] || c.warnings[0]) && (
                         <p className="mt-0.5 text-xs text-muted">{c.errors[0] || c.warnings[0]}</p>
                       )}

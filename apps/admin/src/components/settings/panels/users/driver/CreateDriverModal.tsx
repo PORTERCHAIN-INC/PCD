@@ -74,9 +74,9 @@ export function CreateDriverModal({
     >
       <div className="space-y-4">
         <p className="text-sm text-muted">
-          Creates a PENDING driver in PorterChain. Uncheck invite to create without Clerk (authorize
-          and assign jobs immediately). Check invite to email Clerk login when they need the portal.
-          Full compliance profile:{" "}
+          Creates a PENDING driver in PorterChain. Uncheck invite to create without Keycloak
+          (authorize and assign jobs immediately). Check invite to email Keycloak login when they
+          need the portal. Full compliance profile:{" "}
           <Link href="/drivers" className="font-medium text-secondary hover:underline">
             Drivers → Add driver
           </Link>
@@ -93,7 +93,7 @@ export function CreateDriverModal({
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Set in Clerk — never shown again"
+            placeholder="Set in Keycloak — never shown again"
             autoComplete="new-password"
           />
         </Field>
@@ -104,7 +104,7 @@ export function CreateDriverModal({
               checked={sendInvite}
               onChange={(e) => setSendInvite(e.target.checked)}
             />
-            Send Clerk invitation email (required for portal login; optional for ops)
+            Send Keycloak invitation email (required for portal login; optional for ops)
           </label>
         )}
         {createdHref && (

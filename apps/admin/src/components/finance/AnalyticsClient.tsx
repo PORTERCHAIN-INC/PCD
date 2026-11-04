@@ -9,7 +9,8 @@ import { Empty, FinanceShell, Section, Stat } from "./FinanceShell";
 
 const pct = (v: number | null | undefined) => (v == null ? "—" : `${v.toFixed(1)}%`);
 const money = (c: number | null | undefined) => (c == null ? "—" : formatCents(c));
-const label = (k: string) => (k === "?" ? "Unknown" : k);
+const label = (k: string) =>
+  k === "?" ? "Unknown" : /^[a-z0-9]+(_[a-z0-9]+)+$/.test(k) ? humanCode(k) : k;
 const th = "py-1 text-right font-medium";
 const td = "py-1.5 text-right tabular-nums";
 
@@ -220,4 +221,12 @@ export default function AnalyticsClient() {
       )}
     </FinanceShell>
   );
+}
+
+/** Pass 6: never show raw snake_case codes ("cargo_van" -> "Cargo van"). */
+function humanCode(v: unknown): string {
+  const t = String(v ?? "")
+    .replace(/_/g, " ")
+    .trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "—";
 }

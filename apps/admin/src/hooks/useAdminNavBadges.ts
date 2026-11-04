@@ -29,7 +29,7 @@ export function useAdminNavBadges(keys: AdminBadgeKey[]): Counts {
     queryFn: async (): Promise<Counts> => {
       const t = await getApiToken();
       const [exceptions, leads, calls, cash, tickets] = await Promise.all([
-        want.has("exceptions") ? safe(dispatch.exceptions(t, 0), (r) => r.total) : 0,
+        want.has("exceptions") ? safe(dispatch.exceptionsCount(t), (r) => r.total) : 0,
         want.has("leads") ? safe(leadsApi.agentActivity(t), (r) => r.counts.unassigned) : 0,
         want.has("calls") ? safe(leadsApi.today(t), (r) => r.counts.ready) : 0,
         want.has("cash")

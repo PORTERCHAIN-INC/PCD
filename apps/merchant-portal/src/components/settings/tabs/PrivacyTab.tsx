@@ -196,8 +196,8 @@ export function PrivacyTab({
           </ul>
         )}
         <p className="mt-3 text-xs text-muted">
-          Subprocessors: Shopify, Clerk, and Stripe may process data outside Canada. The database
-          host and the mailer stay in Canada.
+          Subprocessors: Shopify and Keycloak may process data outside Canada. The database host and
+          the mailer stay in Canada.
         </p>
       </div>
       {(privacy?.recent_logs?.length ?? 0) > 0 ? (

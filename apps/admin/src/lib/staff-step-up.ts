@@ -1,46 +1,36 @@
 /**
- * Prompt for a passkey and refresh the staff step-up window.
- * Call when a mutation returns `staff_step_up_required`.
+ * Staff step-up: sensitive mutations need a Keycloak login (password + TOTP) in the last
+ * 15 minutes. On `staff_step_up_required` we send the browser through `prompt=login` and
+ * bring it back to the same page; the user repeats the action afterwards.
  */
 
-import { adminFetch } from "@/lib/api";
-import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
-import { credentialToJson, getPasskey, passkeysSupported } from "@/lib/staff-webauthn";
+const MARK = "pc_admin_step_up_at";
 
 export function isStaffStepUpRequired(err: unknown): boolean {
   return err instanceof Error && err.message.includes("staff_step_up_required");
 }
 
-export async function refreshStaffStepUp(token: string = STAFF_COOKIE_TOKEN): Promise<void> {
-  if (!passkeysSupported()) {
-    throw new Error("Passkey required — add one under Account → Security, then retry.");
-  }
-  const options = await adminFetch<Record<string, unknown>>(
-    "/v1/auth/staff/step-up/options",
-    token,
-    { method: "POST", body: "{}" }
-  );
-  const challengeId = String(options.challenge_id || "");
-  if (!challengeId) {
-    throw new Error("step_up_options_failed");
-  }
-  const cred = await getPasskey(options);
-  await adminFetch("/v1/auth/staff/step-up", token, {
-    method: "POST",
-    body: JSON.stringify({
-      challenge_id: challengeId,
-      passkey_assertion: { credential: credentialToJson(cred) },
-    }),
-  });
+export function stepUpUrl(returnTo: string): string {
+  return `/auth/login?prompt=login&return_to=${encodeURIComponent(returnTo)}`;
 }
 
-/** Run `fn`; on step-up required, confirm passkey once and retry. */
-export async function withStaffStepUp<T>(token: string, fn: () => Promise<T>): Promise<T> {
+/** Redirects to Keycloak re-authentication. Throws if a re-login just happened (avoid loops). */
+export function refreshStaffStepUp(): Promise<never> {
+  const last = Number(window.sessionStorage.getItem(MARK) || 0);
+  if (Date.now() - last < 60_000) {
+    return Promise.reject(new Error("Re-authentication did not complete. Sign in again."));
+  }
+  window.sessionStorage.setItem(MARK, String(Date.now()));
+  window.location.assign(stepUpUrl(`${window.location.pathname}${window.location.search}`));
+  return new Promise<never>(() => {});
+}
+
+/** Run `fn`; on step-up required, re-authenticate with Keycloak. */
+export async function withStaffStepUp<T>(_token: string, fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err) {
     if (!isStaffStepUpRequired(err)) throw err;
-    await refreshStaffStepUp(token);
-    return fn();
+    return refreshStaffStepUp();
   }
 }

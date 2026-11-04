@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { adminFetch } from "@/lib/api";
-import { downloadCsv, toCsv } from "@/lib/crmFormat";
 
 export const INVOICE_STATUSES = [
   "draft",
@@ -10,6 +9,8 @@ export const INVOICE_STATUSES = [
   "partially_paid",
   "partial",
   "overdue",
+  "partially_credited",
+  "credited",
   "cancelled",
   "void",
 ] as const;
@@ -31,8 +32,11 @@ const invoiceSchema = z.object({
   amount_cents: z.number(),
   tax_cents: z.number(),
   fees_cents: z.number(),
+  penalty_cents: z.number().optional(),
+  penalty_label: z.string().nullable().optional(),
   outstanding_cents: z.number(),
   amount_paid_cents: z.number().optional().default(0),
+  credited_cents: z.number().optional().default(0),
   /** Interac e-Transfer memo code, e.g. PC-4F7K2. */
   payment_reference: z.string().nullable().optional(),
   billing_kind: z.string().optional().default("order"),
@@ -70,6 +74,7 @@ const collectionSchema = invoiceSchema.extend({
 export type CollectionRow = z.infer<typeof collectionSchema>;
 
 const invoiceLineSchema = z.object({
+  line_id: z.string().nullable().optional(),
   order_id: z.string().nullable().optional(),
   order_number: z.string().nullable().optional(),
   description: z.string(),
@@ -267,10 +272,25 @@ export const financeApi = {
     return z.array(payoutSchema).parse(raw);
   },
   ledger: (token: string) => adminFetch<Array<Record<string, unknown>>>(`${B}/ledger`, token),
-  creditNote: (token: string, body: { order_id: string; amount_cents: number; reason: string }) =>
-    adminFetch<{ ledger_id: string }>(`${B}/credit-notes`, token, {
+  invoiceAdjustments: (token: string, invoiceId: string) =>
+    adminFetch<InvoiceAdjustments>(`${B}/invoices/${invoiceId}/adjustments`, token),
+  createCreditNote: (token: string, invoiceId: string, body: CreditNoteRequest) =>
+    adminFetch<CreditNoteResult>(`${B}/invoices/${invoiceId}/credit-notes`, token, {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  approveCreditNote: (token: string, creditNoteId: string) =>
+    adminFetch<CreditNoteResult>(`${B}/credit-notes/${creditNoteId}/approve`, token, {
+      method: "POST",
+    }),
+  rejectCreditNote: (token: string, creditNoteId: string, note?: string) =>
+    adminFetch<CreditNoteResult>(`${B}/credit-notes/${creditNoteId}/reject`, token, {
+      method: "POST",
+      body: JSON.stringify({ note: note || null }),
+    }),
+  retryCreditNoteRefund: (token: string, creditNoteId: string) =>
+    adminFetch<CreditNoteResult>(`${B}/credit-notes/${creditNoteId}/retry-refund`, token, {
+      method: "POST",
     }),
   merchantArPreview: (
     token: string,
@@ -328,6 +348,7 @@ export const financeApi = {
       method: string;
       amount_cents?: number;
       reference?: string;
+      paid_at?: string;
       allow_reference_mismatch?: boolean;
     }
   ) =>
@@ -368,6 +389,13 @@ export const financeApi = {
     adminFetch<{ enabled: boolean; fetched: number; queued: number }>(`${B}/interac/sync`, token, {
       method: "POST",
     }),
+  taxRegistration: (token: string) =>
+    adminFetch<TaxRegistrationStatus>(`${B}/tax-registration`, token),
+  changeTaxRegistration: (token: string, body: TaxRegistrationChange) =>
+    adminFetch<TaxRegistrationStatus>(`${B}/tax-registration`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   remindInvoice: (token: string, invoiceId: string) =>
     adminFetch<{
       invoice_id: string;
@@ -385,8 +413,82 @@ export const INVOICE_STATUS_STYLES: Record<string, string> = {
   partially_paid: "bg-teal-100 text-teal-800",
   partial: "bg-teal-100 text-teal-800",
   overdue: "bg-red-100 text-red-700",
+  partially_credited: "bg-violet-100 text-violet-800",
+  credited: "bg-violet-100 text-violet-800",
   cancelled: "bg-gray-100 text-gray-500",
   void: "bg-gray-100 text-gray-500",
+};
+
+/** Reason codes for invoice credits (docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md). */
+export const CREDIT_REASON_LABELS: Record<string, string> = {
+  service_failure: "Our fault / service failure",
+  test_delivery: "Test delivery",
+  goodwill: "Goodwill",
+  duplicate_billing: "Duplicate billing",
+  pricing_error: "Pricing error",
+  other: "Other (note required)",
+};
+
+export type CreditNoteKind = "void" | "lines" | "partial";
+
+export type CreditNoteRequest = {
+  kind: CreditNoteKind;
+  reason_code: string;
+  internal_note?: string;
+  customer_message?: string;
+  line_ids?: string[];
+  amount_cents?: number;
+};
+
+export type CreditNoteRow = {
+  credit_note_id: string;
+  credit_note_number: string | null;
+  invoice_id: string;
+  original_invoice_number: string | null;
+  original_invoice_date: string | null;
+  kind: CreditNoteKind;
+  reason_code: string | null;
+  customer_reason: string | null;
+  internal_note?: string | null;
+  amount_cents: number;
+  subtotal_cents: number;
+  tax_cents: number;
+  tax_province: string | null;
+  currency: string;
+  status: "issued" | "pending_approval" | "rejected";
+  settlement: string | null;
+  settlement_cents: number;
+  issued_by?: string | null;
+  approved_by?: string | null;
+  issued_at: string | null;
+  created_at: string | null;
+};
+
+export type InvoiceAdjustments = {
+  invoice_id: string;
+  total_cents: number;
+  credited_cents: number;
+  pending_cents: number;
+  creditable_cents: number;
+  tax_cents: number;
+  tax_credited_cents: number;
+  approval_threshold_cents: number;
+  reason_codes: Array<{ code: string; customer_reason: string }>;
+  lines: Array<{
+    line_id: string;
+    description: string;
+    gross_cents: number;
+    tax_cents: number;
+    subtotal_cents: number;
+    credited: boolean;
+  }>;
+  credit_notes: CreditNoteRow[];
+};
+
+export type CreditNoteResult = CreditNoteRow & {
+  warning?: string | null;
+  email?: { sent: boolean; recipient?: string; reason?: string } | null;
+  invoice?: InvoiceAdjustments;
 };
 
 export const PAYMENT_STATUS_STYLES: Record<string, string> = {
@@ -429,35 +531,6 @@ export function exportInvoicesCsv(rows: InvoiceRow[], filename = "invoices.csv")
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
-}
-
-/** The aging report a collector works from, contact details included (BL). */
-export function exportCollectionsCsv(rows: CollectionRow[], filename = "collections-aging.csv") {
-  const headers = [
-    "invoice_number",
-    "merchant_name",
-    "due_date",
-    "days_overdue",
-    "aging_bucket",
-    "outstanding_cents",
-    "payment_terms",
-    "ap_contact_name",
-    "ap_contact_phone",
-    "ap_contact_email",
-  ];
-  const body = rows.map((r) => [
-    r.invoice_number,
-    r.merchant_name ?? "",
-    (r.due_date ?? "").slice(0, 10),
-    String(r.days_overdue),
-    r.aging_bucket,
-    String(r.outstanding_cents),
-    r.payment_terms,
-    r.ap_contact?.name ?? "",
-    r.ap_contact?.phone ?? "",
-    r.ap_contact?.email ?? "",
-  ]);
-  downloadCsv(filename, toCsv(headers, body));
 }
 
 export function exportGlCsv(rows: Array<Record<string, unknown>>, filename = "general-ledger.csv") {
@@ -504,3 +577,38 @@ export type ArSummary = {
     body: string;
   }>;
 };
+
+export type TaxRegistrationRow = {
+  id: string;
+  gst_hst_number: string | null;
+  legal_name: string | null;
+  effective_from: string;
+  note: string | null;
+  created_by: string | null;
+  created_at: string | null;
+};
+
+export type TaxRegistrationStatus = {
+  registered: boolean;
+  gst_hst_number: string;
+  legal_name: string | null;
+  effective_from: string | null;
+  set: boolean;
+  warning: string | null;
+  upcoming: {
+    gst_hst_number: string | null;
+    legal_name: string | null;
+    effective_from: string;
+  } | null;
+  history: TaxRegistrationRow[];
+};
+
+export type TaxRegistrationChange = {
+  gst_hst_number: string | null;
+  legal_name: string | null;
+  effective_from: string;
+  note?: string | null;
+};
+
+/** CRA program account: 9-digit BN + "RT" + 4-digit reference (e.g. 123456789RT0001). */
+export const GST_HST_PATTERN = /^\d{9}\s?RT\s?\d{4}$/i;

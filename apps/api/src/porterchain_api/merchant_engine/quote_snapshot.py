@@ -109,6 +109,8 @@ def merchant_line_items(breakdown: dict[str, Any] | None) -> list[dict[str, Any]
         if amount is None:
             continue
         code = item.get("code")
+        if str(code or "").lower() == "hst":  # doc 72 HST line: shown once via tax_cents, not as a pre-tax line
+            continue
         out.append(
             {
                 "code": code,

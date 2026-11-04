@@ -180,7 +180,3 @@ for (const zone of GTA_ZONES) {
 export function resolveZoneByFsa(fsa: string): GtaZone | null {
   return FSA_TO_ZONE.get(fsa.toUpperCase()) ?? null;
 }
-
-export function getZoneById(id: string): GtaZone | undefined {
-  return GTA_ZONES.find((z) => z.id === id);
-}

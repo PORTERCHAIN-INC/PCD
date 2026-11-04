@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.clerk import get_clerk_claims
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.bearer import get_identity_claims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.customer import require_customer
 from porterchain_api.auth.customer_onboarding import require_customer_portal_ready
 from porterchain_api.booking_engine import CustomerService
@@ -30,7 +30,7 @@ _invoices = InvoiceService()
 _privacy = PrivacyService()
 
 
-def _ready_customer(db: Session, claims: ClerkClaims, settings: Settings):
+def _ready_customer(db: Session, claims: IdentityClaims, settings: Settings):
     customer = require_customer(db, claims, settings)
     try:
         require_customer_portal_ready(
@@ -48,7 +48,7 @@ def _ready_customer(db: Session, claims: ClerkClaims, settings: Settings):
 @router.get("/me/dashboard", response_model=CustomerDashboardResponse)
 def get_my_dashboard(
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ) -> CustomerDashboardResponse:
     customer = require_customer(db, claims, settings)
@@ -68,7 +68,7 @@ def get_my_dashboard(
 @router.get("/me/invoices", response_model=list[CustomerInvoiceListItem])
 def list_my_invoices(
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
     limit: int = Query(50, ge=1, le=100),
 ) -> list[CustomerInvoiceListItem]:
@@ -81,7 +81,7 @@ def list_my_invoices(
 def get_my_invoice(
     invoice_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ) -> CustomerInvoiceDetailResponse:
     customer = _ready_customer(db, claims, settings)
@@ -96,7 +96,7 @@ def get_my_invoice(
 def download_my_invoice_pdf(
     invoice_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ) -> Response:
     customer = _ready_customer(db, claims, settings)
@@ -111,10 +111,29 @@ def download_my_invoice_pdf(
     )
 
 
+@router.get("/me/credit-notes/{credit_note_id}/pdf")
+def download_my_credit_note_pdf(
+    credit_note_id: str,
+    db: Session = Depends(get_db),
+    claims: IdentityClaims = Depends(get_identity_claims),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    customer = _ready_customer(db, claims, settings)
+    try:
+        pdf, filename = _invoices.credit_note_pdf_for_customer(db, customer.id, credit_note_id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="credit_note_not_found") from None
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/me/support", response_model=list[CustomerSupportTicketResponse])
 def list_my_support_tickets(
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ) -> list[CustomerSupportTicketResponse]:
     customer = require_customer(db, claims, settings)
@@ -136,7 +155,7 @@ def list_my_support_tickets(
 def create_support_ticket(
     body: CustomerSupportTicketRequest,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> CustomerSupportTicketResponse:
@@ -166,7 +185,7 @@ def create_support_ticket(
 def rebook_from_order(
     order_id: str,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ) -> CustomerRebookResponse:
     customer = require_customer(db, claims, settings)
@@ -180,7 +199,7 @@ def rebook_from_order(
 @router.get("/me/privacy/export")
 def customer_privacy_export(
     db: Session = Depends(get_report_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ):
     customer = require_customer(db, claims, settings)
@@ -190,7 +209,7 @@ def customer_privacy_export(
 @router.post("/me/privacy/delete-request")
 def customer_privacy_delete_request(
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ):
     customer = require_customer(db, claims, settings)
@@ -202,7 +221,7 @@ def get_my_driver_position(
     tracking_number: str,
     response: Response,
     db: Session = Depends(get_db),
-    claims: ClerkClaims = Depends(get_clerk_claims),
+    claims: IdentityClaims = Depends(get_identity_claims),
     settings: Settings = Depends(get_settings),
 ) -> dict:
     """Coarse live position of the driver on the caller's own active shipment.

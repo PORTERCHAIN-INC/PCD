@@ -71,8 +71,3 @@ export function getServiceAreaConfig(slug: string): ServiceAreaConfig | null {
   const found = SERVICE_AREA_CONFIGS.find((c) => c.slug === slug);
   return found ?? null;
 }
-
-export function getServiceAreaConfigByMessageKey(messageKey: string): ServiceAreaConfig | null {
-  const found = SERVICE_AREA_CONFIGS.find((c) => c.messageKey === messageKey);
-  return found ?? null;
-}

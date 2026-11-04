@@ -92,7 +92,7 @@ def main() -> int:
     deploy = DEPLOY_YML.read_text(encoding="utf-8")
     for needle in (
         "scripts/resolve_deploy_plan.py",
-        'echo "::error::DOPPLER_TOKEN is required',
+        'echo "::error::SOPS_AGE_KEY is required',
         "sync-secrets.sh",
         "strategy:",
         "matrix:",

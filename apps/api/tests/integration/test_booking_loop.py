@@ -77,7 +77,7 @@ def test_retail_booking_loop_quote_to_dispatch_ready(
         quote_id=quote.id,
         email="integration@test.porterchain.com",
         phone="+1 416-555-0199",
-        clerk_user_id="clerk_integration_test",
+        auth_subject="idp_integration_test",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,
@@ -153,7 +153,7 @@ def test_booking_loop_idempotent_checkout(
         quote_id=quote.id,
         email="idempotent@test.porterchain.com",
         phone="+1 416-555-0200",
-        clerk_user_id="clerk_idempotent_test",
+        auth_subject="idp_idempotent_test",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,

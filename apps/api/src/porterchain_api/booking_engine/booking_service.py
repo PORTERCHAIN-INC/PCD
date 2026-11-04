@@ -28,15 +28,15 @@ class BookingService:
         quote_id: str,
         email: str,
         phone: str,
-        clerk_user_id: str | None,
+        auth_subject: str | None,
         anonymous_session_id: str | None,
         consent: dict | None = None,
         checkout_channel: str = "retail",
         full_name: str | None = None,
     ) -> tuple[Quote, Customer, str | None]:
-        """Start checkout. ``clerk_user_id=None`` is guest (express) checkout: the customer
-        row is created/reused by email with a ``pending`` Clerk id and is merged on first
-        Clerk sign-in (C-14), so no account step blocks payment."""
+        """Start checkout. ``auth_subject=None`` is guest (express) checkout: the customer
+        row is created/reused by email with a ``pending`` Keycloak id and is merged on first
+        Keycloak sign-in (C-14), so no account step blocks payment."""
         quote = db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
             raise LookupError("quote_not_found")
@@ -50,10 +50,10 @@ class BookingService:
         if not (consent.get("terms_accepted") and consent.get("privacy_accepted")):
             raise ValueError("consent_required")
 
-        if clerk_user_id:
+        if auth_subject:
             customer = self._customers.upsert(
                 db,
-                clerk_user_id=clerk_user_id,
+                auth_subject=auth_subject,
                 email=email,
                 phone=phone,
                 visitor_session_id=anonymous_session_id or quote.visitor_session_id,
@@ -116,7 +116,7 @@ class BookingService:
             visitor_session_id=session_id,
             consent=consent,
         )
-        if clerk_user_id:
+        if auth_subject:
             emit_event(
                 db,
                 event_type=E.CUSTOMER_AUTHENTICATED,
@@ -125,15 +125,15 @@ class BookingService:
                 correlation_id=quote.id,
                 actor_type="customer",
                 actor_id=customer.id,
-                payload={"clerk_user_id": clerk_user_id},
+                payload={"auth_subject": auth_subject},
             )
         self._quotes.accept_quote(db, quote)
-        if clerk_user_id:
+        if auth_subject:
             self._drafts.on_customer_authenticated(
                 db,
                 quote_id=quote.id,
                 customer_id=customer.id,
-                clerk_user_id=clerk_user_id,
+                auth_subject=auth_subject,
             )
 
         checkout_url, _payment = self._payments.start_payment(

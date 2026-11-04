@@ -9,7 +9,7 @@ from sqlalchemy import and_, exists, func, or_
 from sqlalchemy.orm import Session, aliased
 
 from porterchain_api.booking_models import Customer, Invoice, Order, Payment, Quote
-from porterchain_api.order_engine.buckets import HIGH_PRIORITY_CENTS, WORK_QUEUES
+from porterchain_api.order_engine.buckets import HIGH_PRIORITY_CENTS, ON_THE_ROAD, WORK_QUEUES
 from porterchain_api.order_engine.filters import OrderFilters
 from porterchain_api.platform.pagination import as_page, clamp_page
 
@@ -38,7 +38,16 @@ class OrderPlatformEnrichedMixin:
             states = WORK_QUEUES.get(filters.queue)
             if states is None:
                 raise ValueError("invalid_queue")
-            q = q.filter(Order.state.in_(states))
+            if filters.queue == "needs_decision":
+                # L100: a picked-up parcel with no driver is waiting at our hub — ops must act.
+                from sqlalchemy import and_ as _and, or_ as _or
+
+                q = q.filter(_or(Order.state.in_(states), _and(
+                    Order.state.in_(ON_THE_ROAD), Order.assigned_driver_id.is_(None))))
+            elif filters.queue == "on_the_road":
+                q = q.filter(Order.state.in_(states), Order.assigned_driver_id.isnot(None))
+            else:
+                q = q.filter(Order.state.in_(states))
         if filters.merchant_id:
             q = q.filter(Order.merchant_id == filters.merchant_id)
         if filters.driver_id:

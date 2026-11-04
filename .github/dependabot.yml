@@ -20,7 +20,6 @@ updates:
       - dependency-name: "eslint"
       - dependency-name: "eslint-config-next"
       - dependency-name: "typescript"
-      - dependency-name: "@clerk/nextjs"
       - dependency-name: "@sentry/nextjs"
       - dependency-name: "tailwindcss"
       - dependency-name: "@tailwindcss/postcss"

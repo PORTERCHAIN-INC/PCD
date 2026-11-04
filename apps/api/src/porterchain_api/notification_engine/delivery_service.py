@@ -404,8 +404,15 @@ class DeliveryService:
         port = int(settings.smtp_port or 587)
         # Local stack: always use Mailpit so payment/invoice receipts are inspectable
         # without sending through production SMTP (ZeptoMail).
+        # A loopback host/port that is set explicitly (e.g. a throwaway rehearsal Mailpit)
+        # is honoured; anything else is forced to the default local Mailpit.
+        # A single-label host (Docker service name such as ``pcd-ls-mailpit``) or any
+        # ``*mailpit*`` host is local too: rewriting it to localhost broke every app email
+        # in the containerised local stack (worker -> Connection refused).
         if str(getattr(settings, "app_env", "")).lower() in {"local", "development", "dev"}:
-            host, port = "localhost", 1025
+            h = (host or "").lower()
+            if h not in {"localhost", "127.0.0.1", "::1"} and "mailpit" not in h and ("." in h or not h):
+                host, port = "localhost", 1025
 
         # Prod SMTP (when unblocked): 587 + STARTTLS or 465 + SSL. Mailpit: plain 1025.
         tls_ctx = ssl.create_default_context()
@@ -445,28 +452,9 @@ class DeliveryService:
         if not provider:
             logger.info("sms (log-only, no provider): to=%s template=%s body=%s", recipient, template, body[:160])
             raise DeliveryDeferred("sms_provider_missing")
-        if provider == "twilio":
-            self._send_sms_twilio(recipient, body, settings)
-            return
+        # Doc 60 R7: SMS vendor removed; staff/customer alerts go via push + email (TOTP for staff
+        # sign-in is Keycloak's). No SMS vendor is wired, so any configured provider is an error.
         raise ValueError(f"sms_provider_not_configured:{provider}")
-
-    def _send_sms_twilio(self, recipient: str, body: str, settings: Any) -> None:
-        sid = (getattr(settings, "twilio_account_sid", "") or "").strip()
-        token = (getattr(settings, "twilio_auth_token", "") or "").strip()
-        from_number = (getattr(settings, "twilio_from_number", "") or "").strip()
-        if not sid or not token or not from_number:
-            raise DeliveryDeferred("twilio_credentials_missing")
-        import httpx
-
-        url = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
-        resp = httpx.post(
-            url,
-            data={"To": recipient, "From": from_number, "Body": body[:1500]},
-            auth=(sid, token),
-            timeout=30.0,
-        )
-        if resp.status_code >= 400:
-            raise ValueError(f"twilio_http_{resp.status_code}:{resp.text[:200]}")
 
     def _staff_contact(self, db, recipient_id: str) -> tuple[str | None, str | None]:
         """Return (email, phone) for admin fallback when push cannot reach a device.

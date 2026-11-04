@@ -32,7 +32,7 @@ Production env baked at archive time:
   EXPO_PUBLIC_API_URL=https://api.porterchain.com
   EXPO_PUBLIC_APP_ENV=production
   EXPO_PUBLIC_ALLOW_DEV_AUTH=false
-  EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=live Platform key (clerk.admin.porterchain.com)
+  EXPO_PUBLIC_KEYCLOAK_URL=https://auth.porterchain.com (realm porterchain)
 
 Listing / privacy / review notes: store/ios/*.txt
 Screenshots (6.9", 1320×2868): store/ios/screenshots/asc-6.9/

@@ -33,7 +33,7 @@ def main() -> int:
     adr_path = PATHS["saml scim adr"]
     if adr_path.is_file():
         adr = adr_path.read_text(encoding="utf-8")
-        if "Clerk Enterprise SAML" not in adr or "SCIM" not in adr:
+        if "Keycloak Enterprise SAML" not in adr or "SCIM" not in adr:
             failures.append("ADR-017 incomplete")
 
     billing_path = PATHS["enterprise billing doc"]

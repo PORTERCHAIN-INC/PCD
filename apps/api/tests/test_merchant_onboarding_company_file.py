@@ -7,7 +7,7 @@ import uuid
 import pytest
 from fastapi import HTTPException
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.merchant_onboarding import (
     evaluate_merchant_onboarding,
     save_merchant_company_file,
@@ -18,8 +18,8 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 
 
-def _claims(clerk_id: str, email: str) -> ClerkClaims:
-    return ClerkClaims(clerk_user_id=clerk_id, email=email, clerk_app="merchant")
+def _claims(subject_ref: str, email: str) -> IdentityClaims:
+    return IdentityClaims(auth_subject=subject_ref, email=email, idp_app="merchant")
 
 
 def _seat(
@@ -32,9 +32,9 @@ def _seat(
     hst: str | None = None,
     billing: dict | None = None,
     vertical: str | None = None,
-) -> tuple[Merchant, MerchantUser, ClerkClaims]:
-    clerk_id = f"user_onboard_{uuid.uuid4().hex[:10]}"
-    email = f"{clerk_id}@onboard.test"
+) -> tuple[Merchant, MerchantUser, IdentityClaims]:
+    subject_ref = f"user_onboard_{uuid.uuid4().hex[:10]}"
+    email = f"{subject_ref}@onboard.test"
     profile = {"vertical": vertical} if vertical else {}
     merchant = Merchant(
         status=status,
@@ -50,14 +50,14 @@ def _seat(
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=clerk_id,
+        auth_subject=subject_ref,
         email=email,
         role=role,
         is_active=True,
     )
     db.add(user)
     db.commit()
-    return merchant, user, _claims(clerk_id, email)
+    return merchant, user, _claims(subject_ref, email)
 
 
 def test_status_glossary_matches_admin_words() -> None:
@@ -70,7 +70,7 @@ def test_status_glossary_matches_admin_words() -> None:
 
 def test_active_without_vertical_or_hst_can_open_portal(db, settings) -> None:
     _merchant, _user, claims = _seat(db, status=MerchantStatus.ACTIVE.value)
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["ready"] is True
     assert result["can_access_portal"] is True
@@ -84,7 +84,7 @@ def test_active_without_vertical_or_hst_can_open_portal(db, settings) -> None:
 
 def test_onboarding_owner_waits_but_can_edit(db, settings) -> None:
     _merchant, _user, claims = _seat(db, status=MerchantStatus.ONBOARDING.value)
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["ready"] is False
     assert result["blockers"] == ["admin_authorization"]
@@ -99,7 +99,7 @@ def test_dispatcher_not_blocked_by_missing_hst(db, settings) -> None:
         status=MerchantStatus.ACTIVE.value,
         role=MerchantRole.OPS.value,
     )
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(db, claims, settings=settings)
     assert result["ready"] is True
     assert result["role_label"] == "Dispatcher"
@@ -109,7 +109,7 @@ def test_dispatcher_not_blocked_by_missing_hst(db, settings) -> None:
 
 def test_onboarding_owner_saves_company_file(db, settings) -> None:
     merchant, _user, claims = _seat(db, status=MerchantStatus.ONBOARDING.value)
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     result = save_merchant_company_file(
         db,
         claims,
@@ -135,7 +135,7 @@ def test_dispatcher_cannot_save_company_file(db, settings) -> None:
         status=MerchantStatus.ONBOARDING.value,
         role=MerchantRole.OPS.value,
     )
-    settings.clerk_dev_bypass = False
+    settings.auth_dev_bypass = False
     with pytest.raises(HTTPException) as exc:
         save_merchant_company_file(
             db,

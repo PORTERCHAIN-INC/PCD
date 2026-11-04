@@ -122,6 +122,41 @@ export function previewBooking(token: string, payload: BookDeliveryPayload, orgI
   });
 }
 
+/** Quote PDF for the booking being priced (server re-prices; nothing is stored). */
+export async function downloadQuotePdf(
+  token: string,
+  payload: BookDeliveryPayload,
+  orgId?: string,
+  lang: "en" | "fr" = "en"
+) {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
+    "Content-Type": "application/json",
+  };
+  if (orgId) headers["X-Merchant-Id"] = orgId;
+  const response = await fetch(`${API_BASE}/v1/merchant/booking/preview/pdf?lang=${lang}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(
+      typeof body.detail === "string" ? body.detail : "Could not create the quote PDF."
+    );
+  }
+  const name =
+    /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") || "")?.[1] ||
+    "porterchain-quote.pdf";
+  const url = URL.createObjectURL(await response.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function confirmBooking(
   token: string,
   booking: BookDeliveryPayload,

@@ -1,11 +1,5 @@
+import { uuid } from "@/lib/uuid";
 import { driverApi } from "@/lib/api";
-
-declare global {
-  interface Window {
-    /** Playwright / local harness only — bypasses real FCM getToken. */
-    __PC_TEST_FCM_TOKEN__?: string;
-  }
-}
 
 const LOCAL_QUEUE_KEY = "porterchain_driver_offline_queue";
 const GPS_BUFFER_KEY = "porterchain_driver_gps_buffer";
@@ -37,7 +31,7 @@ export function enqueueOfflineAction(action_type: string, payload: Record<string
   queue.push({
     action_type,
     payload,
-    client_id: crypto.randomUUID(),
+    client_id: uuid(),
     created_at: new Date().toISOString(),
   });
   writeQueue(queue);
@@ -107,25 +101,8 @@ export async function flushOfflineQueues(): Promise<{
   return { queued, synced, gps_flushed };
 }
 
+/** FCM web push for the driver portal (shared flow in @porterchain/web-push). */
 export async function registerWebPush(): Promise<boolean> {
-  if (typeof window === "undefined" || !("Notification" in window)) return false;
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") return false;
-    const { isFcmRegistrationToken } = await import("@/lib/firebase-public");
-    const testToken =
-      typeof window !== "undefined" && window.__PC_TEST_FCM_TOKEN__
-        ? window.__PC_TEST_FCM_TOKEN__
-        : null;
-    let token = testToken;
-    if (!token) {
-      const { getWebFcmToken } = await import("@/lib/firebase-messaging");
-      token = await getWebFcmToken();
-    }
-    if (!token || !isFcmRegistrationToken(token)) return false;
-    await driverApi.registerPush(token, "web");
-    return true;
-  } catch {
-    return false;
-  }
+  const { registerBrowserPush } = await import("@porterchain/web-push/register");
+  return registerBrowserPush((token) => driverApi.registerPush(token, "web"));
 }

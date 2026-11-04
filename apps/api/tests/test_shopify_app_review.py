@@ -153,7 +153,7 @@ def _company(db, *, claimed: bool = True, placeholder_for: str | None = None) ->
     db.add(
         MerchantUser(
             merchant_id=merchant.id,
-            clerk_user_id=f"user_{suffix}" if claimed else f"pending:owner-{suffix}@test.local",
+            auth_subject=f"user_{suffix}" if claimed else f"pending:owner-{suffix}@test.local",
             email=f"owner-{suffix}@test.local",
             role=MerchantRole.OWNER.value,
             is_active=True,

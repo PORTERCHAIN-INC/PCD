@@ -166,8 +166,6 @@ export function Segmented<T extends string | number>({
   );
 }
 
-export const Divider = () => <View style={st.divider} />;
-
 const st = StyleSheet.create({
   section: { gap: space.xs + 2 },
   sectionTitle: { ...type.label, color: color.inkFaint, paddingHorizontal: space.xs },

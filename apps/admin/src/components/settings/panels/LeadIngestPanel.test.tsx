@@ -49,15 +49,15 @@ vi.mock("./LeadRopaCard", () => ({
 import LeadIngestPanel from "./LeadIngestPanel";
 
 const STATUS = {
-  doppler: { configured: true, project: "porterchain", config: "dev" },
+  secrets_store: { kind: "sops", file: "secrets/droplet.enc.yaml", writable: false },
   secrets: {
-    PUBLIC_INGEST_API_KEY: { configured: true, in_runtime: true, in_doppler: true },
-    GOOGLE_LEAD_WEBHOOK_SECRET: { configured: false, in_runtime: false, in_doppler: false },
-    SOCIAL_LEAD_WEBHOOK_SECRET: { configured: false, in_runtime: false, in_doppler: false },
-    META_APP_SECRET: { configured: true, in_runtime: true, in_doppler: true },
-    META_WEBHOOK_VERIFY_TOKEN: { configured: true, in_runtime: true, in_doppler: true },
-    META_CAPI_ACCESS_TOKEN: { configured: false, in_runtime: false, in_doppler: false },
-    LINKEDIN_CAPI_TOKEN: { configured: false, in_runtime: false, in_doppler: false },
+    PUBLIC_INGEST_API_KEY: { configured: true, in_runtime: true },
+    GOOGLE_LEAD_WEBHOOK_SECRET: { configured: false, in_runtime: false },
+    SOCIAL_LEAD_WEBHOOK_SECRET: { configured: false, in_runtime: false },
+    META_APP_SECRET: { configured: true, in_runtime: true },
+    META_WEBHOOK_VERIFY_TOKEN: { configured: true, in_runtime: true },
+    META_CAPI_ACCESS_TOKEN: { configured: false, in_runtime: false },
+    LINKEDIN_CAPI_TOKEN: { configured: false, in_runtime: false },
   },
   visible: {
     META_PIXEL_ID: "pixel-1",
@@ -77,7 +77,7 @@ describe("LeadIngestPanel", () => {
     leadIngest.mockResolvedValue(STATUS);
     updateLeadIngest.mockResolvedValue({
       ...STATUS,
-      save: { written: ["META_PIXEL_ID"] },
+      save: { ok: true, applied: false, keys: ["META_PIXEL_ID"] },
     });
   });
 
@@ -95,7 +95,9 @@ describe("LeadIngestPanel", () => {
     const user = userEvent.setup();
     renderWithProviders(<LeadIngestPanel />);
     await screen.findByRole("heading", { name: /lead ingest/i });
-    await user.click(screen.getByRole("button", { name: /save lead ingest settings to doppler/i }));
+    await user.click(
+      screen.getByRole("button", { name: /check lead ingest settings for the sops file/i })
+    );
     await waitFor(() => expect(updateLeadIngest).toHaveBeenCalled());
     expect(updateLeadIngest.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({

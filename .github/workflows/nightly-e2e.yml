@@ -48,7 +48,7 @@ jobs:
       DATABASE_URL: postgresql+psycopg://porterchain:porterchain@localhost:5432/porterchain
       REDIS_URL: redis://127.0.0.1:6379/0
       APP_ENV: local
-      CLERK_DEV_BYPASS: "true"
+      AUTH_DEV_BYPASS: "true"
       # Billing E2E uses in-process mock (PaymentService / mock_complete_checkout)
       STRIPE_MOCK: "true"
       # Primary routing: CI Valhalla stub on :8002 (GTA ~150 km; no tile build).

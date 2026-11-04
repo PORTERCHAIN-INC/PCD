@@ -1,6 +1,7 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import Image from "next/image";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import { PageSkeleton } from "@porterchain/ui/loading";
 import CustomerShell from "@/components/CustomerShell";
 import { customerApi } from "@/lib/api";
 import { formatCents } from "@/lib/booking";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 
 function addressLine(addr?: Record<string, unknown> | null) {
   if (!addr) return "—";
@@ -22,13 +23,13 @@ function addressLine(addr?: Record<string, unknown> | null) {
 }
 
 export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <DetailBody invoiceId={invoiceId} ready signedIn getToken={async () => "dev"} />;
   }
-  return <DetailWithClerk invoiceId={invoiceId} />;
+  return <DetailWithAuth invoiceId={invoiceId} />;
 }
 
-function DetailWithClerk({ invoiceId }: { invoiceId: string }) {
+function DetailWithAuth({ invoiceId }: { invoiceId: string }) {
   const router = useRouter();
   const { isSignedIn, isLoaded, getToken } = useAuth();
 
@@ -110,7 +111,7 @@ function DetailBody({
           <header className="flex flex-wrap items-start justify-between gap-4 border-b border-primary/10 pb-4">
             <div>
               <p className="flex items-center gap-2 text-sm font-semibold tracking-tight text-primary">
-                <img
+                <Image
                   src="/brand/porterchain-mark.png"
                   alt=""
                   width={32}
@@ -195,10 +196,27 @@ function DetailBody({
               <dt className="text-muted">Amount</dt>
               <dd>{formatCents(detail.amount_cents, currency)}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted">Tax</dt>
-              <dd>{formatCents(detail.tax_cents, currency)}</dd>
-            </div>
+            {detail.tax_cents > 0 ? (
+              <div className="flex justify-between">
+                <dt className="text-muted">Tax</dt>
+                <dd>{formatCents(detail.tax_cents, currency)}</dd>
+              </div>
+            ) : null}
+            {detail.supplier_gst_hst_number ? (
+              <div className="flex justify-between">
+                <dt className="text-muted">Supplier</dt>
+                <dd>
+                  {detail.supplier_legal_name ?? "Porterchain Inc."} · GST/HST Reg. No.{" "}
+                  {detail.supplier_gst_hst_number}
+                </dd>
+              </div>
+            ) : null}
+            {detail.credited_cents ? (
+              <div className="flex justify-between">
+                <dt className="text-muted">Credited</dt>
+                <dd>−{formatCents(detail.credited_cents, currency)}</dd>
+              </div>
+            ) : null}
             <div className="flex justify-between">
               <dt className="text-muted">Fees</dt>
               <dd>{formatCents(detail.fees_cents, currency)}</dd>
@@ -208,6 +226,51 @@ function DetailBody({
               <dd>{formatCents(detail.outstanding_cents, currency)}</dd>
             </div>
           </dl>
+          {detail.credit_notes && detail.credit_notes.length ? (
+            <section className="mt-6">
+              <h2 className="text-sm font-semibold text-primary">Credit notes</h2>
+              <ul className="mt-2 divide-y divide-primary/10 text-sm">
+                {detail.credit_notes.map((cn) => (
+                  <li
+                    key={cn.credit_note_id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2"
+                  >
+                    <span>
+                      <span className="font-medium">{cn.credit_note_number}</span>
+                      {cn.issued_at ? ` · ${cn.issued_at.slice(0, 10)}` : ""}
+                      {cn.customer_reason ? ` · ${cn.customer_reason}` : ""}
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <span className="font-semibold">
+                        −{formatCents(cn.amount_cents, currency)}
+                      </span>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold underline"
+                        onClick={async () => {
+                          try {
+                            const token = await getToken();
+                            if (!token) throw new Error("Not signed in");
+                            await customerApi.downloadCreditNotePdf(
+                              token,
+                              cn.credit_note_id,
+                              `${cn.credit_note_number || "credit-note"}.pdf`
+                            );
+                          } catch (err) {
+                            setNotice(
+                              err instanceof Error ? err.message : "Could not download PDF"
+                            );
+                          }
+                        }}
+                      >
+                        PDF
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {detail.stripe_receipt_url ? (
             <a
               href={detail.stripe_receipt_url}

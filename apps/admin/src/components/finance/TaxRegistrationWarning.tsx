@@ -6,7 +6,7 @@ import { useApiData } from "@/hooks/useApiData";
 
 type Status = { gst_hst_number: string; set: boolean; warning: string | null };
 
-/** Admin-only: shown while our GST/HST number is unset (documents omit the line meanwhile). */
+/** Admin-only notice while not registered: the system charges and shows no GST/HST. */
 export function TaxRegistrationWarning() {
   const { data: status } = useApiData(
     (t) => adminFetch<Status>("/v1/admin/finance/tax-registration", t),
@@ -15,12 +15,12 @@ export function TaxRegistrationWarning() {
   if (!status || status.set) return null;
   return (
     <div
-      role="alert"
-      className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+      role="status"
+      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
     >
       {status.warning}{" "}
-      <Link href="/settings?section=finance" className="font-semibold underline">
-        Add it now
+      <Link href="/finance/tax-registration" className="font-semibold underline">
+        Register GST/HST
       </Link>
     </div>
   );

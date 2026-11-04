@@ -19,15 +19,15 @@ def order_is_sandbox(order: Order) -> bool:
     return meta.get("sandbox") is True
 
 
-def owner_sees_review_demo(db: Any, order: Order, clerk_user_id: str | None) -> bool:
+def owner_sees_review_demo(db: Any, order: Order, auth_subject: str | None) -> bool:
     """App Review demo orders (sandbox + ``app_review_demo``) are visible to their signed-in owner only."""
     meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
-    if meta.get("app_review_demo") is not True or not clerk_user_id or not order.customer_id:
+    if meta.get("app_review_demo") is not True or not auth_subject or not order.customer_id:
         return False
     customer = db.get(Customer, order.customer_id)
-    return bool(customer and customer.clerk_user_id == clerk_user_id)
+    return bool(customer and customer.auth_subject == auth_subject)
 
 
-def hidden_from_viewer(db: Any, order: Order, clerk_user_id: str | None = None) -> bool:
+def hidden_from_viewer(db: Any, order: Order, auth_subject: str | None = None) -> bool:
     """Public lookups hide sandbox orders, except a review-demo order for its owner."""
-    return order_is_sandbox(order) and not owner_sees_review_demo(db, order, clerk_user_id)
+    return order_is_sandbox(order) and not owner_sees_review_demo(db, order, auth_subject)

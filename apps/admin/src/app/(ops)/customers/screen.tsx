@@ -51,8 +51,8 @@ export default function CustomersPage() {
     const params: Record<string, string | undefined> = {
       search: deferredSearch.trim() || undefined,
     };
-    if (identity === "linked") params.clerk_linked = "true";
-    if (identity === "orphan") params.clerk_linked = "false";
+    if (identity === "linked") params.identity_linked = "true";
+    if (identity === "orphan") params.identity_linked = "false";
     if (identity === "dsr") params.privacy_status = "deletion_hold";
     return params;
   }, [deferredSearch, identity]);
@@ -98,11 +98,15 @@ export default function CustomersPage() {
 
       {stats && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <StatTile icon={Users} label="Total customers" value={stats.total.toLocaleString()} />
+          <StatTile
+            icon={Users}
+            label="Total customers"
+            value={stats.total.toLocaleString("en-CA")}
+          />
           <StatTile
             icon={Link2}
-            label="Clerk linked"
-            value={String(stats.clerk_linked)}
+            label="Keycloak linked"
+            value={String(stats.identity_linked)}
             accent="text-green-600"
           />
           <StatTile
@@ -141,7 +145,7 @@ export default function CustomersPage() {
           All
         </FacetButton>
         <FacetButton active={identity === "linked"} onClick={() => setIdentity("linked")}>
-          Clerk linked
+          Keycloak linked
         </FacetButton>
         <FacetButton active={identity === "orphan"} onClick={() => setIdentity("orphan")}>
           Orphan
@@ -156,7 +160,7 @@ export default function CustomersPage() {
           <FilterChip
             label={
               identity === "linked"
-                ? "Identity: Clerk linked"
+                ? "Identity: Keycloak linked"
                 : identity === "orphan"
                   ? "Identity: Orphan"
                   : "Privacy: DSR hold"
@@ -209,8 +213,8 @@ export default function CustomersPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge tone={c.clerk_linked ? "green" : "slate"}>
-                        {c.clerk_linked ? "Clerk linked" : "Orphan"}
+                      <Badge tone={c.identity_linked ? "green" : "slate"}>
+                        {c.identity_linked ? "Keycloak linked" : "Orphan"}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">

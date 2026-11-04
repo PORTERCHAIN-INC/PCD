@@ -47,6 +47,13 @@ def resolve_sla_deadline(
     order_type = str(getattr(order, "order_type", "") or "").upper()
 
     is_scheduled_type = order_type == OrderType.SCHEDULED.value
+    if order_type in (OrderType.INSTANT.value, OrderType.EXPRESS.value):
+        # L183: ASAP bookings carry the earliest pickup in scheduled_at (often 15-30 min
+        # after create). That is not a delivery appointment: the promise is that pickup
+        # time (or create, whichever is later) plus the instant window.
+        base = max(x for x in (created, scheduled) if x is not None) if (created or scheduled) else None
+        base = base or datetime.now(UTC).replace(tzinfo=None)
+        return base + timedelta(hours=max(float(instant_sla_hours), 0.25))
     if not is_scheduled_type and scheduled and created:
         if scheduled - created >= timedelta(minutes=SCHEDULED_INTENT_MINUTES):
             is_scheduled_type = True

@@ -36,7 +36,7 @@ def _merchant(db) -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"user-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )
@@ -140,7 +140,7 @@ def test_data_request_ack_has_no_buyer_contact_and_is_idempotent(db, settings) -
     )
     encoded = json.dumps(first)
     assert "ada@example.com" not in encoded
-    assert "416" not in encoded
+    assert "5550100" not in encoded  # phone digits (a bare "416" can appear inside a random UUID)
     assert first["request_id"]
     second = open_privacy_request(
         db, topic="customers/data_request", shop=shop, raw_body=body, webhook_id=webhook_id

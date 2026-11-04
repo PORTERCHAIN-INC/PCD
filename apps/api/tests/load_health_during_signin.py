@@ -1,4 +1,4 @@
-"""Load test: 2000 /health calls (50 concurrent) while 20 slow (1.5 s) Clerk sign-ins run.
+"""Load test: 2000 /health calls (50 concurrent) while 20 slow (1.5 s) Keycloak sign-ins run.
 Run: .venv/bin/python tests/load_health_during_signin.py"""
 import asyncio, statistics, time, sys
 from unittest.mock import MagicMock
@@ -8,7 +8,7 @@ import test_api_freeze_regression as t
 
 async def main():
     mp = pytest.MonkeyPatch()
-    t.slow_clerk.__wrapped__(mp)
+    t.slow_idp.__wrapped__(mp)
     app = t._app_with_driver_route()
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         sign = [asyncio.create_task(c.get("/driver-api/v1/jobs", headers={"Authorization": "Bearer x"})) for _ in range(20)]

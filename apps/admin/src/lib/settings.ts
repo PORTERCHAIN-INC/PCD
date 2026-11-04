@@ -22,13 +22,13 @@ export const platformUserSchema = z.object({
   invite_status: z.string(),
   identity_status: z.string(),
   status_label: z.string(),
-  clerk_linked: z.boolean(),
-  clerk_user_id: z.string().nullable().optional(),
+  identity_linked: z.boolean(),
+  auth_subject: z.string().nullable().optional(),
   provisioned: z.boolean().default(true),
-  clerk_status: z.string().nullable().optional(),
-  clerk_email_verified: z.boolean().default(false),
-  clerk_password_set: z.boolean().default(false),
-  clerk_last_sign_in_at: z.string().nullable().optional(),
+  directory_status: z.string().nullable().optional(),
+  idp_email_verified: z.boolean().default(false),
+  idp_password_set: z.boolean().default(false),
+  idp_last_sign_in_at: z.string().nullable().optional(),
   detail_href: z.string().nullable().optional(),
   created_at: z.string(),
 });
@@ -38,15 +38,15 @@ export const platformUsersFacetsSchema = z.object({
   invite_status: z.record(z.string(), z.number()),
   identity_status: z.record(z.string(), z.number()),
   account_status: z.record(z.string(), z.number()),
-  clerk_status: z.record(z.string(), z.number()),
+  directory_status: z.record(z.string(), z.number()),
 });
 
 export const platformUsersResponseSchema = z.object({
   items: z.array(platformUserSchema),
   total: z.number(),
   facets: platformUsersFacetsSchema,
-  clerk_synced: z.boolean().default(false),
-  clerk_total: z.number().nullable().optional(),
+  idp_synced: z.boolean().default(false),
+  idp_total: z.number().nullable().optional(),
 });
 
 export type StaffUser = z.infer<typeof staffSchema>;
@@ -62,11 +62,11 @@ export type UserDirectoryFilters = {
   invite_status?: string;
   identity_status?: string;
   account_status?: string;
-  clerk_status?: string;
+  directory_status?: string;
 };
 
-export const CLERK_STATUS_OPTIONS = [
-  { value: "", label: "All Clerk status" },
+export const IDP_STATUS_OPTIONS = [
+  { value: "", label: "All Keycloak status" },
   { value: "active", label: "Active" },
   { value: "never_signed_in", label: "Never signed in" },
   { value: "banned", label: "Banned" },
@@ -93,10 +93,10 @@ export const INVITE_STATUS_OPTIONS = [
 ] as const;
 
 export const IDENTITY_STATUS_OPTIONS = [
-  { value: "", label: "All Clerk" },
-  { value: "registered", label: "Clerk registered" },
-  { value: "invite_pending", label: "Clerk pending" },
-  { value: "not_registered", label: "No Clerk account" },
+  { value: "", label: "All Keycloak" },
+  { value: "registered", label: "Keycloak registered" },
+  { value: "invite_pending", label: "Keycloak pending" },
+  { value: "not_registered", label: "No Keycloak account" },
 ] as const;
 
 export type SettingsSection = {
@@ -110,7 +110,7 @@ export type RuntimePosture = {
   app_env: string;
   auth_bypass_allowed: boolean;
   stripe_mock_allowed: boolean;
-  requires_live_clerk: boolean;
+  requires_live_identity: boolean;
   cookie_domain_mode: string;
   restart_required_to_change: boolean;
   change_control: string;
@@ -210,7 +210,7 @@ export const CONFIG_SECTION_IDS = [
 export const INTEGRATION_SECTION_IDS = [
   "dispatch",
   "stripe",
-  "google_maps",
+  "maps",
   "firebase",
   "storage",
   "channels",
@@ -219,8 +219,8 @@ export const INTEGRATION_SECTION_IDS = [
 export const ENV_OWNED_SECTION_IDS = ["authentication", "security"] as const;
 
 export type LeadIngestSettings = {
-  doppler: { configured: boolean; project: string; config: string };
-  secrets: Record<string, { configured: boolean; in_runtime: boolean; in_doppler: boolean }>;
+  secrets_store: { kind: "sops"; file: string; writable: false };
+  secrets: Record<string, { configured: boolean; in_runtime: boolean }>;
   visible: {
     META_PIXEL_ID: string;
     LINKEDIN_CONVERSION_URN: string;
@@ -230,7 +230,7 @@ export type LeadIngestSettings = {
     REFERRAL_CREDIT_CENTS: number;
   };
   note?: string;
-  save?: { ok?: boolean; written?: string[]; skipped?: string };
+  save?: { ok?: boolean; applied?: boolean; keys?: string[]; how?: string };
 };
 
 export const settingsApi = {
@@ -254,12 +254,12 @@ export const settingsApi = {
     if (filters.invite_status) params.set("invite_status", filters.invite_status);
     if (filters.identity_status) params.set("identity_status", filters.identity_status);
     if (filters.account_status) params.set("account_status", filters.account_status);
-    if (filters.clerk_status) params.set("clerk_status", filters.clerk_status);
+    if (filters.directory_status) params.set("directory_status", filters.directory_status);
     const qs = params.toString();
     const raw = await adminFetch<unknown>(`${B}/users/${userType}?${qs}`, token);
     return platformUsersResponseSchema.parse(raw);
   },
-  /** Driver-only create (Clerk invite and/or password). */
+  /** Driver-only create (Keycloak invite and/or password). */
   createDriver: (
     token: string,
     body: {
@@ -273,7 +273,7 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  /** Merchant seat reserve — no password / Clerk invite. */
+  /** Merchant seat reserve — no password / Keycloak invite. */
   addMerchantSeat: (
     token: string,
     body: {
@@ -292,15 +292,15 @@ export const settingsApi = {
         role: body.role ?? "merchant_ops",
       }),
     }),
-  updateDriverClerk: (
+  updateDriverIdp: (
     token: string,
-    body: { clerk_user_id: string; name?: string; password?: string; banned?: boolean }
+    body: { auth_subject: string; name?: string; password?: string; banned?: boolean }
   ) =>
-    adminFetch<Record<string, unknown>>(`${B}/users/driver/clerk`, token, {
+    adminFetch<Record<string, unknown>>(`${B}/users/driver/keycloak`, token, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
-  deleteDriver: (token: string, body: { clerk_user_id?: string; platform_user_id?: string }) =>
+  deleteDriver: (token: string, body: { auth_subject?: string; platform_user_id?: string }) =>
     adminFetch<void>(`${B}/users/driver/delete`, token, {
       method: "POST",
       body: JSON.stringify(body),
@@ -309,7 +309,7 @@ export const settingsApi = {
     token: string,
     body: {
       platform_user_id?: string;
-      clerk_user_id?: string;
+      auth_subject?: string;
       email?: string;
       name?: string;
       reason?: string;
@@ -333,7 +333,7 @@ export const settingsApi = {
     userType: "driver" | "merchant",
     body: {
       platform_user_id?: string;
-      clerk_user_id?: string;
+      auth_subject?: string;
       email?: string;
       name?: string;
       reason?: string;
@@ -351,48 +351,32 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  /** Re-send Clerk invite for an existing driver or customer. */
+  /** Re-send Keycloak invite for an existing driver or customer. */
   inviteUser: (token: string, userType: "driver" | "customer", platformUserId: string) =>
     adminFetch<Record<string, unknown>>(`${B}/users/${userType}/invite`, token, {
       method: "POST",
       body: JSON.stringify({ platform_user_id: platformUserId }),
     }),
   enrollStaff: (token: string, body: { email: string; role: string; name?: string }) =>
-    adminFetch<{
-      admin_user_id: string;
-      email: string;
-      role: string;
-      enrollment_token?: string | null;
-      expires_at: number;
-      clerk_invite: boolean;
-      email_sent?: boolean;
-    }>(`${B}/staff/enroll`, token, {
+    adminFetch<StaffAccountResult>(`${B}/staff/enroll`, token, {
       method: "POST",
       body: JSON.stringify(body),
     }),
   reissueStaffEnrollment: (token: string, userId: string) =>
-    adminFetch<{
-      admin_user_id: string;
-      email: string;
-      role: string;
-      enrollment_token?: string | null;
-      expires_at: number;
-      clerk_invite: boolean;
-      email_sent?: boolean;
-    }>(`${B}/staff/${userId}/enroll-reissue`, token, { method: "POST" }),
+    adminFetch<StaffAccountResult>(`${B}/staff/${userId}/enroll-reissue`, token, {
+      method: "POST",
+    }),
+  setStaffActive: (token: string, userId: string, active: boolean) =>
+    adminFetch<{ id: string; is_active: boolean }>(
+      `${B}/staff/${userId}/${active ? "reactivate" : "deactivate"}`,
+      token,
+      { method: "POST" }
+    ),
   recoverStaffDevice: (token: string, userId: string, reason?: string) => {
     const qs = reason ? `?reason=${encodeURIComponent(reason)}` : "";
-    return adminFetch<{
-      admin_user_id: string;
-      email: string;
-      role: string;
-      enrollment_token?: string | null;
-      expires_at: number;
-      clerk_invite: boolean;
-      email_sent?: boolean;
-      passkeys_removed?: number;
-      sessions_revoked?: number;
-    }>(`${B}/staff/${userId}/recover-device${qs}`, token, { method: "POST" });
+    return adminFetch<StaffAccountResult>(`${B}/staff/${userId}/recover-device${qs}`, token, {
+      method: "POST",
+    });
   },
   updateStaffRole: (token: string, userId: string, role: string, reason?: string) =>
     adminFetch<StaffUser>(`${B}/staff/${userId}/role`, token, {
@@ -441,7 +425,6 @@ export const settingsApi = {
     body: {
       secrets?: Record<string, string>;
       visible?: Partial<LeadIngestSettings["visible"]>;
-      generate?: string[];
     }
   ) =>
     adminFetch<LeadIngestSettings>(`${B}/lead-ingest`, token, {
@@ -551,4 +534,24 @@ export function exportSettingsJson(
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/** Staff account action result (Keycloak `pc-admin` user + setup email). */
+export type StaffAccountResult = {
+  admin_user_id: string;
+  email: string;
+  role: string;
+  keycloak_provisioned: boolean;
+  keycloak_user_created?: boolean;
+  email_sent: boolean;
+  credentials_removed?: number;
+  sessions_revoked?: boolean;
+};
+
+export function staffAccountNotice(r: StaffAccountResult): string {
+  if (!r.keycloak_provisioned)
+    return "Saved. Keycloak admin is not configured here, so no login was created.";
+  if (!r.email_sent)
+    return `Keycloak login ready for ${r.email}, but the setup email could not be sent (check realm SMTP).`;
+  return `Setup email sent to ${r.email}.`;
 }

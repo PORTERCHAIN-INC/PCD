@@ -65,7 +65,7 @@ class DriverOnboardingResponse(BaseModel):
     ready: bool
     blockers: list[str]
     status: str
-    clerk_linked: bool
+    identity_linked: bool
     steps: list[DriverOnboardingStep]
     pending_documents: int
     can_access_portal: bool
@@ -141,11 +141,16 @@ class DocumentUploadRequest(BaseModel):
 
 
 class PodPhotoRequest(BaseModel):
-    file_url: str
+    """Prefer file_key (uploaded via POST /media/photo to Garage); file_url kept for older app builds."""
+    file_url: str | None = None
+    file_key: str | None = None
 
 
 class PodSignatureRequest(BaseModel):
-    signature_data: str
+    """Prefer signature_key (uploaded via POST /media/signature); signature_data kept for older app builds."""
+    signature_data: str | None = None
+    signature_key: str | None = None
+    signer_name: str | None = Field(default=None, max_length=120)
 
 
 class PodIdCheckRequest(BaseModel):
@@ -302,6 +307,8 @@ class DriverJobsListResponse(BaseModel):
     upcoming: list[DriverJobSummary] = Field(default_factory=list)
     completed: list[DriverJobSummary] = Field(default_factory=list)
     jobs: list[DriverJobSummary] = Field(default_factory=list)
+    #: L120: an applied stop order can be undone (persists across reloads).
+    can_undo: bool = False
 
 
 class DriverJobsOptimizeResponse(BaseModel):
@@ -354,6 +361,7 @@ class DriverJobDetailResponse(DriverJobSummary):
     updated_at: str | None = None
     pickup_stop_id: str | None = None
     delivery_stop_id: str | None = None
+    flow_spec: dict = Field(default_factory=dict)
     delivery_attempts: int = 0
     max_delivery_attempts: int = 2
     declared_value_cents: int | None = None

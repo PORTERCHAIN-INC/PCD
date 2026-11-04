@@ -22,7 +22,12 @@ export function CreditsTab({ credits }: { credits: CreditNoteRow[] }) {
             key={c.credit_note_id}
             className="rounded-xl border border-primary/10 bg-white p-4 text-sm"
           >
-            <p className="font-medium">{c.order_number ?? c.credit_note_id.slice(0, 8)}</p>
+            <p className="font-medium">
+              {c.credit_note_number ?? c.order_number ?? c.credit_note_id.slice(0, 8)}
+              {c.invoice_number ? (
+                <span className="font-normal text-muted"> · invoice {c.invoice_number}</span>
+              ) : null}
+            </p>
             <p className="text-muted">{c.reason ?? "Credit note"}</p>
             <p className="mt-1">{c.amount_cents != null ? formatCents(c.amount_cents) : "—"}</p>
           </li>

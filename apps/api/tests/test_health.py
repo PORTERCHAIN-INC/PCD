@@ -17,11 +17,11 @@ def test_readiness_local_without_redis() -> None:
     with patch("porterchain_api.platform.health.ping_redis", return_value=False):
         with patch("porterchain_api.platform.health._routing_health", return_value="ok"):
             with patch(
-                "porterchain_api.auth.clerk_registry.clerk_health_checks",
+                "porterchain_api.auth.identity_directory.identity_health_checks",
                 return_value={"customer": "ok", "merchant": "ok", "admin": "ok", "driver": "ok"},
             ):
                 with patch(
-                    "porterchain_api.auth.clerk_registry.clerk_configuration_mode",
+                    "porterchain_api.auth.identity_directory.identity_configuration_mode",
                     return_value="enterprise",
                 ):
                     result = readiness(db, settings)

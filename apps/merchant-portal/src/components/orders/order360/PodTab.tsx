@@ -1,7 +1,6 @@
 "use client";
 
 import { PodGallery } from "@/components/tracking/PodGallery";
-import type { OrderDetail } from "@/lib/orders";
 import { Card } from "./shared";
 
 export function PodTab({

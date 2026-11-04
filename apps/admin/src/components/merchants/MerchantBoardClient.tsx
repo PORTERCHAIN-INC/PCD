@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Inbox, Plus, Search, SearchX } from "lucide-react";
@@ -34,6 +34,7 @@ const SEGMENT_OPTIONS: [string, string][] = [
   ["warehouse_3pl", "Warehouse & 3PL"],
   ["trader", "Traders & wholesale"],
   ["food", "Food & beverage"],
+  ["retail_specialty", "Retail & specialty"],
   ["other", "Other"],
 ];
 const SORTS: [string, string][] = [
@@ -70,7 +71,12 @@ export default function MerchantBoardClient() {
   const [owner, setOwner] = useState("");
   const [sort, setSort] = useState("priority");
   const [search, setSearch] = useState("");
-  const deferred = useDeferredValue(search.trim());
+  // L142: debounce instead of useDeferredValue; mid-typing refetches dropped keystrokes.
+  const [deferred, setDeferred] = useState("");
+  useEffect(() => {
+    const t = window.setTimeout(() => setDeferred(search.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [search]);
   const [page, setPage] = useState(1);
   const [version, setVersion] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -82,10 +88,12 @@ export default function MerchantBoardClient() {
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
+  // L141: a search looks across all merchants, not only the Needs action view.
+  const effectiveView = deferred ? "all" : view;
   const { data, error } = useApiData(
     (t) =>
       merchantOps.board(t, {
-        view,
+        view: effectiveView,
         segment: segment || undefined,
         owner_id: owner || undefined,
         search: deferred || undefined,
@@ -93,7 +101,7 @@ export default function MerchantBoardClient() {
         page,
         page_size: 25,
       }),
-    [view, segment, owner, deferred, sort, page, version],
+    [effectiveView, segment, owner, deferred, sort, page, version],
     { key: "merchant-board" }
   );
   const { data: owners } = useApiData((t) => merchantOps.owners(t), [], { key: "merchant-owners" });
@@ -240,7 +248,7 @@ export default function MerchantBoardClient() {
         title="Merchants"
         sub={
           counts
-            ? `${counts.all} accounts · ${counts.needs_action} need you today`
+            ? `${counts.all} ${counts.all === 1 ? "account" : "accounts"}${deferred ? ` ${counts.all === 1 ? "matches" : "match"} “${deferred}”` : ""} · ${counts.needs_action} ${counts.needs_action === 1 ? "needs" : "need"} you today`
             : "Loading accounts…"
         }
         action={
@@ -256,7 +264,7 @@ export default function MerchantBoardClient() {
           label="Need action"
           value={counts ? counts.needs_action : "—"}
           tone={counts && counts.needs_action > 0 ? "bad" : "default"}
-          active={view === "needs_action"}
+          active={effectiveView === "needs_action"}
           onClick={() => {
             setView("needs_action");
             reset();
@@ -272,7 +280,7 @@ export default function MerchantBoardClient() {
         <Stat
           label="Accounts"
           value={counts ? counts.all : "—"}
-          active={view === "all"}
+          active={effectiveView === "all"}
           hint={
             counts?.outstanding_cents != null
               ? `${cad(counts.outstanding_cents)} outstanding`
@@ -301,14 +309,16 @@ export default function MerchantBoardClient() {
             <button
               key={v}
               role="tab"
-              aria-selected={view === v}
+              aria-selected={effectiveView === v}
               onClick={() => {
                 setView(v);
                 reset();
               }}
               className={cn(
                 "min-h-10 rounded-full px-4 text-sm font-semibold whitespace-nowrap",
-                view === v ? "bg-white text-primary shadow-sm" : "text-slate-600 hover:text-primary"
+                effectiveView === v
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-600 hover:text-primary"
               )}
             >
               {label}
@@ -489,7 +499,7 @@ export default function MerchantBoardClient() {
             action={<QuietButton onClick={() => setVersion((v) => v + 1)}>Try again</QuietButton>}
           />
         ) : rows.length === 0 ? (
-          view === "needs_action" && !filtered ? (
+          effectiveView === "needs_action" && !filtered ? (
             <Empty
               icon={<Inbox className="h-6 w-6" aria-hidden />}
               title="Nothing needs you."

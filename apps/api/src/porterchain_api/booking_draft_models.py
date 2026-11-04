@@ -51,8 +51,8 @@ class BookingDraft(SoftDeleteMixin, Base):
     schedule_mode: Mapped[str] = mapped_column(String(16), default="now")
 
     stripe_checkout_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    booking_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    booking_id: Mapped[str | None] = mapped_column(ForeignKey("bookings.id", ondelete="SET NULL"), nullable=True, index=True)
+    order_id: Mapped[str | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), nullable=True, index=True)
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

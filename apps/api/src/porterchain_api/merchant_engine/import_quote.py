@@ -223,6 +223,16 @@ def quote_if_ready(
         merchant_id=ctx.merchant.id,
         requires_liftgate=requires_liftgate,
     )
+    from dataclasses import replace as _dc_replace
+
+    from porterchain_api.merchant_engine.stop_cargo import (
+        route_parcel_rows,
+        route_parcel_specs_from_dicts,
+    )
+
+    specs = route_parcel_specs_from_dicts(route_parcel_rows(dropoff, additional))
+    if specs:
+        request = _dc_replace(request, parcels=specs, parcel_count=len(specs))
     pricing = get_pricing_service(db)
     breakdown = pricing.calculate_merchant(request)
     meta = breakdown.metadata if isinstance(breakdown.metadata, dict) else {}

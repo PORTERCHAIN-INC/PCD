@@ -35,7 +35,7 @@ export type MerchantRow = {
   onboarding_progress?: number;
   owner_email?: string;
   owner_invite_status?: string;
-  owner_clerk_linked?: boolean;
+  owner_idp_linked?: boolean;
   owner_active?: boolean;
   team_count?: number;
   blockers_count?: number;
@@ -53,7 +53,7 @@ export type MerchantAi = {
   predicted_monthly_revenue_cents: number;
   renewal_risk: string;
   suggested_actions: string[];
-  actions_source?: "heuristic" | "nvidia_nim" | string;
+  actions_source?: "heuristic" | "llm" | string;
   actions_model?: string | null;
 };
 
@@ -96,7 +96,6 @@ export type MerchantDetail = MerchantRow & {
   available_credit_cents?: number | null;
   billing_cycle?: string;
   phone?: string | null;
-  stripe_connect_account_id?: string | null;
   documents?: Array<{
     id: string;
     name: string;
@@ -242,7 +241,7 @@ export type MerchantTeamUser = {
   seat_status?: string;
   seat_status_label?: string;
   created_at: string;
-  clerk_linked?: boolean;
+  identity_linked?: boolean;
   invite_status?: string;
   invite_status_label?: string;
 };
@@ -256,7 +255,7 @@ export type MerchantOnboarding = {
   owner_email: string;
   owner_invite_status: string;
   owner_invite_status_label?: string;
-  owner_clerk_linked: boolean;
+  owner_idp_linked: boolean;
   team_count: number;
   steps: Array<{ id: string; label: string; complete: boolean }>;
   blockers: string[];
@@ -621,8 +620,8 @@ export const merchants = {
       Array<{
         email: string;
         name: string;
-        clerk_user_id: string;
-        clerk_status: string | null;
+        auth_subject: string;
+        directory_status: string | null;
         last_sign_in_at: string | null;
         suggested_company_name: string;
       }>

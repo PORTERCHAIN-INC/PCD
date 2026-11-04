@@ -21,12 +21,14 @@ if (inMonorepo) {
     path.resolve(monorepoRoot, "node_modules"),
   ];
 } else {
-  config.watchFolders = [themeRoot];
+  config.watchFolders = [themeRoot, path.join(projectRoot, "vendor/driver-flows")];
 }
 
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),
   "@porterchain/mobile-theme": themeRoot,
+  // Doc 82: shared guided-flow logic, vendored like mobile-theme (scripts/sync-driver-flows.sh).
+  "@porterchain/driver-flows": path.join(projectRoot, "vendor/driver-flows"),
 };
 
 module.exports = config;

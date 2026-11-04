@@ -20,6 +20,22 @@ from sqlalchemy.orm import Session
 COLLECT_ONLY = "collect_only"
 SERVICE_MODES = frozenset({"standard", COLLECT_ONLY})
 AWAITING_LABEL = "At warehouse – awaiting delivery"
+DISABLED_MESSAGE = (
+    "collect_only_disabled: 'Collect now, deliver later' is not offered. PorterChain does not "
+    "store or hold parcels; book a standard pickup and delivery."
+)
+
+
+def enabled() -> bool:
+    from porterchain_api.config import get_settings
+
+    return bool(get_settings().collect_only_enabled)
+
+
+def assert_enabled() -> None:
+    """Refuse warehouse holding while the flag is off (Phase 0: no storage)."""
+    if not enabled():
+        raise ValueError(DISABLED_MESSAGE)
 
 
 def is_collect_only(order: Any) -> bool:
@@ -49,15 +65,10 @@ def for_booking(db: Session, body: Any) -> Any:
     """Warehouse for a collect-only booking, or None for a standard one."""
     if getattr(body, "service_mode", None) != COLLECT_ONLY:
         return None
+    assert_enabled()
     if getattr(body, "additional_stops", None):
         raise ValueError("collect_only_single_pickup")
     return warehouse(db)
-
-
-def hub_geo(hub: Any) -> Any:
-    from porterchain_pricing import GeoPoint
-
-    return GeoPoint(lat=hub.lat, lng=hub.lng, formatted=hub.name)
 
 
 def mark(compliance: dict[str, Any], hub: Any) -> dict[str, Any]:

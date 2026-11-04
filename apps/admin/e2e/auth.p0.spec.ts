@@ -19,16 +19,15 @@ for (const c of authAndNav) {
 }
 
 test.describe(`AUTH-001 ${tcId("AUTH-001")} smoke-when-ready`, () => {
-  // Empty jar — must not inherit ADMIN_STORAGE_STATE / ADMIN_STAFF_SID from config.
+  // Empty jar — must not inherit ADMIN_STORAGE_STATE from config.
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test("unauthenticated /dashboard redirects to sign-in", async ({ page }) => {
     test.skip(
       !process.env.ADMIN_RUN_LIVE ||
         !!process.env.ADMIN_STORAGE_STATE ||
-        !!process.env.ADMIN_STAFF_SID ||
-        process.env.NEXT_PUBLIC_CLERK_DEV_BYPASS === "true",
-      "set ADMIN_RUN_LIVE=1 without storage/sid/bypass (and playwright install chromium)"
+        process.env.NEXT_PUBLIC_AUTH_DEV_BYPASS === "true",
+      "set ADMIN_RUN_LIVE=1 without storage/bypass (and playwright install chromium)"
     );
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/sign-in/);

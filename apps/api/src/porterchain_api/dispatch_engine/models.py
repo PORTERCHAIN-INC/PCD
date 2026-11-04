@@ -136,7 +136,7 @@ class DispatchStopEvent(Base):
     accuracy_m: Mapped[float | None] = mapped_column(Float, nullable=True)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # Offline driver apps send a client id per queued action; a replay is a no-op.
-    client_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
+    client_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
 
 
@@ -168,3 +168,24 @@ class DispatchFixAction(Base):
     result: Mapped[dict] = mapped_column(JSON, default=dict)
     approved_by: Mapped[str] = mapped_column(String(128))
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class FleetPartnerContract(Base):
+    """Manually entered contract for a contractor fleet company (fixed rates; admin-only)."""
+
+    __tablename__ = "fleet_partner_contracts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    partner_id: Mapped[str] = mapped_column(ForeignKey("logistics_partners.id", ondelete="CASCADE"), index=True)
+    effective_from: Mapped[date] = mapped_column(Date)
+    effective_to: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # stop | parcel | route | hour
+    rate_basis: Mapped[str] = mapped_column(String(16))
+    rate_cents: Mapped[int] = mapped_column(Integer, default=0)
+    min_charge_cents: Mapped[int] = mapped_column(Integer, default=0)
+    currency: Mapped[str] = mapped_column(String(8), default="cad")
+    document_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    is_dummy: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

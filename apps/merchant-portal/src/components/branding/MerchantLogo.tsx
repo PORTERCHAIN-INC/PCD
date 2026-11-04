@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 type Props = {
   src?: string | null;
   name?: string | null;
@@ -10,13 +14,16 @@ export default function MerchantLogo({ src, name, size = "sm", className = "" }:
   const letter = (name || "P").trim().charAt(0).toUpperCase() || "P";
   const alt = name?.trim() ? `${name.trim()} logo` : "Company logo";
 
-  if (src) {
+  // A broken or unreachable logo URL falls back to the letter tile (no broken-image icon).
+  const [failed, setFailed] = useState<string | null>(null);
+  if (src && failed !== src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={alt}
         referrerPolicy="no-referrer"
+        onError={() => setFailed(src)}
         className={`${box} rounded-lg object-cover ${className}`.trim()}
       />
     );

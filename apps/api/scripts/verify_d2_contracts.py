@@ -210,7 +210,7 @@ _LEGACY_CROSS_ENGINE_IMPORTS: frozenset[str] = frozenset(
         "admin_engine->booking_engine:admin_engine/settings_service.py",
         "admin_engine->booking_engine:admin_engine/shopify_control_service.py",
         "admin_engine->collaboration_engine:admin_engine/crm_sales_service.py",
-        "admin_engine->merchant_engine:admin_engine/clerk_directory_service.py",
+        "admin_engine->merchant_engine:admin_engine/identity_directory_service.py",
         "admin_engine->merchant_engine:admin_engine/control_tower/exceptions.py",
         "admin_engine->merchant_engine:admin_engine/diagnostics_workflows.py",
         "admin_engine->merchant_engine:admin_engine/e2e_validation_merchant.py",

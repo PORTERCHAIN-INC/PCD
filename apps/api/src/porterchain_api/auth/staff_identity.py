@@ -19,12 +19,12 @@ def ensure_staff_porterchain_user(
     subject_key: str,
     email: str | None,
     linked_user_id: str | None = None,
-    legacy_clerk_user_id: str | None = None,
+    legacy_idp_user_id: str | None = None,
 ) -> PorterchainUser:
     """Find or create the staff:{admin_id} registry row. Caller stamps AdminUser + commits."""
     by_subject = (
         db.query(PorterchainUser)
-        .filter(PorterchainUser.clerk_user_id == subject_key)
+        .filter(PorterchainUser.auth_subject == subject_key)
         .first()
     )
     linked = (
@@ -32,18 +32,18 @@ def ensure_staff_porterchain_user(
         if linked_user_id
         else None
     )
-    legacy_clerk = None
-    if legacy_clerk_user_id:
-        legacy_clerk = (
+    legacy_idp = None
+    if legacy_idp_user_id:
+        legacy_idp = (
             db.query(PorterchainUser)
-            .filter(PorterchainUser.clerk_user_id == legacy_clerk_user_id)
+            .filter(PorterchainUser.auth_subject == legacy_idp_user_id)
             .first()
         )
 
-    pc = by_subject or linked or legacy_clerk
+    pc = by_subject or linked or legacy_idp
     if not pc:
         pc = PorterchainUser(
-            clerk_user_id=subject_key,
+            auth_subject=subject_key,
             email=email,
             role="admin",
             status="active",
@@ -54,11 +54,11 @@ def ensure_staff_porterchain_user(
         db.flush()
         return pc
 
-    if pc.clerk_user_id != subject_key:
+    if pc.auth_subject != subject_key:
         conflict = (
             db.query(PorterchainUser)
             .filter(
-                PorterchainUser.clerk_user_id == subject_key,
+                PorterchainUser.auth_subject == subject_key,
                 PorterchainUser.id != pc.id,
             )
             .first()
@@ -66,7 +66,7 @@ def ensure_staff_porterchain_user(
         if conflict is not None:
             pc = conflict
         else:
-            pc.clerk_user_id = subject_key
+            pc.auth_subject = subject_key
     pc.email = email or pc.email
     pc.status = "active"
     pc.role = "admin"

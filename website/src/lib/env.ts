@@ -37,7 +37,8 @@ export const publicEnv = {
     isDev ? "http://localhost:3003" : "https://driver.porterchain.com"
   ).replace(/\/$/, ""),
   porterchainApiUrl: envText(process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL).replace(/\/$/, ""),
-  clerkPublishableKey: envText(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY),
+  /** Keycloak public client for the website session (pc-website). */
+  keycloakClientId: envText(process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID),
   contactEmail: envOr(process.env.NEXT_PUBLIC_CONTACT_EMAIL, "enterprise@porterchain.com"),
   gaMeasurementId: envText(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID),
   googleSiteVerification: envText(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION),
@@ -82,6 +83,7 @@ export const publicEnv = {
   googleRatingCount: envText(process.env.NEXT_PUBLIC_GOOGLE_RATING_COUNT),
 } as const;
 
-export function isClerkConfigured(): boolean {
-  return publicEnv.clerkPublishableKey.length > 0;
+/** True when the website has a Keycloak client (sign-in + sign-up routes work). */
+export function isAuthConfigured(): boolean {
+  return publicEnv.keycloakClientId.length > 0;
 }

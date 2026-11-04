@@ -1,4 +1,4 @@
-"""Phase 8 — resolve clerk subject → porterchain_users.id; backfill profile FKs."""
+"""Phase 8 — resolve keycloak subject → porterchain_users.id; backfill profile FKs."""
 
 from __future__ import annotations
 
@@ -24,10 +24,10 @@ PROFILE_TARGETS: tuple[ProfileKind, ...] = (
 )
 
 
-def _is_skippable_clerk_id(clerk_user_id: str | None) -> bool:
-    if not clerk_user_id or not str(clerk_user_id).strip():
+def _is_skippable_idp_id(auth_subject: str | None) -> bool:
+    if not auth_subject or not str(auth_subject).strip():
         return True
-    cid = str(clerk_user_id).strip()
+    cid = str(auth_subject).strip()
     return cid.startswith("pending:") or is_dev_bypass_subject(cid)
 
 
@@ -35,7 +35,7 @@ def _is_skippable_clerk_id(clerk_user_id: str | None) -> bool:
 class BackfillAction:
     table: str
     row_id: str
-    clerk_user_id: str | None
+    auth_subject: str | None
     current_porterchain_user_id: str | None
     resolved_porterchain_user_id: str | None
     status: str  # already_set | would_set | set | unmatched | skipped | healed_link
@@ -69,13 +69,13 @@ class BackfillReport:
             "unmatched_sample": [
                 a.to_dict() for a in self.actions if a.status == "unmatched"
             ][:25],
-            "note": "clerk_user_id columns are retained; no drops in Phase 8",
+            "note": "auth_subject columns are retained; no drops in Phase 8",
         }
 
 
 def resolve_porterchain_user_id(
     db: Session,
-    clerk_user_id: str | None,
+    auth_subject: str | None,
     *,
     create_missing: bool = False,
     email: str | None = None,
@@ -85,16 +85,16 @@ def resolve_porterchain_user_id(
 
     Methods: porterchain_users | identity_link | created | none
     """
-    if _is_skippable_clerk_id(clerk_user_id):
+    if _is_skippable_idp_id(auth_subject):
         return None, "skipped"
-    assert clerk_user_id is not None
-    cid = clerk_user_id.strip()
+    assert auth_subject is not None
+    cid = auth_subject.strip()
 
-    user = db.query(PorterchainUser).filter(PorterchainUser.clerk_user_id == cid).first()
+    user = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == cid).first()
     if user:
         return user.id, "porterchain_users"
 
-    link = db.query(IdentityLink).filter(IdentityLink.clerk_user_id == cid).first()
+    link = db.query(IdentityLink).filter(IdentityLink.auth_subject == cid).first()
     if not link:
         link = (
             db.query(IdentityLink)
@@ -109,7 +109,7 @@ def resolve_porterchain_user_id(
 
     if create_missing:
         created = PorterchainUser(
-            clerk_user_id=cid,
+            auth_subject=cid,
             email=normalize_email(email),
             role="unprovisioned",
             status=AccountStatus.PENDING.value,
@@ -122,26 +122,3 @@ def resolve_porterchain_user_id(
 
     return None, "none"
 
-
-def _heal_identity_links(db: Session, *, dry_run: bool, create_missing: bool) -> int:
-    """Point identity_links.platform_user_id at porterchain_users.id when mis-pointed."""
-    healed = 0
-    links = db.query(IdentityLink).filter(IdentityLink.deactivated_at.is_(None)).all()
-    for link in links:
-        pc = db.query(PorterchainUser).filter(PorterchainUser.id == link.platform_user_id).first()
-        if pc:
-            continue
-        resolved, _method = resolve_porterchain_user_id(
-            db,
-            link.clerk_user_id or link.subject,
-            create_missing=create_missing and not dry_run,
-            email=link.email,
-        )
-        if not resolved:
-            continue
-        healed += 1
-        if not dry_run:
-            link.platform_user_id = resolved
-            if not link.subject and link.clerk_user_id:
-                link.subject = link.clerk_user_id
-    return healed

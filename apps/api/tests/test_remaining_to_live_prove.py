@@ -143,11 +143,11 @@ def test_readiness_ok_reports_dispatch_porterchain():
         patch("porterchain_api.platform.health.ping_redis", return_value=True),
         patch("porterchain_api.platform.health._routing_health", return_value="ok"),
         patch(
-            "porterchain_api.auth.clerk_registry.clerk_health_checks",
+            "porterchain_api.auth.identity_directory.identity_health_checks",
             return_value={"customer": "ok", "merchant": "ok", "admin": "ok", "driver": "ok"},
         ),
         patch(
-            "porterchain_api.auth.clerk_registry.clerk_configuration_mode",
+            "porterchain_api.auth.identity_directory.identity_configuration_mode",
             return_value="enterprise",
         ),
         patch(

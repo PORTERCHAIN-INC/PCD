@@ -8,13 +8,13 @@ from porterchain_shared.events.envelope import EventActor, EventEnvelope
 class CustomerService(BaseService):
     service_name = "customer"
 
-    def register(self, customer_id: str, clerk_user_id: str, email: str) -> None:
+    def register(self, customer_id: str, auth_subject: str, email: str) -> None:
         self.ctx.events.publish(
             EventEnvelope(
                 event_type=DomainEventType.CUSTOMER_REGISTERED,
                 aggregate_type="customer",
                 aggregate_id=customer_id,
-                actor=EventActor(type="customer", id=clerk_user_id),
-                payload={"email": email, "clerk_user_id": clerk_user_id},
+                actor=EventActor(type="customer", id=auth_subject),
+                payload={"email": email, "auth_subject": auth_subject},
             )
         )

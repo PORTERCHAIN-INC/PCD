@@ -35,7 +35,7 @@ class CurrentPrincipal:
     organization_ids: frozenset[str] = field(default_factory=frozenset)
     auth_subject: str | None = None
     auth_issuer: str | None = None
-    auth_provider: str = "clerk"
+    auth_provider: str = "keycloak"
     legacy_profile_ids: dict[str, str] = field(default_factory=dict)
 
     def is_active(self) -> bool:
@@ -189,11 +189,11 @@ class CurrentPrincipal:
 
         sc = self.session_context()
         org_id = next(iter(sorted(self.organization_ids)), None)
-        pc_user = UserSyncService().get_by_clerk_id(db, self.auth_subject or "")
+        pc_user = UserSyncService().get_by_subject(db, self.auth_subject or "")
         primary_role = sc["roles"][0] if sc["roles"] else None
         return {
             "user_id": self.user_id,
-            "clerk_user_id": self.auth_subject,
+            "auth_subject": self.auth_subject,
             "user_type": self.deprecated_user_type_hint(),
             "roles": sc["roles"],
             "permissions": sc["permissions"],

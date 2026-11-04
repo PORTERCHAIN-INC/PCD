@@ -1,5 +1,5 @@
 import type { DriverRoute, DriverStop } from "./workspace";
-import type { DriverJobDetail, DriverJobsList, DriverJobSummary } from "./jobs";
+import type { DriverJobDetail, DriverJobSummary } from "./jobs";
 import type { DriverNavigationSession } from "./navigation";
 import type { DriverShiftSnapshot } from "./shift";
 import type { DriverEarningsSnapshot, StatementRow } from "./earnings";
@@ -92,21 +92,21 @@ export interface DriverIncident {
 
 export type { DriverRoute, DriverStop };
 
-type ClerkWindow = {
-  Clerk?: {
+type IdpWindow = {
+  Keycloak?: {
     session?: { getToken: (o?: { skipCache?: boolean }) => Promise<string | null> } | null;
   };
 };
 
 /**
- * Clerk session JWTs live 60 s. The BFF forwards the `__session` cookie token, which can be
- * stale after a sleeping tab or a burst of parallel requests. On a 401 we ask Clerk for a fresh
+ * Keycloak session JWTs live 60 s. The BFF forwards the `__session` cookie token, which can be
+ * stale after a sleeping tab or a burst of parallel requests. On a 401 we ask Keycloak for a fresh
  * token once (this rewrites the cookie) and replay the request before giving up.
  */
 let refreshing: Promise<boolean> | null = null;
-async function refreshClerkSession(): Promise<boolean> {
+async function refreshIdpSession(): Promise<boolean> {
   if (typeof window === "undefined") return false;
-  const session = (window as unknown as ClerkWindow).Clerk?.session;
+  const session = (window as unknown as IdpWindow).Keycloak?.session;
   if (!session) return false;
   refreshing ??= session
     .getToken({ skipCache: true })
@@ -126,7 +126,7 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
   let res = await send();
-  if (res.status === 401 && (await refreshClerkSession())) {
+  if (res.status === 401 && (await refreshIdpSession())) {
     res = await send();
   }
   if (!res.ok) {
@@ -163,7 +163,8 @@ async function driverFetch<T>(path: string, init?: RequestInit): Promise<T> {
           detail === "driver_auth_required" ||
           detail === "missing_bearer_token")
       ) {
-        window.location.href = "/login?session=expired";
+        // Full page load on purpose: this runs outside React and must drop the stale session.
+        window.location.replace("/login?session=expired");
       }
     }
     throw new Error(detail);
@@ -180,7 +181,21 @@ export async function hasDriverSession(): Promise<boolean> {
 }
 
 export async function driverLogout(): Promise<void> {
-  // Clerk sign-out is handled by UI; cookie JWT minting is retired.
+  // L168: end the Keycloak session too. Before, this was a no-op and the
+  // following router.push("/login") signed the driver straight back in.
+  if (typeof window !== "undefined") {
+    window.location.assign("/auth/logout");
+    await new Promise<never>(() => {});
+  }
+}
+
+/** L188: header account menu listens for this and re-reads /me after status changes. */
+export const DRIVER_STATUS_EVENT = "pc-driver-status-changed";
+function notifyStatus<T>(pr: Promise<T>): Promise<T> {
+  return pr.then((v) => {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event(DRIVER_STATUS_EVENT));
+    return v;
+  });
 }
 
 export const driverApi = {
@@ -434,15 +449,21 @@ export const driverApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  podPhoto: (routeId: string, stopId: string, fileUrl: string) =>
+  /** Pass ``{ file_key }`` from mediaApi.photo (preferred) or a legacy URL string. */
+  podPhoto: (routeId: string, stopId: string, proof: string | { file_key: string }) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/pod-photo`, {
       method: "POST",
-      body: JSON.stringify({ file_url: fileUrl }),
+      body: JSON.stringify(typeof proof === "string" ? { file_url: proof } : proof),
     }),
-  podSignature: (routeId: string, stopId: string, signatureData: string) =>
+  /** Pass ``{ signature_key, signer_name }`` from mediaApi.signature (preferred) or legacy text. */
+  podSignature: (
+    routeId: string,
+    stopId: string,
+    proof: string | { signature_key: string; signer_name?: string }
+  ) =>
     driverFetch(`/v1/routes/${routeId}/stops/${stopId}/pod-signature`, {
       method: "POST",
-      body: JSON.stringify({ signature_data: signatureData }),
+      body: JSON.stringify(typeof proof === "string" ? { signature_data: proof } : proof),
     }),
   podIdCheck: (
     routeId: string,
@@ -507,24 +528,33 @@ export const driverApi = {
       body: JSON.stringify(body),
     }),
   setOnline: (online: boolean) =>
-    driverFetch("/v1/availability", {
-      method: "POST",
-      body: JSON.stringify({ online }),
-    }),
+    notifyStatus(
+      driverFetch("/v1/availability", {
+        method: "POST",
+        body: JSON.stringify({ online }),
+      })
+    ),
   setAvailabilityMode: (mode: "online" | "offline" | "busy" | "idle") =>
-    driverFetch<DriverShiftSnapshot>("/v1/availability", {
-      method: "POST",
-      body: JSON.stringify({ mode }),
-    }),
+    notifyStatus(
+      driverFetch<DriverShiftSnapshot>("/v1/availability", {
+        method: "POST",
+        body: JSON.stringify({ mode }),
+      })
+    ),
   shift: () => driverFetch<DriverShiftSnapshot>("/v1/shift"),
   shiftStart: (routeId?: string, pretrip?: Record<string, boolean>) =>
-    driverFetch<DriverShiftSnapshot>("/v1/shift/start", {
-      method: "POST",
-      body: JSON.stringify({ route_id: routeId ?? null, pretrip: pretrip ?? null }),
-    }),
-  shiftEnd: () => driverFetch<DriverShiftSnapshot>("/v1/shift/end", { method: "POST" }),
-  shiftBreak: () => driverFetch<DriverShiftSnapshot>("/v1/shift/break", { method: "POST" }),
-  shiftResume: () => driverFetch<DriverShiftSnapshot>("/v1/shift/resume", { method: "POST" }),
+    notifyStatus(
+      driverFetch<DriverShiftSnapshot>("/v1/shift/start", {
+        method: "POST",
+        body: JSON.stringify({ route_id: routeId ?? null, pretrip: pretrip ?? null }),
+      })
+    ),
+  shiftEnd: () =>
+    notifyStatus(driverFetch<DriverShiftSnapshot>("/v1/shift/end", { method: "POST" })),
+  shiftBreak: () =>
+    notifyStatus(driverFetch<DriverShiftSnapshot>("/v1/shift/break", { method: "POST" })),
+  shiftResume: () =>
+    notifyStatus(driverFetch<DriverShiftSnapshot>("/v1/shift/resume", { method: "POST" })),
   emergency: (location?: { lat: number; lng: number }) =>
     driverFetch("/v1/emergency", {
       method: "POST",
@@ -576,7 +606,7 @@ export type DriverMeProfile = {
   emergency_contact: DriverEmergencyContact | null;
   photo_url: string | null;
   updated_at: string | null;
-  identity_managed_by: "clerk";
+  identity_managed_by: "keycloak";
 };
 export type DriverAppSettings = {
   language?: "en" | "fr";
@@ -656,3 +686,42 @@ export function workedLabel(minutes: number): string {
   const m = minutes % 60;
   return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
 }
+
+import { batchClient, type Fetcher } from "@/lib/batches";
+import { mediaClient } from "@porterchain/driver-flows";
+/** Bulk batches + pickup documents + instructions (driver web). */
+export const batchApi = batchClient(driverFetch as Fetcher);
+
+/** Uploads to Garage through the API; FormData must not get the JSON content type. */
+async function mediaPost<T>(path: string, body: FormData | string): Promise<T> {
+  if (typeof body === "string") return driverFetch<T>(path, { method: "POST", body });
+  const send = () => fetch(`${API_BASE}${path}`, { method: "POST", body, credentials: "include" });
+  let res = await send();
+  if (res.status === 401 && (await refreshIdpSession())) res = await send();
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(typeof err.detail === "string" ? err.detail : "upload_failed");
+  }
+  return res.json();
+}
+
+export const mediaApi = mediaClient(mediaPost);
+
+export type SafetyReport = {
+  code: string;
+  route_id?: string;
+  order_id?: string;
+  address?: string;
+  parcels?: string[];
+  note?: string;
+  photo_keys?: string[];
+  police_report_no?: string;
+  signature_key?: string;
+};
+export const safetyApi = {
+  report: (body: SafetyReport) =>
+    driverFetch<Record<string, unknown>>("/v1/safety-stop", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+};

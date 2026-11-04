@@ -358,7 +358,7 @@ export default function SettingsCenter() {
               <li className="px-4 py-3 text-sm text-muted">No matching settings</li>
             )}
             {searchHits.map((h) => (
-              <li key={`${h.type}-${h.id}`} role="option">
+              <li key={`${h.type}-${h.id}`} role="option" aria-selected={false}>
                 <button
                   type="button"
                   className="w-full px-4 py-2.5 text-left text-sm hover:bg-secondary/5"

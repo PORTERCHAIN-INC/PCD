@@ -3,7 +3,7 @@ import { allowDevAuth } from "./config";
 export type SessionSnapshot = {
   ready: boolean;
   signedIn: boolean;
-  /** `fresh` skips the cached JWT (Clerk tokens live ~60 s; a 401 means the cached one expired). */
+  /** `fresh` skips the cached JWT (forces a Keycloak refresh; a 401 means the cached one expired). */
   getToken: (opts?: { fresh?: boolean }) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
@@ -42,7 +42,7 @@ export async function requireBearer(fresh = false): Promise<string> {
   throw new Error("signed_out");
 }
 
-/** Wait for ClerkBridge to publish a live session after hosted / token-cache restore. */
+/** Wait for KeycloakBridge to publish a live session after sign-in / SecureStore restore. */
 export async function waitForSignedSession(timeoutMs = 5_000): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -61,7 +61,7 @@ export async function waitForSignedSession(timeoutMs = 5_000): Promise<boolean> 
 /**
  * Sign-out. Tries one last sync (bounded), then wipes every piece of driver data on the phone:
  * queued actions, refused actions, encrypted POD files + key, GPS buffer, background location,
- * location consent (the next driver on a shared phone must agree for themselves), push registration. Wipe runs even if the sync or the Clerk sign-out fails.
+ * location consent (the next driver on a shared phone must agree for themselves), push registration. Wipe runs even if the sync or the Keycloak sign-out fails.
  */
 export async function clearSession(): Promise<void> {
   // Dynamic imports avoid the session ↔ api ↔ offline/push cycle.

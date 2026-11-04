@@ -13,9 +13,7 @@
 | Unit / contract  | `cd apps/api && pytest apps/api/tests/test_clerk_registry.py test_unified_identity_*.py test_auth_cutover.py -q` | Clerk slots, identity, cutover |
 | Merchant surface | `pytest apps/api/tests/test_merchant_*.py -q`                                                                    | Portal API + RBAC pages        |
 | Customer surface | `pytest apps/api/tests/test_wave2_customers.py -q` (+ booking/payment suites)                                    | Customer APIs                  |
-| Adapter          | `cd services/fleetbase-adapter && pytest`                                                                        | Circuit breaker / client       |
 | Portal smoke     | `pnpm validate:portal-smoke` · `pnpm validate:portal-ux`                                                         | Pages load gated               |
-| SSO wave         | `python3 scripts/verify_wave10_w10_4_sso.py`                                                                     | Fleetbase SSO contract         |
 | Architecture     | `pnpm validate:architecture` · `pnpm validate:integrations-matrix`                                               | Boundaries + leaves            |
 | E2E chain        | `pnpm validate:e2e` (local compose up)                                                                           | Full SYSTEM_CHAIN              |
 
@@ -48,7 +46,6 @@ Ripwire ranked SSO symbols: `SsoService`, `exchange_fleetbase_session_for_princi
 | HS-05 | `pnpm clerk:sync` from `env/clerk.env`                         | API + portals see matching publishable/secret/JWKS names (`CLERK_*` / `CLERK_<PORTAL>_*`) — never `ADMIN_CLERK_*` |
 | HS-06 | Customer book → order → Fleetbase sync                         | PC order has `fleetbase_*` ids; adapter retry/circuit does not dual-write                                         |
 | HS-07 | Merchant book → Fleetbase                                      | Same as HS-06 + merchant org mapping (`merchant_sync_service`)                                                    |
-| HS-08 | Staff/admin `POST /v1/auth/sso/fleetbase`                      | SSO token issued; Fleetbase session exchange succeeds when `fleetbase_sso_enabled`                                |
 | HS-09 | SSO disabled / Redis down                                      | Soft fail per `_AUTH_UNAVAILABLE`; no half-open session                                                           |
 | HS-10 | Dev bypass **off**                                             | `Bearer dev` rejected on customer + merchant                                                                      |
 
@@ -165,7 +162,6 @@ Ripwire ranked SSO symbols: `SsoService`, `exchange_fleetbase_session_for_princi
 | Order 360         | `/orders/[order_id]`           | orders         | `/orders/{id}/360`, cancel, duplicate, POD | ORD-360-* |
 | Track             | `/track`                       | tracking       | tracking dashboard + map                   | TR-M-*    |
 | Routes            | `/routes` · `/routes/[job_id]` | routes         | route-imports + standing                   | RT-*      |
-| Billing           | `/billing` · invoice detail    | billing        | invoices/pay/COD/export                    | BIL-*     |
 | Reports           | `/reports`                     | reports        | summary/export/saved/scheduled             | RPT-*     |
 | Team              | `/team`                        | team           | seats/roles/2FA/activity                   | TEAM-*    |
 | Settings          | `/settings`                    | settings       | branding/warehouses/tax/docs/notif         | SET-*     |
@@ -214,7 +210,6 @@ For each client under `apps/merchant-portal/src/components/{billing,booking,bulk
 | ID     | Case                                                                         |
 | ------ | ---------------------------------------------------------------------------- |
 | ORD-01 | list pagination + filters                                                    |
-| ORD-02 | 360 payload includes Fleetbase execution fields when synced                  |
 | ORD-03 | cancel / duplicate                                                           |
 | ORD-04 | labels/print/pickup PDF                                                      |
 | ORD-05 | POD zip / slug download                                                      |
@@ -223,13 +218,12 @@ For each client under `apps/merchant-portal/src/components/{billing,booking,bulk
 
 **Billing**
 
-| ID     | Case                                                     |
-| ------ | -------------------------------------------------------- |
-| BIL-01 | invoices list/detail/pay / pay-outstanding               |
-| BIL-02 | credit notes, history, tax summary, contract             |
-| BIL-03 | rate-card                                                |
-| BIL-04 | CSV exports                                              |
-| BIL-05 | COD Connect enable path (additive; Checkout still works) |
+| ID     | Case                                         |
+| ------ | -------------------------------------------- |
+| BIL-01 | invoices list/detail/pay / pay-outstanding   |
+| BIL-02 | credit notes, history, tax summary, contract |
+| BIL-03 | rate-card                                    |
+| BIL-04 | CSV exports                                  |
 
 **Integrations / Shopify / ERP**
 
@@ -279,11 +273,8 @@ For each client under `apps/merchant-portal/src/components/{billing,booking,bulk
 | FB-03 | drivers / vehicles                | read models for admin/merchant track — no PC re-implementation                          |
 | FB-04 | tracking                          | REST positions poll; web never imports SocketCluster                                    |
 | FB-05 | POD                               | fetch for merchant download                                                             |
-| FB-06 | dispatch / routes / orchestrator  | VROOM stays behind Fleetbase; diagnostics probe engines only                            |
 | FB-07 | zones / manifests                 | wrap-only                                                                               |
 | FB-08 | webhooks inbound                  | signature + idempotency                                                                 |
-| FB-09 | `merchant_sync_service`           | merchant org ↔ Fleetbase contact/company                                                |
-| FB-10 | SSO                               | `FleetbaseSsoClient.exchange_sso_token` with roles/permissions                          |
 | FB-11 | Admin Fleetbase console launchers | Intentionally removed — permanent bond is API `:8000`; ops surface is PorterChain admin |
 
 **Negative:** FB-N-01 inventing PC VROOM HTTP client · FB-N-02 storing GPS SoT in PC · FB-N-03 merchant using the Fleetbase Ember console as product UI.
@@ -301,7 +292,6 @@ For each client under `apps/merchant-portal/src/components/{billing,booking,bulk
 | SP-05 | Google Places autocomplete in book UI         | allowed                                                |
 | SP-06 | Google map tiles in track UI                  | allowed                                                |
 | SP-07 | Google Distance Matrix / Directions for price | **FORBIDDEN**                                          |
-| SP-08 | VROOM optimization                            | only via Fleetbase orchestrator probe                  |
 | SP-09 | No haversine in `admin_engine` ops paths      | `validate:architecture` / `verify_no_ops_spatial_math` |
 
 ---
@@ -354,12 +344,10 @@ God-nodes to regression-watch (Graphify): `Settings`, `Order`, `MerchantContext`
 | ID    | Service                                                   | Case                                                      |
 | ----- | --------------------------------------------------------- | --------------------------------------------------------- |
 | DK-01 | postgres                                                  | healthy; PC DSN `postgresql+psycopg`                      |
-| DK-02 | redis / valkey (Fleetbase override)                       | cache + SSO session deps                                  |
 | DK-03 | mailpit                                                   | catch-all SMTP                                            |
 | DK-04 | valhalla                                                  | digest-pinned image; route probe                          |
 | DK-05 | osrm                                                      | ETA fallback                                              |
 | DK-06 | vroom                                                     | only as Fleetbase dependency — not called from PC engines |
-| DK-07 | fleetbase + override                                      | adapter base URL reachable                                |
 | DK-08 | api + worker                                              | same settings; Clerk JWKS at boot only                    |
 | DK-09 | spicedb                                                   | migrate + authorize                                       |
 | DK-10 | No `:latest` tags in compose                              | pin audit                                                 |
@@ -390,7 +378,6 @@ Customer/merchant Clerk must not unlock admin. Still include:
 | AD-01 | Staff IdP / passkey path separate from portal Clerk    |
 | AD-02 | Admin merchant lifecycle approve/suspend/close/convert |
 | AD-03 | Clerk directory service for merchant users             |
-| AD-04 | Fleetbase SSO from admin only                          |
 | AD-05 | Project mode immutable (`403 project_mode_immutable`)  |
 
 ---
@@ -418,7 +405,6 @@ Treat these as automated test cases:
 | SpiceDB / OpenFGA tuples        | Merchant RBAC + hybrid authz                          |
 | Redis                           | Principal cache, rate limits, SSO                     |
 | Event bus                       | Order/notification fan-out                            |
-| Worker                          | Async Fleetbase sync, reminders, sweeps               |
 | OAuth (`/v1/...` oauth router)  | Merchant integration clients                          |
 | Lead ingest / webhooks          | Merchant referrals + public leads                     |
 | Zoho calendar adapter           | `integrations/zoho_calendar.py`                       |
@@ -426,7 +412,6 @@ Treat these as automated test cases:
 | Mobile customer / driver shells | Handshake parity later; do not block portal P0        |
 | Collaboration router            | Shared ops if merchant exposed                        |
 | Security router                 | Step-up / session hygiene boundaries                  |
-| Diagnostics readiness           | Clerk/Mailpit/Valhalla/Fleetbase probes               |
 | Pricing engine service          | Contract with merchant rate-card                      |
 | Checkr / Stripe Identity        | Driver-only; assert merchant/customer paths untouched |
 
@@ -436,26 +421,23 @@ Treat these as automated test cases:
 
 1. **P0 handshakes** HS-01..10 + CL-01..05 + FB-01/10
 2. **Close CodeGraph gap** ONB-C-* + ONB-M-* (portal + API)
-3. **Customer critical path** book → pay → track → Fleetbase
-4. **Merchant critical path** book → order 360 → track → billing pay
-5. **Shopify carrier + webhook** SHOP-01..03
-6. **Notifications + Mailpit + FCM register** NT-*
-7. **Spatial policy** SP-01..09
-8. **Integrations matrix** NetSuite/Zapier/OAuth/sandbox
-9. **Docker pin + readiness** DK-*
-10. **Full `validate:e2e` SYSTEM_CHAIN**
+3. **Merchant critical path** book → order 360 → track → billing pay
+4. **Shopify carrier + webhook** SHOP-01..03
+5. **Notifications + Mailpit + FCM register** NT-*
+6. **Spatial policy** SP-01..09
+7. **Integrations matrix** NetSuite/Zapier/OAuth/sandbox
+8. **Docker pin + readiness** DK-*
+9. **Full `validate:e2e` SYSTEM_CHAIN**
 
 ---
 
 ## 16. Traceability (sensor → artifact)
 
-| Sensor    | Finding                                                                           | Test IDs                       |
-| --------- | --------------------------------------------------------------------------------- | ------------------------------ |
-| Graphify  | Clerk ↔ Fleetbase via Settings; god-nodes Settings/Order/MerchantContext          | HS-*, DB-06, god-node watch    |
-| Graphify  | `merchant_sync_service`, shopify, notification, maps leaves                       | FB-09, SHOP-_, NT-_, SP-*      |
-| CodeGraph | Onboarding hooks untested within 3 hops                                           | ONB-C-_, ONB-M-_               |
-| Ripwire   | SSO ranked high churn (`sso_service`, `FleetbaseSsoClient`, `MerchantAccessGate`) | HS-08/09, FB-10, MP gate cases |
-| Ripwire   | `PLATFORM_PORTALS = customer, merchant` in `sync-clerk-env.mjs`                   | HS-05, CL-01                   |
+| Sensor    | Finding                                                         | Test IDs                  |
+| --------- | --------------------------------------------------------------- | ------------------------- |
+| Graphify  | `merchant_sync_service`, shopify, notification, maps leaves     | FB-09, SHOP-_, NT-_, SP-* |
+| CodeGraph | Onboarding hooks untested within 3 hops                         | ONB-C-_, ONB-M-_          |
+| Ripwire   | `PLATFORM_PORTALS = customer, merchant` in `sync-clerk-env.mjs` | HS-05, CL-01              |
 
 ---
 

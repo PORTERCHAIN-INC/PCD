@@ -18,7 +18,7 @@ export type PortalAuthScreenProps =
   | (PortalAuthScreenBase & { unavailable?: undefined; children: ReactNode });
 
 /**
- * Shared full-viewport auth chrome for portal Clerk SignIn / SignUp.
+ * Shared full-viewport auth chrome for portal sign-in / sign-up (Keycloak redirect).
  * Brand-first composition: wordmark → title → subtitle → form → footnotes.
  */
 export function PortalAuthScreen(props: PortalAuthScreenProps) {

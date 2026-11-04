@@ -1,7 +1,7 @@
 import { publicEnv, isLocalDev } from "@/lib/env";
 import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
 
-/** Same-origin BFF attaches Staff IdP Bearer from HttpOnly cookie. */
+/** Same-origin BFF attaches the Keycloak Bearer from the HttpOnly session. */
 const BFF_PREFIX = "/api/porterchain";
 
 export async function adminFetch<T>(
@@ -24,8 +24,6 @@ export async function adminFetch<T>(
   };
   if (token === "dev") {
     headers.Authorization = "Bearer dev";
-  } else if (!useBff && token.startsWith("staff_sess_")) {
-    headers.Authorization = `Bearer ${token}`;
   } else if (token && token !== STAFF_COOKIE_TOKEN) {
     // Legacy callers may still pass a real bearer; BFF ignores non-dev and uses cookie.
     headers.Authorization = `Bearer ${token}`;

@@ -1,7 +1,7 @@
 """Dev-only commercial slate wipe for clean E2E validation.
 
 Keeps: Fleetbase company/user/api_credentials/order_configs,
-       Clerk/Stripe env, founder admin identity when possible.
+       Keycloak/Stripe env, founder admin identity when possible.
 
 Clears: PC orders + related commercial rows; Fleetbase orders/payloads/places.
 

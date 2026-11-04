@@ -1,13 +1,13 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import { Bell } from "lucide-react";
 import { startTransition, useDeferredValue, useOptimistic } from "react";
 import CustomerShell from "@/components/CustomerShell";
 import CustomerMotion from "@/components/motion/CustomerMotion";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { notificationsApi, type InboxNotification } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 
@@ -15,17 +15,17 @@ import { cn } from "@/lib/utils";
 const INBOX_KEY = ["customer-notification-inbox"] as const;
 
 export default function NotificationsClient() {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return (
       <CustomerShell>
         <p className="text-muted">Please sign in to view notifications.</p>
       </CustomerShell>
     );
   }
-  return <CustomerNotificationsWithClerk />;
+  return <CustomerNotificationsWithAuth />;
 }
 
-function CustomerNotificationsWithClerk() {
+function CustomerNotificationsWithAuth() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const qc = useQueryClient();
   const enabled = Boolean(isLoaded && isSignedIn);

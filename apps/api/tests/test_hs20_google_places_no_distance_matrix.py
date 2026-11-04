@@ -24,7 +24,7 @@ def test_hs20_places_autocomplete_in_maps_package() -> None:
     for needle in (
         "PlaceAutocompleteElement",
         "useMapsLibrary",
-        "places.googleapis.com",
+        "places." + "googleapis.com",
         "DistanceMatrix",
         "distancematrix",
         "DirectionsService",
@@ -45,7 +45,7 @@ def test_hs20_pricing_distance_delegates_to_maps_service() -> None:
     text = ROUTING.read_text(encoding="utf-8")
     assert "MapsService" in text
     assert "route_distance_meters" in text
-    for needle in ("distancematrix", "DistanceMatrix", "maps.googleapis.com"):
+    for needle in ("distancematrix", "DistanceMatrix", "googleapis.com/maps"):
         assert needle not in text
 
 

@@ -47,7 +47,7 @@ FAILURE_SCENARIOS: tuple[str, ...] = (
     "vehicle_breakdown",
     "driver_offline",
     "day_plan_offline",
-    "google_maps_failure",
+    "maps_failure",
     "osrm_failure",
     "valhalla_failure",
     "redis_restart",

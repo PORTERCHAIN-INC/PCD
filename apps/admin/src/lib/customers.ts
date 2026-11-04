@@ -6,8 +6,8 @@ export type CustomerRow = {
   phone: string | null;
   customer_reference: string | null;
   display_name: string;
-  clerk_user_id: string | null;
-  clerk_linked: boolean;
+  auth_subject: string | null;
+  identity_linked: boolean;
   identity_status: string;
   stripe_customer_id?: string | null;
   privacy_status: string | null;
@@ -45,7 +45,7 @@ export type CustomerOrder = {
 
 export type CustomerStats = {
   total: number;
-  clerk_linked: number;
+  identity_linked: number;
   orphan: number;
   dsr_hold: number;
   orders_30d: number;
@@ -103,7 +103,7 @@ export type CustomerCare = {
 
 export type CustomerListParams = {
   search?: string;
-  clerk_linked?: string;
+  identity_linked?: string;
   privacy_status?: string;
   limit?: string;
 };
@@ -161,10 +161,10 @@ export type CreateCustomerResult = {
   phone: string | null;
   customer_reference: string | null;
   display_name: string;
-  clerk_user_id: string | null;
-  clerk_linked: boolean;
+  auth_subject: string | null;
+  identity_linked: boolean;
   identity_status: string;
-  clerk_action: string | null;
+  identity_action: string | null;
   created: boolean;
   created_at: string | null;
 };
@@ -172,10 +172,10 @@ export type CreateCustomerResult = {
 export type CustomerInviteResult = {
   id: string;
   email: string;
-  clerk_user_id: string | null;
-  clerk_linked: boolean;
+  auth_subject: string | null;
+  identity_linked: boolean;
   identity_status: string;
-  clerk_action: string | null;
+  identity_action: string | null;
 };
 
 const B = "/v1/admin/customers";

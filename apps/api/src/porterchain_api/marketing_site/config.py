@@ -26,7 +26,7 @@ _DEFAULT: dict[str, Any] = {
         "estimates_per_minute": 12,
         "leads_per_minute": 3,
         # Seconds a human needs at least to fill the lead form.
-        "min_fill_seconds": 2,
+        "min_fill_seconds": 3,
         # Calculator leads never trigger the automatic welcome email / nurture.
         "auto_outreach": False,
     },

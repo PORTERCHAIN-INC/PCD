@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from porterchain_api.billing_engine.merchant_service import invoice_status
+from porterchain_api.billing_engine.merchant_service import invoice_status, outstanding_cents
 
-__all__ = ["invoice_status"]
+__all__ = ["invoice_status", "outstanding_cents"]

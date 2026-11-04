@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Website `/login` (+ Clerk path steps under optional catch-all).
+ * Website `/login` (Keycloak hosted sign-in via /auth/login).
  * Signed-in users go to /login/continue → portal picker / module home.
  */
 
 import { Suspense, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { isDevelopmentBuild } from "@porterchain/auth";
@@ -14,7 +14,7 @@ import LoginShell from "@/components/portal/LoginShell";
 import PlatformAuthLayout, { PlatformAuthLoading } from "@/components/portal/PlatformAuthLayout";
 import PostAuthPortalRedirect from "@/components/portal/PostAuthPortalRedirect";
 import UnifiedSignIn from "@/components/portal/UnifiedSignIn";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 
 export default function LoginPage() {
   return (
@@ -39,7 +39,7 @@ function LoginContent() {
   const { isLoaded, isSignedIn } = useAuth();
   const continuePath = `/${locale}/login/continue`;
 
-  // Already signed in on /login or /login/<clerk-step> → continue immediately
+  // Already signed in on /login or /login/<step> → continue immediately
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
     if (typeof window === "undefined") return;
@@ -47,7 +47,7 @@ function LoginContent() {
     window.location.replace(continuePath);
   }, [isLoaded, isSignedIn, continuePath]);
 
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     const dev = isDevelopmentBuild();
     return (
       <LoginShell>

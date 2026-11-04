@@ -86,7 +86,7 @@ def create_website_booking(
     label = f"web-{index:02d}"
     email = f"website.customer{index:02d}@test.porterchain.com"
     phone = f"+1 416-555-{1000 + index:04d}"
-    clerk_id = f"website_test_user_{index:02d}"
+    subject_ref = f"website_test_user_{index:02d}"
     session_id = f"website-session-{label}"
 
     customers = CustomerService()
@@ -121,7 +121,7 @@ def create_website_booking(
             quote_id=quote.id,
             email=email,
             phone=phone,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             anonymous_session_id=session_id,
             consent={
                 "terms_accepted": True,
@@ -133,7 +133,7 @@ def create_website_booking(
     except Exception:
         customer = customers.upsert(
             db,
-            clerk_user_id=clerk_id,
+            auth_subject=subject_ref,
             email=email,
             phone=phone,
             visitor_session_id=session_id,

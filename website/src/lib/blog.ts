@@ -14,7 +14,7 @@ import {
 import readingTime from "reading-time";
 import { getAuthor } from "@/data/blog-authors";
 import { BLOG_CATEGORIES, isBlogCategory, type BlogCategory } from "@/data/blog-categories";
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainApiBase, getPorterchainFetchBase } from "@/lib/api-base";
 import type { Locale } from "@/i18n/routing";
 import {
   POSTS_PER_PAGE,
@@ -162,7 +162,7 @@ async function fetchRawApiPostsPage(locale: Locale, opts: ListOpts = {}): Promis
   cacheLife("hours");
   cacheTag("blog", `blog:${locale}`);
   if (catalogSkippedDuringImageBuild()) return [];
-  const base = getPorterchainApiBase();
+  const base = getPorterchainFetchBase();
   const limit = Math.min(opts.limit ?? BLOG_PAGE_SIZE, BLOG_LIST_LIMIT);
   const params = new URLSearchParams({
     locale,
@@ -224,7 +224,7 @@ async function fetchApiPost(locale: Locale, slug: string): Promise<BlogPost | nu
   cacheLife("hours");
   cacheTag("blog", `blog:${locale}`, `blog:${locale}:${slug}`);
   if (catalogSkippedDuringImageBuild()) return repoPost(locale, slug);
-  const base = getPorterchainApiBase();
+  const base = getPorterchainFetchBase();
   const res = await fetch(`${base}/v1/public/blog/posts/${slug}?locale=${locale}`, {
     next: { revalidate: 3600, tags: ["blog", `blog:${locale}`] },
   });
@@ -243,7 +243,7 @@ export async function getPreviewPost(
   token: string
 ): Promise<BlogPost | null> {
   if (catalogSkippedDuringImageBuild()) return null;
-  const base = getPorterchainApiBase();
+  const base = getPorterchainFetchBase();
   const params = new URLSearchParams({ locale, token });
   const res = await fetch(
     `${base}/v1/public/blog/posts/${encodeURIComponent(slug)}/preview?${params}`,
@@ -341,7 +341,7 @@ export async function listBlogAuthors(): Promise<BlogAuthor[]> {
     return Object.values(BLOG_AUTHORS);
   }
   try {
-    const res = await fetch(`${getPorterchainApiBase()}/v1/public/blog/authors`, {
+    const res = await fetch(`${getPorterchainFetchBase()}/v1/public/blog/authors`, {
       next: { revalidate: 300, tags: ["blog-authors"] },
     });
     if (!res.ok) return Object.values(BLOG_AUTHORS);
@@ -360,7 +360,7 @@ export async function getBlogAuthorRemote(id: string): Promise<BlogAuthor> {
   }
   try {
     const res = await fetch(
-      `${getPorterchainApiBase()}/v1/public/blog/authors/${encodeURIComponent(id)}`,
+      `${getPorterchainFetchBase()}/v1/public/blog/authors/${encodeURIComponent(id)}`,
       { next: { revalidate: 300, tags: ["blog-authors"] } }
     );
     if (!res.ok) return getBlogAuthor(id);

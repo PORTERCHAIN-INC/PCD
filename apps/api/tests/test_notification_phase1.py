@@ -75,7 +75,7 @@ def test_exception_opened_specs() -> None:
 
 def test_expand_staff_replaces_sentinel(db) -> None:
     admin = AdminUser(
-        clerk_user_id=f"clerk_{uuid.uuid4().hex[:12]}",
+        auth_subject=f"idp_{uuid.uuid4().hex[:12]}",
         email=f"a-{uuid.uuid4().hex[:6]}@test.com",
         role="dispatcher",
         is_active=True,

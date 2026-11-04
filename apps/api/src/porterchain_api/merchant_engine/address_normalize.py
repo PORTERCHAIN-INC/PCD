@@ -166,16 +166,21 @@ def normalize_address(
     postal_final = (postal or "").strip() or None
     if postal_final:
         postal_final = _space_postal(postal_final)
-    else:
-        m = _POSTAL_CA.search(street)
-        if m:
+    m = _POSTAL_CA.search(street)
+    if m:
+        if not postal_final:
             postal_final = f"{m.group(1).upper()} {m.group(2).upper()}"
-            # Keep the civic line clean for Nominatim.
-            street = (street[: m.start()] + street[m.end() :]).strip(" ,")
+        # L199: keep the civic line clean for Nominatim even when a postal column is also
+        # given ("1309 Wilson Ave, Toronto, ON M3M 1J4" + postal used to repeat everything).
+        street = (street[: m.start()] + street[m.end() :]).strip(" ,")
 
     city_final = (city or "").strip() or None
-    if not city_final:
-        street, city_final = _extract_city(street)
+    street_wo_city, found_city = _extract_city(street)
+    if found_city and (not city_final or "," in street):
+        street = street_wo_city
+    city_final = city_final or found_city
+    # Trailing province token left after removing city/postal ("…, ON").
+    street = re.sub(r"(,\s*|\s+)(ON|Ontario)\s*$", "", street, flags=re.I).strip(" ,")
     province_final = (province or "").strip() or "ON"
 
     parts = [street]

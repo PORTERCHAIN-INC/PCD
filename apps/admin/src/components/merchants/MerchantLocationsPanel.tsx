@@ -4,9 +4,7 @@ import { useState } from "react";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useApiData } from "@/hooks/useApiData";
-import { publicEnv } from "@/lib/env";
 import { merchants, type MerchantLocations } from "@/lib/merchants";
-import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
 import { Badge, Button, Field, Input, SectionCard, Select } from "@/components/crm/primitives";
 import { titleCase } from "@/lib/crmFormat";
 import DeleteButton from "@/components/common/DeleteButton";
@@ -175,7 +173,7 @@ export default function MerchantLocationsPanel({ id }: { id: string }) {
   }
 
   return (
-    <GoogleMapsProvider>
+    <>
       <div className="space-y-5">
         {formError ? (
           <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
@@ -344,6 +342,6 @@ export default function MerchantLocationsPanel({ id }: { id: string }) {
           </SectionCard>
         </div>
       </div>
-    </GoogleMapsProvider>
+    </>
   );
 }

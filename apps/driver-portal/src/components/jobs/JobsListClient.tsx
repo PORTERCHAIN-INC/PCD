@@ -94,7 +94,7 @@ export default function JobsListClient() {
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Jobs List</h1>
           {lastUpdatedLabel && (
             <p className="mt-1 text-xs text-[var(--muted)]">
-              Live · Updated {lastUpdatedLabel}
+              Live · Updated {lastUpdatedLabel}{" "}
               <button
                 type="button"
                 onClick={refresh}

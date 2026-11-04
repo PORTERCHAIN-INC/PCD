@@ -55,7 +55,11 @@ function detailFromBody(body: unknown, status: number): string {
   return `http_${status}`;
 }
 
-async function driverFetch<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
+export async function driverFetch<T>(
+  path: string,
+  init?: RequestInit,
+  retried = false
+): Promise<T> {
   const token = await requireBearer(retried);
   const res = await fetchWithTimeout(`${apiBaseUrl}${path}`, {
     ...init,
@@ -226,21 +230,36 @@ export function sendEmergency(
   });
 }
 
-export function podPhoto(routeId: string, stopId: string, fileUrl: string): Promise<unknown> {
+/**
+ * POD photo: uploads the camera data URL to Garage first and sends the key (file_key). A plain
+ * https URL (legacy) is sent as-is. Offline replay keeps the data URL, which the server still accepts.
+ */
+export async function podPhoto(routeId: string, stopId: string, fileUrl: string): Promise<unknown> {
+  const body = fileUrl.startsWith("data:image/")
+    ? { file_key: (await mediaApi.photoDataUrl(fileUrl)).key }
+    : { file_url: fileUrl };
   return driverFetch(
     `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/pod-photo`,
-    { method: "POST", body: JSON.stringify({ file_url: fileUrl }) }
+    { method: "POST", body: JSON.stringify(body) }
   );
 }
 
-export function podSignature(
+/** POD signature: PNG from the signature pad → Garage → signature_key (+ signer name). */
+export async function podSignature(
   routeId: string,
   stopId: string,
-  signatureData: string
+  signatureData: string,
+  signerName = "Receiver"
 ): Promise<unknown> {
+  const body = signatureData.startsWith("data:image/png;base64,")
+    ? {
+        signature_key: (await mediaApi.signature(signatureData, signerName)).key,
+        signer_name: signerName,
+      }
+    : { signature_data: signatureData, signer_name: signerName };
   return driverFetch(
     `${DRIVER_API}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}/pod-signature`,
-    { method: "POST", body: JSON.stringify({ signature_data: signatureData }) }
+    { method: "POST", body: JSON.stringify(body) }
   );
 }
 
@@ -590,10 +609,6 @@ export function patchMyProfile(
 ): Promise<{ profile: MeProfile; changed: string[] }> {
   return driverFetch(`${DRIVER_API}/me/profile`, { method: "PATCH", body: JSON.stringify(body) });
 }
-export function syncMyIdentity(): Promise<{ profile: MeProfile; changed: string[] }> {
-  return driverFetch(`${DRIVER_API}/me/profile/sync-identity`, { method: "POST" });
-}
-
 export type Statement = {
   id: string;
   period_label: string;
@@ -760,3 +775,33 @@ export async function markStopDocumentShown(
   if (!res.ok) throw new ApiError(`http_${res.status}`, res.status);
   return res.json();
 }
+
+import { batchClient, type Fetcher } from "./batches";
+/** Bulk batches + pickup documents + instructions (same API as driver web). */
+export const batchApi = batchClient(((path: string, init?: RequestInit) =>
+  driverFetch(`/driver-api${path}`, init)) as Fetcher);
+
+import { mediaClient } from "@porterchain/driver-flows";
+/** Proof media upload (photos, signatures) → Garage key; same routes as driver web. */
+export const mediaApi = mediaClient(<T>(path: string, body: FormData | string) =>
+  driverFetch<T>(`/driver-api${path}`, { method: "POST", body: body as string })
+);
+
+export type SafetyReport = {
+  code: string;
+  route_id?: string;
+  order_id?: string;
+  address?: string;
+  parcels?: string[];
+  note?: string;
+  photo_keys?: string[];
+  police_report_no?: string;
+  signature_key?: string;
+};
+export const safetyApi = {
+  report: (body: SafetyReport) =>
+    driverFetch<Record<string, unknown>>(`${DRIVER_API}/safety-stop`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+};

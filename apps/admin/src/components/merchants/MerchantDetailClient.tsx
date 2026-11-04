@@ -1,6 +1,8 @@
 "use client";
 
+import { OrgPricingPanel } from "@/components/pricing/RateCardClient";
 import { useEffect, useRef, useState } from "react";
+import { LogoImg } from "./LogoImg";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -325,7 +327,7 @@ export default function MerchantDetailClient({ id }: { id: string }) {
           entity="merchant"
           id={id}
           onDeleted={() => {
-            window.location.href = "/merchants";
+            router.push("/merchants");
           }}
         />
       }
@@ -345,12 +347,7 @@ export default function MerchantDetailClient({ id }: { id: string }) {
       >
         <header className="flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/[0.05] text-primary sm:h-14 sm:w-14">
-            {m.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={m.logo_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <Building2 className="h-6 w-6" aria-hidden />
-            )}
+            <LogoImg src={m.logo_url} />
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-semibold tracking-[0.18em] text-secondary uppercase">
@@ -485,7 +482,13 @@ export default function MerchantDetailClient({ id }: { id: string }) {
               onChange={(panel) => go("money", panel)}
               label="Money sections"
             />
-            {route.money === "pricing" && <MerchantPricingPanel merchantId={id} />}
+            {route.money === "pricing" && (
+              <div className="space-y-6">
+                <OrgPricingPanel orgId={id} />
+                <MerchantPricingPanel merchantId={id} />
+              </div>
+            )}
+            {route.money === "terms" && <SettingsTab m={m} onSaved={refresh} />}
             {route.money === "quote" && <MerchantQuotePreview id={id} />}
             {route.money === "credit" &&
               (ops ? (

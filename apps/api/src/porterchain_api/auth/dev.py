@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.config import Settings
 from porterchain_shared.config.project_mode import ProjectMode, project_mode_for_app_env
 
@@ -13,7 +13,7 @@ DEV_STAFF_EMAIL = "admin@porterchain.com"
 DEV_MERCHANT_EMAIL = "merchant@porterchain.com"
 DEV_CUSTOMER_EMAIL = "customer@porterchain.com"
 
-DEV_LEGACY_SUBJECT = "dev_clerk_user"
+DEV_LEGACY_SUBJECT = "dev_idp_user"
 DEV_MERCHANT_SUBJECT = "dev_merchant_user"
 DEV_CUSTOMER_SUBJECT = "dev_customer_user"
 DEV_PORTAL_HEADER = "x-porterchain-portal"
@@ -23,20 +23,20 @@ _PORTALS = frozenset({"merchant", "customer", "admin", "driver"})
 
 
 def allow_auth_dev_bypass(settings: Settings) -> bool:
-    """True only in development project mode with CLERK_DEV_BYPASS=true."""
+    """True only in development project mode with AUTH_DEV_BYPASS=true."""
     return (
         project_mode_for_app_env(settings.app_env) is ProjectMode.DEVELOPMENT
-        and settings.clerk_dev_bypass
+        and settings.auth_dev_bypass
     )
 
 
-def is_dev_bypass_subject(clerk_user_id: str | None) -> bool:
-    """Synthetic local Bearer-dev Clerk ids — no SpiceDB tuples by design."""
-    return bool(clerk_user_id) and clerk_user_id in _DEV_SUBJECTS
+def is_dev_bypass_subject(auth_subject: str | None) -> bool:
+    """Synthetic local Bearer-dev Keycloak ids — no SpiceDB tuples by design."""
+    return bool(auth_subject) and auth_subject in _DEV_SUBJECTS
 
 
-def is_merchant_dev_subject(clerk_user_id: str | None) -> bool:
-    return clerk_user_id in {DEV_MERCHANT_SUBJECT, DEV_LEGACY_SUBJECT}
+def is_merchant_dev_subject(auth_subject: str | None) -> bool:
+    return auth_subject in {DEV_MERCHANT_SUBJECT, DEV_LEGACY_SUBJECT}
 
 
 def resolve_dev_portal(*, path: str = "", header: str | None = None) -> str:
@@ -65,42 +65,42 @@ def resolve_dev_portal(*, path: str = "", header: str | None = None) -> str:
     return "admin"
 
 
-def dev_claims_for(portal: str) -> ClerkClaims:
-    """One synthetic Clerk subject per portal — never reuse staff email on merchant/customer."""
+def dev_claims_for(portal: str) -> IdentityClaims:
+    """One synthetic Keycloak subject per portal — never reuse staff email on merchant/customer."""
     if portal == "merchant":
-        return ClerkClaims(
-            clerk_user_id=DEV_MERCHANT_SUBJECT,
+        return IdentityClaims(
+            auth_subject=DEV_MERCHANT_SUBJECT,
             email=DEV_MERCHANT_EMAIL,
             org_id=None,
             org_role="org:admin",
             public_metadata={"role": "merchant_owner"},
             session_id="dev_session_merchant",
-            clerk_app="merchant",
-            issuer="https://clerk.porterchain.local",
+            idp_app="merchant",
+            issuer="https://keycloak.porterchain.local",
             authorized_party="pk_dev",
             auth_time=0,
         )
     if portal == "customer":
-        return ClerkClaims(
-            clerk_user_id=DEV_CUSTOMER_SUBJECT,
+        return IdentityClaims(
+            auth_subject=DEV_CUSTOMER_SUBJECT,
             email=DEV_CUSTOMER_EMAIL,
             phone="+1 416-555-4401",
             public_metadata={"role": "customer"},
             session_id="dev_session_customer",
-            clerk_app="customer",
-            issuer="https://clerk.porterchain.local",
+            idp_app="customer",
+            issuer="https://keycloak.porterchain.local",
             authorized_party="pk_dev",
             auth_time=0,
         )
-    return ClerkClaims(
-        clerk_user_id=DEV_LEGACY_SUBJECT,
+    return IdentityClaims(
+        auth_subject=DEV_LEGACY_SUBJECT,
         email=DEV_STAFF_EMAIL,
         org_id=None,
         org_role="dispatcher",
         public_metadata={"role": "dispatcher"},
         session_id="dev_session",
-        clerk_app="admin",
-        issuer="https://clerk.porterchain.local",
+        idp_app="admin",
+        issuer="https://keycloak.porterchain.local",
         authorized_party="pk_dev",
         auth_time=0,
     )

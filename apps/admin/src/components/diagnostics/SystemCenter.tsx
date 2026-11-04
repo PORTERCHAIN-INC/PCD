@@ -28,7 +28,7 @@ const TABS: { id: SystemTab; label: string; description: string; icon: typeof He
   {
     id: "ai",
     label: "AI usage",
-    description: "NVIDIA NIM metering and phase2 flags",
+    description: "LLM metering (FEATURE_AI off) and phase2 flags",
     icon: Sparkles,
   },
 ];

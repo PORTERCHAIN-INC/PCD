@@ -1,22 +1,30 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@porterchain/auth/oidc/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CustomerShell from "@/components/CustomerShell";
 import AddressBook from "@/components/account/AddressBook";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthConfigured } from "@/lib/env";
 import { customerApi } from "@/lib/api";
 
+const TICKET_STATUS: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  waiting_customer: "Waiting for you",
+  resolved: "Resolved",
+  closed: "Closed",
+};
+
 export default function AccountClient() {
-  if (!isClerkConfigured()) {
+  if (!isAuthConfigured()) {
     return <AccountBody ready signedIn getToken={async () => "dev"} />;
   }
-  return <AccountWithClerk />;
+  return <AccountWithAuth />;
 }
 
-function AccountWithClerk() {
+function AccountWithAuth() {
   const router = useRouter();
   const { isSignedIn, isLoaded, getToken } = useAuth();
 
@@ -184,7 +192,9 @@ function AccountBody({
                   className="flex items-center justify-between rounded-xl bg-gray-bg px-3 py-2 text-sm"
                 >
                   <span className="font-medium text-primary">{t.subject}</span>
-                  <span className="text-xs text-muted">{t.status}</span>
+                  <span className="text-xs text-muted">
+                    {TICKET_STATUS[t.status] ?? t.status.replace(/_/g, " ")}
+                  </span>
                 </li>
               ))}
             </ul>

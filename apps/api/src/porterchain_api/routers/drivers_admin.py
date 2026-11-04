@@ -57,7 +57,7 @@ def _invoke(ctx: AdminContext, module: str, fn, *args, **kwargs):
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
     except RuntimeError as exc:
-        if str(exc) == "clerk_not_configured":
+        if str(exc) == "identity_not_configured":
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         raise
     except ValueError as exc:
@@ -137,7 +137,7 @@ def invite_driver(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    """Resend Clerk invitation for an existing driver."""
+    """Resend Keycloak invitation for an existing driver."""
     driver = _invoke(ctx, "drivers", _drivers.get_driver, db, driver_id)
     if not driver:
         raise HTTPException(status_code=404, detail="driver_not_found")

@@ -48,10 +48,15 @@ def invoice_status(
     now: datetime | None = None,
 ) -> str:
     now = now or datetime.now(UTC).replace(tzinfo=None)
+    total = invoice_total_cents(invoice)
+    credited = invoice_credited_cents(invoice)
+    # Credit notes (docs/compliance/INVOICE_ADJUSTMENTS_CANADA.md) win over everything.
+    if credited > 0 and credited >= total:
+        return "void" if getattr(invoice, "voided_at", None) else "credited"
     if order and order.state in (OrderState.CANCELLED.value, OrderState.REFUNDED.value):
         return "cancelled"
     paid_offline = int(getattr(invoice, "amount_paid_cents", 0) or 0)
-    if paid_offline > 0 and paid_offline >= invoice_total_cents(invoice):
+    if paid_offline > 0 and paid_offline >= total - credited:
         return "paid"
     if payment:
         if payment.status == "SUCCEEDED":
@@ -62,12 +67,19 @@ def invoice_status(
             return "pending"
     if getattr(invoice, "due_at", None):
         due = invoice.due_at.replace(tzinfo=None) if invoice.due_at.tzinfo else invoice.due_at
+    elif getattr(invoice, "merchant_id", None) and (terms or "").upper() != "PREPAID":
+        # Weekly billing: a merchant invoice is due end of day on the next Wednesday (Toronto).
+        from porterchain_api.billing_engine.weekly_billing import due_at_for_issue
+
+        due = due_at_for_issue(invoice.created_at) if invoice.created_at else None
     else:
         due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
     if due and now > due:
         return "overdue"
     if paid_offline > 0:
         return "partial"
+    if credited > 0:
+        return "partially_credited"
     return "sent"
 
 
@@ -80,11 +92,21 @@ def invoice_total_cents(invoice: Invoice) -> int:
     return int(invoice.amount_cents or 0) + int(invoice.fees_cents or 0)
 
 
+def invoice_credited_cents(invoice: Invoice) -> int:
+    """Tax-inclusive total of issued credit notes against this invoice."""
+    return int(getattr(invoice, "credited_cents", 0) or 0)
+
+
+def invoice_net_total_cents(invoice: Invoice) -> int:
+    """What the customer owes in total after credit notes (never below zero)."""
+    return max(0, invoice_total_cents(invoice) - invoice_credited_cents(invoice))
+
+
 def outstanding_cents(invoice: Invoice, status: str) -> int:
-    if status in ("paid", "void", "cancelled"):
+    if status in ("paid", "void", "cancelled", "credited"):
         return 0
     paid_offline = int(getattr(invoice, "amount_paid_cents", 0) or 0)
-    return max(0, invoice_total_cents(invoice) - paid_offline)
+    return max(0, invoice_net_total_cents(invoice) - paid_offline)
 
 
 def effective_payment_terms(order: Order | None, merchant: object | None) -> str | None:
@@ -168,16 +190,15 @@ def serialize_invoice_row(
         "currency": invoice.currency,
         "status": status,
         "payment_terms": terms or (order.payment_terms if order else "NET_30"),
-        "due_date": due.isoformat() if due else None,
+        "due_date": (due if due.tzinfo else due.replace(tzinfo=UTC)).isoformat() if due else None,
         "last_reminded_at": invoice.last_reminded_at.isoformat() if getattr(invoice, "last_reminded_at", None) else None,
         "pdf_url": invoice.pdf_url,
         "created_at": invoice.created_at,
         "payment_reference": getattr(invoice, "payment_reference", None),
         "amount_paid_cents": int(getattr(invoice, "amount_paid_cents", 0) or 0),
+        "credited_cents": int(getattr(invoice, "credited_cents", 0) or 0),
         "billing_kind": getattr(invoice, "billing_kind", None) or "order",
     }
-    if invoice.stripe_receipt_url:
-        row["stripe_receipt_url"] = invoice.stripe_receipt_url
     return row
 
 

@@ -351,7 +351,7 @@ function CommandHeader({
             {searchHits.map((h) => (
               <li key={`${h.type}-${h.id}`}>
                 <Link
-                  href={h.href ?? "/dashboard"}
+                  href={h.href ?? "/today"}
                   className="block px-3 py-2 text-sm hover:bg-secondary/5"
                   onClick={() => onSearch("")}
                 >

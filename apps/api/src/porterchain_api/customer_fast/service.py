@@ -116,48 +116,13 @@ def send_again_url(settings: Settings, order: Order) -> str:
 def account_url(settings: Settings, customer: Customer) -> str:
     """Magic sign-in link to the customer portal.
 
-    With a Clerk secret (prod) we mint a Clerk sign-in token for the email (creating the
-    Clerk user when needed) and link to the portal's ``/welcome`` page, which redeems it with
-    the ``ticket`` strategy: one tap, signed in, on Orders. No code, no password. Otherwise we
-    fall back to the portal sign-in with the email prefilled (Clerk emails a one-time code).
-    The pending customer row is adopted on that first sign-in (C-14).
+    Links to the customer portal sign-in with the email prefilled; Keycloak handles the
+    login (passwordless/OTP per realm policy). The pending customer row is adopted on
+    that first sign-in (C-14).
     """
     portal = (settings.customer_portal_url or "").rstrip("/")
     fallback = f"{portal}/sign-in?{urlencode({'email': customer.email, 'redirect_url': '/orders'})}"
-    secret = ""
-    try:
-        from porterchain_api.auth.clerk_registry import clerk_app_for_kind
-
-        app = clerk_app_for_kind(settings, "customer")
-        secret = (app.secret_key if app else "") or ""
-    except Exception:  # registry shape differs per env; fall back to the platform key
-        secret = ""
-    secret = secret or getattr(settings, "clerk_secret_key", "") or ""
-    if not secret or settings.app_env in ("local", "test"):
-        return fallback
-    try:
-        import httpx
-
-        headers = {"Authorization": f"Bearer {secret}"}
-        with httpx.Client(base_url="https://api.clerk.com/v1", headers=headers, timeout=6) as client:
-            found = client.get("/users", params={"email_address": customer.email}).json()
-            user_id = found[0]["id"] if isinstance(found, list) and found else None
-            if not user_id:
-                made = client.post(
-                    "/users",
-                    json={"email_address": [customer.email], "skip_password_requirement": True},
-                )
-                made.raise_for_status()
-                user_id = made.json()["id"]
-            ticket = client.post(
-                "/sign_in_tokens", json={"user_id": user_id, "expires_in_seconds": 7 * 24 * 3600}
-            )
-            ticket.raise_for_status()
-            token = ticket.json().get("token")
-            return f"{portal}/welcome?{urlencode({'ticket': token})}" if token else fallback
-    except Exception as exc:
-        logger.warning("guest magic link fell back to sign-in: %s", exc)
-        return fallback
+    return fallback
 
 
 def confirmation_links(db: Session, settings: Settings, order: Order, customer: Customer | None) -> dict[str, str]:
@@ -169,7 +134,7 @@ def confirmation_links(db: Session, settings: Settings, order: Order, customer: 
         "preferences_url": preferences_url(settings, customer),
         "unsubscribe_url": preferences_url(settings, customer),
     }
-    if str(customer.clerk_user_id or "").startswith("pending"):
+    if str(customer.auth_subject or "").startswith("pending"):
         links["account_url"] = account_url(settings, customer)
     from porterchain_api.customer_fast.rules import order_locale
 
@@ -240,7 +205,7 @@ def express_checkout(db: Session, settings: Settings, body: Any, *, ip: str | No
             quote_id=body.quote_id,
             email=email,
             phone=phone,
-            clerk_user_id=None,
+            auth_subject=None,
             anonymous_session_id=body.anonymous_session_id,
             consent={
                 "terms_accepted": True,

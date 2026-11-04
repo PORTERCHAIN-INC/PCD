@@ -5,7 +5,6 @@ import {
   fetchDispatchRoute,
   fetchDocuments,
   fetchEarningsToday,
-  fetchMonitoringPolicy,
   fetchSupportHub,
   fetchVehicle,
   saveAppSettings,
@@ -31,8 +30,6 @@ export const useEarnings = (enabled = true) =>
     enabled,
     refetchInterval: 5 * 60_000,
   });
-export const usePolicy = () =>
-  useQuery({ queryKey: qk.policy, queryFn: fetchMonitoringPolicy, staleTime: 60 * 60_000 });
 
 let touchedLocally = false;
 export const useServerSettings = () =>

@@ -79,12 +79,27 @@ def merchant_me(
     return _profile.me_payload(ctx)
 
 
+@router.patch("/me/display-name")
+def merchant_set_display_name(
+    body: dict,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+) -> dict:
+    """L34: the signed-in seat edits its own display name (any role)."""
+    from porterchain_api.merchant_engine.profile_service import set_user_display_name
+
+    raw = body.get("display_name") if isinstance(body, dict) else None
+    if raw is not None and not isinstance(raw, str):
+        raise HTTPException(status_code=400, detail="display_name must be text")
+    return {"display_name": set_user_display_name(db, ctx.merchant, ctx.user.id, raw or "")}
+
+
 @router.get("/memberships")
 def list_memberships(
     seats: Annotated[MerchantSeats, Depends(get_merchant_seats)],
     db: Session = Depends(get_db),
 ) -> dict:
-    """Seats for this Clerk user — switch companies with X-Merchant-Id, not Clerk orgs.
+    """Seats for this Keycloak user — switch companies with X-Merchant-Id, not Keycloak orgs.
 
     Suspended and closed companies are listed with ``can_open: false`` so the
     switcher still works when the selected company stopped working (BF).
@@ -281,7 +296,7 @@ def add_team_seat(
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     db: Session = Depends(get_db),
 ) -> TeamMemberResponse:
-    """Reserve a teammate seat by email. Teammate self-signs-up on Platform; no Clerk invite."""
+    """Reserve a teammate seat by email. Teammate self-signs-up on Platform; no Keycloak invite."""
     m = _invoke(ctx, "users", _team.add_seat, db, ctx, email=body.email, role=body.role)
     return _member_response(m)
 

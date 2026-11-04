@@ -90,6 +90,15 @@ def hydrate_order_context(db: Session, order_id: str | None) -> dict[str, Any]:
     _add_business_order_details(db, order, out)
 
     merchant = db.get(Merchant, order.merchant_id) if order.merchant_id else None
+    out["direct_booking"] = merchant is None
+    try:
+        from porterchain_api.driver_models import DriverStopMeta
+
+        row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
+        proofs = (row.meta or {}).get("proofs", []) if row else []
+        out["proof_types"] = sorted({str(p.get("type")) for p in proofs if isinstance(p, dict) and p.get("type")})
+    except Exception:  # noqa: BLE001 — generic proof line
+        logger.debug("proof lookup failed for order %s", order.id, exc_info=True)
     if merchant:
         out["merchant_name"] = merchant.company_name
         if merchant.email:

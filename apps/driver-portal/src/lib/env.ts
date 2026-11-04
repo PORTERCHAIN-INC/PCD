@@ -11,17 +11,16 @@ export const publicEnv = {
     process.env.NEXT_PUBLIC_WEBSITE_URL ??
     (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://porterchain.com")
   ).replace(/\/$/, ""),
-  // Must be the Porterchain Driver instance key (clerk.driver.porterchain.com) — the same Clerk
-  // app the driver mobile app uses, so one driver account works on web and mobile.
-  clerkPublishableKey: (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "").trim(),
+  // Keycloak pc-driver-portal client (same realm as the driver app: one account, web + mobile).
+  keycloakClientId: (process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID ?? "").trim(),
 } as const;
 
-export function isClerkConfigured(): boolean {
-  return publicEnv.clerkPublishableKey.length > 0;
+export function isAuthConfigured(): boolean {
+  return publicEnv.keycloakClientId.length > 0;
 }
 
 /**
- * Local dev only: email-only driver login when CLERK_DEV_BYPASS is enabled on the API.
+ * Local dev only: email-only driver login when AUTH_DEV_BYPASS is enabled on the API.
  *
  * Gated on the build, so a shipped portal never offers it (BJ).
  */

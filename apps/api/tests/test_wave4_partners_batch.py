@@ -27,7 +27,10 @@ def test_merchant_suspended_routes_staff_high() -> None:
     )
     assert specs
     assert all(s["priority"] == "high" for s in specs)
-    assert {s["template_key"] for s in specs} == {"merchant_suspended"}
+    staff = [s for s in specs if s.get("recipient_type") != "merchant"]
+    assert {s["template_key"] for s in staff} == {"merchant_suspended"}
+    # The business itself is told too (in-app + email when the address is known).
+    assert {s["template_key"] for s in specs} <= {"merchant_suspended", "merchant_account_suspended"}
 
 
 def test_merchant_lifecycle_templates_exist() -> None:

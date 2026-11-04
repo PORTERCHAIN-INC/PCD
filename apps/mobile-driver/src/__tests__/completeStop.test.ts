@@ -55,7 +55,12 @@ describe("completeStop", () => {
   });
 
   it("delivery: proof → pod_complete → deliver_stop, in order", async () => {
-    const pod = { ...emptyPodDraft(), photoUrl: "data:p", signature: "data:s" };
+    const pod = {
+      ...emptyPodDraft(),
+      photoUrl: "data:p",
+      signature: "data:s",
+      signerName: "Ana Silva",
+    };
     await completeStop({ ...args, kind: "delivery", pod });
     expect(calls).toEqual(["camera_upload", "pod_signature", "pod_complete", "deliver_stop"]);
   });
@@ -69,17 +74,32 @@ describe("completeStop", () => {
 
   it("server rejection surfaces to the driver; never reported as delivered", async () => {
     api.podComplete.mockRejectedValue(new ApiError("otp_invalid", 422));
-    const pod = { ...emptyPodDraft(), signature: "s" };
+    const pod = { ...emptyPodDraft(), signature: "s", signerName: "Ana Silva" };
     await expect(completeStop({ ...args, kind: "delivery", pod })).rejects.toThrow("otp_invalid");
     expect(api.deliverStop).not.toHaveBeenCalled();
   });
 
   it("no signal mid-way: the rest queues behind it and the stop is 'queued'", async () => {
     api.podSignature.mockRejectedValue(new NetworkError());
-    const pod = { ...emptyPodDraft(), photoUrl: "p", signature: "s" };
+    const pod = { ...emptyPodDraft(), photoUrl: "p", signature: "s", signerName: "Ana Silva" };
     expect(await completeStop({ ...args, kind: "delivery", pod })).toBe("queued");
     expect(calls).toEqual(["camera_upload"]);
     expect(queued).toEqual(["pod_signature", "pod_complete", "deliver_stop"]);
+  });
+
+  it("signature needs the signer's name; it is sent with the signature", async () => {
+    const pod = { ...emptyPodDraft(), signature: "data:s", signerName: " " };
+    await expect(completeStop({ ...args, kind: "delivery", pod })).rejects.toThrow(
+      /name of the person who signed/
+    );
+    expect(calls).toEqual([]);
+    await completeStop({ ...args, kind: "delivery", pod: { ...pod, signerName: " Ana Silva " } });
+    expect(api.podSignature).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "data:s",
+      "Ana Silva"
+    );
   });
 
   it("no stop → error, nothing sent", async () => {

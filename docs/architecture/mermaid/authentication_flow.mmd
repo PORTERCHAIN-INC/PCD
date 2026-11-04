@@ -20,7 +20,6 @@ flowchart TB
     CUST_ID[get_clerk_user_id]
     DRV_CTX[get_driver_context<br/>Porterchain JWT]
     PRINC[PrincipalResolver]
-    SSO[SsoService<br/>Fleetbase SSO]
   end
 
   WEB & MERCH & ADMIN & CUST & DRV --> SIGN
@@ -29,4 +28,4 @@ flowchart TB
   JWT --> CLERK_MOD
   CLERK_MOD --> ADMIN_CTX & MERCH_CTX & CUST_ID
   DRV -->|"POST /api/auth/login<br/>clerkToken + credentials"| DRV_CTX
-  ADMIN --> SSO
+  ADMIN -->|"passkey / magic link"| SSO[Staff IdP<br/>routers/auth_staff.py<br/>Redis session porterchain:staff]

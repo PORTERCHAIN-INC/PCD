@@ -15,6 +15,7 @@ import {
 import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
+import { TranslatedNote } from "@/components/translation/TranslatedNote";
 
 type Tab =
   | "overview"
@@ -103,6 +104,7 @@ export default function SupportDetailView({
           </Link>
           <h1 className="font-mono text-2xl font-bold text-primary">{detail.ticket_number}</h1>
           <p className="mt-1 text-sm text-primary">{detail.subject}</p>
+          <TranslatedNote entityType="support_ticket" entityId={detail.id} field="subject" />
           <div className="mt-2 flex flex-wrap gap-2">
             <span
               className={cn(
@@ -241,6 +243,7 @@ function OverviewTab({ detail }: { detail: TicketDetail }) {
     <div className="grid gap-6 md:grid-cols-2">
       <div>
         <Row label="Description" value={detail.description || "—"} />
+        <TranslatedNote entityType="support_ticket" entityId={detail.id} field="description" />
         <Row label="Agent" value={detail.assigned_agent || "Unassigned"} />
         <Row label="Created" value={relativeTime(detail.created_at)} />
         <Row label="Updated" value={relativeTime(detail.updated_at)} />

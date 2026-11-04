@@ -14,6 +14,7 @@ from typing import Any, Sequence
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order, Package
+from porterchain_api.domain.states import PackageState
 from porterchain_api.merchant_engine.stop_cargo import expand_item_boxes, meaningful_packages
 
 # After this date, prolonged JSON+table dual SoT is anti-Dean — table wins;
@@ -305,7 +306,7 @@ class PackageService:
             row.box_index = item["box_index"] if item["item_key"] else None
             row.box_count = item["box_count"] if item["item_key"] else None
             if not row.status:
-                row.status = "manifested"
+                row.status = PackageState.MANIFESTED.value  # creation; later moves use set_package_status
             kept.append(row)
 
         _number_item_boxes(kept)

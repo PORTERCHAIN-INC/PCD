@@ -15,7 +15,20 @@ def is_dummy_stripe_id(value: str | None) -> bool:
     return any(marker in raw for marker in _DUMMY_STRIPE_MARKERS)
 
 
+APP_RETURN_SCHEMES = {
+    "customer_app": "porterchain-customer",
+    "customer_app_beta": "porterchain-beta",
+}
+
+
+def checkout_success_base(settings: Settings, checkout_channel: str) -> str:
+    return _checkout_urls(settings, checkout_channel)[0]
+
+
 def _checkout_urls(settings: Settings, checkout_channel: str) -> tuple[str, str]:
+    scheme = APP_RETURN_SCHEMES.get(checkout_channel)
+    if scheme:
+        return f"{scheme}://book/success", f"{scheme}://book/cancel"
     if checkout_channel == "customer":
         return settings.customer_checkout_success_url, settings.customer_checkout_cancel_url
     return settings.retail_checkout_success_url, settings.retail_checkout_cancel_url
@@ -48,7 +61,9 @@ def create_checkout_session(
     booking_draft_id: str | None = None,
     *,
     checkout_channel: str = "retail",
+    amount_cents: int | None = None,
 ) -> tuple[str, str]:
+    """``amount_cents`` overrides the quote total (balance after credit notes)."""
     stripe_sdk.configure(settings.stripe_secret)
     metadata = {
         "quote_id": quote.id,
@@ -61,11 +76,14 @@ def create_checkout_session(
     success_base, cancel_base = _checkout_urls(settings, checkout_channel)
     stripe_customer_id = ensure_stripe_customer(settings, customer)
     goods = quote.parcels if isinstance(getattr(quote, "parcels", None), dict) else {}
+    from porterchain_api.domain.catalog_labels import vehicle_label
+
+    vehicle = vehicle_label(quote.vehicle_class)
     if goods.get("booking_mode") == "vehicle":
-        description = f"{quote.vehicle_class} · Whole vehicle"
+        description = f"{vehicle} · Whole vehicle"
     else:
         count = len(goods.get("items") or [])
-        description = f"{quote.vehicle_class} · {count or 1} parcel{'s' if count != 1 else ''}"
+        description = f"{vehicle} · {count or 1} parcel{'s' if count != 1 else ''}"
     session_kwargs: dict = {
         "mode": "payment",
         # Payment methods come from the Stripe Dashboard. Sending
@@ -76,7 +94,7 @@ def create_checkout_session(
             {
                 "price_data": {
                     "currency": quote.currency,
-                    "unit_amount": quote.amount_cents,
+                    "unit_amount": int(quote.amount_cents if amount_cents is None else amount_cents),
                     "product_data": {
                         "name": "Porterchain delivery",
                         "description": description,
@@ -102,6 +120,16 @@ def create_checkout_session(
         raise RuntimeError("stripe_session_missing_url")
     return session.url, session.id
 
+
+
+def expire_checkout_session(settings: Settings, session_id: str) -> bool:
+    """Expire an open Checkout Session. False if Stripe refused (already complete/expired)."""
+    stripe_sdk.configure(settings.stripe_secret)
+    try:
+        stripe_sdk.expire_checkout_session(session_id)
+    except Exception:  # noqa: BLE001 — already expired/complete is not an error for us
+        return False
+    return True
 
 
 def handle_checkout_completed(settings: Settings, session: dict) -> dict | None:
@@ -166,7 +194,19 @@ def construct_webhook_event(payload: bytes, sig_header: str | None, settings: Se
     """Verify Stripe webhook payload. Routers must not import stripe."""
     if not settings.stripe_webhook_secret:
         raise RuntimeError("stripe_webhook_not_configured")
-    return stripe_sdk.construct_webhook_event(payload, sig_header, settings.stripe_webhook_secret)
+    # L124: STRIPE_WEBHOOK_SECRET may list several secrets (comma-separated) during a rotation,
+    # e.g. a Dashboard/API endpoint secret plus the local `stripe listen` secret. First match wins.
+    secrets = [s.strip() for s in str(settings.stripe_webhook_secret).split(",") if s.strip()]
+    last: Exception | None = None
+    for secret in secrets:
+        try:
+            return stripe_sdk.construct_webhook_event(payload, sig_header, secret)
+        except ValueError:
+            raise
+        except Exception as exc:  # signature mismatch for this secret; try the next one
+            last = exc
+    assert last is not None
+    raise last
 
 
 def create_identity_verification_session(
@@ -215,32 +255,3 @@ def retrieve_balance(settings: Settings) -> None:
     stripe_sdk.configure(settings.stripe_secret)
     stripe_sdk.retrieve_balance()
 
-
-def create_connect_express_account(settings: Settings, *, email: str | None, merchant_id: str) -> str:
-    stripe_sdk.configure(settings.stripe_secret)
-    account = stripe_sdk.create_connect_account(
-        type="express",
-        country="CA",
-        email=email or None,
-        capabilities={
-            "card_payments": {"requested": True},
-            "transfers": {"requested": True},
-        },
-        metadata={"porterchain_merchant_id": merchant_id},
-    )
-    return account.id
-
-
-def create_connect_account_link(
-    settings: Settings,
-    *,
-    account_id: str,
-) -> str:
-    stripe_sdk.configure(settings.stripe_secret)
-    link = stripe_sdk.create_account_link(
-        account=account_id,
-        refresh_url=settings.stripe_connect_refresh_url,
-        return_url=settings.stripe_connect_return_url,
-        type="account_onboarding",
-    )
-    return link.url

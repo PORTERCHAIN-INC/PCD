@@ -17,13 +17,13 @@ Uploaded with altool key VMAB8YF54D.
 Delivery UUID: 88348d45-7b29-4509-96a9-065d183cb65a
 ASC app: Porterchain Driver (6781880626). Select build 20 on TestFlight after processing.
 
-Note: The app still uses the Expo SDK for RN modules (@clerk/expo, camera,
+Note: The app still uses the Expo SDK for RN modules (camera,
 notifications, location). “Without Expo” here means without Expo Application
 Services cloud build/submit — not deleting those packages.
 
 1) One-shot archive + IPA (from apps/mobile-driver):
 
-  export EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY='pk_live_…'   # or use clerk-keys.local.env
+  export EXPO_PUBLIC_KEYCLOAK_URL=https://auth.porterchain.com
   bash scripts/archive-ios-testflight.sh
 
 2) Or manually in Xcode:
@@ -42,7 +42,7 @@ Production env baked at archive time:
   EXPO_PUBLIC_API_URL=https://api.porterchain.com
   EXPO_PUBLIC_APP_ENV=production
   EXPO_PUBLIC_ALLOW_DEV_AUTH=false
-  EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_…
+  EXPO_PUBLIC_KEYCLOAK_URL=https://auth.porterchain.com (realm porterchain)
 
 Screenshots (6.9"): store/ios/screenshots/asc-6.9/
 Listing / privacy / review notes: store/ios/*.txt

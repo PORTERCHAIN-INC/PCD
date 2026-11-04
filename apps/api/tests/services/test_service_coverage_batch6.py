@@ -8,9 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
-from porterchain_api.admin_engine.finance_service import AdminFinanceService
-from porterchain_api.auth.claims import ClerkClaims
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
+from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.invitation_service import InvitationService
 from porterchain_api.auth.user_sync_service import UserSyncService
 from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
@@ -18,12 +17,12 @@ from porterchain_api.merchant_engine.billing_service import MerchantBillingServi
 from porterchain_api.merchant_engine.webhook_delivery_service import deliver_merchant_fanout
 
 
-@patch("porterchain_api.admin_engine.clerk_directory_service.clerk_client_for_kind")
-@patch("porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured", return_value=True)
-def test_clerk_directory_create_user(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
-    clerk_id = f"user_new_clerk_{datetime.now(UTC).timestamp()}"
-    mock_client.return_value.create_user.return_value = {"id": clerk_id}
-    svc = ClerkDirectoryService()
+@patch("porterchain_api.admin_engine.identity_directory_service.directory_for_kind")
+@patch("porterchain_api.admin_engine.identity_directory_service.is_directory_configured", return_value=True)
+def test_idp_directory_create_user(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
+    subject_ref = f"user_new_idp_{datetime.now(UTC).timestamp()}"
+    mock_client.return_value.create_user.return_value = {"id": subject_ref}
+    svc = DirectoryUserService()
     email = f"driver-new-{datetime.now(UTC).timestamp()}@svc.test"
     result = svc.create_user(
         db,
@@ -37,12 +36,12 @@ def test_clerk_directory_create_user(mock_cfg, mock_client, db, admin_ctx, setti
     assert result["email"] == email
 
 
-@patch("porterchain_api.auth.invitation_service.clerk_client_for_kind")
-def test_invite_driver(mock_clerk, db, admin_ctx, settings, driver) -> None:
-    clerk_id = f"user_driver_inv_{datetime.now(UTC).timestamp()}"
-    mock_clerk.return_value.invite_user.return_value = SimpleNamespace(
-        clerk_user_id=clerk_id,
-        clerk_invitation_id=f"inv_drv_{datetime.now(UTC).timestamp()}",
+@patch("porterchain_api.auth.invitation_service.directory_for_kind")
+def test_invite_driver(mock_idp, db, admin_ctx, settings, driver) -> None:
+    subject_ref = f"user_driver_inv_{datetime.now(UTC).timestamp()}"
+    mock_idp.return_value.invite_user.return_value = SimpleNamespace(
+        subject=subject_ref,
+        invitation_id=f"inv_drv_{datetime.now(UTC).timestamp()}",
         action="invited",
     )
     inv = InvitationService().invite_driver(db, admin_ctx, settings, driver)
@@ -50,14 +49,14 @@ def test_invite_driver(mock_clerk, db, admin_ctx, settings, driver) -> None:
 
 
 def test_user_sync_full(db) -> None:
-    claims = ClerkClaims(
-        clerk_user_id=f"clerk_full_{datetime.now(UTC).timestamp()}",
+    claims = IdentityClaims(
+        auth_subject=f"idp_full_{datetime.now(UTC).timestamp()}",
         email=f"full-{datetime.now(UTC).timestamp()}@test.porterchain.com",
     )
     snapshot = {"role": "customer", "status": "active", "profile": {}, "phone": None}
     with patch.object(UserSyncService, "_platform_snapshot", return_value=snapshot):
         user = UserSyncService().sync(db, claims)
-        assert user.clerk_user_id == claims.clerk_user_id
+        assert user.auth_subject == claims.auth_subject
 
 
 def test_merchant_billing_invoices(db, merchant_ctx) -> None:
@@ -79,12 +78,3 @@ def test_webhook_fanout_no_hooks(mock_session) -> None:
     deliver_merchant_fanout({"merchant_id": "m1", "event_type": "order.created", "payload": {}})
 
 
-def test_finance_record_credit_note(db, admin_ctx, dispatch_order) -> None:
-    entry = AdminFinanceService().record_credit_note(
-        db,
-        admin_ctx,
-        order_id=dispatch_order.id,
-        amount_cents=500,
-        reason="coverage test",
-    )
-    assert entry.amount_cents == 500

@@ -1,0 +1,21 @@
+{
+  "name": "@porterchain/web-push",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser FCM push for the web portals: public config, token, foreground messages, device registration",
+  "exports": {
+    "./config": "./src/config.ts",
+    "./messaging": "./src/messaging.ts",
+    "./register": "./src/register.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "firebase": "^12.19.0"
+  },
+  "devDependencies": {
+    "firebase": "12.19.0",
+    "typescript": "^6.0.3"
+  }
+}

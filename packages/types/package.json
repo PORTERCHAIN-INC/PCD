@@ -10,7 +10,8 @@
     "./blog": "./src/blog.ts",
     "./booking": "./src/booking.ts",
     "./capacity": "./src/capacity.ts",
-    "./delivery-options": "./src/deliveryOptions.ts"
+    "./delivery-options": "./src/deliveryOptions.ts",
+    "./batch-status": "./src/batchStatus.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",
@@ -21,7 +22,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@porterchain/config": "workspace:*",
     "typescript": "^6.0.3"
   }
 }

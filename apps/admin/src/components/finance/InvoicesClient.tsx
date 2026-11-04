@@ -112,9 +112,9 @@ export default function InvoicesClient() {
             className="min-h-11 rounded-xl border border-primary/15 bg-white px-3 text-sm"
           >
             <option value="">All statuses</option>
-            {INVOICE_STATUSES.map((s) => (
+            {INVOICE_STATUSES.filter((s) => s !== "partial").map((s) => (
               <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
+                {s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ")}
               </option>
             ))}
           </select>

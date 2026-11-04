@@ -1,4 +1,4 @@
-"""AI usage ledger — token/cost audit for Groq, NVIDIA NIM, and future providers."""
+"""AI usage ledger — token/cost audit for any future self-hosted LLM (FEATURE_AI, off in Phase 0)."""
 
 from __future__ import annotations
 

@@ -12,6 +12,9 @@ Rule (finance setting ``tax_mode``):
 Invoice rows keep one invariant everywhere: ``invoice.amount_cents`` is the gross
 (tax-included) total and ``invoice.tax_cents`` is the tax part of it. So the merchant tax
 summary (subtotal = amount − tax) and the HST report read the same numbers.
+
+Not registered for GST/HST (``platform.tax_registration.collects_tax`` is False on the
+date) ⇒ every split is tax 0: the price is the total, no GST/HST is added or extracted.
 """
 
 from __future__ import annotations
@@ -62,11 +65,23 @@ def quoted_tax_cents(order: Any) -> int | None:
         return None
 
 
-def split_amount(amount_cents: int, *, province: str, mode: str, collect_qst: bool, quoted_tax: int | None = None) -> TaxSplit:
+def split_amount(
+    amount_cents: int,
+    *,
+    province: str,
+    mode: str,
+    collect_qst: bool,
+    quoted_tax: int | None = None,
+    registered: bool = True,
+) -> TaxSplit:
     prov = PROVINCES.get(province) or PROVINCES["ON"]
+    amount = max(0, int(amount_cents or 0))
+    if not registered:
+        # Non-registrant: no GST/HST at all. Take out any tax a quote had added.
+        pretax = max(0, amount - int(quoted_tax or 0)) if mode != "inclusive" else amount
+        return TaxSplit(pretax, 0, pretax, prov.province, 0.0, "")
     pct = prov.freight_percent(collect_qst=collect_qst)
     label = prov.label(collect_qst=collect_qst)
-    amount = max(0, int(amount_cents or 0))
     if mode == "inclusive":
         tax = int(round(amount * pct / (100.0 + pct)))
         return TaxSplit(amount - tax, tax, amount, prov.province, pct, label)
@@ -75,8 +90,17 @@ def split_amount(amount_cents: int, *, province: str, mode: str, collect_qst: bo
     return TaxSplit(pretax, tax, pretax + tax, prov.province, pct, label)
 
 
-def order_tax_split(db: Session, order: Any) -> TaxSplit:
-    """Pre-tax / tax / gross for one merchant delivery on a cycle (Interac) invoice."""
+def registered_on(db: Session, at: Any = None) -> bool:
+    from porterchain_api.platform.tax_registration import collects_tax
+
+    return collects_tax(db, at)
+
+
+def order_tax_split(db: Session, order: Any, *, at: Any = None) -> TaxSplit:
+    """Pre-tax / tax / gross for one merchant delivery on a cycle (Interac) invoice.
+
+    ``at`` = invoice date (default now): tax applies from the registration date forward.
+    """
     mode, default_prov, qst = _settings(db)
     return split_amount(
         int(order.amount_cents or 0),
@@ -84,11 +108,14 @@ def order_tax_split(db: Session, order: Any) -> TaxSplit:
         mode=mode,
         collect_qst=qst,
         quoted_tax=quoted_tax_cents(order),
+        registered=registered_on(db, at),
     )
 
 
-def charged_tax_split(db: Session, order: Any, charged_cents: int) -> TaxSplit:
+def charged_tax_split(db: Session, order: Any, charged_cents: int, *, at: Any = None) -> TaxSplit:
     """Tax inside an amount already charged (Stripe): never changes what was paid."""
     _mode, default_prov, qst = _settings(db)
     prov = order_province(order, default_prov) if order is not None else default_prov
-    return split_amount(charged_cents, province=prov, mode="inclusive", collect_qst=qst)
+    return split_amount(
+        charged_cents, province=prov, mode="inclusive", collect_qst=qst, registered=registered_on(db, at)
+    )

@@ -142,9 +142,9 @@ def _sync_authz(db: Session, merchant_id: str) -> None:
 
     rows = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant_id).all()
     for row in rows:
-        if not row.clerk_user_id:
+        if not row.auth_subject:
             continue
         try:
-            sync_authz_after_persona_mutation(db, row.clerk_user_id)
+            sync_authz_after_persona_mutation(db, row.auth_subject)
         except Exception:  # noqa: BLE001 — authz sync must not block activation
-            logger.warning("merchant_activation_authz_sync_failed user=%s", row.clerk_user_id)
+            logger.warning("merchant_activation_authz_sync_failed user=%s", row.auth_subject)

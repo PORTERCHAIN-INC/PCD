@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 from porterchain_api.admin_engine.settings_service import AdminSettingsService
-from porterchain_api.auth.invitation_service import InvitationService, pending_clerk_id
+from porterchain_api.auth.invitation_service import InvitationService, pending_idp_id
 from porterchain_api.auth.sso_service import SsoService
 from porterchain_api.booking_engine.booking_draft_service import BookingDraftService
 from porterchain_api.merchant_engine.webhook_delivery_service import _hook_matches_event
@@ -38,8 +38,8 @@ def test_booking_draft_create_and_find(db, settings) -> None:
     assert found.id == draft.id
 
 
-def test_invitation_pending_clerk_id() -> None:
-    assert pending_clerk_id("user@example.com").startswith("pending:")
+def test_invitation_pending_idp_id() -> None:
+    assert pending_idp_id("user@example.com").startswith("pending:")
 
 
 def test_sso_session_payload() -> None:
@@ -63,5 +63,5 @@ def test_webhook_event_matching() -> None:
 
 def test_invitation_mark_accepted(db) -> None:
     InvitationService().mark_accepted(
-        db, email="never-invited@example.com", clerk_user_id="clerk_new"
+        db, email="never-invited@example.com", auth_subject="idp_new"
     )

@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# Local code-index refresh after each commit (graphify + codegraph + ripwire map).
+# Runs in the background and never blocks or fails the commit. Output: ~/.pcd-tools/
+LOG="$HOME/.pcd-tools/post-commit-reindex.log"
+mkdir -p "$HOME/.pcd-tools"
+export PATH="$HOME/.local/bin:$PATH"
+(
+  echo "== $(date) reindex"
+  command -v codegraph >/dev/null && codegraph sync . >>"$LOG" 2>&1
+  command -v graphify >/dev/null && graphify update . >>"$LOG" 2>&1
+  command -v ripwire >/dev/null && ripwire . --top-k=300 > "$HOME/.pcd-tools/ripwire-map.xml" 2>>"$LOG"
+) >>"$LOG" 2>&1 &
+exit 0

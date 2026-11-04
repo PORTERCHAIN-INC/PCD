@@ -8,6 +8,8 @@ const SESSION_EXPIRED = "Your session expired. Sign in again.";
 const NO_GPS = "Can't read GPS. Turn on Location for PorterChain Driver in Settings.";
 
 const COPY: Record<string, string> = {
+  // chain of custody
+  illegal_package_transition: "This box can't move to that step. Check the box and rescan.",
   // auth
   missing_portal_permission: NOT_PROVISIONED,
   user_not_provisioned: NOT_PROVISIONED,
@@ -22,9 +24,9 @@ const COPY: Record<string, string> = {
   driver_suspended: "This driver account is suspended. Call dispatch.",
   driver_not_found: "No driver profile is linked to this sign-in. Call dispatch.",
   driver_not_active: "This driver account is not active yet. Call dispatch.",
-  email_clerk_mismatch: "This email does not match your driver profile. Call dispatch.",
-  clerk_email_required: "Add a verified email to your account, then try again.",
-  clerk_email_unverified: "Verify your email, then try again.",
+  email_identity_mismatch: "This email does not match your driver profile. Call dispatch.",
+  idp_email_required: "Add a verified email to your account, then try again.",
+  idp_email_unverified: "Verify your email, then try again.",
   sign_in_failed: "Sign-in failed. Try again.",
   // network
   network_unavailable: "No connection. Try again when you have signal.",
@@ -57,9 +59,9 @@ const SWITCH_ACCOUNT_CODES = [
   "driver_not_found",
   "driver_not_active",
   "driver_suspended",
-  "email_clerk_mismatch",
-  "clerk_email_required",
-  "clerk_email_unverified",
+  "email_identity_mismatch",
+  "idp_email_required",
+  "idp_email_unverified",
 ];
 
 /** True when the sign-in worked but this account cannot use the driver app: offer Sign out. */

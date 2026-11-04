@@ -116,11 +116,25 @@ def remind_invoice(
     payload["email"] = to_email
     payload["merchant_email"] = to_email
     payload["reminder"] = True
-    # Portal Pay now deep-link (Stripe Checkout starts from the invoice page).
+    # Chase the balance after payments and credit notes, never the original total.
+    from porterchain_api.platform.invoice_status import invoice_status, outstanding_cents
+    from porterchain_api.booking_engine.invoice_service import _amount_display
+
+    status = invoice_status(invoice, order, None, terms=(getattr(order, "payment_terms", None)))
+    balance = outstanding_cents(invoice, status)
+    if status in ("void", "credited", "cancelled") or balance <= 0:
+        raise ValueError("nothing_outstanding")
+    payload["overdue"] = status == "overdue"
+    payload["amount_cents"] = balance
+    payload["amount_display"] = _amount_display(balance, invoice.currency)
+    # Portal invoice deep-link: shows the Interac e-Transfer instructions (merchants pay by Interac only, G11).
     from porterchain_api.config import get_settings
 
     portal = (get_settings().merchant_portal_url or "").rstrip("/")
     pay_url = f"{portal}/billing/invoices/{invoice.id}" if portal else None
+    from porterchain_api.platform.engine_ports.admin_engine__merchant_ar_service import interac_instructions
+
+    payload["interac_line"] = interac_instructions(db, invoice)
     if pay_url:
         payload["pay_url"] = pay_url
         # Prefer Pay CTA over receipt when chasing AR.

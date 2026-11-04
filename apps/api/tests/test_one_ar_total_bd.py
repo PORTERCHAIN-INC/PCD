@@ -25,7 +25,7 @@ CREDIT_CENTS = 5_000
 def _ctx(db, merchant: Merchant) -> MerchantContext:
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"user_ar_{uuid.uuid4().hex[:10]}",
+        auth_subject=f"user_ar_{uuid.uuid4().hex[:10]}",
         email=f"ar_{uuid.uuid4().hex[:8]}@ar.test",
         role=MerchantRole.OWNER.value,
         is_active=True,

@@ -60,7 +60,11 @@ class StripeWebhookService:
             if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
                 session_obj = data_object
                 meta = session_obj.get("metadata") or {}
-                if meta.get("purpose") == "cod":
+                if meta.get("purpose") == "merchant_invoice":
+                    from porterchain_api.billing_engine.merchant_invoice_checkout import complete_invoice_checkout
+
+                    complete_invoice_checkout(db, session_obj)
+                elif meta.get("purpose") == "cod":
                     # Cash on delivery is retired (no-COD rule). Never treat a legacy
                     # COD session as a booking checkout; leave it for finance review.
                     logger.warning("legacy_cod_checkout_ignored session=%s", session_obj.get("id"))

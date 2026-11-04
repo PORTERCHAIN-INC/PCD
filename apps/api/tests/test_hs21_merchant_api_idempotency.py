@@ -53,7 +53,7 @@ def _merchant_ctx(db: Session) -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        clerk_user_id=f"clerk_hs21_{suffix}",
+        auth_subject=f"idp_hs21_{suffix}",
         email=f"hs21-user-{suffix}@test.invalid",
         role=MerchantRole.OWNER.value,
         is_active=True,

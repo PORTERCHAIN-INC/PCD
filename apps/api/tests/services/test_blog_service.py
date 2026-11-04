@@ -245,12 +245,13 @@ def test_scheduled_publish_due(db: Session) -> None:
     svc.update_post(db, due.id, scheduled_publish_at=past)
     svc.update_post(db, waiting.id, scheduled_publish_at=future)
 
-    published = svc.publish_due_posts(db, limit=10)
-    assert len(published) == 1
-    assert published[0].id == due.id
-    assert published[0].status == "published"
-    assert published[0].scheduled_publish_at is None
-    assert published[0].published_at is not None
+    # The service commits, so overdue drafts left by earlier runs may publish too.
+    published = {p.id: p for p in svc.publish_due_posts(db, limit=100)}
+    assert waiting.id not in published
+    mine = published[due.id]
+    assert mine.status == "published"
+    assert mine.scheduled_publish_at is None
+    assert mine.published_at is not None
 
     still = svc.get_post(db, waiting.id)
     assert still is not None

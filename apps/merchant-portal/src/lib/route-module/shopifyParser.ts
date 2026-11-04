@@ -1,3 +1,4 @@
+import { uuid } from "../uuid.ts";
 /**
  * Shopify orders/create and fulfillment_orders/placed → PorterChain route draft.
  *
@@ -177,7 +178,7 @@ function parcelsFromLineItem(item: ShopifyLineItem, index: number): Parcel[] {
 }
 
 function newRouteId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return uuid();
   return `route-${Date.now()}`;
 }
 

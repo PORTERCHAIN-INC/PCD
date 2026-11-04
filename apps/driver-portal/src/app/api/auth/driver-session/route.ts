@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@porterchain/auth/oidc/next";
 import { NextRequest, NextResponse } from "next/server";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
@@ -11,7 +11,7 @@ function isDevLoginEnabled(): boolean {
   return appEnv === "local" || appEnv === "development";
 }
 
-/** Clerk session, or local email-picker cookie (`pc_driver_dev_id`). */
+/** Keycloak session, or local email-picker cookie (`pc_driver_dev_id`). */
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
   if (userId) {

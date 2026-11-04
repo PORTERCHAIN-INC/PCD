@@ -1,5 +1,5 @@
 export type OnboardingStepId =
-  | "clerk_account"
+  | "idp_account"
   | "admin_approval"
   | "license_verified"
   | "insurance_verified"
@@ -21,7 +21,7 @@ export interface DriverOnboardingStatus {
   ready: boolean;
   blockers: string[];
   status: string;
-  clerk_linked: boolean;
+  identity_linked: boolean;
   steps: DriverOnboardingStep[];
   pending_documents: number;
   can_access_portal: boolean;

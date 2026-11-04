@@ -154,7 +154,7 @@ class OrderPlatformHelpersMixin:
                 delta = (times[to_type] - times[from_type]).total_seconds() / 3600
                 if delta >= 0:
                     deltas.append(delta)
-        return round(sum(deltas) / len(deltas), 1) if deltas else 0.0
+        return round(sum(deltas) / len(deltas), 2) if deltas else 0.0
 
     def _row(self, db: Session, order: Order, merchants: dict[str, str], drivers: dict[str, Driver]) -> dict[str, Any]:
         booking = db.query(Booking).filter(Booking.order_id == order.id).first()
@@ -189,7 +189,8 @@ class OrderPlatformHelpersMixin:
             "invoice_status": self._invoice_status(db, order),
             "amount_cents": order.amount_cents,
             "currency": order.currency,
-            "eta": order.scheduled_at,
+            # L183: "Promised ETA" is the delivery promise, not the ASAP pickup time.
+            "eta": _promised_eta(order),
             "sla_status": self._tower._sla_status(order, now),
             "fraud_risk_score": self._fraud_risk(order, quote),
             "delay_risk_score": self._delay_risk(order, now),
@@ -251,3 +252,9 @@ class OrderPlatformHelpersMixin:
             "suggested_action": suggestion,
             "event_count": len(events),
         }
+
+
+def _promised_eta(order: Any) -> Any:
+    from porterchain_api.platform.engine_ports.booking_engine__order_sla import resolve_sla_deadline
+
+    return getattr(order, "sla_deadline_at", None) or resolve_sla_deadline(order)

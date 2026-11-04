@@ -44,7 +44,7 @@ def no_real_sends(monkeypatch):
     def _boom(*_a, **_k):
         raise AssertionError("real notification send attempted in a test")
 
-    for name in ("_send_email", "_send_sms", "_send_push", "_send_email_zeptomail_https", "_send_email_smtp", "_send_sms_twilio"):
+    for name in ("_send_email", "_send_sms", "_send_push", "_send_email_zeptomail_https", "_send_email_smtp"):
         if hasattr(ds.DeliveryService, name):
             monkeypatch.setattr(ds.DeliveryService, name, _boom)
     monkeypatch.setattr(ds, "deliver_notification", _boom)

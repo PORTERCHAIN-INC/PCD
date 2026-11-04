@@ -10,11 +10,10 @@ SSOT registry: [`integrations.yaml`](integrations.yaml). Guard: `pnpm validate:i
 | `postgres`          | PostgreSQL 18                                          |
 | `redis`             | Redis 8.8                                              |
 | `dispatch`          | PorterChain day plan (OR-Tools + Valhalla + Redis GPS) |
-| `google_maps`       | Places + tiles only                                    |
+| `maps`              | Self-hosted PMTiles + Photon (no map vendor)           |
 | `valhalla`          | Primary routing `:8002` (GTA ±150 km)                  |
 | `osrm`              | Local fallback `:5000` (same extract)                  |
-| `stripe`            | Checkout + COD/Connect via `sdk.py`                    |
-| `clerk`             | Identity for every persona                             |
+| `keycloak`          | Identity for every persona                             |
 | `merchant_api_keys` | Merchant API keys — partner `/v1/merchant-api`         |
 | `merchant_webhooks` | Merchant outbound webhooks                             |
 | `oauth_third_party` | OAuth third-party providers (merchant integrations)    |

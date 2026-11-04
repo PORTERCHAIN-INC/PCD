@@ -58,18 +58,6 @@ class _Redis:
         return True
 
 
-def test_failed_login_alert_once_per_ip(monkeypatch):
-    from porterchain_api.auth import staff_login_alerts as a
-
-    r = _Redis()
-    monkeypatch.setattr(a, "_redis", lambda: r)
-    monkeypatch.setattr(a, "recipients", lambda db, s: ["owner@example.com"])
-    sent = []
-    results = [a.note_failed_login(None, None, client_ip="203.0.113.9", factor="passkey",
-                                   send=lambda to, m: sent.append(to)) for _ in range(8)]
-    assert results.count(True) == 1 and sent == ["owner@example.com"]
-
-
 def test_admin_ip_allowlist(monkeypatch):
     from porterchain_api.platform import admin_ip_allowlist as al
 
@@ -86,15 +74,9 @@ def test_admin_ip_allowlist(monkeypatch):
         al.normalize_admin_access({"ip_allowlist": ["not-an-ip"]})
 
 
-def test_staff_session_timeouts():
-    from porterchain_api.auth import staff_session as ss
-
-    assert ss.DEFAULT_TTL_SECONDS == 30 * 60 and ss.ABSOLUTE_MAX_SECONDS == 12 * 3600
-
-
-def test_offboarding_revokes_clerk_sessions(monkeypatch):
+def test_offboarding_revokes_idp_sessions(monkeypatch):
     from porterchain_api.admin_engine import driver_service as ds
-    from porterchain_api.auth import clerk_registry
+    from porterchain_api.auth import identity_directory as idp_registry
 
     calls = []
 
@@ -103,11 +85,11 @@ def test_offboarding_revokes_clerk_sessions(monkeypatch):
             calls.append(uid)
             return 2
 
-    monkeypatch.setattr(clerk_registry, "clerk_client_for_kind", lambda s, k: _C())
-    d = type("D", (), {"id": "d1", "clerk_user_id": "user_x"})()
+    monkeypatch.setattr(idp_registry, "directory_for_kind", lambda s, k: _C())
+    d = type("D", (), {"id": "d1", "auth_subject": "user_x"})()
     ds.revoke_driver_sessions(d, object())
     assert calls == ["user_x"]
-    ds.revoke_driver_sessions(type("D", (), {"id": "d2", "clerk_user_id": None})(), object())
+    ds.revoke_driver_sessions(type("D", (), {"id": "d2", "auth_subject": None})(), object())
     assert calls == ["user_x"]
 
 

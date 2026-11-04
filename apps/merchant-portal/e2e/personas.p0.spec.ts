@@ -1,8 +1,16 @@
-import { test, expect, tcId, liveReady, liveSkipReason, storageStatePath } from "./fixtures";
+import {
+  test,
+  expect,
+  tcId,
+  liveReady,
+  liveSkipReason,
+  storageStatePath,
+  localBypass,
+} from "./fixtures";
 
 /**
  * Four merchant portal jobs — nav/module expectations from merchant-nav.ts.
- * Live UI asserts require MERCHANT_E2E_LIVE=1 + existing Clerk storage jar for that seat.
+ * Live UI asserts require MERCHANT_E2E_LIVE=1 + existing Keycloak storage jar for that seat.
  */
 
 type Job = "owner" | "dispatcher" | "accounting" | "viewer";
@@ -91,6 +99,8 @@ for (const job of Object.keys(PERSONA_MODULES) as Job[]) {
             const link = page.locator(`a[href="${route}"], a[href^="${route}?"]`).first();
             await expect(link).toBeVisible({ timeout: 15_000 });
           }
+          // Local bypass signs in as the owner (Bearer dev), so seat-hidden links are present.
+          if (localBypass && !storageStatePath(job)) return;
           for (const route of MUST_HIDE[job]) {
             const link = page.locator(`nav a[href="${route}"]`);
             await expect(link).toHaveCount(0);

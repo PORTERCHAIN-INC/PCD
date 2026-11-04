@@ -13,6 +13,7 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "consignee_tracking": {"category": "tracking"},
     "checkout_recovery": {"category": "booking"},
     "lead_nurture_intro": {"category": "crm"},
+    "pricing_quote_sent": {"category": "crm"},
     "lead_nurture_d1": {"category": "crm"},
     "lead_nurture_d7": {"category": "crm"},
     "lead_outbound_followup": {"category": "crm"},
@@ -45,6 +46,9 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "payment_failed": {"category": "payments"},
     "invoice_ready": {"category": "invoices"},
     "merchant_invoice_ready": {"category": "invoices"},
+    "merchant_invoice_reminder": {"category": "invoices"},
+    "merchant_invoice_overdue": {"category": "invoices"},
+    "invoice_credit_note_issued": {"category": "invoices"},
     "refund_processed": {"category": "payments"},
     "claim_opened": {"category": "claims"},
     "claim_updated": {"category": "claims"},
@@ -53,6 +57,10 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "merchant_welcome": {"category": "marketing"},
     "merchant_approved": {"category": "security"},
     "merchant_suspended": {"category": "security"},
+    "merchant_account_suspended_overdue": {"category": "security"},
+    "merchant_account_suspended": {"category": "security"},
+    "merchant_account_reinstated": {"category": "security"},
+    "merchant_invoice_paid": {"category": "invoices"},
     "merchant_closed": {"category": "security"},
     "system_alert": {"category": "security"},
     "password_reset": {"category": "security"},
@@ -65,6 +73,7 @@ TEMPLATE_META: dict[str, dict[str, str]] = {
     "order_delayed": {"category": "tracking"},
     "sla_breached": {"category": "orders"},
     "delivery_update": {"category": "tracking"},
+    "driver_admin_message": {"category": "support"},
     "delivery_failed": {"category": "orders"},
     "order_rescheduled": {"category": "orders"},
     "notification_health_alert": {"category": "orders"},
@@ -211,7 +220,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "body": (
             f"Payment successful — PorterChain · {TAGLINE}\n\n"
             "Order: {order_number}\nAmount: {amount_display}\n"
-            "Receipt: {receipt_number}\nView: {receipt_url}"
+            "Receipt: {receipt_number}{supplier_tax_line}\nView: {receipt_url}"
         ),
     },
     "payment_failed": {
@@ -266,8 +275,49 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "body": (
             f"Merchant invoice ready — PorterChain · {TAGLINE}\n\n"
             "Invoice: {invoice_number}\nMerchant: {merchant_name}\n"
+            "Billing week: {period_label}\nDue: {due_label}\n"
             "Order: {order_number}\nAmount: {amount_display}\n"
-            "Pay now: {pay_url}\nReceipt: {receipt_url}"
+            "Lines:\n{lines_text}\n"
+            "{billing_terms_line}\n"
+            "{interac_line}\n"
+            "View invoice: {pay_url}\nInvoice PDF / receipt: {receipt_url}"
+        ),
+    },
+    "merchant_invoice_reminder": {
+        "subject": "Payment reminder: invoice {invoice_number} / Rappel de paiement : facture {invoice_number}",
+        "body": (
+            f"Payment reminder / Rappel de paiement — PorterChain · {TAGLINE}\n\n"
+            "Invoice / Facture: {invoice_number}\nMerchant / Marchand: {merchant_name}\n"
+            "Order / Commande: {order_number}\nOutstanding / Solde dû: {amount_display}\n"
+            "{interac_line}\n"
+            "View invoice / Voir la facture: {pay_url}"
+        ),
+    },
+    "merchant_invoice_overdue": {
+        "subject": "Overdue: invoice {invoice_number} needs payment / En souffrance : la facture {invoice_number} est à payer",
+        "body": (
+            f"Invoice overdue / Facture en souffrance — PorterChain · {TAGLINE}\n\n"
+            "Invoice / Facture: {invoice_number}\nMerchant / Marchand: {merchant_name}\n"
+            "Order / Commande: {order_number}\nOutstanding / Solde dû: {amount_display}\n"
+            "{interac_line}\n"
+            "View invoice / Voir la facture: {pay_url}"
+        ),
+    },
+    "invoice_credit_note_issued": {
+        "subject": "Credit note {credit_note_number} for invoice {invoice_number}",
+        "body": (
+            "Hello {recipient_name},\n\n"
+            "We have issued credit note {credit_note_number} against invoice {invoice_number} "
+            "(dated {invoice_date}).\n\n"
+            "Reason: {customer_reason}\n"
+            "{tax_lines}"
+            "Total credit: {amount_display}\n"
+            "Balance now due on the invoice: {balance_display}\n"
+            "{settlement_line}\n\n"
+            "Download the credit note (PDF) from your portal: {document_url}\n\n"
+            "Please keep this credit note with your records.{itc_line}\n\n"
+            "Questions? Reply to this email or contact {support_email}.\n\n"
+            "{supplier_legal_name}"
         ),
     },
     "refund_processed": {"subject": "Refund processed", "body": "Refund processed for order {order_number}."},
@@ -292,6 +342,66 @@ TEMPLATES: dict[str, dict[str, str]] = {
     "merchant_suspended": {
         "subject": "Merchant suspended",
         "body": "Merchant {company_name} was suspended (id {merchant_id}).",
+    },
+    # Payment confirmation for a merchant invoice (card checkout or offline payment recorded by finance).
+    "merchant_invoice_paid": {
+        "subject": "Payment received for invoice {invoice_number} / Paiement reçu pour la facture {invoice_number}",
+        "body": (
+            "Hello {company_name},\n\n"
+            "Thank you, we received {amount_display} ({method_label}) for invoice {invoice_number}. "
+            "Balance remaining: {balance_display}.\n"
+            "View the invoice: {invoice_url}\n\n"
+            "— — —\n\n"
+            "Bonjour {company_name},\n\n"
+            "Merci, nous avons reçu {amount_display} ({method_label_fr}) pour la facture {invoice_number}. "
+            "Solde restant : {balance_display}.\n"
+            "Voir la facture : {invoice_url}"
+        ),
+    },
+    "merchant_account_reinstated": {
+        "subject": "Your PorterChain account is active again / Votre compte PorterChain est réactivé",
+        "body": (
+            "Hello {company_name},\n\n"
+            "Thank you, we received your payment in full. Your PorterChain business account is "
+            "active again and you can book deliveries.\n\n"
+            "— — —\n\n"
+            "Bonjour {company_name},\n\n"
+            "Merci, nous avons reçu votre paiement complet. Votre compte d'entreprise PorterChain "
+            "est de nouveau actif et vous pouvez réserver des livraisons."
+        ),
+    },
+    # L93: the overdue spec was in TEMPLATE_META, so the email fell back to an empty body.
+    "merchant_account_suspended_overdue": {
+        "subject": "Your PorterChain account is suspended / Votre compte PorterChain est suspendu",
+        "body": (
+            "Hello {company_name},\n\n"
+            "Your PorterChain business account is suspended because invoice {invoice_number} is "
+            "overdue. A late penalty of {penalty_amount} was added; the amount due is now "
+            "{amount_due}. New bookings are paused.\n"
+            "Pay the full amount due and your account is reactivated automatically. Questions? "
+            "Contact PorterChain support.\n\n"
+            "— — —\n\n"
+            "Bonjour {company_name},\n\n"
+            "Votre compte d'entreprise PorterChain est suspendu, car la facture {invoice_number} "
+            "est en retard. Une pénalité de retard de {penalty_amount} a été ajoutée; le montant "
+            "dû est maintenant de {amount_due}. Les nouvelles réservations sont en pause.\n"
+            "Payez le montant dû au complet et votre compte sera réactivé automatiquement. Des "
+            "questions? Communiquez avec le soutien PorterChain."
+        ),
+    },
+    "merchant_account_suspended": {
+        "subject": "Your PorterChain account is suspended / Votre compte PorterChain est suspendu",
+        "body": (
+            "Hello {company_name},\n\n"
+            "Your PorterChain business account has been suspended. New bookings are paused until "
+            "the account is reinstated.\n"
+            "Please contact PorterChain support to resolve this.\n\n"
+            "— — —\n\n"
+            "Bonjour {company_name},\n\n"
+            "Votre compte d'entreprise PorterChain a été suspendu. Les nouvelles réservations sont "
+            "en pause jusqu'à la réactivation du compte.\n"
+            "Veuillez contacter le soutien PorterChain pour régler la situation."
+        ),
     },
     "merchant_closed": {
         "subject": "Merchant account closed",
@@ -342,6 +452,14 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "body": "SLA breached for order {order_number}. {message}",
     },
     "delivery_update": {"subject": "Delivery update", "body": "{message}"},
+    # Pass 6: admin -> driver account messages (background check etc.) are not delivery updates.
+    "driver_admin_message": {"subject": "Message from PorterChain", "body": "{message}"},
+    # Doc 72 §9: staff-sent quote link (lead/org contact). Valid for {valid_hours} h; no booking until accepted.
+    "pricing_quote_sent": {
+        "subject": "Your PorterChain quote: {total}",
+        "body": ("Here is your delivery quote for {total} (taxes shown at checkout). "
+                 "Review and accept it here: {quote_link}. It is valid for {valid_hours} hours, until {expires_at}."),
+    },
 }
 
 
@@ -380,11 +498,73 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
                 ("Tracking", tracking),
                 ("Amount", amount),
                 ("Receipt #", receipt_no),
+                *(
+                    [
+                        ("Supplier", _g(ctx, "supplier_legal_name")),
+                        ("GST/HST Reg. No.", _g(ctx, "supplier_gst_hst_number")),
+                    ]
+                    if _g(ctx, "supplier_gst_hst_number")
+                    else []
+                ),
             ],
             cta_label="View receipt" if receipt_url else "",
             cta_url=receipt_url,
             note="Keep this email for your records. A matching invoice appears in your portal.",
             preheader=f"Payment received {amount} for {order or tracking}".strip(),
+        )
+
+    if template == "invoice_credit_note_issued":
+        cn = _g(ctx, "credit_note_number")
+        doc = _g(ctx, "document_url")
+        return build_transactional_html(
+            eyebrow="Credit note issued",
+            headline=f"Credit note {cn}",
+            lead=(
+                f"We have issued a credit against invoice {invoice}. "
+                f"{_g(ctx, 'customer_reason')}"
+            ).strip(),
+            rows=[
+                ("Credit note", cn),
+                ("Original invoice", f"{invoice} ({_g(ctx, 'invoice_date')})"),
+                *(
+                    [
+                        ("Credit before tax", _g(ctx, "subtotal_display")),
+                        (f"Tax reversed ({_g(ctx, 'tax_label', default='GST/HST')})", _g(ctx, "tax_display")),
+                    ]
+                    if _g(ctx, "tax_lines")
+                    else []
+                ),
+                ("Total credit", amount),
+                ("Balance now due", _g(ctx, "balance_display")),
+                ("Refund / credit", _g(ctx, "settlement_line")),
+            ],
+            cta_label="Download credit note" if doc else "",
+            cta_url=doc,
+            note=(
+                f"Keep this credit note with your records.{_g(ctx, 'itc_line')} Questions? Reply to this email."
+            ),
+            preheader=f"Credit note {cn} · {amount}".strip(),
+        )
+
+    if template in ("merchant_invoice_reminder", "merchant_invoice_overdue"):
+        overdue = template == "merchant_invoice_overdue"
+        return build_transactional_html(
+            eyebrow="Invoice overdue / Facture en souffrance" if overdue else "Payment reminder / Rappel de paiement",
+            headline=f"Invoice {invoice} is overdue" if overdue else f"Reminder: invoice {invoice}",
+            lead=(
+                f"Invoice {invoice} is past due. Please pay the outstanding balance. / "
+                f"La facture {invoice} est échue. Veuillez régler le solde dû."
+            ) if overdue else (
+                f"A friendly reminder that invoice {invoice} has a balance outstanding. / "
+                f"Petit rappel : la facture {invoice} a un solde impayé."
+            ),
+            rows=[("Invoice", invoice), ("Order", order), ("Merchant", merchant), ("Outstanding", amount)],
+            cta_label="View invoice / Voir la facture" if pay_url else "",
+            cta_url=pay_url or "",
+            note=(
+                (_g(ctx, "interac_line") + " ") if _g(ctx, "interac_line") else ""
+            ) + "Already paid? Reply to this email. / Déjà payé ? Répondez à ce courriel.",
+            preheader=f"Invoice {invoice} · {amount}".strip(),
         )
 
     if template in ("invoice_ready", "merchant_invoice_ready"):
@@ -395,7 +575,10 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
             "deep_link",
         )
         cta_url = pay_url or portal or receipt_url
-        cta_label = "Pay now" if pay_url else ("Open invoice" if cta_url else "")
+        if template == "merchant_invoice_ready":  # merchants pay by Interac, never by card
+            cta_label = "View invoice" if cta_url else ""
+        else:
+            cta_label = "Pay now" if pay_url else ("Open invoice" if cta_url else "")
         return build_transactional_html(
             eyebrow="Invoice ready",
             headline=f"Invoice {invoice or 'is ready'}",
@@ -405,12 +588,22 @@ def _html_for(template: str, ctx: dict[str, Any], *, subject: str, body: str) ->
                 ("Order", order),
                 ("Tracking", tracking),
                 ("Merchant", merchant if template == "merchant_invoice_ready" else ""),
+                ("Billing week", _g(ctx, "period_label") if template == "merchant_invoice_ready" else ""),
+                ("Due", _g(ctx, "due_label") if template == "merchant_invoice_ready" else ""),
+                *(
+                    [(f"Line {i + 1}", ln.lstrip("- ")) for i, ln in enumerate(_g(ctx, "lines_text").splitlines())]
+                    if template == "merchant_invoice_ready"
+                    else []
+                ),
                 ("Amount", amount),
                 ("Receipt #", receipt_no),
+                ("Invoice PDF", receipt_url if template == "merchant_invoice_ready" and pay_url else ""),
             ],
             cta_label=cta_label,
             cta_url=cta_url,
-            note="Questions about this charge? Reply to this email and our team will help.",
+            note=(
+                (_g(ctx, "interac_line") + " ") if template == "merchant_invoice_ready" and _g(ctx, "interac_line") else ""
+            ) + "Questions about this charge? Reply to this email and our team will help.",
             preheader=f"Invoice {invoice} · {amount}".strip(),
         )
 
@@ -691,7 +884,13 @@ class _SafeMap(dict):
 
 def _fmt_safe(text: str, values: dict[str, Any]) -> str:
     try:
-        return text.format_map(_SafeMap(values))
+        out = text.format_map(_SafeMap({k: v for k, v in values.items() if v is not None}))
+        if "\n" in out:
+            # L70: drop "Label: " lines whose value is empty (e.g. Order on a billing-cycle invoice).
+            import re
+
+            out = "\n".join(ln for ln in out.split("\n") if not re.fullmatch(r"[^:\n]{1,40}:\s*", ln))
+        return out
     except (ValueError, IndexError):
         return text
 
@@ -744,6 +943,12 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
             return render_customer_fr(template, context)
     spec = TEMPLATES.get(template, {"subject": "PorterChain notification", "body": "{message}"})
     safe = {k: ("" if v is None else str(v)) for k, v in context.items()}
+    # CRA: receipts showing GST/HST name the supplier and its registration number.
+    safe["supplier_tax_line"] = (
+        f"\n{safe.get('supplier_legal_name') or 'Supplier'} · GST/HST Reg. No. {safe['supplier_gst_hst_number']}"
+        if safe.get("supplier_gst_hst_number")
+        else ""
+    )
     # Ensure HTML format placeholders never KeyError
     for key in (
         "order_number",
@@ -785,11 +990,22 @@ def render_email(template: str, context: dict[str, Any]) -> tuple[str, str, str]
         "deep_link",
         "window_label",
         "send_again_url",
+        "tax_lines",
+        "itc_line",
+        "billing_terms_line",
+        "period_label",
+        "due_label",
+        "lines_text",
+        "interac_line",
     ):
         safe.setdefault(key, "")
     try:
         subject = spec["subject"].format(**safe)
         body = spec["body"].format(**safe)
+        # Pass 6: drop empty "Label: " lines (receipt "View:" with no link).
+        import re as _re
+
+        body = "\n".join(ln for ln in body.split("\n") if not _re.fullmatch(r"[^:\n]{1,40}:\s*", ln))
     except KeyError:
         subject = spec["subject"]
         body = spec["body"]

@@ -26,6 +26,7 @@ SEGMENTS: dict[str, str] = {
     "warehouse_3pl": "Warehouse & 3PL",
     "trader": "Traders & wholesale",
     "food": "Food & beverage",
+    "retail_specialty": "Retail & specialty",
     "other": "Other",
 }
 _SEGMENT_WORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -34,6 +35,11 @@ _SEGMENT_WORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("warehouse_3pl", ("warehouse", "3pl", "fulfil", "logistic", "distribution")),
     ("trader", ("wholesale", "trader", "trading", "import", "export", "distributor")),
     ("food", ("food", "coffee", "bever", "bakery", "restaurant", "grocery")),
+    ("trades", ("automotive", "mro")),
+    ("trader", ("ecommerce",)),
+    # L197f: onboarding verticals that had no admin segment all showed as "Other".
+    ("retail_specialty", ("print", "signage", "florist", "garden", "office", "furniture", "appliance",
+                          "professional", "event", "rental", "retail", "education", "learning")),
 )
 
 

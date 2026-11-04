@@ -65,37 +65,6 @@ export const BUSINESS_FLEET_KEYS = [
 
 export const BUSINESS_BILLING_KEYS = ["payAsYouGo", "creditAccount", "enterprise"] as const;
 
-export const BUSINESS_FAQ_KEYS = [
-  "sameDay",
-  "overflow",
-  "jobsite",
-  "lastMile",
-  "intraCity",
-  "gta",
-  "vehicles",
-  "pod",
-  "pricing",
-  "whatsIncluded",
-  "overflowVsDedicated",
-  "recurring",
-  "multiStop",
-  "contract",
-  "monthly",
-  "onboarding",
-  "billing",
-  "tracking",
-  "insurance",
-  "integrations",
-  "api",
-  "csv",
-  "erp",
-  "accountManager",
-  "volume",
-  "support",
-  "custom",
-  "security",
-] as const;
-
 export const BUSINESS_TRUSTED_KEYS = [
   "coffee",
   "medical",
@@ -108,5 +77,3 @@ export const BUSINESS_TRUSTED_KEYS = [
   "laboratories",
   "foodDistribution",
 ] as const;
-
-import type { VehicleIllustrationType } from "@/components/marketing/illustrations/VehicleIllustration";

@@ -1,4 +1,4 @@
-"""Super Admin concierge — local provision without Clerk; merchant seats without Clerk."""
+"""Super Admin concierge — local provision without Keycloak; merchant seats without Keycloak."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from porterchain_api.admin_engine.clerk_directory_service import ClerkDirectoryService
+from porterchain_api.admin_engine.identity_directory_service import DirectoryUserService
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Driver
 from porterchain_api.domain.admin_states import AdminRole, DriverStatus
@@ -27,11 +27,11 @@ def _email(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:10]}@example.com"
 
 
-def test_create_driver_local_pending_when_clerk_down(db, settings) -> None:
-    svc = ClerkDirectoryService()
+def test_create_driver_local_pending_when_idp_down(db, settings) -> None:
+    svc = DirectoryUserService()
     email = _email("local-driver")
     with patch(
-        "porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.identity_directory_service.is_directory_configured",
         return_value=False,
     ):
         out = svc.create_user(
@@ -43,16 +43,16 @@ def test_create_driver_local_pending_when_clerk_down(db, settings) -> None:
             name="Local Driver",
             send_invite=True,
         )
-    assert out["clerk_action"] == "local_pending"
-    assert out["clerk_user_id"] is None
+    assert out["identity_action"] == "local_pending"
+    assert out["auth_subject"] is None
     driver = db.get(Driver, out["platform_user_id"])
     assert driver is not None
     assert driver.status == DriverStatus.PENDING.value
-    assert str(driver.clerk_user_id).startswith("pending:")
+    assert str(driver.auth_subject).startswith("pending:")
 
 
 def test_create_driver_skip_invite_is_local(db, settings) -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     email = _email("ops-driver")
     out = svc.create_user(
         db,
@@ -63,13 +63,13 @@ def test_create_driver_skip_invite_is_local(db, settings) -> None:
         name="Ops Driver",
         send_invite=False,
     )
-    assert out["clerk_action"] == "local_pending"
+    assert out["identity_action"] == "local_pending"
     driver = db.get(Driver, out["platform_user_id"])
     assert driver is not None
-    assert str(driver.clerk_user_id).startswith("pending:")
+    assert str(driver.auth_subject).startswith("pending:")
 
 
-def test_merchant_seat_without_clerk_secret(db, settings) -> None:
+def test_merchant_seat_without_idp_secret(db, settings) -> None:
     owner = _email("owner")
     seat_email = _email("ops")
     merchant = create_onboarding_merchant(
@@ -79,9 +79,9 @@ def test_merchant_seat_without_clerk_secret(db, settings) -> None:
         status=MerchantStatus.ACTIVE.value,
     )
     db.commit()
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     with patch(
-        "porterchain_api.admin_engine.clerk_directory_service.is_clerk_secret_configured",
+        "porterchain_api.admin_engine.identity_directory_service.is_directory_configured",
         return_value=False,
     ):
         out = svc.create_user(
@@ -94,12 +94,12 @@ def test_merchant_seat_without_clerk_secret(db, settings) -> None:
             role="merchant_ops",
             send_invite=False,
         )
-    assert out["clerk_action"] == "seat_reserved"
+    assert out["identity_action"] == "seat_reserved"
     seat = get_merchant_user_by_email(db, seat_email, merchant_id=merchant.id)
     assert seat is not None
 
 
 def test_invite_user_rejects_merchant(db, settings) -> None:
-    svc = ClerkDirectoryService()
+    svc = DirectoryUserService()
     with pytest.raises(ValueError, match="merchant_seats_bind"):
         svc.invite_user(db, _ctx(db), settings, "merchant", platform_user_id="x")

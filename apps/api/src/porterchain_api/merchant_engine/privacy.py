@@ -104,7 +104,7 @@ class MerchantPrivacyService:
                     "user_id": u.id,
                     "email": u.email,
                     "role": u.role,
-                    "clerk_user_id": u.clerk_user_id,
+                    "auth_subject": u.auth_subject,
                     "is_active": u.is_active,
                 }
                 for u in users
@@ -270,8 +270,8 @@ class MerchantPrivacyService:
         for user in db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant.id).all():
             user.email = f"erased-{user.id[:8]}@privacy.invalid"
             user.is_active = False
-            if user.clerk_user_id and not str(user.clerk_user_id).startswith("erased:"):
-                user.clerk_user_id = f"erased:{user.id}"
+            if user.auth_subject and not str(user.auth_subject).startswith("erased:"):
+                user.auth_subject = f"erased:{user.id}"
 
         for recipient in db.query(MerchantRecipient).filter(MerchantRecipient.merchant_id == merchant.id).all():
             recipient.name = "Redacted"

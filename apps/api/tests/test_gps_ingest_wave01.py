@@ -67,7 +67,7 @@ def driver(db: Session) -> Driver:
         email=f"driver-{suffix}@gps.test",
         full_name=f"Driver {suffix}",
         status=DriverStatus.APPROVED.value,
-        clerk_user_id=f"clerk_driver_{suffix}",
+        auth_subject=f"idp_driver_{suffix}",
         is_online=True,
         license_verified=True,
         insurance_verified=True,

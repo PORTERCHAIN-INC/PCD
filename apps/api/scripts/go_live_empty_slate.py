@@ -62,7 +62,7 @@ PURGE_TABLES = [
     "leads",
     "domain_events",
     "stripe_webhook_events",
-    "clerk_webhook_events",
+    "idp_webhook_events",
     "billing_ledger_entries",
     "driver_shift_activities",
     "driver_shifts",

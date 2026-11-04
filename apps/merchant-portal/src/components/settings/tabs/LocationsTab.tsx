@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import Button from "@/components/ui/Button";
-import { publicEnv } from "@/lib/env";
 import { settingsApi, type SettingsOverview } from "@/lib/settings";
-import { Field } from "./Field";
 
 export function LocationsTab({
   data,

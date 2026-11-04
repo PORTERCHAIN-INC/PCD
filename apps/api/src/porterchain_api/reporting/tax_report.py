@@ -89,7 +89,8 @@ def hst_report(db: Session, start: datetime, end: datetime) -> dict[str, Any]:
     gst_hst = qst_total = 0
     for code, b in sorted(by_prov.items(), key=lambda kv: -kv[1]["pretax_cents"]):
         prov = PROVINCES.get(code) or PROVINCES["ON"]
-        pct = prov.freight_percent(collect_qst=qst)
+        # Sales with no tax charged (non-registrant period) carry no rate or tax label.
+        pct = prov.freight_percent(collect_qst=qst) if b["tax_cents"] > 0 else 0.0
         qst_pct = next((c.percent for c in prov.freight_components(collect_qst=qst) if c.code == "QST"), 0.0)
         qst_part = int(round(b["tax_cents"] * qst_pct / pct)) if pct and qst_pct else 0
         gst_hst += b["tax_cents"] - qst_part
@@ -98,7 +99,7 @@ def hst_report(db: Session, start: datetime, end: datetime) -> dict[str, Any]:
             {
                 "province": code,
                 "name": prov.name,
-                "label": prov.label(collect_qst=qst),
+                "label": prov.label(collect_qst=qst) if b["tax_cents"] > 0 else "No tax charged",
                 "rate_pct": pct,
                 "taxable_sales_cents": b["pretax_cents"],
                 "tax_cents": b["tax_cents"],
@@ -113,6 +114,7 @@ def hst_report(db: Session, start: datetime, end: datetime) -> dict[str, Any]:
         "period_end": end,
         "basis": "accrual (invoice issue date)",
         "registration_number": supplier_gst_hst_number(db),
+        "registered": bool(supplier_gst_hst_number(db)),
         "invoice_count": len(invoices),
         "provinces": provinces,
         "gst34": {
@@ -191,13 +193,13 @@ def accounting_csv(db: Session, start: datetime, end: datetime, *, fmt: str) -> 
         cur = (inv.currency or "cad").upper()
         for row in _rows_for(db, inv, default_prov):
             prov = PROVINCES.get(row["province"]) or PROVINCES["ON"]
-            label = prov.label(collect_qst=qst)
+            label = prov.label(collect_qst=qst) if row["tax_cents"] > 0 else "No Tax"
             amt = f"{row['pretax_cents'] / 100:.2f}"
             tax = f"{row['tax_cents'] / 100:.2f}"
             if fmt == "xero":
                 w.writerow([name, inv.invoice_number, inv.payment_reference or "", issued, due, row["description"],
-                            "1", amt, "200", f"{label} ({row['province']})", tax, cur])
+                            "1", amt, "200", label if label == "No Tax" else f"{label} ({row['province']})", tax, cur])
             else:
                 w.writerow([inv.invoice_number, name, issued, due, "Delivery", row["description"], "1", amt, amt,
-                            _qbo_tax_code(row["province"], label), tax, cur])
+                            "Out of Scope" if label == "No Tax" else _qbo_tax_code(row["province"], label), tax, cur])
     return buf.getvalue()

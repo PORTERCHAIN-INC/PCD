@@ -14,13 +14,12 @@ flowchart LR
     MERCH_API["/v1/merchant"]
     ADMIN_API["/v1/admin/*"]
     DRV_API["/driver-api/v1"]
-    WH["/webhooks/stripe, /webhooks/fleetbase"]
     WS["WS /v1/admin/operations/live-map/ws"]
+    WH["POST /webhooks/stripe<br/>routers/webhooks.py"]
   end
 
   subgraph External
     STRIPE[Stripe API]
-    FB_WH[Fleetbase Webhooks]
     CLERK[Clerk JWKS]
     GMAPS[Google Maps JS API]
   end
@@ -34,6 +33,4 @@ flowchart LR
   W & M & A --> GMAPS
   W & M & A & C & D --> CLERK
   STRIPE --> WH
-  FB_WH --> WH
   API --> STRIPE
-  API -->|"fleetbase-adapter"| FB_API[Fleetbase :8000]

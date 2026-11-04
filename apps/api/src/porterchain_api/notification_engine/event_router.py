@@ -219,6 +219,15 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
         if driver_id:
             add("pod_uploaded", "in_app", "driver", driver_id)
 
+    elif event_type == DomainEventType.INVOICE_GENERATED and payload.get("merchant_ar_cycle"):
+        # L108: a cycle invoice line. The merchant gets ONE email from merchant.invoice_generated.
+        pass
+
+    elif event_type == DomainEventType.INVOICE_GENERATED and payload.get("invoice_already_notified"):
+        # L181: one "Invoice ready" per invoice. The order reached INVOICED after delivery
+        # but the invoice (and its email) already went out at payment.
+        pass
+
     elif event_type == DomainEventType.INVOICE_GENERATED:
         if customer_id and email:
             add("invoice_ready", "email", "customer", customer_id, address=email)
@@ -238,11 +247,14 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
 
     elif event_type in (DomainEventType.MERCHANT_BILLED, "merchant.invoice_generated"):
         if merchant_id:
-            add("merchant_invoice_ready", "in_app", "merchant", merchant_id)
+            inv_tpl = "merchant_invoice_ready"
+            if payload.get("reminder"):
+                inv_tpl = "merchant_invoice_overdue" if payload.get("overdue") else "merchant_invoice_reminder"
+            add(inv_tpl, "in_app", "merchant", merchant_id)
             merchant_email = payload.get("merchant_email") or payload.get("email")
             if merchant_email:
                 add(
-                    "merchant_invoice_ready",
+                    inv_tpl,
                     "email",
                     "merchant",
                     merchant_id,
@@ -256,6 +268,48 @@ def _specs_for_event(event_type: str, payload: dict[str, Any]) -> list[dict[str,
     elif event_type == DomainEventType.MERCHANT_SUSPENDED:
         add_staff("merchant_suspended", "in_app", "ops", category="security", pri="high")
         add_staff("merchant_suspended", "in_app", "finance", category="security", pri="high")
+        # The business itself: in-app notice plus a bilingual (EN/FR) email.
+        if merchant_id:
+            tpl = (
+                "merchant_account_suspended_overdue"
+                if payload.get("reason") == "unpaid_invoice" and payload.get("invoice_number")
+                else "merchant_account_suspended"
+            )
+            add(tpl, "in_app", "merchant", merchant_id, category="security", pri="high")
+            merchant_email = payload.get("merchant_email") or email
+            if merchant_email:
+                add(
+                    tpl,
+                    "email",
+                    "merchant",
+                    merchant_id,
+                    address=merchant_email,
+                    category="security",
+                    pri="high",
+                )
+
+    elif event_type == "merchant.payment_received":
+        if merchant_id:
+            add("merchant_invoice_paid", "in_app", "merchant", merchant_id)
+            merchant_email = payload.get("merchant_email")
+            if merchant_email:
+                add("merchant_invoice_paid", "email", "merchant", merchant_id, address=merchant_email)
+
+    elif event_type == "merchant.unsuspended":
+        add_staff("merchant_approved", "in_app", "finance", category="security")
+        if merchant_id:
+            add("merchant_account_reinstated", "in_app", "merchant", merchant_id, category="security", pri="high")
+            merchant_email = payload.get("merchant_email") or email
+            if merchant_email:
+                add(
+                    "merchant_account_reinstated",
+                    "email",
+                    "merchant",
+                    merchant_id,
+                    address=merchant_email,
+                    category="security",
+                    pri="high",
+                )
 
     elif event_type in ("merchant.closed",):
         add_staff("merchant_closed", "in_app", "ops", category="security", pri="high")
@@ -508,6 +562,8 @@ WATCHED_EVENTS: tuple[str, ...] = (
     DomainEventType.MERCHANT_APPROVED,
     DomainEventType.MERCHANT_ACTIVATED,
     DomainEventType.MERCHANT_SUSPENDED,
+    "merchant.unsuspended",
+    "merchant.payment_received",
     "merchant.closed",
     "receipt.generated",
     DomainEventType.REFUND_ISSUED,

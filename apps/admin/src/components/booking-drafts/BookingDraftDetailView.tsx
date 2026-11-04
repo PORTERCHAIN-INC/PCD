@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PageSkeleton } from "@porterchain/ui/loading";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Copy, CreditCard, ExternalLink, RefreshCw, Timer, XCircle } from "lucide-react";
 import { formatCents } from "@porterchain/ui/utils";
 import { QuoteLines } from "@porterchain/ui/quote-lines";
@@ -63,6 +64,7 @@ export default function BookingDraftDetailView({
   onDuplicate,
   onSendPaymentLink,
 }: Props) {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
 
   if (loading) {
@@ -88,7 +90,7 @@ export default function BookingDraftDetailView({
           entity="booking_draft"
           id={detail.draft_id}
           onDeleted={() => {
-            window.location.href = "/booking-drafts";
+            router.push("/booking-drafts");
           }}
         />
       }
