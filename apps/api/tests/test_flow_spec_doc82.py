@@ -72,7 +72,7 @@ def test_server_cards_and_checks_exist_in_shared_package():
     copy = (root / "copy.ts").read_text()
     checks = (root / "checks.ts").read_text()
     for card in fs.CARDS:
-        assert re.search(rf"\b{card}: \{{ title", copy), card
+        assert re.search(rf"\b{card}: \{{\s*title", copy), card
     specs = [fs.pickup_flow(m, vehicle_gvwr_kg=9000) for m in packs.PICKUP_MODES]
     for flags in ({}, {"failed": True, "rx": True}, {"sealed": True}, {"age_restricted": True}):
         for d in ({"pod"}, {"rx_custody_log", "cold_chain_log"}, {"bol"}, {"dolly"}, {"cold_chain_log"}, {"signature_id"}):

@@ -19,6 +19,12 @@ REQUIRED = (
     "focus-visible:ring",
 )
 
+# The customer Send flow replaced its vehicle picker (the only "current item" set) with
+# parcel rows (doc 72 parcel pricing), so it has no list where aria-current applies.
+EXEMPT: dict[str, tuple[str, ...]] = {
+    "apps/customer/src/components/send/SendClient.tsx": ("aria-current",),
+}
+
 
 def main() -> int:
     failures: list[str] = []
@@ -29,6 +35,8 @@ def main() -> int:
         text = path.read_text(encoding="utf-8")
         rel = path.relative_to(ROOT)
         for needle in REQUIRED:
+            if needle in EXEMPT.get(rel.as_posix(), ()):
+                continue
             if needle not in text:
                 failures.append(f"{rel} missing {needle!r}")
 
