@@ -202,7 +202,3 @@ export function buildingBlockers(stop: BatchStop, scanned: string[]): string[] {
     stop.flow_spec
   );
 }
-
-export function hasLockedLeg(err: unknown): boolean {
-  return err instanceof Error && /leg_locked|423/.test(err.message);
-}

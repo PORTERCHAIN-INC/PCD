@@ -108,6 +108,7 @@ function MerchantOnboarding({ isLoaded, isSignedIn }: { isLoaded: boolean; isSig
           >
             Retry
           </button>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- logout is a route handler; needs a full navigation */}
           <a
             href="/auth/logout"
             className="mt-4 ml-2 inline-block rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700"

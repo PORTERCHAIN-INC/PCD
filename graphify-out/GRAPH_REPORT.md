@@ -1,154 +1,154 @@
-# Graph Report - PCD (2026-10-30)
+# Graph Report - pcd - beta (2026-11-04)
 
 ## Corpus Check
 
-- 3828 files · ~2,405,741 words
+- 3945 files · ~3,034,442 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 144 file(s) not represented in the graph (top: (none) 29, .example 19, .mmd 19)
+- Unclassified: 147 file(s) not represented in the graph (top: (none) 29, .example 19, .mmd 19)
 
 ## Summary
 
-- 35204 nodes · 108026 edges · 1041 communities (864 shown, 177 thin omitted)
-- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 10752 edges (avg confidence: 0.92)
+- 35755 nodes · 101089 edges · 1225 communities (977 shown, 248 thin omitted)
+- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 9896 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
 
-- Built from commit: `08a6b426`
+- Built from commit: `91abcc91`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 
-- typing
+- ShopifyShop
 - Order
-- PageSkeleton
-- MerchantBillingService
 - useAdminAuth
-- leads.ts
-- Container
-- sqlalchemy
-- MerchantUser
-- dispatch.ts
-- website/src/lib/blog.ts
-- ref_next
+- Invoice
+- useApiData
+- ref_tanstack_react_query
 - cn
-- test_execution_metrics.py
+- typing
+- shopify_fulfillment_ops.py
+- ref_lucide_react
+- website/src/lib/blog.ts
+- TeamClient.tsx
+- cn
+- JobScreen.tsx
 - sitemap-entries.ts
 - MerchantContext
-- CorporateShell
-- useMerchantAuth
+- website/src/components/ui/Container.tsx
+- ref_react
 - admin/src/lib/orders.ts
-- pytest
-- get_driver_context
-- AdminShell.tsx
+- test_booking_attachments.py
+- DriverContext
+- useAuth
 - routes.ts
 - SupportTicket
-- merchant_engine/booking_service.py
-- test_shopify_urls.py
-- GeoPoint
+- MerchantBookDeliveryRequest
+- test_shopify_app_review.py
+- engine/**init**.py
 - toRouteImport.ts
 - crm_models.py
-- AdminRole
+- AuthzClient
 - BookingDraft
-- leads.py
-- platform.py
+- require_module
+- DriverPlatform
 - BatchRunner.tsx
-- customer_fast/service.py
-- PorterchainUser
-- carrier_service_rates
-- order_documents.py
+- customer_fast.py
+- AdminUser
+- AddressInput
+- test_invoice_credit_notes.py
 - next.ts
 - pathlib
 - Merchant
-- Link
+- i18n/navigation.ts
 - CapacityGuideChat.tsx
-- json
-- re
-- HomeChooser.tsx
+- test_shopify_privacy.py
+- dedupe.py
+- auth/src/index.ts
 - PricingRequest
-- get_settings
-- MeScreen.tsx
-- uuid
-- mobile-driver/src/ui/kit.tsx
+- test_dispatch_phase2.py
+- src/settings.ts
+- LeadStatus
+- ref_react_native
 - shopify_payload_ops.py
-- Driver
+- IdentityClaims
 - admin/_deps.py
-- JobScreen.tsx
+- humanError
 - scripts
-- get_preview_post
+- public_blog.py
 - [industry]/page.tsx
-- order_sla.py
+- require_module
 - merchant_onboarding.py
-- CurrentPrincipal
+- PorterchainUser
 - environment
-- AdminContext
-- dataclasses
+- Driver
+- AuthPrincipal
 - CrmLead
-- test_merchant_control_wave.py
+- customers.py
 - Settings
 - mobile-driver/App.tsx
-- Button
+- IntegrationsClient.tsx
 - relativeTime
 - test_unified_identity_phase5.py
 - TrackingService
-- math
+- contract_schedule.py
 - Page specs (72)
 - mobile-driver/package.json
 - BookDeliveryClient.tsx
-- hmac
+- test_shopify_carrier_origin_fallback.py
 - types/src/index.ts
-- copilot_service.py
-- soft_delete/registry.py
+- re
+- actions.py
 - test_contract_schedule.py
 - schemas_merchant.py
 - merchant-portal/src/lib/api.ts
-- TrackScreen.tsx
+- mobile-customer/App.tsx
 - url-policy.ts
-- get_admin_context
-- invoice_adjustments.py
+- AdminContext
+- Live migration rehearsal — cw0 → dm4 (2026-10-28)
 - StopsService
-- test_smart_pricing_api.py
+- public_guide.py
 - FleetPlanService
 - BookScreen.tsx
-- DomainEvent
+- E2EValidationVerifiersMixin
 - batch_engine/service.py
 - admin/src/components/dashboard/DashboardClient.tsx
 - db
 - compliance_engine/service.py
 - routers/notifications.py
-- routers/shopify.py
-- sys
+- lead_webhooks.py
+- clean_commercial_slate.py
 - mobile-driver/src/auth/SessionGate.tsx
-- test_merchant_policy.py
-- dispatch_board_service.py
+- PricingEngine
+- recommend.py
 - booking_attachments/service.py
 - maps/src/index.ts
 - operations.py
 - read_last_known
-- porterchain_event_bus/bus.py
+- test_remaining_to_live_prove.py
 - ref_vitest
 - JobsService
-- test_contract_terms.py
+- smart_route.py
 - merchants.py
 - reports.ts
-- pricing_engine/fsa_rate_card.py
+- test_fsa_rate_card.py
 - OrchestratorOpsService
 - mobile-driver/src/api.ts
 - Page specs (54)
 - lead_inbox.py
-- EventEnvelope
+- DomainEventType
 - driver/[...path]/route.ts
-- porterchain_api/config.py
+- _common.py
 - MerchantProfileService
-- mobile-customer/App.tsx
+- mobile-customer/src/screens/SignInScreen.tsx
 - sequencer.py
 - NotificationRecord
-- test_lead_inbox_p0.py
+- public_inquiries.py
 - test_lead_desk_r2.py
-- UserSettingsService
+- NotificationAdminService
 - pricing_cards.py
-- label_service.py
+- connections.py
 - test_customer_persona_p0.py
 - mobile-customer/src/auth/SessionGate.tsx
 - pricing_components.py
@@ -156,102 +156,103 @@
 - schema.ts
 - drivers_admin.py
 - website/src/lib/api.ts
-- os
-- Merchant360Service
+- ProofOfDeliveryService
+- api_keys_payload
 - account_ops/health.py
-- Base
-- Claim
-- test_shopify_app_review.py
-- driver-portal/src/lib/server-api.ts
-- logistics_partners_service.py
+- .deleted_at
+- ClaimsQueryMixin
+- test_shopify_review_139170.py
+- dispatch_engine/vrp.py
+- LogisticsPartnersService
 - BlogService
-- RateCardClient.tsx
+- formatCents
 - driver/_deps.py
 - compute_ranked_suggestions
 - 00_index.md
 - reporting_metrics.py
 - for_shop
-- test_public_tracking_privacy.py
-- test_lead_inbox_p0.py
+- test_customer_driver_position.py
+- is_suppressed
 - integrations.py
-- client-messages.test.mts
-- cn
+- merchant-portal/src/app/layout.tsx
+- profile_team.py
 - QueueName
 - route_import_service.py
-- DomainEventType
+- _specs_for_event
 - schemas_crm.py
 - security-headers.mjs
 - ops_rules/service.py
-- operations.ts
+- admin/src/lib/api.ts
 - subprocess
-- AdminOperationsService
+- customer/src/app/layout.tsx
 - get_platform_settings
-- db_pool_monitor.py
-- dispatch_route.py
+- test_route_import_pickup_dropoff.py
+- ScanGateService
 - admin/orders.py
 - test_p0_implemented.py
-- jobs.ts
-- merchant_org.py
+- shopify_tokens.py
+- test_wave4_batch_d.py
 - _seed_lead
 - RouteRunner.tsx
-- .list_platform_users
-- test_driver_p0_catalog.py
-- test_admin_leads_module_matrix.py
+- admin_engine/settings_service.py
+- test_merchant_api_documentation.py
+- Customer
+- lead_nurture.py
 - job_docs/service.py
 - scenarios.py
 - text
-- argparse
+- forensics.py
 - orders_tracking.py
-- smart_route.py
+- smart_apply.py
 - AdminMerchantService
 - SqlAlchemyPricingRepository
 - DiagnosticsTestCenter.tsx
-- import_rows.py
+- normalize
 - theme/index.ts
-- shopify_privacy.py
-- ui/package.json
+- OrderLeg
+- exports
 - staff_security_events.py
-- switching_costs.py
-- test_notification_driver_identity.py
+- Route optimization — development test cases
+- test_geo_autocomplete.py
 - ogImageResponse
 - ARCHITECTURE.md
 - commit_admin_audit
 - NextStopResolver
-- SendClient.tsx
-- urllib_request
+- OrdersClient.tsx
+- sys
 - test_interac_parser.py
 - test_lead_inbox_p1.py
-- scan_gate_service.py
-- db_transaction
-- require_module
+- stop_cargo.py
+- routers/job_docs.py
+- get_merchant_context
 - admin/package.json
 - customer_experience/service.py
-- MerchantArService
+- interac/service.py
 - hub_legs.py
-- DeviceService
+- test_maps_firebase_push_gaps.py
 - diagnostics.py
 - Mobile Driver (Expo) — development test cases (depth SSOT)
 - env
 - with
-- website/package.json
-- test_impersonation_audit.py
+- dependencies
+- impersonation_session.py
 - media_store/service.py
-- collections
-- test_custody_state_and_external_ids.py
+- analytics.py
+- AdminOrdersService
 - RouteModuleForm.tsx
 - DiagnosticsProbesMixin
-- tools.py
-- routing
+- fuel_scorecard.py
+- routing.ts
 - test_api_freeze_regression.py
-- DeliveryPromisePanel.tsx
+- PriceBookPanel.tsx
 - PorterChain — full-stack development test cases
-- NotificationAdminService
+- MerchantRouteImportService
 - merchants_integrations.py
 - AdminSettingsService
-- settings_extra.py
-- finance_cash.py
+- gps_policy.py
+- dependencies
 - test_customer_experience_phase_b.py
-- notification_engine/templates.py
+- render_email
 - public_tracking_snapshot.py
 - test_shopify_upgrades_phase_a.py
 - dispatch_plan.py
@@ -265,74 +266,74 @@
 - route_imports.py
 - routers/merchant_ops.py
 - PorterChain — master development test cases (**ENTRY SSOT**)
-- fsa.py
+- porterchain_pricing/**init**.py
 - porterchain
 - overrides
-- AdminOrdersService
+- pod_export.py
 - Development test cases — Clerk (customer + merchant) × PorterChain × Fleetbase
-- (portal)/batches/page.tsx
+- merchant-portal/src/components/jobs/JobDocsPanel.tsx
 - NavigationService
-- geo_photon.py
-- AdminFinanceService
+- routers/geo.py
+- test_collections_bl.py
 - thermal_pdf.py
-- notifications_center.py
+- center.py
 - test_merchant_admin_ops.py
 - batch_engine/vrp.py
-- test_invoice_credit_notes.py
+- shopify_order_sync.py
 - test_contract_terms.py
 - 60 · Phase 0: refine the existing PCD to precision (no agentic mode)
 - scheduling.py
-- test_driver_abstract_and_expiry.py
-- copy
-- test_driver_me_profile.py
+- DriverComplianceExpiryService
+- standard_card.py
+- @porterchain/types
 - properties
 - NotificationEngine
 - test_shopify_tokens.py
-- ref_path
+- mobile-customer/metro.config.js
 - push.ts
 - with
 - driver/batches.py
-- test_interac_billing.py
-- unittest_mock
-- test_ops_live.py
+- test_customer_persona_p0_integrations.py
+- DriverOfflineExecutor
+- website/src/lib/env.ts
 - test_marketing_site_phase_c.py
 - expo
 - backup-offsite-postgres.sh
 - compute_delivery_promise
 - verify_d2_contracts.py
-- exception_fixes_service.py
+- ExceptionFixesService
 - maps/package.json
-- docs/[slug]/page.tsx
+- track-view.tsx
 - test_tax_registration.py
 - with
 - overrides
 - PCD — intentional skips (project-wide)
-- DriverShift
-- lead_scoring.py
+- LiveMapService
+- CrmLeadWriteMixin
 - orders_board.py
-- test_pricing_settings_phase1.py
-- platform/compliance.py
-- porterchain_api_merchant_engine
+- sitemap-xml.ts
+- settings_extra.py
+- test_shopify_graphql_migration.py
 - test_kaylulu_contract_wiring.py
 - merchant-portal/e2e/fixtures.ts
 - test_rate_card.py
 - DriverFinanceService
-- MerchantStatus
+- test_merchant_activation_policy.py
 - admin_orgs.py
 - Customer persona + Admin Customers — development test cases
 - services
 - .select
-- enforce_staff_step_up
+- fastapi
 - DriverRouteService
 - MerchantStandingOrderService
-- center.py
-- hasDriverSession
+- leads_desk.py
+- create_app
 - guide-session.ts
 - get_redis_client
 - quote_pdf.py
-- test_remaining_to_live_prove.py
-- ref_react
-- useDispatchRoute.ts
+- test_issuer_legal_name.py
+- driver-portal/src/lib/api.ts
+- RouteStopCard.tsx
 - Page specs (25)
 - devDependencies
 - admin360.py
@@ -345,161 +346,161 @@
 - ShiftService
 - test_fail_closed_bj.py
 - Page specs (24)
-- merchant-portal/package.json
+- devDependencies
 - 4. Scenario catalogue (layer: each rule = foundation rules-engine entry)
 - Finance · Invoice · Reports · Management — development test cases
-- admin/support.py
+- packages/driver-flows/src/index.ts
 - billing_engine/stripe_money.py
 - leads_outbound.py
-- test_soft_delete.py
-- email_layout.py
-- ScanGateService
+- main.py
+- 41 · UI page specs — Email, PDF and notification templates
+- website/package.json
 - merchant_engine/tracking_service.py
 - receiver_emails.py
 - portal.ts
-- test_email_notifications.py
-- Route optimization — development test cases
+- get_notification_engine
+- DriverRouteOptimizer
 - navigation_pod.py
-- datetime-picker-separate.tsx
+- BookingDraftDetailView.tsx
 - 29 · Coverage matrix: every repo item, as-built vs planned
-- TenantScope
+- order_repository.py
 - System integrations — development test cases
 - RealtimeHub
-- admin/finance.py
+- routers/batches.py
 - test_geo_photon_coverage.py
-- Package
+- driver-portal/src/app/layout.tsx
 - PorterChain production deploy
 - PorterChain — development test cases catalog (system-wide)
 - devDependencies
-- leads/page.test.tsx
+- import_rows.py
 - test_launch_blockers.py
-- admin/dispatch.py
+- shopify_billing.py
 - test_dispatch_brain.py
-- reporting/monopoly_metrics.py
-- scheduled_batches_service.py
+- test_monopoly_investor.py
+- test_merchant_book_al.py
 - customer_experience/notifications.py
 - MerchantTrackingService
 - test_track_search_bk.py
 - test_admin_keycloak.py
 - env
-- InvoiceLine
-- commit_admin_audit
+- accessorials.py
+- KeycloakAdmin
 - account_ops/documents.py
-- packs.py
+- 71. Progressive onboarding (Phase 0, L35)
 - 44 — Backend, API and data: complete coverage (Phase 1)
 - test_bulk_batches.py
 - bounce.py
-- test_notification_center.py
-- lead_webhooks.py
-- field_admin.py
+- leads_inbox.py
+- declared_value.py
+- test_auth_p1_hardening.py
 - customers_admin.py
-- reset_local_personas.py
-- stop_times.py
-- privacy_access.py
+- CRM Lead 360 — freeze & channel honesty
+- DocumentsService
+- IdentityDirectory
 - driver/communications.py
 - deliveryOptions.ts
 - compute_driver_pay
 - repair_and_migrate.py
-- JobOffersService
-- SystemConfig
+- equipment_match
+- SavedAddress
 - sequence.py
 - env.py
-- routers/geo.py
+- test_unified_identity_characterization.py
 - _merge_idp_directory
 - dependencies
 - rollout
 - config/package.json
-- verify_p0_loop.py
-- DriverVerificationService
+- test_unified_identity_phase9.py
+- confirmation_service.py
 - customer_experience/events.py
 - vehicle_costs
 - driver/job_docs.py
 - flow_spec.py
 - test_driver_gps_switch.py
-- Admin + Super Admin — development test cases
+- 2. Page / subpage UI–UX cases
 - resolve_deploy_plan.py
 - types/package.json
 - personal_profile.py
 - admin/booking_drafts.py
-- test_blog_media_save_and_resolve
-- stop_shapes.py
+- tax_report.py
+- gps.py
 - Maps · Firebase · Push · Notifications ↔ Fleetbase — development test cases
-- customer_experience/service.py
+- links.py
 - notifications_admin.py
-- pricing_engine/models.py
+- quote_admin.py
 - Website + GTM — development test cases
 - worker
 - DriverSupportBridgeService
-- 74. Integrations per business type (Phase 0, L35)
+- 4. Sequences per family
 - 2. Schema listing by domain
 - Page specs (17)
-- test_p0_handshakes_wave2.py
+- pytest
 - 68 · Trust & Help Centre (Phase 0 workstream W9, L33)
 - decode_polyline
 - compilerOptions
 - pg-backup
-- math
+- build_lottie.py
 - ravi/page.tsx
-- [id]/page.test.tsx
+- DriverCommunicationService
 - compilerOptions
-- customer_goods.py
+- SystemConfig
 - 76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC, §17 A-LC and §18 A-GF/A-PAR and §19 A-PRA and §20 A-CM/A-UX inside G19)
 - cliArgs
-- test_merchant_pricing_api.py
+- deleted_items.py
 - compilerOptions
 - devDependencies
 - compilerOptions
 - with
 - compilerOptions
-- DiagnosticsReportsMixin
-- test_service_coverage_batch5.py
-- BlogPostForm.tsx
+- diagnostics_service.py
+- MerchantBulkService
+- verification.py
 - test_merchant_matrix_p0_arch.py
 - ref_playwright_test
 - Driver + Admin drivers — development test cases
 - Merchant + Admin Merchant — Development Test Matrix
 - web-push/package.json
-- web-vitals-report.ts
-- messaging.ts
+- lib/batches.ts
+- AdminAuthProvider.tsx
 - test_admin_review_files.py
-- test_unified_identity_phase8.py
-- stuck_items
-- visitor_intent.py
-- io
+- BackfillAction
+- scanFeedback.ts
+- VisitorTrackingService
+- import_ingest.py
 - driver_ops.py
-- payout_runs.py
+- DriverWalletTransaction
 - test_merchant_api_idempotency.py
-- devDependencies
+- customer/package.json
 - dependencies
 - PorterChain architecture (living)
 - package.json
 - events/package.json
 - queue/package.json
-- lib.js
+- webhooks.js
 - sdk.py
 - AdminRouteTemplateService
-- marketing_site/config.py
-- customer_fast/privacy.py
+- public_marketing.py
+- weekly_billing.py
 - tax_registration.py
 - routers/customer_experience.py
-- test_pricing_audit_gates.py
+- test_p0_golden_book.py
 - test_driver_mobile_field_helpers.py
 - PorterChain website copy deck (v10) — ready to implement
 - WEBSITE_MARKETING_OPS_LOOPS.md
 - compilerOptions
 - guide-knowledge.ts
-- 2. Page / subpage UI–UX cases
+- test_vehicle_class_rate.py
 - AdminAuditExportService
 - CustomerAdminService
 - score_candidate
-- E2EValidationReportsMixin
+- src/account.ts
 - MerchantContactsService
 - get_pricing_service
 - test_memberships_switcher_bf.py
-- create_route_template
-- test_concierge_local_provision.py
-- test_public_tracking_privacy.py
+- admin/**init**.py
 - dependencies
+- test_public_tracking_privacy.py
+- DeliveryPromisePanel.tsx
 - ref_fs
 - dependencies
 - outputs
@@ -512,9 +513,9 @@
 - vendor/driver-flows/src/media.ts
 - test_fk_orphan_migration.py
 - formulas.py
-- PrivacyService
+- dm2fkorphan0002_foreign_keys_with_orphan_quarantine.py
 - tracking_view.py
-- compliance_dossier.py
+- test_l197_l204_wintergreen_fixes.py
 - test_vrp_routing.py
 - Secrets map — one place, four stores
 - updates
@@ -526,10 +527,10 @@
 - tasks
 - scripts
 - scripts
-- EarningsClient.tsx
-- merchant_money_guard.py
+- BookingDocumentsCard.tsx
+- shopifyParser.ts
 - test_middleware.py
-- me_profile.py
+- CustomerExperienceTab.tsx
 - admin/src/components/jobs/JobDocsPanel.tsx
 - scripts
 - ci_valhalla_stub.py
@@ -542,47 +543,48 @@
 - spicedb-migrate
 - postgres
 - provinces.py
-- driver_models.py
-- template_copy.py
-- reminders.py
-- pod_store.py
-- test_driver_multi_stop.py
-- test_idor.py
+- ProfileService
+- test_login_hardening_l213_l214.py
+- normalize_address
+- CustomerAccessGate.tsx
+- offline-queue.test.ts
+- tax.py
 - driver-portal/package.json
 - Driver app
 - jobs
 - postgres
 - mailpit
-- PostalCoverageChecker.tsx
-- verify_d3_matrix.py
+- PriceCalculator.tsx
+- OrderRepository
 - MerchantDashboardService
-- test_scan_gates_spine.py
+- merchant_p0
 - log_redact.py
 - merchant_p0/**init**.py
 - test_public_inquiries.py
-- ref_node_assert
+- ref_node_test
 - mobile-customer/package.json
-- ProfilePage.tsx
-- customer_fast/rules.py
+- BatchesPage.tsx
+- customer_fast/service.py
 - app
 - spicedb
 - spicedb
 - compilerOptions
 - compilerOptions
 - compilerOptions
-- Operations Runbook
+- test_merchant_invoice_card.py
 - verify_icp_15_second_human_gate.py
 - DriverVehicleProfileService
 - mobile-deep-links.ts
-- export_batch
-- PreferenceService
-- driver/support.py
-- test_app_review_demo_owner_tracking.py
-- log_scan
-- resolve_route_distance
-- test_postgres_smoke.py
-- GeoPoint
-- customer/package.json
+- admin/next-env.d.ts
+- edi_service.py
+- test_notification_ops_loud_push.py
+- test_gta_pretrip_geofence.py
+- 75. Ops console reorganisation (Phase 0, L35)
+- test_shopify_urls.py
+- CodeGraph contracts — Quote · Visitor · Optimize (Moment B)
+- BusinessIndustries.tsx
+- test_smart_apply.py
+- test_keycloak_email_otp.py
 - Development test run results (living)
 - env
 - api
@@ -591,21 +593,21 @@
 - auth/tsconfig.json
 - verify_architecture_boundaries.py
 - test_keycloak_auth.py
-- ref_eslint
-- porterchain/[...path]/route.ts
+- merchant-portal/eslint.config.mjs
+- auth
 - test_keycloak_integration.py
 - 28 — Hybrid deployment: DigitalOcean droplet + Ubuntu home server + Oracle Always Free (PLANNED, L28)
 - capacity-guide/route.ts
 - test_driver_idp_provision.py
-- valhalla
-- test_shopify_rate_limit_fail_open.py
+- Authentication — Driver + Admin development test matrix
+- routers/fsa_rate_card.py
 - visitor-session.ts
 - scripts
 - devDependencies
 - Security incident & privacy breach response runbook
 - env
 - autoheal
-- caddy
+- StopDocumentsCard.tsx
 - redis
 - web
 - cache
@@ -614,33 +616,33 @@
 - compilerOptions
 - compilerOptions
 - SlaResponseCountdown.tsx
-- attribution/page.tsx
-- routes-client.tsx
+- vendor/driver-flows/src/verification.ts
+- 78 · Leads / CRM module (ops console → Sales → Leads)
 - 56 · L30: Ravi decisions of 29 Oct 2026 (defaults approved + pilot facts)
 - packages/driver-flows/src/media.ts
 - baseline
 - scripts
-- media.py
+- routers/driver/**init**.py
 - shopify-app
 - build
 - steps
 - 00 — PorterChain Phase 0 master plan (single entry point)
 - Every screen inherits
-- merchant
+- _MemoryStore
 - 72. Pricing, simplified and explainable (Phase 0, L35)
 - integrations
 - phase2.ts
 - customer-motion/package.json
 - verify_vendor_leaves.py
 - 82. Guided job flows, one driver persona, data secrecy, merchant and customer guidance (Phase 0)
-- ExternalIdentifierService
+- test_l124_webhook_secret_rotation.py
 - test_metrics_doc79.py
-- gateway/registry.py
-- test_driver_invert_phase3.py
-- standard_live.py
+- platform/**init**.py
+- 40 · Design system (PLANNED) — one system for 5 web portals, website, 2 Expo apps, Shopify
+- rate_card_admin.py
 - reviewer_sandbox.py
-- test_keycloak_email_otp.py
-- SupportActor
+- importlib_util
+- ui/package.json
 - Merchant portal live e2e (P0 golden path)
 - mobile-customer/scripts/archive-ios-testflight.sh
 - mobile-customer/vendor/mobile-theme/src/index.ts
@@ -648,13 +650,14 @@
 - Production rollback runbook
 - Postgres off-site backup & restore runbook
 - Shopify embedded app — droplet deploy + test checklist
-- test_portal_idempotency_bh.py
+- AdminClaimsService
 - test_batch_scenarios.py
 - osrm
-- driver/shift.py
-- driver_track
+- db_transaction
+- order_filters.py
+- test_error_envelope.py
 - test_g11_merchant_payments_split.py
-- test_seed_online_drivers_guard.py
+- merchant_merge.py
 - test_security_fixes.py
 - review-entry.spec.ts
 - mobile-customer/vendor/mobile-theme/package.json
@@ -663,9 +666,9 @@
 - 79. Business metrics engine: our main business formulas (Phase 0)
 - Electronic Monitoring Policy — Porterchain Inc.
 - PorterChain off-site presence kit (ready to paste — nothing has been posted or signed up)
-- assess_merchant_webhook_delivery
+- integrations_service.py
 - rebuild-valhalla-gta.sh
-- health_alert.py
+- dispatch_staff_specs
 - backfill_fr_messages.py
 - dev-start.sh
 - shopify-dev-tunnel.sh
@@ -674,12 +677,12 @@
 - verify-secrets-alignment.sh
 - verify_website_e2e_wire.sh
 - en/plumbing-supply-last-mile-gta.md
-- add_external_id
+- package_external_ids.py
 - 27 — In-house LLM reasoning (L25) and no-paid-services rule (L26)
 - Invoice adjustments (void, line credit, partial credit): Canada / Ontario compliance
-- scripts
+- quote_snapshot.py
 - mobile-customer/tsconfig.json
-- test_order_builder.py
+- test_collect_only_disabled.py
 - mobile-driver/tsconfig.json
 - codegraph
 - Shopify admin control plane (ops)
@@ -693,27 +696,27 @@
 - valhalla
 - dev-stop.sh
 - verify_w6b_industry_publication.py
-- driver/assignment.py
+- NotificationUser
 - en/electrical-wholesaler-delivery-ontario.md
 - en/jobsite-delivery-time-windows-pod.md
 - en/overflow-vs-dedicated-capacity-gta.md
 - fr/jobsite-delivery-time-windows-pod.md
 - fr/overflow-vs-dedicated-capacity-gta.md
 - fr/plumbing-supply-last-mile-gta.md
-- test_dispatcher_copilot.py
+- test_ops_rules_p0.py
 - merchant-portal/package.json
 - p0-suite.yaml
 - Address search and maps (free first, Google as backup)
-- mobile-customer/src/config.ts
+- impersonationRoute.ts
 - LiveMap.tsx
 - bootstrap-droplet.sh
 - Full inventory
 - local-stack.sh
-- rates/page.tsx
-- test_driver_label_scan_e2e.py
-- test_merchant_print_preview.py
+- verify_sitemap_indexable.py
+- import_confirm.py
+- outbound_url.py
 - test_driver_label_scan.py
-- test_driver_offline_review.py
+- verify_list_pagination.py
 - 22 — PLANNED state machines (Phase 1)
 - 1. AS-BUILT (NOW)
 - 1. AS-BUILT (NOW)
@@ -792,17 +795,17 @@
 - fr/transportation-capacity-network-vs-courier.md
 - fr/webhook-events-ops-can-use.md
 - fr/wholesale-distribution-gta.md
-- AGENTS.md
-- test_hs27_chaos_matrix.py
-- BlogAuthorMixin
+- Website page playbook
+- MerchantLocationsPanel
+- .find_for_merchant_lookup
 - bandit.yaml
-- test_flow_spec_doc82.py
+- forensic_middleware.py
 - test_g21_reviewer_sandbox.py
-- SupportContextMixin
-- test_notification_http_dependency_off_loop
+- _route_paths
+- test_authz_no_false_deny.py
 - test_dispatch_processor.py
 - test_media_store.py
-- test_mf_hs_open_batch.py
+- _test_db_reset.py
 - 07 — Interface layer: every screen per app (AS-BUILT)
 - consent.yaml
 - p0-jobs-list.yaml
@@ -814,56 +817,60 @@
 - mailpit
 - merchant_api_keys
 - 98 — Unknowns (not verified; nothing here is drawn as fact)
-- oauth_third_party
+- test_quote_pdf.py
 - shopify
 - zoho_salesiq
 - prettier.config.mjs
 - run-ci-gates.sh
 - set-project-mode.sh
-- admin/AGENTS.md
+- test_vehicle_compliance_doc80.py
 - admin/e2e/package.json
 - admin/postcss.config.mjs
 - admin/public/firebase-messaging-sw.js
+- analytics_engine/**init**.py
+- interac/**init**.py
+- finance_ops/**init**.py
+- spatial/**init**.py
 - customer/AGENTS.md
 - vroom
-- utilization_service.py
-- deep_links.py
+- UtilizationService
+- windows.py
 - PorterChain PCD — Architecture drawing set (index, legend, evidence method)
 - 20 — Operational legal rulebook (per party)
 - 45 — IoT and devices (Phase 1)
 - customer/postcss.config.mjs
 - driver-portal/AGENTS.md
 - driver-portal/e2e/package.json
-- @porterchain/maps@workspace:*
-- @porterchain/types@workspace:*
+- live_service_violations
+- test_login_hardening_l219.py
 - 77 · Phase 0 traceability: every Ravi ask of 28–29 Oct 2026
 - 1. Canonical entity map
-- 1. Surface inventory (SSOT)
-- typescript@^6.0.3
+- test_pricing_audit_gates.py
+- 74. Integrations per business type (Phase 0, L35)
 - driver-portal/postcss.config.mjs
 - driver-portal/public/firebase-messaging-sw.js
 - merchant-portal/AGENTS.md
 - merchant-portal/e2e/package.json
-- @porterchain/auth@workspace:*
+- verify_i18n_parity.py
 - osrm
 - packages/driver-flows/src/verification.ts
 - merchant-portal/postcss.config.mjs
 - merchant-portal/public/firebase-messaging-sw.js
-- login/layout.tsx
-- expo-auth-session@~57.0.14
-- expo-crypto@~57.0.3
-- expo-document-picker@~57.0.3
-- expo-haptics@~57.0.3
-- merchant_ar_cycles.py
+- persona-login.spec.ts
+- unsubscribe_one_click
+- test_driver_english_notes.py
+- test_shopify_fo_foundation.py
+- verify_blog_cms.py
+- platform_settings.py
 - test_shopify_distance_scaling.py
-- expo-notifications@~57.0.22
+- .stats
 - test_driver_timesheets.py
-- @expo/vector-icons
-- test_merchant_integrations.py
+- phase2.py
+- merchant/shopify.py
 - 08 — State machines (AS-BUILT)
-- @porterchain/customer-motion@workspace:*
+- _nominatim_search
 - 70. Business model architecture: one Organisation model (Phase 0, L35)
-- react@19.2.3
+- orders_actions.py
 - subprocessors.md
 - cloudflare-free-setup.md
 - KEYWORDS_PAID_ALIGN.md
@@ -877,9 +884,9 @@
 - r2-blog-media-checklist.sh
 - 73. Support and issue playbook (Phase 0, L35)
 - principal_cache.py
-- customer_fast/geo.py
-- admin_dashboard
-- test_cycle_invoice_no_order.py
+- _settings
+- _FakeRedis
+- test_l185_shift_auto_clockout.py
 - prepare-osrm-gta.sh
 - docker/scripts/prepare-valhalla-gta.sh
 - docker-up.sh
@@ -893,9 +900,9 @@
 - validate-d2.sh
 - validate-d3.sh
 - verify_website_cf_cache.sh
+- checkr/**init**.py
 - website/AGENTS.md
 - website/postcss.config.mjs
-- test_g10_vendor_removal.py
 - porterchain-api
 - porterchain-driver
 - porterchain-event-bus
@@ -903,48 +910,49 @@
 - porterchain-services
 - porterchain-shared
 - { redirect, usePathname, useRouter, getPathname }
-- driver-portal/src/middleware.ts
+- isDevelopmentBuild
 - vendor/driver-flows/package.json
 - 66 · Now vs Phase 0: state machines
-- clerk-cutover-phase10.md
+- Keycloak cutover (Clerk retirement) — manual ops runbook
 - Foreign-key decisions (dm2fkorphan0002)
 - steps
 - customer
 - packages/driver-flows/package.json
 - verify_model_ownership.py
-- ImportConfigModal
-- driver_track
+- ContractStops.tsx
+- src/catalog.ts
 - test_billing_processor.py
 - test_coverage_liftgate_simulate.py
 - driver_p0
-- test_leads_doc78.py
+- 80. Vehicle compliance (Phase 0, Ontario only)
 - test_webhooks_processor.py
-- with-rn-spm-nil-guard.js
+- admin
 - 43 — Agent framework decision (late-2026, local-only models)
 - 64 · Now vs Phase 0: data-flow diagrams L1 and L2
 - 65 · Now vs Phase 0: key sequences
 - New-device email code (Keycloak)
 - inputs
 - with
-- TrackStatusSteps.tsx
-- investor_metrics
-- router.py
+- driver
+- translate.mjs
+- verify_programmatic_en_playbook.py
 - get_baseline
-- slow_idp
-- 2. Surface inventory (files & screens)
-- test_notifications_processor.py
+- cf1custr2b3c4_customer_round2.py
+- _admin_from_keycloak
+- PickupDocumentNotShown
 - 23 — PLANNED events: outbox → DBOS relay → Redpanda (L18, L19, L20)
 - 61 · Now vs Phase 0: system context and containers
 - 67 · Now vs Phase 0: the apps (mobile, Shopify, portals)
-- 1. Surface inventory (SSOT for every page / file)
+- Shopify ↔ Merchant ↔ PorterChain — development test cases
 - env
 - verify_alembic_head.py
 - verify_masterrule_layer_audit.py
 - verify_mobile_field_proof.py
-- support_rollup
-- set_rate_limit
+- schemas_notifications.py
+- _iter_lead_spine_files
+- client
 - test_engine_smoke.py
-- real
+- _as
 - 03 — Data-flow diagrams (AS-BUILT)
 - 05 — Backend module map, workers, queues, schedulers (AS-BUILT)
 - 09 — Authorization model (AS-BUILT)
@@ -954,14 +962,18 @@
 - What Ravi must create
 - maps
 - verify_api_stateless.py
-- proof-of-resolution/page.tsx
+- Caddy changes for porterchain.com (Oct 2026)
+- kc8authsubject0008_rename_clerk_columns.py
+- customer/next-env.d.ts
+- driver-portal/next-env.d.ts
+- merchant-portal/next-env.d.ts
 - 30 · Operational readiness: the areas the plan did not cover
 - 32 · Script triage and CI lanes
 - 41 · UI page specs — Shopify embedded app
 - 48 · Merchant onboarding and offboarding SOPs
 - 50 · Mobile release train and store checklists
 - 53 · Accessibility (AODA / WCAG 2.1 AA) and French
-- Evaluation — invoice waive / void / credit (Oct 2026)
+- Evaluation — schema / custody change (Oct 2026)
 - deploy_host
 - deploy_port
 - deploy_ssh_key
@@ -975,7 +987,7 @@
 - keycloak
 - test-sops-load.sh
 - creation_rules
-- Pnl
+- etl_service.py
 - g21-reviewer-login.yaml
 - g21-reviewer-driver.yaml
 - 36 · Monitoring and alerts (all free, self-hosted)
@@ -984,29 +996,29 @@
 - 51 · Shopify app review checklist
 - smtp
 - keycloak-social-setup.sh
-- capacity-guide-system.ts
+- proof_slug
 - engines
-- lucide-react@^1.23.0
-- @porterchain/maps@workspace:*
-- @porterchain/types@workspace:*
-- @tanstack/react-query@^5.101.2
-- tailwindcss@^4.3.2
-- @tailwindcss/postcss@^4.3.2
-- @types/react@^19
-- @porterchain/web-push@workspace:*
-- react@19.2.7
-- vitest@4.1.11
-- @porterchain/web-push@workspace:*
-- react-dom@19.2.7
-- @playwright/test@^1.55.0
-- @types/react@^19
-- expo-apple-authentication@~57.0.2
-- expo-constants@~57.0.21
-- expo-dev-client@~57.0.19
-- expo-secure-store@~57.0.4
-- @porterchain/types@workspace:*
-- react-dom@19.2.3
-- @react-native-google-signin/google-signin@16.2.0
+- get_customer_experience_settings
+- _FakeRedis
+- Admin
+- devDependencies
+- openapi_census.py
+- verify_event_catalog.py
+- verify_fr_en_leakage.py
+- verify_notification_catalog.py
+- pr72ratecards01_pricing_admin.py
+- tx0hstfuel1a2b_ontario_tax_fuel_customer_card.py
+- vc0snake1a2b_capacity_class_snake_backfill.py
+- bootstrap_all_profiles
+- importlib
+- shopify_legacy_browser_entry
+- TestAdminLeadsFilesystem
+- test_d3_dispatch_pod_contract.py
+- test_event_catalog_parity.py
+- test_unified_identity_phase10.py
+- 33 · Explicit decisions for tables, routers and pages with no plan entry
+- migrate_clerk_users.py
+- dependencies
 - 37_secrets.md
 - 52_runbooks.md
 - CLEANUP_NOTES.md
@@ -1019,414 +1031,531 @@
 - test-keycloak.sh
 - test-media.sh
 - test-routing.sh
+- Pnl
 - KEYCLOAK_CLIENTS
+- peerDependencies
+- verify_anonymous_retail_surface.py
+- verify_city_local_segment_playbook.py
+- verify_doc_pointer_stubs.py
+- verify_engineering_gates.py
+- verify_home_playbook.py
+- verify_mobile_design_parity.py
+- verify_no_ops_spatial_math.py
+- verify_pricing_playbook.py
+- verify_product_vision_pages.py
+- verify_shared_kernel.py
+- verify_solutions_playbook.py
+- verify_vehicle_playbook.py
+- verify_visitor_test.py
+- verify_website_seo_metadata.py
+- confirm/page.tsx
+- Admin portal P0 e2e
+- bf0focusauth1a2b_blog_retire_fictional_authors.py
+- dm1driftfix0001_reconcile_model_drift.py
+- t2u3v4w5x6y7_integrity_fks.py
+- verify_service_coverage.py
+- .**init**
+- admin_engine__merchant_ar_service.py
+- admin_engine__pkg.py
+- billing_engine__merchant_service.py
+- billing_engine__models.py
+- billing_engine__pkg.py
+- billing_engine__weekly_billing.py
+- booking_engine___core.py
+- booking_engine__invoice_service.py
+- booking_engine__order_sla.py
+- booking_engine__order_transitions.py
+- compliance_engine__pkg.py
+- dispatch_engine__hub_legs.py
+- dispatch_engine__models.py
+- flow_engine__pkg.py
+- merchant_engine__config_read.py
+- merchant_engine__invoice_reminder.py
+- merchant_engine__lifecycle.py
+- merchant_engine__lookups.py
+- merchant_engine__shopify_billing.py
+- notification_engine__delivery_service.py
+- notification_engine__notice_push.py
+- order_engine__buckets.py
+- org_engine__models.py
+- org_engine__pkg.py
+- org_engine__service.py
+- pricing_engine__models.py
+- mark
+- TestAdminLeadsUiOwnership
+- _KvRedis
+- test_suspended_overdue_template_l93.py
+- AddressBook
+- 31 · Worker sweep and processor mapping (L19, L20)
+- 34 · Data migration and cutover (PCD live → Phase 1)
+- GA4 weekly funnel (website)
+- COD and Stripe Connect columns — dropped
+- split_fat_routers.py
+- verify_design_copy.py
+- verify_golden_rules.py
+- verify_marketing_claims.py
+- verify_no_false_ai_marketing.py
+- verify_service_area_badges.py
+- verify_website_fr_message_parity.py
+- finance/page.tsx
+- _hide_deleted
+- _clear_idp_env
+- merchant_client
+- merchant-portal/src/app/page.tsx
+- 41 · UI page specs — Admin and super-admin
+- post-commit
+- merchant_webhooks
+- peerDependenciesMeta
+- seo_programmatic_fr_rest.py
+- verify_day_plan_scorecard.py
+- verify_enterprise_security.py
+- verify_investor_metrics_cadence.py
+- verify_load_query_plan.py
+- verify_merchant_webhook_event_path.py
+- verify_monopoly_investor.py
+- verify_reporting_context.py
+- verify_repositories.py
+- verify_tracking_maps.py
+- verify_website_internal_links.py
+- verify_website_schema.py
+- verify_wholesale_standing_orders.py
+- diagnostics_catalog.py
+- engine_ports/**init**.py
+- engines
+- engines
+- engines
+- 55_remaining_item_decisions.md
+- vendor-leads/README.md
+- compliance-matrix.md
+- shopify-merchant-terms.md
+- website/eslint.config.mjs
+- ambiguous_python_import_1b84ac3ee933
+- ambiguous_python_import_55ffb7c3a70a
+- ambiguous_python_import_74c5ccaf39fa
+- ambiguous_python_import_9350a8de2b70
+- ambiguous_python_import_a9262e257045
+- ambiguous_python_import_d19fe952fedb
+- ambiguous_python_import_e144c8db02d3
+- apps_admin_next_dev_types_root_params_d
+- apps_admin_next_dev_types_routes_d
+- apps_customer_next_dev_types_root_params_d
+- apps_customer_next_dev_types_routes_d
+- apps_driver_portal_next_dev_types_root_params_d
+- apps_driver_portal_next_dev_types_routes_d
+- apps_merchant_portal_next_dev_types_root_params_d
+- apps_merchant_portal_next_dev_types_routes_d
+- ext_usr_lib_os_release
+- ref_eslint
+- ref_eslint_config_next
+- ref_firebase
+- ref_node_assert
 
 ## God Nodes (most connected - your core abstractions)
 
-1. `Settings` - 1223 edges
-2. `Order` - 847 edges
-3. `AdminContext` - 618 edges
-4. `MerchantContext` - 524 edges
-5. `Merchant` - 405 edges
-6. `require_module()` - 297 edges
-7. `PageSkeleton()` - 283 edges
-8. `cn()` - 277 edges
-9. `get_admin_context()` - 275 edges
-10. `useAdminAuth()` - 267 edges
+1. `Settings` - 1270 edges
+2. `Order` - 860 edges
+3. `AdminContext` - 613 edges
+4. `MerchantContext` - 529 edges
+5. `Merchant` - 403 edges
+6. `require_module()` - 303 edges
+7. `cn()` - 281 edges
+8. `get_admin_context()` - 274 edges
+9. `useAdminAuth()` - 273 edges
+10. `get_settings()` - 262 edges
 
 ## Surprising Connections (you probably didn't know these)
 
-- `9. Admin notification ops — `NA-*`` --references--> `PushHealthStrip()` [INFERRED]
-  docs/MAPS_FIREBASE_PUSH_NOTIF_DEV_TEST_CASES.md → apps/admin/src/components/operations/PushHealthStrip.tsx
-- `14. Notifications / email / FCM (`NOTIF-*`)` --references--> `PushHealthStrip()` [INFERRED]
-  docs/ROUTE_OPTIMIZATION_DEV_TEST_CASES.md → apps/admin/src/components/operations/PushHealthStrip.tsx
-- `7. GST/HST registration (`tax_registrations`, `platform/tax_registration.py`, `GET/POST /v1/admin/finance/tax-registration`, Admin > Finance > GST/HST) — **PASS after fix**` --references--> `default_tax_percent()` [INFERRED]
-  docs/architecture/NEW_ADDITION_GATE.md → apps/api/src/porterchain_api/admin_engine/platform_settings.py
-- `Database — `DB-D-*`` --references--> `Driver` [INFERRED]
-  docs/DRIVER_ADMIN_DEV_TEST_CASES.md → apps/api/src/porterchain_api/admin_models.py
-- `13. Database — `MD-DB-*`` --references--> `Driver` [INFERRED]
-  docs/MOBILE_DRIVER_DEV_TEST_CASES.md → apps/api/src/porterchain_api/admin_models.py
+- `execute()` --indirect_call--> `db()` [INFERRED]
+  apps/api/src/porterchain_api/driver_engine/api_service.py → scripts/local_stack_seed.py
+- `_geo()` --calls--> `GeoPoint` [INFERRED]
+  apps/api/src/porterchain_api/merchant_engine/import_quote.py → services/pricing-engine/porterchain_pricing/types.py
+- `read()` --indirect_call--> `db()` [INFERRED]
+  apps/api/src/porterchain_api/routers/admin/dispatch_plan.py → scripts/local_stack_seed.py
+- `go()` --indirect_call--> `db()` [INFERRED]
+  apps/api/src/porterchain_api/routers/admin/dispatch_plan.py → scripts/local_stack_seed.py
+- `go()` --indirect_call--> `db()` [INFERRED]
+  apps/api/src/porterchain_api/routers/driver/batches.py → scripts/local_stack_seed.py
 
 ## Import Cycles
 
-- 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/booking_service.py -> apps/api/src/porterchain_api/booking_engine/payment_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
 - 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/booking_service.py -> apps/api/src/porterchain_api/booking_engine/quote_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
-- 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/customer_service.py -> apps/api/src/porterchain_api/booking_engine/visitor_tracking_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
 - 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/confirmation_service.py -> apps/api/src/porterchain_api/booking_engine/order_transitions.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
 - 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/confirmation_service.py -> apps/api/src/porterchain_api/booking_engine/payment_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
+- 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/booking_service.py -> apps/api/src/porterchain_api/booking_engine/payment_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
+- 3-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/customer_service.py -> apps/api/src/porterchain_api/booking_engine/visitor_tracking_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
 - 3-file cycle: `services/pricing-engine/porterchain_pricing/__init__.py -> services/pricing-engine/porterchain_pricing/engine/__init__.py -> services/pricing-engine/porterchain_pricing/coverage.py -> services/pricing-engine/porterchain_pricing/__init__.py`
-- 4-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/booking_service.py -> apps/api/src/porterchain_api/booking_engine/customer_service.py -> apps/api/src/porterchain_api/booking_engine/visitor_tracking_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
 - 4-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/booking_service.py -> apps/api/src/porterchain_api/booking_engine/quote_service.py -> apps/api/src/porterchain_api/booking_engine/visitor_tracking_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
-- 4-file cycle: `services/pricing-engine/porterchain_pricing/__init__.py -> services/pricing-engine/porterchain_pricing/pricing_service.py -> services/pricing-engine/porterchain_pricing/engine/__init__.py -> services/pricing-engine/porterchain_pricing/coverage.py -> services/pricing-engine/porterchain_pricing/__init__.py`
+- 4-file cycle: `apps/api/src/porterchain_api/booking_engine/__init__.py -> apps/api/src/porterchain_api/booking_engine/booking_service.py -> apps/api/src/porterchain_api/booking_engine/customer_service.py -> apps/api/src/porterchain_api/booking_engine/visitor_tracking_service.py -> apps/api/src/porterchain_api/booking_engine/__init__.py`
 - 4-file cycle: `services/pricing-engine/porterchain_pricing/__init__.py -> services/pricing-engine/porterchain_pricing/simulator.py -> services/pricing-engine/porterchain_pricing/engine/__init__.py -> services/pricing-engine/porterchain_pricing/coverage.py -> services/pricing-engine/porterchain_pricing/__init__.py`
+- 4-file cycle: `services/pricing-engine/porterchain_pricing/__init__.py -> services/pricing-engine/porterchain_pricing/pricing_service.py -> services/pricing-engine/porterchain_pricing/engine/__init__.py -> services/pricing-engine/porterchain_pricing/coverage.py -> services/pricing-engine/porterchain_pricing/__init__.py`
 - 5-file cycle: `services/pricing-engine/porterchain_pricing/__init__.py -> services/pricing-engine/porterchain_pricing/pricing_service.py -> services/pricing-engine/porterchain_pricing/simulator.py -> services/pricing-engine/porterchain_pricing/engine/__init__.py -> services/pricing-engine/porterchain_pricing/coverage.py -> services/pricing-engine/porterchain_pricing/__init__.py`
 
-## Communities (1041 total, 177 thin omitted)
+## Communities (1225 total, 248 thin omitted)
 
-### Community 0 - "typing"
+### Community 0 - "ShopifyShop"
 
-Cohesion: 0.01
-Nodes (242): main(), _order_payload(), _rate_payload(), _sign(), _action_id(), sync_portal_doc_status(), ai_insights(), analytics_payload() (+234 more)
+Cohesion: 0.03
+Nodes (150): Shopify HMAC (webhooks + OAuth callback query)., Shopify `X-Shopify-Hmac-Sha256` is Base64(HMAC-SHA256(raw body))., verify_webhook_hmac(), apply_signup_policy(), Bring an already-created, not-yet-active merchant in line with current policy.…, fsa_rate_counts(), decrypt_signing_secret(), encrypt_signing_secret() (+142 more)
 
 ### Community 1 - "Order"
 
 Cohesion: 0.01
-Nodes (287): _advance_order(), cleanup_partial_seed_orders(), create_order_variants(), create_retail_order(), _now(), seed_ops_data(), _website_pricing(), guard() (+279 more)
+Nodes (449): _advance_order(), create_order_variants(), seed(), assess_auto_dispatch(), assess_business_metrics(), assess_on_time_delivery(), build_business_metric_alerts(), §5.3.2–5.3.4 — platform business metrics (dispatch, on-time, support SLA). (+441 more)
 
-### Community 2 - "PageSkeleton"
-
-Cohesion: 0.01
-Nodes (360): BlogAuthorsPage(), BlogEditPage(), Props, BlogPage(), BookingDraftDetailClient(), BookingDraftDetailView, BookingDraftDetailPage(), BookingDraftsPage() (+352 more)
-
-### Community 3 - "MerchantBillingService"
-
-Cohesion: 0.05
-Nodes (49): do_statement_ar(), MerchantContract, _latest_payment_by_order(), merchant_ar(), merchant_ar_index(), MerchantAr, billing_period_bounds(), build_tax_summary() (+41 more)
-
-### Community 4 - "useAdminAuth"
+### Community 2 - "useAdminAuth"
 
 Cohesion: 0.01
-Nodes (477): CustomerCreateModal, CUSTOMERS_WRITE_ROLES, CustomersPage(), FacetButton(), IdentityFilter, StatTile(), Page(), role() (+469 more)
+Nodes (356): role(), handleSave(), BookingDraftsListClient(), ICONS, TYPES, Avatar(), BTN, Button() (+348 more)
 
-### Community 5 - "leads.ts"
+### Community 3 - "Invoice"
 
-Cohesion: 0.04
-Nodes (98): LeadDetailPage(), Props, LeadsPage(), LeadsPipelinePage(), LeadBulkBar(), Staff, toStaff(), Disclosure() (+90 more)
+Cohesion: 0.01
+Nodes (352): Admin mark-paid with Interac reference matching., AdminDashboardService, Any, Cross-module search for the command center header., collections_payload(), dashboard_payload(), export_gl_payload(), list_payouts_payload() (+344 more)
 
-### Community 6 - "Container"
+### Community 4 - "useApiData"
+
+Cohesion: 0.01
+Nodes (297): CustomersPage(), CHANNEL_LABELS, EntityAlertsPanel(), plainLabel(), RecipientType, STATUS_TONE, ActivityTimeline(), EntityTasks() (+289 more)
+
+### Community 5 - "ref_tanstack_react_query"
 
 Cohesion: 0.02
-Nodes (212): GA4 quote funnel, CareersPage(), Props, ContactPage(), DEPT_ICONS, generateMetadata(), Props, QuoteIntentRedirect() (+204 more)
+Nodes (178): Props, BookingDraftsPage(), Props, ClaimsPage(), Props, CustomersPage(), Props, LeadsCalendarPage() (+170 more)
 
-### Community 7 - "sqlalchemy"
+### Community 6 - "cn"
+
+Cohesion: 0.02
+Nodes (205): ref_framer_motion, next-intl, BlogNewsletter(), handleSubmit(), ShareButtons(), ShareButtonsProps, MarketingConsentCheckbox(), Props (+197 more)
+
+### Community 7 - "typing"
+
+Cohesion: 0.00
+Nodes (483): _map_class(), upgrade(), _collapse_vehicles(), upgrade(), Run Porterchain API with uvicorn., apply(), main(), Apply Kaylulu commercial schedule + A3 handling tiers + FSA tier tags (data… (+475 more)
+
+### Community 8 - "shopify_fulfillment_ops.py"
+
+Cohesion: 0.06
+Nodes (87): accept_cancellation_request(), accept_fulfillment_request(), admin_graphql(), as_gid(), assigned_fulfillment_orders(), carrier_service_create(), carrier_service_delete(), carrier_service_update() (+79 more)
+
+### Community 9 - "ref_lucide_react"
 
 Cohesion: 0.01
-Nodes (145): upgrade(), downgrade(), upgrade(), upgrade(), downgrade(), upgrade(), upgrade(), upgrade() (+137 more)
-
-### Community 8 - "MerchantUser"
-
-Cohesion: 0.04
-Nodes (59): _authorize_merchant(), _find_merchant_user(), _merchant_modules_for_role(), is_merchant_dev_subject(), assert_portal_email_identity(), DevMerchantHeaders, get_merchant_seats(), _merchant_context_from_impersonation() (+51 more)
-
-### Community 9 - "dispatch.ts"
-
-Cohesion: 0.03
-Nodes (101): DispatchViewPage(), OperationsRedirect(), PartnerJobsPage(), PartnersPage(), DispatchShell(), DriversListClient, LiveMapPanel, OrderBuilderModal (+93 more)
+Nodes (226): CustomerCreateModal, CUSTOMERS_WRITE_ROLES, IdentityFilter, DispatchViewPage(), OperationsRedirect(), EMPTY, BlogEditClient(), toInput() (+218 more)
 
 ### Community 10 - "website/src/lib/blog.ts"
 
-Cohesion: 0.05
-Nodes (86): BLOG_AUTHORS, BlogAuthor, getBlogAuthor(), BLOG_CATEGORIES, BlogCategory, isBlogCategory(), POST(), POST() (+78 more)
+Cohesion: 0.04
+Nodes (91): BLOG_AUTHORS, BlogAuthor, getBlogAuthor(), BLOG_CATEGORIES, blogAuthorSchema, BlogCategory, isBlogCategory(), PublicBlogPostItem (+83 more)
 
-### Community 11 - "ref_next"
+### Community 11 - "TeamClient.tsx"
 
-Cohesion: 0.01
-Nodes (299): Admin portal P0 e2e, Auth (staff IdP), Run, GET(), brand, metadata, RootLayout(), TAB_TO_PAGE (+291 more)
+Cohesion: 0.02
+Nodes (167): AccountSecurityClient(), AdminAccessGate(), profileFromSession(), Props, SETTINGS_PALETTE, Shell(), titleCase(), ADMIN_ROLE_PRIORITY (+159 more)
 
 ### Community 12 - "cn"
 
 Cohesion: 0.02
-Nodes (237): MerchantDetailPage(), Props, MerchantsPage(), metadata, NotificationDeliveryPage(), BoardItem(), MerchantBoardClient(), bulk() (+229 more)
+Nodes (227): FacetButton(), metadata, ToggleRow(), BoardItem(), MerchantBoardClient(), bulk(), Pending, SEGMENT_OPTIONS (+219 more)
 
-### Community 13 - "test_execution_metrics.py"
+### Community 13 - "JobScreen.tsx"
 
-Cohesion: 0.21
-Nodes (8): assess_deploy_frequency_policy(), assess_orders_per_week(), build_execution_metrics_dashboard(), _seed_order(), test_assess_deploy_frequency_policy(), test_assess_orders_per_week_counts_recent(), test_assess_orders_per_week_structure(), test_build_execution_metrics_dashboard()
+Cohesion: 0.04
+Nodes (75): arriveStop(), deliverStop(), podComplete(), podIdCheck(), podPhoto(), podSignature(), reportException(), scanPackage() (+67 more)
 
 ### Community 14 - "sitemap-entries.ts"
 
 Cohesion: 0.02
-Nodes (181): CampaignPage(), generateMetadata(), Props, generateMetadata(), generateStaticParams(), generateMetadata(), IndustrySlugPage(), Props (+173 more)
+Nodes (204): website_messages_en, website_messages_fr, CitySegmentPage(), generateMetadata(), generateStaticParams(), Props, generateMetadata(), IndustrySlugPage() (+196 more)
 
 ### Community 15 - "MerchantContext"
 
-Cohesion: 0.05
-Nodes (20): booking_env_preference(), documentation_bundle(), _integrations_profile(), sandbox_mode_enabled(), set_sandbox_mode(), usage_summary(), MerchantApiKeyService, MerchantIntegrationsService (+12 more)
+Cohesion: 0.04
+Nodes (25): MerchantApiKeyService, MerchantIntegrationsService, Any, Cancel merchant-owned open sandbox orders., Merchant API testing console — uses service layer (no raw key required)., MerchantOrderFilters, MerchantOrdersService, Any (+17 more)
 
-### Community 16 - "CorporateShell"
+### Community 16 - "website/src/components/ui/Container.tsx"
 
-Cohesion: 0.02
-Nodes (234): Component kits, AuthorsHubPage(), generateMetadata(), generateStaticParams, Props, generateMetadata(), CampaignsHubPage(), generateMetadata() (+226 more)
+Cohesion: 0.03
+Nodes (153): CareersPage(), Props, CompanyPage(), Props, ContactPage(), DEPT_ICONS, generateMetadata(), Props (+145 more)
 
-### Community 17 - "useMerchantAuth"
+### Community 17 - "ref_react"
 
 Cohesion: 0.01
-Nodes (390): InvoiceDetailPage(), Props, DashboardPage(), DashboardPage(), HelpPage(), PortalLayout(), MerchantNotificationsPage(), Order360View (+382 more)
+Nodes (420): BatchDetail, BatchRow, BatchStatus(), DOC_LABEL, loadVisibility(), SelectableGrid(), SelectableGridProps, EmergencyClient() (+412 more)
 
 ### Community 18 - "admin/src/lib/orders.ts"
 
 Cohesion: 0.02
-Nodes (172): OrderDetailPage(), Props, OrdersPage(), queryString(), BulkAssignDriverModal, Kpi(), OrderBuilderModal, OrdersPage() (+164 more)
+Nodes (120): OrdersPage(), queryString(), BulkAssignDriverModal, Kpi(), OrderBuilderModal, OrdersPage(), OrderBuilderModal, OpsPageHero() (+112 more)
 
-### Community 19 - "pytest"
+### Community 19 - "test_booking_attachments.py"
+
+Cohesion: 0.28
+Nodes (13): _driver(), _merchant(), _order(), Booking attachments: pickup documents shared with the assigned driver only., test_editable_until_pickup_then_locked(), test_location_template_reused_on_future_bookings(), test_merchant_sees_driver_name_only(), test_merchant_upload_driver_view_and_pickup_gate() (+5 more)
+
+### Community 20 - "DriverContext"
+
+Cohesion: 0.08
+Nodes (82): get_driver_context(), Depends, Header, HTTPAuthorizationCredentials, Async shell: only the JWKS verify is awaited; all DB + Keycloak Backend I/O…, DriverContext, require_approved_driver(), accept_offer() (+74 more)
+
+### Community 21 - "useAuth"
 
 Cohesion: 0.04
-Nodes (61): main(), test_gap08_push_service_register_and_unregister(), test_gap08_push_service_rejects_expo_token(), _valid_fcm(), test_bulk_normalize_row(), test_idp_kind_for_user_type(), test_merchant_reports_export(), test_settings_authorize_platform_user_staff() (+53 more)
-
-### Community 20 - "get_driver_context"
-
-Cohesion: 0.07
-Nodes (55): get_driver_context(), DriverContext, require_approved_driver(), scan_error_code(), bonuses(), claim_bonus(), dashboard(), earnings_snapshot() (+47 more)
-
-### Community 21 - "AdminShell.tsx"
-
-Cohesion: 0.05
-Nodes (75): AccountSecurityPage(), PortalLayout(), AccountSecurityClient(), AdminShell(), SETTINGS_PALETTE, Shell(), titleCase(), ADMIN_ROLE_PRIORITY (+67 more)
+Nodes (73): AuthUnavailable(), SignUpPage(), SignUpWithAuth(), dynamic, Redeem(), WelcomeClient(), AccountBody(), refreshTickets() (+65 more)
 
 ### Community 22 - "routes.ts"
 
 Cohesion: 0.03
-Nodes (116): 0.2 Settings sections, api module (33), 8. Database reorganisation plan, 9.1 Standard rate card editing (super admin only), 9.3 Manual price change on one quote or order, 9.4 Who can change prices (SpiceDB, 75 §2 roles), 9.5 Data model (schema `pricing`), 9.6 API (+108 more)
+Nodes (123): website_messages_seo_programmatic_fr, CompareHubPage(), EN_HUB, EN_META, generateMetadata(), generateStaticParams, Props, ComparePage() (+115 more)
 
 ### Community 23 - "SupportTicket"
 
-Cohesion: 0.10
-Nodes (14): assess_support_first_response(), SupportTicket, append_ticket_timeline(), _ticket_data(), ticket_number(), SupportDashboardMixin, append_timeline(), normalize_status() (+6 more)
+Cohesion: 0.08
+Nodes (36): assess_support_first_response(), Backward-compatible re-export — prefer `support_engine.support_service`., SupportTicket, append_ticket_timeline(), Any, Shared support domain helpers — ticket numbers and timeline (no admin_engine…, _ticket_data(), ticket_number() (+28 more)
 
-### Community 24 - "merchant_engine/booking_service.py"
+### Community 24 - "MerchantBookDeliveryRequest"
 
-Cohesion: 0.02
-Nodes (104): create_merchant_order(), do_csv(), do_orders(), build_compliance_metadata(), _ComplianceBooking, resolve_executor_type(), resolve_order_type(), dropoff_address_fields() (+96 more)
+Cohesion: 0.05
+Nodes (44): dropoff_address_fields(), enrich_dropoff(), extract_site_access_notes(), Construction / jobsite dropoff access notes (§8.1.6)., ErpFulfillmentAdapter, Any, Protocol, Integration adapter protocol — ERP / platform inbound (§7 · PLT-G4). (+36 more)
 
-### Community 25 - "test_shopify_urls.py"
+### Community 25 - "test_shopify_app_review.py"
 
 Cohesion: 0.07
-Nodes (30): _session_token(), _settings(), test_a_apr_03_web_deletion_page_for_both_apps(), test_a_apr_07_no_otp_captcha_except_staff_totp_and_brute_force(), test_a_apr_08_no_clerk_in_runtime_code(), test_a_shr_02_session_token_valid_expired_forged(), test_a_shr_05_compliance_webhook_hmac(), test_a_shr_07_requested_scopes_equal_used_scopes() (+22 more)
+Nodes (51): tc_id, G20 (Shopify review, 76 §10) and G21 (mobile review, 76 §11) acceptance checks.…, _session_token(), _settings(), test_a_apr_03_web_deletion_page_for_both_apps(), test_a_apr_07_no_otp_captcha_except_staff_totp_and_brute_force(), test_a_apr_08_no_clerk_in_runtime_code(), test_a_shr_02_session_token_valid_expired_forged() (+43 more)
 
-### Community 26 - "GeoPoint"
+### Community 26 - "engine/**init**.py"
 
-Cohesion: 0.04
-Nodes (58): DistanceRateService, fsa_from_point(), FsaRateService, _vehicle_match(), LocationSurchargeService, ComponentQuote, _item(), config_from_rate_card() (+50 more)
+Cohesion: 0.03
+Nodes (133): _address_key(), _box_summary(), combine_boxes(), ContractRouteService, _fsa_problem(), keys_by_stop(), _lift_flags(), merge_same_address() (+125 more)
 
 ### Community 27 - "toRouteImport.ts"
 
-Cohesion: 0.07
-Nodes (59): ShopifyConnection, BillingLineInput, billingSummaryLine(), cycleLabel(), termsLabel(), formatOntarioPostal(), isOntarioPostal(), isOntarioProvince() (+51 more)
+Cohesion: 0.10
+Nodes (43): BillingLineInput, billingSummaryLine(), cycleLabel(), termsLabel(), formatOntarioPostal(), isOntarioPostal(), normalizePostal(), postalFromAddress() (+35 more)
 
 ### Community 28 - "crm_models.py"
 
 Cohesion: 0.03
-Nodes (46): main(), main(), CrmActivityMixin, CrmCompaniesMixin, CrmContactsMixin, CrmContractsMixin, CrmDashboardMixin, CrmDealsMixin (+38 more)
+Nodes (130): main(), Mirror leads into the Companies module. Creates a CrmCompany for every lead…, main(), Validate Porterchain PostgreSQL modules — schema + service smoke checks., Backward-compatible re-export — prefer `collaboration_engine.crm_service`., mark_crm_churned(), datetime, CRM activity timeline and admin audit. (+122 more)
 
-### Community 29 - "AdminRole"
+### Community 29 - "AuthzClient"
 
-Cohesion: 0.03
-Nodes (61): main(), AuthzClient, get_authz_client(), _MemoryStore, Relationship, reset_authz_client(), require_relation(), _dependency() (+53 more)
+Cohesion: 0.04
+Nodes (78): Deactivate auth identity + account. Never cascade-delete operational data., AuthzClient, get_authz_client(), SpiceDB client + in-memory store for tests / SPICEDB_ENABLED=false local soft…, Check / WriteRelationships facade. Uses SpiceDB gRPC when enabled, else memory., Retry SpiceDB when API booted before the container was ready., Atomically drop `delete` (minus anything in `write`) and TOUCH `write`.…, One CheckBulkPermissions RPC (or memory batch). No result cache. Returns a bool… (+70 more)
 
 ### Community 30 - "BookingDraft"
 
-Cohesion: 0.05
-Nodes (43): display_state(), draft_number(), draft_row(), payment_for_draft(), AdminBookingDraftService, AdminDraftFilters, is_abandoned(), BookingDraft (+35 more)
+Cohesion: 0.04
+Nodes (55): display_state(), draft_number(), draft_row(), payment_for_draft(), Any, datetime, Admin booking-draft list/detail row — customer + payment + abandonment., AdminBookingDraftService (+47 more)
 
-### Community 31 - "leads.py"
+### Community 31 - "require_module"
 
-Cohesion: 0.06
-Nodes (35): apply_lead_assist_decision(), LeadAssistBlocked, lead_channel_metrics(), _audit_privacy(), lead_ropa_inventory(), LeadPrivacyError, LeadPrivacyService, CrmConversation (+27 more)
+Cohesion: 0.04
+Nodes (151): get_admin_context(), Header, Request, Keycloak `pc-admin` bearer (MFA in the realm flow); Bearer `dev` in dev…, _tag_actor(), Collaboration engine — CRM data for activities, contacts, and merchant notes…, apply_lead_assist_decision(), LeadAssistBlocked (+143 more)
 
-### Community 32 - "platform.py"
+### Community 32 - "DriverPlatform"
 
-Cohesion: 0.03
-Nodes (25): test_insurance_status_verified_copy(), test_list_documents_merges_seed_files_and_verified_flags(), BonusesService, DriverCommunicationService, _active_route_id(), DashboardService, _clear_verified_flag(), DocumentsService (+17 more)
+Cohesion: 0.08
+Nodes (21): BonusesService, Any, _active_route_id(), DashboardService, Any, Driver dashboard — today's earnings, stops, performance summary., EmergencyService, DriverFinanceService (+13 more)
 
 ### Community 33 - "BatchRunner.tsx"
 
-Cohesion: 0.05
-Nodes (71): BatchesPage(), BatchRunner(), Deliver(), Handover(), Notes(), Pickup(), Safety(), SAFETY_CODES (+63 more)
+Cohesion: 0.09
+Nodes (31): BatchRunner(), Deliver(), Handover(), Notes(), Pickup(), SAFETY_CODES, PhotoField(), SignaturePad() (+23 more)
 
-### Community 34 - "customer_fast/service.py"
-
-Cohesion: 0.05
-Nodes (76): CustomerAddress, CustomerConsent, _addr_out(), delete_address(), ensure_customer(), learn_address(), learn_from_history(), list_addresses() (+68 more)
-
-### Community 35 - "PorterchainUser"
-
-Cohesion: 0.04
-Nodes (43): rebind_idp_by_email(), is_dev_bypass_subject(), delete_email_mismatched_bindings(), email_from_jwt_payload(), emails_match(), enrich_claims_with_verified_email(), normalize_email(), require_idp_email() (+35 more)
-
-### Community 36 - "carrier_service_rates"
+### Community 34 - "customer_fast.py"
 
 Cohesion: 0.07
-Nodes (45): _breakdown_dict(), carrier_service_rates(), _checkout_promise(), contract_rate_summary(), _country(), _delivery_window(), _dimensions_from_items(), _empty() (+37 more)
+Nodes (73): CustomerAddress, Customer address book (saved + learned from history). Max a few dozen per…, _addr_out(), delete_address(), ensure_customer(), learn_address(), learn_from_history(), list_addresses() (+65 more)
 
-### Community 37 - "order_documents.py"
+### Community 35 - "AdminUser"
+
+Cohesion: 0.01
+Nodes (216): _keep_admin_ids(), main(), _pc_user(), _print_summary(), Wipe local Docker Postgres (except staff + passkeys) and seed complete…, seed_customer(), seed_driver(), _uuid() (+208 more)
+
+### Community 36 - "AddressInput"
 
 Cohesion: 0.03
-Nodes (74): active_coverage_cities(), automation_settings(), background_check_required(), claims_settings(), collect_qst(), coverage_settings(), default_tax_percent(), default_tax_province() (+66 more)
+Nodes (132): _breakdown_dict(), _carrier_hmac_secrets(), carrier_service_rates(), _checkout_promise(), contract_rate_summary(), _contract_vehicle(), _country(), _delivery_window() (+124 more)
+
+### Community 37 - "test_invoice_credit_notes.py"
+
+Cohesion: 0.03
+Nodes (108): credit_note_pdf_for_admin(), platform_company_name(), platform_support_email(), _amount_display(), print_error_message(), format_datetime_toronto(), parse_toronto_day_bound(), datetime (+100 more)
 
 ### Community 38 - "next.ts"
 
 Cohesion: 0.05
-Nodes (71): dynamic, GET, dynamic, GET, config, dynamic, GET, dynamic (+63 more)
+Nodes (77): dynamic, GET, HubSplitPanel(), release(), submit(), HubSplit, dynamic, GET (+69 more)
 
 ### Community 39 - "pathlib"
 
 Cohesion: 0.01
-Nodes (14): test_no_rest_admin_calls_left(), main(), split_router(), main(), _read(), main(), root_pointer_files(), _ci_text() (+6 more)
+Nodes (64): The day solver is OR-Tools. A VROOM sidecar is not the Optimize path., pathlib, Export KEYWORDS map → docs/ops/KEYWORDS_PAID_ALIGN.md for Ads/LinkedIn align., Admin ops tablet responsiveness guard (§6.3.4)., AI boundary — intelligence_engine exists; no LLM on pay/dispatch path., Appendix E.3 · §7.1.10 — apps/api/README links live OpenAPI surface., Board-close guard — neighbourhood hyperlocal, E-E-A-T success stories, edge…, Booking flow WCAG AA structure guard (§6.3.5). (+56 more)
 
 ### Community 40 - "Merchant"
 
-Cohesion: 0.05
-Nodes (62): apply_closed(), approve_merchant(), assert_can_offboard(), close_merchant(), complete_onboarding(), convert_to_customer(), deactivate_access(), mark_crm_churned() (+54 more)
+Cohesion: 0.01
+Nodes (448): ActorKind, seed_merchant(), apply_local_driver_compliance(), _ensure_dev_merchant(), _ensure_driver(), _ensure_merchant_user(), main(), Seed dev merchant + driver accounts for local portal testing. Idempotent — safe… (+440 more)
 
-### Community 41 - "Link"
+### Community 41 - "i18n/navigation.ts"
 
-Cohesion: 0.03
-Nodes (108): canAccessPortal(), fetchSessionContext(), react-icons, BookBody(), BookPage(), metadata, one(), Props (+100 more)
+Cohesion: 0.04
+Nodes (82): LoginContent(), VisitorIntelligenceBootstrap, formatPhone(), PORTALS, SiteFooter(), NavbarAuthProps, SiteNavbarAuth(), SiteNavbarAuthSession (+74 more)
 
 ### Community 42 - "CapacityGuideChat.tsx"
 
-Cohesion: 0.02
-Nodes (168): GA4 weekly funnel (website), One-time GA4 setup (Ravi, 5 minutes), Weekly review (Monday, 15 minutes), next-intl, BlogNewsletter(), handleSubmit(), MarketingConsentCheckbox(), Props (+160 more)
+Cohesion: 0.04
+Nodes (67): web-vitals, CapacityGuideWidget, DeferredSiteIntegrations(), GoogleAnalytics, INTERACTION_EVENTS, MarketingTags, MobileWhatsAppChat, useIdleOrInteraction() (+59 more)
 
-### Community 43 - "json"
+### Community 43 - "test_shopify_privacy.py"
 
-Cohesion: 0.03
-Nodes (68): downgrade(), _in_clause(), upgrade(), _map_class(), upgrade(), _collapse_vehicles(), upgrade(), main() (+60 more)
+Cohesion: 0.17
+Nodes (31): _export_orders(), _hash(), list_requests(), _matched_orders(), normalize_phone(), open_privacy_request(), _order_ids(), _payload() (+23 more)
 
-### Community 44 - "re"
+### Community 44 - "dedupe.py"
 
-Cohesion: 0.03
-Nodes (67): Candidate, candidates_from_db(), email_domain(), flag_possible_duplicate(), Match, name_similarity(), norm_bn(), norm_name() (+59 more)
+Cohesion: 0.20
+Nodes (21): Candidate, candidates_from_db(), email_domain(), flag_possible_duplicate(), Match, name_similarity(), norm_bn(), norm_name() (+13 more)
 
-### Community 45 - "HomeChooser.tsx"
+### Community 45 - "auth/src/index.ts"
 
-Cohesion: 0.05
-Nodes (45): COPY, FaqPage(), generateMetadata(), generateStaticParams, Props, CoreFaqList(), FaqFilter(), clock() (+37 more)
+Cohesion: 0.06
+Nodes (51): apps_admin_src_app_globals, brand, metadata, AdminAuthProvider(), POST(), AppAuthProvider(), AppAuthProviderProps, AUTH_EVENT_KINDS (+43 more)
 
 ### Community 46 - "PricingRequest"
 
-Cohesion: 0.05
-Nodes (45): apply_smart(), _points(), SmartAwarePricingService, _vehicle_hst(), test_pricing_line_items(), test_retail_quote_returns_positive_total(), PackageType, ServiceType (+37 more)
+Cohesion: 0.04
+Nodes (77): merge_pricing_config(), AQ — admin writes the full rate card; engine reads pricing_rate_card., test_rate_card_save_keeps_driver_payout(), test_settings_rate_card_write_reaches_quotes(), test_contract_merchant_keeps_multi_box_off(), test_every_quote_carries_the_price_version(), test_super_admin_overrides_price_merchant_quotes(), Wave 4 — H3 density, AABB-equivalent zones, Valhalla next-stop / import. (+69 more)
 
-### Community 47 - "get_settings"
+### Community 47 - "test_dispatch_phase2.py"
 
 Cohesion: 0.04
-Nodes (79): HubSplitService, hub_leg(), _events(), _no_optimize(), test_bulk_assign_mixes_dispatch_ready_and_picked_up(), test_delivered_orders_still_cannot_be_reassigned(), test_handoff_moves_pending_plan_stops(), test_reassign_blocks_unapproved_driver() (+71 more)
+Nodes (113): HubSplitService, Any, Collect-only / warehouse parcel: create (unhold) the delivery leg so Plan the…, hub_leg(), The order's open hub split, or None (no split, or both legs finished/cancelled)., Porterchain API — logistics platform backend., _events(), _no_optimize() (+105 more)
 
-### Community 48 - "MeScreen.tsx"
+### Community 48 - "src/settings.ts"
+
+Cohesion: 0.13
+Nodes (20): ACCOUNT_DELETION_NOTE, PrivacyRequester, requestAccountDeletion(), fetchAppSettings(), requestPrivacy(), useServerSettings(), clearQueryCache(), ContactAndSecurity() (+12 more)
+
+### Community 49 - "LeadStatus"
+
+Cohesion: 0.03
+Nodes (120): main(), _phone(), _crm_database_url(), _fetch_rows(), main(), _psycopg_url(), Import LEADS/CRM monorepo companies+dials into PCD CrmLead (sole SSOT). Reads…, _usable_phone() (+112 more)
+
+### Community 50 - "ref_react_native"
 
 Cohesion: 0.04
-Nodes (126): BlockKey, blockOf(), BLOCKS, CODES, hm(), weeklyHours(), ACCOUNT_DELETION_NOTE, PrivacyRequester (+118 more)
-
-### Community 49 - "uuid"
-
-Cohesion: 0.02
-Nodes (137): main(), _phone(), _crm_database_url(), _fetch_rows(), main(), _psycopg_url(), _usable_phone(), build_address() (+129 more)
-
-### Community 50 - "mobile-driver/src/ui/kit.tsx"
-
-Cohesion: 0.04
-Nodes (120): fetchDispatchChecklist(), fetchStopContact(), CheckinEvent, DispatchRoute, DispatchStop, FAIL_REASONS, isPickup(), itemCount() (+112 more)
+Nodes (139): MonitoringPolicy, apiBaseUrl, appEnv, dispatchEmail, dispatchPhone, driverPortalUrl, fetchTimeoutMs, isStoreProfile (+131 more)
 
 ### Community 51 - "shopify_payload_ops.py"
 
-Cohesion: 0.06
-Nodes (57): apply_shopify_book_vehicle(), find_quote_by_hash(), find_quote_for_book(), pickup_from_rate_quote(), _postal_norm(), quote_usable_for_order(), _request_hash(), resolve_shopify_pickup() (+49 more)
+Cohesion: 0.05
+Nodes (87): apply_shopify_book_vehicle(), find_quote_by_hash(), Align book vehicle_class with carrier quote resolve (Quote≡Book). Never raises., _as_float(), _as_str(), customer_slice(), format_shopify_address(), line_item_slice() (+79 more)
 
-### Community 52 - "Driver"
+### Community 52 - "IdentityClaims"
 
 Cohesion: 0.05
-Nodes (35): ai_payload(), analytics_payload(), _as_naive(), detail_payload(), _docs_pending_review(), _driver_profile_status(), driver_row(), health_score() (+27 more)
+Nodes (53): Single auth prepare path (request-cached via prepare_user_from_claims)., _sync_and_ensure(), IdentityClaims, _claims_for_sync(), get_authenticated_identity(), _identity_from_admin_claims(), Header, Request (+45 more)
 
 ### Community 53 - "admin/_deps.py"
 
 Cohesion: 0.04
-Nodes (100): _order_detail(), AdminCreateCustomerBookingDraftRequest, AdminCreateCustomerBookingDraftResponse, AdminCreateCustomerRequest, AdminCreateCustomerResponse, AdminCreateOrderRequest, AdminCreateOrderResponse, AdminCustomerAddressInput (+92 more)
+Nodes (119): _facet_counts(), _order_detail(), Admin operations API — /v1/admin/*, get_lead_visitor_intelligence(), get_visitor_intelligence(), Depends, get, Admin visitor intelligence — first-party session + CRM fusion insights. (+111 more)
 
-### Community 54 - "JobScreen.tsx"
+### Community 54 - "humanError"
 
-Cohesion: 0.07
-Nodes (71): arriveStop(), fetchJob(), fetchStopDocuments(), lookupLabel(), markStopDocumentShown(), reportException(), scanPackage(), startDelivery() (+63 more)
+Cohesion: 0.15
+Nodes (11): DeviceUnlockResult, unlockWithDeviceAuth(), COPY, humanError(), needsAccountSwitch(), SWITCH_ACCOUNT_CODES, openRefusedReview(), SignInScreen() (+3 more)
 
 ### Community 55 - "scripts"
 
 Cohesion: 0.02
 Nodes (119): scripts, auth:provision-admin, build, config:audit, connections:check, db:import-blog, db:migrate, db:revision (+111 more)
 
-### Community 56 - "get_preview_post"
+### Community 56 - "public_blog.py"
 
-Cohesion: 0.29
-Nodes (7): _full(), get_preview_post(), get_public_author(), get_published_post(), list_public_authors(), list_published_posts(), _meta()
+Cohesion: 0.10
+Nodes (23): Signed blog draft preview tokens (HMAC over locale:slug:exp)., verify_blog_preview_token(), _full(), get_blog_media(), get_preview_post(), get_public_author(), get_published_post(), list_public_authors() (+15 more)
 
 ### Community 57 - "[industry]/page.tsx"
 
-Cohesion: 0.05
-Nodes (97): brand, metadata, Props, DeliveryCostCalculatorPage(), FAQS, generateStaticParams(), PRICE_PARTS, Props (+89 more)
+Cohesion: 0.03
+Nodes (128): website_src_app_globals, brand, metadata, Props, BusinessPage(), Props, DeliveryCostCalculatorPage(), FAQS (+120 more)
 
-### Community 58 - "order_sla.py"
+### Community 58 - "require_module"
 
-Cohesion: 0.18
-Nodes (12): _naive_utc(), order_sla_status(), publish_due_delivery_notices(), refresh_open_sla_deadlines(), resolve_sla_deadline(), stamp_sla_deadline(), test_asap_breaches_after_instant_window(), test_asap_parcel_not_breached_immediately() (+4 more)
+Cohesion: 0.06
+Nodes (62): can_watch_dispatch(), Who may watch the Ops Today live stream., Same gate as GET /live-map: SpiceDB `dispatch_read` for this staff user., Authorize admin module via SpiceDB only — no matrix fallback, no portal bypass., require_module(), make_blog_preview_token(), notify_blog_revalidate(), Any (+54 more)
 
 ### Community 59 - "merchant_onboarding.py"
 
-Cohesion: 0.05
-Nodes (52): onboarding_payload(), _derive_company_name(), ensure_merchant_portal_signup(), evaluate_merchant_onboarding(), _require_seat(), resolve_merchant_contact(), _resolve_seat(), save_merchant_company_file() (+44 more)
+Cohesion: 0.04
+Nodes (96): get_identity_claims(), _portal_header(), Request, _request_path(), Depends, Authenticate + resolve internal user. Suspended/deactivated → 403., require_authenticated(), _derive_company_name() (+88 more)
 
-### Community 60 - "CurrentPrincipal"
+### Community 60 - "PorterchainUser"
 
-Cohesion: 0.03
-Nodes (79): activate_pending_user(), activate_user_for_idp(), CurrentPrincipal, RoleAssignmentView, _workspaces_for(), assert_organization_scope(), require_all_permissions(), _dependency() (+71 more)
+Cohesion: 0.04
+Nodes (95): activate_pending_user(), activate_user_for_idp(), Shared account activation helpers — single place for pending→active flips.…, Flip pending → active. Returns True when status changed., Activate the registry user bound to a Keycloak subject (if present)., CurrentPrincipal, CurrentPrincipal — PorterChain authorization object (permissions from SpiceDB)., Legacy exclusive user_type for older clients — not an authz signal. Never… (+87 more)
 
 ### Community 61 - "environment"
 
 Cohesion: 0.04
 Nodes (89): environment, ADMIN_IP_ALLOWLIST_BREAK_GLASS, ADMIN_PORTAL_URL, APP_DEBUG, APP_ENV, AUDIT_SIGNING_KEY, AUTH_DEV_BYPASS, CORS_ORIGINS (+81 more)
 
-### Community 62 - "AdminContext"
+### Community 62 - "Driver"
 
-Cohesion: 0.01
-Nodes (191): main(), _bootstrap_admin_ctx(), main(), _send_idp_invite(), apply_local_driver_compliance(), _ensure_dev_merchant(), _ensure_driver(), _ensure_merchant_user() (+183 more)
+Cohesion: 0.02
+Nodes (208): _bootstrap_admin_ctx(), main(), Provision an approved driver in Porterchain + send Keycloak driver invitation.…, _send_idp_invite(), _ensure_driver(), _go_online_with_location(), main(), Seed 5 approved drivers — online with GTA location pings. Idempotent on driver… (+200 more)
 
-### Community 63 - "dataclasses"
+### Community 63 - "AuthPrincipal"
 
-Cohesion: 0.05
-Nodes (36): ensure_dev_admin(), ensure_local_super_admin(), get_admin_by_email(), get_admin_by_idp(), get_admin_user(), rebind_idp_by_email(), stamp_admin_porterchain_user_id(), find_link() (+28 more)
+Cohesion: 0.17
+Nodes (13): AuthPrincipal, RBAC enforcement helpers., Declarative RBAC policy for route and service guards., RBACPolicy, require_any_role(), require_permission(), Permission, PlatformRole (+5 more)
 
 ### Community 64 - "CrmLead"
 
-Cohesion: 0.03
-Nodes (79): VisitorIntelligenceService, VisitorSession, _agent_bag(), _internal_inbox(), lead_agent_activity(), _notice(), _row(), _agent_enabled() (+71 more)
+Cohesion: 0.04
+Nodes (102): Lead360Service, Any, datetime, _agent_bag(), _internal_inbox(), lead_agent_activity(), _notice(), Any (+94 more)
 
-### Community 65 - "test_merchant_control_wave.py"
+### Community 65 - "customers.py"
 
-Cohesion: 0.11
-Nodes (18): forbidden_message(), module_label(), _on_body(), test_available_credit_headroom(), test_duplicate_inherits_sandbox(), test_english_role_and_forbidden_copy(), _ok(), test_operational_count_ignores_sandbox() (+10 more)
+Cohesion: 0.07
+Nodes (53): customer_onboarding_payload(), evaluate_customer_onboarding(), provision_customer_for_onboarding(), Any, Create/link the customers row when this Keycloak id is allowed on the customer…, require_customer_portal_ready(), require_customer(), check_rate() (+45 more)
 
 ### Community 66 - "Settings"
 
 Cohesion: 0.02
-Nodes (169): DiagnosticsDispatchProbesMixin, _configured(), lead_ingest_settings_status(), _runtime_value(), update_lead_ingest_settings(), analytics_enabled(), ingest_domain_event(), ingest_stop_leg() (+161 more)
+Nodes (123): main(), AdminDataMoatService, Any, directory_kind_for_user_type(), fetch_directory_snapshots(), Any, UserKind, Staff uses Staff IdP — never a Keycloak directory application. (+115 more)
 
 ### Community 67 - "mobile-driver/App.tsx"
 
 Cohesion: 0.05
-Nodes (70): App(), Blocker, DriverApp(), Hydrated(), settingsReady, ackMonitoringPolicy(), fetchGpsStatus(), fetchMonitoringPolicy() (+62 more)
+Nodes (73): App(), Blocker, DriverApp(), settingsReady, ackMonitoringPolicy(), fetchGpsStatus(), fetchMonitoringPolicy(), fetchOnboarding() (+65 more)
 
-### Community 68 - "Button"
+### Community 68 - "IntegrationsClient.tsx"
 
-Cohesion: 0.06
-Nodes (57): ShopifyPage(), ShopifyOrdersDeliveryCard(), ConnectionsStatus(), DOT, GROUP, StatusRow(), useConnectionsStatus(), WORD (+49 more)
+Cohesion: 0.05
+Nodes (43): IntegrationsClient, ConnectionsStatus(), DOT, GROUP, useConnectionsStatus(), WORD, DeliveryTable(), IntegrationsClient() (+35 more)
 
 ### Community 69 - "relativeTime"
 
-Cohesion: 0.02
-Nodes (168): FinanceMetricsPage(), MerchantDuplicatesPage(), SupportPage(), addr(), AddressesTab(), AuditTab(), BookingDraftDetailView(), CustomerTab() (+160 more)
+Cohesion: 0.03
+Nodes (68): ClaimDetailClient(), ClaimDetailView, SupportDetailView, AuditTab(), ClaimDetailView(), CommunicationTab(), CompensationTab(), NotesTab() (+60 more)
 
 ### Community 70 - "test_unified_identity_phase5.py"
 
 Cohesion: 0.22
-Nodes (8): _clear_idp_env(), _db_membership(), _settings(), test_unified_allows_multi_role_on_admin_when_provisioned(), test_unified_allows_multi_role_same_subject_on_customer(), test_unified_still_requires_admin_provisioning(), test_unified_still_requires_merchant_provisioning(), _unified_settings()
+Nodes (13): _clear_idp_env(), _db_membership(), fixture, MonkeyPatch, Phase 5 — unified Keycloak app mode: multi-role, portal visit ≠ role., Platform slots share issuer; Driver distinct — platform_driver layout., Admin + customer membership OK under unified — visit still needs provisioning…, _settings() (+5 more)
 
 ### Community 71 - "TrackingService"
 
-Cohesion: 0.08
-Nodes (8): TrackingFacade, TrackingService, TrackingTranslator, get_order_by_tracking(), get_order_live_tracking(), list_customer_orders(), OrderResponse, 2.3 Webhook handshake (Fleetbase → PC)
+Cohesion: 0.09
+Nodes (17): Any, OrderTrackingResponse, Raw live GPS from the assigned driver via the shared facade., Normalized tracking snapshot — identical shape on every portal., Enriched public snapshot: addresses, map geometry, and ETA., Driver GPS consent policy; fail closed if it can't be read., Build OrderTrackingResponse for the public order tracking endpoint., TrackingService (+9 more)
 
-### Community 72 - "math"
+### Community 72 - "contract_schedule.py"
 
-Cohesion: 0.05
-Nodes (47): _contract_vehicle(), _address_key(), _box_summary(), combine_boxes(), ContractRouteService, _fsa_problem(), keys_by_stop(), _lift_flags() (+39 more)
+Cohesion: 0.07
+Nodes (49): _codes(), CompactBand, CompactTerms, deep_merge(), handling_tier_for(), handling_tiers_from_dict(), HandlingTier, _inches() (+41 more)
 
 ### Community 73 - "Page specs (72)"
 
@@ -1436,597 +1565,597 @@ Nodes (73): 1.10 `/[locale]/book/continue`, 1.11 `/[locale]/book`, 1.12 `/[local
 ### Community 74 - "mobile-driver/package.json"
 
 Cohesion: 0.03
-Nodes (106): dependencies, expo@~57.0.27, expo-apple-authentication@~57.0.2, expo-application@~57.0.3, expo-audio@~57.0.5, expo-auth-session@~57.0.14, expo-battery@~57.0.3, expo-build-properties@~57.0.22 (+98 more)
+Nodes (68): devDependencies, babel-preset-expo, @types/react, typescript, vitest, engines, node, babel-preset-expo (+60 more)
 
 ### Community 75 - "BookDeliveryClient.tsx"
 
-Cohesion: 0.05
-Nodes (76): AddressField(), addressToPayload(), BookDeliveryClient(), applyTemplate(), onConfirm(), onSaveDraft(), onSaveTemplate(), DateTimeField() (+68 more)
+Cohesion: 0.06
+Nodes (58): call(), BookDeliveryClient, BookDeliveryClient, StandingOrdersClient, addressToPayload(), BookDeliveryClient(), applyTemplate(), onConfirm() (+50 more)
 
-### Community 76 - "hmac"
+### Community 76 - "test_shopify_carrier_origin_fallback.py"
 
-Cohesion: 0.04
-Nodes (62): verify_meta_signature(), put_blog_media_object(), s3_config_from_env(), _sig_key(), _sign(), _b64(), _key(), prefs_token() (+54 more)
+Cohesion: 0.21
+Nodes (19): _call(), _lines(), Any, parametrize, Shopify carrier rates: ship-from fallback to the PorterChain pickup + empty-…, Book can reuse the same pickup the shopper was quoted against., test_checkout_persists_pickup_snapshot_on_fallback(), test_checkout_persists_shopify_origin_when_usable() (+11 more)
 
 ### Community 77 - "types/src/index.ts"
 
 Cohesion: 0.04
-Nodes (78): BlogFilters, BlogPost, STATUS_TONES, PartnerBarcodesCard(), add(), Props, barcodesFor(), custodyStatusLabel() (+70 more)
+Nodes (94): emptyRow(), ParcelRow, parcelsPayload(), SendBody(), pay(), SendClient(), tx(), attachAll() (+86 more)
 
-### Community 78 - "copilot_service.py"
+### Community 78 - "re"
 
-Cohesion: 0.04
-Nodes (43): LeadDecisionStatus, _normalize_action(), _parse_suggestions(), _stub_suggestions(), suggest_ops_action(), suggest_ops_action_committed(), _suggest_via_llm(), _call_llm() (+35 more)
+Cohesion: 0.03
+Nodes (97): _normalize_action(), _parse_suggestions(), Any, LLM admin copilot — read-only assist (§4.2.8). Not on pay path., Suggest, then commit any usage rows written during the call., Return ops suggestions; uses an LLM (FEATURE_AI, off in Phase 0) when…, _stub_suggestions(), suggest_ops_action() (+89 more)
 
-### Community 79 - "soft_delete/registry.py"
+### Community 79 - "actions.py"
 
-Cohesion: 0.08
-Nodes (50): DispatchPlan, DeletedBatch, including_deleted(), auto_purge(), _batch(), batch_out(), _batch_rows(), can_delete() (+42 more)
+Cohesion: 0.16
+Nodes (30): DeletedBatch, One row per admin delete action (root + cascaded children). Drives Settings >…, auto_purge(), _batch(), batch_out(), _batch_rows(), can_delete(), can_purge() (+22 more)
 
 ### Community 80 - "test_contract_schedule.py"
 
 Cohesion: 0.05
-Nodes (96): raw_contract_schedule(), policy_from_config(), default_price_book(), ParcelSpec, _boxes(), _ctx(), _generic_fsa_ctx(), _item() (+88 more)
+Nodes (104): The file as written — for templates that copy rates into `pricing_config`., raw_contract_schedule(), policy_from_config(), Read the policy out of a merchant's `pricing_config`, ignoring junk., ParcelSpec, One packed parcel on a route, for contract schedules that bill per parcel.…, _boxes(), _ctx() (+96 more)
 
 ### Community 81 - "schemas_merchant.py"
 
-Cohesion: 0.05
-Nodes (90): ApiKeyCreateRequest, BillingContactPatchRequest, BillingContactRequest, BillingGlossaryItem, BillingRemittance, BillingStatementResponse, BulkUploadResponse, BusinessDocumentRequest (+82 more)
+Cohesion: 0.04
+Nodes (108): return_error_message(), standing_error_message(), Merchant portal API — /v1/merchant/*, create_order_return(), list_order_returns(), Ctx, get, post (+100 more)
 
 ### Community 82 - "merchant-portal/src/lib/api.ts"
 
+Cohesion: 0.04
+Nodes (84): MerchantBatchesPage(), downloadEdi(), BulkUploadClient, addressMappingConfident(), BulkPage(), onApplyMapping(), onClassicConfirm(), onClassicUpload() (+76 more)
+
+### Community 83 - "mobile-customer/App.tsx"
+
 Cohesion: 0.05
-Nodes (73): addressMappingConfident(), BulkPage(), onApplyMapping(), onClassicConfirm(), onClassicUpload(), onLoadMapping(), onOptimize(), onRouteConfirm() (+65 more)
-
-### Community 83 - "TrackScreen.tsx"
-
-Cohesion: 0.08
-Nodes (75): fetchDashboard(), fetchInbox(), getDriverPosition(), getOrderByTracking(), getOrderExperience(), getOrderLiveTracking(), markAllRead(), markRead() (+67 more)
+Nodes (96): Vehicle360Tab(), App(), Phase, styles, createSupport(), fetchDashboard(), fetchOnboarding(), getDriverPosition() (+88 more)
 
 ### Community 84 - "url-policy.ts"
 
 Cohesion: 0.04
-Nodes (55): 1. Permanent root redirect (in this PR), 2. Removed and retired pages, 3. Caching, 4. Rate safety, Caddy changes for porterchain.com (Oct 2026), Deploy checklist (for Ravi), MERGED_DELIVERY_VERTICALS, canonicalInternalHref() (+47 more)
+Nodes (50): q(), website_src_generated_indexable_paths, MERGED_DELIVERY_VERTICALS, canonicalInternalHref(), FAQ_CLUSTER_DESTINATION, LOCALES, removedCorporatePaths, WEBSITE_REDIRECTS (+42 more)
 
-### Community 85 - "get_admin_context"
-
-Cohesion: 0.02
-Nodes (129): document_allowed_types(), require_module(), bindings_payload(), get_admin_context(), _tag_actor(), blog_media_public_base(), public_media_path(), save_blog_image() (+121 more)
-
-### Community 86 - "invoice_adjustments.py"
+### Community 85 - "AdminContext"
 
 Cohesion: 0.07
-Nodes (51): approve_credit_note(), create_credit_note(), _credit_note_after_issue(), _credit_note_audit(), credit_note_out(), credit_note_pdf_for_admin(), invoice_adjustments(), reject_credit_note() (+43 more)
+Nodes (79): AdminContext, bindings_payload(), Any, Settings binding registry — Wired vs Env vs Decorative (honesty over theater).…, Map a Settings UI logical key to a SystemConfig storage key (writable only)., resolve_writable_config_key(), impersonation_status(), Depends (+71 more)
+
+### Community 86 - "Live migration rehearsal — cw0 → dm4 (2026-10-28)"
+
+Cohesion: 0.20
+Nodes (9): Environment, Issues, Live migration rehearsal — cw0 → dm4 (2026-10-28), Live order, Post-checks, Pre-flight checklist, Rollback, Smoke results (+1 more)
 
 ### Community 87 - "StopsService"
 
-Cohesion: 0.06
-Nodes (53): _order(), _svc_order(), test_dropoff_open_when_pod_paused(), test_dropoff_requires_proof_when_pod_enforced(), test_next_stop_access_and_masked_phone(), test_normalize_aliases_and_rejects_unknown(), test_not_home_stays_on_stop_no_reopt(), _flush() (+45 more)
+Cohesion: 0.07
+Nodes (53): EarningsService, Per-stop status for route queues and UI (not raw order.state on both stops)., stop_status_for_leg(), _actionable(), _address(), arrive(), assert_final_drop_ready(), _assert_stop_parcels_scanned() (+45 more)
 
-### Community 88 - "test_smart_pricing_api.py"
+### Community 88 - "public_guide.py"
 
-Cohesion: 0.18
-Nodes (4): _no_network(), matrix_durations(), test_routing_outage_falls_back(), test_simulator_returns_old_and_new()
+Cohesion: 0.08
+Nodes (50): looks_like_bot(), book_guide_appointment(), _guide_consent(), list_guide_slots(), alias, get, Header, post (+42 more)
 
 ### Community 89 - "FleetPlanService"
 
-Cohesion: 0.05
-Nodes (30): _aware(), FleetPlanService, _now(), _position(), rules_explain(), summarize(), area_of(), consolidation() (+22 more)
+Cohesion: 0.06
+Nodes (40): _aware(), FleetPlanService, _now(), Any, datetime, Orders → stops with load (kg, m³, boxes), time windows and learned service…, The raw pickup/drop point dict behind each stop key (`<id>:p<i>:<k>` /…, No liftgate vehicle online: liftgate orders leave the plan with a clear reason. (+32 more)
 
 ### Community 90 - "BookScreen.tsx"
 
 Cohesion: 0.04
-Nodes (86): Address, bookingCatalog, BookingConfirmation, BookingStart, createQuote(), CustomerBooking, CustomerDashboard, CustomerInvoice (+78 more)
+Nodes (91): Address, bookingCatalog, BookingConfirmation, BookingStart, checkoutReturnScheme, createQuote(), CustomerBooking, CustomerDashboard (+83 more)
 
-### Community 91 - "DomainEvent"
+### Community 91 - "E2EValidationVerifiersMixin"
 
-Cohesion: 0.02
-Nodes (80): main(), DiagnosticsHealthMixin, _classify(), _component(), _now_iso(), _openapi_paths(), _portal_component(), _probe_http() (+72 more)
+Cohesion: 0.03
+Nodes (54): Map FAILURE_SCENARIOS / alias names onto CANONICAL_CHAOS_SCENARIOS., resolve_chaos_scenario(), AdminDiagnosticsService, Validation & diagnostics — reuses settings health, day plan, event bus, and…, E2EValidationCoreMixin, Any, ValidationStatus, Apply safe configuration fixes — never redesign architecture. (+46 more)
 
 ### Community 92 - "batch_engine/service.py"
 
-Cohesion: 0.10
-Nodes (42): BatchException, BatchHandover, BatchParcel, BatchRoute, CustodyEvent, DeliveryBatch, accept_handover(), assign() (+34 more)
+Cohesion: 0.09
+Nodes (62): BatchException, BatchHandover, BatchParcel, BatchRoute, CustodyEvent, DeliveryBatch, Bulk delivery batches: CSV rows -> parcels -> routes/waves -> custody chain., accept_handover() (+54 more)
 
 ### Community 93 - "admin/src/components/dashboard/DashboardClient.tsx"
 
-Cohesion: 0.06
-Nodes (72): BookingPanel(), ClaimsPanel(), CommandHeader(), CrmPanel(), DashboardClient(), toggleWidget(), DriversPanel(), fadeUp (+64 more)
+Cohesion: 0.04
+Nodes (65): ClaimsPanel(), CommandHeader(), CrmPanel(), DashboardClient(), toggleWidget(), fadeUp, FinancePanel(), KpiGrid() (+57 more)
 
 ### Community 94 - "db"
 
 Cohesion: 0.03
-Nodes (68): do_auth(), do_dispatch(), do_draft(), do_email(), do_order(), do_payment(), do_quote(), do_restore() (+60 more)
+Nodes (122): do_auth(), do_dispatch(), do_draft(), do_email(), do_order(), do_payment(), do_restore(), record() (+114 more)
 
 ### Community 95 - "compliance_engine/service.py"
 
-Cohesion: 0.07
-Nodes (36): DvirReport, HosEvent, VehicleTrip, check_weight(), cvor_required(), dvir_valid(), _g(), hos_summary() (+28 more)
+Cohesion: 0.09
+Nodes (47): DvirReport, HosEvent, Vehicle record per trip (70 §2.3 dispatch.trips columns). A trip cannot start…, Daily inspection report (O. Reg. 199/07 s. 7(1)); valid 24 h; kept 6 months., Phone HOS log event; `at` is the phone clock at the event and is never…, VehicleTrip, check_weight(), cvor_required() (+39 more)
 
 ### Community 96 - "routers/notifications.py"
 
-Cohesion: 0.13
-Nodes (22): get_notification_user(), NotificationUser, touch_online(), apply_unsubscribe(), get_preferences(), get_user_settings(), inbox(), inbox_history() (+14 more)
+Cohesion: 0.14
+Nodes (31): get_notification_user(), _notification_pre_sync(), Depends, Header, HTTPAuthorizationCredentials, Remember that this person has the app open. Used to skip staff email., touch_online(), get_preferences() (+23 more)
 
-### Community 97 - "routers/shopify.py"
+### Community 97 - "lead_webhooks.py"
 
-Cohesion: 0.03
-Nodes (48): enforce_public_tracking_limit(), enforce_scan_rate(), scan_history(), MerchantApiGatewayMiddleware, guard_public_form(), client_ip(), enforce_public_limit(), go_live() (+40 more)
+Cohesion: 0.04
+Nodes (90): enforce_public_tracking_limit(), Any, Per-viewer rate limit for the public live-tracking endpoint. The global…, X-Hub-Signature-256: sha256=<hex>., verify_meta_signature(), process_inbound_lead_events(), Any, Sync ingest (+ optional WhatsApp auto-reply), or enqueue when async/hot. (+82 more)
 
-### Community 98 - "sys"
+### Community 98 - "clean_commercial_slate.py"
 
-Cohesion: 0.02
-Nodes (23): apply(), main(), main(), wipe_fleetbase(), wipe_porterchain(), main(), _count(), _list_tables() (+15 more)
+Cohesion: 0.47
+Nodes (5): main(), Dev-only commercial slate wipe for clean E2E validation. Keeps: Fleetbase…, Truncate execution tables via mysql CLI inside docker., wipe_fleetbase(), wipe_porterchain()
 
 ### Community 99 - "mobile-driver/src/auth/SessionGate.tsx"
 
-Cohesion: 0.08
-Nodes (52): authorizeUrl(), b64urlDecode(), base64UrlFromBase64(), BUILD_ENV, DEFAULT_CLIENT_ID, endpoints(), Env, exchangeCode() (+44 more)
+Cohesion: 0.07
+Nodes (57): Busy, IdpButtons(), authErrorCopy(), authorizeUrl(), b64urlDecode(), base64UrlFromBase64(), BUILD_ENV, DEFAULT_CLIENT_ID (+49 more)
 
-### Community 100 - "test_merchant_policy.py"
+### Community 100 - "PricingEngine"
+
+Cohesion: 0.04
+Nodes (105): SizeWeightService, PricingEngine, Retail + merchant price calculation (PorterChain; no vendor dispatch). Retail…, Location surcharges, with the merchant's own opt-outs applied. Turning a…, Price from the FSA table when a rate covers this destination. The flat rate…, _b(), _compact_from_dict(), CompactSchedule (+97 more)
+
+### Community 101 - "recommend.py"
 
 Cohesion: 0.05
-Nodes (58): SizeWeightService, PricingEngine, _b(), _compact_from_dict(), CompactSchedule, CompactStopBand, _i(), MerchantPricingPolicy (+50 more)
-
-### Community 101 - "dispatch_board_service.py"
-
-Cohesion: 0.06
-Nodes (36): _age_min(), _aware(), DispatchBoardService, recommend(), fleet_get(), fleet_put(), has_liftgate(), order_needs_liftgate() (+28 more)
+Nodes (65): upgrade(), _age_min(), _aware(), DispatchBoardService, Any, datetime, Stuck orders and idle drivers (see `dispatch_engine.anomalies`); `skip`:…, Liftgate orders waiting while no online driver has a liftgate vehicle. (+57 more)
 
 ### Community 102 - "booking_attachments/service.py"
 
-Cohesion: 0.11
-Nodes (38): BookingAttachment, BookingAttachmentEvent, _uuid(), assert_pickup_documents_shown(), AttachmentError, _clamd_scan(), delete(), driver_download() (+30 more)
+Cohesion: 0.13
+Nodes (45): BookingAttachment, BookingAttachmentEvent, Append-only audit trail: upload, view, download, shown, delete, purge., AttachmentError, _clamd_scan(), delete(), driver_download(), driver_link() (+37 more)
 
 ### Community 103 - "maps/src/index.ts"
 
 Cohesion: 0.11
-Nodes (39): DriverNavigationMap(), LibreMap, Props, LibreMap, Props, TrackingMap(), AddressAutocompleteInputProps, listStyle (+31 more)
+Nodes (40): DriverNavigationMap(), LibreMap, Props, LibreMap, Props, TrackingMap(), AddressAutocompleteInputProps, listStyle (+32 more)
 
 ### Community 104 - "operations.py"
 
 Cohesion: 0.07
-Nodes (55): _order_item(), active_orders(), activity(), ai_ops(), assign_driver(), assignable_drivers(), board(), board_move() (+47 more)
+Nodes (75): _action_id(), _order_item(), active_orders(), activity(), ai_ops(), assign_driver(), assignable_drivers(), board() (+67 more)
 
 ### Community 105 - "read_last_known"
 
-Cohesion: 0.06
-Nodes (27): DriverLocationPing, accumulate_shift_mileage(), _blank(), _client(), distance_m(), _float_or_none(), _haversine_m(), LastKnown (+19 more)
+Cohesion: 0.08
+Nodes (38): _position(), Compatibility shim — Redis last-known GPS lives in platform., accumulate_shift_mileage(), _blank(), _client(), distance_m(), _float_or_none(), _haversine_m() (+30 more)
 
-### Community 106 - "porterchain_event_bus/bus.py"
+### Community 106 - "test_remaining_to_live_prove.py"
 
-Cohesion: 0.05
-Nodes (22): _bus(), test_hs18_duplicate_dispatch_is_noop(), test_hs18_live_redis_publish_and_worker_style_consume(), test_hs18_poison_handler_goes_to_dlq(), test_hs18_poison_to_redis_dlq_stream(), test_hs18_publish_consume_runs_handler(), test_geocode_import_dispatch_uses_job_id(), test_optimize_import_dispatch_uses_job_id() (+14 more)
+Cohesion: 0.04
+Nodes (62): L94: a missing correlation_id must reach the router as None, not the string…, test_parse_empty_is_none(), test_parse_treats_legacy_none_string_as_none(), test_publish_encodes_none_as_empty(), _bus(), HS-18 — EventBus → worker drain: handler runs; poison → DLQ., Publish onto Redis Streams and drain via consume_once (worker entrypoint)., test_hs18_duplicate_dispatch_is_noop() (+54 more)
 
 ### Community 107 - "ref_vitest"
 
 Cohesion: 0.05
-Nodes (85): discardServerAction(), endShift(), fetchOfflineStatus(), queueOffline(), retryServerAction(), startShift(), syncOffline(), CONSENT_VERSION (+77 more)
+Nodes (87): discardServerAction(), endShift(), fetchOfflineStatus(), queueOffline(), retryServerAction(), startShift(), syncOffline(), cachedHandshake() (+79 more)
 
 ### Community 108 - "JobsService"
 
-Cohesion: 0.05
-Nodes (47): test_dropoff_is_actionable_once_picked_up(), test_accept_optimize_propagates_sequence_conflict(), test_commit_applies_driver_sequence_when_pc_driver_id(), test_commit_idempotent_by_run_id(), test_commit_records_assignments_without_fleetbase(), test_commit_requires_assignments(), test_commit_sequence_conflict(), test_execute_queued_run_is_porterchain_only() (+39 more)
+Cohesion: 0.04
+Nodes (64): test_dropoff_is_actionable_once_picked_up(), L120: undo after the first Accept restores "no plan"; nothing to undo is a…, _store(), test_undo_first_accept_restores_empty_plan(), Pass 7: L56 recipient fallback, L100 hub parcels in Needs a decision., test_l56_consignee_fallback(), test_plan_from_run_adds_fuel_delta_vs_before(), Phase 4 — interleaved Fleetbase waypoint sequence + next-stop policy. (+56 more)
 
-### Community 109 - "test_contract_terms.py"
+### Community 109 - "smart_route.py"
 
 Cohesion: 0.05
-Nodes (40): load_margin_estimates(), simulate_quote(), _what_won(), test_dunning_draft_is_text_only(), test_margin_estimates_validate(), COST_DEFAULTS(), charge_cents(), coverage_label() (+32 more)
+Nodes (85): test_parcel_coverage_enabled_stays_off_until_confirmed(), _no_network(), matrix_durations(), fixture, COST_DEFAULTS(), Any, Settings keys owned by pricing cost/coverage: defaults + validators in one…, charge_cents() (+77 more)
 
 ### Community 110 - "merchants.py"
 
-Cohesion: 0.10
-Nodes (75): raise_org_http(), team_member_payload(), privacy_error_message(), activate_merchant_users(), add_merchant_owner_seat(), add_merchant_team_seat(), approve_merchant(), close_merchant() (+67 more)
+Cohesion: 0.05
+Nodes (135): assert_money_editor(), activate_users_payload(), admin_merchant_context(), after_admin_write(), assert_merchant_pricing_write(), complete_onboarding_payload(), create_address(), create_contact() (+127 more)
 
 ### Community 111 - "reports.ts"
 
-Cohesion: 0.06
-Nodes (61): ReportChart(), areaTrendOption(), barChartOption(), BRAND, donutChartOption(), funnelChartOption(), sparklineOption(), AnimatedRing() (+53 more)
+Cohesion: 0.04
+Nodes (59): ReportChart(), areaTrendOption(), barChartOption(), BRAND, donutChartOption(), funnelChartOption(), sparklineOption(), AnimatedRing() (+51 more)
 
-### Community 112 - "pricing_engine/fsa_rate_card.py"
+### Community 112 - "test_fsa_rate_card.py"
 
-Cohesion: 0.06
-Nodes (35): card_settings(), default_pickup(), generate(), gta_drop_fsas(), override(), Pickup, rate_card(), _request() (+27 more)
+Cohesion: 0.13
+Nodes (24): _fake_table(), _merchant(), fixture, Per-merchant FSA rate card: routing → banded cells → PricingEngine columns,…, 1 km and 1.5 min per 0.01° of latitude offset, never zero., _routing(), test_admin_override_survives_regeneration_and_can_be_cleared(), test_cached_per_pickup_and_regenerated_when_it_moves() (+16 more)
 
 ### Community 113 - "OrchestratorOpsService"
 
-Cohesion: 0.06
-Nodes (29): OrchestratorOpsService, _read_commit_cache(), _write_commit_cache(), assert_driver_scoped(), emit_applied(), emit_enqueued(), emit_optimize_event(), emit_ready() (+21 more)
+Cohesion: 0.05
+Nodes (48): OrchestratorOpsService, Any, Active vans and approved drivers — PorterChain ids only., Queue a one-van PorterChain day-plan preview. Worker runs OR-Tools., Enqueue and return the pending run (worker finishes the search)., _read_commit_cache(), _write_commit_cache(), cache_key() (+40 more)
 
 ### Community 114 - "mobile-driver/src/api.ts"
 
-Cohesion: 0.03
-Nodes (128): Address, batchApi, createTicket(), DayKey, deliverStop(), detailFromBody(), downloadStopDocument(), driverFetch() (+120 more)
+Cohesion: 0.04
+Nodes (104): Address, createTicket(), DayKey, detailFromBody(), DriverDocument, driverFetch(), DriverVehicle, EarningsFull (+96 more)
 
 ### Community 115 - "Page specs (54)"
 
-Cohesion: 0.03
-Nodes (57): 3.10 `/customers/[id]`, 3.11 `/customers`, 3.12 `/dashboard`, 3.13 `/dispatch/[view]`, 3.14 `/dispatch`, 3.15 `/drivers/[id]`, 3.16 `/drivers`, 3.17 `/finance/analytics` (+49 more)
+Cohesion: 0.04
+Nodes (55): 3.10 `/customers/[id]`, 3.11 `/customers`, 3.12 `/dashboard`, 3.13 `/dispatch/[view]`, 3.14 `/dispatch`, 3.15 `/drivers/[id]`, 3.16 `/drivers`, 3.17 `/finance/analytics` (+47 more)
 
 ### Community 116 - "lead_inbox.py"
 
-Cohesion: 0.06
-Nodes (40): _activity(), _aware(), bulk_update(), _csv_safe(), email_channel_status(), leads_by_ids(), leads_to_csv(), log_call() (+32 more)
+Cohesion: 0.09
+Nodes (44): _activity(), _aware(), _csv_safe(), email_channel_status(), leads_by_ids(), leads_to_csv(), log_call(), mark_responded() (+36 more)
 
-### Community 117 - "EventEnvelope"
+### Community 117 - "DomainEventType"
 
-Cohesion: 0.06
-Nodes (18): BaseService, build_service_context(), ServiceContext, CustomerService, DispatchService, DriverService, get_service_registry(), ServiceRegistry (+10 more)
+Cohesion: 0.05
+Nodes (43): BaseService, build_service_context(), ABC, Base service contract — all domain services extend this., Shared dependencies for all Porterchain services., ServiceContext, CustomerService, Customer service — retail customer lifecycle (infrastructure stub). (+35 more)
 
 ### Community 118 - "driver/[...path]/route.ts"
 
 Cohesion: 0.18
 Nodes (14): API_BASE, GET(), isDevLoginEnabled(), POST(), API_BASE, DELETE(), GET(), isDevLoginEnabled() (+6 more)
 
-### Community 119 - "porterchain_api/config.py"
+### Community 119 - "_common.py"
 
-Cohesion: 0.01
-Nodes (209): main(), portal_enabled(), _admin_from_dev_bypass(), _admin_from_keycloak(), _check_platform(), _finish_admin_context(), _staff_identity_current(), get_auth_subject() (+201 more)
+Cohesion: 0.07
+Nodes (59): ACtx, AttachmentPatch, call(), file_response(), owner_upload(), parse_addr(), BaseModel, Response (+51 more)
 
 ### Community 120 - "MerchantProfileService"
 
 Cohesion: 0.05
-Nodes (38): MerchantProfileService, MerchantSettingsService, _save_settings(), _settings_bucket(), MerchantRecipient, SavedAddress, MerchantProfileUpdateRequest, RecipientUpdateRequest (+30 more)
+Nodes (47): MerchantProfileService, MerchantSettingsService, Any, Warehouses used to live only in profile JSON. Shopify needs a real pickup row., _save_settings(), _settings_bucket(), MerchantProfileUpdateRequest, RecipientUpdateRequest (+39 more)
 
-### Community 121 - "mobile-customer/App.tsx"
+### Community 121 - "mobile-customer/src/screens/SignInScreen.tsx"
 
-Cohesion: 0.07
-Nodes (54): App(), Phase, Root(), apply(), signOut(), styles, createSupport(), fetchOnboarding() (+46 more)
+Cohesion: 0.09
+Nodes (31): Root(), apply(), signOut(), fetchSessionContext(), hasCustomerAccess(), DevBridge(), useSessionView(), allowDevAuth() (+23 more)
 
 ### Community 122 - "sequencer.py"
 
 Cohesion: 0.07
-Nodes (53): _valhalla(), _over(), reject_reason(), VehicleCapacity, accept_line(), _assignments(), costing_for(), drive_seconds() (+45 more)
+Nodes (69): _over(), Fit one job to one van. A missing cap means that dimension is unlimited., Return `capacity` when the job cannot fit. Otherwise None., reject_reason(), VehicleCapacity, accept_line(), _assignments(), costing_for() (+61 more)
 
 ### Community 123 - "NotificationRecord"
 
 Cohesion: 0.03
-Nodes (62): main(), _resolve_driver(), open_claim_count_for_driver(), open_ticket_count(), _add_business_order_details(), _address_line(), deep_link_for(), hydrate_order_context() (+54 more)
+Nodes (98): main(), Send a test push to a driver — §0.1.3 device push verification. Usage: cd…, _resolve_driver(), _allow_sms_for_recipient(), SMS is opt-in per recipient in PreferenceService. The merchant turning on the…, Admin notification center — ops board owned by notification_engine. Dashboard,…, open_ticket_count(), Notification delivery — SMTP, FCM with durable delivery logs. (+90 more)
 
-### Community 124 - "test_lead_inbox_p0.py"
+### Community 124 - "public_inquiries.py"
 
-Cohesion: 0.05
-Nodes (31): _apply_spine(), _consent_from_booking(), mark_booking_lead_converted(), mirror_booking_lead_to_crm(), _retail_display_name(), make_order(), make_quote(), test_adjustments_become_signed_invoice_lines() (+23 more)
+Cohesion: 0.04
+Nodes (88): apply_unsubscribe(), casl_evidence(), commit_unsubscribe(), form_consent_evidence(), Any, CASL-oriented consent evidence helpers for CrmLead.consent JSON., Return lead_id when token is valid, else None., Flip marketing consent, upsert suppression, and commit (public router UoW). (+80 more)
 
 ### Community 125 - "test_lead_desk_r2.py"
 
-Cohesion: 0.05
-Nodes (55): complete_text(), build_draft(), _first_name(), _llm_polish(), _vertical(), area_points(), channel_points(), engagement_points() (+47 more)
+Cohesion: 0.08
+Nodes (47): build_draft(), _first_name(), _llm_polish(), Any, Reply drafts (email + WhatsApp) — template engine first, LLM polish optional. A…, _vertical(), area_points(), channel_points() (+39 more)
 
-### Community 126 - "UserSettingsService"
+### Community 126 - "NotificationAdminService"
 
-Cohesion: 0.13
-Nodes (11): NotificationUserSettings, persona_of(), preferred_language(), update(), view(), is_within_quiet_hours(), _parse_tz(), quiet_window_end() (+3 more)
+Cohesion: 0.06
+Nodes (32): NotificationAdminService, Any, Trust strip payload for Merchant / Driver / Customer 360 (Wave 3)., Ops Control Tower strip — FCM readiness + staff/driver device reach., NotificationUserSettings, Per-user quiet hours / timezone (Phase 3)., _default_channel_flags(), PreferenceService (+24 more)
 
 ### Community 127 - "pricing_cards.py"
 
-Cohesion: 0.14
-Nodes (41): PricingAudit, PricingOrgPricing, PricingRateCardVersion, accept_public_quote(), _actor(), AdjustmentBody, audit(), _audit() (+33 more)
+Cohesion: 0.13
+Nodes (50): _actor(), audit(), _call(), DraftBody, get_org(), get_standard(), items_of(), OrgPricingBody (+42 more)
 
-### Community 128 - "label_service.py"
+### Community 128 - "connections.py"
 
-Cohesion: 0.11
-Nodes (11): item_box_line(), item_ordinals(), _addr(), _label_code(), PackagesRequired, _route_hint(), _raise_packages_required(), test_admin_labels_without_packages_is_409() (+3 more)
+Cohesion: 0.09
+Nodes (36): _aware(), backfill_shopify(), _light(), missing_scopes(), Any, datetime, Connections watchdog: one status light per connection and the one-click fixes.…, Mint a successor key; the old one keeps working for `grace_days` then… (+28 more)
 
 ### Community 129 - "test_customer_persona_p0.py"
 
 Cohesion: 0.05
-Nodes (38): _addr(), _addr_dict(), admin_client(), _admin_ctx(), customer_client(), _customer_settings(), _dropoff(), _make_customer() (+30 more)
+Nodes (62): InviteResult, _addr_dict(), admin_client(), _admin_ctx(), _make_customer(), _make_order(), _matrix_require_module(), fixture (+54 more)
 
 ### Community 130 - "mobile-customer/src/auth/SessionGate.tsx"
 
 Cohesion: 0.09
-Nodes (45): authorizeUrl(), b64urlDecode(), base64UrlFromBase64(), BUILD_ENV, DEFAULT_CLIENT_ID, endpoints(), Env, exchangeCode() (+37 more)
+Nodes (50): Busy, IdpButtons(), run(), authErrorCopy(), authorizeUrl(), b64urlDecode(), base64UrlFromBase64(), BUILD_ENV (+42 more)
 
 ### Community 131 - "pricing_components.py"
 
-Cohesion: 0.07
-Nodes (30): FsaAdminService, PricingFsaRate, bulk_fsa_rates(), create_fsa_rate(), delete_fsa_rate(), fsa_coverage_gap(), _gta_config(), list_fsa_rates() (+22 more)
+Cohesion: 0.06
+Nodes (63): FsaAdminService, Any, Admin FSA rate CRUD — keep pricing_components router thin., Create or update dest_fsa flats. Out-of-tile codes are rejected except on an…, Platform rows and distance merchants stay on the GTA tile. An FSA-model…, _geocoded(), AdminDep, DbDep (+55 more)
 
 ### Community 132 - "porterchain_api/schemas.py"
 
-Cohesion: 0.03
-Nodes (79): CustomerBookingAdminService, booking_self_service(), _address(), estimate_price(), _access_denied(), cancel_booking_draft(), _continue_url(), create_booking_draft() (+71 more)
+Cohesion: 0.05
+Nodes (82): _website_pricing(), booking_self_service(), get_optional_auth_subject(), Header, Return Keycloak user id when a valid bearer token is present; otherwise None., _address(), estimate_price(), Any (+74 more)
 
 ### Community 133 - "schema.ts"
 
 Cohesion: 0.04
-Nodes (67): GET(), POST(), authorize(), Body, POST(), escapeXml(), GET(), BusinessPage() (+59 more)
+Nodes (57): generateMetadata(), LocaleLayout(), Props, viewport, generateMetadata(), Props, ResearchHubPage(), HtmlLang() (+49 more)
 
 ### Community 134 - "drivers_admin.py"
 
-Cohesion: 0.14
-Nodes (34): add_driver_document(), approve_driver(), create_driver(), create_driver_payout(), deactivate_driver(), _detail(), driver_action(), driver_activities() (+26 more)
+Cohesion: 0.09
+Nodes (59): attach_driver_vehicle(), deactivate_driver_vehicle(), decide_driver_document(), Ctx, patch, post, Driver profile, document decision, and vehicle routes. Split from drivers_admin…, D-29: attach vehicle. (+51 more)
 
 ### Community 135 - "website/src/lib/api.ts"
 
 Cohesion: 0.06
-Nodes (72): isVehicle(), payBlocker(), cleanInstructions(), DeliveryInstructions, DeliveryManageOptions, manageErrorText(), TrackingExperience, COPY (+64 more)
+Nodes (62): cleanInstructions(), DeliveryInstructions, DeliveryManageOptions, DeliveryWindowOption, etaWindowText(), fmtTime(), MANAGE_ERRORS, manageErrorText() (+54 more)
 
-### Community 136 - "os"
+### Community 136 - "ProofOfDeliveryService"
 
-Cohesion: 0.08
-Nodes (36): otp_required_at_delivery(), DriverStopMeta, _admin_ctx(), _default_flags(), _merchant(), _order(), _stops_with(), test_admin_override_requires_reason_and_is_audited() (+28 more)
+Cohesion: 0.05
+Nodes (65): otp_required_at_delivery(), True only when the merchant opted in on the booking., Phase 3: GPS/POD/shift enqueue; GPS LWW by recorded_at; ping INSERT off by…, _settings(), test_pod_photo_enqueues_without_http(), _admin_ctx(), _default_flags(), _merchant() (+57 more)
 
-### Community 137 - "Merchant360Service"
+### Community 137 - "api_keys_payload"
 
-Cohesion: 0.18
-Nodes (3): Merchant360Service, create_with_onboarding(), delivery_ar_total_cents()
+Cohesion: 0.13
+Nodes (19): api_keys_payload(), Integrations health for admin merchant 360 — mirrors merchant portal overview.…, test_tracking_sync_is_not_hardcoded(), _agree(), _order_payload(), _queue(), Every outbound Shopify call is a stub; nothing leaves the machine., Webhook in → (stubbed) queue → worker, exactly like production but in-process. (+11 more)
 
 ### Community 138 - "account_ops/health.py"
 
 Cohesion: 0.06
-Nodes (37): _recipients(), _record(), sweep(), board(), bulk(), _crm_owner_ids(), merchant_ops(), _owner_names() (+29 more)
+Nodes (63): Any, datetime, Staff emails for merchant risk: churn (orders stopped) and credit hold. Email-…, Claim the (merchant, kind, week) slot. False when already sent., Apply/lift auto credit holds, then email churn and new-hold alerts.…, _recipients(), _record(), sweep() (+55 more)
 
-### Community 139 - "Base"
+### Community 139 - ".deleted_at"
+
+Cohesion: 0.43
+Nodes (3): datetime, declared_attr, Mapped
+
+### Community 140 - "ClaimsQueryMixin"
+
+Cohesion: 0.21
+Nodes (6): ClaimFilters, ClaimsQueryMixin, Any, Legacy list — prefer list_enriched., _Claims, test_claims_customer_filter_empty_orders()
+
+### Community 141 - "test_shopify_review_139170.py"
+
+Cohesion: 0.07
+Nodes (50): alias, Header, post, Request, FulfillmentService callback. Shopify appends this path to the registered prefix., P4.4 — Shopify CarrierService rate callback (checkout shipping rates)., Embedded app load: `Authorization: Bearer <App Bridge session token>`. First…, shopify_carrier_service_rates() (+42 more)
+
+### Community 142 - "dispatch_engine/vrp.py"
 
 Cohesion: 0.06
-Nodes (18): Promotion, AbandonedCheckout, Lead, CrmLeadsMixin, Lead360Service, staff_user_exists(), CrmReferralCredit, Base (+10 more)
+Nodes (44): _in_lake(), manual(), _metres(), metrics(), _point(), Random, Plan-quality benchmark on seeded Toronto +150 km scenarios (no DB). Modes per…, Greedy dispatcher: append each order to the vehicle whose route grows least. (+36 more)
 
-### Community 140 - "Claim"
+### Community 143 - "LogisticsPartnersService"
 
-Cohesion: 0.09
-Nodes (11): Claim, claim_number(), claim_meta(), ClaimFilters, normalize_status(), set_claim_meta(), ClaimsDetailMixin, ClaimsHelpersMixin (+3 more)
-
-### Community 141 - "test_shopify_app_review.py"
-
-Cohesion: 0.08
-Nodes (42): _client(), _open(), _shop_json(), test_forged_session_token_is_401(), test_four_click_is_default_on(), test_fresh_install_auto_provisions_org_without_login(), test_reinstall_reuses_same_org(), _company() (+34 more)
-
-### Community 142 - "driver-portal/src/lib/server-api.ts"
-
-Cohesion: 0.11
-Nodes (38): DashboardPage(), JobsPage(), fetchWorkspace(), useDriverWorkspace(), WorkspaceData, DriverDashboard, DriverIncident, DriverPerformance (+30 more)
-
-### Community 143 - "logistics_partners_service.py"
-
-Cohesion: 0.08
-Nodes (22): _audit(), _clean(), LogisticsPartnersService, _partner_dict(), email_draft(), render_pdf(), sheet_facts(), LogisticsPartner (+14 more)
+Cohesion: 0.06
+Nodes (43): upgrade(), _audit(), _clean(), LogisticsPartnersService, _partner_dict(), Any, Partners (warehouse, FTL/LTL, 3PL), order legs and GPS/POD retention — admin…, Give the whole order (pickup → drop) to a courier partner as one `courier`… (+35 more)
 
 ### Community 144 - "BlogService"
 
-Cohesion: 0.14
-Nodes (12): BlogService, reading_minutes_for(), BlogPost, _create(), _slug(), test_blog_authors_crud(), test_create_list_get_and_serialize(), test_list_filters_status_category_search() (+4 more)
+Cohesion: 0.06
+Nodes (43): BlogAuthorMixin, Any, Author registry methods mixed into BlogService., blog_media_dir(), blog_media_public_base(), public_media_path(), Path, Blog media uploads — local disk + optional S3/R2 mirror + CDN public URLs. (+35 more)
 
-### Community 145 - "RateCardClient.tsx"
+### Community 145 - "formatCents"
 
-Cohesion: 0.08
-Nodes (35): OrgDetailPage(), OrgsPage(), RateCardPage(), OrgDetailClient(), OrgsListClient(), OrderAdjustmentsPanel(), SendQuotePanel(), send() (+27 more)
+Cohesion: 0.02
+Nodes (155): metadata, FinanceInvoiceClient(), Props, email(), ListPager(), Props, AnalyticsClient(), GroupTable() (+147 more)
 
 ### Community 146 - "driver/_deps.py"
 
 Cohesion: 0.08
-Nodes (47): driver_profile(), guard_portal_ready(), route_response(), stop_response(), driver_dev_list(), driver_dev_login(), AcceptRejectRequest, AvailabilityRequest (+39 more)
+Nodes (60): driver_profile(), guard_portal_ready(), Driver API response mappers — UI layer helpers (masterrule §3)., route_response(), stop_response(), driver_dev_list(), driver_dev_login(), get (+52 more)
 
 ### Community 147 - "compute_ranked_suggestions"
 
-Cohesion: 0.05
-Nodes (26): compute_ranked_suggestions(), hard_filter_driver(), required_skills(), window_penalty(), _density_cells(), vehicle_classes_match(), cell(), cell_center() (+18 more)
+Cohesion: 0.09
+Nodes (21): compute_ranked_suggestions(), hard_filter_driver(), Return exclusion reason, or None if the driver may be scored., Full scored ranking with hard filters + Valhalla matrix when possible., required_skills(), window_penalty(), cell(), cell_center() (+13 more)
 
 ### Community 148 - "00_index.md"
 
 Cohesion: 0.05
-Nodes (27): 01 — System context (AS-BUILT), 02 — Containers and deployment (AS-BUILT), 10 — Event and async flows (AS-BUILT), Event usage scan, 11 — AUDIT: gaps, flaws, dead code, duplication, conflicting state, admin disorder, AI-iteration debris, Top 10 (by risk), 13 — PLANNED DFDs (Phase 1), 14 — PLANNED ER additions (Phase 1) (+19 more)
+Nodes (30): 01 — System context (AS-BUILT), 02 — Containers and deployment (AS-BUILT), 10 — Event and async flows (AS-BUILT), Event usage scan, 11 — AUDIT: gaps, flaws, dead code, duplication, conflicting state, admin disorder, AI-iteration debris, Top 10 (by risk), 12 — PLANNED Phase 1: context + containers, Deployment (L28) (+22 more)
 
 ### Community 149 - "reporting_metrics.py"
 
-Cohesion: 0.11
-Nodes (31): _as_naive_utc(), channel_for_order_source(), claims_summary(), daily_volume(), delivered_event_at(), delivery_performance(), _distance_band_label(), driver_performance() (+23 more)
+Cohesion: 0.14
+Nodes (40): _as_naive_utc(), claims_summary(), daily_volume(), delivered_event_at(), delivery_performance(), _distance_band_label(), driver_performance(), _fsa_from_dropoff() (+32 more)
 
 ### Community 150 - "for_shop"
 
-Cohesion: 0.32
-Nodes (6): apps(), by_client_id(), custom_app_for(), for_shop(), _norm(), ShopifyApp
+Cohesion: 0.31
+Nodes (13): apps(), by_client_id(), custom_app_for(), for_shop(), _norm(), Any, Shopify app credentials: the public app + optional custom-distribution apps.…, Primary first, then extras. Malformed extras are skipped. (+5 more)
 
-### Community 151 - "test_public_tracking_privacy.py"
+### Community 151 - "test_customer_driver_position.py"
 
-Cohesion: 0.08
-Nodes (26): coarse_position(), customer_driver_position(), load_order_and_driver(), _parse(), RateLimited, reset_rate_limits(), unavailable(), is_dummy_stripe_id() (+18 more)
+Cohesion: 0.12
+Nodes (24): call(), order(), parametrize, Privacy rules for the customer in-app live map driver position., test_never_outside_active_window(), test_no_driver_or_signal(), test_other_customer_is_not_found(), test_owner_gets_coarse_position_only() (+16 more)
 
-### Community 152 - "test_lead_inbox_p0.py"
+### Community 152 - "is_suppressed"
 
-Cohesion: 0.08
-Nodes (25): apply_nurture_after_ingest(), _enqueue_nurture_email(), enqueue_nurture_intro_email(), _now(), process_due_nurture_emails(), schedule_lead_nurture(), apply_consent_for_ingest(), clear_suppression() (+17 more)
+Cohesion: 0.12
+Nodes (29): apply_call_disposition(), _has_phone(), next_lead_in_queue(), Any, datetime, Outbound dial floor: Today queues + call disposition (CRM Dial patterns)., Ready / Follow-ups / Interested packs for outbound dial floor (full lists).…, today_queues() (+21 more)
 
 ### Community 153 - "integrations.py"
 
-Cohesion: 0.09
-Nodes (48): _api_key_out(), _expired(), _webhook_out(), create_api_key(), create_oauth_client(), create_webhook(), _integration_http(), integrations_api_key_rate_limit() (+40 more)
+Cohesion: 0.07
+Nodes (72): _api_key_out(), _expired(), _webhook_out(), create_api_key(), create_oauth_client(), create_webhook(), _integration_http(), integrations_api_key_rate_limit() (+64 more)
 
-### Community 154 - "client-messages.test.mts"
+### Community 154 - "merchant-portal/src/app/layout.tsx"
 
-Cohesion: 0.19
-Nodes (12): skip(), 1. ID scheme, CLIENT_MESSAGE_NAMESPACES, isRecord(), Messages, pickMessages(), clientGraph(), covered() (+4 more)
+Cohesion: 0.06
+Nodes (40): apps_merchant_portal_src_app_globals, brand, metadata, RootLayout(), PricingPanel(), makeClient(), MerchantQueryProvider(), ProfileTab() (+32 more)
 
-### Community 155 - "cn"
+### Community 155 - "profile_team.py"
 
-Cohesion: 0.11
-Nodes (33): ShiftPage(), AssignmentPanel(), StopRow(), DashboardClient(), MetricCard(), PretripGate(), ActionButton(), QuickActions() (+25 more)
+Cohesion: 0.12
+Nodes (49): set_user_display_name(), _profile_response(), _recipient_out(), _saved_address_out(), add_team_seat(), create_address(), create_contact(), create_recipient() (+41 more)
 
 ### Community 156 - "QueueName"
 
-Cohesion: 0.09
-Nodes (23): test_queue_router_injects_email_channel(), test_all_queues_have_processors(), test_redis_keys_are_namespaced(), process_queue_message(), _drain_queues(), _drain_fast(), _run(), _handle_merchant_webhook_fanout() (+15 more)
+Cohesion: 0.06
+Nodes (51): notifications_module(), fixture, Notifications worker processor tests (§2.3.4)., test_queue_router_injects_email_channel(), Queue name registry tests., test_all_queues_have_processors(), test_redis_keys_are_namespaced(), process_billing() (+43 more)
 
 ### Community 157 - "route_import_service.py"
 
-Cohesion: 0.03
-Nodes (93): enqueue_routing_job(), BulkImportStatus, _ensure_geo(), adapt_mapping_to_headers(), apply_mapping(), _exact_claims(), FieldMapping, _fold_lone_pair_column() (+85 more)
+Cohesion: 0.09
+Nodes (53): persist_vehicle_class(), Write-path: always a catalog id (or default). Never persist camel., BulkImportStatus, normalize_route_errors(), Any, Route-import error codes and classic bulk {row, error, message} shape., Classic bulk shape: row, error, message — plus optional field., Turn {index, codes} (and mapping codes) into classic bulk {row, error, message}. (+45 more)
 
-### Community 158 - "DomainEventType"
+### Community 158 - "_specs_for_event"
 
 Cohesion: 0.04
-Nodes (55): _ctx(), _specs_for_event(), add(), add_staff(), _tags(), build_fcm_platform_config(), _is_urgent(), resolve_channel_id() (+47 more)
+Nodes (86): deep_link_for(), merge_notification_context(), Payload wins; hydrated fills gaps., _ctx(), handle_domain_event(), handle_tracking_update(), Any, Domain event → Notification Engine routing. Recipients resolved here only. (+78 more)
 
 ### Community 159 - "schemas_crm.py"
 
-Cohesion: 0.16
-Nodes (18): ActivityCreate, ActivityOut, ContractCreate, ContractUpdate, InvoiceOut, Lead360AbandonedCheckoutItem, Lead360Assignee, Lead360DraftItem (+10 more)
+Cohesion: 0.11
+Nodes (36): create_activity(), create_task(), delete_task(), _guard(), _guard_any(), list_activities(), list_tasks(), Ctx (+28 more)
 
 ### Community 160 - "security-headers.mjs"
 
-Cohesion: 0.05
-Nodes (48): monorepoRoot, nextConfig, root, monorepoRoot, nextConfig, monorepoRoot, nextConfig, files() (+40 more)
+Cohesion: 0.04
+Nodes (63): monorepoRoot, nextConfig, root, monorepoRoot, nextConfig, monorepoRoot, nextConfig, files() (+55 more)
 
 ### Community 161 - "ops_rules/service.py"
 
-Cohesion: 0.09
-Nodes (30): building_key(), norm_label(), DriverEquipment, Location, LocationUnit, SafetyReport, carry_check(), change_decision() (+22 more)
+Cohesion: 0.06
+Nodes (51): add_claim(), Any, building_key(), norm_label(), Client labels compare case/space/dash-insensitive; Shopify '#1001' == '1001'., Unit 5, 100 King St W' / '5-100 King St W' -> ('100 KING ST W', '5')., check_declarations(), Any (+43 more)
 
-### Community 162 - "operations.ts"
+### Community 162 - "admin/src/lib/api.ts"
 
 Cohesion: 0.03
-Nodes (104): metadata, TodayPage(), MAP_COLORS, areasFc(), Data, fc(), Feature, GTA (+96 more)
+Nodes (106): AdminBatchesPage(), metadata, Status, TaxRegistrationWarning(), areasFc(), Data, fc(), Feature (+98 more)
 
 ### Community 163 - "subprocess"
 
 Cohesion: 0.04
-Nodes (30): main(), main(), _check(), _migrate(), migrations_hash(), reset_test_database(), reset_test_spicedb(), UnsafeResetTarget (+22 more)
+Nodes (33): Run the unified-identity Phase 1–9 pytest matrix. Usage: pnpm identity:test cd…, HS-20 — free address autocomplete (/v1/geo, no Google Places); no Distance…, Book UI address entry uses our /v1/geo endpoint, never Google Places or…, Authoritative pricing distance is MapsService (Valhalla/OSRM), never Google DM., test_hs20_places_autocomplete_in_maps_package(), test_hs20_pricing_distance_delegates_to_maps_service(), HS-22 — Mobile driver handshake types talk to :8001 only (no :8000 /…, HS-23 — OpenAPI census: every operation classified; no new untagged business… (+25 more)
 
-### Community 164 - "AdminOperationsService"
+### Community 164 - "customer/src/app/layout.tsx"
 
-Cohesion: 0.04
-Nodes (37): cache_key(), driver_skills(), driver_verification_gap(), enqueue_score_job(), order_pickup_window(), _parse_dt(), read_suggestions_cache(), write_suggestions_cache() (+29 more)
+Cohesion: 0.07
+Nodes (37): apps_customer_src_app_globals, brand, metadata, TrackLookupRedirect(), TrackOrderRedirect(), CookieConsent(), COPY, BARE (+29 more)
 
 ### Community 165 - "get_platform_settings"
 
-Cohesion: 0.18
-Nodes (6): DiagnosticsChaosMixin, _get_firebase_app(), test_mf_hs07_non_live_probes_return_health_shape(), 5.5 Firebase / push / email / notifications, get_platform_settings(), ping_redis()
+Cohesion: 0.07
+Nodes (34): DiagnosticsChaosMixin, Any, Resilience verification — read-only; does not stop services., claims_from_keycloak_payload(), _csv(), _fetch_jwks(), _key_for(), keycloak_issuer() (+26 more)
 
-### Community 166 - "db_pool_monitor.py"
+### Community 166 - "test_route_import_pickup_dropoff.py"
 
-Cohesion: 0.36
-Nodes (7): _alert(), check_pool(), install(), _on_checkout(), _on_handle_error(), pool_usage(), run_pool_watch()
+Cohesion: 0.07
+Nodes (43): adapt_mapping_to_headers(), apply_mapping(), _exact_claims(), FieldMapping, _fold_lone_pair_column(), mapping_confidence_ok(), mapping_to_dicts(), _norm_header() (+35 more)
 
-### Community 167 - "dispatch_route.py"
+### Community 167 - "ScanGateService"
 
-Cohesion: 0.18
-Nodes (8): dispatch_checkin(), dispatch_route(), dispatch_stop_checklist(), dispatch_stop_contact(), _route_svc(), _scan_gate(), _side_phone(), _with_scans()
+Cohesion: 0.06
+Nodes (41): PackagesIncomplete, Any, Exception, Read-only parcel rollup. Does not create package rows., Map to HTTP 409 packages_incomplete., A hired vehicle has no parcel labels. Scan-gate must not block pickup or…, ScanGateService, _whole_vehicle() (+33 more)
 
 ### Community 168 - "admin/orders.py"
 
 Cohesion: 0.10
-Nodes (31): build_admin_order_filters(), _list_date_bound(), admin_amend_parcels(), _attachment(), create_order(), generate_order_invoice(), get_order_detail(), get_order_tracking() (+23 more)
+Nodes (53): admin_amend_parcels(), _attachment(), create_order(), generate_order_invoice(), get_order_detail(), get_order_tracking(), _invoke(), list_orders() (+45 more)
 
 ### Community 169 - "test_p0_implemented.py"
 
 Cohesion: 0.07
-Nodes (25): pytest_configure(), tc(), case_by_id(), case_ids(), cases(), load_registry(), _iter_text(), test_api_x_001_admin_routes_require_auth() (+17 more)
+Nodes (51): fixture, pytest_configure(), Pytest fixtures for admin_p0 suite., Resolve the tc_id marker on the test into the registry row., tc(), case_by_id(), case_ids(), cases() (+43 more)
 
-### Community 170 - "jobs.ts"
+### Community 170 - "shopify_tokens.py"
 
-Cohesion: 0.07
-Nodes (56): Delivery360(), run(), runPrimary(), runUpload(), DetailRow(), ProgressStepper(), Section(), BADGE (+48 more)
+Cohesion: 0.10
+Nodes (44): access_token_for(), _aware(), clear_tokens(), _client(), _decrypt(), _encrypt(), exchange_id_token(), _fresh() (+36 more)
 
-### Community 171 - "merchant_org.py"
+### Community 171 - "test_wave4_batch_d.py"
 
-Cohesion: 0.07
-Nodes (63): assert_money_editor(), activate_users_payload(), activate_webhook(), admin_merchant_context(), after_admin_write(), apply_kaylulu_pricing_template(), assert_merchant_pricing_write(), clone_pricing_from() (+55 more)
+Cohesion: 0.19
+Nodes (11): M-6: preferred vehicles must be ⊆ enabled retail catalog (existing ones kept)., validate_preferred_vehicles(), Wave 4 Batch D: preferred vehicles, billing cycle, convert CRM status, delivery…, A class disabled after the merchant chose it must not block unrelated edits., test_customer_ensure_sets_porterchain_user_id(), test_preferred_vehicles_accepts_catalog_subset(), test_preferred_vehicles_empty_catalog_allows_any(), test_preferred_vehicles_keeps_existing_disabled_class() (+3 more)
 
 ### Community 172 - "_seed_lead"
 
-Cohesion: 0.13
-Nodes (7): LeadCreate, _phone(), _seed_lead(), _suffix(), TestLeadsApi, TestLeadsService, TestLeadsUnit
+Cohesion: 0.23
+Nodes (5): _phone(), _seed_lead(), _suffix(), TestLeadsApi, TestLeadsService
 
 ### Community 173 - "RouteRunner.tsx"
 
+Cohesion: 0.10
+Nodes (25): FAIL_REASONS, Queue, RouteRunner(), Runner(), StopCard(), Upcoming(), applyLocal(), CheckinEvent (+17 more)
+
+### Community 174 - "admin_engine/settings_service.py"
+
+Cohesion: 0.07
+Nodes (38): bump_price_version(), Any, Next version (flushed, not committed — the caller's commit carries it)., permissions_catalog(), Any, Expose admin role→module matrix for Settings Roles UI (not Check SoT)., _access_status_label(), _enrich_with_directory() (+30 more)
+
+### Community 176 - "Customer"
+
+Cohesion: 0.03
+Nodes (144): create_retail_order(), AddressInput, _addr(), create_website_booking(), main(), AddressInput, Seed N retail website bookings — quote → checkout → payment success (local…, _website_pricing() (+136 more)
+
+### Community 177 - "lead_nurture.py"
+
 Cohesion: 0.09
-Nodes (42): RoutePage(), Empty(), FAIL_REASONS, OfflineBar(), Queue, RouteRunner(), RouteSkeleton(), Runner() (+34 more)
-
-### Community 174 - ".list_platform_users"
-
-Cohesion: 0.13
-Nodes (18): batch_onboarding_summaries(), _access_label(), _apply_user_filters(), _facet_counts(), _identity_linked(), _identity_status(), _invite_label(), _invite_status() (+10 more)
-
-### Community 176 - "test_driver_p0_catalog.py"
-
-Cohesion: 0.08
-Nodes (23): DriverApiService, execute(), DriverAuthService, driver_owns_order(), test_driver_services(), test_driver_auth_link_idp_service_loads(), _admin_ctx(), _lifecycle_svc() (+15 more)
-
-### Community 177 - "test_admin_leads_module_matrix.py"
-
-Cohesion: 0.06
-Nodes (16): _forbidden_hits(), _iter_lead_spine_files(), _phone(), _route_paths(), _seed(), _suffix(), TestAdminLeadsFilesystem, TestAdminLeadsRouteRegistry (+8 more)
+Nodes (27): make_unsubscribe_token(), apply_nurture_after_ingest(), _enqueue_nurture_email(), enqueue_nurture_intro_email(), _now(), process_due_nurture_emails(), Any, datetime (+19 more)
 
 ### Community 178 - "job_docs/service.py"
 
 Cohesion: 0.11
-Nodes (27): flags_for(), flow_specs_for_order(), InstructionAck, InstructionEdit, JobInstruction, PickupDocument, gate(), reminders() (+19 more)
+Nodes (36): InstructionAck, InstructionEdit, JobInstruction, PickupDocument, Pickup document checklist captures + per-order/per-parcel instructions (with…, gate(), Any, Pickup document requirements (doc 70 §2.2 matrix after C-triggers, doc 80/81… (+28 more)
 
 ### Community 179 - "scenarios.py"
 
 Cohesion: 0.07
-Nodes (24): count_exceptions(), load_order(), make_barcode(), parse_csv(), plan(), fits(), scan_advice(), spot_sample() (+16 more)
+Nodes (38): count_exceptions(), load_order(), parse_csv(), plan(), fits(), Any, Pure batch planning + scan advice (no DB). Shared rules for web + mobile via…, Deterministic per route (server and app agree; re-opening shows the same… (+30 more)
 
 ### Community 180 - "text"
 
-Cohesion: 0.09
-Nodes (27): _count(), main(), purge(), _count(), _list_tables(), main(), purge(), _children() (+19 more)
+Cohesion: 0.08
+Nodes (32): main(), _count(), _list_tables(), main(), purge(), _count(), main(), purge() (+24 more)
 
-### Community 181 - "argparse"
+### Community 181 - "forensics.py"
 
-Cohesion: 0.10
-Nodes (25): main(), ForensicAuditEntry, ForensicCheckpoint, category_for(), _after_commit(), _after_rollback(), _append(), _append_rows() (+17 more)
+Cohesion: 0.16
+Nodes (30): main(), ForensicAuditEntry, ForensicCheckpoint, _after_commit(), _after_rollback(), _append(), _append_rows(), _before_flush() (+22 more)
 
 ### Community 182 - "orders_tracking.py"
 
+Cohesion: 0.05
+Nodes (86): get_merchant_api_context(), MerchantApiKeyContext, alias, Header, Request, Map API-key auth to MerchantContext for existing services., booking_value_error_detail(), BaseException (+78 more)
+
+### Community 183 - "smart_apply.py"
+
 Cohesion: 0.04
-Nodes (52): get_merchant_api_context(), MerchantApiKeyContext, consignee_error_message(), parcel_amend_http(), return_error_message(), parse_toronto_day_bound(), tracking_error_message(), api_cancel_order() (+44 more)
-
-### Community 183 - "smart_route.py"
-
-Cohesion: 0.09
-Nodes (36): merchant_opted_in(), quote_route(), road_matrix(), smart_config(), _stop(), haversine_m(), curve_cents(), default_smart_pricing() (+28 more)
+Nodes (93): _live_pricing(), 2026-10-31 models: which one applies to this merchant (custom price overrides)., load_margin_estimates(), Any, Admin-editable margin estimates (Settings key `pricing_margin_estimates`)., apply_smart(), dismiss_banner(), examples() (+85 more)
 
 ### Community 184 - "AdminMerchantService"
 
-Cohesion: 0.13
-Nodes (9): AdminMerchantService, _admin_ctx(), test_parent_subsidiary_link(), test_payment_terms_update(), test_customer_ensure_sets_porterchain_user_id(), test_preferred_vehicles_accepts_catalog_subset(), test_preferred_vehicles_empty_catalog_allows_any(), test_preferred_vehicles_rejects_outside_catalog() (+1 more)
+Cohesion: 0.09
+Nodes (22): skip(), AdminMerchantService, Any, Reserve owner seat by email (no Keycloak invite). `settings` unused., Reserve teammate seat by email (no Keycloak invite). `settings` unused., M-30: Admin deactivate seat (last-owner protected)., Ops AR invoices for this merchant — not CRM sales invoices., update_seat() (+14 more)
 
 ### Community 185 - "SqlAlchemyPricingRepository"
 
-Cohesion: 0.06
-Nodes (22): admin_pricing_view(), _cad_to_cents(), _effective_book(), fsa_rate_counts(), merchant_rate_card(), _policy_for_merchant(), current_price_version(), _default_hst_percent() (+14 more)
+Cohesion: 0.08
+Nodes (30): admin_pricing_view(), _cad_to_cents(), _effective_book(), merchant_rate_card(), _policy_for_merchant(), Any, Admin Pricing tab: policy controls + the same card the merchant GET uses., Read-only card: model, GTA vehicles, size/weight, surcharges, tax, FSA counts. (+22 more)
 
 ### Community 186 - "DiagnosticsTestCenter.tsx"
 
 Cohesion: 0.08
-Nodes (45): SystemPage(), CategoryChip(), DiagnosticsHealthView(), FilterChip(), ArchitectureChainView(), HealthComponentCard(), HealthSummaryBar(), MasterruleCompliancePanel() (+37 more)
+Nodes (41): DiagnosticsHealthView(), ArchitectureChainView(), HealthComponentCard(), HealthSummaryBar(), MasterruleCompliancePanel(), ObservabilityPanel(), ProgressRing(), statusLabel() (+33 more)
 
-### Community 187 - "import_rows.py"
+### Community 187 - "normalize"
 
-Cohesion: 0.03
-Nodes (76): apply(), from_row(), from_shopify(), label_line(), merchant_default(), normalize(), of(), summary_lines() (+68 more)
+Cohesion: 0.12
+Nodes (30): apply(), from_shopify(), label_line(), merchant_default(), normalize(), of(), Any, Delivery options: one shared set for every booking surface, the driver and the… (+22 more)
 
 ### Community 188 - "theme/index.ts"
 
 Cohesion: 0.09
-Nodes (33): CustomerMotionName, SOURCES, maxFontScale, useThemed(), contrastRatio(), dark, light, Palette (+25 more)
+Nodes (33): useThemed(), contrastRatio(), dark, light, Palette, paletteFor(), TEXT_PAIRS, AddressField() (+25 more)
 
-### Community 189 - "shopify_privacy.py"
+### Community 189 - "OrderLeg"
 
 Cohesion: 0.12
-Nodes (28): address_from_blob(), dual_write_stops(), _kind_for_rich_stop(), persist_address(), stop_plan(), Address, Stop, open_payment_dispute() (+20 more)
+Nodes (40): OrderLeg, One leg of an order's journey: local van, warehouse hold, FTL/LTL linehaul or…, assert_not_with_partner(), held_order_ids(), _open_courier(), Orders handed to a courier (contractor fleet) partner stay out of our own…, Raise ValueError when an open courier leg owns this order., _c() (+32 more)
 
-### Community 190 - "ui/package.json"
+### Community 190 - "exports"
 
-Cohesion: 0.05
-Nodes (49): dependencies, date-fns@^4.4.0, lucide-react@^1.23.0, @porterchain/types@workspace:*, react-day-picker@^10.0.1, devDependencies, echarts@^6.1.0, next@16.4.1 (+41 more)
+Cohesion: 0.12
+Nodes (16): exports, ./account-menu, ./app-nav, ./container, ./date-fields, ./datetime-picker-separate, ./delivery-options-fields, ./empty-state (+8 more)
 
 ### Community 191 - "staff_security_events.py"
 
 Cohesion: 0.43
-Nodes (4): _client(), _key(), list_security_events(), record_security_event()
+Nodes (6): _client(), _key(), list_security_events(), Any, Per-staff security event feed + new-device detection (Redis)., record_security_event()
 
-### Community 192 - "switching_costs.py"
+### Community 192 - "Route optimization — development test cases"
+
+Cohesion: 0.05
+Nodes (44): 0. ID scheme & layers, 10. Fleetbase + VROOM (`FB-*`, `VRM-*`), 11. Auth / Clerk / Staff / RBAC (`AUTH-*`), 12. Events / worker (`EVT-*`, `WRK-*`), 13. Sequence CAS / fuel (`SEQ-*`, `FUEL-*`), 14. Notifications / email / FCM (`NOTIF-*`), 15. Database / models (`DB-*`), 16. Shopify / ERP / other connections (`INT-*`, `API-S-*`) (+36 more)
+
+### Community 193 - "test_geo_autocomplete.py"
 
 Cohesion: 0.11
-Nodes (20): serialize_audit_log(), summarize_audit_action(), custom_tariffs_summary(), integration_depth(), _month_bounds(), rbac_and_audit_snapshot(), sla_history_12mo(), _merchant_ctx() (+12 more)
-
-### Community 193 - "test_notification_driver_identity.py"
-
-Cohesion: 0.06
-Nodes (11): client(), _FakeRedis, _as(), client(), _FakeDb, _forged(), _Query, test_customer_without_driver_header_still_gets_own_inbox() (+3 more)
+Nodes (4): client(), _FakeRedis, fixture, /v1/geo: free address search (Nominatim), no Google.
 
 ### Community 194 - "ogImageResponse"
 
@@ -2035,88 +2164,88 @@ Nodes (39): alt, AuthorsOpenGraphImage(), contentType, size, alt, BlogOpenGraphI
 
 ### Community 195 - "ARCHITECTURE.md"
 
-Cohesion: 0.11
-Nodes (14): PorterChain API, PorterChain graph-tool flow, Partner API (API-key), Sandbox vs production, archive, Driver verification — intentional skips, POINTER — use the master entry, Pointer stub index (E.2) (+6 more)
+Cohesion: 0.09
+Nodes (19): Local before production, PorterChain — agent instructions, PorterChain API, PorterChain graph-tool flow, Partner API (API-key), Sandbox vs production, archive, Clerk consolidation (pointer stub) (+11 more)
 
 ### Community 196 - "commit_admin_audit"
 
-Cohesion: 0.29
-Nodes (18): commit_admin_write(), add_claim_evidence(), add_claim_note(), assign_claim(), auto_assign_claim(), bulk_claim_action(), claims_dashboard(), claims_reports() (+10 more)
+Cohesion: 0.13
+Nodes (34): commit_admin_audit(), commit_admin_write(), Any, Commit the current admin unit of work., Persist an admin audit row and commit the current unit of work., AdminDriverOpsService, driver_actions_for(), Any (+26 more)
 
 ### Community 197 - "NextStopResolver"
 
-Cohesion: 0.13
-Nodes (16): TestNextStopMatrix, _stop(), test_next_stop_follows_sequence_waypoint_order(), test_accept_assignment_enqueues_driver_optimize(), test_execute_queued_run_applies_sequence_for_pc_driver(), test_next_stop_follows_day_plan_when_applied(), test_stops_for_orders_applies_interleaved_sequence(), test_waypoints_from_nested_fleetbase_stops_interleave() (+8 more)
-
-### Community 198 - "SendClient.tsx"
-
 Cohesion: 0.05
-Nodes (64): save(), OrdersPage(), SendPage(), AddressBook(), load(), remove(), save(), PortalAuthValue (+56 more)
+Nodes (54): parametrize, Shared delivery options: capture (all surfaces), driver view, Shopify note,…, test_address_input_round_trip(), test_admin_create_accepts_delivery_options(), test_driver_sees_options_and_site_access_on_the_drop_only(), test_shopify_order_note_and_attributes_reach_the_dropoff(), test_summary_lines_include_site_access_and_skip_pickup_noise(), fixture (+46 more)
 
-### Community 199 - "urllib_request"
+### Community 198 - "OrdersClient.tsx"
 
-Cohesion: 0.05
-Nodes (31): _http(), main(), _get(), main(), _get(), _mail(), main(), _worker_heartbeat() (+23 more)
+Cohesion: 0.07
+Nodes (29): BookSuccessClient, PortalAuth(), PortalAuthValue, AttachStashed(), SuccessContent(), poll(), BookingDocuments(), OrderCard() (+21 more)
+
+### Community 199 - "sys"
+
+Cohesion: 0.02
+Nodes (130): Keycloak config audit CLI — names + validity only (never secret values). Usage…, main(), Export §10.1 investor metrics snapshot JSON for monthly tracking (INV-G2)., main(), Run Enterprise E2E Operations Validation Framework (masterrule §16). Usage: cd…, Deprecated — analytics_stop_legs table removed in one-SoT cleanup., main(), guard() (+122 more)
 
 ### Community 200 - "test_interac_parser.py"
 
-Cohesion: 0.06
-Nodes (49): AuthVerdict, _domain_ok(), verify_interac_sender(), _billing_emails(), MatchProposal, _merchants_matching(), normalize_name(), _note_for() (+41 more)
+Cohesion: 0.08
+Nodes (46): AuthVerdict, _domain_ok(), Message, Is this email genuinely from Interac? Trust only our own MTA's verdict. Senders…, verify_interac_sender(), _amount_en(), _amount_fr(), _clean_name() (+38 more)
 
 ### Community 201 - "test_lead_inbox_p1.py"
 
-Cohesion: 0.07
-Nodes (33): _meta_lead_id(), imap_configured(), InboundEmail, ingest_inbound_email(), parse_rfc822(), poll_imap_once(), should_skip(), strip_quoted() (+25 more)
+Cohesion: 0.09
+Nodes (43): imap_configured(), InboundEmail, ingest_inbound_email(), parse_rfc822(), poll_imap_once(), Any, Inbound email (sales@ on Zoho Mail) → lead conversation threads. Two feeds…, Read UNSEEN mail, ingest, then mark seen. Returns counters. (+35 more)
 
-### Community 202 - "scan_gate_service.py"
+### Community 202 - "stop_cargo.py"
 
-Cohesion: 0.12
-Nodes (18): lookup(), _resolve(), emit_package_missing(), decode_label_qr(), decode_signed_label(), encode_label_qr(), encode_signed_label(), InvalidLabelQr (+10 more)
+Cohesion: 0.10
+Nodes (39): _geo(), _help_stops(), AddressInput, Any, Vehicle hourly: +$30 per stop with load/unload help (pickup flag + each drop's…, Address to pricing point, keeping the postal code FSA rates need., _addr_fields(), book_stops_for_request() (+31 more)
 
-### Community 203 - "db_transaction"
+### Community 203 - "routers/job_docs.py"
+
+Cohesion: 0.17
+Nodes (30): admin_add(), admin_docs(), admin_edit(), admin_history(), admin_list(), _body(), _customer(), customer_add() (+22 more)
+
+### Community 204 - "get_merchant_context"
 
 Cohesion: 0.04
-Nodes (66): db_transaction(), dismiss_banner(), examples(), _exempt_merchant_ids(), on_contract(), opt_in_state(), _recent_drop_fsas(), set_opt_in() (+58 more)
-
-### Community 204 - "require_module"
-
-Cohesion: 0.05
-Nodes (112): get_merchant_context(), billing_error_message(), claim_error_message(), billing_contract(), billing_history(), billing_overview(), billing_statement(), billing_statement_detail() (+104 more)
+Nodes (130): get_merchant_context(), Depends, Header, Authorization uses Porterchain merchant_users only. Optional X-Merchant-Id…, card_payments_available(), complete_invoice_checkout(), create_invoice_checkout(), _invoice_for() (+122 more)
 
 ### Community 205 - "admin/package.json"
 
-Cohesion: 0.07
-Nodes (41): dependencies, @dnd-kit/core@^6.3.1, echarts@^6.1.0, firebase@12.19.0, framer-motion@^12.42.2, lucide-react@^1.23.0, maplibre-gl@^6.13.0, next@16.4.1 (+33 more)
+Cohesion: 0.06
+Nodes (32): babel-plugin-react-compiler, echarts, eslint, eslint-config-next, firebase, framer-motion, lucide-react, maplibre-gl (+24 more)
 
 ### Community 206 - "customer_experience/service.py"
 
+Cohesion: 0.10
+Nodes (40): Recipient ("customer") experience: branded tracking, proactive notifications,…, experience(), manage_instructions(), manage_options(), manage_pod(), manage_schedule(), _managed(), merchant_settings() (+32 more)
+
+### Community 207 - "interac/service.py"
+
 Cohesion: 0.14
-Nodes (20): apply_preset(), _bool(), brand_colours(), contrast_on_white(), cx_for_merchant(), default_cx(), email_brand(), _int() (+12 more)
-
-### Community 207 - "MerchantArService"
-
-Cohesion: 0.11
-Nodes (17): _aware(), MerchantArService, _naive(), previous_billing_period_bounds(), etransfer_recipient_email(), add_merchant_credit(), merchant_credit_cents(), merchant_credit_total_cents() (+9 more)
+Nodes (25): _billing_emails(), MatchProposal, _merchants_matching(), normalize_name(), _note_for(), _propose(), propose_match(), Propose which invoice an Interac transfer pays. Proposals only — an admin… (+17 more)
 
 ### Community 208 - "hub_legs.py"
 
-Cohesion: 0.19
-Nodes (12): hub_note(), _hub_point(), HubLeg, mark_delivered(), mark_hub_arrived(), mark_hub_received(), parcel_position(), planning_view() (+4 more)
+Cohesion: 0.20
+Nodes (15): hub_note(), _hub_point(), HubLeg, mark_delivered(), mark_hub_arrived(), mark_hub_received(), parcel_position(), planning_view() (+7 more)
 
-### Community 209 - "DeviceService"
+### Community 209 - "test_maps_firebase_push_gaps.py"
 
-Cohesion: 0.08
-Nodes (19): DeviceService, InvalidFcmToken, is_fcm_registration_token(), test_hs16_register_stores_token_for_admin_driver_customer_merchant(), test_hs16_rejects_expo_and_fake_web_tokens(), _token(), test_gap01_client_token_gate_matches_server_contract(), test_gap01_web_push_exposes_playwright_test_hook() (+11 more)
+Cohesion: 0.10
+Nodes (19): parametrize, patch, GAP board tests — Maps / Firebase / Push…, registerBrowserPush calls isFcmRegistrationToken before POST register. Portal…, ADMIN_RUN_LIVE Playwright uses window.**PC_TEST_FCM_TOKEN** (no VAPID)., Portal libs must re-export @porterchain/maps — no local decodePolyline body., test_gap01_client_token_gate_matches_server_contract(), test_gap01_web_push_exposes_playwright_test_hook() (+11 more)
 
 ### Community 210 - "diagnostics.py"
 
-Cohesion: 0.14
-Nodes (25): ai_usage(), architecture_validation(), chaos_test(), day_plan_monitor(), diagnostics_center(), diagnostics_health(), event_bus_inspector(), execution_metrics() (+17 more)
+Cohesion: 0.10
+Nodes (43): ai_usage(), architecture_validation(), chaos_test(), day_plan_monitor(), diagnostics_center(), diagnostics_health(), event_bus_inspector(), execution_metrics() (+35 more)
 
 ### Community 211 - "Mobile Driver (Expo) — development test cases (depth SSOT)"
 
-Cohesion: 0.06
-Nodes (31): down(), 10. Maps / VROOM / Google — `MD-MAP-*`, 11. Push / Firebase / email / notify — `MD-PUSH-*` / `MD-MAIL-*`, 12. Money / Shopify / ERP — `MD-PAY-*` / `MD-SHOP-*` / `MD-ERP-*`, 13. Database — `MD-DB-*`, 14. Docker / EAS — `MD-DOC-*`, 15.1 Device prerequisites (local), 15. Maestro — `MD-MAE-*` (+23 more)
+Cohesion: 0.05
+Nodes (38): 0. Topology (Graphify SSOT), 10. Maps / VROOM / Google — `MD-MAP-*`, 11. Push / Firebase / email / notify — `MD-PUSH-*` / `MD-MAIL-*`, 12. Money / Shopify / ERP — `MD-PAY-*` / `MD-SHOP-*` / `MD-ERP-*`, 13. Database — `MD-DB-*`, 14. Docker / EAS — `MD-DOC-*`, 15.1 Device prerequisites (local), 15. Maestro — `MD-MAE-*` (+30 more)
 
 ### Community 212 - "env"
 
@@ -2128,120 +2257,120 @@ Nodes (45): concurrency, cancel-in-progress, group, env, name, runs-on, services
 Cohesion: 0.05
 Nodes (45): defaults, name, runs-on, steps, concurrency, cancel-in-progress, group, run (+37 more)
 
-### Community 214 - "website/package.json"
+### Community 214 - "dependencies"
 
-Cohesion: 0.07
-Nodes (41): ai, @ai-sdk/react, lottie-web, react-markdown, reading-time, remark-gfm, dependencies, ai@^7.0.37 (+33 more)
+Cohesion: 0.11
+Nodes (19): dependencies, ai, @ai-sdk/react, framer-motion, lottie-web, lucide-react, next, next-intl (+11 more)
 
-### Community 215 - "test_impersonation_audit.py"
+### Community 215 - "impersonation_session.py"
 
-Cohesion: 0.07
-Nodes (20): _identity_linked(), bearer_token_for_session(), _client(), create_session(), get_session(), ImpersonationSession, resolve_from_authorization(), resolve_from_bearer() (+12 more)
+Cohesion: 0.09
+Nodes (34): _identity_linked(), ImpersonationService, Any, TargetType, bearer_token_for_session(), _client(), create_session(), get_session() (+26 more)
 
 ### Community 216 - "media_store/service.py"
 
-Cohesion: 0.11
-Nodes (23): config_from_env(), get_object(), _headers(), _hm(), put_object(), S3Config, is_media_key(), _key() (+15 more)
+Cohesion: 0.10
+Nodes (36): Proof photos and signatures in Garage (self-hosted S3, docs 61/62). SigV4 over…, config_from_env(), get_object(), _headers(), _hm(), put_object(), Client, S3Config (+28 more)
 
-### Community 217 - "collections"
+### Community 217 - "analytics.py"
 
-Cohesion: 0.12
-Nodes (17): _stamp_analytics(), analytics_stamp(), _aware(), forecast_by_fsa(), _fsa(), _group(), ops_analytics(), _pct() (+9 more)
+Cohesion: 0.13
+Nodes (25): finance_number(), listens_for, Record drop FSA + vehicle at booking so analytics never has to guess later., _stamp_analytics(), purge_expired_interac(), datetime, Records retention for Interac e-Transfer rows (CRA books and records + PIPEDA).…, analytics_stamp() (+17 more)
 
-### Community 218 - "test_custody_state_and_external_ids.py"
+### Community 218 - "AdminOrdersService"
 
-Cohesion: 0.08
-Nodes (25): can_transition_package(), PackageState, IllegalPackageTransition, set_package_status(), _events(), _matrix_require(), merchant_client(), _pkg() (+17 more)
+Cohesion: 0.01
+Nodes (196): AdminOrdersService, Admin order management — extends shared OrderPlatformService (masterrule §3)., Admin-scoped order platform — RBAC-gated overrides and bulk ops., §8.1.4 — chain-of-custody + timeline export for compliance review., L105: admin Create return books the return pickup (customer -> merchant), as…, §8.1.13 — printable compliance dossier for medical / food orders., Package, PackageExternalIdentifier (+188 more)
 
 ### Community 219 - "RouteModuleForm.tsx"
 
-Cohesion: 0.10
-Nodes (36): AddressField(), addressFromBooking(), AllocationBanner(), emptyParcel(), emptyPickup(), emptyStop(), Field(), NumberField() (+28 more)
+Cohesion: 0.08
+Nodes (36): RouteModuleForm, addressFromBooking(), emptyParcel(), emptyPickup(), emptyStop(), RouteModuleForm(), applyUnitSystem(), confirmRoute() (+28 more)
 
 ### Community 220 - "DiagnosticsProbesMixin"
 
-Cohesion: 0.10
-Nodes (4): DiagnosticsProbesMixin, test_cors_origin_list(), test_is_local_property(), PlatformSettings
-
-### Community 221 - "tools.py"
-
 Cohesion: 0.09
-Nodes (23): extract_driver_id(), extract_fsa(), extract_merchant_id(), extract_run_id(), gather_ops_tool_context(), get_fuel_delta(), get_manifest_summary(), get_merchant_snapshot() (+15 more)
+Nodes (12): _probe_http(), DiagnosticsProbesMixin, Any, Worker liveness: job offers past expiry that the sweep has not cascaded., Platform settings tests., test_cors_origin_list(), test_is_local_property(), PlatformSettings (+4 more)
 
-### Community 222 - "routing"
+### Community 221 - "fuel_scorecard.py"
 
-Cohesion: 0.03
-Nodes (78): AccessibilityPage(), generateMetadata(), Props, BookContinuePage(), ContinueRedirect(), Props, BoxTruckDeliveryPage(), generateMetadata() (+70 more)
+Cohesion: 0.20
+Nodes (16): get_fuel_delta(), Estimate fuel $ / liters delta from plan km (pricing_fuel). Read-only., Fuel / km scorecard for optimize metrics (pricing_fuel × distance)., test_enrich_and_delta(), test_fuel_scorecard_cents(), test_get_fuel_delta_tool_explicit_km(), test_liters_per_100km_box_higher_than_van(), enrich_optimize_metrics_fuel() (+8 more)
+
+### Community 222 - "routing.ts"
+
+Cohesion: 0.02
+Nodes (148): ref_next, generateMetadata(), Props, AuthorsHubPage(), generateMetadata(), generateStaticParams, Props, generateMetadata() (+140 more)
 
 ### Community 223 - "test_api_freeze_regression.py"
 
-Cohesion: 0.11
-Nodes (8): _app_with_driver_route(), _hammer_health(), test_customer_contact_calls_idp_before_first_query(), test_health_does_not_touch_db_pool(), test_no_sync_db_or_http_in_async_defs(), test_pool_exhaustion_in_threadpool_does_not_block_loop(), checkout(), test_slow_idp_signin_does_not_freeze_health()
+Cohesion: 0.06
+Nodes (26): anyio, anyio_backend(), _app_with_driver_route(), _fast_admin_verify(), _hammer_health(), _loop_stall_during(), FastAPI, fixture (+18 more)
 
-### Community 224 - "DeliveryPromisePanel.tsx"
+### Community 224 - "PriceBookPanel.tsx"
 
-Cohesion: 0.07
-Nodes (55): blankRates(), CustomerCard, CustomerPricingPanel(), normalize(), num(), Preset, Rates, DeliveryPromisePanel() (+47 more)
+Cohesion: 0.20
+Nodes (22): lbl(), PriceBookPanel(), count(), editBook(), editPay(), money(), save(), toggle() (+14 more)
 
 ### Community 225 - "PorterChain — full-stack development test cases"
 
-Cohesion: 0.07
-Nodes (28): 0. ID scheme, priorities, how to run, 10. Database / models / Redis (`DB-*`), 11. Architecture contracts (`ARCH-*`), 12. Admin UI — every page (`A-UI-*`), 13. Merchant UI (`M-UI-*`), 14. Customer UI (`C-UI-*`), 15. Driver web (`D-UI-*`) — BFF `:3003`, 16. Website (`W-UI-*`) (+20 more)
+Cohesion: 0.06
+Nodes (31): 0. ID scheme, priorities, how to run, 10. Database / models / Redis (`DB-*`), 11. Architecture contracts (`ARCH-*`), 12. Admin UI — every page (`A-UI-*`), 13. Merchant UI (`M-UI-*`), 14. Customer UI (`C-UI-*`), 15. Driver web (`D-UI-*`) — BFF `:3003`, 16. Website (`W-UI-*`) (+23 more)
 
-### Community 226 - "NotificationAdminService"
+### Community 226 - "MerchantRouteImportService"
 
-Cohesion: 0.17
-Nodes (6): NotificationAdminService, template_meta(), test_notification_admin_dashboard(), test_entity_alerts_bundle_shape(), test_entity_alerts_rejects_bad_type(), test_job_assigned_template_exists()
+Cohesion: 0.10
+Nodes (14): find_matching_profile(), get_profile(), list_profiles(), Any, Return newest profile whose header set matches (order-insensitive)., MerchantRouteImportService, Any, Accept the reorder request. NN + quote run in the worker, not this POST. (+6 more)
 
 ### Community 227 - "merchants_integrations.py"
 
-Cohesion: 0.06
-Nodes (54): org_error_message(), require_integrations_elevated(), list_merchant_ingress_dlq(), release_shopify_order_to_dispatch(), replay_ingress_dlq(), repush_shopify_fulfillment(), _require_shop(), reregister_shop_hooks() (+46 more)
+Cohesion: 0.07
+Nodes (74): activate_webhook(), apply_kaylulu_pricing_template(), clone_pricing_from(), deactivate_webhook(), force_disconnect_shopify(), freeze_partner_api(), org_error_message(), Exception (+66 more)
 
 ### Community 228 - "AdminSettingsService"
 
-Cohesion: 0.14
-Nodes (6): AdminSettingsService, canonical_vehicle_id(), normalize_customer_pricing(), enabled_retail_vehicle_ids(), validate_preferred_vehicles(), test_settings_import_export()
-
-### Community 229 - "settings_extra.py"
-
 Cohesion: 0.07
-Nodes (28): EXTRA_DEFAULTS(), _save_driver_gps(), default_admin_access(), enforce(), ip_allowed(), normalize_admin_access(), _policy(), default_future() (+20 more)
+Nodes (36): Single payload for the Executive Command Center UI., AdminSettingsService, Any, Restore SystemConfig to the `old` value captured on a settings.config.update…, Merge commercial knobs onto the stored card so driver payout is not wiped., Read-only pointers to module-owned SystemConfig keys., Fleet inventory counts keyed by vehicle class — from PorterChain vehicles., canonical_vehicle_id() (+28 more)
 
-### Community 230 - "finance_cash.py"
+### Community 229 - "gps_policy.py"
 
-Cohesion: 0.17
-Nodes (14): decide(), list_drafts(), DraftDecision, _errors(), finance_cash(), finance_payout_run_action(), finance_payout_run_create(), finance_payout_run_csv() (+6 more)
+Cohesion: 0.15
+Nodes (22): Any, _save_driver_gps(), Any, consent_of(), default_driver_gps(), driver_gps_status(), driver_shareable_with_recipient(), forget_positions() (+14 more)
+
+### Community 230 - "dependencies"
+
+Cohesion: 0.05
+Nodes (40): dependencies, expo, expo-apple-authentication, expo-application, expo-audio, expo-auth-session, expo-battery, expo-build-properties (+32 more)
 
 ### Community 231 - "test_customer_experience_phase_b.py"
 
 Cohesion: 0.15
-Nodes (34): make_manage_token(), _all_on(), client(), _event(), no_real_sends(), _order(), _records(), _set_cx() (+26 more)
+Nodes (39): make_manage_token(), _all_on(), client(), _event(), no_real_sends(), _order(), fixture, Phase B — recipient experience: branded tracking, proactive notifications,… (+31 more)
 
-### Community 232 - "notification_engine/templates.py"
+### Community 232 - "render_email"
 
-Cohesion: 0.06
-Nodes (30): _g(), render_customer_fr(), build_transactional_html(), _g(), is_merchant_parcel_email(), render_merchant_parcel_email(), _fmt_safe(), _g() (+22 more)
+Cohesion: 0.04
+Nodes (80): _billing_email(), L66: overdue suspension / reinstatement are billing mail -> primary AP contact,…, Central, transactional-only recipient templates (merged into…, _Blank, _fmt(), lang(), localize_email(), Any (+72 more)
 
 ### Community 233 - "public_tracking_snapshot.py"
 
-Cohesion: 0.09
-Nodes (23): public_address_snapshot(), build_public_live_tracking(), _coords_from_address(), _format_eta_label(), _road_eta(), _scheduled_eta(), _translate_live(), driver_pin() (+15 more)
+Cohesion: 0.08
+Nodes (34): public_address_snapshot(), Any, City / region / coords only — no full street address (C-12)., build_public_live_tracking(), _coords_from_address(), _format_eta_label(), Any, datetime (+26 more)
 
 ### Community 234 - "test_shopify_upgrades_phase_a.py"
 
-Cohesion: 0.07
-Nodes (22): checkout_promise(), load_delivery_promise_config(), _carrier_call(), _no_saved_promise(), _register(), _settings(), _shopify_order(), test_carrier_rate_always_cad_and_keeps_old_window_without_promise() (+14 more)
+Cohesion: 0.08
+Nodes (27): _admin(), _body(), _carrier_call(), delivered(), _no_saved_promise(), fixture, SimpleNamespace, Phase A Shopify upgrades: market-driven shipping, delivery promise, tracking… (+19 more)
 
 ### Community 235 - "dispatch_plan.py"
 
-Cohesion: 0.14
-Nodes (24): _actor(), dispatch_order_hub_split(), dispatch_order_hub_split_create(), dispatch_order_legs(), dispatch_order_legs_plan(), dispatch_order_release_delivery(), dispatch_partner_create(), dispatch_partner_leg_draft() (+16 more)
+Cohesion: 0.07
+Nodes (67): _clean(), _contract_dict(), _d(), FleetContractsService, Any, date, Decimal, (units, raw, charge) for one job under contract c; min charge applied. (+59 more)
 
 ### Community 236 - "MapsService"
 
-Cohesion: 0.07
-Nodes (16): _clear_idp_env(), test_hs_osrm_fallback_when_valhalla_none(), test_hs_val_maps_route_with_source_labels(), test_mp_rbac_module_matrix_jobs(), test_nav_module_keys_exist_in_rbac(), test_neg_no_google_distance_in_routing_facade(), test_preview_schema_contract(), test_thin_booking_preview_router() (+8 more)
+Cohesion: 0.11
+Nodes (12): TestValhallaMatrixParse, MapsService, Any, Client, Public ETA. Valhalla first, OSRM fallback. Engines must not call…, Public map geometry. Valhalla first; OSRM polyline fallback., Multi-waypoint Valhalla /route (geometry + summary). Falls back to None., Time-distance matrix: sources×targets → (seconds, meters) cells. Valhalla… (+4 more)
 
 ### Community 237 - "expo"
 
@@ -2250,48 +2379,48 @@ Nodes (43): backgroundColor, foregroundImage, adaptiveIcon, blockedPermissions, 
 
 ### Community 238 - "admin/e2e/fixtures.ts"
 
-Cohesion: 0.08
-Nodes (28): authAndNav, adminDrv, adminUiCases, DriverCase, driverRegistry, ROUTE_HINT, adminBaseUrl(), ensureAdminReachable() (+20 more)
+Cohesion: 0.09
+Nodes (29): authAndNav, adminDrv, adminUiCases, DriverCase, driverRegistry, ROUTE_HINT, adminBaseUrl(), ensureAdminReachable() (+21 more)
 
 ### Community 239 - "DriverBackgroundCheckService"
 
-Cohesion: 0.11
-Nodes (13): DriverBackgroundCheckService, _split_name(), _driver(), test_apply_result_cleared(), test_checkr_signature_helper(), test_consider_does_not_pass(), test_handle_webhook_rejects_bad_signature(), test_mock_screening_clears() (+5 more)
+Cohesion: 0.10
+Nodes (20): DriverBackgroundCheckService, Any, Map Checkr webhook payload → driver background_check_status. Returns True if…, _split_name(), _driver(), MonkeyPatch, test_apply_result_cleared(), test_checkr_signature_helper() (+12 more)
 
 ### Community 240 - "DeliveryService"
 
-Cohesion: 0.07
-Nodes (19): deliver_notification(), DeliveryDeferred, DeliveryService, send_zeptomail(), test_zeptomail_payload_carries_client_reference_and_reply_to(), test_notification_delivery(), test_sandbox_email_gets_test_prefix(), test_hs17_booking_email_appears_in_mailpit() (+11 more)
+Cohesion: 0.05
+Nodes (44): deliver_notification(), DeliveryDeferred, DeliveryService, Any, Exception, push → sms → email when addresses/prefs allow (Phase 3)., Channel accepted for audit but not actually delivered (disabled / log-only)., ZeptoMail Send Mail HTTP API (DigitalOcean blocks outbound SMTP). (+36 more)
 
 ### Community 241 - "test_pod_download_br.py"
 
-Cohesion: 0.04
-Nodes (55): artifact_bytes(), artifact_filename(), build_bundle(), _decode_data_url(), download_stem(), _extension(), _fetch_url(), find_artifact() (+47 more)
+Cohesion: 0.08
+Nodes (49): build_bundle(), list_artifacts(), Any, Every downloadable proof in a normalized POD gallery, in reading order., Every proof for one shipment as a ZIP, plus a note saying what is inside.…, _gallery(), _order(), BR — POD photos and the signature can be downloaded, not only viewed. (+41 more)
 
 ### Community 242 - "ignoreIssues"
 
-Cohesion: 0.05
-Nodes (41): entry, ignore, ignore, ignore, entry, ignore, ignore, ignoreDependencies (+33 more)
+Cohesion: 0.04
+Nodes (45): entry, ignore, entry, ignore, ignore, entry, ignore, ignore (+37 more)
 
 ### Community 243 - "route_imports.py"
 
-Cohesion: 0.08
-Nodes (40): booking_value_error_detail(), confirm_replay_payload(), parse_idempotency_key(), require_module(), template_payload(), booking_confirm(), booking_confirm_draft(), booking_create_template() (+32 more)
+Cohesion: 0.07
+Nodes (73): parse_idempotency_key(), Authorize merchant module via SpiceDB only — no matrix fallback., require_module(), template_payload(), booking_preview_pdf(), Depends, post, merchant routes — quote PDF for the booking being priced (split from… (+65 more)
 
 ### Community 244 - "routers/merchant_ops.py"
 
-Cohesion: 0.15
-Nodes (29): BulkBody, CreditBody, DeleteBody, merchant_board(), merchant_bulk(), _go(), merchant_change_history(), merchant_connections() (+21 more)
+Cohesion: 0.10
+Nodes (50): assert_role(), can_edit_money(), change_history(), dict_diff(), Any, Who may change a merchant's money terms, and the change history they leave., Top-level keys that changed: {key: {"old": .., "new": ..}}., _role() (+42 more)
 
 ### Community 245 - "PorterChain — master development test cases (**ENTRY SSOT**)"
 
+Cohesion: 0.05
+Nodes (42): 0. ID scheme & layers, 10.1 Admin — `UI-A-*` (smoke each route), 10.2 Merchant — `UI-M-*`, 10.3 Customer / Driver web / Website, 10.4 Mobile — `MOB-*`, 10.5 UX cross-cuts — `UX-*`, 10. UI / UX page matrices, 11. Database / models — `DB-*` (+34 more)
+
+### Community 246 - "porterchain_pricing/**init**.py"
+
 Cohesion: 0.06
-Nodes (34): _routing_health(), test_routing_health_unconfigured(), 0. ID scheme & layers, 10.1 Admin — `UI-A-*` (smoke each route), 10.2 Merchant — `UI-M-*`, 10.3 Customer / Driver web / Website, 10.4 Mobile — `MOB-*`, 10.5 UX cross-cuts — `UX-*` (+26 more)
-
-### Community 246 - "fsa.py"
-
-Cohesion: 0.11
-Nodes (18): address_in_coverage(), _fsa_centroid_fallback(), get_fsa_coverage(), fsa_from_address(), main(), is_ontario_fsa(), normalize_fsa(), gta150_fsa_codes() (+10 more)
+Nodes (56): GTA150 tile vs priced FSA rows — admin checklist (Phase 1 / 2c)., get_fsa_coverage(), Whether an FSA is in the GTA150 tile + optional rate presence (Phase 1)., FSA -> registry centroid (no geocoding, no paid APIs)., note_routing_source(), _cache_key(), _points_from_geo(), Authoritative routing distance for pricing — delegates to MapsService… (+48 more)
 
 ### Community 247 - "porterchain"
 
@@ -2303,85 +2432,90 @@ Nodes (40): agent, plan, porterchain, git diff*, git log*, git status*, pnpm *, 
 Cohesion: 0.05
 Nodes (40): allowBuilds, browser-tabs-lock, bufferutil, core-js, esbuild, @firebase/util, @keycloak/shared, @parcel/watcher (+32 more)
 
+### Community 249 - "pod_export.py"
+
+Cohesion: 0.08
+Nodes (33): Every proof for one shipment as a ZIP — the evidence a claim needs., One photo or the signature: `(payload, media_type, filename)`., One photo or the signature: `(payload, media_type, filename)`., artifact_bytes(), artifact_filename(), _decode_data_url(), download_stem(), _extension() (+25 more)
+
 ### Community 250 - "Development test cases — Clerk (customer + merchant) × PorterChain × Fleetbase"
 
 Cohesion: 0.07
-Nodes (26): 0. How to run (dev layer), 10. Docker / compose / microservices, 11. Website & public book (Clerk-adjacent), 12. Admin / staff (boundary of this doc), 13. Architecture & contract validators (always-on), 14. Systems you did not name (still in scope), 15. Suggested implementation order (Jeff Dean), 16. Traceability (sensor → artifact) (+18 more)
+Nodes (29): 0. How to run (dev layer), 10. Docker / compose / microservices, 11. Website & public book (Clerk-adjacent), 12. Admin / staff (boundary of this doc), 13. Architecture & contract validators (always-on), 14. Systems you did not name (still in scope), 15. Suggested implementation order (Jeff Dean), 16. Traceability (sensor → artifact) (+21 more)
 
-### Community 251 - "(portal)/batches/page.tsx"
+### Community 251 - "merchant-portal/src/components/jobs/JobDocsPanel.tsx"
 
-Cohesion: 0.09
-Nodes (28): BatchRow, BatchStatus(), DOC_FLAGS, DOC_LABEL, MerchantBatchesPage(), downloadEdi(), VEHICLES, JobDocsPanel() (+20 more)
+Cohesion: 0.21
+Nodes (14): JobDocsPanel(), add(), EditEntry, Fetcher, Instruction, InstructionInput, jobDocsClient(), JobKind (+6 more)
 
 ### Community 252 - "NavigationService"
 
-Cohesion: 0.11
-Nodes (14): _all_pretrip(), _known(), _order(), test_arrive_fail_closed_when_outside_stop(), test_arrive_ok_inside_stop_circle(), test_arrive_open_when_gps_missing(), test_arrive_open_when_presence_paused(), test_offline_executor_shift_start_passes_pretrip() (+6 more)
+Cohesion: 0.19
+Nodes (7): Any, _coords_from_address(), _format_eta_label(), _maps_url(), NavigationService, Any, Empty navigation session when driver has no active job.
 
-### Community 253 - "geo_photon.py"
+### Community 253 - "routers/geo.py"
 
-Cohesion: 0.12
-Nodes (19): _display(), _dist_km(), _fetch(), _g(), photon_search(), photon_search_scored(), _postal_area(), postal_consistent() (+11 more)
+Cohesion: 0.06
+Nodes (64): _display(), _dist_km(), _fetch(), _g(), photon_search(), photon_search_scored(), _postal_area(), postal_consistent() (+56 more)
 
-### Community 254 - "AdminFinanceService"
+### Community 254 - "test_collections_bl.py"
 
-Cohesion: 0.05
-Nodes (25): _chart_trends(), AdminFinanceService, FinanceFilters, aging_bucket(), ApContact, primary_ap_contact(), test_chart_trends_normalizes_dict_shape(), test_finance_invoice_page_is_capped() (+17 more)
+Cohesion: 0.07
+Nodes (49): Admin refunds claim a ledger row before Stripe and reuse that key., _merchant(), _open_invoice(), BL — collections shows due date, aging, the merchant to open, and who to call., It is collectable work, but it is not late and must not be coloured as such., Collections has to get from an invoice to the company file in one click., A human works the list top down, so the list must be in chase order., Chasing a payment needs a number; a mailbox is optional. (+41 more)
 
 ### Community 255 - "thermal_pdf.py"
 
-Cohesion: 0.09
-Nodes (22): _address_text(), Box, _code128(), _draw_page(), _fit_lines(), layout_page(), _present(), _qr_image() (+14 more)
+Cohesion: 0.07
+Nodes (46): _addr(), _from_line(), Any, L86: sender name + pickup address + phone (was the name only)., _address_text(), Box, _code128(), _draw_page() (+38 more)
 
-### Community 256 - "notifications_center.py"
+### Community 256 - "center.py"
 
-Cohesion: 0.16
-Nodes (26): copy_history(), DigestBody, DraftBody, get_dead_letters(), get_detail(), get_digest(), get_log(), get_matrix() (+18 more)
+Cohesion: 0.05
+Nodes (89): build_digest(), dead_letters(), detail(), _iso(), _lanes(), _latency_ms(), list_log(), matrix() (+81 more)
 
 ### Community 257 - "test_merchant_admin_ops.py"
 
 Cohesion: 0.07
-Nodes (29): test_default_quote_ttl_is_72_hours(), test_env_can_override_quote_ttl(), as_role(), make(), _ctx(), cycle_cleanup(), merchant(), _order() (+21 more)
+Nodes (36): as_role(), make(), _ctx(), cycle_cleanup(), merchant(), _order(), _overdue_invoice(), fixture (+28 more)
 
 ### Community 258 - "batch_engine/vrp.py"
 
 Cohesion: 0.14
-Nodes (17): _vrp_plan(), group_building(), _insert_all(), sim(), Job, naive_duration(), reoptimise(), service_time() (+9 more)
+Nodes (32): Delete + write under one lock, so readers never see the gap., Coordinates present -> multi-vehicle VRP decides routes, waves and sequence…, _vrp_plan(), group_building(), _hav_m(), _insert_all(), sim(), Job (+24 more)
 
-### Community 259 - "test_invoice_credit_notes.py"
+### Community 259 - "shopify_order_sync.py"
 
-Cohesion: 0.10
-Nodes (28): mask_email(), p(), _capture_email(), _invoice(), _lines(), _status(), stepped_up(), test_above_threshold_needs_a_different_approver() (+20 more)
+Cohesion: 0.11
+Nodes (36): book_now(), _cents(), classify(), fetch_recent(), _gql(), _items(), list_for_merchant(), Any (+28 more)
 
 ### Community 260 - "test_contract_terms.py"
 
-Cohesion: 0.10
-Nodes (20): claim_terms_meta(), _billable_blocks(), claim_deadline(), concierge_cents(), declaration_problem(), default_carriage_terms(), failed_delivery_cents(), missing_claim_records() (+12 more)
+Cohesion: 0.11
+Nodes (31): _billable_blocks(), claim_deadline(), concierge_cents(), declaration_problem(), default_carriage_terms(), failed_delivery_cents(), missing_claim_records(), normalize_carriage_terms() (+23 more)
 
 ### Community 261 - "60 · Phase 0: refine the existing PCD to precision (no agentic mode)"
 
-Cohesion: 0.06
-Nodes (33): crm(), staff_ctx(), 10. Store-release checklist, 11. Risks, 12. Decisions needing Ravi, 14. L33 Trust & Help Centre (Phase 0, doc 68), 15. Updates 29 Oct 2026 (Ravi), 16. Updates 29 Oct 2026, round 2 (Ravi) (+25 more)
+Cohesion: 0.07
+Nodes (27): 10. Store-release checklist, 11. Risks, 12. Decisions needing Ravi, 13.1 Routing engines (D-P0-6), 13.2 Benchmark (Phase 0 week 7, decides OSRM), 13.3 Service design, 13.4 Ops page integration (Today, Plan, Live, Exceptions, Fleet; §9), 13.5 Shopify pricing and billing (decided) (+19 more)
 
 ### Community 262 - "scheduling.py"
 
-Cohesion: 0.14
-Nodes (22): _clean_email(), _clean_phone(), consignee_contacts(), cx_meta(), is_bulky(), mask_initials(), mask_name(), merchant_for() (+14 more)
+Cohesion: 0.18
+Nodes (30): _clean_email(), _clean_phone(), consignee_contacts(), cx_meta(), dest_fsa(), is_bulky(), merchant_for(), meta_of() (+22 more)
 
-### Community 263 - "test_driver_abstract_and_expiry.py"
+### Community 263 - "DriverComplianceExpiryService"
 
-Cohesion: 0.17
-Nodes (6): DriverComplianceExpiryService, is_expired(), _parse_expiry(), driver_me(), driver_onboarding(), driver_profile()
+Cohesion: 0.18
+Nodes (14): DriverComplianceExpiryService, is_expired(), _parse_expiry(), Any, datetime, Revoke verified flags for expired insurance/registration/license/abstract., Periodic worker: refresh expiry flags for recently updated drivers., driver_me() (+6 more)
 
-### Community 264 - "copy"
+### Community 264 - "standard_card.py"
 
-Cohesion: 0.12
-Nodes (21): _validate_lines(), _client(), test_admin_api_flow(), test_custom_presets_and_guardrails(), test_f4_includes_two_person_and_extra_furniture_half_price(), test_limits_and_minimum(), test_worked_examples(), _apply_org() (+13 more)
+Cohesion: 0.15
+Nodes (26): Staff explainer: the one Standard price (plus the org's Custom view)., standard_quote(), test_custom_presets_and_guardrails(), test_f4_includes_two_person_and_extra_furniture_half_price(), test_limits_and_minimum(), test_worked_examples(), _apply_org(), band_for() (+18 more)
 
-### Community 265 - "test_driver_me_profile.py"
+### Community 265 - "@porterchain/types"
 
-Cohesion: 0.26
-Nodes (13): _driver(), _idp_user(), _patch(), _sync(), test_clearing_optional_blocks(), test_emergency_contact_shares_the_support_hub_store(), test_get_profile_shape(), test_noop_patch_writes_no_audit() (+5 more)
+Cohesion: 0.05
+Nodes (40): _order(), Stuck/idle anomalies, their suggested fixes, re-plan diffs and same-area…, test_consolidation_groups_by_fsa_and_flags_splits(), test_idle_driver_gets_oldest_waiting_order(), test_stuck_before_pickup_suggests_reassign_then_contact(), test_stuck_only_past_the_state_limit(), Driver documents list maps seed files[] + verified flags into portal rows., test_insurance_status_verified_copy() (+32 more)
 
 ### Community 266 - "properties"
 
@@ -2390,23 +2524,23 @@ Nodes (37): description, type, type, type, type, type, properties, required (+29
 
 ### Community 267 - "NotificationEngine"
 
-Cohesion: 0.14
-Nodes (4): do_notify(), NotificationEngine, jittered(), lane_for()
+Cohesion: 0.09
+Nodes (21): do_notify(), group_for(), href_for(), _ids(), label_for(), Any, Bell deep links: every in-app item opens the right page in the recipient's…, Same entity -> one group in the bell ("3 updates for PC-1234"). (+13 more)
 
 ### Community 268 - "test_shopify_tokens.py"
 
-Cohesion: 0.16
-Nodes (27): _expiring(), _pair(), _Recorder, _settings(), _shop(), test_another_worker_already_refreshed_so_no_second_refresh(), test_carrier_error_codes(), test_custom_app_token_is_never_exchanged() (+19 more)
+Cohesion: 0.14
+Nodes (33): _expiring(), _graphql_response(), _pair(), parametrize, Shopify expiring offline tokens: grant params, storage, refresh, migration,…, Stands in for the token endpoint; records every form body., _Recorder, _settings() (+25 more)
 
-### Community 269 - "ref_path"
+### Community 269 - "mobile-customer/metro.config.js"
 
-Cohesion: 0.07
-Nodes (20): config, fs, { getDefaultConfig }, inMonorepo, monorepoRoot, path, vendoredTheme, workspaceTheme (+12 more)
+Cohesion: 0.11
+Nodes (16): config, fs, { getDefaultConfig }, inMonorepo, monorepoRoot, path, vendoredTheme, workspaceTheme (+8 more)
 
 ### Community 270 - "push.ts"
 
-Cohesion: 0.11
-Nodes (31): acceptOrder(), registerPush(), rejectOrder(), unregisterPush(), Options, useDriverDeepLinks(), apply(), DriverLink (+23 more)
+Cohesion: 0.10
+Nodes (32): acceptOrder(), registerPush(), rejectOrder(), unregisterPush(), Options, useDriverDeepLinks(), apply(), DriverLink (+24 more)
 
 ### Community 271 - "with"
 
@@ -2415,28 +2549,28 @@ Nodes (36): name, permissions, runs-on, steps, strategy, concurrency, cancel-in-
 
 ### Community 272 - "driver/batches.py"
 
-Cohesion: 0.19
-Nodes (25): accept(), close(), deliver(), handover(), _http(), incoming(), _keys(), link_label() (+17 more)
+Cohesion: 0.18
+Nodes (31): driver_incoming_handovers(), driver_open_routes(), Batch list reads for merchant/admin routes (keeps DB access out of routers)., accept(), close(), deliver(), handover(), go() (+23 more)
 
-### Community 273 - "test_interac_billing.py"
+### Community 273 - "test_customer_persona_p0_integrations.py"
 
-Cohesion: 0.11
-Nodes (27): ingest_message(), test_cycle_invoice_adds_waiting_line_and_stamps_order(), _cycle_invoice(), _eml(), _money(), test_current_layout_reference_match_is_proposed_never_applied(), test_current_layout_reminder_and_cancellation_create_nothing(), test_current_layout_without_memo_goes_to_review() (+19 more)
+Cohesion: 0.08
+Nodes (36): _addr(), _addr_dict(), admin_client(), _admin_ctx(), _dropoff(), _make_customer(), _matrix_require_module(), AddressInput (+28 more)
 
-### Community 274 - "unittest_mock"
+### Community 274 - "DriverOfflineExecutor"
 
-Cohesion: 0.02
-Nodes (48): DriverOfflineExecutor, check_rate_limit_redis(), test_driver_finance_period_earnings(), test_idp_directory_create_user(), test_invite_driver(), test_merchant_billing_invoices(), test_user_sync_full(), test_webhook_fanout_no_hooks() (+40 more)
+Cohesion: 0.06
+Nodes (40): DriverApiService, execute(), Any, T, Central driver portal service — routers delegate here; owns commits., L184: a 16h+ open shift is clocked out (and committed) before "Online" is shown., L185: persist the 16h auto clock-out (GET used to roll it back)., Load the order and reject drivers who are not assigned to it. (+32 more)
 
-### Community 275 - "test_ops_live.py"
+### Community 275 - "website/src/lib/env.ts"
 
-Cohesion: 0.12
-Nodes (11): _app(), FakeRedis, test_gps_fix_publishes_driver_position(), test_publish_never_raises(), test_ws_admin_without_dispatch_read_is_refused(), admin(), test_ws_rejects_missing_or_non_admin(), test_ws_streams_to_dispatch_staff() (+3 more)
+Cohesion: 0.10
+Nodes (27): GET(), POST(), authorize(), Body, POST(), escapeXml(), GET(), GoogleBusinessProfileLink() (+19 more)
 
 ### Community 276 - "test_marketing_site_phase_c.py"
 
 Cohesion: 0.07
-Nodes (24): clean_signup_attribution(), stamp_signup_attribution(), client(), _lead_body(), _lead_by_email(), no_outbound(), open_limits(), test_admin_attribution_route_requires_crm_read() (+16 more)
+Nodes (35): Public marketing site support: instant estimate, calculator leads, hero A/B…, _fsa_of(), lead_attribution_summary(), Any, _top(), clean_signup_attribution(), Any, First-touch marketing attribution stamped on a merchant at signup. Stored in… (+27 more)
 
 ### Community 277 - "expo"
 
@@ -2451,32 +2585,32 @@ Nodes (28): die(), dump_db(), encrypt(), epoch_of_stamp(), log(), remote_delete(
 ### Community 279 - "compute_delivery_promise"
 
 Cohesion: 0.14
-Nodes (24): available_windows(), compute_delivery_promise(), default_delivery_promise(), DeliveryPromise, _fmt_time(), _hhmm(), normalize_delivery_promise(), _tier_for() (+16 more)
+Nodes (30): available_windows(), compute_delivery_promise(), default_delivery_promise(), DeliveryPromise, _fmt_time(), _hhmm(), normalize_delivery_promise(), Any (+22 more)
 
 ### Community 280 - "verify_d2_contracts.py"
 
 Cohesion: 0.10
-Nodes (18): _check_cross_engine_imports(), _check_driver_job_summary_parity(), _check_engine_imports(), _check_engine_service_loc(), _check_filesystem(), _check_router_business_logic(), _check_router_raw_sql(), _check_router_star_imports() (+10 more)
+Nodes (33): _check_cross_engine_imports(), _check_driver_job_summary_parity(), _check_engine_imports(), _check_engine_service_loc(), _check_filesystem(), _check_router_business_logic(), _check_router_raw_sql(), _check_router_star_imports() (+25 more)
 
-### Community 281 - "exception_fixes_service.py"
+### Community 281 - "ExceptionFixesService"
 
-Cohesion: 0.11
-Nodes (13): _committed_routes(), ExceptionFixesService, margin_items(), next_slot(), rescue_service(), email_delay(), _fix(), suggest() (+5 more)
+Cohesion: 0.07
+Nodes (35): _committed_routes(), ExceptionFixesService, margin_items(), next_slot(), Any, datetime, Attach ranked `fixes` to each queue item (in place)., Next weekday 09:00 Toronto (today's if it is still before 09:00 on a weekday). (+27 more)
 
 ### Community 282 - "maps/package.json"
 
-Cohesion: 0.08
-Nodes (33): dependencies, maplibre-gl@^5.6.0, pmtiles@^4.3.0, @protomaps/basemaps@^5.5.0, @turf/bbox@^7.2.0, @turf/circle@^7.2.0, @turf/helpers@^7.2.0, devDependencies (+25 more)
+Cohesion: 0.06
+Nodes (33): dependencies, maplibre-gl, pmtiles, @protomaps/basemaps, @turf/bbox, @turf/circle, @turf/helpers, devDependencies (+25 more)
 
-### Community 283 - "docs/[slug]/page.tsx"
+### Community 283 - "track-view.tsx"
 
-Cohesion: 0.10
-Nodes (26): BlogPreviewPage(), generateStaticParams(), instant, PreviewBody(), Props, DeveloperDocPage(), generateMetadata(), generateStaticParams() (+18 more)
+Cohesion: 0.04
+Nodes (36): react-markdown, remark-gfm, generateStaticParams(), instant, PreviewBody(), Props, BookBody(), metadata (+28 more)
 
 ### Community 284 - "test_tax_registration.py"
 
-Cohesion: 0.09
-Nodes (17): _body(), clean(), _invoice_stub(), _register(), test_api_register_audits_and_validates(), test_api_requires_finance_module(), test_api_requires_step_up(), test_bn_normalizes() (+9 more)
+Cohesion: 0.08
+Nodes (26): HST extra' only while we are a GST/HST registrant; nothing otherwise., _taxes_note(), _body(), clean(), _invoice_stub(), date, datetime, fixture (+18 more)
 
 ### Community 285 - "with"
 
@@ -2490,133 +2624,138 @@ Nodes (33): allowBuilds, browser-tabs-lock, core-js, esbuild, @parcel/watcher, @
 
 ### Community 287 - "PCD — intentional skips (project-wide)"
 
-Cohesion: 0.13
-Nodes (14): Done (do not reopen as gaps), Freeze allowlists (intentional debt, not new work), Intentionally not done (not bugs), Intentionally not done (same surface), Loud FCM / ops push — done vs skip (2026-09), Ops, Ops / naming traps (not “missing features”), PCD — intentional skips (project-wide) (+6 more)
+Cohesion: 0.11
+Nodes (18): Done (do not reopen as gaps), Done in this wave (do not reopen as “skips”), Driver verification — done vs skip, Freeze allowlists (intentional debt, not new work), Intentionally not done, Intentionally not done (driver), Intentionally not done (not bugs), Intentionally not done (same surface) (+10 more)
 
-### Community 288 - "DriverShift"
+### Community 288 - "LiveMapService"
 
-Cohesion: 0.13
-Nodes (9): LiveMapService, order_stop_points(), _stop_label(), DriverShift, _cleanup(), _order(), TestRouteGeometry, TestSnapshot (+1 more)
+Cohesion: 0.10
+Nodes (17): _density_cells(), LiveMapService, order_stop_points(), Any, Shift/order breadcrumb playback. Empty until shift_trace is wired., Ordered map points for an order: rich stops[] first, legacy fields next., _stop_label(), TestH3Density (+9 more)
 
-### Community 289 - "lead_scoring.py"
+### Community 289 - "CrmLeadWriteMixin"
 
-Cohesion: 0.16
-Nodes (17): blend_scores(), clear_score_priors_cache(), compute_score_priors(), _contact_completeness(), get_score_priors(), _laplace(), predictive_score(), _rate_map() (+9 more)
+Cohesion: 0.11
+Nodes (29): CrmLeadWriteMixin, Lookup visitor session — prefer first-class column, then custom_fields., Deterministic fit score 0-100 (industry, volume, GTA area, channel,…, blend_scores(), clear_score_priors_cache(), compute_score_priors(), _contact_completeness(), get_score_priors() (+21 more)
 
 ### Community 290 - "orders_board.py"
 
+Cohesion: 0.08
+Nodes (40): bulk_exception_message(), cancel_error_message(), cancel_refusal_for_state(), cancel_rule(), BaseException, When a merchant may cancel — English, not state-machine codes. Cutoff: after…, bulk_action(), dashboard_payload() (+32 more)
+
+### Community 291 - "sitemap-xml.ts"
+
 Cohesion: 0.09
-Nodes (25): assert_merchant_can_cancel(), bulk_exception_message(), cancel_allowed(), cancel_error_message(), cancel_refusal_for_state(), cancel_rule(), bulk_action(), dashboard_payload() (+17 more)
+Nodes (29): DeveloperDocsHubPage(), DeveloperDocPage(), generateMetadata(), generateStaticParams(), DevelopersPage(), GET(), GET(), portalDisplayHost() (+21 more)
 
-### Community 291 - "test_pricing_settings_phase1.py"
+### Community 292 - "settings_extra.py"
 
-Cohesion: 0.09
-Nodes (18): resolve_writable_config_key(), _put(), _reset_settings(), test_cargo_insurance_is_super_admin_only_and_off_by_default(), test_marketing_site_is_a_writable_admin_setting(), _admin(), test_admin_may_flip_price_book_switches_but_not_prices(), test_boxes_expand_to_one_package_per_box() (+10 more)
+Cohesion: 0.13
+Nodes (31): EXTRA_DEFAULTS(), Settings keys owned outside the legacy settings service (keeps it under its…, default_admin_access(), enforce(), ip_allowed(), normalize_admin_access(), _policy(), Any (+23 more)
 
-### Community 292 - "platform/compliance.py"
+### Community 293 - "test_shopify_graphql_migration.py"
 
-Cohesion: 0.12
-Nodes (20): _dt(), evidence_pack(), breach_clock(), default_compliance(), _lst(), _monitoring(), normalize_breaches(), normalize_compliance() (+12 more)
-
-### Community 293 - "porterchain_api_merchant_engine"
-
-Cohesion: 0.07
-Nodes (17): _settings(), test_fo_notification_ignored_when_flag_off(), test_fo_webhook_ignored_when_flag_off(), test_fulfillment_service_url(), test_post_install_registers_fs_only_when_flag_on(), test_process_queued_fo_skipped_when_flag_off(), test_process_queued_fo_stub_when_flag_on(), _client() (+9 more)
+Cohesion: 0.17
+Nodes (15): _client(), parametrize, REST Admin API → GraphQL migration: mocked Shopify GraphQL responses only., Fake GraphQL endpoint: answers by operation name and records every request., Guard: the Shopify app talks to the Admin API only through GraphQL., _resp(), _Shopify, test_fulfillment_service_find_and_mark_paid() (+7 more)
 
 ### Community 294 - "test_kaylulu_contract_wiring.py"
 
-Cohesion: 0.15
-Nodes (23): resolve_shopify_vehicle(), merchant_coverage_fsas(), _addr(), _carrier(), _engine_quote(), _item(), _kaylulu(), test_admin_fsa_editor_allows_out_of_tile_rows_for_fsa_merchants_only() (+15 more)
+Cohesion: 0.07
+Nodes (56): _canonical_vehicle(), kaylulu_pricing_config(), Any, Kaylulu pricing_config template — values come from the checked-in contract…, Merge the Kaylulu schedule, handling tiers and surcharge opt-outs into…, _address(), assert_can_open_return(), create_return_order() (+48 more)
 
 ### Community 295 - "merchant-portal/e2e/fixtures.ts"
 
 Cohesion: 0.12
-Nodes (25): ALLOWED_ROUTING, emptyState, apiBase(), captureBearer(), envStoragePath(), gtaBookPayload(), liveEnabled, liveReady() (+17 more)
+Nodes (27): ALLOWED_ROUTING, emptyState, apiBase(), captureBearer(), envStoragePath(), apps_merchant_portal_e2e_fixtures_expect, gtaBookPayload(), liveEnabled (+19 more)
 
 ### Community 296 - "test_rate_card.py"
 
 Cohesion: 0.10
-Nodes (20): test_default_flat_matches_legacy_850(), test_merchant_overlay_switches_to_percent(), test_percent_respects_minimum(), default_rate_card(), merge_merchant_overlay(), rate_card_from_dict(), RateCard, _to_camel() (+12 more)
+Nodes (31): copy, Any, Resolve wallet credit from system (+ merchant) rate card for this order., Driver delivery payout resolution from rate card (pure unit tests)., test_default_flat_matches_legacy_850(), test_merchant_overlay_switches_to_percent(), test_percent_respects_minimum(), default_rate_card() (+23 more)
 
-### Community 298 - "MerchantStatus"
+### Community 297 - "DriverFinanceService"
 
-Cohesion: 0.04
-Nodes (77): MerchantRole, MerchantStatus, activate_merchant(), apply_signup_policy(), approval_required(), is_trusted_source(), _merchant_config(), resolve_initial_status() (+69 more)
+Cohesion: 0.15
+Nodes (8): DriverFinanceService, Any, date, datetime, Create a pending payout and debit wallet (D-24)., Sum credited delivery earnings for orders on the route (wallet truth)., test_driver_finance_period_earnings(), Period
+
+### Community 298 - "test_merchant_activation_policy.py"
+
+Cohesion: 0.14
+Nodes (25): approval_required(), is_trusted_source(), _merchant_config(), Any, Status a brand-new merchant should be created with., resolve_initial_status(), trusted_channels_auto_activate(), _make_merchant() (+17 more)
 
 ### Community 299 - "admin_orgs.py"
 
-Cohesion: 0.17
-Nodes (16): backfill(), BackfillBody, business_types(), CapsBody, create_org(), CreateOrg, get_org(), list_orgs() (+8 more)
+Cohesion: 0.09
+Nodes (51): backfill_from_merchants(), create_org(), find_org(), list_orgs(), Any, Admin Organisations use-cases (doc 70) — DB access for…, Raises ValueError for an invalid profile., Raises ValueError for an invalid type/subtype. (+43 more)
 
 ### Community 300 - "Customer persona + Admin Customers — development test cases"
 
-Cohesion: 0.05
-Nodes (42): 0. ID scheme & layers, 10. Fleetbase handshake (`FB-*`), 11. Payments / Stripe / invoices (`PAY-*`), 12. Notifications / email / FCM (`NOTIF-*`), 13. Website / Shopify / ERP / other connections (`INT-*`), 14. Mobile customer (`C-MOB-*`), 15. Docker / compose / architecture (`DOC-*`, `ARCH-*`), 16. Suggested automated harness mapping (+34 more)
+Cohesion: 0.04
+Nodes (45): 0. ID scheme & layers, 10. Fleetbase handshake (`FB-*`), 11. Payments / Stripe / invoices (`PAY-*`), 12. Notifications / email / FCM (`NOTIF-*`), 13. Website / Shopify / ERP / other connections (`INT-*`), 14. Mobile customer (`C-MOB-*`), 15. Docker / compose / architecture (`DOC-*`, `ARCH-*`), 16. Suggested automated harness mapping (+37 more)
 
 ### Community 301 - "services"
 
 Cohesion: 0.06
-Nodes (31): container_name, expose, image, networks, pull_policy, restart, security_opt, container_name (+23 more)
+Nodes (32): container_name, depends_on, image, networks, ports, restart, security_opt, volumes (+24 more)
 
 ### Community 302 - ".select"
 
-Cohesion: 0.18
-Nodes (18): ExternalRef, OperatingProfile, Organisation, OrgCapability, backfill_from_merchants(), capabilities(), current_profile(), ensure_org_for_shopify() (+10 more)
+Cohesion: 0.16
+Nodes (25): merchants_by_created(), shopify_merchant_ids(), ExternalRef, OperatingProfile, OrgCapability, backfill_from_merchants(), capabilities(), current_profile() (+17 more)
 
-### Community 303 - "enforce_staff_step_up"
+### Community 303 - "fastapi"
 
-Cohesion: 0.09
-Nodes (22): FinanceDashboard, enforce_staff_step_up(), fetch_and_ingest(), imap_configured(), CreditNoteCreateRequest, CreditNoteDecisionRequest, _err(), finance_approve_credit_note() (+14 more)
+Cohesion: 0.05
+Nodes (74): enforce_staff_step_up(), Request, Staff step-up for sensitive admin mutations: a Keycloak login within 15 minutes., Require `auth_time` within 15m on the verified admin token. Bearer `dev`…, fetch_and_ingest(), imap_configured(), Any, list_runs() (+66 more)
 
 ### Community 304 - "DriverRouteService"
 
-Cohesion: 0.09
-Nodes (13): allowed(), DriverRouteService, group(), place(), _stop_notes(), stop_status(), walk_to(), DispatchRoute (+5 more)
+Cohesion: 0.05
+Nodes (57): allowed(), DriverRouteService, group(), place(), Any, datetime, Driver's committed route + stop-level check-ins (arrived / picked_up /…, Driver notes for one route stop: shared delivery options on drops, then… (+49 more)
 
 ### Community 305 - "MerchantStandingOrderService"
 
-Cohesion: 0.10
-Nodes (16): advance_next_run(), MerchantStandingOrderService, standing_error_message(), StandingOrder, create_standing_order(), deactivate_standing_order(), list_standing_orders(), _standing_http() (+8 more)
+Cohesion: 0.13
+Nodes (14): advance_next_run(), MerchantStandingOrderService, Any, datetime, Recurring standing orders — English last_error and skip inactive merchants., _template(), test_create_standing_order_rejects_inactive_merchant(), test_inactive_merchant_skips_with_english_last_error() (+6 more)
 
-### Community 306 - "center.py"
+### Community 306 - "leads_desk.py"
 
-Cohesion: 0.17
-Nodes (22): build_digest(), dead_letters(), detail(), _iso(), _lanes(), _latency_ms(), list_log(), matrix() (+14 more)
+Cohesion: 0.11
+Nodes (32): Recompute the stored fit score on open leads (scores from the old scorer or…, rescore_open_leads(), ValueError, QuoteUnavailable, The lead lacks what pricing needs (reason is the message)., _aware(), _buyer_leads(), _pct() (+24 more)
 
-### Community 307 - "hasDriverSession"
+### Community 307 - "create_app"
 
-Cohesion: 0.16
-Nodes (19): SupportPage(), ChatPlaceholder(), ClaimForm(), DriverSupportClient(), EmergencyContactCard(), IncidentForm(), TicketForm(), useDriverSupport() (+11 more)
+Cohesion: 0.09
+Nodes (29): api_docs_exposed(), create_app(), _booking_validation_handler(), health(), health_live(), health_status(), _http_exception_handler(), _permission_error_handler() (+21 more)
 
 ### Community 308 - "guide-session.ts"
 
-Cohesion: 0.19
-Nodes (10): contactCapturePolicy(), DEFAULT_GUIDE_STATE, GUIDE_STAGES, GuideSessionState, GuideStage, hasEmailAndPhone(), isGuideStage(), MAX_QUESTIONS_BEFORE_CONTACT (+2 more)
+Cohesion: 0.36
+Nodes (7): DEFAULT_GUIDE_STATE, GUIDE_STAGES, GuideSessionState, GuideStage, isGuideStage(), mergeGuideState(), normalizeGuideState()
 
 ### Community 309 - "get_redis_client"
 
 Cohesion: 0.15
-Nodes (5): OAuthService, test_get_redis_client_is_singleton(), test_burst_of_80_parallel_calls_all_succeed(), test_pool_is_blocking_and_sized_for_threadpool(), get_redis_client()
+Nodes (12): OAuthService, Any, Public form limits are per IP; every TestClient shares one IP. Clear the…, _reset_public_form_rate_limits(), oauth_service(), fixture, OAuth service unit tests., test_authorization_code_exchange() (+4 more)
 
 ### Community 310 - "quote_pdf.py"
 
-Cohesion: 0.12
-Nodes (18): _fr_money(), norm_lang(), _num(), pdf_for_preview(), pdf_for_stored_quote(), preview_quote_number(), render_quote_pdf(), **init**() (+10 more)
+Cohesion: 0.21
+Nodes (16): _fr_money(), norm_lang(), _num(), pdf_for_preview(), pdf_for_stored_quote(), preview_quote_number(), Any, datetime (+8 more)
 
-### Community 311 - "test_remaining_to_live_prove.py"
+### Community 311 - "test_issuer_legal_name.py"
 
-Cohesion: 0.04
-Nodes (29): test_hs26_dispatch_probe_reports_ortools(), test_hs26_probe_day_plan_never_hits_vroom_http_port(), test_hs26_probe_source_file_has_no_direct_sidecar(), _iter_engine_py(), test_hs09_maps_route_with_source_valhalla_label(), test_hs13_optimize_run_body_defaults_porterchain_day_plan(), test_mp_rte_enqueue_optimize_payload_shape(), test_mp_rte_no_vroom_client_under_engines() (+21 more)
+Cohesion: 0.11
+Nodes (5): Issuer legal name on settings defaults, invoices, statements and remittance is…, test_etransfer_email_fallback_without_stored_settings(), L192: pod-complete alone (web portal path) must credit the driver wallet once., inspect, porterchain_api_merchant_engine_billing_pack
 
-### Community 312 - "ref_react"
+### Community 312 - "driver-portal/src/lib/api.ts"
 
-Cohesion: 0.02
-Nodes (171): AccountPage(), metadata, CommunicationsPage(), EmergencyClient(), EmergencyPage(), Delivery360, JobDetailClient(), JobDetailPage() (+163 more)
+Cohesion: 0.01
+Nodes (250): AccountPage(), metadata, DashboardPage(), EarningsPage(), Delivery360, JobDetailClient(), Props, JobsPage() (+242 more)
 
-### Community 313 - "useDispatchRoute.ts"
+### Community 313 - "RouteStopCard.tsx"
 
-Cohesion: 0.16
-Nodes (18): dispatchCheckin(), fetchDispatchRoute(), qk, applyLocalCheckin(), etaSecondsFrom(), useDispatchRoute(), useSettings(), distanceM() (+10 more)
+Cohesion: 0.06
+Nodes (58): dispatchCheckin(), fetchDispatchChecklist(), fetchDispatchRoute(), fetchStopContact(), CheckinEvent, DispatchRoute, DispatchStop, FAIL_REASONS (+50 more)
 
 ### Community 314 - "Page specs (25)"
 
@@ -2625,363 +2764,368 @@ Nodes (29): 41 · UI page specs — Driver web portal, 4.10 `/jobs`, 4.11 `/logi
 
 ### Community 315 - "devDependencies"
 
-Cohesion: 0.07
-Nodes (30): devDependencies, babel-plugin-react-compiler@^1.0.0, eslint@^10.6.0, eslint-config-next@16.4.1, happy-dom@20.14.6, @playwright/test@^1.55.0, tailwindcss@^4.3.2, @tailwindcss/postcss@^4.3.2 (+22 more)
+Cohesion: 0.12
+Nodes (17): devDependencies, babel-plugin-react-compiler, eslint, eslint-config-next, happy-dom, @playwright/test, tailwindcss, @tailwindcss/postcss (+9 more)
 
 ### Community 316 - "admin360.py"
 
-Cohesion: 0.19
-Nodes (18): customer_settings(), CustomerCredit, ReorderNudge, add_credit(), add_note(), booking_link_draft(), consent_status(), credit_balance() (+10 more)
+Cohesion: 0.09
+Nodes (50): CustomerConsent, CustomerCredit, CustomerNote, OrderRating, PrivacyDeletionJob, Append-only CASL / PIPEDA consent log (express consent proof: what, when,…, One recipient/customer rating per order (1–5), from the signed tracking link., Staff note on a customer (admin Care tab timeline). (+42 more)
 
 ### Community 317 - "test_project_mode.py"
 
-Cohesion: 0.13
-Nodes (17): _live(), _settings(), test_bypass_only_in_development_mode(), test_normalize_app_env_aliases(), test_project_mode_change_endpoint_immutable(), test_project_mode_change_immutable_in_production(), test_project_modes(), test_runtime_posture_payload_shape() (+9 more)
+Cohesion: 0.12
+Nodes (26): Stripe mock checkout and mock-complete are development mode only (masterrule…, Boot-time project mode + derived gates (read-only for Admin / metrics)., _live(), Project mode / runtime posture — boot-time APP_ENV SoT., _settings(), test_bypass_only_in_development_mode(), test_normalize_app_env_aliases(), test_project_mode_change_endpoint_immutable() (+18 more)
 
 ### Community 318 - "customers_admin_360.py"
 
-Cohesion: 0.23
-Nodes (21): _actor(), _call(), CreditBody, DecideBody, get_360(), get_nudges(), get_privacy_jobs(), get_timeline() (+13 more)
+Cohesion: 0.21
+Nodes (28): _actor(), _call(), CreditBody, DecideBody, get_360(), get_nudges(), get_privacy_jobs(), get_timeline() (+20 more)
 
 ### Community 319 - "auth/package.json"
 
-Cohesion: 0.07
-Nodes (31): dependencies, description, devDependencies, next@16.4.1, react@19.2.7, @types/react@^19, typescript@^6.0.3, exports (+23 more)
+Cohesion: 0.06
+Nodes (31): dependencies, description, devDependencies, next, react, @types/react, typescript, exports (+23 more)
 
 ### Community 320 - "finance_insights.py"
 
-Cohesion: 0.14
-Nodes (11): change_tax_registration(), finance_export_csv(), finance_margin(), finance_stripe(), finance_tax_report(), future_features(), ops_analytics(), _period() (+3 more)
+Cohesion: 0.12
+Nodes (27): change_tax_registration(), finance_export_csv(), finance_margin(), finance_stripe(), finance_tax_report(), future_features(), ops_analytics(), _period() (+19 more)
 
 ### Community 321 - "prometheus_metrics"
 
-Cohesion: 0.09
-Nodes (20): prometheus_auth_lines(), metrics(), check_invoice_detail_consistency(), note_ar_mismatch(), note_commerce_event(), note_quote_latency(), prometheus_commerce_lines(), reset_commerce_events_for_tests() (+12 more)
+Cohesion: 0.20
+Nodes (13): assess_orders_per_week(), prometheus_auth_lines(), metrics(), assess_notification_channel_slis(), prometheus_notification_lines(), Counts by status×channel + p99 queued→sent seconds by channel (window). Also…, prometheus_metrics(), Lightweight metrics — Prometheus text format. (+5 more)
+
+### Community 322 - "OfflineService"
+
+Cohesion: 0.28
+Nodes (5): OfflineService, Any, One failed action, only if it belongs to this driver (else LookupError → 404)., Replay a single refused action now. Stays failed (with the new reason) if…, Driver chose to drop a refused action. Kept as an audit row, never replayed.
 
 ### Community 323 - "ShiftService"
 
-Cohesion: 0.20
-Nodes (8): DriverShiftActivity, test_online_requires_active_shift(), _svc(), test_naive_started_at_is_treated_as_utc(), test_same_day_open_shift_is_resumed_not_refused(), test_stale_open_shift_is_closed_then_new_one_started(), require_pretrip(), ShiftService
+Cohesion: 0.15
+Nodes (16): DriverShiftActivity, L144: 14h long-shift warning, 16h auto clock-out (decision recorded in…, _shift(), test_auto_clock_out_at_16h(), test_no_clock_out_before_16h(), test_thresholds(), Go on duty with a shift already open: resume same-day, close stale, never…, _svc() (+8 more)
 
 ### Community 324 - "test_fail_closed_bj.py"
 
-Cohesion: 0.05
-Nodes (36): db(), db_url(), gst_registered(), _host_port(), legacy_pricing(), live_service_violations(), _no_live_shopify_token_calls(), pytest_configure() (+28 more)
+Cohesion: 0.11
+Nodes (27): settings(), _clear_idp_env(), _live(), fixture, MonkeyPatch, BJ — production with missing Keycloak keys fails closed; the dev bypass never…, A leaked AUTH_DEV_BYPASS is a boot failure, not a warning served to users., The guard must not block a correctly configured production deploy. (+19 more)
 
 ### Community 325 - "Page specs (24)"
 
 Cohesion: 0.07
 Nodes (28): 2.10 `/orders`, 2.11 `/pricing/how-we-price`, 2.12 `/referrals`, 2.13 `/reports`, 2.14 `/routes/[job_id]`, 2.15 `/routes`, 2.16 `/settings`, 2.17 `/shopify` (+20 more)
 
-### Community 326 - "merchant-portal/package.json"
+### Community 326 - "devDependencies"
 
-Cohesion: 0.11
-Nodes (19): devDependencies, babel-plugin-react-compiler@^1.0.0, eslint@^10.6.0, eslint-config-next@16.4.1, @porterchain/config@workspace:*, prettier@^3.9.4, tailwindcss@^4.3.2, @tailwindcss/postcss@^4.3.2 (+11 more)
+Cohesion: 0.15
+Nodes (13): devDependencies, babel-plugin-react-compiler, eslint, eslint-config-next, @playwright/test, @porterchain/config, prettier, tailwindcss (+5 more)
 
 ### Community 327 - "4. Scenario catalogue (layer: each rule = foundation rules-engine entry)"
 
 Cohesion: 0.07
-Nodes (28): 1.1 Root primitives, 1.2 Fundamental flows, 1. First principles, 2. PorterChain core foundation, 3. Layers on top (depend only on the foundation), 4. Scenario catalogue (layer: each rule = foundation rules-engine entry), 5. Legacy vs PorterChain way (per module), 6. Signature differentiators (+20 more)
+Nodes (29): 1.1 Root primitives, 1.2 Fundamental flows, 1. First principles, 2. PorterChain core foundation, 3. Layers on top (depend only on the foundation), 4. Scenario catalogue (layer: each rule = foundation rules-engine entry), 5. Legacy vs PorterChain way (per module), 6. Signature differentiators (+21 more)
 
 ### Community 328 - "Finance · Invoice · Reports · Management — development test cases"
 
-Cohesion: 0.07
-Nodes (35): issue_credit_note(), BillingLedgerEntry, process_billing_job(), SettlementService, test_settlement_service_actions(), test_credit_note_row_is_written(), process_billing(), 0. ID scheme & layers (+27 more)
+Cohesion: 0.06
+Nodes (33): 0. ID scheme & layers, 10. Worker / EventBus (`WRK-*`), 11. Stripe / payments (`PAY-*` depth for this domain), 12. Fleetbase handshake (`FB-*`) — execution → invoice, 13. Maps · Valhalla · OSRM · Google · VROOM (`MAP-*` / `VRM-*`), 14. Auth · Clerk · RBAC · step-up (`AUTH-*`), 15. Notifications · email · FCM · Firebase (`NOTIF-*`), 16. Shopify · ERP · partner (`SHOP-*` / `INT-*`) (+25 more)
 
-### Community 329 - "admin/support.py"
+### Community 329 - "packages/driver-flows/src/index.ts"
 
-Cohesion: 0.24
-Nodes (22): add_ticket_note(), assign_ticket(), auto_assign_ticket(), create_ticket(), get_support_automation(), get_support_kb(), get_support_macros(), get_support_sla() (+14 more)
+Cohesion: 0.14
+Nodes (21): browserLang(), GuidedFlowPanel(), flowFor(), blockersFor(), Check, COPY_TABLES, pharmacy, advance() (+13 more)
 
 ### Community 330 - "billing_engine/stripe_money.py"
 
-Cohesion: 0.11
-Nodes (32): StripePayout, apply_charge_refunds(), apply_dispute(), _audit(), disputes_payload(), handle_payout_event(), _invoice_for(), _payment_for() (+24 more)
+Cohesion: 0.21
+Nodes (22): A Stripe payout to the bank, reconciled against its balance transactions., StripePayout, apply_charge_refunds(), apply_dispute(), _audit(), disputes_payload(), handle_payout_event(), _invoice_for() (+14 more)
 
 ### Community 331 - "leads_outbound.py"
 
-Cohesion: 0.09
-Nodes (16): outbound_call_scripts(), apply_call_disposition(), _has_phone(), next_lead_in_queue(), today_queues(), pack(), call_disposition(), CallDispositionRequest (+8 more)
-
-### Community 332 - "test_soft_delete.py"
-
-Cohesion: 0.16
-Nodes (24): select(), client(), _customer(), _driver(), _merchant(), _order(), test_auto_purge_purges_due_and_keeps_archive_only(), test_booking_draft_delete_restore() (+16 more)
-
-### Community 333 - "email_layout.py"
-
 Cohesion: 0.11
-Nodes (18): _Blank, _fmt(), lang(), localize_email(), t(), booking_confirmed_fast_html(), fast_html(), _lang() (+10 more)
+Nodes (27): outbound_call_scripts(), Any, Zero-token outbound call scripts for vendor_import Dial card., Sales-bible Field Card — capacity network, not courier SaaS., enqueue_lead_template_email(), Any, call_disposition(), CallDispositionRequest (+19 more)
 
-### Community 334 - "ScanGateService"
+### Community 332 - "main.py"
 
-Cohesion: 0.16
-Nodes (4): PackagesIncomplete, _phase_progress(), ScanGateService, _whole_vehicle()
+Cohesion: 0.02
+Nodes (110): Export the FastAPI OpenAPI schema to docs/api/openapi.json. Keeps the partner-…, Fail boot (API + worker) instead of emailing localhost links (Kaylulu bug…, require_public_urls_for_production(), MerchantApiGatewayMiddleware, BaseHTTPMiddleware, lifespan(), FastAPI, HTTP middleware — correlation IDs for observability. (+102 more)
+
+### Community 333 - "41 · UI page specs — Email, PDF and notification templates"
+
+Cohesion: 0.33
+Nodes (5): 41 · UI page specs — Email, PDF and notification templates, Email design rules, Notification rules, PDFs (8), Templates (63 keys from code)
+
+### Community 334 - "website/package.json"
+
+Cohesion: 0.06
+Nodes (31): @ai-sdk/react, lottie-web, react-icons, reading-time, tsx, engines, node, babel-plugin-react-compiler (+23 more)
 
 ### Community 335 - "merchant_engine/tracking_service.py"
 
-Cohesion: 0.15
-Nodes (19): PricingZone, build_replay(), coords_from_address(), delivery_status(), driver_info(), format_eta_label(), get_cached_eta(), merchant_geofences() (+11 more)
+Cohesion: 0.06
+Nodes (49): order_source_label(), order_state_label(), DriverStopMeta, local_pod_proofs(), Merchant tracking — PorterChain order + Redis GPS + Valhalla ETA (masterrule…, POD captured by our own driver app (DriverStopMeta.proofs), shaped like live-…, build_replay(), coords_from_address() (+41 more)
 
 ### Community 336 - "receiver_emails.py"
 
-Cohesion: 0.20
-Nodes (18): _actions(), _attempt_sentence(), _brand_mark(), _button(), _e(), _fmt(), _g(), is_receiver_email() (+10 more)
+Cohesion: 0.10
+Nodes (40): _actions(), _attempt_sentence(), _brand_mark(), _button(), _e(), _fmt(), _g(), is_direct_booking() (+32 more)
 
 ### Community 337 - "portal.ts"
 
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (14): onRequestError, register(), onRequestError, register(), onRequestError, register(), onRequestError, register() (+6 more)
 
-### Community 338 - "test_email_notifications.py"
+### Community 338 - "get_notification_engine"
 
-Cohesion: 0.10
-Nodes (20): no_real_sends(), _order(), _rows(), test_attempted_email_offers_one_tap_reschedule_when_policy_allows(), test_business_copy_stays_english_business_layout(), test_dead_letter_burst_alerts_ops_once_per_hour(), test_delivered_email_has_signed_pod_link_report_problem_and_casl_footer(), test_delivered_is_one_email_per_address_across_both_paths() (+12 more)
+Cohesion: 0.09
+Nodes (24): get_notification_engine(), no_real_sends(), _order(), fixture, parametrize, Email-first notifications: one email per delivery moment, held-not-dropped…, _rows(), test_attempted_email_offers_one_tap_reschedule_when_policy_allows() (+16 more)
 
-### Community 339 - "Route optimization — development test cases"
+### Community 339 - "DriverRouteOptimizer"
 
-Cohesion: 0.04
-Nodes (44): TestOptimizerMatrix, test_format_valhalla_date_time_departure(), test_reoptimize_skips_when_on_break(), test_report_exception_triggers_reoptimize(), test_soft_sequence_orders_prior_assignments(), 10. Fleetbase + VROOM (`FB-*`, `VRM-*`), 11. Auth / Clerk / Staff / RBAC (`AUTH-*`), 12. Events / worker (`EVT-*`, `WRK-*`) (+36 more)
+Cohesion: 0.08
+Nodes (28): TestOptimizerMatrix, L45: a normal ASAP parcel is not labelled critical., test_asap_normal_parcel_is_high_not_critical(), test_long_overdue_is_critical(), Phase 6 — Valhalla date_time + failed-delivery reopt + soft sequence., test_format_valhalla_date_time_departure(), test_reoptimize_skips_when_on_break(), test_report_exception_triggers_reoptimize() (+20 more)
 
 ### Community 340 - "navigation_pod.py"
 
-Cohesion: 0.19
-Nodes (16): generate_otp(), _media_ref(), navigation_session(), navigationroute_response(), offline_pending(), offline_sync(), order_navigation(), pod_barcode() (+8 more)
+Cohesion: 0.17
+Nodes (24): generate_otp(), _media_ref(), navigation_session(), navigationroute_response(), offline_pending(), offline_sync(), order_navigation(), pod_barcode() (+16 more)
 
-### Community 341 - "datetime-picker-separate.tsx"
+### Community 341 - "BookingDraftDetailView.tsx"
 
-Cohesion: 0.13
-Nodes (21): MagicCard(), FilterChip(), RouteList(), Scope, todayStamp(), listRouteImports(), RouteListItem, VEHICLE_CHOICES (+13 more)
+Cohesion: 0.04
+Nodes (60): BookingDraftDetailClient(), BookingDraftDetailView, addr(), AddressesTab(), BookingDraftDetailView(), EventsTab(), OverviewTab(), PackageTab() (+52 more)
 
 ### Community 342 - "29 · Coverage matrix: every repo item, as-built vs planned"
 
-Cohesion: 0.08
-Nodes (24): 29 · Coverage matrix: every repo item, as-built vs planned, Added plan items (from the app reviews), app/service/package (26), config/CI (54), Consistency check against locked decisions L1–L27, D-68-1..7 decided (29 Oct 2026), Further Ravi decisions recorded (28 Oct 2026), Hybrid deployment decisions recorded (Ravi, 28 Oct 2026; file 28 §16) (+16 more)
+Cohesion: 0.07
+Nodes (28): 29 · Coverage matrix: every repo item, as-built vs planned, Added plan items (from the app reviews), api module (33), app/service/package (26), config/CI (54), Consistency check against locked decisions L1–L27, D-68-1..7 decided (29 Oct 2026), Further Ravi decisions recorded (28 Oct 2026) (+20 more)
 
-### Community 343 - "TenantScope"
+### Community 343 - "order_repository.py"
 
-Cohesion: 0.13
-Nodes (13): assert_order_visible(), customer_owns_order(), merchant_owns_order(), TenantAccessDenied, TenantKind, TenantScope, _order(), test_customer_scope_denies_other_tenant() (+5 more)
+Cohesion: 0.12
+Nodes (22): Order persistence — repository pattern with tenant scoping (DD-07)., assert_order_visible(), customer_owns_order(), merchant_owns_order(), PermissionError, Tenant access guards — deny cross-tenant reads (DD-07)., Raised when a principal attempts to access another tenant's resource., TenantAccessDenied (+14 more)
 
 ### Community 344 - "System integrations — development test cases"
 
 Cohesion: 0.08
-Nodes (23): ErpFulfillmentAdapter, 0. ID scheme & layers, 10. Merchant portal — page / subpage matrix, 11. Driver surfaces & mobile handshake, 12. Website / customer / lead ingest (cross-links), 13. End-to-end development loops, 14. You-asked-for + missed surfaces (explicit), 15. Implementation order (Jeff Dean) (+15 more)
+Nodes (25): 0. ID scheme & layers, 10. Merchant portal — page / subpage matrix, 11. Driver surfaces & mobile handshake, 12. Website / customer / lead ingest (cross-links), 13. End-to-end development loops, 14. You-asked-for + missed surfaces (explicit), 15. Implementation order (Jeff Dean), 16. Related SSOT (+17 more)
 
 ### Community 345 - "RealtimeHub"
 
-Cohesion: 0.16
-Nodes (7): RealtimeHub, FakeWebSocket, test_broadcast_delivers_to_local_connections(), scenario(), test_broadcast_sync_publishes_when_no_event_loop(), test_pubsub_message_from_other_instance_delivers_locally(), scenario()
+Cohesion: 0.15
+Nodes (9): Any, WebSocket, RealtimeHub, FakeWebSocket, test_broadcast_delivers_to_local_connections(), scenario(), test_broadcast_sync_publishes_when_no_event_loop(), test_pubsub_message_from_other_instance_delivers_locally() (+1 more)
 
-### Community 346 - "admin/finance.py"
+### Community 346 - "routers/batches.py"
 
-Cohesion: 0.25
-Nodes (17): finance_collections(), finance_dashboard(), finance_duplicates(), finance_export_gl(), finance_invoice_detail(), finance_ledger(), finance_list_invoices(), finance_list_payments() (+9 more)
+Cohesion: 0.14
+Nodes (30): list_batches(), admin_get(), admin_list(), assign(), AssignBody, BatchBody, create(), custody() (+22 more)
 
 ### Community 347 - "test_geo_photon_coverage.py"
 
-Cohesion: 0.13
-Nodes (11): _client(), factory(), handler(), test_no_house_number_added_to_a_named_place(), test_number_not_invented_on_far_apart_segments(), test_postal_fallback_uses_fsa(), test_postal_must_fit_city(), test_postal_normalized_for_photon() (+3 more)
+Cohesion: 0.11
+Nodes (18): test_create_shipment_applies_default(), spy(), real(), _client(), factory(), handler(), Any, MonkeyPatch (+10 more)
 
-### Community 348 - "Package"
+### Community 348 - "driver-portal/src/app/layout.tsx"
 
-Cohesion: 0.15
-Nodes (9): Package, _dims(), dual_write_json_enabled(), extract_json_parcels(), _int_or_none(), _item_fields(), _number_item_boxes(), _package_to_stop_dict() (+1 more)
+Cohesion: 0.12
+Nodes (19): ImpersonateBootstrap(), apps_driver_portal_src_app_globals, ImpersonateBootstrap(), brand, metadata, DriverFrame(), DriverQueryProvider(), makeClient() (+11 more)
 
 ### Community 349 - "PorterChain production deploy"
 
-Cohesion: 0.09
-Nodes (21): Local start (required stack), Not required (do not “fix” these), PorterChain connections (local · CI · production), GitHub SSH keys (PorterChain), Inventory, Notes, Recommended push from this Mac, Verify fingerprints (+13 more)
+Cohesion: 0.06
+Nodes (33): Local start (required stack), Not required (do not “fix” these), PorterChain connections (local · CI · production), Required — must be aligned, GitHub SSH keys (PorterChain), Inventory, Notes, Recommended push from this Mac (+25 more)
 
 ### Community 350 - "PorterChain — development test cases catalog (system-wide)"
 
-Cohesion: 0.07
-Nodes (27): 0. ID scheme & layers, 10. Driver web + mobile (`D-UI-*` / `MOB-*`), 11. Website (`W-UI-*`), 12. Auth · Clerk · SpiceDB · staff IdP (`AUTH-*`), 13. Stripe · billing · finance (`PAY-*`), 14. Notifications · email · FCM (`NOTIF-*`), 15. Shopify · partner API · ERP-shaped (`SHOP-*` / `INT-*`), 16. CRM · leads · support · claims (`CRM-*`) (+19 more)
+Cohesion: 0.06
+Nodes (31): 0. ID scheme & layers, 10. Driver web + mobile (`D-UI-*` / `MOB-*`), 11. Website (`W-UI-*`), 12. Auth · Clerk · SpiceDB · staff IdP (`AUTH-*`), 13. Stripe · billing · finance (`PAY-*`), 14. Notifications · email · FCM (`NOTIF-*`), 15. Shopify · partner API · ERP-shaped (`SHOP-*` / `INT-*`), 16. CRM · leads · support · claims (`CRM-*`) (+23 more)
 
 ### Community 351 - "devDependencies"
 
-Cohesion: 0.07
-Nodes (27): tsx, devDependencies, babel-plugin-react-compiler@^1.0.0, eslint@^10.6.0, eslint-config-next@16.4.1, @playwright/test@^1.55.0, @porterchain/config@workspace:*, prettier@^3.9.4 (+19 more)
+Cohesion: 0.14
+Nodes (14): devDependencies, babel-plugin-react-compiler, eslint, eslint-config-next, @playwright/test, @porterchain/config, prettier, tailwindcss (+6 more)
 
-### Community 352 - "leads/page.test.tsx"
+### Community 352 - "import_rows.py"
 
 Cohesion: 0.13
-Nodes (18): @testing-library/user-event@14.6.1, calendar, list, metrics, referralCredits, speed, weeklySummary, pipeline (+10 more)
+Nodes (27): from_row(), Delivery options from a CSV/route-import row (column names as above, values…, compose_raw_from_parts(), Any, Build a single address string from mapped row fields., collapse_parcel_rows(), _is_pair_sheet(), legacy_cargo_from_stops() (+19 more)
 
 ### Community 353 - "test_launch_blockers.py"
 
 Cohesion: 0.10
-Nodes (14): check_interac_reference(), enforce_reference(), _norm_ref(), record_admin_payment(), test_booking_mock_complete_is_404_outside_local(), test_driver_cod_checkout_is_removed(), test_driver_mock_background_is_404_outside_local(), test_driver_mock_identity_is_404_outside_local() (+6 more)
+Nodes (23): check_interac_reference(), enforce_reference(), _norm_ref(), Any, Interac mark-paid must carry the invoice's payment reference (the e-Transfer…, Admin mark-paid: Interac payments must quote the invoice's payment reference., Admin mark-paid with Interac reference matching (mismatch needs explicit…, record_admin_payment() (+15 more)
 
-### Community 354 - "admin/dispatch.py"
+### Community 354 - "shopify_billing.py"
 
-Cohesion: 0.21
-Nodes (11): dispatch_exception_apply(), dispatch_exceptions(), dispatch_fleet_get(), dispatch_fleet_put(), dispatch_live_eta(), dispatch_metrics(), dispatch_offer(), dispatch_offers() (+3 more)
+Cohesion: 0.16
+Nodes (25): billing_applies(), _billing_currency(), booking_block(), cad_per_unit(), change_cap(), _gql(), Any, Shopify Billing API for stores installed through the PorterChain Shopify app.… (+17 more)
 
 ### Community 355 - "test_dispatch_brain.py"
 
-Cohesion: 0.13
-Nodes (15): pts(), _admin(), _driver(), _order(), test_eta_for_before_and_after_pickup(), test_exceptions_queue_survives_eta_outage(), test_exceptions_queue_unifies_sources(), test_fleet_put_admin_only_and_validated() (+7 more)
+Cohesion: 0.06
+Nodes (50): Recommendation with the admin verification gate applied., recommend(), pts(), _aware(), JobOffersService, _now(), Any, datetime (+42 more)
 
-### Community 356 - "reporting/monopoly_metrics.py"
+### Community 356 - "test_monopoly_investor.py"
 
-Cohesion: 0.13
-Nodes (15): MonopolyMetricsService, carrier_pool_legal_model(), icp_geo_share(), _in_bounds(), monopoly_snapshot(), _order_coords(), route_density_optimization(), white_label_adoption() (+7 more)
+Cohesion: 0.14
+Nodes (19): MonopolyMetricsService, Any, carrier_pool_legal_model(), icp_geo_share(), _in_bounds(), monopoly_snapshot(), Any, route_density_optimization() (+11 more)
 
-### Community 357 - "scheduled_batches_service.py"
+### Community 357 - "test_merchant_book_al.py"
 
-Cohesion: 0.16
-Nodes (14): _day_bounds(), _is_scheduled_pickup(), _order_row(), _pickup_window(), ScheduledBatchesService, _stop_count(), OrderType, _order() (+6 more)
+Cohesion: 0.10
+Nodes (35): _day_bounds(), _is_scheduled_pickup(), _order_row(), _pickup_window(), Any, date, datetime, Merchant scheduled pickups → planning batches + day plans. Planning layer:… (+27 more)
 
 ### Community 358 - "customer_experience/notifications.py"
 
 Cohesion: 0.16
-Nodes (14): manage_url(), _allow_sms_for_recipient(), build_context(), _family_for(), in_quiet_hours(), manage_link(), notify(), quiet_hours_end() (+6 more)
+Nodes (24): fr' or 'en' for receiver emails. Merchant setting wins; 'auto' uses the…, recipient_language(), build_context(), _family_for(), in_quiet_hours(), manage_link(), notify(), _proof_types() (+16 more)
 
 ### Community 359 - "MerchantTrackingService"
 
-Cohesion: 0.17
-Nodes (3): MerchantTrackingService, AmbiguousTrackingQuery, test_merchant_tracking_live()
+Cohesion: 0.18
+Nodes (6): MerchantTrackingService, Any, Track by tracking number, order number, or PO (BK). One PO can cover several…, AmbiguousTrackingQuery, LookupError, One PO, several deliveries — the caller must pick one (BK).
 
 ### Community 360 - "test_track_search_bk.py"
 
-Cohesion: 0.09
-Nodes (18): OrderRepository, _same_text(), _addr(), merchant_client(), _merchant_ctx(), _order(), test_a_tracking_number_wins_over_a_po(), test_an_ambiguous_po_asks_instead_of_guessing() (+10 more)
+Cohesion: 0.15
+Nodes (25): _addr(), merchant_client(), _merchant_ctx(), _order(), fixture, BK — Track search takes a tracking number, an order number, or a PO., A PO is the customer's reference, not ours — it can cover several drops., Unique references short-circuit; a PO never widens an exact hit. (+17 more)
 
 ### Community 361 - "test_admin_keycloak.py"
 
-Cohesion: 0.13
-Nodes (15): _browser_login(), _claims(), _kc_settings(), _master_headers(), pc_admin_user(), test_admin_tier_login_requires_totp(), test_bad_service_account_secret_is_unavailable(), test_enforce_staff_step_up_uses_verified_admin_claims() (+7 more)
+Cohesion: 0.10
+Nodes (29): assert_recent_login(), _browser_login(), _claims(), _complete_second_factor(), _kc_settings(), _mailpit_code(), _master_headers(), pc_admin_user() (+21 more)
 
 ### Community 362 - "env"
 
 Cohesion: 0.08
 Nodes (24): API_REPLICAS, CID, DEPLOY_HOST, DEPLOY_SCOPE, GH_TOKEN, GHCR_TOKEN, GHCR_USER, IMAGE (+16 more)
 
-### Community 363 - "InvoiceLine"
+### Community 363 - "accessorials.py"
 
-Cohesion: 0.07
-Nodes (34): Accessorial, accessorial_lines(), add_fee_lines(), adjustment_lines(), failed_for(), fee_specs(), fee_tax_split(), _hm() (+26 more)
+Cohesion: 0.15
+Nodes (27): Accessorial, accessorial_lines(), add_fee_lines(), adjustment_lines(), failed_for(), fee_specs(), _hm(), merchant_terms() (+19 more)
 
-### Community 364 - "commit_admin_audit"
+### Community 364 - "KeycloakAdmin"
 
-Cohesion: 0.22
-Nodes (6): commit_admin_audit(), AdminDriverOpsService, driver_actions_for(), test_assigned_order_can_be_accepted_and_declined(), test_picked_up_order_has_delivery_steps_only(), test_unassigned_order_has_no_driver_steps()
+Cohesion: 0.14
+Nodes (13): _admin_base(), _base(), KeycloakAdmin, KeycloakAdminUnavailable, Any, Client, Response, ValueError (+5 more)
 
 ### Community 365 - "account_ops/documents.py"
 
 Cohesion: 0.21
-Nodes (13): delete_document(), list_documents(), list_merchant_visible(), _merchant_row(), purge_documents(), read_document(), read_for_merchant(), _row() (+5 more)
+Nodes (20): delete_document(), list_documents(), list_merchant_visible(), _merchant_row(), purge_documents(), Any, date, Merchant document vault + support rollup (tickets, claims, exceptions). PIPEDA… (+12 more)
 
-### Community 366 - "packs.py"
+### Community 366 - "71. Progressive onboarding (Phase 0, L35)"
 
-Cohesion: 0.11
-Nodes (18): business_type(), default_capabilities(), default_profile(), documents_for(), validate_profile(), 2.1 Business types and default capability profile, 2.2 Documents & capabilities matrix (Ravi 29 Oct 2026: "a bakery has no bill of lading, a warehouse sometimes does"), 2.3 Identifiers & milestones (Ravi 29 Oct 2026, pt126u: "pick which is required in Canada for us") (+10 more)
+Cohesion: 0.20
+Nodes (9): 1. Evidence, 2. The short sign-up (4 fields), 3. Just-in-time asks (progressive profiling), 4. Flow per business type (in build order), 5. Operating-profile setup wizard (one screen per question, defaults pre-selected), 6. Email sequence (Keycloak/Listmonk transactional; CASL: transactional only, no marketing without consent), 71. Progressive onboarding (Phase 0, L35), 7. In-app checklist and confidence screens (+1 more)
 
 ### Community 367 - "44 — Backend, API and data: complete coverage (Phase 1)"
 
-Cohesion: 0.09
-Nodes (18): captured(), staff(), 34 · Data migration and cutover (PCD live → Phase 1), Clerk → Keycloak user migration, Steps, 44.10 Model layer and migrations, 44.11 LLM / LM layer (see doc 27, framework doc 43), 44.12 Decisions for Ravi (+10 more)
+Cohesion: 0.14
+Nodes (13): 44.10 Model layer and migrations, 44.11 LLM / LM layer (see doc 27, framework doc 43), 44.12 Decisions for Ravi, 44.1 Service boundaries — recommendation: **modular monolith + 3 satellite processes**, 44.2 API inventory (REST) — all under `/v1`, 44.3 Webhooks, 44.4 Versioning, idempotency, rate limits, 44.5 Auth and authz (+5 more)
 
 ### Community 368 - "test_bulk_batches.py"
 
 Cohesion: 0.17
-Nodes (15): _batch(), _confirm(), _m(), test_batch_completes_when_all_delivered_or_returned_and_routes_closed(), test_batch_not_completed_when_parcel_left_for_reattempt(), test_building_grouping_capacity_split_and_waves(), test_create_gives_one_parcel_and_barcode_per_row_grouped_by_building(), test_dependent_leg_cancelled_or_adjusted_when_upstream_fails_or_short() (+7 more)
+Nodes (15): _batch(), _confirm(), _m(), Bulk batches: CSV -> parcels/barcodes, building grouping, capacity split/waves,…, test_batch_completes_when_all_delivered_or_returned_and_routes_closed(), test_batch_not_completed_when_parcel_left_for_reattempt(), test_create_gives_one_parcel_and_barcode_per_row_grouped_by_building(), test_dependent_leg_cancelled_or_adjusted_when_upstream_fails_or_short() (+7 more)
 
 ### Community 369 - "bounce.py"
 
-Cohesion: 0.15
-Nodes (13): address_is_bounced(), _clean(), event_kinds(), extract_bounced_addresses(), _find_refs(), is_bounce_event(), mark_addresses_bounced(), record_tracking_event() (+5 more)
+Cohesion: 0.18
+Nodes (20): _clean(), event_kinds(), extract_bounced_addresses(), _find_refs(), is_bounce_event(), mark_addresses_bounced(), Any, Zepto bounce and complaint — stop retrying an address that rejected the mail. (+12 more)
 
-### Community 370 - "test_notification_center.py"
-
-Cohesion: 0.10
-Nodes (21): cx_kind_enabled(), drop_matrix_off(), get_setting(), matrix_off(), set_matrix_cell(), set_setting(), NotificationAdminSetting, clean_center() (+13 more)
-
-### Community 371 - "lead_webhooks.py"
-
-Cohesion: 0.40
-Nodes (10): google_lead_webhook(), _json_body(), linkedin_lead_webhook(), meta_webhook_ingest(), _process_events(), _rate_limit_webhook(), _require_social_secret(), _social_result() (+2 more)
-
-### Community 372 - "field_admin.py"
+### Community 370 - "leads_inbox.py"
 
 Cohesion: 0.16
-Nodes (8): test_api_d_02_accept_reject_missing_order(), test_api_d_02_accept_reject_only_while_assigned(), AvailabilityService, parcel_rows(), perform(), record_proof_url(), set_parcel_status(), human_missing()
+Nodes (24): bulk_update(), Exception, Send refused or failed. `code` is shown to staff., ReplyError, bulk_update_leads(), export_leads_csv(), get_lead_reply_channels(), get_reply_channels() (+16 more)
+
+### Community 371 - "declared_value.py"
+
+Cohesion: 0.15
+Nodes (23): Declared-value cover at booking / Shopify / quotes (Ravi 2026-10-29, off until…, test_block_only_when_cover_requested(), claim_cap_cents(), cover_cents(), default_cargo_insurance(), default_liability_cents(), Effective, excluded_group() (+15 more)
+
+### Community 372 - "test_auth_p1_hardening.py"
+
+Cohesion: 0.10
+Nodes (23): assert_organization_scope(), assert_self_scope(), Dependency factory requiring every listed permission., Deny unless SpiceDB grants organization#portal for this user. Fail closed on…, Deny unless SpiceDB grants profile#access (driver or customer). Fail closed on…, Persist authz denial. Commit so HTTPException rollback does not drop the row., _record_denial(), require_all_permissions() (+15 more)
 
 ### Community 373 - "customers_admin.py"
 
-Cohesion: 0.25
-Nodes (12): create_customer(), create_customer_booking_draft(), customer_care(), customer_detail(), customer_invoices(), customer_orders(), customer_payments(), customer_stats() (+4 more)
+Cohesion: 0.17
+Nodes (26): create_customer(), create_customer_booking_draft(), customer_care(), customer_detail(), customer_invoices(), customer_orders(), customer_payments(), customer_stats() (+18 more)
 
-### Community 374 - "reset_local_personas.py"
+### Community 374 - "CRM Lead 360 — freeze & channel honesty"
+
+Cohesion: 0.25
+Nodes (7): Channel honesty, CRM Lead 360 — freeze & channel honesty, Freeze (do not build UI), Keep / compose, Privacy / CASL / retention, Still deferred, Support / claims
+
+### Community 375 - "DocumentsService"
 
 Cohesion: 0.14
-Nodes (17): _keep_admin_ids(), main(), _pc_user(), _print_summary(), seed_customer(), seed_driver(), seed_merchant(), _uuid() (+9 more)
+Nodes (16): _ctx(), Driver app Settings sync, PIPEDA request, and the lite document list., test_lite_list_drops_inline_bytes_and_includes_work_permit(), test_privacy_request_opens_a_ticket(), test_settings_merge_and_drop_bad_values(), _driver(), L195: re-uploading a still-valid verified document must not drop the verified…, test_expired_upload_clears_verified() (+8 more)
 
-### Community 375 - "stop_times.py"
+### Community 376 - "IdentityDirectory"
 
-Cohesion: 0.13
-Nodes (8): DispatchStopEvent, DispatchStopTime, durations(), kind_of(), learn(), load(), StopTimes, stop_events_by_order()
-
-### Community 376 - "privacy_access.py"
-
-Cohesion: 0.18
-Nodes (7): _digits(), subject_access_export(), erase_subject(), _fsa(), _scrub(), test_finds_recipient_by_email_and_phone(), test_requires_identifier()
+Cohesion: 0.17
+Nodes (9): _decode_meta(), _encode_meta(), IdentityDirectory, normalize_user(), Any, datetime, Keycloak-backed directory with the operations the admin/persona flows need., Keycloak has no separate invitation objects; a pending invite is a user with… (+1 more)
 
 ### Community 377 - "driver/communications.py"
 
-Cohesion: 0.23
-Nodes (13): communications_hub(), communications_mark_all_read(), communications_mark_archive(), communications_mark_read(), communications_notifications(), communications_notifications_history(), communications_offline(), communications_offline_discard_one() (+5 more)
+Cohesion: 0.17
+Nodes (23): InvalidFcmToken, ValueError, Client sent an Expo/APNs/placeholder token, not an FCM registration token., communications_hub(), communications_mark_all_read(), communications_mark_archive(), communications_mark_read(), communications_notifications() (+15 more)
 
 ### Community 378 - "deliveryOptions.ts"
 
-Cohesion: 0.18
-Nodes (17): submit(), OrderDeliveryOptionsEditor(), save(), Props, getDeliveryDefaults(), updateOrderDeliveryOptions(), RouteImportStopPayload, clean() (+9 more)
+Cohesion: 0.13
+Nodes (22): defaultSchedule(), OrderBuilderModal(), changeKind(), draftBody(), sizeFields(), submit(), seedStops(), stopDraftFromPrefill() (+14 more)
 
 ### Community 379 - "compute_driver_pay"
 
-Cohesion: 0.21
-Nodes (17): compute_driver_pay(), default_driver_pay_plan(), DriverPay, DriverPayLine, _hourly(), _nonneg_int(), normalize_driver_pay_plan(), _per_stop() (+9 more)
+Cohesion: 0.16
+Nodes (25): _insert_missing(), _rows(), upgrade(), compute_driver_pay(), default_driver_pay_plan(), DriverPay, DriverPayLine, _hourly() (+17 more)
 
 ### Community 380 - "repair_and_migrate.py"
 
-Cohesion: 0.16
-Nodes (15): ensure_pricing_tariffs(), ensure_production_basics(), _alembic_version(), _create_missing_tables(), _ensure_schema(), _is_duplicate_table_error(), _load_all_models(), main() (+7 more)
+Cohesion: 0.14
+Nodes (23): ensure_pricing_tariffs(), ensure_production_basics(), Idempotent production bootstrap: optional retail catalog tariffs. Merchant…, _alembic_version(), _create_missing_tables(), _ensure_schema(), _is_duplicate_table_error(), _load_all_models() (+15 more)
 
-### Community 381 - "JobOffersService"
+### Community 381 - "equipment_match"
 
-Cohesion: 0.28
-Nodes (5): _aware(), JobOffersService, _now(), serialize(), DispatchJobOffer
+Cohesion: 0.11
+Nodes (24): required_equipment(), change_check(), ChangeBody, edi_export(), equipment_match(), EquipmentBody, exception_codes(), _http() (+16 more)
 
-### Community 382 - "SystemConfig"
+### Community 382 - "SavedAddress"
 
-Cohesion: 0.24
-Nodes (9): SystemConfig, _address(), driver_cost_cents(), driver_plan(), fsa_rows_below_floor(), margin_policy(), margin_verdict(), preview() (+1 more)
+Cohesion: 0.12
+Nodes (24): main(), _order_payload(), Any, _rate_payload(), _sign(), _address(), driver_cost_cents(), driver_plan() (+16 more)
 
 ### Community 383 - "sequence.py"
 
-Cohesion: 0.13
-Nodes (11): TestImportMatrix, _DownMaps, test_optimize_keeps_pickup_first_and_shortens_path(), _coords(), _hav(), _nearest_neighbor(), cost(), optimize_drop_order() (+3 more)
+Cohesion: 0.14
+Nodes (18): Shim — drop reorder lives in porterchain_services.maps.sequence., TestImportMatrix, _DownMaps, Drop-order optimization for route import., test_optimize_keeps_pickup_first_and_shortens_path(), porterchain_api_merchant_engine_import_route_optimize, _coords(), _hav() (+10 more)
 
 ### Community 384 - "env.py"
 
-Cohesion: 0.13
-Nodes (9): include_object(), load_extension_tables(), run_migrations_online(), _batch(), _confirm(), test_batch_doc_flags_from_business_matrix(), test_batch_pickup_blocked_until_docs_captured(), test_instructions_visibility_privacy_ack_and_log() (+1 more)
+Cohesion: 0.10
+Nodes (21): include_object(), load_extension_tables(), Alembic migration environment., run_migrations_online(), Doc 84 §7 Phase 0 gaps: exception codes (F11), locations (F3), custody events…, _batch(), _isa13(), Client labels are kept exactly as printed (RB-1), matched normalized; EDI… (+13 more)
 
-### Community 385 - "routers/geo.py"
+### Community 385 - "test_unified_identity_characterization.py"
 
-Cohesion: 0.15
-Nodes (17): _postal_fallback(), normalize_postal(), fsa_centroid(), autocomplete(), _client_ip(), _decode(), _encode(), _format() (+9 more)
+Cohesion: 0.11
+Nodes (20): _clear_idp_env(), _db_membership(), fixture, MonkeyPatch, Characterization tests for Phase 1 Keycloak consolidation audit (Phase D3…, A6 — staff provision is IdP enroll only; InvitationService has no admin invite., Multi-role OK — customer auto-provision path does not conflict with staff., Build Settings without reading apps/api/.env. (+12 more)
 
 ### Community 386 - "_merge_idp_directory"
 
-Cohesion: 0.16
-Nodes (15): _access_status_label(), _enrich_with_directory(), _mark_not_in_directory(), _merge_idp_directory(), _item(), test_list_platform_users_customer_shows_db_when_idp_empty(), test_list_platform_users_staff_skips_idp_merge(), test_merchant_keep_unlinked_when_idp_errors() (+7 more)
+Cohesion: 0.22
+Nodes (16): _merge_idp_directory(), Enrich PorterChain directory rows with live Keycloak snapshots. PorterChain DB…, _item(), Users directory — DB-first visibility; Keycloak enriches identity for non-staff., Multi-org seats sharing an email must not collapse to a single directory row., Staff directory must not call Keycloak — even when Keycloak is empty/down., test_list_platform_users_customer_shows_db_when_idp_empty(), test_list_platform_users_staff_skips_idp_merge() (+8 more)
 
 ### Community 387 - "dependencies"
 
-Cohesion: 0.11
-Nodes (19): dependencies, firebase@12.19.0, lucide-react@^1.23.0, next@16.4.1, @porterchain/maps@workspace:_, @porterchain/types@workspace:_, @porterchain/ui@workspace:*, react@19.2.7 (+11 more)
+Cohesion: 0.14
+Nodes (14): dependencies, echarts, firebase, framer-motion, lucide-react, next, @porterchain/auth, @porterchain/maps (+6 more)
 
 ### Community 388 - "rollout"
 
@@ -2991,102 +3135,102 @@ Nodes (22): permissions, concurrency, cancel-in-progress, group, jobs, plan, rol
 ### Community 389 - "config/package.json"
 
 Cohesion: 0.09
-Nodes (22): dependencies, @sentry/nextjs@^10.64.0, description, exports, ./glitchtip/portal, ./monorepo-env.mjs, ./phase2, ./prettier (+14 more)
+Nodes (22): dependencies, @sentry/nextjs, description, exports, ./glitchtip/portal, ./monorepo-env.mjs, ./phase2, ./prettier (+14 more)
 
-### Community 390 - "verify_p0_loop.py"
+### Community 390 - "test_unified_identity_phase9.py"
 
-Cohesion: 0.21
-Nodes (10): Check, check_g1(), check_g2_g3(), check_g4_g9_e2e(), check_prod_integrations(), check_stripe_invoice_proof(), check_stripe_webhook_registered(), _http_json() (+2 more)
+Cohesion: 0.12
+Nodes (19): Dependency factory: allow if principal has any listed permission (deny-by-…, require_permission(), _http_request(), _principal(), Request, Phase 9 — unified identity full test matrix. Covers deny-by-default (401/403),…, Must stay aligned with packages/auth PORTAL_ACCESS_PERMISSION + portal libs., _settings() (+11 more)
 
-### Community 391 - "DriverVerificationService"
+### Community 391 - "confirmation_service.py"
 
-Cohesion: 0.18
-Nodes (7): DriverVerificationService, create_identity_verification_session(), _driver(), test_apply_identity_session_sets_license_verified(), test_identity_disabled_blocks_start(), test_mock_identity_complete_local_only(), test_stripe_webhook_identity_verified_updates_driver()
+Cohesion: 0.05
+Nodes (66): Booking confirmation — order, booking, invoice creation per PRD., Persist quote stops and parcels onto the order. Extra stops are drops, not…, _retail_compliance_from_quote(), generate_booking_number(), generate_payment_reference(), generate_receipt_number(), _suffix(), retail_order_source() (+58 more)
 
 ### Community 392 - "customer_experience/events.py"
 
-Cohesion: 0.15
-Nodes (10): _eta_minutes(), eta_payload_is_close(), process_order_event(), run_cx_hooks(), _latest_failure(), price_leg(), record_failure(), driver_run() (+2 more)
+Cohesion: 0.18
+Nodes (17): _eta_minutes(), eta_payload_is_close(), process_order_event(), Any, Domain-event hook: drives recipient notifications and the failed-delivery…, Cheap pre-check (no DB) so frequent GPS pings are dropped early., run_cx_hooks(), price_leg() (+9 more)
 
 ### Community 393 - "vehicle_costs"
 
 Cohesion: 0.15
-Nodes (12): insurance_per_hour_cents(), km_cents(), load_estimates(), per_class(), vehicle_costs(), _problem(), test_arc_cost_is_reference_seconds(), test_per_km_cost_picks_the_cheaper_vehicle_and_is_scored() (+4 more)
+Nodes (20): insurance_per_hour_cents(), km_cents(), load_estimates(), per_class(), Any, Planner vehicle cost from the shared pricing margin estimates (one source of…, The shared `pricing_margin_estimates` setting, validated the same way…, Look a class up in a per-vehicle table (fleet id first, then the pricing key). (+12 more)
 
 ### Community 394 - "driver/job_docs.py"
 
-Cohesion: 0.20
-Nodes (10): LegLocked, ack(), capture(), CaptureBody, checklist(), _http(), instructions(), missing() (+2 more)
+Cohesion: 0.22
+Nodes (18): ack(), capture(), CaptureBody, checklist(), _http(), instructions(), missing(), MissingBody (+10 more)
 
 ### Community 395 - "flow_spec.py"
 
-Cohesion: 0.20
-Nodes (13): pickup_view(), active_documents(), all_captures(), batch_close_flow(), batch_delivery_flow(), batch_handover_flow(), batch_pickup_flow(), delivery_flow() (+5 more)
+Cohesion: 0.09
+Nodes (33): active_documents(), all_captures(), batch_close_flow(), batch_delivery_flow(), batch_handover_flow(), batch_pickup_flow(), delivery_flow(), delivery_type() (+25 more)
 
 ### Community 396 - "test_driver_gps_switch.py"
 
 Cohesion: 0.10
-Nodes (9): FakeRedis, _reset(), test_consent_record_withdraw_and_require(), test_ping_refused_and_driver_told(), test_read_paths_hide_positions_when_off(), test_saving_off_forgets_pins(), test_service_area_parses_isochrone(), test_snap_uses_locate_and_rejects_far_jumps() (+1 more)
+Nodes (11): FakeRedis, fixture, Driver live-GPS switch (global + per driver) and self-hosted map extras., _reset(), test_consent_record_withdraw_and_require(), test_ping_refused_and_driver_told(), test_read_paths_hide_positions_when_off(), test_saving_off_forgets_pins() (+3 more)
 
-### Community 397 - "Admin + Super Admin — development test cases"
+### Community 397 - "2. Page / subpage UI–UX cases"
 
-Cohesion: 0.10
-Nodes (20): 10.1 P0 skeletons (wired to IDs), 10. Suggested automation map, 11. Exit criteria (dev layer), 1. Identity, session, RBAC handshakes, 3.1 Cross-cutting API, 3.2 Router coverage checklist (smoke each verb), 3.3 High-risk mutations, 3. API / FastAPI endpoint suites (+12 more)
+Cohesion: 0.05
+Nodes (40): 0.1 Admin portal routes (pages), 0.2 Settings sections, 0.3 Diagnostics probe / test catalog IDs, 0.4 Roles (`AdminRole`), 0. Inventory (ground truth), 10.1 P0 skeletons (wired to IDs), 10. Suggested automation map, 11. Exit criteria (dev layer) (+32 more)
 
 ### Community 398 - "resolve_deploy_plan.py"
 
 Cohesion: 0.20
-Nodes (14): any_match(), auto_scope_name(), build_plan(), classify_files(), content_id_for_image(), github_outputs(), glob_match(), load_rules() (+6 more)
+Nodes (20): fnmatch, any_match(), auto_scope_name(), build_plan(), classify_files(), content_id_for_image(), github_outputs(), glob_match() (+12 more)
 
 ### Community 399 - "types/package.json"
 
 Cohesion: 0.09
-Nodes (22): dependencies, zod@^4.4.3, description, devDependencies, typescript@^6.0.3, exports, ./batch-status, ./blog (+14 more)
+Nodes (22): dependencies, zod, description, devDependencies, typescript, exports, ./batch-status, ./blog (+14 more)
 
 ### Community 400 - "personal_profile.py"
 
 Cohesion: 0.20
-Nodes (13): audit_self_change(), clean_address(), clean_emergency(), clean_photo(), driver_for_idp_user(), _emergency(), normalize_phone(), ProfileValidationError (+5 more)
+Nodes (20): audit_self_change(), clean_address(), clean_emergency(), clean_photo(), driver_for_idp_user(), _emergency(), normalize_phone(), ProfileValidationError (+12 more)
 
 ### Community 401 - "admin/booking_drafts.py"
 
-Cohesion: 0.34
-Nodes (14): booking_draft_abandoned(), booking_draft_analytics(), bulk_booking_draft_action(), cancel_booking_draft(), _draft_detail(), duplicate_booking_draft(), expire_booking_draft(), extend_booking_draft() (+6 more)
+Cohesion: 0.30
+Nodes (18): booking_draft_abandoned(), booking_draft_analytics(), bulk_booking_draft_action(), cancel_booking_draft(), _draft_detail(), duplicate_booking_draft(), expire_booking_draft(), extend_booking_draft() (+10 more)
 
-### Community 402 - "test_blog_media_save_and_resolve"
+### Community 402 - "tax_report.py"
 
-Cohesion: 0.32
-Nodes (4): blog_media_dir(), resolve_media_file(), get_blog_media(), test_blog_media_save_and_resolve()
+Cohesion: 0.19
+Nodes (21): collect_qst(), default_tax_province(), PorterChain's own GST/HST registration (BN + RT0001), the single source for…, supplier_gst_hst_number(), finance_tax_settings(), merchant_display_name(), (tax_mode, default_province, collect_qst) from finance settings., accounting_csv() (+13 more)
 
-### Community 403 - "stop_shapes.py"
+### Community 403 - "gps.py"
 
-Cohesion: 0.12
-Nodes (18): _coord(), fsa(), is_return(), order_stops(), OrderStops, _points(), _postal(), shape_label() (+10 more)
+Cohesion: 0.16
+Nodes (20): ack_summary(), acknowledge(), acknowledgment_of(), driver_view(), policy(), Any, Ontario ESA Part XI.1 written electronic monitoring policy (single source).…, Timestamped, versioned acknowledgment on the driver record (history kept). (+12 more)
 
 ### Community 404 - "Maps · Firebase · Push · Notifications ↔ Fleetbase — development test cases"
 
-Cohesion: 0.12
-Nodes (14): 0. Architecture truth (must stay true in every case), 10. Fleetbase ↔ notifications (indirect) — `FB-NF-*`, 12. Email system (paired with push), 13. Clerk / Shopify / ERP / other connections (you asked), 14. UI/UX checklist (maps + push pages), 15. Database / Docker / architecture negatives, 16. Suggested implementation order, 17. Related SSOT (+6 more)
+Cohesion: 0.08
+Nodes (26): 0. Architecture truth (must stay true in every case), 10. Fleetbase ↔ notifications (indirect) — `FB-NF-*`, 11.1 `TEST_CATALOG` ids (Ripwire SSOT) — run each in Admin `/system-tests`, 11.2 Chaos (Admin diagnostics + `CHAOS_SCENARIOS`), 11.3 E2E notification audiences, 11. Diagnostics / chaos / E2E — `DIAG-*` / `CHAOS-*`, 12. Email system (paired with push), 13. Clerk / Shopify / ERP / other connections (you asked) (+18 more)
 
-### Community 405 - "customer_experience/service.py"
+### Community 405 - "links.py"
 
-Cohesion: 0.21
-Nodes (13): _b64(), _key(), read_manage_token(), _unb64(), experience(), manage_instructions(), manage_options(), manage_pod() (+5 more)
+Cohesion: 0.27
+Nodes (10): _b64(), _key(), manage_url(), Any, datetime, Signed, expiring self-service links for the delivery recipient. Token =…, Return {'order_id', 'tracking_number', 'exp'}; raises ValueError…, read_manage_token() (+2 more)
 
 ### Community 406 - "notifications_admin.py"
 
-Cohesion: 0.21
-Nodes (18): broadcast(), dashboard(), delivery_logs(), devices(), entity_alerts(), failed(), _guard(), history() (+10 more)
+Cohesion: 0.27
+Nodes (19): broadcast(), dashboard(), delivery_logs(), devices(), entity_alerts(), failed(), _guard(), history() (+11 more)
 
-### Community 407 - "pricing_engine/models.py"
+### Community 407 - "quote_admin.py"
 
-Cohesion: 0.18
-Nodes (12): PricingOrderAdjustment, PricingRateCard, PricingSentQuote, _uuid(), add_adjustment(), AdjustmentRefused, adjustments_total(), _aware() (+4 more)
+Cohesion: 0.15
+Nodes (30): PricingAudit, PricingOrderAdjustment, PricingSentQuote, Pricing admin tables (doc 72 §9.5): versioned rate cards, org pricing mode,…, Per-order price adjustment with role limits and a reason (doc 72 §9.4)., A priced quote emailed to a lead / org (doc 72 §9.3). Valid 72 h, then expires., accept_public_quote(), create_adjustment() (+22 more)
 
 ### Community 408 - "Website + GTM — development test cases"
 
-Cohesion: 0.14
-Nodes (14): 0. ID scheme & layers, 10. Related, 2. Charter / GTM (`W-GTM-*`), 3.1 Loop pages, 3.2 Trust / legal (P1 smoke), 3.3 Long-tail SEO (P2–P3 smoke), 3. Page smokes (`W-UI-*`), 4. API / handshakes (`W-API-*` / `W-VIS-*` / `W-SPA-*`) (+6 more)
+Cohesion: 0.10
+Nodes (21): 0. ID scheme & layers, 10. Related, 1.1 Money / capacity loop (P0), 1.2 Trust / legal, 1.3 Product education (Phase 1 only), 1.4 Content / SEO leaves, 1.5 Auth bridges, 1.6 Engines / libs (Graphify neighbors) (+13 more)
 
 ### Community 409 - "worker"
 
@@ -3095,98 +3239,98 @@ Nodes (21): depends_on, postgres, redis, spicedb, valhalla, condition, condition
 
 ### Community 410 - "DriverSupportBridgeService"
 
-Cohesion: 0.25
-Nodes (3): DriverIncident, IncidentService, DriverSupportBridgeService
+Cohesion: 0.19
+Nodes (7): DriverIncident, IncidentService, Any, DriverSupportBridgeService, Any, Any, SupportService
 
-### Community 411 - "74. Integrations per business type (Phase 0, L35)"
+### Community 411 - "4. Sequences per family"
 
-Cohesion: 0.09
-Nodes (20): fix(), 1. Connection options, 2. TOP PRIORITY (Phase 0 weeks 1–2): Shopify review fix, 3. Mobile store review fix (weeks 1–2, mobile docs 25/26/50 refer here), 4. API conventions (all types), 5. Their label vs our label, 6. Developer portal outline, 74. Integrations per business type (Phase 0, L35) (+12 more)
+Cohesion: 0.17
+Nodes (11): 1. API layers, 2. Stages (common to every type), 3. Per business type (only the differences from §2), 4.1 Shopify merchant and small shops (incl. pharmacy, bakery, flowers), 4.2 Warehouse / 3PL, 4.3 Courier and logistics partners (we tender, they carry), 4.4 Supply chain broker mode (P1 live), 4.5 Import / export / customs broker (CHA) (+3 more)
 
 ### Community 412 - "2. Schema listing by domain"
 
 Cohesion: 0.09
-Nodes (21): 04 — ER diagram and schema (AS-BUILT), 1. Full ER diagram, 2. Schema listing by domain, 3. Isolated tables (no FK in or out), 4. Full column listing, Audit / forensics, Billing, Booking / orders (+13 more)
+Nodes (22): 04 — ER diagram and schema (AS-BUILT), 1. Full ER diagram, 2. Schema listing by domain, 3. Isolated tables (no FK in or out), 4. Full column listing, Audit / forensics, Billing, Booking / orders (+14 more)
 
 ### Community 413 - "Page specs (17)"
 
 Cohesion: 0.09
 Nodes (21): 41 · UI page specs — Customer web, 5.10 `/orders`, 5.11 `/`, 5.12 `/send`, 5.13 `/sign-in/[[...sign-in]]`, 5.14 `/sign-up/[[...sign-up]]`, 5.15 `/track/[trackingNumber]`, 5.16 `/track` (+13 more)
 
-### Community 414 - "test_p0_handshakes_wave2.py"
+### Community 414 - "pytest"
 
-Cohesion: 0.18
-Nodes (9): _clear_idp_env(), _merchant(), test_hs_fb_merchant_sync_rejects_suspended(), test_hs_idp_portal_denies_suspended_and_closed(), test_hs_mail_compose_pins_mailpit_not_mailhog(), test_hs_mail_local_transport_is_smtp_for_mailpit(), test_hs_mail_probe_labels_mailpit_host(), test_hs_shop_install_url_managed_shape() (+1 more)
+Cohesion: 0.02
+Nodes (109): _chart_trends(), Normalize finance revenue_trend rows into admin dashboard chart shape., DriverOfflineAction, WebSocket hub for in-app notification realtime., Load test: 2000 /health calls (50 concurrent) while 20 slow (1.5 s) Keycloak…, _merchant(), merchant_p0, tc_id (+101 more)
 
 ### Community 415 - "68 · Trust & Help Centre (Phase 0 workstream W9, L33)"
 
 Cohesion: 0.09
-Nodes (21): 10. Phase 0 schedule (W9; see 60 §4), 11. Unknowns and decisions (also in 98), 2.1 Help sections and FAQ per persona (draft questions; answers come from the policy text), 2. Information architecture, 3.1 PorterChain service facts (our decisions; marked where Ravi must confirm), 3.2 Platform rules (app stores, Shopify), 3.3 Canada (federal), 3.4 CRA (+13 more)
+Nodes (22): 10. Phase 0 schedule (W9; see 60 §4), 11. Unknowns and decisions (also in 98), 1. Goal, 2.1 Help sections and FAQ per persona (draft questions; answers come from the policy text), 2. Information architecture, 3.1 PorterChain service facts (our decisions; marked where Ravi must confirm), 3.2 Platform rules (app stores, Shopify), 3.3 Canada (federal) (+14 more)
 
 ### Community 416 - "decode_polyline"
 
-Cohesion: 0.20
-Nodes (10): test_gap05_python_polyline_roundtrip_still_green(), 9. Maps / Valhalla / OSRM / Google (`MAP-*`), decode_polyline(), encode_polyline(), _encode_value(), valhalla_shape_to_google_polyline(), multi_stop_route_from_valhalla(), optimized_route_from_valhalla() (+2 more)
+Cohesion: 0.23
+Nodes (15): decode_polyline(), encode_polyline(), _encode_value(), Encoded polyline helpers — Google/OSRM (1e-5) and Valhalla (1e-6)., Re-encode Valhalla leg shape (precision 6) for Google Maps clients (precision…, valhalla_shape_to_google_polyline(), multi_stop_route_from_valhalla(), optimized_route_from_valhalla() (+7 more)
 
 ### Community 417 - "compilerOptions"
 
 Cohesion: 0.10
-Nodes (19): compilerOptions, allowImportingTsExtensions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib (+11 more)
+Nodes (20): compilerOptions, allowImportingTsExtensions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, jsxImportSource (+12 more)
 
 ### Community 418 - "pg-backup"
 
 Cohesion: 0.10
 Nodes (19): postgres, AGE_RECIPIENTS_FILE, BACKUP_DATABASE_URL_BASE, BACKUP_DIR, BACKUP_SOURCE, PGPASSWORD, command, depends_on (+11 more)
 
-### Community 419 - "math"
+### Community 419 - "build_lottie.py"
 
-Cohesion: 0.08
-Nodes (27): _in_lake(), manual(), _metres(), metrics(), _point(), _real(), run(), scenario() (+19 more)
+Cohesion: 0.22
+Nodes (14): anim(), ellipse(), fill(), group(), layer(), Build the website's Lottie files into public/lottie/ (run: python3…, frames: list of (t, value) with ease-in-out between keys., rect() (+6 more)
 
 ### Community 420 - "ravi/page.tsx"
 
 Cohesion: 0.14
-Nodes (13): GET(), alt, contentType, size, metadata, RaviContactPage(), raviContact, RaviContactChannel (+5 more)
+Nodes (13): GET(), alt, contentType, size, metadata, website_src_app_ravi_ravi_contact, raviContact, RaviContactChannel (+5 more)
 
-### Community 421 - "[id]/page.test.tsx"
+### Community 421 - "DriverCommunicationService"
 
-Cohesion: 0.11
-Nodes (16): assist, conversations, convert, detail, draftApi, fitScore, get360, identities (+8 more)
+Cohesion: 0.16
+Nodes (9): GAP-08 / driver PushService — FCM register/unregister (no emulator required)., test_gap08_push_service_register_and_unregister(), test_gap08_push_service_rejects_expo_token(), _valid_fcm(), DriverCommunicationService, Any, Any, PushService (+1 more)
 
 ### Community 422 - "compilerOptions"
 
 Cohesion: 0.11
 Nodes (18): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+10 more)
 
-### Community 423 - "customer_goods.py"
+### Community 423 - "SystemConfig"
 
-Cohesion: 0.09
-Nodes (23): default_customer_pricing(), default_vehicle_catalog(), _fit_piece(), goods_line(), _num(), parcels_payload(), presets_from_card(), resolve_load() (+15 more)
+Cohesion: 0.20
+Nodes (13): SystemConfig, default_future(), future_overview(), normalize_future(), parcels_per_day(), Any, datetime, Settings → Future: scoped capabilities to switch on once volume justifies them.… (+5 more)
 
 ### Community 424 - "76. Acceptance tests before build (Phase 0 gates G19–G21, L35; §13 A-FIN, §14 A-DOC, §15 A-ID, §16 A-VC, §17 A-LC and §18 A-GF/A-PAR and §19 A-PRA and §20 A-CM/A-UX inside G19)"
 
 Cohesion: 0.09
-Nodes (21): 10. Shopify review readiness (G20, weeks 1–2), 11. Mobile review readiness (G21, weeks 1–2; Maestro flows in `apps/mobile-*/maestro/review-*.yaml`), 12. Ops console (A-OPS), 13. Business metrics (A-FIN, inside G19, doc 79 §8), 14. Documents & capabilities (A-DOC, inside G19, doc 70 §2.2), 16. Vehicle compliance (A-VC, inside G19, doc 80), 17. Order lifecycle (A-LC, inside G19, doc 81), 18. Guided job flows and driver parity (A-GF, A-PAR, inside G19, doc 82) (+13 more)
+Nodes (22): 10. Shopify review readiness (G20, weeks 1–2), 11. Mobile review readiness (G21, weeks 1–2; Maestro flows in `apps/mobile-*/maestro/review-*.yaml`), 12. Ops console (A-OPS), 13. Business metrics (A-FIN, inside G19, doc 79 §8), 14. Documents & capabilities (A-DOC, inside G19, doc 70 §2.2), 15. Identifiers & milestones (A-ID, inside G19, doc 70 §2.3, doc 79 §6a), 16. Vehicle compliance (A-VC, inside G19, doc 80), 17. Order lifecycle (A-LC, inside G19, doc 81) (+14 more)
 
 ### Community 425 - "cliArgs"
 
 Cohesion: 0.09
 Nodes (21): host, port, cliArgs, baseurl, explore, geometry, limit, logdir (+13 more)
 
-### Community 426 - "test_merchant_pricing_api.py"
+### Community 426 - "deleted_items.py"
 
-Cohesion: 0.17
-Nodes (12): client(), merchant(), test_a_fresh_merchant_reports_platform_defaults(), test_a_negative_surcharge_is_rejected(), test_an_unknown_pricing_model_is_rejected(), test_an_unknown_unit_is_rejected(), test_auto_pricing_model_is_rejected(), test_gta_rate_overlay_reaches_load_context() (+4 more)
+Cohesion: 0.23
+Nodes (20): DeleteBody, deleted_items_auto_purge(), deleted_items_check(), deleted_items_delete(), deleted_items_list(), deleted_items_meta(), deleted_items_purge(), deleted_items_restore() (+12 more)
 
 ### Community 427 - "compilerOptions"
 
-Cohesion: 0.11
-Nodes (18): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+10 more)
+Cohesion: 0.10
+Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, jsxImportSource, lib (+11 more)
 
 ### Community 428 - "devDependencies"
 
-Cohesion: 0.11
-Nodes (19): devDependencies, babel-plugin-react-compiler@^1.0.0, eslint@^10.6.0, eslint-config-next@16.4.1, @playwright/test@^1.55.0, tailwindcss@^4.3.2, @tailwindcss/postcss@^4.3.2, @types/node@^26 (+11 more)
+Cohesion: 0.17
+Nodes (12): devDependencies, babel-plugin-react-compiler, eslint, eslint-config-next, @playwright/test, tailwindcss, @tailwindcss/postcss, @types/node (+4 more)
 
 ### Community 429 - "compilerOptions"
 
@@ -3203,165 +3347,170 @@ Nodes (19): steps, steps, steps, name, runs-on, steps, gates, steps (+11 more)
 Cohesion: 0.11
 Nodes (18): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+10 more)
 
-### Community 433 - "test_service_coverage_batch5.py"
+### Community 432 - "diagnostics_service.py"
 
-Cohesion: 0.09
-Nodes (19): _csv(), test_in_file_duplicates_still_counted(), test_preview_only_upload_does_not_block_rows(), test_reupload_warns_and_skips_already_booked_rows(), _book_body(), test_admin_merchant_approve_rejects_closed(), test_admin_merchant_lifecycle(), test_admin_merchant_unsuspend() (+11 more)
+Cohesion: 0.05
+Nodes (42): DiagnosticsDispatchProbesMixin, Any, DiagnosticsHealthMixin, Any, _classify(), _component(), _now_iso(), _openapi_paths() (+34 more)
 
-### Community 434 - "BlogPostForm.tsx"
+### Community 433 - "MerchantBulkService"
 
-Cohesion: 0.17
-Nodes (17): BlogNewPage(), BlogNewClient(), handleSubmit(), EMPTY, absoluteMediaUrl(), BlogPostForm(), handleBodyFile(), handleCoverFile() (+9 more)
+Cohesion: 0.11
+Nodes (21): do_csv(), MerchantBulkService, _norm(), Any, CSV rows usually carry text addresses only; geocode them so the row can be…, Stable identity of a shipment row (case/whitespace-insensitive). pickup +…, Row fingerprints from recent confirmed jobs, and recent jobs by file hash., row_fingerprint() (+13 more)
+
+### Community 434 - "verification.py"
+
+Cohesion: 0.19
+Nodes (20): abstract_status(), AbstractSubmitRequest, background_check_status(), identity_verification_status(), mock_complete_background_check(), mock_complete_identity_verification(), MockBackgroundCompleteRequest, MockIdentityCompleteRequest (+12 more)
 
 ### Community 435 - "test_merchant_matrix_p0_arch.py"
 
-Cohesion: 0.06
-Nodes (27): ix(), test_hs16_fcm_service_is_push_only_not_auth(), _iter_py(), _iter_ts(), test_api_mp_smoke_merchant_path_methods_declared(), test_neg_arch_001_portal_never_imports_fleetbase_or_socketcluster(), test_neg_arch_002_engines_do_not_call_private_valhalla_osrm(), test_neg_arch_003_no_porterchain_vroom_client_under_engines() (+19 more)
+Cohesion: 0.12
+Nodes (19): _iter_py(), _iter_ts(), Path, P0 architecture cases from docs/MERCHANT_DEVELOPMENT_TEST_MATRIX.md (NEG-ARCH +…, NEG-ARCH-005 (Keycloak): merchant auth is the Keycloak realm, no Clerk keys., NEG-ARCH-006 — FCM device helpers OK; Firebase Auth not the merchant IdP., NEG-ARCH-007 — commercial sandbox label ≠ platform APP_ENV., Lightweight OpenAPI contract: every /v1/merchant path declares ≥1 HTTP method. (+11 more)
 
 ### Community 436 - "ref_playwright_test"
 
-Cohesion: 0.19
-Nodes (6): liveEnabled(), P0Case, tcId(), test, SAMPLE, Schema
+Cohesion: 0.16
+Nodes (9): box(), ref_playwright_test, website_e2e_fixtures_expect, liveEnabled(), P0Case, tcId(), test, SAMPLE (+1 more)
 
 ### Community 437 - "Driver + Admin drivers — development test cases"
 
-Cohesion: 0.11
-Nodes (18): Admin driver API — `API-A-DRV-*`, Already covered (keep green), Architecture negatives — `ARCH-D-*`, Auth & RBAC — `AUTH-D-*`, Chaos / failure scenarios (driver-critical), Database — `DB-D-*`, Driver + Admin drivers — development test cases, Driver API — `API-D-*` (+10 more)
+Cohesion: 0.10
+Nodes (20): Admin driver 360 tabs, Admin driver API — `API-A-DRV-*`, Admin drivers UI — `UI-A-DRV-*`, Already covered (keep green), Architecture negatives — `ARCH-D-*`, Auth & RBAC — `AUTH-D-*`, Chaos / failure scenarios (driver-critical), Database — `DB-D-*` (+12 more)
 
 ### Community 438 - "Merchant + Admin Merchant — Development Test Matrix"
 
 Cohesion: 0.11
-Nodes (18): 0. Coverage census (live), 10. Also covered (beyond the prompt), 1. Architecture & negative cases (must stay true), 2. Merchant persona — pages & UX, 3. Admin — merchants module (pages, tabs, panels), 4.1 Portal `/v1/merchant/*`, 4.2 Merchant API keys `/v1/merchant-api/*`, 4.3 Admin merchants (+10 more)
+Nodes (19): 0. Coverage census (live), 10. Also covered (beyond the prompt), 1. Architecture & negative cases (must stay true), 2. Merchant persona — pages & UX, 3. Admin — merchants module (pages, tabs, panels), 4.1 Portal `/v1/merchant/*`, 4.2 Merchant API keys `/v1/merchant-api/*`, 4.3 Admin merchants (+11 more)
 
 ### Community 439 - "web-push/package.json"
 
+Cohesion: 0.11
+Nodes (17): description, devDependencies, firebase, typescript, exports, ./config, ./messaging, ./register (+9 more)
+
+### Community 440 - "lib/batches.ts"
+
 Cohesion: 0.13
-Nodes (17): description, devDependencies, firebase@12.19.0, typescript@^6.0.3, exports, ./config, ./messaging, ./register (+9 more)
+Nodes (18): batchClient(), BatchParcel, BatchStop, buildingBlockers(), DocChecklist, DocItem, Fetcher, Instruction (+10 more)
 
-### Community 440 - "web-vitals-report.ts"
+### Community 441 - "AdminAuthProvider.tsx"
 
-Cohesion: 0.20
-Nodes (15): web-vitals, WebVitalsReporter(), classifyPageRoute(), isOverPerfBudget(), LOCALE_HUB_SLUGS, MATRIX_CITY_SLUGS, PageRouteClass, PERF_BUDGET_CLS_GOOD (+7 more)
-
-### Community 441 - "messaging.ts"
-
-Cohesion: 0.25
-Nodes (12): registerBrowserPush(), registerBrowserPush(), firebaseWebConfig, isFcmRegistrationToken(), attachForegroundMessaging(), ForegroundPushPayload, getFirebaseApp(), getMessagingIfSupported() (+4 more)
+Cohesion: 0.15
+Nodes (18): AdminAuthContext, AdminAuthInner(), AdminAuthState, noopSubscribe(), useHydrated(), registerBrowserPush(), NotificationCenter(), registerBrowserPush() (+10 more)
 
 ### Community 442 - "test_admin_review_files.py"
 
-Cohesion: 0.17
-Nodes (9): admin_review_files(), _abstract_driver(), test_abstract_verify_with_file_needs_no_note(), test_abstract_verify_without_file_records_who_and_when(), test_abstract_verify_without_file_requires_note(), test_admin_review_files_does_not_duplicate_files_array(), test_admin_review_files_includes_mobile_uploads_and_photos(), test_review_files_keep_rejection_reason() (+1 more)
+Cohesion: 0.16
+Nodes (13): admin_review_files(), Files the admin Documents tab can open. Mobile uploads write…, _abstract_driver(), Admin document review includes mobile keyed uploads, not only files[]., test_abstract_verify_with_file_needs_no_note(), test_abstract_verify_without_file_records_who_and_when(), test_abstract_verify_without_file_requires_note(), test_admin_review_files_does_not_duplicate_files_array() (+5 more)
 
-### Community 443 - "test_unified_identity_phase8.py"
+### Community 443 - "BackfillAction"
 
-Cohesion: 0.12
-Nodes (11): BackfillAction, BackfillReport, _is_skippable_idp_id(), resolve_porterchain_user_id(), test_backfill_action_never_embeds_secrets(), test_resolve_unmatched_without_create(), test_resolve_via_identity_link_when_platform_is_pc_user(), query() (+3 more)
+Cohesion: 0.40
+Nodes (3): BackfillAction, BackfillReport, Any
 
-### Community 444 - "stuck_items"
-
-Cohesion: 0.33
-Nodes (4): _age_min(), idle_items(), stuck_items(), test_stale_pickup_alert_for_admin()
-
-### Community 445 - "visitor_intent.py"
+### Community 444 - "scanFeedback.ts"
 
 Cohesion: 0.15
-Nodes (7): behavioral_score_boost(), compute_intent_score(), _LeadLike, _VisitorLike, test_compute_intent_score_cold_visit(), test_compute_intent_score_quote_path(), test_score_lead_fuses_behavior()
+Nodes (17): lookupLabel(), sendEmergency(), makeDeduper(), play(), players, scanFeedback(), scanFix(), Sound (+9 more)
 
-### Community 446 - "io"
+### Community 445 - "VisitorTrackingService"
 
-Cohesion: 0.10
-Nodes (12): csv_template_content(), _norm_header(), parse_csv_bytes(), parse_upload(), parse_xls_bytes(), parse_xlsx_bytes(), TabularSheet, _money() (+4 more)
+Cohesion: 0.07
+Nodes (29): Any, Visitor intelligence — fuse visitor sessions, quotes, and CRM guide signals., VisitorIntelligenceService, _merge_signals(), Any, Visitor session tracking — anonymous quote + first-party intent signals., VisitorTrackingService, VisitorSession (+21 more)
+
+### Community 446 - "import_ingest.py"
+
+Cohesion: 0.14
+Nodes (19): _norm_header(), parse_csv_bytes(), parse_upload(), parse_xls_bytes(), parse_xlsx_bytes(), Any, Parse CSV / XLSX / XLS into tabular rows for route import., Legacy .xls via xlrd when installed; otherwise clear error. (+11 more)
 
 ### Community 447 - "driver_ops.py"
 
-Cohesion: 0.27
-Nodes (10): add_order_extra_stop(), add_order_proof(), DriverOpsRequest, ExtraStopRequest, order_driver_ops(), ParcelStatusRequest, ProofUrlRequest, resend_order_extra_stop() (+2 more)
+Cohesion: 0.26
+Nodes (15): add_order_extra_stop(), add_order_proof(), DriverOpsRequest, ExtraStopRequest, order_driver_ops(), ParcelStatusRequest, ProofUrlRequest, BaseModel (+7 more)
 
-### Community 448 - "payout_runs.py"
+### Community 448 - "DriverWalletTransaction"
 
-Cohesion: 0.27
-Nodes (13): DriverPayoutRun, wallet_balance_cents(), approve_run(), _aware(), bank_csv(), build_lines(), create_run(), discard_run() (+5 more)
+Cohesion: 0.11
+Nodes (33): Reserve a pending payout and debit wallet. Caller may add wallet ledger then…, DriverPayoutRun, A pay period: draft (review) -> approved (payouts reserved) -> paid (bank file…, area_of(), consolidation(), diff(), driver_by_order(), Any (+25 more)
 
 ### Community 449 - "test_merchant_api_idempotency.py"
 
-Cohesion: 0.27
-Nodes (9): _addr(), _make_order(), _merchant(), test_find_by_idempotency_key_is_merchant_scoped(), test_null_keys_do_not_collide(), test_replayed_key_is_rejected_by_unique_index(), test_same_key_across_merchants_is_allowed(), test_shopify_channel_header_stamps_shopify_source() (+1 more)
+Cohesion: 0.20
+Nodes (14): _addr(), _make_order(), _merchant(), Programmatic booking dedupe + provenance — Shopify retries must not double-book., Previously every API create recorded MERCHANT, hiding the channel., Two shops can legitimately use order name #1001 on the same day., Website orders and older portal builds carry no key and stay unconstrained., test_find_by_idempotency_key_is_merchant_scoped() (+6 more)
 
-### Community 450 - "devDependencies"
+### Community 450 - "customer/package.json"
 
-Cohesion: 0.13
-Nodes (15): devDependencies, babel-plugin-react-compiler@^1.0.0, eslint@^10.6.0, eslint-config-next@16.4.1, @porterchain/config@workspace:*, @types/node@^26, @types/react-dom@^19, typescript@^6.0.3 (+7 more)
+Cohesion: 0.04
+Nodes (53): dependencies, lottie-react, lucide-react, next, @porterchain/auth, @porterchain/customer-motion, @porterchain/maps, @porterchain/types (+45 more)
 
 ### Community 451 - "dependencies"
 
-Cohesion: 0.12
-Nodes (17): dependencies, date-fns@^4.4.0, firebase@^12.19.0, lucide-react@^1.23.0, next@16.4.1, @porterchain/config@workspace:_, @porterchain/ui@workspace:_, react-dom@19.2.7 (+9 more)
+Cohesion: 0.14
+Nodes (14): dependencies, date-fns, firebase, lucide-react, next, @porterchain/auth, @porterchain/config, @porterchain/maps (+6 more)
 
 ### Community 452 - "PorterChain architecture (living)"
 
-Cohesion: 0.12
-Nodes (17): Agent sensors (mandatory pipeline), Align — why we exist, what we ship, Branch — execution, Branch — identity and push, Branch — money, Cleanup — what not to grow or restore, Folder law, Implement — how to build a slice or the whole (+9 more)
+Cohesion: 0.11
+Nodes (19): Agent sensors (mandatory pipeline), Align — why we exist, what we ship, Branch — execution, Branch — identity and push, Branch — money, Branch — spatial black boxes, Cleanup — what not to grow or restore, Folder law (+11 more)
 
 ### Community 453 - "package.json"
 
-Cohesion: 0.15
-Nodes (16): devDependencies, husky@^9.1.7, jscpd@^5.4.2, knip@^6.43.0, prettier@^3.9.4, turbo@^2.10.4, engines, node (+8 more)
+Cohesion: 0.12
+Nodes (16): devDependencies, husky, jscpd, knip, prettier, turbo, engines, node (+8 more)
 
 ### Community 454 - "events/package.json"
 
-Cohesion: 0.13
-Nodes (16): dependencies, @porterchain/types@workspace:*, description, devDependencies, typescript@^6.0.3, exports, @porterchain/types, typescript (+8 more)
+Cohesion: 0.12
+Nodes (16): dependencies, @porterchain/types, description, devDependencies, typescript, exports, @porterchain/types, typescript (+8 more)
 
 ### Community 455 - "queue/package.json"
 
-Cohesion: 0.13
-Nodes (16): dependencies, @porterchain/types@workspace:*, description, devDependencies, typescript@^6.0.3, exports, @porterchain/types, typescript (+8 more)
+Cohesion: 0.12
+Nodes (16): dependencies, @porterchain/types, description, devDependencies, typescript, exports, @porterchain/types, typescript (+8 more)
 
-### Community 456 - "lib.js"
+### Community 456 - "webhooks.js"
 
-Cohesion: 0.25
-Nodes (13): bookingScenario(), options, quoteLatency, baseUrl(), jsonHeaders(), quotePayload(), stripeCheckoutCompletedEvent(), stripeSignature() (+5 more)
+Cohesion: 0.24
+Nodes (14): ref_k6, bookingScenario(), options, quoteLatency, baseUrl(), jsonHeaders(), quotePayload(), stripeCheckoutCompletedEvent() (+6 more)
 
 ### Community 457 - "sdk.py"
 
-Cohesion: 0.16
-Nodes (10): construct_webhook_event(), create_checkout_session(), create_customer(), create_identity_verification_session(), create_refund(), expire_checkout_session(), list_payout_balance_transactions(), retrieve_checkout_session() (+2 more)
+Cohesion: 0.15
+Nodes (16): construct_webhook_event(), create_checkout_session(), create_customer(), create_identity_verification_session(), create_refund(), expire_checkout_session(), list_payout_balance_transactions(), Any (+8 more)
 
 ### Community 458 - "AdminRouteTemplateService"
 
-Cohesion: 0.23
-Nodes (3): AdminRouteTemplateService, RouteCenterTemplate, test_serialize_shape()
+Cohesion: 0.22
+Nodes (7): AdminRouteTemplateService, Any, Wholesale / recurring route templates (§8.1.10)., RouteCenterTemplate, Wholesale route templates (§8.1.10)., test_serialize_shape(), porterchain_api_admin_engine_route_template_service
 
-### Community 459 - "marketing_site/config.py"
+### Community 459 - "public_marketing.py"
 
-Cohesion: 0.11
-Nodes (13): default_marketing_site(), get_marketing_site(), _int(), normalize_marketing_site(), public_marketing_config(), CalculatorLeadResponse, EstimateLine, EstimateRequest (+5 more)
+Cohesion: 0.07
+Nodes (49): default_marketing_site(), get_marketing_site(), _int(), normalize_marketing_site(), public_marketing_config(), Any, `system_config.marketing_site` — website marketing switches (JSON, no…, Only what the website needs — never limits or internal switches. (+41 more)
 
-### Community 460 - "customer_fast/privacy.py"
+### Community 460 - "weekly_billing.py"
 
-Cohesion: 0.26
-Nodes (13): CustomerNote, OrderRating, PrivacyDeletionJob, approve_and_execute(), build_plan(), _get(), _job_out(), jobs_for_customer() (+5 more)
+Cohesion: 0.21
+Nodes (18): due_at_for_issue(), invoice_day_reached(), _local(), previous_week_bounds(), datetime, Weekly merchant billing (Ravi, 2026-10-31). A week's business (Mon 00:00 - Sun…, The Toronto Mon-Sun week containing `reference`: [start, end) as naive UTC., Last week is invoiced from Wednesday on (Mon/Tue wait). (+10 more)
 
 ### Community 461 - "tax_registration.py"
 
-Cohesion: 0.12
-Nodes (22): TaxRegistration, _credit_balance(), _etransfer_email(), _gst_hst(), overview_payload(), remittance_pack(), clear_cache(), collects_tax() (+14 more)
+Cohesion: 0.18
+Nodes (26): change_registration(), Any, add_registration(), Any, registration_rows(), clear_cache(), collects_tax(), _day() (+18 more)
 
 ### Community 462 - "routers/customer_experience.py"
 
 Cohesion: 0.29
-Nodes (8): _call(), get_manage_options(), get_manage_pod(), get_order_experience(), InstructionsRequest, post_manage_instructions(), post_manage_schedule(), ScheduleRequest
+Nodes (14): _call(), get_manage_options(), get_manage_pod(), get_order_experience(), InstructionsRequest, post_manage_instructions(), post_manage_schedule(), Any (+6 more)
 
-### Community 463 - "test_pricing_audit_gates.py"
+### Community 463 - "test_p0_golden_book.py"
 
-Cohesion: 0.08
-Nodes (21): _body(), _prepare_merchant(), _pricing_stub(), _settings(), test_live_confirm_path_enqueues_fleetbase_via_event_handler(), test_preview_exposes_routing_source_never_google(), test_sandbox_confirm_does_not_enqueue_fleetbase(), B (+13 more)
+Cohesion: 0.30
+Nodes (13): _body(), _prepare_merchant(), _pricing_stub(), merchant_p0, MonkeyPatch, tc_id, P0 golden money path: preview routing_source + live confirm → FleetbaseSyncJob.…, Live (non-sandbox) create_shipment → event handler → FleetbaseSyncJob pending. (+5 more)
 
 ### Community 464 - "test_driver_mobile_field_helpers.py"
 
 Cohesion: 0.12
-Nodes (4): test_handshake_proves_auth_before_dashboard(), test_money_screen_reads_wallet_and_earnings_contract(), test_route_screen_offline_banner_and_checklist(), test_stop_checklist_ordered_steps()
+Nodes (9): Driver mobile field helpers — checklist order, maps policy, job-offer category…, One action at a time: Arrive → Scan → Proof → Complete (stop/stopFlow.ts)., Earnings glance on Today reads /earnings/today; full wallet/statements live on…, Dashboard 403 (onboarding) must not drop Bearer-dev auth., Job screen: offline banner, dispatch-route card with pickup checklist,…, test_handshake_proves_auth_before_dashboard(), test_money_screen_reads_wallet_and_earnings_contract(), test_route_screen_offline_banner_and_checklist() (+1 more)
 
 ### Community 465 - "PorterChain website copy deck (v10) — ready to implement"
 
@@ -3371,7 +3520,7 @@ Nodes (15): FAQ (objection handling) — also FAQPage JSON-LD, FINAL CTA, First 
 ### Community 466 - "WEBSITE_MARKETING_OPS_LOOPS.md"
 
 Cohesion: 0.12
-Nodes (15): bash infrastructure/deploy/scripts/cloudflare-html-cache-checklist.sh, bash infrastructure/deploy/scripts/ga4-quote-funnel-checklist.sh, bash infrastructure/deploy/scripts/gsc-keyword-loop-checklist.sh, bash infrastructure/deploy/scripts/paid-keyword-align-checklist.sh, bash infrastructure/deploy/scripts/r2-blog-media-checklist.sh, Cloudflare HTML cache, CTA north star → common.cta.quote + GA4 events cta_click → quote_request, GSC keyword loop (monthly) (+7 more)
+Nodes (16): bash infrastructure/deploy/scripts/cloudflare-html-cache-checklist.sh, bash infrastructure/deploy/scripts/ga4-quote-funnel-checklist.sh, bash infrastructure/deploy/scripts/gsc-keyword-loop-checklist.sh, bash infrastructure/deploy/scripts/paid-keyword-align-checklist.sh, bash infrastructure/deploy/scripts/r2-blog-media-checklist.sh, Cloudflare HTML cache, CTA north star → common.cta.quote + GA4 events cta_click → quote_request, GA4 quote funnel (+8 more)
 
 ### Community 467 - "compilerOptions"
 
@@ -3381,72 +3530,72 @@ Nodes (15): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModu
 ### Community 468 - "guide-knowledge.ts"
 
 Cohesion: 0.20
-Nodes (13): answerChunks(), businessFaqChunks(), CHARTER_CHUNKS, Case, CASES, main(), passCase(), faqClusterChunks() (+5 more)
+Nodes (14): website_messages_business_en, answerChunks(), businessFaqChunks(), CHARTER_CHUNKS, Case, CASES, main(), passCase() (+6 more)
 
-### Community 469 - "2. Page / subpage UI–UX cases"
+### Community 469 - "test_vehicle_class_rate.py"
 
-Cohesion: 0.13
-Nodes (15): email(), find(), 2.10 Notifications — `/notifications`, 2.11 System / diagnostics, 2.12 Settings Center — `/settings` (super-admin heavy), 2.1 Dashboard — `/dashboard`, 2.2 Control Tower — `/operations`, 2.3 Orders — `/orders`, `/orders/[id]` (+7 more)
+Cohesion: 0.20
+Nodes (18): apply_vehicle_class_rate(), Merchant-channel parcel minimum (merchant portal, admin New order, API). Ravi…, Ravi 2026-10-31: per-vehicle-class rates (proposal §5) for merchant and admin…, _req(), _std(), test_21_inch_parcel_is_van_minimum(), test_no_postal_legacy_gets_minimum(), test_orientation_largest_side_decides() (+10 more)
 
 ### Community 470 - "AdminAuditExportService"
 
-Cohesion: 0.26
-Nodes (5): AdminAuditExportService, test_domain_events_empty(), test_export_bundle_shape(), test_export_csv_header(), test_list_logs_empty()
+Cohesion: 0.25
+Nodes (8): AdminAuditExportService, Any, Admin audit export tests (§11.1.7)., test_domain_events_empty(), test_export_bundle_shape(), test_export_csv_header(), test_list_logs_empty(), porterchain_api_admin_engine_audit_export_service
 
 ### Community 471 - "CustomerAdminService"
 
-Cohesion: 0.17
-Nodes (6): CustomerAdminService, test_create_customer_mints_orphan_row(), test_create_customer_rejects_linked_email(), test_customer_admin_detail_missing(), test_upsert_merges_orphan_by_email(), test_upsert_rejects_email_mismatch_on_bound_customer()
+Cohesion: 0.15
+Nodes (9): CustomerAdminService, Any, Wave 2 customer admin + identity integrity tests., test_create_customer_mints_orphan_row(), test_create_customer_rejects_linked_email(), test_customer_admin_detail_missing(), test_upsert_merges_orphan_by_email(), test_upsert_rejects_email_mismatch_on_bound_customer() (+1 more)
 
 ### Community 472 - "score_candidate"
 
 Cohesion: 0.10
-Nodes (7): _coords(), _driver_location(), _driver_online(), score_candidate(), TestCoordsParsing, TestFleetbaseDriverPayloadParsing, TestScoring
+Nodes (11): _coords(), _driver_location(), _driver_online(), Any, Best-effort parse of a driver location payload into (lat, lng)., Lower is better. Pure function — unit-tested without DB or network., score_candidate(), Dispatch suggestions — pure scoring + Fleetbase payload parsing contracts. (+3 more)
 
-### Community 474 - "MerchantContactsService"
+### Community 473 - "src/account.ts"
 
-Cohesion: 0.33
-Nodes (3): MerchantContactsService, record_portal_signup_lead(), _role_label()
+Cohesion: 0.13
+Nodes (17): BlockKey, blockOf(), BLOCKS, CODES, fieldError(), hm(), weeklyHours(), Schedule (+9 more)
 
 ### Community 475 - "get_pricing_service"
 
-Cohesion: 0.16
-Nodes (14): get_pricing_service(), _merchant(), _req(), test_merchants_a_and_b_get_different_distance_overlays(), test_merchants_a_and_b_get_different_fsa_bases(), test_simulate_ignores_global_retail_tariff(), _req(), test_custom_org_pricing_applies() (+6 more)
+Cohesion: 0.04
+Nodes (63): PricingFsaRate, Flat price for delivering into one forward sortation area. `merchant_id`,…, GTA ±150 km service-area gate for programmatic bookings. Portal route import…, card_settings(), default_pickup(), generate(), gta_drop_fsas(), override() (+55 more)
 
 ### Community 476 - "test_memberships_switcher_bf.py"
 
-Cohesion: 0.21
-Nodes (15): list_memberships(), _claims(), _company(), _no_ws_user(), _seats(), _settings(), test_a_company_you_have_no_seat_on_is_refused(), test_inbox_and_websocket_share_one_company_selector() (+7 more)
+Cohesion: 0.23
+Nodes (19): list_memberships(), Seats for this Keycloak user — switch companies with X-Merchant-Id, not…, _claims(), _no_ws_user(), BF — memberships list for the seat switcher; X-Merchant-Id is the only selector., The whole point of BF: you can still switch away from a dead company., A leftover X-Merchant-Id from another sign-in must not blank the portal., One working company and one suspended company on the same Keycloak seat. (+11 more)
 
-### Community 477 - "create_route_template"
+### Community 477 - "admin/**init**.py"
 
-Cohesion: 0.30
-Nodes (7): create_route_template(), delete_route_template(), get_route_template(), list_route_templates(), _serialize(), update_route_template(), RouteTemplateItem
+Cohesion: 0.06
+Nodes (38): admin_dashboard(), dashboard_center(), dashboard_search(), Depends, get, admin routes — dashboard., finance_invoice_pdf(), Depends (+30 more)
 
-### Community 478 - "test_concierge_local_provision.py"
+### Community 478 - "dependencies"
 
-Cohesion: 0.14
-Nodes (12): _ctx(), _email(), test_create_driver_local_pending_when_idp_down(), test_create_driver_skip_invite_is_local(), test_invite_user_rejects_merchant(), test_merchant_seat_without_idp_secret(), pair(), test_hst_unique_normalized() (+4 more)
+Cohesion: 0.11
+Nodes (19): dependencies, @dnd-kit/core, echarts, firebase, framer-motion, lucide-react, maplibre-gl, next (+11 more)
 
 ### Community 479 - "test_public_tracking_privacy.py"
 
 Cohesion: 0.23
-Nodes (16): _live(), _maps(), _order(), _req(), _snap(), test_driver_pin_fallback_is_also_filtered(), test_gps_consent_off_hides_position(), test_missing_timestamp_dropped() (+8 more)
+Nodes (18): _live(), _maps(), _order(), parametrize, Public /v1/orders/{tn}/tracking must never leak the driver's exact or stale…, _req(), _snap(), test_driver_pin_fallback_is_also_filtered() (+10 more)
 
-### Community 480 - "dependencies"
+### Community 480 - "DeliveryPromisePanel.tsx"
 
-Cohesion: 0.13
-Nodes (15): dependencies, lottie-react@2.4.1, next@16.4.1, @porterchain/customer-motion@workspace:_, @porterchain/ui@workspace:_, react@19.2.7, react-dom@19.2.7, @sentry/nextjs@^10.64.0 (+7 more)
+Cohesion: 0.22
+Nodes (14): save(), DeliveryPromisePanel(), edit(), Props, DELIVERY_PROMISE_PLACEHOLDERS, isHhmm(), parseHolidays(), parsePrefixes() (+6 more)
 
 ### Community 481 - "ref_fs"
 
-Cohesion: 0.24
-Nodes (8): authCases, P0Case, playwrightCases(), registry, tcId(), test, pageCases, ROUTE_HINT
+Cohesion: 0.09
+Nodes (22): authCases, apps_driver_portal_e2e_fixtures_expect, P0Case, playwrightCases(), registry, tcId(), test, pageCases (+14 more)
 
 ### Community 482 - "dependencies"
 
-Cohesion: 0.12
-Nodes (16): dependencies, expo@~57.0.27, expo-build-properties@~57.0.22, expo-status-bar@~57.0.1, lottie-react-native@~7.3.8, @maplibre/maplibre-react-native@11.5.0, @porterchain/mobile-theme@file:./vendor/mobile-theme, @protomaps/basemaps@^5.7.2 (+8 more)
+Cohesion: 0.07
+Nodes (27): dependencies, expo, expo-apple-authentication, expo-auth-session, expo-build-properties, expo-constants, expo-crypto, expo-dev-client (+19 more)
 
 ### Community 483 - "outputs"
 
@@ -3471,52 +3620,52 @@ Nodes (15): build_admins, build_elevation, build_time_zones, server_threads, til
 ### Community 487 - "porterchain_driver/timesheets.py"
 
 Cohesion: 0.25
-Nodes (7): build_timesheet(), clean_schedule(), load_timesheet(), read_schedule(), save_schedule(), ScheduleError, _worked_minutes()
+Nodes (12): build_timesheet(), clean_schedule(), load_timesheet(), Any, datetime, ValueError, Driver timesheets (from driver_shifts) and weekly availability schedule.…, Group shifts into ISO weeks (Mon start, Toronto time), newest first, with… (+4 more)
 
 ### Community 488 - "guide-api.ts"
 
-Cohesion: 0.22
-Nodes (10): POST(), POST(), GET(), bookGuideAppointment(), guideFetch(), GuideLeadResult, GuideSlot, ingestHeaders() (+2 more)
+Cohesion: 0.20
+Nodes (11): POST(), POST(), GET(), bookGuideAppointment(), guideFetch(), GuideLeadResult, GuideSlot, ingestHeaders() (+3 more)
 
 ### Community 489 - "allocateVehicle.ts"
 
 Cohesion: 0.19
-Nodes (19): canonicalizeCapacityClassId(), CAPACITY_CATALOG_FALLBACK, CapacityCatalogRow, LEGACY_TO_CATALOG, fits(), hasCompleteSize(), PackVehicle, parcelFitsBay() (+11 more)
+Nodes (20): canonicalizeCapacityClassId(), CAPACITY_CATALOG_FALLBACK, CapacityCatalogRow, LEGACY_TO_CATALOG, allocateVehicle(), fits(), hasCompleteSize(), PackVehicle (+12 more)
 
 ### Community 490 - "vendor/driver-flows/src/media.ts"
 
 Cohesion: 0.16
-Nodes (17): strokesToPng(), b64(), chunk(), CRC, crc32(), isPngDataUrl(), MAX_SIGNATURE_BYTES, mediaClient() (+9 more)
+Nodes (18): SignaturePad(), strokesToPng(), b64(), chunk(), CRC, crc32(), isPngDataUrl(), MAX_SIGNATURE_BYTES (+10 more)
 
 ### Community 491 - "test_fk_orphan_migration.py"
 
-Cohesion: 0.14
-Nodes (12): conn(), _mod(), test_cascade_nullable_orphans_are_moved_not_nulled(), test_every_planned_fk_exists_with_its_on_delete_rule(), test_not_null_orphans_are_moved_with_full_row(), test_nullable_orphans_are_nulled_and_recorded(), test_orphan_action_table(), test_restrict_orphans_are_only_reported() (+4 more)
+Cohesion: 0.11
+Nodes (24): alembic_autogenerate, alembic_migration, alembic_operations, _load(), bf0focusauth1a2b: fictional authors retired and case study unpublished, fully…, _seed(), _state(), test_upgrade_retires_fictional_authors_and_downgrade_restores_everything() (+16 more)
 
 ### Community 492 - "formulas.py"
 
 Cohesion: 0.11
-Nodes (4): claim_cap(), claim_payable(), eoq_backorders(), safety_stock()
+Nodes (4): claim_cap(), claim_payable(), Doc 79 §2: the business formulas, plain Python (no AI, no paid services). Money…, Ravi 2026-10-29: no cover -> default liability $4.41/kg (O. Reg. 643/05 Sch.…
 
-### Community 493 - "PrivacyService"
+### Community 493 - "dm2fkorphan0002_foreign_keys_with_orphan_quarantine.py"
 
-Cohesion: 0.15
-Nodes (12): PrivacyService, _document_index(), merchant_privacy_file(), MerchantPrivacyService, _merchant_ctx(), test_merchant_delete_request_reference(), test_merchant_privacy_export_shape(), _merchant_ctx() (+4 more)
+Cohesion: 0.13
+Nodes (9): downgrade(), fk_name(), _not_null(), orphan_action(), quarantine_orphans(), Add the missing foreign keys (and their indexes), quarantining orphan rows…, Copy orphans of `table.column` into quarantine, then NULL them, move them…, upgrade() (+1 more)
 
 ### Community 494 - "tracking_view.py"
 
-Cohesion: 0.38
-Nodes (9): dest_fsa(), build_experience(), build_timeline(), _driver(), eta_window(), _iso(), _progress(), proof_of_delivery() (+1 more)
-
-### Community 495 - "compliance_dossier.py"
-
 Cohesion: 0.17
-Nodes (10): build_compliance_dossier_pdf(), build_dossier_sections(), _pdf_escape(), render_compliance_pdf(), _stop_lines(), _wrap_lines(), _order(), test_build_compliance_dossier_pdf_for_order() (+2 more)
+Nodes (21): mask_initials(), mask_name(), Samantha Kowalski' -> 'Samantha K.' ; single names stay first-name only., build_experience(), build_timeline(), _driver(), eta_window(), _iso() (+13 more)
+
+### Community 495 - "test_l197_l204_wintergreen_fixes.py"
+
+Cohesion: 0.12
+Nodes (8): _Q, Wintergreen 117-stop run fixes: geocode fallbacks (L197b/c), matrix chunking +…, test_matrix_chunking_stitches_blocks(), test_mid_stop_requires_its_parcels_scanned(), test_no_city_column_still_tries_ordinal_without_postal(), test_no_postal_fallback_used(), fake(), test_one_unroutable_pin_keeps_road_matrix()
 
 ### Community 496 - "test_vrp_routing.py"
 
 Cohesion: 0.21
-Nodes (14): _guard(), test_78_stops_builtin_on_valhalla(), test_78_stops_vroom_on_valhalla(), test_valhalla_matrix_is_road_time(), test_with_matrix_offline(), _fleet(), _jobs(), test_78_stop_toronto_fixture_beats_naive_and_respects_constraints() (+6 more)
+Nodes (16): _guard(), Opt-in: 78-stop Toronto fixture on real self-hosted Valhalla + VROOM test…, test_78_stops_builtin_on_valhalla(), test_78_stops_vroom_on_valhalla(), test_valhalla_matrix_is_road_time(), test_with_matrix_offline(), _fleet(), _jobs() (+8 more)
 
 ### Community 497 - "Secrets map — one place, four stores"
 
@@ -3545,13 +3694,13 @@ Nodes (13): name, networks, porterchain-data, porterchain-internal, driver, inte
 
 ### Community 502 - "packages/mobile-theme/package.json"
 
-Cohesion: 0.18
-Nodes (13): devDependencies, typescript@~6.0.3, exports, ./tokens, react, react-native, typescript, name (+5 more)
+Cohesion: 0.14
+Nodes (13): devDependencies, typescript, exports, ./tokens, react, react-native, typescript, name (+5 more)
 
 ### Community 503 - "generate-indexable-manifest.cts"
 
-Cohesion: 0.18
-Nodes (8): buildRepoBlogPosts(), fs, main(), Module, parseFrontmatter(), path, RepoPost, writeOrCheck()
+Cohesion: 0.11
+Nodes (17): ref_module, norm(), out, pairs, rec(), SKIP_ATTR, texty(), ts (+9 more)
 
 ### Community 504 - "tasks"
 
@@ -3568,25 +3717,25 @@ Nodes (14): scripts, build, dev, eval:guide-knowledge, format:check, lint, prebu
 Cohesion: 0.15
 Nodes (13): scripts, build, dev, lint, start, test, test:e2e, test:e2e:install (+5 more)
 
-### Community 507 - "EarningsClient.tsx"
+### Community 507 - "BookingDocumentsCard.tsx"
 
-Cohesion: 0.18
-Nodes (17): EarningsPage(), EarningsClient(), KpiCard(), LineItemsCard(), Row(), TransactionRow(), useDriverEarnings(), DriverBonusRow (+9 more)
+Cohesion: 0.15
+Nodes (12): BookingFilesPicker(), BookingDocumentsCard(), remove(), Pending, STATUS, ACCEPT, attachmentErrorCopy(), AttachmentList (+4 more)
 
-### Community 508 - "merchant_money_guard.py"
+### Community 508 - "shopifyParser.ts"
 
-Cohesion: 0.31
-Nodes (6): assert_role(), can_edit_money(), change_history(), dict_diff(), _role(), _go()
+Cohesion: 0.19
+Nodes (17): newId(), isOntarioProvince(), asNumber(), asString(), formatAddress(), isRecord(), newRouteId(), parcelsFromLineItem() (+9 more)
 
 ### Community 509 - "test_middleware.py"
 
 Cohesion: 0.19
-Nodes (4): RequestIdMiddleware, _ping(), test_request_id_generated_when_missing(), test_request_id_preserved_from_client()
+Nodes (11): BaseHTTPMiddleware, Request, Response, RequestIdMiddleware, _ping(), Request ID middleware tests., test_request_id_generated_when_missing(), test_request_id_preserved_from_client() (+3 more)
 
-### Community 510 - "me_profile.py"
+### Community 510 - "CustomerExperienceTab.tsx"
 
 Cohesion: 0.20
-Nodes (3): get_my_profile(), patch_my_profile(), sync_my_identity()
+Nodes (14): CustomerExperienceTab, CustomerExperienceTab(), contrastOnWhite(), CustomerExperienceResponse, CustomerExperienceSettings, CX_EVENT_LABELS, CX_LANGUAGE_LABELS, CX_PRESET_LABELS (+6 more)
 
 ### Community 511 - "admin/src/components/jobs/JobDocsPanel.tsx"
 
@@ -3601,7 +3750,7 @@ Nodes (13): scripts, build, dev, format:check, lint, start, test, test:e2e (+5 m
 ### Community 513 - "ci_valhalla_stub.py"
 
 Cohesion: 0.22
-Nodes (5): Handler, _haversine_km(), _in_gta(), main(), _route_payload()
+Nodes (7): BaseHTTPRequestHandler, http_server, Handler, _haversine_km(), _in_gta(), Minimal Valhalla HTTP stub for CI / nightly E2E (stdlib only). Serves /status…, _route_payload()
 
 ### Community 514 - "Data Processing Agreement (Merchants)"
 
@@ -3646,42 +3795,42 @@ Nodes (13): POSTGRES_DB, POSTGRES_PASSWORD, POSTGRES_USER, command, container_na
 ### Community 522 - "provinces.py"
 
 Cohesion: 0.26
-Nodes (5): province_from_address(), province_from_postal(), ProvinceTax, TaxComponent, test_province_detection()
+Nodes (7): province_from_address(), province_from_postal(), ProvinceTax, Canadian sales tax by province for a delivery (freight transportation) service.…, Province code from a stored address dict (province/region/state, postal,…, TaxComponent, test_province_detection()
 
-### Community 523 - "driver_models.py"
+### Community 523 - "ProfileService"
 
-Cohesion: 0.15
-Nodes (7): record_document(), sync_document_status(), record_transaction(), DriverBonus, DriverDocument, _uuid(), test_record_transaction_syncs_driver_wallet_cache()
+Cohesion: 0.25
+Nodes (5): InsuranceService, Any, ProfileService, Any, Driver profile — compliance snapshot, expiries, contract (read-only).
 
-### Community 524 - "template_copy.py"
+### Community 524 - "test_login_hardening_l213_l214.py"
 
-Cohesion: 0.27
-Nodes (7): NotificationTemplateCopy, active_copy(), history(), invalidate(), _load(), save(), validate()
+Cohesion: 0.12
+Nodes (9): L213/L214: staff enroll response + invite emails use a redirect Keycloak…, _realm(), test_admin_base_prefers_portal_url_unless_app_url_set(), test_portal_clients_allow_invite_landing_paths_without_wildcards(), test_realm_brute_force_and_reset_policy(), test_staff_payload_validates_as_enroll_response(), orders_write is an organization permission; admin checks must use platform…, Admin install-url: custom-distribution shops get a Partners-link message, not… (+1 more)
 
-### Community 525 - "reminders.py"
-
-Cohesion: 0.19
-Nodes (7): FinanceReminderDraft, ar_by_merchant(), cash_board(), credit_holds(), _aware(), _preview(), queue_drafts()
-
-### Community 526 - "pod_store.py"
+### Community 525 - "normalize_address"
 
 Cohesion: 0.16
-Nodes (9): delete(), is_ref(), _magic_ok(), _path(), root(), save_data_url(), size(), purge() (+1 more)
+Nodes (15): _extract_city(), _extract_unit(), normalize_address(), NormalizedAddress, Deterministic address cleaning for route import (unit/suite hygiene for…, Pull a known Ontario city out of a freeform one-cell address., _space_postal(), Unit tests for route-import address hygiene. (+7 more)
 
-### Community 527 - "test_driver_multi_stop.py"
+### Community 526 - "CustomerAccessGate.tsx"
 
-Cohesion: 0.36
-Nodes (8): _detail(), _multi(), _quiet(), _stop(), test_hub_and_spoke_walks_each_drop_with_live_tracking(), test_job_detail_lists_every_stop_in_order(), test_legacy_additional_stops_and_single_orders(), test_multi_pickup_multi_drop_n_to_n()
+Cohesion: 0.16
+Nodes (8): CustomerAccessGate(), CustomerAccessGateWithAuth(), Props, fetchCustomerOnboarding(), isPendingCustomerPath(), PENDING_CUSTOMER_PATHS, PortalOnboardingStatus, PortalOnboardingStep
 
-### Community 528 - "test_idor.py"
+### Community 527 - "offline-queue.test.ts"
 
-Cohesion: 0.44
-Nodes (9): _addr(), _make_customer(), _make_merchant_ctx(), _make_order(), test_customer_cannot_rebook_other_customer_order(), test_merchant_cannot_read_other_merchant_order(), test_merchant_tracking_scoped_by_merchant_id(), test_order_repository_cross_tenant_returns_none() (+1 more)
+Cohesion: 0.29
+Nodes (11): clearRejected(), enqueue(), flush(), isOfflineError(), localQueueStore(), newClientId(), QueuedAction, QueueStore (+3 more)
+
+### Community 528 - "tax.py"
+
+Cohesion: 0.26
+Nodes (16): fee_tax_split(), Fees are pre-tax amounts; HST/GST by the order's destination province., charged_tax_split(), order_province(), order_tax_split(), Any, quoted_tax_cents(), Invoice tax: destination-province GST/HST/QST, exclusive or inclusive prices.… (+8 more)
 
 ### Community 529 - "driver-portal/package.json"
 
-Cohesion: 0.20
-Nodes (9): @porterchain/auth@workspace:*, @sentry/nextjs@^10.64.0, engines, node, @porterchain/auth, @sentry/nextjs, name, private (+1 more)
+Cohesion: 0.07
+Nodes (27): babel-plugin-react-compiler, date-fns, eslint, eslint-config-next, firebase, lucide-react, next, @playwright/test (+19 more)
 
 ### Community 530 - "Driver app"
 
@@ -3703,55 +3852,60 @@ Nodes (12): POSTGRES_DB, POSTGRES_PASSWORD, POSTGRES_USER, command, container_na
 Cohesion: 0.17
 Nodes (12): MP_DATABASE, MP_SMTP_AUTH_ACCEPT_ANY, MP_SMTP_AUTH_ALLOW_INSECURE, container_name, environment, image, networks, ports (+4 more)
 
-### Community 534 - "PostalCoverageChecker.tsx"
+### Community 534 - "PriceCalculator.tsx"
 
-Cohesion: 0.12
-Nodes (20): COPY, PostalCoverageChecker(), handleCheck(), Props, QUOTE_CTA, isGta150Fsa(), isOntarioFsa(), ONTARIO_FSA_PREFIXES (+12 more)
+Cohesion: 0.06
+Nodes (56): ERROR_COPY, Estimate, PriceCalculator(), getPrice(), sendLead(), HERO_VARIANT_KEY, HomePriceCalculator(), getPrice() (+48 more)
 
-### Community 535 - "verify_d3_matrix.py"
+### Community 535 - "OrderRepository"
 
-Cohesion: 0.27
-Nodes (5): main(), _read(), _router_corpus(), _routing_row_ok(), Row
+Cohesion: 0.22
+Nodes (4): OrderRepository, Unscoped lookup — public retail track-by-number only., Canonical tenant boundary — all tenant-owned reads/writes must carry a scope., TenantScope
 
-### Community 537 - "test_scan_gates_spine.py"
+### Community 536 - "MerchantDashboardService"
 
-Cohesion: 0.15
-Nodes (12): _order_with_three_boxes(), test_delivery_scan_requires_pickup_first(), test_job_detail_schema_keeps_scan_progress(), test_live_prove_three_boxes_three_labels_one_fee(), test_load_packages_failure_is_visible_not_a_fake_box(), test_progress_by_order_ids_is_read_only(), test_scan_accepts_tracking_suffix_and_barcode_alias(), test_scan_garbage_payload_is_invalid_label() (+4 more)
+Cohesion: 0.42
+Nodes (3): MerchantDashboardService, Any, datetime
+
+### Community 537 - "merchant_p0"
+
+Cohesion: 0.17
+Nodes (17): merchant_p0, tc_id, CodeGraph contract: preview response carries distance + cents fields., Ripwire: booking_preview only delegates to _booking_flow.preview., Ripwire: merchant/shopify.py calls shopify_service, no webhook HMAC inline., Viewer/readonly cannot book; finance cannot manage api_keys; ops can book., Portal NAV_MODULE_BY_HREF keys must exist in MODULE_PERMISSIONS (no UI drift)., MapsService.route_with_source returns (leg, 'valhalla'|'osrm'). (+9 more)
 
 ### Community 538 - "log_redact.py"
 
 Cohesion: 0.25
-Nodes (5): install(), redact(), RedactTokensFilter, test_filter_rewrites_uvicorn_access_args(), test_redacts_ws_query_tokens()
+Nodes (8): install(), Redact credentials from uvicorn access/error log lines. WebSocket clients pass…, Idempotent: attach to uvicorn loggers and their handlers., redact(), RedactTokensFilter, test_filter_rewrites_uvicorn_access_args(), test_redacts_ws_query_tokens(), LogRecord
 
 ### Community 539 - "merchant_p0/**init**.py"
 
 Cohesion: 0.27
-Nodes (4): case_by_id(), cases(), load_registry(), test_merchant_p0_pytest_skeleton()
+Nodes (9): case_by_id(), cases(), load_registry(), Any, Merchant persona P0 automation helpers. SSOT IDs:…, merchant_p0, parametrize, P0 skeletons — keep SSOT IDs visible until filled. Flip registry status to… (+1 more)
 
 ### Community 540 - "test_public_inquiries.py"
 
 Cohesion: 0.25
-Nodes (5): client(), test_public_inquiry_creates_lead_with_source_and_priority(), test_public_inquiry_rejects_wrong_ingest_key(), test_public_inquiry_stores_full_phone_in_custom_fields_when_truncated(), test_public_inquiry_with_merchant_referral()
+Nodes (10): client(), fixture, MonkeyPatch, parametrize, TestClient, Public inquiry ingest → CRM leads., test_public_inquiry_creates_lead_with_source_and_priority(), test_public_inquiry_rejects_wrong_ingest_key() (+2 more)
 
-### Community 541 - "ref_node_assert"
+### Community 541 - "ref_node_test"
 
-Cohesion: 0.06
-Nodes (36): dynamic, GET(), SignupAttributionCapture(), withFreshToken(), ADMIN_SHIPPING, APP_BRIDGE_SRC, embeddedAppHtml(), ERROR_CODES (+28 more)
+Cohesion: 0.12
+Nodes (23): dynamic, GET(), ADMIN_SHIPPING, APP_BRIDGE_SRC, embeddedAppHtml(), ERROR_CODES, esc(), fourClickJs() (+15 more)
 
 ### Community 542 - "mobile-customer/package.json"
 
-Cohesion: 0.15
-Nodes (12): expo-linking@~57.0.12, expo-local-authentication@~57.0.3, expo-web-browser@~57.0.3, engines, node, expo-linking, expo-local-authentication, expo-web-browser (+4 more)
+Cohesion: 0.06
+Nodes (34): babel-preset-expo, expo, expo-apple-authentication, expo-auth-session, expo-build-properties, expo-constants, expo-crypto, expo-dev-client (+26 more)
 
-### Community 543 - "ProfilePage.tsx"
+### Community 543 - "BatchesPage.tsx"
 
-Cohesion: 0.04
-Nodes (98): fieldError(), batchClient(), BatchParcel, BatchStop, buildingBlockers(), DocChecklist, DocItem, Fetcher (+90 more)
+Cohesion: 0.05
+Nodes (64): batchApi, mediaApi, safetyApi, batchClient(), BatchParcel, BatchStop, buildingBlockers(), DocChecklist (+56 more)
 
-### Community 544 - "customer_fast/rules.py"
+### Community 544 - "customer_fast/service.py"
 
-Cohesion: 0.26
-Nodes (12): address_key(), _aware(), churn(), failed_deliveries_to(), flag_order_risk(), _now(), order_dates(), order_risk() (+4 more)
+Cohesion: 0.05
+Nodes (66): PrivacyService, Any, C-20: DSAR export — profile + orders + payments + tickets + prefs., decide_nudges(), Approve → queue through the notification router (customer.reorder_nudge). Skip…, check_bot(), check_contact(), check_rate() (+58 more)
 
 ### Community 545 - "app"
 
@@ -3783,70 +3937,70 @@ Nodes (10): compilerOptions, declaration, lib, noEmit, outDir, rootDir, skipLibC
 Cohesion: 0.18
 Nodes (10): compilerOptions, jsx, lib, module, moduleResolution, noEmit, skipLibCheck, strict (+2 more)
 
-### Community 551 - "Operations Runbook"
+### Community 551 - "test_merchant_invoice_card.py"
 
-Cohesion: 0.18
-Nodes (11): Dead-letter replay, Deploy / secrets, Dispatch (PorterChain day plan), Email notifications: deploy prerequisites, First checks, G2 — Day-plan scorecard, Local before production, Operations Runbook (+3 more)
+Cohesion: 0.21
+Nodes (15): _count(), L127: the payment-received email event fires once per new payment; resent…, test_payment_received_emitted_once_for_resent_webhook(), mk(), fixture, Merchant pays an invoice by card (Stripe Checkout): idempotent completion,…, G11/R9: merchants pay by Interac unless merchant_card_payments_enabled is…, _session() (+7 more)
 
 ### Community 552 - "verify_icp_15_second_human_gate.py"
 
 Cohesion: 0.35
-Nodes (8): _format_log(), _hero_block(), _join(), _load_json(), main(), PageCopy, _score_dimension(), _score_page()
+Nodes (10): _format_log(), _hero_block(), _join(), _load_json(), main(), PageCopy, Path, ICP 15-second human gate — automated copy audit for 3 personas × 3 URLs × 6… (+2 more)
 
 ### Community 554 - "mobile-deep-links.ts"
 
 Cohesion: 0.29
 Nodes (8): GET(), GET(), buildAndroidAssetLinks(), buildAppleAppSiteAssociationDocument(), CUSTOMER_UNIVERSAL_PATHS, DRIVER_UNIVERSAL_PATHS, MOBILE_APP_IDS, parseFingerprintList()
 
-### Community 556 - "export_batch"
+### Community 556 - "edi_service.py"
 
-Cohesion: 0.18
-Nodes (10): prio(), canonical(), Code, severity(), severity_map(), _envelope(), _reason(), export_batch() (+2 more)
+Cohesion: 0.16
+Nodes (18): prio(), canonical(), Code, F11: the single exception-code list. Every exception (order, batch, safety,…, severity(), severity_map(), _envelope(), Any (+10 more)
 
-### Community 557 - "PreferenceService"
-
-Cohesion: 0.22
-Nodes (7): NotificationPreference, _default_channel_flags(), PreferenceService, test_preference_and_device_services(), test_admin_cannot_mute_critical_push(), test_defaults_sms_off_marketing_off(), test_merchant_portal_sync_blocks_booking_email()
-
-### Community 558 - "driver/support.py"
-
-Cohesion: 0.29
-Nodes (11): create_support(), emergency(), get_emergency_contact(), list_driver_claims(), list_incidents(), list_support(), open_driver_claim(), report_incident() (+3 more)
-
-### Community 559 - "test_app_review_demo_owner_tracking.py"
-
-Cohesion: 0.18
-Nodes (13): call(), _customer(), _order(), owner(), test_anon_and_non_owner_still_404(), test_normal_sandbox_hidden_even_from_owner(), test_owner_sees_review_demo_order(), test_review_demo_stays_out_of_delay_checks() (+5 more)
-
-### Community 560 - "log_scan"
-
-Cohesion: 0.33
-Nodes (5): audited_package_scan(), _audit(), _client_time(), log_scan(), _num()
-
-### Community 561 - "resolve_route_distance"
+### Community 557 - "test_notification_ops_loud_push.py"
 
 Cohesion: 0.09
-Nodes (20): _cache_key(), _points_from_geo(), resolve_route_distance(), route_cache_clear(), test_spa_resolve_route_distance_never_google(), _clear_route_cache(), test_resolve_route_distance_falls_back_to_haversine(), test_resolve_route_distance_returns_haversine_when_coords_missing() (+12 more)
+Nodes (26): build_fcm_platform_config(), _is_urgent(), Any, Return (android_config, apns_config) for OS-level urgency., Returns (success, error_message, token_invalid)., Map engine priority/category → Android channel_id., resolve_channel_id(), _payload() (+18 more)
 
-### Community 562 - "test_postgres_smoke.py"
+### Community 558 - "test_gta_pretrip_geofence.py"
 
-Cohesion: 0.22
-Nodes (5): db_url(), test_core_tables_exist(), test_init_db_connectivity(), test_performance_indexes_present(), test_transaction_rollback()
+Cohesion: 0.21
+Nodes (15): _all_pretrip(), _known(), _order(), SimpleNamespace, GTA leftover P1 — 30s pre-trip on shift meta, honest arrive via last-known…, Default: GPS circle is paused, so a far last-known fix does not block arrive., test_arrive_fail_closed_when_outside_stop(), test_arrive_ok_inside_stop_circle() (+7 more)
 
-### Community 563 - "GeoPoint"
+### Community 559 - "75. Ops console reorganisation (Phase 0, L35)"
 
-Cohesion: 0.07
-Nodes (24): _geo(), TestIsochroneHelper, TestZoneAabbParity, _base(), DB, _req(), test_custom_quote_falls_back(), test_not_opted_in_keeps_exact_price() (+16 more)
+Cohesion: 0.33
+Nodes (5): 1. Current state (from `apps/admin/src/lib/admin-nav.ts` and 54 `page.tsx` routes, 29 Oct 2026), 2. New information architecture (D-75-1, decided yes by Ravi 29 Oct 2026), 3. Mapping old → new, 4. Pricing admin screens (doc 72 §9), 75. Ops console reorganisation (Phase 0, L35)
 
-### Community 564 - "customer/package.json"
+### Community 560 - "test_shopify_urls.py"
 
-Cohesion: 0.25
-Nodes (7): @porterchain/auth@workspace:*, engines, node, @porterchain/auth, name, private, version
+Cohesion: 0.24
+Nodes (16): _client(), TestClient, Shopify embedded app: URLs, managed install link, session token, store link., Partners manifest tracks API defaults; client_id stays empty in git., _session_token(), _settings(), test_app_toml_is_embedded_managed_install(), test_first_open_installs_then_hands_back_link_token() (+8 more)
+
+### Community 561 - "CodeGraph contracts — Quote · Visitor · Optimize (Moment B)"
+
+Cohesion: 0.33
+Nodes (6): 1. MapsService (HS-09 / HS-10 / W-SPA / MP-RTE-002), 2. VisitorSession ORM + VisitorTrackingService (W-VIS / W-API), 3. Optimize / VROOM (HS-13 / MP-RTE-002b / VR enqueue), 4. Blast radius (CodeGraph), 5. Moment C (done) — Ripwire, CodeGraph contracts — Quote · Visitor · Optimize (Moment B)
+
+### Community 562 - "BusinessIndustries.tsx"
+
+Cohesion: 0.15
+Nodes (14): BusinessIndustries, BusinessIndustries(), ICONS, playbookHref(), CAMPAIGN_KEY_TO_NICHE_SLUG, HOME_INDUSTRY_TO_NICHE_SLUG, CONSTRUCTION_INDUSTRY_SLUGS, CONSTRUCTION_PROGRAM_KEYS (+6 more)
+
+### Community 563 - "test_smart_apply.py"
+
+Cohesion: 0.40
+Nodes (6): _base(), DB, _req(), test_custom_quote_falls_back(), test_not_opted_in_keeps_exact_price(), test_opted_in_replaces_route_keeps_addons()
+
+### Community 564 - "test_keycloak_email_otp.py"
+
+Cohesion: 0.18
+Nodes (10): _cfg(), _flow(), _props(), Path, New-device email code (Keycloak email-otp-authenticator, Unlicense): realm-as-…, _realm(), test_code_only_on_new_device_not_every_login(), test_en_fr_strings_complete() (+2 more)
 
 ### Community 565 - "Development test run results (living)"
 
-Cohesion: 0.20
-Nodes (9): Batches executed (Jeff Dean order), Development test run results (living), DIAG `POST /v1/admin/diagnostics/tests/run` (`live: true`), Final API suite, How to resume, Live layer (2026-09-17), Portal UX / smoke, Still open (ops, not unit) (+1 more)
+Cohesion: 0.18
+Nodes (10): Batches executed (Jeff Dean order), Development test run results (living), DIAG `POST /v1/admin/diagnostics/tests/run` (`live: true`), Final API suite, Fixes landed while covering, How to resume, Live layer (2026-09-17), Portal UX / smoke (+2 more)
 
 ### Community 566 - "env"
 
@@ -3876,22 +4030,22 @@ Nodes (9): compilerOptions, lib, noEmit, rootDir, skipLibCheck, exclude, extends
 ### Community 571 - "verify_architecture_boundaries.py"
 
 Cohesion: 0.33
-Nodes (7): _check_banned_http_aliases(), _check_fleetbase_http(), _check_stripe_services(), _check_ui_api_base(), _check_ui_fleetbase(), main(), _rel_api()
+Nodes (9): _check_banned_http_aliases(), _check_fleetbase_http(), _check_stripe_services(), _check_ui_api_base(), _check_ui_fleetbase(), main(), Path, §3.1.2–3.1.4 — architecture boundary guards (no vendor dispatch HTTP, Stripe,… (+1 more)
 
 ### Community 572 - "test_keycloak_auth.py"
 
 Cohesion: 0.18
-Nodes (10): keypair(), _settings(), test_auth_provider_is_keycloak_only(), test_hs256_alg_confusion_rejected(), test_issuer_from_url_and_realm(), test_rejects_bad_tokens(), test_rejects_foreign_signing_key(), test_unconfigured_is_503() (+2 more)
+Nodes (16): keypair(), asyncio, fixture, parametrize, L36: Keycloak JWT verification (unit, self-signed RSA JWKS) — the only auth…, _settings(), test_auth_provider_is_keycloak_only(), test_hs256_alg_confusion_rejected() (+8 more)
 
-### Community 574 - "porterchain/[...path]/route.ts"
+### Community 574 - "auth"
 
-Cohesion: 0.36
-Nodes (8): API_BASE, DELETE(), GET(), PATCH(), POST(), proxy(), PUT(), RouteContext
+Cohesion: 0.12
+Nodes (15): GET(), API_BASE, DELETE(), GET(), PATCH(), POST(), proxy(), PUT() (+7 more)
 
 ### Community 575 - "test_keycloak_integration.py"
 
 Cohesion: 0.18
-Nodes (10): _admin(), _exchange(), external_idp(), _password_token(), realm_user(), test_exchange_refused_for_clients_without_permission(), test_native_id_token_exchanges_for_keycloak_tokens(), test_real_keycloak_token_verifies() (+2 more)
+Nodes (17): _admin(), _exchange(), external_idp(), _password_token(), asyncio, Client, fixture, parametrize (+9 more)
 
 ### Community 576 - "28 — Hybrid deployment: DigitalOcean droplet + Ubuntu home server + Oracle Always Free (PLANNED, L28)"
 
@@ -3901,22 +4055,22 @@ Nodes (18): 10. Backups and DR, 11. Sizing and cost, 12. Oracle Always Free — 
 ### Community 577 - "capacity-guide/route.ts"
 
 Cohesion: 0.27
-Nodes (15): lastUserText(), maxDuration, POST(), ToolEvent, saveGuideTranscript(), classifyIntent(), contactPrompt(), extractEmail() (+7 more)
+Nodes (15): ai, lastUserText(), maxDuration, POST(), ToolEvent, classifyIntent(), contactPrompt(), extractEmail() (+7 more)
 
 ### Community 578 - "test_driver_idp_provision.py"
 
-Cohesion: 0.20
-Nodes (7): FakeIdp, _setup(), test_closes_local_pending_invites(), test_creates_idp_user_without_password(), test_falls_back_to_invite_when_idp_fails(), test_links_existing_idp_user_idempotently(), test_revoke_failure_does_not_block()
+Cohesion: 0.22
+Nodes (9): FakeIdp, parametrize, Admin-created drivers get a Keycloak user directly (no invite link)., _setup(), test_closes_local_pending_invites(), test_creates_idp_user_without_password(), test_falls_back_to_invite_when_idp_fails(), test_links_existing_idp_user_idempotently() (+1 more)
 
-### Community 579 - "valhalla"
+### Community 579 - "Authentication — Driver + Admin development test matrix"
 
-Cohesion: 0.08
-Nodes (24): valhalla(), checkr_webhook(), _handle(), stripe_webhook(), 0.1 Admin portal routes (pages), 0.3 Diagnostics probe / test catalog IDs, 0.4 Roles (`AdminRole`), 0. Inventory (ground truth) (+16 more)
+Cohesion: 0.07
+Nodes (27): 0.1 Identity topology, 0.2 Coverage census, 0.3 Admin pages (auth gate on every route), 0.4 Driver portal pages + BFF, 0.5 Key API auth endpoints, 0.6 Diagnostics probe IDs (auth-adjacent), 0. Ground truth (from sensors + live census), 10. SpiceDB / RBAC / modules (+19 more)
 
-### Community 580 - "test_shopify_rate_limit_fail_open.py"
+### Community 580 - "routers/fsa_rate_card.py"
 
-Cohesion: 0.33
-Nodes (5): _client(), _settings(), test_carrier_fail_open_when_redis_down_still_requires_hmac(), test_webhook_fail_open_when_redis_down_still_requires_hmac(), test_webhook_rate_limit_exceeded_returns_429()
+Cohesion: 0.14
+Nodes (21): admin_fsa_rate_card(), admin_override_fsa_cell(), admin_regenerate_fsa_rate_card(), _card(), FsaCellOverride, merchant_fsa_rate_card(), BaseModel, Depends (+13 more)
 
 ### Community 581 - "visitor-session.ts"
 
@@ -3930,8 +4084,8 @@ Nodes (9): scripts, build, dev, lint, start, test, test:e2e, test:e2e:install (+
 
 ### Community 583 - "devDependencies"
 
-Cohesion: 0.18
-Nodes (11): devDependencies, babel-preset-expo@~57.0.14, @types/geojson@^7946.0.16, @types/react@~19.2.2, typescript@~6.0.3, vitest@4.1.11, babel-preset-expo, @types/react (+3 more)
+Cohesion: 0.33
+Nodes (6): devDependencies, babel-preset-expo, @types/geojson, @types/react, typescript, vitest
 
 ### Community 584 - "Security incident & privacy breach response runbook"
 
@@ -3948,10 +4102,10 @@ Nodes (9): env, ADMIN_IMAGE_NAME, API_IMAGE_NAME, CUSTOMER_IMAGE_NAME, DRIVER_IM
 Cohesion: 0.22
 Nodes (9): environment, image, network_mode, restart, volumes, AUTOHEAL_CONTAINER_LABEL, AUTOHEAL_INTERVAL, AUTOHEAL_START_PERIOD (+1 more)
 
-### Community 587 - "caddy"
+### Community 587 - "StopDocumentsCard.tsx"
 
-Cohesion: 0.22
-Nodes (9): container_name, depends_on, image, networks, ports, restart, security_opt, volumes (+1 more)
+Cohesion: 0.23
+Nodes (15): downloadStopDocument(), fetchStopDocuments(), markStopDocumentShown(), StopDocument, stopDocumentLink(), cache(), isImage(), localFile() (+7 more)
 
 ### Community 588 - "redis"
 
@@ -3993,15 +4147,15 @@ Nodes (8): compilerOptions, lib, noEmit, rootDir, skipLibCheck, extends, include
 Cohesion: 0.42
 Nodes (7): formatCountdown(), Props, SlaResponseCountdown(), atResponseTime(), formatQuoteResponseDeadline(), getNextQuoteResponseDeadline(), isWeekday()
 
-### Community 596 - "attribution/page.tsx"
+### Community 596 - "vendor/driver-flows/src/verification.ts"
 
-Cohesion: 0.43
-Nodes (5): LeadAttributionPage(), AttributionRow, LeadAttributionSummary, LeadAttributionView(), Table()
+Cohesion: 0.16
+Nodes (11): AttributionRow, LeadAttributionSummary, LeadAttributionView(), HIGH_RISK, isHighRisk(), mustScan(), riskLevel(), low (+3 more)
 
-### Community 597 - "routes-client.tsx"
+### Community 597 - "78 · Leads / CRM module (ops console → Sales → Leads)"
 
-Cohesion: 0.20
-Nodes (11): RoutesPage(), BookDeliveryClient, BulkUploadClient, parseTab(), RouteModuleForm, RoutePlannerDialog(), RoutesClient(), RoutesPageInner() (+3 more)
+Cohesion: 0.12
+Nodes (15): 10. Ops console placement (doc 75 / doc 16), 11. Acceptance tests (written before code, doc 76 style), 12. Schedule (fits the 12 weeks, no new week), 13. Keys and credentials Ravi must provide (names only; stored in SOPS, doc 37), 1. What already exists (repo scan, 29 Oct 2026) and what happens to it, 2. Channels (free / official only), 3. Website leads: instant landing, 4. Identity and dedupe (+7 more)
 
 ### Community 598 - "56 · L30: Ravi decisions of 29 Oct 2026 (defaults approved + pilot facts)"
 
@@ -4010,23 +4164,23 @@ Nodes (16): 10+ pilot drivers: capacity check, 56 · L30: Ravi decisions of 29 O
 
 ### Community 599 - "packages/driver-flows/src/media.ts"
 
-Cohesion: 0.21
-Nodes (14): b64(), chunk(), CRC, crc32(), isPngDataUrl(), MAX_SIGNATURE_BYTES, mediaClient(), MediaPost (+6 more)
+Cohesion: 0.18
+Nodes (16): b64(), chunk(), CRC, crc32(), isPngDataUrl(), MAX_SIGNATURE_BYTES, mediaClient(), MediaPost (+8 more)
 
 ### Community 600 - "baseline"
 
 Cohesion: 0.17
-Nodes (15): baseline(), annual_da(), break_even_stops(), dwell_leakage(), enterprise_value(), eva(), failed_delivery_cost(), FinanceParams (+7 more)
+Nodes (16): baseline(), Any, annual_da(), break_even_stops(), dwell_leakage(), enterprise_value(), eva(), failed_delivery_cost() (+8 more)
 
 ### Community 601 - "scripts"
 
 Cohesion: 0.25
 Nodes (8): scripts, android, archive:ios, ios, lint, prebuild, start, test
 
-### Community 602 - "media.py"
+### Community 602 - "routers/driver/**init**.py"
 
-Cohesion: 0.23
-Nodes (7): _approved(), _err(), PhotoDataBody, SignatureBody, upload_photo(), upload_photo_data(), upload_signature()
+Cohesion: 0.09
+Nodes (28): Depends, post, driver routes — delivery leg (start delivery after pickup)., Start the delivery leg (picked up -> out for delivery). Fires receiver tracking., startdelivery_response(), Driver API package — thin sub-routers on shared `router`., _approved(), _err() (+20 more)
 
 ### Community 603 - "shopify-app"
 
@@ -4053,20 +4207,20 @@ Nodes (16): 00 — PorterChain Phase 0 master plan (single entry point), 10. Met
 Cohesion: 0.12
 Nodes (15): 41 · UI page specs — Expo driver app (iOS + Android), 6.10 Profile, 6.11 Settings, 6.12 Help, 6.13 `Settings → Agreements & Legal`, 6.1 Sign in, 6.2 Consent, 6.3 Today (+7 more)
 
-### Community 608 - "merchant"
+### Community 608 - "_MemoryStore"
 
-Cohesion: 0.25
-Nodes (8): container_name, expose, image, networks, pull_policy, restart, security_opt, merchant
+Cohesion: 0.18
+Nodes (7): _MemoryStore, Process-local relationship store used when SpiceDB is disabled or unreachable…, Minimal Check implementing our schema.zed permission expansions., Ordered results matching `items` (same semantics as serial `check`)., organization_permission_roles(), SpiceDB organization permission → relation names. Keep in sync with schema.zed., test_organization_schema_matches_module_matrix()
 
 ### Community 609 - "72. Pricing, simplified and explainable (Phase 0, L35)"
 
-Cohesion: 0.12
-Nodes (15): 1. Honest review of today's pricing (code, 29 Oct 2026), 2. Decision D-72-1 (decided yes, Ravi 29 Oct 2026): one engine, three readable parts, 3. Rate card per business type, 4. Quote explainer UI, 5. Worked examples (illustrative, Z1 GTA, before HST; Ravi to approve base prices), 6. Migration, 72. Pricing, simplified and explainable (Phase 0, L35), 7. Decisions (+7 more)
+Cohesion: 0.09
+Nodes (22): 1. Honest review of today's pricing (code, 29 Oct 2026), 2. Decision D-72-1 (decided yes, Ravi 29 Oct 2026): one engine, three readable parts, 3. Rate card per business type, 4. Quote explainer UI, 5. Worked examples (illustrative, Z1 GTA, before HST; Ravi to approve base prices), 6. Migration, 72. Pricing, simplified and explainable (Phase 0, L35), 7. Decisions (+14 more)
 
 ### Community 610 - "integrations"
 
 Cohesion: 0.25
-Nodes (7): integrations, merchant_webhooks, woocommerce, code, status, note, status
+Nodes (7): integrations, oauth_third_party, woocommerce, code, status, note, status
 
 ### Community 611 - "phase2.ts"
 
@@ -4081,42 +4235,47 @@ Nodes (7): exports, ./inbox.json, ./route.json, ./shipment.json, name, private, 
 ### Community 613 - "verify_vendor_leaves.py"
 
 Cohesion: 0.46
-Nodes (5): _check_mobile_leaves(), _check_public_osrm(), _check_vroom_client(), main(), _rel()
+Nodes (7): _check_mobile_leaves(), _check_public_osrm(), _check_vroom_client(), main(), Path, Wave 4 — vendor black boxes and persona leaves. - Unlabeled public OSRM demo is…, _rel()
 
 ### Community 614 - "82. Guided job flows, one driver persona, data secrecy, merchant and customer guidance (Phase 0)"
 
 Cohesion: 0.12
-Nodes (15): 0. Interim decisions (Ravi has not answered the card yet; the recommendations are used, marked **interim**), 1.1 How a wizard is generated, 1.2 Card anatomy (same on web and mobile), 1.3 Pickup modes, 1.4 Delivery types, 1.5 Example wizard: pharmacy custody drop, 1. Driver guided flows, 2.2 Merge plan (no clashing duplicates) (+7 more)
+Nodes (16): 0. Interim decisions (Ravi has not answered the card yet; the recommendations are used, marked **interim**), 1.1 How a wizard is generated, 1.2 Card anatomy (same on web and mobile), 1.3 Pickup modes, 1.4 Delivery types, 1.5 Example wizard: pharmacy custody drop, 1. Driver guided flows, 2.1 What the repo has today (verified 29 Oct 2026) (+8 more)
 
-### Community 615 - "ExternalIdentifierService"
+### Community 615 - "test_l124_webhook_secret_rotation.py"
 
-Cohesion: 0.24
-Nodes (4): PackageExternalIdentifier, ExternalIdentifierService, normalize(), partner_barcodes_enabled()
+Cohesion: 0.17
+Nodes (14): checkr_webhook(), _handle(), post, Request, Checkr report/invitation webhooks → driver background_check_status., stripe_webhook(), construct_webhook_event(), Verify Stripe webhook payload. Routers must not import stripe. (+6 more)
 
-### Community 618 - "test_driver_invert_phase3.py"
+### Community 617 - "platform/**init**.py"
 
-Cohesion: 0.43
-Nodes (4): _settings(), test_gps_skips_ping_insert_and_enqueues_tracking(), test_pod_photo_enqueues_without_http(), test_toggle_online_does_not_write_a_sync_job()
+Cohesion: 0.08
+Nodes (29): Worker fallback when the run record is not already engine=porterchain., assert_driver_scoped(), emit_applied(), emit_enqueued(), emit_optimize_event(), emit_ready(), emit_rejected(), emit_rolled_back() (+21 more)
 
-### Community 619 - "standard_live.py"
+### Community 618 - "40 · Design system (PLANNED) — one system for 5 web portals, website, 2 Expo apps, Shopify"
 
-Cohesion: 0.26
-Nodes (10): add_ons_from_request(), fsa_of(), _item(), items_from_request(), org_id_for_merchant(), org_pricing(), published_lines(), standard_breakdown() (+2 more)
+Cohesion: 0.13
+Nodes (14): 10. Tables pattern, 11. Forms pattern, 12. Admin + super-admin information architecture (from doc 16), 13. Devices, 1. Tokens (single source: `packages/ui/tokens.json` → CSS vars, Tailwind `@theme`, RN `mobile-theme`), 2. Margin band component `MarginBadge`, 3. Typography, 40 · Design system (PLANNED) — one system for 5 web portals, website, 2 Expo apps, Shopify (+6 more)
+
+### Community 619 - "rate_card_admin.py"
+
+Cohesion: 0.16
+Nodes (35): PricingOrgPricing, PricingRateCard, PricingRateCardVersion, audit(), body_org(), get_org(), get_standard(), list_audit() (+27 more)
 
 ### Community 620 - "reviewer_sandbox.py"
 
 Cohesion: 0.26
-Nodes (7): is_reviewer_driver(), reviewer_driver_emails(), ReviewerSandboxMiddleware, sandbox_job_detail(), sandbox_jobs(), sandbox_response(), _summary()
+Nodes (11): is_reviewer_driver(), Any, App Store / Play reviewer demo driver (doc 74 §3, G21 A-APR-02). The reviewer…, Synthetic body for a sandbox id, or `None` when the path is not a sandbox…, ASGI: answers `sandbox-` driver calls in memory. Needs a bearer token; writes…, reviewer_driver_emails(), ReviewerSandboxMiddleware, sandbox_job_detail() (+3 more)
 
-### Community 621 - "test_keycloak_email_otp.py"
+### Community 621 - "importlib_util"
 
-Cohesion: 0.06
-Nodes (20): test_guard_refuses_live_or_remote(), test_seed_is_idempotent_and_sandbox(), _cfg(), _flow(), _props(), _realm(), test_code_only_on_new_device_not_every_login(), test_committed_realm_has_the_flow() (+12 more)
+Cohesion: 0.08
+Nodes (21): parametrize, G20 A-SHR-06 data: PCDC demo seed is idempotent, sandbox-only, and refuses live…, test_guard_refuses_live_or_remote(), test_seed_is_idempotent_and_sandbox(), _load(), L36: realm-as-code invariants, reviewer seed plan, Keycloak→Keycloak dry-run…, test_committed_realm_matches_generator(), test_migration_dry_run() (+13 more)
 
-### Community 622 - "SupportActor"
+### Community 622 - "ui/package.json"
 
-Cohesion: 0.33
-Nodes (3): ClaimsMutationsMixin, SupportActor, SupportActorUser
+Cohesion: 0.13
+Nodes (14): date-fns, echarts, lucide-react, next, @porterchain/types, react, react-dom, @types/react (+6 more)
 
 ### Community 623 - "Merchant portal live e2e (P0 golden path)"
 
@@ -4153,40 +4312,45 @@ Nodes (6): Drill log, One-time setup on the droplet (manual), Postgres off-site 
 Cohesion: 0.29
 Nodes (6): 1. Before deploy, 2. Smoke tests (dev store), 3. Money, 4. FSA rate card, Rollback, Shopify embedded app — droplet deploy + test checklist
 
-### Community 630 - "test_portal_idempotency_bh.py"
+### Community 630 - "AdminClaimsService"
 
-Cohesion: 0.26
-Nodes (8): _order(), _parcel(), test_batch_key_becomes_one_key_per_parcel(), test_batch_key_must_leave_room_for_the_parcel_suffix(), test_multi_parcel_books_the_parcels_it_has_not_seen(), test_multi_parcel_retry_replays_instead_of_rebooking(), test_multi_parcel_without_a_key_still_books(), test_single_confirm_replays_the_same_order()
+Cohesion: 0.19
+Nodes (12): Backward-compatible re-export — prefer `support_engine.claims_service`., do_return_request(), AdminClaimsService, Unified claims service composed from domain mixins., _addr(), admin_ctx(), dispatch_order(), driver() (+4 more)
 
 ### Community 631 - "test_batch_scenarios.py"
 
 Cohesion: 0.17
-Nodes (7): _p(), test_containers_counted_not_parcels(), test_cross_dock_sorts_by_zone(), test_driver_unavailable_reassigns_with_handover(), test_reverse_pickup_same_route(), test_split_one_pickup_across_drivers(), test_verification_by_risk()
+Nodes (6): _p(), Bulk scenario rules (batch_engine.scenarios)., test_cross_dock_sorts_by_zone(), test_driver_unavailable_reassigns_with_handover(), test_split_one_pickup_across_drivers(), test_verification_by_risk()
 
 ### Community 632 - "osrm"
 
 Cohesion: 0.29
 Nodes (7): osrm, code, env, note, port, profile, status
 
-### Community 633 - "driver/shift.py"
+### Community 633 - "db_transaction"
 
-Cohesion: 0.15
-Nodes (13): complete_training(), get_app_settings(), get_vehicle(), insurance(), list_documents(), privacy_request(), put_app_settings(), training() (+5 more)
+Cohesion: 0.09
+Nodes (42): db_transaction(), Commit a unit of work on a request session that may already be in a…, complete_training(), get_app_settings(), get_vehicle(), insurance(), list_documents(), privacy_request() (+34 more)
+
+### Community 634 - "order_filters.py"
+
+Cohesion: 0.16
+Nodes (11): build_admin_order_filters(), _list_date_bound(), datetime, OrderFilters, Admin order-list filter building (split from `orders_service`, ENG-G2 ≤500…, **getattr**(), Any, Platform port for `porterchain_api.merchant_engine.toronto` (§3.2.9 — no… (+3 more)
 
 ### Community 636 - "test_g11_merchant_payments_split.py"
 
 Cohesion: 0.16
-Nodes (6): _DB, _files(), _Q, test_merchant_quote_detected(), test_no_card_processor_reference_in_merchant_paths(), test_start_payment_refuses_merchant_quote()
+Nodes (9): _DB, _files(), MonkeyPatch, Path, _Q, G11 (doc 60 §1, R9): merchants pay by Interac only; card checkout is retail…, test_merchant_quote_detected(), test_no_card_processor_reference_in_merchant_paths() (+1 more)
 
-### Community 637 - "test_seed_online_drivers_guard.py"
+### Community 637 - "merchant_merge.py"
 
-Cohesion: 0.60
-Nodes (4): _db(), _load(), test_seed_imports_and_allows_local(), test_seed_refuses_remote()
+Cohesion: 0.32
+Nodes (13): _actor(), _audit(), keep_separate(), list_duplicate_queue(), _live(), _merchant_tables(), merge_merchants(), merge_preview() (+5 more)
 
 ### Community 638 - "test_security_fixes.py"
 
-Cohesion: 0.14
-Nodes (5): _Redis, _Req, test_accepts_public_https(), test_client_ip_ignores_spoofed_left_entries(), test_offboarding_revokes_idp_sessions()
+Cohesion: 0.10
+Nodes (9): A burst bigger than the threadpool must not fail Redis calls (false 401s)., test_burst_of_80_parallel_calls_all_succeed(), test_pool_is_blocking_and_sized_for_threadpool(), _Redis, _Req, test_accepts_public_https(), test_client_ip_ignores_spoofed_left_entries(), test_offboarding_revokes_idp_sessions() (+1 more)
 
 ### Community 639 - "review-entry.spec.ts"
 
@@ -4223,25 +4387,25 @@ Nodes (5): Controls, Does PorterChain monitor workers electronically?, Electroni
 Cohesion: 0.33
 Nodes (5): Directories (same NAP; service-area/no address where allowed), Google Business Profile (correct the existing listing; do not create a duplicate), LinkedIn — company page, PorterChain off-site presence kit (ready to paste — nothing has been posted or signed up), X — @porterchain
 
-### Community 646 - "assess_merchant_webhook_delivery"
+### Community 646 - "integrations_service.py"
 
-Cohesion: 0.27
-Nodes (7): assess_merchant_webhook_delivery(), build_merchant_webhook_delivery_alerts(), _seed_delivery(), test_assess_merchant_webhook_delivery_below_slo(), test_assess_merchant_webhook_delivery_empty(), test_assess_merchant_webhook_delivery_meets_slo(), test_assess_merchant_webhook_delivery_uses_final_attempt()
+Cohesion: 0.04
+Nodes (70): _oauth_app_count(), _partner_logo_count(), platform_metrics(), PlatformMetricsService, Any, §7.3 — platform adoption metrics (counts vs Series A targets)., Merchant integrations — orchestrates API keys, webhooks, gateway (masterrule…, assess_merchant_webhook_delivery() (+62 more)
 
 ### Community 647 - "rebuild-valhalla-gta.sh"
 
 Cohesion: 0.60
 Nodes (5): err(), find_file(), info(), ok(), rebuild-valhalla-gta.sh script
 
-### Community 648 - "health_alert.py"
+### Community 648 - "dispatch_staff_specs"
 
-Cohesion: 0.25
-Nodes (4): check_and_alert(), lane_latency(), notification_health(), dispatch_staff_specs()
+Cohesion: 0.29
+Nodes (10): check_and_alert(), lane_latency(), notification_health(), Any, datetime, Counts for outbound channels (email/sms/push) created in the last hour., p50/p95 created -> provider accepted per lane, against lanes.P95_TARGET_SEC., dispatch_staff_specs() (+2 more)
 
 ### Community 649 - "backfill_fr_messages.py"
 
 Cohesion: 0.40
-Nodes (3): deep_merge_missing(), main(), flatten()
+Nodes (4): deep_merge_missing(), main(), flatten(), Backfill missing fr.json keys from en.json structure with localized FR copy.
 
 ### Community 650 - "dev-start.sh"
 
@@ -4256,12 +4420,12 @@ Nodes (4): extract_url(), need_port(), pick_url(), shopify-dev-tunnel.sh script
 ### Community 652 - "verify_customer_persona_surface.py"
 
 Cohesion: 0.60
-Nodes (3): _glob_text(), main(), _read()
+Nodes (5): _glob_text(), main(), Path, Customer persona UI/API surface smoke (dev) — substitutes Playwright until…, _read()
 
 ### Community 653 - "push_notice"
 
-Cohesion: 0.21
-Nodes (6): push_notice(), _dev(), Fake, test_default_sender_is_safe_without_credentials(), test_no_driver_and_sender_errors_never_raise(), test_push_to_active_devices_fr_copy_and_invalid_token()
+Cohesion: 0.23
+Nodes (9): push_notice(), Any, Send one push per active driver device. Returns how many were accepted. Invalid…, _dev(), Fake, Doc 60 R7: route notices also go out as Firebase push (fake sender; no real…, test_default_sender_is_safe_without_credentials(), test_no_driver_and_sender_errors_never_raise() (+1 more)
 
 ### Community 654 - "verify-secrets-alignment.sh"
 
@@ -4278,10 +4442,10 @@ Nodes (5): check_http(), check_route(), fail(), pass(), verify_website_e2e_wire.
 Cohesion: 0.33
 Nodes (5): Next step for plumbing wholesalers, Proof that protects your counter team, Recurring routes vs. rush orders, The wholesale plumbing delivery problem, Vehicle fit matters for pipe and fixtures
 
-### Community 657 - "add_external_id"
+### Community 657 - "package_external_ids.py"
 
-Cohesion: 0.19
-Nodes (5): add_external_id(), ExternalIdCreate, _fail(), list_external_ids(), remove_external_id()
+Cohesion: 0.17
+Nodes (15): add_external_id(), ExternalIdCreate, _fail(), list_external_ids(), BaseModel, Ctx, delete, Exception (+7 more)
 
 ### Community 658 - "27 — In-house LLM reasoning (L25) and no-paid-services rule (L26)"
 
@@ -4293,20 +4457,20 @@ Nodes (13): 27 — In-house LLM reasoning (L25) and no-paid-services rule (L26),
 Cohesion: 0.14
 Nodes (13): 10. Not registered yet: the small-supplier rule (no GST/HST anywhere), 1. A reduction in price needs a credit note (GST/HST), 2. What a credit note must show, 3. The recipient's input tax credit records ($30 / $100 / $500 tiers), 4. The right rate, shown as one HST figure, 5. Bad debt is different from a waiver, 6. Records: keep them 6 years, in Canada, readable, 7. Ontario consumers (retail / guest customers) (+5 more)
 
-### Community 660 - "scripts"
+### Community 660 - "quote_snapshot.py"
 
-Cohesion: 0.40
-Nodes (5): scripts, build, dev, lint, start
+Cohesion: 0.27
+Nodes (12): _as_dict(), flatten_quote_breakdown(), _int_or_none(), merchant_line_items(), merchant_quote_picture(), Any, datetime, Merchant-facing quote picture — line items only, no routing vendor keys. (+4 more)
 
 ### Community 661 - "mobile-customer/tsconfig.json"
 
 Cohesion: 0.40
 Nodes (4): compilerOptions, strict, extends, expo/tsconfig.base
 
-### Community 662 - "test_order_builder.py"
+### Community 662 - "test_collect_only_disabled.py"
 
-Cohesion: 0.29
-Nodes (9): _normalize_stops(), _stop_addr(), _validate_kind(), _stop(), test_hub_spoke_requires_multi_drop(), test_invalid_stop_type(), test_multi_requires_two_each(), test_normalize_sorts_and_maps_drop_alias() (+1 more)
+Cohesion: 0.11
+Nodes (22): _normalize_stops(), Any, _stop_addr(), _validate_kind(), AdminOrderStopInput, Adapter-shaped stop for multi-waypoint admin order builder (P0-2 / P1-4)., _body(), L128: admin New order prices parcels by size/weight before creating (no order… (+14 more)
 
 ### Community 663 - "mobile-driver/tsconfig.json"
 
@@ -4325,8 +4489,8 @@ Nodes (4): Control Tower → Attention, Order 360 (Shopify source), Per shop (Me
 
 ### Community 666 - "Ripwire Moment C — quote / visitor / optimize / website handoff"
 
-Cohesion: 0.40
-Nodes (5): 2. `--callers=enqueue_run`, 4. `--expand=OptimizeRunBody` / `customerPortalBookHandoffUrl`, 5. Architecture implication for W-UI Playwright, 6. Follow-ups, Ripwire Moment C — quote / visitor / optimize / website handoff
+Cohesion: 0.29
+Nodes (7): 1. `--for="P0 quote visitor optimize handshakes website book"`, 2. `--callers=enqueue_run`, 3. `--impact=VisitorTrackingService`, 4. `--expand=OptimizeRunBody` / `customerPortalBookHandoffUrl`, 5. Architecture implication for W-UI Playwright, 6. Follow-ups, Ripwire Moment C — quote / visitor / optimize / website handoff
 
 ### Community 667 - "Forensic readiness, backups and restore"
 
@@ -4351,7 +4515,7 @@ Nodes (4): err(), info(), ok(), tune-valhalla-ram.sh script
 ### Community 671 - "lead_rules.py"
 
 Cohesion: 0.22
-Nodes (4): in_business_hours(), rules_score(), sla_due_at(), sla_state()
+Nodes (10): in_business_hours(), Any, datetime, Leads P0 rules (doc 78 §3, §8): business-hours SLA, spam flags, transparent…, First-response target: 1 business hour (08:00–20:00 Toronto), 4 h outside., ok → amber at 75 % of the window → red at breach. Responded leads are 'met' or…, Hot ≥ 70, Warm 40–69, Cold < 40, with the reasons shown on the lead., rules_score() (+2 more)
 
 ### Community 672 - "porterchain_api"
 
@@ -4371,12 +4535,12 @@ Nodes (4): dev-stop.sh script, should_keep(), stop_port(), usage()
 ### Community 675 - "verify_w6b_industry_publication.py"
 
 Cohesion: 0.60
-Nodes (3): main(), _niche_publishable(), _parse_w6b_slugs()
+Nodes (4): main(), _niche_publishable(), _parse_w6b_slugs(), W6b industry publication guard — chocolate, lab-sample, ecommerce city×industry.
 
-### Community 676 - "driver/assignment.py"
+### Community 676 - "NotificationUser"
 
-Cohesion: 0.36
-Nodes (7): accept_offer(), accept_order(), decline_offer(), list_offers(), _offers_svc(), reject_order(), _respond()
+Cohesion: 0.23
+Nodes (13): _active_merchant_seats(), _admin_recipient_from_claims(), _merchant_inbox_user(), _notification_post_sync(), NotificationUser, Resolve WebSocket subscriber from bearer token (admin, driver, or merchant).…, Keycloak `pc-admin` token → admin inbox, matched by verified email., Inbox identity is the company (`merchants.id`), selected by ``X-Merchant-… (+5 more)
 
 ### Community 677 - "en/electrical-wholesaler-delivery-ontario.md"
 
@@ -4408,10 +4572,15 @@ Nodes (4): Débordement / jour même, Programme dédié, Routes récurrentes, Un
 Cohesion: 0.40
 Nodes (4): Le problème livraison grossiste plomberie, Preuve qui protège le comptoir, Prochaine étape, Routes récurrentes vs commandes urgentes
 
+### Community 683 - "test_ops_rules_p0.py"
+
+Cohesion: 0.14
+Nodes (4): Doc 84 §7 P0 gaps (open questions in §8 deliberately not decided)., test_custody_event_types_in_catalog(), test_dolly_replaces_two_person_price_unchanged(), test_valhalla_matrix_used_when_reachable()
+
 ### Community 684 - "merchant-portal/package.json"
 
-Cohesion: 0.17
-Nodes (11): echarts@^6.1.0, framer-motion@^12.42.2, typescript@^6.0.3, engines, node, echarts, framer-motion, typescript (+3 more)
+Cohesion: 0.07
+Nodes (28): babel-plugin-react-compiler, echarts, eslint, eslint-config-next, firebase, framer-motion, lucide-react, next (+20 more)
 
 ### Community 685 - "p0-suite.yaml"
 
@@ -4423,50 +4592,50 @@ Nodes (3): appId, name, tags
 Cohesion: 0.50
 Nodes (3): Address search and maps (free first, Google as backup), Google backup details, When results count as confident (no Google call)
 
-### Community 687 - "mobile-customer/src/config.ts"
+### Community 687 - "impersonationRoute.ts"
 
-Cohesion: 0.23
-Nodes (9): appEnv, appVersion, customerPortalUrl, fetchTimeoutMs, isLocal(), resolveApiBaseUrl(), trimSlash(), websiteUrl (+1 more)
+Cohesion: 0.32
+Nodes (8): cookieSecure(), PC_IMP_COOKIE, API_BASE, DELETE(), GET(), json(), POST(), setCookie()
 
 ### Community 688 - "LiveMap.tsx"
 
-Cohesion: 0.28
-Nodes (8): Dot(), LiveMap(), lngLat(), Props, boundsOf(), LatLng, porterchainNativeStyle(), @maplibre/maplibre-react-native
+Cohesion: 0.27
+Nodes (8): LiveMap(), lngLat(), Props, boundsOf(), LatLng, porterchainNativeStyle(), @maplibre/maplibre-react-native, ref_protomaps_basemaps
 
 ### Community 690 - "Full inventory"
 
-Cohesion: 0.15
-Nodes (12): 06 — API specification inventory (AS-BUILT), admin (staff), customer, Drift: in snapshot, handler gone, driver, Full inventory, merchant portal, merchant public API (API key) (+4 more)
+Cohesion: 0.14
+Nodes (13): 06 — API specification inventory (AS-BUILT), admin (staff), customer, Drift: handlers in code but not in the OpenAPI snapshot (20), Drift: in snapshot, handler gone, driver, Full inventory, merchant portal (+5 more)
 
 ### Community 691 - "local-stack.sh"
 
-Cohesion: 0.31
-Nodes (10): down(), eotp_jar_ok(), kc_ext(), run(), secrets(), local-stack.sh script, status(), up() (+2 more)
+Cohesion: 0.32
+Nodes (12): down(), eotp_jar_ok(), kc_ext(), kc_recreate(), kc_run(), run(), secrets(), local-stack.sh script (+4 more)
 
-### Community 692 - "rates/page.tsx"
-
-Cohesion: 0.19
-Nodes (11): AUDIENCE, Cta(), FAQ, generateMetadata(), generateStaticParams(), Props, RatesPage(), STEPS (+3 more)
-
-### Community 693 - "test_driver_label_scan_e2e.py"
-
-Cohesion: 0.23
-Nodes (6): _audit(), _driver(), _labels(), test_e2e_label_scan_flows(), test_e2e_rate_limit(), world()
-
-### Community 694 - "test_merchant_print_preview.py"
+### Community 692 - "verify_sitemap_indexable.py"
 
 Cohesion: 0.30
-Nodes (9): print_error_message(), _addr(), _merchant_ctx(), _order(), test_merchant_service_scopes_print_to_owner(), test_pickup_list_includes_company(), test_print_copy_is_english(), test_print_http_english_and_ownership() (+1 more)
+Nodes (10): ix(), attr(), check(), get(), locs(), main(), NoRedirect, path_of() (+2 more)
+
+### Community 693 - "import_confirm.py"
+
+Cohesion: 0.27
+Nodes (11): _address_input(), attach_route_cargo(), confirm_import(), driver_notes(), Any, Confirm a route-import job into a merchant booking., The geocoded point, as the booking's pickup/dropoff and `addresses` row., Persist sequenced stops + parcels on the order without a parcels table. (+3 more)
+
+### Community 694 - "outbound_url.py"
+
+Cohesion: 0.20
+Nodes (10): _bad_ip(), SSRF guard for user-supplied outbound URLs (merchant webhooks). Only public…, ipaddress, IPv4Address, IPv6Address, http_ok(), main(), Local connection health — no secret values printed. Required stack for this… (+2 more)
 
 ### Community 695 - "test_driver_label_scan.py"
 
 Cohesion: 0.27
-Nodes (8): _ctx(), _db(), patched(), test_lookup_finished_order_is_not_yours(), test_lookup_not_yours_reveals_nothing(), test_lookup_own_parcel_and_wrong_stop(), test_lookup_unknown_code_same_404(), test_offline_package_scan_replays_with_audit()
+Nodes (10): _ctx(), _db(), patched(), fixture, Signed PC1 labels + scan-anytime lookup security (Oct 2026)., test_lookup_finished_order_is_not_yours(), test_lookup_not_yours_reveals_nothing(), test_lookup_own_parcel_and_wrong_stop() (+2 more)
 
-### Community 696 - "test_driver_offline_review.py"
+### Community 696 - "verify_list_pagination.py"
 
-Cohesion: 0.33
-Nodes (8): _driver(), _failed(), NoExec, OkExec, test_discard_one_keeps_audit_row_and_drops_from_count(), test_driver_cannot_touch_another_drivers_action(), test_retry_one_success_and_refused_again(), test_status_lists_failed_items_with_reason()
+Cohesion: 0.29
+Nodes (11): AsyncFunctionDef, expr, FunctionDef, _has_router_get(), main(), _param_names(), Path, §2.5.6 / DD-24 — list endpoints must expose pagination (limit) or be… (+3 more)
 
 ### Community 697 - "22 — PLANNED state machines (Phase 1)"
 
@@ -4511,7 +4680,7 @@ Nodes (3): fail(), pass(), verify-routing.sh script
 ### Community 705 - "build_realm.py"
 
 Cohesion: 0.29
-Nodes (9): browser_flow(), clients(), groups(), idps(), pc_mappers(), public_pkce_client(), realm(), roles() (+1 more)
+Nodes (11): browser_flow(), clients(), groups(), idps(), pc_mappers(), public_pkce_client(), Cookie | IdP redirector | (password or passkey), then: - non-staff: email code…, Generate realm-porterchain.json (L36, doc 74 §2-3). Realm as code, NO secrets.… (+3 more)
 
 ### Community 706 - "dispatch"
 
@@ -4858,35 +5027,55 @@ Nodes (3): Apparier webhooks et exceptions humaines, Capacité d'abord, tuyau en
 Cohesion: 0.50
 Nodes (3): Recurring route complexity, Scaling without a logistics department, Visibility your customers expect
 
-### Community 776 - "test_hs27_chaos_matrix.py"
+### Community 775 - "Website page playbook"
 
-Cohesion: 0.18
-Nodes (3): resolve_chaos_scenario(), test_hs27_chaos_matrix_degrade_closed(), test_hs27_stripe_offline_not_live_probe()
+Cohesion: 0.17
+Nodes (12): Blog authors, Blog media, Component kits, CTA lexicon (single source), Draft preview, Message ownership, Perf classes, Scheduled publish (+4 more)
 
-### Community 783 - "test_flow_spec_doc82.py"
+### Community 776 - "MerchantLocationsPanel"
 
-Cohesion: 0.24
-Nodes (5): _docs(), test_every_required_capture_appears(), test_parcel_never_shows_id_or_seal(), test_pharmacy_always_has_seal_id_signature(), test_service_retail_order_without_org()
+Cohesion: 0.25
+Nodes (7): emptyPlace(), MerchantLocationsPanel(), removeAddress(), resetAddressForm(), resetRecipientForm(), saveAddress(), saveRecipient()
+
+### Community 781 - ".find_for_merchant_lookup"
+
+Cohesion: 0.22
+Nodes (7): Tracking number, order number, PO, or a stop's CSV reference — exact, case-…, First match for a tracking number, order number, or PO. Company-scoped only., Case-insensitive exact match. Deliberately not `ilike`: a reference someone…, A stop in `compliance_metadata.stops` carries this merchant reference (CSV…, Case-insensitive: numbers are stored uppercase but get typed and pasted (BK)., _same_text(), _stop_external_ref_is()
+
+### Community 783 - "forensic_middleware.py"
+
+Cohesion: 0.22
+Nodes (6): category_for(), ForensicAuditMiddleware, BaseHTTPMiddleware, Record privileged / sensitive API calls into the forensic audit chain. Covers…, test_chain_mirrors_audit_rows_and_detects_tamper(), test_middleware_categories()
 
 ### Community 784 - "test_g21_reviewer_sandbox.py"
 
 Cohesion: 0.25
-Nodes (7): _app(), _s(), test_flag_off_middleware_passes_through(), test_pickup_and_pod_on_sandbox_ids_never_reach_real_handlers(), test_reviewer_driver_matches_when_enabled(), test_reviewer_off_by_default(), test_two_sandbox_jobs_fit_the_schema()
+Nodes (9): _app(), TestClient, G21 A-APR-02: reviewer demo driver sees 2 sandbox jobs; actions write nothing., _s(), test_flag_off_middleware_passes_through(), test_pickup_and_pod_on_sandbox_ids_never_reach_real_handlers(), test_reviewer_driver_matches_when_enabled(), test_reviewer_off_by_default() (+1 more)
 
-### Community 786 - "test_notification_http_dependency_off_loop"
+### Community 785 - "_route_paths"
 
 Cohesion: 0.22
-Nodes (5): _fast_admin_verify(), _loop_stall_during(), test_notification_http_dependency_off_loop(), test_websocket_user_lookup_off_loop(), slow_staff()
+Nodes (5): Collect paths from lead-owning routers (app.routes may nest/mount)., These systems are real in PorterChain but out of CRM leads scope. Jeff Dean:…, _route_paths(), TestAdminLeadsRouteRegistry, TestLeadsIntentionalNonScope
+
+### Community 786 - "test_authz_no_false_deny.py"
+
+Cohesion: 0.25
+Nodes (7): _Broken, _client(), Owner must never get a false 403 while tuples reconcile or SpiceDB blips., test_admin_portal_check_error_is_503(), test_replace_relationships_drops_stale_roles(), test_replace_relationships_is_atomic_for_concurrent_checks(), test_require_module_spicedb_error_is_503_not_403()
+
+### Community 787 - "test_dispatch_processor.py"
+
+Cohesion: 0.18
+Nodes (3): dispatch_module(), fixture, Dispatch worker processor tests (DD-05a).
 
 ### Community 788 - "test_media_store.py"
 
-Cohesion: 0.20
-Nodes (3): _garage_env(), test_garage_roundtrip(), test_put_signs_request()
-
-### Community 789 - "test_mf_hs_open_batch.py"
-
 Cohesion: 0.18
-Nodes (4): test_arch_portals_no_fleetbase_http_or_socketcluster(), test_mf_hs07_notification_engine_probe(), test_mf_hs07_run_test_safe_ids(), test_mf_hs12_layered_architecture_run_test()
+Nodes (5): _garage_env(), Doc 61/62: proof photos + signatures in Garage (self-hosted S3). Garage test…, test_driver_upload_and_pod_routes(), test_garage_roundtrip(), test_put_signs_request()
+
+### Community 789 - "_test_db_reset.py"
+
+Cohesion: 0.27
+Nodes (10): _check(), _migrate(), migrations_hash(), RuntimeError, Give every pytest session a fresh, migrated test database. The shared test DB…, Drop + re-create the test DB from a migrated template. Returns what was done., Delete every relationship in the test SpiceDB (127.0.0.1:55051 only)., reset_test_database() (+2 more)
 
 ### Community 790 - "07 — Interface layer: every screen per app (AS-BUILT)"
 
@@ -4918,10 +5107,10 @@ Nodes (3): merchant_api_keys, code, status
 Cohesion: 0.18
 Nodes (10): 98 — Unknowns (not verified; nothing here is drawn as fact), Hybrid deployment (file 28), L30 (29 Oct 2026, doc 56), L32 decisions recorded (Ravi, 29 Oct 2026; doc 60 §12–13), L33 Trust & Help Centre (doc 68), L35 (29 Oct 2026, docs 70–76), Phase 0 (doc 60–67, 29 Oct 2026), Traceability (doc 77, 29 Oct 2026) (+2 more)
 
-### Community 801 - "oauth_third_party"
+### Community 801 - "test_quote_pdf.py"
 
-Cohesion: 0.67
-Nodes (3): oauth_third_party, code, status
+Cohesion: 0.25
+Nodes (10): client(), fixture, Quote PDF: Porterchain Inc. + GST/HST no. from the registration record, one HST…, registered(), _render(), test_quote_pdf_before_registration_has_no_number(), test_quote_pdf_en_has_identity_single_hst_and_cad(), test_quote_pdf_fr() (+2 more)
 
 ### Community 802 - "shopify"
 
@@ -4933,20 +5122,25 @@ Nodes (3): shopify, note, status
 Cohesion: 0.67
 Nodes (3): zoho_salesiq, code, status
 
+### Community 807 - "test_vehicle_compliance_doc80.py"
+
+Cohesion: 0.22
+Nodes (5): _dvir(), Doc 80 A-VC: CVOR threshold, DVIR, HOS, weight block, trip record, offline…, test_dvir_validation(), test_heavy_truck_blocked_until_cvor_then_needs_dvir(), test_hos_offline_replay_is_idempotent_and_keeps_phone_time()
+
 ### Community 816 - "vroom"
 
 Cohesion: 0.18
 Nodes (11): VROOM_ROUTER, vroom, container_name, depends_on, environment, image, networks, ports (+3 more)
 
-### Community 817 - "utilization_service.py"
+### Community 817 - "UtilizationService"
 
-Cohesion: 0.33
-Nodes (3): _minutes_between(), _now_utc(), UtilizationService
+Cohesion: 0.43
+Nodes (5): _minutes_between(), _now_utc(), Any, datetime, UtilizationService
 
-### Community 818 - "deep_links.py"
+### Community 818 - "windows.py"
 
 Cohesion: 0.38
-Nodes (4): group_for(), href_for(), _ids(), label_for()
+Nodes (9): drop_window(), _dt(), point_window(), Any, datetime, Customer and merchant time windows → planner seconds. Sources, most specific…, Seconds from `origin`; a window already over keeps `end=0` (late, still…, to_offsets() (+1 more)
 
 ### Community 819 - "PorterChain PCD — Architecture drawing set (index, legend, evidence method)"
 
@@ -4963,6 +5157,16 @@ Nodes (9): 20 — Operational legal rulebook (per party), A. Retail customer (co
 Cohesion: 0.20
 Nodes (9): 45.1 Device classes, 45.2 BLE cooler temperature sensors, 45.3 Vehicle telematics / OBD-II, 45.4 Barcode / QR scanning and labels, 45.5 Device management (free MDM), 45.6 Offline sync and push, 45.7 Device security policy, 45.8 Decisions for Ravi (+1 more)
 
+### Community 826 - "live_service_violations"
+
+Cohesion: 0.29
+Nodes (9): _host_port(), live_service_violations(), pytest_configure(), Return a message per setting that is not a local test-container endpoint., The pytest guard refuses settings that point at the live dev stack., test_live_ports_and_hosts_are_refused(), test_local_stack_and_other_ports_are_refused(), test_running_session_uses_test_containers() (+1 more)
+
+### Community 827 - "test_login_hardening_l219.py"
+
+Cohesion: 0.36
+Nodes (9): _db(), _dir(), L219: Resend invite re-sends the setup email to users who never finished setup., _svc(), test_cannot_deactivate_self_or_last_super_admin(), test_deactivate_staff_disables_login(), test_existing_active_user_gets_no_email(), test_metadata_update_keeps_username_and_email() (+1 more)
+
 ### Community 828 - "77 · Phase 0 traceability: every Ravi ask of 28–29 Oct 2026"
 
 Cohesion: 0.20
@@ -4970,13 +5174,23 @@ Nodes (10): 1. Matrix, 2.1 UI/UX 100% (row 7), 2.2 Supply-chain standards help p
 
 ### Community 829 - "1. Canonical entity map"
 
-Cohesion: 0.20
-Nodes (9): 1.1 Entities, keys and schema, 1.2 ER diagram, 1.3 Event-sourced timeline (one source), 1.4 Soft delete, audit and privacy, 1. Canonical entity map, 2. UX principles, 3. Screen map per role (top 5 flows, taps/clicks from the role's home), 4. Tests (+1 more)
+Cohesion: 0.18
+Nodes (10): 1.1 Entities, keys and schema, 1.2 ER diagram, 1.3 Event-sourced timeline (one source), 1.4 Soft delete, audit and privacy, 1.5 Duplicates and naming clashes found and fixed, 1. Canonical entity map, 2. UX principles, 3. Screen map per role (top 5 flows, taps/clicks from the role's home) (+2 more)
 
-### Community 830 - "1. Surface inventory (SSOT)"
+### Community 830 - "test_pricing_audit_gates.py"
+
+Cohesion: 0.40
+Nodes (8): _body(), _merchant_ctx(), API-side regressions for the Oct 2026 pricing audit (bugs 3, 5, 8)., _refused(), test_admin_order_builder_raises_fsa_refused(), test_book_reuses_checkout_quote_pickup(), test_create_shipment_raises_fsa_refused(), test_preview_returns_fsa_refused()
+
+### Community 831 - "74. Integrations per business type (Phase 0, L35)"
 
 Cohesion: 0.20
-Nodes (10): 1.1 HTTP personas (ARCHITECTURE leaf — Wave 3), 1.2 Engines (16), 1.3 Microservices / leaves, 1.4 Admin pages (`apps/admin` — 37 routes), 1.5 Merchant pages (`apps/merchant-portal` — 22), 1.6 Customer pages (`apps/customer` — 11), 1.7 Driver web (`apps/driver-portal` — 20), 1.8 Website (`website/` — ~77 `page.tsx`) (+2 more)
+Nodes (9): 1. Connection options, 2. TOP PRIORITY (Phase 0 weeks 1–2): Shopify review fix, 3. Mobile store review fix (weeks 1–2, mobile docs 25/26/50 refer here), 4. API conventions (all types), 5. Their label vs our label, 6. Developer portal outline, 74. Integrations per business type (Phase 0, L35), 7. Delta vs doc 44 (+1 more)
+
+### Community 837 - "verify_i18n_parity.py"
+
+Cohesion: 0.38
+Nodes (9): _check_en_root_landing_locale_purity(), _check_full_root_parity(), _check_programmatic_fr_slug_parity(), _check_root_namespace_parity(), _flatten_keys(), _get_nested(), main(), §6.1.5 — FR/EN locale message parity on marketing site. (+1 more)
 
 ### Community 838 - "osrm"
 
@@ -4988,40 +5202,75 @@ Nodes (10): command, container_name, expose, image, networks, profiles, restart,
 Cohesion: 0.31
 Nodes (8): HIGH_RISK, isHighRisk(), mustScan(), riskLevel(), low, verificationBlockers(), VerifyParcel, VerifyState
 
-### Community 844 - "login/layout.tsx"
+### Community 844 - "persona-login.spec.ts"
 
-Cohesion: 0.29
-Nodes (7): AuthRouteLayout(), generateMetadata(), Props, AuthRouteLayout(), generateMetadata(), Props, AuthShellProvider()
+Cohesion: 0.27
+Nodes (8): A, D, emailCode(), expectKeycloakSignedOut(), keycloakForm(), personas, signOut(), totp()
 
-### Community 849 - "merchant_ar_cycles.py"
+### Community 845 - "unsubscribe_one_click"
 
-Cohesion: 0.31
-Nodes (3): is_cycle_billed(), run_due_cycles(), merchant_cycle_invoicing_enabled()
+Cohesion: 0.25
+Nodes (9): apply_unsubscribe(), Turn email off for that category. (Leads are handled by the router: CASL…, read_token(), _unb64(), Landing page. GET never changes anything (mail scanners prefetch links)., RFC 8058 one-click (List-Unsubscribe-Post) and the landing page button., _unsub_html(), unsubscribe_confirm_page() (+1 more)
+
+### Community 846 - "test_driver_english_notes.py"
+
+Cohesion: 0.33
+Nodes (8): english_note_lines(), Driver app is English only: after each note line that contains translated free…, _db(), L46: drivers (English-only app) get the English translation after a French note., test_adds_english_line_after_translated_note(), test_lookup_error_is_swallowed(), test_no_translation_leaves_lines(), _english_lines()
+
+### Community 847 - "test_shopify_fo_foundation.py"
+
+Cohesion: 0.39
+Nodes (8): Flag-gated Shopify FulfillmentService foundation (accept→book still held)., _settings(), test_fo_notification_ignored_when_flag_off(), test_fo_webhook_ignored_when_flag_off(), test_fulfillment_service_url(), test_post_install_registers_fs_only_when_flag_on(), test_process_queued_fo_skipped_when_flag_off(), test_process_queued_fo_stub_when_flag_on()
+
+### Community 848 - "verify_blog_cms.py"
+
+Cohesion: 0.44
+Nodes (8): _closed_set_drift(), _list_limit_drift(), main(), Path, _py_set(), _quoted(), Blog CMS handshake — one content owner, public read, no file catalog., _ts_array()
+
+### Community 849 - "platform_settings.py"
+
+Cohesion: 0.10
+Nodes (38): active_coverage_cities(), address_in_coverage(), automation_settings(), background_check_required(), claims_settings(), coverage_settings(), customer_settings(), default_tax_percent() (+30 more)
 
 ### Community 850 - "test_shopify_distance_scaling.py"
 
 Cohesion: 0.28
-Nodes (4): _km(), test_distance_grows_with_town_distance(), test_geocoder_miss_falls_back_to_fsa_centroid(), test_unknown_postal_and_geocoder_miss_stays_without_coords()
+Nodes (7): Third-party integrations., _km(), parametrize, Geocoder misses must never price as a 0 km route (Ingersoll = downtown bug)., test_distance_grows_with_town_distance(), test_geocoder_miss_falls_back_to_fsa_centroid(), test_unknown_postal_and_geocoder_miss_stays_without_coords()
 
 ### Community 852 - "test_driver_timesheets.py"
 
 Cohesion: 0.36
-Nodes (7): _ctx(), _shift(), test_active_shift_counts_until_now(), test_late_night_utc_shift_lands_on_toronto_day(), test_schedule_round_trip_and_hours(), test_schedule_validation(), test_timesheet_groups_by_toronto_week_with_totals()
+Nodes (8): _ctx(), parametrize, _shift(), test_active_shift_counts_until_now(), test_late_night_utc_shift_lands_on_toronto_day(), test_schedule_round_trip_and_hours(), test_schedule_validation(), test_timesheet_groups_by_toronto_week_with_totals()
 
-### Community 854 - "test_merchant_integrations.py"
+### Community 853 - "phase2.py"
 
-Cohesion: 0.28
-Nodes (4): _merchant_ctx(), test_integration_errors_are_english(), test_overview_hides_erp_marketplace(), test_shopify_connect_requires_pickup()
+Cohesion: 0.36
+Nodes (4): _env_bool(), phase2_flags_from_mapping(), Phase2Flags, Phase 2 feature flags — default off until Phase 1 loop is boring (masterrule…
+
+### Community 854 - "merchant/shopify.py"
+
+Cohesion: 0.09
+Nodes (37): integration_error_message(), English copy for merchant integrations (keys, webhooks, Shopify)., delete, Depends, get, post, put, Merchant portal Shopify connection. (+29 more)
 
 ### Community 855 - "08 — State machines (AS-BUILT)"
 
-Cohesion: 0.22
-Nodes (8): 08 — State machines (AS-BUILT), Booking draft — `BOOKING_DRAFT_TRANSITIONS` line 162, Credit note — `billing_engine/invoice_adjustments.py`, Driver — `domain/admin_states.py:40` `DriverStatus`, Invoice — two sources of truth, Job (dispatch offer) — `dispatch_engine/models.py:20` `DispatchJobOffer.status` String(16) default `"pending"`, Package — `PACKAGE_TRANSITIONS` line 229, Quote — `QUOTE_TRANSITIONS` line 143
+Cohesion: 0.20
+Nodes (9): 08 — State machines (AS-BUILT), Booking draft — `BOOKING_DRAFT_TRANSITIONS` line 162, Credit note — `billing_engine/invoice_adjustments.py`, Driver — `domain/admin_states.py:40` `DriverStatus`, Invoice — two sources of truth, Job (dispatch offer) — `dispatch_engine/models.py:20` `DispatchJobOffer.status` String(16) default `"pending"`, Order — `domain/states.py:21` (`OrderState`), `ORDER_TRANSITIONS` line 105; only writer `booking_engine/order_transitions.py:48` (`transition_order_state`, check at :75), Package — `PACKAGE_TRANSITIONS` line 229 (+1 more)
+
+### Community 856 - "_nominatim_search"
+
+Cohesion: 0.36
+Nodes (8): _cache_get(), _cache_key(), _cache_set(), _nominatim_search(), _postal_mismatch(), Any, L197c: the hit's forward sortation area differs from the one the merchant gave., _throttle()
 
 ### Community 857 - "70. Business model architecture: one Organisation model (Phase 0, L35)"
 
-Cohesion: 0.22
-Nodes (8): 1. Problem (evidence, 29 Oct 2026), 3. Data model (schema `org`, doc 63 domain schemas), 4. Operating profile (per org, configurable; no custom code per org, only existing modules switched on), 5. How capabilities drive the system, 6. Migration from the merchants model (Phase 0 weeks 3–5, with rollback), 70. Business model architecture: one Organisation model (Phase 0, L35), 7. Decisions for Ravi, 7a. Pharmacy delivery and the controlled-substance handling profile (D-70-4)
+Cohesion: 0.15
+Nodes (12): 1. Problem (evidence, 29 Oct 2026), 2.1 Business types and default capability profile, 2.2 Documents & capabilities matrix (Ravi 29 Oct 2026: "a bakery has no bill of lading, a warehouse sometimes does"), 2.3 Identifiers & milestones (Ravi 29 Oct 2026, pt126u: "pick which is required in Canada for us"), 2. Decision D-70-1 (recommended): one `organisation` + `business_type` + capability profile, 3. Data model (schema `org`, doc 63 domain schemas), 4. Operating profile (per org, configurable; no custom code per org, only existing modules switched on), 5. How capabilities drive the system (+4 more)
+
+### Community 858 - "orders_actions.py"
+
+Cohesion: 0.32
+Nodes (7): create_order_return(), preview_order(), Ctx, post, admin routes — order draft preview (L128) and return pickup (L105); split from…, L128: price the New order draft (same engine as create) without saving anything., L105: book a return pickup for a delivered order (customer -> merchant).
 
 ### Community 871 - "73. Support and issue playbook (Phase 0, L35)"
 
@@ -5031,32 +5280,27 @@ Nodes (8): 1. Contact channels (all free), 2. Categories, priorities, targets (p
 ### Community 872 - "principal_cache.py"
 
 Cohesion: 0.46
-Nodes (4): cache_get(), cache_set(), _client(), principal_cache_ttl_seconds()
+Nodes (6): cache_get(), cache_set(), _client(), principal_cache_ttl_seconds(), Any, Optional Redis cache for CurrentPrincipal session payloads (Phase C). Disabled…
 
-### Community 873 - "customer_fast/geo.py"
+### Community 873 - "_settings"
+
+Cohesion: 0.25
+Nodes (8): Firebase/FCM tokens must never authorize notification APIs., _settings(), test_hs_fcm_003_notification_user_requires_credentials(), _run(), test_hs_fcm_004_ws_bad_token_returns_none_not_raise(), _run(), test_hs_fcm_007_garbage_token_does_not_authenticate(), _run()
+
+### Community 874 - "_FakeRedis"
+
+Cohesion: 0.25
+Nodes (3): fake_redis(), _FakeRedis, fixture
+
+### Community 875 - "test_l185_shift_auto_clockout.py"
 
 Cohesion: 0.39
-Nodes (3): fill_quote_coords(), postal_of(), with_coords()
+Nodes (5): _Db, L185: the 16h auto clock-out is recorded at the 16h mark (break time added),…, _svc(), test_auto_clockout_capped_at_limit(), test_short_shift_untouched()
 
-### Community 874 - "admin_dashboard"
+### Community 918 - "isDevelopmentBuild"
 
-Cohesion: 0.46
-Nodes (3): admin_dashboard(), dashboard_center(), dashboard_search()
-
-### Community 875 - "test_cycle_invoice_no_order.py"
-
-Cohesion: 0.39
-Nodes (4): _cycle_invoice(), test_admin_finance_endpoints_survive_an_orderless_invoice(), test_ar_reminder_and_merchant_views_handle_no_order(), test_finance_round2_routes()
-
-### Community 901 - "test_g10_vendor_removal.py"
-
-Cohesion: 0.29
-Nodes (3): _files(), test_g10_vendor_absent_outside_docs(), test_glitchtip_dsn_wiring()
-
-### Community 918 - "driver-portal/src/middleware.ts"
-
-Cohesion: 0.43
-Nodes (7): config, gate, hasDevSession(), hasImp(), isDevLoginEnabled(), middleware(), hasSessionCookie()
+Cohesion: 0.07
+Nodes (39): StaffSignIn(), isAuthConfigured(), config, gate, middleware(), AuthUnavailable(), SignInContent(), SignInGate() (+31 more)
 
 ### Community 919 - "vendor/driver-flows/package.json"
 
@@ -5068,10 +5312,10 @@ Nodes (7): description, exports, main, name, private, types, version
 Cohesion: 0.25
 Nodes (7): 66 · Now vs Phase 0: state machines, Dispatch job offer: now vs Phase 0, Driver: now vs Phase 0, Invoice: now (two sources, A02) vs Phase 0, Order: now (08, `domain/states.py:105`), Order: Phase 0, Quote: now vs Phase 0
 
-### Community 921 - "clerk-cutover-phase10.md"
+### Community 921 - "Keycloak cutover (Clerk retirement) — manual ops runbook"
 
-Cohesion: 0.25
-Nodes (5): Clerk consolidation (pointer stub), Clerk cutover Phase 10 (pointer stub), Keycloak cutover (Clerk retirement) — manual ops runbook, Rollback, Steps
+Cohesion: 0.50
+Nodes (3): Keycloak cutover (Clerk retirement) — manual ops runbook, Rollback, Steps
 
 ### Community 922 - "Foreign-key decisions (dm2fkorphan0002)"
 
@@ -5090,38 +5334,53 @@ Nodes (8): container_name, expose, image, networks, pull_policy, restart, securi
 
 ### Community 925 - "packages/driver-flows/package.json"
 
-Cohesion: 0.25
-Nodes (7): description, exports, main, name, private, types, version
+Cohesion: 0.15
+Nodes (12): description, devDependencies, vitest, exports, vitest, main, name, private (+4 more)
 
 ### Community 926 - "verify_model_ownership.py"
 
 Cohesion: 0.39
-Nodes (4): _check_model_writes(), _check_no_models_strangler(), main(), _rel()
+Nodes (7): _check_model_writes(), _check_no_models_strangler(), main(), Path, Pattern, §3.2.2–3.2.5 — bounded-context ORM write ownership guards., _rel()
 
-### Community 927 - "ImportConfigModal"
+### Community 927 - "ContractStops.tsx"
 
-Cohesion: 0.48
-Nodes (6): ImportConfigModal(), applyImport(), handleClose(), parseConfig(), reset(), runDryRun()
+Cohesion: 0.32
+Nodes (7): cm(), ContractStops(), LiftFlag, money(), ParcelDetail, StopRow, TIER_LABEL
+
+### Community 928 - "src/catalog.ts"
+
+Cohesion: 0.32
+Nodes (5): ADR-0010, CATALOG_VERSION, DomainEventName, DomainEvents, createEventEnvelope()
+
+### Community 929 - "test_billing_processor.py"
+
+Cohesion: 0.29
+Nodes (3): billing_module(), fixture, Billing worker processor tests (§2.3.3).
 
 ### Community 930 - "test_coverage_liftgate_simulate.py"
 
 Cohesion: 0.43
-Nodes (4): _sim(), test_cover_off_until_g_ins(), test_liftgate_suggested_for_heavy(), test_over_max_and_excluded()
+Nodes (6): Coverage upgrade line, over-max flag, liftgate suggestion and margin on the…, Ravi 2026-10-29: declared-value cover is off until cargo insurance is confirmed…, _sim(), test_cover_off_until_g_ins(), test_liftgate_suggested_for_heavy(), test_over_max_and_excluded()
 
 ### Community 931 - "driver_p0"
 
+Cohesion: 0.18
+Nodes (11): driver_p0, FB-04 companion — maps service must not import a VROOM client., MAP-04 — Google Distance Matrix / Directions banned in driver_engine + admin…, API-D-05 — idle navigation session pins Valhalla/OSRM/last_known engine labels., API-D-06 — OTP verify contract + POD OpenAPI surface., MAP-01 — MapsService.route_with_source Valhalla first, OSRM on miss., test_api_d_05_navigation_idle_session(), test_api_d_06_pod_otp_and_openapi() (+3 more)
+
+### Community 932 - "80. Vehicle compliance (Phase 0, Ontario only)"
+
+Cohesion: 0.25
+Nodes (7): 0. Scope, 1. The rules, verified 29 Oct 2026, 2. Phase 0 build (inside the existing app and API), 3. Money (doc 79 §6b), 4. Tests, 5. Unknowns, 80. Vehicle compliance (Phase 0, Ontario only)
+
+### Community 933 - "test_webhooks_processor.py"
+
 Cohesion: 0.29
-Nodes (3): test_api_d_05_navigation_idle_session(), test_map_04_no_google_distance_matrix_in_driver_engine(), test_no_vroom_import_in_maps_service()
+Nodes (3): fixture, Webhooks worker processor tests (§2.3.5)., webhooks_module()
 
-### Community 932 - "test_leads_doc78.py"
+### Community 934 - "admin"
 
-Cohesion: 0.29
-Nodes (3): test_convert_creates_organisation(), test_spam_flags_never_need_captcha(), test_whatsapp_cloud_and_capi_off_by_default()
-
-### Community 934 - "with-rn-spm-nil-guard.js"
-
-Cohesion: 0.33
-Nodes (6): fs, PATCH, patchSpmRb(), path, { withDangerousMod }, withRnSpmNilGuard()
+Cohesion: 0.25
+Nodes (8): container_name, expose, image, networks, pull_policy, restart, security_opt, admin
 
 ### Community 935 - "43 — Agent framework decision (late-2026, local-only models)"
 
@@ -5153,35 +5412,40 @@ Nodes (6): description, required, description, inputs, age_key, name
 Cohesion: 0.29
 Nodes (7): with, host, key, port, source, target, username
 
-### Community 941 - "TrackStatusSteps.tsx"
+### Community 941 - "driver"
 
-Cohesion: 0.43
-Nodes (5): TrackStatusSteps(), STEP_OF, TRACK_STEPS, trackStatus, TrackStep
+Cohesion: 0.25
+Nodes (8): container_name, expose, image, networks, pull_policy, restart, security_opt, driver
 
-### Community 942 - "investor_metrics"
+### Community 942 - "translate.mjs"
 
-Cohesion: 0.47
-Nodes (3): investor_metrics(), InvestorMetricsService, _partner_logo_count()
+Cohesion: 0.25
+Nodes (6): gl, [inF, outF], out, sorted, strs, todo
 
-### Community 943 - "router.py"
+### Community 943 - "verify_programmatic_en_playbook.py"
 
-Cohesion: 0.47
-Nodes (3): internal_health(), service_health(), get_platform_registry()
+Cohesion: 0.39
+Nodes (7): _comparison_rows(), _extract_slug_blocks(), _faq_answers(), _field(), main(), Path, Programmatic EN body guard — top compare/FAQ slugs meet B2B depth + playbook…
 
 ### Community 944 - "get_baseline"
 
-Cohesion: 0.33
-Nodes (4): compliance_gap_cost(), kingman_wq(), oos_margin_loss(), get_baseline()
+Cohesion: 0.29
+Nodes (7): compliance_gap_cost(), kingman_wq(), oos_margin_loss(), get_baseline(), _guard(), Depends, get
 
-### Community 945 - "slow_idp"
+### Community 945 - "cf1custr2b3c4_customer_round2.py"
 
-Cohesion: 0.33
-Nodes (3): anyio_backend(), slow_idp(), fake_verify()
+Cohesion: 0.52
+Nodes (5): _created(), _cust(), _id(), upgrade(), Column
 
-### Community 946 - "2. Surface inventory (files & screens)"
+### Community 946 - "_admin_from_keycloak"
 
-Cohesion: 0.40
-Nodes (6): jobs(), 2.1 Screens (`Screen` union), 2.2 Field tabs, 2.3 Client modules (must have ≥1 case), 2.4 Backend packages in path, 2. Surface inventory (files & screens)
+Cohesion: 0.43
+Nodes (7): _admin_from_keycloak(), _check_platform(), _finish_admin_context(), Any, Already bound to `staff:{id}` with platform#portal → skip the per-request…, SpiceDB platform Check with one retry; outage → 503 (never a false 403)., _staff_identity_current()
+
+### Community 947 - "PickupDocumentNotShown"
+
+Cohesion: 0.29
+Nodes (6): assert_pickup_documents_shown(), pickup_gate_enforced(), PickupDocumentNotShown, Exception, Pickup can't be confirmed until required documents were shown., Off until the mobile driver app ships the Show-to-staff screen (else drivers on…
 
 ### Community 948 - "23 — PLANNED events: outbox → DBOS relay → Redpanda (L18, L19, L20)"
 
@@ -5198,10 +5462,10 @@ Nodes (5): 61 · Now vs Phase 0: system context and containers, Containers: now 
 Cohesion: 0.33
 Nodes (5): 67 · Now vs Phase 0: the apps (mobile, Shopify, portals), Customer + driver Expo apps: now, Expo apps: Phase 0, Shopify app: now vs Phase 0, Web portals: now vs Phase 0
 
-### Community 951 - "1. Surface inventory (SSOT for every page / file)"
+### Community 951 - "Shopify ↔ Merchant ↔ PorterChain — development test cases"
 
-Cohesion: 0.33
-Nodes (6): 1.2 Admin portal (`apps/admin`), 1.3 FastAPI thin routers, 1.5 Worker / EventBus / notifications, 1.6 Spatial / Fleetbase / Docker, 1.7 Existing test seeds (extend, do not blindly duplicate), 1. Surface inventory (SSOT for every page / file)
+Cohesion: 0.06
+Nodes (33): 0. ID scheme & layers, 10. Security / secrets / rate limits, 11. Worker / EventBus / fulfillment loop, 12. Notifications / email / Firebase / realtime, 13. Billing / Stripe / channel attribution, 14. Database / migrations / ORM, 15. Docker / env / tunnel / compose, 16. Architecture / OpenAPI / ownership guards (+25 more)
 
 ### Community 952 - "env"
 
@@ -5211,27 +5475,42 @@ Nodes (6): MIN_BYTES, REQUIRE_KEYS, SOPS_AGE_KEY, SOPS_FILE, SOPS_VERSION, env
 ### Community 953 - "verify_alembic_head.py"
 
 Cohesion: 0.47
-Nodes (3): find_head_revision(), main(), _parse_down_revision()
+Nodes (5): find_head_revision(), main(), _parse_down_revision(), Dev-layer Alembic head guard — §0.1.13 local., Return parent revision ids (0 for root, 1+ for linear/merge).
 
 ### Community 954 - "verify_masterrule_layer_audit.py"
 
 Cohesion: 0.53
-Nodes (4): _check_adapter_gone(), _check_models_no_http(), _check_ui_no_fleetbase_fetch(), main()
+Nodes (5): _check_adapter_gone(), _check_models_no_http(), _check_ui_no_fleetbase_fetch(), main(), ARCH-G3 — quarterly masterrule §3 layered architecture grep audit.
 
 ### Community 955 - "verify_mobile_field_proof.py"
 
 Cohesion: 0.60
-Nodes (3): main(), _read(), _tsx_blob()
+Nodes (5): main(), Path, Driver mobile field-proof checklist — static wiring for FCM, GPS, POD pad/scan.…, _read(), _tsx_blob()
 
-### Community 958 - "set_rate_limit"
+### Community 956 - "schemas_notifications.py"
+
+Cohesion: 0.48
+Nodes (6): BroadcastRequest, DeviceRegisterRequest, PreferenceUpdateRequest, BaseModel, QuietHoursUpdateRequest, SendTestRequest
+
+### Community 957 - "_iter_lead_spine_files"
+
+Cohesion: 0.29
+Nodes (5): _forbidden_hits(), _iter_lead_spine_files(), Path, CRM must not pull Valhalla/OSRM/VROOM/Fleetbase/Shopify/Firebase., TestLeadsArchitectureFirewall
+
+### Community 958 - "client"
+
+Cohesion: 0.29
+Nodes (7): client(), fixture, MonkeyPatch, TestClient, Legacy newsletter posts land in the double opt-in list, never in CRM leads., test_newsletter_inquiry_becomes_subscriber_not_lead(), test_public_inquiry_stamps_visitor_and_consent()
+
+### Community 959 - "test_engine_smoke.py"
 
 Cohesion: 0.50
-Nodes (3): set_rate_limit(), validate_rate_limit(), test_admin_rate_limit_module_rejects_out_of_range()
+Nodes (3): parametrize, Per-engine import smoke tests (§2.1.7)., test_engine_symbol_importable()
 
-### Community 960 - "real"
+### Community 960 - "_as"
 
-Cohesion: 0.40
-Nodes (5): test_create_shipment_applies_default(), spy(), test_identity_directory_get_user_has_short_timeout(), spy(), real()
+Cohesion: 0.48
+Nodes (7): _as(), _forged(), parametrize, test_customer_without_driver_header_still_gets_own_inbox(), test_driver_cannot_target_another_driver(), test_non_driver_with_forged_driver_header_is_403(), test_real_driver_still_works()
 
 ### Community 961 - "03 — Data-flow diagrams (AS-BUILT)"
 
@@ -5276,7 +5555,17 @@ Nodes (5): maps, code, env, package, status
 ### Community 969 - "verify_api_stateless.py"
 
 Cohesion: 0.60
-Nodes (3): _check_wiring(), main(), _scan_forbidden_imports()
+Nodes (4): _check_wiring(), main(), §3.4.1 — API replicas must not rely on in-process session or local-only state., _scan_forbidden_imports()
+
+### Community 970 - "Caddy changes for porterchain.com (Oct 2026)"
+
+Cohesion: 0.29
+Nodes (6): 1. Permanent root redirect (in this PR), 2. Removed and retired pages, 3. Caching, 4. Rate safety, Caddy changes for porterchain.com (Oct 2026), Deploy checklist (for Ravi)
+
+### Community 971 - "kc8authsubject0008_rename_clerk_columns.py"
+
+Cohesion: 0.53
+Nodes (5): downgrade(), _load_remap(), Rename Clerk-era identity columns to provider-neutral names; remap subjects.…, _rename_all(), upgrade()
 
 ### Community 975 - "30 · Operational readiness: the areas the plan did not cover"
 
@@ -5308,10 +5597,10 @@ Nodes (3): 50 · Mobile release train and store checklists, Apple App Store chec
 Cohesion: 0.50
 Nodes (3): 53 · Accessibility (AODA / WCAG 2.1 AA) and French, Accessibility, French
 
-### Community 981 - "Evaluation — invoice waive / void / credit (Oct 2026)"
+### Community 981 - "Evaluation — schema / custody change (Oct 2026)"
 
-Cohesion: 0.50
-Nodes (3): 7. GST/HST registration (`tax_registrations`, `platform/tax_registration.py`, `GET/POST /v1/admin/finance/tax-registration`, Admin > Finance > GST/HST) — **PASS after fix**, Evaluation — invoice waive / void / credit (Oct 2026), New-addition gate
+Cohesion: 0.18
+Nodes (10): 1. `fk_orphan_quarantine` table — **PASS**, 2. Package state machine (`PackageState`, `PACKAGE_TRANSITIONS`, `set_package_status`) — **PASS**, 3. Custody refusal audit (`order.transition_rejected`, `package.transition_rejected`) — **PASS**, 4. Partner barcode cross-reference (`package_external_identifiers`, `/v1/merchant/orders/{id}/external-ids`, Partner Barcodes card) — **PASS after fix**, 5. A new PorterChain tracking number — **FAIL (not built)**, 6. Invoice credit notes (`credit_notes` columns, `invoices.credited_cents`, `/v1/admin/finance/invoices/{id}/credit-notes`, Credits & adjustments panel) — **PASS after fix**, 7. GST/HST registration (`tax_registrations`, `platform/tax_registration.py`, `GET/POST /v1/admin/finance/tax-registration`, Admin > Finance > GST/HST) — **PASS after fix**, Evaluation — invoice waive / void / credit (Oct 2026) (+2 more)
 
 ### Community 982 - "deploy_host"
 
@@ -5378,32 +5667,437 @@ Nodes (3): test-sops-load.sh script, SOPS_AGE_KEY_FILE, SOPS_SECRETS_FILE
 Cohesion: 0.50
 Nodes (3): creation_rules, age, path_regex
 
+### Community 995 - "etl_service.py"
+
+Cohesion: 0.53
+Nodes (5): ingest_domain_event(), ingest_stop_leg(), Any, datetime, Analytics ETL — removed one-SoT cleanup (tables dropped). Former Phase-2…
+
 ### Community 1002 - "smtp"
 
 Cohesion: 0.67
 Nodes (3): smtp, env, status
 
+### Community 1004 - "proof_slug"
+
+Cohesion: 0.40
+Nodes (6): proof_slug(), Any, A value reduced to something safe to put in a URL and a filename., Give every proof a stable `download` handle (BR). The portal sends this…, stamp_download_slugs(), test_a_handle_is_safe_to_put_in_a_url_and_a_filename()
+
+### Community 1006 - "get_customer_experience_settings"
+
+Cohesion: 0.40
+Nodes (6): get_customer_experience_settings(), put_customer_experience_settings(), Any, Ctx, get, put
+
+### Community 1008 - "Admin"
+
+Cohesion: 0.47
+Nodes (3): Admin, enable(), main()
+
+### Community 1009 - "devDependencies"
+
+Cohesion: 0.33
+Nodes (6): devDependencies, echarts, next, @types/react, @types/react-dom, typescript
+
+### Community 1010 - "openapi_census.py"
+
+Cohesion: 0.53
+Nodes (5): _iter_ops(), _load_spec(), main(), _persona(), Wave 3 — classify every FastAPI operation (Keep / banned-absent). SSOT:…
+
+### Community 1011 - "verify_event_catalog.py"
+
+Cohesion: 0.53
+Nodes (5): main(), _py_event_values(), §3.3.4 — versioned event catalog parity (TS ↔ Python)., _read_version(), _ts_event_values()
+
+### Community 1012 - "verify_fr_en_leakage.py"
+
+Cohesion: 0.47
+Nodes (5): _get(), _identical_long(), walk(), main(), Fail if high-visibility FR keys still match EN (leakage).
+
+### Community 1013 - "verify_notification_catalog.py"
+
+Cohesion: 0.53
+Nodes (5): _catalog_keys(), _direct_dispatch_templates(), _event_router_templates(), main(), §3.3.3 — notification templates resolve from notification_engine catalog.
+
+### Community 1014 - "pr72ratecards01_pricing_admin.py"
+
+Cohesion: 0.50
+Nodes (3): _now(), upgrade(), TextClause
+
+### Community 1015 - "tx0hstfuel1a2b_ontario_tax_fuel_customer_card.py"
+
+Cohesion: 0.50
+Nodes (3): _insert_missing(), Save the customer distance card, Ontario HST, and merchant fuel. Revision ID:…, upgrade()
+
+### Community 1016 - "vc0snake1a2b_capacity_class_snake_backfill.py"
+
+Cohesion: 0.70
+Nodes (3): _map_class(), _rewrite_column(), upgrade()
+
+### Community 1017 - "bootstrap_all_profiles"
+
+Cohesion: 0.50
+Nodes (4): main(), Bootstrap SpiceDB relationships from Postgres profile rows (one-shot). Usage…, bootstrap_all_profiles(), One-shot: write SpiceDB tuples for every provisioned profile.
+
+### Community 1018 - "importlib"
+
+Cohesion: 0.40
+Nodes (4): **getattr**(), Any, Platform port for `porterchain_api.admin_engine.merchant_ar_cycles` (§3.2.9 —…, importlib
+
+### Community 1019 - "shopify_legacy_browser_entry"
+
+Cohesion: 0.40
+Nodes (5): _browser_page(), get, Old OAuth links (earlier released app versions, bookmarks): never a JSON dead…, shopify_legacy_browser_entry(), HTMLResponse
+
+### Community 1022 - "test_event_catalog_parity.py"
+
+Cohesion: 0.60
+Nodes (4): _py_event_values(), Event catalog parity — TS DomainEvents ↔ Python DomainEventType (§2.1.6)., test_event_catalog_parity(), _ts_event_values()
+
+### Community 1024 - "33 · Explicit decisions for tables, routers and pages with no plan entry"
+
+Cohesion: 0.40
+Nodes (4): 33 · Explicit decisions for tables, routers and pages with no plan entry, Pages (42), Routers (26), Tables (26)
+
+### Community 1025 - "migrate_clerk_users.py"
+
+Cohesion: 0.60
+Nodes (4): convert(), keycloak_id(), main(), One-off: Clerk user export (CSV) → Keycloak partial-import JSON + subject remap…
+
+### Community 1026 - "dependencies"
+
+Cohesion: 0.40
+Nodes (5): dependencies, date-fns, lucide-react, @porterchain/types, react-day-picker
+
+### Community 1041 - "peerDependencies"
+
+Cohesion: 0.40
+Nodes (5): peerDependencies, echarts, next, react, react-dom
+
+### Community 1042 - "verify_anonymous_retail_surface.py"
+
+Cohesion: 0.50
+Nodes (4): main(), Path, §1.4.1 (v2, customer fast-book) — website guest booking is express-only. Guests…, _read()
+
+### Community 1043 - "verify_city_local_segment_playbook.py"
+
+Cohesion: 0.60
+Nodes (4): _check_locale_block(), _get_nested(), main(), City×vehicle/intent local segment guard — bilingual templates, no EN leakage on…
+
+### Community 1044 - "verify_doc_pointer_stubs.py"
+
+Cohesion: 0.50
+Nodes (4): main(), Path, E.2 — Root-level POINTER doc stubs must be ≤5 (extras under docs/archive/)., root_pointer_files()
+
+### Community 1045 - "verify_engineering_gates.py"
+
+Cohesion: 0.50
+Nodes (4): main(), Path, §2 Engineering gate — ENG-G1–G6 satisfied in CI and guards., _text()
+
+### Community 1046 - "verify_home_playbook.py"
+
+Cohesion: 0.50
+Nodes (4): _check(), main(), Path, Homepage copy guard — playbook §4.1 hero + trust line.
+
+### Community 1047 - "verify_mobile_design_parity.py"
+
+Cohesion: 0.50
+Nodes (4): main(), Path, Mobile design system parity guard (§6.3.7)., _tsx_blob()
+
+### Community 1048 - "verify_no_ops_spatial_math.py"
+
+Cohesion: 0.50
+Nodes (4): _iter_py(), main(), Path, Dispatch spatial guard — ban hand-rolled math in the admin ops layer.…
+
+### Community 1049 - "verify_pricing_playbook.py"
+
+Cohesion: 0.50
+Nodes (4): _check(), main(), Path, Pricing copy guard — playbook §4.4 lives on /business#pricing (merchants…
+
+### Community 1050 - "verify_product_vision_pages.py"
+
+Cohesion: 0.60
+Nodes (4): _footer_hrefs(), main(), §1 Product Vision — capacity-first website, quote CTA, retail book routing., _route_exists()
+
+### Community 1051 - "verify_shared_kernel.py"
+
+Cohesion: 0.60
+Nodes (4): _check_states_module_purity(), _check_unique_definitions(), main(), §3.2.11 — shared kernel lifecycle states live only in domain/states.py.
+
+### Community 1052 - "verify_solutions_playbook.py"
+
+Cohesion: 0.50
+Nodes (4): _check(), main(), Path, Solutions hub copy guard — playbook §4.3 hero, metadata, pricing FAQ.
+
+### Community 1053 - "verify_vehicle_playbook.py"
+
+Cohesion: 0.60
+Nodes (4): _copy_total(), main(), _parse_indexable_from_ts(), Vehicle route publication guard — playbook §2.3 index policy + copy gate.
+
+### Community 1054 - "verify_visitor_test.py"
+
+Cohesion: 0.50
+Nodes (4): _hero_text(), main(), Path, PV-G1 — 10-second visitor test: homepage communicates what + for whom.
+
+### Community 1055 - "verify_website_seo_metadata.py"
+
+Cohesion: 0.50
+Nodes (4): check_page(), main(), Path, Website SEO metadata guard — canonical/hreflang helpers on indexable pages.
+
+### Community 1057 - "Admin portal P0 e2e"
+
+Cohesion: 0.50
+Nodes (3): Admin portal P0 e2e, Auth (staff IdP), Run
+
+### Community 1061 - "verify_service_coverage.py"
+
+Cohesion: 0.67
+Nodes (3): _aggregate_service_coverage(), main(), Verify *_service.py coverage floor (§2.1.11). Target 60%; CI enforces…
+
+### Community 1062 - ".**init**"
+
+Cohesion: 0.50
+Nodes (3): EmailDelay, Position, Vehicles
+
+### Community 1063 - "admin_engine__merchant_ar_service.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.admin_engine.merchant_ar_service` (§3.2.9…
+
+### Community 1064 - "admin_engine__pkg.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.admin_engine` (§3.2.9 — no direct cross-…
+
+### Community 1065 - "billing_engine__merchant_service.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.billing_engine.merchant_service` (§3.2.9 —…
+
+### Community 1066 - "billing_engine__models.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.billing_engine.models` (§3.2.9 — no direct…
+
+### Community 1067 - "billing_engine__pkg.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.billing_engine` (§3.2.9 — no direct cross-…
+
+### Community 1068 - "billing_engine__weekly_billing.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.billing_engine.weekly_billing` (§3.2.9 —…
+
+### Community 1069 - "booking_engine___core.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.booking_engine._core` (§3.2.9 — no direct…
+
+### Community 1070 - "booking_engine__invoice_service.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.booking_engine.invoice_service` (§3.2.9 —…
+
+### Community 1071 - "booking_engine__order_sla.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.booking_engine.order_sla` (§3.2.9 — no…
+
+### Community 1072 - "booking_engine__order_transitions.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.booking_engine.order_transitions` (§3.2.9…
+
+### Community 1073 - "compliance_engine__pkg.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.compliance_engine` (§3.2.9 — no direct…
+
+### Community 1074 - "dispatch_engine__hub_legs.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.dispatch_engine.hub_legs` (§3.2.9 — no…
+
+### Community 1075 - "dispatch_engine__models.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.dispatch_engine.models` (§3.2.9 — no…
+
+### Community 1076 - "flow_engine__pkg.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.flow_engine` (§3.2.9 — no direct cross-…
+
+### Community 1077 - "merchant_engine__config_read.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.merchant_engine.config_read` (§3.2.9 — no…
+
+### Community 1078 - "merchant_engine__invoice_reminder.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.merchant_engine.invoice_reminder` (§3.2.9…
+
+### Community 1079 - "merchant_engine__lifecycle.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.merchant_engine.lifecycle` (§3.2.9 — no…
+
+### Community 1080 - "merchant_engine__lookups.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.merchant_engine.lookups` (§3.2.9 — no…
+
+### Community 1081 - "merchant_engine__shopify_billing.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.merchant_engine.shopify_billing` (§3.2.9 —…
+
+### Community 1082 - "notification_engine__delivery_service.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.notification_engine.delivery_service`…
+
+### Community 1083 - "notification_engine__notice_push.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.notification_engine.notice_push` (§3.2.9 —…
+
+### Community 1084 - "order_engine__buckets.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.order_engine.buckets` (§3.2.9 — no direct…
+
+### Community 1085 - "org_engine__models.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.org_engine.models` (§3.2.9 — no direct…
+
+### Community 1086 - "org_engine__pkg.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.org_engine` (§3.2.9 — no direct cross-…
+
+### Community 1087 - "org_engine__service.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.org_engine.service` (§3.2.9 — no direct…
+
+### Community 1088 - "pricing_engine__models.py"
+
+Cohesion: 0.50
+Nodes (3): **getattr**(), Any, Platform port for `porterchain_api.pricing_engine.models` (§3.2.9 — no direct…
+
+### Community 1089 - "mark"
+
+Cohesion: 0.50
+Nodes (4): paint_page(), paint(), mark(), Tag a collect-only order (no-op for a standard booking, `hub=None`).
+
+### Community 1093 - "AddressBook"
+
+Cohesion: 0.83
+Nodes (4): AddressBook(), load(), remove(), save()
+
+### Community 1094 - "31 · Worker sweep and processor mapping (L19, L20)"
+
+Cohesion: 0.50
+Nodes (3): 31 · Worker sweep and processor mapping (L19, L20), Processors (5), Sweeps (22)
+
+### Community 1095 - "34 · Data migration and cutover (PCD live → Phase 1)"
+
+Cohesion: 0.50
+Nodes (3): 34 · Data migration and cutover (PCD live → Phase 1), Clerk → Keycloak user migration, Steps
+
+### Community 1096 - "GA4 weekly funnel (website)"
+
+Cohesion: 0.50
+Nodes (3): GA4 weekly funnel (website), One-time GA4 setup (Ravi, 5 minutes), Weekly review (Monday, 15 minutes)
+
+### Community 1097 - "COD and Stripe Connect columns — dropped"
+
+Cohesion: 0.50
+Nodes (3): Before running on production (read-only, keep the output), COD and Stripe Connect columns — dropped, Data safety
+
+### Community 1098 - "split_fat_routers.py"
+
+Cohesion: 0.67
+Nodes (3): main(), Split fat FastAPI routers into packages (masterrule Appendix D)., split_router()
+
+### Community 1099 - "verify_design_copy.py"
+
+Cohesion: 0.67
+Nodes (3): _is_excepted(), main(), Design copy ban-list gate (§6.1.2 · §6.1.3 · DES-G2). Enforces…
+
+### Community 1100 - "verify_golden_rules.py"
+
+Cohesion: 0.67
+Nodes (3): _ci_text(), main(), Living architecture CI wiring — thin routers, D2, no Fleetbase in UI.
+
+### Community 1101 - "verify_marketing_claims.py"
+
+Cohesion: 0.67
+Nodes (3): main(), Marketing claim registry — banned absolute/regulatory claims in public website…, _walk_strings()
+
+### Community 1102 - "verify_no_false_ai_marketing.py"
+
+Cohesion: 0.67
+Nodes (3): main(), §4.1.5 · AI-G2 — No false AI claims in public marketing copy., _walk_strings()
+
+### Community 1103 - "verify_service_area_badges.py"
+
+Cohesion: 0.67
+Nodes (3): main(), _parse_core_slugs(), Service-area trust guard — core metros vs confirmation-only markets.
+
+### Community 1104 - "verify_website_fr_message_parity.py"
+
+Cohesion: 0.67
+Nodes (3): _draft_map_values(), main(), EN/FR message parity — EN-only niches and service areas must be draft…
+
+### Community 1146 - "_hide_deleted"
+
+Cohesion: 0.67
+Nodes (3): _hide_deleted(), listens_for, ORMExecuteState
+
+### Community 1147 - "_clear_idp_env"
+
+Cohesion: 0.67
+Nodes (3): _clear_idp_env(), fixture, MonkeyPatch
+
+### Community 1148 - "merchant_client"
+
+Cohesion: 0.67
+Nodes (3): merchant_client(), fixture, Merchant door sharing the test transaction. Module authz has its own tests.
+
+### Community 1152 - "merchant_webhooks"
+
+Cohesion: 0.67
+Nodes (3): merchant_webhooks, code, status
+
+### Community 1153 - "peerDependenciesMeta"
+
+Cohesion: 0.67
+Nodes (3): optional, peerDependenciesMeta, echarts
+
 ## Knowledge Gaps
 
-- **37 isolated node(s):** `npx`, `@colbymchenry/codegraph`, `porterchain-api`, `EXPO_PUBLIC_APP_ENV`, `EXPO_PUBLIC_ALLOW_DEV_AUTH` (+32 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 11107 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **177 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **5725 isolated node(s):** `npx`, `@colbymchenry/codegraph`, `lance`, `authAndNav`, `DriverCase` (+5720 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 12658 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **248 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Settings` connect `Settings` to `typing`, `Order`, `MerchantUser`, `test_execution_metrics.py`, `MerchantContext`, `pytest`, `get_driver_context`, `merchant_engine/booking_service.py`, `test_shopify_urls.py`, `crm_models.py`, `BookingDraft`, `leads.py`, `customer_fast/service.py`, `PorterchainUser`, `carrier_service_rates`, `json`, `uuid`, `shopify_payload_ops.py`, `Driver`, `admin/_deps.py`, `get_preview_post`, `merchant_onboarding.py`, `CurrentPrincipal`, `test_keycloak_auth.py`, `AdminContext`, `dataclasses`, `CrmLead`, `test_keycloak_integration.py`, `valhalla`, `test_shopify_rate_limit_fail_open.py`, `test_unified_identity_phase5.py`, `TrackingService`, `hmac`, `schemas_merchant.py`, `get_admin_context`, `DomainEvent`, `db`, `routers/notifications.py`, `routers/shopify.py`, `operations.py`, `read_last_known`, `test_driver_invert_phase3.py`, `merchants.py`, `lead_inbox.py`, `porterchain_api/config.py`, `NotificationRecord`, `test_lead_desk_r2.py`, `test_customer_persona_p0.py`, `porterchain_api/schemas.py`, `drivers_admin.py`, `Merchant360Service`, `test_shopify_app_review.py`, `driver/_deps.py`, `integrations.py`, `route_import_service.py`, `AdminOperationsService`, `get_platform_settings`, `driver/assignment.py`, `admin/orders.py`, `test_p0_implemented.py`, `.list_platform_users`, `test_driver_p0_catalog.py`, `orders_tracking.py`, `AdminMerchantService`, `shopify_privacy.py`, `test_notification_driver_identity.py`, `test_lead_inbox_p1.py`, `db_transaction`, `require_module`, `diagnostics.py`, `test_impersonation_audit.py`, `DiagnosticsProbesMixin`, `merchants_integrations.py`, `AdminSettingsService`, `finance_cash.py`, `test_shopify_upgrades_phase_a.py`, `DriverBackgroundCheckService`, `route_imports.py`, `routers/merchant_ops.py`, `AdminOrdersService`, `NavigationService`, `AdminFinanceService`, `test_merchant_admin_ops.py`, `scheduling.py`, `test_driver_abstract_and_expiry.py`, `test_hs27_chaos_matrix.py`, `test_shopify_tokens.py`, `test_g21_reviewer_sandbox.py`, `porterchain_api_merchant_engine`, `enforce_staff_step_up`, `MerchantStandingOrderService`, `test_remaining_to_live_prove.py`, `admin360.py`, `test_project_mode.py`, `customers_admin_360.py`, `finance_insights.py`, `test_fail_closed_bj.py`, `billing_engine/stripe_money.py`, `leads_outbound.py`, `merchant_engine/tracking_service.py`, `navigation_pod.py`, `admin/finance.py`, `PorterChain production deploy`, `customer_experience/notifications.py`, `MerchantTrackingService`, `test_admin_keycloak.py`, `admin_dashboard`, `commit_admin_audit`, `lead_webhooks.py`, `field_admin.py`, `customers_admin.py`, `driver/communications.py`, `_merge_idp_directory`, `test_g10_vendor_removal.py`, `DriverVerificationService`, `admin/booking_drafts.py`, `customer_experience/service.py`, `test_p0_handshakes_wave2.py`, `test_leads_doc78.py`, `DiagnosticsReportsMixin`, `test_merchant_matrix_p0_arch.py`, `driver_ops.py`, `real`, `PorterChain architecture (living)`, `marketing_site/config.py`, `routers/customer_experience.py`, `test_pricing_audit_gates.py`, `E2EValidationReportsMixin`, `test_memberships_switcher_bf.py`, `me_profile.py`?**
-  _High betweenness centrality (0.116) - this node is a cross-community bridge._
-- **Are the 693 inferred relationships involving `Settings` (e.g. with `main()` and `AdminBookingDraftService`) actually correct?**
-  _`Settings` has 693 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `npx`, `@colbymchenry/codegraph`, `porterchain-api` to the rest of the system?**
-  _37 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `typing` be split into smaller, more focused modules?**
-  _Cohesion score 0.007067796541480752 - nodes in this community are weakly interconnected._
-- **Why does `Order` connect `Order` to `typing`, `MerchantBillingService`, `driver_models.py`, `test_execution_metrics.py`, `pod_store.py`, `reminders.py`, `MerchantContext`, `test_driver_multi_stop.py`, `test_idor.py`, `pytest`, `get_driver_context`, `merchant_engine/booking_service.py`, `MerchantDashboardService`, `BookingDraft`, `customer_fast/rules.py`, `platform.py`, `customer_fast/service.py`, `order_documents.py`, `Merchant`, `json`, `get_settings`, `test_app_review_demo_owner_tracking.py`, `shopify_payload_ops.py`, `Driver`, `admin/_deps.py`, `order_sla.py`, `AdminContext`, `Settings`, `TrackingService`, `soft_delete/registry.py`, `schemas_merchant.py`, `invoice_adjustments.py`, `StopsService`, `FleetPlanService`, `DomainEvent`, `dispatch_board_service.py`, `booking_attachments/service.py`, `ExternalIdentifierService`, `operations.py`, `JobsService`, `test_keycloak_email_otp.py`, `SupportActor`, `OrchestratorOpsService`, `test_portal_idempotency_bh.py`, `porterchain_api/config.py`, `NotificationRecord`, `test_lead_inbox_p0.py`, `test_lead_desk_r2.py`, `pricing_cards.py`, `label_service.py`, `test_customer_persona_p0.py`, `os`, `Merchant360Service`, `account_ops/health.py`, `Base`, `Claim`, `logistics_partners_service.py`, `compute_ranked_suggestions`, `reporting_metrics.py`, `test_public_tracking_privacy.py`, `route_import_service.py`, `AdminOperationsService`, `test_driver_p0_catalog.py`, `orders_tracking.py`, `test_merchant_print_preview.py`, `import_rows.py`, `shopify_privacy.py`, `switching_costs.py`, `test_interac_parser.py`, `scan_gate_service.py`, `db_transaction`, `MerchantArService`, `collections`, `test_custody_state_and_external_ids.py`, `DiagnosticsProbesMixin`, `NotificationAdminService`, `merchants_integrations.py`, `settings_extra.py`, `test_customer_experience_phase_b.py`, `public_tracking_snapshot.py`, `test_shopify_upgrades_phase_a.py`, `test_pod_download_br.py`, `route_imports.py`, `AdminOrdersService`, `NavigationService`, `AdminFinanceService`, `test_merchant_admin_ops.py`, `test_contract_terms.py`, `scheduling.py`, `SupportContextMixin`, `unittest_mock`, `test_interac_billing.py`, `exception_fixes_service.py`, `DriverShift`, `orders_board.py`, `DriverFinanceService`, `MerchantStatus`, `Customer persona + Admin Customers — development test cases`, `DriverRouteService`, `utilization_service.py`, `admin360.py`, `ShiftService`, `billing_engine/stripe_money.py`, `test_soft_delete.py`, `ScanGateService`, `merchant_engine/tracking_service.py`, `merchant_ar_cycles.py`, `test_email_notifications.py`, `TenantScope`, `Package`, `PorterChain — development test cases catalog (system-wide)`, `test_dispatch_brain.py`, `reporting/monopoly_metrics.py`, `scheduled_batches_service.py`, `customer_experience/notifications.py`, `MerchantTrackingService`, `test_track_search_bk.py`, `InvoiceLine`, `commit_admin_audit`, `field_admin.py`, `privacy_access.py`, `JobOffersService`, `customer_experience/events.py`, `driver/job_docs.py`, `customer_experience/service.py`, `DriverSupportBridgeService`, `investor_metrics`, `support_rollup`, `test_merchant_api_idempotency.py`, `customer_fast/privacy.py`, `CustomerAdminService`, `test_public_tracking_privacy.py`, `PrivacyService`, `tracking_view.py`, `compliance_dossier.py`?**
-  _High betweenness centrality (0.050) - this node is a cross-community bridge._
-- **Are the 540 inferred relationships involving `Order` (e.g. with `_advance_order()` and `cleanup_partial_seed_orders()`) actually correct?**
-  _`Order` has 540 INFERRED edges - model-reasoned connections that need verification._
-- **Should `Order` be split into smaller, more focused modules?**
-  _Cohesion score 0.008758045795082832 - nodes in this community are weakly interconnected._
+- **Why does `Settings` connect `Settings` to `ShopifyShop`, `Order`, `Invoice`, `typing`, `shopify_fulfillment_ops.py`, `test_login_hardening_l213_l214.py`, `MerchantContext`, `DriverContext`, `MerchantBookDeliveryRequest`, `test_shopify_app_review.py`, `crm_models.py`, `BookingDraft`, `require_module`, `customer_fast/service.py`, `customer_fast.py`, `AdminUser`, `AddressInput`, `test_merchant_invoice_card.py`, `Merchant`, `test_shopify_privacy.py`, `test_shopify_urls.py`, `LeadStatus`, `shopify_payload_ops.py`, `IdentityClaims`, `admin/_deps.py`, `public_blog.py`, `require_module`, `merchant_onboarding.py`, `test_keycloak_auth.py`, `Driver`, `test_keycloak_integration.py`, `CrmLead`, `customers.py`, `routers/fsa_rate_card.py`, `test_unified_identity_phase5.py`, `TrackingService`, `re`, `schemas_merchant.py`, `AdminContext`, `public_guide.py`, `E2EValidationVerifiersMixin`, `db`, `routers/notifications.py`, `lead_webhooks.py`, `test_l124_webhook_secret_rotation.py`, `operations.py`, `test_remaining_to_live_prove.py`, `merchants.py`, `lead_inbox.py`, `_common.py`, `public_inquiries.py`, `test_lead_desk_r2.py`, `test_customer_persona_p0.py`, `porterchain_api/schemas.py`, `integrations_service.py`, `drivers_admin.py`, `ProofOfDeliveryService`, `api_keys_payload`, `test_shopify_review_139170.py`, `driver/_deps.py`, `test_collect_only_disabled.py`, `test_customer_driver_position.py`, `integrations.py`, `route_import_service.py`, `NotificationUser`, `get_platform_settings`, `admin/orders.py`, `test_p0_implemented.py`, `shopify_tokens.py`, `admin_engine/settings_service.py`, `Customer`, `import_confirm.py`, `orders_tracking.py`, `smart_apply.py`, `AdminMerchantService`, `commit_admin_audit`, `test_lead_inbox_p1.py`, `stop_cargo.py`, `routers/job_docs.py`, `get_merchant_context`, `customer_experience/service.py`, `diagnostics.py`, `impersonation_session.py`, `AdminOrdersService`, `DiagnosticsProbesMixin`, `test_api_freeze_regression.py`, `MerchantRouteImportService`, `merchants_integrations.py`, `AdminSettingsService`, `public_tracking_snapshot.py`, `test_shopify_upgrades_phase_a.py`, `DriverBackgroundCheckService`, `route_imports.py`, `routers/merchant_ops.py`, `pod_export.py`, `NavigationService`, `shopify_order_sync.py`, `scheduling.py`, `DriverComplianceExpiryService`, `test_shopify_tokens.py`, `test_g21_reviewer_sandbox.py`, `test_customer_persona_p0_integrations.py`, `DriverOfflineExecutor`, `test_kaylulu_contract_wiring.py`, `fastapi`, `MerchantStandingOrderService`, `leads_desk.py`, `create_app`, `test_login_hardening_l219.py`, `admin360.py`, `test_project_mode.py`, `customers_admin_360.py`, `finance_insights.py`, `test_fail_closed_bj.py`, `leads_outbound.py`, `main.py`, `merchant_engine/tracking_service.py`, `test_shopify_fo_foundation.py`, `navigation_pod.py`, `phase2.py`, `merchant/shopify.py`, `orders_actions.py`, `shopify_billing.py`, `customer_experience/notifications.py`, `MerchantTrackingService`, `test_admin_keycloak.py`, `_settings`, `KeycloakAdmin`, `leads_inbox.py`, `customers_admin.py`, `IdentityDirectory`, `driver/communications.py`, `test_unified_identity_characterization.py`, `_merge_idp_directory`, `test_unified_identity_phase9.py`, `confirmation_service.py`, `admin/booking_drafts.py`, `pytest`, `diagnostics_service.py`, `MerchantBulkService`, `_admin_from_keycloak`, `verification.py`, `test_merchant_matrix_p0_arch.py`, `driver_ops.py`, `public_marketing.py`, `routers/customer_experience.py`, `test_p0_golden_book.py`, `test_memberships_switcher_bf.py`, `admin/__init__.py`, `etl_service.py`, `shopify_legacy_browser_entry`?**
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **Why does `Order` connect `Order` to `ShopifyShop`, `Invoice`, `typing`, `shopify_fulfillment_ops.py`, `MerchantContext`, `test_booking_attachments.py`, `DriverContext`, `OrderRepository`, `MerchantBookDeliveryRequest`, `MerchantDashboardService`, `SupportTicket`, `BookingDraft`, `customer_fast/service.py`, `customer_fast.py`, `AdminUser`, `test_invoice_credit_notes.py`, `Merchant`, `test_shopify_privacy.py`, `test_dispatch_phase2.py`, `shopify_payload_ops.py`, `admin/_deps.py`, `Driver`, `customers.py`, `Settings`, `TrackingService`, `schemas_merchant.py`, `StopsService`, `FleetPlanService`, `E2EValidationVerifiersMixin`, `recommend.py`, `booking_attachments/service.py`, `operations.py`, `JobsService`, `importlib_util`, `OrchestratorOpsService`, `AdminClaimsService`, `NotificationRecord`, `NotificationAdminService`, `connections.py`, `test_customer_persona_p0.py`, `integrations_service.py`, `ProofOfDeliveryService`, `api_keys_payload`, `account_ops/health.py`, `ClaimsQueryMixin`, `LogisticsPartnersService`, `compute_ranked_suggestions`, `reporting_metrics.py`, `test_collect_only_disabled.py`, `QueueName`, `_specs_for_event`, `ScanGateService`, `Customer`, `orders_tracking.py`, `smart_apply.py`, `normalize`, `OrderLeg`, `commit_admin_audit`, `sys`, `stop_cargo.py`, `routers/job_docs.py`, `get_merchant_context`, `customer_experience/service.py`, `interac/service.py`, `analytics.py`, `AdminOrdersService`, `DiagnosticsProbesMixin`, `merchants_integrations.py`, `test_customer_experience_phase_b.py`, `public_tracking_snapshot.py`, `test_shopify_upgrades_phase_a.py`, `dispatch_plan.py`, `test_pod_download_br.py`, `route_imports.py`, `pod_export.py`, `NavigationService`, `test_collections_bl.py`, `test_merchant_admin_ops.py`, `shopify_order_sync.py`, `scheduling.py`, `.find_for_merchant_lookup`, `DriverOfflineExecutor`, `ExceptionFixesService`, `LiveMapService`, `orders_board.py`, `test_kaylulu_contract_wiring.py`, `DriverFinanceService`, `DriverRouteService`, `UtilizationService`, `admin360.py`, `prometheus_metrics`, `ShiftService`, `main.py`, `merchant_engine/tracking_service.py`, `get_notification_engine`, `order_repository.py`, `test_dispatch_brain.py`, `test_monopoly_investor.py`, `test_merchant_book_al.py`, `customer_experience/notifications.py`, `MerchantTrackingService`, `test_track_search_bk.py`, `accessorials.py`, `equipment_match`, `SavedAddress`, `confirmation_service.py`, `customer_experience/events.py`, `driver/job_docs.py`, `tax_report.py`, `quote_admin.py`, `DriverSupportBridgeService`, `pytest`, `SystemConfig`, `diagnostics_service.py`, `PickupDocumentNotShown`, `test_merchant_api_idempotency.py`, `CustomerAdminService`, `test_public_tracking_privacy.py`, `tracking_view.py`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `Merchant` connect `Merchant` to `ShopifyShop`, `Order`, `test_merchant_admin_ops.py`, `Invoice`, `integrations_service.py`, `typing`, `scheduling.py`, `api_keys_payload`, `account_ops/health.py`, `shopify_fulfillment_ops.py`, `ProofOfDeliveryService`, `MerchantContext`, `test_booking_attachments.py`, `reporting_metrics.py`, `test_shopify_app_review.py`, `crm_models.py`, `route_import_service.py`, `_specs_for_event`, `pytest`, `AuthzClient`, `orders_board.py`, `AdminUser`, `AddressInput`, `NotificationUser`, `test_invoice_credit_notes.py`, `test_merchant_activation_policy.py`, `test_shopify_privacy.py`, `dedupe.py`, `_seed_lead`, `.select`, `LeadStatus`, `MerchantStandingOrderService`, `shopify_payload_ops.py`, `import_confirm.py`, `orders_tracking.py`, `smart_apply.py`, `admin/_deps.py`, `SqlAlchemyPricingRepository`, `merchant_onboarding.py`, `test_pricing_audit_gates.py`, `test_merchant_api_idempotency.py`, `sys`, `TrackingService`, `main.py`, `re`, `interac/service.py`, `merchant_engine/tracking_service.py`, `merchant/shopify.py`, `StopsService`, `analytics.py`, `AdminOrdersService`, `E2EValidationVerifiersMixin`, `MerchantContactsService`, `get_pricing_service`, `test_memberships_switcher_bf.py`, `MerchantRouteImportService`, `test_monopoly_investor.py`, `test_merchant_book_al.py`, `test_track_search_bk.py`, `JobsService`, `merchants.py`, `test_fsa_rate_card.py`, `test_pod_download_br.py`, `test_collections_bl.py`, `MerchantProfileService`, `NotificationRecord`, `merchant_merge.py`, `SavedAddress`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Are the 728 inferred relationships involving `Settings` (e.g. with `main()` and `AdminBookingDraftService`) actually correct?**
+  _`Settings` has 728 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 546 inferred relationships involving `Order` (e.g. with `_advance_order()` and `cleanup_partial_seed_orders()`) actually correct?**
+  _`Order` has 546 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 254 inferred relationships involving `AdminContext` (e.g. with `_bootstrap_admin_ctx()` and `main()`) actually correct?**
+  _`AdminContext` has 254 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `npx`, `@colbymchenry/codegraph`, `lance` to the rest of the system?**
+  _5725 weakly-connected nodes found - possible documentation gaps or missing edges._

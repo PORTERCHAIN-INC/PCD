@@ -6,7 +6,6 @@
 import fr from "./fr.json";
 
 export type Locale = "en" | "fr";
-export const LOCALES: Locale[] = ["en", "fr"];
 export const LOCALE_COOKIE = "pc_locale";
 
 let current: Locale = "en";

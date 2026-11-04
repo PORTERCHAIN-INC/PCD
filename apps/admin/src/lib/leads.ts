@@ -416,20 +416,6 @@ export function replyDisabledReason(reason: string | null | undefined): string {
   }
 }
 
-/** Minutes until (positive) or since (negative) the first-response SLA. */
-export function slaMinutesLeft(lead: Pick<Lead, "sla_first_response_due_at">, now = Date.now()) {
-  if (!lead.sla_first_response_due_at) return null;
-  const due = new Date(lead.sla_first_response_due_at).getTime();
-  if (Number.isNaN(due)) return null;
-  return Math.round((due - now) / 60_000);
-}
-
-export function formatSla(minutes: number): string {
-  const abs = Math.abs(minutes);
-  const text = abs >= 60 ? `${Math.floor(abs / 60)}h ${abs % 60}m` : `${abs}m`;
-  return minutes >= 0 ? `${text} left` : `${text} over`;
-}
-
 export type LeadQuote =
   | { available: false; reason: string }
   | {

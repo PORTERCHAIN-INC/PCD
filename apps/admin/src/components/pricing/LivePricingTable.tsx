@@ -13,21 +13,8 @@ export function RetiredBanner({ what }: { what: string }) {
   );
 }
 
-export default function LivePricingTable() {
-  const rows: [string, string][] = [
-    ["Small parcel (fits 20 × 14 × 14 in, ≤ 100 lb)", "$6 each"],
-    ["Van parcel (anything larger)", "$9 each"],
-    ["101–125 lb, or up to 80 × 45 in", "+$30 handling per parcel"],
-    ["126–150 lb, or up to 90 × 50 in", "+$60 handling per parcel"],
-    ["Over 150 lb or over 90 × 50 in", "Custom quote"],
-  ];
-  const hourly: [string, string][] = [
-    ["Sedan / SUV / pickup", "$40 / h"],
-    ["Cargo van / small van", "$60 / h"],
-    ["16 ft+ box / cube van", "$70 / h"],
-    ["Load help, per stop where requested", "+$30"],
-  ];
-  const T = ({ title, data, note }: { title: string; data: [string, string][]; note: string }) => (
+function T({ title, data, note }: { title: string; data: [string, string][]; note: string }) {
+  return (
     <section className="rounded-xl border p-4">
       <h3 className="font-semibold">{title}</h3>
       <p className="text-xs text-muted">{note}</p>
@@ -43,6 +30,22 @@ export default function LivePricingTable() {
       </table>
     </section>
   );
+}
+
+export default function LivePricingTable() {
+  const rows: [string, string][] = [
+    ["Small parcel (fits 20 × 14 × 14 in, ≤ 100 lb)", "$6 each"],
+    ["Van parcel (anything larger)", "$9 each"],
+    ["101–125 lb, or up to 80 × 45 in", "+$30 handling per parcel"],
+    ["126–150 lb, or up to 90 × 50 in", "+$60 handling per parcel"],
+    ["Over 150 lb or over 90 × 50 in", "Custom quote"],
+  ];
+  const hourly: [string, string][] = [
+    ["Sedan / SUV / pickup", "$40 / h"],
+    ["Cargo van / small van", "$60 / h"],
+    ["16 ft+ box / cube van", "$70 / h"],
+    ["Load help, per stop where requested", "+$30"],
+  ];
   return (
     <div className="space-y-4" aria-label="Live pricing">
       <T

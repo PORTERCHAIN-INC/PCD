@@ -26,7 +26,6 @@
     "@porterchain/maps": "workspace:*",
     "@porterchain/types": "workspace:*",
     "@porterchain/ui": "workspace:*",
-    "@sentry/nextjs": "^10.64.0",
     "ai": "^7.0.37",
     "framer-motion": "^12.42.2",
     "lottie-web": "5.13.0",

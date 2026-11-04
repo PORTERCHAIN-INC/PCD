@@ -609,10 +609,6 @@ export function patchMyProfile(
 ): Promise<{ profile: MeProfile; changed: string[] }> {
   return driverFetch(`${DRIVER_API}/me/profile`, { method: "PATCH", body: JSON.stringify(body) });
 }
-export function syncMyIdentity(): Promise<{ profile: MeProfile; changed: string[] }> {
-  return driverFetch(`${DRIVER_API}/me/profile/sync-identity`, { method: "POST" });
-}
-
 export type Statement = {
   id: string;
   period_label: string;

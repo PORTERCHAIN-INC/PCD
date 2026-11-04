@@ -117,3 +117,6 @@ docs/archive/vendor-leads/*.csv
 
 # Shopify CLI local state
 integrations/shopify/.shopify/
+
+# Local ops scratch, backups and progress notes (never commit)
+.pcd-local-stack/

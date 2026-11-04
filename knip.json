@@ -13,19 +13,30 @@
       "ignore": ["public/firebase-messaging-sw.js"]
     },
     "apps/merchant-portal": {
-      "entry": ["e2e-review/**/*.spec.ts", "playwright.review.config.ts"],
+      "entry": [
+        "e2e-review/**/*.spec.ts",
+        "playwright.review.config.ts",
+        "src/i18n/jsx-runtime.ts",
+        "src/i18n/jsx-dev-runtime.ts"
+      ],
       "ignore": ["public/firebase-messaging-sw.js"]
     },
     "apps/customer": {
-      "ignore": ["src/lib/visitor-session.ts"]
+      "ignore": ["src/lib/visitor-session.ts"],
+      "entry": ["src/i18n/jsx-runtime.ts", "src/i18n/jsx-dev-runtime.ts"]
     },
     "apps/mobile-customer": {
       "ignore": ["vendor/**"],
-      "ignoreDependencies": ["expo-updates", "expo-system-ui"]
+      "ignoreDependencies": [
+        "expo-updates",
+        "expo-system-ui",
+        "expo-auth-session",
+        "expo-constants"
+      ]
     },
     "apps/mobile-driver": {
       "ignore": ["vendor/**"],
-      "ignoreDependencies": ["expo-updates", "expo-system-ui"],
+      "ignoreDependencies": ["expo-updates", "expo-system-ui", "expo-auth-session"],
       "ignoreBinaries": ["maestro"]
     },
     "packages/config": {
@@ -33,7 +44,8 @@
     },
     "website": {
       "ignore": ["src/lib/seo/OWNERSHIP.ts"],
-      "ignoreDependencies": ["server-only"]
+      "ignoreDependencies": ["server-only"],
+      "entry": ["e2e-local-stack/**/*.ts"]
     }
   },
   "ignore": ["tests/load/**"],
@@ -52,6 +64,8 @@
     "website/src/lib/seo/redirects.ts": ["exports"],
     "website/src/lib/seo/routes.ts": ["exports"],
     "website/src/lib/seo/schema.ts": ["exports"],
-    "website/src/lib/seo/vehicle-page.tsx": ["exports"]
+    "website/src/lib/seo/vehicle-page.tsx": ["exports"],
+    "apps/customer/tsconfig.json": ["unlisted"],
+    "apps/merchant-portal/tsconfig.json": ["unlisted"]
   }
 }
