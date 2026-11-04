@@ -334,6 +334,27 @@ jobs:
           require_keys: POSTGRES_PASSWORD,KEYCLOAK_ADMIN_CLIENT_SECRET,AUTH_SESSION_SECRET
           upload: "false"
 
+      # Before any file is copied: keep the running stack's .env, compose file and
+      # Caddyfile so rollback-prod.sh can restore them with the old images
+      # (2026-11-04: rollback pinned old images under the new compose + stripped .env).
+      - name: Stage pre-deploy config on droplet
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd /opt/porterchain
+            umask 077
+            rm -rf backups/pre-deploy-config-staged
+            mkdir -p backups/pre-deploy-config-staged
+            for f in .env docker-compose.prod.yml Caddyfile; do
+              if [ -f "$f" ]; then cp -a "$f" backups/pre-deploy-config-staged/; fi
+            done
+            ls backups/pre-deploy-config-staged
+
       - name: Copy full-stack deploy manifests to droplet
         if: needs.plan.outputs.rollout == 'full'
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
@@ -489,7 +510,7 @@ jobs:
             echo " <- booking-drafts OK"
             if ! retry_cmd docker compose -f docker-compose.prod.yml exec -T api curl -fsS -X POST http://localhost:8001/v1/quotes \
               -H 'Content-Type: application/json' \
-              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"vehicle","scheduled_at":"2026-07-04T12:00:00Z"}' >/dev/null; then
+              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"parcels","parcels":[{"preset_id":"small","quantity":1}],"scheduled_at":"2026-07-04T12:00:00Z"}' >/dev/null; then
               docker compose -f docker-compose.prod.yml logs --tail 120 api || true
               rollback_and_exit "quotes smoke failed after migrate"
             fi
@@ -630,7 +651,7 @@ jobs:
           quote_ok() {
             curl -fsS --max-time 30 -X POST https://api.porterchain.com/v1/quotes \
               -H 'Content-Type: application/json' \
-              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"vehicle","scheduled_at":"2026-07-05T18:00:00Z"}' \
+              -d '{"pickup":{"formatted":"Deploy Smoke Pickup, Toronto","lat":43.65,"lng":-79.38},"dropoff":{"formatted":"Deploy Smoke Dropoff, Toronto","lat":43.66,"lng":-79.40},"vehicle_class":"cargoVan","booking_mode":"parcels","parcels":[{"preset_id":"small","quantity":1}],"scheduled_at":"2026-07-05T18:00:00Z"}' \
               | grep -q quote_id
           }
           retry_smoke "api health" body_has https://api.porterchain.com/health '"status":"ok"'

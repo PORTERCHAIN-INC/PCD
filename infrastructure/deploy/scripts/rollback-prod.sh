@@ -30,10 +30,11 @@ ADMIN_IMAGE=""
 MERCHANT_IMAGE=""
 DRIVER_IMAGE=""
 CUSTOMER_IMAGE=""
+CONFIG_DIR=""
 
 while IFS='=' read -r key value; do
   case "$key" in
-    DUMP | API_IMAGE | WEB_IMAGE | ADMIN_IMAGE | MERCHANT_IMAGE | DRIVER_IMAGE | CUSTOMER_IMAGE)
+    DUMP | API_IMAGE | WEB_IMAGE | ADMIN_IMAGE | MERCHANT_IMAGE | DRIVER_IMAGE | CUSTOMER_IMAGE | CONFIG_DIR)
       printf -v "$key" '%s' "$value"
       ;;
   esac
@@ -63,6 +64,30 @@ export_if_set() {
   fi
 }
 
+# Old images need the old compose file and the old .env (e.g. CLERK_* keys that
+# sync-secrets.sh strips for the Keycloak release). Restore all three first.
+restore_config() {
+  if [[ -z "$CONFIG_DIR" ]]; then
+    echo "::warning::manifest has no CONFIG_DIR — keeping current .env/compose/Caddyfile" >&2
+    return 0
+  fi
+  if [[ ! -d "$CONFIG_DIR" ]]; then
+    echo "Manifest CONFIG_DIR is missing: $CONFIG_DIR" >&2
+    exit 1
+  fi
+  local f stamp
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  for f in .env docker-compose.prod.yml Caddyfile; do
+    [[ -f "$CONFIG_DIR/$f" ]] || continue
+    if [[ -f "$DEPLOY_DIR/$f" ]]; then cp -a "$DEPLOY_DIR/$f" "$DEPLOY_DIR/$f.failed-$stamp"; fi
+    # cat > keeps the inode, so the Caddyfile bind mount sees the restored file.
+    cat "$CONFIG_DIR/$f" >"$DEPLOY_DIR/$f"
+    echo "Restored $f from $CONFIG_DIR"
+  done
+  chmod 600 "$DEPLOY_DIR/.env" 2>/dev/null || true
+}
+restore_config
+
 export_if_set API_IMAGE "$API_IMAGE"
 export_if_set WEB_IMAGE "$WEB_IMAGE"
 export_if_set ADMIN_IMAGE "$ADMIN_IMAGE"
@@ -82,6 +107,10 @@ else
 fi
 
 bash "$SCRIPT_DIR/recover-prod-stack.sh"
+if [[ -n "$CONFIG_DIR" && -f "$CONFIG_DIR/Caddyfile" ]]; then
+  docker compose -f "$COMPOSE_FILE" exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile \
+    || echo "::warning::caddy reload after config restore failed" >&2
+fi
 
 echo "Waiting for API health after rollback..."
 healthy=0
