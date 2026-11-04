@@ -13,6 +13,7 @@ import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 import DeleteButton from "@/components/common/DeleteButton";
 import { TranslatedNote } from "@/components/translation/TranslatedNote";
+import ClaimPolicyTab, { type PolicyActions } from "@/components/claims/ClaimPolicyTab";
 
 type Tab =
   | "overview"
@@ -22,6 +23,7 @@ type Tab =
   | "investigation"
   | "compensation"
   | "insurance"
+  | "policy"
   | "communication"
   | "audit"
   | "notes";
@@ -34,6 +36,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "investigation", label: "Investigation" },
   { id: "compensation", label: "Compensation" },
   { id: "insurance", label: "Insurance" },
+  { id: "policy", label: "Policy & letters" },
   { id: "communication", label: "Communication" },
   { id: "audit", label: "Audit Log" },
   { id: "notes", label: "Notes" },
@@ -47,8 +50,9 @@ type Props = {
   onAddNote: (body: string) => void;
   onAddEvidence: (name: string, type: string) => void;
   onSaveInvestigation: (data: Record<string, string>) => void;
-  onSaveCompensation: (approved: number) => void;
+  onSaveCompensation: (approved: number, goodwillReason?: string) => void;
   onSaveInsurance: (provider: string) => void;
+  policyActions: PolicyActions;
 };
 
 export default function ClaimDetailView({
@@ -61,6 +65,7 @@ export default function ClaimDetailView({
   onSaveInvestigation,
   onSaveCompensation,
   onSaveInsurance,
+  policyActions,
 }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
@@ -192,6 +197,7 @@ export default function ClaimDetailView({
         )}
         {tab === "compensation" && <CompensationTab detail={detail} onSave={onSaveCompensation} />}
         {tab === "insurance" && <InsuranceTab detail={detail} onSave={onSaveInsurance} />}
+        {tab === "policy" && <ClaimPolicyTab detail={detail} actions={policyActions} />}
         {tab === "communication" && <CommunicationTab detail={detail} onAddNote={onAddNote} />}
         {tab === "audit" && <AuditTab detail={detail} />}
         {tab === "notes" && <NotesTab detail={detail} onAddNote={onAddNote} />}
@@ -344,7 +350,7 @@ function CompensationTab({
   onSave,
 }: {
   detail: ClaimDetail;
-  onSave: (approved: number) => void;
+  onSave: (approved: number, goodwillReason?: string) => void;
 }) {
   const c = detail.compensation;
   return (
@@ -366,7 +372,20 @@ function CompensationTab({
         className="mt-4"
         onClick={() => {
           const dollars = prompt("Approved amount ($)");
-          if (dollars) onSave(Math.round(Number(dollars) * 100));
+          if (!dollars) return;
+          const cents = Math.round(Number(dollars) * 100);
+          const cap = Number(
+            (detail.policy as { liability?: { cap_cents?: number } })?.liability?.cap_cents ?? 0
+          );
+          let reason: string | undefined;
+          if (cap && cents > cap) {
+            reason =
+              prompt(
+                `This is above our liability for this shipment (${formatCents(cap)}). Reason for a goodwill payment:`
+              ) ?? undefined;
+            if (!reason) return;
+          }
+          onSave(cents, reason);
         }}
       >
         Set compensation

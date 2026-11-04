@@ -16,7 +16,7 @@ import {
 import { DateField } from "@porterchain/ui/date-fields";
 import DriverShell from "@/components/DriverShell";
 import { useDriverProfile } from "@/hooks/useDriverProfile";
-import { hasDriverSession } from "@/lib/api";
+import { hasDriverSession, openCompanyInsuranceCertificate } from "@/lib/api";
 import {
   formatProfileDate,
   severityStyles,
@@ -176,6 +176,26 @@ export default function DriverProfileClient() {
           title="Insurance"
           icon={Shield}
           verified={snap.verification.insurance_verified}
+          footer={
+            <div className="mt-4 border-t border-[var(--primary)]/10 pt-3">
+              <p className="text-xs text-[var(--muted)]">
+                Keep a copy of PorterChain&apos;s cargo insurance certificate with you on every
+                delivery. Ontario law requires proof of cargo insurance in the vehicle.
+              </p>
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] underline"
+                onClick={() => {
+                  openCompanyInsuranceCertificate().catch(() =>
+                    window.alert("The certificate could not be opened. Please try again.")
+                  );
+                }}
+              >
+                <FileText className="h-4 w-4" aria-hidden />
+                PorterChain certificate of insurance (PDF)
+              </button>
+            </div>
+          }
         >
           <Row label="Provider" value={String(snap.insurance.provider ?? "—")} />
           <Row label="Policy" value={String(snap.insurance.policy_number ?? "—")} />

@@ -66,4 +66,5 @@ class ClaimsDetailMixin:
             ],
             "duplicates": duplicates,
             "smart": smart,
+            "policy": self.policy_view(db, claim.id),
         }

@@ -577,6 +577,7 @@ class ClaimDetailResponse(ClaimListItem):
     domain_events: list[dict[str, Any]] = Field(default_factory=list)
     duplicates: list[dict[str, Any]] = Field(default_factory=list)
     smart: dict[str, Any] = Field(default_factory=dict)
+    policy: dict[str, Any] = Field(default_factory=dict)
 
 
 class ClaimDashboardResponse(BaseModel):
@@ -646,6 +647,8 @@ class ClaimCompensationRequest(BaseModel):
     driver_liability_cents: int | None = None
     merchant_liability_cents: int | None = None
     customer_compensation_cents: int | None = None
+    goodwill_reason: str | None = None  # needed to pay above the liability cap (never above $50,000)
+    merchant_fault_reason: str | None = None  # needed to charge a merchant; the deductible is never charged
 
 
 class ClaimInsuranceRequest(BaseModel):
@@ -1480,3 +1483,16 @@ class VisitorIntelligenceResponse(BaseModel):
 
 class ReportsRequest(BaseModel):
     write_files: bool = False
+
+
+class ClaimLetterRequest(BaseModel):
+    kind: str  # acknowledgement | approved | denied
+    amount_cents: int | None = None
+    reason: str | None = None
+    details: str | None = None
+
+
+class ClaimBrokerNotifiedRequest(BaseModel):
+    sent_on: str
+    method: str  # email | phone
+    broker_reference: str | None = None

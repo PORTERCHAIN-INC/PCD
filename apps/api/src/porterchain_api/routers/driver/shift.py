@@ -1,5 +1,9 @@
 """driver routes — shift."""
 
+from pathlib import Path
+
+from fastapi.responses import FileResponse
+
 from porterchain_api.db import db_transaction
 from porterchain_api.routers.driver._deps import (
     Annotated,
@@ -22,6 +26,26 @@ def get_vehicle(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: 
 @router.get("/insurance")
 def insurance(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
     return svc.platform.insurance.status(db, ctx.driver)
+
+
+_COI_PDF = Path(__file__).resolve().parents[2] / "assets" / "insurance" / "certificate-of-insurance-2026.pdf"
+
+
+@router.get("/insurance/certificate")
+def company_insurance_certificate(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
+    """PorterChain's cargo/CGL certificate (Lloyd's B5000191409, 2026-11-05 to 2027-11-05).
+
+    O. Reg. 643/05 requires proof of cargo insurance in each vehicle. Signed-in drivers only:
+    the certificate shows the policy number, so it is not on a public URL.
+    """
+    if not _COI_PDF.is_file():
+        raise HTTPException(status_code=404, detail="certificate_unavailable")
+    return FileResponse(
+        _COI_PDF,
+        media_type="application/pdf",
+        filename="PorterChain-Certificate-of-Insurance-2026-2027.pdf",
+        headers={"Cache-Control": "private, no-store"},
+    )
 
 
 @router.get("/documents")

@@ -78,9 +78,42 @@ export const claimDetailSchema = claimRowSchema.extend({
   domain_events: z.array(z.record(z.string(), z.unknown())),
   duplicates: z.array(z.record(z.string(), z.unknown())),
   smart: z.record(z.string(), z.unknown()),
+  policy: z.record(z.string(), z.unknown()).default({}),
 });
 
 export type ClaimDetail = z.infer<typeof claimDetailSchema>;
+
+export type ClaimLetter = {
+  subject: string;
+  body: string;
+  to?: string;
+  kind?: string;
+  status?: string;
+};
+
+/** Shape of `detail.policy` (cargo policy + O. Reg. 643/05 assessment from the API). */
+export type ClaimPolicy = {
+  applies?: boolean;
+  investigated?: boolean;
+  notice?: {
+    rule?: string;
+    deadline?: string | null;
+    within_time?: boolean | null;
+    source?: string;
+  };
+  evidence?: { items?: { key: string; label: string; received: boolean }[]; complete?: boolean };
+  liability?: { cap_cents?: number; limit_cents?: number; capped?: boolean };
+  claimed_cents?: number | null;
+  insurer?: {
+    deductible_cents?: number;
+    exposure_cents?: number;
+    notify_broker?: boolean;
+    recoverable_after_deductible_cents?: number;
+  };
+  broker_notice?: (ClaimLetter & { sent?: boolean; sent_on?: string; method?: string }) | null;
+  policy?: { insurer?: string; policy_ref?: string; in_force?: boolean; expires?: string };
+  denial_reasons?: { key: string; text: string }[];
+};
 
 export type ClaimDashboard = {
   open_claims: number;
@@ -181,6 +214,28 @@ export const claimsApi = {
     adminFetch<ClaimDetail>(`${B}/${id}/insurance`, token, {
       method: "POST",
       body: JSON.stringify(insurance),
+    }),
+  /** Draft letter (acknowledgement | approved | denied). Logged in the timeline, never sent. */
+  draftLetter: (
+    token: string,
+    id: string,
+    body: { kind: string; amount_cents?: number; reason?: string; details?: string }
+  ) =>
+    adminFetch<ClaimLetter>(`${B}/${id}/letters`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  /** Draft notice to the broker (Able Insurance Brokers). Admin sends it themselves. */
+  prepareBrokerNotice: (token: string, id: string) =>
+    adminFetch<ClaimLetter>(`${B}/${id}/broker-notice`, token, { method: "POST" }),
+  recordBrokerNotified: (
+    token: string,
+    id: string,
+    body: { sent_on: string; method: string; broker_reference?: string }
+  ) =>
+    adminFetch<ClaimLetter>(`${B}/${id}/broker-notice/sent`, token, {
+      method: "POST",
+      body: JSON.stringify(body),
     }),
   bulk: (
     token: string,
