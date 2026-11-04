@@ -3,17 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import {
-  BOOKING_VEHICLES,
   MAX_DROPS,
   bookingText,
   buildQuoteInput,
   canAddDrop,
   formatPrice,
-  isVehicle,
   payBlocker,
   type BookingLocale,
   type BookingCopyKey,
-  type VehicleId,
 } from "@porterchain/types/booking";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
@@ -28,6 +25,15 @@ import {
   type FastQuote,
 } from "@/lib/api";
 import { getOrCreateVisitorId } from "@/lib/visitor-tracking";
+import {
+  PARCEL_SIZES,
+  PARCEL_SIZE_LEGEND,
+  parcelSizeFromLink,
+  type ParcelSize,
+} from "@/lib/express-quote";
+
+// vehicle_class is not priced for parcel quotes; dispatch picks the vehicle.
+const vehicle = "sedan_suv" as const;
 
 const field =
   "mt-1.5 block w-full rounded-2xl border border-primary/15 bg-white px-4 py-3.5 text-base text-primary placeholder:text-primary/45 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15";
@@ -77,9 +83,7 @@ export default function ExpressBook({
   const [mode, setMode] = useState<Mode>(quoteId || againToken ? "locked" : "form");
   const [pickup, setPickup] = useState(initialPickup);
   const [drops, setDrops] = useState<string[]>([initialDropoff]);
-  const [vehicle, setVehicle] = useState<VehicleId>(
-    isVehicle(initialVehicle) ? initialVehicle : "sedan_suv"
-  );
+  const [parcelSize, setParcelSize] = useState<ParcelSize>(parcelSizeFromLink(initialVehicle));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -124,10 +128,10 @@ export default function ExpressBook({
     }
   }, [againToken, quoteId, locale]);
 
-  const quoteInput = useMemo(
-    () => buildQuoteInput({ pickup, drops, vehicle }),
-    [pickup, drops, vehicle]
-  );
+  const quoteInput = useMemo(() => {
+    const input = buildQuoteInput({ pickup, drops, vehicle });
+    return input ? { ...input, parcel_size: parcelSize } : null;
+  }, [pickup, drops, parcelSize]);
 
   // Live price as they type (debounced). Does not create a quote.
   useEffect(() => {
@@ -318,28 +322,28 @@ export default function ExpressBook({
           )}
 
           <fieldset>
-            <legend className={labelCls}>{tx("vehicle")}</legend>
-            <div className="mt-1.5 grid grid-cols-3 gap-2" role="radiogroup">
-              {BOOKING_VEHICLES.map((v) => (
+            <legend className={labelCls}>{PARCEL_SIZE_LEGEND[locale]}</legend>
+            <div className="mt-1.5 grid grid-cols-2 gap-2" role="radiogroup">
+              {PARCEL_SIZES.map((v) => (
                 <label
                   key={v.id}
                   className={`cursor-pointer rounded-2xl border px-3 py-3 text-center transition ${
-                    vehicle === v.id
+                    parcelSize === v.id
                       ? "border-primary bg-primary text-white"
                       : "border-primary/15 bg-white text-primary hover:border-primary/40"
                   }`}
                 >
                   <input
                     type="radio"
-                    name="vehicle"
+                    name="parcel_size"
                     value={v.id}
-                    checked={vehicle === v.id}
-                    onChange={() => setVehicle(v.id)}
+                    checked={parcelSize === v.id}
+                    onChange={() => setParcelSize(v.id)}
                     className="sr-only"
                   />
                   <span className="block text-base font-bold">{v.label[locale]}</span>
                   <span
-                    className={`block text-xs ${vehicle === v.id ? "text-white/85" : "text-primary/65"}`}
+                    className={`block text-xs ${parcelSize === v.id ? "text-white/85" : "text-primary/65"}`}
                   >
                     {v.hint[locale]}
                   </span>

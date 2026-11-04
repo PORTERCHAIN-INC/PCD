@@ -16,10 +16,40 @@ usage() {
   exit 2
 }
 
+# Read running images from container labels, not `docker compose ps`: compose
+# interpolates the *new* compose file against the *old* .env here (the new file is
+# already copied, secrets are not synced yet), and a missing required var aborted
+# the 2026-11-04 deploy before anything was recorded.
+# Scope to this compose project so other stacks on the host (crm-*) never match.
+COMPOSE_PROJECT="${COMPOSE_PROJECT_NAME:-$(awk '/^name:/ { print $2; exit }' "$COMPOSE_FILE" 2>/dev/null)}"
+COMPOSE_PROJECT="${COMPOSE_PROJECT:-porterchain-prod}"
+
 image_for() {
   local service="$1"
-  docker compose -f "$COMPOSE_FILE" ps --status running --format '{{.Service}} {{.Image}}' \
-    | awk -v svc="$service" '$1 == svc { print $2; exit }'
+  docker ps --filter "label=com.docker.compose.project=${COMPOSE_PROJECT}" \
+    --filter "label=com.docker.compose.service=${service}" --filter status=running \
+    --format '{{.Image}}' | head -n1
+}
+
+# Pre-deploy config (.env, compose file, Caddyfile) staged by deploy.yml *before*
+# the new files are copied. Moved under a stamped dir so rollback restores it.
+STAGED_CONFIG="$BACKUP_DIR/pre-deploy-config-staged"
+
+capture_config() {
+  local stamp="$1" dest
+  dest="$BACKUP_DIR/pre-deploy-config-$stamp"
+  if [[ -d "$STAGED_CONFIG" ]]; then
+    rm -rf "$dest"
+    mv "$STAGED_CONFIG" "$dest"
+  else
+    echo "::warning::no staged pre-deploy config; snapshotting current files (may already be the new release)" >&2
+    mkdir -p "$dest"
+    for f in .env docker-compose.prod.yml Caddyfile; do
+      [[ -f "$DEPLOY_DIR/$f" ]] && cp -a "$DEPLOY_DIR/$f" "$dest/$f"
+    done
+  fi
+  chmod 700 "$dest"
+  echo "$dest"
 }
 
 write_image_line() {
@@ -43,6 +73,7 @@ capture_images() {
     write_image_line MERCHANT_IMAGE merchant
     write_image_line DRIVER_IMAGE driver
     write_image_line CUSTOMER_IMAGE customer
+    echo "CONFIG_DIR=$(capture_config "$stamp")"
   } >"$PENDING"
   if grep -q '=$' "$PENDING"; then
     echo "A running app image is missing in $PENDING." >&2
@@ -86,6 +117,7 @@ capture_database() {
     echo "MERCHANT_IMAGE=${MERCHANT_IMAGE:-}"
     echo "DRIVER_IMAGE=${DRIVER_IMAGE:-}"
     echo "CUSTOMER_IMAGE=${CUSTOMER_IMAGE:-}"
+    echo "CONFIG_DIR=${CONFIG_DIR:-}"
   } >"$manifest"
   cp "$manifest" "$BACKUP_DIR/pre-migrate-latest.manifest"
   rm -f "$PENDING"
@@ -98,6 +130,7 @@ capture_database() {
     while IFS= read -r path; do
       [[ -z "$path" ]] && continue
       rm -f "$path" "${path%.sql.gz}.manifest"
+      rm -rf "$BACKUP_DIR/pre-deploy-config-$(basename "${path%.sql.gz}" | sed 's/^pre-migrate-//')"
       echo "Pruned old pre-migrate snapshot $path"
     done <<<"$old"
   fi
